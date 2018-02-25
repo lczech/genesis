@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_CONTAINERS_MATRIX_READER_H_
-#define GENESIS_UTILS_CONTAINERS_MATRIX_READER_H_
+#ifndef GENESIS_UTILS_CONTAINERS_DATAFRAME_READER_H_
+#define GENESIS_UTILS_CONTAINERS_DATAFRAME_READER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -34,7 +34,7 @@
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/containers/dataframe.hpp"
 
 #include <functional>
 #include <stdexcept>
@@ -46,11 +46,11 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     MatrixReader
+//     DataframeReader
 // =================================================================================================
 
 template <typename T>
-class MatrixReader
+class DataframeReader
 {
 public:
 
@@ -58,40 +58,40 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    MatrixReader( char separator_char = '\t' )
+    DataframeReader( char separator_char = ',' )
     {
         reader_.separator_chars( std::string( 1, separator_char ));
     }
 
-    MatrixReader( CsvReader const& reader )
+    DataframeReader( CsvReader const& reader )
         : reader_( reader )
     {}
 
-    ~MatrixReader() = default;
+    ~DataframeReader() = default;
 
-    MatrixReader(MatrixReader const&) = default;
-    MatrixReader(MatrixReader&&)      = default;
+    DataframeReader(DataframeReader const&) = default;
+    DataframeReader(DataframeReader&&)      = default;
 
-    MatrixReader& operator= (MatrixReader const&) = default;
-    MatrixReader& operator= (MatrixReader&&)      = default;
+    DataframeReader& operator= (DataframeReader const&) = default;
+    DataframeReader& operator= (DataframeReader&&)      = default;
 
     // -------------------------------------------------------------
     //     Reading
     // -------------------------------------------------------------
 
-    Matrix<T> from_stream( std::istream&      is ) const
+    Dataframe<T> from_stream( std::istream&      is ) const
     {
         utils::InputStream it( utils::make_unique< utils::StreamInputSource >( is ));
         return parse_( it );
     }
 
-    Matrix<T> from_file  ( std::string const& fn ) const
+    Dataframe<T> from_file  ( std::string const& fn ) const
     {
         utils::InputStream it( utils::make_unique< utils::FileInputSource >( fn ));
         return parse_( it );
     }
 
-    Matrix<T> from_string( std::string const& fs ) const
+    Dataframe<T> from_string( std::string const& fs ) const
     {
         utils::InputStream it( utils::make_unique< utils::StringInputSource >( fs ));
         return parse_( it );
@@ -101,25 +101,25 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
-    bool skip_first_col() const
+    bool names_from_first_row() const
     {
-        return skip_first_col_;
+        return names_from_first_row_;
     }
 
-    bool skip_first_row() const
+    bool names_from_first_col() const
     {
-        return skip_first_row_;
+        return names_from_first_col_;
     }
 
-    MatrixReader& skip_first_col( bool value )
+    DataframeReader& names_from_first_row( bool value )
     {
-        skip_first_col_ = value;
+        names_from_first_row_ = value;
         return *this;
     }
 
-    MatrixReader& skip_first_row( bool value )
+    DataframeReader& names_from_first_col( bool value )
     {
-        skip_first_row_ = value;
+        names_from_first_col_ = value;
         return *this;
     }
 
@@ -133,7 +133,7 @@ public:
         return reader_;
     }
 
-    MatrixReader& parse_value_functor( std::function<T( std::string const& )> functor )
+    DataframeReader& parse_value_functor( std::function<T( std::string const& )> functor )
     {
         parse_value_ = functor;
     }
@@ -144,77 +144,73 @@ public:
 
 private:
 
-    Matrix<T> parse_( utils::InputStream& input_stream ) const
+    Dataframe<T> parse_( utils::InputStream& input_stream ) const
     {
-        // We collect data in a vector first, because resizing a Matrix is hard.
-        std::vector<T> table;
-        size_t cols = 0;
+        Dataframe<T> result;
+        size_t const offset = ( names_from_first_col_ ? 1 : 0 );
 
         // Early stop.
         if( ! input_stream ) {
-            return {};
+            return result;
         }
 
-        // Skip first line if needed.
-        if( skip_first_row_ ) {
-            reader_.parse_line( input_stream );
+        // Read column names.
+        if( names_from_first_row_ ) {
+            auto const col_names = reader_.parse_line( input_stream );
+            size_t const start = offset;
+            for( size_t i = start; i < col_names.size(); ++i ) {
+                result.add_col( col_names[i] );
+            }
         }
 
+        // Read lines of data.
         while( input_stream ) {
             auto const line = reader_.parse_line( input_stream );
 
-            // Get the measurements of the interesting part of the line.
-            auto first = 0;
-            auto len   = line.size();
-            if( len > 0 && skip_first_col_ ) {
-                first = 1;
-                --len;
+            // Need to have a least one content element.
+            if(( line.size() == 0 ) || ( names_from_first_col_ && line.size() == 1 )) {
+                throw std::runtime_error( "Cannot read Dataframe with empty lines." );
+            }
+            assert( line.size() > offset );
+
+            // Add a row for the line. Use row name if wanted.
+            if( names_from_first_col_ ) {
+                result.add_row( line[0] );
+            } else {
+                result.add_row();
             }
 
-            // Check that line length is consisent. Cols == 0 means we just started.
-            if( cols == 0 ) {
+            // If there was no column names, make columns.
+            if( result.cols() == 0 ) {
+                // This can only happen in the first line, and if no col names were read.
+                assert( result.rows() == 1 );
+                assert( ! names_from_first_row_ );
 
-                // Matrix with zero length colums is empty, no matter how many rows it has.
-                if( len == 0 ) {
-                    return {};
-                    // throw std::runtime_error( "Cannot read Matrix with empty lines." );
+                // Add unnamed cols.
+                for( size_t i = offset; i < line.size(); ++i ) {
+                    result.add_col();
                 }
+            }
 
-                // Store the col length.
-                cols = len;
-
-            } else if( cols != len ) {
-                throw std::runtime_error( "Matrix has different line lengths." );
+            // Check if the line has the correct size.
+            if( line.size() != offset + result.cols() ) {
+                throw std::runtime_error( "Dataframe input has different line lengths." );
             }
 
             // Parse and transfer the data. User specified parser or default one.
+            auto const row_idx = result.rows() - 1;
             if( parse_value_ ) {
-                for( size_t i = first; i < line.size(); ++i ) {
-                    table.push_back( parse_value_( line[i] ) );
+                for( size_t i = 0; i < result.cols(); ++i ) {
+                    result( row_idx, i ) = parse_value_( line[ offset + i ] );
                 }
             } else {
-                for( size_t i = first; i < line.size(); ++i ) {
-                    table.push_back( parse_value_stringstream_( line[i] ) );
+                for( size_t i = 0; i < result.cols(); ++i ) {
+                    result( row_idx, i ) = parse_value_stringstream_( line[ offset + i ] );
                 }
             }
         }
 
-        // We cannot properly calculate dimensions of an empty matrix. So better return here.
-        if( table.size() == 0 ) {
-            assert( cols == 0 );
-            return {};
-        }
-
-        // Make sure that the table as a matrix shape.
-        if( table.size() % cols != 0 ) {
-            // I'm pretty sure this should be an assertion. But better check it all the time,
-            // and throw some confusing incomprehensible error message.
-            throw std::runtime_error( "Matrix is not rectangluar." );
-        }
-
-        // Make a proper Matrix.
-        size_t const rows = table.size() / cols;
-        return Matrix<T>( rows, cols, std::move(table) );
+        return result;
     }
 
     inline T parse_value_stringstream_( std::string const& cell ) const
@@ -231,8 +227,8 @@ private:
 
 private:
 
-    bool skip_first_row_ = false;
-    bool skip_first_col_ = false;
+    bool names_from_first_row_ = true;
+    bool names_from_first_col_ = true;
 
     CsvReader reader_;
 

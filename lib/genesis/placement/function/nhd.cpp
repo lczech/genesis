@@ -28,11 +28,12 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/function/emd.hpp"
+#include "genesis/placement/function/nhd.hpp"
 
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/helper.hpp"
 #include "genesis/placement/function/operators.hpp"
+#include "genesis/placement/pquery/plain.hpp"
 #include "genesis/placement/sample_set.hpp"
 #include "genesis/placement/sample.hpp"
 
@@ -40,15 +41,13 @@
 #include "genesis/tree/function/distances.hpp"
 #include "genesis/tree/function/functions.hpp"
 
-#include "genesis/utils/math/histogram.hpp"
-#include "genesis/utils/math/histogram/accumulator.hpp"
-#include "genesis/utils/math/histogram/distances.hpp"
-#include "genesis/utils/math/histogram/operations.hpp"
-#include "genesis/utils/math/histogram/operators.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/matrix/operators.hpp"
 
+#include <algorithm>
 #include <cassert>
+#include <cmath>
+#include <stdexcept>
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>
@@ -62,13 +61,13 @@ namespace placement {
 // =================================================================================================
 
 // -------------------------------------------------------------------------------------------------
-//     make_empty_node_distance_histograms
+//     make_empty_node_distance_histogram_set
 // -------------------------------------------------------------------------------------------------
 
 /**
  * @brief Create a set of Histograms without any weights for a given Tree.
  */
-std::vector< utils::Histogram > make_empty_node_distance_histograms (
+NodeDistanceHistogramSet make_empty_node_distance_histogram_set (
     tree::Tree const& tree,
     utils::Matrix<double> const& node_distances,
     utils::Matrix<signed char> const& node_sides,
@@ -86,10 +85,9 @@ std::vector< utils::Histogram > make_empty_node_distance_histograms (
     }
 
     // Prepare a vector of histograms for each node of the tree.
-    // We init with dummy histograms, so that we can better parallelize later...
-    // Stupid, but okay for now.
-    auto histograms = std::vector< utils::Histogram >();
-    histograms.resize( node_count, utils::Histogram( histogram_bins ));
+    // We init with default values, so that we can better parallelize later.
+    NodeDistanceHistogramSet histogram_set;
+    histogram_set.histograms.resize( node_count );
 
     // Make histograms that have enough room on both sides.
     #pragma omp parallel for
@@ -128,10 +126,12 @@ std::vector< utils::Histogram > make_empty_node_distance_histograms (
             );
         }
 
-        histograms[node_idx] = utils::Histogram( histogram_bins, -min, max );
+        histogram_set.histograms[ node_idx ].min  = -min;
+        histogram_set.histograms[ node_idx ].max  = max;
+        histogram_set.histograms[ node_idx ].bins = std::vector<double>( histogram_bins, 0.0 );
     }
 
-    return histograms;
+    return histogram_set;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -141,14 +141,15 @@ std::vector< utils::Histogram > make_empty_node_distance_histograms (
 /**
  * @brief Fill the placements of a Sample into Histograms.
  */
-void fill_node_distance_histograms (
+void fill_node_distance_histogram_set (
     Sample const& sample,
     utils::Matrix<double> const& node_distances,
     utils::Matrix<signed char> const& node_sides,
-    std::vector< utils::Histogram >& histograms
+    NodeDistanceHistogramSet& histogram_set
 ) {
+    // Basic checks.
     auto const node_count = sample.tree().node_count();
-    if( histograms.size() != node_count ) {
+    if( histogram_set.histograms.size() != node_count ) {
         throw std::runtime_error( "Number of histograms does not equal number of tree nodes." );
     }
     if( node_distances.rows() != node_count || node_distances.cols() != node_count ) {
@@ -158,92 +159,219 @@ void fill_node_distance_histograms (
         throw std::runtime_error( "Node Sides Matrix has wrong size." );
     }
 
-    // We use this order of loops, as it should be faster to touch each pquery once, and
-    // instead update the histograms multiple times, instead of fill the histogram for each
-    // node spearately, which would require multiple iterations of the pqueries.
+    // Convert placements to plain form. We are later going to loop over them for every node of the
+    // tree, so this plain form speeds things up a lot there.
+    auto placements = std::vector<PqueryPlacementPlain>( total_placement_count(sample) );
+    size_t pcnt = 0;
     for( auto const& pquery : sample ) {
         double const mult = total_multiplicity( pquery );
 
         for( auto const& placement : pquery.placements() ) {
-            for( size_t node_index = 0; node_index < sample.tree().node_count(); ++node_index ) {
+            auto& place = placements[pcnt];
 
-                // Get the distance from the placement to the current histogram node.
-                double const p_dist = placement.proximal_length
-                    + node_distances( node_index, placement.edge().primary_node().index() );
-                double const d_dist = placement.edge().data<PlacementEdgeData>().branch_length
-                    - placement.proximal_length
-                    + node_distances( node_index, placement.edge().secondary_node().index() );
-                double const dist = std::min( p_dist, d_dist );
+            place.edge_index           = placement.edge().index();
+            place.primary_node_index   = placement.edge().primary_node().index();
+            place.secondary_node_index = placement.edge().secondary_node().index();
 
-                // Get the side of the placement relative to the current node.
-                // Value 1 means, it is on the root side. Values 0 and -1 mean a non root side.
-                // Use this to determine the sign used to mark the position in the histogram.
-                auto const side = node_sides( node_index, placement.edge().primary_node().index() );
-                double const sign = ( side == 1 ? 1.0 : -1.0 );
+            auto const& placement_data = placement.edge().data<PlacementEdgeData>();
+            place.branch_length        = placement_data.branch_length;
+            place.pendant_length       = placement.pendant_length;
+            place.proximal_length      = placement.proximal_length;
 
-                // Sanity checks. They can fail if this function is used from the outside,
-                // but within our local context, they should hold.
-                // Nope, not true. It fails for example with negative proximal length,
-                // or proximal lengths > branch length, which can happen for numerical reasons,
-                // or because of bugs in the placement algortihm.
-                // So, do not check, but leave the sanity check up to the user.
-                // assert( dist >= 0.0 );
-                // assert( sign * dist >= histograms[ node_index ].range_min() );
-                // assert( sign * dist <= histograms[ node_index ].range_max() );
+            // We cheat a bit and store the multiplicity right here with the LWR.
+            // That is okay, because the data is only used within the function.
+            place.like_weight_ratio    = placement.like_weight_ratio * mult;
 
-                // Accumulate at the distance, using the lwr and multiplicity as weight, so that the
-                // total weight of a pquery sums up to the multiplicity.
-                histograms[ node_index ].accumulate( sign * dist, mult * placement.like_weight_ratio );
-            }
+            ++pcnt;
         }
     }
 
-    // Normalize.
-    for( auto& hist : histograms ) {
-        normalize( hist );
+    // Fill the histogram of every node.
+    for( size_t node_index = 0; node_index < sample.tree().node_count(); ++node_index ) {
+
+        // Prepare.
+        auto& histogram = histogram_set.histograms[ node_index ];
+        const auto min  = histogram.min;
+        const auto max  = histogram.max;
+        const auto bins = histogram.bins.size();
+        const double bin_width = ( max - min ) / static_cast<double>( bins );
+        double sum = 0.0;
+
+        // Add all placements to the histogram for the current node.
+        for( auto const& placement : placements ) {
+
+            // Get the distance from the placement to the current histogram node.
+            double const p_dist = placement.proximal_length
+                + node_distances( node_index, placement.primary_node_index )
+            ;
+            double const d_dist = placement.branch_length
+                - placement.proximal_length
+                + node_distances( node_index, placement.secondary_node_index )
+            ;
+            double const dist = std::min( p_dist, d_dist );
+
+            // Get the side of the placement relative to the current node.
+            // Value 1 means, it is on the root side. Values 0 and -1 mean a non root side.
+            // Use this to determine the sign used to mark the position in the histogram.
+            auto const side = node_sides( node_index, placement.primary_node_index );
+            double const sign = ( side == 1 ? 1.0 : -1.0 );
+
+            // Calcualte the bin index.
+            auto const x = sign * dist;
+            size_t bin = 0;
+            if( x < min ) {
+                bin = 0;
+            } else if( x >= max ) {
+                bin = bins - 1;
+            } else {
+                bin = static_cast<size_t>(( x - min ) / bin_width );
+                assert( bin < bins );
+            }
+
+            // Accumulate the weight at the bin.
+            histogram.bins[ bin ] += placement.like_weight_ratio;
+            sum += placement.like_weight_ratio;
+        }
+
+        // Normalize.
+        for( auto& val : histogram.bins ) {
+            val /= sum;
+        }
     }
 }
 
+// =================================================================================================
+//     Basic Functions
+// =================================================================================================
+
 // -------------------------------------------------------------------------------------------------
-//     Sample node_distance_histograms
+//     Sample node_distance_histogram_set
 // -------------------------------------------------------------------------------------------------
 
-/**
- * @brief Local helper function that calculates the Histograms for a Sample.
- */
-std::vector< utils::Histogram > node_distance_histograms (
+NodeDistanceHistogramSet node_distance_histogram_set (
     Sample const& sample,
-    size_t const  histogram_bins,
-    bool use_negative_axis = true
+    utils::Matrix<double> const& node_distances,
+    utils::Matrix<signed char> const& node_sides,
+    size_t const  histogram_bins
+) {
+    // Make the histograms, fill them, return them.
+    auto histograms = make_empty_node_distance_histogram_set(
+        sample.tree(), node_distances, node_sides, histogram_bins
+    );
+    fill_node_distance_histogram_set( sample, node_distances, node_sides, histograms );
+    return histograms;
+}
+
+// -------------------------------------------------------------------------------------------------
+//     node_histogram_distance
+// -------------------------------------------------------------------------------------------------
+
+double node_histogram_distance (
+    NodeDistanceHistogram const& lhs,
+    NodeDistanceHistogram const& rhs
+) {
+    if( lhs.bins.size() != rhs.bins.size() || lhs.min != rhs.min || lhs.max != rhs.max ){
+        throw std::runtime_error(
+            "Cannot calculate distance between NodeDistanceHistograms of different dimensions."
+        );
+    }
+
+    // Prepare.
+    auto entries = std::vector<double>( lhs.bins.size(), 0.0 );
+    double result = 0.0;
+    const double bin_width = ( lhs.max - lhs.min ) / static_cast<double>( lhs.bins.size() );
+
+    // Loop and "move" masses.
+    for( size_t i = 0; i < lhs.bins.size() - 1; ++i) {
+        entries[i + 1]  = lhs.bins[i] + entries[i] - rhs.bins[i];
+        result += std::abs( entries[i + 1] ) * bin_width;
+    }
+
+    return result;
+}
+
+double node_histogram_distance (
+    NodeDistanceHistogramSet const& lhs,
+    NodeDistanceHistogramSet const& rhs,
+    size_t const                    node_count
+) {
+    if( lhs.histograms.size() != rhs.histograms.size() ){
+        throw std::runtime_error(
+            "Cannot calculate distance between NodeDistanceHistogramSets of different size."
+        );
+    }
+
+    // Sum up the emd distances of the histograms for each node of the tree in the
+    // two samples.
+    double dist = 0.0;
+    for( size_t k = 0; k < lhs.histograms.size(); ++k ) {
+        dist += node_histogram_distance( lhs.histograms[ k ], rhs.histograms[ k ] );
+    }
+    assert( dist >= 0.0 );
+
+    // Return normalized distance.
+    dist /= static_cast< double >( node_count );
+    return dist;
+}
+
+// =================================================================================================
+//     High Level Functions
+// =================================================================================================
+
+// -------------------------------------------------------------------------------------------------
+//     Sample
+// -------------------------------------------------------------------------------------------------
+
+NodeDistanceHistogramSet node_distance_histogram_set(
+    Sample const& sample,
+    size_t const  histogram_bins
 ) {
     // Calculate the pairwise distance between all pairs of nodes.
     auto const node_distances = node_branch_length_distance_matrix( sample.tree() );
 
     // For each node, calculate which other nodes are on the root side subtree and which are not.
-    auto const node_sides = ( use_negative_axis
-        ? node_root_direction_matrix( sample.tree() )
-        : utils::Matrix<signed char>( sample.tree().node_count(), sample.tree().node_count(), 1 )
-    );
+    auto const node_sides = node_root_direction_matrix( sample.tree() );
 
     // Make the histograms, fill them, return them.
-    auto histograms = make_empty_node_distance_histograms (
+    auto histograms = make_empty_node_distance_histogram_set(
         sample.tree(), node_distances, node_sides, histogram_bins
     );
-    fill_node_distance_histograms ( sample, node_distances, node_sides, histograms );
+    fill_node_distance_histogram_set( sample, node_distances, node_sides, histograms );
     return histograms;
 }
 
+double node_histogram_distance (
+    Sample const& sample_a,
+    Sample const& sample_b,
+    size_t const  histogram_bins
+) {
+    if( ! compatible_trees( sample_a, sample_b ) ) {
+        throw std::invalid_argument( "Incompatible trees." );
+    }
+
+    // Get the histograms describing the distances from placements to all nodes.
+    auto const hist_vec_a = node_distance_histogram_set( sample_a, histogram_bins );
+    auto const hist_vec_b = node_distance_histogram_set( sample_b, histogram_bins );
+
+    // If the trees are compatible (as ensured in the beginning of this function), they need to have
+    // the same number of nodes. Thus, also there should be this number of histograms in the vectors.
+    assert( hist_vec_a.histograms.size() == sample_a.tree().node_count() );
+    assert( hist_vec_b.histograms.size() == sample_b.tree().node_count() );
+    assert( hist_vec_a.histograms.size() == hist_vec_b.histograms.size() );
+
+    return node_histogram_distance( hist_vec_a, hist_vec_b, sample_a.tree().node_count() );
+}
+
 // -------------------------------------------------------------------------------------------------
-//     Sample Set node_distance_histograms
+//     Sample Set
 // -------------------------------------------------------------------------------------------------
 
 /**
  * @brief Local helper function that calculates all Histograms for all Samples in a SampleSet.
  */
-std::vector< std::vector< utils::Histogram >> node_distance_histograms (
+std::vector<NodeDistanceHistogramSet> node_distance_histogram_set(
     SampleSet const& sample_set,
-    size_t const  histogram_bins,
-    bool use_negative_axis = true
+    size_t const  histogram_bins
 ) {
     auto const set_size = sample_set.size();
 
@@ -254,20 +382,13 @@ std::vector< std::vector< utils::Histogram >> node_distance_histograms (
 
     // Prepare lookup for the trees. This assumes identical trees for all samples.
     auto const node_distances = node_branch_length_distance_matrix( sample_set[0].sample.tree() );
-    auto const node_sides = ( use_negative_axis
-        ? node_root_direction_matrix( sample_set[0].sample.tree() )
-        : utils::Matrix<signed char>(
-            sample_set[0].sample.tree().node_count(), sample_set[0].sample.tree().node_count(), 1
-        )
-    );
+    auto const node_sides = node_root_direction_matrix( sample_set[0].sample.tree() );
 
     // Prepare histograms for all samples, by copying empty histograms for the first sample.
-    auto result = std::vector< std::vector< utils::Histogram >>(
-        set_size,
-        make_empty_node_distance_histograms (
-            sample_set[ 0 ].sample.tree(), node_distances, node_sides, histogram_bins
-        )
+    auto const empty_hist = make_empty_node_distance_histogram_set(
+        sample_set[ 0 ].sample.tree(), node_distances, node_sides, histogram_bins
     );
+    auto result = std::vector<NodeDistanceHistogramSet>( set_size, empty_hist );
 
     // Calculate the histograms for all samples.
     #pragma omp parallel for schedule(dynamic)
@@ -284,81 +405,25 @@ std::vector< std::vector< utils::Histogram >> node_distance_histograms (
         }
 
         // Fill the histograms for every node of the sample.
-        fill_node_distance_histograms ( sample_set[ i ].sample, node_distances, node_sides, result[ i ] );
-        assert( result[ i ].size() == sample_set[ i ].sample.tree().node_count() );
+        fill_node_distance_histogram_set(
+            sample_set[ i ].sample, node_distances, node_sides, result[ i ]
+        );
+        assert( result[ i ].histograms.size() == sample_set[ i ].sample.tree().node_count() );
     }
 
     return result;
 }
 
-// -------------------------------------------------------------------------------------------------
-//     node_histogram_emd
-// -------------------------------------------------------------------------------------------------
-
-/**
- * @brief Local helper function to calculate the sum of histogram emds between two sets of histograms.
- */
-double node_histogram_emd (
-    std::vector< utils::Histogram > const& lhs,
-    std::vector< utils::Histogram > const& rhs,
-    size_t const                           node_count
-) {
-    // Sum up the emd distances of the histograms for each node of the tree in the
-    // two samples.
-    double dist = 0.0;
-    assert( lhs.size() == rhs.size() );
-    for( size_t k = 0; k < lhs.size(); ++k ) {
-        dist += earth_movers_distance( lhs[ k ], rhs[ k ], false );
-    }
-    assert( dist >= 0.0 );
-
-    // Return normalized distance.
-    dist /= static_cast< double >( node_count );
-    return dist;
-}
-
-// =================================================================================================
-//     Sample
-// =================================================================================================
-
-double node_histogram_distance (
-    Sample const& sample_a,
-    Sample const& sample_b,
-    size_t const  histogram_bins,
-    bool use_negative_axis
-) {
-    if( ! compatible_trees( sample_a, sample_b ) ) {
-        throw std::invalid_argument( "Incompatible trees." );
-    }
-
-    // Get the histograms describing the distances from placements to all nodes.
-    auto const hist_vec_a = node_distance_histograms( sample_a, histogram_bins, use_negative_axis );
-    auto const hist_vec_b = node_distance_histograms( sample_b, histogram_bins, use_negative_axis );
-
-    // If the trees are compatible (as ensured in the beginning of this function), they need to have
-    // the same number of nodes. Thus, also there should be this number of histograms in the vectors.
-    assert( hist_vec_a.size() == sample_a.tree().node_count() );
-    assert( hist_vec_b.size() == sample_b.tree().node_count() );
-    assert( hist_vec_a.size() == hist_vec_b.size() );
-
-    return node_histogram_emd( hist_vec_a, hist_vec_b, sample_a.tree().node_count() );
-}
-
-// =================================================================================================
-//     Sample Set
-// =================================================================================================
-
 utils::Matrix<double> node_histogram_distance (
     SampleSet const& sample_set,
-    size_t const     histogram_bins,
-    bool use_negative_axis
+    size_t const     histogram_bins
 ) {
     // Init distance matrix.
     auto const set_size = sample_set.size();
     auto result = utils::Matrix<double>( set_size, set_size, 0.0 );
 
     // Get the histograms to calculate the distance.
-    auto const hist_vecs = node_distance_histograms( sample_set, histogram_bins, use_negative_axis );
+    auto const hist_vecs = node_distance_histogram_set( sample_set, histogram_bins );
 
     // Parallel specialized code.
     #ifdef GENESIS_OPENMP
@@ -378,7 +443,7 @@ utils::Matrix<double> node_histogram_distance (
 
             // Calculate and store distance.
             auto const node_count = sample_set[ i ].sample.tree().node_count();
-            auto const dist = node_histogram_emd( hist_vecs[ i ], hist_vecs[ j ], node_count );
+            auto const dist = node_histogram_distance( hist_vecs[ i ], hist_vecs[ j ], node_count );
             result(i, j) = dist;
             result(j, i) = dist;
         }
@@ -394,185 +459,7 @@ utils::Matrix<double> node_histogram_distance (
 
                 // Calculate and store distance.
                 auto const node_count = sample_set[ i ].sample.tree().node_count();
-                auto const dist = node_histogram_emd( hist_vecs[ i ], hist_vecs[ j ], node_count );
-                result(i, j) = dist;
-                result(j, i) = dist;
-            }
-        }
-
-    #endif
-
-    return result;
-}
-
-// =================================================================================================
-//     Previous Implementation
-// =================================================================================================
-
-/*
- * These functions are not accessible from the outside.
- * We keep them here for now, just to be able to look them up quickly.
- * Probably, they can be removed in the future.
- */
-
-// -------------------------------------------------------------------------------------------------
-//     Helper Functions
-// -------------------------------------------------------------------------------------------------
-
-/**
- * @brief Local helper function to calculate the histograms of distances from all
- * @link tree::TreeNode Nodes@endlink of the @link PlacementTree Tree@endlink of a Sample to all
- * its PqueryPlacement%s.
- */
-std::vector< utils::Histogram > node_distance_histograms_old (
-    Sample const& sample,
-    size_t const  histogram_bins
-) {
-    // Prepare a vector of histograms for each node of the tree.
-    auto hist_vec = std::vector< utils::Histogram >();
-    hist_vec.reserve( sample.tree().node_count() );
-
-    // Calculate the pairwise distance between all pairs of nodes.
-    auto const node_dists = node_branch_length_distance_matrix( sample.tree() );
-
-    // Calculate the longest distance from any node. This is used as upper bound for the histograms.
-    auto const diameters = furthest_leaf_distance_vector( sample.tree(), node_dists );
-
-    // Init the histograms, using the diameter at each node as max values.
-    for( size_t node_index = 0; node_index < sample.tree().node_count(); ++node_index ) {
-        hist_vec.push_back( utils::Histogram( histogram_bins, 0.0, diameters[ node_index ].second ));
-    }
-
-    // We use this order of loops, as it should be faster to touch each pquery once, and
-    // instead update the histograms multiple times, instead of calculating a histogram for each
-    // node spearately, which would require multiple iterations of the pqueries.
-    for( auto const& pquery : sample ) {
-        double const mult = total_multiplicity( pquery );
-
-        for( auto const& placement : pquery.placements() ) {
-            for( size_t node_index = 0; node_index < sample.tree().node_count(); ++node_index ) {
-
-                double const p_dist = placement.proximal_length
-                + node_dists( node_index, placement.edge().primary_node().index() );
-
-                double const d_dist = placement.edge().data<PlacementEdgeData>().branch_length
-                - placement.proximal_length
-                + node_dists( node_index, placement.edge().secondary_node().index() );
-
-                double const dist = std::min( p_dist, d_dist );
-                assert( dist >= 0.0 && dist <= diameters[ node_index ].second );
-
-                // Accumulate at the distance, using the lwr and multiplicity as weight, so that the
-                // total weight of a pquery sums up to the multiplicity.
-                hist_vec[ node_index ].accumulate( dist, placement.like_weight_ratio * mult );
-            }
-        }
-    }
-
-    // Normalize.
-    for( auto& hist : hist_vec ) {
-        normalize( hist );
-    }
-
-    return hist_vec;
-}
-
-// -------------------------------------------------------------------------------------------------
-//     Between Samples
-// -------------------------------------------------------------------------------------------------
-
-double node_histogram_distance_old (
-    Sample const& sample_a,
-    Sample const& sample_b,
-    size_t const  histogram_bins
-) {
-    if( ! compatible_trees( sample_a, sample_b ) ) {
-        throw std::invalid_argument( "Incompatible trees." );
-    }
-
-    // Get the histograms describing the distances from placements to all nodes.
-    auto const hist_vec_a = node_distance_histograms_old( sample_a, histogram_bins );
-    auto const hist_vec_b = node_distance_histograms_old( sample_b, histogram_bins );
-
-    // If the trees are compatible (as ensured in the beginning of this function), they need to have
-    // the same number of nodes. Thus, also there should be this number of histograms in the vectors.
-    assert( hist_vec_a.size() == sample_a.tree().node_count() );
-    assert( hist_vec_b.size() == sample_b.tree().node_count() );
-    assert( hist_vec_a.size() == hist_vec_b.size() );
-
-    return node_histogram_emd( hist_vec_a, hist_vec_b, sample_a.tree().node_count() );
-}
-
-// -------------------------------------------------------------------------------------------------
-//     Full Sample Set
-// -------------------------------------------------------------------------------------------------
-
-utils::Matrix<double> node_histogram_distance_old (
-    SampleSet const& sample_set,
-    size_t const     histogram_bins
-) {
-    auto const set_size = sample_set.size();
-
-    // Prepare histograms for all samples.
-    auto hist_vecs = std::vector< std::vector< utils::Histogram >>( set_size );
-
-    // Calculate the histograms for all samples.
-    #pragma omp parallel for schedule(dynamic)
-    for( size_t i = 0; i < set_size; ++i ) {
-
-        // Check compatibility.
-        // It suffices to check adjacent pairs of samples, as compatibility is transitive.
-        if( i > 0 ) {
-            if( ! compatible_trees( sample_set[ i - 1 ].sample, sample_set[ i ].sample )) {
-                throw std::invalid_argument(
-                    "Trees in SampleSet not compatible for calculating Node Histogram Distance."
-                );
-            }
-        }
-
-        // Calculate the histograms for every node of the sample.
-        hist_vecs[ i ] = node_distance_histograms_old( sample_set[ i ].sample, histogram_bins );
-        assert( hist_vecs[ i ].size() == sample_set[ i ].sample.tree().node_count() );
-    }
-
-    // Init distance matrix.
-    auto result = utils::Matrix<double>( set_size, set_size, 0.0 );
-
-    // Parallel specialized code.
-    #ifdef GENESIS_OPENMP
-
-        // We only need to calculate the upper triangle. Get the number of indices needed
-        // to describe this triangle.
-        size_t const max_k = utils::triangular_size( set_size );
-
-        // Calculate distance matrix for every pair of samples.
-        #pragma omp parallel for
-        for( size_t k = 0; k < max_k; ++k ) {
-
-            // For the given linear index, get the actual position in the Matrix.
-            auto const ij = utils::triangular_indices( k, set_size );
-            auto const i = ij.first;
-            auto const j = ij.second;
-
-            // Calculate and store distance.
-            auto const node_count = sample_set[ i ].sample.tree().node_count();
-            auto const dist = node_histogram_emd( hist_vecs[ i ], hist_vecs[ j ], node_count );
-            result(i, j) = dist;
-            result(j, i) = dist;
-        }
-
-    // If no threads are available at all, use serial version.
-    #else
-
-        // Calculate distance matrix for every pair of samples.
-        for( size_t i = 0; i < set_size; ++i ) {
-
-            // The result is symmetric - we only calculate the upper triangle.
-            for( size_t j = i + 1; j < set_size; ++j ) {
-
-                // Calculate and store distance.
-                auto const node_count = sample_set[ i ].sample.tree().node_count();
-                auto const dist = node_histogram_emd( hist_vecs[ i ], hist_vecs[ j ], node_count );
+                auto const dist = node_histogram_distance( hist_vecs[ i ], hist_vecs[ j ], node_count );
                 result(i, j) = dist;
                 result(j, i) = dist;
             }

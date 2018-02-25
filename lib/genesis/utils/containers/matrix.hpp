@@ -174,6 +174,11 @@ public:
         return rows_ * cols_;
     }
 
+    bool empty() const
+    {
+        return size() == 0;
+    }
+
     container_type const& data() const
     {
         return data_;
