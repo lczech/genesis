@@ -161,7 +161,7 @@ private:
         }
 
         while( input_stream ) {
-            auto line = reader_.parse_line( input_stream );
+            auto const line = reader_.parse_line( input_stream );
 
             // Get the measurements of the interesting part of the line.
             auto first = 0;

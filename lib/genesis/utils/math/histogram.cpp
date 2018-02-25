@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -263,18 +263,18 @@ double Histogram::bin_width( size_t bin_num ) const
 
 int Histogram::find_bin( double x ) const
 {
-    const auto r_min = range_min();
-    const auto r_max = range_max();
+    const auto r_min = ranges_.front();
+    const auto r_max = ranges_.back();
 
     if (x < r_min) {
         return -1;
     }
     if (x >= r_max) {
-        return bins();
+        return bins_.size();
     }
 
     // Get the bin for the uniform ranges case.
-    const double bin_width = (r_max - r_min) / static_cast<double>( bins() );
+    const double bin_width = (r_max - r_min) / static_cast<double>( bins_.size() );
     const int bin = static_cast<int>( std::floor( (x - r_min) / bin_width ) );
 
     // With the calculation above, we always end up within the boundaries.
@@ -350,7 +350,7 @@ void Histogram::increment_bin( size_t bin )
 
 void Histogram::accumulate_bin( size_t bin, double weight )
 {
-    if (bin >= bins()) {
+    if( bin >= bins_.size() ) {
         throw std::out_of_range("__FUNCTION__: out_of_range");
     }
 
