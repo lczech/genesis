@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
  */
 
 #include <cstddef>
+#include <vector>
 
 namespace genesis {
 
@@ -46,6 +47,12 @@ namespace placement {
 
 }
 
+namespace tree {
+
+    class Tree;
+
+}
+
 namespace utils {
 
     template<typename T>
@@ -56,18 +63,58 @@ namespace utils {
 namespace placement {
 
 // =================================================================================================
-//     Node Histogram Distance
+//     Node Distance Histogram
 // =================================================================================================
 
+/**
+ * @brief Simple histogram data structure with equal sized bins.
+ *
+ * This struct is used as a fast and light-weight alternative to the proper utils::Histogram class
+ * for calcualting Node Histogram distances.
+ */
+struct NodeDistanceHistogram
+{
+    double min;
+    double max;
+    std::vector<double> bins;
+};
+
+/**
+ * @brief Collection of NodeDistanceHistogram%s that describes one Sample.
+ */
+struct NodeDistanceHistogramSet
+{
+    std::vector<NodeDistanceHistogram> histograms;
+};
+
+// =================================================================================================
+//     Basic Functions
+// =================================================================================================
+
+NodeDistanceHistogramSet node_distance_histogram_set(
+    Sample const& sample,
+    utils::Matrix<double> const& node_distances,
+    utils::Matrix<signed char> const& node_sides,
+    size_t const  histogram_bins
+);
+
+double node_histogram_distance(
+    NodeDistanceHistogramSet const& lhs,
+    NodeDistanceHistogramSet const& rhs,
+    size_t const                    node_count
+);
+
+// =================================================================================================
+//     High Level Functions
+// =================================================================================================
 
 /**
 * @brief Calculate the Node Histogram Distance of two Sample%s.
 */
-double node_histogram_distance (
+double node_histogram_distance(
     Sample const& sample_a,
     Sample const& sample_b,
-    size_t const  histogram_bins = 25,
-    bool use_negative_axis = true
+    size_t const  histogram_bins = 25
 );
 
 /**
@@ -75,10 +122,9 @@ double node_histogram_distance (
 * @link node_histogram_distance( Sample const&, Sample const&, size_t const, bool ) node_histogram_distance()@endlink
 * for every pair of Sample%s in the SampleSet.
 */
-utils::Matrix<double> node_histogram_distance (
+utils::Matrix<double> node_histogram_distance(
     SampleSet const& sample_set,
-    size_t const     histogram_bins = 25,
-    bool use_negative_axis = true
+    size_t const     histogram_bins = 25
 );
 
 } // namespace placement
