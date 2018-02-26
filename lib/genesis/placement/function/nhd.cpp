@@ -313,6 +313,56 @@ double node_histogram_distance (
     return dist;
 }
 
+utils::Matrix<double> node_histogram_distance(
+    std::vector<NodeDistanceHistogramSet> const& histogram_sets
+) {
+    // Init distance matrix.
+    auto const set_size = histogram_sets.size();
+    auto result = utils::Matrix<double>( set_size, set_size, 0.0 );
+
+    // Parallel specialized code.
+    #ifdef GENESIS_OPENMP
+
+        // We only need to calculate the upper triangle. Get the number of indices needed
+        // to describe this triangle.
+        size_t const max_k = utils::triangular_size( set_size );
+
+        // Calculate distance matrix for every pair of samples.
+        #pragma omp parallel for
+        for( size_t k = 0; k < max_k; ++k ) {
+
+            // For the given linear index, get the actual position in the Matrix.
+            auto const ij = utils::triangular_indices( k, set_size );
+            auto const i = ij.first;
+            auto const j = ij.second;
+
+            // Calculate and store distance.
+            auto const dist = node_histogram_distance( histogram_sets[ i ], histogram_sets[ j ] );
+            result(i, j) = dist;
+            result(j, i) = dist;
+        }
+
+    // If no threads are available at all, use serial version.
+    #else
+
+        // Calculate distance matrix for every pair of samples.
+        for( size_t i = 0; i < set_size; ++i ) {
+
+            // The result is symmetric - we only calculate the upper triangle.
+            for( size_t j = i + 1; j < set_size; ++j ) {
+
+                // Calculate and store distance.
+                auto const dist = node_histogram_distance( histogram_sets[ i ], histogram_sets[ j ] );
+                result(i, j) = dist;
+                result(j, i) = dist;
+            }
+        }
+
+    #endif
+
+    return result;
+}
+
 // =================================================================================================
 //     High Level Functions
 // =================================================================================================
@@ -417,54 +467,9 @@ utils::Matrix<double> node_histogram_distance (
     SampleSet const& sample_set,
     size_t const     histogram_bins
 ) {
-    // Init distance matrix.
-    auto const set_size = sample_set.size();
-    auto result = utils::Matrix<double>( set_size, set_size, 0.0 );
-
-    // Get the histograms to calculate the distance.
+    // Get the histograms and calculate the distance.
     auto const hist_vecs = node_distance_histogram_set( sample_set, histogram_bins );
-
-    // Parallel specialized code.
-    #ifdef GENESIS_OPENMP
-
-        // We only need to calculate the upper triangle. Get the number of indices needed
-        // to describe this triangle.
-        size_t const max_k = utils::triangular_size( set_size );
-
-        // Calculate distance matrix for every pair of samples.
-        #pragma omp parallel for
-        for( size_t k = 0; k < max_k; ++k ) {
-
-            // For the given linear index, get the actual position in the Matrix.
-            auto const ij = utils::triangular_indices( k, set_size );
-            auto const i = ij.first;
-            auto const j = ij.second;
-
-            // Calculate and store distance.
-            auto const dist = node_histogram_distance( hist_vecs[ i ], hist_vecs[ j ] );
-            result(i, j) = dist;
-            result(j, i) = dist;
-        }
-
-    // If no threads are available at all, use serial version.
-    #else
-
-        // Calculate distance matrix for every pair of samples.
-        for( size_t i = 0; i < set_size; ++i ) {
-
-            // The result is symmetric - we only calculate the upper triangle.
-            for( size_t j = i + 1; j < set_size; ++j ) {
-
-                // Calculate and store distance.
-                auto const dist = node_histogram_distance( hist_vecs[ i ], hist_vecs[ j ] );
-                result(i, j) = dist;
-                result(j, i) = dist;
-            }
-        }
-
-    #endif
-
-    return result;
+    return node_histogram_distance( hist_vecs );
 }
 
 } // namespace placement

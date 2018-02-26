@@ -91,6 +91,14 @@ struct NodeDistanceHistogramSet
 //     Basic Functions
 // =================================================================================================
 
+/**
+ * @brief Calcualte the NodeDistanceHistogramSet representing a single Sample, given the necessary
+ * matrices of this Sample.
+ *
+ * This is a basic function that is mainly used for speedup in applications. The two matrices
+ * only depend on the tree, but not on the placement data, so for a set of Samples with the same
+ * tree, they only need to be calculated once.
+ */
 NodeDistanceHistogramSet node_distance_histogram_set(
     Sample const& sample,
     utils::Matrix<double> const& node_distances,
@@ -98,9 +106,20 @@ NodeDistanceHistogramSet node_distance_histogram_set(
     size_t const  histogram_bins
 );
 
+/**
+ * @brief Given the histogram sets that describe two Sample%s, calculate their distance.
+ */
 double node_histogram_distance(
     NodeDistanceHistogramSet const& lhs,
     NodeDistanceHistogramSet const& rhs
+);
+
+/**
+ * @brief Given the histogram sets that describe a set of Sample%s, calculate their pairwise
+ * distance matrix.
+ */
+utils::Matrix<double> node_histogram_distance(
+    std::vector<NodeDistanceHistogramSet> const& histogram_sets
 );
 
 // =================================================================================================
@@ -109,6 +128,12 @@ double node_histogram_distance(
 
 /**
 * @brief Calculate the Node Histogram Distance of two Sample%s.
+*
+* The necessary matrices of the Samples are calculated, then their NodeDistanceHistogramSet are
+* build, and finally the distance is calcualted. Basically, this is a high level
+* function that simply chains node_distance_histogram_set() and
+* @link node_histogram_distance( NodeDistanceHistogramSet const&, NodeDistanceHistogramSet const& ) node_histogram_distance()@endlink
+* for convenience.
 */
 double node_histogram_distance(
     Sample const& sample_a,
@@ -117,9 +142,10 @@ double node_histogram_distance(
 );
 
 /**
-* @brief Calculate the
-* @link node_histogram_distance( Sample const&, Sample const&, size_t const, bool ) node_histogram_distance()@endlink
-* for every pair of Sample%s in the SampleSet.
+* @brief Calculate the Node Histogram Distance of every pair of Sample%s in the SampleSet.
+*
+* This is a high level convenience function that takes a whole SampleSet, calculates
+* the necessary matrices, builds the histograms, and calculates their distances.
 */
 utils::Matrix<double> node_histogram_distance(
     SampleSet const& sample_set,
