@@ -51,11 +51,12 @@ namespace utils {
 //     Svg Color Palette
 // =================================================================================================
 
-std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make(
+std::pair<SvgGradientLinear, SvgGroup> make_svg_palette(
+    SvgPaletteSettings const& settings,
     ColorMap const& map,
     ColorNormalization const& norm,
     std::string const& id
-) const {
+) {
 
     if( map.palette().size() < 2 ) {
         throw std::runtime_error(
@@ -77,23 +78,23 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make(
     // Depending on the orientation, set gradient points.
     SvgPoint point_1;
     SvgPoint point_2;
-    switch( direction ) {
-        case Direction::kBottomToTop: {
+    switch( settings.direction ) {
+        case SvgPaletteSettings::Direction::kBottomToTop: {
             point_1 = SvgPoint( 0.0, 1.0 );
             point_2 = SvgPoint( 0.0, 0.0 );
             break;
         }
-        case Direction::kTopToBottom: {
+        case SvgPaletteSettings::Direction::kTopToBottom: {
             point_1 = SvgPoint( 0.0, 0.0 );
             point_2 = SvgPoint( 0.0, 1.0 );
             break;
         }
-        case Direction::kLeftToRight: {
+        case SvgPaletteSettings::Direction::kLeftToRight: {
             point_1 = SvgPoint( 0.0, 0.0 );
             point_2 = SvgPoint( 1.0, 0.0 );
             break;
         }
-        case Direction::kRightToLeft: {
+        case SvgPaletteSettings::Direction::kRightToLeft: {
             point_1 = SvgPoint( 1.0, 0.0 );
             point_2 = SvgPoint( 0.0, 0.0 );
             break;
@@ -115,7 +116,7 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make(
     // Make group
     SvgGroup group;
     group << SvgRect(
-        0.0, 0.0, width, height,
+        0.0, 0.0, settings.width, settings.height,
         SvgStroke(),
         // SvgStroke( SvgStroke::Type::kNone ),
         SvgFill( gradient_id )
@@ -129,21 +130,21 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make(
         // Get positions for needed elements.
         double v = -1.0;
         double h = -1.0;
-        switch( direction ) {
-            case Direction::kBottomToTop: {
-                v = height - ( rel_pos * height );
+        switch( settings.direction ) {
+            case SvgPaletteSettings::Direction::kBottomToTop: {
+                v = settings.height - ( rel_pos * settings.height );
                 break;
             }
-            case Direction::kTopToBottom: {
-                v = rel_pos * height;
+            case SvgPaletteSettings::Direction::kTopToBottom: {
+                v = rel_pos * settings.height;
                 break;
             }
-            case Direction::kLeftToRight: {
-                h = rel_pos * width;
+            case SvgPaletteSettings::Direction::kLeftToRight: {
+                h = rel_pos * settings.width;
                 break;
             }
-            case Direction::kRightToLeft: {
-                h = width - ( rel_pos * width );
+            case SvgPaletteSettings::Direction::kRightToLeft: {
+                h = settings.width - ( rel_pos * settings.width );
                 break;
             }
             default: {
@@ -157,27 +158,27 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make(
         SvgPoint line2_p1;
         SvgPoint line2_p2;
         SvgPoint text_p;
-        switch( direction ) {
-            case Direction::kTopToBottom:
-            case Direction::kBottomToTop:
+        switch( settings.direction ) {
+            case SvgPaletteSettings::Direction::kTopToBottom:
+            case SvgPaletteSettings::Direction::kBottomToTop:
             {
                 assert( v > -1.0 );
                 line1_p1 = SvgPoint( 0.0, v );
-                line1_p2 = SvgPoint( width * 0.15, v );
-                line2_p1 = SvgPoint( width * 0.85, v );
-                line2_p2 = SvgPoint( width, v );
-                text_p  = SvgPoint( width * 1.05, v );
+                line1_p2 = SvgPoint( settings.width * 0.15, v );
+                line2_p1 = SvgPoint( settings.width * 0.85, v );
+                line2_p2 = SvgPoint( settings.width, v );
+                text_p  = SvgPoint( settings.width * 1.05, v );
                 break;
             }
-            case Direction::kLeftToRight:
-            case Direction::kRightToLeft:
+            case SvgPaletteSettings::Direction::kLeftToRight:
+            case SvgPaletteSettings::Direction::kRightToLeft:
             {
                 assert( h > -1.0 );
                 line1_p1 = SvgPoint( h, 0.0 );
-                line1_p2 = SvgPoint( h, height * 0.15 );
-                line2_p1 = SvgPoint( h, height * 0.85 );
-                line2_p2 = SvgPoint( h, height );
-                text_p  = SvgPoint( h, height * 1.05 );
+                line1_p2 = SvgPoint( h, settings.height * 0.15 );
+                line2_p1 = SvgPoint( h, settings.height * 0.85 );
+                line2_p2 = SvgPoint( h, settings.height );
+                text_p  = SvgPoint( h, settings.height * 1.05 );
                 break;
             }
             default: {
@@ -190,7 +191,7 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make(
             group << SvgLine( line1_p1, line1_p2 );
             group << SvgLine( line2_p1, line2_p2 );
         }
-        if( with_labels ) {
+        if( settings.with_labels ) {
             if( rel_pos == 1.0 && map.clip_over() ) {
                 label = "≥ " + label;
             }
@@ -206,8 +207,8 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make(
     };
 
     // Make tickmarks and labels.
-    if( with_tickmarks ) {
-        for( auto const& tick : norm.tickmarks( num_ticks ) ) {
+    if( settings.with_tickmarks ) {
+        for( auto const& tick : norm.tickmarks( settings.num_ticks ) ) {
             if( tick.first < 0.0 || tick.first > 1.0 ) {
                 throw std::runtime_error( "Color Normalization tickmark out of [ 0.0, 1.0 ]" );
             }
@@ -216,6 +217,24 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make(
     }
 
     return { grad, group };
+}
+
+SvgGroup make_svg_color_list(
+    ColorMap const& map,
+    std::vector<std::string> const& labels
+) {
+    SvgGroup group;
+
+    for( size_t i = 0; i < labels.size(); ++i ) {
+        group << SvgRect(
+            0.0, i * 15.0, 10.0, 10.0,
+            SvgStroke( SvgStroke::Type::kNone ),
+            SvgFill( map.color(i) )
+        );
+        group << SvgText( labels[i], SvgPoint( 20.0, i * 15.0 + 10.0 ));
+    }
+
+    return group;
 }
 
 } // namespace utils
