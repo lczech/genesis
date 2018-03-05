@@ -49,15 +49,13 @@ namespace utils {
 //     Svg Color Palette
 // =================================================================================================
 
-struct SvgPalette
+struct SvgPaletteSettings
 {
 public:
 
     // -------------------------------------------------------------
     //     Typedefs and Enums
     // -------------------------------------------------------------
-
-    using self_type = SvgPalette;
 
     enum class Direction
     {
@@ -66,29 +64,6 @@ public:
         kLeftToRight,
         kRightToLeft
     };
-
-    // -------------------------------------------------------------
-    //     Constructors and Rule of Five
-    // -------------------------------------------------------------
-
-    SvgPalette() = default;
-    ~SvgPalette() = default;
-
-    SvgPalette( SvgPalette const& ) = default;
-    SvgPalette( SvgPalette&& )      = default;
-
-    SvgPalette& operator= ( SvgPalette const& ) = default;
-    SvgPalette& operator= ( SvgPalette&& )      = default;
-
-    // -------------------------------------------------------------
-    //     Drawing Function
-    // -------------------------------------------------------------
-
-    std::pair<SvgGradientLinear, SvgGroup> make(
-        ColorMap const& map,
-        ColorNormalization const& norm,
-        std::string const& id = ""
-    ) const;
 
     // -------------------------------------------------------------
     //     Properties
@@ -105,6 +80,18 @@ public:
     size_t num_ticks = 5;
 
 };
+
+std::pair<SvgGradientLinear, SvgGroup> make_svg_palette(
+    SvgPaletteSettings const& settings,
+    ColorMap const& map,
+    ColorNormalization const& norm,
+    std::string const& id = ""
+);
+
+SvgGroup make_svg_color_list(
+    ColorMap const& map,
+    std::vector<std::string> const& labels
+);
 
 } // namespace utils
 } // namespace genesis

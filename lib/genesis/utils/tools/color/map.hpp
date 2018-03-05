@@ -241,7 +241,7 @@ public:
     }
 
     /**
-     * @brief Return a particular color from the palette.
+     * @brief Return a particular color from the palette, module the palette size.
      *
      * This is useful for qualitative measures. The function respects the reverse() setting,
      * and uses modulo for indices out of range, that is, it "wraps around".

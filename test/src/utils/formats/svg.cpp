@@ -125,7 +125,7 @@ TEST( Svg, Palette )
 {
     auto doc = SvgDocument();
     doc.overflow = SvgDocument::Overflow::kVisible;
-    auto pal = SvgPalette();
+    auto pal = SvgPaletteSettings();
 
     // Nice palette.
     // pal.palette = ColorPalette( color_list_spectral() );
@@ -147,7 +147,7 @@ TEST( Svg, Palette )
     // pal.direction = SvgPalette::Direction::kLeftToRight;
     // pal.diverging_palette = true;
 
-    auto const pal_pair = pal.make( map, norm );
+    auto const pal_pair = make_svg_palette( pal, map, norm );
     doc.defs.push_back( pal_pair.first );
     doc << pal_pair.second;
 
