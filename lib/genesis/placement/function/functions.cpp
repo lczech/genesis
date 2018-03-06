@@ -681,6 +681,15 @@ double total_multiplicity( Sample const& sample )
     return mult;
 }
 
+size_t total_name_count( Sample const& smp )
+{
+    size_t count = 0;
+    for( auto const& pqry : smp.pqueries() ) {
+        count += pqry.name_size();
+    }
+    return count;
+}
+
 size_t total_placement_count( Sample const& smp )
 {
     size_t count = 0;
