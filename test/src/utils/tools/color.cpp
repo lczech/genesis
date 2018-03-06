@@ -39,6 +39,7 @@
 #include "genesis/utils/tools/color/map.hpp"
 #include "genesis/utils/tools/color/normalization.hpp"
 #include "genesis/utils/tools/color/norm_diverging.hpp"
+#include "genesis/utils/tools/color/norm_boundary.hpp"
 
 #include <stdexcept>
 
@@ -185,3 +186,36 @@ TEST( Color, PaletteSpectral )
 // {
 //     auto const c = apply_color_map( color_list_spectral(), 0.5 );
 // }
+
+TEST( Color, NormBoundary )
+{
+    auto norm = ColorNormalizationBoundary( 3.0, 8.0, 5 );
+    auto const bvec = std::vector<double>({ 3.0, 4.0, 5.0, 6.0, 7.0, 8.0 });
+    EXPECT_EQ( bvec, norm.boundaries() );
+
+    EXPECT_EQ( -1, norm.interval( 0.0 ) );
+    EXPECT_EQ( -1, norm.interval( 2.9 ) );
+    EXPECT_EQ(  0, norm.interval( 3.0 ) );
+    EXPECT_EQ(  0, norm.interval( 3.1 ) );
+    EXPECT_EQ(  0, norm.interval( 3.9 ) );
+    EXPECT_EQ(  1, norm.interval( 4.0 ) );
+    EXPECT_EQ(  1, norm.interval( 4.1 ) );
+    EXPECT_EQ(  4, norm.interval( 7.0 ) );
+    EXPECT_EQ(  4, norm.interval( 7.1 ) );
+    EXPECT_EQ(  4, norm.interval( 7.9 ) );
+    EXPECT_EQ(  4, norm.interval( 8.0 ) );
+    EXPECT_EQ(  5, norm.interval( 8.5 ) );
+
+    EXPECT_FLOAT_EQ( -1.00, norm( 0.0 ) );
+    EXPECT_FLOAT_EQ( -1.00, norm( 2.9 ) );
+    EXPECT_FLOAT_EQ(  0.00, norm( 3.0 ) );
+    EXPECT_FLOAT_EQ(  0.00, norm( 3.1 ) );
+    EXPECT_FLOAT_EQ(  0.00, norm( 3.9 ) );
+    EXPECT_FLOAT_EQ(  0.25, norm( 4.0 ) );
+    EXPECT_FLOAT_EQ(  0.25, norm( 4.1 ) );
+    EXPECT_FLOAT_EQ(  1.00, norm( 7.0 ) );
+    EXPECT_FLOAT_EQ(  1.00, norm( 7.1 ) );
+    EXPECT_FLOAT_EQ(  1.00, norm( 7.9 ) );
+    EXPECT_FLOAT_EQ(  1.00, norm( 8.0 ) );
+    EXPECT_FLOAT_EQ(  2.00, norm( 8.5 ) );
+}

@@ -160,8 +160,8 @@ protected:
     /**
      * @brief Normalization function.
      *
-     * Return a value in range `[ 0.0, 1.0 ]`. Derived classes need to override this
-     * to provide their specific normalization.
+     * Return a value in range `[ 0.0, 1.0 ]` for valid values, or outside of this for clipping values.
+     * Derived classes need to override this to provide their specific normalization.
      *
      * By having this function separated from the operator(), we implement a non-virtual interface.
      */

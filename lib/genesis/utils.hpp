@@ -117,6 +117,7 @@
 #include "genesis/utils/tools/color/map.hpp"
 #include "genesis/utils/tools/color/names.hpp"
 #include "genesis/utils/tools/color/normalization.hpp"
+#include "genesis/utils/tools/color/norm_boundary.hpp"
 #include "genesis/utils/tools/color/norm_diverging.hpp"
 #include "genesis/utils/tools/color/norm_linear.hpp"
 #include "genesis/utils/tools/color/norm_logarithmic.hpp"

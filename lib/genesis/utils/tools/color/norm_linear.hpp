@@ -166,7 +166,6 @@ public:
         auto min = std::numeric_limits<double>::max();
         auto max = std::numeric_limits<double>::lowest();
 
-        double sum = 0.0;
         size_t cnt = 0;
 
         while( first != last ) {
@@ -181,9 +180,7 @@ public:
                 max = *first;
             }
 
-            sum += *first;
             ++cnt;
-
             ++first;
         }
 
