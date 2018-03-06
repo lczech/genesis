@@ -33,7 +33,7 @@
 
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/functions.hpp"
-#include "genesis/utils/tools/color/normalization.hpp"
+#include "genesis/utils/tools/color/norm_linear.hpp"
 
 #include <cmath>
 #include <limits>
@@ -69,7 +69,7 @@ namespace utils {
  * under_color(), over_color().
  */
 class ColorNormalizationDiverging
-    : public ColorNormalization
+    : public ColorNormalizationLinear
 {
 public:
 
@@ -81,7 +81,7 @@ public:
      * @brief Constructor that sets `min == -1.0`, `mid = 0.0` and `max == 1.0`.
      */
     ColorNormalizationDiverging()
-        : ColorNormalization( -1.0, 1.0 )
+        : ColorNormalizationLinear( -1.0, 1.0 )
         , mid_value_( 0.0 )
     {}
 
@@ -97,10 +97,10 @@ public:
      * @brief Constructor that sets min(), mid() and max() to the provided values, in that order.
      */
     ColorNormalizationDiverging( double min, double mid, double max )
-        : ColorNormalization( min, max )
+        : ColorNormalizationLinear( min, max )
         , mid_value_( mid )
     {
-        range_check_throw_();
+        is_valid_or_throw_();
     }
 
     /**
@@ -124,11 +124,11 @@ public:
 
     virtual ~ColorNormalizationDiverging() = default;
 
-    ColorNormalizationDiverging(ColorNormalizationDiverging const&)     = default;
-    ColorNormalizationDiverging(ColorNormalizationDiverging&&) noexcept = default;
+    ColorNormalizationDiverging(ColorNormalizationDiverging const&) = default;
+    ColorNormalizationDiverging(ColorNormalizationDiverging&&)      = default;
 
-    ColorNormalizationDiverging& operator= (ColorNormalizationDiverging const&)     = default;
-    ColorNormalizationDiverging& operator= (ColorNormalizationDiverging&&) noexcept = default;
+    ColorNormalizationDiverging& operator= (ColorNormalizationDiverging const&) = default;
+    ColorNormalizationDiverging& operator= (ColorNormalizationDiverging&&)      = default;
 
     // -------------------------------------------------------------------------
     //     Accessors
@@ -179,98 +179,10 @@ public:
     //     Virtual Functions
     // -------------------------------------------------------------------------
 
-    virtual std::map<double, Color> gradient( ColorMap const& map ) const override
-    {
-        std::map<double, Color> result;
-
-        // Get the fractions of the lower and upper half,
-        // which are needed to scale the colors in a diverging palette correctly.
-        // For example, a palette with 5, 15, 20 for min, mid and max gets
-        // fractions 2/3 and 1/3 here.
-        auto const frac_lower = ( mid_value() - min_value() ) / ( max_value() - min_value() );
-        auto const frac_upper = ( max_value() - mid_value() ) / ( max_value() - min_value() );
-
-        // Divide the palette in two, so that the mixed mid color counts as half a step
-        // in palettes with even number of colors.
-        auto const scale = 2.0 / static_cast<double>( map.size() - 1 );
-
-        // Lower half.
-        for( size_t i = 0; i < map.size() / 2; ++i ) {
-            auto const offset = scale * frac_lower * static_cast<double>( i );
-            result[ offset ] = map.color( i );
-        }
-
-        // For an even number of colors, we need to add a mixed middle color.
-        if( map.size() % 2 == 0 ) {
-            auto const mid_idx = map.size() / 2;
-            auto const mid_color = interpolate(
-                map.color( mid_idx - 1 ), map.color( mid_idx ), 0.5
-            );
-            result[ frac_lower ] = mid_color;
-        }
-
-        // Upper half, including mid if uneven number of colors.
-        for( size_t i = map.size() / 2; i < map.size(); ++i ) {
-
-            // Step away from end: We go backwards.
-            auto const step = static_cast<double>( map.size() - i - 1 );
-
-            // Offset, as before, just going backwards again, so that we end up in right order.
-            auto const offset = 1.0 - ( scale * frac_upper * step );
-            result[ offset ] = map.color( i );
-        }
-
-        return result;
-    }
-
-    virtual std::map<double, std::string> tickmarks( size_t num_ticks ) const override
-    {
-        std::map<double, std::string> result;
-        auto tm = Tickmarks();
-
-        // Get the fractions of the lower and upper half,
-        // which are needed to scale the colors in a diverging palette correctly.
-        // For example, a palette with 5, 15, 20 for min, mid and max gets
-        // fractions 2/3 and 1/3 here.
-        auto const frac_lower = ( mid_value() - min_value() ) / ( max_value() - min_value() );
-        auto const frac_upper = ( max_value() - mid_value() ) / ( max_value() - min_value() );
-
-        // Lower half.
-        tm.include_max = false;
-        auto const tm_labels_l = tm.linear_labels(
-            min_value(), mid_value(), frac_lower * num_ticks
-        );
-        for( auto const& tm_label : tm_labels_l ) {
-            auto const pos =  frac_lower * tm_label.relative_position;
-            result[ pos ] = utils::to_string( tm_label.label );
-        }
-
-        // In cases where the mid value is a nice tickmark number (0 for example),
-        // it will be included in the tickmarks, although it is the upper limit for
-        // the lower half (that is, equal to the max for the half).
-        // Thus, we already have a tickmark for the mid value, and now do not need it again
-        // when making the upper half ticks. So, exclude the min for the upper half in this case.
-        if( tm_labels_l.size() > 0 && tm_labels_l.back().relative_position == 1.0 ) {
-            tm.include_min =  false;
-        }
-
-        // Upper half.
-        tm.include_max = true;
-        auto const tm_labels_u = tm.linear_labels(
-            mid_value(), max_value(), frac_upper * num_ticks
-        );
-        for( auto const& tm_label : tm_labels_u ) {
-            auto const pos =  frac_lower + frac_upper * tm_label.relative_position;
-            result[ pos ] = utils::to_string( tm_label.label );
-        }
-
-        return result;
-    }
-
     /**
      * @brief Return whether the ranges are correct.
      */
-    virtual bool range_check() const override
+    virtual bool is_valid_() const override
     {
         return min_value() < mid_value_ && mid_value_ < max_value();
     }
@@ -280,7 +192,7 @@ protected:
     /**
      * @brief Throw if the ranges are incorrect.
      */
-    virtual void range_check_throw_() const override
+    virtual void is_valid_or_throw_() const override
     {
         if( min_value() >= max_value() ) {
             throw std::runtime_error( "Invalid Color Normalization with min >= max." );
@@ -297,7 +209,7 @@ protected:
     {
         // Already checked by base class.
         assert( min_value() <= value && value <= max_value() );
-        assert( range_check() );
+        assert( is_valid_() );
 
         // Bring value into the range [ 0.0, 1.0 ].
         double pos = 0.0;

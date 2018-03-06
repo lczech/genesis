@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/palette.hpp"
+#include "genesis/utils/formats/svg/color_bar.hpp"
 
 #include "genesis/utils/formats/svg/attributes.hpp"
 #include "genesis/utils/formats/svg/helper.hpp"
@@ -36,7 +36,17 @@
 #include "genesis/utils/formats/svg/shapes.hpp"
 #include "genesis/utils/formats/svg/text.hpp"
 #include "genesis/utils/text/string.hpp"
+
+#include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/functions.hpp"
+#include "genesis/utils/tools/color/functions.hpp"
+#include "genesis/utils/tools/color/helpers.hpp"
+#include "genesis/utils/tools/color/map.hpp"
+#include "genesis/utils/tools/color/norm_diverging.hpp"
+#include "genesis/utils/tools/color/norm_linear.hpp"
+#include "genesis/utils/tools/color/norm_logarithmic.hpp"
+#include "genesis/utils/tools/color/normalization.hpp"
+
 #include "genesis/utils/tools/tickmarks.hpp"
 
 #include <algorithm>
@@ -48,27 +58,15 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Svg Color Palette
+//     Local Helper Functions
 // =================================================================================================
 
-std::pair<SvgGradientLinear, SvgGroup> make_svg_palette(
-    SvgPaletteSettings const& settings,
+std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_gradient(
+    SvgColorBarSettings const& settings,
     ColorMap const& map,
     ColorNormalization const& norm,
     std::string const& id
 ) {
-
-    if( map.palette().size() < 2 ) {
-        throw std::runtime_error(
-            "Cannot make SvgPalette with a ColorMap of less than two colors."
-        );
-    }
-    if( ! norm.range_check() ) {
-        throw std::runtime_error(
-            "Invaid ColorNormalization settings."
-        );
-    }
-
     // Use a gradient ID with randomness so that we get a different one for each palette.
     std::string const gradient_id = ( id.empty()
         ? "PaletteGradient_" + std::to_string( std::rand() )
@@ -79,22 +77,22 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_palette(
     SvgPoint point_1;
     SvgPoint point_2;
     switch( settings.direction ) {
-        case SvgPaletteSettings::Direction::kBottomToTop: {
+        case SvgColorBarSettings::Direction::kBottomToTop: {
             point_1 = SvgPoint( 0.0, 1.0 );
             point_2 = SvgPoint( 0.0, 0.0 );
             break;
         }
-        case SvgPaletteSettings::Direction::kTopToBottom: {
+        case SvgColorBarSettings::Direction::kTopToBottom: {
             point_1 = SvgPoint( 0.0, 0.0 );
             point_2 = SvgPoint( 0.0, 1.0 );
             break;
         }
-        case SvgPaletteSettings::Direction::kLeftToRight: {
+        case SvgColorBarSettings::Direction::kLeftToRight: {
             point_1 = SvgPoint( 0.0, 0.0 );
             point_2 = SvgPoint( 1.0, 0.0 );
             break;
         }
-        case SvgPaletteSettings::Direction::kRightToLeft: {
+        case SvgColorBarSettings::Direction::kRightToLeft: {
             point_1 = SvgPoint( 1.0, 0.0 );
             point_2 = SvgPoint( 0.0, 0.0 );
             break;
@@ -104,9 +102,12 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_palette(
         }
     }
 
+    // Get the gradient list depending on the norm type.
+    auto const norm_gradient = color_gradient( map, norm );
+
     // Fill gradient with the colors, add it to a group as a colored rect.
     auto grad = SvgGradientLinear( gradient_id, point_1, point_2 );
-    for( auto const& g : norm.gradient( map ) ) {
+    for( auto const& g : norm_gradient ) {
         if( g.first < 0.0 || g.first > 1.0 ) {
             throw std::runtime_error( "Color Normalization gradient out of [ 0.0, 1.0 ]" );
         }
@@ -122,6 +123,15 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_palette(
         SvgFill( gradient_id )
     );
 
+    return { grad, group };
+}
+
+void make_svg_color_bar_tickmarks(
+    SvgColorBarSettings const& settings,
+    ColorMap const& map,
+    ColorNormalization const& norm,
+    SvgGroup& group
+) {
     // Helper function to make a tick mark with line and text
     // at a relative position [ 0.0, 1.0 ] along the rect.
     auto make_tick = [&]( double rel_pos, std::string label ){
@@ -131,19 +141,19 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_palette(
         double v = -1.0;
         double h = -1.0;
         switch( settings.direction ) {
-            case SvgPaletteSettings::Direction::kBottomToTop: {
+            case SvgColorBarSettings::Direction::kBottomToTop: {
                 v = settings.height - ( rel_pos * settings.height );
                 break;
             }
-            case SvgPaletteSettings::Direction::kTopToBottom: {
+            case SvgColorBarSettings::Direction::kTopToBottom: {
                 v = rel_pos * settings.height;
                 break;
             }
-            case SvgPaletteSettings::Direction::kLeftToRight: {
+            case SvgColorBarSettings::Direction::kLeftToRight: {
                 h = rel_pos * settings.width;
                 break;
             }
-            case SvgPaletteSettings::Direction::kRightToLeft: {
+            case SvgColorBarSettings::Direction::kRightToLeft: {
                 h = settings.width - ( rel_pos * settings.width );
                 break;
             }
@@ -159,8 +169,8 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_palette(
         SvgPoint line2_p2;
         SvgPoint text_p;
         switch( settings.direction ) {
-            case SvgPaletteSettings::Direction::kTopToBottom:
-            case SvgPaletteSettings::Direction::kBottomToTop:
+            case SvgColorBarSettings::Direction::kTopToBottom:
+            case SvgColorBarSettings::Direction::kBottomToTop:
             {
                 assert( v > -1.0 );
                 line1_p1 = SvgPoint( 0.0, v );
@@ -170,8 +180,8 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_palette(
                 text_p  = SvgPoint( settings.width * 1.05, v );
                 break;
             }
-            case SvgPaletteSettings::Direction::kLeftToRight:
-            case SvgPaletteSettings::Direction::kRightToLeft:
+            case SvgColorBarSettings::Direction::kLeftToRight:
+            case SvgColorBarSettings::Direction::kRightToLeft:
             {
                 assert( h > -1.0 );
                 line1_p1 = SvgPoint( h, 0.0 );
@@ -206,17 +216,48 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_palette(
         }
     };
 
+    // Get tickmakrs.
+    auto const tickmarks = color_tickmarks( norm, settings.num_ticks );
+
     // Make tickmarks and labels.
     if( settings.with_tickmarks ) {
-        for( auto const& tick : norm.tickmarks( settings.num_ticks ) ) {
+        for( auto const& tick : tickmarks ) {
             if( tick.first < 0.0 || tick.first > 1.0 ) {
                 throw std::runtime_error( "Color Normalization tickmark out of [ 0.0, 1.0 ]" );
             }
             make_tick( tick.first, tick.second );
         }
     }
+}
 
-    return { grad, group };
+// =================================================================================================
+//     Svg Color Bar
+// =================================================================================================
+
+std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar(
+    SvgColorBarSettings const& settings,
+    ColorMap const& map,
+    ColorNormalization const& norm,
+    std::string const& id
+) {
+
+    if( map.palette().size() < 2 ) {
+        throw std::runtime_error(
+            "Cannot make SvgPalette with a ColorMap of less than two colors."
+        );
+    }
+    if( ! norm.is_valid() ) {
+        throw std::runtime_error(
+            "Invaid ColorNormalization settings."
+        );
+    }
+
+    // Prepare result.
+    auto result = std::pair<SvgGradientLinear, SvgGroup>();
+    result = make_svg_color_bar_gradient( settings, map, norm, id );
+    make_svg_color_bar_tickmarks( settings, map, norm, result.second );
+
+    return result;
 }
 
 SvgGroup make_svg_color_list(

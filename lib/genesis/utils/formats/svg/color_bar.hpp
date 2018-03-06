@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_FORMATS_SVG_PALETTE_H_
-#define GENESIS_UTILS_FORMATS_SVG_PALETTE_H_
+#ifndef GENESIS_UTILS_FORMATS_SVG_COLOR_BAR_H_
+#define GENESIS_UTILS_FORMATS_SVG_COLOR_BAR_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -34,10 +34,7 @@
 #include "genesis/utils/formats/svg/gradient.hpp"
 #include "genesis/utils/formats/svg/group.hpp"
 
-#include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/map.hpp"
-#include "genesis/utils/tools/color/normalization.hpp"
-
+#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -46,10 +43,20 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Svg Color Palette
+//     Forward Declarations
 // =================================================================================================
 
-struct SvgPaletteSettings
+class ColorMap;
+class ColorNormalization;
+class ColorNormalizationDiverging;
+class ColorNormalizationLinear;
+class ColorNormalizationLogarithmic;
+
+// =================================================================================================
+//     Svg Color Bar
+// =================================================================================================
+
+struct SvgColorBarSettings
 {
 public:
 
@@ -81,8 +88,8 @@ public:
 
 };
 
-std::pair<SvgGradientLinear, SvgGroup> make_svg_palette(
-    SvgPaletteSettings const& settings,
+std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar(
+    SvgColorBarSettings const& settings,
     ColorMap const& map,
     ColorNormalization const& norm,
     std::string const& id = ""

@@ -121,11 +121,11 @@ TEST( Svg, Gradient )
     // file_write( out.str(), "/home/lucas/test.svg" );
 }
 
-TEST( Svg, Palette )
+TEST( Svg, ColorBar )
 {
     auto doc = SvgDocument();
     doc.overflow = SvgDocument::Overflow::kVisible;
-    auto pal = SvgPaletteSettings();
+    auto pal = SvgColorBarSettings();
 
     // Nice palette.
     // pal.palette = ColorPalette( color_list_spectral() );
@@ -147,7 +147,7 @@ TEST( Svg, Palette )
     // pal.direction = SvgPalette::Direction::kLeftToRight;
     // pal.diverging_palette = true;
 
-    auto const pal_pair = make_svg_palette( pal, map, norm );
+    auto const pal_pair = make_svg_color_bar( pal, map, norm );
     doc.defs.push_back( pal_pair.first );
     doc << pal_pair.second;
 

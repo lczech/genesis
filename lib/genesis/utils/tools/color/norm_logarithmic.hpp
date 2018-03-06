@@ -32,7 +32,7 @@
  */
 
 #include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/normalization.hpp"
+#include "genesis/utils/tools/color/norm_linear.hpp"
 #include "genesis/utils/tools/tickmarks.hpp"
 
 #include <cmath>
@@ -50,7 +50,7 @@ namespace utils {
  * @brief Color normalization for a logarithmic scale.
  */
 class ColorNormalizationLogarithmic
-    : public ColorNormalization
+    : public ColorNormalizationLinear
 {
 public:
 
@@ -62,14 +62,14 @@ public:
      * @brief Constructor that sets `min == 1.0` and `max == 100.0`.
      */
     ColorNormalizationLogarithmic()
-        : ColorNormalization( 1.0, 100.0 )
+        : ColorNormalizationLinear( 1.0, 100.0 )
     {}
 
     /**
      * @brief Constructor that sets min() and max() to the provided values.
      */
     ColorNormalizationLogarithmic( double min, double max )
-        : ColorNormalization( min, max )
+        : ColorNormalizationLinear( min, max )
     {}
 
     /**
@@ -129,32 +129,10 @@ public:
     //     Virtual Functions
     // -------------------------------------------------------------------------
 
-    virtual std::map<double, std::string> tickmarks( size_t num_ticks ) const override
-    {
-        std::map<double, std::string> result;
-
-        // Don't use them for log scale.
-        (void) num_ticks;
-
-        auto tm = Tickmarks();
-        auto const tm_labels_u = tm.logarithmic_labels( min_value(), max_value(), base_ );
-        for( auto const& tm_label : tm_labels_u ) {
-            auto label = ( exp_labels_
-                ? utils::to_string( base_ ) + "^" + utils::to_string(
-                    std::log( tm_label.label ) / std::log( base_ )
-                )
-                : utils::to_string( tm_label.label )
-            );
-            result[ tm_label.relative_position ] = label;
-        }
-
-        return result;
-    }
-
     /**
      * @brief Return whether the ranges are correct.
      */
-    virtual bool range_check() const override
+    virtual bool is_valid_() const override
     {
         return 0.0 < min_value() && min_value() < max_value();
     }
@@ -164,7 +142,7 @@ protected:
     /**
      * @brief Throw if the ranges are incorrect.
      */
-    virtual void range_check_throw_() const override
+    virtual void is_valid_or_throw_() const override
     {
         if( min_value() >= max_value() ) {
             throw std::runtime_error( "Invalid Color Normalization with min >= max" );
@@ -178,7 +156,7 @@ protected:
     {
         // Already checked by base class.
         assert( min_value() <= value && value <= max_value() );
-        assert( range_check() );
+        assert( is_valid_() );
 
         // As we have 0 < min <= value, this must hold. Otherwise, log won't work.
         assert( 0.0 < value );
@@ -197,7 +175,6 @@ protected:
 private:
 
     double base_ = 10.0;
-
     bool exp_labels_ = false;
 
 };

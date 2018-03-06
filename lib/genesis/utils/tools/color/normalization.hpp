@@ -31,11 +31,6 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/map.hpp"
-#include "genesis/utils/tools/tickmarks.hpp"
-
 #include <cassert>
 #include <cmath>
 #include <limits>
@@ -52,8 +47,7 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief Default Color normalization, using a sequential linear scaling in the
- * range `[ min, max ]`.
+ * @brief Base class for color normalization.
  */
 class ColorNormalization
 {
@@ -63,65 +57,18 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    /**
-     * @brief Constructor that sets `min == 0.0` and `max == 1.0`.
-     */
     ColorNormalization() = default;
-
-    /**
-     * @brief Constructor that sets min() and max() to the provided values.
-     */
-    ColorNormalization( double min, double max )
-        : min_value_( min )
-        , max_value_( max )
-    {
-        range_check_throw_();
-    }
-
-    /**
-     * @brief Constructor that sets min() and max() to the min and max of the provided @p values.
-     */
-    ColorNormalization( std::vector<double> const& values )
-    {
-        autoscale( values.begin(), values.end() );
-    }
-
-    /**
-     * @brief Constructor that sets min() and max() to the min and max of the provided range.
-     */
-    template <class ForwardIterator>
-    ColorNormalization( ForwardIterator first, ForwardIterator last )
-    {
-        autoscale( first, last );
-    }
-
     virtual ~ColorNormalization() = default;
 
-    ColorNormalization(ColorNormalization const&)     = default;
-    ColorNormalization(ColorNormalization&&) noexcept = default;
+    ColorNormalization(ColorNormalization const&) = default;
+    ColorNormalization(ColorNormalization&&)      = default;
 
-    ColorNormalization& operator= (ColorNormalization const&)     = default;
-    ColorNormalization& operator= (ColorNormalization&&) noexcept = default;
+    ColorNormalization& operator= (ColorNormalization const&) = default;
+    ColorNormalization& operator= (ColorNormalization&&)      = default;
 
     // -------------------------------------------------------------------------
     //     Accessors
     // -------------------------------------------------------------------------
-
-    /**
-     * @brief Minimum value, that is, where to begin the color scale.
-     */
-    double min_value() const
-    {
-        return min_value_;
-    }
-
-    /**
-     * @brief Minimum value, that is, where to end the color scale.
-     */
-    double max_value() const
-    {
-        return max_value_;
-    }
 
     /**
      * @brief Mask value that identifies invalid values.
@@ -138,100 +85,17 @@ public:
         return mask_value_;
     }
 
+    /**
+     * @brief Return whether ranges and other values are correct.
+     */
+    bool is_valid() const
+    {
+        return is_valid_();
+    }
+
     // -------------------------------------------------------------------------
     //     Modificators
     // -------------------------------------------------------------------------
-
-    /**
-     * @brief
-     */
-    ColorNormalization& scale( double min, double max )
-    {
-        min_value_ = min;
-        max_value_ = max;
-        update_hook_( min, max );
-        return *this;
-    }
-
-    /**
-     * @brief
-     */
-    ColorNormalization& autoscale( std::vector<double> const& values )
-    {
-        return autoscale( values.begin(), values.end() );
-    }
-
-    /**
-     * @brief Set the min and max of the Palette so that they reflect the min and max valid values
-     * that are found in the range `[ first, last )`.
-     *
-     * The provided iterator range needs to contain values that are convertible and comparable
-     * to `double`. Any non-finite values or values that are equal to the mask_value() are skipped.
-     * If then no value is found at all, the min and max are not changed.
-     *
-     * In derived classes, other values might also be set from this. For example,
-     * ColorNormalizationDiverging also sets the mid value accordingly.
-     */
-    template <class ForwardIterator>
-    ColorNormalization& autoscale( ForwardIterator first, ForwardIterator last )
-    {
-        // New values, so that we first do not override the current ones.
-        auto min = std::numeric_limits<double>::max();
-        auto max = std::numeric_limits<double>::lowest();
-
-        double sum = 0.0;
-        size_t cnt = 0;
-
-        while( first != last ) {
-            if( ! std::isfinite( *first ) || *first == mask_value_ ) {
-                ++first;
-                continue;
-            }
-            if( *first < min ) {
-                min = *first;
-            }
-            if( *first > max ) {
-                max = *first;
-            }
-
-            sum += *first;
-            ++cnt;
-
-            ++first;
-        }
-
-        // Only update if we found values.
-        if( cnt == 0 ) {
-            return *this;
-        }
-
-        // Set the values simply to what we found.
-        min_value_ = min;
-        max_value_ = max;
-        update_hook_( min, max );
-
-        return *this;
-    }
-
-    /**
-     * @copydoc min()
-     */
-    ColorNormalization& min_value( double value )
-    {
-        min_value_ = value;
-        update_hook_( min_value_, max_value_ );
-        return *this;
-    }
-
-    /**
-     * @copydoc max()
-     */
-    ColorNormalization& max_value( double value )
-    {
-        max_value_ = value;
-        update_hook_( min_value_, max_value_ );
-        return *this;
-    }
 
     /**
      * @copydoc mask_value()
@@ -250,28 +114,14 @@ public:
      * @brief Normalize a @p value into range `[ 0.0, 1.0 ]`.
      *
      * The function first checks whether the value is finite or mask_value(),
-     * whether it is less than min() or greater than max(),
-     * and returns `quiet_NaN`, `-1.0` or `2.0`, respectively.
-     * If neither applies, the normalization is applied.
+     * and returns `quiet_NaN` if so. If not, the normalization is applied.
      */
     double operator()( double value ) const
     {
-        // Make sure that the norm is set up correctly.
-        range_check_throw_();
-
         if( ! std::isfinite( value ) || value == mask_value_ ) {
             return std::numeric_limits<double>::quiet_NaN();
         }
-        if( value < min_value_ ) {
-            return -1.0;
-        }
-        if( value > max_value_ ) {
-            return 2.0;
-        }
-        assert( min_value_ <= value && value <= max_value_ );
-        auto const r = normalize_( value );
-        assert( 0.0 <= r && r <= 1.0 );
-        return r;
+        return normalize_( value );
     }
 
     /**
@@ -305,74 +155,22 @@ public:
     //     (Pure) Virtual Functions
     // -------------------------------------------------------------------------
 
-    virtual std::map<double, Color> gradient( ColorMap const& map ) const
-    {
-        std::map<double, Color> result;
-        for( size_t i = 0; i < map.size(); ++i ) {
-            auto const offset = static_cast<double>( i ) / static_cast<double>( map.size() - 1 );
-            result[ offset ] = map.color( i );
-        }
-        return result;
-    }
-
-    virtual std::map<double, std::string> tickmarks( size_t num_ticks ) const
-    {
-        std::map<double, std::string> result;
-        auto tm = Tickmarks();
-        auto const tm_labels = tm.linear_labels( min_value(), max_value(), num_ticks );
-        for( auto const& tm_label : tm_labels ) {
-            result[ tm_label.relative_position ] = utils::to_string( tm_label.label );
-        }
-        return result;
-    }
-
-    /**
-     * @brief Return whether the ranges are correct.
-     */
-    virtual bool range_check() const
-    {
-        return min_value_ < max_value_;
-    }
-
 protected:
-
-    /**
-     * @brief Throw if the ranges are incorrect.
-     */
-    virtual void range_check_throw_() const
-    {
-        if( min_value_ >= max_value_ ) {
-            throw std::runtime_error( "Invalid Color Normalization with min >= max." );
-        }
-    }
 
     /**
      * @brief Normalization function.
      *
-     * Return a value in range `[ 0.0, 1.0 ]`. Derived classes can override this
+     * Return a value in range `[ 0.0, 1.0 ]`. Derived classes need to override this
      * to provide their specific normalization.
+     *
+     * By having this function separated from the operator(), we implement a non-virtual interface.
      */
-    virtual double normalize_( double value ) const
-    {
-        // Already checked by operator().
-        assert( min_value() <= value && value <= max_value() );
-        assert( range_check() );
-
-        // Bring value into the range [ 0.0, 1.0 ].
-        auto const pos = ( value - min_value_ ) / ( max_value_ - min_value_ );
-        return pos;
-    }
+    virtual double normalize_( double value ) const = 0;
 
     /**
-     * @brief Called whenever the min and max are set automatically.
-     * Gives derived classes a chance to update their values.
+     * @brief Return whether ranges and other values are correct.
      */
-    virtual void update_hook_( double min, double max )
-    {
-        // Nothing to do for this class.
-        (void) min;
-        (void) max;
-    }
+    virtual bool is_valid_() const = 0;
 
     // -------------------------------------------------------------------------
     //     Data Members
@@ -380,8 +178,6 @@ protected:
 
 private:
 
-    double min_value_  = 0.0;
-    double max_value_  = 1.0;
     double mask_value_ = std::numeric_limits<double>::quiet_NaN();
 
 };
