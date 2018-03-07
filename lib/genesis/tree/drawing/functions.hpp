@@ -45,6 +45,48 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
+//     Newick Functions
+// =================================================================================================
+
+/**
+ * @brief Write a newick file containing a tree.
+ *
+ * This is a very simple wrapper for common cases.
+ */
+void write_tree_to_newick_file(
+    DefaultTree const& tree,
+    std::string const& newick_filename
+);
+
+// =================================================================================================
+//     Phyloxml Functions
+// =================================================================================================
+
+/**
+ * @brief Write a phyloxml file containing a tree.
+ *
+ * The file format can be read and visualized by, e.g., Archaeopteryx.
+ */
+void write_tree_to_phyloxml_file(
+    DefaultTree const& tree,
+    std::string const& phyloxml_filename
+);
+
+void write_color_tree_to_phyloxml_file(
+    DefaultTree const&               tree,
+    std::vector<utils::Color> const& color_per_branch,
+    std::string const&               phyloxml_filename
+);
+
+void write_color_tree_to_phyloxml_file(
+    DefaultTree const&               tree,
+    std::vector<double> const&       value_per_branch,
+    utils::ColorMap const&           color_map,
+    utils::ColorNormalization const& color_norm,
+    std::string const&               phyloxml_filename
+);
+
+// =================================================================================================
 //     Nexus Functions
 // =================================================================================================
 
