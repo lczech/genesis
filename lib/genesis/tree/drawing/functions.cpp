@@ -37,6 +37,8 @@
 #include "genesis/tree/formats/phyloxml/writer.hpp"
 #include "genesis/tree/formats/phyloxml/color_writer_plugin.hpp"
 
+#include "genesis/tree/default/newick_writer.hpp"
+#include "genesis/tree/default/phyloxml_writer.hpp"
 #include "genesis/tree/drawing/circular_layout.hpp"
 #include "genesis/tree/drawing/layout_tree.hpp"
 #include "genesis/tree/drawing/rectangular_layout.hpp"
@@ -66,7 +68,7 @@ void write_tree_to_newick_file(
     DefaultTree const& tree,
     std::string const& newick_filename
 ) {
-    NewickWriter().to_file( tree, newick_filename );
+    DefaultTreeNewickWriter().to_file( tree, newick_filename );
 }
 
 // =================================================================================================
@@ -88,7 +90,7 @@ void write_color_tree_to_phyloxml_file(
     std::string const&               phyloxml_filename
 ) {
     // We use a normal Phyloxml writer...
-    auto writer = PhyloxmlWriter();
+    auto writer = DefaultTreePhyloxmlWriter();
 
     // ... but also wrap it in a Color Mixin in order to allow for color branches if needed.
     auto color_plugin = tree::PhyloxmlColorWriterPlugin();
