@@ -190,10 +190,10 @@ void write_color_tree_to_svg_file(
     // Add scale.
     if( ! color_map.empty() ) {
         // Make the scale.
-        auto svg_pal = utils::SvgPaletteSettings();
+        auto svg_pal = utils::SvgColorBarSettings();
         svg_pal.height = svg_doc.bounding_box().height() / 2.0;
         svg_pal.width = svg_pal.height / 10.0;
-        auto svg_scale = make_svg_palette( svg_pal, color_map, color_norm );
+        auto svg_scale = make_svg_color_bar( svg_pal, color_map, color_norm );
 
         // Move it to the bottom right corner.
         if( params.shape == LayoutShape::kCircular ) {
@@ -208,7 +208,9 @@ void write_color_tree_to_svg_file(
         }
 
         // Add it to the doc.
-        svg_doc.defs.push_back( svg_scale.first );
+        if( ! svg_scale.first.empty() ) {
+            svg_doc.defs.push_back( svg_scale.first );
+        }
         svg_doc.add( svg_scale.second );
     }
 

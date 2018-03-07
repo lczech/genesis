@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -348,6 +348,12 @@ double total_multiplicity( Pquery const& pqry );
  * @link Pquery Pqueries@endlink of the Sample.
  */
 double total_multiplicity( Sample const& sample );
+
+/**
+ * @brief Get the total number of PqueryName%s in all @link Pquery Pqueries @endlink of the
+ * given Sample.
+ */
+size_t total_name_count( Sample const& smp );
 
 /**
  * @brief Get the total number of PqueryPlacement%s in all @link Pquery Pqueries @endlink of the

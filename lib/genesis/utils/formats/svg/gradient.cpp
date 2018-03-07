@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -120,6 +120,11 @@ void SvgGradientLinear::validate() const
 
 void SvgGradientLinear::write( std::ostream& out, size_t indent ) const
 {
+    // Do not write anything if emtpy
+    if( stops.empty() ) {
+        return;
+    }
+
     validate();
 
     out << repeat( SvgDocument::indentation_string, indent );
@@ -176,6 +181,11 @@ SvgGradientLinear& SvgGradientLinear::add_stop( SvgGradientStop const& stop )
 {
     insert_sorted( stops, stop );
     return *this;
+}
+
+bool SvgGradientLinear::empty() const
+{
+    return stops.empty();
 }
 
 } // namespace utils
