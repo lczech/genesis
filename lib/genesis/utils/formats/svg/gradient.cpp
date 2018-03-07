@@ -120,6 +120,11 @@ void SvgGradientLinear::validate() const
 
 void SvgGradientLinear::write( std::ostream& out, size_t indent ) const
 {
+    // Do not write anything if emtpy
+    if( stops.empty() ) {
+        return;
+    }
+
     validate();
 
     out << repeat( SvgDocument::indentation_string, indent );

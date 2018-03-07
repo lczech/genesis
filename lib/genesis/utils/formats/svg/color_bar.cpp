@@ -36,18 +36,18 @@
 #include "genesis/utils/formats/svg/shapes.hpp"
 #include "genesis/utils/formats/svg/text.hpp"
 #include "genesis/utils/text/string.hpp"
+#include "genesis/utils/tools/tickmarks.hpp"
 
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/functions.hpp"
 #include "genesis/utils/tools/color/functions.hpp"
 #include "genesis/utils/tools/color/helpers.hpp"
 #include "genesis/utils/tools/color/map.hpp"
+#include "genesis/utils/tools/color/norm_boundary.hpp"
 #include "genesis/utils/tools/color/norm_diverging.hpp"
 #include "genesis/utils/tools/color/norm_linear.hpp"
 #include "genesis/utils/tools/color/norm_logarithmic.hpp"
 #include "genesis/utils/tools/color/normalization.hpp"
-
-#include "genesis/utils/tools/tickmarks.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -103,7 +103,7 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_gradient(
     }
 
     // Get the gradient list depending on the norm type.
-    auto const norm_gradient = color_gradient( map, norm );
+    auto const norm_gradient = color_stops( map, norm );
 
     // Fill gradient with the colors, add it to a group as a colored rect.
     auto grad = SvgGradientLinear( gradient_id, point_1, point_2 );
@@ -124,6 +124,88 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_gradient(
     );
 
     return { grad, group };
+}
+
+std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_discrete(
+    SvgColorBarSettings const& settings,
+    std::map<double, Color> const& stops
+) {
+    // Fill a group with colors for the stops.
+    SvgGroup group;
+    for( auto it = stops.begin(); it != stops.end(); ++it ) {
+
+        // Get and check iterator values.
+        auto const& pos = it->first;
+        auto const& color = it->second;
+        if( pos < 0.0 || pos > 1.0 ) {
+            throw std::runtime_error( "Color Normalization stops out of [ 0.0, 1.0 ]" );
+        }
+
+        // If we are at the upper bound, we do not need to draw another box.
+        if( pos == 1.0 ) {
+            continue;
+        }
+
+        // We need the next one for calculating the end of the box.
+        // We init next pos to 1, which is used if there is no 1.0 stop in the stops list,
+        // meaning that the `continue` statement above is never used.
+        // In the other case (there is a stop 1.0), next will always point to a valid element,
+        // so that next pos is set to it.
+        auto next = it;
+        ++next;
+        double next_pos = 1.0;
+        if( next != stops.end() ) {
+            next_pos = next->first;
+        }
+        assert( next_pos > pos );
+
+        // Calculate the box.
+        double x = 0.0;
+        double y = 0.0;
+        double w = settings.width;
+        double h = settings.height;
+        switch( settings.direction ) {
+            case SvgColorBarSettings::Direction::kBottomToTop: {
+                y = settings.height - next_pos * settings.height;
+                h = ( next_pos - pos ) * settings.height;
+                break;
+            }
+            case SvgColorBarSettings::Direction::kTopToBottom: {
+                y = pos * settings.height;
+                h = ( next_pos - pos ) * settings.height;
+                break;
+            }
+            case SvgColorBarSettings::Direction::kLeftToRight: {
+                x = pos * settings.width;
+                w = ( next_pos - pos ) * settings.width;
+                break;
+            }
+            case SvgColorBarSettings::Direction::kRightToLeft: {
+                x = settings.width - next_pos * settings.width;
+                w = ( next_pos - pos ) * settings.width;
+                break;
+            }
+            default: {
+                throw std::runtime_error( "Invalid SvgPalette direction." );
+            }
+        }
+
+        // Make the box.
+        group << SvgRect(
+            x, y, w, h,
+            SvgStroke( SvgStroke::Type::kNone ),
+            SvgFill( color )
+        );
+    }
+
+    // Add a black line around the bar
+    group << SvgRect(
+        0.0, 0.0, settings.width, settings.height,
+        SvgStroke( Color( 0.0, 0.0, 0.0 )),
+        SvgFill( SvgFill::Type::kNone )
+    );
+
+    return { SvgGradientLinear(), group };
 }
 
 void make_svg_color_bar_tickmarks(
@@ -216,11 +298,9 @@ void make_svg_color_bar_tickmarks(
         }
     };
 
-    // Get tickmakrs.
-    auto const tickmarks = color_tickmarks( norm, settings.num_ticks );
-
     // Make tickmarks and labels.
     if( settings.with_tickmarks ) {
+        auto const tickmarks = color_tickmarks( norm, settings.num_ticks );
         for( auto const& tick : tickmarks ) {
             if( tick.first < 0.0 || tick.first > 1.0 ) {
                 throw std::runtime_error( "Color Normalization tickmark out of [ 0.0, 1.0 ]" );
@@ -254,7 +334,18 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar(
 
     // Prepare result.
     auto result = std::pair<SvgGradientLinear, SvgGroup>();
-    result = make_svg_color_bar_gradient( settings, map, norm, id );
+
+    // We have an ugly special case for boundary norms, where we do not want to display
+    // a gradient, but discrete color bars instead...
+    auto norm_boundary = dynamic_cast<ColorNormalizationBoundary const*>( &norm );
+    if( norm_boundary ) {
+        auto const norm_gradient = color_stops( map, norm );
+        result = make_svg_color_bar_discrete( settings, norm_gradient );
+    } else {
+        result = make_svg_color_bar_gradient( settings, map, norm, id );
+    }
+
+    // Add the tickmarks to the bar/
     make_svg_color_bar_tickmarks( settings, map, norm, result.second );
 
     return result;

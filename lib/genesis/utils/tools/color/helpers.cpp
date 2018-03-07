@@ -33,6 +33,7 @@
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/functions.hpp"
 #include "genesis/utils/tools/color/map.hpp"
+#include "genesis/utils/tools/color/norm_boundary.hpp"
 #include "genesis/utils/tools/color/norm_diverging.hpp"
 #include "genesis/utils/tools/color/norm_linear.hpp"
 #include "genesis/utils/tools/color/norm_logarithmic.hpp"
@@ -48,28 +49,32 @@ namespace utils {
 //     Gradients
 // =================================================================================================
 
-std::map<double, Color> color_gradient( ColorMap const& map, ColorNormalization const& norm )
+std::map<double, Color> color_stops( ColorMap const& map, ColorNormalization const& norm )
 {
     // Super duper ugly code.
     // Need to do linear last, because the other two are derived from it.
 
     auto norm_log = dynamic_cast<ColorNormalizationLogarithmic const*>( &norm );
     if( norm_log ) {
-        return color_gradient( map, *norm_log );
+        return color_stops( map, *norm_log );
     }
     auto norm_div = dynamic_cast<ColorNormalizationDiverging const*>( &norm );
     if( norm_div ) {
-        return color_gradient( map, *norm_div );
+        return color_stops( map, *norm_div );
+    }
+    auto norm_bnd = dynamic_cast<ColorNormalizationBoundary const*>( &norm );
+    if( norm_bnd ) {
+        return color_stops( map, *norm_bnd );
     }
     auto norm_lin = dynamic_cast<ColorNormalizationLinear const*>( &norm );
     if( norm_lin ) {
-        return color_gradient( map, *norm_lin );
+        return color_stops( map, *norm_lin );
     }
 
     return {};
 }
 
-std::map<double, Color> color_gradient( ColorMap const& map, ColorNormalizationLinear const& norm )
+std::map<double, Color> color_stops( ColorMap const& map, ColorNormalizationLinear const& norm )
 {
     (void) norm;
     std::map<double, Color> result;
@@ -80,12 +85,12 @@ std::map<double, Color> color_gradient( ColorMap const& map, ColorNormalizationL
     return result;
 }
 
-std::map<double, Color> color_gradient( ColorMap const& map, ColorNormalizationLogarithmic const& norm )
+std::map<double, Color> color_stops( ColorMap const& map, ColorNormalizationLogarithmic const& norm )
 {
-    return color_gradient( map, dynamic_cast<ColorNormalizationLinear const&>( norm ));
+    return color_stops( map, dynamic_cast<ColorNormalizationLinear const&>( norm ));
 }
 
-std::map<double, Color> color_gradient( ColorMap const& map, ColorNormalizationDiverging const& norm )
+std::map<double, Color> color_stops( ColorMap const& map, ColorNormalizationDiverging const& norm )
 {
     std::map<double, Color> result;
 
@@ -129,6 +134,21 @@ std::map<double, Color> color_gradient( ColorMap const& map, ColorNormalizationD
     return result;
 }
 
+std::map<double, Color> color_stops( ColorMap const& map, ColorNormalizationBoundary const& norm )
+{
+    std::map<double, Color> result;
+
+    // Get range.
+    auto const min = norm.boundaries().front();
+    auto const max = norm.boundaries().back();
+    auto const len = max - min;
+
+    for( auto const& bound : norm.boundaries() ) {
+        result[ ( bound - min ) / len ] = map( norm, bound );
+    }
+    return result;
+}
+
 // =================================================================================================
 //     Tickmarks
 // =================================================================================================
@@ -144,7 +164,11 @@ std::map<double, std::string> color_tickmarks( ColorNormalization const& norm, s
     }
     auto norm_div = dynamic_cast<ColorNormalizationDiverging const*>( &norm );
     if( norm_div ) {
-        return color_tickmarks( *norm_div,num_ticks );
+        return color_tickmarks( *norm_div, num_ticks );
+    }
+    auto norm_bnd = dynamic_cast<ColorNormalizationBoundary const*>( &norm );
+    if( norm_bnd ) {
+        return color_tickmarks( *norm_bnd, num_ticks );
     }
     auto norm_lin = dynamic_cast<ColorNormalizationLinear const*>( &norm );
     if( norm_lin ) {
@@ -228,6 +252,23 @@ std::map<double, std::string> color_tickmarks( ColorNormalizationDiverging const
         result[ pos ] = utils::to_string( tm_label.label );
     }
 
+    return result;
+}
+
+std::map<double, std::string> color_tickmarks( ColorNormalizationBoundary const& norm, size_t num_ticks )
+{
+    // Ignore. We use the number of boundaries coming from the normalization.
+    (void) num_ticks;
+
+    // Get range.
+    auto const min = norm.boundaries().front();
+    auto const max = norm.boundaries().back();
+    auto const len = max - min;
+
+    std::map<double, std::string> result;
+    for( auto const& bound : norm.boundaries() ) {
+        result[ ( bound - min ) / len ] = utils::to_string( bound );
+    }
     return result;
 }
 

@@ -50,15 +50,17 @@ class ColorNormalization;
 class ColorNormalizationDiverging;
 class ColorNormalizationLinear;
 class ColorNormalizationLogarithmic;
+class ColorNormalizationBoundary;
 
 // =================================================================================================
 //     Gradients
 // =================================================================================================
 
-std::map<double, Color> color_gradient( ColorMap const& map, ColorNormalization const& norm );
-std::map<double, Color> color_gradient( ColorMap const& map, ColorNormalizationLinear const& norm );
-std::map<double, Color> color_gradient( ColorMap const& map, ColorNormalizationLogarithmic const& norm );
-std::map<double, Color> color_gradient( ColorMap const& map, ColorNormalizationDiverging const& norm );
+std::map<double, Color> color_stops( ColorMap const& map, ColorNormalization const& norm );
+std::map<double, Color> color_stops( ColorMap const& map, ColorNormalizationLinear const& norm );
+std::map<double, Color> color_stops( ColorMap const& map, ColorNormalizationLogarithmic const& norm );
+std::map<double, Color> color_stops( ColorMap const& map, ColorNormalizationDiverging const& norm );
+std::map<double, Color> color_stops( ColorMap const& map, ColorNormalizationBoundary const& norm );
 
 // =================================================================================================
 //     Tickmarks
@@ -68,6 +70,7 @@ std::map<double, std::string> color_tickmarks( ColorNormalization const& norm, s
 std::map<double, std::string> color_tickmarks( ColorNormalizationLinear const& norm, size_t num_ticks );
 std::map<double, std::string> color_tickmarks( ColorNormalizationLogarithmic const& norm, size_t num_ticks );
 std::map<double, std::string> color_tickmarks( ColorNormalizationDiverging const& norm, size_t num_ticks );
+std::map<double, std::string> color_tickmarks( ColorNormalizationBoundary const& norm, size_t num_ticks );
 
 } // namespace utils
 } // namespace genesis

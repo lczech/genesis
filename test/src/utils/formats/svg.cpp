@@ -34,8 +34,10 @@
 #include "genesis/utils/formats/svg/svg.hpp"
 #include "genesis/utils/tools/color/functions.hpp"
 #include "genesis/utils/tools/color/diverging_lists.hpp"
+#include "genesis/utils/tools/color/sequential_lists.hpp"
 #include "genesis/utils/tools/color/map.hpp"
 #include "genesis/utils/tools/color/norm_diverging.hpp"
+#include "genesis/utils/tools/color/norm_boundary.hpp"
 
 using namespace genesis::utils;
 
@@ -146,6 +148,33 @@ TEST( Svg, ColorBar )
 
     // pal.direction = SvgPalette::Direction::kLeftToRight;
     // pal.diverging_palette = true;
+
+    auto const pal_pair = make_svg_color_bar( pal, map, norm );
+    doc.defs.push_back( pal_pair.first );
+    doc << pal_pair.second;
+
+    std::ostringstream out;
+    doc.write( out );
+
+    // LOG_DBG << out.str();
+    // file_write( out.str(), "/home/lucas/test.svg" );
+}
+
+TEST( Svg, ColorBarBoundaryNorm )
+{
+    auto doc = SvgDocument();
+    doc.overflow = SvgDocument::Overflow::kVisible;
+
+    // Nice palette.
+    auto map = ColorMap( color_list_viridis() );
+    auto norm = ColorNormalizationBoundary();
+    norm.boundaries({ 3.0, 6.0, 8.0, 10.0 });
+
+    auto pal = SvgColorBarSettings();
+
+    pal.direction = SvgColorBarSettings::Direction::kTopToBottom;
+    // pal.width = 200;
+    // pal.height = 20;
 
     auto const pal_pair = make_svg_color_bar( pal, map, norm );
     doc.defs.push_back( pal_pair.first );
