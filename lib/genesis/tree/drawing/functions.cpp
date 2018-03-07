@@ -34,6 +34,8 @@
 #include "genesis/tree/default/newick_writer.hpp"
 #include "genesis/tree/formats/newick/writer.hpp"
 #include "genesis/tree/formats/newick/color_writer_plugin.hpp"
+#include "genesis/tree/formats/phyloxml/writer.hpp"
+#include "genesis/tree/formats/phyloxml/color_writer_plugin.hpp"
 
 #include "genesis/tree/drawing/circular_layout.hpp"
 #include "genesis/tree/drawing/layout_tree.hpp"
@@ -55,6 +57,60 @@
 
 namespace genesis {
 namespace tree {
+
+// =================================================================================================
+//     Newick Functions
+// =================================================================================================
+
+void write_tree_to_newick_file(
+    DefaultTree const& tree,
+    std::string const& newick_filename
+) {
+    NewickWriter().to_file( tree, newick_filename );
+}
+
+// =================================================================================================
+//     Phyloxml Functions
+// =================================================================================================
+
+void write_tree_to_phyloxml_file(
+    DefaultTree const& tree,
+    std::string const& phyloxml_filename
+) {
+    write_color_tree_to_phyloxml_file(
+        tree, {}, phyloxml_filename
+    );
+}
+
+void write_color_tree_to_phyloxml_file(
+    DefaultTree const&               tree,
+    std::vector<utils::Color> const& color_per_branch,
+    std::string const&               phyloxml_filename
+) {
+    // We use a normal Phyloxml writer...
+    auto writer = PhyloxmlWriter();
+
+    // ... but also wrap it in a Color Mixin in order to allow for color branches if needed.
+    auto color_plugin = tree::PhyloxmlColorWriterPlugin();
+    if( ! color_per_branch.empty() ) {
+        color_plugin.register_with( writer );
+        color_plugin.edge_colors( color_per_branch );
+    }
+
+    writer.to_file( tree, phyloxml_filename );
+}
+
+void write_color_tree_to_phyloxml_file(
+    DefaultTree const&               tree,
+    std::vector<double> const&       value_per_branch,
+    utils::ColorMap const&           color_map,
+    utils::ColorNormalization const& color_norm,
+    std::string const&               phyloxml_filename
+) {
+    write_color_tree_to_phyloxml_file(
+        tree, color_map( color_norm, value_per_branch ), phyloxml_filename
+    );
+}
 
 // =================================================================================================
 //     Nexus Functions
