@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,8 @@
  * @file
  * @ingroup placement
  */
+
+#include "genesis/placement/placement_tree.hpp"
 
 namespace genesis {
 
@@ -175,12 +177,45 @@ public:
     //     Properties
     // -------------------------------------------------------------------
 
-    int edge_num() const;
+    /**
+     * @brief Get the `edge_num` where this PqueryPlacement is placed.
+     *
+     * This number corresponds to the `edge_num` property as described in the `jplace` standard.
+     * It is not to be confused with the index of the PlacementTreeEdge.
+     */
+    int edge_num() const
+    {
+        return edge_->data<PlacementEdgeData>().edge_num();
+    }
 
-    const PlacementTreeEdge& edge() const;
-          PlacementTreeEdge& edge();
+    /**
+     * @brief Get the PlacementTreeEdge where this PqueryPlacement is placed.
+     */
+    const PlacementTreeEdge& edge() const
+    {
+        return *edge_;
+    }
 
-    void reset_edge( PlacementTreeEdge& edge );
+    /**
+     * @brief Get the PlacementTreeEdge where this PqueryPlacement is placed.
+     */
+    PlacementTreeEdge& edge()
+    {
+        return *edge_;
+    }
+
+    /**
+     * @brief Set the PlacementTreeEdge at which this PqueryPlacement is placed.
+     *
+     * This should be rarely needed. It is mostly intended for the Readers that populate the data.
+     * When setting this value, the user is responsible to make sure that the new value is actually
+     * a PlacementTreeEdge of the PlacementTree that belongs to the Sample where the Pquery of this
+     * PqueryPlacement is stored.
+     */
+    void reset_edge( PlacementTreeEdge& edge )
+    {
+        edge_ = &edge;
+    }
 
     // -------------------------------------------------------------------
     //     Data Members

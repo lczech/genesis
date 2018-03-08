@@ -33,6 +33,7 @@
 
 #include "genesis/utils/text/char.hpp"
 
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -89,15 +90,42 @@ std::string tail( std::string const& text, size_t lines = 10 );
 size_t count_substring_occurrences( std::string const& str, std::string const& sub );
 
 /**
- * @brief Spilt a string into parts, given a set of delimiter chars.
+ * @brief Spilt a @p string into parts, given a @p delimiters set of chars.
  *
- * The string `str` is split using any of the chars in `delimiters` and returned as a vector
+ * The @p string is split using any of the chars in @p delimiters and returned as a vector
  * of strings. If `trim_empty` is set, empty strings resulting from adjacent delimiter chars are
  * excluded from the output.
  */
 std::vector<std::string> split (
-    std::string const& str,
+    std::string const& string,
     std::string const& delimiters = " ",
+    const bool trim_empty = true
+);
+
+/**
+ * @brief Spilt a @p string into parts, given a @p delimiter_predicate
+ * that returns `true` for delimiters chars.
+ *
+ * The @p string is split using any of the chars for which @p delimiter_predicate is `true`,
+ * and returned as a vector of strings.  If `trim_empty` is set, empty strings resulting from
+ * adjacent delimiter chars are excluded from the output.
+ */
+std::vector<std::string> split (
+    std::string const& string,
+    std::function<bool (char)> delimiter_predicate,
+    const bool trim_empty = true
+);
+
+/**
+ * @brief Spilt a @p string into parts, given a @p delimiter string.
+ *
+ * The @p string is split where the whole @p delimiter string is found, and returned as a vector
+ * of strings. If `trim_empty` is set, empty strings resulting from adjacent delimiters are
+ * excluded from the output.
+ */
+std::vector<std::string> split_at (
+    std::string const& string,
+    std::string const& delimiter,
     const bool trim_empty = true
 );
 
