@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,12 +37,6 @@ namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Forward Declarations
-// =================================================================================================
-
-class Pquery;
-
-// =================================================================================================
 //     Pquery Name
 // =================================================================================================
 
@@ -54,7 +48,7 @@ class Pquery;
  * placement was carried out. The placements of those sequences can then be treated as one entity,
  * i.e., one Pquery, while still maintaining all their identifiers (names).
  *
- * Furthermore, each such #name can have a #multiplicity, which can be used to store e.g., the
+ * Furthermore, each such #name can have a #multiplicity, which can be used to store, e.g., the
  * number of replicates of the original sequence. It is used as a factor for the weights of
  * PqueryPlacement%s in some calculations.
  */
@@ -75,9 +69,9 @@ public:
     /**
      * @brief Constructor that takes a #name and optionally a #multiplicity.
      */
-    PqueryName(std::string name, double multiplicity = 1.0)
-        : name(name)
-        , multiplicity(multiplicity)
+    explicit PqueryName( std::string name, double multiplicity = 1.0 )
+        : name( name )
+        , multiplicity( multiplicity )
     {}
 
     ~PqueryName() = default;
@@ -87,6 +81,26 @@ public:
 
     PqueryName& operator= ( PqueryName const& ) = default;
     PqueryName& operator= ( PqueryName&& )      = default;
+
+    // -------------------------------------------------------------------
+    //     Conversion
+    // -------------------------------------------------------------------
+
+    /**
+     * @brief Implicit conversion to `std::string` that returns the #name for simplicity.
+     */
+    operator std::string&()
+    {
+        return name;
+    }
+
+    /**
+     * @brief Implicit conversion to `std::string` that returns the #name for simplicity.
+     */
+    operator std::string const&() const
+    {
+        return name;
+    }
 
     // -------------------------------------------------------------------
     //     Public Property Data Members
