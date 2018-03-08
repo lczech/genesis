@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #include "genesis/utils/text/style.hpp"
 #include "genesis/utils/text/table.hpp"
 
+#include <cctype>
 #include <sstream>
 
 using namespace genesis::utils;
@@ -118,19 +119,64 @@ TEST( Text, Indent )
     EXPECT_EQ( lines_idnt_2, indent( lines_orig_2 ));
 }
 
-TEST(Text, Split)
+TEST(Text, SplitDelim)
 {
+    auto no_delim = split("one:two:three:four", ",");
+    EXPECT_EQ(1, no_delim.size());
+
     auto simple = split("one:two:three:four", ":");
     EXPECT_EQ(4, simple.size());
 
     auto mulit_delim = split("one:two three-four", ": -");
     EXPECT_EQ(4, mulit_delim.size());
 
-    auto empty = split("::one:two:three::four:", ":");
-    EXPECT_EQ(4, empty.size());
+    auto with_empty = split("::one:two:three::four:", ":");
+    EXPECT_EQ(4, with_empty.size());
 
     auto non_empty = split("::one:two:three::four:", ":", false);
     EXPECT_EQ(8, non_empty.size());
+}
+
+TEST(Text, SplitPredicate)
+{
+    auto no_delim = split( "one:two:three:four", isblank );
+    EXPECT_EQ(1, no_delim.size());
+
+    auto simple = split( "one two\tthree four", isblank );
+    EXPECT_EQ(4, simple.size());
+
+    auto with_empty = split( "one   two\t three\t four", isblank );
+    EXPECT_EQ(4, with_empty.size());
+
+    auto non_empty = split( "one   two\t three\t four", isblank, false );
+    EXPECT_EQ(8, non_empty.size());
+}
+
+TEST(Text, SplitAt)
+{
+    auto no_delim = split_at( "one:two:three:four", " " );
+    EXPECT_EQ(1, no_delim.size());
+
+    auto simple = split_at( "one:two:three:four", ":" );
+    EXPECT_EQ(4, simple.size());
+
+    auto with_empty = split_at("::one:two:three::four:", ":");
+    EXPECT_EQ(4, with_empty.size());
+
+    auto non_empty = split_at("::one:two:three::four:", ":", false);
+    EXPECT_EQ(8, non_empty.size());
+
+    auto no_delim2 = split_at( "one:two:three:four", "foo" );
+    EXPECT_EQ(1, no_delim2.size());
+
+    auto simple2 = split_at( "onefootwofoothreefoofour", "foo" );
+    EXPECT_EQ(4, simple2.size());
+
+    auto with_empty2 = split_at("foofooonefootwofoothreefoofoofourfoo", "foo");
+    EXPECT_EQ(4, with_empty2.size());
+
+    auto non_empty2 = split_at("foofooonefootwofoothreefoofoofourfoo", "foo", false);
+    EXPECT_EQ(8, non_empty2.size());
 }
 
 TEST( Text, Style )

@@ -130,9 +130,13 @@ size_t count_substring_occurrences( std::string const& str, std::string const& s
     return count;
 }
 
+/**
+ * @brief Local function that does the work for the split cuntions.
+ */
 std::vector<std::string> split (
-    std::string const& str,
-    std::string const& delimiters,
+    std::string const& string,
+    std::function<size_t ( std::string const&, size_t )> find_pos,
+    size_t advance_by,
     const bool trim_empty
 ) {
     size_t pos;
@@ -140,27 +144,84 @@ std::vector<std::string> split (
 
     std::vector<std::string> result;
 
-    while (true) {
-        pos = str.find_first_of(delimiters, last_pos);
+    while( true ) {
+        // Find first matching char.
+        pos = find_pos( string, last_pos );
 
-        if (pos == std::string::npos) {
-           pos = str.length();
+        // If not found, push back rest and stop.
+        if( pos == std::string::npos ) {
+           pos = string.length();
 
-           if (pos != last_pos || !trim_empty) {
-              result.push_back(std::string(str.data() + last_pos, pos - last_pos));
+           if( pos != last_pos || !trim_empty ) {
+              result.push_back( std::string( string.data() + last_pos, pos - last_pos ));
            }
 
            break;
+
+        // If found, push back and continue.
         } else {
-           if(pos != last_pos || !trim_empty) {
-              result.push_back(std::string(str.data() + last_pos, pos - last_pos));
+           if( pos != last_pos || !trim_empty ) {
+              result.push_back( std::string( string.data() + last_pos, pos - last_pos ));
            }
         }
 
-        last_pos = pos + 1;
+        last_pos = pos + advance_by;
     }
 
     return result;
+}
+
+std::vector<std::string> split (
+    std::string const& string,
+    std::string const& delimiters,
+    const bool trim_empty
+) {
+    return split(
+        string,
+        [&]( std::string const& str, size_t last_pos ){
+            return str.find_first_of( delimiters, last_pos );
+        },
+        1,
+        trim_empty
+    );
+}
+
+std::vector<std::string> split (
+    std::string const& string,
+    std::function<bool(char)> delimiter_predicate,
+    const bool trim_empty
+) {
+    return split(
+        string,
+        [&]( std::string const& str, size_t last_pos ){
+            // Find first matching char.
+            size_t pos = std::string::npos;
+            for( size_t i = last_pos; i < str.size(); ++i ) {
+                if( delimiter_predicate( str[i] ) ) {
+                    pos = i;
+                    break;
+                }
+            }
+            return pos;
+        },
+        1,
+        trim_empty
+    );
+}
+
+std::vector<std::string> split_at (
+    std::string const& string,
+    std::string const& delimiter,
+    const bool trim_empty
+) {
+    return split(
+        string,
+        [&]( std::string const& str, size_t last_pos ){
+            return str.find( delimiter, last_pos );
+        },
+        delimiter.size(),
+        trim_empty
+    );
 }
 
 // =================================================================================================
