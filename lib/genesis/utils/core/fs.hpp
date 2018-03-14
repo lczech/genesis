@@ -167,6 +167,7 @@ size_t      file_size      ( std::string const& filename );
  * @brief Return the path leading to a file.
  *
  * Does not resolve the path. Simply splits at the last directory separator.
+ * If there is no directory separator, it returns an empty string.
  */
 std::string file_path      ( std::string const& filename );
 

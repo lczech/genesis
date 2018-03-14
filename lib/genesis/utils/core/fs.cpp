@@ -146,9 +146,14 @@ void dir_create( std::string const& path, bool with_parents )
     mode_t mode = 0775;
     struct stat info;
 
+    // Checks. If it is the current dir, do nothing.
+    auto const path_no_bs = utils::trim_right( path, "/\\");
+    if( path_no_bs.empty() ) {
+        return;
+    }
+
     // Run recursively.
     if( with_parents ) {
-        auto path_no_bs = utils::trim_right( path, "/");
         if( ! dir_exists( path_no_bs ) && path_no_bs.size() > 0 ) {
             dir_create( file_path( path_no_bs ), true );
         }
@@ -269,10 +274,11 @@ std::string file_path( std::string const& filename )
 {
     auto result = filename;
     const size_t idx = result.find_last_of("\\/");
-    if (idx != std::string::npos)
-    {
-        result.erase(idx);
+    if( idx == std::string::npos ) {
+        return "";
     }
+
+    result.erase(idx);
     return result;
 }
 
