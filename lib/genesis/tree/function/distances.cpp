@@ -184,7 +184,7 @@ utils::Matrix<size_t> edge_path_length_matrix(
 
             // Find min. Make sure that the fourth case "secondary-secondary" is not shorter
             // (if this ever happens, the tree is broken).
-            auto dist = std::min(pp, std::min(ps, sp));
+            auto dist = std::min({ pp, ps, sp });
             assert( dist <= node_depth_mat(
                 row_edge.secondary_node().index(),
                 col_edge->secondary_node().index()
@@ -233,7 +233,7 @@ std::vector<size_t> edge_path_length_vector(
 
         // Find min. Make sure that the fourth case "secondary-secondary" is not shorter
         // (if this ever happens, the tree is broken).
-        double dist = std::min(pp, std::min(ps, sp));
+        double dist = std::min({ pp, ps, sp });
         assert(dist <= s_node_dist[ col_edge->secondary_node().index() ]);
 
         // Store in vector.

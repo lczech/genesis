@@ -43,8 +43,6 @@
 #include "genesis/utils/math/matrix.hpp"
 #include "genesis/utils/math/pca.hpp"
 
-#include "genesis/utils/core/logging.hpp"
-
 #include <algorithm>
 #include <cassert>
 #include <cmath>
