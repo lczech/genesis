@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ namespace genesis {
 inline std::string genesis_version()
 {
     // The following line is automatically replaced by the deploy scripts. Do not change manually.
-    return "v0.18.1"; // #GENESIS_VERSION#
+    return "v0.19.0"; // #GENESIS_VERSION#
 }
 
 /**
@@ -73,7 +73,7 @@ inline std::string genesis_version()
 inline std::string genesis_version_name()
 {
     // The following line is automatically replaced by the deploy scripts. Do not change manually.
-    return "Bad Code"; // #GENESIS_VERSION_NAME#
+    return "Not Available"; // #GENESIS_VERSION_NAME#
 }
 
 /**

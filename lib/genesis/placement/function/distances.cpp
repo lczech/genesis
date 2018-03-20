@@ -33,28 +33,9 @@
 #include "genesis/placement/pquery.hpp"
 #include "genesis/placement/pquery/plain.hpp"
 
-
-// #include "genesis/placement/function/helper.hpp"
-// #include "genesis/placement/function/sample_set.hpp"
-
-// #include "genesis/tree/function/functions.hpp"
-// #include "genesis/tree/iterator/postorder.hpp"
-
-// #include "genesis/utils/containers/matrix.hpp"
-// #include "genesis/utils/containers/matrix/operators.hpp"
-// #include "genesis/utils/core/std.hpp"
-// #include "genesis/utils/math/common.hpp"
-// #include "genesis/utils/math/matrix.hpp"
-// #include "genesis/utils/math/pca.hpp"
-
-// #include "genesis/utils/core/logging.hpp"
-
 #include <algorithm>
 #include <cassert>
-// #include <cmath>
-// #include <numeric>
-// #include <stdexcept>
-// #include <vector>
+#include <cmath>
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>
