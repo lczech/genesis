@@ -33,9 +33,9 @@
 
 #include "genesis/utils/containers/matrix.hpp"
 
-#include <math.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <vector>
 
 namespace genesis {
