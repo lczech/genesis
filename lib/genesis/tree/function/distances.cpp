@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,25 +37,21 @@
 #include "genesis/utils/core/logging.hpp"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <limits>
 #include <stdexcept>
+
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
 
 namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Distance Measures
+//     Node Distance Measures
 // =================================================================================================
 
-/**
- * @brief Return a matrix containing the pairwise depth of all nodes of the tree.
- *
- * See @link node_path_length_vector( Tree const& tree, TreeNode const& node ) node_path_length_vector(...)@endlink
- * for more information.
- *
- * The vector is indexed using the node().index() for every node.
- */
 utils::Matrix<size_t> node_path_length_matrix(
     Tree const& tree
 ) {
@@ -63,45 +59,41 @@ utils::Matrix<size_t> node_path_length_matrix(
     utils::Matrix<size_t> mat( tree.node_count(), tree.node_count(), max_val );
 
     // Fill every row of the matrix.
-    for( auto const& row_node : tree.nodes() ) {
+    #pragma omp parallel for
+    for( size_t ni = 0; ni < tree.node_count(); ++ni ) {
+        auto const& row_node = tree.node_at( ni );
+        assert( row_node.index() == ni );
 
         // Set the diagonal element of the matrix.
-        mat( row_node->index(), row_node->index() ) = 0;
+        mat( row_node.index(), row_node.index() ) = 0;
 
         // The columns are filled using a levelorder traversal. This makes sure that for every node
         // we know how to calculate the distance to the current row node.
         // Unfortunately, this prevents us from simply calculating the upper triangle of the matrix
         // and copying it (distance is symmetric), because we do not really know which nodes are in
         // which half during a levelorder traversal...
-        for( auto it : levelorder( row_node->link() )) {
+        for( auto it : levelorder( row_node.link() )) {
             // Skip the diagonal of the matrix.
             if (it.is_first_iteration()) {
-                assert( it.node().index() == row_node->index() );
+                assert( it.node().index() == row_node.index() );
                 continue;
             }
 
             // Make sure we don't have touched the current position, but have calculated
             // the needed dependency already.
-            assert( mat(row_node->index(), it.node().index()) == max_val );
-            assert( mat(row_node->index(), it.link().outer().node().index()) != max_val );
+            assert( mat(row_node.index(), it.node().index()) == max_val );
+            assert( mat(row_node.index(), it.link().outer().node().index()) != max_val );
 
             // The distance to the current row node is one more than the distance from the other
             // end of that branch to the row node.
-            mat( row_node->index(), it.node().index() )
-                = 1 + mat(row_node->index(), it.link().outer().node().index());
+            mat( row_node.index(), it.node().index() )
+                = 1 + mat(row_node.index(), it.link().outer().node().index());
         }
     }
 
     return mat;
 }
 
-/**
- * @brief Return a vector containing the depth of all nodes with respect to the given start node.
- *
- * The vector is indexed using the node().index() for every node. Its elements give the depth of
- * each node with respect to the given start node. The depth is the number of edges visited on the
- * path between two nodes (0 for itself, 1 for immediate neighbours, etc).
- */
 std::vector<size_t> node_path_length_vector(
     Tree const& tree,
     TreeNode const& node
@@ -138,18 +130,15 @@ std::vector<size_t> node_path_length_vector(
     return vec;
 }
 
-/**
- * @brief Return a vector containing the depth of all nodes with respect to the root node.
- *
- * This function calls and returns the value of
- * @link node_path_length_vector( Tree const& tree, TreeNode const& node ) node_path_length_vector(...)@endlink
- * using the root node of the tree.
- */
 std::vector<size_t> node_path_length_vector(
     Tree const& tree
 ) {
     return node_path_length_vector( tree, tree.root_node() );
 }
+
+// =================================================================================================
+//     Edge Distance Measures
+// =================================================================================================
 
 utils::Matrix<size_t> edge_path_length_matrix(
     Tree const& tree
@@ -162,43 +151,47 @@ utils::Matrix<size_t> edge_path_length_matrix(
     // is then the shortest distance between the two edges.
     auto node_depth_mat = node_path_length_matrix(tree);
 
-    for( auto const& row_edge : tree.edges() ) {
+    #pragma omp parallel for
+    for( size_t ei = 0; ei < tree.edge_count(); ++ei ) {
+        auto const& row_edge = tree.edge_at( ei );
+        assert( row_edge.index() == ei );
+
         for( auto const& col_edge : tree.edges() ) {
 
             // Set the diagonal element of the matrix. We don't need to compare nodes in this case.
-            if (row_edge->index() == col_edge->index()) {
-                mat(row_edge->index(), row_edge->index()) = 0;
+            if (row_edge.index() == col_edge->index()) {
+                mat(row_edge.index(), row_edge.index()) = 0;
                 continue;
             }
 
             // primary-primary case
             auto pp = node_depth_mat(
-                row_edge->primary_node().index(),
+                row_edge.primary_node().index(),
                 col_edge->primary_node().index()
             );
 
             // primary-secondary case
             auto ps = node_depth_mat(
-                row_edge->primary_node().index(),
+                row_edge.primary_node().index(),
                 col_edge->secondary_node().index()
             );
 
             // secondary-primary case
             auto sp = node_depth_mat(
-                row_edge->secondary_node().index(),
+                row_edge.secondary_node().index(),
                 col_edge->primary_node().index()
             );
 
             // Find min. Make sure that the fourth case "secondary-secondary" is not shorter
             // (if this ever happens, the tree is broken).
-            auto dist = std::min(pp, std::min(ps, sp));
+            auto dist = std::min({ pp, ps, sp });
             assert( dist <= node_depth_mat(
-                row_edge->secondary_node().index(),
+                row_edge.secondary_node().index(),
                 col_edge->secondary_node().index()
             ));
 
             // Store in matrix.
-            mat( row_edge->index(), col_edge->index() ) = dist + 1;
+            mat( row_edge.index(), col_edge->index() ) = dist + 1;
         }
     }
 
@@ -240,7 +233,7 @@ std::vector<size_t> edge_path_length_vector(
 
         // Find min. Make sure that the fourth case "secondary-secondary" is not shorter
         // (if this ever happens, the tree is broken).
-        double dist = std::min(pp, std::min(ps, sp));
+        double dist = std::min({ pp, ps, sp });
         assert(dist <= s_node_dist[ col_edge->secondary_node().index() ]);
 
         // Store in vector.
@@ -254,22 +247,6 @@ std::vector<size_t> edge_path_length_vector(
 //     Complex Distance Methods
 // =================================================================================================
 
-/**
- * @brief Returns a vector containing the closest leaf node for each node, measured in number of
- * edges between them and its depth (number of edges between them).
- *
- * The vector is indexed using the node().index() for every node. Its value contains an std::pair,
- * where the first element is a NodeType* to the closest leaf node (with respect to its depth) and
- * the second element its depth with respect to the node at the given index of the vector. The depth
- * is the number of edges visited on the path between two nodes (0 for itself, 1 for immediate
- * neighbours, etc).
- *
- * Thus, leaf nodes will have a pointer to themselves and a depth value of 0, and for all other
- * nodes the depth will be the number of edges between it and the closest leaf node.
- *
- * There might be more than one leaf with the same depth to a given node. In this case, an
- * arbitrary one is used.
- */
 std::vector< std::pair< TreeNode const*, size_t >> closest_leaf_depth_vector (
     const Tree& tree
 ) {

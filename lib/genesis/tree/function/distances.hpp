@@ -48,19 +48,45 @@ class TreeEdge;
 class TreeLink;
 
 // =================================================================================================
-//     Distance Measures
+//     Node Distance Measures
 // =================================================================================================
 
+/**
+ * @brief Return a matrix containing the pairwise depth of all nodes of the tree.
+ *
+ * See @link node_path_length_vector( Tree const& tree, TreeNode const& node ) node_path_length_vector(...)@endlink
+ * for more information.
+ *
+ * The vector is indexed using the node().index() for every node.
+ */
 utils::Matrix<size_t> node_path_length_matrix( Tree const& tree );
 
+/**
+ * @brief Return a vector containing the depth of all nodes with respect to the given start node.
+ *
+ * The vector is indexed using the node().index() for every node. Its elements give the depth of
+ * each node with respect to the given start node. The depth is the number of edges visited on the
+ * path between two nodes (0 for itself, 1 for immediate neighbours, etc).
+ */
 std::vector<size_t> node_path_length_vector(
     Tree     const& tree,
     TreeNode const& node
 );
 
+/**
+ * @brief Return a vector containing the depth of all nodes with respect to the root node.
+ *
+ * This function calls and returns the value of
+ * @link node_path_length_vector( Tree const& tree, TreeNode const& node ) node_path_length_vector(...)@endlink
+ * using the root node of the tree.
+ */
 std::vector<size_t> node_path_length_vector(
     Tree     const& tree
 );
+
+// =================================================================================================
+//     Edge Distance Measures
+// =================================================================================================
 
 utils::Matrix<size_t> edge_path_length_matrix(
     Tree const& tree
@@ -75,6 +101,22 @@ std::vector<size_t> edge_path_length_vector(
 //     Complex Distance Methods
 // =================================================================================================
 
+/**
+ * @brief Returns a vector containing the closest leaf node for each node, measured in number of
+ * edges between them and its depth (number of edges between them).
+ *
+ * The vector is indexed using the node().index() for every node. Its value contains an std::pair,
+ * where the first element is a NodeType* to the closest leaf node (with respect to its depth) and
+ * the second element its depth with respect to the node at the given index of the vector. The depth
+ * is the number of edges visited on the path between two nodes (0 for itself, 1 for immediate
+ * neighbours, etc).
+ *
+ * Thus, leaf nodes will have a pointer to themselves and a depth value of 0, and for all other
+ * nodes the depth will be the number of edges between it and the closest leaf node.
+ *
+ * There might be more than one leaf with the same depth to a given node. In this case, an
+ * arbitrary one is used.
+ */
 std::vector< std::pair< TreeNode const*, size_t >>  closest_leaf_depth_vector(
     Tree const& tree
 );

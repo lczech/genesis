@@ -30,6 +30,7 @@
 
 #include "genesis/placement/function/measures.hpp"
 
+#include "genesis/placement/function/distances.hpp"
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/helper.hpp"
 #include "genesis/placement/function/operators.hpp"
@@ -71,162 +72,62 @@ namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Helper Method pquery_distance
-// =================================================================================================
-
-double pquery_distance (
-    const PqueryPlain&            pqry_a,
-    const PqueryPlain&            pqry_b,
-    const utils::Matrix<double>&  node_distances,
-    bool                          with_pendant_length
-) {
-    double sum = 0.0;
-    double pp, pd, dp, dist;
-
-    // TODO once the proper dist measures (outside of this class) are in place, get rid of this function!
-
-    for (const PqueryPlacementPlain& place_a : pqry_a.placements) {
-        for (const PqueryPlacementPlain& place_b : pqry_b.placements) {
-            if (place_a.edge_index == place_b.edge_index) {
-                // same branch case
-                dist = std::abs(place_a.proximal_length - place_b.proximal_length);
-
-            } else {
-                // proximal-proximal case
-                pp = place_a.proximal_length
-                   + node_distances(place_a.primary_node_index, place_b.primary_node_index)
-                   + place_b.proximal_length;
-
-                // proximal-distal case
-                pd = place_a.proximal_length
-                   + node_distances(place_a.primary_node_index, place_b.secondary_node_index)
-                   + place_b.branch_length - place_b.proximal_length;
-
-                // distal-proximal case
-                dp = place_a.branch_length - place_a.proximal_length
-                   + node_distances(place_a.secondary_node_index, place_b.primary_node_index)
-                   + place_b.proximal_length;
-
-                // find min of the three cases and
-                dist = std::min(pp, std::min(pd, dp));
-            }
-
-            //  If needed, use pendant length; normalize it to the weight ratios.
-            if (with_pendant_length) {
-                dist += place_a.pendant_length + place_b.pendant_length;
-            }
-            dist *= place_a.like_weight_ratio * place_b.like_weight_ratio;
-            sum  += dist;
-        }
-    }
-
-    return sum;
-}
-
-double placement_distance(
-    PqueryPlacement const& place_a,
-    PqueryPlacement const& place_b,
-    utils::Matrix<double> const& node_distances
-) {
-    double pp, pd, dp, dist;
-
-    if( place_a.edge().index() == place_b.edge().index() ) {
-        // same branch case
-        dist = std::abs( place_a.proximal_length - place_b.proximal_length );
-
-    } else {
-        // proximal-proximal case
-        pp = place_a.proximal_length
-           + node_distances(
-               place_a.edge().primary_node().index(),
-               place_b.edge().primary_node().index()
-           )
-           + place_b.proximal_length;
-
-        // proximal-distal case
-        pd = place_a.proximal_length
-           + node_distances(
-               place_a.edge().primary_node().index(),
-               place_b.edge().secondary_node().index()
-           )
-           + place_b.edge().data<tree::DefaultEdgeData>().branch_length
-           - place_b.proximal_length;
-
-        // distal-proximal case
-        dp = place_a.edge().data<tree::DefaultEdgeData>().branch_length
-           - place_a.proximal_length
-           + node_distances(
-               place_a.edge().secondary_node().index(),
-               place_b.edge().primary_node().index()
-           )
-           + place_b.proximal_length;
-
-        // find min of the three cases
-        dist = std::min(pp, std::min(pd, dp));
-    }
-
-    return dist;
-}
-
-// =================================================================================================
 //     Expected Distance between Placement Locations
 // =================================================================================================
 
-double expected_distance_between_placement_locations(
-    Pquery const& pquery,
-    utils::Matrix<double> const& node_distances
-) {
+double edpl( Pquery const& pquery, utils::Matrix<double> const& node_distances )
+{
     double result = 0.0;
 
+    #pragma omp parallel for
     for( size_t i = 0; i < pquery.placement_size(); ++i ) {
+
+        #pragma omp parallel for
         for( size_t j = i + 1; j < pquery.placement_size(); ++j ) {
+
             auto const& place_i = pquery.placement_at(i);
             auto const& place_j = pquery.placement_at(j);
 
             auto const dist = placement_distance( place_i, place_j, node_distances );
+
+            #pragma omp atomic
             result += place_i.like_weight_ratio * place_j.like_weight_ratio * dist;
         }
     }
     return 2 * result;
 }
 
-double expected_distance_between_placement_locations( Sample const& sample, Pquery const& pquery )
-{
-    auto node_distances = node_branch_length_distance_matrix( sample.tree() );
-    return expected_distance_between_placement_locations( pquery, node_distances );
-}
-
-double edpl( Sample const& sample, Pquery const& pquery )
-{
-    return expected_distance_between_placement_locations( sample, pquery );
-}
-
-std::vector<double> expected_distance_between_placement_locations( Sample const& sample )
+std::vector<double> edpl( Sample const& sample, utils::Matrix<double> const& node_distances )
 {
     // Prepare result (facilitate copy elision).
-    std::vector<double> result;
-    result.reserve( sample.size() );
-
-    // Get pairwise dists between all nodes of the tree.
-    auto const node_distances = node_branch_length_distance_matrix( sample.tree() );
+    auto result = std::vector<double>( sample.size(), 0 );
 
     // Fill result vector.
-    for( auto const& pquery : sample ) {
-        result.push_back( expected_distance_between_placement_locations( pquery, node_distances ));
+    #pragma omp parallel for
+    for( size_t qi = 0; qi < sample.size(); ++qi ) {
+        auto const& pquery = sample.at( qi );
+        result[qi] = edpl( pquery, node_distances );
     }
     return result;
 }
 
+double edpl( Sample const& sample, Pquery const& pquery )
+{
+    auto const node_distances = node_branch_length_distance_matrix( sample.tree() );
+    return edpl( pquery, node_distances );
+}
+
 std::vector<double> edpl( Sample const& sample )
 {
-    return expected_distance_between_placement_locations( sample );
+    auto const node_distances = node_branch_length_distance_matrix( sample.tree() );
+    return edpl( sample, node_distances );
 }
 
 // =================================================================================================
 //     Pairwise Distance
 // =================================================================================================
 
-double pairwise_distance (
+double pairwise_distance(
     const Sample& smp_a,
     const Sample& smp_b,
     bool          with_pendant_length
