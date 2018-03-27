@@ -43,12 +43,12 @@ int main( int argc, char** argv )
     SvgDocument doc;
     size_t entry = 0;
 
-    auto svgpal = SvgPalette();
+    auto svgpal = SvgColorBarSettings();
     svgpal.width = 200;
     svgpal.height = 20;
     svgpal.with_tickmarks = false;
     svgpal.with_labels = false;
-    svgpal.direction = SvgPalette::Direction::kLeftToRight;
+    svgpal.direction = SvgColorBarSettings::Direction::kLeftToRight;
 
     // -------------------------------------------------------------------------
     //     Sequential
@@ -59,12 +59,11 @@ int main( int argc, char** argv )
 
     for( auto const& listname : sequential_color_list_names() ) {
         auto const& list = sequential_color_list( listname );
-        auto pal = ColorPalette( list );
+        auto map = ColorMap( list );
+        auto norm = ColorNormalizationLinear();
 
         // Palette
-        svgpal.palette = pal;
-        svgpal.id = listname;
-        auto sp = svgpal.make();
+        auto sp = make_svg_color_bar( svgpal, map, norm, listname );
         sp.second.transform.append( SvgTransform::Translate( 0, 30 * entry ) );
         doc.defs.push_back( sp.first );
         doc.add( sp.second );
@@ -83,15 +82,14 @@ int main( int argc, char** argv )
     doc << SvgText( "Diverging", SvgPoint( 10, 30 * entry + 15 ));
     ++entry;
 
-    svgpal.diverging_palette = true;
+    // svgpal.diverging_palette = true;
     for( auto const& listname : diverging_color_list_names() ) {
         auto const& list = diverging_color_list( listname );
-        auto pal = ColorPalette( list );
+        auto map = ColorMap( list );
+        auto norm = ColorNormalizationLinear();
 
         // Palette
-        svgpal.palette = pal;
-        svgpal.id = listname;
-        auto sp = svgpal.make();
+        auto sp = make_svg_color_bar( svgpal, map, norm, listname );
         sp.second.transform.append( SvgTransform::Translate( 0, 30 * entry ) );
         doc.defs.push_back( sp.first );
         doc.add( sp.second );
