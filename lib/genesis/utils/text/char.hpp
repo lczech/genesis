@@ -32,6 +32,9 @@
  */
 
 #include <cctype>
+#include <iostream>
+#include <string>
+#include <sstream>
 
 namespace genesis {
 namespace utils {
@@ -86,6 +89,27 @@ inline char to_lower_ascii( char c )
 inline char to_upper_ascii( char c )
 {
     return ( 'a' <= c && c <= 'z' ) ? c - 0x20 : c;
+}
+
+/**
+ * @brief Return the hex representation of a char.
+ *
+ * By default, just the two-byte hex presentation is returned (e.g., `4e` for `N`).
+ * If @p full is `true`, a text-representation is returned instead, using the form
+ *
+ *     'N' (0x4e)
+ *
+ * instead.
+ */
+inline std::string char_to_hex( char c, bool full = false )
+{
+    std::stringstream ss;
+    if( full ) {
+        ss << "'" << std::string( 1, c ) << "' (0x" << std::hex << static_cast<int>( c ) << ")";
+    } else {
+        ss << std::hex << static_cast<int>( c );
+    }
+    return ss.str();
 }
 
 } // namespace utils

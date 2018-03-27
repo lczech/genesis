@@ -149,6 +149,22 @@ public:
     }
 
     /**
+     * @brief
+     */
+    ColorNormalizationLinear& autoscale_min( std::vector<double> const& values )
+    {
+        return autoscale_min( values.begin(), values.end() );
+    }
+
+    /**
+     * @brief
+     */
+    ColorNormalizationLinear& autoscale_max( std::vector<double> const& values )
+    {
+        return autoscale_max( values.begin(), values.end() );
+    }
+
+    /**
      * @brief Set the min and max of the Palette so that they reflect the min and max valid values
      * that are found in the range `[ first, last )`.
      *
@@ -194,6 +210,32 @@ public:
         max_value_ = max;
         update_hook_( min, max );
 
+        return *this;
+    }
+
+    /**
+     * @brief Same as autoscale(), but only updates the min_value().
+     */
+    template <class ForwardIterator>
+    ColorNormalizationLinear& autoscale_min( ForwardIterator first, ForwardIterator last )
+    {
+        auto const max = max_value_;
+        autoscale( first, last );
+        max_value_ = max;
+        update_hook_( min_value_, max_value_ );
+        return *this;
+    }
+
+    /**
+     * @brief Same as autoscale(), but only updates the max_value().
+     */
+    template <class ForwardIterator>
+    ColorNormalizationLinear& autoscale_max( ForwardIterator first, ForwardIterator last )
+    {
+        auto const min = min_value_;
+        autoscale( first, last );
+        min_value_ = min;
+        update_hook_( min_value_, max_value_ );
         return *this;
     }
 

@@ -36,6 +36,7 @@
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/scanner.hpp"
+#include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <assert.h>
@@ -174,16 +175,6 @@ bool FastaReader::parse_sequence(
     }
     sequence.label( label );
 
-    // Check for unexpected end of stream.
-    if( *line != '\0' ) {
-        throw std::runtime_error(
-            "Malformed Fasta " + it.source_name()
-            + ": Expecting a sequence after the label line in sequence at line "
-            + std::to_string( it.line() - 1 ) + "."
-        );
-    }
-    assert( *line == '\0' || *line == ' ' );
-
     // Check for unexpected end of file.
     if( *line != '\0' ) {
         throw std::runtime_error(
@@ -252,9 +243,9 @@ bool FastaReader::parse_sequence(
         for( auto const& c : sequence.sites() ) {
             if( !lookup_[c] ) {
                 throw std::runtime_error(
-                    "Malformed Fasta " + it.source_name()
-                    + ": Invalid sequence symbols in sequence at line "
-                    + std::to_string( it.line() - 1 ) + "."
+                    "Malformed Fasta " + it.source_name() + ": Invalid sequence symbol "
+                    + utils::char_to_hex( c, true )
+                    + " in sequence near line " + std::to_string( it.line() - 1 ) + "."
                 );
             }
         }
@@ -346,8 +337,8 @@ bool FastaReader::parse_sequence_pedantic(
             }
             if( use_validation_ && ! lookup_[c] ) {
                 throw std::runtime_error(
-                    "Malformed Fasta " + it.source_name()
-                    + ": Invalid sequence symbols at " + it.at() + "."
+                    "Malformed Fasta " + it.source_name() + ": Invalid sequence symbol "
+                    + utils::char_to_hex( c, true ) + " in sequence at " + it.at() + "."
                 );
             }
 
