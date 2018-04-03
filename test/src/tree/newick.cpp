@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -65,72 +65,84 @@ TEST(Newick, FromAndToString)
 TEST(Newick, NewickVariants)
 {
     Tree tree;
+    std::string newick_string;
+    auto writer = DefaultTreeNewickWriter();
 
     EXPECT_TRUE( tree.empty() );
 
+    // First, no branch lengths.
+    writer.enable_branch_lengths( false );
+
     // Stupid tree.
-    tree = DefaultTreeNewickReader().from_string(
-        "();"
-    );
+    newick_string = "();";
+    tree = DefaultTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( 2, tree.node_count() );
     EXPECT_FALSE( tree.empty() );
+    EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // No nodes are named.
-    tree = DefaultTreeNewickReader().from_string(
-        "(,,(,));"
-    );
+    newick_string = "(,,(,));";
+    tree = DefaultTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
+    EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // Leaf nodes are named.
-    tree = DefaultTreeNewickReader().from_string(
-        "(A,B,(C,D));"
-    );
+    newick_string = "(A,B,(C,D));";
+    tree = DefaultTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
+    EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // All nodes are named.
-    tree = DefaultTreeNewickReader().from_string(
-        "(A,B,(C,D)E)F;"
-    );
+    newick_string = "(A,B,(C,D)E)F;";
+    tree = DefaultTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
+    EXPECT_EQ( newick_string, writer.to_string( tree ));
+
+    // Now, test with branch lengths.
+    writer.enable_branch_lengths( true );
 
     // All but root node have a distance to parent.
-    tree = DefaultTreeNewickReader().from_string(
-        "(:0.1,:0.2,(:0.3,:0.4):0.5);"
-    );
+    newick_string = "(:0.1,:0.2,(:0.3,:0.4):0.5);";
+    tree = DefaultTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
+    EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // All have a distance to parent.
-    tree = DefaultTreeNewickReader().from_string(
-        "(:0.1,:0.2,(:0.3,:0.4):0.5):0.0;"
-    );
+    // We never write out the root branch length, so this test is skipped.
+    newick_string = "(:0.1,:0.2,(:0.3,:0.4):0.5):0.0;";
+    tree = DefaultTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
+    // EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // Distances and leaf names (popular).
-    tree = DefaultTreeNewickReader().from_string(
-        "(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);"
-    );
+    newick_string = "(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);";
+    tree = DefaultTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
+    EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // Distances and all names.
-    tree = DefaultTreeNewickReader().from_string(
-        "(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;"
-    );
+    newick_string = "(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;";
+    tree = DefaultTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
+    EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // A tree rooted on a leaf node (rare).
-    tree = DefaultTreeNewickReader().from_string(
-        "((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;"
-    );
+    newick_string = "((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;";
+    tree = DefaultTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
+    EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // All mixed, with comments and tags. Need to activate tags first.
+    // We here only test the reading, and check for a simple standard written output,
+    // instead of the hassle of using custom plugins to also write tags etc...
+    newick_string = "( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};";
+    auto const newick_string2 = "((Ant:0.2,Bee:0.09)Inner:0.7,Coyote:0.5);";
     auto reader = DefaultTreeNewickReader();
     reader.enable_tags( true );
-    tree = reader.from_string(
-        "( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};"
-    );
+    tree = reader.from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
+    EXPECT_EQ( newick_string2, writer.to_string( tree ));
 }
 
 TEST(Newick, ColorPlugin)

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <deque>
 #include <memory>
 #include <sstream>
@@ -74,7 +74,9 @@ std::string NewickWriter::to_string( Tree const& tree ) const
     NewickBroker broker;
     tree_to_broker_(tree, broker);
     broker.assign_ranks();
-    return to_string_rec_(broker, 0) + ";";
+
+    return to_string_( broker );
+    // return to_string_rec_( broker, 0 ) + ";";
 }
 
 void NewickWriter::tree_to_broker_ (
@@ -164,6 +166,8 @@ std::string NewickWriter::element_to_string_( NewickBrokerElement const& bn ) co
 
 std::string NewickWriter::to_string_rec_( NewickBroker const& broker, size_t pos ) const
 {
+    // Old, recursive, slow version. Not used any more.
+
     // check if it is a leaf, stop recursion if so.
     if (broker[pos].rank() == 0) {
         return element_to_string_(broker[pos]);
@@ -194,6 +198,50 @@ std::string NewickWriter::to_string_rec_( NewickBroker const& broker, size_t pos
     }
     out << ")" << element_to_string_(broker[pos]);
     return out.str();
+}
+
+std::string NewickWriter::to_string_( NewickBroker const& broker ) const
+{
+    std::stringstream ss;
+
+    // Assertion helpers: how many parenthesis were written?
+    size_t op = 0;
+    size_t cp = 0;
+
+    // Iterate broker in reverse order, because Newick...
+    size_t prev_depth = 0;
+    for( int pos = broker.size() - 1; pos >= 0 ; --pos ) {
+        auto const& elem = broker[pos];
+
+        // Opening parenthesis.
+        for( int i = prev_depth; i < elem.depth; ++i ) {
+            ss << "(";
+            ++op;
+        }
+        ss << element_to_string_( broker[pos] );
+
+        // No more parentheses after the root.
+        if( pos == 0 ) {
+            continue;
+        }
+
+        // Closing parenthesis or comma for next element.
+        if( broker[ pos - 1 ].depth == elem.depth - 1 ) {
+            ss << ")";
+            ++cp;
+        } else {
+            ss << ",";
+        }
+        prev_depth = elem.depth;
+    }
+
+    // Have to have written as many opening as closing parenthesis.
+    assert( op == cp );
+    (void) op;
+    (void) cp;
+
+    ss << ";";
+    return ss.str();
 }
 
 } // namespace tree
