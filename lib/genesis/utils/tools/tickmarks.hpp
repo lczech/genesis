@@ -71,11 +71,11 @@ public:
     Tickmarks() = default;
     ~Tickmarks() = default;
 
-    Tickmarks(Tickmarks const&)     = default;
-    Tickmarks(Tickmarks&&) noexcept = default;
+    Tickmarks(Tickmarks const&) = default;
+    Tickmarks(Tickmarks&&)      = default;
 
-    Tickmarks& operator= (Tickmarks const&)     = default;
-    Tickmarks& operator= (Tickmarks&&) noexcept = default;
+    Tickmarks& operator= (Tickmarks const&) = default;
+    Tickmarks& operator= (Tickmarks&&)      = default;
 
     // -------------------------------------------------------------------------
     //     Drudges

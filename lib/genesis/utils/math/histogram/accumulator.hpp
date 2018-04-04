@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -87,7 +87,7 @@ public:
     HistogramAccumulator& operator= (HistogramAccumulator const&) = default;
     HistogramAccumulator& operator= (HistogramAccumulator&&)      = default;
 
-    void swap (HistogramAccumulator& other) noexcept;
+    void swap (HistogramAccumulator& other);
 
     // -------------------------------------------------------------------------
     //     Accessors
@@ -150,7 +150,7 @@ private:
 //     Basic Operators
 // =================================================================================================
 
-inline void swap( HistogramAccumulator& lhs, HistogramAccumulator& rhs ) noexcept
+inline void swap( HistogramAccumulator& lhs, HistogramAccumulator& rhs )
 {
     lhs.swap(rhs);
 }

@@ -44,7 +44,7 @@ namespace utils {
 //     Friends
 // =================================================================================================
 
-void swap( Histogram& lhs, Histogram& rhs ) noexcept
+void swap( Histogram& lhs, Histogram& rhs )
 {
     using std::swap;
     swap( lhs.bins_, rhs.bins_);

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -205,7 +205,7 @@ void Taxopath::clear()
 /**
  * @brief Return an iterator to the beginning of the taxonomic elements.
  */
-Taxopath::iterator Taxopath::begin() noexcept
+Taxopath::iterator Taxopath::begin()
 {
     return elements_.begin();
 }
@@ -213,7 +213,7 @@ Taxopath::iterator Taxopath::begin() noexcept
 /**
  * @brief Return an iterator to the end of the taxonomic elements.
  */
-Taxopath::iterator Taxopath::end() noexcept
+Taxopath::iterator Taxopath::end()
 {
     return elements_.end();
 }
@@ -221,7 +221,7 @@ Taxopath::iterator Taxopath::end() noexcept
 /**
  * @brief Return a const iterator to the beginning of the taxonomic elements.
  */
-Taxopath::const_iterator Taxopath::begin() const noexcept
+Taxopath::const_iterator Taxopath::begin() const
 {
     return elements_.cbegin();
 }
@@ -229,7 +229,7 @@ Taxopath::const_iterator Taxopath::begin() const noexcept
 /**
  * @brief Return a const iterator to the end of the taxonomic elements.
  */
-Taxopath::const_iterator Taxopath::end() const noexcept
+Taxopath::const_iterator Taxopath::end() const
 {
     return elements_.cend();
 }
@@ -237,7 +237,7 @@ Taxopath::const_iterator Taxopath::end() const noexcept
 /**
  * @brief Return a reverse iterator to the reverse beginning of the taxonomic elements.
  */
-Taxopath::reverse_iterator Taxopath::rbegin() noexcept
+Taxopath::reverse_iterator Taxopath::rbegin()
 {
     return elements_.rbegin();
 }
@@ -245,7 +245,7 @@ Taxopath::reverse_iterator Taxopath::rbegin() noexcept
 /**
  * @brief Return a reverse iterator to the reverse end of the taxonomic elements.
  */
-Taxopath::reverse_iterator Taxopath::rend() noexcept
+Taxopath::reverse_iterator Taxopath::rend()
 {
     return elements_.rend();
 }
@@ -253,7 +253,7 @@ Taxopath::reverse_iterator Taxopath::rend() noexcept
 /**
  * @brief Return a const reverse iterator to the reverse beginning of the taxonomic elements.
  */
-Taxopath::const_reverse_iterator Taxopath::rbegin() const noexcept
+Taxopath::const_reverse_iterator Taxopath::rbegin() const
 {
     return elements_.crbegin();
 }
@@ -261,7 +261,7 @@ Taxopath::const_reverse_iterator Taxopath::rbegin() const noexcept
 /**
  * @brief Return a const reverse iterator to the reverse end of the taxonomic elements.
  */
-Taxopath::const_reverse_iterator Taxopath::rend() const noexcept
+Taxopath::const_reverse_iterator Taxopath::rend() const
 {
     return elements_.crend();
 }

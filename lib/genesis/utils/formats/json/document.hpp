@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -89,16 +89,16 @@ class JsonIterator;
 
 class JsonDocument;
 
-bool operator==(JsonDocument const& lhs, JsonDocument const& rhs) noexcept;
-bool operator==(JsonDocument const& v, std::nullptr_t) noexcept;
-bool operator==(std::nullptr_t, JsonDocument const& v) noexcept;
-bool operator!=(JsonDocument const& lhs, JsonDocument const& rhs) noexcept;
-bool operator!=(JsonDocument const& v, std::nullptr_t) noexcept;
-bool operator!=(std::nullptr_t, JsonDocument const& v) noexcept;
-bool operator<(JsonDocument const& lhs, JsonDocument const& rhs) noexcept;
-bool operator<=(JsonDocument const& lhs, JsonDocument const& rhs) noexcept;
-bool operator>(JsonDocument const& lhs, JsonDocument const& rhs) noexcept;
-bool operator>=(JsonDocument const& lhs, JsonDocument const& rhs) noexcept;
+bool operator==(JsonDocument const& lhs, JsonDocument const& rhs);
+bool operator==(JsonDocument const& v, std::nullptr_t);
+bool operator==(std::nullptr_t, JsonDocument const& v);
+bool operator!=(JsonDocument const& lhs, JsonDocument const& rhs);
+bool operator!=(JsonDocument const& v, std::nullptr_t);
+bool operator!=(std::nullptr_t, JsonDocument const& v);
+bool operator<(JsonDocument const& lhs, JsonDocument const& rhs);
+bool operator<=(JsonDocument const& lhs, JsonDocument const& rhs);
+bool operator>(JsonDocument const& lhs, JsonDocument const& rhs);
+bool operator>=(JsonDocument const& lhs, JsonDocument const& rhs);
 
 // =================================================================================================
 //     JsonValue
@@ -364,7 +364,7 @@ public:
         not (std::is_same<T, int>::value) and
         std::is_same<T, NumberUnsignedType>::value,
     int>::type = 0>
-    JsonDocument(const NumberUnsignedType val) noexcept
+    JsonDocument(const NumberUnsignedType val)
         : type_(ValueType::kNumberUnsigned), value_(val)
     {
         assert_invariant();
@@ -787,32 +787,32 @@ public:
     /**
      * @brief Return an iterator to the first element.
      */
-    iterator begin() noexcept;
+    iterator begin();
 
     /**
      * @copydoc JsonDocument::cbegin()
      */
-    const_iterator begin() const noexcept;
+    const_iterator begin() const;
 
     /**
      * @brief Return a const iterator to the first element.
      */
-    const_iterator cbegin() const noexcept;
+    const_iterator cbegin() const;
 
     /**
      * @brief Return an iterator to one past the last element.
      */
-    iterator end() noexcept;
+    iterator end();
 
     /**
      * @copydoc JsonDocument::cend()
      */
-    const_iterator end() const noexcept;
+    const_iterator end() const;
 
     /**
      * @brief Return a const iterator to one past the last element.
      */
-    const_iterator cend() const noexcept;
+    const_iterator cend() const;
 
     // ---------------------------------------------------------------------------------------------
     //     Modifiers
@@ -899,7 +899,7 @@ public:
      *  * Two JSON null values are equal.
      * %
      */
-    friend bool operator==(const_reference lhs, const_reference rhs) noexcept;
+    friend bool operator==(const_reference lhs, const_reference rhs);
 
     /**
      * @brief Compare equal.
@@ -908,7 +908,7 @@ public:
      * be used to initialize a JSON value to null, a comparison of JSON value @a v with a null
      * pointer should be equivalent to call `v.is_null()`.
      */
-    friend bool operator==(const_reference v, std::nullptr_t) noexcept
+    friend bool operator==(const_reference v, std::nullptr_t)
     {
         return v.is_null();
     }
@@ -916,7 +916,7 @@ public:
     /**
      * @copydoc operator==(const_reference v, std::nullptr_t)
      */
-    friend bool operator==(std::nullptr_t, const_reference v) noexcept
+    friend bool operator==(std::nullptr_t, const_reference v)
     {
         return v.is_null();
     }
@@ -926,7 +926,7 @@ public:
      *
      * See operator==(const_reference lhs, const_reference rhs) for details.
      */
-    friend bool operator!=(const_reference lhs, const_reference rhs) noexcept
+    friend bool operator!=(const_reference lhs, const_reference rhs)
     {
         return not (lhs == rhs);
     }
@@ -936,7 +936,7 @@ public:
      *
      * See operator==(const_reference v, std::nullptr_t) for details.
      */
-    friend bool operator!=(const_reference v, std::nullptr_t) noexcept
+    friend bool operator!=(const_reference v, std::nullptr_t)
     {
         return not v.is_null();
     }
@@ -946,7 +946,7 @@ public:
      *
      * See operator==(const_reference v, std::nullptr_t) for details.
      */
-    friend bool operator!=(std::nullptr_t, const_reference v) noexcept
+    friend bool operator!=(std::nullptr_t, const_reference v)
     {
         return not v.is_null();
     }
@@ -964,7 +964,7 @@ public:
      *    the types is considered, see @ref operator<(const JsonDocument::ValueType, const JsonDocument::ValueType).
      * %
      */
-    friend bool operator<(const_reference lhs, const_reference rhs) noexcept;
+    friend bool operator<(const_reference lhs, const_reference rhs);
 
     /**
      * @brief Compare less than or equal.
@@ -972,7 +972,7 @@ public:
      * Compares whether one JSON value @a lhs is less than or equal to another JSON value by
      * calculating `not (rhs < lhs)`.
      */
-    friend bool operator<=(const_reference lhs, const_reference rhs) noexcept
+    friend bool operator<=(const_reference lhs, const_reference rhs)
     {
         return not (rhs < lhs);
     }
@@ -983,7 +983,7 @@ public:
      * Compares whether one JSON value @a lhs is greater than another JSON value by calculating
      * `not (lhs <= rhs)`.
      */
-    friend bool operator>(const_reference lhs, const_reference rhs) noexcept
+    friend bool operator>(const_reference lhs, const_reference rhs)
     {
         return not (lhs <= rhs);
     }
@@ -994,7 +994,7 @@ public:
      * Compares whether one JSON value @a lhs is greater than or equal to another
      * JSON value by calculating `not (lhs < rhs)`.
      */
-    friend bool operator>=(const_reference lhs, const_reference rhs) noexcept
+    friend bool operator>=(const_reference lhs, const_reference rhs)
     {
         return not (lhs < rhs);
     }
@@ -1009,7 +1009,7 @@ private:
      *  * furthermore, each type is not smaller than itself
      * %
      */
-    friend bool operator<(const ValueType lhs, const ValueType rhs) noexcept;
+    friend bool operator<(const ValueType lhs, const ValueType rhs);
 
     // ---------------------------------------------------------------------------------------------
     //     Convenience Functions

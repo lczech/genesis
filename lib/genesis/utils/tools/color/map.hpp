@@ -75,11 +75,11 @@ public:
 
     ~ColorMap() = default;
 
-    ColorMap(ColorMap const&)     = default;
-    ColorMap(ColorMap&&) noexcept = default;
+    ColorMap(ColorMap const&) = default;
+    ColorMap(ColorMap&&)      = default;
 
     ColorMap& operator= (ColorMap const&)     = default;
-    ColorMap& operator= (ColorMap&&) noexcept = default;
+    ColorMap& operator= (ColorMap&&)      = default;
 
     // -------------------------------------------------------------------------
     //     Accessors

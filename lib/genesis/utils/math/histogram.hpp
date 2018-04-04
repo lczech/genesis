@@ -43,7 +43,7 @@ namespace utils {
 
 class Histogram;
 bool equal_ranges( Histogram const& lhs, Histogram const& rhs );
-void swap( Histogram& lhs, Histogram& rhs ) noexcept;
+void swap( Histogram& lhs, Histogram& rhs );
 
 // =================================================================================================
 //     Histogram
@@ -108,7 +108,7 @@ public:
     Histogram& operator= (Histogram const&) = default;
     Histogram& operator= (Histogram&&)      = default;
 
-    friend void swap( Histogram& lhs, Histogram& rhs ) noexcept;
+    friend void swap( Histogram& lhs, Histogram& rhs );
 
     // -------------------------------------------------------------------------
     //     General Methods

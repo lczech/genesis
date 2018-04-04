@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -587,38 +587,38 @@ JsonDocument::size_type JsonDocument::count(typename JsonDocument::ObjectType::k
 //     Iterators
 // =================================================================================================
 
-JsonDocument::iterator JsonDocument::begin() noexcept
+JsonDocument::iterator JsonDocument::begin()
 {
     iterator result(this);
     result.set_begin();
     return result;
 }
 
-JsonDocument::const_iterator JsonDocument::begin() const noexcept
+JsonDocument::const_iterator JsonDocument::begin() const
 {
     return cbegin();
 }
 
-JsonDocument::const_iterator JsonDocument::cbegin() const noexcept
+JsonDocument::const_iterator JsonDocument::cbegin() const
 {
     const_iterator result(this);
     result.set_begin();
     return result;
 }
 
-JsonDocument::iterator JsonDocument::end() noexcept
+JsonDocument::iterator JsonDocument::end()
 {
     iterator result(this);
     result.set_end();
     return result;
 }
 
-JsonDocument::const_iterator JsonDocument::end() const noexcept
+JsonDocument::const_iterator JsonDocument::end() const
 {
     return cend();
 }
 
-JsonDocument::const_iterator JsonDocument::cend() const noexcept
+JsonDocument::const_iterator JsonDocument::cend() const
 {
     const_iterator result(this);
     result.set_end();
@@ -726,7 +726,7 @@ void JsonDocument::push_back( typename ObjectType::value_type const& val )
 //     Lexicographical Comparison Operators
 // =================================================================================================
 
-bool operator==( JsonDocument::const_reference lhs, JsonDocument::const_reference rhs ) noexcept
+bool operator==( JsonDocument::const_reference lhs, JsonDocument::const_reference rhs )
 {
     const auto lhs_type = lhs.type();
     const auto rhs_type = rhs.type();
@@ -789,7 +789,7 @@ bool operator==( JsonDocument::const_reference lhs, JsonDocument::const_referenc
     return false;
 }
 
-bool operator<(JsonDocument::const_reference lhs, JsonDocument::const_reference rhs) noexcept
+bool operator<(JsonDocument::const_reference lhs, JsonDocument::const_reference rhs)
 {
     const auto lhs_type = lhs.type();
     const auto rhs_type = rhs.type();
@@ -855,7 +855,7 @@ bool operator<(JsonDocument::const_reference lhs, JsonDocument::const_reference 
     return operator<(lhs_type, rhs_type);
 }
 
-bool operator<(const JsonDocument::ValueType lhs, const JsonDocument::ValueType rhs) noexcept
+bool operator<(const JsonDocument::ValueType lhs, const JsonDocument::ValueType rhs)
 {
     // Use the order of the ValueType enum!
     static constexpr std::array<uint8_t, 8> order = {{

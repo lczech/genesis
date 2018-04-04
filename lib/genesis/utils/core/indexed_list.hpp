@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -173,32 +173,32 @@ public:
     //     Iterators
     // -------------------------------------------------------------------------
 
-    iterator begin() noexcept
+    iterator begin()
     {
         return IndexedListIterator<value_type>( *this );
     }
 
-    const_iterator begin() const noexcept
+    const_iterator begin() const
     {
         return IndexedListIterator<const value_type>( *this );
     }
 
-    iterator end() noexcept
+    iterator end()
     {
         return IndexedListIterator<value_type>( *this, size() );
     }
 
-    const_iterator end() const noexcept
+    const_iterator end() const
     {
         return IndexedListIterator<const value_type>( *this, size() );
     }
 
-    const_iterator cbegin() const noexcept
+    const_iterator cbegin() const
     {
         return IndexedListIterator<const value_type>( *this );
     }
 
-    const_iterator cend() const noexcept
+    const_iterator cend() const
     {
         return IndexedListIterator<const value_type>( *this, size() );
     }
@@ -207,12 +207,12 @@ public:
     //     Capacity
     // -------------------------------------------------------------------------
 
-    size_type size() const noexcept
+    size_type size() const
     {
         return content_.size();
     }
 
-    bool empty() const noexcept
+    bool empty() const
     {
         return content_.empty();
     }

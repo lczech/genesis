@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -73,13 +73,13 @@ public:
 
     ~Color() = default;
 
-    Color(Color const&)     = default;
-    Color(Color&&) noexcept = default;
+    Color(Color const&) = default;
+    Color(Color&&)      = default;
 
-    Color& operator= (Color const&)     = default;
-    Color& operator= (Color&&) noexcept = default;
+    Color& operator= (Color const&) = default;
+    Color& operator= (Color&&)      = default;
 
-    void swap (Color& other) noexcept
+    void swap (Color& other)
     {
         using std::swap;
         swap(r_, other.r_);
@@ -198,7 +198,7 @@ private:
 //     Basic Operators
 // =================================================================================================
 
-inline void swap (Color& lhs, Color& rhs) noexcept
+inline void swap (Color& lhs, Color& rhs)
 {
     lhs.swap(rhs);
 }
