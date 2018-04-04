@@ -31,6 +31,7 @@
  * @ingroup tree
  */
 
+#include <iosfwd>
 #include <functional>
 #include <string>
 #include <vector>
@@ -61,11 +62,12 @@ struct NewickBrokerElement;
  *
  *   * to_file()
  *   * to_string()
+ *   * to_stream()
  *
  * It understands the Newick format, but is agnostic of the actual data representation of
  * TreeNode and TreeEdge data. This approach allows to store data in any wanted format.
- * For example, bootstrap values could be stored as either Newick comments ("[0.4]") or as a second
- * "branch length" value (":0.4"), depending on the user's needs.
+ * For example, bootstrap values could be stored as either Newick comments (`[0.4]`) or as a second
+ * "branch length"-like value (`:0.4`), depending on the user's needs.
  *
  * In order to translate data from the Tree into a Newick format representation, a set of plugin
  * functions is used, that need to be set before writing a Tree. Those functions are a form of
@@ -161,6 +163,11 @@ public:
     // -------------------------------------------------------------------------
     //     Writing
     // -------------------------------------------------------------------------
+
+    /**
+     * @brief Write a Tree to a stream, in Newick format.
+     */
+    void to_stream( Tree const& tree, std::ostream& os ) const;
 
     /**
      * @brief Writes the tree to a file in Newick format.
@@ -261,6 +268,30 @@ public:
     }
 
     /**
+     * @brief If set to `true`, all names are wrapped in quotation marks, regardless of whether
+     * the name contains any characters that need to be wrapped
+     *
+     * Default is `false`. This setting can be used to ensure that all names have quotation marks,
+     * which is a requirement for certain other parser. See also quotation_marks( char ) to set
+     * the type of quotation mark.
+     */
+    NewickWriter& force_quotation_marks( bool value )
+    {
+        force_quot_marks_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get whether all names are wrapped in quotation marks.
+     *
+     * @see force_quotation_marks( bool )
+     */
+    bool force_quotation_marks() const
+    {
+        return force_quot_marks_;
+    }
+
+    /**
      * @brief Set whether to write Newick node names.
      *
      * Default is `true`. This setting can be used to override any names that might be set by a
@@ -350,15 +381,39 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Internal Member Functions
+    //      Intermediate Functions
+    // -------------------------------------------------------------------------
+
+    /**
+    * @brief Transform the information of the tree into a NewickBroker object.
+    */
+    NewickBroker tree_to_broker( Tree const& tree ) const;
+
+    /**
+    * @brief Write a NewickBroker to a stream, in Newick format.
+    */
+    void broker_to_stream( NewickBroker const& broker, std::ostream& os ) const;
+
+    /**
+     * @brief Writes a NewickBroker to a file in Newick format.
+     */
+    void broker_to_file( NewickBroker const& broker, std::string const& filename) const;
+
+    /**
+     * @brief Gives a Newick string representation of the tree.
+     */
+    void broker_to_string( NewickBroker const& broker, std::string& ts ) const;
+
+    /**
+     * @brief Returns a Newick string representation of the tree.
+     */
+    std::string broker_to_string( NewickBroker const& broker ) const;
+
+    // -------------------------------------------------------------------------
+    //     Internal Functions
     // -------------------------------------------------------------------------
 
 private:
-
-    /**
-     * @brief Transform the information of the tree into a NewickBroker object.
-     */
-    void tree_to_broker_ (const Tree& tree, NewickBroker& broker) const;
 
     /**
      * @brief Return the Newick text string representation of a NewickBrokerElement.
@@ -370,16 +425,12 @@ private:
      */
     std::string to_string_rec_( NewickBroker const& broker, size_t pos ) const;
 
-    /**
-     * @brief Function that returns the string representation of a clade of a tree.
-     */
-    std::string to_string_( NewickBroker const& broker ) const;
-
     // -------------------------------------------------------------------------
     //     Member Data
     // -------------------------------------------------------------------------
 
-    char quotation_marks_ = '\"';
+    bool force_quot_marks_ = false;
+    char quotation_marks_  = '\"';
 
     bool write_names_    = true;
     bool write_values_   = true;

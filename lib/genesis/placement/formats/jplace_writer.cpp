@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -85,7 +85,9 @@ void JplaceWriter::to_stream( Sample const& sample, std::ostream& os ) const
     newick_writer.enable_names(true);
     newick_writer.enable_branch_lengths(true);
     newick_writer.branch_length_precision( branch_length_precision_ );
-    os << in << "\"tree\": \"" << newick_writer.to_string( sample.tree() ) << "\",\n";
+    os << in << "\"tree\": \"";
+    newick_writer.to_stream( sample.tree(), os );
+    os << "\",\n";
 
     // Write field names.
     os << in << "\"fields\": [ \"edge_num\", \"likelihood\", \"like_weight_ratio\", "
