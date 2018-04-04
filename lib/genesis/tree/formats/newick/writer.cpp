@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,9 +41,10 @@
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <deque>
 #include <memory>
+#include <ostream>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
@@ -52,34 +53,44 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Printing
+//     Writing
 // =================================================================================================
 
-void NewickWriter::to_file (
+void NewickWriter::to_stream( Tree const& tree, std::ostream& os ) const
+{
+    broker_to_stream( tree_to_broker( tree ), os );
+}
+
+void NewickWriter::to_file(
     Tree const& tree, std::string const& filename
 ) const {
-    std::string ts;
-    to_string(tree, ts);
-    utils::file_write(ts, filename);
+    std::ofstream ofs;
+    utils::file_output_stream( filename, ofs );
+    to_stream( tree, ofs );
 }
 
 void NewickWriter::to_string (
     Tree const& tree, std::string& ts
 ) const {
-    ts = to_string(tree);
+    std::ostringstream oss;
+    to_stream( tree, oss );
+    ts = oss.str();
 }
 
 std::string NewickWriter::to_string( Tree const& tree ) const
 {
-    NewickBroker broker;
-    tree_to_broker_(tree, broker);
-    broker.assign_ranks();
-    return to_string_rec_(broker, 0) + ";";
+    std::ostringstream oss;
+    to_stream( tree, oss );
+    return oss.str();
 }
 
-void NewickWriter::tree_to_broker_ (
-    Tree const& tree, NewickBroker& broker
-) const {
+// =================================================================================================
+//     Intermediate Functions
+// =================================================================================================
+
+NewickBroker NewickWriter::tree_to_broker( Tree const& tree ) const
+{
+    NewickBroker broker;
     for( auto const& prepare_plugin : prepare_writing_plugins ) {
         prepare_plugin( tree, broker );
     }
@@ -109,10 +120,83 @@ void NewickWriter::tree_to_broker_ (
         broker.push_top(bn);
     }
 
+    broker.assign_ranks();
     for( auto const& finish_plugin : finish_writing_plugins ) {
         finish_plugin( tree, broker );
     }
+    return broker;
 }
+
+void NewickWriter::broker_to_stream( NewickBroker const& broker, std::ostream& os ) const
+{
+    // Assertion helpers: how many parenthesis were written?
+    size_t op = 0;
+    size_t cp = 0;
+
+    // Iterate broker in reverse order, because Newick...
+    size_t prev_depth = 0;
+    for( int pos = broker.size() - 1; pos >= 0 ; --pos ) {
+        auto const& elem = broker[pos];
+
+        // Opening parenthesis.
+        // We open as many as needed to get to the depth of the current element.
+        // They will all be closed when processing the respective parent elements.
+        for( int i = prev_depth; i < elem.depth; ++i ) {
+            os << "(";
+            ++op;
+        }
+        os << element_to_string_( broker[pos] );
+
+        // Stop if it is the root. Don't have to write parenthesis or commas after the root element.
+        if( pos == 0 ) {
+            continue;
+        }
+
+        // Closing parenthesis or comma for next element.
+        // Even for "empty" elements (e.g., inner nodes with no names), this is called,
+        // which ensures correct nesting.
+        if( broker[ pos - 1 ].depth == elem.depth - 1 ) {
+            os << ")";
+            ++cp;
+        } else {
+            os << ",";
+        }
+        prev_depth = elem.depth;
+    }
+
+    // Have to have written as many opening as closing parenthesis.
+    // Use void casts to avoid compiler warnings in release mode.
+    assert( op == cp );
+    (void) op;
+    (void) cp;
+
+    os << ";";
+}
+
+void NewickWriter::broker_to_file( NewickBroker const& broker, std::string const& filename) const
+{
+    std::ofstream ofs;
+    utils::file_output_stream( filename, ofs );
+    broker_to_stream( broker, ofs );
+}
+
+void NewickWriter::broker_to_string( NewickBroker const& broker, std::string& ts ) const
+{
+    std::ostringstream oss;
+    broker_to_stream( broker, oss );
+    ts = oss.str();
+}
+
+std::string NewickWriter::broker_to_string( NewickBroker const& broker ) const
+{
+    std::ostringstream oss;
+    broker_to_stream( broker, oss );
+    return oss.str();
+}
+
+// =================================================================================================
+//     Internal Functions
+// =================================================================================================
 
 std::string NewickWriter::element_to_string_( NewickBrokerElement const& bn ) const
 {
@@ -127,7 +211,7 @@ std::string NewickWriter::element_to_string_( NewickBrokerElement const& bn ) co
         // parentheses, and square brackets." Well, they forgot to mention commas here.
         // But we knew before that Newick is not a good format anyway...
         // Also, if write_tags_ is true, we also quote {}, as those are used for tags.
-        bool need_qmarks = false;
+        bool need_qmarks = force_quot_marks_;
         need_qmarks |= ( std::string::npos != bn.name.find_first_of( " :;()[]," ));
         need_qmarks |= ( write_tags_ && std::string::npos != bn.name.find_first_of( "{}" ));
 
@@ -164,6 +248,8 @@ std::string NewickWriter::element_to_string_( NewickBrokerElement const& bn ) co
 
 std::string NewickWriter::to_string_rec_( NewickBroker const& broker, size_t pos ) const
 {
+    // Old, recursive, slow version. Not used any more.
+
     // check if it is a leaf, stop recursion if so.
     if (broker[pos].rank() == 0) {
         return element_to_string_(broker[pos]);
