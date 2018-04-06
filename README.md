@@ -52,7 +52,7 @@ The functionality of genesis can be used in two ways:
  *  As a Python module.
 -->
 
-For download and build instructions, see **[Setup](http://doc.genesis-lib.org/setup.html).
+For download and build instructions, see **[Setup](http://doc.genesis-lib.org/setup.html)**.
 
 You futhermore find all the information for getting started with genesis in the
 **[documentation](http://doc.genesis-lib.org/)**.
