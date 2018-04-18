@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2017 Lucas Czech
+# Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,13 +47,13 @@ ENDIF()
 # so that we know that it works for us.
 ExternalProject_Add( googletest
     URL https://github.com/google/googletest/archive/release-1.8.0.zip
-    ${CMAKE_DOWNLOAD_PROGRESS}
     SOURCE_DIR        "${CMAKE_BINARY_DIR}/googletest-src"
     BINARY_DIR        "${CMAKE_BINARY_DIR}/googletest-build"
     CONFIGURE_COMMAND ""
     BUILD_COMMAND     ""
     INSTALL_COMMAND   ""
     TEST_COMMAND      ""
+    ${CMAKE_DOWNLOAD_PROGRESS}
 )
 
 # Alternative version that needs Git to be installed (thus, we do not use it by default).

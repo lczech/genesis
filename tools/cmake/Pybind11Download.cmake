@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2017 Lucas Czech
+# Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -51,13 +51,13 @@ ENDIF()
 ExternalProject_Add( pybind11
     # URL https://github.com/pybind/pybind11/archive/v2.0.1.zip
     URL https://github.com/pybind/pybind11/archive/5fe9908b7a34e4f4e320e319a528c4f1bdf6a8e6.zip
-    ${CMAKE_DOWNLOAD_PROGRESS}
     SOURCE_DIR        "${PROJECT_SOURCE_DIR}/tools/pybind11"
     BINARY_DIR        "${PROJECT_SOURCE_DIR}/tools/pybind11"
     CONFIGURE_COMMAND ""
     BUILD_COMMAND     ""
     INSTALL_COMMAND   ""
     TEST_COMMAND      ""
+    ${CMAKE_DOWNLOAD_PROGRESS}
 )
 
 # Alternative version that needs Git to be installed (thus, we do not use it by default).
