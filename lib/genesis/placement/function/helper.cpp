@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -211,19 +211,28 @@ std::vector<double> placement_weight_per_edge( Sample const& sample )
 
 utils::Matrix<double> placement_weight_per_edge( SampleSet const& sample_set )
 {
-    // Basics.
+    // Init matrix.
     auto const set_size = sample_set.size();
-    if( set_size == 0 ) {
+    auto result = utils::Matrix<double>( set_size, sample_set[ 0 ].sample.tree().edge_count(), 0.0 );
+
+    // Return completely empty matrix in edge cases.
+    if( result.rows() == 0 || result.cols() == 0 ) {
         return {};
     }
 
-    // Init matrix.
-    auto result = utils::Matrix<double>( set_size, sample_set[ 0 ].sample.tree().edge_count(), 0.0 );
-
     // Fill matrix.
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(dynamic)
     for( size_t i = 0; i < set_size; ++i ) {
-        for( auto const& pqry : sample_set[ i ].sample.pqueries() ) {
+        auto const& smp = sample_set[ i ].sample;
+
+        if( smp.tree().edge_count() != result.cols() ) {
+            throw std::runtime_error(
+                "Cannot calculate placement weights per edge matrix "
+                "for Samples with Trees of different size."
+            );
+        }
+
+        for( auto const& pqry : smp.pqueries() ) {
             for( auto const& place : pqry.placements() ) {
                 result( i, place.edge().index() ) += place.like_weight_ratio;
             }
