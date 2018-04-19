@@ -37,8 +37,11 @@ oriented towards the C++ interface. It is however also suitable for the Python i
 
 # Support
 
-For user support, please see our [support forum](http://support.genesis-lib.org/). It is
-intended for questions on how to do things with genesis.
+For user support, please see our [Phylogenetic Placement Google Group](https://groups.google.com/forum/#!forum/phylogenetic-placement).
+It is intended for discussions about phylogenetic placement,
+and for user support for our software tools.
+You can also find support for [EPA-ng](https://github.com/Pbdas/epa-ng)
+and [Gappa](https://github.com/lczech/gappa) there.
 
 For bug reports and feature requests, please
 [open an issue on our GitHub page](https://github.com/lczech/genesis/issues).

@@ -33,7 +33,7 @@ Currently, we only test and use Genesis on Linux systems. It is tested with Ubun
 as well as CentOS 6.3. If you are using a different operating system, you can either try yourself,
 or use a virtual machine. In the future, we hope to support more systems out of the box.
 Please report any issues, questions or solutions to our
-[support forum](http://support.genesis-lib.org/).
+[Google Group](https://groups.google.com/forum/#!forum/phylogenetic-placement).
 
 # Download {#setup_download}
 
