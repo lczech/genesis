@@ -51,8 +51,15 @@ namespace utils {
 template< typename T >
 MinMaxPair<T> matrix_minmax( Matrix<T> const& data )
 {
-    auto ret = MinMaxPair<T>{ 0.0, 0.0 };
+    // Edge case
+    if( data.rows() == 0 || data.cols() == 0 ) {
+        return { 0.0, 0.0 };
+    }
 
+    // Init with first element
+    auto ret = MinMaxPair<T>{ data( 0, 0 ), data( 0, 0 ) };
+
+    // Iterate
     for( auto const& e : data ) {
         ret.min = std::min( ret.min, e );
         ret.max = std::max( ret.max, e );

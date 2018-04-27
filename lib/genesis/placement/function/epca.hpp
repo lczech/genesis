@@ -150,7 +150,7 @@ utils::Matrix<double> epca_imbalance_matrix(
  * emphasizing it (`kappa` > 1).
  *
  * @param[in,out] imbalance_matrix Matrix to transform inplace.
- * @param[in]     kappa            Scaling value for abundance information. Has to be > 0.
+ * @param[in]     kappa            Scaling value for abundance information. Has to be >= 0.
  */
 void epca_splitify_transform(
     utils::Matrix<double>& imbalance_matrix,
@@ -168,7 +168,7 @@ void epca_splitify_transform(
  * visualising the result of an @link epca() Edge PCA@endlink.
  *
  * @param[in,out] imbalance_matrix Matrix to filter inplace.
- * @param         epsilon          Maximum deviation for what is considered constant.
+ * @param[in]     epsilon          Maximum deviation for what is considered constant.
  * @return                         List of original column indices that are kept (not filtered).
  */
 std::vector<size_t> epca_filter_constant_columns(
