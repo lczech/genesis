@@ -102,8 +102,29 @@ public:
         Column( Column const& ) = default;
         Column( Column&& )      = default;
 
-        Column& operator= ( Column const& ) = default;
-        Column& operator= ( Column&& )      = default;
+        Column& operator= ( Column const& other )
+        {
+            if( other.size() != content_.size() ) {
+                throw std::runtime_error(
+                    "Cannot assign Dataframe column with different size."
+                );
+            }
+
+            content_ = other.content_;
+            return *this;
+        }
+
+        Column& operator= ( Column&& other )
+        {
+            if( other.size() != content_.size() ) {
+                throw std::runtime_error(
+                    "Cannot assign Dataframe column with different size."
+                );
+            }
+
+            content_ = std::move( other.content_ );
+            return *this;
+        }
 
         // -------------------------------------------------------------------------
         //     Iterators
@@ -236,10 +257,7 @@ public:
                 );
             }
 
-            for( size_t i = 0; i < vec.size(); ++i ) {
-                content_[i] = vec[i];
-            }
-
+            content_ = vec;
             return *this;
         }
 
@@ -346,14 +364,14 @@ public:
     //     Column Access
     // ---------------------------------------------------------------------------------------------
 
-    reference operator[] ( size_type column_index )
+    reference operator[] ( size_type col_index )
     {
-        return columns_.at( column_index );
+        return columns_.at( col_index );
     }
 
-    const_reference operator[] ( size_type column_index ) const
+    const_reference operator[] ( size_type col_index ) const
     {
-        return columns_.at( column_index );
+        return columns_.at( col_index );
     }
 
     reference operator[] ( std::string const& col_name )
@@ -366,14 +384,14 @@ public:
         return columns_[ col_index( col_name ) ];
     }
 
-    reference at( size_type column_index )
+    reference at( size_type col_index )
     {
-        return columns_.at( column_index );
+        return columns_.at( col_index );
     }
 
-    const_reference at( size_type column_index ) const
+    const_reference at( size_type col_index ) const
     {
-        return columns_.at( column_index );
+        return columns_.at( col_index );
     }
 
     reference at( std::string const& col_name )
@@ -390,24 +408,24 @@ public:
     //     Element Access
     // ---------------------------------------------------------------------------------------------
 
-    typename Column::reference operator () ( size_type row_index, size_type column_index )
+    typename Column::reference operator () ( size_type row_index, size_type col_index )
     {
-        return at( column_index ).at( row_index );
+        return at( col_index ).at( row_index );
     }
 
-    typename Column::const_reference operator () ( size_type row_index, size_type column_index ) const
+    typename Column::const_reference operator () ( size_type row_index, size_type col_index ) const
     {
-        return at( column_index ).at( row_index );
+        return at( col_index ).at( row_index );
     }
 
-    typename Column::reference operator () ( std::string const& row_name, size_type column_index )
+    typename Column::reference operator () ( std::string const& row_name, size_type col_index )
     {
-        return at( column_index ).at( row_name );
+        return at( col_index ).at( row_name );
     }
 
-    typename Column::const_reference operator () ( std::string const& row_name, size_type column_index ) const
+    typename Column::const_reference operator () ( std::string const& row_name, size_type col_index ) const
     {
-        return at( column_index ).at( row_name );
+        return at( col_index ).at( row_name );
     }
 
     typename Column::reference operator () ( size_type row_index, std::string const& col_name )
@@ -485,33 +503,8 @@ public:
     }
 
     // ---------------------------------------------------------------------------------------------
-    //     Modifiers
+    //     Adding rows and cols
     // ---------------------------------------------------------------------------------------------
-
-    void clear()
-    {
-        columns_.clear();
-        row_names_.clear();
-        col_names_.clear();
-        row_lookup_.clear();
-        col_lookup_.clear();
-    }
-
-    void clear_rows()
-    {
-        for( auto& col : columns_ ) {
-            col.content_.clear();
-        }
-        row_names_.clear();
-        row_lookup_.clear();
-    }
-
-    void clear_cols()
-    {
-        columns_.clear();
-        col_names_.clear();
-        col_lookup_.clear();
-    }
 
     self_type& add_col()
     {
@@ -563,6 +556,107 @@ public:
             col.content_.emplace_back();
         }
 
+        return *this;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    //     Removing rows and cols
+    // ---------------------------------------------------------------------------------------------
+
+    self_type& clear()
+    {
+        columns_.clear();
+        row_names_.clear();
+        col_names_.clear();
+        row_lookup_.clear();
+        col_lookup_.clear();
+        return *this;
+    }
+
+    self_type& clear_rows()
+    {
+        for( auto& col : columns_ ) {
+            col.content_.clear();
+        }
+        row_names_.clear();
+        row_lookup_.clear();
+        return *this;
+    }
+
+    self_type& clear_cols()
+    {
+        columns_.clear();
+        col_names_.clear();
+        col_lookup_.clear();
+        return *this;
+    }
+
+    self_type& remove_col( size_type col_index )
+    {
+        assert( columns_.size() == col_names_.size() );
+        if( col_index >= columns_.size() ) {
+            throw std::runtime_error( "Invalid column index greater than number of columns." );
+        }
+
+        // Remove elements.
+        auto const name = col_names_[ col_index ];
+        columns_.erase( columns_.begin() + col_index );
+        col_names_.erase( col_names_.begin() + col_index );
+        col_lookup_.erase( name );
+
+        // Adjust remaining indices.
+        for( size_t i = col_index; i < columns_.size(); ++i ) {
+            --columns_[i].index_;
+        }
+        for( auto& le : col_lookup_ ) {
+            assert( le.second != col_index );
+            if( le.second > col_index ) {
+                --le.second;
+            }
+        }
+
+        return *this;
+    }
+
+    self_type& remove_col( std::string const& col_name )
+    {
+        auto const index = col_index( col_name );
+        assert( col_names_[ index ] == col_name );
+        remove_col( index );
+        return *this;
+    }
+
+    self_type& remove_row( size_type row_index )
+    {
+        if( row_index >= row_names_.size() ) {
+            throw std::runtime_error( "Invalid row index greater than number of rows." );
+        }
+
+        // Remove elements.
+        for( auto& col : columns_ ) {
+            assert( col.content_.size() == row_names_.size() );
+            col.content_.erase( col.content_.begin() + row_index );
+        }
+        auto const name = row_names_[ row_index ];
+        row_names_.erase( row_names_.begin() + row_index );
+        row_lookup_.erase( name );
+
+        // Adjust remaining indices.
+        for( auto& le : row_lookup_ ) {
+            assert( le.second != row_index );
+            if( le.second > row_index ) {
+                --le.second;
+            }
+        }
+
+        return *this;
+    }
+
+    self_type& remove_row( std::string const& row_name )
+    {
+        auto const index = row_index( row_name );
+        assert( row_names_[ index ] == row_name );
+        remove_row( index );
         return *this;
     }
 
