@@ -136,6 +136,7 @@ public:
     DataframeReader& parse_value_functor( std::function<T( std::string const& )> functor )
     {
         parse_value_ = functor;
+        return *this;
     }
 
     // -------------------------------------------------------------
