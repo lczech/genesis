@@ -392,7 +392,7 @@ std::string join( T const& v, std::string const& delimiter )
 {
     std::ostringstream s;
     for( auto const& i : v ) {
-        if( &i != &v[0] ) {
+        if( &i != &(*v.begin()) ) {
             s << delimiter;
         }
         s << i;
