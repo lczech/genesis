@@ -104,7 +104,10 @@ public:
 
         Column& operator= ( Column const& other )
         {
-            if( other.size() != content_.size() ) {
+            // Either we assign when constructing (thanks, STL), in which case the assigned-to
+            // column has size 0, or we do so when moving the vector contents, in which case
+            // the size needs to stay the same.
+            if( content_.size() > 0 && content_.size() != other.size() ) {
                 throw std::runtime_error(
                     "Cannot assign Dataframe column with different size."
                 );
@@ -116,7 +119,10 @@ public:
 
         Column& operator= ( Column&& other )
         {
-            if( other.size() != content_.size() ) {
+            // Either we assign when constructing (thanks, STL), in which case the assigned-to
+            // column has size 0, or we do so when moving the vector contents, in which case
+            // the size needs to stay the same.
+            if( content_.size() > 0 && content_.size() != other.size() ) {
                 throw std::runtime_error(
                     "Cannot assign Dataframe column with different size."
                 );
@@ -605,9 +611,16 @@ public:
         col_lookup_.erase( name );
 
         // Adjust remaining indices.
-        for( size_t i = col_index; i < columns_.size(); ++i ) {
-            --columns_[i].index_;
+        for( size_t i = 0; i < columns_.size(); ++i ) {
+            // --columns_[i].index_;
+
+            // We do not need to adjust the indices, as the erase uses the assignment operators,
+            // which already make sure that the indices stay correct (simply by not changing them).
+            // So here, we simply control whether the indices of the columns are intact.
+            assert( columns_[i].index_ == i );
         }
+
+        // Adjust indices of all lookup table values that are greater than the removed index.
         for( auto& le : col_lookup_ ) {
             assert( le.second != col_index );
             if( le.second > col_index ) {
