@@ -33,6 +33,7 @@
 
 #include <random>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace genesis {
@@ -207,6 +208,12 @@ public:
      * it is a file or a pipe.
      */
     bool stderr_is_terminal() const;
+
+    /**
+     * @brief Return the width and height of the terminal that is used to run the program,
+     * in number of columns and lines.
+     */
+    std::pair<int, int> terminal_size() const;
 
     // -------------------------------------------------------------------------
     //     Compile Time Environment
