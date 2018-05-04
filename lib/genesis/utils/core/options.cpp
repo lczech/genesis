@@ -38,7 +38,10 @@
 
 #if defined( _WIN32 ) || defined(  _WIN64  )
 #   include <io.h>
+#   include <windows.h>
 #else
+#   include <stdio.h>
+#   include <sys/ioctl.h>
 #   include <unistd.h>
 #endif
 
@@ -185,6 +188,26 @@ bool Options::stderr_is_terminal() const
         return _isatty( _fileno( stderr ));
     #else
         return isatty( fileno( stderr ));
+    #endif
+}
+
+std::pair<int, int> Options::terminal_size() const
+{
+    #if defined( _WIN32 ) || defined(  _WIN64  )
+
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        int cols, rows;
+        GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+        cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+        rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+        return { cols, rows };
+
+    #else
+
+        struct winsize w;
+        ioctl( STDOUT_FILENO, TIOCGWINSZ, &w );
+        return { w.ws_col, w.ws_row };
+
     #endif
 }
 
