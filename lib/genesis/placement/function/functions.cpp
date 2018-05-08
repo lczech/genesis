@@ -663,24 +663,6 @@ void merge_duplicate_names( Sample& smp )
 //     Placement Mass
 // =================================================================================================
 
-double total_multiplicity( Pquery const& pqry )
-{
-    double mult = 0.0;
-    for( auto const& name : pqry.names() ) {
-        mult += name.multiplicity;
-    }
-    return mult;
-}
-
-double total_multiplicity( Sample const& sample )
-{
-    double mult = 0.0;
-    for( auto const& pqry : sample.pqueries() ) {
-        mult += total_multiplicity( pqry );
-    }
-    return mult;
-}
-
 size_t total_name_count( Sample const& smp )
 {
     size_t count = 0;
@@ -697,35 +679,6 @@ size_t total_placement_count( Sample const& smp )
         count += pqry.placement_size();
     }
     return count;
-}
-
-double total_placement_mass(  Sample const& smp )
-{
-    double sum = 0.0;
-    for( const auto& pqry : smp.pqueries() ) {
-        for( auto& place : pqry.placements() ) {
-            sum += place.like_weight_ratio;
-        }
-    }
-    return sum;
-}
-
-double total_placement_mass_with_multiplicities(  Sample const& smp )
-{
-    double sum = 0.0;
-    for( const auto& pqry : smp.pqueries() ) {
-        double mult = 0.0;
-        for( auto const& name : pqry.names() ) {
-            mult += name.multiplicity;
-        }
-
-        double lwr_sum = 0.0;
-        for( auto const& place : pqry.placements() ) {
-            lwr_sum += place.like_weight_ratio;
-        }
-        sum += lwr_sum * mult;
-    }
-    return sum;
 }
 
 std::pair<PlacementTreeEdge const*, size_t> placement_count_max_edge( Sample const& smp )

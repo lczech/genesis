@@ -30,7 +30,9 @@
 
 #include "genesis/placement/function/epca.hpp"
 
+#include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/helper.hpp"
+#include "genesis/placement/function/masses.hpp"
 #include "genesis/placement/function/sample_set.hpp"
 
 #include "genesis/tree/function/functions.hpp"
@@ -67,7 +69,7 @@ std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize 
     auto vec = std::vector<double>( sample.tree().edge_count(), 0.0 );
 
     // We need the masses per edge, and their sum, for later.
-    auto const masses   = placement_weight_per_edge( sample );
+    auto const masses   = placement_mass_per_edges_with_multiplicities( sample );
     auto const mass_sum = std::accumulate( masses.begin(), masses.end(), 0.0 );
 
     // Collect the placement masses at each link of the tree.

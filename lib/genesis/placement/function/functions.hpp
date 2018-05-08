@@ -32,6 +32,8 @@
  */
 
 #include "genesis/placement/sample.hpp"
+#include "genesis/placement/sample_set.hpp"
+#include "genesis/utils/containers/matrix.hpp"
 
 #include <string>
 #include <unordered_map>
@@ -338,18 +340,6 @@ void merge_duplicate_names( Sample& smp );
 // =================================================================================================
 
 /**
- * @brief Return the sum of all @link PqueryName::multiplicity multiplicities @endlink of the
- * Pquery.
- */
-double total_multiplicity( Pquery const& pqry );
-
-/**
- * @brief Return the sum of all @link PqueryName::multiplicity multiplicities @endlink of all the
- * @link Pquery Pqueries@endlink of the Sample.
- */
-double total_multiplicity( Sample const& sample );
-
-/**
  * @brief Get the total number of PqueryName%s in all @link Pquery Pqueries @endlink of the
  * given Sample.
  */
@@ -360,32 +350,6 @@ size_t total_name_count( Sample const& smp );
  * given Sample.
  */
 size_t total_placement_count( Sample const& smp );
-
-/**
- * @brief Get the summed mass of all PqueryPlacement%s in all @link Pquery Pqueries @endlink of the
- * given Sample, where mass is measured by the
- * @link PqueryPlacement::like_weight_ratio like_weight_ratios@endlink of the PqueryPlacement%s.
- *
- * Be aware that this function only gives the pure sum of the `like_weight_ratio`s. See
- * total_placement_mass_with_multiplicities() for a version of this function, which also takes
- * the @link PqueryName::multiplicity multiplicities @endlink of the Pqueries into account.
- */
-double total_placement_mass(  Sample const& smp );
-
-/**
- * @brief Get the mass of all PqueryPlacement%s of the Sample, using the
- * @link PqueryName::multiplicity multiplicities @endlink as factors.
- *
- * This function returns the summed mass of all PqueryPlacement%s in all
- * @link Pquery Pqueries @endlink of the
- * given Sample, where mass is measured by `like_weight_ratio`, and the mass of each Pquery is
- * multiplied by the sum of the @link PqueryName::multiplicity multiplicities @endlink of this
- * Pquery.
- *
- * This method returns the same value as total_placement_mass() in case that the `multiplicity` is
- * left at its default value of 1.0.
- */
-double total_placement_mass_with_multiplicities(  Sample const& smp );
 
 /**
  * @brief Get the number of placements on the edge with the most placements, and a pointer to this

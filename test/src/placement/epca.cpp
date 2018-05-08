@@ -34,10 +34,12 @@
 
 #include "genesis/placement/formats/jplace_reader.hpp"
 #include "genesis/placement/function/epca.hpp"
+#include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/helper.hpp"
+#include "genesis/placement/function/masses.hpp"
 #include "genesis/placement/function/measures.hpp"
-#include "genesis/placement/sample.hpp"
 #include "genesis/placement/sample_set.hpp"
+#include "genesis/placement/sample.hpp"
 
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
@@ -58,7 +60,7 @@ TEST( SampleMeasures, ImbalanceVector )
 
     // Get imbalance and weights per edge.
     auto const imbalance_vec   = epca_imbalance_vector( smp, false );
-    auto const edge_weight_vec = placement_weight_per_edge( smp );
+    auto const edge_weight_vec = placement_mass_per_edges_with_multiplicities( smp );
     ASSERT_EQ( imbalance_vec.size(), edge_weight_vec.size() );
 
     // LOG_DBG << "imb " << utils::join( imbalance_vec, " " );

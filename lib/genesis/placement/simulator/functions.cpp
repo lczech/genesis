@@ -32,6 +32,7 @@
 
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/helper.hpp"
+#include "genesis/placement/function/masses.hpp"
 
 #include "genesis/placement/simulator/distributions.hpp"
 
@@ -347,7 +348,7 @@ void set_subtree_weights(
  */
 void learn_per_edge_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib )
 {
-    edge_distrib.edge_weights = placement_weight_per_edge( sample );
+    edge_distrib.edge_weights = placement_mass_per_edges_with_multiplicities( sample );
 }
 
 // =================================================================================================

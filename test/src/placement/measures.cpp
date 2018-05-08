@@ -78,16 +78,16 @@ TEST(SampleMeasures, EarthMoversDistance)
     Sample smp_rhs = JplaceReader().from_file( infile_rhs );
 
     // Distances and symmetric cases.
-    EXPECT_FLOAT_EQ( 2.435, earth_movers_distance( smp_lhs, smp_rhs, 1.0, false ));
-    EXPECT_FLOAT_EQ( 2.435, earth_movers_distance( smp_rhs, smp_lhs, 1.0, false ));
-    EXPECT_FLOAT_EQ( 3.185, earth_movers_distance( smp_lhs, smp_rhs, 1.0, true  ));
-    EXPECT_FLOAT_EQ( 3.185, earth_movers_distance( smp_rhs, smp_lhs, 1.0, true  ));
+    EXPECT_FLOAT_EQ( 2.8458333, earth_movers_distance( smp_lhs, smp_rhs, 1.0, false ));
+    EXPECT_FLOAT_EQ( 2.8458333, earth_movers_distance( smp_rhs, smp_lhs, 1.0, false ));
+    EXPECT_FLOAT_EQ( 3.4916666, earth_movers_distance( smp_lhs, smp_rhs, 1.0, true  ));
+    EXPECT_FLOAT_EQ( 3.4916666, earth_movers_distance( smp_rhs, smp_lhs, 1.0, true  ));
 
     // Self-distances.
     EXPECT_FLOAT_EQ( 0.0, earth_movers_distance( smp_lhs, smp_lhs, 1.0, false ));
     EXPECT_FLOAT_EQ( 0.0, earth_movers_distance( smp_rhs, smp_rhs, 1.0, false ));
-    EXPECT_FLOAT_EQ( 0.6, earth_movers_distance( smp_lhs, smp_lhs, 1.0, true ));
-    EXPECT_FLOAT_EQ( 0.9, earth_movers_distance( smp_rhs, smp_rhs, 1.0, true ));
+    EXPECT_FLOAT_EQ( 0.52499998, earth_movers_distance( smp_lhs, smp_lhs, 1.0, true ));
+    EXPECT_FLOAT_EQ( 0.76666665, earth_movers_distance( smp_rhs, smp_rhs, 1.0, true ));
 
     // Set-version of the EMD.
     SampleSet set;
@@ -97,15 +97,15 @@ TEST(SampleMeasures, EarthMoversDistance)
     auto set_emd_o =  earth_movers_distance( set, 1.0, false );
     auto set_emd_p =  earth_movers_distance( set, 1.0, true );
 
-    EXPECT_FLOAT_EQ( 0.0,   set_emd_o( 0, 0 ) );
-    EXPECT_FLOAT_EQ( 2.435, set_emd_o( 0, 1 ) );
-    EXPECT_FLOAT_EQ( 2.435, set_emd_o( 1, 0 ) );
-    EXPECT_FLOAT_EQ( 0.0,   set_emd_o( 1, 1 ) );
+    EXPECT_FLOAT_EQ( 0.0,       set_emd_o( 0, 0 ) );
+    EXPECT_FLOAT_EQ( 2.8458333, set_emd_o( 0, 1 ) );
+    EXPECT_FLOAT_EQ( 2.8458333, set_emd_o( 1, 0 ) );
+    EXPECT_FLOAT_EQ( 0.0,       set_emd_o( 1, 1 ) );
 
-    EXPECT_FLOAT_EQ( 0.6,   set_emd_p( 0, 0 ) );
-    EXPECT_FLOAT_EQ( 3.185, set_emd_p( 0, 1 ) );
-    EXPECT_FLOAT_EQ( 3.185, set_emd_p( 1, 0 ) );
-    EXPECT_FLOAT_EQ( 0.9,   set_emd_p( 1, 1 ) );
+    EXPECT_FLOAT_EQ( 0.52499998, set_emd_p( 0, 0 ) );
+    EXPECT_FLOAT_EQ( 3.4916666,  set_emd_p( 0, 1 ) );
+    EXPECT_FLOAT_EQ( 3.4916666,  set_emd_p( 1, 0 ) );
+    EXPECT_FLOAT_EQ( 0.7666666,  set_emd_p( 1, 1 ) );
 }
 
 TEST( SampleMeasures, NodeHistogramDistance )
@@ -122,8 +122,8 @@ TEST( SampleMeasures, NodeHistogramDistance )
     Sample smp_rhs = JplaceReader().from_file(infile_rhs);
 
     // Distance and symmetric case.
-    EXPECT_FLOAT_EQ( 1.4285, node_histogram_distance( smp_lhs, smp_rhs, 10 ));
-    EXPECT_FLOAT_EQ( 1.4285, node_histogram_distance( smp_rhs, smp_lhs, 10 ));
+    EXPECT_FLOAT_EQ( 1.9533334, node_histogram_distance( smp_lhs, smp_rhs, 10 ));
+    EXPECT_FLOAT_EQ( 1.9533334, node_histogram_distance( smp_rhs, smp_lhs, 10 ));
 
     // Self-distances.
     EXPECT_FLOAT_EQ( 0.0, node_histogram_distance( smp_lhs, smp_lhs ));
@@ -139,7 +139,7 @@ TEST( SampleMeasures, NodeHistogramDistance )
 
     // Check matrix with negative histogram axis.
     EXPECT_FLOAT_EQ( 0.0,    nhd_mat( 0, 0 ));
-    EXPECT_FLOAT_EQ( 1.4285, nhd_mat( 1, 0 ));
-    EXPECT_FLOAT_EQ( 1.4285, nhd_mat( 0, 1 ));
+    EXPECT_FLOAT_EQ( 1.9533334, nhd_mat( 1, 0 ));
+    EXPECT_FLOAT_EQ( 1.9533334, nhd_mat( 0, 1 ));
     EXPECT_FLOAT_EQ( 0.0,    nhd_mat( 1, 1 ));
 }

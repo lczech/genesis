@@ -32,6 +32,7 @@
 
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/helper.hpp"
+#include "genesis/placement/function/masses.hpp"
 #include "genesis/placement/function/operators.hpp"
 #include "genesis/placement/pquery/plain.hpp"
 #include "genesis/placement/sample_set.hpp"

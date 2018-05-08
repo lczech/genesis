@@ -33,6 +33,7 @@
 #include "genesis/placement/function/distances.hpp"
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/helper.hpp"
+#include "genesis/placement/function/masses.hpp"
 #include "genesis/placement/function/operators.hpp"
 #include "genesis/placement/placement_tree.hpp"
 #include "genesis/placement/pquery/plain.hpp"
@@ -133,7 +134,7 @@ double pairwise_distance(
     bool          with_pendant_length
 ) {
     if (!compatible_trees(smp_a, smp_b)) {
-        throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
+        throw std::invalid_argument("pairwise_distance: Incompatible trees.");
     }
 
     // Init.
@@ -153,12 +154,14 @@ double pairwise_distance(
 
     for (const PqueryPlain& pqry_a : pqueries_a) {
         for (const PqueryPlain& pqry_b : pqueries_b) {
-            sum += pquery_distance(pqry_a, pqry_b, node_distances, with_pendant_length);
+            auto dist = pquery_distance( pqry_a, pqry_b, node_distances, with_pendant_length );
+            dist *= pqry_a.multiplicity * pqry_b.multiplicity;
+            sum += dist;
         }
     }
 
     // Return normalized value.
-    return sum / total_placement_mass( smp_a ) / total_placement_mass( smp_b );
+    return sum / total_placement_mass_with_multiplicities( smp_a ) / total_placement_mass_with_multiplicities( smp_b );
 }
 
 // =================================================================================================
@@ -186,7 +189,8 @@ double variance_partial (
         if (pqry_a.index >= pqry_b.index) {
             continue;
         }
-        double const dist = pquery_distance(pqry_a, pqry_b, node_distances, with_pendant_length);
+        double dist = pquery_distance(pqry_a, pqry_b, node_distances, with_pendant_length);
+        dist *= pqry_a.multiplicity * pqry_b.multiplicity;
         partial += dist * dist;
     }
 
@@ -281,7 +285,7 @@ double variance(
     double mass = 0.0;
     for (const auto& pqry : vd_pqueries) {
         for (const auto& place : pqry.placements) {
-            mass += place.like_weight_ratio;
+            mass += place.like_weight_ratio * pqry.multiplicity;
         }
     }
 

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 #include "genesis/placement/formats/newick_reader.hpp"
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/helper.hpp"
+#include "genesis/placement/function/masses.hpp"
 #include "genesis/placement/function/operators.hpp"
 #include "genesis/placement/sample.hpp"
 #include "genesis/placement/simulator/functions.hpp"
@@ -117,7 +118,7 @@ TEST(PlacementSimulator, Learning)
         sim.edge_distribution().edge_weights.end(),
         0.0
     );
-    EXPECT_EQ( total_placement_mass( sample ), sum_edge_weights );
+    EXPECT_EQ( total_placement_mass_with_multiplicities( sample ), sum_edge_weights );
 
     auto& placement_number_weights = sim.extra_placement_distribution().placement_number_weights;
 

@@ -31,6 +31,7 @@
 #include "genesis/placement/function/helper.hpp"
 
 #include "genesis/placement/function/functions.hpp"
+#include "genesis/placement/function/masses.hpp"
 #include "genesis/placement/pquery/plain.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
@@ -196,61 +197,16 @@ utils::Matrix<size_t> placement_count_per_edge( SampleSet const& sample_set )
     return result;
 }
 
-std::vector<double> placement_weight_per_edge( Sample const& sample )
-{
-    auto result = std::vector<double>( sample.tree().edge_count(), 0.0 );
-
-    for( auto const& pqry : sample.pqueries() ) {
-        for( auto const& place : pqry.placements() ) {
-            result[ place.edge().index() ] += place.like_weight_ratio;
-        }
-    }
-
-    return result;
-}
-
-utils::Matrix<double> placement_weight_per_edge( SampleSet const& sample_set )
-{
-    // Init matrix.
-    auto const set_size = sample_set.size();
-    auto result = utils::Matrix<double>( set_size, sample_set[ 0 ].sample.tree().edge_count(), 0.0 );
-
-    // Return completely empty matrix in edge cases.
-    if( result.rows() == 0 || result.cols() == 0 ) {
-        return {};
-    }
-
-    // Fill matrix.
-    #pragma omp parallel for schedule(dynamic)
-    for( size_t i = 0; i < set_size; ++i ) {
-        auto const& smp = sample_set[ i ].sample;
-
-        if( smp.tree().edge_count() != result.cols() ) {
-            throw std::runtime_error(
-                "Cannot calculate placement weights per edge matrix "
-                "for Samples with Trees of different size."
-            );
-        }
-
-        for( auto const& pqry : smp.pqueries() ) {
-            for( auto const& place : pqry.placements() ) {
-                result( i, place.edge().index() ) += place.like_weight_ratio;
-            }
-        }
-    }
-
-    return result;
-}
-
 std::vector<PqueryPlain> plain_queries( Sample const & smp )
 {
     auto pqueries = std::vector<PqueryPlain>( smp.size() );
 
     #pragma omp parallel for
     for (size_t i = 0; i < smp.size(); ++i) {
-        pqueries[i].index = i;
-
         const auto& opqry = smp.at(i);
+
+        pqueries[i].index = i;
+        pqueries[i].multiplicity = total_multiplicity( opqry );
         pqueries[i].placements = std::vector<PqueryPlacementPlain>(opqry.placement_size());
 
         for (size_t j = 0; j < opqry.placement_size(); ++j) {
