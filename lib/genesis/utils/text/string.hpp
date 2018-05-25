@@ -97,7 +97,7 @@ size_t count_substring_occurrences( std::string const& str, std::string const& s
  * excluded from the output.
  */
 std::vector<std::string> split (
-    std::string const& string,
+    std::string const& str,
     std::string const& delimiters = " ",
     const bool trim_empty = true
 );
@@ -111,7 +111,7 @@ std::vector<std::string> split (
  * adjacent delimiter chars are excluded from the output.
  */
 std::vector<std::string> split (
-    std::string const& string,
+    std::string const& str,
     std::function<bool (char)> delimiter_predicate,
     const bool trim_empty = true
 );
@@ -124,10 +124,18 @@ std::vector<std::string> split (
  * excluded from the output.
  */
 std::vector<std::string> split_at (
-    std::string const& string,
+    std::string const& str,
     std::string const& delimiter,
     const bool trim_empty = true
 );
+
+/**
+ * @brief Split a string containing positive interger numbers into its parts and resolve ranges.
+ *
+ * For example, the string `1, 3, 5-7, 10` results in a vector of all listed numbers and the
+ * ranges in between, that is `1, 3, 5, 6, 7, 10`. Whitespace is ignored; the range is sorted.
+ */
+std::vector<size_t> split_range_list( std::string const& str );
 
 // =================================================================================================
 //     Manipulate

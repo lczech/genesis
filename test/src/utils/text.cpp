@@ -179,6 +179,27 @@ TEST(Text, SplitAt)
     EXPECT_EQ(8, non_empty2.size());
 }
 
+TEST( Text, SplitRangeList )
+{
+    auto const empty = split_range_list( " " );
+    EXPECT_EQ( std::vector<size_t>{}, empty );
+
+    auto const single = split_range_list( "5" );
+    EXPECT_EQ( (std::vector<size_t>{ 5 }), single );
+
+    auto const list = split_range_list( " 5, 3, 6,  7 " );
+    EXPECT_EQ( (std::vector<size_t>{ 3, 5, 6, 7 }), list );
+
+    auto const range = split_range_list( " 5 - 8 " );
+    EXPECT_EQ( (std::vector<size_t>{ 5, 6, 7, 8 }), range );
+
+    auto const combined = split_range_list( "1,  5 - 8, 10-11 " );
+    EXPECT_EQ( (std::vector<size_t>{ 1, 5, 6, 7, 8, 10, 11 }), combined );
+
+    EXPECT_THROW( split_range_list( "1,  5 - 8, 10-a " ), std::runtime_error );
+    EXPECT_THROW( split_range_list( "x" ), std::runtime_error );
+}
+
 TEST( Text, Style )
 {
     Style blue( "blue" );
