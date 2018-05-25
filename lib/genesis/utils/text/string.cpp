@@ -34,6 +34,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdio>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
@@ -172,12 +173,12 @@ std::vector<std::string> split (
 }
 
 std::vector<std::string> split (
-    std::string const& string,
+    std::string const& str,
     std::string const& delimiters,
     const bool trim_empty
 ) {
     return split(
-        string,
+        str,
         [&]( std::string const& str, size_t last_pos ){
             return str.find_first_of( delimiters, last_pos );
         },
@@ -187,12 +188,12 @@ std::vector<std::string> split (
 }
 
 std::vector<std::string> split (
-    std::string const& string,
+    std::string const& str,
     std::function<bool(char)> delimiter_predicate,
     const bool trim_empty
 ) {
     return split(
-        string,
+        str,
         [&]( std::string const& str, size_t last_pos ){
             // Find first matching char.
             size_t pos = std::string::npos;
@@ -210,18 +211,58 @@ std::vector<std::string> split (
 }
 
 std::vector<std::string> split_at (
-    std::string const& string,
+    std::string const& str,
     std::string const& delimiter,
     const bool trim_empty
 ) {
     return split(
-        string,
+        str,
         [&]( std::string const& str, size_t last_pos ){
             return str.find( delimiter, last_pos );
         },
         delimiter.size(),
         trim_empty
     );
+}
+
+std::vector<size_t> split_range_list( std::string const& str )
+{
+    std::vector<size_t> result;
+
+    auto is_digits = []( std::string const& s ){
+        return trim( s ).find_first_not_of( "0123456789" ) == std::string::npos;
+    };
+
+    auto get_number = []( std::string const& s ){
+        size_t n;
+        sscanf( trim( s ).c_str(), "%zu", &n );
+        return n;
+    };
+
+    if( trim( str ).empty() ) {
+        return result;
+    }
+
+    auto const lst = split( str, "," );
+    for( auto const& le : lst ) {
+        // if just digits, done. if not, split -, repeat.
+        if( is_digits( le ) ) {
+            result.push_back( get_number( le ));
+        } else {
+            auto const rng = split( le, "-" );
+            if( rng.size() != 2 || ! is_digits( rng[0] ) || ! is_digits( rng[1] ) ) {
+                throw std::runtime_error( "Invalid range list string." );
+            }
+            auto const b = get_number( rng[0] );
+            auto const e = get_number( rng[1] );
+            for( size_t i = b; i <= e; ++i ) {
+                result.push_back( i );
+            }
+        }
+    }
+
+    std::sort( result.begin(), result.end() );
+    return result;
 }
 
 // =================================================================================================
