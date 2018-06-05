@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -171,6 +171,20 @@ double mass_tree_binify_masses( MassTree& tree, size_t number_of_bins );
 // =================================================================================================
 //     Others
 // =================================================================================================
+
+/**
+ * @brief Return true iff all Tree%s in the vector have an identical topology.
+ */
+bool mass_tree_all_identical_topology( std::vector<MassTree> const& mass_trees );
+
+/**
+ * @brief Change the branch lengths of all trees to their average, and move the masses accordingly
+ * in a proportional way.
+ *
+ * The function only is reasonable to run if all trees have identical topology, which is however
+ * not checked explicitly. Use mass_tree_all_identical_topology() for this.
+ */
+void mass_trees_make_average_branch_lengths( std::vector<MassTree>& mass_trees );
 
 /**
  * @brief Return a `std::vector` that contains the total @link MassTreeEdgeData::masses Mass@endlink
