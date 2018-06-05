@@ -110,6 +110,10 @@ public:
 
     size_t run( std::vector<Point> const& data, size_t const k )
     {
+        if( report_initialization ) {
+            report_initialization();
+        }
+
         // Run basic checks. This throws if necessary.
         argument_checks_( data, k );
 
@@ -129,7 +133,10 @@ public:
 
         do {
             // Start a new iteration.
-            LOG_INFO << "Iteration " << iteration;
+            if( report_iteration ) {
+                report_iteration( iteration + 1 );
+            }
+
             changed_assigment = lloyd_step( data, assignments_, centroids_ );
 
             // Check again.
@@ -232,6 +239,13 @@ public:
         init_strategy_ = value;
         return *this;
     }
+
+    // -------------------------------------------------------------------------
+    //     Progress Report
+    // -------------------------------------------------------------------------
+
+    std::function<std::string( void )>     report_initialization;
+    std::function<std::string( size_t i )> report_iteration;
 
     // -------------------------------------------------------------------------
     //     Virtual Functions
@@ -516,8 +530,10 @@ private:
     ) const {
         // Basic checks.
         if( k > data.size() ) {
-            LOG_WARN << "Cannot run Kmeans with more clusters (k == " << k << ") than data points ("
-                     << data.size() << ")";
+            throw std::runtime_error(
+                "Cannot run Kmeans with more clusters (k == " + std::to_string( k ) +
+                ") than data points (" + std::to_string( data.size() ) + ")"
+            );
         }
         if( k == 0 ) {
             throw std::runtime_error(
