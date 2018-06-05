@@ -185,8 +185,8 @@ public:
     //     Progress Report
     // -------------------------------------------------------------------------
 
-    std::function<std::string( void )>                   report_initialization;
-    std::function<std::string( size_t i, size_t total )> report_step;
+    std::function<void( void )>                   report_initialization;
+    std::function<void( size_t i, size_t total )> report_step;
 
     // -------------------------------------------------------------------------
     //     Private Functions
