@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,23 +49,42 @@ class TreeSet;
 //     Tree Set Functions
 // =================================================================================================
 
+/**
+ * @brief Get the first Tree in a TreeSet that is stored with a given name,
+ * or `nullptr` if not found.
+ */
 Tree      * find_tree ( TreeSet      & tset, std::string const& name);
-Tree const* find_tree ( TreeSet const& tset, std::string const& name);
 
-Tree average_branch_length_tree( TreeSet const& tset );
+/**
+ * @brief Get the first Tree in a TreeSet that is stored with a given name,
+ * or `nullptr` if not found.
+ */
+Tree const* find_tree ( TreeSet const& tset, std::string const& name);
 
 // =================================================================================================
 //     Comparators
 // =================================================================================================
 
+/**
+ * @brief Compare whether all Tree%s in a TreeSet are equal using a given comparator functional.
+ *
+ * See Tree::equal() for more information.
+ */
 bool all_equal(
     TreeSet const& tset,
     std::function<bool( TreeNode const&, TreeNode const& )> node_comparator,
     std::function<bool( TreeEdge const&, TreeEdge const& )> edge_comparator
 );
 
+// /**
+//  * @brief Compare whether all Tree%s in a TreeSet are equal using their default comparision
+//  * operators for nodes and edges.
+//  */
 // bool all_equal( TreeSet const& tset );
 
+/**
+ * @brief Return true iff all Tree%s in a TreeSet have an identical topology.
+ */
 bool all_identical_topology( TreeSet const& tset );
 
 } // namespace tree

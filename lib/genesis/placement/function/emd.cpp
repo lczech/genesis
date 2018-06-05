@@ -37,6 +37,7 @@
 #include "genesis/placement/sample_set.hpp"
 #include "genesis/placement/sample.hpp"
 
+#include "genesis/tree/default/functions.hpp"
 #include "genesis/tree/function/tree_set.hpp"
 #include "genesis/tree/mass_tree/emd.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"

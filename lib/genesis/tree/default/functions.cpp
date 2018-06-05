@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,9 @@
 
 #include "genesis/tree/default/distances.hpp"
 #include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/function/operators.hpp"
+#include "genesis/tree/function/tree_set.hpp"
+#include "genesis/tree/iterator/preorder.hpp"
 #include "genesis/tree/tree_set.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -42,15 +45,6 @@ namespace tree {
 //     Node Names
 // =================================================================================================
 
-/**
- * @brief Returns an unordered set of all TreeNode names of a Tree.
- *
- * If `leaves_only` is set to true, nodes names of inner nodes are not included.
- * Unnamed nodes (`node.data.name == ""`) are always excluded.
- * The only difference to node_names_sorted() is the type of container used for storing the result.
- *
- * The provided Tree needs to have TreeNode%s with data types deriveed from DefaultNodeData.
- */
 std::unordered_set<std::string> node_names(
     Tree const& tree,
     bool leaves_only
@@ -69,15 +63,6 @@ std::unordered_set<std::string> node_names(
     return name_set;
 }
 
-/**
- * @brief Returns a set of all TreeNode names of a Tree.
- *
- * If `leaves_only` is set to true, nodes names of inner nodes are not included.
- * Unnamed nodes (`node.data.name == ""`) are always excluded.
- * The only difference to node_names() is the type of container used for storing the result.
- *
- * The provided Tree needs to have TreeNode%s with data types deriveed from DefaultNodeData.
- */
 utils::SortedVector<std::string> node_names_sorted(
     Tree const& tree,
     bool leaves_only
@@ -96,13 +81,6 @@ utils::SortedVector<std::string> node_names_sorted(
     return name_set;
 }
 
-/**
- * @brief Returns a set of all TreeNode names of a TreeSet.
- *
- * The function returns the set of all names of all Tree%s in the set. See
- * @link node_names( Tree const&, bool ) node_names(...)@endlink this version of the
- * function for details.
- */
 std::unordered_set<std::string> node_names(
     TreeSet const& tree_set,
     bool leaves_only
@@ -117,13 +95,6 @@ std::unordered_set<std::string> node_names(
     return name_set;
 }
 
-/**
- * @brief Returns a set of all TreeNode names of a TreeSet.
- *
- * The function returns the set of all names of all Tree%s in the set. See
- * @link node_names_sorted( Tree const&, bool ) node_names_sorted(...)@endlink this version of the
- * function for details.
- */
 utils::SortedVector<std::string> node_names_sorted(
     TreeSet const& tree_set,
     bool leaves_only
@@ -140,9 +111,6 @@ utils::SortedVector<std::string> node_names_sorted(
     return name_set;
 }
 
-/**
- * @brief Finds a Node, given its name. If not found, nullptr is returned.
- */
 TreeNode const* find_node(
     Tree const& tree,
     const std::string& name,
@@ -162,9 +130,6 @@ TreeNode const* find_node(
     return nullptr;
 }
 
-/**
- * @brief Finds a Node, given its name. If not found, nullptr is returned.
- */
 TreeNode* find_node(
     Tree& tree,
     const std::string& name,
@@ -181,9 +146,6 @@ TreeNode* find_node(
 //     Branch Length
 // =================================================================================================
 
-/**
- * @brief Get the length of the tree, i.e., the sum of all branch lengths.
- */
 double length(Tree const& tree)
 {
     double len = 0.0;
@@ -193,30 +155,18 @@ double length(Tree const& tree)
     return len;
 }
 
-/**
- * @brief Get the height of the tree, i.e., the longest distance from the root to a leaf,
- * measured using the branch_length.
- */
 double height(Tree const& tree)
 {
     auto dists = node_branch_length_distance_vector(tree);
     return *std::max_element(dists.begin(), dists.end());
 }
 
-/**
- * @brief Get the diameter of the tree, i.e., the longest distance between any two nodes,
- * measured using the branch_length.
- */
 double diameter( Tree const& tree )
 {
     auto dist_mat = node_branch_length_distance_matrix( tree );
     return *std::max_element( dist_mat.begin(), dist_mat.end() );
 }
 
-/**
- * @brief Get a vector of all branch lengths of a Tree, index by the
- * @link TreeEdge::index() edge index@endlink.
- */
 std::vector<double> branch_lengths(
     Tree const& tree
 ) {
@@ -228,11 +178,6 @@ std::vector<double> branch_lengths(
     return result;
 }
 
-/**
- * @brief Set all branch lengths of a Tree to a given value.
- *
- * See also scale_all_branch_lengths() for a scaling function.
- */
 void set_all_branch_lengths(
     Tree& tree,
     double length
@@ -242,12 +187,6 @@ void set_all_branch_lengths(
     }
 }
 
-/**
- * @brief Scale all branch lengths of a Tree by a given factor.
- *
- * This function simply multiplies all branch lengths with the given factor.
- * See also set_all_branch_lengths() for setting the branch lengths to a value.
- */
 void scale_all_branch_lengths(
     Tree&  tree,
     double factor
@@ -255,6 +194,65 @@ void scale_all_branch_lengths(
     for( auto& edge : tree.edges() ) {
         edge->data<DefaultEdgeData>().branch_length *= factor;
     }
+}
+
+Tree average_branch_length_tree( TreeSet const& tset )
+{
+    using TreeType = Tree;
+
+    if( tset.size() == 0 ) {
+        return TreeType();
+    }
+
+    if( ! all_identical_topology( tset )) {
+        throw std::runtime_error( "Trees in TreeSet do not have the same topology." );
+    }
+
+    // Prepare storage for average branch lengths.
+    size_t num_edges = tset.at(0).tree.edge_count();
+    auto avgs = std::vector<double>(num_edges, 0.0);
+
+    // We traverse all trees (again, because all_identical_topology() already did this). This is
+    // probably a bit slower than the previous version of this method which worked with less
+    // traversals, but way easier to understand and debug.
+    for( auto& ct : tset ) {
+        // Use an index for position in the preorder traversal. This makes sure that the
+        // index actually always points to the correct edges, indepently of their order in
+        // different trees in the set.
+        size_t idx = 0;
+
+        // Do a preorder traversal and collect branch lengths.
+        for( auto it : preorder(ct.tree) ) {
+            // The first iteration points to an edge which will be covered later again.
+            // Skip it to prevent double coverage.
+            if (it.is_first_iteration()) {
+                continue;
+            }
+
+            avgs[idx] += it.edge().data<DefaultEdgeData>().branch_length;
+            ++idx;
+        }
+    }
+
+    // We know that all trees have the same topology. So we take a copy of the first one
+    // (thus, also copying its node names) and modify its branch lengths.
+    TreeType tree = TreeType( tset.at(0).tree );
+
+    // Do the same kind of traversal as before in order to keep the indexing order (preorder) and
+    // set the branch lengths.
+    size_t idx = 0;
+    for( auto it : preorder(tree) ) {
+        // The first iteration points to an edge which will be covered later again.
+        // Skip it to prevent double coverage.
+        if (it.is_first_iteration()) {
+            continue;
+        }
+
+        it.edge().data<DefaultEdgeData>().branch_length = avgs[idx] / tset.size();
+        ++idx;
+    }
+
+    return tree;
 }
 
 } // namespace tree
