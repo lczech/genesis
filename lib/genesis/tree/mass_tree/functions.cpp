@@ -268,6 +268,78 @@ double mass_tree_binify_masses( MassTree& tree, size_t number_of_bins )
 //     Others
 // =================================================================================================
 
+bool mass_tree_all_identical_topology( std::vector<MassTree> const& mass_trees )
+{
+    // If all pairs of two adjacent trees have same the topology, all of them have.
+    // Thus, we do not need a complete pairwise comparision.
+    for (size_t i = 1; i < mass_trees.size(); i++) {
+        if( ! identical_topology( mass_trees[i-1], mass_trees[i] )) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void mass_trees_make_average_branch_lengths( std::vector<MassTree>& mass_trees )
+{
+    // Nothing to do.
+    if( mass_trees.size() < 2 ) {
+        return;
+    }
+
+    // Store averages
+    size_t const num_edges = mass_trees[0].edge_count();
+    auto avg_br_lens = std::vector<double>( num_edges, 0.0 );
+
+    // Accumulate averages
+    for( auto const& tree : mass_trees ) {
+
+        // Check
+        if( tree.edge_count() != num_edges ) {
+            throw std::runtime_error(
+                "Cannot make average branch lengths, because trees have different size."
+            );
+        }
+
+        // Accu
+        assert( avg_br_lens.size() == tree.edge_count() );
+        for( size_t edge_idx = 0; edge_idx < num_edges; ++edge_idx ) {
+            avg_br_lens[edge_idx] += tree.edge_at( edge_idx ).data<MassTreeEdgeData>().branch_length;
+        }
+    }
+
+    // Average
+    for( auto& ae : avg_br_lens ) {
+        ae /= static_cast<double>( mass_trees.size() );
+    }
+
+    // Set branch lengths and ajust masses.
+    for( auto& tree : mass_trees ) {
+
+        #pragma omp parallel for
+        for( size_t edge_idx = 0; edge_idx < tree.edge_count(); ++edge_idx ) {
+
+            // Setup.
+            auto& edge_data = tree.edge_at( edge_idx ).data<MassTreeEdgeData>();
+            auto new_masses = std::map<double, double>();
+
+            // Branch position scaler.
+            auto const scaler = avg_br_lens[ edge_idx ] / edge_data.branch_length;
+
+            // Move masses proprotional to branch lengths change.
+            for( auto const& mass : edge_data.masses ) {
+
+                auto const new_pos = mass.first * scaler;
+                new_masses[ new_pos ] += mass.second;
+            }
+
+            // Replace masses by new accumuated ones, and change br len
+            edge_data.masses = new_masses;
+            edge_data.branch_length = avg_br_lens[ edge_idx ];
+        }
+    }
+}
+
 std::vector<double> mass_tree_mass_per_edge( MassTree const& tree )
 {
     auto result = std::vector<double>( tree.edge_count(), 0.0 );
