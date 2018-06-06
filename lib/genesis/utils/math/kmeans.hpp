@@ -55,6 +55,32 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//     K-Means Helpers
+// =================================================================================================
+
+/**
+ * @brief Enum of the initialization strategies offered by the Kmeans implementation.
+ */
+enum class KmeansInitializationStrategy
+{
+    kRandomAssignments,
+    kRandomCentroids,
+    kKmeansPlusPlus,
+    kNone
+};
+
+/**
+ * @brief Helper POD that stores the variances and number of data points of each centroid,
+ * as well as the distances from all data points to their assigned centroids.
+ */
+struct KmeansClusteringInfo
+{
+    std::vector<double> variances;
+    std::vector<size_t> counts;
+    std::vector<double> distances;
+};
+
+// =================================================================================================
 //     Generic K-Means Class
 // =================================================================================================
 
@@ -72,24 +98,7 @@ public:
 
     using value_type = Point;
 
-    enum class InitializationStrategy
-    {
-        kRandomAssignments,
-        kRandomCentroids,
-        kKmeansPlusPlus,
-        kNone
-    };
 
-    /**
-     * @brief Helper POD that stores the variances and number of data points of each centroid,
-     * as well as the distances from all data points to their assigned centroids.
-     */
-    struct ClusteringInfo
-    {
-        std::vector<double> variances;
-        std::vector<size_t> counts;
-        std::vector<double> distances;
-    };
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -209,7 +218,7 @@ public:
     //     Properties
     // -------------------------------------------------------------------------
 
-    ClusteringInfo cluster_info(
+    KmeansClusteringInfo cluster_info(
         std::vector<Point>  const& data
     ) const {
         return cluster_info( data, assignments_, centroids_ );
@@ -229,12 +238,12 @@ public:
         return *this;
     }
 
-    InitializationStrategy initialization_strategy() const
+    KmeansInitializationStrategy initialization_strategy() const
     {
         return init_strategy_;
     }
 
-    Kmeans& initialization_strategy( InitializationStrategy value )
+    Kmeans& initialization_strategy( KmeansInitializationStrategy value )
     {
         init_strategy_ = value;
         return *this;
@@ -257,15 +266,15 @@ protected:
     {
         // Select init stragegies.
         switch( init_strategy_ ) {
-            case InitializationStrategy::kRandomAssignments: {
+            case KmeansInitializationStrategy::kRandomAssignments: {
                 init_with_random_assignments_( data, k );
                 break;
             }
-            case InitializationStrategy::kRandomCentroids: {
+            case KmeansInitializationStrategy::kRandomCentroids: {
                 init_with_random_centroids_( data, k );
                 break;
             }
-            case InitializationStrategy::kKmeansPlusPlus: {
+            case KmeansInitializationStrategy::kKmeansPlusPlus: {
                 init_with_kmeans_plus_plus_( data, k );
                 break;
             }
@@ -374,14 +383,14 @@ protected:
         return { min_i, min_d };
     }
 
-    virtual ClusteringInfo cluster_info(
+    virtual KmeansClusteringInfo cluster_info(
         std::vector<Point>  const& data,
         std::vector<size_t> const& assignments,
         std::vector<Point>  const& centroids
     ) const {
         auto const k = centroids.size();
 
-        auto result = ClusteringInfo();
+        auto result = KmeansClusteringInfo();
         result.variances = std::vector<double>( k, 0.0 );
         result.counts    = std::vector<size_t>( k, 0 );
         result.distances = std::vector<double>( data.size(), 0.0 );
@@ -690,7 +699,7 @@ private:
     std::vector<Point>  centroids_;
 
     size_t max_iterations_ = 100;
-    InitializationStrategy init_strategy_ = InitializationStrategy::kKmeansPlusPlus;
+    KmeansInitializationStrategy init_strategy_ = KmeansInitializationStrategy::kKmeansPlusPlus;
 
 };
 
