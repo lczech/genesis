@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -97,6 +97,9 @@ public:
     PrinterNested& print_ranks( bool value );
     bool           print_ranks() const;
 
+    PrinterNested& print_ids( bool value );
+    bool           print_ids() const;
+
     // -------------------------------------------------------------------------
     //     Internal Functions
     // -------------------------------------------------------------------------
@@ -119,6 +122,7 @@ private:
     int  line_limit_  = -1;
     int  depth_limit_ = -1;
     bool print_ranks_ = true;
+    bool print_ids_ = true;
 };
 
 } // namespace taxonomy
