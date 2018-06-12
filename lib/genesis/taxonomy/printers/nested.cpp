@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -86,8 +86,20 @@ bool PrinterNested::print_to_ostream(
 
         // Print and count.
         out << in << t.name();
+        if(( print_ranks_ && t.rank() != "" ) || ( print_ids_ && t.id() != "" )) {
+            out << " (";
+        }
         if( print_ranks_ && t.rank() != "" ) {
-            out << " (" << t.rank() << ")";
+            out << t.rank();
+        }
+        if( print_ids_ && t.id() != "" ) {
+            if( print_ranks_ && t.rank() != "" ) {
+                out << ", ";
+            }
+            out << t.id();
+        }
+        if(( print_ranks_ && t.rank() != "" ) || ( print_ids_ && t.id() != "" )) {
+            out << ")";
         }
         out << "\n";
         ++lines;
@@ -137,6 +149,17 @@ PrinterNested& PrinterNested::print_ranks( bool value )
 bool PrinterNested::print_ranks() const
 {
     return print_ranks_;
+}
+
+PrinterNested& PrinterNested::print_ids( bool value )
+{
+    print_ids_ = value;
+    return *this;
+}
+
+bool PrinterNested::print_ids() const
+{
+    return print_ids_;
 }
 
 } // namespace taxonomy
