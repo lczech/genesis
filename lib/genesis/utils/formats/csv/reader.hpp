@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -78,9 +78,9 @@ public:
     //     Typedefs and Enums
     // ---------------------------------------------------------------------
 
-    typedef std::string        field;
-    typedef std::vector<field> row;
-    typedef std::vector<row>   table;
+    using Field = std::string;
+    using Row   = std::vector<Field>;
+    using Table = std::vector<Row>;
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -99,15 +99,15 @@ public:
     //     Reading
     // ---------------------------------------------------------------------
 
-    table from_stream( std::istream&      is ) const;
-    table from_file  ( std::string const& fn ) const;
-    table from_string( std::string const& fs ) const;
+    Table from_stream( std::istream&      is ) const;
+    Table from_file  ( std::string const& fn ) const;
+    Table from_string( std::string const& fs ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
     // ---------------------------------------------------------------------
 
-    table parse_document(
+    Table parse_document(
         utils::InputStream& input_stream
     ) const;
 

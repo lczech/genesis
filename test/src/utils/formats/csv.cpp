@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,8 +43,8 @@ using namespace genesis::utils;
 
 void test_csv_table(
     std::string const&      filename,
-    CsvReader::table const& actual,
-    CsvReader::table const& expected
+    CsvReader::Table const& actual,
+    CsvReader::Table const& expected
 ) {
     // Print the table (for manual testing).
     // std::cout << "File: " << filename;
@@ -79,7 +79,7 @@ TEST( Csv, ReaderDefault )
     // Preparation.
     auto reader = CsvReader();
     std::string infile;
-    CsvReader::table table;
+    CsvReader::Table table;
 
     // Simple table with default settings.
     infile = environment->data_dir + "utils/csv/simple.csv";
@@ -118,7 +118,7 @@ TEST( Csv, ReaderTabulatedEscaped )
     // Preparation.
     auto reader = CsvReader();
     std::string infile;
-    CsvReader::table table;
+    CsvReader::Table table;
 
     // Change Reader settings.
     reader.separator_chars( " \t" );
@@ -147,7 +147,7 @@ TEST( Csv, ReaderCommentEmpty )
     // Preparation.
     auto reader = CsvReader();
     std::string infile;
-    CsvReader::table table;
+    CsvReader::Table table;
 
     // Change Reader settings.
     reader.comment_chars( "#" );
