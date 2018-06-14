@@ -129,30 +129,48 @@ Taxon& Taxonomy::operator [] ( std::string name )
 
 Taxon const& Taxonomy::at ( size_t index ) const
 {
-    return children_.at( index );
+    if( index >= children_.size() ) {
+        throw std::invalid_argument(
+            "Index out of bounds for accessing Taxonomy children: " + std::to_string( index ) +
+            " >= " + std::to_string( children_.size() )
+        );
+    }
+    auto it = std::next( children_.begin(), index );
+    return *it;
 }
 
 Taxon& Taxonomy::at ( size_t index )
 {
-    return children_.at( index );
+    if( index >= children_.size() ) {
+        throw std::invalid_argument(
+            "Index out of bounds for accessing Taxonomy children: " + std::to_string( index ) +
+            " >= " + std::to_string( children_.size() )
+        );
+    }
+    auto it = std::next( children_.begin(), index );
+    return *it;
 }
 
 Taxon const& Taxonomy::operator [] ( size_t index ) const
 {
-    return children_[ index ];
+    return at( index );
 }
 
 Taxon& Taxonomy::operator [] ( size_t index )
 {
-    return children_[ index ];
+    return at( index );
 }
 
 size_t Taxonomy::index_of( std::string const& name ) const
 {
-    for( size_t i = 0; i < children_.size(); ++i ) {
-        if( children_[i].name() == name ) {
+    auto it = children_.begin();
+    size_t i = 0;
+    while( it != children_.end() ) {
+        if( it->name() == name ) {
             return i;
         }
+        ++it;
+        ++i;
     }
     throw std::runtime_error( "Taxon has no child named '" + name + "'." );
 }
@@ -161,14 +179,14 @@ size_t Taxonomy::index_of( std::string const& name ) const
 //     Modifiers
 // =================================================================================================
 
-Taxon& Taxonomy::add_child( Taxon const& child )
+Taxon& Taxonomy::add_child( Taxon const& child, bool merge_duplicates )
 {
-    return add_child_( child );
+    return add_child_( child, merge_duplicates );
 }
 
-Taxon& Taxonomy::add_child( std::string const& name )
+Taxon& Taxonomy::add_child( std::string const& name, bool merge_duplicates )
 {
-    return add_child_( Taxon( name ));
+    return add_child_( Taxon( name ), merge_duplicates );
 }
 
 void Taxonomy::remove_child( std::string const& name )
@@ -235,17 +253,19 @@ Taxonomy::const_iterator Taxonomy::cend() const
 //     Internal Implementation Details
 // =================================================================================================
 
-Taxon& Taxonomy::add_child_( Taxon const& child )
+Taxon& Taxonomy::add_child_( Taxon const& child, bool merge_duplicates )
 {
     // Check if a child taxon with the given name already exists.
-    for( auto& c : children_ ) {
-        if( c.name() == child.name() ) {
+    if( merge_duplicates ) {
+        for( auto& c : children_ ) {
+            if( c.name() == child.name() ) {
 
-            // If so, add the children of the new child to it (recursively), and return it.
-            for( auto& child_children : child ) {
-                c.add_child_( child_children );
+                // If so, add the children of the new child to it (recursively), and return it.
+                for( auto& child_children : child ) {
+                    c.add_child_( child_children, merge_duplicates );
+                }
+                return c;
             }
-            return c;
         }
     }
 

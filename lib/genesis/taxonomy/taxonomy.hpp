@@ -32,7 +32,7 @@
  */
 
 #include <string>
-#include <vector>
+#include <list>
 
 namespace genesis {
 namespace taxonomy {
@@ -101,8 +101,8 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    typedef std::vector<Taxon>::iterator             iterator;
-    typedef std::vector<Taxon>::const_iterator const_iterator;
+    typedef std::list<Taxon>::iterator             iterator;
+    typedef std::list<Taxon>::const_iterator const_iterator;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -218,16 +218,22 @@ public:
     /**
      * @brief Add a child Taxon as a copy of a given Taxon and return it.
      *
-     * If a child Taxon with the same name already exists, it is recursively merged with the given Taxon.
+     * If @p merge_duplicates is `true` (default), the Taxonomy is checked for a child Taxon with
+     * the same name, and if one exists, it is recursively merged with the given Taxon.
+     * Otherwise (@p merge_duplicates is `false`), the Taxon is added, even if this creates
+     * another child Taxon with the same name.
      */
-    Taxon& add_child( Taxon const&       child );
+    Taxon& add_child( Taxon const&       child, bool merge_duplicates = true );
 
     /**
      * @brief Add a child Taxon by creating a new one with the given name and return it.
      *
-     * If a child Taxon with the same name already exists, nothing happens.
+     * If @p merge_duplicates is `true` (default), the Taxonomy is checked for a child Taxon with
+     * the same name, and if one exists, nothing is added.
+     * Otherwise (@p merge_duplicates is `false`), a new Taxon is added, even if this creates
+     * another child Taxon with the same name.
      */
-    Taxon& add_child( std::string const& name );
+    Taxon& add_child( std::string const& name, bool merge_duplicates = true );
 
     /**
      * @brief Remove a child Taxon with a certain name.
@@ -241,6 +247,15 @@ public:
      * @brief Remove all children.
      */
     void clear_children();
+
+    /**
+     * @brief Sort the taxonomy according to some compare criterion.
+     */
+    template <class Compare>
+    void sort( Compare comp )
+    {
+        children_.sort( comp );
+    }
 
     // -------------------------------------------------------------------------
     //     Iterators
@@ -295,7 +310,7 @@ protected:
      * If a child Taxon with the same name already exists, it is recursively merged with the given Taxon.
      * The function returns the child.
      */
-    virtual Taxon& add_child_( Taxon const& child );
+    virtual Taxon& add_child_( Taxon const& child, bool merge_duplicates );
 
     /**
      * @brief Internal helper function that resets the parent pointer of all stored Taxa.
@@ -317,7 +332,7 @@ protected:
 
 private:
 
-    std::vector<Taxon> children_;
+    std::list<Taxon> children_;
 };
 
 } // namespace taxonomy

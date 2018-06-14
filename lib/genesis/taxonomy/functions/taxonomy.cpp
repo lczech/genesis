@@ -246,9 +246,11 @@ void sort_by_name( Taxonomy& tax, bool recursive, bool case_sensitive )
 
     // Sort.
     if( case_sensitive ) {
-        std::sort( tax.begin(), tax.end(), comp_by_name_cs );
+        // std::sort( tax.begin(), tax.end(), comp_by_name_cs );
+        tax.sort( comp_by_name_cs );
     } else {
-        std::sort( tax.begin(), tax.end(), comp_by_name_ci );
+        // std::sort( tax.begin(), tax.end(), comp_by_name_ci );
+        tax.sort( comp_by_name_ci );
     }
 
     // Run recursion if necessary.
