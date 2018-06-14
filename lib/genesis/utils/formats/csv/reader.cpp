@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ namespace utils {
 /**
  * @brief Read CSV data until the end of the stream is reached, and return it.
  */
-CsvReader::table CsvReader::from_stream( std::istream& is ) const
+CsvReader::Table CsvReader::from_stream( std::istream& is ) const
 {
     utils::InputStream it( utils::make_unique< utils::StreamInputSource >( is ));
     return parse_document( it );
@@ -63,7 +63,7 @@ CsvReader::table CsvReader::from_stream( std::istream& is ) const
 /**
  * @brief Read a CSV file and return its contents.
  */
-CsvReader::table CsvReader::from_file( std::string const& fn ) const
+CsvReader::Table CsvReader::from_file( std::string const& fn ) const
 {
     utils::InputStream it( utils::make_unique< utils::FileInputSource >( fn ));
     return parse_document( it );
@@ -72,7 +72,7 @@ CsvReader::table CsvReader::from_file( std::string const& fn ) const
 /**
  * @brief Read a string in CSV format and return its contents.
  */
-CsvReader::table CsvReader::from_string( std::string const& fs ) const
+CsvReader::Table CsvReader::from_string( std::string const& fs ) const
 {
     utils::InputStream it( utils::make_unique< utils::StringInputSource >( fs ));
     return parse_document( it );
@@ -85,11 +85,11 @@ CsvReader::table CsvReader::from_string( std::string const& fs ) const
 /**
  * @brief Parse a whole CSV document and return its contents.
  */
-CsvReader::table CsvReader::parse_document(
+CsvReader::Table CsvReader::parse_document(
     utils::InputStream& input_stream
 ) const {
     auto& it = input_stream;
-    table result;
+    Table result;
 
     while( it ) {
         // Parse the next line and push it if it has content.

@@ -255,7 +255,7 @@ protected:
      * See Taxonomy::add_child_() for details. In addition to the base class implementation, this
      * function also sets the parent pointer of the Taxon.
      */
-    Taxon& add_child_( Taxon const& child ) override;
+    Taxon& add_child_( Taxon const& child, bool merge_duplicates ) override;
 
     // -------------------------------------------------------------------------
     //     Data Members

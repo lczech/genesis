@@ -33,7 +33,9 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
+#include "genesis/taxonomy/formats/ncbi.hpp"
 #include "genesis/taxonomy/formats/taxonomy_reader.hpp"
+#include "genesis/taxonomy/formats/taxonomy_writer.hpp"
 #include "genesis/taxonomy/formats/taxopath_generator.hpp"
 #include "genesis/taxonomy/formats/taxopath_parser.hpp"
 #include "genesis/taxonomy/functions/entropy_data.hpp"

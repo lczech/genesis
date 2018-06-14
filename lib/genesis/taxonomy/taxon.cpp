@@ -209,9 +209,9 @@ Taxon& Taxon::reset_data( std::unique_ptr< BaseTaxonData > data )
 //     Protected Implementation Details
 // ================================================================================================
 
-Taxon& Taxon::add_child_( Taxon const& child )
+Taxon& Taxon::add_child_( Taxon const& child, bool merge_duplicates )
 {
-    auto& c = Taxonomy::add_child_( child );
+    auto& c = Taxonomy::add_child_( child, merge_duplicates );
     // c.parent_ = this;
 
     // We added to the container. This might have caused relocation of the contant.
