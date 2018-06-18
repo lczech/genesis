@@ -80,6 +80,27 @@ void TaxonomyReader::from_string( std::string const& is, Taxonomy& tax ) const
     parse_document( it, tax );
 }
 
+Taxonomy TaxonomyReader::from_stream( std::istream& is ) const
+{
+    Taxonomy res;
+    from_stream( is, res );
+    return res;
+}
+
+Taxonomy TaxonomyReader::from_file( std::string const& fn ) const
+{
+    Taxonomy res;
+    from_file( fn, res );
+    return res;
+}
+
+Taxonomy TaxonomyReader::from_string( std::string const& is ) const
+{
+    Taxonomy res;
+    from_string( is, res );
+    return res;
+}
+
 // =================================================================================================
 //     Parsing
 // =================================================================================================

@@ -164,6 +164,22 @@ public:
      */
     void from_string( std::string const& is, Taxonomy& tax ) const;
 
+    /**
+     * @brief Read taxonomy data until the end of the stream is reached,
+     * and return the Taxonomy.
+     */
+    Taxonomy from_stream( std::istream&      is ) const;
+
+    /**
+     * @brief Read a taxonomy file and and return the Taxonomy.
+     */
+    Taxonomy from_file  ( std::string const& fn ) const;
+
+    /**
+     * @brief Read a string with taxonomy data and and return the Taxonomy.
+     */
+    Taxonomy from_string( std::string const& is ) const;
+
     // ---------------------------------------------------------------------
     //     Parsing
     // ---------------------------------------------------------------------
