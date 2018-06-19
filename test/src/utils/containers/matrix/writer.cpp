@@ -47,23 +47,63 @@ TEST( Matrix, Writer )
 {
     NEEDS_TEST_DATA;
 
-    // Read simple matrix.
+    // // Read simple matrix.
     // auto reader = MatrixReader<double>( ' ' );
     // auto const simple = reader.from_file( environment->data_dir + "utils/matrix/simple.mat" );
     //
     // auto writer = MatrixWriter<double>();
-
-    // writer.to_file( simple, "/home/lucas/blank.mat" );
-    // writer.to_file( simple, "/home/lucas/rows.mat",
+    //
+    // writer.format( MatrixWriter<double>::Format::kMatrix );
+    // writer.to_file( simple, "/home/lucas/test/blank.mat" );
+    // writer.to_file( simple, "/home/lucas/test/rows.mat",
     //     { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" }
     // );
-    // writer.to_file( simple, "/home/lucas/both.mat",
+    // writer.to_file( simple, "/home/lucas/test/both.mat",
     //     { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
     //     { "A", "B", "C" }
     // );
-    // writer.to_file( simple, "/home/lucas/full.mat",
+    // writer.to_file( simple, "/home/lucas/test/full.mat",
     //     { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
     //     { "A", "B", "C" },
+    //     "x"
+    // );
+    //
+    // writer.format( MatrixWriter<double>::Format::kList );
+    // writer.to_file( simple, "/home/lucas/test/blank.lst" );
+    // writer.to_file( simple, "/home/lucas/test/rows.lst",
+    //     { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" }
+    // );
+    // writer.to_file( simple, "/home/lucas/test/both.lst",
+    //     { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
+    //     { "A", "B", "C" }
+    // );
+    // writer.to_file( simple, "/home/lucas/test/full.lst",
+    //     { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
+    //     { "A", "B", "C" },
+    //     "x"
+    // );
+    //
+    // auto mat = Matrix<double>(
+    //     4, 4, {
+    //         1, 2, 3, 4,
+    //         5, 6, 7, 8,
+    //         9, 10, 11, 12,
+    //         13, 14, 15, 16
+    //     }
+    // );
+    //
+    // writer.format( MatrixWriter<double>::Format::kTriangular );
+    // writer.to_file( mat, "/home/lucas/test/blank.tri" );
+    // writer.to_file( mat, "/home/lucas/test/rows.tri",
+    //     { "a", "b", "c", "d" }
+    // );
+    // writer.to_file( mat, "/home/lucas/test/both.tri",
+    //     { "a", "b", "c", "d" },
+    //     { "A", "B", "C", "D" }
+    // );
+    // writer.to_file( mat, "/home/lucas/test/full.tri",
+    //     { "a", "b", "c", "d" },
+    //     { "A", "B", "C", "D" },
     //     "x"
     // );
 }
