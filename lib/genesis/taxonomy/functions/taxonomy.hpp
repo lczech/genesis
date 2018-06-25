@@ -48,28 +48,72 @@ class Taxon;
 class Taxonomy;
 
 // =================================================================================================
-//     Accessors
+//     Find Functions
 // =================================================================================================
 
 /**
- * @brief Find a Taxon with a given name by recursively searching the Taxonomy.
+ * @brief Alias for find_taxon_by_name().
  */
 Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name );
 
 /**
- * @brief Find a Taxon with a given name by recursively searching the Taxonomy.
+* @brief Alias for find_taxon_by_name().
  */
 Taxon*       find_taxon_by_name( Taxonomy&       tax, std::string const& name );
 
 /**
- * @brief Find a Taxon with a given ID by recursively searching the Taxonomy.
+* @brief Alias for find_taxon_by_id().
  */
 Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id );
 
 /**
- * @brief Find a Taxon with a given ID by recursively searching the Taxonomy.
+* @brief Alias for find_taxon_by_id().
  */
 Taxon*       find_taxon_by_id( Taxonomy&       tax, std::string const& id );
+
+/**
+ * @brief Find a Taxon with a given name by recursively searching the Taxonomy in a depth first manner.
+ */
+Taxon const* find_taxon_by_name_dfs( Taxonomy const& tax, std::string const& name );
+
+/**
+ * @brief Find a Taxon with a given name by recursively searching the Taxonomy in a depth first manner.
+ */
+Taxon*       find_taxon_by_name_dfs( Taxonomy&       tax, std::string const& name );
+
+/**
+ * @brief Find a Taxon with a given ID by recursively searching the Taxonomy in a depth first manner.
+ */
+Taxon const* find_taxon_by_id_dfs( Taxonomy const& tax, std::string const& id );
+
+/**
+ * @brief Find a Taxon with a given ID by recursively searching the Taxonomy in a depth first manner.
+ */
+Taxon*       find_taxon_by_id_dfs( Taxonomy&       tax, std::string const& id );
+
+/**
+ * @brief Find a Taxon with a given name by recursively searching the Taxonomy in a breadth first manner.
+ */
+Taxon const* find_taxon_by_name_bfs( Taxonomy const& tax, std::string const& name );
+
+/**
+ * @brief Find a Taxon with a given name by recursively searching the Taxonomy in a breadth first manner.
+ */
+Taxon*       find_taxon_by_name_bfs( Taxonomy&       tax, std::string const& name );
+
+/**
+ * @brief Find a Taxon with a given ID by recursively searching the Taxonomy in a breadth first manner.
+ */
+Taxon const* find_taxon_by_id_bfs( Taxonomy const& tax, std::string const& id );
+
+/**
+ * @brief Find a Taxon with a given ID by recursively searching the Taxonomy in a breadth first manner.
+ */
+Taxon*       find_taxon_by_id_bfs( Taxonomy&       tax, std::string const& id );
+
+// =================================================================================================
+//     Accessors
+// =================================================================================================
 
 /**
  * @brief Return the level of depth of a given Taxon.
