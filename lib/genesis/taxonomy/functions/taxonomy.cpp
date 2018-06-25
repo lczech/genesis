@@ -41,6 +41,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <ostream>
+#include <queue>
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
@@ -50,16 +51,36 @@ namespace genesis {
 namespace taxonomy {
 
 // =================================================================================================
-//     Accessors
+//     Find Functions
 // =================================================================================================
 
 Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name )
+{
+    return find_taxon_by_name_dfs( tax, name );
+}
+
+Taxon* find_taxon_by_name( Taxonomy& tax, std::string const& name )
+{
+    return find_taxon_by_name_dfs( tax, name );
+}
+
+Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id )
+{
+    return find_taxon_by_id_dfs( tax, id );
+}
+
+Taxon*       find_taxon_by_id( Taxonomy&       tax, std::string const& id )
+{
+    return find_taxon_by_id_dfs( tax, id );
+}
+
+Taxon const* find_taxon_by_name_dfs( Taxonomy const& tax, std::string const& name )
 {
     for( auto const& c : tax ) {
         if( c.name() == name ) {
             return &c;
         }
-        auto rec = find_taxon_by_name( c, name );
+        auto rec = find_taxon_by_name_dfs( c, name );
         if( rec != nullptr ) {
             return rec;
         }
@@ -67,20 +88,20 @@ Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name )
     return nullptr;
 }
 
-Taxon* find_taxon_by_name( Taxonomy& tax, std::string const& name )
+Taxon*       find_taxon_by_name_dfs( Taxonomy&       tax, std::string const& name )
 {
     // Avoid code duplication according to Scott Meyers.
     auto const& ctax = static_cast< Taxonomy const& >( tax );
-    return const_cast< Taxon* >( find_taxon_by_name( ctax, name ));
+    return const_cast< Taxon* >( find_taxon_by_name_dfs( ctax, name ));
 }
 
-Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id )
+Taxon const* find_taxon_by_id_dfs( Taxonomy const& tax, std::string const& id )
 {
     for( auto const& c : tax ) {
         if( c.id() == id ) {
             return &c;
         }
-        auto rec = find_taxon_by_id( c, id );
+        auto rec = find_taxon_by_id_dfs( c, id );
         if( rec != nullptr ) {
             return rec;
         }
@@ -88,12 +109,74 @@ Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id )
     return nullptr;
 }
 
-Taxon*       find_taxon_by_id( Taxonomy&       tax, std::string const& id )
+Taxon*       find_taxon_by_id_dfs( Taxonomy&       tax, std::string const& id )
 {
     // Avoid code duplication according to Scott Meyers.
     auto const& ctax = static_cast< Taxonomy const& >( tax );
-    return const_cast< Taxon* >( find_taxon_by_id( ctax, id ));
+    return const_cast< Taxon* >( find_taxon_by_id_dfs( ctax, id ));
 }
+
+Taxon const* find_taxon_by_name_bfs( Taxonomy const& tax, std::string const& name )
+{
+    std::queue< Taxon const* > taxa_queue;
+    for( auto& t : tax ) {
+        taxa_queue.push( &t );
+    }
+
+    while( ! taxa_queue.empty() ) {
+        auto const& cur = *taxa_queue.front();
+        taxa_queue.pop();
+
+        if( cur.name() == name ) {
+            return &cur;
+        }
+
+        for( auto const& t : cur ) {
+            taxa_queue.push( &t );
+        }
+    }
+    return nullptr;
+}
+
+Taxon*       find_taxon_by_name_bfs( Taxonomy&       tax, std::string const& name )
+{
+    // Avoid code duplication according to Scott Meyers.
+    auto const& ctax = static_cast< Taxonomy const& >( tax );
+    return const_cast< Taxon* >( find_taxon_by_name_bfs( ctax, name ));
+}
+
+Taxon const* find_taxon_by_id_bfs( Taxonomy const& tax, std::string const& id )
+{
+    std::queue< Taxon const* > taxa_queue;
+    for( auto& t : tax ) {
+        taxa_queue.push( &t );
+    }
+
+    while( ! taxa_queue.empty() ) {
+        auto const& cur = *taxa_queue.front();
+        taxa_queue.pop();
+
+        if( cur.id() == id ) {
+            return &cur;
+        }
+
+        for( auto const& t : cur ) {
+            taxa_queue.push( &t );
+        }
+    }
+    return nullptr;
+}
+
+Taxon*       find_taxon_by_id_bfs( Taxonomy&       tax, std::string const& id )
+{
+    // Avoid code duplication according to Scott Meyers.
+    auto const& ctax = static_cast< Taxonomy const& >( tax );
+    return const_cast< Taxon* >( find_taxon_by_id_bfs( ctax, id ));
+}
+
+// =================================================================================================
+//     Accessors
+// =================================================================================================
 
 size_t taxon_level( Taxon const& taxon )
 {
