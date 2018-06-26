@@ -244,6 +244,14 @@ public:
     void remove_child( std::string const& name );
 
     /**
+     * @brief Remove a child Taxon at a certain index.
+     *
+     * The Taxon (and all its sub-taxa) are destroyed.
+     * Throws an `std::runtime_error` if the index is out of bounds.
+     */
+    void remove_at( size_t index );
+
+    /**
      * @brief Remove all children.
      */
     void clear_children();
