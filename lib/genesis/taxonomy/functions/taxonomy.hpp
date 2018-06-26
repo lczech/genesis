@@ -58,25 +58,41 @@ struct DepthFirstSearch{};
  */
 struct BreadthFirstSearch{};
 
+/**
+ * @brief Alias for DepthFirstSearch
+ */
 using DFS = DepthFirstSearch;
+
+/**
+ * @brief Alias for BreadthFirstSearch
+ */
 using BFS = BreadthFirstSearch;
 
 // =================================================================================================
 //     Find Functions
 // =================================================================================================
 
+/**
+ * @brief Alias for find_taxon(..., DepthFirstSearch{})
+ */
 template< class UnaryPredicate >
 Taxon const* find_taxon( Taxonomy const& tax, UnaryPredicate p )
 {
     return find_taxon( tax, p, DepthFirstSearch{} );
 }
 
+/**
+ * @brief Alias for find_taxon(..., DepthFirstSearch{})
+ */
 template< class UnaryPredicate >
 Taxon* find_taxon( Taxonomy& tax, UnaryPredicate p )
 {
     return find_taxon(tax, p, DepthFirstSearch{} );
 }
 
+/**
+ * @brief Find a Taxon based on a given predicate by recursively searching the Taxonomy in a depth first manner.
+ */
 template< class UnaryPredicate >
 Taxon const* find_taxon( Taxonomy const& tax, UnaryPredicate p, DepthFirstSearch )
 {
@@ -92,14 +108,9 @@ Taxon const* find_taxon( Taxonomy const& tax, UnaryPredicate p, DepthFirstSearch
     return nullptr;
 }
 
-template< class UnaryPredicate >
-Taxon* find_taxon( Taxonomy& tax, UnaryPredicate p, DepthFirstSearch )
-{
-    // Avoid code duplication according to Scott Meyers.
-    auto const& ctax = static_cast< Taxonomy const& >( tax );
-    return const_cast< Taxon* >( find_taxon( ctax, p, DepthFirstSearch{} ));
-}
-
+/**
+ * @brief Find a Taxon based on a given predicate by recursively searching the Taxonomy in a breadth first manner.
+ */
 template< class UnaryPredicate >
 Taxon const* find_taxon( Taxonomy const& tax, UnaryPredicate p, BreadthFirstSearch )
 {
@@ -123,36 +134,39 @@ Taxon const* find_taxon( Taxonomy const& tax, UnaryPredicate p, BreadthFirstSear
     return nullptr;
 }
 
-template< class UnaryPredicate >
-Taxon* find_taxon( Taxonomy& tax, UnaryPredicate p, BreadthFirstSearch )
+/**
+ * @brief Find a Taxon based on a given predicate by recursively searching the Taxonomy according to a search strategy.
+ */
+template< class SearchStrategy, class UnaryPredicate >
+Taxon* find_taxon( Taxonomy& tax, UnaryPredicate p, SearchStrategy strat )
 {
     // Avoid code duplication according to Scott Meyers.
     auto const& ctax = static_cast< Taxonomy const& >( tax );
-    return const_cast< Taxon* >( find_taxon( ctax, p, BreadthFirstSearch{} ));
+    return const_cast< Taxon* >( find_taxon( ctax, p, strat ));
 }
 
 /**
- * @brief Alias for find_taxon_by_name_dfs().
+ * @brief Alias for find_taxon_by_name(..., DepthFirstSearch{}).
  */
 Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name );
 
 /**
-* @brief Alias for find_taxon_by_name_dfs().
+* @brief Alias for find_taxon_by_name(..., DepthFirstSearch{}).
  */
 Taxon*       find_taxon_by_name( Taxonomy&       tax, std::string const& name );
 
 /**
-* @brief Alias for find_taxon_by_id_dfs().
+* @brief Alias for find_taxon_by_id(..., DepthFirstSearch{}).
  */
 Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id );
 
 /**
-* @brief Alias for find_taxon_by_id_dfs().
+* @brief Alias for find_taxon_by_id(..., DepthFirstSearch{}).
  */
 Taxon*       find_taxon_by_id( Taxonomy&       tax, std::string const& id );
 
 /**
- * @brief Find a Taxon with a given name by recursively searching the Taxonomy in a depth first manner.
+ * @brief Find a Taxon with a given name by recursively searching the Taxonomy according to a search strategy.
  */
 template< class SearchStrategy >
 Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name, SearchStrategy strat )
@@ -163,7 +177,7 @@ Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name, S
 }
 
 /**
- * @brief Find a Taxon with a given name by recursively searching the Taxonomy in a depth first manner.
+ * @brief Find a Taxon with a given name by recursively searching the Taxonomy according to a search strategy.
  */
 template< class SearchStrategy >
 Taxon*       find_taxon_by_name( Taxonomy&       tax, std::string const& name, SearchStrategy strat )
@@ -174,7 +188,7 @@ Taxon*       find_taxon_by_name( Taxonomy&       tax, std::string const& name, S
 }
 
 /**
- * @brief Find a Taxon with a given name by recursively searching the Taxonomy in a depth first manner.
+ * @brief Find a Taxon with a given ID by recursively searching the Taxonomy according to a search strategy.
  */
 template< class SearchStrategy >
 Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id, SearchStrategy strat )
@@ -185,7 +199,7 @@ Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id, Searc
 }
 
 /**
- * @brief Find a Taxon with a given id by recursively searching the Taxonomy in a depth first manner.
+ * @brief Find a Taxon with a given ID by recursively searching the Taxonomy according to a search strategy.
  */
 template< class SearchStrategy >
 Taxon*       find_taxon_by_id( Taxonomy&       tax, std::string const& id, SearchStrategy strat )
