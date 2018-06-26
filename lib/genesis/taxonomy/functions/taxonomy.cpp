@@ -32,8 +32,6 @@
 
 #include "genesis/taxonomy/iterator/preorder.hpp"
 #include "genesis/taxonomy/printers/nested.hpp"
-#include "genesis/taxonomy/taxon.hpp"
-#include "genesis/taxonomy/taxonomy.hpp"
 
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -41,7 +39,6 @@
 #include <algorithm>
 #include <assert.h>
 #include <ostream>
-#include <queue>
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
@@ -56,122 +53,22 @@ namespace taxonomy {
 
 Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name )
 {
-    return find_taxon_by_name_dfs( tax, name );
+    return find_taxon_by_name( tax, name, DepthFirstSearch{} );
 }
 
 Taxon* find_taxon_by_name( Taxonomy& tax, std::string const& name )
 {
-    return find_taxon_by_name_dfs( tax, name );
+    return find_taxon_by_name( tax, name, DepthFirstSearch{} );
 }
 
 Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id )
 {
-    return find_taxon_by_id_dfs( tax, id );
+    return find_taxon_by_id( tax, id, DepthFirstSearch{} );
 }
 
 Taxon*       find_taxon_by_id( Taxonomy&       tax, std::string const& id )
 {
-    return find_taxon_by_id_dfs( tax, id );
-}
-
-Taxon const* find_taxon_by_name_dfs( Taxonomy const& tax, std::string const& name )
-{
-    for( auto const& c : tax ) {
-        if( c.name() == name ) {
-            return &c;
-        }
-        auto rec = find_taxon_by_name_dfs( c, name );
-        if( rec != nullptr ) {
-            return rec;
-        }
-    }
-    return nullptr;
-}
-
-Taxon*       find_taxon_by_name_dfs( Taxonomy&       tax, std::string const& name )
-{
-    // Avoid code duplication according to Scott Meyers.
-    auto const& ctax = static_cast< Taxonomy const& >( tax );
-    return const_cast< Taxon* >( find_taxon_by_name_dfs( ctax, name ));
-}
-
-Taxon const* find_taxon_by_id_dfs( Taxonomy const& tax, std::string const& id )
-{
-    for( auto const& c : tax ) {
-        if( c.id() == id ) {
-            return &c;
-        }
-        auto rec = find_taxon_by_id_dfs( c, id );
-        if( rec != nullptr ) {
-            return rec;
-        }
-    }
-    return nullptr;
-}
-
-Taxon*       find_taxon_by_id_dfs( Taxonomy&       tax, std::string const& id )
-{
-    // Avoid code duplication according to Scott Meyers.
-    auto const& ctax = static_cast< Taxonomy const& >( tax );
-    return const_cast< Taxon* >( find_taxon_by_id_dfs( ctax, id ));
-}
-
-Taxon const* find_taxon_by_name_bfs( Taxonomy const& tax, std::string const& name )
-{
-    std::queue< Taxon const* > taxa_queue;
-    for( auto& t : tax ) {
-        taxa_queue.push( &t );
-    }
-
-    while( ! taxa_queue.empty() ) {
-        auto const& cur = *taxa_queue.front();
-        taxa_queue.pop();
-
-        if( cur.name() == name ) {
-            return &cur;
-        }
-
-        for( auto const& t : cur ) {
-            taxa_queue.push( &t );
-        }
-    }
-    return nullptr;
-}
-
-Taxon*       find_taxon_by_name_bfs( Taxonomy&       tax, std::string const& name )
-{
-    // Avoid code duplication according to Scott Meyers.
-    auto const& ctax = static_cast< Taxonomy const& >( tax );
-    return const_cast< Taxon* >( find_taxon_by_name_bfs( ctax, name ));
-}
-
-Taxon const* find_taxon_by_id_bfs( Taxonomy const& tax, std::string const& id )
-{
-    std::queue< Taxon const* > taxa_queue;
-    for( auto& t : tax ) {
-        taxa_queue.push( &t );
-    }
-
-    while( ! taxa_queue.empty() ) {
-        auto const& cur = *taxa_queue.front();
-        taxa_queue.pop();
-
-        if( cur.id() == id ) {
-            return &cur;
-        }
-
-        for( auto const& t : cur ) {
-            taxa_queue.push( &t );
-        }
-    }
-    return nullptr;
-}
-
-Taxon*       find_taxon_by_id_bfs( Taxonomy&       tax, std::string const& id )
-{
-    // Avoid code duplication according to Scott Meyers.
-    auto const& ctax = static_cast< Taxonomy const& >( tax );
-    return const_cast< Taxon* >( find_taxon_by_id_bfs( ctax, id ));
+    return find_taxon_by_id( tax, id, DepthFirstSearch{} );
 }
 
 // =================================================================================================

@@ -31,85 +31,169 @@
  * @ingroup taxonomy
  */
 
+#include "genesis/taxonomy/taxon.hpp"
+#include "genesis/taxonomy/taxonomy.hpp"
+
 #include <functional>
 #include <iosfwd>
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <queue>
 
 namespace genesis {
 namespace taxonomy {
 
 // =================================================================================================
-//     Forwad Declarations
+//     Tags for Tag Dispatch
 // =================================================================================================
 
-class Taxon;
-class Taxonomy;
+/**
+ * @brief Tag used for find_taxon().
+ */
+struct DepthFirstSearch{};
+
+/**
+ * @brief Tag used for find_taxon().
+ */
+struct BreadthFirstSearch{};
+
+using DFS = DepthFirstSearch;
+using BFS = BreadthFirstSearch;
 
 // =================================================================================================
 //     Find Functions
 // =================================================================================================
 
+template< class UnaryPredicate >
+Taxon const* find_taxon( Taxonomy const& tax, UnaryPredicate p )
+{
+    return find_taxon( tax, p, DepthFirstSearch{} );
+}
+
+template< class UnaryPredicate >
+Taxon* find_taxon( Taxonomy& tax, UnaryPredicate p )
+{
+    return find_taxon(tax, p, DepthFirstSearch{} );
+}
+
+template< class UnaryPredicate >
+Taxon const* find_taxon( Taxonomy const& tax, UnaryPredicate p, DepthFirstSearch )
+{
+    for( auto const& c : tax ) {
+        if( p( c ) ) {
+            return &c;
+        }
+        auto rec = find_taxon( c, p, DepthFirstSearch{} );
+        if( rec != nullptr ) {
+            return rec;
+        }
+    }
+    return nullptr;
+}
+
+template< class UnaryPredicate >
+Taxon* find_taxon( Taxonomy& tax, UnaryPredicate p, DepthFirstSearch )
+{
+    // Avoid code duplication according to Scott Meyers.
+    auto const& ctax = static_cast< Taxonomy const& >( tax );
+    return const_cast< Taxon* >( find_taxon( ctax, p, DepthFirstSearch{} ));
+}
+
+template< class UnaryPredicate >
+Taxon const* find_taxon( Taxonomy const& tax, UnaryPredicate p, BreadthFirstSearch )
+{
+    std::queue< Taxon const* > taxa_queue;
+    for( auto& t : tax ) {
+        taxa_queue.push( &t );
+    }
+
+    while( not taxa_queue.empty() ) {
+        auto const& cur = *taxa_queue.front();
+        taxa_queue.pop();
+
+        if( p( cur ) ) {
+            return &cur;
+        }
+
+        for( auto const& t : cur ) {
+            taxa_queue.push( &t );
+        }
+    }
+    return nullptr;
+}
+
+template< class UnaryPredicate >
+Taxon* find_taxon( Taxonomy& tax, UnaryPredicate p, BreadthFirstSearch )
+{
+    // Avoid code duplication according to Scott Meyers.
+    auto const& ctax = static_cast< Taxonomy const& >( tax );
+    return const_cast< Taxon* >( find_taxon( ctax, p, BreadthFirstSearch{} ));
+}
+
 /**
- * @brief Alias for find_taxon_by_name().
+ * @brief Alias for find_taxon_by_name_dfs().
  */
 Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name );
 
 /**
-* @brief Alias for find_taxon_by_name().
+* @brief Alias for find_taxon_by_name_dfs().
  */
 Taxon*       find_taxon_by_name( Taxonomy&       tax, std::string const& name );
 
 /**
-* @brief Alias for find_taxon_by_id().
+* @brief Alias for find_taxon_by_id_dfs().
  */
 Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id );
 
 /**
-* @brief Alias for find_taxon_by_id().
+* @brief Alias for find_taxon_by_id_dfs().
  */
 Taxon*       find_taxon_by_id( Taxonomy&       tax, std::string const& id );
 
 /**
  * @brief Find a Taxon with a given name by recursively searching the Taxonomy in a depth first manner.
  */
-Taxon const* find_taxon_by_name_dfs( Taxonomy const& tax, std::string const& name );
+template< class SearchStrategy >
+Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name, SearchStrategy strat )
+{
+    return find_taxon( tax, [&name]( Taxon const& t ){
+        return t.name() == name;
+    }, strat );
+}
 
 /**
  * @brief Find a Taxon with a given name by recursively searching the Taxonomy in a depth first manner.
  */
-Taxon*       find_taxon_by_name_dfs( Taxonomy&       tax, std::string const& name );
+template< class SearchStrategy >
+Taxon*       find_taxon_by_name( Taxonomy&       tax, std::string const& name, SearchStrategy strat )
+{
+    // Avoid code duplication according to Scott Meyers.
+    auto const& ctax = static_cast< Taxonomy const& >( tax );
+    return const_cast< Taxon* >( find_taxon_by_name( ctax, name, strat ));
+}
 
 /**
- * @brief Find a Taxon with a given ID by recursively searching the Taxonomy in a depth first manner.
+ * @brief Find a Taxon with a given name by recursively searching the Taxonomy in a depth first manner.
  */
-Taxon const* find_taxon_by_id_dfs( Taxonomy const& tax, std::string const& id );
+template< class SearchStrategy >
+Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id, SearchStrategy strat )
+{
+    return find_taxon( tax, [&id]( Taxon const& t ){
+        return t.id() == id;
+    }, strat );
+}
 
 /**
- * @brief Find a Taxon with a given ID by recursively searching the Taxonomy in a depth first manner.
+ * @brief Find a Taxon with a given id by recursively searching the Taxonomy in a depth first manner.
  */
-Taxon*       find_taxon_by_id_dfs( Taxonomy&       tax, std::string const& id );
-
-/**
- * @brief Find a Taxon with a given name by recursively searching the Taxonomy in a breadth first manner.
- */
-Taxon const* find_taxon_by_name_bfs( Taxonomy const& tax, std::string const& name );
-
-/**
- * @brief Find a Taxon with a given name by recursively searching the Taxonomy in a breadth first manner.
- */
-Taxon*       find_taxon_by_name_bfs( Taxonomy&       tax, std::string const& name );
-
-/**
- * @brief Find a Taxon with a given ID by recursively searching the Taxonomy in a breadth first manner.
- */
-Taxon const* find_taxon_by_id_bfs( Taxonomy const& tax, std::string const& id );
-
-/**
- * @brief Find a Taxon with a given ID by recursively searching the Taxonomy in a breadth first manner.
- */
-Taxon*       find_taxon_by_id_bfs( Taxonomy&       tax, std::string const& id );
+template< class SearchStrategy >
+Taxon*       find_taxon_by_id( Taxonomy&       tax, std::string const& id, SearchStrategy strat )
+{
+    // Avoid code duplication according to Scott Meyers.
+    auto const& ctax = static_cast< Taxonomy const& >( tax );
+    return const_cast< Taxon* >( find_taxon_by_id<SearchStrategy>( ctax, id, strat ));
+}
 
 // =================================================================================================
 //     Accessors
