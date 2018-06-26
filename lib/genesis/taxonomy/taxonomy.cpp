@@ -210,6 +210,17 @@ void Taxonomy::remove_child( std::string const& name )
     // (Hopefully, that's true... The tests don't fail, so that's a good sign!)
 }
 
+void Taxonomy::remove_at( size_t index )
+{
+    if( index >= children_.size() ) {
+        throw std::runtime_error( "Invalid Taxon index." );
+    }
+
+    auto it = children_.begin();
+    std::advance( it, index );
+    children_.erase( it );
+}
+
 void Taxonomy::clear_children()
 {
     children_.clear();
