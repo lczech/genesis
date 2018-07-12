@@ -211,9 +211,9 @@ public:
     // ---------------------------------------------------------------------
 
     /**
-     * @brief Rank of the node, i.e. how many immediate children it has.
+     * @brief Degree of the node, i.e. how many neighbouring nodes it has.
      */
-    size_t rank() const;
+    size_t degree() const;
 
     /**
      * @brief True iff the node is a leaf/tip.

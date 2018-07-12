@@ -108,18 +108,17 @@ TreeNode& TreeNode::reset_data( std::unique_ptr< BaseNodeData > data )
 //     Member Functions
 // =================================================================================================
 
-size_t TreeNode::rank() const
+size_t TreeNode::degree() const
 {
-    int rank = -1;
-    TreeLink* link = link_;
+    size_t dgr = 0;
+    TreeLink* lnk = link_;
 
     do {
-        ++rank;
-        link = &link->next();
-    } while( link != link_ );
+        ++dgr;
+        lnk = &lnk->next();
+    } while( lnk != link_ );
 
-    // We add at least 1 to the initial value of the rank, so this is valid.
-    return static_cast<size_t>(rank);
+    return dgr;
 }
 
 bool TreeNode::is_leaf() const

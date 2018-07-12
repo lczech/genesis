@@ -54,18 +54,34 @@ namespace tree {
 //     Node Count Properties
 // =================================================================================================
 
-size_t max_rank( Tree const& tree )
+size_t max_degree( Tree const& tree )
 {
     size_t max = 0;
     for( size_t i = 0; i < tree.node_count(); ++i ) {
-        max = std::max( max, tree.node_at(i).rank() );
+        max = std::max( max, tree.node_at(i).degree() );
     }
     return max;
 }
 
-bool is_bifurcating( Tree const& tree )
+bool is_bifurcating( Tree const& tree, bool strict )
 {
-    return max_rank( tree ) == 2;
+    if( strict ) {
+        // Only allow tips and bifurcating inner nodes.
+        for( size_t i = 0; i < tree.node_count(); ++i ) {
+            if( tree.node_at(i).degree() != 1 && tree.node_at(i).degree() != 3 ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Non strict variant.
+    return max_degree( tree ) == 3;
+}
+
+bool is_rooted( Tree const& tree )
+{
+    return tree.root_node().degree() == 2;
 }
 
 size_t leaf_node_count( Tree const& tree )

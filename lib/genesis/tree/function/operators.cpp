@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -94,7 +94,7 @@ Tree convert(
  * expressions.
  *
  * As the traversal is done in parallel, the trees are also checked for equal topology:
- * their elements (links, nodes, edges) have to be equal in size and the rank of each node during
+ * their elements (links, nodes, edges) have to be equal in size and the degree of each node during
  * the traversal has to be identical in both trees. Those assumptions are made because two trees
  * that do not have identical topology are never considered equal.
  */
@@ -120,7 +120,7 @@ bool equal(
         it_l != preorder(lhs).end() && it_r != preorder(rhs).end();
         ++it_l, ++it_r
     ) {
-        if (it_l.node().rank() != it_r.node().rank()   ||
+        if (it_l.node().degree() != it_r.node().degree()   ||
             !node_comparator( it_l.node(), it_r.node() ) ||
             !edge_comparator( it_l.edge(), it_r.edge() )
         ) {
@@ -363,11 +363,11 @@ bool validate_topology( Tree const& tree )
         }
     }
 
-    // Check if all nodes have been hit as many times as their rank is.
+    // Check if all nodes have been hit as many times as their degree is.
     for (size_t i = 0; i < tree.nodes_.size(); ++i) {
-        if (links_to_nodes[i] != tree.nodes_[i]->rank() + 1) {
-            LOG_INFO << "Node at index " << i << " is not visited its rank + 1 ("
-                     << tree.nodes_[i]->rank() << " + 1 = " << tree.nodes_[i]->rank() + 1
+        if (links_to_nodes[i] != tree.nodes_[i]->degree() ) {
+            LOG_INFO << "Node at index " << i << " is not visited its degree ("
+                     << tree.nodes_[i]->degree()
                      << ") times, but " << links_to_nodes[i] << " times when "
                      << "traversing the links.";
             return false;
@@ -514,11 +514,11 @@ bool validate_topology( Tree const& tree )
         }
     }
 
-    // Check if all nodes have been hit as many times as their rank is.
+    // Check if all nodes have been hit as many times as their degree is.
     for (size_t i = 0; i < tree.nodes_.size(); ++i) {
-        if (it_nodes[i] != tree.nodes_[i]->rank() + 1) {
+        if (it_nodes[i] != tree.nodes_[i]->degree() ) {
             LOG_INFO << "Node at index " << i << " is not visited "
-                     << tree.nodes_[i]->rank() << " + 1 = " << (tree.nodes_[i]->rank() + 1)
+                     << tree.nodes_[i]->degree()
                      << " times, but " << it_nodes[i] << " times when iterating the "
                      << "tree.";
             return false;

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ void PrinterCompact::print (
             parents.pop_back();
         }
         parents.push_back(cur_idx);
-        ranks[cur_idx] = it.node().rank();
+        ranks[cur_idx] = it.node().degree() - 1;
 
         // The root node is special: We have to account for one more child, as it does not have a
         // parent. Also, we do not draw any lines or indention for the root.

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -181,7 +181,7 @@ tree::Tree labelled_tree(
         auto& distal_edge   = pendant_edge.primary_link().next().next().edge();
 
         // The primary node is new, so it should be bifurcating and a leaf.
-        assert( pendant_edge.primary_node().rank() == 2 );
+        assert( pendant_edge.primary_node().degree() == 3 );
         assert( pendant_edge.secondary_node().is_leaf() );
 
         // Some shorthands to the edge data.
@@ -242,7 +242,7 @@ tree::Tree labelled_tree(
                 auto& distal_edge   = pendant_edge.primary_link().next().next().edge();
 
                 // The primary node is new, so it should be bifurcating and a leaf.
-                assert( pendant_edge.primary_node().rank() == 2 );
+                assert( pendant_edge.primary_node().degree() == 3 );
                 assert( pendant_edge.secondary_node().is_leaf() );
 
                 // Some shorthands to the edge data. We dont need dist data; its branch length
@@ -307,7 +307,7 @@ tree::Tree labelled_tree(
         auto& sec_edge  = base_edge.primary_link().next().next().edge();
 
         // The base node is new, so it should be bifurcating and a leaf
-        assert( base_edge.primary_node().rank() == 2 );
+        assert( base_edge.primary_node().degree() == 3 );
         assert( base_edge.secondary_node().is_leaf() );
 
         // Some shorthands to the edge data.
