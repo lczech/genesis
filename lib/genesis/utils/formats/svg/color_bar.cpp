@@ -291,6 +291,7 @@ void make_svg_color_bar_tickmarks(
                 label = "≤ " + label;
             }
             auto text_s = SvgText( label, text_p );
+            text_s.font.size = settings.text_size;
             // text_s.dominant_baseline = SvgText::DominantBaseline::kMiddle;
             // text_s.alignment_baseline = SvgText::AlignmentBaseline::kMiddle;
             // text_s.dy = "0.33em";

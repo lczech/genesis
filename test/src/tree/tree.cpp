@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,6 +46,7 @@ TEST(Tree, Basics)
 
     Tree tree = DefaultTreeNewickReader().from_string(input);
 
+    EXPECT_EQ(2, tree.root_node().degree() );
     EXPECT_EQ(7, leaf_node_count( tree ));
     EXPECT_EQ(6, inner_node_count( tree ));
     EXPECT_EQ(13, tree.node_count());

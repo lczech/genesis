@@ -85,6 +85,7 @@ public:
     bool with_labels       = true;
 
     size_t num_ticks = 5;
+    double text_size = 12.0;
 
 };
 

@@ -55,16 +55,25 @@ class TreeLink;
 // TODO add other interesting member functions: http://en.wikipedia.org/wiki/Tree_%28data_structure%29
 
 /**
- * @brief Return the highest rank of the Nodes of a Tree.
+ * @brief Return the highest degree of the Nodes of a Tree.
  *
  * If the Tree is empty, `0` is returned.
  */
-size_t max_rank( Tree const& tree );
+size_t max_degree( Tree const& tree );
 
 /**
  * @brief Return whether the Tree is bifurcating.
+ *
+ * If @p strict is set to `true`, the tree may not contain any nodes of degree 2
+ * (nodes that do not have a furcation at all). This includes the root node.
+ * Thus, with this option set, the tree also has to be unrooted.
  */
-bool is_bifurcating( Tree const& tree );
+bool is_bifurcating( Tree const& tree, bool strict = false );
+
+/**
+ * @brief Return whether the Tree is rooted, that is, whether the root node has two neighbors.
+ */
+bool is_rooted( Tree const& tree );
 
 /**
  * @brief Count the number of leaf Nodes of a Tree.

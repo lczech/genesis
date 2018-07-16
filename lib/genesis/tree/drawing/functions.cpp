@@ -244,25 +244,29 @@ void write_color_tree_to_svg_file(
 
     // Prepare svg doc.
     auto svg_doc = layout->to_svg_document();
+    svg_doc.margin.left = svg_doc.margin.top = svg_doc.margin.bottom = svg_doc.margin.right = 200;
 
     // Add scale.
     if( ! color_map.empty() ) {
         // Make the scale.
-        auto svg_pal = utils::SvgColorBarSettings();
-        svg_pal.height = svg_doc.bounding_box().height() / 2.0;
-        svg_pal.width = svg_pal.height / 10.0;
-        auto svg_scale = make_svg_color_bar( svg_pal, color_map, color_norm );
+        auto svg_pal_settings = utils::SvgColorBarSettings();
+        svg_pal_settings.height = svg_doc.bounding_box().height() / 2.0;
+        svg_pal_settings.width = svg_pal_settings.height / 10.0;
+        svg_pal_settings.text_size = svg_pal_settings.height / 30.0;
+        auto svg_scale = make_svg_color_bar( svg_pal_settings, color_map, color_norm );
 
         // Move it to the bottom right corner.
         if( params.shape == LayoutShape::kCircular ) {
             svg_scale.second.transform.append( utils::SvgTransform::Translate(
-                svg_doc.bounding_box().width() / 2.0, 0.0
+                1.2 * svg_doc.bounding_box().width() / 2.0, 0.0
             ));
+            svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() / 2.0 + 2 * svg_pal_settings.width + 200;
         }
         if( params.shape == LayoutShape::kRectangular ) {
             svg_scale.second.transform.append( utils::SvgTransform::Translate(
-                svg_doc.bounding_box().width(), svg_pal.height / 2.0
+                1.2 * svg_doc.bounding_box().width(), svg_pal_settings.height
             ));
+            svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() + 2 * svg_pal_settings.width + 200;
         }
 
         // Add it to the doc.
@@ -273,7 +277,6 @@ void write_color_tree_to_svg_file(
     }
 
     // Write to file.
-    svg_doc.margin.left = svg_doc.margin.top = svg_doc.margin.bottom = svg_doc.margin.right = 200;
     std::ofstream ofs;
     utils::file_output_stream( svg_filename, ofs );
     svg_doc.write( ofs );

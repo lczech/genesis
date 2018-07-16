@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -63,9 +63,7 @@ void PrinterTable::print( std::ostream& out, Tree const& tree )
 
     // nodes
     for (size_t i = 0; i < tree.node_count(); ++i) {
-        out << "Node " << i
-            << " \t Main Link: " << tree.node_at(i).link().index()
-            << " \t " << tree.node_at(i).dump() << "\n";
+        out << "Node " << i << " \t Main Link: " << tree.node_at(i).link().index() << "\n";
     }
     out << "\n";
 
@@ -74,7 +72,7 @@ void PrinterTable::print( std::ostream& out, Tree const& tree )
         out << "Edge " << i
             << " \t Link P: " << tree.edge_at(i).primary_link().index()
             << " \t Link S: " << tree.edge_at(i).secondary_link().index()
-            << " \t " << tree.edge_at(i).dump() << "\n";
+            << "\n";
     }
     out << "\n";
 
@@ -85,7 +83,6 @@ void PrinterTable::print( std::ostream& out, Tree const& tree )
             << " \t Outer: " << tree.link_at(i).outer().index()
             << " \t Node: "  << tree.link_at(i).node().index()
             << " \t Edge: "  << tree.link_at(i).edge().index()
-            << " \t " << tree.link_at(i).dump()
             << "\n";
     }
 }
