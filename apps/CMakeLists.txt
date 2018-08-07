@@ -70,3 +70,12 @@ else()
     message( STATUS "No genesis applications found" )
 
 endif()
+
+# find all subdirs with CMakelists in them and add them
+file( GLOB_RECURSE genesis_apps_subdirs */CMakeLists.txt )
+foreach( sub_dir_cmake ${genesis_apps_subdirs} )
+    get_filename_component( sub_dir ${sub_dir_cmake} DIRECTORY )
+    get_filename_component( sub_dir_name ${sub_dir} NAME )
+    message( STATUS "${ColorBlue}Building sub-apps: ${sub_dir_name}${ColorEnd}" )
+    add_subdirectory(${sub_dir})
+endforeach()
