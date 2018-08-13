@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -84,13 +84,9 @@ class TreeLink;
 TreeEdge& add_new_node( Tree& tree, TreeNode& target_node );
 
 /**
- * @brief Add a new @link TreeNode Node@endlink as a leaf to an existing @link TreeEdge Edge@endlink,
- * by also adding a new Node in the middle of that Edge.
+ * @brief Add a new @link TreeNode Node@endlink that splits an existing @link TreeEdge Edge@endlink.
  *
- * This function is an extension of add_new_node( Tree&, TreeNode& ). Before adding the new leaf
- * node, it first adds another Node that splits the given `target_edge` into two edges, and then
- * adds the leaf to it.
- *
+ * This function adds a new Node that splits the given `target_edge` into two edges.
  * Thus, the procedure is as shown:
  * ![The Tree before and after adding the new Node.](tree/add_new_node_edge.png)
  *
@@ -105,9 +101,43 @@ TreeEdge& add_new_node( Tree& tree, TreeNode& target_node );
  * the branch lengths of all three affected edges might have to be changed to the desired values
  * after calling this function.
  *
+ * @return The function returns the newly created TreeNode  .
+ */
+TreeNode& add_new_node( Tree& tree, TreeEdge& target_edge );
+
+/**
+ * @brief Add a new @link TreeNode Node@endlink as a leaf to an existing @link TreeEdge Edge@endlink,
+ * by also adding a new Node in the middle of that Edge.
+ *
+ * This function is a combination of add_new_node( Tree&, TreeNode& ) and add_new_node( Tree&, TreeEdge& ).
+ * Before adding the new leaf node, it first adds another Node that splits the given `target_edge`
+ * into two edges, and then adds the leaf to it.
+ *
+ * Thus, the procedure is as shown:
+ * ![The Tree before and after adding the new Nodes.](tree/add_new_leaf_node.png)
+ *
+ * After the function, the `target_edge` with all its data ends up on the to-root side of the
+ * new inner node.
+ *
+ * For details of how the data pointers are handled, see add_new_node( Tree&, TreeNode& ). This
+ * function behaves in a similar way. The data objects of the new nodes and edges are
+ * default-constructed objects of the same type as the `target_edge` and its primary node.
+ *
+ * Be aware that the data of `target_edge` is not changed. Thus, in trees with DefaultEdgeData,
+ * the branch lengths of all three affected edges might have to be changed to the desired values
+ * after calling this function.
+ *
  * @return The function returns the newly created TreeEdge that leads to the new leaf node.
  */
-TreeEdge& add_new_node( Tree& tree, TreeEdge& target_edge );
+TreeEdge& add_new_leaf_node( Tree& tree, TreeEdge& target_edge );
+
+/**
+ * @brief Add a new @link TreeNode Node@endlink that splits an existing @link TreeEdge Edge@endlink,
+ * and root the tree on that new Node.
+ *
+ * The function combines add_new_node( Tree&, TreeEdge& ) and reroot( Tree&, TreeNode& ).
+ */
+TreeNode& add_root_node( Tree& tree, TreeEdge& target_edge );
 
 // =================================================================================================
 //     Rerooting

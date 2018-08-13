@@ -127,7 +127,7 @@ TreeEdge& add_new_node( Tree& tree, TreeNode& target_node )
     return *con_edge;
 }
 
-TreeEdge& add_new_node( Tree& tree, TreeEdge& target_edge )
+TreeNode& add_new_node( Tree& tree, TreeEdge& target_edge )
 {
     // Basic check.
     if( ! belongs_to( target_edge, tree ) ) {
@@ -195,7 +195,21 @@ TreeEdge& add_new_node( Tree& tree, TreeEdge& target_edge )
     target_edge.secondary_link().reset_edge( sec_edge );
     target_edge.reset_secondary_link( pri_link );
 
-    return add_new_node( tree, *mid_node );
+    return *mid_node;
+}
+
+TreeEdge& add_new_leaf_node( Tree& tree, TreeEdge& target_edge )
+{
+    // First add a node that splits the edge, and then a new leaf node to this one.
+    auto& mid_node = add_new_node( tree, target_edge );
+    return add_new_node( tree, mid_node );
+}
+
+TreeNode& add_root_node( Tree& tree, TreeEdge& target_edge )
+{
+    auto& mid_node = add_new_node( tree, target_edge );
+    reroot( tree, mid_node );
+    return mid_node;
 }
 
 // =================================================================================================
