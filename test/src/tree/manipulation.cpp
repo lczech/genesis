@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -175,7 +175,7 @@ TEST( TreeManipulation, AddNewNodeEdge )
     ASSERT_NE( nullptr, node );
 
     // Add a node.
-    auto& edge = add_new_node( tree, node->primary_link().edge() );
+    auto& edge = add_new_leaf_node( tree, node->primary_link().edge() );
 
     // Check all indices and validate tree.
     EXPECT_EQ( 10, edge.index() );

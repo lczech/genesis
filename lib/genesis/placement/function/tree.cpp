@@ -176,7 +176,7 @@ tree::Tree labelled_tree(
         PlacementPair const& placement_pair
     ) {
         // Add the new edges to the tree and get all necessary edges.
-        auto& pendant_edge  = tree::add_new_node( tree, edge );
+        auto& pendant_edge  = tree::add_new_leaf_node( tree, edge );
         auto& proximal_edge = pendant_edge.primary_link().next().edge();
         auto& distal_edge   = pendant_edge.primary_link().next().next().edge();
 
@@ -237,7 +237,7 @@ tree::Tree labelled_tree(
             for( auto const& pquery_name : placement_pair.pquery->names() ) {
 
                 // Create the new edges.
-                auto& pendant_edge  = tree::add_new_node( tree, *insertion_edge );
+                auto& pendant_edge  = tree::add_new_leaf_node( tree, *insertion_edge );
                 auto& proximal_edge = pendant_edge.primary_link().next().edge();
                 auto& distal_edge   = pendant_edge.primary_link().next().next().edge();
 
@@ -302,7 +302,7 @@ tree::Tree labelled_tree(
         // Add a new leaf node to the tree, attached to the middle of the given edge (this spltis
         // the edge in half and adds one more node there). This will be the base to which we then
         // attach all further nodes, multifurcating.
-        auto& base_edge = tree::add_new_node( tree, edge );
+        auto& base_edge = tree::add_new_leaf_node( tree, edge );
         auto& pri_edge  = base_edge.primary_link().next().edge();
         auto& sec_edge  = base_edge.primary_link().next().next().edge();
 
