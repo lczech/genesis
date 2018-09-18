@@ -35,6 +35,7 @@
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 
+#include <cassert>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -49,7 +50,22 @@ namespace sequence {
 void FastaWriter::write_sequence( Sequence const& seq, std::ostream& os ) const
 {
     // Write label.
-    os << ">" << seq.label() << "\n";
+    os << ">";
+    switch( abundance_notation_ ) {
+        case AbundanceNotation::kNone: {
+            os << seq.label();
+        }
+        case AbundanceNotation::kUnderscore: {
+            os << seq.label() << "_" << seq.abundance();
+        }
+        case AbundanceNotation::kSize: {
+            os << seq.label() << ";size=" << seq.abundance();
+        }
+        default: {
+            assert( false );
+        }
+    }
+    os << "\n";
 
     // Write sequence. If needed, add new line at every line_length_ position.
     if (line_length_ > 0) {
@@ -97,6 +113,17 @@ FastaWriter& FastaWriter::line_length( size_t value )
 size_t FastaWriter::line_length() const
 {
     return line_length_;
+}
+
+FastaWriter& FastaWriter::abundance_notation( FastaWriter::AbundanceNotation value )
+{
+    abundance_notation_ = value;
+    return *this;
+}
+
+FastaWriter::AbundanceNotation FastaWriter::abundance_notation() const
+{
+    return abundance_notation_;
 }
 
 } // namespace sequence

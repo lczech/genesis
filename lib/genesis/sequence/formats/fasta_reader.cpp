@@ -30,6 +30,7 @@
 
 #include "genesis/sequence/formats/fasta_reader.hpp"
 
+#include "genesis/sequence/functions/labels.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 #include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/core/fs.hpp"
@@ -173,7 +174,13 @@ bool FastaReader::parse_sequence(
             + ": Expecting label after '>' in sequence at line " + std::to_string( it.line() - 1 ) + "."
         );
     }
-    sequence.label( label );
+    if( guess_abundances_ ) {
+        auto const la = guess_sequence_abundance( label );
+        sequence.label( la.first );
+        sequence.abundance( la.second );
+    } else {
+        sequence.label( label );
+    }
 
     // Check for unexpected end of file.
     if( *line != '\0' ) {
@@ -287,7 +294,13 @@ bool FastaReader::parse_sequence_pedantic(
             + ": Expecting label after '>' at " + it.at() + "."
         );
     }
-    sequence.label( label );
+    if( guess_abundances_ ) {
+        auto const la = guess_sequence_abundance( label );
+        sequence.label( la.first );
+        sequence.abundance( la.second );
+    } else {
+        sequence.label( label );
+    }
 
     // Check for unexpected end of stream.
     if( !it || ( *it != '\n' )) {
@@ -402,6 +415,17 @@ FastaReader& FastaReader::site_casing( SiteCasing value )
 FastaReader::SiteCasing FastaReader::site_casing() const
 {
     return site_casing_;
+}
+
+FastaReader& FastaReader::guess_abundances( bool value )
+{
+    guess_abundances_ = value;
+    return *this;
+}
+
+bool FastaReader::guess_abundances() const
+{
+    return guess_abundances_;
 }
 
 FastaReader& FastaReader::valid_chars( std::string const& chars )

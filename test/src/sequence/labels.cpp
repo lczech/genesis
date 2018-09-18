@@ -84,16 +84,33 @@ TEST( SequenceSet, FilterByLabelList )
 
 TEST( Sequence, GuessAbundances )
 {
-    EXPECT_EQ( 123, guess_sequence_abundance( Sequence( "abc_123", "" )));
-    EXPECT_EQ( 123, guess_sequence_abundance( Sequence( "abc;size=123;", "" )));
-    EXPECT_EQ( 123, guess_sequence_abundance( Sequence( "abc_size=123_", "" )));
-    EXPECT_EQ( 123, guess_sequence_abundance( Sequence( "abc;size=123", "" )));
-    EXPECT_EQ( 123, guess_sequence_abundance( Sequence( "abcsize=123", "" )));
-    EXPECT_EQ( 123, guess_sequence_abundance( Sequence( "abc;size=123x", "" )));
+    std::pair<std::string, size_t> const good = { "abc", 123 };
 
-    EXPECT_EQ( 1, guess_sequence_abundance( Sequence( "abc_", "" )));
-    EXPECT_EQ( 1, guess_sequence_abundance( Sequence( "abc;size=", "" )));
-    EXPECT_EQ( 1, guess_sequence_abundance( Sequence( "abc_123x", "" )));
-    EXPECT_EQ( 1, guess_sequence_abundance( Sequence( "abc_x", "" )));
-    EXPECT_EQ( 1, guess_sequence_abundance( Sequence( "abc;size=x", "" )));
+    EXPECT_EQ( good, guess_sequence_abundance( Sequence( "abc_123", "" )));
+    EXPECT_EQ( good, guess_sequence_abundance( Sequence( "abc;size=123;", "" )));
+    EXPECT_EQ( good, guess_sequence_abundance( Sequence( "abc_size=123_", "" )));
+    EXPECT_EQ( good, guess_sequence_abundance( Sequence( "abc;size=123", "" )));
+    EXPECT_EQ( good, guess_sequence_abundance( Sequence( "abcsize=123", "" )));
+    EXPECT_EQ( good, guess_sequence_abundance( Sequence( "abc;size=123x", "" )));
+
+    EXPECT_EQ(
+        std::make_pair( std::string{ "abc_" },       size_t{1} ),
+        guess_sequence_abundance( Sequence( "abc_", "" ))
+    );
+    EXPECT_EQ(
+        std::make_pair( std::string{ "abc;size=" },  size_t{1} ),
+        guess_sequence_abundance( Sequence( "abc;size=", "" ))
+    );
+    EXPECT_EQ(
+        std::make_pair( std::string{ "abc_123x" },   size_t{1} ),
+        guess_sequence_abundance( Sequence( "abc_123x", "" ))
+    );
+    EXPECT_EQ(
+        std::make_pair( std::string{ "abc_x" },      size_t{1} ),
+        guess_sequence_abundance( Sequence( "abc_x", "" ))
+    );
+    EXPECT_EQ(
+        std::make_pair( std::string{ "abc;size=x" }, size_t{1} ),
+        guess_sequence_abundance( Sequence( "abc;size=x", "" ))
+    );
 }
