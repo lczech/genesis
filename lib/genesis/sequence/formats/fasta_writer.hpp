@@ -73,6 +73,31 @@ class FastaWriter
 public:
 
     // ---------------------------------------------------------------------
+    //     Typedefs and Enums
+    // ---------------------------------------------------------------------
+
+    /**
+     * @brief Enumeration of types for how to write Sequence abundances.
+     */
+    enum class AbundanceNotation
+    {
+        /**
+         * @brief Do not write abundances. This is the default.
+         */
+        kNone,
+
+        /**
+         * @brief Write abundances appaneded by an underscore: `abc_123`.
+         */
+        kUnderscore,
+
+        /**
+         * @brief Write abundances appended as a text of the form `abc;size=123`
+         */
+        kSize
+    };
+
+    // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
 
@@ -137,13 +162,26 @@ public:
      */
     size_t       line_length() const;
 
+    /**
+     * @brief Set the notation for how to write Sequence abundances.
+     *
+     * Default is to not write abundances. Use this setting to change that.
+     */
+    FastaWriter& abundance_notation( AbundanceNotation value );
+
+    /**
+     * @brief Get the current setting for how to write abundances.
+     */
+    AbundanceNotation abundance_notation() const;
+
     // ---------------------------------------------------------------------
     //     Members
     // ---------------------------------------------------------------------
 
 private:
 
-    size_t line_length_     = 80;
+    size_t line_length_ = 80;
+    AbundanceNotation abundance_notation_ = AbundanceNotation::kNone;
 
 };
 

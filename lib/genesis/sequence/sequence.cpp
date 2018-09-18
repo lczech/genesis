@@ -76,6 +76,20 @@ std::string& Sequence::sites()
 }
 
 // -----------------------------------------------------
+//     Abundance
+// -----------------------------------------------------
+
+size_t Sequence::abundance() const
+{
+    return abundance_;
+}
+
+void Sequence::abundance( size_t value )
+{
+    abundance_ = value;
+}
+
+// -----------------------------------------------------
 //     Clear
 // -----------------------------------------------------
 

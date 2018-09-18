@@ -67,14 +67,15 @@ std::unordered_set<std::string> labels( SequenceSet const& set )
     }
     return result;
 }
-size_t guess_sequence_abundance( Sequence const& sequence )
+std::pair<std::string, size_t> guess_sequence_abundance( Sequence const& sequence )
 {
     return guess_sequence_abundance( sequence.label() );
 }
 
-size_t guess_sequence_abundance( std::string const& label )
+std::pair<std::string, size_t> guess_sequence_abundance( std::string const& label )
 {
-    size_t result = 1;
+    std::string res_name = label;
+    size_t      res_abun = 1;
 
     // We only look for a simple number, no sign oder decimal points etc
     auto is_digits = []( std::string const& s )
@@ -83,15 +84,24 @@ size_t guess_sequence_abundance( std::string const& label )
     };
 
     // Try to find "size=123"
-    auto const spos = label.find( "size=" );
+    auto spos = label.find( "size=" );
     if( spos != std::string::npos && spos + 5 < label.size() && isdigit( label[ spos + 5 ]) ) {
 
         // Parse the substring as far as possible, that is, get all digits.
         auto const sub = label.substr( spos + 5 );
         try{
-            result = std::stoull( sub );
+            res_abun = std::stoull( sub );
+
+            // If the number parsing above succeeds, also change the name/label.
+            // Here, we need to take care of a semicolon (or other non-alpha char)
+            // that might appear in front of the "size=" part. If there is one, ignore it.
+            if( spos > 0 && ispunct( label[ spos - 1 ] )) {
+                --spos;
+            }
+            res_name = label.substr( 0, spos );
         } catch( ... ){
-            result = 1;
+            res_name = label;
+            res_abun = 1;
         }
     }
 
@@ -102,11 +112,12 @@ size_t guess_sequence_abundance( std::string const& label )
         // The rest of the label needs to be a number.
         auto const sub = label.substr( upos + 1 );
         if( is_digits( sub ) ) {
-            result = std::stoull( sub );
+            res_name =  label.substr( 0, upos );
+            res_abun = std::stoull( sub );
         }
     }
 
-    return result;
+    return { res_name, res_abun };
 
     // Slow regex version
     // Prepare static regex (no need to re-compile it on every function call).

@@ -317,6 +317,20 @@ public:
     SiteCasing site_casing() const;
 
     /**
+     * @brief Set whether Sequence labels are used to guess/extract Sequence abundances
+     *
+     * Default is `false`, that is, labels are just taken as they are in the input.
+     * If set to `true`, the label is used to guess an abundance count, which is set in the Sequence.
+     * See guess_sequence_abundance( Sequence const& ) for the valid formats of such abundances.
+     */
+    FastaReader& guess_abundances( bool value );
+
+    /**
+     * @brief Return whether the label is used to guess/extracat Sequence abundances.
+     */
+    bool guess_abundances() const;
+
+    /**
      * @brief Set the chars that are used for validating Sequence sites when reading them.
      *
      * When this function is called with a string of chars, those chars are used to validate the
@@ -358,8 +372,9 @@ private:
 
     ParsingMethod           parsing_method_ = ParsingMethod::kDefault;
 
-    SiteCasing              site_casing_    = SiteCasing::kToUpper;
-    bool                    use_validation_ = false;
+    SiteCasing              site_casing_      = SiteCasing::kToUpper;
+    bool                    guess_abundances_ = false;
+    bool                    use_validation_   = false;
     utils::CharLookup<bool> lookup_;
 
 };

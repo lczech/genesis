@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -128,12 +128,16 @@ SiteCounts::CountsIntType SiteCounts::count_at(
 //     Modifiers
 // ================================================================================================
 
-void SiteCounts::add_sequence( Sequence const& sequence )
+void SiteCounts::add_sequence( Sequence const& sequence, bool use_abundance )
 {
-    add_sequence( sequence.sites() );
+    if( use_abundance ) {
+        add_sequence( sequence.sites(), sequence.abundance() );
+    } else {
+        add_sequence( sequence.sites(), 1 );
+    }
 }
 
-void SiteCounts::add_sequence( std::string const& sites )
+void SiteCounts::add_sequence( std::string const& sites, CountsIntType weight )
 {
     if( num_seqs_ == std::numeric_limits< CountsIntType >::max() ) {
         throw std::runtime_error(
@@ -156,7 +160,7 @@ void SiteCounts::add_sequence( std::string const& sites )
         }
 
         // Increase the count at that index.
-        ++counts_( site_idx, char_idx );
+        counts_( site_idx, char_idx ) += weight;
     }
 
     // We finished a sequence. Add to the counter.

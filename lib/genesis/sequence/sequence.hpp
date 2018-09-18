@@ -53,9 +53,10 @@ public:
 
     Sequence() = default;
 
-    Sequence( std::string const& label, std::string const& sites )
+    Sequence( std::string const& label, std::string const& sites, size_t abundance = 1 )
         : label_(label)
         , sites_(sites)
+        , abundance_(abundance)
     {}
 
     ~Sequence() = default;
@@ -84,6 +85,9 @@ public:
     void               sites( std::string const& value );
     void               sites( std::string &&     value );
     std::string&       sites();
+
+    size_t abundance() const;
+    void   abundance( size_t value );
 
     void clear();
 
@@ -128,6 +132,8 @@ private:
 
     std::string label_;
     std::string sites_;
+    size_t      abundance_ = 1;
+
 };
 
 } // namespace sequence

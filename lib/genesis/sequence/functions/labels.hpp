@@ -32,6 +32,7 @@
  */
 
 #include <string>
+#include <utility>
 #include <unordered_set>
 
 namespace genesis {
@@ -61,6 +62,10 @@ std::unordered_set<std::string> labels( SequenceSet const& set );
 /**
  * @brief Guess the abundance of a Sequence, using it's label.
  *
+ * The function splits the label of a Sequence into two parts: the descriptive name of the
+ * sequence, and an abundance value (weight or multiplicity of the sequence),
+ * which are returned as a `std::pair`.
+ *
  * The function accepts two patterns of reporting abundances via the
  * @link Sequence::label() label()@endlink of a Sequence:
  *
@@ -70,7 +75,7 @@ std::unordered_set<std::string> labels( SequenceSet const& set );
  *
  * If neither of them is found, a default abundance of 1 is returned.
  */
-size_t guess_sequence_abundance( Sequence const& sequence );
+std::pair<std::string, size_t> guess_sequence_abundance( Sequence const& sequence );
 
 /**
  * @brief Guess the abundance of a Sequence, given it's label.
@@ -78,7 +83,7 @@ size_t guess_sequence_abundance( Sequence const& sequence );
  * This is the same as guess_sequence_abundance( Sequence const& ), but takes just the label
  * instead of the Sequence object.
  */
-size_t guess_sequence_abundance( std::string const& label );
+std::pair<std::string, size_t> guess_sequence_abundance( std::string const& label );
 
 // =================================================================================================
 //     Uniqueness

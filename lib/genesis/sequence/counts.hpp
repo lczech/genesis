@@ -193,13 +193,18 @@ public:
 
     /**
      * @brief Process a single Sequence and add its counts to the existing ones.
+     *
+     * If @p use_abundance is `true` (default), the abundance of the Sequence is used as weight
+     * for the counting. Otherwise, a weight of `1` is used.
      */
-    void add_sequence( Sequence const& sequence );
+    void add_sequence( Sequence const& sequence, bool use_abundance = true );
 
     /**
     * @brief Process a single sequence in string form and add its counts to the existing ones.
+    *
+    * Using @p weight, the sequence can be weighted. That is, the count is increased by the weight.
     */
-    void add_sequence( std::string const& sites );
+    void add_sequence( std::string const& sites, CountsIntType weight = 1 );
 
     /**
     * @brief Process a SequenceSet and add its counts to the existing ones for all contained
