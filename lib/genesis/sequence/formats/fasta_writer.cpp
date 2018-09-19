@@ -54,12 +54,15 @@ void FastaWriter::write_sequence( Sequence const& seq, std::ostream& os ) const
     switch( abundance_notation_ ) {
         case AbundanceNotation::kNone: {
             os << seq.label();
+            break;
         }
         case AbundanceNotation::kUnderscore: {
             os << seq.label() << "_" << seq.abundance();
+            break;
         }
         case AbundanceNotation::kSize: {
             os << seq.label() << ";size=" << seq.abundance();
+            break;
         }
         default: {
             assert( false );
