@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/kmeans.hpp"
+#include "genesis/utils/math/euclidean_kmeans.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -152,6 +152,7 @@ void EuclideanKmeans::update_centroids(
 
 double EuclideanKmeans::distance( Point const& lhs, Point const& rhs ) const
 {
+    // Simple euclidean distance
     double sum = 0.0;
     for( size_t d = 0; d < dimensions_; ++d ) {
         auto const diff = lhs[d] - rhs[d];
