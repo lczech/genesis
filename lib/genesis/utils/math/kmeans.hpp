@@ -98,8 +98,6 @@ public:
 
     using value_type = Point;
 
-
-
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
@@ -700,60 +698,6 @@ private:
 
     size_t max_iterations_ = 100;
     KmeansInitializationStrategy init_strategy_ = KmeansInitializationStrategy::kKmeansPlusPlus;
-
-};
-
-// =================================================================================================
-//     Euclidean K-Means Specialization
-// =================================================================================================
-
-class EuclideanKmeans
-    : public Kmeans< std::vector<double> >
-{
-public:
-
-    // -------------------------------------------------------------------------
-    //     Typedefs and Constants
-    // -------------------------------------------------------------------------
-
-    using Point = std::vector<double>;
-
-    // -------------------------------------------------------------------------
-    //     Constructors and Rule of Five
-    // -------------------------------------------------------------------------
-
-    EuclideanKmeans( size_t dimensions );
-    virtual ~EuclideanKmeans() = default;
-
-    EuclideanKmeans( EuclideanKmeans const& ) = default;
-    EuclideanKmeans( EuclideanKmeans&& )      = default;
-
-    EuclideanKmeans& operator= ( EuclideanKmeans const& ) = default;
-    EuclideanKmeans& operator= ( EuclideanKmeans&& )      = default;
-
-    // -------------------------------------------------------------------------
-    //     Default K-Means Functions
-    // -------------------------------------------------------------------------
-
-private:
-
-    virtual bool data_validation( std::vector<Point> const& data ) const override;
-
-    virtual void update_centroids(
-        std::vector<Point>  const& data,
-        std::vector<size_t> const& assignments,
-        std::vector<Point>&        centroids
-    ) override;
-
-    virtual double distance( Point const& lhs, Point const& rhs ) const override;
-
-    // -------------------------------------------------------------------------
-    //     Data Members
-    // -------------------------------------------------------------------------
-
-private:
-
-    size_t dimensions_;
 
 };
 
