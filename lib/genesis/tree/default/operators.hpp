@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,8 +46,19 @@ class DefaultEdgeData;
 using DefaultTree = Tree;
 
 // =================================================================================================
-//     Conversion
+//     Comparison and Conversion
 // =================================================================================================
+
+/**
+ * @brief Compare two DefaultTree%s, that is, check whether they have identical topology,
+ * node names, and branch lenghts.
+ */
+bool equal_default_trees(
+    Tree const& lhs,
+    Tree const& rhs,
+    bool compare_node_names = true,
+    bool compare_branch_lengths = true
+);
 
 /**
  * @brief Convert a Tree to a DefaultTree with DefaultNodeData and DefaultEdgeData.
