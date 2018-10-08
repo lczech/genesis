@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,13 +33,64 @@
 #include "genesis/tree/default/tree.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/tree.hpp"
+#include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/math/common.hpp"
 
 namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Conversion
+//     Comparison and Conversion
 // =================================================================================================
+
+bool equal_default_trees(
+    Tree const& lhs,
+    Tree const& rhs,
+    bool compare_node_names,
+    bool compare_branch_lengths
+) {
+    auto node_comparator = [&] (
+        DefaultTreeNode const& node_l,
+        DefaultTreeNode const& node_r
+    ) {
+        if( ! compare_node_names ) {
+            return true;
+        }
+
+        auto l_ptr = dynamic_cast< DefaultNodeData const* >( node_l.data_ptr() );
+        auto r_ptr = dynamic_cast< DefaultNodeData const* >( node_r.data_ptr() );
+        if( l_ptr == nullptr || r_ptr == nullptr ) {
+            return false;
+        }
+        // if( l_ptr->name != r_ptr->name ) {
+        //     LOG_DBG << "Differing names: " << l_ptr->name << " and " << r_ptr->name;
+        // }
+
+        return l_ptr->name == r_ptr->name;
+    };
+
+    auto edge_comparator = [&] (
+        DefaultTreeEdge const& edge_l,
+        DefaultTreeEdge const& edge_r
+    ) {
+        if( ! compare_branch_lengths ) {
+            return true;
+        }
+
+        auto l_ptr = dynamic_cast< DefaultEdgeData const* >( edge_l.data_ptr() );
+        auto r_ptr = dynamic_cast< DefaultEdgeData const* >( edge_r.data_ptr() );
+        if( l_ptr == nullptr || r_ptr == nullptr ) {
+            return false;
+        }
+        // if( ! utils::almost_equal_relative( l_ptr->branch_length, r_ptr->branch_length ) ) {
+        //     LOG_DBG << "Differing branch lengths: " << l_ptr->branch_length << " and " << r_ptr->branch_length;
+        // }
+
+        return utils::almost_equal_relative( l_ptr->branch_length, r_ptr->branch_length );
+    };
+
+    return tree::equal( lhs, rhs, node_comparator, edge_comparator );
+}
 
 DefaultTree convert_to_default_tree( Tree const& source_tree )
 {
