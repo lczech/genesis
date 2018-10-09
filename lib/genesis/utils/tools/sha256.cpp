@@ -107,9 +107,6 @@ const unsigned int SHA256::sha256_k[64] = {
     0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
-/**
- * @brief Initialize the object for use.
- */
 SHA256::SHA256()
 {
     reset_();
@@ -119,9 +116,11 @@ SHA256::SHA256()
 //     Member Functions
 // ================================================================================================
 
-/**
- * @brief Add the contents of a string to the hash digest.
- */
+void SHA256::clear()
+{
+    reset_();
+}
+
 void SHA256::update( std::string const& s )
 {
     update( s.c_str(), s.size() );
@@ -151,18 +150,12 @@ void SHA256::update( char const* input, size_t length )
     update_( in_uchar, length);
 }
 
-/**
- * @brief Finish the calculation, prepare the object for next use, and return the hash.
- */
 std::string SHA256::final_hex()
 {
     // Calculate digest, also reset for next use.
     return digest_to_hex( final_digest() );
 }
 
-/**
- * @brief Finish the calculation, prepare the object for next use, and return the digest.
- */
 SHA256::DigestType SHA256::final_digest()
 {
     unsigned int block_nb;
@@ -188,9 +181,6 @@ SHA256::DigestType SHA256::final_digest()
     return result;
 }
 
-/**
- * @brief Calculate the checksum for the content of a file, given its path.
- */
 std::string SHA256::from_file_hex( std::string const& filename )
 {
     std::ifstream stream( filename.c_str(), std::ios::binary );
@@ -199,9 +189,6 @@ std::string SHA256::from_file_hex( std::string const& filename )
     return checksum.final_hex();
 }
 
-/**
- * @brief Calculate the hash digest for the content of a file, given its path.
- */
 SHA256::DigestType SHA256::from_file_digest( std::string const& filename )
 {
     std::ifstream stream( filename.c_str(), std::ios::binary );
@@ -210,9 +197,6 @@ SHA256::DigestType SHA256::from_file_digest( std::string const& filename )
     return checksum.final_digest();
 }
 
-/**
- * @brief Calculate the checksum for the content of a string.
- */
 std::string SHA256::from_string_hex( std::string const& input )
 {
     SHA256 checksum;
@@ -220,13 +204,24 @@ std::string SHA256::from_string_hex( std::string const& input )
     return checksum.final_hex();
 }
 
-/**
- * @brief Calculate the hash digest for the content of a string.
- */
 SHA256::DigestType SHA256::from_string_digest( std::string const& input )
 {
     SHA256 checksum;
     checksum.update( input );
+    return checksum.final_digest();
+}
+
+std::string SHA256::from_stream_hex( std::istream& is )
+{
+    SHA256 checksum;
+    checksum.update(is);
+    return checksum.final_hex();
+}
+
+SHA256::DigestType SHA256::from_stream_digest( std::istream& is )
+{
+    SHA256 checksum;
+    checksum.update(is);
     return checksum.final_digest();
 }
 

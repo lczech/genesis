@@ -81,9 +81,6 @@ namespace utils {
 //     Constructors and Rule of Five
 // ================================================================================================
 
-/**
- * @brief Initialize the object for use.
- */
 MD5::MD5()
 {
     reset_();
@@ -93,9 +90,11 @@ MD5::MD5()
 //     Member Functions
 // ================================================================================================
 
-/**
- * @brief Add the contents of a string to the hash digest.
- */
+void MD5::clear()
+{
+    reset_();
+}
+
 void MD5::update( std::string const& s )
 {
     update( s.c_str(), s.size() );
@@ -125,18 +124,12 @@ void MD5::update( char const* input, MD5::size_type length )
     update_( in_uchar, length);
 }
 
-/**
- * @brief Finish the calculation, prepare the object for next use, and return the hash.
- */
 std::string MD5::final_hex()
 {
     // Calculate digest, also reset for next use.
     return digest_to_hex( final_digest() );
 }
 
-/**
- * @brief Finish the calculation, prepare the object for next use, and return the digest.
- */
 MD5::DigestType MD5::final_digest()
 {
     static unsigned char padding[64] = {
@@ -168,9 +161,6 @@ MD5::DigestType MD5::final_digest()
     return digest_;
 }
 
-/**
- * @brief Calculate the checksum for the content of a file, given its path.
- */
 std::string MD5::from_file_hex( std::string const& filename )
 {
     std::ifstream stream( filename.c_str(), std::ios::binary );
@@ -179,9 +169,6 @@ std::string MD5::from_file_hex( std::string const& filename )
     return checksum.final_hex();
 }
 
-/**
- * @brief Calculate the hash digest for the content of a file, given its path.
- */
 MD5::DigestType MD5::from_file_digest( std::string const& filename )
 {
     std::ifstream stream( filename.c_str(), std::ios::binary );
@@ -190,9 +177,6 @@ MD5::DigestType MD5::from_file_digest( std::string const& filename )
     return checksum.final_digest();
 }
 
-/**
- * @brief Calculate the checksum for the content of a string.
- */
 std::string MD5::from_string_hex( std::string const& input )
 {
     MD5 checksum;
@@ -200,13 +184,24 @@ std::string MD5::from_string_hex( std::string const& input )
     return checksum.final_hex();
 }
 
-/**
- * @brief Calculate the hash digest for the content of a string.
- */
 MD5::DigestType MD5::from_string_digest( std::string const& input )
 {
     MD5 checksum;
     checksum.update( input );
+    return checksum.final_digest();
+}
+
+std::string MD5::from_stream_hex( std::istream& is )
+{
+    MD5 checksum;
+    checksum.update(is);
+    return checksum.final_hex();
+}
+
+MD5::DigestType MD5::from_stream_digest( std::istream& is )
+{
+    MD5 checksum;
+    checksum.update(is);
     return checksum.final_digest();
 }
 

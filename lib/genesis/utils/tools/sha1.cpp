@@ -46,9 +46,6 @@ namespace utils {
 //     Constructors and Rule of Five
 // ================================================================================================
 
-/**
- * @brief Initialize the object for use.
- */
 SHA1::SHA1()
 {
     reset_();
@@ -58,18 +55,17 @@ SHA1::SHA1()
 //     Member Functions
 // ================================================================================================
 
-/**
- * @brief Add the contents of a string to the hash digest.
- */
+void SHA1::clear()
+{
+    reset_();
+}
+
 void SHA1::update( std::string const& s )
 {
     std::istringstream is(s);
     update(is);
 }
 
-/**
- * @brief Add the contents of a stream to the hash digest.
- */
 void SHA1::update(std::istream& is)
 {
     while (true) {
@@ -86,18 +82,12 @@ void SHA1::update(std::istream& is)
     }
 }
 
-/**
- * @brief Finish the calculation, prepare the object for next use, and return the hash.
- */
 std::string SHA1::final_hex()
 {
     // Calculate digest, also reset for next use.
     return digest_to_hex( final_digest() );
 }
 
-/**
- * @brief Finish the calculation, prepare the object for next use, and return the digest.
- */
 SHA1::DigestType SHA1::final_digest()
 {
     /* Total number of hashed bits */
@@ -133,9 +123,6 @@ SHA1::DigestType SHA1::final_digest()
     return result;
 }
 
-/**
- * @brief Calculate the checksum for the content of a file, given its path.
- */
 std::string SHA1::from_file_hex( std::string const& filename )
 {
     std::ifstream stream( filename.c_str(), std::ios::binary );
@@ -144,9 +131,6 @@ std::string SHA1::from_file_hex( std::string const& filename )
     return checksum.final_hex();
 }
 
-/**
- * @brief Calculate the hash digest for the content of a file, given its path.
- */
 SHA1::DigestType SHA1::from_file_digest( std::string const& filename )
 {
     std::ifstream stream( filename.c_str(), std::ios::binary );
@@ -155,9 +139,6 @@ SHA1::DigestType SHA1::from_file_digest( std::string const& filename )
     return checksum.final_digest();
 }
 
-/**
- * @brief Calculate the checksum for the content of a string.
- */
 std::string SHA1::from_string_hex( std::string const& input )
 {
     SHA1 checksum;
@@ -165,13 +146,24 @@ std::string SHA1::from_string_hex( std::string const& input )
     return checksum.final_hex();
 }
 
-/**
- * @brief Calculate the hash digest for the content of a string.
- */
 SHA1::DigestType SHA1::from_string_digest( std::string const& input )
 {
     SHA1 checksum;
     checksum.update( input );
+    return checksum.final_digest();
+}
+
+std::string SHA1::from_stream_hex( std::istream& is )
+{
+    SHA1 checksum;
+    checksum.update(is);
+    return checksum.final_hex();
+}
+
+SHA1::DigestType SHA1::from_stream_digest( std::istream& is )
+{
+    SHA1 checksum;
+    checksum.update(is);
     return checksum.final_digest();
 }
 
@@ -294,11 +286,10 @@ void SHA1::R4_(
     w = rol_(w, 30);
 }
 
-/**
- * @brief Hash a single 512-bit block. This is the core of the algorithm.
- */
 void SHA1::transform_( uint32_t block[SHA1::BlockInts] )
 {
+    // Hash a single 512-bit block. This is the core of the algorithm.
+
     // Copy digest[] to working vars
     uint32_t a = digest_[0];
     uint32_t b = digest_[1];
@@ -399,11 +390,10 @@ void SHA1::transform_( uint32_t block[SHA1::BlockInts] )
     ++transforms_;
 }
 
-/**
- * @brief Convert the std::string (byte buffer) to a uint32_t array (MSB)
- */
 void SHA1::buffer_to_block_(const std::string& buffer, uint32_t block[SHA1::BlockInts])
 {
+    // Convert the std::string (byte buffer) to a uint32_t array (MSB)
+
     for (size_t i = 0; i < SHA1::BlockInts; i++) {
         block[i] = ( buffer[4*i+3] & 0xff )
                  | ( buffer[4*i+2] & 0xff ) << 8
