@@ -162,42 +162,16 @@ bool has_unique_labels( SequenceSet const& set, bool case_sensitive )
     return true;
 }
 
-void relabel_sha1( Sequence& seq )
+void relabel_with_hash( Sequence& seq, utils::HashingFunctions hash_function )
 {
-    auto digest = utils::SHA1::from_string_hex( seq.sites() );
+    auto const digest = utils::hash_from_string_hex( seq.sites(), hash_function );
     seq.label( digest );
 }
 
-void relabel_sha1( SequenceSet& set )
+void relabel_with_hash( SequenceSet& set, utils::HashingFunctions hash_function )
 {
     for( auto& seq : set ) {
-        relabel_sha1( seq );
-    }
-}
-
-void relabel_sha256( Sequence& seq )
-{
-    auto digest = utils::SHA256::from_string_hex( seq.sites() );
-    seq.label( digest );
-}
-
-void relabel_sha256( SequenceSet& set )
-{
-    for( auto& seq : set ) {
-        relabel_sha256( seq );
-    }
-}
-
-void relabel_md5( Sequence& seq )
-{
-    auto digest = utils::MD5::from_string_hex( seq.sites() );
-    seq.label( digest );
-}
-
-void relabel_md5( SequenceSet& set )
-{
-    for( auto& seq : set ) {
-        relabel_sha1( seq );
+        relabel_with_hash( seq, hash_function );
     }
 }
 

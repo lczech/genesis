@@ -163,9 +163,8 @@ Finally, we want to point out some other interesting functions:
     short or too long.
   * @ref genesis::sequence::remove_characters( SequenceSet&, std::string const& ) "remove_characters()"
     allows to remove certain characters by deleting sites in Sequences.
-  * @ref genesis::sequence::relabel_sha1( SequenceSet& ) "relabel_sha1()"
-    sets new labels for all Sequences according to the @ref genesis::utils::SHA1 "SHA1" hash of the
-    sequence sites.
+  * @ref genesis::sequence::relabel_with_hash( SequenceSet&, utils::HashingFunctions ) "relabel_with_hash()"
+    sets new labels for all Sequences according to the hash of the sequence sites, offering different hash functions.
 
 There are more classes and functions to work with @ref genesis::sequence::Sequence "Sequences", see
 @ref genesis::sequence "namespace sequence" for the full list.

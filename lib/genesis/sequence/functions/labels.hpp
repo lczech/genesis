@@ -31,6 +31,8 @@
  * @ingroup sequence
  */
 
+#include "genesis/utils/tools/hashing.hpp"
+
 #include <string>
 #include <utility>
 #include <unordered_set>
@@ -98,49 +100,22 @@ std::pair<std::string, size_t> guess_sequence_abundance( std::string const& labe
 bool has_unique_labels( SequenceSet const& set, bool case_sensitive = true );
 
 /**
- * @brief Relabel the Sequence using the @link utils::SHA1 SHA1@endlink hash digest of its sites.
+ * @brief Relabel the Sequence using the hash digest of its sites.
+ *
+ * See ::utils::HashingFunctions for the available hashing functions.
  */
-void relabel_sha1( Sequence&    seq );
+void relabel_with_hash( Sequence& seq, utils::HashingFunctions hash_function );
 
 /**
- * @brief Relabel all Sequence%s in the SequenceSet using the @link utils::SHA1 SHA1@endlink hash
- * digest of the sites.
+ * @brief Relabel all Sequence%s in the SequenceSet using the hash digest of the sites.
  *
- * If there are duplicate Sequence%s, this function will lead to multiple Sequences with the same
+ * See ::utils::HashingFunctions for the available hashing functions.
+ *
+ * If there are duplicate Sequence%s, this function will lead to multiple Sequence%s with the same
  * name, which might be an issue for downstream programs that expect unique labels.
  * See has_unique_labels() to check this.
  */
-void relabel_sha1( SequenceSet& set );
-
-/**
- * @brief Relabel the Sequence using the @link utils::SHA256 SHA256@endlink hash digest of its sites.
- */
-void relabel_sha256( Sequence&    seq );
-
-/**
- * @brief Relabel all Sequence%s in the SequenceSet using the @link utils::SHA256 SHA256@endlink hash
- * digest of the sites.
- *
- * If there are duplicate Sequence%s, this function will lead to multiple Sequences with the same
- * name, which might be an issue for downstream programs that expect unique labels.
- * See has_unique_labels() to check this.
- */
-void relabel_sha256( SequenceSet& set );
-
-/**
- * @brief Relabel the Sequence using the @link utils::MD5 MD5@endlink hash digest of its sites.
- */
-void relabel_md5( Sequence&    seq );
-
-/**
- * @brief Relabel all Sequence%s in the SequenceSet using the @link utils::MD5 MD5@endlink hash
- * digest of the sites.
- *
- * If there are duplicate Sequence%s, this function will lead to multiple Sequences with the same
- * name, which might be an issue for downstream programs that expect unique labels.
- * See has_unique_labels() to check this.
- */
-void relabel_md5( SequenceSet& set );
+void relabel_with_hash( SequenceSet& set, utils::HashingFunctions hash_function );
 
 // =================================================================================================
 //     Validity
