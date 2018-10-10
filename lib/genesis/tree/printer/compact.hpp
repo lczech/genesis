@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -169,6 +169,42 @@ public:
     std::string print ( Tree const& tree );
 
     // std::string operator() ( Tree const& tree );
+
+    // -------------------------------------------------------------------------
+    //     Settings
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Set the line limit.
+     *
+     * If set to a negative value, the full tree is printed.
+     * For any value greater than 0, only this many lines are printed, following a preorder
+     * traversal of the tree. If the tree contains more nodes than being printed,
+     * an additional line with ellipsis is printed, to indicate this fact.
+     */
+    PrinterCompact& limit( long value )
+    {
+        limit_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get the current line limit.
+     *
+     * See limit( long ) for details.
+     */
+    long limit() const
+    {
+        return limit_;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    long limit_ = -1;
 
 };
 
