@@ -97,8 +97,19 @@ fi
 # Check stash.
 stashed_files=`git stash list`
 if [[ ${stashed_files} != "" ]]; then
-    echo -e "\e[31mStashed files. Aborting.\e[0m"
-    exit
+    # echo -e "\e[31mStashed files. Aborting.\e[0m"
+    # exit
+
+    echo "There are staged files:"
+    echo ${stashed_files}
+    echo
+
+    get_user_confirmation
+    cont=$?
+    if [[ $cont == 0 ]]; then
+        echo -e "\e[31mAborted.\e[0m"
+        exit
+    fi
 else
     echo "No stashed files."
 fi
