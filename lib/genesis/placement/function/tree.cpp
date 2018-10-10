@@ -33,6 +33,7 @@
 #include "genesis/placement/function/helper.hpp"
 #include "genesis/tree/default/operators.hpp"
 #include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/manipulation.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/tree.hpp"
@@ -181,8 +182,8 @@ tree::Tree labelled_tree(
         auto& distal_edge   = pendant_edge.primary_link().next().next().edge();
 
         // The primary node is new, so it should be bifurcating and a leaf.
-        assert( pendant_edge.primary_node().degree() == 3 );
-        assert( pendant_edge.secondary_node().is_leaf() );
+        assert( degree( pendant_edge.primary_node() ) == 3 );
+        assert( is_leaf( pendant_edge.secondary_node() ));
 
         // Some shorthands to the edge data.
         auto& pend_data = pendant_edge.data<tree::DefaultEdgeData>();
@@ -242,8 +243,8 @@ tree::Tree labelled_tree(
                 auto& distal_edge   = pendant_edge.primary_link().next().next().edge();
 
                 // The primary node is new, so it should be bifurcating and a leaf.
-                assert( pendant_edge.primary_node().degree() == 3 );
-                assert( pendant_edge.secondary_node().is_leaf() );
+                assert( degree( pendant_edge.primary_node() ) == 3 );
+                assert( is_leaf( pendant_edge.secondary_node() ));
 
                 // Some shorthands to the edge data. We dont need dist data; its branch length
                 // will be set in a later step. Either it becomes the prox edge in the next
@@ -307,8 +308,8 @@ tree::Tree labelled_tree(
         auto& sec_edge  = base_edge.primary_link().next().next().edge();
 
         // The base node is new, so it should be bifurcating and a leaf
-        assert( base_edge.primary_node().degree() == 3 );
-        assert( base_edge.secondary_node().is_leaf() );
+        assert( degree( base_edge.primary_node() ) == 3 );
+        assert( is_leaf( base_edge.secondary_node() ));
 
         // Some shorthands to the edge data.
         auto& base_data = base_edge.data<tree::DefaultEdgeData>();

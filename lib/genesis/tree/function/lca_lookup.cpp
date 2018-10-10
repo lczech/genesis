@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 #include <algorithm>
 #include <cassert>
 #include <limits>
+#include <stdexcept>
 
 namespace genesis {
 namespace tree {
@@ -123,6 +124,11 @@ size_t LcaLookup::eulertour_query_( size_t i, size_t j ) const
 
 size_t LcaLookup::lookup_( size_t node_index_a, size_t node_index_b, size_t root_index ) const
 {
+    auto const sz = eulertour_first_occurrence_.size();
+    if( node_index_a >= sz || node_index_b >= sz || root_index >= sz ) {
+        throw std::invalid_argument( "Invalid index out of bounds for LCA lookup." );
+    }
+
     size_t u_euler_idx = eulertour_first_occurrence_[ node_index_a ];
 	size_t v_euler_idx = eulertour_first_occurrence_[ node_index_b ];
 	size_t r_euler_idx = eulertour_first_occurrence_[ root_index   ];

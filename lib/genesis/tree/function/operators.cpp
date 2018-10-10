@@ -30,9 +30,12 @@
 
 #include "genesis/tree/function/operators.hpp"
 
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/iterator/node_links.hpp"
 #include "genesis/tree/iterator/preorder.hpp"
+#include "genesis/tree/printer/compact.hpp"
 #include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/core/options.hpp"
 
 #include <ostream>
 
@@ -120,7 +123,7 @@ bool equal(
         it_l != preorder(lhs).end() && it_r != preorder(rhs).end();
         ++it_l, ++it_r
     ) {
-        if (it_l.node().degree() != it_r.node().degree()   ||
+        if( degree( it_l.node() ) != degree( it_r.node() ) ||
             !node_comparator( it_l.node(), it_r.node() ) ||
             !edge_comparator( it_l.edge(), it_r.edge() )
         ) {
@@ -272,14 +275,79 @@ TreeEdge const* edge_between( TreeNode const& lhs, TreeNode const& rhs )
 }
 
 // =================================================================================================
-//     Output
+//     Output Printing
 // =================================================================================================
+
+std::string print_info( Tree const& tree )
+{
+    return "<genesis::tree::Tree"
+           " node_count=" + std::to_string( tree.node_count() ) +
+           " edge_count=" + std::to_string( tree.edge_count() ) +
+           " link_count=" + std::to_string( tree.link_count() ) +
+           ">";
+}
+
+std::string print_info( TreeEdge const& edge )
+{
+    return "<genesis::tree::TreeEdge"
+           " index=" + std::to_string( edge.index() ) +
+           " has_data=" + ( edge.has_data() ? "true" : "false" ) +
+           ">";
+}
+
+std::string print_info( TreeLink const& link )
+{
+    return "<genesis::tree::TreeLink"
+           " index=" + std::to_string( link.index() ) +
+           // " has_data=" + ( edge.has_data() ? "true" : "false" ) +
+           ">";
+}
+
+std::string print_info( TreeNode const& node )
+{
+    return "<genesis::tree::TreeNode"
+           " index=" + std::to_string( node.index() ) +
+           " has_data=" + ( node.has_data() ? "true" : "false" ) +
+           ">";
+}
+
+std::string print_gist( Tree const& tree, int items )
+{
+    auto pc = PrinterCompact();
+    pc.limit( items );
+    return pc.print( tree );
+}
 
 std::ostream& operator << ( std::ostream& out, Tree const& tree )
 {
-    out << "Node Count: " << tree.node_count() << "\n";
-    out << "Edge Count: " << tree.edge_count() << "\n";
-    out << "Link Count: " << tree.link_count() << "\n";
+    if( utils::Options::get().print_object_infos() ) {
+        out << print_info( tree );
+    }
+    out << print_gist( tree, utils::Options::get().print_object_gists() );
+    return out;
+}
+
+std::ostream& operator << ( std::ostream& out, TreeEdge const& edge )
+{
+    if( utils::Options::get().print_object_infos() ) {
+        out << print_info( edge );
+    }
+    return out;
+}
+
+std::ostream& operator << ( std::ostream& out, TreeLink const& link )
+{
+    if( utils::Options::get().print_object_infos() ) {
+        out << print_info( link );
+    }
+    return out;
+}
+
+std::ostream& operator << ( std::ostream& out, TreeNode const& node )
+{
+    if( utils::Options::get().print_object_infos() ) {
+        out << print_info( node );
+    }
     return out;
 }
 
@@ -365,9 +433,9 @@ bool validate_topology( Tree const& tree )
 
     // Check if all nodes have been hit as many times as their degree is.
     for (size_t i = 0; i < tree.nodes_.size(); ++i) {
-        if (links_to_nodes[i] != tree.nodes_[i]->degree() ) {
+        if (links_to_nodes[i] != degree( *tree.nodes_[i] ) ) {
             LOG_INFO << "Node at index " << i << " is not visited its degree ("
-                     << tree.nodes_[i]->degree()
+                     << degree( *tree.nodes_[i] )
                      << ") times, but " << links_to_nodes[i] << " times when "
                      << "traversing the links.";
             return false;
@@ -394,14 +462,14 @@ bool validate_topology( Tree const& tree )
         }
 
         // If a node claims to be the root, it better be the root.
-        if( tree.node_at(i).is_root() && i != tree.root_node().index() ) {
+        if( is_root( tree.node_at(i) ) && i != tree.root_node().index() ) {
             LOG_INFO << "Node at index " << i << " has is_root(), but it is not tree.root_node().";
             return false;
         }
 
         // Except for the root, all nodes must have a primary link that is the secondary link
         // of its edge.
-        if( ! tree.node_at(i).is_root() &&
+        if( ! is_root( tree.node_at(i) ) &&
             &tree.node_at(i).primary_link() != &tree.node_at(i).primary_link().edge().secondary_link()
         ) {
             LOG_INFO << "Node at " << i << " (not the root node) has a primary link which is not "
@@ -411,7 +479,7 @@ bool validate_topology( Tree const& tree )
     }
 
     // Further check the root.
-    if( ! tree.root_node().is_root() ) {
+    if( ! is_root( tree.root_node() ) ) {
         LOG_INFO << "Root node does not have is_root().";
         return false;
     }
@@ -452,7 +520,7 @@ bool validate_topology( Tree const& tree )
         }
 
         // Check primary node, except for root.
-        if( ! tree.edge_at(i).primary_node().is_root() &&
+        if( ! is_root( tree.edge_at(i).primary_node() ) &&
             &tree.edge_at(i).primary_node().primary_link() == &tree.edge_at(i).primary_link()
         ) {
             LOG_INFO << "Edge at " << i << " has a primary node that does not "
@@ -516,9 +584,9 @@ bool validate_topology( Tree const& tree )
 
     // Check if all nodes have been hit as many times as their degree is.
     for (size_t i = 0; i < tree.nodes_.size(); ++i) {
-        if (it_nodes[i] != tree.nodes_[i]->degree() ) {
+        if (it_nodes[i] != degree( *tree.nodes_[i] ) ) {
             LOG_INFO << "Node at index " << i << " is not visited "
-                     << tree.nodes_[i]->degree()
+                     << degree( *tree.nodes_[i] )
                      << " times, but " << it_nodes[i] << " times when iterating the "
                      << "tree.";
             return false;

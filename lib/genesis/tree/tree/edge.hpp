@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
  */
 
 #include "genesis/tree/tree/edge_data.hpp"
+#include "genesis/tree/tree/link.hpp"
 
 #include "genesis/utils/core/std.hpp"
 
@@ -98,21 +99,85 @@ public:
     //     Accessors
     // ---------------------------------------------------------------------
 
-    size_t index() const;
+    /**
+     * @brief Return the index of this Edge.
+     */
+    size_t index() const
+    {
+        return index_;
+    }
 
-    TreeLink      & primary_link();
-    TreeLink const& primary_link() const;
+    /**
+     * @brief Return the TreeLink of this TreeEdge that points towards the root.
+     */
+    TreeLink& primary_link()
+    {
+        return *link_p_;
+    }
 
-    TreeLink      & secondary_link();
-    TreeLink const& secondary_link() const;
+    /**
+     * @brief Return the TreeLink of this TreeEdge that points towards the root.
+     */
+    TreeLink const& primary_link() const
+    {
+        return *link_p_;
+    }
 
-    TreeNode      & primary_node();
-    TreeNode const& primary_node() const;
+    /**
+     * @brief Return the TreeLink of this TreeEdge that points away from the root.
+     */
+    TreeLink& secondary_link()
+    {
+        return *link_s_;
+    }
 
-    TreeNode      & secondary_node();
-    TreeNode const& secondary_node() const;
+    /**
+     * @brief Return the TreeLink of this TreeEdge that points away from the root.
+     */
+    TreeLink const& secondary_link() const
+    {
+        return *link_s_;
+    }
 
-    bool has_data() const;
+    /**
+     * @brief Return the TreeNode of this TreeEdge that points towards the root.
+     */
+    TreeNode& primary_node()
+    {
+        return link_p_->node();
+    }
+
+    /**
+     * @brief Return the TreeNode of this TreeEdge that points towards the root.
+     */
+    TreeNode const& primary_node() const
+    {
+        return link_p_->node();
+    }
+
+    /**
+     * @brief Return the TreeNode of this TreeEdge that points away from the root.
+     */
+    TreeNode& secondary_node()
+    {
+        return link_s_->node();
+    }
+
+    /**
+     * @brief Return the TreeNode of this TreeEdge that points away from the root.
+     */
+    TreeNode const& secondary_node() const
+    {
+        return link_s_->node();
+    }
+
+    /**
+     * @brief Return `true` if the TreeEdge has a data object assigned to it.
+     */
+    bool has_data() const
+    {
+        return data_.get() != nullptr;
+    }
 
     template< class EdgeDataType >
     EdgeDataType& data()
@@ -138,25 +203,89 @@ public:
         return dynamic_cast< EdgeDataType const* >( data_.get() );
     }
 
-    BaseEdgeData*       data_ptr();
-    BaseEdgeData const* data_ptr() const;
+    /**
+     * @brief Return a pointer to the data.
+     *
+     * In most cases, using data<>() is more convenient. However, in some cases, this function
+     * might be necessary.
+     */
+    BaseEdgeData* data_ptr()
+    {
+        return data_.get();
+    }
+
+    /**
+     * @brief Return a const pointer to the data.
+     *
+     * In most cases, using data<>() is more convenient. However, in some cases, this function
+     * might be necessary.
+     */
+    BaseEdgeData const* data_ptr() const
+    {
+        return data_.get();
+    }
 
     // ---------------------------------------------------------------------
     //     Modifiers
     // ---------------------------------------------------------------------
 
-    TreeEdge& reset_index( size_t val );
+    /**
+     * @brief Reset the internal index of this TreeEdge.
+     *
+     * This is a helper function that needs to be used with care and only in cases where appropriate.
+     * The index is an invariant that needs to be kept, as it needs to match the index in the Tree
+     * container.
+     *
+     * This function exists to allow building and modifying a Tree without the need for many friend
+     * declarations. However, the function should rarely be needed outside of this context.
+     */
+    TreeEdge& reset_index( size_t val )
+    {
+        index_ = val;
+        return *this;
+    }
 
-    TreeEdge& reset_primary_link(   TreeLink* val );
-    TreeEdge& reset_secondary_link( TreeLink* val );
+    /**
+     * @brief Reset the internal pointer to the primary TreeLink of this TreeEdge.
+     *
+     * This is a helper function that needs to be used with care and only in cases where appropriate.
+     *
+     * This function exists to allow building and modifying a Tree without the need for many friend
+     * declarations. However, the function should rarely be needed outside of this context.
+     */
+    TreeEdge& reset_primary_link(   TreeLink* val )
+    {
+        link_p_ = val;
+        return *this;
+    }
 
-    TreeEdge& reset_data( std::unique_ptr< BaseEdgeData > data );
+    /**
+     * @brief Reset the internal pointer to the secondary TreeLink of this TreeEdge.
+     *
+     * This is a helper function that needs to be used with care and only in cases where appropriate.
+     *
+     * This function exists to allow building and modifying a Tree without the need for many friend
+     * declarations. However, the function should rarely be needed outside of this context.
+     */
+    TreeEdge& reset_secondary_link( TreeLink* val )
+    {
+        link_s_ = val;
+        return *this;
+    }
 
-    // ---------------------------------------------------------------------
-    //     Member Functions
-    // ---------------------------------------------------------------------
-
-    std::string dump() const;
+    /**
+     * @brief Reset the data pointer of this TreeEdge.
+     *
+     * Using this function, a TreeEdge can be assigend new data. It is also possible to change the
+     * data type completely (as long as it derives from BaseEdgeData). Be however aware that many
+     * functions that work with Tree%s expect a certain data type. Thus, changing it might break those
+     * functions and lead to exceptions and other errors.
+     */
+    TreeEdge& reset_data( std::unique_ptr< BaseEdgeData > data )
+    {
+        data_ = std::move( data );
+        return *this;
+    }
 
     // ---------------------------------------------------------------------
     //     Member Variables

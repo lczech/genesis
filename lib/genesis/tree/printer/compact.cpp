@@ -31,6 +31,7 @@
 #include "genesis/tree/printer/compact.hpp"
 
 #include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/iterator/preorder.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -54,13 +55,26 @@ void PrinterCompact::print (
         TreeEdge const& edge
     )> const print_line
 ) {
+    // Edge case: print nothing
+    if( limit_ == 0 ) {
+        return;
+    }
+
     // Stores a count of how many child nodes each node has left for viewing.
     auto ranks   = std::vector<size_t>( tree.node_count(), 0 );
 
     // Store the current stack of parents while traversing.
     auto parents = std::vector<size_t>();
 
+    // How many lines have been printed yet.
+    // If this reaches the limit_, we print one for line for the ellipsis, then stop.
+    long count = 0;
+
     for( auto it : preorder(tree) ) {
+        if( limit_ > 0 && count > limit_ ) {
+            break;
+        }
+
         // Index of current and its parent node.
         size_t cur_idx = it.node().index();
         size_t par_idx = it.link().outer().node().index();
@@ -70,13 +84,14 @@ void PrinterCompact::print (
             parents.pop_back();
         }
         parents.push_back(cur_idx);
-        ranks[cur_idx] = it.node().degree() - 1;
+        ranks[cur_idx] = degree( it.node() ) - 1;
 
         // The root node is special: We have to account for one more child, as it does not have a
         // parent. Also, we do not draw any lines or indention for the root.
         if (it.is_first_iteration()) {
             ++ranks[cur_idx];
             out << print_line( it.node(), it.edge() ) << "\n";
+            ++count;
             continue;
         }
 
@@ -91,7 +106,11 @@ void PrinterCompact::print (
         // is zero, there will no other children follow, so do not draw a line then.
         for (size_t i = 0; i < parents.size() - 2; ++i) {
             if (ranks[parents[i]] > 0) {
-                out << "│   ";
+                if( limit_ > 0 && count == limit_ ) {
+                    out << "¦   ";
+                } else {
+                    out << "│   ";
+                }
             } else {
                 out << "    ";
             }
@@ -105,15 +124,25 @@ void PrinterCompact::print (
         assert(ranks[par_idx] > 0);
         --ranks[par_idx];
 
-        // Draw the lines down from the immediate parent of the current node.
-        if (ranks[par_idx] > 0) {
-            out << "├── ";
+        if( limit_ > 0 && count == limit_ ) {
+
+            // If this is the "extra" line to be printed after the main part,
+            // use a broken bar to indicate ellipsis.
+            out << "¦   ";
         } else {
-            out << "└── ";
+
+            // Draw the lines down from the immediate parent of the current node.
+            if (ranks[par_idx] > 0) {
+                out << "├── ";
+            } else {
+                out << "└── ";
+            }
+
+            // Print the actual information about the current node.
+            out << print_line( it.node(), it.edge() ) << "\n";
         }
 
-        // Print the actual information about the current node.
-        out << print_line( it.node(), it.edge() ) << "\n";
+        ++count;
     }
 }
 
@@ -134,18 +163,14 @@ std::string PrinterCompact::print( Tree const& tree )
     auto print_line = [] ( TreeNode const& node, TreeEdge const& edge )
     {
         std::string result;
-
-        auto node_data = node.data_cast<DefaultNodeData>();
-        auto edge_data = edge.data_cast<DefaultEdgeData>();
-
-        if( node_data ) {
-            result += node_data->name;
+        if( edge.has_data() ) {
+            result += utils::to_string( edge.data<DefaultEdgeData>().branch_length );
         }
-        if( node_data && edge_data ) {
-            result += ": ";
+        if( edge.has_data() && node.has_data() && ! node.data<DefaultNodeData>().name.empty() ) {
+            result += " ";
         }
-        if( edge_data ) {
-            result += utils::to_string( edge_data->branch_length );
+        if( node.has_data() ) {
+            result += node.data<DefaultNodeData>().name;
         }
         return result;
     };

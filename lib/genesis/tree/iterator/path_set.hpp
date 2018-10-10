@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
  */
 
 #include "genesis/tree/tree.hpp"
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/utils/core/range.hpp"
 
 #include <assert.h>
@@ -176,7 +177,7 @@ public:
             // ... and we reach the root, we have an error! The LCA cannot be more upwards than the
             // root, but even if the root was the LCA, we would have checked this in the above
             // condition. Thus, the LCA is wrong.
-            if( link_->node().is_root() ) {
+            if( is_root( link_->node() )) {
                 throw std::runtime_error( "Found invalid LCA while iterating path." );
             }
         }
@@ -197,7 +198,7 @@ public:
 
             // ... and we reach the root in the firth path, the LCA is wrong,
             // by the same reasoning as above.
-            if( link_->node().is_root() ) {
+            if( is_root( link_->node() )) {
                 throw std::runtime_error( "Found invalid LCA while iterating path." );
             }
         }

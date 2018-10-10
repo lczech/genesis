@@ -104,6 +104,9 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Initialize the object for use.
+     */
     MD5();
     ~MD5() = default;
 
@@ -117,18 +120,57 @@ public:
     //     Member Functions
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Reset to initial state, that is, delete any intermediate input from update() calls.
+     */
+    void clear();
+
+    /**
+     * @brief Add the contents of a string to the hash digest.
+     */
     void update( std::string const& s );
     void update( std::istream& is );
     void update( char const* input, size_type length );
 
+    /**
+     * @brief Finish the calculation, prepare the object for next use, and return the hash.
+     */
     std::string final_hex();
+
+    /**
+     * @brief Finish the calculation, prepare the object for next use, and return the digest.
+     */
     DigestType  final_digest();
 
+    /**
+     * @brief Calculate the checksum for the content of a file, given its path.
+     */
     static std::string from_file_hex(      std::string const& filename );
+
+    /**
+     * @brief Calculate the hash digest for the content of a file, given its path.
+     */
     static DigestType  from_file_digest(   std::string const& filename );
 
+    /**
+     * @brief Calculate the checksum for the content of a string.
+     */
     static std::string from_string_hex(    std::string const& input );
+
+    /**
+     * @brief Calculate the hash digest for the content of a string.
+     */
     static DigestType  from_string_digest( std::string const& input );
+
+    /**
+     * @brief Calculate the checksum for the content of a stream.
+     */
+    static std::string from_stream_hex( std::istream& is );
+
+    /**
+     * @brief Calculate the hash digest for the content of a stream.
+     */
+    static DigestType  from_stream_digest( std::istream& is );
 
     static std::string digest_to_hex( DigestType const& digest );
     static DigestType hex_to_digest( std::string const& hex );

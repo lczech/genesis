@@ -30,9 +30,10 @@
 
 #include "genesis/tree/default/distances.hpp"
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/iterator/levelorder.hpp"
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/lca_lookup.hpp"
+#include "genesis/tree/iterator/levelorder.hpp"
+#include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/containers/matrix/operators.hpp"
 
@@ -313,7 +314,7 @@ std::vector<std::pair< TreeNode const*, double >> leaf_distance_vector(
     // fill the vector for every node.
     // there is probably a faster way of doing this: preorder traversal with pruning. but for now,
     // this simple O(n^2) version works.
-    for (auto node_it = tree.begin_nodes(); node_it != tree.end_nodes(); ++node_it) {
+    for( auto node_it = tree.begin_nodes(); node_it != tree.end_nodes(); ++node_it ) {
         auto node = node_it->get();
 
         // we have not visited this node. assertion holds as long as the indices are correct.
@@ -323,15 +324,15 @@ std::vector<std::pair< TreeNode const*, double >> leaf_distance_vector(
         double res_dist = 0.0;
 
         // try out all other nodes, and find the closest leaf.
-        for (auto other_it = tree.begin_nodes(); other_it != tree.end_nodes(); ++other_it) {
+        for( auto other_it = tree.begin_nodes(); other_it != tree.end_nodes(); ++other_it ) {
             auto other = other_it->get();
 
-            if (!other->is_leaf()) {
+            if(! is_leaf( *other )) {
                 continue;
             }
 
             double dist = node_distances(node->index(), other->index());
-            if (res_node == nullptr || comp( dist, res_dist )) {
+            if( res_node == nullptr || comp( dist, res_dist )) {
                 res_node = other;
                 res_dist = dist;
             }

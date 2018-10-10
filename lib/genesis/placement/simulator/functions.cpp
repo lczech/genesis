@@ -37,6 +37,7 @@
 #include "genesis/placement/simulator/distributions.hpp"
 
 #include "genesis/tree/function/distances.hpp"
+#include "genesis/tree/function/functions.hpp"
 
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/core/std.hpp"
@@ -312,7 +313,7 @@ void set_subtree_weights(
     if( link_index >= sample.tree().link_count() ) {
         throw std::runtime_error( "Invalid link index for subtree." );
     }
-    if( sample.tree().link_at( link_index ).is_leaf() ) {
+    if( is_leaf( sample.tree().link_at( link_index ) )) {
         throw std::runtime_error( "Cannot use a leaf node as subtree." );
     }
 

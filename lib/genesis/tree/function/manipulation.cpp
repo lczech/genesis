@@ -294,7 +294,7 @@ void ladderize( Tree& tree, LadderizeOrder order )
     for( auto& node_it : tree.nodes() ) {
 
         // No need to ladderize a leaf. It would still work, but we can use this as a speedup.
-        if( node_it->is_leaf() ) {
+        if( is_leaf( *node_it )) {
             continue;
         }
 
@@ -323,7 +323,7 @@ void ladderize( Tree& tree, LadderizeOrder order )
         // The number of indices needs to be the rank of the node (number of immediate children).
         assert( child_order.size() == child_sizes.size() );
         assert( child_order.size() == child_links.size() );
-        assert( child_order.size() == node_it->degree() - 1 );
+        assert( child_order.size() == degree( *node_it ) - 1 );
 
         // Change all next links of the node so that they reflect the subtree size order.
         auto cur_link = &node_it->primary_link();

@@ -32,6 +32,7 @@
 
 #include "genesis/tree/default/distances.hpp"
 #include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/function/tree_set.hpp"
 #include "genesis/tree/iterator/preorder.hpp"
@@ -51,7 +52,7 @@ std::unordered_set<std::string> node_names(
 ) {
     std::unordered_set<std::string> name_set;
     for( auto const& node : tree.nodes() ) {
-        if( node->is_inner() && leaves_only ) {
+        if( is_inner( *node ) && leaves_only ) {
             continue;
         }
         auto const name = node->data<DefaultNodeData>().name;
@@ -69,7 +70,7 @@ utils::SortedVector<std::string> node_names_sorted(
 ) {
     utils::SortedVector<std::string> name_set;
     for( auto const& node : tree.nodes() ) {
-        if( node->is_inner() && leaves_only ) {
+        if( is_inner( *node ) && leaves_only ) {
             continue;
         }
         auto const name = node->data<DefaultNodeData>().name;

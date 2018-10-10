@@ -60,6 +60,14 @@ namespace utils {
 //     Initialization
 // =================================================================================================
 
+#if defined( DEBUG ) && defined( NDEBUG )
+    static_assert( false, "Cannot compile with both DEBUG and NDEBUG flags set." );
+#endif
+
+#if ! defined( DEBUG ) && ! defined( NDEBUG )
+    static_assert( false, "Cannot compile with neiher DEBUG nor NDEBUG flag set." );
+#endif
+
 Options::Options()
 {
 
@@ -117,6 +125,9 @@ void Options::number_of_threads ( unsigned int number )
     if( number == 0 ) {
         #ifdef GENESIS_PTHREADS
             number = std::thread::hardware_concurrency();
+            if( number == 0 ) {
+                number = 1;
+            }
         #else
             number = 1;
         #endif

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -93,43 +93,183 @@ public:
     //     Accessors
     // ---------------------------------------------------------------------
 
-    size_t index() const;
+    /**
+     * @brief Return the index of this Link.
+     */
+    size_t index() const
+    {
+        return index_;
+    }
 
-    TreeLink      & next();
-    TreeLink const& next() const;
+    /**
+     * @brief Return the next TreeLink within the TreeNode of this link.
+     */
+    TreeLink& next()
+    {
+        return *next_;
+    }
 
-    TreeLink      & prev();
-    TreeLink const& prev() const;
+    /**
+     * @brief Return the next TreeLink within the TreeNode of this link.
+     */
+    TreeLink const& next() const
+    {
+        return *next_;
+    }
 
-    TreeLink      & outer();
-    TreeLink const& outer() const;
+    /**
+     * @brief Return the previous TreeLink within the TreeNode of this link.
+     *
+     * The previous link of a given link `L` is the one whose next-pointer is pointing to `L`.
+     * As this link first has to be found, this function is not as cheap as next().
+     */
+    TreeLink& prev()
+    {
+        TreeLink* res = this;
+        while( &res->next() != this ) {
+            res = &res->next();
+        }
+        return *res;
+    }
 
-    TreeEdge      & edge();
-    TreeEdge const& edge() const;
+    /**
+     * @brief Return the previous TreeLink within the TreeNode of this link.
+     *
+     * The previous link of a given link `L` is the one whose next-pointer is pointing to `L`.
+     * As this link first has to be found, this function is not as cheap as next().
+     */
+    TreeLink const& prev() const
+    {
+        TreeLink const* res = this;
+        while( &res->next() != this ) {
+            res = &res->next();
+        }
+        return *res;
+    }
 
-    TreeNode      & node();
-    TreeNode const& node() const;
+    /**
+     * @brief Return the TreeLink of the adjacent TreeNode.
+     */
+    TreeLink& outer()
+    {
+        return *outer_;
+    }
+
+    /**
+     * @brief Return the TreeLink of the adjacent TreeNode.
+     */
+    TreeLink const& outer() const
+    {
+        return *outer_;
+    }
+
+    /**
+     * @brief Return the TreeEdge of this TreeLink.
+     */
+    TreeEdge& edge()
+    {
+        return *edge_;
+    }
+
+    /**
+     * @brief Return the TreeEdge of this TreeLink.
+     */
+    TreeEdge const& edge() const
+    {
+        return *edge_;
+    }
+
+    /**
+     * @brief Return the TreeNode of this TreeLink.
+     */
+    TreeNode& node()
+    {
+        return *node_;
+    }
+
+    /**
+     * @brief Return the TreeNode of this TreeLink.
+     */
+    TreeNode const& node() const
+    {
+        return *node_;
+    }
 
     // ---------------------------------------------------------------------
     //     Modifiers
     // ---------------------------------------------------------------------
 
-    TreeLink& reset_index( size_t val );
+    /**
+     * @brief Reset the internal index of this TreeLink.
+     *
+     * This is a helper function that needs to be used with care and only in cases where appropriate.
+     * The index is an invariant that needs to be kept, as it needs to match the index in the Tree
+     * container.
+     *
+     * This function exists to allow building and modifying a Tree without the need for many friend
+     * declarations. However, the function should rarely be needed outside of this context.
+     */
+    TreeLink& reset_index( size_t val )
+    {
+        index_ = val;
+        return *this;
+    }
 
-    TreeLink& reset_next(  TreeLink* val );
-    TreeLink& reset_outer( TreeLink* val );
+    /**
+     * @brief Reset the internal pointer to the next TreeLink of this TreeLink.
+     *
+     * This is a helper function that needs to be used with care and only in cases where appropriate.
+     *
+     * This function exists to allow building and modifying a Tree without the need for many friend
+     * declarations. However, the function should rarely be needed outside of this context.
+     */
+    TreeLink& reset_next(  TreeLink* val )
+    {
+        next_ = val;
+        return *this;
+    }
 
-    TreeLink& reset_node(  TreeNode* val );
-    TreeLink& reset_edge(  TreeEdge* val );
+    /**
+     * @brief Reset the internal pointer to the outer TreeLink of this TreeLink.
+     *
+     * This is a helper function that needs to be used with care and only in cases where appropriate.
+     *
+     * This function exists to allow building and modifying a Tree without the need for many friend
+     * declarations. However, the function should rarely be needed outside of this context.
+     */
+    TreeLink& reset_outer( TreeLink* val )
+    {
+        outer_ = val;
+        return *this;
+    }
 
-    // ---------------------------------------------------------------------
-    //     Member Functions
-    // ---------------------------------------------------------------------
+    /**
+     * @brief Reset the internal pointer to the TreeNode of this TreeLink.
+     *
+     * This is a helper function that needs to be used with care and only in cases where appropriate.
+     *
+     * This function exists to allow building and modifying a Tree without the need for many friend
+     * declarations. However, the function should rarely be needed outside of this context.
+     */
+    TreeLink& reset_node( TreeNode* val )
+    {
+        node_ = val;
+        return *this;
+    }
 
-    bool is_leaf() const;
-    bool is_inner() const;
-
-    std::string dump() const;
+    /**
+     * @brief Reset the internal pointer to the TreeEdge of this TreeLink.
+     *
+     * This is a helper function that needs to be used with care and only in cases where appropriate.
+     *
+     * This function exists to allow building and modifying a Tree without the need for many friend
+     * declarations. However, the function should rarely be needed outside of this context.
+     */
+    TreeLink& reset_edge( TreeEdge* val )
+    {
+        edge_ = val;
+        return *this;
+    }
 
     // ---------------------------------------------------------------------
     //     Member Variables

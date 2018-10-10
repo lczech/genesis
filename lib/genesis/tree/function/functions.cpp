@@ -51,6 +51,62 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
+//     Node Properties
+// =================================================================================================
+
+bool is_leaf( TreeLink const& link )
+{
+    return &( link.next() ) == &link;
+}
+
+bool is_inner( TreeLink const& link )
+{
+    return &( link.next() ) != &link;
+}
+
+bool is_leaf( TreeEdge const& edge )
+{
+    return is_leaf( edge.secondary_link() );
+}
+
+bool is_inner( TreeEdge const& edge )
+{
+    return is_inner( edge.secondary_link() );
+}
+
+size_t degree( TreeNode const& node )
+{
+    size_t dgr = 0;
+    TreeLink const* lnk = &node.link();
+
+    do {
+        ++dgr;
+        lnk = &lnk->next();
+    } while( lnk != &node.link() );
+
+    return dgr;
+}
+
+bool is_leaf( TreeNode const& node )
+{
+    return is_leaf( node.link() );
+}
+
+bool is_inner( TreeNode const& node )
+{
+    return is_inner( node.link() );
+}
+
+bool is_root( TreeNode const& node )
+{
+    // The link_ is always the one pointing towards the root. Also, the edge of that link always has
+    // the primary link set to that it points towards the root.
+    // At the root itself, however, this means we are pointing to ourselves. Use this to check
+    // if this node is the root.
+    return &( node.link().edge().primary_link() ) == &( node.link() );
+}
+
+// =================================================================================================
 //     Node Count Properties
 // =================================================================================================
 
@@ -58,7 +114,7 @@ size_t max_degree( Tree const& tree )
 {
     size_t max = 0;
     for( size_t i = 0; i < tree.node_count(); ++i ) {
-        max = std::max( max, tree.node_at(i).degree() );
+        max = std::max( max, degree( tree.node_at(i) ) );
     }
     return max;
 }
@@ -68,7 +124,7 @@ bool is_bifurcating( Tree const& tree, bool strict )
     if( strict ) {
         // Only allow tips and bifurcating inner nodes.
         for( size_t i = 0; i < tree.node_count(); ++i ) {
-            if( tree.node_at(i).degree() != 1 && tree.node_at(i).degree() != 3 ) {
+            if( degree( tree.node_at(i) ) != 1 && degree( tree.node_at(i) ) != 3 ) {
                 return false;
             }
         }
@@ -81,7 +137,7 @@ bool is_bifurcating( Tree const& tree, bool strict )
 
 bool is_rooted( Tree const& tree )
 {
-    return tree.root_node().degree() == 2;
+    return degree( tree.root_node() ) == 2;
 }
 
 size_t leaf_node_count( Tree const& tree )
@@ -89,7 +145,7 @@ size_t leaf_node_count( Tree const& tree )
     size_t sum = 0;
     for (size_t i = 0; i < tree.node_count(); ++i) {
         auto const& n = tree.node_at(i);
-        if (n.is_leaf()) {
+        if( is_leaf(n) ) {
             ++sum;
         }
     }
@@ -110,7 +166,7 @@ size_t leaf_edge_count(  Tree const& tree )
 {
     size_t sum = 0;
     for( auto const& edge : tree.edges() ) {
-        if( edge->primary_node().is_leaf() || edge->secondary_node().is_leaf() ) {
+        if( is_leaf( edge->primary_node() ) || is_leaf( edge->secondary_node() ) ) {
             ++sum;
         }
     }
@@ -121,7 +177,7 @@ size_t inner_edge_count( Tree const& tree )
 {
     size_t sum = 0;
     for( auto const& edge : tree.edges() ) {
-        if( edge->primary_node().is_inner() && edge->secondary_node().is_inner() ) {
+        if( is_inner( edge->primary_node() ) && is_inner( edge->secondary_node() ) ) {
             ++sum;
         }
     }
@@ -137,7 +193,7 @@ std::vector<size_t> inner_edge_indices( Tree const& tree )
 {
     std::vector<size_t> result;
     for( auto const& edge_it : tree.edges() ) {
-        if( edge_it->secondary_node().is_inner() ) {
+        if( is_inner( edge_it->secondary_node() ) ) {
             result.push_back( edge_it->index() );
         }
     }
@@ -148,7 +204,7 @@ std::vector<size_t> leaf_edge_indices( Tree const& tree )
 {
     std::vector<size_t> result;
     for( auto const& edge_it : tree.edges() ) {
-        if( edge_it->secondary_node().is_leaf() ) {
+        if( is_leaf( edge_it->secondary_node() ) ) {
             result.push_back( edge_it->index() );
         }
     }
@@ -159,7 +215,7 @@ std::vector<size_t> inner_node_indices( Tree const& tree )
 {
     std::vector<size_t> result;
     for( auto const& node_it : tree.nodes() ) {
-        if( node_it->is_inner() ) {
+        if( is_inner( *node_it )) {
             result.push_back( node_it->index() );
         }
     }
@@ -170,7 +226,7 @@ std::vector<size_t> leaf_node_indices( Tree const& tree )
 {
     std::vector<size_t> result;
     for( auto const& node_it : tree.nodes() ) {
-        if( node_it->is_leaf() ) {
+        if( is_leaf( *node_it )) {
             result.push_back( node_it->index() );
         }
     }
@@ -223,7 +279,7 @@ utils::Matrix<signed char> node_root_direction_matrix( Tree const& tree )
         // We do set the value of inner nodes multiple times, but that's no problem.
         // Also, we need to do an extra check for the root here, in order to set all
         // subtrees of the root to -1.
-        signed char const value = row_node.is_root() ? -1 : 1;
+        signed char const value = is_root( row_node ) ? -1 : 1;
         auto current_link = &( primary_link->outer() );
         while( current_link != primary_link ) {
             mat( row_index, current_link->node().index() ) = value;
@@ -324,7 +380,7 @@ std::vector<size_t> subtree_sizes( Tree const& tree, TreeNode const& node )
             // Do nothing.
 
         // If it is a leaf.
-        } else if( it.link().is_leaf() ) {
+        } else if( is_leaf( it.link() )) {
 
             // Simply increment its parent's counter.
             ++result[ stack.back()->node().index() ];
@@ -435,7 +491,7 @@ std::vector< TreeLink const* > path_to_root( TreeNode const& node )
 
         // The above while condition means: is it the root?! Assert, that the default way of
         // checking for the root by using the node gives the same result.
-        assert( ! cur_link->node().is_root() );
+        assert( ! is_root( cur_link->node() ));
 
         // Assert that the primary direction is correct.
         assert( cur_link == &cur_link->edge().secondary_link() );
@@ -453,7 +509,7 @@ std::vector< TreeLink const* > path_to_root( TreeNode const& node )
     }
 
     // Now finally add the root itself and return the list.
-    assert( cur_link->node().is_root() );
+    assert( is_root( cur_link->node() ));
     path.push_back( cur_link );
     return path;
 }

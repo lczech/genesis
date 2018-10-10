@@ -105,7 +105,7 @@ std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize 
         assert( tree_it.edge().secondary_link().index() == cur_idx );
 
         // Leaf links have no mass.
-        if( tree_it.link().is_leaf() ) {
+        if( is_leaf( tree_it.link() )) {
             link_masses[ cur_idx ] = 0.0;
 
         // If the link belongs to an inner node, we calculate its mass as the sum of the masses
@@ -203,7 +203,7 @@ utils::Matrix<double> epca_imbalance_matrix(
                 // Either the edge is an inner edge, or (if not, i.e., it leads to a leaf),
                 // it's imbalance is minus 1, as all its mass is on the root side.
                 assert(
-                    ! samples[s].sample.tree().edge_at(i).secondary_node().is_leaf() ||
+                    ! is_leaf( samples[s].sample.tree().edge_at(i).secondary_node() ) ||
                     utils::almost_equal_relative( imbalance_vec[ i ], -1.0 )
                 );
 

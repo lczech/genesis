@@ -30,9 +30,10 @@
 
 #include "genesis/tree/function/distances.hpp"
 
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/tree.hpp"
 #include "genesis/tree/iterator/levelorder.hpp"
+#include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/core/logging.hpp"
 
@@ -257,7 +258,7 @@ std::vector< std::pair< TreeNode const*, size_t >> closest_leaf_depth_vector (
     // fill the vector for every node.
     // this could be speed up by doing a postorder traversal followed by some sort of inside-out
     // traversal (preorder might do the job). but for now, this simple O(n^2) version works, too.
-    for (auto node_it = tree.begin_nodes(); node_it != tree.end_nodes(); ++node_it) {
+    for( auto node_it = tree.begin_nodes(); node_it != tree.end_nodes(); ++node_it ) {
         auto node = node_it->get();
 
         // we have not visited this node. assertion holds as long as the indices are correct.
@@ -266,7 +267,7 @@ std::vector< std::pair< TreeNode const*, size_t >> closest_leaf_depth_vector (
         // look for closest leaf node by doing a levelorder traversal.
         for( auto it : levelorder( *node ) ) {
             // if we find a leaf, leave the loop.
-            if (it.node().is_leaf()) {
+            if( is_leaf( it.node() )) {
                 vec[node->index()].first  = &it.node();
                 vec[node->index()].second =  it.depth();
                 break;
