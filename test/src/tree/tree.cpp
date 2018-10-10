@@ -46,10 +46,10 @@ TEST(Tree, Basics)
 
     Tree tree = DefaultTreeNewickReader().from_string(input);
 
-    EXPECT_EQ(2, tree.root_node().degree() );
-    EXPECT_EQ(7, leaf_node_count( tree ));
-    EXPECT_EQ(6, inner_node_count( tree ));
-    EXPECT_EQ(13, tree.node_count());
+    EXPECT_EQ( 2, degree( tree.root_node() ));
+    EXPECT_EQ( 7, leaf_node_count( tree ));
+    EXPECT_EQ( 6, inner_node_count( tree ));
+    EXPECT_EQ( 13, tree.node_count());
     EXPECT_TRUE( is_bifurcating( tree ));
 
     EXPECT_EQ("R", tree.root_node().data<DefaultNodeData>().name);

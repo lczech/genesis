@@ -31,6 +31,7 @@
 #include "genesis/tree/printer/compact.hpp"
 
 #include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/iterator/preorder.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -83,7 +84,7 @@ void PrinterCompact::print (
             parents.pop_back();
         }
         parents.push_back(cur_idx);
-        ranks[cur_idx] = it.node().degree() - 1;
+        ranks[cur_idx] = degree( it.node() ) - 1;
 
         // The root node is special: We have to account for one more child, as it does not have a
         // parent. Also, we do not draw any lines or indention for the root.

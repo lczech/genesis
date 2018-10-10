@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #include "genesis/tree/default/tree.hpp"
 #include "genesis/tree/formats/newick/element.hpp"
 #include "genesis/tree/formats/newick/writer.hpp"
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -273,9 +274,9 @@ public:
 
             // Filter out default names if needed.
             if( use_default_names_ && (
-                ( node.is_leaf()  && name == default_leaf_name_  ) ||
-                ( node.is_inner() && name == default_inner_name_ ) ||
-                ( node.is_root()  && name == default_root_name_  )
+                ( is_leaf( node )  && name == default_leaf_name_  ) ||
+                ( is_inner( node ) && name == default_inner_name_ ) ||
+                ( is_root( node )  && name == default_root_name_  )
             )) {
                 name = "";
             }

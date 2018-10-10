@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
  * @ingroup tree
  */
 
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/core/range.hpp"
 
@@ -95,7 +96,7 @@ public:
         stack_.push_back(link_ptr);
         stack_.push_front(&link_ptr->outer());
         link_ptr = &link_ptr->outer();
-        while (link_ptr->is_inner()) {
+        while( is_inner( *link_ptr )) {
             push_front_children(link_ptr);
             link_ptr = &link_ptr->next().outer();
         }
@@ -134,7 +135,7 @@ public:
         } else {
             // this condition is active in all other cases: going down the tree towards the leaves
             link_ = stack_.front();
-            while (link_->is_inner()) {
+            while( is_inner( *link_ )) {
                 push_front_children(link_);
                 link_ = &link_->next().outer();
             }

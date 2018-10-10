@@ -31,6 +31,7 @@
 #include "genesis/tree/drawing/circular_layout.hpp"
 
 #include "genesis/tree/function/operators.hpp"
+#include "genesis/tree/function/functions.hpp"
 
 #include "genesis/utils/math/common.hpp"
 
@@ -140,7 +141,7 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
         } else {
 
             // If there is no edge, it must be the root.
-            assert( node.is_root() );
+            assert( is_root( node ));
         }
 
         // If the node has a name, print it.

@@ -163,7 +163,7 @@ TEST(Newick, ColorPlugin)
     // Create a color vector for all edges that marks edges leading to a leaf node in red.
     auto color_vector = std::vector<utils::Color>( tree.edge_count() );
     for( auto it = tree.begin_edges(); it != tree.end_edges(); ++it ) {
-        if( (*it)->primary_node().is_leaf() || (*it)->secondary_node().is_leaf() ) {
+        if( is_leaf( (*it)->primary_node() ) || is_leaf( (*it)->secondary_node() )) {
             color_vector[(*it)->index()] = utils::Color(1, 0, 0);
         }
     }

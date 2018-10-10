@@ -69,7 +69,7 @@ std::vector<Bipartition> bipartition_set( Tree const& tree )
         auto bp = Bipartition( it.link(), utils::Bitvector( num_leaves ));
 
         // If the iterator is at a leaf, just set one bit in the bitvector.
-        if( it.node().is_leaf() ) {
+        if( is_leaf( it.node() ) ) {
             auto const leaf_idx = node_to_leafs[ it.node().index() ];
             assert( leaf_idx != std::numeric_limits<std::size_t>::max() );
             bp.bitvector().set(leaf_idx);
@@ -122,7 +122,7 @@ std::vector<size_t> node_to_leaf_map( Tree const& tree )
         // Make a sorted list of leave node names.
         std::vector<std::string> node_names;
         for( auto const& node_it : tree.nodes() ) {
-            if( node_it->is_leaf() ) {
+            if( is_leaf( *node_it )) {
                 node_names.push_back( node_it->data<DefaultNodeData>().name );
             }
         }
@@ -150,7 +150,7 @@ std::vector<size_t> node_to_leaf_map( Tree const& tree )
     // Assign indices to each node.
     size_t leaf_idx = 0;
     for( auto const& node_it : tree.nodes() ) {
-        if( node_it->is_leaf() ) {
+        if( is_leaf( *node_it )) {
             if( sort_leaves ) {
 
                 // Use the index to order map to get the ordered leaf index.

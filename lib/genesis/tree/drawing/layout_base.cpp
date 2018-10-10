@@ -257,7 +257,7 @@ void LayoutBase::set_node_spreadings_()
         if( node_data.parent_index == -1 ) {
             node_data.parent_index = parent;
         }
-        if( it.node().is_leaf() ) {
+        if( is_leaf( it.node() )) {
             node_data.spreading = static_cast<double>(leaf_count) / num_leaves;
             leaf_count++;
         }

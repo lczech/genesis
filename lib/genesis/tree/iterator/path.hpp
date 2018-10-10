@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
  * @ingroup tree
  */
 
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/core/range.hpp"
 
@@ -108,7 +109,7 @@ public:
 
                 // The above while condition means: is it the root?! Assert, that the default way of
                 // checking for the root by using the node gives the same result.
-                assert( ! cur_link->node().is_root() );
+                assert( ! is_root( cur_link->node() ));
 
                 // Assert that the primary direction is correct.
                 assert( cur_link == &cur_link->edge().secondary_link() );
@@ -126,7 +127,7 @@ public:
             }
 
             // Now finally add the root itself and return the list.
-            assert( cur_link->node().is_root() );
+            assert( is_root( cur_link->node() ));
             path.push_back( cur_link );
             return path;
         };
