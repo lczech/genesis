@@ -259,14 +259,6 @@ public:
     //     Build Type
     // -------------------------------------------------------------------------
 
-    #if defined( DEBUG ) && defined( NDEBUG )
-        static_assert( false, "Cannot compile with both DEBUG and NDEBUG flags set." );
-    #endif
-
-    #if ! defined( DEBUG ) && ! defined( NDEBUG )
-        static_assert( false, "Cannot compile with neiher DEBUG nor NDEBUG flag set." );
-    #endif
-
     /**
      * @brief Return whether the binary was compiled with build type `DEBUG`.
      */
@@ -283,8 +275,69 @@ public:
     static std::string build_type();
 
     // -------------------------------------------------------------------------
-    //     Dump & Overview
+    //     Object Info & Overview
     // -------------------------------------------------------------------------
+
+    /**
+     * @brief Set whether an object info one-liner is printed when using the `operator <<` that is defined
+     * for many classes.
+     *
+     * In genesis, we create the functions `print_info()` and `print_gist()`, and overload the `operator <<`
+     * for many classes as a convenient way to get information about an object,
+     * for example for debugging purposes.
+     * Using this setting, the behaviour of the `operator <<` is controlled:
+     * If set to `true`, a one-liner containing basic information about the object (its type,
+     * and for containers, its size) is printed.
+     *
+     * See also print_object_gists( int ) for an additional setting that allows to print more details
+     * when using `operator <<` on an object. Both settings can also be combined. In that case,
+     * first, the one-line info is printed, followed by the gist.
+     */
+    inline void print_object_infos( bool value )
+    {
+        print_obj_infos_ = value;
+    }
+
+    /**
+     * @brief Get whether an object info one-liner is printed when using the `operator <<`.
+     *
+     * See print_object_infos( bool ) for details.
+     */
+    inline bool print_object_infos() const
+    {
+        return print_obj_infos_;
+    }
+
+    /**
+     * @brief Set whether an object gist is printed when using the `operator <<` that is defined
+     * for many (container) classes.
+     *
+     * In genesis, we create the functions `print_info()` and `print_gist()`, and overload the `operator <<`
+     * for many classes as a convenient way to get information about an object,
+     * for example for debugging purposes.
+     * Using this setting, the behaviour of the `operator <<` is controlled:
+     * If set to a value `n` greather than 0, the first `n` elements that the object contains are printed.
+     * If set to a negative value, all elements are printed.
+     * Default is 0, that is, no gist of the object's elements is printed.
+     *
+     * See also print_object_infos( bool ) for an additional setting that allows to print an info one-liner
+     * when using `operator <<` on an object. Both settings can also be combined. In that case,
+     * first, the one-line info is printed, followed by the gist.
+     */
+    inline void print_object_gists( long value )
+    {
+        print_obj_gists_ = value;
+    }
+
+    /**
+     * @brief Get whether an object gist is printed when using the `operator <<`.
+     *
+     * See print_object_gists( long ) for details.
+     */
+    inline long print_object_gists() const
+    {
+        return print_obj_gists_;
+    }
 
     /**
      * @brief Return a list with compile time and run time options with their values.
@@ -304,6 +357,9 @@ private:
     std::default_random_engine random_engine_;
 
     bool                       allow_file_overwriting_ = false;
+
+    bool                       print_obj_infos_ = true;
+    long                       print_obj_gists_ = 0;
 
     // -------------------------------------------------------------------------
     //     Hidden Class Members
