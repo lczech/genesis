@@ -32,8 +32,8 @@
 
 #include "genesis/placement/function/helper.hpp"
 #include "genesis/placement/function/operators.hpp"
-#include "genesis/tree/default/distances.hpp"
-#include "genesis/tree/default/functions.hpp"
+#include "genesis/tree/common_tree/distances.hpp"
+#include "genesis/tree/common_tree/functions.hpp"
 #include "genesis/tree/function/distances.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/operators.hpp"
@@ -191,7 +191,7 @@ void adjust_branch_lengths( Sample& sample, tree::Tree const& source )
         for( auto& placement : pquery.placements() ) {
             auto const edge_idx = placement.edge().index();
             auto const old_bl = placement.edge().data<PlacementEdgeData>().branch_length;
-            auto const new_bl = source.edge_at(edge_idx).data<tree::DefaultEdgeData>().branch_length;
+            auto const new_bl = source.edge_at(edge_idx).data<tree::CommonEdgeData>().branch_length;
 
             placement.proximal_length *= new_bl / old_bl;
         }
@@ -200,7 +200,7 @@ void adjust_branch_lengths( Sample& sample, tree::Tree const& source )
     // Now adjust the reference tree branch lengths.
     #pragma omp parallel for
     for( size_t edge_idx = 0; edge_idx < source.edge_count(); ++edge_idx ) {
-        auto const new_bl = source.edge_at(edge_idx).data<tree::DefaultEdgeData>().branch_length;
+        auto const new_bl = source.edge_at(edge_idx).data<tree::CommonEdgeData>().branch_length;
         sample.tree().edge_at(edge_idx).data<PlacementEdgeData>().branch_length = new_bl;
     }
 }

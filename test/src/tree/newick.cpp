@@ -32,8 +32,8 @@
 
 #include <string>
 
-#include "genesis/tree/default/newick_reader.hpp"
-#include "genesis/tree/default/newick_writer.hpp"
+#include "genesis/tree/common_tree/newick_reader.hpp"
+#include "genesis/tree/common_tree/newick_writer.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/formats/newick/color_writer_plugin.hpp"
@@ -52,10 +52,10 @@ TEST(Newick, FromAndToString)
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
     // Wead
-    Tree tree = DefaultTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().from_string( input );
 
     // Write
-    auto writer = DefaultTreeNewickWriter();
+    auto writer = CommonTreeNewickWriter();
     writer.enable_branch_lengths( false );
     std::string output = writer.to_string( tree );
 
@@ -66,7 +66,7 @@ TEST(Newick, NewickVariants)
 {
     Tree tree;
     std::string newick_string;
-    auto writer = DefaultTreeNewickWriter();
+    auto writer = CommonTreeNewickWriter();
 
     EXPECT_TRUE( tree.empty() );
 
@@ -75,7 +75,7 @@ TEST(Newick, NewickVariants)
 
     // Stupid tree.
     newick_string = "();";
-    tree = DefaultTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( 2, tree.node_count() );
     EXPECT_FALSE( tree.empty() );
@@ -83,19 +83,19 @@ TEST(Newick, NewickVariants)
 
     // No nodes are named.
     newick_string = "(,,(,));";
-    tree = DefaultTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // Leaf nodes are named.
     newick_string = "(A,B,(C,D));";
-    tree = DefaultTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // All nodes are named.
     newick_string = "(A,B,(C,D)E)F;";
-    tree = DefaultTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string, writer.to_string( tree ));
 
@@ -104,32 +104,32 @@ TEST(Newick, NewickVariants)
 
     // All but root node have a distance to parent.
     newick_string = "(:0.1,:0.2,(:0.3,:0.4):0.5);";
-    tree = DefaultTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // All have a distance to parent.
     // We never write out the root branch length, so this test is skipped.
     newick_string = "(:0.1,:0.2,(:0.3,:0.4):0.5):0.0;";
-    tree = DefaultTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
     // EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // Distances and leaf names (popular).
     newick_string = "(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);";
-    tree = DefaultTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // Distances and all names.
     newick_string = "(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;";
-    tree = DefaultTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // A tree rooted on a leaf node (rare).
     newick_string = "((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;";
-    tree = DefaultTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string, writer.to_string( tree ));
 
@@ -138,7 +138,7 @@ TEST(Newick, NewickVariants)
     // instead of the hassle of using custom plugins to also write tags etc...
     newick_string = "( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};";
     auto const newick_string2 = "((Ant:0.2,Bee:0.09)Inner:0.7,Coyote:0.5);";
-    auto reader = DefaultTreeNewickReader();
+    auto reader = CommonTreeNewickReader();
     reader.enable_tags( true );
     tree = reader.from_string( newick_string );
     EXPECT_TRUE( validate_topology(tree) );
@@ -152,13 +152,13 @@ TEST(Newick, ColorPlugin)
     Tree tree;
 
     // Prepare a Newick writer with color plugin functions.
-    auto writer = DefaultTreeNewickWriter();
+    auto writer = CommonTreeNewickWriter();
     auto color_plugin = NewickColorWriterPlugin();
     color_plugin.register_with( writer );
 
     // Make sure that the plugin does not interfere with other Newick functionality. If it does, the
     // following line would hopefully crash.
-    tree = DefaultTreeNewickReader().from_string(input);
+    tree = CommonTreeNewickReader().from_string(input);
 
     // Create a color vector for all edges that marks edges leading to a leaf node in red.
     auto color_vector = std::vector<utils::Color>( tree.edge_count() );

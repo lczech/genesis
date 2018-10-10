@@ -34,9 +34,9 @@
 
 #include "genesis/tree/function/manipulation.hpp"
 
-#include "genesis/tree/default/functions.hpp"
-#include "genesis/tree/default/newick_reader.hpp"
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/newick_reader.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/iterator/levelorder.hpp"
 #include "genesis/tree/tree.hpp"
@@ -54,7 +54,7 @@ void TestReroot( std::string root_node_name, std::string out_nodes, size_t nexts
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
     std::string nodes = "";
 
-    Tree tree = DefaultTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().from_string( input );
 
     auto root_node = find_node( tree, root_node_name );
     ASSERT_NE( nullptr, root_node );
@@ -73,7 +73,7 @@ void TestReroot( std::string root_node_name, std::string out_nodes, size_t nexts
     // Build a string of the nodes in levelorder, starting from the new root.
     for( auto it : levelorder( tree ) ) {
         nodes += std::to_string( it.depth() )
-              +  it.node().data<DefaultNodeData>().name
+              +  it.node().data<CommonNodeData>().name
               +  " ";
     }
 
@@ -110,7 +110,7 @@ TEST( TreeManipulation, AddNewNodeNodeA )
 {
     // We use input with branch length, in order to make sure that new edges have a default one.
     std::string input = "((B:2.0,(D:2.0,E:2.0)C:2.0)A:2.0,F:2.0,(H:2.0,I:2.0)G:2.0)R:2.0;";
-    Tree tree = DefaultTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().from_string( input );
 
     // Find an inner node.
     auto node = find_node( tree, "A" );
@@ -129,17 +129,17 @@ TEST( TreeManipulation, AddNewNodeNodeA )
     EXPECT_TRUE( validate_topology( tree ));
 
     // Check whether the data pointers were set correctly.
-    ASSERT_NO_THROW( edge.secondary_node().data<DefaultNodeData>() );
-    EXPECT_EQ( "", edge.secondary_node().data<DefaultNodeData>().name );
-    ASSERT_NO_THROW( edge.data<DefaultEdgeData>() );
-    EXPECT_EQ( 0.0, edge.data<DefaultEdgeData>().branch_length );
+    ASSERT_NO_THROW( edge.secondary_node().data<CommonNodeData>() );
+    EXPECT_EQ( "", edge.secondary_node().data<CommonNodeData>().name );
+    ASSERT_NO_THROW( edge.data<CommonEdgeData>() );
+    EXPECT_EQ( 0.0, edge.data<CommonEdgeData>().branch_length );
 }
 
 TEST( TreeManipulation, AddNewNodeNodeB )
 {
     // We use input with branch length, in order to make sure that new edges have a default one.
     std::string input = "((B:2.0,(D:2.0,E:2.0)C:2.0)A:2.0,F:2.0,(H:2.0,I:2.0)G:2.0)R:2.0;";
-    Tree tree = DefaultTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().from_string( input );
 
     // Find a leaf node.
     auto node = find_node( tree, "B" );
@@ -158,17 +158,17 @@ TEST( TreeManipulation, AddNewNodeNodeB )
     EXPECT_TRUE( validate_topology( tree ));
 
     // Check whether the data pointers were set correctly.
-    ASSERT_NO_THROW( edge.secondary_node().data<DefaultNodeData>() );
-    EXPECT_EQ( "", edge.secondary_node().data<DefaultNodeData>().name );
-    ASSERT_NO_THROW( edge.data<DefaultEdgeData>() );
-    EXPECT_EQ( 0.0, edge.data<DefaultEdgeData>().branch_length );
+    ASSERT_NO_THROW( edge.secondary_node().data<CommonNodeData>() );
+    EXPECT_EQ( "", edge.secondary_node().data<CommonNodeData>().name );
+    ASSERT_NO_THROW( edge.data<CommonEdgeData>() );
+    EXPECT_EQ( 0.0, edge.data<CommonEdgeData>().branch_length );
 }
 
 TEST( TreeManipulation, AddNewNodeEdge )
 {
     // We use input with branch length, in order to make sure that new edges have a default one.
     std::string input = "((B:2.0,(D:2.0,E:2.0)C:2.0)A:2.0,F:2.0,(H:2.0,I:2.0)G:2.0)R:2.0;";
-    Tree tree = DefaultTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().from_string( input );
 
     // Find a leaf node.
     auto node = find_node( tree, "C" );
@@ -187,14 +187,14 @@ TEST( TreeManipulation, AddNewNodeEdge )
     EXPECT_TRUE( validate_topology( tree ));
 
     // Check whether the data pointers were set correctly: New leaf.
-    ASSERT_NO_THROW( edge.secondary_node().data<DefaultNodeData>() );
-    EXPECT_EQ( "", edge.secondary_node().data<DefaultNodeData>().name );
-    ASSERT_NO_THROW( edge.data<DefaultEdgeData>() );
-    EXPECT_EQ( 0.0, edge.data<DefaultEdgeData>().branch_length );
+    ASSERT_NO_THROW( edge.secondary_node().data<CommonNodeData>() );
+    EXPECT_EQ( "", edge.secondary_node().data<CommonNodeData>().name );
+    ASSERT_NO_THROW( edge.data<CommonEdgeData>() );
+    EXPECT_EQ( 0.0, edge.data<CommonEdgeData>().branch_length );
 
     // Check whether the data pointers were set correctly: New secondary edge.
-    ASSERT_NO_THROW( edge.primary_link().next().next().node().data<DefaultNodeData>() );
-    EXPECT_EQ( "", edge.primary_link().next().next().node().data<DefaultNodeData>().name );
-    ASSERT_NO_THROW( edge.primary_link().next().next().edge().data<DefaultEdgeData>() );
-    EXPECT_EQ( 0.0, edge.primary_link().next().next().edge().data<DefaultEdgeData>().branch_length );
+    ASSERT_NO_THROW( edge.primary_link().next().next().node().data<CommonNodeData>() );
+    EXPECT_EQ( "", edge.primary_link().next().next().node().data<CommonNodeData>().name );
+    ASSERT_NO_THROW( edge.primary_link().next().next().edge().data<CommonEdgeData>() );
+    EXPECT_EQ( 0.0, edge.primary_link().next().next().edge().data<CommonEdgeData>().branch_length );
 }

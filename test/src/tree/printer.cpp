@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 
 #include <string>
 
-#include "genesis/tree/default/newick_reader.hpp"
+#include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/printer/compact.hpp"
 #include "genesis/tree/printer/detailed.hpp"
@@ -46,7 +46,7 @@ TEST(TreePrinter, Compact)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    Tree tree = DefaultTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().from_string( input );
 
     auto tp = PrinterCompact();
     auto res = tp.print(tree);
@@ -56,7 +56,7 @@ TEST(TreePrinter, Detailed)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    Tree tree = DefaultTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().from_string( input );
 
     auto tp = PrinterDetailed();
     auto res = tp.print(tree);
@@ -66,7 +66,7 @@ TEST(TreePrinter, Table)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    Tree tree = DefaultTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().from_string( input );
 
     auto tp = PrinterTable();
     auto res = tp.print(tree);

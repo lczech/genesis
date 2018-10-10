@@ -1,9 +1,9 @@
-#ifndef GENESIS_TREE_DEFAULT_TREE_H_
-#define GENESIS_TREE_DEFAULT_TREE_H_
+#ifndef GENESIS_TREE_COMMON_TREE_TREE_H_
+#define GENESIS_TREE_COMMON_TREE_TREE_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,31 +43,31 @@ namespace tree {
 // =================================================================================================
 
 /**
- * @brief Alias for a Tree with data types DefaultNodeData and DefaultEdgeData
+ * @brief Alias for a Tree with data types CommonNodeData and CommonEdgeData
  */
-using DefaultTree     = Tree;
+using CommonTree     = Tree;
 
 /**
- * @brief Alias for a TreeEdge of a ::DefaultTree. See there for more information.
+ * @brief Alias for a TreeEdge of a ::CommonTree. See there for more information.
  */
-using DefaultTreeEdge = TreeEdge;
+using CommonTreeEdge = TreeEdge;
 
 /**
- * @brief Alias for a TreeLink of a ::DefaultTree. See there for more information.
+ * @brief Alias for a TreeLink of a ::CommonTree. See there for more information.
  */
-using DefaultTreeLink = TreeLink;
+using CommonTreeLink = TreeLink;
 
 /**
- * @brief Alias for a TreeNode of a ::DefaultTree. See there for more information.
+ * @brief Alias for a TreeNode of a ::CommonTree. See there for more information.
  */
-using DefaultTreeNode = TreeNode;
+using CommonTreeNode = TreeNode;
 
 // =================================================================================================
-//     Default Tree Node Data
+//     Common Tree Node Data
 // =================================================================================================
 
 /**
- * @brief Default class containing the commonly needed data for tree nodes.
+ * @brief Common class containing the commonly needed data for tree nodes.
  *
  * The Tree class can use all data for its nodes that derive from BaseNodeData.
  * In most cases, nodes will contain the node's name and edges will contain a branch length.
@@ -76,7 +76,7 @@ using DefaultTreeNode = TreeNode;
  * however not necessary -- so if there is no need for node names, you can provide your own,
  * class for tree, as long as it also derives from BaseNodeData.
  */
-class DefaultNodeData : public BaseNodeData
+class CommonNodeData : public BaseNodeData
 {
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -84,35 +84,35 @@ class DefaultNodeData : public BaseNodeData
 
 public:
 
-    virtual ~DefaultNodeData() = default;
+    virtual ~CommonNodeData() = default;
 
     // Move ctor and assignment.
-    DefaultNodeData( DefaultNodeData&& )             = delete;
-    DefaultNodeData& operator= ( DefaultNodeData&& ) = delete;
+    CommonNodeData( CommonNodeData&& )             = delete;
+    CommonNodeData& operator= ( CommonNodeData&& ) = delete;
 
 protected:
 
-    DefaultNodeData() = default;
+    CommonNodeData() = default;
 
     // Copy ctor and assignment.
-    DefaultNodeData( DefaultNodeData const& )             = default;
-    DefaultNodeData& operator= ( DefaultNodeData const& ) = default;
+    CommonNodeData( CommonNodeData const& )             = default;
+    CommonNodeData& operator= ( CommonNodeData const& ) = default;
 
 public:
 
-    static std::unique_ptr< DefaultNodeData > create()
+    static std::unique_ptr< CommonNodeData > create()
     {
-        return std::unique_ptr< DefaultNodeData >( new DefaultNodeData() );
+        return std::unique_ptr< CommonNodeData >( new CommonNodeData() );
     }
 
     virtual std::unique_ptr< BaseNodeData > recreate() const override
     {
-        return std::unique_ptr< DefaultNodeData >( new DefaultNodeData() );
+        return std::unique_ptr< CommonNodeData >( new CommonNodeData() );
     }
 
     virtual std::unique_ptr< BaseNodeData > clone() const override
     {
-        return std::unique_ptr< DefaultNodeData >( new DefaultNodeData( *this ));
+        return std::unique_ptr< CommonNodeData >( new CommonNodeData( *this ));
     }
 
     // -----------------------------------------------------
@@ -129,19 +129,19 @@ public:
 };
 
 // =================================================================================================
-//     Default Tree Edge Data
+//     Common Tree Edge Data
 // =================================================================================================
 
 /**
- * @brief Default class containing the commonly needed data for tree edges.
+ * @brief Common class containing the commonly needed data for tree edges.
  *
- * This class is the equivalent of DefaultNodeData for the tree edges. It stores a branch length
- * for each edge. For more information, see DefaultNodeData.
+ * This class is the equivalent of CommonNodeData for the tree edges. It stores a branch length
+ * for each edge. For more information, see CommonNodeData.
  *
  * If you for example do not need a single branch length, but multiple ones (e.g., when working with
  * partitions), simply do not derive from this class, but provide your own implementation.
  */
-class DefaultEdgeData : public BaseEdgeData
+class CommonEdgeData : public BaseEdgeData
 {
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -149,35 +149,35 @@ class DefaultEdgeData : public BaseEdgeData
 
 public:
 
-    virtual ~DefaultEdgeData() = default;
+    virtual ~CommonEdgeData() = default;
 
     // Move ctor and assignment.
-    DefaultEdgeData( DefaultEdgeData&& )             = delete;
-    DefaultEdgeData& operator= ( DefaultEdgeData&& ) = delete;
+    CommonEdgeData( CommonEdgeData&& )             = delete;
+    CommonEdgeData& operator= ( CommonEdgeData&& ) = delete;
 
 protected:
 
-    DefaultEdgeData() = default;
+    CommonEdgeData() = default;
 
     // Copy ctor and assignment.
-    DefaultEdgeData( DefaultEdgeData const& )             = default;
-    DefaultEdgeData& operator= ( DefaultEdgeData const& ) = default;
+    CommonEdgeData( CommonEdgeData const& )             = default;
+    CommonEdgeData& operator= ( CommonEdgeData const& ) = default;
 
 public:
 
-    static std::unique_ptr< DefaultEdgeData > create()
+    static std::unique_ptr< CommonEdgeData > create()
     {
-        return std::unique_ptr< DefaultEdgeData >( new DefaultEdgeData() );
+        return std::unique_ptr< CommonEdgeData >( new CommonEdgeData() );
     };
 
     virtual std::unique_ptr< BaseEdgeData > recreate() const override
     {
-        return std::unique_ptr< DefaultEdgeData >( new DefaultEdgeData() );
+        return std::unique_ptr< CommonEdgeData >( new CommonEdgeData() );
     }
 
     virtual std::unique_ptr< BaseEdgeData > clone() const override
     {
-        return std::unique_ptr< DefaultEdgeData >( new DefaultEdgeData( *this ));
+        return std::unique_ptr< CommonEdgeData >( new CommonEdgeData( *this ));
     }
 
     // -----------------------------------------------------
@@ -187,7 +187,7 @@ public:
     /**
      * @brief Branch length of the edge.
      *
-     * Defaults to 0.0. This allows to add default-created edges to the Tree without changing any
+     * Commons to 0.0. This allows to add default-created edges to the Tree without changing any
      * metrics related to the branch length.
      */
     double branch_length = 0.0;

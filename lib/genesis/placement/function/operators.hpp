@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,10 +46,10 @@ namespace tree {
 
     class Tree;
 
-    class DefaultNodeData;
-    class DefaultEdgeData;
+    class CommonNodeData;
+    class CommonEdgeData;
 
-    using DefaultTree = Tree;
+    using CommonTree = Tree;
     using MassTree = Tree;
 }
 
@@ -96,13 +96,13 @@ bool compatible_trees( Sample        const& lhs, Sample        const& rhs );
 // =================================================================================================
 
 /**
- * @brief Convert a @link tree::DefaultTree DefaultTree @endlink into a ::PlacementTree.
+ * @brief Convert a @link tree::CommonTree CommonTree @endlink into a ::PlacementTree.
  *
  * This function returns a new tree with the same topology as the source tree, and the same
  * node names and branch lengths. In addition, the `edge_num` property of the PlacementTree is
- * established, as it is not part of the DefaultTree data.
+ * established, as it is not part of the CommonTree data.
  */
-PlacementTree convert_default_tree_to_placement_tree( tree::DefaultTree const& source_tree );
+PlacementTree convert_common_tree_to_placement_tree( tree::CommonTree const& source_tree );
 
 /**
 * @brief Helper function to copy masses from a Sample to a

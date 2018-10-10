@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_DEFAULT_DISTANCES_H_
-#define GENESIS_TREE_DEFAULT_DISTANCES_H_
+#ifndef GENESIS_TREE_COMMON_TREE_DISTANCES_H_
+#define GENESIS_TREE_COMMON_TREE_DISTANCES_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -25,7 +25,7 @@
 */
 
 /**
- * @brief Header of Default Tree distance methods.
+ * @brief Header of CommonTree distance methods.
  *
  * @file
  * @ingroup tree
@@ -33,7 +33,7 @@
 
 #include <vector>
 
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 
 namespace genesis {

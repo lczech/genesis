@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,9 +33,9 @@
 #include <string>
 #include <utility>
 
-#include "genesis/tree/default/functions.hpp"
-#include "genesis/tree/default/newick_reader.hpp"
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/newick_reader.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/iterator/levelorder.hpp"
 #include "genesis/tree/tree.hpp"
@@ -53,14 +53,14 @@ void TestLevelorder(std::string node_name, std::string out_nodes)
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
     std::string nodes = "";
 
-    Tree tree = DefaultTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().from_string( input );
 
     auto node = find_node( tree, node_name );
     ASSERT_NE( nullptr, node );
 
     for( auto it : levelorder( *node )) {
         nodes += std::to_string( it.depth() )
-              +  it.node().data<DefaultNodeData>().name
+              +  it.node().data<CommonNodeData>().name
               +  " ";
     }
     EXPECT_EQ( out_nodes, utils::trim( nodes )) << " with start node " << node_name;

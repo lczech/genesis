@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_DEFAULT_OPERATORS_H_
-#define GENESIS_TREE_DEFAULT_OPERATORS_H_
+#ifndef GENESIS_TREE_COMMON_TREE_OPERATORS_H_
+#define GENESIS_TREE_COMMON_TREE_OPERATORS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -40,20 +40,20 @@ namespace tree {
 
 class Tree;
 
-class DefaultNodeData;
-class DefaultEdgeData;
+class CommonNodeData;
+class CommonEdgeData;
 
-using DefaultTree = Tree;
+using CommonTree = Tree;
 
 // =================================================================================================
 //     Comparison and Conversion
 // =================================================================================================
 
 /**
- * @brief Compare two DefaultTree%s, that is, check whether they have identical topology,
+ * @brief Compare two CommonTree%s, that is, check whether they have identical topology,
  * node names, and branch lenghts.
  */
-bool equal_default_trees(
+bool equal_common_trees(
     Tree const& lhs,
     Tree const& rhs,
     bool compare_node_names = true,
@@ -61,16 +61,16 @@ bool equal_default_trees(
 );
 
 /**
- * @brief Convert a Tree to a DefaultTree with DefaultNodeData and DefaultEdgeData.
+ * @brief Convert a Tree to a CommonTree with CommonNodeData and CommonEdgeData.
  *
  * This works for all Tree%s that have data derived from those two data base classes.
  * Also nodes or edges without data work. However, an expection is thrown if any node or edge
- * contains data that is not derived from DefaultNodeData and DefaultEdgeData, respectively.
+ * contains data that is not derived from CommonNodeData and CommonEdgeData, respectively.
  *
  * The data itself is copied using the clone functions, so that all names and branch lengths
  * are transferred to the returned Tree.
  */
-DefaultTree convert_to_default_tree( Tree const& source_tree );
+CommonTree convert_to_common_tree( Tree const& source_tree );
 
 } // namespace tree
 } // namespace genesis

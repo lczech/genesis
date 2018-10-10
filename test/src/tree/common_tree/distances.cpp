@@ -32,8 +32,8 @@
 
 #include <string>
 
-#include "genesis/tree/default/distances.hpp"
-#include "genesis/tree/default/newick_reader.hpp"
+#include "genesis/tree/common_tree/distances.hpp"
+#include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/function/distances.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
@@ -43,14 +43,14 @@
 using namespace genesis;
 using namespace tree;
 
-TEST(DefaultTree, Distances)
+TEST(CommonTree, Distances)
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
 
     // Read and process tree.
     std::string infile = environment->data_dir + "tree/distances.newick";
-    Tree tree =  DefaultTreeNewickReader().from_file( infile );
+    Tree tree =  CommonTreeNewickReader().from_file( infile );
 
     // Basic checks.
     EXPECT_EQ(7, leaf_node_count(tree));

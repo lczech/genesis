@@ -28,9 +28,9 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/default/operators.hpp"
+#include "genesis/tree/common_tree/operators.hpp"
 
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/core/logging.hpp"
@@ -43,22 +43,22 @@ namespace tree {
 //     Comparison and Conversion
 // =================================================================================================
 
-bool equal_default_trees(
+bool equal_common_trees(
     Tree const& lhs,
     Tree const& rhs,
     bool compare_node_names,
     bool compare_branch_lengths
 ) {
     auto node_comparator = [&] (
-        DefaultTreeNode const& node_l,
-        DefaultTreeNode const& node_r
+        CommonTreeNode const& node_l,
+        CommonTreeNode const& node_r
     ) {
         if( ! compare_node_names ) {
             return true;
         }
 
-        auto l_ptr = dynamic_cast< DefaultNodeData const* >( node_l.data_ptr() );
-        auto r_ptr = dynamic_cast< DefaultNodeData const* >( node_r.data_ptr() );
+        auto l_ptr = dynamic_cast< CommonNodeData const* >( node_l.data_ptr() );
+        auto r_ptr = dynamic_cast< CommonNodeData const* >( node_r.data_ptr() );
         if( l_ptr == nullptr || r_ptr == nullptr ) {
             return false;
         }
@@ -70,15 +70,15 @@ bool equal_default_trees(
     };
 
     auto edge_comparator = [&] (
-        DefaultTreeEdge const& edge_l,
-        DefaultTreeEdge const& edge_r
+        CommonTreeEdge const& edge_l,
+        CommonTreeEdge const& edge_r
     ) {
         if( ! compare_branch_lengths ) {
             return true;
         }
 
-        auto l_ptr = dynamic_cast< DefaultEdgeData const* >( edge_l.data_ptr() );
-        auto r_ptr = dynamic_cast< DefaultEdgeData const* >( edge_r.data_ptr() );
+        auto l_ptr = dynamic_cast< CommonEdgeData const* >( edge_l.data_ptr() );
+        auto r_ptr = dynamic_cast< CommonEdgeData const* >( edge_r.data_ptr() );
         if( l_ptr == nullptr || r_ptr == nullptr ) {
             return false;
         }
@@ -92,20 +92,20 @@ bool equal_default_trees(
     return tree::equal( lhs, rhs, node_comparator, edge_comparator );
 }
 
-DefaultTree convert_to_default_tree( Tree const& source_tree )
+CommonTree convert_to_common_tree( Tree const& source_tree )
 {
-    // In both converter functions, we first cast to default data, in order to make sure that we
-    // actually have data that is derived from default data. If not, those casts will throw.
-    // Then, we explicitly call functions of the default data classes, i.e., we break the virtual
-    // call on purpose, by calling `.DefaultNodeData::...`. This makes sure that we actually get
-    // default data and not the most derived one.
+    // In both converter functions, we first cast to common data, in order to make sure that we
+    // actually have data that is derived from common data. If not, those casts will throw.
+    // Then, we explicitly call functions of the common data classes, i.e., we break the virtual
+    // call on purpose, by calling `.CommonNodeData::...`. This makes sure that we actually get
+    // common data and not the most derived one.
 
     auto node_data_converter = [] ( tree::BaseNodeData const& source_node ) {
-        return dynamic_cast< DefaultNodeData const& >( source_node ).DefaultNodeData::clone();
+        return dynamic_cast< CommonNodeData const& >( source_node ).CommonNodeData::clone();
     };
 
     auto edge_data_converter = [] ( tree::BaseEdgeData const& source_edge ) {
-        return dynamic_cast< DefaultEdgeData const& >( source_edge ).DefaultEdgeData::clone();
+        return dynamic_cast< CommonEdgeData const& >( source_edge ).CommonEdgeData::clone();
     };
 
     return tree::convert(

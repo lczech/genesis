@@ -1,9 +1,9 @@
-#ifndef GENESIS_TREE_DEFAULT_PHYLOXML_WRITER_H_
-#define GENESIS_TREE_DEFAULT_PHYLOXML_WRITER_H_
+#ifndef GENESIS_TREE_COMMON_TREE_PHYLOXML_WRITER_H_
+#define GENESIS_TREE_COMMON_TREE_PHYLOXML_WRITER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/formats/phyloxml/writer.hpp"
 #include "genesis/utils/formats/xml/document.hpp"
 
@@ -39,13 +39,13 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Default Tree Phyloxml Writer Plugin
+//     Common Tree Phyloxml Writer Plugin
 // =================================================================================================
 
 /**
  * @brief
  */
-class DefaultTreePhyloxmlWriterPlugin
+class CommonTreePhyloxmlWriterPlugin
 {
 public:
 
@@ -53,14 +53,14 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-    DefaultTreePhyloxmlWriterPlugin() = default;
-    virtual ~DefaultTreePhyloxmlWriterPlugin() = default;
+    CommonTreePhyloxmlWriterPlugin() = default;
+    virtual ~CommonTreePhyloxmlWriterPlugin() = default;
 
-    DefaultTreePhyloxmlWriterPlugin(DefaultTreePhyloxmlWriterPlugin const&) = default;
-    DefaultTreePhyloxmlWriterPlugin(DefaultTreePhyloxmlWriterPlugin&&)      = default;
+    CommonTreePhyloxmlWriterPlugin(CommonTreePhyloxmlWriterPlugin const&) = default;
+    CommonTreePhyloxmlWriterPlugin(CommonTreePhyloxmlWriterPlugin&&)      = default;
 
-    DefaultTreePhyloxmlWriterPlugin& operator= (DefaultTreePhyloxmlWriterPlugin const&) = default;
-    DefaultTreePhyloxmlWriterPlugin& operator= (DefaultTreePhyloxmlWriterPlugin&&)      = default;
+    CommonTreePhyloxmlWriterPlugin& operator= (CommonTreePhyloxmlWriterPlugin const&) = default;
+    CommonTreePhyloxmlWriterPlugin& operator= (CommonTreePhyloxmlWriterPlugin&&)      = default;
 
     // -------------------------------------------------------------------------
     //     Plugin Functions
@@ -68,12 +68,12 @@ public:
 
     void node_to_element( TreeNode const& node, utils::XmlElement& element ) const
     {
-        set_name_(element, node.data<DefaultNodeData>().name);
+        set_name_(element, node.data<CommonNodeData>().name);
     }
 
     void edge_to_element( TreeEdge const& edge, utils::XmlElement& element ) const
     {
-        set_branch_length_(element, edge.data<DefaultEdgeData>().branch_length);
+        set_branch_length_(element, edge.data<CommonEdgeData>().branch_length);
     }
 
     void register_with( PhyloxmlWriter& writer ) const
@@ -115,12 +115,12 @@ private:
 };
 
 // =================================================================================================
-//     Default Tree Phyloxml Writer
+//     Common Tree Phyloxml Writer
 // =================================================================================================
 
-class DefaultTreePhyloxmlWriter
+class CommonTreePhyloxmlWriter
     : public PhyloxmlWriter
-    , public DefaultTreePhyloxmlWriterPlugin
+    , public CommonTreePhyloxmlWriterPlugin
 {
 public:
 
@@ -128,7 +128,7 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-    DefaultTreePhyloxmlWriter()
+    CommonTreePhyloxmlWriter()
     {
         register_with( *this );
     }

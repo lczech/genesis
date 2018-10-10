@@ -1,9 +1,9 @@
-#ifndef GENESIS_TREE_DEFAULT_NEWICK_READER_H_
-#define GENESIS_TREE_DEFAULT_NEWICK_READER_H_
+#ifndef GENESIS_TREE_COMMON_TREE_NEWICK_READER_H_
+#define GENESIS_TREE_COMMON_TREE_NEWICK_READER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/formats/newick/element.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/utils/core/std.hpp"
@@ -41,13 +41,13 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Default Tree Newick Reader Plugin
+//     Common Tree Newick Reader Plugin
 // =================================================================================================
 
 /**
- * @brief Provide a set of plugin functions for NewickReader to read a #DefaultTree.
+ * @brief Provide a set of plugin functions for NewickReader to read a #CommonTree.
  */
-class DefaultTreeNewickReaderPlugin
+class CommonTreeNewickReaderPlugin
 {
 public:
 
@@ -55,20 +55,20 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using self_type = DefaultTreeNewickReaderPlugin;
+    using self_type = CommonTreeNewickReaderPlugin;
 
     // -------------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-    DefaultTreeNewickReaderPlugin() = default;
-    virtual ~DefaultTreeNewickReaderPlugin() = default;
+    CommonTreeNewickReaderPlugin() = default;
+    virtual ~CommonTreeNewickReaderPlugin() = default;
 
-    DefaultTreeNewickReaderPlugin(DefaultTreeNewickReaderPlugin const&) = default;
-    DefaultTreeNewickReaderPlugin(DefaultTreeNewickReaderPlugin&&)      = default;
+    CommonTreeNewickReaderPlugin(CommonTreeNewickReaderPlugin const&) = default;
+    CommonTreeNewickReaderPlugin(CommonTreeNewickReaderPlugin&&)      = default;
 
-    DefaultTreeNewickReaderPlugin& operator= (DefaultTreeNewickReaderPlugin const&) = default;
-    DefaultTreeNewickReaderPlugin& operator= (DefaultTreeNewickReaderPlugin&&)      = default;
+    CommonTreeNewickReaderPlugin& operator= (CommonTreeNewickReaderPlugin const&) = default;
+    CommonTreeNewickReaderPlugin& operator= (CommonTreeNewickReaderPlugin&&)      = default;
 
     // -------------------------------------------------------------------------
     //     Settings
@@ -169,7 +169,7 @@ public:
     /**
      * @brief Set whether to replace unnamed nodes with a default name.
      *
-     * Default is `false`. In this case, nodes without names in the Newick tree are simply unnamed,
+     * Common is `false`. In this case, nodes without names in the Newick tree are simply unnamed,
      * i.e., their name is the emptry string.
      *
      * If set to `true`, unnamed nodes are named using one of the default names:
@@ -236,7 +236,7 @@ public:
             name = utils::replace_all(name, "_", " ");
         }
 
-        node.data<DefaultNodeData>().name = name;
+        node.data<CommonNodeData>().name = name;
     }
 
     void element_to_edge( NewickBrokerElement const& element, TreeEdge& edge ) const
@@ -245,9 +245,9 @@ public:
         // If there is an interpretation where this is not the case, it is best to introduce
         // an array index for this as a paramter of this class.
         if( element.values.size() > 0 ) {
-            edge.data<DefaultEdgeData>().branch_length = std::stod( element.values[0] );
+            edge.data<CommonEdgeData>().branch_length = std::stod( element.values[0] );
         } else {
-            edge.data<DefaultEdgeData>().branch_length = default_branch_length_;
+            edge.data<CommonEdgeData>().branch_length = default_branch_length_;
         }
     }
 
@@ -255,12 +255,12 @@ public:
     {
         // Set node data creation function.
         reader.create_node_data_plugin = []( TreeNode& node ){
-            node.reset_data( DefaultNodeData::create() );
+            node.reset_data( CommonNodeData::create() );
         };
 
         // Set edge data creation function.
         reader.create_edge_data_plugin = []( TreeEdge& edge ){
-            edge.reset_data( DefaultEdgeData::create() );
+            edge.reset_data( CommonEdgeData::create() );
         };
 
         // Add node manipulation functions.
@@ -280,7 +280,7 @@ public:
         // Alternative version using bind.
         // reader.element_to_edge_plugins.push_back(
         //     std::bind(
-        //         &DefaultTreeNewickReaderPlugin::element_to_edge,
+        //         &CommonTreeNewickReaderPlugin::element_to_edge,
         //         this,
         //         std::placeholders::_1,
         //         std::placeholders::_2
@@ -306,26 +306,26 @@ private:
 };
 
 // =================================================================================================
-//     Default Tree Newick Reader
+//     Common Tree Newick Reader
 // =================================================================================================
 
 /**
  * @brief Read default Newick trees, i.e., trees with names and branch lengths.
  *
  * This class is a convenience wrapper that combines a NewickReader with a
- * DefaultTreeNewickReaderPlugin. It is intended to be used for standard use cases, and produces a
- * Tree with DefaultNodeData and DefaultEdgeData at its nodes and edges.
+ * CommonTreeNewickReaderPlugin. It is intended to be used for standard use cases, and produces a
+ * Tree with CommonNodeData and CommonEdgeData at its nodes and edges.
  *
  * It is also possible to register additional plugins on top of this class.
  *
- * Behind the curtain, this class derives from both NewickReader and DefaultTreeNewickReaderPlugin.
+ * Behind the curtain, this class derives from both NewickReader and CommonTreeNewickReaderPlugin.
  * This is a bit ugly, but we use it for simplicity. This allows to use an instance as if it was
  * a reader (i.e., call `from_...` functions), but also change the plugin settings in a natural
  * way.
  */
-class DefaultTreeNewickReader
+class CommonTreeNewickReader
     : public NewickReader
-    , public DefaultTreeNewickReaderPlugin
+    , public CommonTreeNewickReaderPlugin
 {
 public:
 
@@ -333,10 +333,10 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-    DefaultTreeNewickReader()
+    CommonTreeNewickReader()
     {
         // This is mindfuck. We derive from two classes - the function register_with() calls
-        // the plugin function of DefaultTreeNewickReaderPlugin, and uses our own inherited
+        // the plugin function of CommonTreeNewickReaderPlugin, and uses our own inherited
         // NewickReader instance as argument. Thus, it registeres its own plugin part with its own
         // reader part.
         register_with( *this );

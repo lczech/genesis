@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_DEFAULT_FUNCTIONS_H_
-#define GENESIS_TREE_DEFAULT_FUNCTIONS_H_
+#ifndef GENESIS_TREE_COMMON_TREE_FUNCTIONS_H_
+#define GENESIS_TREE_COMMON_TREE_FUNCTIONS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -25,7 +25,7 @@
 */
 
 /**
- * @brief Default Tree functions.
+ * @brief CommonTree functions.
  *
  * @file
  * @ingroup tree
@@ -60,7 +60,7 @@ class TreeSet;
  * Unnamed nodes (`node.data.name == ""`) are always excluded.
  * The only difference to node_names_sorted() is the type of container used for storing the result.
  *
- * The provided Tree needs to have TreeNode%s with data types deriveed from DefaultNodeData.
+ * The provided Tree needs to have TreeNode%s with data types deriveed from CommonNodeData.
  */
 std::unordered_set<std::string> node_names(
     Tree const& tree,
@@ -74,7 +74,7 @@ std::unordered_set<std::string> node_names(
  * Unnamed nodes (`node.data.name == ""`) are always excluded.
  * The only difference to node_names() is the type of container used for storing the result.
  *
- * The provided Tree needs to have TreeNode%s with data types deriveed from DefaultNodeData.
+ * The provided Tree needs to have TreeNode%s with data types deriveed from CommonNodeData.
  */
 utils::SortedVector<std::string> node_names_sorted(
     Tree const& tree,

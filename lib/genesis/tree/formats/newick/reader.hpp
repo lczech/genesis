@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -95,8 +95,8 @@ public:
      *
      * This function is called for each TreeNode in order to create a data pointer.
      * The type of this pointer is usually the most derived data class that is needed to store
-     * the data of the tree. For example, see DefaultNodeData for such a data type, and
-     * DefaultTreeNewickReaderPlugin for a class that uses a fitting function to create this data
+     * the data of the tree. For example, see CommonNodeData for such a data type, and
+     * CommonTreeNewickReaderPlugin for a class that uses a fitting function to create this data
      * type.
      */
     using create_node_data_function = std::function< void( TreeNode& node ) >;
@@ -106,8 +106,8 @@ public:
      *
      * This function is called for each TreeEdge in order to create a data pointer.
      * The type of this pointer is usually the most derived data class that is needed to store
-     * the data of the tree. For example, see DefaultEdgeData for such a data type, and
-     * DefaultTreeNewickReaderPlugin for a class that uses a fitting function to create this data
+     * the data of the tree. For example, see CommonEdgeData for such a data type, and
+     * CommonTreeNewickReaderPlugin for a class that uses a fitting function to create this data
      * type.
      */
     using create_edge_data_function = std::function< void( TreeEdge& edge ) >;

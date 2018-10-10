@@ -22,16 +22,16 @@
 */
 
 /**
- * @brief Implementation of Default Tree functions.
+ * @brief Implementation of Common Tree functions.
  *
  * @file
  * @ingroup tree
  */
 
-#include "genesis/tree/default/functions.hpp"
+#include "genesis/tree/common_tree/functions.hpp"
 
-#include "genesis/tree/default/distances.hpp"
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/distances.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/function/tree_set.hpp"
@@ -55,7 +55,7 @@ std::unordered_set<std::string> node_names(
         if( is_inner( *node ) && leaves_only ) {
             continue;
         }
-        auto const name = node->data<DefaultNodeData>().name;
+        auto const name = node->data<CommonNodeData>().name;
         if( name == "" ) {
             continue;
         }
@@ -73,7 +73,7 @@ utils::SortedVector<std::string> node_names_sorted(
         if( is_inner( *node ) && leaves_only ) {
             continue;
         }
-        auto const name = node->data<DefaultNodeData>().name;
+        auto const name = node->data<CommonNodeData>().name;
         if( name == "" ) {
             continue;
         }
@@ -123,7 +123,7 @@ TreeNode const* find_node(
     }
 
     for (auto it = tree.begin_nodes(); it != tree.end_nodes(); ++it) {
-        if( it->get()->data<DefaultNodeData>().name == clean_name) {
+        if( it->get()->data<CommonNodeData>().name == clean_name) {
             return it->get();
         }
     }
@@ -151,7 +151,7 @@ double length(Tree const& tree)
 {
     double len = 0.0;
     for( auto const& edge : tree.edges() ) {
-        len += edge->data<DefaultEdgeData>().branch_length;
+        len += edge->data<CommonEdgeData>().branch_length;
     }
     return len;
 }
@@ -174,7 +174,7 @@ std::vector<double> branch_lengths(
     std::vector<double> result;
     result.reserve( tree.edge_count() );
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
-        result.push_back( tree.edge_at(i).data<DefaultEdgeData>().branch_length );
+        result.push_back( tree.edge_at(i).data<CommonEdgeData>().branch_length );
     }
     return result;
 }
@@ -184,7 +184,7 @@ void set_all_branch_lengths(
     double length
 ) {
     for( auto& edge : tree.edges() ) {
-        edge->data<DefaultEdgeData>().branch_length = length;
+        edge->data<CommonEdgeData>().branch_length = length;
     }
 }
 
@@ -193,7 +193,7 @@ void scale_all_branch_lengths(
     double factor
 ) {
     for( auto& edge : tree.edges() ) {
-        edge->data<DefaultEdgeData>().branch_length *= factor;
+        edge->data<CommonEdgeData>().branch_length *= factor;
     }
 }
 
@@ -230,7 +230,7 @@ Tree average_branch_length_tree( TreeSet const& tset )
                 continue;
             }
 
-            avgs[idx] += it.edge().data<DefaultEdgeData>().branch_length;
+            avgs[idx] += it.edge().data<CommonEdgeData>().branch_length;
             ++idx;
         }
     }
@@ -249,7 +249,7 @@ Tree average_branch_length_tree( TreeSet const& tset )
             continue;
         }
 
-        it.edge().data<DefaultEdgeData>().branch_length = avgs[idx] / tset.size();
+        it.edge().data<CommonEdgeData>().branch_length = avgs[idx] / tset.size();
         ++idx;
     }
 

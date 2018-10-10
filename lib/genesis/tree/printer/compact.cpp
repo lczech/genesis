@@ -30,7 +30,7 @@
 
 #include "genesis/tree/printer/compact.hpp"
 
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/iterator/preorder.hpp"
 #include "genesis/tree/tree.hpp"
@@ -164,13 +164,13 @@ std::string PrinterCompact::print( Tree const& tree )
     {
         std::string result;
         if( edge.has_data() ) {
-            result += utils::to_string( edge.data<DefaultEdgeData>().branch_length );
+            result += utils::to_string( edge.data<CommonEdgeData>().branch_length );
         }
-        if( edge.has_data() && node.has_data() && ! node.data<DefaultNodeData>().name.empty() ) {
+        if( edge.has_data() && node.has_data() && ! node.data<CommonNodeData>().name.empty() ) {
             result += " ";
         }
         if( node.has_data() ) {
-            result += node.data<DefaultNodeData>().name;
+            result += node.data<CommonNodeData>().name;
         }
         return result;
     };

@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_DEFAULT_NEWICK_WRITER_H_
-#define GENESIS_TREE_DEFAULT_NEWICK_WRITER_H_
+#ifndef GENESIS_TREE_COMMON_TREE_NEWICK_WRITER_H_
+#define GENESIS_TREE_COMMON_TREE_NEWICK_WRITER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/formats/newick/element.hpp"
 #include "genesis/tree/formats/newick/writer.hpp"
 #include "genesis/tree/function/functions.hpp"
@@ -42,13 +42,13 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Default Tree Newick Writer Plugin
+//     Common Tree Newick Writer Plugin
 // =================================================================================================
 
 /**
- * @brief Provide a set of plugin functions for NewickWriter to write a #DefaultTree.
+ * @brief Provide a set of plugin functions for NewickWriter to write a #CommonTree.
  */
-class DefaultTreeNewickWriterPlugin
+class CommonTreeNewickWriterPlugin
 {
 public:
 
@@ -56,20 +56,20 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using self_type = DefaultTreeNewickWriterPlugin;
+    using self_type = CommonTreeNewickWriterPlugin;
 
     // -------------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-    DefaultTreeNewickWriterPlugin() = default;
-    virtual ~DefaultTreeNewickWriterPlugin() = default;
+    CommonTreeNewickWriterPlugin() = default;
+    virtual ~CommonTreeNewickWriterPlugin() = default;
 
-    DefaultTreeNewickWriterPlugin(DefaultTreeNewickWriterPlugin const&) = default;
-    DefaultTreeNewickWriterPlugin(DefaultTreeNewickWriterPlugin&&)      = default;
+    CommonTreeNewickWriterPlugin(CommonTreeNewickWriterPlugin const&) = default;
+    CommonTreeNewickWriterPlugin(CommonTreeNewickWriterPlugin&&)      = default;
 
-    DefaultTreeNewickWriterPlugin& operator= (DefaultTreeNewickWriterPlugin const&) = default;
-    DefaultTreeNewickWriterPlugin& operator= (DefaultTreeNewickWriterPlugin&&)      = default;
+    CommonTreeNewickWriterPlugin& operator= (CommonTreeNewickWriterPlugin const&) = default;
+    CommonTreeNewickWriterPlugin& operator= (CommonTreeNewickWriterPlugin&&)      = default;
 
     // -------------------------------------------------------------------------
     //     Properties
@@ -152,11 +152,11 @@ public:
      * @brief Set whether to replace default named nodes with an empty string.
      *
      * This setting activates the "reverse" operation of
-     * DefaultTreeNewickReaderPlugin::use_default_names( bool ).
+     * CommonTreeNewickReaderPlugin::use_default_names( bool ).
      * Thus, when the default names are set to the same values as in the reader plugin, reading a
      * Newick tree and then writing it again should yield the same names in the Newick tree again.
      *
-     * Default is `false`. In this case, all node names are written to the Newick tree, indepentenly
+     * Common is `false`. In this case, all node names are written to the Newick tree, indepentenly
      * of whether they match the default names.
      *
      * If set to `true`, a node that has one of the default names will result in an empty node
@@ -189,7 +189,7 @@ public:
     /**
      * @brief Set whether to replace all spaces (' ') in names with underscores ('_').
      *
-     * This is the reverse of DefaultTreeNewickReaderPlugin::replace_name_underscores().
+     * This is the reverse of CommonTreeNewickReaderPlugin::replace_name_underscores().
      * It is activated by default, as it does no harm on already existing underscores.
      * However, as spaces cannot be part of names in Newick, if it is deactivated (set to `false`),
      * all names that contain spaces are instead wrapped in quotation marks by the NewickWriter,
@@ -250,7 +250,7 @@ public:
      * @brief Set the maximum precision (in number of digits) used for printing the `branch_length`
      * floating point numbers.
      *
-     * Default is 6.
+     * Common is 6.
      */
     self_type& branch_length_precision( int value )
     {
@@ -265,7 +265,7 @@ public:
     void node_to_element( TreeNode const& node, NewickBrokerElement& element ) const
     {
         if (enable_names_) {
-            std::string name = node.data<DefaultNodeData>().name;
+            std::string name = node.data<CommonNodeData>().name;
 
             // Handle spaces/underscores.
             if( replace_name_spaces_ ) {
@@ -288,7 +288,7 @@ public:
     void edge_to_element( TreeEdge const& edge, NewickBrokerElement& element ) const
     {
         if (enable_branch_lengths_) {
-            auto const& edge_data = edge.data<DefaultEdgeData>();
+            auto const& edge_data = edge.data<CommonEdgeData>();
             auto bl = utils::to_string_rounded( edge_data.branch_length, branch_length_precision_ );
             element.values.insert (element.values.begin(), bl );
         }
@@ -332,26 +332,26 @@ private:
 };
 
 // =================================================================================================
-//     Default Tree Newick Writer
+//     Common Tree Newick Writer
 // =================================================================================================
 
 /**
  * @brief Write default Newick trees, i.e., trees with names and branch lengths.
  *
  * This class is a convenience wrapper that combines a NewickWriter with a
- * DefaultTreeNewickWriterPlugin. It is intended to be used for standard use cases, and writes a
- * Newick tree from a Tree with DefaultNodeData and DefaultEdgeData at its nodes and edges.
+ * CommonTreeNewickWriterPlugin. It is intended to be used for standard use cases, and writes a
+ * Newick tree from a Tree with CommonNodeData and CommonEdgeData at its nodes and edges.
  *
  * It is also possible to register additional plugins on top of this class.
  *
- * Behind the curtain, this class derives from both NewickWriter and DefaultTreeNewickWriterPlugin.
+ * Behind the curtain, this class derives from both NewickWriter and CommonTreeNewickWriterPlugin.
  * This is a bit ugly, but we use it for simplicity. This allows to use an instance as if it was
  * a writer (i.e., call `to_...` functions), but also change the plugin settings in a natural
  * way.
  */
-class DefaultTreeNewickWriter
+class CommonTreeNewickWriter
     : public NewickWriter
-    , public DefaultTreeNewickWriterPlugin
+    , public CommonTreeNewickWriterPlugin
 {
 public:
 
@@ -359,7 +359,7 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-    DefaultTreeNewickWriter()
+    CommonTreeNewickWriter()
     {
         register_with( *this );
     }

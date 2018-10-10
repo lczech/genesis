@@ -65,9 +65,9 @@ are two important variables:
  * Node names
  * Branch lengths
 
-For this simple, typical use case, we offer the @ref genesis::tree::DefaultTree "DefaultTree".
-It is an alias for a Tree that stores a @ref genesis::tree::DefaultNodeData::name "name" string
-at each @ref genesis::tree::TreeNode "Node" and a @ref genesis::tree::DefaultEdgeData::branch_length
+For this simple, typical use case, we offer the @ref genesis::tree::CommonTree "CommonTree".
+It is an alias for a Tree that stores a @ref genesis::tree::CommonNodeData::name "name" string
+at each @ref genesis::tree::TreeNode "Node" and a @ref genesis::tree::CommonEdgeData::branch_length
 "branch_length" at each @ref genesis::tree::TreeEdge "Edge". For more information about storing
 data on Trees, see @ref tutorials_tree_advanced_data_model "Data Model".
 
@@ -85,11 +85,11 @@ at the beginning of your code.
 # Reading and Writing {#tutorials_tree_basics_reading_writing}
 
 Reading from a Newick file with node names and branch lengths is achieved via a
-@ref genesis::tree::DefaultTreeNewickReader "DefaultTreeNewickReader":
+@ref genesis::tree::CommonTreeNewickReader "CommonTreeNewickReader":
 
 ~~~{.cpp}
 // Read a Newick file into a Tree object.
-Tree tree = DefaultTreeNewickReader().from_file( "path/to/tree.newick" );
+Tree tree = CommonTreeNewickReader().from_file( "path/to/tree.newick" );
 ~~~
 
 It is also possible to read trees stored in strings. For example, the tree from above can be stored
@@ -102,17 +102,17 @@ which uses node "L" as the (virtual) root. Reading is then:
 ~~~{.cpp}
 // Given a string containing a Newick tree, read it into a Tree object.
 std::string newick = "(((A:0.2,B:0.3)C:0.3,(D:0.4,E:0.45,F:0.3,G:0.35)H:0.25)I:0.8,J:0.4,K:0.5)L;";
-tree = DefaultTreeNewickReader().from_string( newick );
+tree = CommonTreeNewickReader().from_string( newick );
 ~~~
 
 Writing a Tree to Newick and PhyloXML works similarly, using
-@ref genesis::tree::DefaultTreeNewickWriter "DefaultTreeNewickWriter" and
-@ref genesis::tree::DefaultTreePhyloxmlWriter "DefaultTreePhyloxmlWriter":
+@ref genesis::tree::CommonTreeNewickWriter "CommonTreeNewickWriter" and
+@ref genesis::tree::CommonTreePhyloxmlWriter "CommonTreePhyloxmlWriter":
 
 ~~~{.cpp}
 // Write a Tree to a Newick file and a PhyloXML file.
-DefaultTreeNewickWriter().to_file( tree, "path/to/tree.nw" );
-DefaultTreePhyloxmlWriter().to_file( tree, "path/to/tree.phyloxml" );
+CommonTreeNewickWriter().to_file( tree, "path/to/tree.nw" );
+CommonTreePhyloxmlWriter().to_file( tree, "path/to/tree.phyloxml" );
 ~~~
 
 For more details, particularly on how to read different data for the nodes and edges, see
@@ -157,7 +157,7 @@ use the Tree topology, for example to simply print all node names or branch leng
 ~~~{.cpp}
 // Print all node names.
 for( auto const& node : tree.nodes() ) {
-    auto const& name = node->data<DefaultNodeData>().name;
+    auto const& name = node->data<CommonNodeData>().name;
     if( ! name.empty() ) {
         std::cout << name << std::endl;
     }
@@ -165,7 +165,7 @@ for( auto const& node : tree.nodes() ) {
 
 // Print all branch lenghts.
 for( auto const& edge : tree.edges() ) {
-    auto const& branch_length = edge->data<DefaultEdgeData>().branch_length;
+    auto const& branch_length = edge->data<CommonEdgeData>().branch_length;
     std::cout << branch_length << std::endl;
 }
 ~~~
@@ -182,7 +182,7 @@ refer to elements in a `std::vector` or a @ref genesis::utils::Matrix "Matrix":
 auto names = std::vector<std::string>( tree.node_count(), "" );
 for( size_t i = 0; i < tree.node_count(); ++i ) {
     auto const& node = tree.node_at( i );
-    auto const& name = node.data<DefaultNodeData>().name;
+    auto const& name = node.data<CommonNodeData>().name;
     names[ i ] = name;
 }
 
@@ -190,7 +190,7 @@ for( size_t i = 0; i < tree.node_count(); ++i ) {
 auto branch_lengths =  std::vector<double>( tree.edge_count(), 0.0 );
 for( size_t i = 0; i < tree.edge_count(); ++i ) {
     auto const& edge = tree.edge_at( i );
-    auto const& branch_length = edge.data<DefaultEdgeData>().branch_length;
+    auto const& branch_length = edge.data<CommonEdgeData>().branch_length;
     branch_lengths[ i ] = branch_length;
 }
 ~~~
@@ -230,7 +230,7 @@ We can output the Nodes which are visited during the Euler tour like this:
 ~~~{.cpp}
 // Do an eulertour around the Tree and print Node names.
 for( auto it : eulertour( tree ) ) {
-    std::cout << it.node().data<DefaultNodeData>().name << " ";
+    std::cout << it.node().data<CommonNodeData>().name << " ";
 }
 std::cout << std::endl;
 ~~~
@@ -245,7 +245,7 @@ It is also possible to start at a different Node:
 // Find Node "C" and start an Eulertour traversal from there.
 auto node_C = find_node( tree, "C" );
 for( auto it : eulertour( *node_C ) ) {
-    std::cout << it.node().data<DefaultNodeData>().name << " ";
+    std::cout << it.node().data<CommonNodeData>().name << " ";
 }
 std::cout << std::endl;
 ~~~
@@ -265,7 +265,7 @@ Using the Tree from above, we can iterate its Nodes in preorder fashion like thi
 ~~~{.cpp}
 // Traverse the Tree in preorder fashion, starting from the root Node "L".
 for( auto it : preorder( tree ) ) {
-    std::cout << it.node().data<DefaultNodeData>().name << " ";
+    std::cout << it.node().data<CommonNodeData>().name << " ";
 }
 std::cout << std::endl;
 ~~~
@@ -279,7 +279,7 @@ Similarly, to do a postorder traversal, we can use:
 ~~~{.cpp}
 // Traverse the Tree in postorder fashion, starting from the root Node "L".
 for( auto it : postorder( tree ) ) {
-    std::cout << it.node().data<DefaultNodeData>().name << " ";
+    std::cout << it.node().data<CommonNodeData>().name << " ";
 }
 std::cout << std::endl;
 ~~~
@@ -326,7 +326,7 @@ They are used like this:
 // Do a preorder traversal of the Edges, and print their branch lengths.
 for( auto it : preorder( tree ) ) {
     if( ! it.is_first_iteration() ) {
-        std::cout << it.edge().data<DefaultEdgeData>().branch_length << " ";
+        std::cout << it.edge().data<CommonEdgeData>().branch_length << " ";
     }
 }
 std::cout << std::endl;
@@ -334,7 +334,7 @@ std::cout << std::endl;
 // Do a postorder traversal of the Edges, and print their branch lengths.
 for( auto it : postorder( tree ) ) {
     if( ! it.is_last_iteration() ) {
-        std::cout << it.edge().data<DefaultEdgeData>().branch_length << " ";
+        std::cout << it.edge().data<CommonEdgeData>().branch_length << " ";
     }
 }
 std::cout << std::endl;

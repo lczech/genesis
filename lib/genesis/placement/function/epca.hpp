@@ -46,10 +46,10 @@ namespace tree {
 
     class Tree;
 
-    class DefaultNodeData;
-    class DefaultEdgeData;
+    class CommonNodeData;
+    class CommonEdgeData;
 
-    using DefaultTree = Tree;
+    using CommonTree = Tree;
 }
 
 namespace placement {

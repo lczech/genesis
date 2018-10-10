@@ -31,8 +31,8 @@
 #include "genesis/tree/bipartition/functions.hpp"
 
 #include "genesis/tree/bipartition/bipartition.hpp"
-#include "genesis/tree/default/functions.hpp"
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
 #include "genesis/tree/iterator/preorder.hpp"
@@ -123,7 +123,7 @@ std::vector<size_t> node_to_leaf_map( Tree const& tree )
         std::vector<std::string> node_names;
         for( auto const& node_it : tree.nodes() ) {
             if( is_leaf( *node_it )) {
-                node_names.push_back( node_it->data<DefaultNodeData>().name );
+                node_names.push_back( node_it->data<CommonNodeData>().name );
             }
         }
 

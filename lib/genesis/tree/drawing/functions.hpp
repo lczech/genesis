@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/drawing/layout_base.hpp"
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/map.hpp"
@@ -54,7 +54,7 @@ namespace tree {
  * This is a very simple wrapper for common cases.
  */
 void write_tree_to_newick_file(
-    DefaultTree const& tree,
+    CommonTree const&  tree,
     std::string const& newick_filename
 );
 
@@ -68,18 +68,18 @@ void write_tree_to_newick_file(
  * The file format can be read and visualized by, e.g., Archaeopteryx.
  */
 void write_tree_to_phyloxml_file(
-    DefaultTree const& tree,
+    CommonTree const&  tree,
     std::string const& phyloxml_filename
 );
 
 void write_color_tree_to_phyloxml_file(
-    DefaultTree const&               tree,
+    CommonTree const&                tree,
     std::vector<utils::Color> const& color_per_branch,
     std::string const&               phyloxml_filename
 );
 
 void write_color_tree_to_phyloxml_file(
-    DefaultTree const&               tree,
+    CommonTree const&                tree,
     std::vector<double> const&       value_per_branch,
     utils::ColorMap const&           color_map,
     utils::ColorNormalization const& color_norm,
@@ -96,18 +96,18 @@ void write_color_tree_to_phyloxml_file(
  * The file format can be read and visualized by, e.g., FigTree.
  */
 void write_tree_to_nexus_file(
-    DefaultTree const& tree,
+    CommonTree const&  tree,
     std::string const& nexus_filename
 );
 
 void write_color_tree_to_nexus_file(
-    DefaultTree const&               tree,
+    CommonTree const&                tree,
     std::vector<utils::Color> const& color_per_branch,
     std::string const&               nexus_filename
 );
 
 void write_color_tree_to_nexus_file(
-    DefaultTree const&               tree,
+    CommonTree const&                tree,
     std::vector<double> const&       value_per_branch,
     utils::ColorMap const&           color_map,
     utils::ColorNormalization const& color_norm,
@@ -127,20 +127,20 @@ struct LayoutParameters
 };
 
 void write_tree_to_svg_file(
-    DefaultTree const&      tree,
+    CommonTree const&       tree,
     LayoutParameters const& params,
     std::string const&      svg_filename
 );
 
 void write_color_tree_to_svg_file(
-    DefaultTree const&               tree,
+    CommonTree const&                tree,
     LayoutParameters const&          params,
     std::vector<utils::Color> const& color_per_branch,
     std::string const&               svg_filename
 );
 
 void write_color_tree_to_svg_file(
-    DefaultTree const&               tree,
+    CommonTree const&                tree,
     LayoutParameters const&          params,
     std::vector<double> const&       value_per_branch,
     utils::ColorMap const&           color_map,
@@ -149,7 +149,7 @@ void write_color_tree_to_svg_file(
 );
 
 void write_color_tree_to_svg_file(
-    DefaultTree const&               tree,
+    CommonTree const&                tree,
     LayoutParameters const&          params,
     std::vector<utils::Color> const& color_per_branch,
     utils::ColorMap const&           color_map,

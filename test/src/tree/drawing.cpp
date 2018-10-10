@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/tree/default/newick_reader.hpp"
+#include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/drawing/rectangular_layout.hpp"
 #include "genesis/tree/drawing/circular_layout.hpp"
 #include "genesis/tree/tree.hpp"
@@ -46,8 +46,8 @@ TEST(Tree, Drawing)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    Tree tree = DefaultTreeNewickReader().from_string( input );
-    // EXPECT_TRUE( DefaultTreeNewickReader().from_file( "/home/lucas/best_tree.newick", tree ));
+    Tree tree = CommonTreeNewickReader().from_string( input );
+    // EXPECT_TRUE( CommonTreeNewickReader().from_file( "/home/lucas/best_tree.newick", tree ));
 
     // auto layout = RectangularLayout( tree );
     auto layout = CircularLayout( tree );

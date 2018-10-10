@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -82,8 +82,8 @@ class  TreeSet;
  *   * #edge_to_element_plugins
  *   * #finish_writing_plugins
  *
- * For example, the DefaultTreePhyloxmlWriterPlugin is a convenience class that provides such plugin
- * functions. It translates from a #DefaultTree with TreeNode%s that contain names and TreeEdge%s
+ * For example, the CommonTreePhyloxmlWriterPlugin is a convenience class that provides such plugin
+ * functions. It translates from a #CommonTree with TreeNode%s that contain names and TreeEdge%s
  * that contain branch lengths into the standard Phyloxml format. Using plugin classes like this
  * additionally allows to use state for the plugin functions - that is, to use some settings for
  * how to write data.
@@ -95,7 +95,7 @@ class  TreeSet;
  *
  * This whole approach is a bit tedious, but unfortunately the price for the flexibility of this
  * class. In order to keep the standard use cases simple, we also provide classes like
- * DefaultTreePhyloxmlWriter, which hides the whole plugin system and allows simple writing
+ * CommonTreePhyloxmlWriter, which hides the whole plugin system and allows simple writing
  * of default trees to standard Phyloxml.
  */
 class PhyloxmlWriter

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -88,7 +88,7 @@ int main( int argc, const char* argv[] )
     }
     if( argc == 4 ) {
         LOG_INFO << "Bootstrap Tree file: " << bstree_filename;
-        bstree = tree::DefaultTreeNewickReader().from_file( bstree_filename );
+        bstree = tree::CommonTreeNewickReader().from_file( bstree_filename );
     }
 
     // Validation. The second one is also done in labelled_tree(), but we do it here again
@@ -108,7 +108,7 @@ int main( int argc, const char* argv[] )
     // -----------------------------------------------------
 
     auto l_tree = labelled_tree( sample, bstree, fully_resolve, name_prefix );
-    tree::DefaultTreeNewickWriter().to_file( l_tree, output_filename );
+    tree::CommonTreeNewickWriter().to_file( l_tree, output_filename );
     LOG_INFO << "Done.";
 
     return 0;

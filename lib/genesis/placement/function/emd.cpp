@@ -37,7 +37,7 @@
 #include "genesis/placement/sample_set.hpp"
 #include "genesis/placement/sample.hpp"
 
-#include "genesis/tree/default/functions.hpp"
+#include "genesis/tree/common_tree/functions.hpp"
 #include "genesis/tree/function/tree_set.hpp"
 #include "genesis/tree/mass_tree/emd.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
@@ -78,7 +78,7 @@ double earth_movers_distance (
     auto const avg_length_tree = tree::average_branch_length_tree( tset );
 
     // Create an EMD tree from the average branch length tree, then calc the EMD.
-    auto mass_tree = tree::convert_default_tree_to_mass_tree( avg_length_tree );
+    auto mass_tree = tree::convert_common_tree_to_mass_tree( avg_length_tree );
 
     // Use the sum of masses as normalization factor for the masses.
     double totalmass_l = total_placement_mass_with_multiplicities( lhs );

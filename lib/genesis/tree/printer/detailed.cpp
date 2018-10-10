@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 #include "genesis/tree/tree.hpp"
 
 // TODO used for conversion - ensure typesafety!
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 
 #include "genesis/tree/function/distances.hpp"
 
@@ -89,7 +89,7 @@ void PrinterDetailed::print (
         if( ! utils::contains( done, n.index() )) {
             out << indent
                 // TODO typesafety!
-                << node_color( "Node " + std::to_string(n.index()) + ": \"" + n.data<DefaultNodeData>().name + "\"" )
+                << node_color( "Node " + std::to_string(n.index()) + ": \"" + n.data<CommonNodeData>().name + "\"" )
                 << "\n";
         }
         done.push_back(n.index());

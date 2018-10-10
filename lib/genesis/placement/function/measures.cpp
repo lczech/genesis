@@ -40,7 +40,7 @@
 #include "genesis/placement/sample_set.hpp"
 #include "genesis/placement/sample.hpp"
 
-#include "genesis/tree/default/distances.hpp"
+#include "genesis/tree/common_tree/distances.hpp"
 #include "genesis/tree/function/distances.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/function/tree_set.hpp"

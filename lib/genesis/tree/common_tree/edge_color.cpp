@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,9 +28,9 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/default/edge_color.hpp"
+#include "genesis/tree/common_tree/edge_color.hpp"
 
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/functions.hpp"
 
@@ -67,8 +67,8 @@ std::vector<utils::Color> edge_color_branch_length_gradient( Tree const& tree, b
     // Find min and max branch lengths.
     for (auto it = tree.begin_edges(); it != tree.end_edges(); ++it) {
         auto const& edge = **it;
-        min_bl = std::min(min_bl, edge.data<DefaultEdgeData>().branch_length);
-        max_bl = std::max(max_bl, edge.data<DefaultEdgeData>().branch_length);
+        min_bl = std::min(min_bl, edge.data<CommonEdgeData>().branch_length);
+        max_bl = std::max(max_bl, edge.data<CommonEdgeData>().branch_length);
     }
     assert( min_bl <= max_bl );
     double dist = max_bl - min_bl;
@@ -81,7 +81,7 @@ std::vector<utils::Color> edge_color_branch_length_gradient( Tree const& tree, b
     // Calculate the heat gradient color based on the branch length for each edge.
     for (auto it = tree.begin_edges(); it != tree.end_edges(); ++it) {
         auto const& edge = **it;
-        double val = ( edge.data<DefaultEdgeData>().branch_length - min_bl) / dist;
+        double val = ( edge.data<CommonEdgeData>().branch_length - min_bl) / dist;
         ret[edge.index()] = utils::heat_gradient(val);
     }
     return ret;

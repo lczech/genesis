@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/formats/svg/svg.hpp"
 
@@ -74,10 +74,10 @@ using LayoutTreeLink = tree::TreeLink;
 /**
  * @brief Data class for ::LayoutTreeNode%s.
  *
- * It is derived from tree::DefaultNodeData, so that it already contains a
- * @link tree::DefaultNodeData::name name@endlink field.
+ * It is derived from tree::CommonNodeData, so that it already contains a
+ * @link tree::CommonNodeData::name name@endlink field.
  */
-class LayoutNodeData : public tree::DefaultNodeData
+class LayoutNodeData : public tree::CommonNodeData
 {
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -156,10 +156,10 @@ public:
 /**
  * @brief Data class for LayoutTreeEdge%s.
  *
- * It is derived from tree::DefaultEdgeData, so that it already contains a
- * @link tree::DefaultEdgeData::branch_length branch_length@endlink field.
+ * It is derived from tree::CommonEdgeData, so that it already contains a
+ * @link tree::CommonEdgeData::branch_length branch_length@endlink field.
  */
-class LayoutEdgeData : public tree::DefaultEdgeData
+class LayoutEdgeData : public tree::CommonEdgeData
 {
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five

@@ -31,8 +31,8 @@
 #include "genesis/placement/function/tree.hpp"
 
 #include "genesis/placement/function/helper.hpp"
-#include "genesis/tree/default/operators.hpp"
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/operators.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/manipulation.hpp"
 #include "genesis/tree/function/operators.hpp"
@@ -57,10 +57,10 @@ tree::Tree labelled_tree(
     bool const         fully_resolve,
     std::string const& name_prefix
 ) {
-    // Get a copy of the original tree that contains only default data.
+    // Get a copy of the original tree that contains only common data.
     return labelled_tree(
         sample,
-        tree::convert_to_default_tree( sample.tree() ),
+        tree::convert_to_common_tree( sample.tree() ),
         fully_resolve,
         name_prefix
     );
@@ -186,9 +186,9 @@ tree::Tree labelled_tree(
         assert( is_leaf( pendant_edge.secondary_node() ));
 
         // Some shorthands to the edge data.
-        auto& pend_data = pendant_edge.data<tree::DefaultEdgeData>();
-        auto& prox_data = proximal_edge.data<tree::DefaultEdgeData>();
-        auto& dist_data  = distal_edge.data<tree::DefaultEdgeData>();
+        auto& pend_data = pendant_edge.data<tree::CommonEdgeData>();
+        auto& prox_data = proximal_edge.data<tree::CommonEdgeData>();
+        auto& dist_data  = distal_edge.data<tree::CommonEdgeData>();
 
         // The pendant and distal edges are new, so they should have default branch lengths.
         assert( pend_data.branch_length == 0.0 );
@@ -204,7 +204,7 @@ tree::Tree labelled_tree(
         // otherwise, this is not a lonely placement any more!
         assert( placement_pair.pquery->name_size() <= 1 );
         if( placement_pair.pquery->name_size() == 1 ) {
-            auto& pendant_node_data = pendant_edge.secondary_node().data<tree::DefaultNodeData>();
+            auto& pendant_node_data = pendant_edge.secondary_node().data<tree::CommonNodeData>();
             pendant_node_data.name = name_prefix + placement_pair.pquery->name_at(0).name;
         }
     };
@@ -227,7 +227,7 @@ tree::Tree labelled_tree(
 
         // Also, we need the original branch length, because it will be lost in the process,
         // but later needed.
-        auto const orig_length = edge.data<tree::DefaultEdgeData>().branch_length;
+        auto const orig_length = edge.data<tree::CommonEdgeData>().branch_length;
 
         // Store an edge pointer at which we insert the next placement edge.
         auto insertion_edge = &edge;
@@ -249,12 +249,12 @@ tree::Tree labelled_tree(
                 // Some shorthands to the edge data. We dont need dist data; its branch length
                 // will be set in a later step. Either it becomes the prox edge in the next
                 // iteration, or it is the final edge after the loop.
-                auto& pend_data = pendant_edge.data<tree::DefaultEdgeData>();
-                auto& prox_data = proximal_edge.data<tree::DefaultEdgeData>();
+                auto& pend_data = pendant_edge.data<tree::CommonEdgeData>();
+                auto& prox_data = proximal_edge.data<tree::CommonEdgeData>();
 
                 // The pendant and distal edges are new, so they should have default branch lengths.
                 assert( pend_data.branch_length == 0.0 );
-                assert( distal_edge.data<tree::DefaultEdgeData>().branch_length == 0.0 );
+                assert( distal_edge.data<tree::CommonEdgeData>().branch_length == 0.0 );
 
                 // We sorted the placements by prox len. Thus, this should hold.
                 assert( placement_pair.placement->proximal_length >= used_length );
@@ -264,7 +264,7 @@ tree::Tree labelled_tree(
                 prox_data.branch_length = placement_pair.placement->proximal_length - used_length;
 
                 // Set the leaf name.
-                auto& node_data = pendant_edge.secondary_node().data<tree::DefaultNodeData>();
+                auto& node_data = pendant_edge.secondary_node().data<tree::CommonNodeData>();
                 node_data.name = name_prefix + pquery_name.name;
 
                 // Set new values for the keeping-track variables, for the next iteration.
@@ -282,7 +282,7 @@ tree::Tree labelled_tree(
         // In this case, we want to avoid negative length, so simply set it to zero.
         // That means that in total the edge now grew due to its placements. So the tree is not
         // optimized any more - but for the purposes of this function, this should be okay.
-        auto& end_edge_data = insertion_edge->data<tree::DefaultEdgeData>();
+        auto& end_edge_data = insertion_edge->data<tree::CommonEdgeData>();
         assert( end_edge_data.branch_length == 0.0 );
         if( used_length < orig_length ) {
             end_edge_data.branch_length = orig_length - used_length;
@@ -312,9 +312,9 @@ tree::Tree labelled_tree(
         assert( is_leaf( base_edge.secondary_node() ));
 
         // Some shorthands to the edge data.
-        auto& base_data = base_edge.data<tree::DefaultEdgeData>();
-        auto& pri_data  = pri_edge.data<tree::DefaultEdgeData>();
-        auto& sec_data  = sec_edge.data<tree::DefaultEdgeData>();
+        auto& base_data = base_edge.data<tree::CommonEdgeData>();
+        auto& pri_data  = pri_edge.data<tree::CommonEdgeData>();
+        auto& sec_data  = sec_edge.data<tree::CommonEdgeData>();
 
         // The pendant and distal edges are new, so they should have default branch lengths.
         assert( base_data.branch_length == 0.0 );
@@ -369,12 +369,12 @@ tree::Tree labelled_tree(
 
                 // Set the pendant branch length. It is subtracted by
                 // the min pen length, as this is already incorporated into the base's bl.
-                auto& p_data = p_edge.data<tree::DefaultEdgeData>();
+                auto& p_data = p_edge.data<tree::CommonEdgeData>();
                 assert( placement_pair.placement->pendant_length >= min_pen_len );
                 p_data.branch_length = placement_pair.placement->pendant_length - min_pen_len;
 
                 // Set the leaf node name.
-                auto& p_node_data = p_edge.secondary_node().data<tree::DefaultNodeData>();
+                auto& p_node_data = p_edge.secondary_node().data<tree::CommonNodeData>();
                 p_node_data.name = name_prefix + pquery_name.name;
             }
         }

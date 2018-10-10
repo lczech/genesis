@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
  */
 
 #include "genesis/tree/attribute_tree/tree.hpp"
-#include "genesis/tree/default/newick_reader.hpp"
+#include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/formats/newick/element.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
 
@@ -372,7 +372,7 @@ private:
  */
 class IndexedAttributeTreeNewickReader
     : public NewickReader
-    , public DefaultTreeNewickReaderPlugin
+    , public CommonTreeNewickReaderPlugin
     , public IndexedAttributeTreeNewickReaderPlugin
 {
 public:
@@ -385,7 +385,7 @@ public:
     {
         // We first register the default reader, then the placement reader, because the latter
         // overwrites the data creation functions.
-        DefaultTreeNewickReaderPlugin::register_with( *this );
+        CommonTreeNewickReaderPlugin::register_with( *this );
         IndexedAttributeTreeNewickReaderPlugin::register_with( *this );
     }
 };

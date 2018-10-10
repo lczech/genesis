@@ -30,8 +30,8 @@
 
 #include "genesis/tree/drawing/layout_base.hpp"
 
-#include "genesis/tree/default/distances.hpp"
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/distances.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/function/distances.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/operators.hpp"
@@ -197,9 +197,9 @@ void LayoutBase::init_tree_( Tree const& orig_tree )
         node.reset_data( LayoutNodeData::create() );
 
         // If the original tree has node names, use them.
-        auto orig_node_data_ptr = orig_node.data_cast<DefaultNodeData>();
+        auto orig_node_data_ptr = orig_node.data_cast<CommonNodeData>();
         if( orig_node_data_ptr ) {
-            node.data<DefaultNodeData>().name = orig_node_data_ptr->name;
+            node.data<CommonNodeData>().name = orig_node_data_ptr->name;
         }
     }
 
@@ -215,9 +215,9 @@ void LayoutBase::init_tree_( Tree const& orig_tree )
         edge.reset_data( LayoutEdgeData::create() );
 
         // If the original tree has edge branch lengths, use them.
-        auto orig_edge_data_ptr = orig_edge.data_cast<DefaultEdgeData>();
+        auto orig_edge_data_ptr = orig_edge.data_cast<CommonEdgeData>();
         if( orig_edge_data_ptr ) {
-            edge.data<DefaultEdgeData>().branch_length = orig_edge_data_ptr->branch_length;
+            edge.data<CommonEdgeData>().branch_length = orig_edge_data_ptr->branch_length;
         }
     }
 

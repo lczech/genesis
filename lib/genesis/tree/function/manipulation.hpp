@@ -97,7 +97,7 @@ TreeEdge& add_new_node( Tree& tree, TreeNode& target_node );
  * function behaves in a similar way. The data objects of the new nodes and edges are
  * default-constructed objects of the same type as the `target_edge` and its primary node.
  *
- * Be aware that the data of `target_edge` is not changed. Thus, in trees with DefaultEdgeData,
+ * Be aware that the data of `target_edge` is not changed. Thus, in trees with CommonEdgeData,
  * the branch lengths of all three affected edges might have to be changed to the desired values
  * after calling this function.
  *
@@ -123,7 +123,7 @@ TreeNode& add_new_node( Tree& tree, TreeEdge& target_edge );
  * function behaves in a similar way. The data objects of the new nodes and edges are
  * default-constructed objects of the same type as the `target_edge` and its primary node.
  *
- * Be aware that the data of `target_edge` is not changed. Thus, in trees with DefaultEdgeData,
+ * Be aware that the data of `target_edge` is not changed. Thus, in trees with CommonEdgeData,
  * the branch lengths of all three affected edges might have to be changed to the desired values
  * after calling this function.
  *
