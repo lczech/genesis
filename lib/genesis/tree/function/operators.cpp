@@ -32,7 +32,9 @@
 
 #include "genesis/tree/iterator/node_links.hpp"
 #include "genesis/tree/iterator/preorder.hpp"
+#include "genesis/tree/printer/compact.hpp"
 #include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/core/options.hpp"
 
 #include <ostream>
 
@@ -272,14 +274,79 @@ TreeEdge const* edge_between( TreeNode const& lhs, TreeNode const& rhs )
 }
 
 // =================================================================================================
-//     Output
+//     Output Printing
 // =================================================================================================
+
+std::string print_info( Tree const& tree )
+{
+    return "<genesis::tree::Tree"
+           " node_count=" + std::to_string( tree.node_count() ) +
+           " edge_count=" + std::to_string( tree.edge_count() ) +
+           " link_count=" + std::to_string( tree.link_count() ) +
+           ">";
+}
+
+std::string print_info( TreeEdge const& edge )
+{
+    return "<genesis::tree::TreeEdge"
+           " index=" + std::to_string( edge.index() ) +
+           " has_data=" + ( edge.has_data() ? "true" : "false" ) +
+           ">";
+}
+
+std::string print_info( TreeLink const& link )
+{
+    return "<genesis::tree::TreeLink"
+           " index=" + std::to_string( link.index() ) +
+           // " has_data=" + ( edge.has_data() ? "true" : "false" ) +
+           ">";
+}
+
+std::string print_info( TreeNode const& node )
+{
+    return "<genesis::tree::TreeNode"
+           " index=" + std::to_string( node.index() ) +
+           " has_data=" + ( node.has_data() ? "true" : "false" ) +
+           ">";
+}
+
+std::string print_gist( Tree const& tree, int items )
+{
+    auto pc = PrinterCompact();
+    pc.limit( items );
+    return pc.print( tree );
+}
 
 std::ostream& operator << ( std::ostream& out, Tree const& tree )
 {
-    out << "Node Count: " << tree.node_count() << "\n";
-    out << "Edge Count: " << tree.edge_count() << "\n";
-    out << "Link Count: " << tree.link_count() << "\n";
+    if( utils::Options::get().print_object_infos() ) {
+        out << print_info( tree );
+    }
+    out << print_gist( tree, utils::Options::get().print_object_gists() );
+    return out;
+}
+
+std::ostream& operator << ( std::ostream& out, TreeEdge const& edge )
+{
+    if( utils::Options::get().print_object_infos() ) {
+        out << print_info( edge );
+    }
+    return out;
+}
+
+std::ostream& operator << ( std::ostream& out, TreeLink const& link )
+{
+    if( utils::Options::get().print_object_infos() ) {
+        out << print_info( link );
+    }
+    return out;
+}
+
+std::ostream& operator << ( std::ostream& out, TreeNode const& node )
+{
+    if( utils::Options::get().print_object_infos() ) {
+        out << print_info( node );
+    }
     return out;
 }
 

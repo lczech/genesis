@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -153,7 +153,17 @@ TreeEdge const* edge_between( TreeNode const& lhs, TreeNode const& rhs );
 //     Output
 // =================================================================================================
 
+std::string print_info( Tree const& tree );
+std::string print_info( TreeEdge const& edge );
+std::string print_info( TreeLink const& link );
+std::string print_info( TreeNode const& node );
+
+std::string print_gist( Tree const& tree, int items = 10 );
+
 std::ostream& operator << ( std::ostream& out, Tree const& tree );
+std::ostream& operator << ( std::ostream& out, TreeEdge const& edge );
+std::ostream& operator << ( std::ostream& out, TreeLink const& link );
+std::ostream& operator << ( std::ostream& out, TreeNode const& node );
 
 // =================================================================================================
 //     Validate
