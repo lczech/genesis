@@ -31,15 +31,10 @@
  * @ingroup utils
  */
 
-// Found zlib
-#ifdef GENESIS_ZLIB
-
 #include "genesis/utils/io/base_input_source.hpp"
 
 #include <memory>
 #include <string>
-
-#include "zlib.h"
 
 namespace genesis {
 namespace utils {
@@ -49,10 +44,14 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief Input source for reading byte data from a gzip-compressed source.
+ * @brief Input source for reading byte data from a gzip/zlib-compressed source.
  *
- * This input source is a wrapper that takes some other source (string, file, etc),
- * and de-compresses using gzip on the fly while reading.
+ * This input source is a wrapper that takes some other input source
+ * (FileInputSource, StringInputSource, StreamInputSource, etc),
+ * and de-compresses using gzip/zlib on the fly while reading.
+ *
+ * The class can be moved, but not copied, because of the internal state that is kept for
+ * decompression, and which would mess up the input source if copied.
  */
 class GzipInputSource : public BaseInputSource
 {
@@ -63,29 +62,29 @@ public:
     // -------------------------------------------------------------
 
     /**
-     * @brief Block length for internal buffering (1MB).
+     * @brief Format used by gzip/zlib for decompression.
      */
-    static const size_t BlockLength = 1 << 20;
-
-    /**
-     * @brief Format used by zlib for decompression.
-     */
-    enum class Format : int
+    enum class Format
     {
+        /**
+        * @brief Enable automatic header detection, allowing either gzip or zlib.
+        */
+        kAutomatic,
+
         /**
          * @brief Use gzip decompression.
          */
-        kGzip = MAX_WBITS | 16,
+        kGzip,
 
         /**
          * @brief Use zlib decompression.
          */
-        kZlib = MAX_WBITS,
+        kZlib,
 
         /**
          * @brief Use a pure deflate decompression.
          */
-        kDeflate = -MAX_WBITS
+        kDeflate
     };
 
     // -------------------------------------------------------------
@@ -93,17 +92,19 @@ public:
     // -------------------------------------------------------------
 
     /**
-     * @brief Construct the input source from a file with the given file name.
+     * @brief Construct the input source using another input source
+     * (FileInputSource, StringInputSource, StreamInputSource, etc),
+     * and add gzip/zlib decompression on top, using the specified GzipInputSource::Format.
      */
     explicit GzipInputSource(
         std::unique_ptr<BaseInputSource> input_source,
-        Format format = Format::kGzip
+        Format format = Format::kAutomatic
     );
 
-    GzipInputSource( GzipInputSource const& ) = default;
+    GzipInputSource( GzipInputSource const& ) = delete;
     GzipInputSource( GzipInputSource&& )      = default;
 
-    GzipInputSource& operator= ( GzipInputSource const& ) = default;
+    GzipInputSource& operator= ( GzipInputSource const& ) = delete;
     GzipInputSource& operator= ( GzipInputSource&& )      = default;
 
     ~GzipInputSource();
@@ -113,6 +114,11 @@ public:
     // -------------------------------------------------------------
 
 private:
+
+    /**
+     * @brief Block length for internal input buffering (1MB).
+     */
+    static const size_t BlockLength = 1 << 20;
 
     /**
      * @brief Override of the read function.
@@ -133,6 +139,11 @@ private:
     void report_zlib_error_( int error_code ) const;
 
     /**
+    * @brief Get the zlib internal int form of the format enum.
+    */
+    int get_format_( Format format ) const;
+
+    /**
      * @brief Translate the format enum into a string representation.
      */
     std::string translate_format_( Format format ) const;
@@ -144,16 +155,20 @@ private:
     std::unique_ptr<BaseInputSource> input_source_;
     std::string format_name_;
 
-    z_stream z_stream_;
-    char     in_buf_[ BlockLength ];
-    size_t   in_pos_ = 0;
-    size_t   in_end_ = 0;
+    // We want to avoid including the zlib header in this header,
+    // because it totally pollutes everything.
+    // So, we use a PIMPL-like data hiding technique for the zlib related members.
+    struct ZlibData;
+
+    // Store the implementation and the implementation's deleter as well.
+    // Deleter is a pointer to a function with signature `void func(ZlibData *)`.
+    // This way, we can use the default move constructor and default move assignment
+    // for this class without implementing them on our own.
+    std::unique_ptr<ZlibData, void (*)(ZlibData *)> zlib_data_;
 
 };
 
 } // namespace utils
 } // namespace genesis
-
-#endif // found zlib
 
 #endif // include guard

@@ -30,27 +30,63 @@
 
 #include "genesis/utils/io/gzip_input_source.hpp"
 
-// Found zlib
-#ifdef GENESIS_ZLIB
-
 #include <cassert>
 #include <cstdio>
 #include <cstring>
 #include <stdexcept>
 
-#include "zlib.h"
+#ifdef GENESIS_ZLIB
 
-#if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
-#    include <fcntl.h>
-#    include <io.h>
-#endif
+#    include "zlib.h"
+
+#    if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
+#       include <fcntl.h>
+#       include <io.h>
+#   endif
+
+#endif // GENESIS_ZLIB
 
 namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Gzip Input Source
+//     Zlib Data
 // =================================================================================================
+
+#ifdef GENESIS_ZLIB
+
+/**
+ * @brief Version of the Zlib Data struct if zlib is used.
+ */
+struct GzipInputSource::ZlibData
+{
+    // Zlib object
+    z_stream z_stream_;
+
+    // Input buffer, our current position in the buffer, and the past-the-end position
+    // (can be shorter than the buffer length, if there is not enough input).
+    char     in_buf_[ BlockLength ];
+    size_t   in_pos_ = 0;
+    size_t   in_end_ = 0;
+};
+
+#else // GENESIS_ZLIB
+
+/**
+ * @brief Version of the Zlib Data struct if zlib is not available.
+ */
+struct GzipInputSource::ZlibData
+{
+    // Empty on purpose.
+};
+
+#endif // GENESIS_ZLIB
+
+// =================================================================================================
+//     Gzip Input Source: Functions with zlib
+// =================================================================================================
+
+#ifdef GENESIS_ZLIB
 
 GzipInputSource::GzipInputSource(
     std::unique_ptr<BaseInputSource> input_source,
@@ -58,8 +94,13 @@ GzipInputSource::GzipInputSource(
 )
     : input_source_( std::move( input_source ))
     , format_name_( translate_format_( format ))
+    , zlib_data_(
+        new ZlibData(),
+        []( ZlibData *impl ) { delete impl; }
+    )
 {
-    // Allocate inflate state
+    // Allocate zlib inflate state
+    auto& z_stream_ = zlib_data_->z_stream_;
     z_stream_.zalloc = Z_NULL;
     z_stream_.zfree = Z_NULL;
     z_stream_.opaque = Z_NULL;
@@ -67,7 +108,7 @@ GzipInputSource::GzipInputSource(
     z_stream_.next_in = Z_NULL;
 
     // Init zlib
-    auto ret = inflateInit2( &z_stream_, static_cast<int>( format ));
+    auto ret = inflateInit2( &z_stream_, get_format_( format ));
     if( ret != Z_OK ) {
         report_zlib_error_( ret );
     }
@@ -75,11 +116,19 @@ GzipInputSource::GzipInputSource(
 
 GzipInputSource::~GzipInputSource()
 {
-    inflateEnd( &z_stream_ );
+    // Call the zlib destructor. This is called before the inner class is destroyed,
+    // so this is in correct order.
+    inflateEnd( &zlib_data_->z_stream_ );
 }
 
 size_t GzipInputSource::read_( char* buffer, size_t size )
 {
+    // Shorthands to the data members.
+    auto& z_stream_ = zlib_data_->z_stream_;
+    auto& in_buf_   = zlib_data_->in_buf_;
+    auto& in_pos_   = zlib_data_->in_pos_;
+    auto& in_end_   = zlib_data_->in_end_;
+
     // How much have we already done, how much do we need to do, and where to put it.
     // (The latter two are aliases for consistency...)
     size_t       out_pos = 0;
@@ -97,6 +146,9 @@ size_t GzipInputSource::read_( char* buffer, size_t size )
         }
 
         // Read starting from the current input position, as much as there still is data.
+        // We use char data, but zlib expects unsigned char. So here, we cast in one direction,
+        // and in the output buffer, we again cast back. This doesn't change the byte content,
+        // so this is okay.
         z_stream_.avail_in = in_end_ - in_pos_;
         z_stream_.next_in = reinterpret_cast<Bytef*>( in_buf_ ) + in_pos_;
 
@@ -163,9 +215,86 @@ void GzipInputSource::report_zlib_error_( int error_code ) const
     }
 }
 
+int GzipInputSource::get_format_( GzipInputSource::Format format ) const
+{
+    // Get the correct format int from the enum.
+    // We could use a typed enum, and directly use the enum to store the values,
+    // but this would require to include the zlib header in the header of this class,
+    // which we want to avoid.
+    switch( format ) {
+        case Format::kAutomatic:
+            return MAX_WBITS | 32;
+        case Format::kGzip:
+            return MAX_WBITS | 16;
+        case Format::kZlib:
+            return MAX_WBITS;
+        case Format::kDeflate:
+            return -MAX_WBITS;
+        default:
+            assert( false );
+            return 0;
+    }
+}
+
+// =================================================================================================
+//     Gzip Input Source: Functions without zlib
+// =================================================================================================
+
+#else // GENESIS_ZLIB
+
+// Here, we define the class members as empty functions, throwing in the constructor.
+// This is offered to be able to write code that mentions the class, without having to have zlib.
+
+GzipInputSource::~GzipInputSource()
+{
+    // Empty on purpose.
+
+    // For some weird reason, Doxygen messes up the documentation if this function comes after the
+    // contructor definition below. Probably due to Doxygen being unable to correctly parse that
+    // lambda in the initilizer. Anyway, by putting the destructor definition here, the Doxygen
+    // problem is solved.
+}
+
+GzipInputSource::GzipInputSource(
+    std::unique_ptr<BaseInputSource>,
+    GzipInputSource::Format
+)
+    : input_source_()
+    , format_name_()
+    , zlib_data_( nullptr, []( ZlibData* ){} )
+{
+    // Just avoid doing anything really.
+    throw std::runtime_error( "zlib: Library was not compiled with zlib support." );
+}
+
+size_t GzipInputSource::read_( char*, size_t )
+{
+    return 0;
+}
+
+void GzipInputSource::report_zlib_error_( int ) const
+{
+    // Empty on purpose.
+}
+
+int GzipInputSource::get_format_( GzipInputSource::Format ) const
+{
+    return 0;
+}
+
+#endif // GENESIS_ZLIB
+
+// =================================================================================================
+//     Gzip Input Source: Common Functions
+// =================================================================================================
+
 std::string GzipInputSource::translate_format_( GzipInputSource::Format format ) const
 {
+    // This function does not need the zlib header, so we only define it once.
+
     switch( format ) {
+        case Format::kAutomatic:
+            return "gzip/zlib";
         case Format::kGzip:
             return "gzip";
         case Format::kZlib:
@@ -180,5 +309,3 @@ std::string GzipInputSource::translate_format_( GzipInputSource::Format format )
 
 } // namespace utils
 } // namespace genesis
-
-#endif // found zlib
