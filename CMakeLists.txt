@@ -134,6 +134,9 @@ option (GENESIS_BUILD_TESTS         "Build the Genesis test suites."     OFF)
 option (GENESIS_USE_THREADS         "Use a threading library (mainly, pthreads)."  ON)
 option (GENESIS_USE_OPENMP          "Use OpenMP, if available."                    ON)
 
+# If available, also use other external dependencies
+option (GENESIS_USE_ZLIB            "Use zlib, if available."                      ON)
+
 # Define unity build option with list of valid values. Default is full unity build.
 set( GENESIS_UNITY_BUILD FULL CACHE STRING
     "Build modules monolithically - trading memory for speed. This also enables poor-mans LTO."
@@ -207,8 +210,30 @@ if( IS_BIG_ENDIAN )
 endif()
 
 # --------------------------------------------------------------------------------------------------
-#   Threads and OpenMP
+#   External Dependencies
 # --------------------------------------------------------------------------------------------------
+
+IF(GENESIS_USE_ZLIB)
+    message (STATUS "Looking for zlib")
+    find_package(ZLIB)
+
+    # If found, set all needed compiler flags and also add those flags to the Genesis exported flags.
+    if(ZLIB_FOUND)
+        message( STATUS "Found zlib: ${ZLIB_INCLUDE_DIRS} ${ZLIB_VERSION_STRING}" )
+        message (STATUS "${ColorGreen}Using zlib${ColorEnd}")
+
+        # Include the headers etc
+        include_directories( ${ZLIB_INCLUDE_DIRS} )
+
+        # Set needed definition and linker flags for Genesis and for the parent scope.
+        add_definitions( "-DGENESIS_ZLIB" )
+        set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_ZLIB" )
+        set( GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${ZLIB_LIBRARIES} )
+
+    elseif(GENESIS_USE_ZLIB)
+        message (STATUS "zlib not found")
+    endif()
+ENDIF()
 
 # We check whether to use threads and OpenMP here,
 # so that all binaries are compiled with the same settings.

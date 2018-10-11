@@ -38,6 +38,7 @@
 
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/io/gzip_input_source.hpp"
 
 #include <fstream>
 #include <string>
@@ -157,3 +158,25 @@ TEST( FastaInputIterator, Advance )
 //     EXPECT_EQ( 460, len );
 //     EXPECT_EQ( 10, cnt );
 // }
+
+TEST( Sequence, FastaCompressed )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Load sequence file.
+    std::string infile = environment->data_dir + "sequence/dna_10.fasta.gz";
+    utils::InputStream cit { utils::make_unique<utils::GzipInputSource>(
+        utils::make_unique<utils::FileInputSource>( infile )
+    )};
+
+    // Read.
+    SequenceSet sset;
+    FastaReader().parse_document( cit, sset );
+
+    // Check data.
+    EXPECT_EQ( 10, sset.size() );
+    EXPECT_EQ( 460,                    sset[0].length() );
+    EXPECT_EQ( "Di106BGTue",           sset[0].label() );
+    EXPECT_EQ( "TCGAAACCTGC------CTA", sset[0].sites().substr( 0, 20 ) );
+}

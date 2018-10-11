@@ -81,6 +81,7 @@
 #include "genesis/utils/io/base_input_source.hpp"
 #include "genesis/utils/io/deserializer.hpp"
 #include "genesis/utils/io/file_input_source.hpp"
+#include "genesis/utils/io/gzip_input_source.hpp"
 #include "genesis/utils/io/input_buffer.hpp"
 #include "genesis/utils/io/input_reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
