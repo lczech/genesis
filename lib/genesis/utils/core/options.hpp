@@ -255,6 +255,14 @@ public:
      */
     static std::string cpp_version();
 
+    /**
+     * @brief Return the date and time when genesis was compiled.
+     *
+     * Due to this using the preprocessor, the returned date and time are from when
+     * the Options class was first compiled in a clean build process.
+     */
+    static std::string compile_date_time();
+
     // -------------------------------------------------------------------------
     //     Build Type
     // -------------------------------------------------------------------------
