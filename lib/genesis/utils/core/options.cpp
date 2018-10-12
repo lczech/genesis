@@ -142,24 +142,6 @@ void Options::number_of_threads ( unsigned int number )
     #endif
 }
 
-bool Options::using_pthreads() const
-{
-    #ifdef GENESIS_PTHREADS
-        return true;
-    #else
-        return false;
-    #endif
-}
-
-bool Options::using_openmp() const
-{
-    #ifdef GENESIS_OPENMP
-        return true;
-    #else
-        return false;
-    #endif
-}
-
 // =================================================================================================
 //     Random Seed & Engine
 // =================================================================================================
@@ -174,7 +156,7 @@ void Options::random_seed(const unsigned seed)
 //     Run Time Environment
 // =================================================================================================
 
-bool Options::stdin_is_terminal() const
+bool Options::stdin_is_terminal()
 {
     // Using http://stackoverflow.com/a/1312957/4184258
     #if defined( _WIN32 ) || defined(  _WIN64  )
@@ -184,7 +166,7 @@ bool Options::stdin_is_terminal() const
     #endif
 }
 
-bool Options::stdout_is_terminal() const
+bool Options::stdout_is_terminal()
 {
     #if defined( _WIN32 ) || defined(  _WIN64  )
         return _isatty( _fileno( stdout ));
@@ -193,7 +175,7 @@ bool Options::stdout_is_terminal() const
     #endif
 }
 
-bool Options::stderr_is_terminal() const
+bool Options::stderr_is_terminal()
 {
     #if defined( _WIN32 ) || defined(  _WIN64  )
         return _isatty( _fileno( stderr ));
@@ -202,7 +184,7 @@ bool Options::stderr_is_terminal() const
     #endif
 }
 
-std::pair<int, int> Options::terminal_size() const
+std::pair<int, int> Options::terminal_size()
 {
     #if defined( _WIN32 ) || defined(  _WIN64  )
 
@@ -225,6 +207,35 @@ std::pair<int, int> Options::terminal_size() const
 // =================================================================================================
 //     Compile Time Environment
 // =================================================================================================
+
+bool Options::is_debug()
+{
+    #ifdef DEBUG
+        return true;
+    #else
+        return false;
+    #endif
+}
+
+bool Options::is_release()
+{
+    #ifdef NDEBUG
+        return true;
+    #else
+        return false;
+    #endif
+}
+
+std::string Options::build_type()
+{
+    #if defined( DEBUG )
+        return "debug";
+    #elif defined( NDEBUG )
+        return "release";
+    #else
+        return "unknown";
+    #endif
+}
 
 bool Options::is_little_endian()
 {
@@ -318,36 +329,30 @@ std::string Options::compile_date_time()
     return std::string( __DATE__ " " __TIME__ );
 }
 
-// =================================================================================================
-//     Build Type
-// =================================================================================================
-
-bool Options::is_debug()
+bool Options::using_pthreads()
 {
-    #ifdef DEBUG
+    #ifdef GENESIS_PTHREADS
         return true;
     #else
         return false;
     #endif
 }
 
-bool Options::is_release()
+bool Options::using_openmp()
 {
-    #ifdef NDEBUG
+    #ifdef GENESIS_OPENMP
         return true;
     #else
         return false;
     #endif
 }
 
-std::string Options::build_type()
+bool Options::using_zlib()
 {
-    #if defined( DEBUG )
-        return "debug";
-    #elif defined( NDEBUG )
-        return "release";
+    #ifdef GENESIS_ZLIB
+        return true;
     #else
-        return "unknown";
+        return false;
     #endif
 }
 
