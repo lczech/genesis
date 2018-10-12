@@ -134,6 +134,7 @@
 #include "genesis/utils/tools/date_time.hpp"
 #include "genesis/utils/tools/geodesy/functions.hpp"
 #include "genesis/utils/tools/geodesy.hpp"
+#include "genesis/utils/tools/gzip.hpp"
 #include "genesis/utils/tools/hashing.hpp"
 #include "genesis/utils/tools/md5.hpp"
 #include "genesis/utils/tools/sha1.hpp"
