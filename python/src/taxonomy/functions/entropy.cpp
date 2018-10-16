@@ -55,14 +55,14 @@ PYTHON_EXPORT_FUNCTIONS( taxonomy_functions_entropy_export, ::genesis::taxonomy,
         get_docstring("void ::genesis::taxonomy::expand_small_subtaxonomies (Taxonomy & taxonomy, size_t min_subtaxonomy_size)")
     );
 
-    scope.def(
-        "prune_by_entropy",
-        ( void ( * )( Taxonomy &, size_t, PruneByEntropySettings ))( &::genesis::taxonomy::prune_by_entropy ),
-            pybind11::arg("taxonomy"),
-            pybind11::arg("target_taxonomy_size"),
-            pybind11::arg("settings")=(PruneByEntropySettings()),
-        get_docstring("void ::genesis::taxonomy::prune_by_entropy (Taxonomy & taxonomy, size_t target_taxonomy_size, PruneByEntropySettings settings={})")
-    );
+    // scope.def(
+    //     "prune_by_entropy",
+    //     ( void ( * )( Taxonomy &, size_t, PruneByEntropySettings ))( &::genesis::taxonomy::prune_by_entropy ),
+    //         pybind11::arg("taxonomy"),
+    //         pybind11::arg("target_taxonomy_size"),
+    //         // pybind11::arg("settings")=(PruneByEntropySettings)({}),
+    //     get_docstring("void ::genesis::taxonomy::prune_by_entropy (Taxonomy & taxonomy, size_t target_taxonomy_size, PruneByEntropySettings settings={})")
+    // );
 
     scope.def(
         "remove_pruned_taxonomy_children",

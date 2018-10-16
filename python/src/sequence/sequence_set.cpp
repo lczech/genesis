@@ -41,11 +41,11 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::SequenceSet, scope )
             pybind11::arg("s"),
             get_docstring("reference ::genesis::sequence::SequenceSet::add (Sequence const & s)")
         )
-        .def(
-            "at",
-            ( ::genesis::sequence::SequenceSet::const_reference ( ::genesis::sequence::SequenceSet::* )( size_t ) const )( &::genesis::sequence::SequenceSet::at ),
-            pybind11::arg("index")
-        )
+        // .def(
+        //     "at",
+        //     ( const_reference ( ::genesis::sequence::SequenceSet::* )( size_t ) const )( &::genesis::sequence::SequenceSet::at ),
+        //     pybind11::arg("index")
+        // )
         .def(
             "at",
             ( ::genesis::sequence::SequenceSet::reference ( ::genesis::sequence::SequenceSet::* )( size_t ))( &::genesis::sequence::SequenceSet::at ),
@@ -68,19 +68,19 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::SequenceSet, scope )
             "empty",
             ( bool ( ::genesis::sequence::SequenceSet::* )(  ) const )( &::genesis::sequence::SequenceSet::empty )
         )
-        // .def(
-        //     "remove",
-        //     ( void ( ::genesis::sequence::SequenceSet::* )( iterator ))( &::genesis::sequence::SequenceSet::remove ),
-        //     pybind11::arg("position"),
-        //     get_docstring("void ::genesis::sequence::SequenceSet::remove (iterator position)")
-        // )
-        // .def(
-        //     "remove",
-        //     ( void ( ::genesis::sequence::SequenceSet::* )( iterator, iterator ))( &::genesis::sequence::SequenceSet::remove ),
-        //     pybind11::arg("first"),
-        //     pybind11::arg("last"),
-        //     get_docstring("void ::genesis::sequence::SequenceSet::remove (iterator first, iterator last)")
-        // )
+        .def(
+            "remove",
+            ( void ( ::genesis::sequence::SequenceSet::* )( ::genesis::sequence::SequenceSet::iterator ))( &::genesis::sequence::SequenceSet::remove ),
+            pybind11::arg("position"),
+            get_docstring("void ::genesis::sequence::SequenceSet::remove (iterator position)")
+        )
+        .def(
+            "remove",
+            ( void ( ::genesis::sequence::SequenceSet::* )( ::genesis::sequence::SequenceSet::iterator, ::genesis::sequence::SequenceSet::iterator ))( &::genesis::sequence::SequenceSet::remove ),
+            pybind11::arg("first"),
+            pybind11::arg("last"),
+            get_docstring("void ::genesis::sequence::SequenceSet::remove (iterator first, iterator last)")
+        )
         .def(
             "remove",
             ( void ( ::genesis::sequence::SequenceSet::* )( size_t ))( &::genesis::sequence::SequenceSet::remove ),
@@ -106,11 +106,11 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::SequenceSet, scope )
             ( ::genesis::sequence::SequenceSet::reference ( ::genesis::sequence::SequenceSet::* )( size_t ))( &::genesis::sequence::SequenceSet::operator[] ),
             pybind11::arg("index")
         )
-        .def(
-            "__getitem__",
-            ( ::genesis::sequence::SequenceSet::const_reference ( ::genesis::sequence::SequenceSet::* )( size_t ) const )( &::genesis::sequence::SequenceSet::operator[] ),
-            pybind11::arg("index")
-        )
+        // .def(
+        //     "__getitem__",
+        //     ( const_reference ( ::genesis::sequence::SequenceSet::* )( size_t ) const )( &::genesis::sequence::SequenceSet::operator[] ),
+        //     pybind11::arg("index")
+        // )
         .def(
             "__str__",
             []( ::genesis::sequence::SequenceSet const& obj ) -> std::string {
@@ -126,8 +126,9 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::SequenceSet, scope )
             "__iter__",
             []( ::genesis::sequence::SequenceSet& obj ){
                 return pybind11::make_iterator( obj.begin(), obj.end() );
-            },
-            pybind11::keep_alive<0, 1>()
+            }
+            // ,
+            // py::keep_alive<0, 1>()
         )
     ;
 }

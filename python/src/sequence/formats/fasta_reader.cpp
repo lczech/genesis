@@ -70,6 +70,17 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::FastaReader, scope )
             get_docstring("void ::genesis::sequence::FastaReader::from_string (std::string const & input_string, SequenceSet & sequence_set) const")
         )
         .def(
+            "guess_abundances",
+            ( FastaReader & ( ::genesis::sequence::FastaReader::* )( bool ))( &::genesis::sequence::FastaReader::guess_abundances ),
+            pybind11::arg("value"),
+            get_docstring("FastaReader & ::genesis::sequence::FastaReader::guess_abundances (bool value)")
+        )
+        .def(
+            "guess_abundances",
+            ( bool ( ::genesis::sequence::FastaReader::* )(  ) const )( &::genesis::sequence::FastaReader::guess_abundances ),
+            get_docstring("bool ::genesis::sequence::FastaReader::guess_abundances () const")
+        )
+        .def(
             "parse_document",
             ( void ( ::genesis::sequence::FastaReader::* )( utils::InputStream &, SequenceSet & ) const )( &::genesis::sequence::FastaReader::parse_document ),
             pybind11::arg("input_stream"),
@@ -90,27 +101,32 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::FastaReader, scope )
             pybind11::arg("sequence"),
             get_docstring("bool ::genesis::sequence::FastaReader::parse_sequence_pedantic (utils::InputStream & input_stream, Sequence & sequence) const")
         )
-        // .def(
-        //     "parsing_method",
-        //     ( FastaReader & ( ::genesis::sequence::FastaReader::* )( ParsingMethod ))( &::genesis::sequence::FastaReader::parsing_method ),
-        //     pybind11::arg("value"),
-        //     get_docstring("FastaReader & ::genesis::sequence::FastaReader::parsing_method (ParsingMethod value)")
-        // )
-        // .def(
-        //     "parsing_method",
-        //     ( ParsingMethod ( ::genesis::sequence::FastaReader::* )(  ) const )( &::genesis::sequence::FastaReader::parsing_method ),
-        //     get_docstring("ParsingMethod ::genesis::sequence::FastaReader::parsing_method () const")
-        // )
         .def(
-            "to_upper",
-            ( FastaReader & ( ::genesis::sequence::FastaReader::* )( bool ))( &::genesis::sequence::FastaReader::to_upper ),
+            "parsing_method",
+            ( FastaReader & ( ::genesis::sequence::FastaReader::* )( ::genesis::sequence::FastaReader::ParsingMethod ))( &::genesis::sequence::FastaReader::parsing_method ),
             pybind11::arg("value"),
-            get_docstring("FastaReader & ::genesis::sequence::FastaReader::to_upper (bool value)")
+            get_docstring("FastaReader & ::genesis::sequence::FastaReader::parsing_method (ParsingMethod value)")
         )
         .def(
-            "to_upper",
-            ( bool ( ::genesis::sequence::FastaReader::* )(  ) const )( &::genesis::sequence::FastaReader::to_upper ),
-            get_docstring("bool ::genesis::sequence::FastaReader::to_upper () const")
+            "parsing_method",
+            ( ::genesis::sequence::FastaReader::ParsingMethod ( ::genesis::sequence::FastaReader::* )(  ) const )( &::genesis::sequence::FastaReader::parsing_method ),
+            get_docstring("ParsingMethod ::genesis::sequence::FastaReader::parsing_method () const")
+        )
+        // .def(
+        //     "read",
+        //     ( SequenceSet ( ::genesis::sequence::FastaReader::* )( utils::InputSource ) const )( &::genesis::sequence::FastaReader::read ),
+        //     pybind11::arg("input")
+        // )
+        .def(
+            "site_casing",
+            ( FastaReader & ( ::genesis::sequence::FastaReader::* )( ::genesis::sequence::FastaReader::SiteCasing ))( &::genesis::sequence::FastaReader::site_casing ),
+            pybind11::arg("value"),
+            get_docstring("FastaReader & ::genesis::sequence::FastaReader::site_casing (SiteCasing value)")
+        )
+        .def(
+            "site_casing",
+            ( ::genesis::sequence::FastaReader::SiteCasing ( ::genesis::sequence::FastaReader::* )(  ) const )( &::genesis::sequence::FastaReader::site_casing ),
+            get_docstring("SiteCasing ::genesis::sequence::FastaReader::site_casing () const")
         )
         .def(
             "valid_char_lookup",

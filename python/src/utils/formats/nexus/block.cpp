@@ -10,7 +10,7 @@
 #include "genesis/genesis.hpp"
 
 using namespace ::genesis::utils;
-/*
+
 PYTHON_EXPORT_CLASS( ::genesis::utils::NexusBlock, scope )
 {
 
@@ -19,13 +19,13 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::NexusBlock, scope )
     // -------------------------------------------------------------------
 
     pybind11::class_< ::genesis::utils::NexusBlock, std::shared_ptr<::genesis::utils::NexusBlock> > ( scope, "NexusBlock" )
-        .def(
-            pybind11::init<  >()
-        )
-        .def(
-            pybind11::init< NexusBlock const & >(),
-            pybind11::arg("arg")
-        )
+        // .def(
+        //     pybind11::init<  >()
+        // )
+        // .def(
+        //     pybind11::init< NexusBlock const & >(),
+        //     pybind11::arg("arg")
+        // )
 
         // Public Member Functions
 
@@ -51,4 +51,3 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::NexusBlock, scope )
         )
     ;
 }
-*/

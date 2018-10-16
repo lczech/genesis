@@ -80,16 +80,16 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::PhylipReader, scope )
             ( size_t ( ::genesis::sequence::PhylipReader::* )(  ) const )( &::genesis::sequence::PhylipReader::label_length ),
             get_docstring("size_t ::genesis::sequence::PhylipReader::label_length () const")
         )
-        // .def(
-        //     "mode",
-        //     ( Mode ( ::genesis::sequence::PhylipReader::* )(  ) const )( &::genesis::sequence::PhylipReader::mode )
-        // )
-        // .def(
-        //     "mode",
-        //     ( PhylipReader & ( ::genesis::sequence::PhylipReader::* )( Mode ))( &::genesis::sequence::PhylipReader::mode ),
-        //     pybind11::arg("value"),
-        //     get_docstring("PhylipReader & ::genesis::sequence::PhylipReader::mode (Mode value)")
-        // )
+        .def(
+            "mode",
+            ( ::genesis::sequence::PhylipReader::Mode ( ::genesis::sequence::PhylipReader::* )(  ) const )( &::genesis::sequence::PhylipReader::mode )
+        )
+        .def(
+            "mode",
+            ( PhylipReader & ( ::genesis::sequence::PhylipReader::* )( ::genesis::sequence::PhylipReader::Mode ))( &::genesis::sequence::PhylipReader::mode ),
+            pybind11::arg("value"),
+            get_docstring("PhylipReader & ::genesis::sequence::PhylipReader::mode (Mode value)")
+        )
         .def(
             "parse_phylip_header",
             ( ::genesis::sequence::PhylipReader::Header ( ::genesis::sequence::PhylipReader::* )( utils::InputStream & ) const )( &::genesis::sequence::PhylipReader::parse_phylip_header ),
@@ -123,15 +123,15 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::PhylipReader, scope )
             get_docstring("void ::genesis::sequence::PhylipReader::parse_phylip_sequential (utils::InputStream & it, SequenceSet & sset) const")
         )
         .def(
-            "to_upper",
-            ( PhylipReader & ( ::genesis::sequence::PhylipReader::* )( bool ))( &::genesis::sequence::PhylipReader::to_upper ),
+            "site_casing",
+            ( PhylipReader & ( ::genesis::sequence::PhylipReader::* )( ::genesis::sequence::PhylipReader::SiteCasing ))( &::genesis::sequence::PhylipReader::site_casing ),
             pybind11::arg("value"),
-            get_docstring("PhylipReader & ::genesis::sequence::PhylipReader::to_upper (bool value)")
+            get_docstring("PhylipReader & ::genesis::sequence::PhylipReader::site_casing (SiteCasing value)")
         )
         .def(
-            "to_upper",
-            ( bool ( ::genesis::sequence::PhylipReader::* )(  ) const )( &::genesis::sequence::PhylipReader::to_upper ),
-            get_docstring("bool ::genesis::sequence::PhylipReader::to_upper () const")
+            "site_casing",
+            ( ::genesis::sequence::PhylipReader::SiteCasing ( ::genesis::sequence::PhylipReader::* )(  ) const )( &::genesis::sequence::PhylipReader::site_casing ),
+            get_docstring("SiteCasing ::genesis::sequence::PhylipReader::site_casing () const")
         )
         .def(
             "valid_char_lookup",

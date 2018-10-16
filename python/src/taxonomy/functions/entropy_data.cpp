@@ -10,7 +10,7 @@
 #include "genesis/genesis.hpp"
 
 using namespace ::genesis::taxonomy;
-/*
+
 PYTHON_EXPORT_CLASS( ::genesis::taxonomy::EntropyTaxonData, scope )
 {
 
@@ -31,16 +31,15 @@ PYTHON_EXPORT_CLASS( ::genesis::taxonomy::EntropyTaxonData, scope )
             "create",
             ( std::unique_ptr< EntropyTaxonData > ( * )(  ))( &::genesis::taxonomy::EntropyTaxonData::create )
         )
-        .def_static(
-            "status_abbreviation",
-            ( std::string ( * )( PruneStatus ))( &::genesis::taxonomy::EntropyTaxonData::status_abbreviation ),
-            pybind11::arg("stat")
-        )
-        .def_static(
-            "status_text",
-            ( std::string ( * )( PruneStatus ))( &::genesis::taxonomy::EntropyTaxonData::status_text ),
-            pybind11::arg("stat")
-        )
+        // .def_static(
+        //     "status_abbreviation",
+        //     ( std::string ( * )( PruneStatus ))( &::genesis::taxonomy::EntropyTaxonData::status_abbreviation ),
+        //     pybind11::arg("stat")
+        // )
+        // .def_static(
+        //     "status_text",
+        //     ( std::string ( * )( PruneStatus ))( &::genesis::taxonomy::EntropyTaxonData::status_text ),
+        //     pybind11::arg("stat")
+        // )
     ;
 }
-*/

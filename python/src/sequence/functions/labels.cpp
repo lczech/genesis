@@ -52,6 +52,20 @@ PYTHON_EXPORT_FUNCTIONS( sequence_functions_labels_export, ::genesis::sequence, 
     );
 
     scope.def(
+        "guess_sequence_abundance",
+        ( std::pair< std::string, size_t > ( * )( Sequence const & ))( &::genesis::sequence::guess_sequence_abundance ),
+            pybind11::arg("sequence"),
+        get_docstring("std::pair< std::string, size_t > ::genesis::sequence::guess_sequence_abundance (Sequence const & sequence)")
+    );
+
+    scope.def(
+        "guess_sequence_abundance",
+        ( std::pair< std::string, size_t > ( * )( std::string const & ))( &::genesis::sequence::guess_sequence_abundance ),
+            pybind11::arg("label"),
+        get_docstring("std::pair< std::string, size_t > ::genesis::sequence::guess_sequence_abundance (std::string const & label)")
+    );
+
+    scope.def(
         "sanitize_label",
         ( std::string ( * )( std::string const & ))( &::genesis::sequence::sanitize_label ),
             pybind11::arg("label"),
@@ -75,17 +89,19 @@ PYTHON_EXPORT_FUNCTIONS( sequence_functions_labels_export, ::genesis::sequence, 
     );
 
     scope.def(
-        "relabel_sha1",
-        ( void ( * )( Sequence & ))( &::genesis::sequence::relabel_sha1 ),
+        "relabel_with_hash",
+        ( void ( * )( Sequence &, utils::HashingFunctions ))( &::genesis::sequence::relabel_with_hash ),
             pybind11::arg("seq"),
-        get_docstring("void ::genesis::sequence::relabel_sha1 (Sequence & seq)")
+            pybind11::arg("hash_function"),
+        get_docstring("void ::genesis::sequence::relabel_with_hash (Sequence & seq, utils::HashingFunctions hash_function)")
     );
 
     scope.def(
-        "relabel_sha1",
-        ( void ( * )( SequenceSet & ))( &::genesis::sequence::relabel_sha1 ),
+        "relabel_with_hash",
+        ( void ( * )( SequenceSet &, utils::HashingFunctions ))( &::genesis::sequence::relabel_with_hash ),
             pybind11::arg("set"),
-        get_docstring("void ::genesis::sequence::relabel_sha1 (SequenceSet & set)")
+            pybind11::arg("hash_function"),
+        get_docstring("void ::genesis::sequence::relabel_with_hash (SequenceSet & set, utils::HashingFunctions hash_function)")
     );
 
     scope.def(

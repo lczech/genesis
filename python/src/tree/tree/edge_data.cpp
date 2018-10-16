@@ -11,7 +11,6 @@
 
 using namespace ::genesis::tree;
 
-/*
 PYTHON_EXPORT_CLASS( ::genesis::tree::BaseEdgeData, scope )
 {
 
@@ -28,6 +27,11 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::BaseEdgeData, scope )
             ( std::unique_ptr< BaseEdgeData > ( ::genesis::tree::BaseEdgeData::* )(  ) const )( &::genesis::tree::BaseEdgeData::clone ),
             get_docstring("std::unique_ptr< BaseEdgeData > ::genesis::tree::BaseEdgeData::clone () const")
         )
+        .def(
+            "recreate",
+            ( std::unique_ptr< BaseEdgeData > ( ::genesis::tree::BaseEdgeData::* )(  ) const )( &::genesis::tree::BaseEdgeData::recreate ),
+            get_docstring("std::unique_ptr< BaseEdgeData > ::genesis::tree::BaseEdgeData::recreate () const")
+        )
         .def_static(
             "create",
             ( std::unique_ptr< BaseEdgeData > ( * )(  ))( &::genesis::tree::BaseEdgeData::create ),
@@ -35,4 +39,3 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::BaseEdgeData, scope )
         )
     ;
 }
-*/

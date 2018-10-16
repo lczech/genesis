@@ -29,6 +29,12 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::TreeSet, scope )
 
         // Public Member Functions
 
+        // .def(
+        //     "add",
+        //     ( void ( ::genesis::tree::TreeSet::* )( std::string &&, Tree && ))( &::genesis::tree::TreeSet::add ),
+        //     pybind11::arg("name"),
+        //     pybind11::arg("tree")
+        // )
         .def(
             "add",
             ( void ( ::genesis::tree::TreeSet::* )( std::string const &, Tree const & ))( &::genesis::tree::TreeSet::add ),
@@ -87,8 +93,9 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::TreeSet, scope )
             "__iter__",
             []( ::genesis::tree::TreeSet& obj ){
                 return pybind11::make_iterator( obj.begin(), obj.end() );
-            },
-            pybind11::keep_alive<0, 1>()
+            }
+            // ,
+            // py::keep_alive<0, 1>()
         )
     ;
 }

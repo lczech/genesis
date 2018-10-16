@@ -37,20 +37,24 @@ PYTHON_EXPORT_CLASS( ::genesis::placement::PqueryPlacement, scope )
 
         .def(
             "edge",
-            ( PlacementTreeEdge & ( ::genesis::placement::PqueryPlacement::* )(  ))( &::genesis::placement::PqueryPlacement::edge )
+            ( PlacementTreeEdge & ( ::genesis::placement::PqueryPlacement::* )(  ))( &::genesis::placement::PqueryPlacement::edge ),
+            get_docstring("PlacementTreeEdge & ::genesis::placement::PqueryPlacement::edge ()")
         )
         .def(
             "edge",
-            ( const PlacementTreeEdge & ( ::genesis::placement::PqueryPlacement::* )(  ) const )( &::genesis::placement::PqueryPlacement::edge )
+            ( const PlacementTreeEdge & ( ::genesis::placement::PqueryPlacement::* )(  ) const )( &::genesis::placement::PqueryPlacement::edge ),
+            get_docstring("const PlacementTreeEdge & ::genesis::placement::PqueryPlacement::edge () const")
         )
         .def(
             "edge_num",
-            ( int ( ::genesis::placement::PqueryPlacement::* )(  ) const )( &::genesis::placement::PqueryPlacement::edge_num )
+            ( int ( ::genesis::placement::PqueryPlacement::* )(  ) const )( &::genesis::placement::PqueryPlacement::edge_num ),
+            get_docstring("int ::genesis::placement::PqueryPlacement::edge_num () const")
         )
         .def(
             "reset_edge",
             ( void ( ::genesis::placement::PqueryPlacement::* )( PlacementTreeEdge & ))( &::genesis::placement::PqueryPlacement::reset_edge ),
-            pybind11::arg("edge")
+            pybind11::arg("edge"),
+            get_docstring("void ::genesis::placement::PqueryPlacement::reset_edge (PlacementTreeEdge & edge)")
         )
     ;
 }

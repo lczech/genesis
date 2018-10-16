@@ -10,7 +10,7 @@
 #include "genesis/genesis.hpp"
 
 using namespace ::genesis::tree;
-/*
+
 PYTHON_EXPORT_CLASS( ::genesis::tree::BaseNodeData, scope )
 {
 
@@ -27,6 +27,11 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::BaseNodeData, scope )
             ( std::unique_ptr< BaseNodeData > ( ::genesis::tree::BaseNodeData::* )(  ) const )( &::genesis::tree::BaseNodeData::clone ),
             get_docstring("std::unique_ptr< BaseNodeData > ::genesis::tree::BaseNodeData::clone () const")
         )
+        .def(
+            "recreate",
+            ( std::unique_ptr< BaseNodeData > ( ::genesis::tree::BaseNodeData::* )(  ) const )( &::genesis::tree::BaseNodeData::recreate ),
+            get_docstring("std::unique_ptr< BaseNodeData > ::genesis::tree::BaseNodeData::recreate () const")
+        )
         .def_static(
             "create",
             ( std::unique_ptr< BaseNodeData > ( * )(  ))( &::genesis::tree::BaseNodeData::create ),
@@ -34,4 +39,3 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::BaseNodeData, scope )
         )
     ;
 }
-*/

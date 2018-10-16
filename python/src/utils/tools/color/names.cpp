@@ -11,41 +11,58 @@
 
 using namespace ::genesis::utils;
 
-PYTHON_EXPORT_CLASS( ::genesis::utils::ColorNames, scope )
-{
-
-    // -------------------------------------------------------------------
-    //     Class ColorNames
-    // -------------------------------------------------------------------
-
-    pybind11::class_< ::genesis::utils::ColorNames, std::shared_ptr<::genesis::utils::ColorNames> > ( scope, "ColorNames" )
-    ;
-}
-
 PYTHON_EXPORT_FUNCTIONS( utils_tools_color_names_export, ::genesis::utils, scope )
 {
 
     scope.def(
-        "get_named_color",
-        ( Color ( * )( std::string const & ))( &::genesis::utils::get_named_color ),
-            pybind11::arg("name")
+        "color_from_name",
+        ( Color ( * )( std::string const & ))( &::genesis::utils::color_from_name ),
+            pybind11::arg("name"),
+        get_docstring("Color ::genesis::utils::color_from_name (std::string const & name)")
     );
 
     scope.def(
-        "get_named_color_at",
-        ( Color ( * )( size_t ))( &::genesis::utils::get_named_color_at ),
-            pybind11::arg("at")
+        "color_from_name_web",
+        ( Color ( * )( std::string const & ))( &::genesis::utils::color_from_name_web ),
+            pybind11::arg("name"),
+        get_docstring("Color ::genesis::utils::color_from_name_web (std::string const & name)")
     );
 
     scope.def(
-        "is_named_color",
-        ( bool ( * )( std::string const & ))( &::genesis::utils::is_named_color ),
-            pybind11::arg("name")
+        "color_from_name_xkcd",
+        ( Color ( * )( std::string const & ))( &::genesis::utils::color_from_name_xkcd ),
+            pybind11::arg("name"),
+        get_docstring("Color ::genesis::utils::color_from_name_xkcd (std::string const & name)")
     );
 
     scope.def(
-        "get_named_color_index",
-        ( size_t ( * )( std::string const & ))( &::genesis::utils::get_named_color_index ),
-            pybind11::arg("name")
+        "is_color_name",
+        ( bool ( * )( std::string const & ))( &::genesis::utils::is_color_name ),
+            pybind11::arg("name"),
+        get_docstring("bool ::genesis::utils::is_color_name (std::string const & name)")
+    );
+
+    scope.def(
+        "is_web_color_name",
+        ( bool ( * )( std::string const & ))( &::genesis::utils::is_web_color_name ),
+            pybind11::arg("name"),
+        get_docstring("bool ::genesis::utils::is_web_color_name (std::string const & name)")
+    );
+
+    scope.def(
+        "is_xkcd_color_name",
+        ( bool ( * )( std::string const & ))( &::genesis::utils::is_xkcd_color_name ),
+            pybind11::arg("name"),
+        get_docstring("bool ::genesis::utils::is_xkcd_color_name (std::string const & name)")
+    );
+
+    scope.def(
+        "color_palette_web",
+        ( std::vector< Color > ( * )(  ))( &::genesis::utils::color_palette_web )
+    );
+
+    scope.def(
+        "color_palette_xkcd",
+        ( std::vector< Color > ( * )(  ))( &::genesis::utils::color_palette_xkcd )
     );
 }
