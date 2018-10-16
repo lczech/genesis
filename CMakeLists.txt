@@ -130,12 +130,12 @@ option (GENESIS_BUILD_APPLICATIONS  "Build Genesis applications."        ${GENES
 option (GENESIS_BUILD_PYTHON_MODULE "Build the Genesis python module."   OFF)
 option (GENESIS_BUILD_TESTS         "Build the Genesis test suites."     OFF)
 
+# If available, use external dependencies.
+option (GENESIS_USE_ZLIB            "Use zlib."                                    ON)
+
 # We default to using threads (if available, which will be checked later).
 option (GENESIS_USE_THREADS         "Use a threading library (mainly, pthreads)."  ON)
-option (GENESIS_USE_OPENMP          "Use OpenMP, if available."                    ON)
-
-# If available, also use other external dependencies
-option (GENESIS_USE_ZLIB            "Use zlib, if available."                      ON)
+option (GENESIS_USE_OPENMP          "Use OpenMP."                                  ON)
 
 # Define unity build option with list of valid values. Default is full unity build.
 set( GENESIS_UNITY_BUILD FULL CACHE STRING
@@ -220,7 +220,7 @@ IF(GENESIS_USE_ZLIB)
     # If found, set all needed compiler flags and also add those flags to the Genesis exported flags.
     if(ZLIB_FOUND)
         message( STATUS "Found zlib: ${ZLIB_INCLUDE_DIRS} ${ZLIB_VERSION_STRING}" )
-        message (STATUS "${ColorGreen}Using zlib${ColorEnd}")
+        message( STATUS "${ColorGreen}Using zlib${ColorEnd}" )
 
         # Include the headers etc
         include_directories( ${ZLIB_INCLUDE_DIRS} )
@@ -230,8 +230,10 @@ IF(GENESIS_USE_ZLIB)
         set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_ZLIB" )
         set( GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${ZLIB_LIBRARIES} )
 
-    elseif(GENESIS_USE_ZLIB)
-        message (STATUS "zlib not found")
+    else()
+        message( STATUS "${ColorRed}zlib not found${ColorEnd}" )
+        message( STATUS "To build without zlib support, call CMake with -DGENESIS_USE_ZLIB=OFF" )
+        message( FATAL_ERROR "Required package zlib not found.")
     endif()
 ENDIF()
 
@@ -247,15 +249,17 @@ IF(GENESIS_USE_THREADS)
     # If found, set all needed compiler flags and also add those flags to the Genesis exported flags.
     if(THREADS_FOUND)
         message( STATUS "Found Threads: ${CMAKE_THREAD_LIBS_INIT}" )
-        message (STATUS "${ColorGreen}Using Threads${ColorEnd}")
+        message( STATUS "${ColorGreen}Using Threads${ColorEnd}" )
 
         # Set needed definition and linker flags for Genesis and for the parent scope.
         add_definitions( "-DGENESIS_PTHREADS" )
         set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_PTHREADS" )
         set( GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
 
-    elseif(GENESIS_USE_THREADS)
-        message (STATUS "Threads not found")
+    else()
+        message( STATUS "${ColorRed}Threads not found${ColorEnd}" )
+        message( STATUS "To build without threading support, call CMake with -DGENESIS_USE_THREADS=OFF" )
+        message( FATAL_ERROR "Required package threads not found.")
     endif()
 
 ENDIF()
@@ -301,18 +305,21 @@ IF(GENESIS_USE_OPENMP)
         set( GENESIS_CXX_FLAGS        "${GENESIS_CXX_FLAGS}        ${OpenMP_CXX_FLAGS}" )
         set( GENESIS_EXE_LINKER_FLAGS "${GENESIS_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
 
-    elseif(
-        GENESIS_USE_OPENMP
-        AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
-        AND NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.8
-    )
+    else()
+        message( STATUS "${ColorRed}OpenMP not found${ColorEnd}" )
+
         # Special warning for users that have a Clang version that supports OpenMP, but where
         # the find module still did not succeed.
-        message (STATUS "OpenMP not found")
-        message (STATUS "${ColorYellow}You are trying to compile with Clang and OpenMp. "
-        "This does not seem to work right now. Try installing 'libiomp-dev' first.${ColorEnd}")
-    elseif(GENESIS_USE_OPENMP)
-        message (STATUS "OpenMP not found")
+        if(
+            "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
+            AND NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.8
+        )
+            message (STATUS "${ColorYellow}You are trying to compile with Clang and OpenMp. "
+            "This does not seem to work right now. Try installing 'libiomp-dev' first.${ColorEnd}")
+        endif()
+
+        message( STATUS "To build without OpenMP support, call CMake with -DGENESIS_USE_OPENMP=OFF" )
+        message( FATAL_ERROR "Required package OpenMP not found.")
     endif()
 
 ENDIF()
