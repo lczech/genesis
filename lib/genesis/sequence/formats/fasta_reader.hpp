@@ -32,8 +32,10 @@
  */
 
 #include "genesis/utils/tools/char_lookup.hpp"
+#include "genesis/utils/io/input_source.hpp"
 
 #include <iosfwd>
+#include <memory>
 #include <string>
 
 namespace genesis {
@@ -181,6 +183,8 @@ public:
     // ---------------------------------------------------------------------
     //     Reading
     // ---------------------------------------------------------------------
+
+    // SequenceSet read( std::shared_ptr< utils::BaseInputSource > input ) const;
 
     /**
      * @brief Read all Sequence%s from a std::istream in Fasta format into a SequenceSet.

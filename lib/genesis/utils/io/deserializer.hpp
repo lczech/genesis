@@ -63,7 +63,7 @@ public:
     // -------------------------------------------------------------------------
 
     Deserializer( std::string const& file_name )
-        : buffer_( utils::make_unique< FileInputSource >( file_name ) )
+        : buffer_( std::make_shared< FileInputSource >( file_name ) )
     {
         if( ! buffer_ ) {
             throw std::runtime_error("Creating Deserializer from file failed.");
@@ -71,7 +71,7 @@ public:
     }
 
     Deserializer( std::istream& instream )
-        : buffer_( utils::make_unique< StreamInputSource >( instream ) )
+        : buffer_( std::make_shared< StreamInputSource >( instream ) )
     {
         if( ! buffer_ ) {
             throw std::runtime_error("Creating Deserializer from stream failed.");

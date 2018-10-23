@@ -62,6 +62,14 @@ FastaReader::FastaReader()
 //     Reading
 // =================================================================================================
 
+// SequenceSet FastaReader::read( std::shared_ptr< utils::BaseInputSource > input ) const
+// {
+//     SequenceSet result;
+//     utils::InputStream is( input );
+//     parse_document( is, result );
+//     return result;
+// }
+
 void FastaReader::from_stream ( std::istream& input_stream, SequenceSet& sequence_set ) const
 {
     // Create an input stream and process it.

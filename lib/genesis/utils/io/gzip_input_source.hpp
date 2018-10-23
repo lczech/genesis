@@ -97,7 +97,7 @@ public:
      * and add gzip/zlib decompression on top, using the specified GzipInputSource::Format.
      */
     explicit GzipInputSource(
-        std::unique_ptr<BaseInputSource> input_source,
+        std::shared_ptr<BaseInputSource> input_source,
         Format format = Format::kAutomatic
     );
 
@@ -152,7 +152,7 @@ private:
     //     Member Variables
     // -------------------------------------------------------------
 
-    std::unique_ptr<BaseInputSource> input_source_;
+    std::shared_ptr<BaseInputSource> input_source_;
     std::string format_name_;
 
     // We want to avoid including the zlib header in this header,
