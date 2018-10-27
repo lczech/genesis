@@ -119,20 +119,33 @@ size_t max_degree( Tree const& tree )
     return max;
 }
 
-bool is_bifurcating( Tree const& tree, bool strict )
+bool is_bifurcating( Tree const& tree, bool loose )
 {
-    if( strict ) {
-        // Only allow tips and bifurcating inner nodes.
-        for( size_t i = 0; i < tree.node_count(); ++i ) {
-            if( degree( tree.node_at(i) ) != 1 && degree( tree.node_at(i) ) != 3 ) {
+    // Iterate all nodes and verify their degree.
+    for( size_t i = 0; i < tree.node_count(); ++i ) {
+        auto const deg = degree( tree.node_at(i) );
+
+        // Any degree > 3 is multifurcating.
+        if( deg > 3 ) {
+            return false;
+        }
+
+        // A degree of 2 is okay of we are loose, and always okay for the root.
+        if( deg == 2 ) {
+            auto const isroot = ( tree.node_at(i).index() == tree.root_node().index() );
+            assert( isroot == is_root( tree.node_at(i) ));
+
+            if( ! isroot && ! loose ) {
                 return false;
             }
         }
-        return true;
     }
+    return true;
+}
 
-    // Non strict variant.
-    return max_degree( tree ) == 3;
+bool is_binary( Tree const& tree, bool loose )
+{
+    return is_bifurcating( tree, loose );
 }
 
 bool is_rooted( Tree const& tree )

@@ -108,11 +108,23 @@ size_t max_degree( Tree const& tree );
 /**
  * @brief Return whether the Tree is bifurcating.
  *
- * If @p strict is set to `true`, the tree may not contain any nodes of degree 2
- * (nodes that do not have a furcation at all). This includes the root node.
- * Thus, with this option set, the tree also has to be unrooted.
+ * A tree is bifurcating iff all inner nodes have exactly three neighbouring nodes.
+ * The only exception is the root node, which for rooted trees only has two neighbors.
+ * Thus, this node is allowed to have two (for rooted trees) or three (for trees with a top-level
+ * trifurcation instead of an actual root) neighbors. In order to test which of these is the case,
+ * use is_rooted().
+ *
+ * If @p loose is set to `true`, the definition is a bit broadened and also allows other nodes with
+ * two neighbors. Such nodes do not have a furcation at all, and thus "sit" in between two other
+ * nodes. This case is however rare in practice, but can happen e.g., when wrongly rerooting the
+ * tree (in case that the old root is not deleted), or on trees that are created from a taxonomy.
  */
-bool is_bifurcating( Tree const& tree, bool strict = false );
+bool is_bifurcating( Tree const& tree, bool loose = false );
+
+/**
+ * @brief Alias for is_bifurcating().
+ */
+bool is_binary( Tree const& tree, bool loose = false );
 
 /**
  * @brief Return whether the Tree is rooted, that is, whether the root node has two neighbors.
