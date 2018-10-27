@@ -593,6 +593,20 @@ bool validate_topology( Tree const& tree )
         }
     }
 
+    // -----------------------------------------------------
+    //     Root
+    // -----------------------------------------------------
+
+    // All edges of the root node need to have this node as their primary node.
+    auto rl = &( tree.root_link().next());
+    while( rl != &( tree.root_link()) ) {
+        if( &( rl->edge().primary_link() ) != rl ) {
+            LOG_INFO << "Root node of the tree is not root in the topology.";
+            return false;
+        }
+        rl = &( rl->next() );
+    }
+
     return true;
 }
 
