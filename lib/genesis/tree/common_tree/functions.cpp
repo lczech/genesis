@@ -39,6 +39,8 @@
 #include "genesis/tree/tree_set.hpp"
 #include "genesis/utils/text/string.hpp"
 
+#include <algorithm>
+
 namespace genesis {
 namespace tree {
 
@@ -46,11 +48,11 @@ namespace tree {
 //     Node Names
 // =================================================================================================
 
-std::unordered_set<std::string> node_names(
+std::vector<std::string> node_names(
     Tree const& tree,
     bool leaves_only
 ) {
-    std::unordered_set<std::string> name_set;
+    std::vector<std::string> names;
     for( auto const& node : tree.nodes() ) {
         if( is_inner( *node ) && leaves_only ) {
             continue;
@@ -59,57 +61,23 @@ std::unordered_set<std::string> node_names(
         if( name == "" ) {
             continue;
         }
-        name_set.insert( std::move( name ));
+        names.push_back( std::move( name ));
     }
-    return name_set;
+    return names;
 }
 
-utils::SortedVector<std::string> node_names_sorted(
-    Tree const& tree,
-    bool leaves_only
-) {
-    utils::SortedVector<std::string> name_set;
-    for( auto const& node : tree.nodes() ) {
-        if( is_inner( *node ) && leaves_only ) {
-            continue;
-        }
-        auto const name = node->data<CommonNodeData>().name;
-        if( name == "" ) {
-            continue;
-        }
-        name_set.insert( std::move( name ));
-    }
-    return name_set;
-}
-
-std::unordered_set<std::string> node_names(
+std::vector<std::string> node_names(
     TreeSet const& tree_set,
     bool leaves_only
 ) {
     // It would be faster to directly insert into the resulting container, but this version
     // avoids code duplication and is fast enough for now.
-    std::unordered_set<std::string> name_set;
+    std::vector<std::string> names;
     for( auto const& tree : tree_set ) {
         auto tree_name_set = node_names( tree.tree, leaves_only );
-        name_set.insert( tree_name_set.begin(), tree_name_set.end() );
+        names.insert( names.end(), tree_name_set.begin(), tree_name_set.end() );
     }
-    return name_set;
-}
-
-utils::SortedVector<std::string> node_names_sorted(
-    TreeSet const& tree_set,
-    bool leaves_only
-) {
-    // It would be faster to directly insert into the resulting container, but this version
-    // avoids code duplication and is fast enough for now.
-    utils::SortedVector<std::string> name_set;
-    for( auto const& tree : tree_set ) {
-        // We can use the unsorted version here, which should be a bit faster (not tested...).
-        // Sorting is then done when inserting the names into the final set.
-        auto tree_name_set = node_names( tree.tree, leaves_only );
-        name_set.insert( tree_name_set.begin(), tree_name_set.end() );
-    }
-    return name_set;
+    return names;
 }
 
 TreeNode const* find_node(
