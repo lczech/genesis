@@ -32,7 +32,7 @@
 
 #include "genesis/utils/core/std.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <stdexcept>
 #include <typeinfo>
 
@@ -43,20 +43,6 @@ namespace tree {
 //     Construction and Rule of Five
 // =================================================================================================
 
-/**
- * @brief Copy constructor.
- *
- * This function creates all links, nodes and edges new, and shapes them so that the final
- * Tree has the same topology as the input Tree.
- *
- * The data belonging to the edges and nodes is copied using the clone function of the respective
- * data classes for the nodes and edges. As this data might contain pointers and
- * other structures that need a deep copy, it is the responsibility of the clone function of those
- * data classes to make sure its own data is copied correctly.
- *
- * This function internally uses clone_topology() first, and then uses the clone functions of the
- * data for all nodes and edges.
- */
 Tree::Tree( const Tree& other )
 {
     // Get a copy of the topology. (Copy swap idiom.)
@@ -108,11 +94,6 @@ Tree::Tree( const Tree& other )
     res.swap( *this );
 }
 
-/**
- * @brief Assignment operator.
- *
- * See Tree copy constructor for more information.
- */
 Tree& Tree::operator = ( Tree const& other )
 {
     // Check for self assignment. Just in case.
@@ -126,11 +107,6 @@ Tree& Tree::operator = ( Tree const& other )
     return *this;
 }
 
-/**
- * @brief Return a Tree with the same topology, but without any data.
- *
- * All data pointers of the nodes and edges of the returned tree are `nullptr`.
- */
 Tree Tree::clone_topology() const
 {
     // Prepare resulting tree.
@@ -182,9 +158,6 @@ Tree Tree::clone_topology() const
     return res;
 }
 
-/**
- * @brief Swap.
- */
 void Tree::swap( Tree& other )
 {
     using std::swap;
@@ -196,11 +169,6 @@ void Tree::swap( Tree& other )
     swap( edges_, other.edges_ );
 }
 
-/**
- * @brief Deletes all data of the tree, including all links, nodes and edges.
- *
- * This functions results in an empty tree.
- */
 void Tree::clear()
 {
     root_link_index_ = 0;
@@ -210,167 +178,9 @@ void Tree::clear()
 }
 
 // =================================================================================================
-//     Accessors
-// =================================================================================================
-
-/**
- * @brief Return whether the Tree is empty (i.e., has no nodes, edges and links).
- */
-bool Tree::empty() const
-{
-    return links_.empty() && nodes_.empty() && edges_.empty();
-}
-
-/**
- * @brief Return the TreeLink at the current root of the Tree.
- *
- * If the tree is empty(), the functions throws an std::out_of_range exception.
- */
-TreeLink& Tree::root_link()
-{
-    if( links_.empty() ) {
-        throw std::out_of_range( "Cannot return root link. Tree is empty." );
-    }
-    return *links_.at( root_link_index_ ).get();
-}
-
-/**
- * @brief Return the TreeLink at the current root of the Tree.
- *
- * If the tree is empty(), the functions throws an std::out_of_range exception.
- */
-TreeLink const& Tree::root_link() const
-{
-    if( links_.empty() ) {
-        throw std::out_of_range( "Cannot return root link. Tree is empty." );
-    }
-    return *links_.at( root_link_index_ ).get();
-}
-
-/**
- * @brief Return the TreeNode at the current root of the Tree.
- *
- * If the tree is empty(), the functions throws an std::out_of_range exception.
- */
-TreeNode& Tree::root_node()
-{
-    if( links_.empty() ) {
-        throw std::out_of_range( "Cannot return root node. Tree is empty." );
-    }
-    return links_.at( root_link_index_ )->node();
-}
-
-/**
- * @brief Return the TreeNode at the current root of the Tree.
- *
- * If the tree is empty(), the functions throws an std::out_of_range exception.
- */
-TreeNode const& Tree::root_node() const
-{
-    if( links_.empty() ) {
-        throw std::out_of_range( "Cannot return root node. Tree is empty." );
-    }
-    return links_.at( root_link_index_ )->node();
-}
-
-/**
- * @brief Return the TreeLink at a certain index.
- *
- * If the index is invalid, the functions throws an std::out_of_range exception.
- */
-TreeLink& Tree::link_at(size_t index)
-{
-    return *links_.at(index).get();
-}
-
-/**
- * @brief Return the TreeLink at a certain index.
- *
- * If the index is invalid, the functions throws an std::out_of_range exception.
- */
-TreeLink const& Tree::link_at(size_t index) const
-{
-    return *links_.at(index).get();
-}
-
-/**
- * @brief Return the TreeNode at a certain index.
- *
- * If the index is invalid, the functions throws an std::out_of_range exception.
- */
-TreeNode& Tree::node_at(size_t index)
-{
-    return *nodes_.at(index).get();
-}
-
-/**
- * @brief Return the TreeNode at a certain index.
- *
- * If the index is invalid, the functions throws an std::out_of_range exception.
- */
-TreeNode const& Tree::node_at(size_t index) const
-{
-    return *nodes_.at(index).get();
-}
-
-/**
- * @brief Return the TreeEdge at a certain index.
- *
- * If the index is invalid, the functions throws an std::out_of_range exception.
- */
-TreeEdge& Tree::edge_at(size_t index)
-{
-    return *edges_.at(index).get();
-}
-
-/**
- * @brief Return the TreeEdge at a certain index.
- *
- * If the index is invalid, the functions throws an std::out_of_range exception.
- */
-TreeEdge const& Tree::edge_at(size_t index) const
-{
-    return *edges_.at(index).get();
-}
-
-/**
- * @brief Return the number of TreeLink%s of the Tree.
- */
-size_t Tree::link_count() const
-{
-    return links_.size();
-}
-
-/**
- * @brief Return the number of TreeNode%s of the Tree.
- */
-size_t Tree::node_count() const
-{
-    return nodes_.size();
-}
-
-/**
- * @brief Return the number of TreeEdge%s of the Tree.
- */
-size_t Tree::edge_count() const
-{
-    return edges_.size();
-}
-
-// =================================================================================================
 //     Data Accessors
 // =================================================================================================
 
-/**
- * @brief Reset the index of the link that is considered to be the root of the Tree.
- *
- * This function is meant for tree manipulation functions. Use with care!
- *
- * Caveat: This function simply sets the index, but does not change any other properties of the tree.
- * Particularly the correct primary/secondary order of TreeEdge%s and primary links of TreeNode%s
- * needs to be maintained manually when using this function! Otherwise, we end up with an invalid
- * Tree that breaks its invariants!
- */
 Tree& Tree::reset_root_link_index( size_t val )
 {
     if( val >= links_.size() ) {
@@ -380,146 +190,19 @@ Tree& Tree::reset_root_link_index( size_t val )
     return *this;
 }
 
-/**
- * @brief Get the container that stores all TreeLink%s of the Tree.
- *
- * This function gives direct access to the underlying container for the Links. It is meant to
- * be used by external functions that need to manupulate the Tree, e.g., for reading or re-rooting
- * the tree, or for adding elements to it. Use with care!
- */
 Tree::LinkContainerType& Tree::expose_link_container()
 {
     return links_;
 }
 
-/**
- * @brief Get the container that stores all TreeNode%s of the Tree.
- *
- * This function gives direct access to the underlying container for the Links. It is meant to
- * be used by external functions that need to manupulate the Tree, e.g., for reading or re-rooting
- * the tree, or for adding elements to it. Use with care!
- */
 Tree::NodeContainerType& Tree::expose_node_container()
 {
     return nodes_;
 }
 
-/**
- * @brief Get the container that stores all TreeEdge%s of the Tree.
- *
- * This function gives direct access to the underlying container for the Links. It is meant to
- * be used by external functions that need to manupulate the Tree, e.g., for reading or re-rooting
- * the tree, or for adding elements to it. Use with care!
- */
 Tree::EdgeContainerType& Tree::expose_edge_container()
 {
     return edges_;
-}
-
-// =================================================================================================
-//     Iterators
-// =================================================================================================
-
-// -------------------------------------------------------------------------
-//     Links
-// -------------------------------------------------------------------------
-
-Tree::IteratorLinks Tree::begin_links()
-{
-    return links_.begin();
-}
-
-Tree::IteratorLinks Tree::end_links()
-{
-    return links_.end();
-}
-
-Tree::ConstIteratorLinks Tree::begin_links() const
-{
-    return links_.cbegin();
-}
-
-Tree::ConstIteratorLinks Tree::end_links() const
-{
-    return links_.cend();
-}
-
-utils::Range<Tree::IteratorLinks> Tree::links()
-{
-    return { links_ };
-}
-
-utils::Range<Tree::ConstIteratorLinks> Tree::links() const
-{
-    return { links_ };
-}
-
-// -------------------------------------------------------------------------
-//     Nodes
-// -------------------------------------------------------------------------
-
-Tree::IteratorNodes Tree::begin_nodes()
-{
-    return nodes_.begin();
-}
-
-Tree::IteratorNodes Tree::end_nodes()
-{
-    return nodes_.end();
-}
-
-Tree::ConstIteratorNodes Tree::begin_nodes() const
-{
-    return nodes_.cbegin();
-}
-
-Tree::ConstIteratorNodes Tree::end_nodes() const
-{
-    return nodes_.cend();
-}
-
-utils::Range<Tree::IteratorNodes> Tree::nodes()
-{
-    return { nodes_ };
-}
-
-utils::Range<Tree::ConstIteratorNodes> Tree::nodes() const
-{
-    return { nodes_ };
-}
-
-// -------------------------------------------------------------------------
-//     Edges
-// -------------------------------------------------------------------------
-
-Tree::IteratorEdges Tree::begin_edges()
-{
-    return edges_.begin();
-}
-
-Tree::IteratorEdges Tree::end_edges()
-{
-    return edges_.end();
-}
-
-Tree::ConstIteratorEdges Tree::begin_edges() const
-{
-    return edges_.cbegin();
-}
-
-Tree::ConstIteratorEdges Tree::end_edges() const
-{
-    return edges_.cend();
-}
-
-utils::Range<Tree::IteratorEdges> Tree::edges()
-{
-    return { edges_ };
-}
-
-utils::Range<Tree::ConstIteratorEdges> Tree::edges() const
-{
-    return { edges_ };
 }
 
 } // namespace tree
