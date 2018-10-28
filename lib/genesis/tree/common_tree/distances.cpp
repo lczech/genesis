@@ -170,8 +170,7 @@ utils::Matrix<double> edge_branch_length_distance_matrix(
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
         auto const& row_edge = tree.edge_at(i);
 
-        for (auto col_it = tree.begin_edges(); col_it != tree.end_edges(); ++col_it) {
-            auto const& col_edge = *col_it->get();
+        for( auto const& col_edge : tree.edges() ) {
 
             // Set the diagonal element of the matrix. We don't need to compare nodes in this case,
             // and particularly want to skip the part where we add half the branch lengths to the
@@ -279,11 +278,11 @@ double deepest_distance(Tree const& tree)
     auto leaf_dist = closest_leaf_distance_vector(tree);
 
     for( auto const& e : tree.edges() ) {
-        int idx_p = e->primary_node().index();
-        int idx_s = e->secondary_node().index();
+        int idx_p = e.primary_node().index();
+        int idx_s = e.secondary_node().index();
 
         double d = (leaf_dist[idx_p].second
-                 + e->data<CommonEdgeData>().branch_length
+                 + e.data<CommonEdgeData>().branch_length
                  + leaf_dist[ idx_s ].second) / 2.0;
 
         if (d > max) {
@@ -314,32 +313,30 @@ std::vector<std::pair< TreeNode const*, double >> leaf_distance_vector(
     // fill the vector for every node.
     // there is probably a faster way of doing this: preorder traversal with pruning. but for now,
     // this simple O(n^2) version works.
-    for( auto node_it = tree.begin_nodes(); node_it != tree.end_nodes(); ++node_it ) {
-        auto node = node_it->get();
+    for( auto const& node : tree.nodes() ) {
 
         // we have not visited this node. assertion holds as long as the indices are correct.
-        assert(vec[node->index()].first == nullptr);
+        assert( vec[ node.index() ].first == nullptr );
 
         TreeNode const* res_node = nullptr;
         double res_dist = 0.0;
 
         // try out all other nodes, and find the closest leaf.
-        for( auto other_it = tree.begin_nodes(); other_it != tree.end_nodes(); ++other_it ) {
-            auto other = other_it->get();
+        for( auto const& other : tree.nodes() ) {
 
-            if(! is_leaf( *other )) {
+            if(! is_leaf( other )) {
                 continue;
             }
 
-            double dist = node_distances(node->index(), other->index());
+            double dist = node_distances( node.index(), other.index() );
             if( res_node == nullptr || comp( dist, res_dist )) {
-                res_node = other;
+                res_node = &other;
                 res_dist = dist;
             }
         }
 
-        vec[ node->index() ].first  = res_node;
-        vec[ node->index() ].second = res_dist;
+        vec[ node.index() ].first  = res_node;
+        vec[ node.index() ].second = res_dist;
     }
 
     return vec;

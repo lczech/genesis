@@ -99,8 +99,7 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
 
     size_t max_text_len = 0;
 
-    for( auto const& node_it : tree().nodes() ) {
-        auto const& node = *node_it;
+    for( auto const& node : tree().nodes() ) {
 
         auto const& node_data = node.data<LayoutNodeData>();
         auto const& prnt_data = tree().node_at( node_data.parent_index ).data<LayoutNodeData>();

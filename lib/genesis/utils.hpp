@@ -35,6 +35,7 @@
 
 #include "genesis/utils/containers/dataframe.hpp"
 #include "genesis/utils/containers/dataframe/reader.hpp"
+#include "genesis/utils/containers/deref_iterator.hpp"
 #include "genesis/utils/containers/matrix/col.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/matrix/operators.hpp"

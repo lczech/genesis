@@ -54,10 +54,10 @@ std::vector<std::string> node_names(
 ) {
     std::vector<std::string> names;
     for( auto const& node : tree.nodes() ) {
-        if( is_inner( *node ) && leaves_only ) {
+        if( is_inner( node ) && leaves_only ) {
             continue;
         }
-        auto const name = node->data<CommonNodeData>().name;
+        auto const name = node.data<CommonNodeData>().name;
         if( name == "" ) {
             continue;
         }
@@ -90,9 +90,9 @@ TreeNode const* find_node(
         clean_name = utils::replace_all(name, "_", " ");
     }
 
-    for (auto it = tree.begin_nodes(); it != tree.end_nodes(); ++it) {
-        if( it->get()->data<CommonNodeData>().name == clean_name) {
-            return it->get();
+    for( auto const& node : tree.nodes() ) {
+        if( node.data<CommonNodeData>().name == clean_name) {
+            return &node;
         }
     }
 
@@ -119,7 +119,7 @@ double length(Tree const& tree)
 {
     double len = 0.0;
     for( auto const& edge : tree.edges() ) {
-        len += edge->data<CommonEdgeData>().branch_length;
+        len += edge.data<CommonEdgeData>().branch_length;
     }
     return len;
 }
@@ -152,7 +152,7 @@ void set_all_branch_lengths(
     double length
 ) {
     for( auto& edge : tree.edges() ) {
-        edge->data<CommonEdgeData>().branch_length = length;
+        edge.data<CommonEdgeData>().branch_length = length;
     }
 }
 
@@ -161,7 +161,7 @@ void scale_all_branch_lengths(
     double factor
 ) {
     for( auto& edge : tree.edges() ) {
-        edge->data<CommonEdgeData>().branch_length *= factor;
+        edge.data<CommonEdgeData>().branch_length *= factor;
     }
 }
 

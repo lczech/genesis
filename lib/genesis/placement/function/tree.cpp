@@ -92,8 +92,8 @@ tree::Tree labelled_tree(
     // Get a list of the edge pointers so that we can iterate and add to the tree at the same time.
     std::vector< tree::TreeEdge* > edge_list;
     edge_list.reserve( result.edge_count() );
-    for( auto const& edge : result.edges() ) {
-        edge_list.push_back( edge.get() );
+    for( auto& edge : result.edges() ) {
+        edge_list.push_back( &edge );
     }
     assert( edge_list.size() == sample.tree().edge_count() );
 

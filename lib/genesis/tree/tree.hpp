@@ -43,6 +43,7 @@
 #include "genesis/tree/tree/edge_data.hpp"
 
 #include "genesis/utils/core/range.hpp"
+#include "genesis/utils/containers/deref_iterator.hpp"
 
 #include <memory>
 #include <vector>
@@ -122,14 +123,14 @@ public:
      */
     using EdgeContainerType  = ContainerType< TreeEdge >;
 
-    using      IteratorLinks = typename ContainerType< TreeLink >::iterator;
-    using ConstIteratorLinks = typename ContainerType< TreeLink >::const_iterator;
+    using      IteratorLinks = utils::DereferenceIterator< ContainerType<TreeLink>::iterator >;
+    using ConstIteratorLinks = utils::DereferenceIterator< ContainerType<TreeLink>::const_iterator >;
 
-    using      IteratorNodes = typename ContainerType< TreeNode >::iterator;
-    using ConstIteratorNodes = typename ContainerType< TreeNode >::const_iterator;
+    using      IteratorNodes = utils::DereferenceIterator< ContainerType<TreeNode>::iterator >;
+    using ConstIteratorNodes = utils::DereferenceIterator< ContainerType<TreeNode>::const_iterator >;
 
-    using      IteratorEdges = typename ContainerType< TreeEdge >::iterator;
-    using ConstIteratorEdges = typename ContainerType< TreeEdge >::const_iterator;
+    using      IteratorEdges = utils::DereferenceIterator< ContainerType<TreeEdge>::iterator >;
+    using ConstIteratorEdges = utils::DereferenceIterator< ContainerType<TreeEdge>::const_iterator >;
 
     // -------------------------------------------------------------------------
     //     Construction and Rule of Five

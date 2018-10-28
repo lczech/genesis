@@ -367,20 +367,15 @@ void JplaceReader::process_json_placements(
     // the pqueries. we do not use Sample::EdgeNumMap() here, because we need to do extra
     // checking for validity first!
     std::unordered_map<size_t, PlacementTreeEdge*> edge_num_map;
-    for (
-        PlacementTree::ConstIteratorEdges it = smp.tree().begin_edges();
-        it != smp.tree().end_edges();
-        ++it
-    ) {
-        auto& edge = *it;
-        auto& edge_data = edge->data<PlacementEdgeData>();
+    for( auto& edge : smp.tree().edges() ) {
+        auto& edge_data = edge.data<PlacementEdgeData>();
         if (edge_num_map.count( edge_data.edge_num()) > 0) {
             throw std::runtime_error(
                 "Jplace document contains a tree where the edge_num tag '"
                 + std::to_string( edge_data.edge_num() ) + "' is used more than once."
             );
         }
-        edge_num_map.emplace( edge_data.edge_num(), edge.get() );
+        edge_num_map.emplace( edge_data.edge_num(), &edge );
     }
 
     // Find and process the pqueries.

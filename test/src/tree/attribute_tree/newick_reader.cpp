@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,13 +48,13 @@ std::pair<size_t, size_t> count_attribute_tree_data( AttributeTree const& tree )
 {
     size_t node_attr_cnt = 0;
     for( auto const& node : tree.nodes() ) {
-        auto const& data = node->data<AttributeTreeNodeData>();
+        auto const& data = node.data<AttributeTreeNodeData>();
         node_attr_cnt += data.attributes.size();
     }
 
     size_t edge_attr_cnt = 0;
     for( auto const& edge : tree.edges() ) {
-        auto const& data = edge->data<AttributeTreeEdgeData>();
+        auto const& data = edge.data<AttributeTreeEdgeData>();
         edge_attr_cnt += data.attributes.size();
     }
 
@@ -65,7 +65,7 @@ void print_attribute_tree_data( AttributeTree const& tree )
 {
     LOG_DBG << "Nodes";
     for( auto const& node : tree.nodes() ) {
-        auto const& data = node->data<AttributeTreeNodeData>();
+        auto const& data = node.data<AttributeTreeNodeData>();
         LOG_DBG1 << "node " << data.name;
         for( auto const& m : data.attributes ) {
             LOG_DBG2 << m.first << " --> " << m.second;
@@ -74,7 +74,7 @@ void print_attribute_tree_data( AttributeTree const& tree )
 
     LOG_DBG << "Edges";
     for( auto const& edge : tree.edges() ) {
-        auto const& data = edge->data<AttributeTreeEdgeData>();
+        auto const& data = edge.data<AttributeTreeEdgeData>();
         LOG_DBG1 << "edge";
         for( auto const& m : data.attributes ) {
             LOG_DBG2 << m.first << " --> " << m.second;
@@ -123,13 +123,13 @@ TEST( AttributeTree, IndexedNewickReaderCatchAll )
 
     size_t node_attr_cnt = 0;
     for( auto const& node : tree.nodes() ) {
-        auto const& data = node->data<AttributeTreeNodeData>();
+        auto const& data = node.data<AttributeTreeNodeData>();
         node_attr_cnt += data.attributes.size();
     }
 
     size_t edge_attr_cnt = 0;
     for( auto const& edge : tree.edges() ) {
-        auto const& data = edge->data<AttributeTreeEdgeData>();
+        auto const& data = edge.data<AttributeTreeEdgeData>();
         edge_attr_cnt += data.attributes.size();
     }
 

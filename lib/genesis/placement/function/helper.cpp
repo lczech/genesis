@@ -55,15 +55,10 @@ namespace placement {
 std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( PlacementTree const& tree )
 {
     auto en_map = std::unordered_map<int, PlacementTreeEdge*>();
-    for (
-        PlacementTree::ConstIteratorEdges it = tree.begin_edges();
-        it != tree.end_edges();
-        ++it
-    ) {
-        auto const& edge      = *it;
-        auto const& edge_data = edge->data<PlacementEdgeData>();
+    for( auto& edge : tree.edges() ) {
+        auto const& edge_data = edge.data<PlacementEdgeData>();
         assert( en_map.count( edge_data.edge_num() ) == 0);
-        en_map.emplace( edge_data.edge_num(), edge.get());
+        en_map.emplace( edge_data.edge_num(), &edge );
     }
     return en_map;
 }
@@ -307,7 +302,7 @@ bool has_consecutive_edge_nums( PlacementTree const& tree )
     // List all edge nums.
     auto order = std::vector<int>();
     for( auto const& edge : tree.edges() ) {
-        order.push_back( edge->data<PlacementEdgeData>().edge_num() );
+        order.push_back( edge.data<PlacementEdgeData>().edge_num() );
     }
 
     // Sort them and use unique to see wether there are duplicates.
@@ -358,21 +353,16 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
     }
 
     // check edges
-    std::unordered_map<int, PlacementTreeEdge*> edge_num_map;
-    for (
-        auto it_e = smp.tree().begin_edges();
-        it_e != smp.tree().end_edges();
-        ++it_e
-    ) {
+    std::unordered_map<int, PlacementTreeEdge const*> edge_num_map;
+    for( auto const& edge : smp.tree().edges() ) {
         // make sure every edge num is used once only
-        PlacementTreeEdge& edge = *(*it_e).get();
         if( edge_num_map.count( edge.data<PlacementEdgeData>().edge_num() ) > 0 ) {
             LOG_INFO << "More than one edge has edge_num '"
                      << edge.data<PlacementEdgeData>().edge_num() << "'.";
             return false;
         }
         edge_num_map.emplace(
-            edge.data<PlacementEdgeData>().edge_num(), (*it_e).get()
+            edge.data<PlacementEdgeData>().edge_num(), &edge
         );
     }
     if( ! has_correct_edge_nums( smp.tree() )) {

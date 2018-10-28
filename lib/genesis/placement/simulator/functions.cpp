@@ -232,22 +232,22 @@ void set_depths_distributed_weights(
     auto depths = closest_leaf_depth_vector(sample.tree());
 
     // Set the weight of each edge according to its depth in the tree.
-    for (auto it = sample.tree().begin_edges(); it != sample.tree().end_edges(); ++it) {
+    for( auto const& edge : sample.tree().edges() ) {
         // Try both nodes at the end of the edge and see which one is closer to a leaf.
-        int dp = depths[(*it)->primary_node().index()].second;
-        int ds = depths[(*it)->secondary_node().index()].second;
+        int dp = depths[ edge.primary_node().index() ].second;
+        int ds = depths[ edge.secondary_node().index() ].second;
         unsigned int ld = std::min(dp, ds);
 
         // Some safty. This holds as long as the indices are correct.
-        assert((*it)->index() < num_edges);
+        assert( edge.index() < num_edges );
 
         // If the depth of the current edge is in the depth vector, use it.
         // Otherwise, the tree is deeper than the given depth vector, so use zero instead,
         // which will result in no placements being generated on this edge.
         if (ld < depth_weights.size()) {
-            edge_distrib.edge_weights[ (*it)->index() ] = depth_weights[ld];
+            edge_distrib.edge_weights[ edge.index() ] = depth_weights[ld];
         } else {
-            edge_distrib.edge_weights[ (*it)->index() ] = 0.0;
+            edge_distrib.edge_weights[ edge.index() ] = 0.0;
         }
     }
 }

@@ -121,9 +121,9 @@ std::vector<size_t> node_to_leaf_map( Tree const& tree )
 
         // Make a sorted list of leave node names.
         std::vector<std::string> node_names;
-        for( auto const& node_it : tree.nodes() ) {
-            if( is_leaf( *node_it )) {
-                node_names.push_back( node_it->data<CommonNodeData>().name );
+        for( auto const& node : tree.nodes() ) {
+            if( is_leaf( node )) {
+                node_names.push_back( node.data<CommonNodeData>().name );
             }
         }
 
@@ -149,21 +149,21 @@ std::vector<size_t> node_to_leaf_map( Tree const& tree )
 
     // Assign indices to each node.
     size_t leaf_idx = 0;
-    for( auto const& node_it : tree.nodes() ) {
-        if( is_leaf( *node_it )) {
+    for( auto const& node : tree.nodes() ) {
+        if( is_leaf( node )) {
             if( sort_leaves ) {
 
                 // Use the index to order map to get the ordered leaf index.
                 assert( leaf_idx < name_order.size() );
-                nodes_to_leafs[ node_it->index() ] = name_order[ leaf_idx ];
+                nodes_to_leafs[ node.index() ] = name_order[ leaf_idx ];
             } else {
 
                 // Unsorted case: just count upwards.
-                nodes_to_leafs[ node_it->index() ] = leaf_idx;
+                nodes_to_leafs[ node.index() ] = leaf_idx;
             }
             ++leaf_idx;
         } else {
-            nodes_to_leafs[ node_it->index() ] = std::numeric_limits<std::size_t>::max();
+            nodes_to_leafs[ node.index() ] = std::numeric_limits<std::size_t>::max();
         }
     }
 

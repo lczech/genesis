@@ -291,22 +291,22 @@ void ladderize( Tree& tree, LadderizeOrder order )
     auto sub_sizes = subtree_sizes( tree );
 
     // Ladderize all nodes
-    for( auto& node_it : tree.nodes() ) {
+    for( auto& node : tree.nodes() ) {
 
         // No need to ladderize a leaf. It would still work, but we can use this as a speedup.
-        if( is_leaf( *node_it )) {
+        if( is_leaf( node )) {
             continue;
         }
 
         // Get the sizes of the children/subtrees of this node.
         std::vector<size_t>    child_sizes;
         std::vector<TreeLink*> child_links;
-        for( auto const& link_it : node_links( *node_it ) ) {
+        for( auto const& link_it : node_links( node ) ) {
 
             // Don't treat the link towards the root; we only want to sort the subtree.
             // Assert that the first iteration is actually this link towards the root.
             if( link_it.is_first_iteration() ) {
-                assert( &link_it.link() == &node_it->primary_link() );
+                assert( &link_it.link() == &node.primary_link() );
                 continue;
             }
 
@@ -323,10 +323,10 @@ void ladderize( Tree& tree, LadderizeOrder order )
         // The number of indices needs to be the rank of the node (number of immediate children).
         assert( child_order.size() == child_sizes.size() );
         assert( child_order.size() == child_links.size() );
-        assert( child_order.size() == degree( *node_it ) - 1 );
+        assert( child_order.size() == degree( node ) - 1 );
 
         // Change all next links of the node so that they reflect the subtree size order.
-        auto cur_link = &node_it->primary_link();
+        auto cur_link = &node.primary_link();
         for( auto child_order_i : child_order ) {
 
             // We use this assertion to ensure that each link is only processed once.
@@ -344,7 +344,7 @@ void ladderize( Tree& tree, LadderizeOrder order )
 
         // We now need to set the next pointer of the last link of the node so that it points
         // back to the original starting node (the one towards the root).
-        cur_link->reset_next( &node_it->primary_link() );
+        cur_link->reset_next( &node.primary_link() );
 
         // Finally, assert that we processed all links. If so, all of them are null by now.
         for( auto const& cl : child_links ) {
