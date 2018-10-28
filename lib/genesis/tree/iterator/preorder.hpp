@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,9 +34,9 @@
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/core/range.hpp"
 
-#include <assert.h>
-#include <deque>
+#include <cassert>
 #include <iterator>
+#include <vector>
 
 namespace genesis {
 namespace tree {
@@ -92,8 +92,8 @@ public:
         : start_( &link )
         , link_(  &link )
     {
-        push_front_children( &link );
-        stack_.push_front( &link.outer() );
+        push_back_children( &link );
+        stack_.push_back( &link.outer() );
     }
 
     ~IteratorPreorder() = default;
@@ -118,9 +118,9 @@ public:
         if (stack_.empty()) {
             link_ = nullptr;
         } else {
-            link_ = stack_.front();
-            stack_.pop_front();
-            push_front_children(link_);
+            link_ = stack_.back();
+            stack_.pop_back();
+            push_back_children(link_);
         }
 
         return *this;
@@ -183,19 +183,19 @@ public:
 
 private:
 
-    void push_front_children( LinkType* link )
+    void push_back_children( LinkType* link )
     {
-        // we need to push to a tmp queue first, in order to get the order right.
+        // we need to push to a tmp first, in order to get the order right.
         // otherwise, we would still do a preorder traversal, but starting with
         // the last child of each node instead of the first one.
-        std::deque<LinkType*> tmp;
+        std::vector<LinkType*> tmp;
         LinkType* c = &link->next();
         while (c != link) {
-            tmp.push_front( &c->outer() );
+            tmp.push_back( &c->outer() );
             c = &c->next();
         }
-        for (LinkType* l : tmp) {
-            stack_.push_front(l);
+        for( auto lit = tmp.rbegin(); lit != tmp.rend(); ++lit ) {
+            stack_.push_back( *lit );
         }
     }
 
@@ -203,12 +203,10 @@ private:
     //     Data Members
     // -----------------------------------------------------
 
-    // TODO take a stack or vector instead of deque here; maybe reverse pushing order
-
     LinkType* const       start_;
     LinkType*             link_;
 
-    std::deque<LinkType*> stack_;
+    std::vector<LinkType*> stack_;
 };
 
 // =================================================================================================
