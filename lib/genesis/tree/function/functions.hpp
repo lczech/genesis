@@ -58,9 +58,9 @@ class TreeLink;
 bool is_leaf( TreeLink const& link );
 
 /**
- * @brief Return true iff the node of the given link is an inner node.
+ * @brief Return whether the node is a leaf/tip.
  */
-bool is_inner( TreeLink const& link );
+bool is_leaf( TreeNode const& node );
 
 /**
  * @brief Return true iff the secondary node (outwards) of the given edge is a leaf node.
@@ -68,19 +68,9 @@ bool is_inner( TreeLink const& link );
 bool is_leaf( TreeEdge const& edge );
 
 /**
- * @brief Return true iff the secondary node (outwards) of the given edge is an inner node.
+ * @brief Return true iff the node of the given link is an inner node.
  */
-bool is_inner( TreeEdge const& edge );
-
-/**
- * @brief Return the degree of the node, i.e. how many neighbouring nodes it has.
- */
-size_t degree( TreeNode const& node );
-
-/**
- * @brief Return whether the node is a leaf/tip.
- */
-bool is_leaf( TreeNode const& node );
+bool is_inner( TreeLink const& link );
 
 /**
  * @brief Return whether the node is an inner node.
@@ -88,9 +78,25 @@ bool is_leaf( TreeNode const& node );
 bool is_inner( TreeNode const& node );
 
 /**
+ * @brief Return true iff the secondary node (outwards) of the given edge is an inner node.
+ */
+bool is_inner( TreeEdge const& edge );
+
+/**
  * @brief Return whether the node is the root of its Tree.
  */
 bool is_root( TreeNode const& node );
+
+/**
+ * @brief Return the degree of the node for a given TreeLink,
+ * i.e. how many neighbouring nodes it has.
+ */
+size_t degree( TreeLink const& link );
+
+/**
+ * @brief Return the degree of the node, i.e. how many neighbouring nodes it has.
+ */
+size_t degree( TreeNode const& node );
 
 // =================================================================================================
 //     Node Count Properties

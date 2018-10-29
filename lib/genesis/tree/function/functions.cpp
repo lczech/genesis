@@ -59,9 +59,9 @@ bool is_leaf( TreeLink const& link )
     return &( link.next() ) == &link;
 }
 
-bool is_inner( TreeLink const& link )
+bool is_leaf( TreeNode const& node )
 {
-    return &( link.next() ) != &link;
+    return is_leaf( node.link() );
 }
 
 bool is_leaf( TreeEdge const& edge )
@@ -69,9 +69,33 @@ bool is_leaf( TreeEdge const& edge )
     return is_leaf( edge.secondary_link() );
 }
 
+bool is_inner( TreeLink const& link )
+{
+    return &( link.next() ) != &link;
+}
+
+bool is_inner( TreeNode const& node )
+{
+    return is_inner( node.link() );
+}
+
 bool is_inner( TreeEdge const& edge )
 {
     return is_inner( edge.secondary_link() );
+}
+
+bool is_root( TreeNode const& node )
+{
+    // The link_ is always the one pointing towards the root. Also, the edge of that link always has
+    // the primary link set to that it points towards the root.
+    // At the root itself, however, this means we are pointing to ourselves. Use this to check
+    // if this node is the root.
+    return &( node.link().edge().primary_link() ) == &( node.link() );
+}
+
+size_t degree( TreeLink const& link )
+{
+    return degree( link.node() );
 }
 
 size_t degree( TreeNode const& node )
@@ -85,25 +109,6 @@ size_t degree( TreeNode const& node )
     } while( lnk != &node.link() );
 
     return dgr;
-}
-
-bool is_leaf( TreeNode const& node )
-{
-    return is_leaf( node.link() );
-}
-
-bool is_inner( TreeNode const& node )
-{
-    return is_inner( node.link() );
-}
-
-bool is_root( TreeNode const& node )
-{
-    // The link_ is always the one pointing towards the root. Also, the edge of that link always has
-    // the primary link set to that it points towards the root.
-    // At the root itself, however, this means we are pointing to ourselves. Use this to check
-    // if this node is the root.
-    return &( node.link().edge().primary_link() ) == &( node.link() );
 }
 
 // =================================================================================================
