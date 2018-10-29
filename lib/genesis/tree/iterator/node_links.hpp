@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 #include "genesis/utils/core/range.hpp"
 
 #include <iterator>
+#include <type_traits>
 
 namespace genesis {
 namespace tree {
@@ -52,7 +53,7 @@ class TreeLink;
 //     Iterator Node Links
 // =============================================================================
 
-template <typename LinkType, typename NodeType, typename EdgeType>
+template< bool is_const = true >
 class IteratorNodeLinks
 {
 
@@ -62,8 +63,18 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
+    // Make the memer types const or not, depending on iterator type.
+    using TreeType = typename std::conditional< is_const, Tree const, Tree >::type;
+    using LinkType = typename std::conditional< is_const, TreeLink const, TreeLink >::type;
+    using NodeType = typename std::conditional< is_const, TreeNode const, TreeNode >::type;
+    using EdgeType = typename std::conditional< is_const, TreeEdge const, TreeEdge >::type;
+
+    using self_type         = IteratorNodeLinks< is_const >;
     using iterator_category = std::forward_iterator_tag;
-    using self_type         = IteratorNodeLinks<LinkType, NodeType, EdgeType>;
+    // using value_type        = NodeType;
+    // using pointer           = NodeType*;
+    // using reference         = NodeType&;
+    // using difference_type   = std::ptrdiff_t;
 
     // -----------------------------------------------------
     //     Constructors and Rule of Five
@@ -171,22 +182,22 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< IteratorNodeLinks< TreeLink const, TreeNode const, TreeEdge const >>
+utils::Range< IteratorNodeLinks< true >>
 node_links( ElementType const& element )
 {
     return {
-        IteratorNodeLinks< const TreeLink, const TreeNode, const TreeEdge >( element ),
-        IteratorNodeLinks< const TreeLink, const TreeNode, const TreeEdge >()
+        IteratorNodeLinks< true >( element ),
+        IteratorNodeLinks< true >()
     };
 }
 
 template<typename ElementType>
-utils::Range< IteratorNodeLinks< TreeLink, TreeNode, TreeEdge >>
+utils::Range< IteratorNodeLinks< false >>
 node_links( ElementType& element )
 {
     return {
-        IteratorNodeLinks< TreeLink, TreeNode, TreeEdge >( element ),
-        IteratorNodeLinks< TreeLink, TreeNode, TreeEdge >()
+        IteratorNodeLinks< false >( element ),
+        IteratorNodeLinks< false >()
     };
 }
 

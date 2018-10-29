@@ -76,7 +76,7 @@ public:
     // using value_type        = NodeType;
     // using pointer           = NodeType*;
     // using reference         = NodeType&;
-    // using difference_type   = std::ptrdiff_t,;
+    // using difference_type   = std::ptrdiff_t;
 
     // -----------------------------------------------------
     //     Constructors and Rule of Five
