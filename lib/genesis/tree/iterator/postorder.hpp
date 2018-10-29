@@ -109,7 +109,7 @@ public:
     {}
 
     /**
-     * @brief Start a postorder traversal at a given TreeLink, moving in the direction of the link.
+     * @brief Start a postorder traversal at a given TreeLink, moving in the direction of the link first.
      *
      * The iterator "starts" that the TreeNode of the given link (for a postorder traversal,
      * starting means that this will be the last node visited).

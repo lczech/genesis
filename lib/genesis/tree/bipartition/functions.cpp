@@ -193,7 +193,7 @@ std::vector<size_t> get_subtree_edges( TreeLink const& subtree )
     // We don't want to use the standard iterator wrapper function here, as we are going
     // to end the iteration after the end of the subtree, instead of iterating the whole tree.
     // So we need to use the iterator class directly.
-    using Preorder = IteratorPreorder< TreeLink const, TreeNode const, TreeEdge const >;
+    using Preorder = IteratorPreorder< true >;
 
     for(
         auto it = Preorder( subtree.next() );
@@ -221,7 +221,7 @@ std::vector<size_t> find_monophyletic_subtree_edges(
     auto set_result_edges = [ &result_edges ]( Bipartition const& bip ){
 
         // Add all subtree edges via custom traversal
-        using Preorder = IteratorPreorder< TreeLink const, TreeNode const, TreeEdge const >;
+        using Preorder = IteratorPreorder< true >;
         for(
             auto it = Preorder( bip.link().next() );
             it != Preorder() && &it.link() != &bip.link().outer();

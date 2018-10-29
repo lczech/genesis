@@ -75,3 +75,51 @@ TEST (TreeIterator, Preorder)
     TestPreorder("H", "HGIRABCDEF");
     TestPreorder("I", "IGRABCDEFH");
 }
+
+void TestPreorderSubtree( Subtree const& subtree, const std::string expected_nodes )
+{
+    std::string resulting_nodes = "";
+    auto const name = subtree.node().data<CommonNodeData>().name + "(" + std::to_string( subtree.link().index() ) + ")";
+
+    // Do a normal traversal.
+    for( auto it : preorder(subtree) ) {
+        resulting_nodes += it.node().data<CommonNodeData>().name;
+    }
+    EXPECT_EQ( expected_nodes, resulting_nodes ) << " with start node " << name;
+
+    // Use free function iterator wrapper.
+    resulting_nodes = "";
+    for( auto it = preorder(subtree).begin(); it != preorder(subtree).end(); ++it ) {
+        resulting_nodes += it.node().data<CommonNodeData>().name;
+    }
+    EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << name;
+}
+
+TEST (TreeIterator, PreorderSubtree)
+{
+    // Prepare Tree.
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+    Tree tree = CommonTreeNewickReader().from_string( input );
+
+    // The following heavily depends on the internal tree structure.
+    // If this breaks, we might need a setup that finds nodes,
+    // instead of assuming certain link indices. But for now, this is good enough and stable.
+    TestPreorderSubtree( { tree.link_at(0) }, "RFGHI" );
+    TestPreorderSubtree( { tree.link_at(1) }, "RGHIABCDE" );
+    TestPreorderSubtree( { tree.link_at(2) }, "RABCDEF" );
+    TestPreorderSubtree( { tree.link_at(3) }, "GHI" );
+    TestPreorderSubtree( { tree.link_at(4) }, "GIRABCDEF" );
+    TestPreorderSubtree( { tree.link_at(5) }, "GRABCDEFH" );
+    TestPreorderSubtree( { tree.link_at(6) }, "I" );
+    TestPreorderSubtree( { tree.link_at(7) }, "H" );
+    TestPreorderSubtree( { tree.link_at(8) }, "F" );
+    TestPreorderSubtree( { tree.link_at(9) }, "ABCDE" );
+    TestPreorderSubtree( { tree.link_at(10) }, "ACDERFGHI" );
+    TestPreorderSubtree( { tree.link_at(11) }, "ARFGHIB" );
+    TestPreorderSubtree( { tree.link_at(12) }, "CDE" );
+    TestPreorderSubtree( { tree.link_at(13) }, "CEARFGHIB" );
+    TestPreorderSubtree( { tree.link_at(14) }, "CARFGHIBD" );
+    TestPreorderSubtree( { tree.link_at(15) }, "E" );
+    TestPreorderSubtree( { tree.link_at(16) }, "D" );
+    TestPreorderSubtree( { tree.link_at(17) }, "B" );
+}
