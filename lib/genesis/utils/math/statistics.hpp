@@ -98,10 +98,10 @@ struct Quartiles
 // =================================================================================================
 
 /**
- * @brief Calculate the mean and standard deviation of a range of `double` elements.
+ * @brief Calculate the arithmetic mean and standard deviation of a range of `double` elements.
  *
  * The iterators @p first and @p last need to point to a range of `double`. The function then
- * calculates the mean and standard deviation of all elements in the range that are finite.
+ * calculates the mean and standard deviation of all finite elements in the range.
  * If none are, or if the range is empty, both returned values are `0.0`.
  *
  * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
@@ -117,7 +117,7 @@ MeanStddevPair mean_stddev( ForwardIterator first, ForwardIterator last, double 
     MeanStddevPair result;
     result.mean   = 0.0;
     result.stddev = 0.0;
-    size_t count = 0;
+    size_t count  = 0;
 
     // Sum up elements.
     auto it = first;
@@ -137,7 +137,7 @@ MeanStddevPair mean_stddev( ForwardIterator first, ForwardIterator last, double 
     //  Calculate mean.
     result.mean /= static_cast<double>( count );
 
-    // Calculate column std dev.
+    // Calculate std dev.
     it = first;
     while( it != last ) {
         if( std::isfinite( *it ) ) {
@@ -167,6 +167,57 @@ MeanStddevPair mean_stddev( ForwardIterator first, ForwardIterator last, double 
 inline MeanStddevPair mean_stddev( std::vector<double> const& vec, double epsilon = -1.0 )
 {
     return mean_stddev( vec.begin(), vec.end(), epsilon );
+}
+
+/**
+ * @brief Calculate the geometric mean of a range of numbers.
+ *
+ * The iterators @p first and @p last need to point to a range of `double`.
+ * The function  then calculates the geometric mean of all positive finite elements in the range.
+ * If no elements are finite, or if the range is empty, the returned value is `0.0`.
+ * Non-finite numbers are ignored.
+ * If finite non-positive numbers (zero or negative) are found, an exception is thrown.
+ */
+template <class ForwardIterator>
+double geometric_mean( ForwardIterator first, ForwardIterator last )
+{
+    double prod  = 1.0;
+    size_t count = 0;
+
+    // Multiply elements.
+    auto it = first;
+    while( it != last ) {
+        if( std::isfinite( *it ) ) {
+            if( *it <= 0.0 ) {
+                throw std::invalid_argument(
+                    "Cannot calculate geometric mean of non-positive numbers."
+                );
+            }
+            prod *= *it;
+            ++count;
+        }
+        ++it;
+    }
+
+    // If there are no valid elements, return an all-zero result.
+    if( count == 0 ) {
+        return 0.0;
+    }
+
+    // Return the result.
+    assert( prod  > 0.0 );
+    assert( count > 0 );
+    return std::pow( prod, 1.0 / static_cast<double>( count ));
+}
+
+/**
+ * @brief Calculate the geometric mean of a `vector` of `double` elements.
+ *
+ * See geometric_mean( ForwardIterator first, ForwardIterator last ) for details.
+ */
+inline double geometric_mean( std::vector<double> const& vec )
+{
+    return geometric_mean( vec.begin(), vec.end() );
 }
 
 // =================================================================================================
