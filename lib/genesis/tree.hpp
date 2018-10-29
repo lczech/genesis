@@ -67,7 +67,6 @@
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/function/tree_set.hpp"
 #include "genesis/tree/iterator/eulertour.hpp"
-#include "genesis/tree/iterator/inorder.hpp"
 #include "genesis/tree/iterator/levelorder.hpp"
 #include "genesis/tree/iterator/node_links.hpp"
 #include "genesis/tree/iterator/path.hpp"
@@ -88,6 +87,7 @@
 #include "genesis/tree/tree/link.hpp"
 #include "genesis/tree/tree/node_data.hpp"
 #include "genesis/tree/tree/node.hpp"
+#include "genesis/tree/tree/subtree.hpp"
 #include "genesis/tree/tree_set.hpp"
 
 #endif // include guard
