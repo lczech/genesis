@@ -31,6 +31,7 @@
 #include "genesis/utils/containers/matrix/operators.hpp"
 
 #include <cmath>
+#include <iomanip>
 #include <stdexcept>
 
 namespace genesis {
@@ -59,6 +60,41 @@ size_t triangular_index( size_t i, size_t j, size_t n )
 size_t triangular_size( size_t n )
 {
     return ( n * n - n ) / 2;
+}
+
+// ================================================================================================
+//     Output Operators
+// ================================================================================================
+
+/**
+ * @brief Local helper function to avoid code duplication.
+ */
+template <typename T>
+void print_byte_matrix_( std::ostream& os, const Matrix<T>& matrix, size_t width )
+{
+    for (size_t i = 0; i < matrix.rows(); ++i) {
+        for (size_t j = 0; j < matrix.cols(); ++j) {
+            os << std::setw(width) << std::setfill(' ') << static_cast<int>( matrix(i, j) );
+            if (j < matrix.cols() - 1) {
+                os << " ";
+            }
+        }
+        os << "\n";
+    }
+}
+
+template<>
+std::ostream& operator<< (std::ostream& os, const Matrix<signed char>& matrix)
+{
+    print_byte_matrix_( os, matrix, 4 );
+    return os;
+}
+
+template<>
+std::ostream& operator<< (std::ostream& os, const Matrix<unsigned char>& matrix)
+{
+    print_byte_matrix_( os, matrix, 3 );
+    return os;
 }
 
 } // namespace utils
