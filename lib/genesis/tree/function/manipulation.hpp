@@ -45,8 +45,7 @@ class Tree;
 class TreeNode;
 class TreeEdge;
 class TreeLink;
-class BaseEdgeData;
-class BaseNodeData;
+class Subtree;
 
 // =================================================================================================
 //     Add Nodes
@@ -180,6 +179,28 @@ TreeNode& add_new_leaf_node(
  * The function combines add_new_node( Tree&, TreeEdge& ) and reroot( Tree&, TreeNode& ).
  */
 TreeNode& add_root_node( Tree& tree, TreeEdge& target_edge );
+
+// =================================================================================================
+//     Delete Nodes
+// =================================================================================================
+
+void delete_node( Tree& tree, TreeNode& target_node );
+
+void delete_leaf_node( Tree& tree, TreeNode& target_node );
+
+void delete_linear_node(
+    Tree& tree,
+    TreeNode& target_node,
+    std::function<void( TreeEdge& remaining_edge, TreeEdge& deleted_edge )> adjust_edges = {}
+);
+
+// void delete_subtree( Tree& tree, Subtree& subtree );
+//
+// void delete_edge(
+//     Tree& tree,
+//     TreeEdge& target_edge,
+//     std::function<void( TreeEdge& remaining_node, TreeEdge& deleted_node )> adjust_nodes = {}
+// );
 
 // =================================================================================================
 //     Rerooting

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 #include <cmath>
 #include <functional>
 #include <numeric>
+#include <utility>
 #include <vector>
 
 namespace genesis {
@@ -79,6 +80,27 @@ inline void erase_if( Container &c, UnaryPredicate p )
     if ( new_end != old_end ) {
         c.erase( new_end, old_end );
     }
+}
+
+/**
+ * @brief Returns the lowest and the greatest of the given values, by value.
+ *
+ * The function differs from `std::minmax` in its return value. Instead of references,
+ * it returns by value, which is useful for integers and the like.
+ */
+template<class T>
+std::pair<T, T> minmax_value( T const& a, T const& b )
+{
+    return (a < b) ? std::pair<T, T>(a, b) : std::pair<T, T>(b, a);
+}
+
+/**
+ * @copydoc minmax_value( T const& a, T const& b )
+ */
+template<class T, class Compare>
+std::pair<T, T> minmax_value( T const& a, T const& b, Compare comp )
+{
+    return comp(a, b) ? std::pair<T, T>(a, b) : std::pair<T, T>(b, a);
 }
 
 // =================================================================================================

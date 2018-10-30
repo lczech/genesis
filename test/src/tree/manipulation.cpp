@@ -38,6 +38,7 @@
 #include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/iterator/levelorder.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -223,7 +224,7 @@ TEST( TreeManipulation, AddNewNodeEdge )
     std::string input = "((B:2.0,(D:2.0,E:2.0)C:2.0)A:2.0,F:2.0,(H:2.0,I:2.0)G:2.0)R:2.0;";
     Tree tree = CommonTreeNewickReader().from_string( input );
 
-    // Find a leaf node.
+    // Find a node.
     auto node = find_node( tree, "C" );
     ASSERT_NE( nullptr, node );
 
@@ -251,4 +252,45 @@ TEST( TreeManipulation, AddNewNodeEdge )
     EXPECT_EQ( "", edge.primary_link().next().next().node().data<CommonNodeData>().name );
     ASSERT_NO_THROW( edge.primary_link().next().next().edge().data<CommonEdgeData>() );
     EXPECT_EQ( 0.0, edge.primary_link().next().next().edge().data<CommonEdgeData>().branch_length );
+}
+
+TEST( TreeManipulation, DeleteNodes )
+{
+    // Get a tree
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+    Tree const tree = CommonTreeNewickReader().from_string( input );
+
+    // Delete each leaf node once by making a copy of the tree each time.
+    for( size_t i = 0; i < tree.node_count(); ++i ) {
+        if( ! is_leaf( tree.node_at(i) )) {
+            continue;
+        }
+
+        auto copy = tree;
+        delete_leaf_node( copy, copy.node_at(i) );
+
+        EXPECT_EQ( tree.link_count() - 2, copy.link_count() );
+        EXPECT_EQ( tree.node_count() - 1, copy.node_count() );
+        EXPECT_EQ( tree.edge_count() - 1, copy.edge_count() );
+        EXPECT_TRUE( validate_topology( copy ));
+    }
+
+    // Do some weird deletions to test delete_linear_node().
+    auto weird = tree;
+    auto node_d = find_node( weird, "D" );
+    ASSERT_NE( nullptr, node_d );
+    delete_node( weird, *node_d );
+    EXPECT_TRUE( validate_topology( weird ));
+    auto node_c = find_node( weird, "C" );
+    ASSERT_NE( nullptr, node_c );
+    delete_node( weird, *node_c );
+    EXPECT_TRUE( validate_topology( weird ));
+    auto node_e = find_node( weird, "E" );
+    ASSERT_NE( nullptr, node_e );
+    delete_node( weird, *node_e );
+    EXPECT_TRUE( validate_topology( weird ));
+    auto node_b = find_node( weird, "A" );
+    ASSERT_NE( nullptr, node_b );
+    delete_node( weird, *node_b );
+    EXPECT_TRUE( validate_topology( weird ));
 }
