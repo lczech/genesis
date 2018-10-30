@@ -44,12 +44,24 @@ namespace tree {
  * @brief Reference to a subtree of a Tree.
  *
  * This class refers to a particular subtree of a Tree.
- * Such a tree contains all TreeNode%s and TreeEdge%s at one side of a TreeEdge,
+ * Such a subtree contains all TreeNode%s and TreeEdge%s at one side of a TreeEdge,
  * while leaving out the other side of it.
- * The "subtree" of a leaf node is only that node itself.
  *
- * We internally define the subtree via the TreeLink is part of the subtree,
- * while its outer() link is not.
+ * The "subtree" of a leaf node is only that node itself. There are no empty subtrees,
+ * and there is no subtree that contains all of the Tree. That is, a Subtree is always a split
+ * (or bipartition) of the Tree into two parts, separated by an edge.
+ *
+ * A subtree is defined by the TreeLink is part of the subtree,
+ * while its @link TreeLink::outer() outer()@endlink link is not:
+ * ![Subtree given by a TreeLink.](tree/subtree.png)
+ *
+ * The marked TreeLink, as well as its TreeNode and TreeEdge can be used to construct a Subtree
+ * and can be retrieved from it.
+ * The Tree that a Subtree refers to has to stay alive, otherwise we get dangling pointers.
+ * It is the responsibility of the user to ensure this.
+ *
+ * The Tree iterators (e.g., IteratorPreorder and IteratorPostorder) furthermore offer
+ * constructors that take a Subtree and only iterate this part of the Tree.
  */
 class Subtree
 {
@@ -59,14 +71,14 @@ public:
     //     Declarations and Constructor
     // -------------------------------------------------------------
 
-    /**
-     * @brief Default construct an empty subtree.
-     */
-    Subtree() = default;
+    // /**
+    //  * @brief Default construct a subtree that does .
+    //  */
+    // Subtree() = default;
 
     /**
      * @brief Construct a Subtree that contains all of the tree except for the part that the
-     * outer() link of the given TreeLink belongs to.
+     * @link TreeLink::outer() outer()@endlink link of the given TreeLink belongs to.
      */
     Subtree( TreeLink const& link )
         : link_( &link )
@@ -136,13 +148,13 @@ public:
         link_ = &link_->outer();
     }
 
-    /**
-     * @brief Return whether this subtree points to something, or was default constructed.
-     */
-    operator bool() const
-    {
-        return link_ == nullptr;
-    }
+    // /**
+    //  * @brief Return whether this subtree points to something, or was default constructed.
+    //  */
+    // operator bool() const
+    // {
+    //     return link_ == nullptr;
+    // }
 
     // -------------------------------------------------------------
     //     Member Variables
