@@ -421,12 +421,22 @@ bool validate_topology( Tree const& tree )
                      << "the secondary link of its edge.";
             return false;
         }
-    }
 
-    // Further check the root.
-    if( ! is_root( tree.root_node() ) ) {
-        LOG_INFO << "Root node does not have is_root().";
-        return false;
+        // All (primary) links must point towards the root.
+        size_t root_c = 0;
+        auto root_l = &( tree.node_at(i).primary_link() );
+        while( root_l != &( tree.root_node().link() )) {
+            root_l = &( root_l->outer().node().primary_link() );
+            ++root_c;
+
+            // We need to avoid infinite loops in case of wrong trees, so that this function
+            // correctly termines. We cannot need more hops than nodes in the tree!
+            if( root_c > tree.node_count() ) {
+                LOG_INFO << "Node at " << i << " and the nodes towards the root contain "
+                         << "a primary link which is not pointing towards the root.";
+                return false;
+            }
+        }
     }
 
     // -----------------------------------------------------
@@ -478,6 +488,22 @@ bool validate_topology( Tree const& tree )
             LOG_INFO << "Edge at " << i << " has a secondary node that does not "
                      << "point towards the root.";
             return false;
+        }
+
+        // All primary links must point towards the root.
+        size_t root_c = 0;
+        auto root_l = &( tree.edge_at(i).primary_link() );
+        while( root_l != &( tree.root_node().link() )) {
+            root_l = &( root_l->node().primary_link().edge().primary_link() );
+            ++root_c;
+
+            // We need to avoid infinite loops in case of wrong trees, so that this function
+            // correctly termines. We cannot need more hops than nodes in the tree!
+            if( root_c > tree.node_count() ) {
+                LOG_INFO << "Edge at " << i << " and the nodes towards the root contain "
+                         << "a primary link which is not pointing towards the root.";
+                return false;
+            }
         }
     }
 
@@ -550,6 +576,12 @@ bool validate_topology( Tree const& tree )
             return false;
         }
         rl = &( rl->next() );
+    }
+
+    // Further check the root.
+    if( ! is_root( tree.root_node() ) ) {
+        LOG_INFO << "Root node does not have is_root().";
+        return false;
     }
 
     return true;
