@@ -224,46 +224,14 @@ inline double geometric_mean( std::vector<double> const& vec )
 //     Median
 // =================================================================================================
 
-// TODO this weird range plus inidces implementation comes from before the whole functionw as a template.
-// now, using just the range should be enough, so no need for the helper function!
-
 /**
- * @brief Helper function to get the median in between a range. Both l and r are inclusive.
- */
-template <class RandomAccessIterator>
-double median( RandomAccessIterator first, RandomAccessIterator last, size_t l, size_t r )
-{
-    auto const size = static_cast<size_t>( std::distance( first, last ));
-    assert( l < size && r < size && l <= r );
-    (void) size;
-
-    // Size of the interval.
-    size_t const sz = r - l + 1;
-
-    // Even or odd size? Median is calculated differently.
-    if( sz % 2 == 0 ) {
-
-        // Get the two middle positions.
-        size_t pl = l + sz / 2 - 1;
-        size_t pu = l + sz / 2;
-        assert( pl < size && pu < size );
-
-        return ( *(first + pl) + *(first + pu) ) / 2.0;
-
-    } else {
-
-        // Int division, rounds down. This is what we want.
-        size_t p = l + sz / 2;
-        assert( p < size );
-
-        return *(first + p);
-    }
-}
-
-/**
- * @brief Calculate the median value of a range of `double`.
+ * @brief Calculate the median value of a sorted range of `double` values.
  *
- * The range has to be sorted, otherwise an exception is thrown.
+ * The iterators are as usual: @p first points to the first element of the range,
+ * @p last to the past-the-end element.
+ *
+ * The median of an odd sized range is its middle element; the median of an even sized range
+ * is the arithmetic mean (average) of its two middle elements.
  */
 template <class RandomAccessIterator>
 double median( RandomAccessIterator first, RandomAccessIterator last )
@@ -277,8 +245,24 @@ double median( RandomAccessIterator first, RandomAccessIterator last )
         return 0.0;
     }
 
-    // Use helper function, which takes the range inclusively.
-    return median( first, last, 0, size - 1 );
+    // Even or odd size? Median is calculated differently.
+    if( size % 2 == 0 ) {
+
+        // Get the two middle positions.
+        size_t pl = size / 2 - 1;
+        size_t pu = size / 2;
+        assert( pl < size && pu < size );
+
+        return ( *(first + pl) + *(first + pu) ) / 2.0;
+
+    } else {
+
+        // Int division, rounds down. This is what we want.
+        size_t p = size / 2;
+        assert( p < size );
+
+        return *(first + p);
+    }
 }
 
 /**
@@ -295,6 +279,12 @@ inline double median( std::vector<double> const& vec )
 //     Quartiles
 // =================================================================================================
 
+/**
+ * @brief Calculate the Quartiles of a sorted range of `double` values.
+ *
+ * The iterators are as usual: @p first points to the first element of the range,
+ * @p last to the past-the-end element.
+ */
 template <class RandomAccessIterator>
 Quartiles quartiles( RandomAccessIterator first, RandomAccessIterator last )
 {
@@ -312,22 +302,22 @@ Quartiles quartiles( RandomAccessIterator first, RandomAccessIterator last )
 
     // Set min, 50% and max.
     result.q0 = *first;
-    result.q2 = median( first, last, 0, size - 1 );
+    result.q2 = median( first, last );
     result.q4 = *(first + size - 1);
 
     // Even or odd size? Quartiles are calculated differently.
-    // This could be done shorter, but this way feels more expressive.
+    // This could be done shorter, but this way is more expressive.
     if( size % 2 == 0 ) {
 
         // Even: Split exaclty in halves.
-        result.q1 = median( first, last, 0, size / 2 - 1 );
-        result.q3 = median( first, last, size / 2, size - 1 );
+        result.q1 = median( first, first + size / 2 );
+        result.q3 = median( first + size / 2, first + size );
 
     } else {
 
         // Odd: Do not include the median value itself.
-        result.q1 = median( first, last, 0, size / 2 - 1 );
-        result.q3 = median( first, last, size / 2 + 1, size - 1 );
+        result.q1 = median( first, first + size / 2 );
+        result.q3 = median( first + size / 2 + 1, first + size );
     }
 
     return result;
