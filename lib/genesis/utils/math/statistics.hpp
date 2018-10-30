@@ -100,15 +100,21 @@ struct Quartiles
 /**
  * @brief Calculate the arithmetic mean and standard deviation of a range of `double` elements.
  *
- * The iterators @p first and @p last need to point to a range of `double`. The function then
- * calculates the mean and standard deviation of all finite elements in the range.
- * If none are, or if the range is empty, both returned values are `0.0`.
+ * The iterators @p first and @p last need to point to a range of `double` values,
+ * with @p last being the past-the-end element.
+ * The function then calculates the arithmetic mean and standard deviation of all finite elements
+ * in the range. If no elements are finite, or if the range is empty, both returned values are `0.0`.
+ * Non-finite numbers are ignored.
  *
  * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
  * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
  * which for some use cases would cause problems like a division by zero later on.
  * By default, @p epsilon is `-1.0`, which deactivates this check - a standard deviation can never
  * be below `0.0`.
+ *
+ * @see mean_stddev( std::vector<double> const&, double epsilon ) for a version for `std::vector`.
+ * @see arithmetic_mean() for a function that only calculates the mean, and thus saves the effort
+ * of a second iteration over the range.
  */
 template <class ForwardIterator>
 MeanStddevPair mean_stddev( ForwardIterator first, ForwardIterator last, double epsilon = -1.0 )
@@ -160,9 +166,11 @@ MeanStddevPair mean_stddev( ForwardIterator first, ForwardIterator last, double 
 }
 
 /**
- * @brief Calculate the mean and standard deviation of a `vector` of `double` elements.
+ * @brief Calculate the mean and standard deviation of a `std::vector` of `double` elements.
  *
- * See mean_stddev( ForwardIterator first, ForwardIterator last, double epsilon ) for details.
+ * @see mean_stddev( ForwardIterator first, ForwardIterator last, double epsilon ) for details.
+ * @see arithmetic_mean() for a function that only calculates the mean, and thus saves the effort
+ * of a second iteration over the range.
  */
 inline MeanStddevPair mean_stddev( std::vector<double> const& vec, double epsilon = -1.0 )
 {
@@ -170,13 +178,69 @@ inline MeanStddevPair mean_stddev( std::vector<double> const& vec, double epsilo
 }
 
 /**
- * @brief Calculate the geometric mean of a range of numbers.
+ * @brief Calculate the arithmetic mean of a range of numbers.
  *
- * The iterators @p first and @p last need to point to a range of `double`.
- * The function  then calculates the geometric mean of all positive finite elements in the range.
+ * The iterators @p first and @p last need to point to a range of `double` values,
+ * with @p last being the past-the-end element.
+ * The function then calculates the arithmetic mean of all finite elements in the range.
+ * If no elements are finite, or if the range is empty, the returned value is `0.0`.
+ * Non-finite numbers are ignored.
+ *
+ * @see arithmetic_mean( std::vector<double> const& ) for a version for `std::vector`.
+ * @see mean_stddev() for a function that also calcualtes the standard deviation.
+ * @see geometric_mean() for a function that calculates the geometric mean.
+ */
+template <class ForwardIterator>
+double arithmetic_mean( ForwardIterator first, ForwardIterator last )
+{
+    // Prepare result.
+    double mean  = 0.0;
+    size_t count = 0;
+
+    // Sum up elements.
+    auto it = first;
+    while( it != last ) {
+        if( std::isfinite( *it ) ) {
+            mean += *it;
+            ++count;
+        }
+        ++it;
+    }
+
+    // If there are no valid elements, return an all-zero result.
+    if( count == 0 ) {
+        return mean;
+    }
+
+    //  Calculate mean.
+    assert( count > 0 );
+    return mean / static_cast<double>( count );
+}
+
+/**
+ * @brief Calculate the arithmetic mean of a `std::vector` of `double` elements.
+ *
+ * @see arithmetic_mean( ForwardIterator first, ForwardIterator last ) for details.
+ * @see mean_stddev() for a function that simultaneously calculates the standard deviation.
+ * @see geometric_mean() for a function that calculates the geometric mean.
+ */
+inline double arithmetic_mean( std::vector<double> const& vec )
+{
+    return arithmetic_mean( vec.begin(), vec.end() );
+}
+
+/**
+ * @brief Calculate the geometric mean of a range of positive numbers.
+ *
+ * The iterators @p first and @p last need to point to a range of `double` values,
+ * with @p last being the past-the-end element.
+ * The function then calculates the geometric mean of all positive finite elements in the range.
  * If no elements are finite, or if the range is empty, the returned value is `0.0`.
  * Non-finite numbers are ignored.
  * If finite non-positive numbers (zero or negative) are found, an exception is thrown.
+ *
+ * @see geometric_mean( std::vector<double> const& ) for a version for `std::vector`.
+ * @see arithmetic_mean() for a function that calculates the arithmetic mean.
  */
 template <class ForwardIterator>
 double geometric_mean( ForwardIterator first, ForwardIterator last )
@@ -211,9 +275,10 @@ double geometric_mean( ForwardIterator first, ForwardIterator last )
 }
 
 /**
- * @brief Calculate the geometric mean of a `vector` of `double` elements.
+ * @brief Calculate the geometric mean of a `std::vector` of `double` elements.
  *
- * See geometric_mean( ForwardIterator first, ForwardIterator last ) for details.
+ * @see geometric_mean( ForwardIterator first, ForwardIterator last ) for details.
+ * @see arithmetic_mean() for a function that calculates the arithmetic mean.
  */
 inline double geometric_mean( std::vector<double> const& vec )
 {

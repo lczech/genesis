@@ -37,6 +37,23 @@
 
 using namespace genesis::utils;
 
+TEST( Math, ArithmeticMean )
+{
+    // Empty.
+    EXPECT_DOUBLE_EQ( 0.0,  arithmetic_mean({ }) );
+
+    // One value.
+    EXPECT_DOUBLE_EQ(  1.0,  arithmetic_mean({ 1.0 }) );
+    EXPECT_DOUBLE_EQ(  5.0,  arithmetic_mean({ 5.0 }) );
+
+    // Two values.
+    EXPECT_DOUBLE_EQ( 5.0,  arithmetic_mean({ 2.0, 8.0 }) );
+    EXPECT_DOUBLE_EQ( 6.0,  arithmetic_mean({ 6.0, 6.0 }) );
+
+    // Three values.
+    EXPECT_DOUBLE_EQ( 7.0,  arithmetic_mean({ 4.0, 6.0, 11.0 }) );
+}
+
 TEST( Math, GeometricMean )
 {
     // Empty.
