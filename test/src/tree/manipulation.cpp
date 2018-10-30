@@ -117,7 +117,13 @@ TEST( TreeManipulation, AddNewNodeNodeA )
     ASSERT_NE( nullptr, node );
 
     // Add a node.
-    auto& edge = add_new_node( tree, *node );
+    auto& new_node = add_new_node( tree, *node );
+    auto& edge = new_node.link().edge();
+
+    // Check node indices.
+    EXPECT_EQ( 10, new_node.index() );
+    EXPECT_EQ( 19, new_node.link().index() );
+    EXPECT_EQ( 9, new_node.link().edge().index() );
 
     // Check all indices and validate tree.
     EXPECT_EQ( 9, edge.index() );
@@ -146,7 +152,13 @@ TEST( TreeManipulation, AddNewNodeNodeB )
     ASSERT_NE( nullptr, node );
 
     // Add a node.
-    auto& edge = add_new_node( tree, *node );
+    auto& new_node = add_new_node( tree, *node );
+    auto& edge = new_node.link().edge();
+
+    // Check node indices.
+    EXPECT_EQ( 10, new_node.index() );
+    EXPECT_EQ( 19, new_node.link().index() );
+    EXPECT_EQ( 9, new_node.link().edge().index() );
 
     // Check all indices and validate tree.
     EXPECT_EQ( 9, edge.index() );
@@ -164,6 +176,47 @@ TEST( TreeManipulation, AddNewNodeNodeB )
     EXPECT_EQ( 0.0, edge.data<CommonEdgeData>().branch_length );
 }
 
+TEST( TreeManipulation, AddNewNodeNodeAR )
+{
+    // We use input with branch length, in order to make sure that new edges have a default one.
+    std::string input = "((B:2.0,(D:2.0,E:2.0)C:2.0)A:2.0,F:2.0,(H:2.0,I:2.0)G:2.0)R:2.0;";
+    Tree tree = CommonTreeNewickReader().from_string( input );
+
+    // Find node A.
+    auto node = find_node( tree, "A" );
+    ASSERT_NE( nullptr, node );
+
+    // Add a node in between A and the root. Split the bl in half.
+    auto& new_node = add_new_node( tree, node->primary_link().edge(), []( TreeEdge& target_edge, TreeEdge& new_edge ){
+        auto& target_bl = target_edge.data<CommonEdgeData>().branch_length;
+        auto& new_bl    = new_edge.data<CommonEdgeData>().branch_length;
+
+        new_bl    = target_bl / 2.0;
+        target_bl = target_bl / 2.0;
+    });
+
+    // Check all indices and validate tree.
+    EXPECT_EQ( 10, new_node.index() );
+    EXPECT_EQ( 18, new_node.link().index() );
+    EXPECT_EQ( 19, new_node.link().next().index() );
+
+    EXPECT_EQ( 0, new_node.link().outer().index() );
+    EXPECT_EQ( 0, new_node.link().outer().node().index() );
+
+    EXPECT_EQ( 9, new_node.link().next().outer().index() );
+    EXPECT_EQ( 5, new_node.link().next().outer().node().index() );
+
+    EXPECT_TRUE( validate_topology( tree ));
+
+    // Check whether the data pointers were set correctly.
+    ASSERT_NO_THROW( new_node.data<CommonNodeData>() );
+    EXPECT_EQ( "", new_node.data<CommonNodeData>().name );
+    ASSERT_NO_THROW( new_node.primary_link().edge().data<CommonEdgeData>() );
+    ASSERT_NO_THROW( new_node.primary_link().next().edge().data<CommonEdgeData>() );
+    EXPECT_EQ( 1.0, new_node.primary_link().edge().data<CommonEdgeData>().branch_length );
+    EXPECT_EQ( 1.0, new_node.primary_link().next().edge().data<CommonEdgeData>().branch_length );
+}
+
 TEST( TreeManipulation, AddNewNodeEdge )
 {
     // We use input with branch length, in order to make sure that new edges have a default one.
@@ -175,7 +228,8 @@ TEST( TreeManipulation, AddNewNodeEdge )
     ASSERT_NE( nullptr, node );
 
     // Add a node.
-    auto& edge = add_new_leaf_node( tree, node->primary_link().edge() );
+    auto& new_node = add_new_leaf_node( tree, node->primary_link().edge() );
+    auto& edge = new_node.link().edge();
 
     // Check all indices and validate tree.
     EXPECT_EQ( 10, edge.index() );

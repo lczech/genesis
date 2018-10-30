@@ -59,9 +59,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6"
-     inkscape:cx="130.06366"
-     inkscape:cy="94.94461"
+     inkscape:zoom="2.8"
+     inkscape:cx="116.60735"
+     inkscape:cy="107.34549"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -70,11 +70,11 @@
      inkscape:bbox-nodes="true"
      inkscape:snap-bbox-edge-midpoints="true"
      inkscape:snap-bbox-midpoints="true"
-     inkscape:window-width="3389"
-     inkscape:window-height="1416"
+     inkscape:window-width="1694"
+     inkscape:window-height="1388"
      inkscape:window-x="51"
      inkscape:window-y="24"
-     inkscape:window-maximized="1"
+     inkscape:window-maximized="0"
      fit-margin-top="0.5"
      fit-margin-left="0.5"
      fit-margin-right="0.5"
@@ -642,7 +642,8 @@
              sodipodi:ry="5"
              sodipodi:rx="5"
              sodipodi:cy="397.36218"
-             sodipodi:cx="235" />
+             sodipodi:cx="235"
+             d="m 240,397.36218 a 5,5 0 0 1 -5,5 5,5 0 0 1 -5,-5 5,5 0 0 1 5,-5 5,5 0 0 1 5,5 z" />
           <circle
              style="color:#000000;fill:none;stroke:#161616;stroke-width:1.79999995;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
              id="path4132"
@@ -651,7 +652,8 @@
              sodipodi:ry="5"
              sodipodi:rx="5"
              sodipodi:cy="397.36218"
-             sodipodi:cx="235" />
+             sodipodi:cx="235"
+             d="m 240,397.36218 a 5,5 0 0 1 -5,5 5,5 0 0 1 -5,-5 5,5 0 0 1 5,-5 5,5 0 0 1 5,5 z" />
           <circle
              style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:none;stroke:#3030b3;stroke-width:1.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
              id="path4134"
@@ -721,7 +723,7 @@
            y="546.02319"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans';fill:#51b6ff;fill-opacity:1" /></flowRegion><flowPara
          id="flowPara4182"
-         style="font-size:8px;line-height:100%;fill:#51b6ff;fill-opacity:1">new edge</flowPara></flowRoot>  </g>
+         style="font-size:8px;line-height:100%;fill:#51b6ff;fill-opacity:1">new_edge</flowPara></flowRoot>  </g>
   <g
      inkscape:groupmode="layer"
      id="layer9"

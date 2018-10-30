@@ -45,10 +45,10 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Add single Nodes
+//     Add Nodes
 // =================================================================================================
 
-TreeEdge& add_new_node( Tree& tree, TreeNode& target_node )
+TreeNode& add_new_node( Tree& tree, TreeNode& target_node )
 {
     // Basic check.
     if( ! belongs_to( target_node, tree ) ) {
@@ -123,12 +123,15 @@ TreeEdge& add_new_node( Tree& tree, TreeNode& target_node )
     con_edge->reset_data( target_node.primary_link().edge().data_ptr()->recreate() );
     edges.push_back( std::move( con_edge_u ));
 
-    // Return the new edge. We just moved the edge uniq ptr, but not the pointee, so this is valid.
-    return *con_edge;
+    // Return the new node. We just moved the node uniq ptr, but not the pointee, so this is valid.
+    return *end_node;
 }
 
-TreeNode& add_new_node( Tree& tree, TreeEdge& target_edge )
-{
+TreeNode& add_new_node(
+    Tree& tree,
+    TreeEdge& target_edge,
+    std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> adjust_edges
+) {
     // Basic check.
     if( ! belongs_to( target_edge, tree ) ) {
         throw std::runtime_error(
@@ -141,11 +144,7 @@ TreeNode& add_new_node( Tree& tree, TreeEdge& target_edge )
     auto& nodes = tree.expose_node_container();
     auto& edges = tree.expose_edge_container();
 
-    // This function works in two steps: First, we create a new node with all necessary other
-    // elements in the middle of the target edge. Then, we add the new leaf node to this node
-    // by calling the node version of add_new_node() on the new mid-edge node.
-
-    // Create all new elements for the first step:
+    // Create all new elements that we need:
     //  * Two links that build a new node in the middle of the target edge.
     //  * The new node in the middle of the target edge.
     //  * A new edge that connects to the secondary end of the target edge.
@@ -195,13 +194,21 @@ TreeNode& add_new_node( Tree& tree, TreeEdge& target_edge )
     target_edge.secondary_link().reset_edge( sec_edge );
     target_edge.reset_secondary_link( pri_link );
 
+    // If we have a transform function, call it.
+    if( adjust_edges ) {
+        adjust_edges( target_edge, *sec_edge );
+    }
+
     return *mid_node;
 }
 
-TreeEdge& add_new_leaf_node( Tree& tree, TreeEdge& target_edge )
-{
+TreeNode& add_new_leaf_node(
+    Tree& tree,
+    TreeEdge& target_edge,
+    std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> adjust_edges
+) {
     // First add a node that splits the edge, and then a new leaf node to this one.
-    auto& mid_node = add_new_node( tree, target_edge );
+    auto& mid_node = add_new_node( tree, target_edge, adjust_edges );
     return add_new_node( tree, mid_node );
 }
 

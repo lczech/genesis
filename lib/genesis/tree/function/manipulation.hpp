@@ -32,6 +32,7 @@
  */
 
 #include <cstddef> // size_t
+#include <functional>
 
 namespace genesis {
 namespace tree {
@@ -44,9 +45,11 @@ class Tree;
 class TreeNode;
 class TreeEdge;
 class TreeLink;
+class BaseEdgeData;
+class BaseNodeData;
 
 // =================================================================================================
-//     Add single Nodes
+//     Add Nodes
 // =================================================================================================
 
 /**
@@ -77,11 +80,13 @@ class TreeLink;
  * This means that in case of a Tree where every Node and Edge has the same node and edge data type
  * (standard case), the newly created ones will also have these data types.
  *
- * @return The function returns the newly create TreeEdge. This way, all other new elements can
- * be accessed, using TreeEdge::primary_link(), TreeEdge::secondary_link() and
- * TreeEdge::secondary_node().
+ * @return The function returns the newly created TreeNode.
+ *
+ * @see @link add_new_node( Tree&, TreeEdge&, std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> ) add_new_node( Tree&, TreeEdge& )@endlink
+ * for a version that adds an inner node to an edge.
+ * @see add_new_leaf_node() for a function that splits and edge and adds a new leaf node to it.
  */
-TreeEdge& add_new_node( Tree& tree, TreeNode& target_node );
+TreeNode& add_new_node( Tree& tree, TreeNode& target_node );
 
 /**
  * @brief Add a new @link TreeNode Node@endlink that splits an existing @link TreeEdge Edge@endlink.
@@ -97,19 +102,44 @@ TreeEdge& add_new_node( Tree& tree, TreeNode& target_node );
  * function behaves in a similar way. The data objects of the new nodes and edges are
  * default-constructed objects of the same type as the `target_edge` and its primary node.
  *
- * Be aware that the data of `target_edge` is not changed. Thus, in trees with CommonEdgeData,
- * the branch lengths of all three affected edges might have to be changed to the desired values
- * after calling this function.
+ * Be aware that the data of `target_edge` is not changed by default.
+ * Thus, in trees with CommonEdgeData, the branch lengths of the two affected edges might have
+ * to be changed to the desired values after calling this function.
+ * Instead, one can use the @p adjust_edges functional to adjust these edges.
+ * For example, in order to split the branch length in half between the two edges, use:
  *
- * @return The function returns the newly created TreeNode  .
+ *     // Some tree and edge.
+ *     Tree tree;
+ *     auto& target_edge = ...;
+ *
+ *     add_new_node( tree, target_edge, []( TreeEdge& target_edge, TreeEdge& new_edge ){
+ *         auto& target_bl = target_edge.data<CommonEdgeData>().branch_length;
+ *         auto& new_bl    = new_edge.data<CommonEdgeData>().branch_length;
+ *
+ *         new_bl    = target_bl / 2.0;
+ *         target_bl = target_bl / 2.0;
+ *     });
+ *
+ * The functor is called after all changes to the Tree have been made,
+ * and all data objects have been created.
+ *
+ * @return The function returns the newly created TreeNode.
+ *
+ * @see add_new_node( Tree&, TreeNode& ) for a version that adds a leaf node to a node.
+ * @see add_new_leaf_node() for a function that splits and edge and adds a new leaf node to it.
  */
-TreeNode& add_new_node( Tree& tree, TreeEdge& target_edge );
+TreeNode& add_new_node(
+    Tree& tree,
+    TreeEdge& target_edge,
+    std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> adjust_edges = {}
+);
 
 /**
  * @brief Add a new @link TreeNode Node@endlink as a leaf to an existing @link TreeEdge Edge@endlink,
  * by also adding a new Node in the middle of that Edge.
  *
- * This function is a combination of add_new_node( Tree&, TreeNode& ) and add_new_node( Tree&, TreeEdge& ).
+ * This function is a combination of add_new_node( Tree&, TreeNode& ) and
+ * @link add_new_node( Tree&, TreeEdge&, std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> ) add_new_node( Tree&, TreeEdge& )@endlink.
  * Before adding the new leaf node, it first adds another Node that splits the given `target_edge`
  * into two edges, and then adds the leaf to it.
  *
@@ -123,13 +153,25 @@ TreeNode& add_new_node( Tree& tree, TreeEdge& target_edge );
  * function behaves in a similar way. The data objects of the new nodes and edges are
  * default-constructed objects of the same type as the `target_edge` and its primary node.
  *
- * Be aware that the data of `target_edge` is not changed. Thus, in trees with CommonEdgeData,
- * the branch lengths of all three affected edges might have to be changed to the desired values
- * after calling this function.
+ * Be aware that the data of `target_edge` is not changed by default.
+ * Thus, in trees with CommonEdgeData, the branch lengths of the affected edges might have
+ * to be changed to the desired values after calling this function.
+ * In particular, this concerns the target edge as well as the new inner edge.
+ * One can use the @p adjust_edges functional to adjust these edges.
+ * See @link add_new_node( Tree&, TreeEdge&, std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> ) add_new_node( Tree&, TreeEdge& )@endlink
+ * for an example of this.
  *
- * @return The function returns the newly created TreeEdge that leads to the new leaf node.
+ * @return The function returns the newly created leaf TreeNode.
+ *
+ * @see add_new_node( Tree&, TreeNode& ) for a function that adds a leaf node to a node.
+ * @see @link add_new_node( Tree&, TreeEdge&, std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> ) add_new_node( Tree&, TreeEdge& )@endlink
+ * for a function that adds an inner node to an edge.
  */
-TreeEdge& add_new_leaf_node( Tree& tree, TreeEdge& target_edge );
+TreeNode& add_new_leaf_node(
+    Tree& tree,
+    TreeEdge& target_edge,
+    std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> adjust_edges = {}
+);
 
 /**
  * @brief Add a new @link TreeNode Node@endlink that splits an existing @link TreeEdge Edge@endlink,
@@ -201,6 +243,13 @@ enum class LadderizeOrder
     kLargeFirst
 };
 
+/**
+ * @brief Ladderize a Tree, that is, order its subtrees by size.
+ *
+ * The function flips the TreeLink order of all internal TreeNode%s of the Tree so that always
+ * the smalles/largest subtree (in number of nodes) comes first when iterating the Tree.
+ * This assumes a rooting, as the direction of the subtree of a node is measured away from the root.
+ */
 void ladderize( Tree& tree, LadderizeOrder order = LadderizeOrder::kSmallFirst );
 
 } // namespace tree

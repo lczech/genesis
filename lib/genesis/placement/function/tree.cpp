@@ -177,11 +177,12 @@ tree::Tree labelled_tree(
         PlacementPair const& placement_pair
     ) {
         // Add the new edges to the tree and get all necessary edges.
-        auto& pendant_edge  = tree::add_new_leaf_node( tree, edge );
+        auto& pendant_node  = tree::add_new_leaf_node( tree, edge );
+        auto& pendant_edge  = pendant_node.link().edge();
         auto& proximal_edge = pendant_edge.primary_link().next().edge();
         auto& distal_edge   = pendant_edge.primary_link().next().next().edge();
 
-        // The primary node is new, so it should be bifurcating and a leaf.
+        // The inner node is new, so it should be bifurcating. The other one is a leaf.
         assert( degree( pendant_edge.primary_node() ) == 3 );
         assert( is_leaf( pendant_edge.secondary_node() ));
 
@@ -204,7 +205,7 @@ tree::Tree labelled_tree(
         // otherwise, this is not a lonely placement any more!
         assert( placement_pair.pquery->name_size() <= 1 );
         if( placement_pair.pquery->name_size() == 1 ) {
-            auto& pendant_node_data = pendant_edge.secondary_node().data<tree::CommonNodeData>();
+            auto& pendant_node_data = pendant_node.data<tree::CommonNodeData>();
             pendant_node_data.name = name_prefix + placement_pair.pquery->name_at(0).name;
         }
     };
@@ -238,7 +239,8 @@ tree::Tree labelled_tree(
             for( auto const& pquery_name : placement_pair.pquery->names() ) {
 
                 // Create the new edges.
-                auto& pendant_edge  = tree::add_new_leaf_node( tree, *insertion_edge );
+                auto& pendant_node  = tree::add_new_leaf_node( tree, *insertion_edge );
+                auto& pendant_edge  = pendant_node.link().edge();
                 auto& proximal_edge = pendant_edge.primary_link().next().edge();
                 auto& distal_edge   = pendant_edge.primary_link().next().next().edge();
 
@@ -264,7 +266,7 @@ tree::Tree labelled_tree(
                 prox_data.branch_length = placement_pair.placement->proximal_length - used_length;
 
                 // Set the leaf name.
-                auto& node_data = pendant_edge.secondary_node().data<tree::CommonNodeData>();
+                auto& node_data = pendant_node.data<tree::CommonNodeData>();
                 node_data.name = name_prefix + pquery_name.name;
 
                 // Set new values for the keeping-track variables, for the next iteration.
@@ -303,7 +305,8 @@ tree::Tree labelled_tree(
         // Add a new leaf node to the tree, attached to the middle of the given edge (this spltis
         // the edge in half and adds one more node there). This will be the base to which we then
         // attach all further nodes, multifurcating.
-        auto& base_edge = tree::add_new_leaf_node( tree, edge );
+        auto& new_node  = tree::add_new_leaf_node( tree, edge );
+        auto& base_edge = new_node.link().edge();
         auto& pri_edge  = base_edge.primary_link().next().edge();
         auto& sec_edge  = base_edge.primary_link().next().next().edge();
 
@@ -365,7 +368,8 @@ tree::Tree labelled_tree(
             for( auto const& pquery_name : placement_pair.pquery->names() ) {
 
                 // Make a new leaf node for this placement.
-                auto& p_edge = tree::add_new_node( tree, base_edge.secondary_node() );
+                auto& p_node = tree::add_new_node( tree, new_node );
+                auto& p_edge = p_node.link().edge();
 
                 // Set the pendant branch length. It is subtracted by
                 // the min pen length, as this is already incorporated into the base's bl.
@@ -374,7 +378,7 @@ tree::Tree labelled_tree(
                 p_data.branch_length = placement_pair.placement->pendant_length - min_pen_len;
 
                 // Set the leaf node name.
-                auto& p_node_data = p_edge.secondary_node().data<tree::CommonNodeData>();
+                auto& p_node_data = new_node.data<tree::CommonNodeData>();
                 p_node_data.name = name_prefix + pquery_name.name;
             }
         }
