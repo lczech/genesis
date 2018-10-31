@@ -82,8 +82,8 @@ struct NewickBrokerElement;
  *   * #edge_to_element_plugins
  *   * #finish_writing_plugins
  *
- * For example, the DefaultTreeNewickWriterPlugin is a convenience class that provides such plugin
- * functions. It translates from a #DefaultTree with TreeNode%s that contain names and TreeEdge%s
+ * For example, the CommonTreeNewickWriterPlugin is a convenience class that provides such plugin
+ * functions. It translates from a #CommonTree with TreeNode%s that contain names and TreeEdge%s
  * that contain branch lengths into the standard Newick format. Using plugin classes like this
  * additionally allows to use state for the plugin functions - that is, to use some settings for
  * how to write data.
@@ -95,7 +95,7 @@ struct NewickBrokerElement;
  *
  * This whole approach is a bit tedious, but unfortunately the price for the flexibility of this
  * class. In order to keep the standard use cases simple, we also provide classes like
- * DefaultTreeNewickWriter, which hides the whole plugin system and allows simple writing
+ * CommonTreeNewickWriter, which hides the whole plugin system and allows simple writing
  * of default trees to standard Newick.
  */
 class NewickWriter
@@ -234,12 +234,12 @@ public:
      * (see NewickBrokerElement::name), the writer wraps the whole name in quotation markes.
      * This is not officially in the standard, but common practice.
      *
-     * Remark: When using a DefaultTreeNewickWriterPlugin (or a DefaultTreeNewickWriter, as it
+     * Remark: When using a CommonTreeNewickWriterPlugin (or a CommonTreeNewickWriter, as it
      * internally uses the plugin), you can use its setting
-     * @link DefaultTreeNewickWriterPlugin::replace_name_spaces( bool ) replace_name_spaces()@endlink
+     * @link CommonTreeNewickWriterPlugin::replace_name_spaces( bool ) replace_name_spaces()@endlink
      * in order to replace any spaces in node nams into underscores.
      *
-     * This function sets the kind of quotation marks used for wrapping such names. Default are
+     * This function sets the kind of quotation marks used for wrapping such names. Common are
      * double quotation marks ('"'), which seem to be understood by many other programs that work
      * with Newick trees.
      *

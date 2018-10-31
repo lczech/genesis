@@ -37,6 +37,44 @@
 
 using namespace genesis::utils;
 
+TEST( Math, ArithmeticMean )
+{
+    // Empty.
+    EXPECT_DOUBLE_EQ( 0.0,  arithmetic_mean({ }) );
+
+    // One value.
+    EXPECT_DOUBLE_EQ(  1.0,  arithmetic_mean({ 1.0 }) );
+    EXPECT_DOUBLE_EQ(  5.0,  arithmetic_mean({ 5.0 }) );
+
+    // Two values.
+    EXPECT_DOUBLE_EQ( 5.0,  arithmetic_mean({ 2.0, 8.0 }) );
+    EXPECT_DOUBLE_EQ( 6.0,  arithmetic_mean({ 6.0, 6.0 }) );
+
+    // Three values.
+    EXPECT_DOUBLE_EQ( 7.0,  arithmetic_mean({ 4.0, 6.0, 11.0 }) );
+}
+
+TEST( Math, GeometricMean )
+{
+    // Empty.
+    EXPECT_DOUBLE_EQ( 0.0,  geometric_mean({ }) );
+
+    // One value.
+    EXPECT_DOUBLE_EQ(  1.0,  geometric_mean({ 1.0 }) );
+    EXPECT_DOUBLE_EQ(  5.0,  geometric_mean({ 5.0 }) );
+
+    // Two values.
+    EXPECT_DOUBLE_EQ( 4.0,  geometric_mean({ 2.0, 8.0 }) );
+    EXPECT_DOUBLE_EQ( 6.0,  geometric_mean({ 6.0, 6.0 }) );
+
+    // Three values.
+    EXPECT_DOUBLE_EQ( 0.5,  geometric_mean({ 4.0, 1.0, 1.0/32.0 }) );
+
+    // Edge cases.
+    EXPECT_ANY_THROW( geometric_mean({  0.0 }) );
+    EXPECT_ANY_THROW( geometric_mean({ -1.0 }) );
+}
+
 TEST( Math, Median )
 {
     // Empty.

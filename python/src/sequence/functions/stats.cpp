@@ -32,7 +32,7 @@ PYTHON_EXPORT_FUNCTIONS( sequence_functions_stats_export, ::genesis::sequence, s
 
     scope.def(
         "gap_site_count",
-        ( size_t ( * )( SequenceCounts const & ))( &::genesis::sequence::gap_site_count ),
+        ( size_t ( * )( SiteCounts const & ))( &::genesis::sequence::gap_site_count ),
             pybind11::arg("counts")
     );
 

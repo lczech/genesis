@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,11 +32,13 @@
  */
 
 #include "genesis/tree/tree.hpp"
+#include "genesis/tree/tree/subtree.hpp"
 #include "genesis/utils/core/range.hpp"
 
-#include <assert.h>
-#include <deque>
+#include <cassert>
 #include <iterator>
+#include <type_traits>
+#include <vector>
 
 namespace genesis {
 namespace tree {
@@ -49,12 +51,13 @@ class Tree;
 class TreeNode;
 class TreeEdge;
 class TreeLink;
+class Subtree;
 
 // =================================================================================================
 //     Preorder Iterator
 // =================================================================================================
 
-template <typename LinkType, typename NodeType, typename EdgeType>
+template< bool is_const = true >
 class IteratorPreorder
 {
 
@@ -64,8 +67,18 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
+    // Make the memer types const or not, depending on iterator type.
+    using TreeType = typename std::conditional< is_const, Tree const, Tree >::type;
+    using LinkType = typename std::conditional< is_const, TreeLink const, TreeLink >::type;
+    using NodeType = typename std::conditional< is_const, TreeNode const, TreeNode >::type;
+    using EdgeType = typename std::conditional< is_const, TreeEdge const, TreeEdge >::type;
+
+    using self_type         = IteratorPreorder< is_const >;
     using iterator_category = std::forward_iterator_tag;
-    using self_type         = IteratorPreorder<LinkType, NodeType, EdgeType>;
+    // using value_type        = NodeType;
+    // using pointer           = NodeType*;
+    // using reference         = NodeType&;
+    // using difference_type   = std::ptrdiff_t;
 
     // -----------------------------------------------------
     //     Constructors and Rule of Five
@@ -76,24 +89,49 @@ public:
         , link_ ( nullptr )
     {}
 
-    explicit IteratorPreorder( Tree& tree )
+    /**
+     * @brief Start a preorder traversal at the root of the given Tree.
+     */
+    explicit IteratorPreorder( TreeType& tree )
         : IteratorPreorder( tree.root_link() )
     {}
 
-    explicit IteratorPreorder( Tree const& tree )
-        : IteratorPreorder( tree.root_link() )
-    {}
-
+    /**
+     * @brief Start a preorder traversal at the given TreeNode, moving in the root direction first.
+     */
     explicit IteratorPreorder( NodeType& node )
         : IteratorPreorder( node.primary_link() )
     {}
 
+    /**
+     * @brief Start a preorder traversal at a given TreeLink, moving in the direction of the link first.
+     */
     explicit IteratorPreorder( LinkType& link )
+        // Set the starting link and the one where we currently are.
+        // In preorder traversal, we start at the actual node, so this is easy.
         : start_( &link )
         , link_(  &link )
     {
-        push_front_children( &link );
-        stack_.push_front( &link.outer() );
+        // Add all neighbouring nodes of the starting one to the stack.
+        // As push_back_children_() does not add the outer() of the given link,
+        // we need to do this extra (this is done in order to keep this function simple,
+        // without haven to consider the "edge case" that occurs here in the constructor).
+        // All these neighbours will then be visisted later.
+        push_back_children_( &link );
+        stack_.push_back( &link.outer() );
+    }
+
+    /**
+     * @brief Start a preorder traversal at the top TreeNode of a Subtree,
+     * only traversing the nodes in the subtree
+     */
+    explicit IteratorPreorder( Subtree const& subtree )
+        : start_( &(subtree.link()) )
+        , link_(  &(subtree.link()) )
+    {
+        // Compared to the normal constructor above, we do the same, but leave out
+        // the outer() link, as this is the part of the tree that we want to skip.
+        push_back_children_( link_ );
     }
 
     ~IteratorPreorder() = default;
@@ -115,12 +153,19 @@ public:
 
     self_type operator ++ ()
     {
-        if (stack_.empty()) {
+        if( stack_.empty() ) {
+
+            // We reached the end of the stack.
+            // This is the signal to stop traversing.
             link_ = nullptr;
+
         } else {
-            link_ = stack_.front();
-            stack_.pop_front();
-            push_front_children(link_);
+
+            // While the stack is not empty, it gives us the next link to move to.
+            // Go there, and add its children to the stack for the next iterations.
+            link_ = stack_.back();
+            stack_.pop_back();
+            push_back_children_(link_);
         }
 
         return *this;
@@ -183,19 +228,19 @@ public:
 
 private:
 
-    void push_front_children( LinkType* link )
+    void push_back_children_( LinkType* link )
     {
-        // we need to push to a tmp queue first, in order to get the order right.
+        // we need to push to a tmp first, in order to get the order right.
         // otherwise, we would still do a preorder traversal, but starting with
         // the last child of each node instead of the first one.
-        std::deque<LinkType*> tmp;
+        std::vector<LinkType*> tmp;
         LinkType* c = &link->next();
         while (c != link) {
-            tmp.push_front( &c->outer() );
+            tmp.push_back( &c->outer() );
             c = &c->next();
         }
-        for (LinkType* l : tmp) {
-            stack_.push_front(l);
+        for( auto lit = tmp.rbegin(); lit != tmp.rend(); ++lit ) {
+            stack_.push_back( *lit );
         }
     }
 
@@ -203,12 +248,10 @@ private:
     //     Data Members
     // -----------------------------------------------------
 
-    // TODO take a stack or vector instead of deque here; maybe reverse pushing order
-
     LinkType* const       start_;
     LinkType*             link_;
 
-    std::deque<LinkType*> stack_;
+    std::vector<LinkType*> stack_;
 };
 
 // =================================================================================================
@@ -216,22 +259,22 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< IteratorPreorder< TreeLink const, TreeNode const, TreeEdge const >>
+utils::Range< IteratorPreorder< true >>
 preorder( ElementType const& element )
 {
     return {
-        IteratorPreorder< const TreeLink, const TreeNode, const TreeEdge >( element ),
-        IteratorPreorder< const TreeLink, const TreeNode, const TreeEdge >()
+        IteratorPreorder< true >( element ),
+        IteratorPreorder< true >()
     };
 }
 
 template<typename ElementType>
-utils::Range< IteratorPreorder< TreeLink, TreeNode, TreeEdge >>
+utils::Range< IteratorPreorder< false >>
 preorder( ElementType& element )
 {
     return {
-        IteratorPreorder< TreeLink, TreeNode, TreeEdge >( element ),
-        IteratorPreorder< TreeLink, TreeNode, TreeEdge >()
+        IteratorPreorder< false >( element ),
+        IteratorPreorder< false >()
     };
 }
 

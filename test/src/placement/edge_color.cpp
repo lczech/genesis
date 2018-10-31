@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,8 +37,8 @@
 #include "genesis/placement/formats/newick_writer.hpp"
 #include "genesis/tree/formats/phyloxml/writer.hpp"
 #include "genesis/placement/sample.hpp"
-#include "genesis/tree/default/functions.hpp"
-#include "genesis/tree/default/phyloxml_writer.hpp"
+#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/phyloxml_writer.hpp"
 #include "genesis/tree/formats/newick/color_writer_plugin.hpp"
 #include "genesis/tree/formats/phyloxml/color_writer_plugin.hpp"
 #include "genesis/utils/formats/nexus/document.hpp"
@@ -60,7 +60,7 @@ TEST( PlacementTreeEdgeColor, CountGradientPhyloxml )
 
     Sample map = JplaceReader().from_file(infile);
 
-    auto writer = tree::DefaultTreePhyloxmlWriter();
+    auto writer = tree::CommonTreePhyloxmlWriter();
     auto color_plugin = PhyloxmlColorWriterPlugin();
     color_plugin.register_with( writer );
 

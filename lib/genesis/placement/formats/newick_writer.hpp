@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@
 #include "genesis/placement/function/helper.hpp"
 #include "genesis/placement/placement_tree.hpp"
 #include "genesis/placement/sample.hpp"
-#include "genesis/tree/default/newick_writer.hpp"
+#include "genesis/tree/common_tree/newick_writer.hpp"
 #include "genesis/tree/formats/newick/writer.hpp"
 
 namespace genesis {
@@ -147,7 +147,7 @@ private:
 
 class PlacementTreeNewickWriter
     : public tree::NewickWriter
-    , public tree::DefaultTreeNewickWriterPlugin
+    , public tree::CommonTreeNewickWriterPlugin
     , public PlacementTreeNewickWriterPlugin
 {
 public:
@@ -158,7 +158,7 @@ public:
 
     PlacementTreeNewickWriter()
     {
-        DefaultTreeNewickWriterPlugin::register_with( *this );
+        CommonTreeNewickWriterPlugin::register_with( *this );
         PlacementTreeNewickWriterPlugin::register_with( *this );
     }
 };

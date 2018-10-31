@@ -180,11 +180,11 @@ double placement_distance(
                place_a.edge().primary_node().index(),
                place_b.edge().secondary_node().index()
            )
-           + place_b.edge().data<tree::DefaultEdgeData>().branch_length
+           + place_b.edge().data<tree::CommonEdgeData>().branch_length
            - place_b.proximal_length;
 
         // distal-proximal case
-        dp = place_a.edge().data<tree::DefaultEdgeData>().branch_length
+        dp = place_a.edge().data<tree::CommonEdgeData>().branch_length
            - place_a.proximal_length
            + node_distances(
                place_a.edge().secondary_node().index(),
@@ -295,7 +295,7 @@ double placement_distance(
     ;
 
     // distal
-    double const dd = placement.edge().data<tree::DefaultEdgeData>().branch_length
+    double const dd = placement.edge().data<tree::CommonEdgeData>().branch_length
         - placement.proximal_length
         + node_distances( node.index(), placement.edge().secondary_node().index() )
     ;

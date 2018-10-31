@@ -35,9 +35,10 @@
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/utils/core/range.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <iterator>
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
 
 namespace genesis {
@@ -91,7 +92,7 @@ class TreeLink;
  * the extra amount of work that IteratorPath is doing. Thus, the user is responsible for providing
  * a correct LCA.
  */
-template <typename LinkType, typename NodeType, typename EdgeType>
+template< bool is_const = true >
 class IteratorPathSet
 {
 public:
@@ -100,8 +101,19 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
+    // Make the memer types const or not, depending on iterator type.
+    using TreeType = typename std::conditional< is_const, Tree const, Tree >::type;
+    using LinkType = typename std::conditional< is_const, TreeLink const, TreeLink >::type;
+    using NodeType = typename std::conditional< is_const, TreeNode const, TreeNode >::type;
+    using EdgeType = typename std::conditional< is_const, TreeEdge const, TreeEdge >::type;
+
+    using self_type         = IteratorPathSet< is_const >;
     using iterator_category = std::forward_iterator_tag;
-    using self_type         = IteratorPathSet<LinkType, NodeType, EdgeType>;
+    // using value_type        = NodeType;
+    // using pointer           = NodeType*;
+    // using reference         = NodeType&;
+    // using difference_type   = std::ptrdiff_t;
+
 
     // -----------------------------------------------------
     //     Constructors and Rule of Five
@@ -301,22 +313,22 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< IteratorPathSet< TreeLink const, TreeNode const, TreeEdge const >>
+utils::Range< IteratorPathSet< true >>
 path_set( ElementType const& start, ElementType const& finish, ElementType const& lca )
 {
     return {
-        IteratorPathSet< const TreeLink, const TreeNode, const TreeEdge >( start, finish, lca ),
-        IteratorPathSet< const TreeLink, const TreeNode, const TreeEdge >()
+        IteratorPathSet< true >( start, finish, lca ),
+        IteratorPathSet< true >()
     };
 }
 
 template<typename ElementType>
-utils::Range< IteratorPathSet< TreeLink, TreeNode, TreeEdge >>
+utils::Range< IteratorPathSet< false >>
 path_set( ElementType& start, ElementType& finish, ElementType& lca )
 {
     return {
-        IteratorPathSet< TreeLink, TreeNode, TreeEdge >( start, finish, lca ),
-        IteratorPathSet< TreeLink, TreeNode, TreeEdge >()
+        IteratorPathSet< false >( start, finish, lca ),
+        IteratorPathSet< false >()
     };
 }
 

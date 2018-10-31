@@ -47,31 +47,17 @@ PYTHON_EXPORT_FUNCTIONS( placement_function_functions_export, ::genesis::placeme
     );
 
     scope.def(
-        "total_multiplicity",
-        ( double ( * )( Pquery const & ))( &::genesis::placement::total_multiplicity ),
-            pybind11::arg("pqry"),
-        get_docstring("double ::genesis::placement::total_multiplicity (Pquery const & pqry)")
-    );
-
-    scope.def(
-        "total_multiplicity",
-        ( double ( * )( Sample const & ))( &::genesis::placement::total_multiplicity ),
+        "remove_empty_pqueries",
+        ( size_t ( * )( Sample & ))( &::genesis::placement::remove_empty_pqueries ),
             pybind11::arg("sample"),
-        get_docstring("double ::genesis::placement::total_multiplicity (Sample const & sample)")
+        get_docstring("size_t ::genesis::placement::remove_empty_pqueries (Sample & sample)")
     );
 
     scope.def(
-        "total_placement_mass",
-        ( double ( * )( Sample const & ))( &::genesis::placement::total_placement_mass ),
+        "total_name_count",
+        ( size_t ( * )( Sample const & ))( &::genesis::placement::total_name_count ),
             pybind11::arg("smp"),
-        get_docstring("double ::genesis::placement::total_placement_mass (Sample const & smp)")
-    );
-
-    scope.def(
-        "total_placement_mass_with_multiplicities",
-        ( double ( * )( Sample const & ))( &::genesis::placement::total_placement_mass_with_multiplicities ),
-            pybind11::arg("smp"),
-        get_docstring("double ::genesis::placement::total_placement_mass_with_multiplicities (Sample const & smp)")
+        get_docstring("size_t ::genesis::placement::total_name_count (Sample const & smp)")
     );
 
     scope.def(
@@ -133,6 +119,14 @@ PYTHON_EXPORT_FUNCTIONS( placement_function_functions_export, ::genesis::placeme
             pybind11::arg("max"),
             pybind11::arg("bins")=(const int)(10),
         get_docstring("std::vector< int > ::genesis::placement::closest_leaf_distance_histogram_auto (Sample const & smp, double & min, double & max, const int bins=10)")
+    );
+
+    scope.def(
+        "adjust_branch_lengths",
+        ( void ( * )( Sample &, tree::Tree const & ))( &::genesis::placement::adjust_branch_lengths ),
+            pybind11::arg("sample"),
+            pybind11::arg("source"),
+        get_docstring("void ::genesis::placement::adjust_branch_lengths (Sample & sample, tree::Tree const & source)")
     );
 
     scope.def(

@@ -32,7 +32,7 @@
 
 #include <string>
 
-#include "genesis/tree/default/newick_reader.hpp"
+#include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/tree.hpp"
@@ -44,7 +44,7 @@ TEST(Tree, Basics)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    Tree tree = DefaultTreeNewickReader().from_string(input);
+    Tree const tree = CommonTreeNewickReader().from_string(input);
 
     EXPECT_EQ( 2, degree( tree.root_node() ));
     EXPECT_EQ( 7, leaf_node_count( tree ));
@@ -52,8 +52,14 @@ TEST(Tree, Basics)
     EXPECT_EQ( 13, tree.node_count());
     EXPECT_TRUE( is_bifurcating( tree ));
 
-    EXPECT_EQ("R", tree.root_node().data<DefaultNodeData>().name);
+    EXPECT_EQ("R", tree.root_node().data<CommonNodeData>().name);
     EXPECT_TRUE( validate_topology( tree ));
 
-    // LOG_INFO << tree;
+    // Copy constructor.
+    Tree copy_a{ tree };
+    EXPECT_TRUE( validate_topology( copy_a ));
+
+    // Copy assignment.
+    auto const copy_b = tree;
+    EXPECT_TRUE( validate_topology( copy_b ));
 }

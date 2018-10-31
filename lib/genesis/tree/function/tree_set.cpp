@@ -33,7 +33,7 @@
 #include "genesis/tree/tree.hpp"
 #include "genesis/tree/tree_set.hpp"
 
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/iterator/preorder.hpp"
 

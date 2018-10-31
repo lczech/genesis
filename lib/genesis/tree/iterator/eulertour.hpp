@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,9 +32,11 @@
  */
 
 #include "genesis/tree/tree.hpp"
+#include "genesis/tree/tree/subtree.hpp"
 #include "genesis/utils/core/range.hpp"
 
 #include <iterator>
+#include <type_traits>
 
 namespace genesis {
 namespace tree {
@@ -47,12 +49,13 @@ class Tree;
 class TreeNode;
 class TreeEdge;
 class TreeLink;
+class Subtree;
 
 // =================================================================================================
 //     Euler Tour Iterator
 // =================================================================================================
 
-template <typename LinkType, typename NodeType, typename EdgeType>
+template< bool is_const = true >
 class IteratorEulertour
 {
 
@@ -62,36 +65,49 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
+    // Make the memer types const or not, depending on iterator type.
+    using TreeType = typename std::conditional< is_const, Tree const, Tree >::type;
+    using LinkType = typename std::conditional< is_const, TreeLink const, TreeLink >::type;
+    using NodeType = typename std::conditional< is_const, TreeNode const, TreeNode >::type;
+    using EdgeType = typename std::conditional< is_const, TreeEdge const, TreeEdge >::type;
+
+    using self_type         = IteratorEulertour< is_const >;
     using iterator_category = std::forward_iterator_tag;
-    using self_type         = IteratorEulertour<LinkType, NodeType, EdgeType>;
+    // using value_type        = NodeType;
+    // using pointer           = NodeType*;
+    // using reference         = NodeType&;
+    // using difference_type   = std::ptrdiff_t;
 
     // -----------------------------------------------------
     //     Constructors and Rule of Five
     // -----------------------------------------------------
 
     IteratorEulertour()
-        : start_( nullptr )
-        , link_(  nullptr )
+        : link_(  nullptr )
+        , start_( nullptr )
     {}
 
-    explicit IteratorEulertour (Tree& tree)
-        : start_( &tree.root_link() )
-        , link_(  &tree.root_link() )
+    explicit IteratorEulertour( TreeType& tree )
+        : link_(  &tree.root_link() )
+        , start_( &tree.root_link() )
     {}
 
-    explicit IteratorEulertour (Tree const& tree)
-        : start_( &tree.root_link() )
-        , link_(  &tree.root_link() )
+    explicit IteratorEulertour( NodeType& node )
+        : link_(  &node.primary_link() )
+        , start_( &node.primary_link() )
     {}
 
-    explicit IteratorEulertour (NodeType& node)
-        : start_( &node.primary_link() )
-        , link_(  &node.primary_link() )
+    explicit IteratorEulertour( LinkType& link )
+        : link_(  &link )
+        , start_( &link )
     {}
 
-    explicit IteratorEulertour (LinkType& link)
-        : start_( &link )
-        , link_(  &link )
+    explicit IteratorEulertour( Subtree const& subtree )
+        // We need to consider the edge case of a subtree that is only a leaf.
+        // In that case, the start_ is set to the one that is visited after,
+        // so that we iterate only the leaf itself.
+        : link_(  &(subtree.link().next()) )
+        , start_( (link_ == &link_->next()) ? &(subtree.link().outer().next()) : &(subtree.link()) )
     {}
 
     ~IteratorEulertour() = default;
@@ -114,7 +130,7 @@ public:
     self_type& operator ++ ()
     {
         link_ = &link_->outer().next();
-        if (link_ == start_) {
+        if( link_ == start_ ) {
             link_ = nullptr;
         }
         return *this;
@@ -177,8 +193,8 @@ public:
 
 private:
 
-    LinkType* const start_;
     LinkType*       link_;
+    LinkType* const start_;
 };
 
 // =================================================================================================
@@ -186,22 +202,22 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< IteratorEulertour< TreeLink const, TreeNode const, TreeEdge const >>
+utils::Range< IteratorEulertour< true >>
 eulertour( ElementType const& element )
 {
     return {
-        IteratorEulertour< const TreeLink, const TreeNode, const TreeEdge >( element ),
-        IteratorEulertour< const TreeLink, const TreeNode, const TreeEdge >()
+        IteratorEulertour< true >( element ),
+        IteratorEulertour< true >()
     };
 }
 
 template<typename ElementType>
-utils::Range< IteratorEulertour< TreeLink, TreeNode, TreeEdge >>
+utils::Range< IteratorEulertour< false >>
 eulertour( ElementType& element )
 {
     return {
-        IteratorEulertour< TreeLink, TreeNode, TreeEdge >( element ),
-        IteratorEulertour< TreeLink, TreeNode, TreeEdge >()
+        IteratorEulertour< false >( element ),
+        IteratorEulertour< false >()
     };
 }
 

@@ -30,15 +30,15 @@
 
 #include "genesis/tree/drawing/functions.hpp"
 
-#include "genesis/tree/default/functions.hpp"
-#include "genesis/tree/default/newick_writer.hpp"
+#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/newick_writer.hpp"
 #include "genesis/tree/formats/newick/writer.hpp"
 #include "genesis/tree/formats/newick/color_writer_plugin.hpp"
 #include "genesis/tree/formats/phyloxml/writer.hpp"
 #include "genesis/tree/formats/phyloxml/color_writer_plugin.hpp"
 
-#include "genesis/tree/default/newick_writer.hpp"
-#include "genesis/tree/default/phyloxml_writer.hpp"
+#include "genesis/tree/common_tree/newick_writer.hpp"
+#include "genesis/tree/common_tree/phyloxml_writer.hpp"
 #include "genesis/tree/drawing/circular_layout.hpp"
 #include "genesis/tree/drawing/layout_tree.hpp"
 #include "genesis/tree/drawing/rectangular_layout.hpp"
@@ -65,10 +65,10 @@ namespace tree {
 // =================================================================================================
 
 void write_tree_to_newick_file(
-    DefaultTree const& tree,
+    CommonTree const&  tree,
     std::string const& newick_filename
 ) {
-    DefaultTreeNewickWriter().to_file( tree, newick_filename );
+    CommonTreeNewickWriter().to_file( tree, newick_filename );
 }
 
 // =================================================================================================
@@ -76,7 +76,7 @@ void write_tree_to_newick_file(
 // =================================================================================================
 
 void write_tree_to_phyloxml_file(
-    DefaultTree const& tree,
+    CommonTree const& tree,
     std::string const& phyloxml_filename
 ) {
     write_color_tree_to_phyloxml_file(
@@ -85,12 +85,12 @@ void write_tree_to_phyloxml_file(
 }
 
 void write_color_tree_to_phyloxml_file(
-    DefaultTree const&               tree,
+    CommonTree const&                tree,
     std::vector<utils::Color> const& color_per_branch,
     std::string const&               phyloxml_filename
 ) {
     // We use a normal Phyloxml writer...
-    auto writer = DefaultTreePhyloxmlWriter();
+    auto writer = CommonTreePhyloxmlWriter();
 
     // ... but also wrap it in a Color Mixin in order to allow for color branches if needed.
     auto color_plugin = tree::PhyloxmlColorWriterPlugin();
@@ -103,7 +103,7 @@ void write_color_tree_to_phyloxml_file(
 }
 
 void write_color_tree_to_phyloxml_file(
-    DefaultTree const&               tree,
+    CommonTree const&                tree,
     std::vector<double> const&       value_per_branch,
     utils::ColorMap const&           color_map,
     utils::ColorNormalization const& color_norm,
@@ -119,7 +119,7 @@ void write_color_tree_to_phyloxml_file(
 // =================================================================================================
 
 void write_tree_to_nexus_file(
-    DefaultTree const& tree,
+    CommonTree const&  tree,
     std::string const& nexus_filename
 ) {
     write_color_tree_to_nexus_file(
@@ -128,12 +128,12 @@ void write_tree_to_nexus_file(
 }
 
 void write_color_tree_to_nexus_file(
-    DefaultTree const&               tree,
+    CommonTree const&                tree,
     std::vector<utils::Color> const& color_per_branch,
     std::string const&               nexus_filename
 ) {
     // We use a normal Newick writer...
-    auto newick_writer = DefaultTreeNewickWriter();
+    auto newick_writer = CommonTreeNewickWriter();
 
     // ... but also wrap it in a Color Mixin in order to allow for color branches if needed.
     auto color_plugin = tree::NewickColorWriterPlugin();
@@ -161,7 +161,7 @@ void write_color_tree_to_nexus_file(
 }
 
 void write_color_tree_to_nexus_file(
-    DefaultTree const&               tree,
+    CommonTree const&                tree,
     std::vector<double> const&       value_per_branch,
     utils::ColorMap const&           color_map,
     utils::ColorNormalization const& color_norm,
@@ -177,7 +177,7 @@ void write_color_tree_to_nexus_file(
 // =================================================================================================
 
 void write_tree_to_svg_file(
-    DefaultTree const&      tree,
+    CommonTree const&       tree,
     LayoutParameters const& params,
     std::string const&      svg_filename
 ) {
@@ -187,7 +187,7 @@ void write_tree_to_svg_file(
 }
 
 void write_color_tree_to_svg_file(
-    DefaultTree const&               tree,
+    CommonTree const&                tree,
     LayoutParameters const&          params,
     std::vector<utils::Color> const& color_per_branch,
     std::string const&               svg_filename
@@ -198,7 +198,7 @@ void write_color_tree_to_svg_file(
 }
 
 void write_color_tree_to_svg_file(
-    DefaultTree const&               tree,
+    CommonTree const&                tree,
     LayoutParameters const&          params,
     std::vector<double> const&       value_per_branch,
     utils::ColorMap const&           color_map,
@@ -211,7 +211,7 @@ void write_color_tree_to_svg_file(
 }
 
 void write_color_tree_to_svg_file(
-    DefaultTree const&               tree,
+    CommonTree const&                tree,
     LayoutParameters const&          params,
     std::vector<utils::Color> const& color_per_branch,
     utils::ColorMap const&           color_map,

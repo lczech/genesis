@@ -10,7 +10,7 @@
 #include "genesis/genesis.hpp"
 
 using namespace ::genesis::utils;
-/*
+
 PYTHON_EXPORT_CLASS( ::genesis::utils::Tickmarks, scope )
 {
 
@@ -31,7 +31,7 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::Tickmarks, scope )
 
         .def(
             "linear_labels",
-            ( std::vector< LabeledTick > ( ::genesis::utils::Tickmarks::* )( double, double, size_t ))( &::genesis::utils::Tickmarks::linear_labels ),
+            ( std::vector< ::genesis::utils::Tickmarks::LabeledTick > ( ::genesis::utils::Tickmarks::* )( double, double, size_t ))( &::genesis::utils::Tickmarks::linear_labels ),
             pybind11::arg("min"),
             pybind11::arg("max"),
             pybind11::arg("target_steps"),
@@ -47,9 +47,11 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::Tickmarks, scope )
         )
         .def(
             "logarithmic_labels",
-            ( std::vector< LabeledTick > ( ::genesis::utils::Tickmarks::* )( double ))( &::genesis::utils::Tickmarks::logarithmic_labels ),
+            ( std::vector< ::genesis::utils::Tickmarks::LabeledTick > ( ::genesis::utils::Tickmarks::* )( double, double, double ))( &::genesis::utils::Tickmarks::logarithmic_labels ),
+            pybind11::arg("min"),
             pybind11::arg("max"),
-            get_docstring("std::vector< LabeledTick > ::genesis::utils::Tickmarks::logarithmic_labels (double max)")
+            pybind11::arg("base")=(double)(10.0),
+            get_docstring("std::vector< LabeledTick > ::genesis::utils::Tickmarks::logarithmic_labels (double min, double max, double base=10.0)")
         )
         .def_static(
             "step_size",
@@ -60,4 +62,3 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::Tickmarks, scope )
         )
     ;
 }
-*/

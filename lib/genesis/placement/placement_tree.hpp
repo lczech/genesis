@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 
 #include <string>
 
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/tree.hpp"
 
 namespace genesis {
@@ -47,7 +47,7 @@ namespace placement {
  * @brief Alias for a tree::Tree used for a tree with information needed
  * for storing @link Pquery Pqueries@endlink. This kind of tree is used by Sample.
  *
- * A PlacementTree inherits the data from tree::DefaultTree, that is,
+ * A PlacementTree inherits the data from tree::CommonTree, that is,
  * it stores names for the nodes (usually those are taxa names) and branch lengths for the edges.
  *
  * In addition to that, each edge of this tree has a value `edge_num`. This is not the same as the
@@ -80,11 +80,11 @@ using PlacementTreeLink = tree::TreeLink;
 /**
  * @brief Data class for ::PlacementTreeNode%s. Stores a node name.
  *
- * This class is derived from tree::DefaultNodeData and currently adds no functionality on top
+ * This class is derived from tree::CommonNodeData and currently adds no functionality on top
  * of this base class. See there for more information.
  * Also, see ::PlacementTree for information on how and where this class is used.
  */
-class PlacementNodeData : public tree::DefaultNodeData
+class PlacementNodeData : public tree::CommonNodeData
 {
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -133,10 +133,10 @@ public:
  * @brief Data class for PlacementTreeEdge%s. Stores the branch
  * length of the edge, and the `edge_num`, as defined in the `jplace` standard.
  *
- * This class is derived from tree::DefaultEdgeData. See there for more information.
+ * This class is derived from tree::CommonEdgeData. See there for more information.
  * Also, see ::PlacementTree for information on how and where this class is used.
  */
-class PlacementEdgeData : public tree::DefaultEdgeData
+class PlacementEdgeData : public tree::CommonEdgeData
 {
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five

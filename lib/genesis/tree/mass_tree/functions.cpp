@@ -360,7 +360,7 @@ double mass_tree_sum_of_masses( MassTree const& tree )
 {
     double total_mass = 0.0;
     for( auto const& edge : tree.edges() ) {
-        for( auto const& mass : edge->data<MassTreeEdgeData>().masses ) {
+        for( auto const& mass : edge.data<MassTreeEdgeData>().masses ) {
             total_mass += mass.second;
         }
     }
@@ -382,7 +382,7 @@ bool mass_tree_validate( MassTree const& tree, double valid_total_mass_differenc
     // Check masses.
     double mass_sum = 0.0;
     for( auto const& edge : tree.edges() ) {
-        auto const edge_data = dynamic_cast< MassTreeEdgeData const* >( edge->data_ptr() );
+        auto const edge_data = dynamic_cast< MassTreeEdgeData const* >( edge.data_ptr() );
         if( edge_data == nullptr ) {
             LOG_INFO << "Edge data type is not 'MassTreeEdgeData'.";
             return false;

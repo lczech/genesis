@@ -24,11 +24,19 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::Color, scope )
             get_docstring("::genesis::utils::Color::Color ()")
         )
         .def(
-            pybind11::init< unsigned char, unsigned char, unsigned char >(),
+            pybind11::init< double, double, double >(),
             pybind11::arg("r"),
             pybind11::arg("g"),
             pybind11::arg("b"),
-            get_docstring("::genesis::utils::Color::Color (unsigned char r, unsigned char g, unsigned char b)")
+            get_docstring("::genesis::utils::Color::Color (double r, double g, double b)")
+        )
+        .def(
+            pybind11::init< double, double, double, double >(),
+            pybind11::arg("r"),
+            pybind11::arg("g"),
+            pybind11::arg("b"),
+            pybind11::arg("a"),
+            get_docstring("::genesis::utils::Color::Color (double r, double g, double b, double a)")
         )
         .def(
             pybind11::init< Color const & >(),
@@ -38,36 +46,95 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::Color, scope )
         // Public Member Functions
 
         .def(
-            "b",
-            ( unsigned char ( ::genesis::utils::Color::* )(  ) const )( &::genesis::utils::Color::b )
+            "a",
+            ( double ( ::genesis::utils::Color::* )(  ) const )( &::genesis::utils::Color::a )
+        )
+        .def(
+            "a",
+            ( void ( ::genesis::utils::Color::* )( double ))( &::genesis::utils::Color::a ),
+            pybind11::arg("value")
+        )
+        .def(
+            "a_byte",
+            ( unsigned char ( ::genesis::utils::Color::* )(  ) const )( &::genesis::utils::Color::a_byte )
+        )
+        .def(
+            "a_byte",
+            ( void ( ::genesis::utils::Color::* )( unsigned char ))( &::genesis::utils::Color::a_byte ),
+            pybind11::arg("value")
         )
         .def(
             "b",
-            ( void ( ::genesis::utils::Color::* )( unsigned char ))( &::genesis::utils::Color::b ),
+            ( double ( ::genesis::utils::Color::* )(  ) const )( &::genesis::utils::Color::b )
+        )
+        .def(
+            "b",
+            ( void ( ::genesis::utils::Color::* )( double ))( &::genesis::utils::Color::b ),
+            pybind11::arg("value")
+        )
+        .def(
+            "b_byte",
+            ( unsigned char ( ::genesis::utils::Color::* )(  ) const )( &::genesis::utils::Color::b_byte )
+        )
+        .def(
+            "b_byte",
+            ( void ( ::genesis::utils::Color::* )( unsigned char ))( &::genesis::utils::Color::b_byte ),
             pybind11::arg("value")
         )
         .def(
             "g",
-            ( unsigned char ( ::genesis::utils::Color::* )(  ) const )( &::genesis::utils::Color::g )
+            ( double ( ::genesis::utils::Color::* )(  ) const )( &::genesis::utils::Color::g )
         )
         .def(
             "g",
-            ( void ( ::genesis::utils::Color::* )( unsigned char ))( &::genesis::utils::Color::g ),
+            ( void ( ::genesis::utils::Color::* )( double ))( &::genesis::utils::Color::g ),
+            pybind11::arg("value")
+        )
+        .def(
+            "g_byte",
+            ( unsigned char ( ::genesis::utils::Color::* )(  ) const )( &::genesis::utils::Color::g_byte )
+        )
+        .def(
+            "g_byte",
+            ( void ( ::genesis::utils::Color::* )( unsigned char ))( &::genesis::utils::Color::g_byte ),
             pybind11::arg("value")
         )
         .def(
             "r",
-            ( unsigned char ( ::genesis::utils::Color::* )(  ) const )( &::genesis::utils::Color::r )
+            ( double ( ::genesis::utils::Color::* )(  ) const )( &::genesis::utils::Color::r )
         )
         .def(
             "r",
-            ( void ( ::genesis::utils::Color::* )( unsigned char ))( &::genesis::utils::Color::r ),
+            ( void ( ::genesis::utils::Color::* )( double ))( &::genesis::utils::Color::r ),
+            pybind11::arg("value")
+        )
+        .def(
+            "r_byte",
+            ( unsigned char ( ::genesis::utils::Color::* )(  ) const )( &::genesis::utils::Color::r_byte )
+        )
+        .def(
+            "r_byte",
+            ( void ( ::genesis::utils::Color::* )( unsigned char ))( &::genesis::utils::Color::r_byte ),
             pybind11::arg("value")
         )
         .def(
             "swap",
             ( void ( ::genesis::utils::Color::* )( Color & ))( &::genesis::utils::Color::swap ),
             pybind11::arg("other")
+        )
+        .def_static(
+            "from_bytes",
+            ( Color ( * )( unsigned char, unsigned char, unsigned char, unsigned char ))( &::genesis::utils::Color::from_bytes ),
+            pybind11::arg("r"),
+            pybind11::arg("g"),
+            pybind11::arg("b"),
+            pybind11::arg("a")=(unsigned char)(255)
+        )
+        .def_static(
+            "from_hex",
+            ( Color ( * )( std::string const &, std::string const & ))( &::genesis::utils::Color::from_hex ),
+            pybind11::arg("hex_color"),
+            pybind11::arg("prefix")=(std::string const &)("#")
         )
 
         // Operators

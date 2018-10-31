@@ -98,6 +98,26 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::NewickReader, scope )
             get_docstring("void ::genesis::tree::NewickReader::from_strings (std::vector< std::string > const & tree_strings, TreeSet & tree_set, std::string const & default_name=\"\") const")
         )
         .def(
+            "parse_multiple_trees",
+            ( void ( ::genesis::tree::NewickReader::* )( utils::InputStream &, TreeSet &, std::string const & ) const )( &::genesis::tree::NewickReader::parse_multiple_trees ),
+            pybind11::arg("input_stream"),
+            pybind11::arg("tree_set"),
+            pybind11::arg("default_name"),
+            get_docstring("void ::genesis::tree::NewickReader::parse_multiple_trees (utils::InputStream & input_stream, TreeSet & tree_set, std::string const & default_name) const")
+        )
+        .def(
+            "parse_named_tree",
+            ( std::pair< std::string, Tree > ( ::genesis::tree::NewickReader::* )( utils::InputStream & ) const )( &::genesis::tree::NewickReader::parse_named_tree ),
+            pybind11::arg("input_stream"),
+            get_docstring("std::pair< std::string, Tree > ::genesis::tree::NewickReader::parse_named_tree (utils::InputStream & input_stream) const")
+        )
+        .def(
+            "parse_single_tree",
+            ( Tree ( ::genesis::tree::NewickReader::* )( utils::InputStream & ) const )( &::genesis::tree::NewickReader::parse_single_tree ),
+            pybind11::arg("input_stream"),
+            get_docstring("Tree ::genesis::tree::NewickReader::parse_single_tree (utils::InputStream & input_stream) const")
+        )
+        .def(
             "stop_at_semicolon",
             ( NewickReader & ( ::genesis::tree::NewickReader::* )( bool ))( &::genesis::tree::NewickReader::stop_at_semicolon ),
             pybind11::arg("value"),

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -116,7 +116,7 @@ Sample JplaceReader::from_document( utils::JsonDocument& doc ) const
 
     process_json_tree( doc, smp );
     auto fields = process_json_fields( doc );
-    process_json_placements( doc, smp, fields);
+    process_json_placements( doc, smp, fields );
 
     return smp;
 }
@@ -125,7 +125,7 @@ Sample JplaceReader::from_document( utils::JsonDocument& doc ) const
 //     Reading from Files
 // -------------------------------------------------------------------------
 
-SampleSet JplaceReader::from_files (const std::vector<std::string>& fns ) const
+SampleSet JplaceReader::from_files( std::vector<std::string> const& fns ) const
 {
     SampleSet set;
     from_files( fns, set );
@@ -136,10 +136,10 @@ SampleSet JplaceReader::from_files (const std::vector<std::string>& fns ) const
 //     Reading from Strings
 // -------------------------------------------------------------------------
 
-SampleSet JplaceReader::from_strings (const std::vector<std::string>& jps ) const
+SampleSet JplaceReader::from_strings( std::vector<std::string> const& jps ) const
 {
     SampleSet set;
-    from_files( jps, set );
+    from_strings( jps, set );
     return set;
 }
 
@@ -367,20 +367,15 @@ void JplaceReader::process_json_placements(
     // the pqueries. we do not use Sample::EdgeNumMap() here, because we need to do extra
     // checking for validity first!
     std::unordered_map<size_t, PlacementTreeEdge*> edge_num_map;
-    for (
-        PlacementTree::ConstIteratorEdges it = smp.tree().begin_edges();
-        it != smp.tree().end_edges();
-        ++it
-    ) {
-        auto& edge = *it;
-        auto& edge_data = edge->data<PlacementEdgeData>();
+    for( auto& edge : smp.tree().edges() ) {
+        auto& edge_data = edge.data<PlacementEdgeData>();
         if (edge_num_map.count( edge_data.edge_num()) > 0) {
             throw std::runtime_error(
                 "Jplace document contains a tree where the edge_num tag '"
                 + std::to_string( edge_data.edge_num() ) + "' is used more than once."
             );
         }
-        edge_num_map.emplace( edge_data.edge_num(), edge.get() );
+        edge_num_map.emplace( edge_data.edge_num(), &edge );
     }
 
     // Find and process the pqueries.

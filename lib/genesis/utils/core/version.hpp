@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include <cstdint>
 #include <string>
 
 /**

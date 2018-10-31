@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,7 +43,9 @@
 #include "genesis/tree/tree/edge_data.hpp"
 
 #include "genesis/utils/core/range.hpp"
+#include "genesis/utils/containers/deref_iterator.hpp"
 
+#include <cassert>
 #include <memory>
 #include <vector>
 
@@ -122,14 +124,14 @@ public:
      */
     using EdgeContainerType  = ContainerType< TreeEdge >;
 
-    using      IteratorLinks = typename ContainerType< TreeLink >::iterator;
-    using ConstIteratorLinks = typename ContainerType< TreeLink >::const_iterator;
+    using      IteratorLinks = utils::DereferenceIterator< ContainerType<TreeLink>::iterator >;
+    using ConstIteratorLinks = utils::DereferenceIterator< ContainerType<TreeLink>::const_iterator >;
 
-    using      IteratorNodes = typename ContainerType< TreeNode >::iterator;
-    using ConstIteratorNodes = typename ContainerType< TreeNode >::const_iterator;
+    using      IteratorNodes = utils::DereferenceIterator< ContainerType<TreeNode>::iterator >;
+    using ConstIteratorNodes = utils::DereferenceIterator< ContainerType<TreeNode>::const_iterator >;
 
-    using      IteratorEdges = typename ContainerType< TreeEdge >::iterator;
-    using ConstIteratorEdges = typename ContainerType< TreeEdge >::const_iterator;
+    using      IteratorEdges = utils::DereferenceIterator< ContainerType<TreeEdge>::iterator >;
+    using ConstIteratorEdges = utils::DereferenceIterator< ContainerType<TreeEdge>::const_iterator >;
 
     // -------------------------------------------------------------------------
     //     Construction and Rule of Five
@@ -138,50 +140,217 @@ public:
     Tree()  = default;
     ~Tree() = default;
 
+    /**
+     * @brief Copy constructor.
+     *
+     * This function creates all links, nodes and edges new, and shapes them so that the final
+     * Tree has the same topology as the input Tree.
+     *
+     * The data belonging to the edges and nodes is copied using the clone function of the respective
+     * data classes for the nodes and edges. As this data might contain pointers and
+     * other structures that need a deep copy, it is the responsibility of the clone function of those
+     * data classes to make sure its own data is copied correctly.
+     *
+     * This function internally uses clone_topology() first, and then uses the clone functions of the
+     * data for all nodes and edges.
+     */
     Tree( Tree const& other );
     Tree( Tree&& ) = default;
 
+    /**
+     * @brief Assignment operator.
+     *
+     * See Tree copy constructor for more information.
+     */
     Tree& operator= ( Tree const& other );
     Tree& operator= ( Tree&& ) = default;
 
+    /**
+     * @brief Return a Tree with the same topology, but without any data.
+     *
+     * All data pointers of the nodes and edges of the returned tree are `nullptr`.
+     */
     Tree clone_topology() const;
+
+    /**
+     * @brief Swap.
+     */
     void swap( Tree& other );
 
+    /**
+     * @brief Deletes all data of the tree, including all links, nodes and edges.
+     *
+     * This functions results in an empty tree.
+     */
     void clear();
 
     // -------------------------------------------------------------------------
     //     Accessors
     // -------------------------------------------------------------------------
 
-    bool empty() const;
+    /**
+     * @brief Return whether the Tree is empty (i.e., has no nodes, edges and links).
+     */
+    bool empty() const
+    {
+        return links_.empty() && nodes_.empty() && edges_.empty();
+    }
 
-    TreeLink      & root_link();
-    TreeLink const& root_link() const;
+    /**
+     * @brief Return the TreeLink at a certain index.
+     */
+    TreeLink& link_at(size_t index)
+    {
+        assert( index < links_.size() );
+        return *links_[ index ].get();
+    }
 
-    TreeNode      & root_node();
-    TreeNode const& root_node() const;
+    /**
+     * @brief Return the TreeLink at a certain index.
+     */
+    TreeLink const& link_at(size_t index) const
+    {
+        assert( index < links_.size() );
+        return *links_[ index ].get();
+    }
 
-    TreeLink      & link_at(size_t index);
-    TreeLink const& link_at(size_t index) const;
+    /**
+     * @brief Return the TreeNode at a certain index.
+     */
+    TreeNode& node_at(size_t index)
+    {
+        assert( index < nodes_.size() );
+        return *nodes_[ index ].get();
+    }
 
-    TreeNode      & node_at(size_t index);
-    TreeNode const& node_at(size_t index) const;
+    /**
+     * @brief Return the TreeNode at a certain index.
+     */
+    TreeNode const& node_at(size_t index) const
+    {
+        assert( index < nodes_.size() );
+        return *nodes_[ index ].get();
+    }
 
-    TreeEdge      & edge_at(size_t index);
-    TreeEdge const& edge_at(size_t index) const;
+    /**
+     * @brief Return the TreeEdge at a certain index.
+     */
+    TreeEdge& edge_at(size_t index)
+    {
+        assert( index < edges_.size() );
+        return *edges_[ index ].get();
+    }
 
-    size_t link_count() const;
-    size_t node_count() const;
-    size_t edge_count() const;
+    /**
+     * @brief Return the TreeEdge at a certain index.
+     */
+    TreeEdge const& edge_at(size_t index) const
+    {
+        assert( index < edges_.size() );
+        return *edges_[ index ].get();
+    }
+
+    /**
+     * @brief Return the number of TreeLink%s of the Tree.
+     */
+    size_t link_count() const
+    {
+        return links_.size();
+    }
+
+    /**
+     * @brief Return the number of TreeNode%s of the Tree.
+     */
+    size_t node_count() const
+    {
+        return nodes_.size();
+    }
+
+    /**
+     * @brief Return the number of TreeEdge%s of the Tree.
+     */
+    size_t edge_count() const
+    {
+        return edges_.size();
+    }
+
+    // -------------------------------------------------------------------------
+    //     Root
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return the TreeLink at the current root of the Tree.
+     */
+    TreeLink& root_link()
+    {
+        return *root_link_;
+    }
+
+    /**
+     * @brief Return the TreeLink at the current root of the Tree.
+     */
+    TreeLink const& root_link() const
+    {
+        return *root_link_;
+    }
+
+    /**
+     * @brief Return the TreeNode at the current root of the Tree.
+     */
+    TreeNode& root_node()
+    {
+        return root_link_->node();
+    }
+
+    /**
+     * @brief Return the TreeNode at the current root of the Tree.
+     */
+    TreeNode const& root_node() const
+    {
+        return root_link_->node();
+    }
 
     // -------------------------------------------------------------------------
     //     Data Accessors
     // -------------------------------------------------------------------------
 
-    Tree& reset_root_link_index( size_t val );
+    /**
+     * @brief Reset the link that is considered to be the root of the Tree.
+     *
+     * This function is meant for tree manipulation functions. Use with care!
+     *
+     * Caveat: This function simply sets the link, but does not change any other properties of the tree.
+     * Particularly the correct primary/secondary order of TreeEdge%s and primary links of TreeNode%s
+     * needs to be maintained manually when using this function! Otherwise, we end up with an invalid
+     * Tree that breaks its invariants!
+     */
+    Tree& reset_root_link( TreeLink* root_link );
 
+    /**
+     * @brief Get the container that stores all TreeLink%s of the Tree.
+     *
+     * This function gives direct access to the underlying container for the Links. It is meant to
+     * be used by external functions that need to manupulate the Tree, e.g., for reading or re-rooting
+     * the tree, or for adding elements to it. Use with care!
+     */
     LinkContainerType& expose_link_container();
+
+    /**
+     * @brief Get the container that stores all TreeNode%s of the Tree.
+     *
+     * This function gives direct access to the underlying container for the Links. It is meant to
+     * be used by external functions that need to manupulate the Tree, e.g., for reading or re-rooting
+     * the tree, or for adding elements to it. Use with care!
+     */
     NodeContainerType& expose_node_container();
+
+    /**
+     * @brief Get the container that stores all TreeEdge%s of the Tree.
+     *
+     * This function gives direct access to the underlying container for the Links. It is meant to
+     * be used by external functions that need to manupulate the Tree, e.g., for reading or re-rooting
+     * the tree, or for adding elements to it. Use with care!
+     */
     EdgeContainerType& expose_edge_container();
 
     // -------------------------------------------------------------------------
@@ -192,40 +361,103 @@ public:
     //     Links
     // -----------------------------------------------------
 
-    IteratorLinks      begin_links();
-    ConstIteratorLinks begin_links() const;
+    IteratorLinks begin_links()
+    {
+        return links_.begin();
+    }
 
-    IteratorLinks      end_links();
-    ConstIteratorLinks end_links() const;
+    ConstIteratorLinks begin_links() const
+    {
+        return links_.cbegin();
+    }
 
-    utils::Range<     IteratorLinks> links();
-    utils::Range<ConstIteratorLinks> links() const;
+    IteratorLinks end_links()
+    {
+        return links_.end();
+    }
+
+    ConstIteratorLinks end_links() const
+    {
+        return links_.cend();
+    }
+
+    utils::Range<IteratorLinks> links()
+    {
+        return { links_ };
+    }
+
+    utils::Range<ConstIteratorLinks> links() const
+    {
+        return { links_ };
+    }
 
     // -----------------------------------------------------
     //     Nodes
     // -----------------------------------------------------
 
-    IteratorNodes      begin_nodes();
-    ConstIteratorNodes begin_nodes() const;
+    IteratorNodes begin_nodes()
+    {
+        return nodes_.begin();
+    }
 
-    IteratorNodes      end_nodes();
-    ConstIteratorNodes end_nodes() const;
+    ConstIteratorNodes begin_nodes() const
+    {
+        return nodes_.cbegin();
+    }
 
-    utils::Range<     IteratorNodes> nodes();
-    utils::Range<ConstIteratorNodes> nodes() const;
+    IteratorNodes end_nodes()
+    {
+        return nodes_.end();
+    }
+
+    ConstIteratorNodes end_nodes() const
+    {
+        return nodes_.cend();
+    }
+
+    utils::Range<IteratorNodes> nodes()
+    {
+        return { nodes_ };
+    }
+
+    utils::Range<ConstIteratorNodes> nodes() const
+    {
+        return { nodes_ };
+    }
 
     // -----------------------------------------------------
     //     Edges
     // -----------------------------------------------------
 
-    IteratorEdges      begin_edges();
-    ConstIteratorEdges begin_edges() const;
+    IteratorEdges begin_edges()
+    {
+        return edges_.begin();
+    }
 
-    IteratorEdges      end_edges();
-    ConstIteratorEdges end_edges() const;
+    ConstIteratorEdges begin_edges() const
+    {
+        return edges_.cbegin();
+    }
 
-    utils::Range<     IteratorEdges> edges();
-    utils::Range<ConstIteratorEdges> edges() const;
+    IteratorEdges end_edges()
+    {
+        return edges_.end();
+    }
+
+    ConstIteratorEdges end_edges() const
+    {
+        return edges_.cend();
+    }
+
+    utils::Range<IteratorEdges> edges()
+    {
+        return { edges_ };
+    }
+
+    utils::Range<ConstIteratorEdges> edges() const
+    {
+        return { edges_ };
+    }
 
     // -------------------------------------------------------------------------
     //     Debug and Dump
@@ -244,7 +476,7 @@ public:
 
 private:
 
-    size_t root_link_index_ = 0;
+    TreeLink* root_link_ = nullptr;
 
     LinkContainerType links_;
     NodeContainerType nodes_;

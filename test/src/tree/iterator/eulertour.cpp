@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,8 +33,8 @@
 #include <string>
 #include <utility>
 
-#include "genesis/tree/default/functions.hpp"
-#include "genesis/tree/default/newick_reader.hpp"
+#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/iterator/eulertour.hpp"
 #include "genesis/tree/tree.hpp"
@@ -54,7 +54,7 @@ TEST (TreeIterator, EulertourNew)
     std::string expected_nodes = "RABACDCECARFRGHGIG";
 
     // Prepare Tree.
-    Tree tree = DefaultTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().from_string( input );
 
     // Find the Node for this test run.
     auto const& ttr = tree;
@@ -70,7 +70,7 @@ TEST (TreeIterator, EulertourNew)
     //     // it.node()->data.name = "bla";
     // }
 
-    // for( auto const& it : TreeIteratorEulertourRange<DefaultTree>(tree) ) {
+    // for( auto const& it : TreeIteratorEulertourRange<CommonTree>(tree) ) {
     //     resulting_nodes += it.node()->data.name;
     // }
 
@@ -83,7 +83,7 @@ TEST (TreeIterator, EulertourNew)
     // for( auto it : eulertour_from_link(nn.link()) ) {
     // for( auto it : eulertour( ttr ) ) {
     for( auto it : eulertour( nn ) ) {
-        resulting_nodes += it.node().data<DefaultNodeData>().name;
+        resulting_nodes += it.node().data<CommonNodeData>().name;
         // it.node().data.name = "bla";
         // resulting_nodes += it->node().data.name;
     }
@@ -104,8 +104,8 @@ TEST_P (Eulertour, Test)
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
     std::string nodes = "";
 
-    DefaultTree tree;
-    DefaultTreeNewickProcessor().from_string(input, tree);
+    CommonTree tree;
+    CommonTreeNewickProcessor().from_string(input, tree);
 
     auto node = tree.find_node(GetParam().first);
     ASSERT_NE(nullptr, node);
@@ -157,7 +157,7 @@ void do_test(const std::string node_name, const std::string expected_nodes, Tree
 
     // Do a normal traversal.
     for( auto it : eulertour(*node) ) {
-        resulting_nodes += it.node().data<DefaultNodeData>().name;
+        resulting_nodes += it.node().data<CommonNodeData>().name;
         // it.node()->data.name = "bla";
     }
     EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
@@ -165,7 +165,7 @@ void do_test(const std::string node_name, const std::string expected_nodes, Tree
     // Use free function iterator wrapper.
     resulting_nodes = "";
     for (auto it = eulertour(*node).begin(); it != eulertour(*node).end(); ++it) {
-        resulting_nodes += it.node().data<DefaultNodeData>().name;
+        resulting_nodes += it.node().data<CommonNodeData>().name;
         // it.node()->data.name = "bla";
     }
     EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
@@ -174,7 +174,7 @@ void do_test(const std::string node_name, const std::string expected_nodes, Tree
     resulting_nodes = "";
     // for (auto& node : eulertour(tree)) {
     for (auto const& node_it : eulertour(*node)) {
-        resulting_nodes += node_it.node().data<DefaultNodeData>().name;
+        resulting_nodes += node_it.node().data<CommonNodeData>().name;
         // node.data.name = "bla";
     }
     // for (auto& node_it : eulertour(node)) {
@@ -192,28 +192,9 @@ void TestEulertour(const std::string node_name, const std::string expected_nodes
     // std::string resulting_nodes = "";
 
     // Prepare Tree.
-    Tree tree = DefaultTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().from_string( input );
 
     do_test(node_name, expected_nodes, tree);
-
-    /*
-    // Find the Node for this test run.
-    auto node = find_node(tree, node_name);
-    ASSERT_NE(nullptr, node);
-
-    // Do a normal traversal.
-    for (auto it = tree.begin_eulertour(node); it != tree.end_eulertour(); ++it) {
-        resulting_nodes += it.node()->data.name;
-    }
-    EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
-
-    // Do range-based for loop traversal.
-    resulting_nodes = "";
-    for (auto& it : eulertour(node)) {
-        resulting_nodes += it.data.name;
-    }
-    EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
-    */
 }
 
 TEST (TreeIterator, Eulertour)
@@ -228,4 +209,52 @@ TEST (TreeIterator, Eulertour)
     TestEulertour("G", "GRABACDCECARFRGHGI");
     TestEulertour("H", "HGIGRABACDCECARFRG");
     TestEulertour("I", "IGRABACDCECARFRGHG");
+}
+
+void TestEulertourSubtree( Subtree const& subtree, const std::string expected_nodes )
+{
+    std::string resulting_nodes = "";
+    auto const name = subtree.node().data<CommonNodeData>().name + "(" + std::to_string( subtree.link().index() ) + ")";
+
+    // Do a normal traversal.
+    for( auto it : eulertour(subtree) ) {
+        resulting_nodes += it.node().data<CommonNodeData>().name;
+    }
+    EXPECT_EQ( expected_nodes, resulting_nodes ) << " with start node " << name;
+
+    // Use free function iterator wrapper.
+    resulting_nodes = "";
+    for( auto it = eulertour(subtree).begin(); it != eulertour(subtree).end(); ++it ) {
+        resulting_nodes += it.node().data<CommonNodeData>().name;
+    }
+    EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << name;
+}
+
+TEST (TreeIterator, EulertourSubtree)
+{
+    // Prepare Tree.
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+    Tree tree = CommonTreeNewickReader().from_string( input );
+
+    // The following heavily depends on the internal tree structure.
+    // If this breaks, we might need a setup that finds nodes,
+    // instead of assuming certain link indices. But for now, this is good enough and stable.
+    TestEulertourSubtree( { tree.link_at(0) }, "RFRGHGIG" );
+    TestEulertourSubtree( { tree.link_at(1) }, "RGHGIGRABACDCECA" );
+    TestEulertourSubtree( { tree.link_at(2) }, "RABACDCECARF" );
+    TestEulertourSubtree( { tree.link_at(3) }, "GHGI" );
+    TestEulertourSubtree( { tree.link_at(4) }, "GIGRABACDCECARFR" );
+    TestEulertourSubtree( { tree.link_at(5) }, "GRABACDCECARFRGH" );
+    TestEulertourSubtree( { tree.link_at(6) }, "I" );
+    TestEulertourSubtree( { tree.link_at(7) }, "H" );
+    TestEulertourSubtree( { tree.link_at(8) }, "F" );
+    TestEulertourSubtree( { tree.link_at(9) }, "ABACDCEC" );
+    TestEulertourSubtree( { tree.link_at(10) }, "ACDCECARFRGHGIGR" );
+    TestEulertourSubtree( { tree.link_at(11) }, "ARFRGHGIGRAB" );
+    TestEulertourSubtree( { tree.link_at(12) }, "CDCE" );
+    TestEulertourSubtree( { tree.link_at(13) }, "CECARFRGHGIGRABA" );
+    TestEulertourSubtree( { tree.link_at(14) }, "CARFRGHGIGRABACD" );
+    TestEulertourSubtree( { tree.link_at(15) }, "E" );
+    TestEulertourSubtree( { tree.link_at(16) }, "D" );
+    TestEulertourSubtree( { tree.link_at(17) }, "B" );
 }

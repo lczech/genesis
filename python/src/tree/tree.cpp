@@ -55,10 +55,10 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::Tree, scope )
         //     "edges",
         //     ( utils::Range< ConstIteratorEdges > ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::edges )
         // )
-        // .def(
-        //     "edges",
-        //     ( utils::Range< IteratorEdges > ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::edges )
-        // )
+        .def(
+            "edges",
+            ( utils::Range< ::genesis::tree::Tree::IteratorEdges > ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::edges )
+        )
         .def(
             "empty",
             ( bool ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::empty )
@@ -93,10 +93,10 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::Tree, scope )
         //     "links",
         //     ( utils::Range< ConstIteratorLinks > ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::links )
         // )
-        // .def(
-        //     "links",
-        //     ( utils::Range< IteratorLinks > ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::links )
-        // )
+        .def(
+            "links",
+            ( utils::Range< ::genesis::tree::Tree::IteratorLinks > ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::links )
+        )
         .def(
             "node_at",
             ( TreeNode & ( ::genesis::tree::Tree::* )( size_t ))( &::genesis::tree::Tree::node_at ),
@@ -115,10 +115,10 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::Tree, scope )
         //     "nodes",
         //     ( utils::Range< ConstIteratorNodes > ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::nodes )
         // )
-        // .def(
-        //     "nodes",
-        //     ( utils::Range< IteratorNodes > ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::nodes )
-        // )
+        .def(
+            "nodes",
+            ( utils::Range< ::genesis::tree::Tree::IteratorNodes > ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::nodes )
+        )
         .def(
             "reset_root_link_index",
             ( Tree & ( ::genesis::tree::Tree::* )( size_t ))( &::genesis::tree::Tree::reset_root_link_index ),
@@ -162,17 +162,26 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::Tree, scope )
         // .def(
         //     "edges",
         //     []( ::genesis::tree::Tree& obj ){
-        //         return pybind11::make_iterator( obj.begin_edges(), obj.end_edges() );            }
+        //         return pybind11::make_iterator( obj.begin_edges(), obj.end_edges() );
+        //     }
+        //     // ,
+        //     // py::keep_alive<0, 1>()
         // )
         // .def(
         //     "links",
         //     []( ::genesis::tree::Tree& obj ){
-        //         return pybind11::make_iterator( obj.begin_links(), obj.end_links() );            }
+        //         return pybind11::make_iterator( obj.begin_links(), obj.end_links() );
+        //     }
+        //     // ,
+        //     // py::keep_alive<0, 1>()
         // )
         // .def(
         //     "nodes",
         //     []( ::genesis::tree::Tree& obj ){
-        //         return pybind11::make_iterator( obj.begin_nodes(), obj.end_nodes() );            }
+        //         return pybind11::make_iterator( obj.begin_nodes(), obj.end_nodes() );
+        //     }
+        //     // ,
+        //     // py::keep_alive<0, 1>()
         // )
     ;
 }

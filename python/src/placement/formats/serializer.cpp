@@ -28,6 +28,17 @@ PYTHON_EXPORT_CLASS( ::genesis::placement::SampleSerializer, scope )
             pybind11::arg("file_name")
         )
         .def_static(
+            "load",
+            ( SampleSet ( * )( std::vector< std::string > const & ))( &::genesis::placement::SampleSerializer::load ),
+            pybind11::arg("file_names")
+        )
+        .def_static(
+            "load",
+            ( void ( * )( std::vector< std::string > const &, SampleSet & ))( &::genesis::placement::SampleSerializer::load ),
+            pybind11::arg("file_names"),
+            pybind11::arg("sample_set")
+        )
+        .def_static(
             "save",
             ( void ( * )( Sample const &, std::string const & ))( &::genesis::placement::SampleSerializer::save ),
             pybind11::arg("map"),

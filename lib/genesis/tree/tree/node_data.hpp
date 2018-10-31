@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ namespace tree {
  * some other Nodes of the Tree.
  *
  * It is recommended that derived classes follow the same access rules for its constructors.
- * See DefaultNodeData for an example.
+ * See CommonNodeData for an example.
  *
  * This class does not contain any data itself. See BaseEdgeData for its "partner" class.
  */

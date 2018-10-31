@@ -23,15 +23,10 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::Sequence, scope )
             pybind11::init<  >()
         )
         .def(
-            pybind11::init< std::string const &, std::string const & >(),
+            pybind11::init< std::string const &, std::string const &, size_t >(),
             pybind11::arg("label"),
-            pybind11::arg("sites")
-        )
-        .def(
-            pybind11::init< std::string const &, std::string const &, std::string const & >(),
-            pybind11::arg("label"),
-            pybind11::arg("metadata"),
-            pybind11::arg("sites")
+            pybind11::arg("sites"),
+            pybind11::arg("abundance")=(size_t)(1)
         )
         .def(
             pybind11::init< Sequence const & >(),
@@ -40,6 +35,15 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::Sequence, scope )
 
         // Public Member Functions
 
+        .def(
+            "abundance",
+            ( size_t ( ::genesis::sequence::Sequence::* )(  ) const )( &::genesis::sequence::Sequence::abundance )
+        )
+        .def(
+            "abundance",
+            ( void ( ::genesis::sequence::Sequence::* )( size_t ))( &::genesis::sequence::Sequence::abundance ),
+            pybind11::arg("value")
+        )
         // .def(
         //     "cbegin",
         //     ( const_iterator ( ::genesis::sequence::Sequence::* )(  ) const )( &::genesis::sequence::Sequence::cbegin )
@@ -63,16 +67,13 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::Sequence, scope )
         )
         .def(
             "length",
-            ( size_t ( ::genesis::sequence::Sequence::* )(  ) const )( &::genesis::sequence::Sequence::length )
+            ( size_t ( ::genesis::sequence::Sequence::* )(  ) const )( &::genesis::sequence::Sequence::length ),
+            get_docstring("size_t ::genesis::sequence::Sequence::length () const")
         )
         .def(
-            "metadata",
-            ( std::string const & ( ::genesis::sequence::Sequence::* )(  ) const )( &::genesis::sequence::Sequence::metadata )
-        )
-        .def(
-            "metadata",
-            ( void ( ::genesis::sequence::Sequence::* )( std::string const & ))( &::genesis::sequence::Sequence::metadata ),
-            pybind11::arg("value")
+            "site_at",
+            ( char & ( ::genesis::sequence::Sequence::* )( size_t ))( &::genesis::sequence::Sequence::site_at ),
+            pybind11::arg("index")
         )
         .def(
             "site_at",
@@ -99,7 +100,8 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::Sequence, scope )
         )
         .def(
             "size",
-            ( size_t ( ::genesis::sequence::Sequence::* )(  ) const )( &::genesis::sequence::Sequence::size )
+            ( size_t ( ::genesis::sequence::Sequence::* )(  ) const )( &::genesis::sequence::Sequence::size ),
+            get_docstring("size_t ::genesis::sequence::Sequence::size () const")
         )
         .def(
             "swap",
@@ -109,6 +111,11 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::Sequence, scope )
 
         // Operators
 
+        .def(
+            "__getitem__",
+            ( char & ( ::genesis::sequence::Sequence::* )( size_t ))( &::genesis::sequence::Sequence::operator[] ),
+            pybind11::arg("index")
+        )
         .def(
             "__getitem__",
             ( char ( ::genesis::sequence::Sequence::* )( size_t ) const )( &::genesis::sequence::Sequence::operator[] ),
@@ -129,8 +136,9 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::Sequence, scope )
             "__iter__",
             []( ::genesis::sequence::Sequence& obj ){
                 return pybind11::make_iterator( obj.begin(), obj.end() );
-            },
-            pybind11::keep_alive<0, 1>()
+            }
+            // ,
+            // py::keep_alive<0, 1>()
         )
     ;
 }

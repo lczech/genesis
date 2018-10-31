@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,10 +31,12 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_reader.hpp"
+#include "genesis/utils/io/input_source.hpp"
 
-#include <assert.h>
+#include <cassert>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -107,11 +109,11 @@ public:
         , column_(   0 )
     {}
 
-    explicit InputStream( std::unique_ptr<BaseInputSource> input_source )
+    explicit InputStream( std::shared_ptr<BaseInputSource> input_source )
         : line_(   1 )
         , column_( 1 )
     {
-        init_( std::move( input_source ));
+        init_( input_source );
     }
 
     ~InputStream()
@@ -121,10 +123,10 @@ public:
     }
 
     InputStream(self_type const&) = delete;
-    InputStream(self_type&&)      = delete;
+    InputStream(self_type&&)      = default;
 
     self_type& operator= (self_type const&) = delete;
-    self_type& operator= (self_type&&)      = delete;
+    self_type& operator= (self_type&&)      = default;
 
     // -------------------------------------------------------------
     //     Char Operations
@@ -405,10 +407,10 @@ private:
 
             // If we are not yet at the end of the data, start the reader again:
             // Copy the third block to the second, and read into the third one.
-            if( input_reader_.valid() ) {
-                data_end_ += input_reader_.finish_reading();
+            if( input_reader_->valid() ) {
+                data_end_ += input_reader_->finish_reading();
                 std::memcpy( buffer_ + BlockLength, buffer_ + 2 * BlockLength, BlockLength );
-                input_reader_.start_reading( buffer_ + 2 * BlockLength, BlockLength );
+                input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
             }
         }
     }
@@ -451,7 +453,7 @@ private:
     /**
      * @brief Init the buffers and the state of this object.
      */
-    void init_( std::unique_ptr<BaseInputSource> input_source )
+    void init_( std::shared_ptr<BaseInputSource> input_source )
     {
         // Set to empty defaults if there is no input.
         if( input_source == nullptr ) {
@@ -467,9 +469,9 @@ private:
             return;
         }
 
-        // We use three buffer blocks: one and two for the current line. The max line length is
-        // one buffer length, so the beginning of the line is always in the first block, while its
-        // end can reach into the second block, but never exeed it.
+        // We use three buffer blocks: The first two for the current block/line.
+        // The max line length is one buffer length, so the beginning of the line is always
+        // in the first block, while its end can reach into the second block, but never exeed it.
         // The third block is for the async reading.
         buffer_ = new char[ 3 * BlockLength ];
 
@@ -502,8 +504,13 @@ private:
             // If there is more data after the two blocks that we just read, start the
             // reading process (possibly async, if pthreads is available).
             if( data_end_ == 2 * BlockLength ) {
-                input_reader_.init( std::move( input_source ));
-                input_reader_.start_reading( buffer_ + 2 * BlockLength, BlockLength );
+
+                // Create the reader. We need to do this explictily,
+                // as we use a unique ptr to make this class movable.
+                input_reader_ = utils::make_unique<InputReader>();
+
+                input_reader_->init( input_source );
+                input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
             }
 
         } catch( ... ) {
@@ -519,7 +526,8 @@ private:
 private:
 
     // Input data comes from here...
-    InputReader input_reader_;
+    // (we use a unique ptr to make the class movable)
+    std::unique_ptr<InputReader> input_reader_;
     std::string source_name_;
 
     // ...and is buffered here.

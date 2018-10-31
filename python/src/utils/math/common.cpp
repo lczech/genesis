@@ -11,17 +11,6 @@
 
 using namespace ::genesis::utils;
 
-PYTHON_EXPORT_CLASS( ::genesis::utils::MeanStddevPair, scope )
-{
-
-    // -------------------------------------------------------------------
-    //     Class MeanStddevPair
-    // -------------------------------------------------------------------
-
-    pybind11::class_< ::genesis::utils::MeanStddevPair, std::shared_ptr<::genesis::utils::MeanStddevPair> > ( scope, "MeanStddevPair" )
-    ;
-}
-
 PYTHON_EXPORT_FUNCTIONS( utils_math_common_export, ::genesis::utils, scope )
 {
 
@@ -35,10 +24,26 @@ PYTHON_EXPORT_FUNCTIONS( utils_math_common_export, ::genesis::utils, scope )
     );
 
     scope.def(
+        "is_valid_int_pow",
+        ( bool ( * )( size_t, size_t ))( &::genesis::utils::is_valid_int_pow ),
+            pybind11::arg("base"),
+            pybind11::arg("exp"),
+        get_docstring("bool ::genesis::utils::is_valid_int_pow (size_t base, size_t exp)")
+    );
+
+    scope.def(
         "round_to",
         ( double ( * )( double, size_t ))( &::genesis::utils::round_to ),
             pybind11::arg("x"),
             pybind11::arg("accuracy_order"),
         get_docstring("double ::genesis::utils::round_to (double x, size_t accuracy_order)")
+    );
+
+    scope.def(
+        "int_pow",
+        ( size_t ( * )( size_t, size_t ))( &::genesis::utils::int_pow ),
+            pybind11::arg("base"),
+            pybind11::arg("exp"),
+        get_docstring("size_t ::genesis::utils::int_pow (size_t base, size_t exp)")
     );
 }

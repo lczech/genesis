@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,8 +41,8 @@
 #include "genesis/placement/function/operators.hpp"
 #include "genesis/placement/function/tree.hpp"
 #include "genesis/placement/sample.hpp"
-#include "genesis/tree/default/tree.hpp"
-#include "genesis/tree/default/newick_writer.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
+#include "genesis/tree/common_tree/newick_writer.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/formats/newick/writer.hpp"
 
@@ -160,17 +160,17 @@ TEST( SampleFunctions, FilterPqueryNameSets )
     EXPECT_EQ(  2, total_placement_count( sample_4 ));
 }
 
-TEST( SampleFunctions, ConvertFromDefaultTree )
+TEST( SampleFunctions, ConvertFromCommonTree )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
 
     // Read and process a normal newick tree.
     std::string const infile = environment->data_dir + "tree/distances.newick";
-    auto const def_tree = tree::DefaultTreeNewickReader().from_file( infile );
+    auto const def_tree = tree::CommonTreeNewickReader().from_file( infile );
 
     // Convert it to a tree that is usable for samples.
-    auto const place_tree = convert_default_tree_to_placement_tree( def_tree );
+    auto const place_tree = convert_common_tree_to_placement_tree( def_tree );
 
     // Check if the tree is correct.
     EXPECT_EQ( 13, place_tree.node_count() );

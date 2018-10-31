@@ -36,8 +36,8 @@
 #include "genesis/placement/placement_tree.hpp"
 #include "genesis/placement/sample.hpp"
 
-#include "genesis/tree/default/functions.hpp"
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/function/tree_set.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
@@ -102,18 +102,18 @@ bool compatible_trees( Sample const& lhs, Sample const& rhs )
 //     Conversion
 // =================================================================================================
 
-PlacementTree convert_default_tree_to_placement_tree( tree::DefaultTree const& source_tree )
+PlacementTree convert_common_tree_to_placement_tree( tree::CommonTree const& source_tree )
 {
     auto node_data_converter = [] ( tree::BaseNodeData const& source_node ) {
         auto node_data = PlacementNodeData::create();
-        auto& source_data = dynamic_cast< tree::DefaultNodeData const& >( source_node );
+        auto& source_data = dynamic_cast< tree::CommonNodeData const& >( source_node );
         node_data->name = source_data.name;
         return node_data;
     };
 
     auto edge_data_converter = [] ( tree::BaseEdgeData const& source_edge ) {
         auto edge_data = PlacementEdgeData::create();
-        auto& source_data = dynamic_cast< tree::DefaultEdgeData const& >( source_edge );
+        auto& source_data = dynamic_cast< tree::CommonEdgeData const& >( source_edge );
         edge_data->branch_length = source_data.branch_length;
         return edge_data;
     };
@@ -124,7 +124,7 @@ PlacementTree convert_default_tree_to_placement_tree( tree::DefaultTree const& s
         edge_data_converter
     );
 
-    // Need to set the edge nums accordingly, as those are not part of Default Tree Edge Data.
+    // Need to set the edge nums accordingly, as those are not part of Common Tree Edge Data.
     reset_edge_nums( result );
     return result;
 }
@@ -162,7 +162,7 @@ double add_sample_to_mass_tree(
 
 std::pair< tree::MassTree, double > convert_sample_to_mass_tree( Sample const& sample )
 {
-    auto mass_tree = tree::convert_default_tree_to_mass_tree( sample.tree() );
+    auto mass_tree = tree::convert_common_tree_to_mass_tree( sample.tree() );
     double const total_mass = total_placement_mass_with_multiplicities( sample );
     double const pend_work = add_sample_to_mass_tree(
         sample, +1.0, total_mass, mass_tree
@@ -183,7 +183,7 @@ std::pair<
     for( auto const& smp : sample_set ) {
         avg_tree_set.add( "", smp.sample.tree() );
     }
-    auto const mass_tree = tree::convert_default_tree_to_mass_tree(
+    auto const mass_tree = tree::convert_common_tree_to_mass_tree(
         tree::average_branch_length_tree( avg_tree_set )
     );
     avg_tree_set.clear();

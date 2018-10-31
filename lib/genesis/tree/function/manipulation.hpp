@@ -32,6 +32,7 @@
  */
 
 #include <cstddef> // size_t
+#include <functional>
 
 namespace genesis {
 namespace tree {
@@ -44,9 +45,10 @@ class Tree;
 class TreeNode;
 class TreeEdge;
 class TreeLink;
+class Subtree;
 
 // =================================================================================================
-//     Add single Nodes
+//     Add Nodes
 // =================================================================================================
 
 /**
@@ -77,11 +79,13 @@ class TreeLink;
  * This means that in case of a Tree where every Node and Edge has the same node and edge data type
  * (standard case), the newly created ones will also have these data types.
  *
- * @return The function returns the newly create TreeEdge. This way, all other new elements can
- * be accessed, using TreeEdge::primary_link(), TreeEdge::secondary_link() and
- * TreeEdge::secondary_node().
+ * @return The function returns the newly created TreeNode.
+ *
+ * @see @link add_new_node( Tree&, TreeEdge&, std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> ) add_new_node( Tree&, TreeEdge& )@endlink
+ * for a version that adds an inner node to an edge.
+ * @see add_new_leaf_node() for a function that splits and edge and adds a new leaf node to it.
  */
-TreeEdge& add_new_node( Tree& tree, TreeNode& target_node );
+TreeNode& add_new_node( Tree& tree, TreeNode& target_node );
 
 /**
  * @brief Add a new @link TreeNode Node@endlink that splits an existing @link TreeEdge Edge@endlink.
@@ -97,19 +101,44 @@ TreeEdge& add_new_node( Tree& tree, TreeNode& target_node );
  * function behaves in a similar way. The data objects of the new nodes and edges are
  * default-constructed objects of the same type as the `target_edge` and its primary node.
  *
- * Be aware that the data of `target_edge` is not changed. Thus, in trees with DefaultEdgeData,
- * the branch lengths of all three affected edges might have to be changed to the desired values
- * after calling this function.
+ * Be aware that the data of `target_edge` is not changed by default.
+ * Thus, in trees with CommonEdgeData, the branch lengths of the two affected edges might have
+ * to be changed to the desired values after calling this function.
+ * Instead, one can use the @p adjust_edges functional to adjust these edges.
+ * For example, in order to split the branch length in half between the two edges, use:
  *
- * @return The function returns the newly created TreeNode  .
+ *     // Some tree and edge.
+ *     Tree tree;
+ *     auto& target_edge = ...;
+ *
+ *     add_new_node( tree, target_edge, []( TreeEdge& target_edge, TreeEdge& new_edge ){
+ *         auto& target_bl = target_edge.data<CommonEdgeData>().branch_length;
+ *         auto& new_bl    = new_edge.data<CommonEdgeData>().branch_length;
+ *
+ *         new_bl    = target_bl / 2.0;
+ *         target_bl = target_bl / 2.0;
+ *     });
+ *
+ * The functor is called after all changes to the Tree have been made,
+ * and all data objects have been created.
+ *
+ * @return The function returns the newly created TreeNode.
+ *
+ * @see add_new_node( Tree&, TreeNode& ) for a version that adds a leaf node to a node.
+ * @see add_new_leaf_node() for a function that splits and edge and adds a new leaf node to it.
  */
-TreeNode& add_new_node( Tree& tree, TreeEdge& target_edge );
+TreeNode& add_new_node(
+    Tree& tree,
+    TreeEdge& target_edge,
+    std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> adjust_edges = {}
+);
 
 /**
  * @brief Add a new @link TreeNode Node@endlink as a leaf to an existing @link TreeEdge Edge@endlink,
  * by also adding a new Node in the middle of that Edge.
  *
- * This function is a combination of add_new_node( Tree&, TreeNode& ) and add_new_node( Tree&, TreeEdge& ).
+ * This function is a combination of add_new_node( Tree&, TreeNode& ) and
+ * @link add_new_node( Tree&, TreeEdge&, std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> ) add_new_node( Tree&, TreeEdge& )@endlink.
  * Before adding the new leaf node, it first adds another Node that splits the given `target_edge`
  * into two edges, and then adds the leaf to it.
  *
@@ -123,13 +152,25 @@ TreeNode& add_new_node( Tree& tree, TreeEdge& target_edge );
  * function behaves in a similar way. The data objects of the new nodes and edges are
  * default-constructed objects of the same type as the `target_edge` and its primary node.
  *
- * Be aware that the data of `target_edge` is not changed. Thus, in trees with DefaultEdgeData,
- * the branch lengths of all three affected edges might have to be changed to the desired values
- * after calling this function.
+ * Be aware that the data of `target_edge` is not changed by default.
+ * Thus, in trees with CommonEdgeData, the branch lengths of the affected edges might have
+ * to be changed to the desired values after calling this function.
+ * In particular, this concerns the target edge as well as the new inner edge.
+ * One can use the @p adjust_edges functional to adjust these edges.
+ * See @link add_new_node( Tree&, TreeEdge&, std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> ) add_new_node( Tree&, TreeEdge& )@endlink
+ * for an example of this.
  *
- * @return The function returns the newly created TreeEdge that leads to the new leaf node.
+ * @return The function returns the newly created leaf TreeNode.
+ *
+ * @see add_new_node( Tree&, TreeNode& ) for a function that adds a leaf node to a node.
+ * @see @link add_new_node( Tree&, TreeEdge&, std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> ) add_new_node( Tree&, TreeEdge& )@endlink
+ * for a function that adds an inner node to an edge.
  */
-TreeEdge& add_new_leaf_node( Tree& tree, TreeEdge& target_edge );
+TreeNode& add_new_leaf_node(
+    Tree& tree,
+    TreeEdge& target_edge,
+    std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> adjust_edges = {}
+);
 
 /**
  * @brief Add a new @link TreeNode Node@endlink that splits an existing @link TreeEdge Edge@endlink,
@@ -138,6 +179,72 @@ TreeEdge& add_new_leaf_node( Tree& tree, TreeEdge& target_edge );
  * The function combines add_new_node( Tree&, TreeEdge& ) and reroot( Tree&, TreeNode& ).
  */
 TreeNode& add_root_node( Tree& tree, TreeEdge& target_edge );
+
+// =================================================================================================
+//     Delete Nodes
+// =================================================================================================
+
+/**
+ * @brief Delete a TreeNode from a Tree.
+ *
+ * This function is a simple wrapper for the specialized deletion functions:
+ *
+ *  * If the node is a leaf, delete_leaf_node() is called.
+ *  * If it is a linear node, delete_linear_node() is called. Note that in this case, the edges
+ *    are not adjusted.
+ *  * In all other cases, delete_subtree() is called, deleting the Subtree of the given
+ *    @p target_node away from the root.
+ *
+ * See these other functions for details.
+ */
+void delete_node( Tree& tree, TreeNode& target_node );
+
+/**
+ * @brief Delete a leaf TreeNode.
+ *
+ * If the deleted node is the root, the root is reset to the node where the leaf is attached.
+ */
+void delete_leaf_node( Tree& tree, TreeNode& target_node );
+
+/**
+ * @brief Delete a "linear" TreeNode from a Tree, that is, a node with two neighbours.
+ *
+ * Such nodes for example occur as the root node in properly rooted trees. The deletion of this
+ * node leads to its two edges becoming one. The edge that is deleted is the one further away
+ * from the root of the tree, while the other edge remains. If the @p target_node itself is the root,
+ * the edge that is being deleted is the one that is not at the primary link of the node.
+ * In that case, the root is also reset to the node adjacent to the primary link of the @p target_node.
+ *
+ * As one edge is deleted, it might be neccessary to update the data of the other, for example,
+ * to adjust its branch length by adding up both of them. The @p adjust_edges functional
+ * can be used to achivve this. By default, no adjustments are done.
+ * For an example of a similar function, see
+ * @link add_new_node( Tree&, TreeEdge&, std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> ) add_new_node( Tree&, TreeEdge& )@endlink.
+ */
+void delete_linear_node(
+    Tree& tree,
+    TreeNode& target_node,
+    std::function<void( TreeEdge& remaining_edge, TreeEdge& deleted_edge )> adjust_edges = {}
+);
+
+/**
+ * @brief Delete a complete Subtree from a Tree.
+ *
+ * The function deletes a Subtree, including the edge where it is attached.
+ * This works for almost all possible subtrees (including leaf-only subtrees), with one notable
+ * exception: A subtree that contains all of the tree but one leaf cannot be deleted.
+ * In that case, the remaining tree would be just a leaf, with no link and no edge,
+ * which is not a valid tree.
+ *
+ * If the subtree contains the root node, the root is reset to the node where the subtree is attached.
+ */
+void delete_subtree( Tree& tree, Subtree const& subtree );
+
+// void delete_edge(
+//     Tree& tree,
+//     TreeEdge& target_edge,
+//     std::function<void( TreeEdge& remaining_node, TreeEdge& deleted_node )> adjust_nodes = {}
+// );
 
 // =================================================================================================
 //     Rerooting
@@ -201,6 +308,13 @@ enum class LadderizeOrder
     kLargeFirst
 };
 
+/**
+ * @brief Ladderize a Tree, that is, order its subtrees by size.
+ *
+ * The function flips the TreeLink order of all internal TreeNode%s of the Tree so that always
+ * the smalles/largest subtree (in number of nodes) comes first when iterating the Tree.
+ * This assumes a rooting, as the direction of the subtree of a node is measured away from the root.
+ */
 void ladderize( Tree& tree, LadderizeOrder order = LadderizeOrder::kSmallFirst );
 
 } // namespace tree

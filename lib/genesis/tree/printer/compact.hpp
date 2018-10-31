@@ -58,7 +58,7 @@ class TreeLink;
  *
  *     (((A:0.2,B:0.3)C:0.3,(D:0.4,E:0.45,F:0.3,G:0.35)H:0.25)I:0.8,J:0.4,K:0.5)L;
  *
- * and using the print( Tree const& ) function for @link tree::DefaultTree DefaultTrees@endlink,
+ * and using the print( Tree const& ) function for @link tree::CommonTree CommonTrees@endlink,
  * the output is
  *
  *     L: 0.8
@@ -157,11 +157,11 @@ public:
 
     /**
      * @brief Print a compact representation of a Tree to a `std::string`, for
-     * @link tree::DefaultTree DefaultTrees@endlink.
+     * @link tree::CommonTree CommonTrees@endlink.
      *
-     * The function casts the node and edge data to DefaultNodeData and DefaultEdgeData, and, if
-     * successfull, prints the @ref genesis::tree::DefaultNodeData::name "node name" and
-     * @ref genesis::tree::DefaultEdgeData::branch_length "branch length" for each line.
+     * The function casts the node and edge data to CommonNodeData and CommonEdgeData, and, if
+     * successfull, prints the @ref genesis::tree::CommonNodeData::name "node name" and
+     * @ref genesis::tree::CommonEdgeData::branch_length "branch length" for each line.
      *
      * If the data is not actually default data, the nodes are printed without any text, i.e.,
      * only the topology of the Tree via lines is shown.

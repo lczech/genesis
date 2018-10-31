@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -802,6 +802,11 @@ Tree NewickReader::broker_to_tree_ (
         links[i]->reset_index(i);
     }
     next->node().reset_primary_link( &next->next() );
+
+    // Lastly, make sure to correctly set the root link of the tree.
+    // Assert that the link is already the primary link of its node.
+    assert( links.front().get() == &links.front().get()->node().link() );
+    tree.reset_root_link( links.front().get() );
 
     // Call all finish plugins.
     for( auto const& finish_plugin : finish_reading_plugins ) {

@@ -177,6 +177,18 @@ std::ostream& operator<< (std::ostream& os, const Matrix<T>& matrix)
 }
 
 /**
+ * @brief Template specialization for `signed char`, in order to print nicely.
+ */
+template<>
+std::ostream& operator<< (std::ostream& os, const Matrix<signed char>& matrix);
+
+/**
+ * @brief Template specialization for `unsigned char`, in order to print nicely.
+ */
+template<>
+std::ostream& operator<< (std::ostream& os, const Matrix<unsigned char>& matrix);
+
+/**
  * @brief Print a Matrix to an out stream.
  * See print( Matrix<T> const&, size_t, size_t ) for details.
  */

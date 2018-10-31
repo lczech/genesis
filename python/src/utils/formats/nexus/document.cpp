@@ -52,8 +52,9 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::NexusDocument, scope )
         //     "__iter__",
         //     []( ::genesis::utils::NexusDocument& obj ){
         //         return pybind11::make_iterator( obj.begin(), obj.end() );
-        //     },
-        //     pybind11::keep_alive<0, 1>()
+        //     }
+        //     // ,
+        //     // py::keep_alive<0, 1>()
         // )
     ;
 }

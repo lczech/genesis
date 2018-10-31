@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -86,7 +86,7 @@ class Sample;
  * The base edge has a multifurcation if there are more than two placements on the edge.
  *
  * The @link PqueryPlacement::pendant_length pendant_length@endlink of the placements is used
- * to calculate the @link tree::DefaultEdgeData::branch_length branch_length@endlink of the new
+ * to calculate the @link tree::CommonEdgeData::branch_length branch_length@endlink of the new
  * placement edges. This calculation subtracts the shortest `pendant_length` of the placements on
  * the edge, so that the base edge is maximally "moved" towards the placement edges. This also
  * implies that at least one of the placement edges has `branch_length == 0.0`.
@@ -133,11 +133,11 @@ class Sample;
  *                      edges. See above for details.
  * @param name_prefix   Specify a prefix to be added to all new leaf @link tree::TreeNode Nodes@endlink
  *                      (the ones that represent Placements). This is useful if a PqueryName also
- *                      occurs as a @link tree::DefaultNodeData::name name@endlink in the original
+ *                      occurs as a @link tree::CommonNodeData::name name@endlink in the original
  *                      tree. By default, empty. In order to get the same naming as labelled trees
  *                      as produced by RAxML, use `QUERY___`.
  *
- * @return A @link tree::DefaultTree DefaultTree@endlink, i.e., a tree with node names and branch
+ * @return A @link tree::CommonTree CommonTree@endlink, i.e., a tree with node names and branch
  * lengths.
  */
 tree::Tree labelled_tree(
@@ -156,8 +156,8 @@ tree::Tree labelled_tree(
  * identical to the @link Sample::tree() Sample Tree@endlink.
  *
  * Furthermore, the data of the provided Tree needs to derived from
- * @link tree::DefaultNodeData DefaultNodeData@endlink and
- * @link tree::DefaultEdgeData DefaultEdgeData@endlink. This data is then copied to the resulting
+ * @link tree::CommonNodeData CommonNodeData@endlink and
+ * @link tree::CommonEdgeData CommonEdgeData@endlink. This data is then copied to the resulting
  * Tree. The edge data of edges where new placement edges are added is kept that the topmost edge,
  * i.e., the one that is closest to the root.
  */

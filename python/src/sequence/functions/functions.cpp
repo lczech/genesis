@@ -44,6 +44,22 @@ PYTHON_EXPORT_FUNCTIONS( sequence_functions_functions_export, ::genesis::sequenc
     );
 
     scope.def(
+        "find_sites",
+        ( utils::Bitvector ( * )( Sequence const &, std::string const & ))( &::genesis::sequence::find_sites ),
+            pybind11::arg("seq"),
+            pybind11::arg("chars"),
+        get_docstring("utils::Bitvector ::genesis::sequence::find_sites (Sequence const & seq, std::string const & chars)")
+    );
+
+    scope.def(
+        "find_sites",
+        ( utils::Bitvector ( * )( Sequence const &, utils::CharLookup< bool > const & ))( &::genesis::sequence::find_sites ),
+            pybind11::arg("seq"),
+            pybind11::arg("chars"),
+        get_docstring("utils::Bitvector ::genesis::sequence::find_sites (Sequence const & seq, utils::CharLookup< bool > const & chars)")
+    );
+
+    scope.def(
         "gap_sites",
         ( utils::Bitvector ( * )( Sequence const &, std::string const & ))( &::genesis::sequence::gap_sites ),
             pybind11::arg("seq"),
@@ -94,6 +110,54 @@ PYTHON_EXPORT_FUNCTIONS( sequence_functions_functions_export, ::genesis::sequenc
     );
 
     scope.def(
+        "normalize_amino_acid_codes",
+        ( void ( * )( Sequence &, bool ))( &::genesis::sequence::normalize_amino_acid_codes ),
+            pybind11::arg("sequence"),
+            pybind11::arg("accept_degenerated")=(bool)(true),
+        get_docstring("void ::genesis::sequence::normalize_amino_acid_codes (Sequence & sequence, bool accept_degenerated=true)")
+    );
+
+    scope.def(
+        "normalize_amino_acid_codes",
+        ( void ( * )( SequenceSet &, bool ))( &::genesis::sequence::normalize_amino_acid_codes ),
+            pybind11::arg("sequence_set"),
+            pybind11::arg("accept_degenerated")=(bool)(true),
+        get_docstring("void ::genesis::sequence::normalize_amino_acid_codes (SequenceSet & sequence_set, bool accept_degenerated=true)")
+    );
+
+    scope.def(
+        "normalize_nucleic_acid_codes",
+        ( void ( * )( Sequence &, bool ))( &::genesis::sequence::normalize_nucleic_acid_codes ),
+            pybind11::arg("sequence"),
+            pybind11::arg("accept_degenerated")=(bool)(true),
+        get_docstring("void ::genesis::sequence::normalize_nucleic_acid_codes (Sequence & sequence, bool accept_degenerated=true)")
+    );
+
+    scope.def(
+        "normalize_nucleic_acid_codes",
+        ( void ( * )( SequenceSet &, bool ))( &::genesis::sequence::normalize_nucleic_acid_codes ),
+            pybind11::arg("sequence_set"),
+            pybind11::arg("accept_degenerated")=(bool)(true),
+        get_docstring("void ::genesis::sequence::normalize_nucleic_acid_codes (SequenceSet & sequence_set, bool accept_degenerated=true)")
+    );
+
+    scope.def(
+        "remove_all_gaps",
+        ( void ( * )( Sequence &, std::string const & ))( &::genesis::sequence::remove_all_gaps ),
+            pybind11::arg("seq"),
+            pybind11::arg("gap_chars"),
+        get_docstring("void ::genesis::sequence::remove_all_gaps (Sequence & seq, std::string const & gap_chars)")
+    );
+
+    scope.def(
+        "remove_all_gaps",
+        ( void ( * )( SequenceSet &, std::string const & ))( &::genesis::sequence::remove_all_gaps ),
+            pybind11::arg("set"),
+            pybind11::arg("gap_chars"),
+        get_docstring("void ::genesis::sequence::remove_all_gaps (SequenceSet & set, std::string const & gap_chars)")
+    );
+
+    scope.def(
         "remove_characters",
         ( void ( * )( Sequence &, std::string const & ))( &::genesis::sequence::remove_characters ),
             pybind11::arg("seq"),
@@ -110,19 +174,11 @@ PYTHON_EXPORT_FUNCTIONS( sequence_functions_functions_export, ::genesis::sequenc
     );
 
     scope.def(
-        "remove_gaps",
-        ( void ( * )( Sequence &, std::string const & ))( &::genesis::sequence::remove_gaps ),
-            pybind11::arg("seq"),
-            pybind11::arg("gap_chars"),
-        get_docstring("void ::genesis::sequence::remove_gaps (Sequence & seq, std::string const & gap_chars)")
-    );
-
-    scope.def(
-        "remove_gaps",
-        ( void ( * )( SequenceSet &, std::string const & ))( &::genesis::sequence::remove_gaps ),
+        "remove_gap_sites",
+        ( void ( * )( SequenceSet &, std::string const & ))( &::genesis::sequence::remove_gap_sites ),
             pybind11::arg("set"),
             pybind11::arg("gap_chars"),
-        get_docstring("void ::genesis::sequence::remove_gaps (SequenceSet & set, std::string const & gap_chars)")
+        get_docstring("void ::genesis::sequence::remove_gap_sites (SequenceSet & set, std::string const & gap_chars)")
     );
 
     scope.def(

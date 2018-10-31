@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
  */
 
 #include "genesis/tree/tree.hpp"
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/function/operators.hpp"
 
 #include <map>
@@ -145,7 +145,7 @@ public:
  *
  * See @link MassTree MassTree@endlink for more information.
  */
-class MassTreeEdgeData : public DefaultEdgeData
+class MassTreeEdgeData : public CommonEdgeData
 {
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -201,16 +201,16 @@ public:
 };
 
 // =================================================================================================
-//     Default Converter
+//     Common Converter
 // =================================================================================================
 
 /**
- * @brief Helper function that takes a DefaultTree (or any Tree with Node and Edge data derived
+ * @brief Helper function that takes a CommonTree (or any Tree with Node and Edge data derived
  * from it) and turns its data into an MassTree, that is, a Tree with
  * @link MassTreeNodeData MassTreeNodeData@endlink and
  * @link MassTreeEdgeData MassTreeEdgeData@endlink.
  */
-inline MassTree convert_default_tree_to_mass_tree( DefaultTree const& source )
+inline MassTree convert_common_tree_to_mass_tree( CommonTree const& source )
 {
     return convert(
         source,
@@ -220,7 +220,7 @@ inline MassTree convert_default_tree_to_mass_tree( DefaultTree const& source )
         },
         [] ( tree::BaseEdgeData const& edge_data ) {
             auto mass_edge = tree::MassTreeEdgeData::create();
-            auto const& orig_edge = dynamic_cast< DefaultEdgeData const& >( edge_data );
+            auto const& orig_edge = dynamic_cast< CommonEdgeData const& >( edge_data );
             mass_edge->branch_length = orig_edge.branch_length;
 
             return mass_edge;

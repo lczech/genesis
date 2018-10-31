@@ -32,11 +32,13 @@
  */
 
 #include "genesis/tree/tree.hpp"
+#include "genesis/tree/tree/subtree.hpp"
 #include "genesis/utils/core/range.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <deque>
 #include <iterator>
+#include <type_traits>
 
 namespace genesis {
 namespace tree {
@@ -49,12 +51,13 @@ class Tree;
 class TreeNode;
 class TreeEdge;
 class TreeLink;
+class Subtree;
 
 // =================================================================================================
 //     Levelorder Iterator
 // =================================================================================================
 
-template <typename LinkType, typename NodeType, typename EdgeType>
+template< bool is_const = true >
 class IteratorLevelorder
 {
 
@@ -64,8 +67,18 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
+    // Make the memer types const or not, depending on iterator type.
+    using TreeType = typename std::conditional< is_const, Tree const, Tree >::type;
+    using LinkType = typename std::conditional< is_const, TreeLink const, TreeLink >::type;
+    using NodeType = typename std::conditional< is_const, TreeNode const, TreeNode >::type;
+    using EdgeType = typename std::conditional< is_const, TreeEdge const, TreeEdge >::type;
+
+    using self_type         = IteratorLevelorder< is_const >;
     using iterator_category = std::forward_iterator_tag;
-    using self_type         = IteratorLevelorder<LinkType, NodeType, EdgeType>;
+    // using value_type        = NodeType;
+    // using pointer           = NodeType*;
+    // using reference         = NodeType&;
+    // using difference_type   = std::ptrdiff_t;
 
     // -----------------------------------------------------
     //     Constructors and Rule of Five
@@ -77,11 +90,7 @@ public:
         , depth_( 0       )
     {}
 
-    explicit IteratorLevelorder( Tree& tree )
-        : IteratorLevelorder( tree.root_link() )
-    {}
-
-    explicit IteratorLevelorder( Tree const& tree )
+    explicit IteratorLevelorder( TreeType& tree )
         : IteratorLevelorder( tree.root_link() )
     {}
 
@@ -94,8 +103,20 @@ public:
         , link_(  &link )
         , depth_( 0     )
     {
-        push_back_children( &link, 0 );
+        // Add all neighouring nodes in all directions of the given starting link.
+        // Because the push back function leaves out the outer() node, we need to do this extra.
+        push_back_children_( &link, 0 );
         stack_.push_front({ &link.outer(), 1 });
+    }
+
+    explicit IteratorLevelorder( Subtree const& subtree )
+        : start_( &(subtree.link()) )
+        , link_(  &(subtree.link()) )
+        , depth_( 0     )
+    {
+        // Only add the neighouring nodes in the direction away from the link.
+        // Leave out the outer() one, as we do not want this part when iterating a subtree.
+        push_back_children_( &(subtree.link()), 0 );
     }
 
     ~IteratorLevelorder() = default;
@@ -125,7 +146,7 @@ public:
             link_  = se.link;
             depth_ = se.depth;
             stack_.pop_front();
-            push_back_children(link_, depth_);
+            push_back_children_(link_, depth_);
         }
 
         return *this;
@@ -193,7 +214,14 @@ private:
     //     Internal Helper Functions
     // -----------------------------------------------------
 
-    void push_back_children( LinkType* link, int link_depth )
+    /**
+     * @brief Add the childring to the stack that are in the "away from starting node" direction
+     * of the given link.
+     *
+     * The function adds all neighouring nodes of the given link, except the on in the outer()
+     * direction of the link itself.
+     */
+    void push_back_children_( LinkType* link, int link_depth )
     {
         LinkType* c = &link->next();
         while( c != link ) {
@@ -228,22 +256,22 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< IteratorLevelorder< TreeLink const, TreeNode const, TreeEdge const >>
+utils::Range< IteratorLevelorder< true >>
 levelorder( ElementType const& element )
 {
     return {
-        IteratorLevelorder< const TreeLink, const TreeNode, const TreeEdge >( element ),
-        IteratorLevelorder< const TreeLink, const TreeNode, const TreeEdge >()
+        IteratorLevelorder< true >( element ),
+        IteratorLevelorder< true >()
     };
 }
 
 template<typename ElementType>
-utils::Range< IteratorLevelorder< TreeLink, TreeNode, TreeEdge >>
+utils::Range< IteratorLevelorder< false >>
 levelorder( ElementType& element )
 {
     return {
-        IteratorLevelorder< TreeLink, TreeNode, TreeEdge >( element ),
-        IteratorLevelorder< TreeLink, TreeNode, TreeEdge >()
+        IteratorLevelorder< false >( element ),
+        IteratorLevelorder< false >()
     };
 }
 
