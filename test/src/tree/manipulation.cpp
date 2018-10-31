@@ -30,7 +30,10 @@
 
 #include "src/common.hpp"
 
+#include <algorithm>
+#include <numeric>
 #include <string>
+#include <vector>
 
 #include "genesis/tree/function/manipulation.hpp"
 
@@ -42,6 +45,9 @@
 #include "genesis/tree/iterator/levelorder.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/text/string.hpp"
+
+#include "genesis/tree/printer/compact.hpp"
+#include "genesis/tree/printer/detailed.hpp"
 
 using namespace genesis;
 using namespace tree;
@@ -254,43 +260,197 @@ TEST( TreeManipulation, AddNewNodeEdge )
     EXPECT_EQ( 0.0, edge.primary_link().next().next().edge().data<CommonEdgeData>().branch_length );
 }
 
+TEST( TreeManipulation, DeleteLinearNodes )
+{
+    // Get a tree
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+    Tree tree = CommonTreeNewickReader().from_string( input );
+
+    // Do some weird deletions to test delete_linear_node().
+    auto node_d = find_node( tree, "D" );
+    ASSERT_NE( nullptr, node_d );
+    delete_node( tree, *node_d );
+    EXPECT_TRUE( validate_topology( tree ));
+
+    auto node_c = find_node( tree, "C" );
+    ASSERT_NE( nullptr, node_c );
+    delete_node( tree, *node_c );
+    EXPECT_TRUE( validate_topology( tree ));
+
+    auto node_e = find_node( tree, "E" );
+    ASSERT_NE( nullptr, node_e );
+    delete_node( tree, *node_e );
+    EXPECT_TRUE( validate_topology( tree ));
+
+    auto node_a = find_node( tree, "A" );
+    ASSERT_NE( nullptr, node_a );
+    delete_node( tree, *node_a );
+    EXPECT_TRUE( validate_topology( tree ));
+
+    auto node_f = find_node( tree, "F" );
+    ASSERT_NE( nullptr, node_f );
+    delete_node( tree, *node_f );
+    EXPECT_TRUE( validate_topology( tree ));
+
+    auto node_r = find_node( tree, "R" );
+    ASSERT_NE( nullptr, node_r );
+    delete_node( tree, *node_r );
+    EXPECT_TRUE( validate_topology( tree ));
+
+    auto node_h = find_node( tree, "H" );
+    ASSERT_NE( nullptr, node_h );
+    delete_node( tree, *node_h );
+    EXPECT_TRUE( validate_topology( tree ));
+
+    auto node_b = find_node( tree, "B" );
+    ASSERT_NE( nullptr, node_b );
+    EXPECT_TRUE( is_root( *node_b ));
+
+    auto node_g = find_node( tree, "G" );
+    ASSERT_NE( nullptr, node_g );
+    delete_node( tree, *node_g );
+    EXPECT_TRUE( validate_topology( tree ));
+
+    // Check remaining sizes.
+    EXPECT_EQ( 2, tree.link_count() );
+    EXPECT_EQ( 2, tree.node_count() );
+    EXPECT_EQ( 1, tree.edge_count() );
+
+    // Try to delete the remaining two nodes. Shouldn't work.
+    EXPECT_ANY_THROW( delete_leaf_node( tree, tree.node_at(0) ));
+    EXPECT_ANY_THROW( delete_leaf_node( tree, tree.node_at(1) ));
+    EXPECT_TRUE( validate_topology( tree ));
+}
+
+TEST( TreeManipulation, DeleteLeafNodes )
+{
+    // Get a tree
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+    Tree const tree = CommonTreeNewickReader().from_string( input );
+
+    // Try every rerooting of the tree, and delete every leaf once.
+    for( size_t r = 0; r < tree.node_count(); ++r ) {
+        for( size_t i = 0; i < tree.node_count(); ++i ) {
+            auto copy = tree;
+            reroot( copy, copy.node_at(r) );
+
+            if( ! is_leaf( tree.node_at(i) )) {
+                EXPECT_ANY_THROW( delete_leaf_node( copy, copy.node_at(i) ));
+                continue;
+            }
+
+            delete_leaf_node( copy, copy.node_at(i) );
+
+            EXPECT_EQ( tree.link_count() - 2, copy.link_count() );
+            EXPECT_EQ( tree.node_count() - 1, copy.node_count() );
+            EXPECT_EQ( tree.edge_count() - 1, copy.edge_count() );
+            EXPECT_TRUE( validate_topology( copy ));
+        }
+    }
+}
+
+TEST( TreeManipulation, DeleteSubtrees )
+{
+    // Get a tree
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+    Tree const tree = CommonTreeNewickReader().from_string( input );
+
+    // Delete each subtree once by making a copy of the tree each time.
+    for( size_t r = 0; r < tree.node_count(); ++r ) {
+        for( size_t i = 0; i < tree.link_count(); ++i ) {
+            auto copy = tree;
+            reroot( copy, copy.node_at(r) );
+
+            // We cannot delete all but one node.
+            if( is_leaf( copy.link_at(i).outer() )) {
+                EXPECT_ANY_THROW( delete_subtree( copy, Subtree{ copy.link_at(i) } ));
+                continue;
+            }
+
+            delete_subtree( copy, Subtree{ copy.link_at(i) } );
+            EXPECT_TRUE( validate_topology( copy ));
+        }
+    }
+}
+
 TEST( TreeManipulation, DeleteNodes )
 {
     // Get a tree
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
     Tree const tree = CommonTreeNewickReader().from_string( input );
 
-    // Delete each leaf node once by making a copy of the tree each time.
-    for( size_t i = 0; i < tree.node_count(); ++i ) {
-        if( ! is_leaf( tree.node_at(i) )) {
-            continue;
+    // Run every possible rooting.
+    for( size_t r = 0; r < tree.node_count(); ++r ) {
+
+        // Full test: takes waaaaay too long (30min or so).
+        // We ran it once, it worked. Reactivate when needed.
+
+        // // Generate every order of deletion.
+        // std::vector<size_t> node_idx_perms( tree.node_count() );
+        // std::iota( node_idx_perms.begin(), node_idx_perms.end(), 0 );
+        //
+        // // Iterate all permuations, and delete nodes in that order.
+        // size_t p = 0;
+        // do {
+        //     auto copy = tree;
+        //     reroot( copy, copy.node_at(r) );
+        //
+        //     // Turn the permuation into pointers, so that they are stable while deleting stuff.
+        //     std::vector<TreeNode*> node_perm;
+        //     for( auto e : node_idx_perms ) {
+        //         node_perm.push_back( &copy.node_at( e ) );
+        //     }
+        //
+        //     // Delete all nodes in the order given by the permutation.
+        //     for( size_t i = 0; i < copy.node_count(); ++i ) {
+        //
+        //         // Get the next node index to delete.
+        //         auto const node_idx = node_perm[ i ]->index();
+        //
+        //         // Need to skip if the node was already deleted from a previous subtree deletion.
+        //         // This is dirty, because in that case, node_perm is a dangling pointer,
+        //         // so basically, the retrieved index is random... Anyway, works for now.
+        //         if( node_idx >= copy.node_count() ) {
+        //             continue;
+        //         }
+        //
+        //         // LOG_DBG << "r " << r << " p " << p << " i " << i << " s " << copy.node_count() << " n " << node_idx;
+        //
+        //         // We cannot delete all but one node.
+        //         // if( is_leaf( copy.node_at(node_idx).link().outer() )) {
+        //         //     EXPECT_ANY_THROW( delete_node( copy, copy.node_at(node_idx) ));
+        //         //     continue;
+        //         // }
+        //
+        //         // if( p == 600 && i == 4 ) {
+        //         //     LOG_DBG << PrinterCompact().print(copy);
+        //         //     LOG_DBG << PrinterDetailed().print(copy);
+        //         // }
+        //
+        //         try{
+        //             delete_node( copy, copy.node_at(node_idx) );
+        //         } catch(...) {
+        //             // nothing
+        //         }
+        //         EXPECT_TRUE( validate_topology( copy ));
+        //     }
+        //
+        //     ++p;
+        // } while ( std::next_permutation( node_idx_perms.begin(), node_idx_perms.end() ));
+        // (void) p;
+
+        for( size_t i = 0; i < tree.node_count(); ++i ) {
+            auto copy = tree;
+            reroot( copy, copy.node_at(r) );
+
+            // We cannot delete all but one node.
+            if( is_leaf( copy.node_at(i).link().outer() )) {
+                EXPECT_ANY_THROW( delete_node( copy, copy.node_at(i) ));
+                continue;
+            }
+
+            delete_node( copy, copy.node_at(i) );
+            EXPECT_TRUE( validate_topology( copy ));
         }
-
-        auto copy = tree;
-        delete_leaf_node( copy, copy.node_at(i) );
-
-        EXPECT_EQ( tree.link_count() - 2, copy.link_count() );
-        EXPECT_EQ( tree.node_count() - 1, copy.node_count() );
-        EXPECT_EQ( tree.edge_count() - 1, copy.edge_count() );
-        EXPECT_TRUE( validate_topology( copy ));
     }
-
-    // Do some weird deletions to test delete_linear_node().
-    auto weird = tree;
-    auto node_d = find_node( weird, "D" );
-    ASSERT_NE( nullptr, node_d );
-    delete_node( weird, *node_d );
-    EXPECT_TRUE( validate_topology( weird ));
-    auto node_c = find_node( weird, "C" );
-    ASSERT_NE( nullptr, node_c );
-    delete_node( weird, *node_c );
-    EXPECT_TRUE( validate_topology( weird ));
-    auto node_e = find_node( weird, "E" );
-    ASSERT_NE( nullptr, node_e );
-    delete_node( weird, *node_e );
-    EXPECT_TRUE( validate_topology( weird ));
-    auto node_b = find_node( weird, "A" );
-    ASSERT_NE( nullptr, node_b );
-    delete_node( weird, *node_b );
-    EXPECT_TRUE( validate_topology( weird ));
 }

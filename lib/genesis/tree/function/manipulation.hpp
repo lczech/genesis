@@ -184,23 +184,67 @@ TreeNode& add_root_node( Tree& tree, TreeEdge& target_edge );
 //     Delete Nodes
 // =================================================================================================
 
+/**
+ * @brief Delete a TreeNode from a Tree.
+ *
+ * This function is a simple wrapper for the specialized deletion functions:
+ *
+ *  * If the node is a leaf, delete_leaf_node() is called.
+ *  * If it is a linear node, delete_linear_node() is called. Note that in this case, the edges
+ *    are not adjusted.
+ *  * In all other cases, delete_subtree() is called, deleting the Subtree of the given
+ *    @p target_node away from the root.
+ *
+ * See these other functions for details.
+ */
 void delete_node( Tree& tree, TreeNode& target_node );
 
+/**
+ * @brief Delete a leaf TreeNode.
+ *
+ * If the deleted node is the root, the root is reset to the node where the leaf is attached.
+ */
 void delete_leaf_node( Tree& tree, TreeNode& target_node );
 
+/**
+ * @brief Delete a "linear" TreeNode from a Tree, that is, a node with two neighbours.
+ *
+ * Such nodes for example occur as the root node in properly rooted trees. The deletion of this
+ * node leads to its two edges becoming one. The edge that is deleted is the one further away
+ * from the root of the tree, while the other edge remains. If the @p target_node itself is the root,
+ * the edge that is being deleted is the one that is not at the primary link of the node.
+ * In that case, the root is also reset to the node adjacent to the primary link of the @p target_node.
+ *
+ * As one edge is deleted, it might be neccessary to update the data of the other, for example,
+ * to adjust its branch length by adding up both of them. The @p adjust_edges functional
+ * can be used to achivve this. By default, no adjustments are done.
+ * For an example of a similar function, see
+ * @link add_new_node( Tree&, TreeEdge&, std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> ) add_new_node( Tree&, TreeEdge& )@endlink.
+ */
 void delete_linear_node(
     Tree& tree,
     TreeNode& target_node,
     std::function<void( TreeEdge& remaining_edge, TreeEdge& deleted_edge )> adjust_edges = {}
 );
 
+/**
+ * @brief Delete a complete Subtree from a Tree.
+ *
+ * The function deletes a Subtree, including the edge where it is attached.
+ * This works for almost all possible subtrees (including leaf-only subtrees), with one notable
+ * exception: A subtree that contains all of the tree but one leaf cannot be deleted.
+ * In that case, the remaining tree would be just a leaf, with no link and no edge,
+ * which is not a valid tree.
+ *
+ * If the subtree contains the root node, the root is reset to the node where the subtree is attached.
+ */
 void delete_subtree( Tree& tree, Subtree const& subtree );
 
-void delete_edge(
-    Tree& tree,
-    TreeEdge& target_edge,
-    std::function<void( TreeEdge& remaining_node, TreeEdge& deleted_node )> adjust_nodes = {}
-);
+// void delete_edge(
+//     Tree& tree,
+//     TreeEdge& target_edge,
+//     std::function<void( TreeEdge& remaining_node, TreeEdge& deleted_node )> adjust_nodes = {}
+// );
 
 // =================================================================================================
 //     Rerooting

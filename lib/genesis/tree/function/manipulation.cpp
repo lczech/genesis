@@ -40,9 +40,6 @@
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/core/std.hpp"
 
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/text/string.hpp"
-
 #include <algorithm>
 #include <cassert>
 #include <vector>
@@ -253,14 +250,23 @@ void delete_leaf_node( Tree& tree, TreeNode& target_node )
     // Basic check.
     if( ! belongs_to( target_node, tree ) ) {
         throw std::runtime_error(
-            "Cannot delete Node from a Tree that is not part of the Tree."
+            "Cannot delete node from a tree that is not part of the tree."
         );
     }
     if( degree( target_node ) != 1 ) {
         throw std::runtime_error(
-            "Cannot delete leaf Node if the Node is not actually a leaf."
+            "Cannot delete leaf node if the node is not actually a leaf."
         );
     }
+    if( tree.link_count() <= 2 ) {
+        assert( tree.node_count() == 2 && tree.edge_count() == 1 );
+        throw std::runtime_error(
+            "Cannot delete leaf node from a minmal tree that only contains two nodes."
+        );
+    }
+
+    // Node has to be a leaf.
+    assert( &target_node.link().next() == &target_node.link() );
 
     // Get container access shortcuts.
     auto& links = tree.expose_link_container();
@@ -268,10 +274,20 @@ void delete_leaf_node( Tree& tree, TreeNode& target_node )
     auto& edges = tree.expose_edge_container();
 
     // If the node to be deleted is the root, we need to reset to its adjacent node.
-    // We need to check this now, and reset later, because the node indices will change...
+    // We need to check this now, and reset later, because the link indices will change...
+    // Also, if the root is the node where the subtree is attached, we might need to reset
+    // the root link, because the attachement link might get deleted.
+    // For this, we use the first link of the node where the node is attached.
     auto root_link = &tree.root_link();
-    if( tree.root_node().index() == target_node.index() ) {
-        root_link = &target_node.link().outer();
+    if( tree.root_node().index() == target_node.index() || &target_node.link().outer() == &tree.root_link() ) {
+        root_link = &target_node.link().outer().next();
+
+        // Also, if we reset the root link, we need to update the primary link of the new root node.
+        // Do some checks for this. (The commented line is an alternative to resetting it.
+        // We now do this later, at the end of the function.)
+        assert( &target_node.link().outer().node().link() == &target_node.link().outer() );
+        assert( &root_link->node() == &target_node.link().outer().node() );
+        // target_node.link().outer().node().reset_primary_link( root_link );
     }
 
     // Delete the edge and adjust indices of other edges as needed.
@@ -314,7 +330,8 @@ void delete_leaf_node( Tree& tree, TreeNode& target_node )
     }
 
     // Lastly, reset the root link (or set it to what it was before...)
-    tree.reset_root_link_index( root_link->index() );
+    tree.reset_root_link( root_link );
+    tree.root_link().node().reset_primary_link( root_link );
 }
 
 void delete_linear_node(
@@ -360,12 +377,15 @@ void delete_linear_node(
     adj_link_d.reset_outer( &adj_link_p );
 
     // Adjust the pointers to and from the remaining edge.
-    assert( &adj_link_p.edge().secondary_node() == &target_node );
-    assert( &adj_link_d.edge().primary_node() == &target_node );
+    // We are resetting the primary adjacent edge here. This also takes care of setting it to
+    // another node in case that the deleted node is the root.
+    // The first assertion needs a special case for this (if the deletion node is the root).
+    assert( &adj_link_p.edge().secondary_node() == &target_node || root_link != &tree.root_link() );
     assert( &adj_link_p.edge() == &target_node.link().edge() );
     assert( &adj_link_d.edge() == &target_node.link().next().edge() );
+    assert( &adj_link_d.edge().primary_node() == &target_node );
+    adj_link_p.edge().reset_primary_link( &adj_link_p );
     adj_link_p.edge().reset_secondary_link( &adj_link_d );
-    adj_link_d.edge().reset_primary_link( &adj_link_p );
     adj_link_d.reset_edge( &target_node.primary_link().edge() );
 
     // Delete the edge and adjust indices of other edges as needed.
@@ -395,25 +415,69 @@ void delete_linear_node(
     }
 
     // Lastly, reset the root link (or set it to what it was before...)
-    tree.reset_root_link_index( root_link->index() );
+    tree.reset_root_link( root_link );
 }
 
-// /**
-//  * @brief Local helper function template that takes one of the tree element containers
-//  * and deletes all elements at given indices from it.
-//  */
-// template<class T>
-// void delete_from_tree_container_( T& cont, std::vector<size_t> const& idcs )
-// {
-//
-// }
+/**
+ * @brief Local helper function template that takes one of the tree element containers
+ * and deletes all elements at given indices from it.
+ *
+ * The function modifies both its parameters: The deletion list gets sorted.
+ */
+template<class T>
+static void delete_from_tree_container_( T& old_elems, std::vector<size_t>& del_elems )
+{
+    // Sort the deletion list, so that we do not need to seek in it. There should be no duplicats.
+    std::sort( del_elems.begin(), del_elems.end() );
+    assert( std::adjacent_find( del_elems.begin(), del_elems.end()) == del_elems.end() );
+
+    // We never delete the whole tree!
+    assert( del_elems.size() < old_elems.size() );
+
+    // Create an empty container and move the needed elements there.
+    // This is just so much easier than trying to delete within a container
+    // while iterating it, adjusting the internal indices of the elemetns, etc.
+    auto new_elems = T{};
+    new_elems.reserve( old_elems.size() - del_elems.size() );
+
+    // Move elements and adjust indices.
+    size_t del_elems_idx = 0;
+    for( size_t i = 0; i < old_elems.size(); ++i ) {
+        assert( i == old_elems[i]->index() );
+        if( del_elems_idx < del_elems.size() && del_elems[del_elems_idx] == i ) {
+
+            // If the current index is in the deletion list, don't move the element,
+            // and go to the next element of the deletion list.
+            ++del_elems_idx;
+        } else {
+
+            // If the current index is not in the deletion list, move it to the new container.
+            assert( old_elems[i]->index() == i );
+            assert( new_elems.size() == i - del_elems_idx );
+            old_elems[i]->reset_index( i - del_elems_idx );
+            new_elems.emplace_back( std::move( old_elems[i] ));
+            assert( new_elems.back()->index() == new_elems.size() - 1 );
+        }
+    }
+
+    // Swap, which will put the elements that we want to delete in the new container,
+    // which will destroy them when going out of scope.
+    assert( new_elems.size() + del_elems.size() == old_elems.size() );
+    std::swap( new_elems, old_elems );
+    // old_elems = std::move( new_elems );
+}
 
 void delete_subtree( Tree& tree, Subtree const& subtree )
 {
     // Basic check.
-    if( ! belongs_to( subtree.link(), tree ) ) {
+    if( ! belongs_to( subtree, tree ) ) {
         throw std::runtime_error(
             "Cannot delete Subtree from a Tree that is not part of the Tree."
+        );
+    }
+    if( is_leaf( subtree.link().outer() )) {
+        throw std::runtime_error(
+            "Cannot delete Subtree from Tree if this leads to a singluar Node."
         );
     }
 
@@ -436,19 +500,20 @@ void delete_subtree( Tree& tree, Subtree const& subtree )
         }
     }
 
-    // Sort them, so that deletion can be done. There should be no duplicats.
-    std::sort( del_nodes.begin(), del_nodes.end() );
-    std::sort( del_edges.begin(), del_edges.end() );
-    std::sort( del_links.begin(), del_links.end() );
-    assert( std::adjacent_find( del_nodes.begin(), del_nodes.end()) == del_nodes.end() );
-    assert( std::adjacent_find( del_edges.begin(), del_edges.end()) == del_edges.end() );
-    assert( std::adjacent_find( del_links.begin(), del_links.end()) == del_links.end() );
-
     // If we are about to delete the root, store the new link for later.
-    // For this, we use the first link of the attachmend node.
-    auto root_link = contains_root ? &subtree.link().outer().next() : &tree.root_link();
+    // Also, if the root is the node where the subtree is attached, we might need to reset
+    // the root link, because the attachement link might get deleted.
+    // For this, we use the first link of the node where the subtree is attached.
+    // This cannot be a leaf node (as we already checked this earlier), otherwise we'd be setting
+    // it to the attachement link itself, because if this was the case, it's next() is itself.
+    // If not, we just store the current one, so that setting it later doesn't change anything.
+    assert( ! is_leaf( subtree.link().outer() ));
+    auto root_link = &tree.root_link();
+    if( contains_root || &subtree.link().outer() == &tree.root_link() ) {
+        root_link = &tree.link_at( subtree.link().outer().next().index() );
+    }
 
-    // Get the link that points to the attachmend link
+    // Get the link that points to the attachment link
     // (the one on the remaining node that will be deleted).
     auto& attach_link = subtree.link().outer();
     assert( &attach_link.edge() == &subtree.link().edge() );
@@ -467,110 +532,27 @@ void delete_subtree( Tree& tree, Subtree const& subtree )
         link_nc.node().reset_primary_link( &link_nc.next().next() );
     }
 
-    // TODO same for other methods
-
     // Make the node that the target is attached to forget about this node by skipping the link.
     // Because the subtree always stores a const link, we need to get a non-const from the tree.
     link_nc.reset_next( &link_nc.next().next() );
 
-    // Get container access shortcuts.
-    auto& old_nodes = tree.expose_node_container();
-    auto& old_edges = tree.expose_edge_container();
-    auto& old_links = tree.expose_link_container();
-
-    // Make new containers and move the needed elements there.
-    // This is just so much easier than trying to delete within a container
-    // while iterating it, adjusting the internal indices of the elemetns, etc.
-    auto new_nodes = Tree::NodeContainerType();
-    auto new_edges = Tree::EdgeContainerType();
-    auto new_links = Tree::LinkContainerType();
-    new_nodes.reserve( old_nodes.size() - del_nodes.size() );
-    new_edges.reserve( old_edges.size() - del_edges.size() );
-    new_links.reserve( old_links.size() - del_links.size() );
-
-    LOG_DBG << "del_nodes " << utils::join( del_nodes, ", " );
-
-    // Move nodes and adjust indices.
-    size_t del_nodes_idx = 0;
-    for( size_t i = 0; i < old_nodes.size(); ++i ) {
-        assert( i == old_nodes[i]->index() );
-        if( del_nodes_idx < del_nodes.size() && del_nodes[del_nodes_idx] == i ) {
-
-            // If the current index is in the deletion list, don't move the element,
-            // and go to the next element of the deletion list.
-            ++del_nodes_idx;
-        } else {
-
-            // If the current index is not in the deletion list, move it to the new container.
-            assert( old_nodes[i]->index() == i );
-            old_nodes[i]->reset_index( i - del_nodes_idx );
-            new_nodes.emplace_back( std::move( old_nodes[i] ));
-            assert( new_nodes.back()->index() == new_nodes.size() - 1 );
-        }
-    }
-    assert( new_nodes.size() + del_nodes.size() == old_nodes.size() );
-    std::swap( new_nodes, old_nodes );
-    // old_nodes = std::move( new_nodes );
-
-    LOG_DBG << "del_edges " << utils::join( del_edges, ", " );
-
-    // Move edges and adjust indices.
-    size_t del_edges_idx = 0;
-    for( size_t i = 0; i < old_edges.size(); ++i ) {
-        assert( i == old_edges[i]->index() );
-        if( del_edges_idx < del_edges.size() && del_edges[del_edges_idx] == i ) {
-
-            // If the current index is in the deletion list, don't move the element,
-            // and go to the next element of the deletion list.
-            ++del_edges_idx;
-        } else {
-
-            // If the current index is not in the deletion list, move it to the new container.
-            assert( old_edges[i]->index() == i );
-            old_edges[i]->reset_index( i - del_edges_idx );
-            new_edges.emplace_back( std::move( old_edges[i] ));
-            assert( new_edges.back()->index() == new_edges.size() - 1 );
-        }
-    }
-    assert( new_edges.size() + del_edges.size() == old_edges.size() );
-    std::swap( new_edges, old_edges );
-    // old_edges = std::move( new_edges );
-
-    LOG_DBG << "del_links " << utils::join( del_links, ", " );
-
-    // Move links and adjust indices.
-    size_t del_links_idx = 0;
-    for( size_t i = 0; i < old_links.size(); ++i ) {
-        assert( i == old_links[i]->index() );
-        if( del_links_idx < del_links.size() && del_links[del_links_idx] == i ) {
-
-            // If the current index is in the deletion list, don't move the element,
-            // and go to the next element of the deletion list.
-            ++del_links_idx;
-        } else {
-
-            // If the current index is not in the deletion list, move it to the new container.
-            assert( old_links[i]->index() == i );
-            old_links[i]->reset_index( i - del_links_idx );
-            new_links.emplace_back( std::move( old_links[i] ));
-            assert( new_links.back()->index() == new_links.size() - 1 );
-        }
-    }
-    assert( new_links.size() + del_links.size() == old_links.size() );
-    std::swap( new_links, old_links );
-    // old_links = std::move( new_links );
+    // Delete the elements at the given indices.
+    delete_from_tree_container_( tree.expose_node_container(), del_nodes );
+    delete_from_tree_container_( tree.expose_edge_container(), del_edges );
+    delete_from_tree_container_( tree.expose_link_container(), del_links );
 
     // Reset the root if neeeded. This uses the new index of the pointee.
-    tree.reset_root_link_index( root_link->index() );
+    tree.reset_root_link( root_link );
+    tree.root_link().node().reset_primary_link( root_link );
 }
 
-void delete_edge(
-    Tree& tree,
-    TreeEdge& target_edge,
-    std::function<void( TreeEdge& remaining_node, TreeEdge& deleted_node )> adjust_nodes
-) {
-
-}
+// void delete_edge(
+//     Tree& tree,
+//     TreeEdge& target_edge,
+//     std::function<void( TreeEdge& remaining_node, TreeEdge& deleted_node )> adjust_nodes
+// ) {
+//
+// }
 
 // =================================================================================================
 //     Rerooting
@@ -590,7 +572,7 @@ void reroot( Tree& tree, TreeLink& at_link )
     TreeLink* cur_link = &tree.link_at( at_link.index() ).node().primary_link();
 
     // Set new root index and node link of the new root.
-    tree.reset_root_link_index( at_link.index() );
+    tree.reset_root_link( &at_link );
     at_link.node().reset_primary_link( &tree.link_at( at_link.index() ));
 
     // Walk the path from the new root to the old, and change all pointers of the edges and nodes
