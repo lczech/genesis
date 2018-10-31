@@ -30,10 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/mass_tree/balances.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
 #include "genesis/utils/math/common.hpp"
 
 #include <vector>
@@ -73,47 +70,4 @@ TEST( MassTree, Binify )
 
         // LOG_DBG << "i = " << i << "\tpos = " << pos << " \tbin = " << bin;
     }
-}
-
-TEST( MassTree, SignMatrix )
-{
-    // Skip test if no data availabe.
-    NEEDS_TEST_DATA;
-
-    // Read and process tree.
-    std::string infile = environment->data_dir + "tree/rooted.newick";
-    Tree tree = CommonTreeNewickReader().from_file( infile );
-
-    // Full sign matrix
-    auto const exf = utils::Matrix<signed char>( 9, 9, {
-        0, -1, -1, -1, +1, +1, +1, +1, +1,
-        0,  0, -1, +1,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0, -1, -1, -1, +1,
-        0,  0,  0,  0,  0,  0, -1, +1,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0
-    });
-    auto const smf = sign_matrix( tree );
-    EXPECT_EQ( exf, smf );
-
-    // LOG_DBG << smf;
-    // LOG_DBG;
-    // LOG_DBG << exf;
-
-    // Compressed sign matrix
-    auto const exc = utils::Matrix<signed char>( 4, 5, {
-        -1, -1, +1, +1, +1,
-        -1, +1,  0,  0,  0,
-         0,  0, -1, -1, +1,
-         0,  0, -1, +1,  0
-    });
-    auto const smc = sign_matrix( tree, true );
-    EXPECT_EQ( exc, smc );
-
-    // LOG_DBG << smc;
-    // LOG_DBG;
-    // LOG_DBG << exc;
 }
