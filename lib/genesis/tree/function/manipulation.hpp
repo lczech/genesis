@@ -194,13 +194,13 @@ void delete_linear_node(
     std::function<void( TreeEdge& remaining_edge, TreeEdge& deleted_edge )> adjust_edges = {}
 );
 
-// void delete_subtree( Tree& tree, Subtree& subtree );
-//
-// void delete_edge(
-//     Tree& tree,
-//     TreeEdge& target_edge,
-//     std::function<void( TreeEdge& remaining_node, TreeEdge& deleted_node )> adjust_nodes = {}
-// );
+void delete_subtree( Tree& tree, Subtree const& subtree );
+
+void delete_edge(
+    Tree& tree,
+    TreeEdge& target_edge,
+    std::function<void( TreeEdge& remaining_node, TreeEdge& deleted_node )> adjust_nodes = {}
+);
 
 // =================================================================================================
 //     Rerooting
