@@ -48,11 +48,6 @@ Tree::Tree( const Tree& other )
     // Get a copy of the topology. (Copy swap idiom.)
     auto res = other.clone_topology();
 
-    // Instead of using non-covariant clone functions for the data, this might be an option:
-    // http://stackoverflow.com/questions/6924754/return-type-covariance-with-smart-pointers
-    // The typeid assertion could then also move into the base data classes, like this:
-    // http://stackoverflow.com/questions/9477581/force-all-classes-to-implement-override-a-pure-virtual-method-in-multi-level
-
     // Copy data.
     for( size_t i = 0; i < res.links_.size(); ++i ) {
         // res.links_[i]->data = other.links_[i]->data;
@@ -114,7 +109,6 @@ Tree Tree::clone_topology() const
     res.links_.resize( link_count() );
     res.nodes_.resize( node_count() );
     res.edges_.resize( edge_count() );
-    res.root_link_index_ = root_link_index_;
 
     // Create all objects. We need two loops per array, because the pointers have to exist
     // in order to be linked to each other.
@@ -155,6 +149,8 @@ Tree Tree::clone_topology() const
         res.edges_[i]->reset_secondary_link( res.links_[ cur_edge.secondary_link().index() ].get() );
     }
 
+    // Don't forget to set the root link.
+    res.root_link_ = res.links_[ root_link_->index() ].get();
     return res;
 }
 
@@ -162,7 +158,7 @@ void Tree::swap( Tree& other )
 {
     using std::swap;
 
-    swap( root_link_index_, other.root_link_index_ );
+    swap( root_link_, other.root_link_ );
 
     swap( links_, other.links_ );
     swap( nodes_, other.nodes_ );
@@ -171,7 +167,7 @@ void Tree::swap( Tree& other )
 
 void Tree::clear()
 {
-    root_link_index_ = 0;
+    root_link_ = nullptr;
     links_.clear();
     nodes_.clear();
     edges_.clear();
@@ -181,12 +177,11 @@ void Tree::clear()
 //     Data Accessors
 // =================================================================================================
 
-Tree& Tree::reset_root_link_index( size_t val )
+Tree& Tree::reset_root_link( TreeLink* root_link )
 {
-    if( val >= links_.size() ) {
-        throw std::runtime_error( "Invalid root link index: " + std::to_string( val ) );
-    }
-    root_link_index_ = val;
+    assert( root_link->index() < links_.size() );
+    assert( links_[root_link->index()].get() == root_link );
+    root_link_ = root_link;
     return *this;
 }
 

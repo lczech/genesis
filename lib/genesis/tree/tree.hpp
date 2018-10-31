@@ -45,6 +45,7 @@
 #include "genesis/utils/core/range.hpp"
 #include "genesis/utils/containers/deref_iterator.hpp"
 
+#include <cassert>
 #include <memory>
 #include <vector>
 
@@ -196,115 +197,57 @@ public:
     }
 
     /**
-     * @brief Return the TreeLink at the current root of the Tree.
-     *
-     * If the tree is empty(), the functions throws an std::out_of_range exception.
-     */
-    TreeLink& root_link()
-    {
-        if( links_.empty() ) {
-            throw std::out_of_range( "Cannot return root link. Tree is empty." );
-        }
-        return *links_.at( root_link_index_ ).get();
-    }
-
-    /**
-     * @brief Return the TreeLink at the current root of the Tree.
-     *
-     * If the tree is empty(), the functions throws an std::out_of_range exception.
-     */
-    TreeLink const& root_link() const
-    {
-        if( links_.empty() ) {
-            throw std::out_of_range( "Cannot return root link. Tree is empty." );
-        }
-        return *links_.at( root_link_index_ ).get();
-    }
-
-    /**
-     * @brief Return the TreeNode at the current root of the Tree.
-     *
-     * If the tree is empty(), the functions throws an std::out_of_range exception.
-     */
-    TreeNode& root_node()
-    {
-        if( links_.empty() ) {
-            throw std::out_of_range( "Cannot return root node. Tree is empty." );
-        }
-        return links_.at( root_link_index_ )->node();
-    }
-
-    /**
-     * @brief Return the TreeNode at the current root of the Tree.
-     *
-     * If the tree is empty(), the functions throws an std::out_of_range exception.
-     */
-    TreeNode const& root_node() const
-    {
-        if( links_.empty() ) {
-            throw std::out_of_range( "Cannot return root node. Tree is empty." );
-        }
-        return links_.at( root_link_index_ )->node();
-    }
-
-    /**
      * @brief Return the TreeLink at a certain index.
-     *
-     * If the index is invalid, the functions throws an std::out_of_range exception.
      */
     TreeLink& link_at(size_t index)
     {
-        return *links_.at(index).get();
+        assert( index < links_.size() );
+        return *links_[ index ].get();
     }
 
     /**
      * @brief Return the TreeLink at a certain index.
-     *
-     * If the index is invalid, the functions throws an std::out_of_range exception.
      */
     TreeLink const& link_at(size_t index) const
     {
-        return *links_.at(index).get();
+        assert( index < links_.size() );
+        return *links_[ index ].get();
     }
 
     /**
      * @brief Return the TreeNode at a certain index.
-     *
-     * If the index is invalid, the functions throws an std::out_of_range exception.
      */
     TreeNode& node_at(size_t index)
     {
-        return *nodes_.at(index).get();
+        assert( index < nodes_.size() );
+        return *nodes_[ index ].get();
     }
 
     /**
      * @brief Return the TreeNode at a certain index.
-     *
-     * If the index is invalid, the functions throws an std::out_of_range exception.
      */
     TreeNode const& node_at(size_t index) const
     {
-        return *nodes_.at(index).get();
+        assert( index < nodes_.size() );
+        return *nodes_[ index ].get();
     }
 
     /**
      * @brief Return the TreeEdge at a certain index.
-     *
-     * If the index is invalid, the functions throws an std::out_of_range exception.
      */
     TreeEdge& edge_at(size_t index)
     {
-        return *edges_.at(index).get();
+        assert( index < edges_.size() );
+        return *edges_[ index ].get();
     }
 
     /**
      * @brief Return the TreeEdge at a certain index.
-     *
-     * If the index is invalid, the functions throws an std::out_of_range exception.
      */
     TreeEdge const& edge_at(size_t index) const
     {
-        return *edges_.at(index).get();
+        assert( index < edges_.size() );
+        return *edges_[ index ].get();
     }
 
     /**
@@ -332,20 +275,56 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Root
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return the TreeLink at the current root of the Tree.
+     */
+    TreeLink& root_link()
+    {
+        return *root_link_;
+    }
+
+    /**
+     * @brief Return the TreeLink at the current root of the Tree.
+     */
+    TreeLink const& root_link() const
+    {
+        return *root_link_;
+    }
+
+    /**
+     * @brief Return the TreeNode at the current root of the Tree.
+     */
+    TreeNode& root_node()
+    {
+        return root_link_->node();
+    }
+
+    /**
+     * @brief Return the TreeNode at the current root of the Tree.
+     */
+    TreeNode const& root_node() const
+    {
+        return root_link_->node();
+    }
+
+    // -------------------------------------------------------------------------
     //     Data Accessors
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Reset the index of the link that is considered to be the root of the Tree.
+     * @brief Reset the link that is considered to be the root of the Tree.
      *
      * This function is meant for tree manipulation functions. Use with care!
      *
-     * Caveat: This function simply sets the index, but does not change any other properties of the tree.
+     * Caveat: This function simply sets the link, but does not change any other properties of the tree.
      * Particularly the correct primary/secondary order of TreeEdge%s and primary links of TreeNode%s
      * needs to be maintained manually when using this function! Otherwise, we end up with an invalid
      * Tree that breaks its invariants!
      */
-    Tree& reset_root_link_index( size_t val );
+    Tree& reset_root_link( TreeLink* root_link );
 
     /**
      * @brief Get the container that stores all TreeLink%s of the Tree.
@@ -497,7 +476,7 @@ public:
 
 private:
 
-    size_t root_link_index_ = 0;
+    TreeLink* root_link_ = nullptr;
 
     LinkContainerType links_;
     NodeContainerType nodes_;

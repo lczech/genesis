@@ -578,9 +578,15 @@ bool validate_topology( Tree const& tree )
         rl = &( rl->next() );
     }
 
+    // Check root link and node.
+    if( &tree.root_link() != &tree.root_link().node().primary_link() ) {
+        LOG_INFO << "Tree root link is not the primary link of its node.";
+        return false;
+    }
+
     // Further check the root.
     if( ! is_root( tree.root_node() ) ) {
-        LOG_INFO << "Root node does not have is_root().";
+        LOG_INFO << "Root node is not true in is_root().";
         return false;
     }
 

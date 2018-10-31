@@ -51,9 +51,12 @@ namespace tree {
  * and there is no subtree that contains all of the Tree. That is, a Subtree is always a split
  * (or bipartition) of the Tree into two parts, separated by an edge.
  *
- * A subtree is defined by the TreeLink is part of the subtree,
+ * A subtree is defined by the TreeLink that is part of the subtree,
  * while its @link TreeLink::outer() outer()@endlink link is not:
  * ![Subtree given by a TreeLink.](tree/subtree.png)
+ *
+ * In the example, parts `A` and `B`, as well as the node on the left, belong to the Subtree,
+ * and parts `C` and `D`, as well as the node on the right do not.
  *
  * The marked TreeLink, as well as its TreeNode and TreeEdge can be used to construct a Subtree
  * and can be retrieved from it.
