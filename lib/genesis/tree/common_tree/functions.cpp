@@ -74,7 +74,7 @@ std::vector<std::string> node_names(
     // avoids code duplication and is fast enough for now.
     std::vector<std::string> names;
     for( auto const& tree : tree_set ) {
-        auto tree_name_set = node_names( tree.tree, leaves_only );
+        auto tree_name_set = node_names( tree, leaves_only );
         names.insert( names.end(), tree_name_set.begin(), tree_name_set.end() );
     }
     return names;
@@ -173,12 +173,12 @@ Tree average_branch_length_tree( TreeSet const& tset )
         return TreeType();
     }
 
-    if( ! all_identical_topology( tset )) {
+    if( ! identical_topology( tset )) {
         throw std::runtime_error( "Trees in TreeSet do not have the same topology." );
     }
 
     // Prepare storage for average branch lengths.
-    size_t num_edges = tset.at(0).tree.edge_count();
+    size_t num_edges = tset.at(0).edge_count();
     auto avgs = std::vector<double>(num_edges, 0.0);
 
     // We traverse all trees (again, because all_identical_topology() already did this). This is
@@ -191,7 +191,7 @@ Tree average_branch_length_tree( TreeSet const& tset )
         size_t idx = 0;
 
         // Do a preorder traversal and collect branch lengths.
-        for( auto it : preorder(ct.tree) ) {
+        for( auto it : preorder(ct) ) {
             // The first iteration points to an edge which will be covered later again.
             // Skip it to prevent double coverage.
             if (it.is_first_iteration()) {
@@ -205,7 +205,7 @@ Tree average_branch_length_tree( TreeSet const& tset )
 
     // We know that all trees have the same topology. So we take a copy of the first one
     // (thus, also copying its node names) and modify its branch lengths.
-    TreeType tree = TreeType( tset.at(0).tree );
+    TreeType tree = TreeType( tset.at(0) );
 
     // Do the same kind of traversal as before in order to keep the indexing order (preorder) and
     // set the branch lengths.

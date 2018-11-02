@@ -268,18 +268,6 @@ double mass_tree_binify_masses( MassTree& tree, size_t number_of_bins )
 //     Others
 // =================================================================================================
 
-bool mass_tree_all_identical_topology( std::vector<MassTree> const& mass_trees )
-{
-    // If all pairs of two adjacent trees have same the topology, all of them have.
-    // Thus, we do not need a complete pairwise comparision.
-    for (size_t i = 1; i < mass_trees.size(); i++) {
-        if( ! identical_topology( mass_trees[i-1], mass_trees[i] )) {
-            return false;
-        }
-    }
-    return true;
-}
-
 void mass_trees_make_average_branch_lengths( std::vector<MassTree>& mass_trees )
 {
     // Nothing to do.

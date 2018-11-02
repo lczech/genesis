@@ -53,13 +53,13 @@ class TreeSet;
  * @brief Get the first Tree in a TreeSet that is stored with a given name,
  * or `nullptr` if not found.
  */
-Tree      * find_tree ( TreeSet      & tset, std::string const& name);
+Tree      * find_tree ( TreeSet      & tree_set, std::string const& name);
 
 /**
  * @brief Get the first Tree in a TreeSet that is stored with a given name,
  * or `nullptr` if not found.
  */
-Tree const* find_tree ( TreeSet const& tset, std::string const& name);
+Tree const* find_tree ( TreeSet const& tree_set, std::string const& name);
 
 // =================================================================================================
 //     Comparators
@@ -68,10 +68,10 @@ Tree const* find_tree ( TreeSet const& tset, std::string const& name);
 /**
  * @brief Compare whether all Tree%s in a TreeSet are equal using a given comparator functional.
  *
- * See Tree::equal() for more information.
+ * See equal() for more information.
  */
-bool all_equal(
-    TreeSet const& tset,
+bool equal(
+    TreeSet const& tree_set,
     std::function<bool( TreeNode const&, TreeNode const& )> node_comparator,
     std::function<bool( TreeEdge const&, TreeEdge const& )> edge_comparator
 );
@@ -80,12 +80,12 @@ bool all_equal(
 //  * @brief Compare whether all Tree%s in a TreeSet are equal using their default comparision
 //  * operators for nodes and edges.
 //  */
-// bool all_equal( TreeSet const& tset );
+// bool all_equal( TreeSet const& tree_set );
 
 /**
  * @brief Return true iff all Tree%s in a TreeSet have an identical topology.
  */
-bool all_identical_topology( TreeSet const& tset );
+bool identical_topology( TreeSet const& tree_set );
 
 } // namespace tree
 } // namespace genesis
