@@ -40,6 +40,10 @@
 
 #include <ostream>
 
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
+
 namespace genesis {
 namespace tree {
 
@@ -71,7 +75,7 @@ Tree convert(
 }
 
 // =================================================================================================
-//     Equality
+//     Equality and Identity
 // =================================================================================================
 
 bool equal(
@@ -110,6 +114,31 @@ bool equal(
     }
 
     return true;
+}
+
+bool equal(
+    std::vector<Tree> const& trees,
+    std::function<bool ( TreeNode const&, TreeNode const&) > node_comparator,
+    std::function<bool ( TreeEdge const&, TreeEdge const&) > edge_comparator
+) {
+    // If all pairs of two adjacent trees are equal, all of them are.
+    // Thus, we do not need a complete pairwise comparision.
+    // In order to also accelarate via OpenMP, we need a flag instead of immediately
+    // returning on finding a false. We cannot break in OpenMP, but we can skip (which is fast),
+    // if we already know the result.
+
+    bool result = true;
+    #pragma omp parallel for
+    for (size_t i = 1; i < trees.size(); i++) {
+        if( ! result ) {
+            continue;
+        }
+
+        if( ! equal( trees[i-1], trees[i], node_comparator, edge_comparator )) {
+            result = false;
+        }
+    }
+    return result;
 }
 
 /* *
@@ -160,6 +189,32 @@ bool identical_topology( Tree const& lhs, Tree const& rhs)
 
     return equal( lhs, rhs, node_comparator, edge_comparator );
 }
+
+bool identical_topology( std::vector<Tree> const& trees )
+{
+    // If all pairs of two adjacent trees have same the topology, all of them have.
+    // Thus, we do not need a complete pairwise comparision.
+    // In order to also accelarate via OpenMP, we need a flag instead of immediately
+    // returning on finding a false. We cannot break in OpenMP, but we can skip (which is fast),
+    // if we already know the result.
+
+    bool result = true;
+    #pragma omp parallel for
+    for (size_t i = 1; i < trees.size(); i++) {
+        if( ! result ) {
+            continue;
+        }
+
+        if( ! identical_topology( trees[i-1], trees[i] )) {
+            result = false;
+        }
+    }
+    return result;
+}
+
+// =================================================================================================
+//     Element Ownership Checks
+// =================================================================================================
 
 bool belongs_to( Tree const& tree, TreeNode const& node )
 {

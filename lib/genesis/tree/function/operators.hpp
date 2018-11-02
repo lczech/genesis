@@ -58,14 +58,15 @@ class Subtree;
  * data types.
  *
  * This function returns true iff all data types of the nodes and edges match exaclty the
- * specified types. It uses typeid() for this matching.
+ * specified types. It uses typeid() for this matching. If @p allow_null is set to `true`,
+ * data pointers are allowed be empty (`null_ptr`).
  */
 template< class NodeDataType, class EdgeDataType >
-bool tree_data_is( Tree const& tree )
+bool tree_data_is( Tree const& tree, bool allow_null = false )
 {
     // Check node data types.
     for( auto const& node : tree.nodes() ) {
-        if( ! node.has_data() ) {
+        if( ! node.has_data() && ! allow_null ) {
             return false;
         }
         auto const& ref = *node.data_ptr();
@@ -76,7 +77,7 @@ bool tree_data_is( Tree const& tree )
 
     // Check edge data types.
     for( auto const& edge : tree.edges() ) {
-        if( ! edge.has_data() ) {
+        if( ! edge.has_data() && ! allow_null ) {
             return false;
         }
         auto const& ref = *edge.data_ptr();
@@ -93,13 +94,17 @@ bool tree_data_is( Tree const& tree )
  * data types.
  *
  * This function returns true iff all data types of the nodes and edges are derived from the
- * specified types. It uses dynamic_cast() for this.
+ * specified types. It uses dynamic_cast() for this. If @p allow_null is set to `true`,
+ * data pointers are allowed be empty (`null_ptr`).
  */
 template< class NodeDataType, class EdgeDataType >
-bool tree_data_is_derived_from( Tree const& tree )
+bool tree_data_is_derived_from( Tree const& tree, bool allow_null = false )
 {
     // Check node data types.
     for( auto const& node : tree.nodes() ) {
+        if( ! node.has_data() && ! allow_null ) {
+            return false;
+        }
         if( dynamic_cast< NodeDataType const* >( node.data_ptr() ) == nullptr ) {
             return false;
         }
@@ -107,6 +112,9 @@ bool tree_data_is_derived_from( Tree const& tree )
 
     // Check edge data types.
     for( auto const& edge : tree.edges() ) {
+        if( ! edge.has_data() && ! allow_null ) {
+            return false;
+        }
         if( dynamic_cast< EdgeDataType const* >( edge.data_ptr() ) == nullptr ) {
             return false;
         }
@@ -138,11 +146,11 @@ Tree convert(
 );
 
 // =================================================================================================
-//     Equality
+//     Equality and Identity
 // =================================================================================================
 
 /**
- * @brief Compares two trees for equality given binary comparator functionals for their nodes and
+ * @brief Compare two trees for equality given binary comparator functionals for their nodes and
  * edges.
  *
  * This function does a preorder traversal of both trees in parallel and calls the comparator
@@ -164,10 +172,22 @@ bool equal(
     std::function<bool ( TreeEdge const&, TreeEdge const&) > edge_comparator
 );
 
+/**
+ * @brief Compare all trees for equality given binary comparator functionals for their nodes and
+ * edges.
+ *
+ * @see @link equal() equal( Tree const&, Tree const&, [...] )@endlink for details.
+ */
+bool equal(
+    std::vector<Tree> const& trees,
+    std::function<bool ( TreeNode const&, TreeNode const&) > node_comparator,
+    std::function<bool ( TreeEdge const&, TreeEdge const&) > edge_comparator
+);
+
 // bool equal( Tree const& lhs, Tree const& rhs);
 
 /**
- * @brief Returns true iff both trees have an identical topology.
+ * @brief Return whether both trees have an identical topology.
  *
  * The topology is considered identical only if the order of edges is also the same in both trees.
  * This means, although two trees might have the same number of leaves and branches, they might
@@ -175,6 +195,17 @@ bool equal(
  * order or when the root sits at a different node.
  */
 bool identical_topology( Tree const& lhs, Tree const& rhs);
+
+/**
+ * @brief Return whether all trees have an identical topology.
+ *
+ * @copydetails identical_topology( Tree const&, Tree const& )
+ */
+bool identical_topology( std::vector<Tree> const& trees );
+
+// =================================================================================================
+//     Element Ownership Checks
+// =================================================================================================
 
 /**
  * @brief Return whether the TreeNode belongs to the Tree, i.e., whether it is owned by the Tree.
