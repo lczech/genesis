@@ -31,6 +31,8 @@
  * @ingroup tree
  */
 
+#include "genesis/utils/containers/matrix.hpp"
+
 #include <vector>
 #include <unordered_set>
 
@@ -53,6 +55,12 @@ using MassTree = Tree;
 //     Phylogenetic ILR Tranform
 // =================================================================================================
 
+/**
+ * @brief Calcualte the balance of edge masses between two sets of edges.
+ *
+ * @see phylogenetic_ilr_transform( MassTree const& ) for a function that calcualtes this
+ * for the subtrees below all nodes in a rooted Tree.
+ */
 double mass_balance(
     std::vector<double> const& edge_masses,
     std::unordered_set<size_t> const& numerator_edge_indices,
@@ -60,11 +68,36 @@ double mass_balance(
 );
 
 /**
- * @brief
+ * @brief Calcualte the Phylogenetic Isometric Log Ratio transformation of a MassTree.
  *
+ * The balances are calculated per node of the tree, similar to [1]. We however extend this original
+ * idea by being able to place masses on inner branches as well, instead of just the tips (OTUs).
+ * The tree has to be bifurcating and rooted. The calcualted balances are stored using the node
+ * indices. Their sign (order of the subtrees) is according to the TreeLink order of each TreeNode:
+ * The numerator is the first link, the denominator is the second link.
  * Use sign_matrix() to get the ordering (sign) used for the subtrees.
+ *
+ * The function assumes that the Tree is populated with masses along its branches which represent
+ * metagenomic sequences being placed there. The masses must not be normalized - there has to be
+ * at least a mass of ~1.0 for this function to work. That is each sequence should contribute
+ * about 1.0 mass to the tree (leaving out some lower masses in case of phylogenetic placement data).
+ *
+ * > [1] J. D. Silverman, A. D. Washburne, S. Mukherjee, and L. A. David,
+ * > "A phylogenetic transform enhances analysis of compositional microbiota data,"
+ * > Elife, vol. 6, p. e21887, Feb. 2017.
+ * > https://elifesciences.org/articles/21887
  */
 std::vector<double> phylogenetic_ilr_transform( MassTree const& tree );
+
+/**
+ * @brief Calcualte the Phylogenetic Isometric Log Ratio transformation of a set of MassTree%s.
+ *
+ * Because we return a @link utils::Matrix Matrix@endlink of the results, all Tree%s have to have
+ * identical topology.
+ *
+ * @see phylogenetic_ilr_transform( MassTree const& ) for details.
+ */
+utils::Matrix<double> phylogenetic_ilr_transform( std::vector<MassTree> const& trees );
 
 } // namespace tree
 } // namespace genesis

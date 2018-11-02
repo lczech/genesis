@@ -84,6 +84,9 @@ TEST( MassTree, Binify )
 
 TEST( MassTree, PhylogeneticILR )
 {
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
     // Read sample
     std::string const infile = environment->data_dir + "placement/rooted.jplace";
     auto const smp = JplaceReader().from_file( infile );

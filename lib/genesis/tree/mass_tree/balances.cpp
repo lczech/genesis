@@ -118,6 +118,9 @@ std::vector<double> phylogenetic_ilr_transform( MassTree const& tree )
             "Tree is not bifurcating. Cannot calculate its Phylogenetic ILR tranform."
         );
     }
+    if( ! tree_data_is< MassTreeNodeData, MassTreeEdgeData >( tree ) ) {
+        throw std::invalid_argument( "Tree is not a MassTree. cannot calculate its Phylogenetic ILR transform." );
+    }
 
     // Prepare result list for each node.
     auto result = std::vector<double>( tree.node_count(), 0.0 );
@@ -160,7 +163,7 @@ std::vector<double> phylogenetic_ilr_transform( MassTree const& tree )
     };
 
     // Calculate balance for every node of the tree.
-    // #pragma omp parallel for
+    #pragma omp parallel for
     for( size_t node_idx = 0; node_idx < tree.node_count(); ++node_idx ) {
         auto const& node = tree.node_at( node_idx );
 
@@ -198,6 +201,28 @@ std::vector<double> phylogenetic_ilr_transform( MassTree const& tree )
 
         // Calculate and store balance.
         result[ node_idx ] = mass_balance( edge_masses, lhs_indices, rhs_indices );
+    }
+
+    return result;
+}
+
+utils::Matrix<double> phylogenetic_ilr_transform( std::vector<MassTree> const& trees )
+{
+    // Basic check. All other checks are done in the per-tree function.
+    if( ! identical_topology( trees )) {
+        throw std::invalid_argument(
+            "Trees do not have identical topology. Cannot calculate their Phylogenetic ILR tranform matrix."
+        );
+    }
+    if( trees.empty() ) {
+        return {};
+    }
+
+    auto result = utils::Matrix<double>( trees.size(), trees[0].node_count(), 0.0 );
+
+    #pragma omp parallel for
+    for( size_t i = 0; i < trees.size(); ++i ) {
+        result.row( i ) = phylogenetic_ilr_transform( trees[i] );
     }
 
     return result;
