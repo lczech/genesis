@@ -31,11 +31,8 @@
  * @ingroup tree
  */
 
-#include "genesis/utils/containers/sorted_vector.hpp"
-
 #include <set>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 namespace genesis {
@@ -54,29 +51,15 @@ class TreeSet;
 // =================================================================================================
 
 /**
- * @brief Returns an unordered set of all TreeNode names of a Tree.
+ * @brief Returns a list of all TreeNode names of a Tree.
  *
  * If `leaves_only` is set to true, nodes names of inner nodes are not included.
  * Unnamed nodes (`node.data.name == ""`) are always excluded.
- * The only difference to node_names_sorted() is the type of container used for storing the result.
+ * The result is not sorted, and names are as given in the Tree (including possible duplicates).
  *
  * The provided Tree needs to have TreeNode%s with data types deriveed from CommonNodeData.
  */
-std::unordered_set<std::string> node_names(
-    Tree const& tree,
-    bool leaves_only = false
-);
-
-/**
- * @brief Returns a set of all TreeNode names of a Tree.
- *
- * If `leaves_only` is set to true, nodes names of inner nodes are not included.
- * Unnamed nodes (`node.data.name == ""`) are always excluded.
- * The only difference to node_names() is the type of container used for storing the result.
- *
- * The provided Tree needs to have TreeNode%s with data types deriveed from CommonNodeData.
- */
-utils::SortedVector<std::string> node_names_sorted(
+std::vector<std::string> node_names(
     Tree const& tree,
     bool leaves_only = false
 );
@@ -88,19 +71,7 @@ utils::SortedVector<std::string> node_names_sorted(
  * @link node_names( Tree const&, bool ) node_names(...)@endlink this version of the
  * function for details.
  */
-std::unordered_set<std::string> node_names(
-    TreeSet const& tree_set,
-    bool leaves_only = false
-);
-
-/**
- * @brief Returns a set of all TreeNode names of a TreeSet.
- *
- * The function returns the set of all names of all Tree%s in the set. See
- * @link node_names_sorted( Tree const&, bool ) node_names_sorted(...)@endlink this version of the
- * function for details.
- */
-utils::SortedVector<std::string> node_names_sorted(
+std::vector<std::string> node_names(
     TreeSet const& tree_set,
     bool leaves_only = false
 );

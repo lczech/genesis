@@ -40,17 +40,17 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::CsvReader, scope )
         )
         .def(
             "from_file",
-            ( ::genesis::utils::CsvReader::table ( ::genesis::utils::CsvReader::* )( std::string const & ) const )( &::genesis::utils::CsvReader::from_file ),
+            ( Table ( ::genesis::utils::CsvReader::* )( std::string const & ) const )( &::genesis::utils::CsvReader::from_file ),
             pybind11::arg("fn")
         )
         .def(
             "from_stream",
-            ( ::genesis::utils::CsvReader::table ( ::genesis::utils::CsvReader::* )( std::istream & ) const )( &::genesis::utils::CsvReader::from_stream ),
+            ( Table ( ::genesis::utils::CsvReader::* )( std::istream & ) const )( &::genesis::utils::CsvReader::from_stream ),
             pybind11::arg("is")
         )
         .def(
             "from_string",
-            ( ::genesis::utils::CsvReader::table ( ::genesis::utils::CsvReader::* )( std::string const & ) const )( &::genesis::utils::CsvReader::from_string ),
+            ( Table ( ::genesis::utils::CsvReader::* )( std::string const & ) const )( &::genesis::utils::CsvReader::from_string ),
             pybind11::arg("fs")
         )
         .def(
@@ -64,7 +64,7 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::CsvReader, scope )
         )
         .def(
             "parse_document",
-            ( ::genesis::utils::CsvReader::table ( ::genesis::utils::CsvReader::* )( utils::InputStream & ) const )( &::genesis::utils::CsvReader::parse_document ),
+            ( Table ( ::genesis::utils::CsvReader::* )( utils::InputStream & ) const )( &::genesis::utils::CsvReader::parse_document ),
             pybind11::arg("input_stream")
         )
         .def(

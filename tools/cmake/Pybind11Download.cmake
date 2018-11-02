@@ -43,14 +43,11 @@ IF( ${CMAKE_VERSION} VERSION_GREATER 3.1 )
     SET( CMAKE_DOWNLOAD_PROGRESS "DOWNLOAD_NO_PROGRESS 1" )
 ENDIF()
 
-# TODO The last release of Pybind has a problem with LTO flags, so we pull a recent non-release commit of Pybind instead.
-# TODO Once this fix is part of a release, change to a proper release commit here.
-
 # Download a fixed release instead of the current master,
 # so that we know that it works for us.
 ExternalProject_Add( pybind11
-    # URL https://github.com/pybind/pybind11/archive/v2.0.1.zip
-    URL https://github.com/pybind/pybind11/archive/5fe9908b7a34e4f4e320e319a528c4f1bdf6a8e6.zip
+    URL https://github.com/pybind/pybind11/archive/v2.2.4.zip
+    # URL https://github.com/pybind/pybind11/archive/9a19306fbf30642ca331d0ec88e7da54a96860f9.zip
     SOURCE_DIR        "${PROJECT_SOURCE_DIR}/tools/pybind11"
     BINARY_DIR        "${PROJECT_SOURCE_DIR}/tools/pybind11"
     CONFIGURE_COMMAND ""
@@ -61,11 +58,10 @@ ExternalProject_Add( pybind11
 )
 
 # Alternative version that needs Git to be installed (thus, we do not use it by default).
-# We use Pybind11 release 2.0.1, which points to the commit 07de0d8627101be53986e841cd4e21ee38c2498a
 
 # ExternalProject_Add( pybind11
 #   GIT_REPOSITORY    https://github.com/pybind/pybind11.git
-#   GIT_TAG           07de0d8627101be53986e841cd4e21ee38c2498a
+#   GIT_TAG           9a19306fbf30642ca331d0ec88e7da54a96860f9
 #   SOURCE_DIR        "${PROJECT_SOURCE_DIR}/tools/pybind11"
 #   BINARY_DIR        "${PROJECT_SOURCE_DIR}/tools/pybind11"
 #   CONFIGURE_COMMAND ""

@@ -10,7 +10,7 @@
 #include "genesis/genesis.hpp"
 
 using namespace ::genesis::placement;
-/*
+
 PYTHON_EXPORT_CLASS( ::genesis::placement::PlacementNodeData, scope )
 {
 
@@ -22,15 +22,20 @@ PYTHON_EXPORT_CLASS( ::genesis::placement::PlacementNodeData, scope )
 
         // Public Member Functions
 
-        .def(
-            "clone",
-            ( std::unique_ptr< BaseNodeData > ( ::genesis::placement::PlacementNodeData::* )(  ) const )( &::genesis::placement::PlacementNodeData::clone ),
-            get_docstring("std::unique_ptr< BaseNodeData > ::genesis::placement::PlacementNodeData::clone () const")
-        )
-        .def_static(
-            "create",
-            ( std::unique_ptr< PlacementNodeData > ( * )(  ))( &::genesis::placement::PlacementNodeData::create )
-        )
+        // .def(
+        //     "clone",
+        //     ( std::unique_ptr< BaseNodeData > ( ::genesis::placement::PlacementNodeData::* )(  ) const )( &::genesis::placement::PlacementNodeData::clone ),
+        //     get_docstring("std::unique_ptr< BaseNodeData > ::genesis::placement::PlacementNodeData::clone () const")
+        // )
+        // .def(
+        //     "recreate",
+        //     ( std::unique_ptr< BaseNodeData > ( ::genesis::placement::PlacementNodeData::* )(  ) const )( &::genesis::placement::PlacementNodeData::recreate ),
+        //     get_docstring("std::unique_ptr< BaseNodeData > ::genesis::placement::PlacementNodeData::recreate () const")
+        // )
+        // .def_static(
+        //     "create",
+        //     ( std::unique_ptr< PlacementNodeData > ( * )(  ))( &::genesis::placement::PlacementNodeData::create )
+        // )
     ;
 }
 
@@ -45,24 +50,28 @@ PYTHON_EXPORT_CLASS( ::genesis::placement::PlacementEdgeData, scope )
 
         // Public Member Functions
 
-        .def(
-            "clone",
-            ( std::unique_ptr< BaseEdgeData > ( ::genesis::placement::PlacementEdgeData::* )(  ) const )( &::genesis::placement::PlacementEdgeData::clone ),
-            get_docstring("std::unique_ptr< BaseEdgeData > ::genesis::placement::PlacementEdgeData::clone () const")
-        )
+        // .def(
+        //     "clone",
+        //     ( std::unique_ptr< BaseEdgeData > ( ::genesis::placement::PlacementEdgeData::* )(  ) const )( &::genesis::placement::PlacementEdgeData::clone ),
+        //     get_docstring("std::unique_ptr< BaseEdgeData > ::genesis::placement::PlacementEdgeData::clone () const")
+        // )
         .def(
             "edge_num",
             ( int ( ::genesis::placement::PlacementEdgeData::* )(  ) const )( &::genesis::placement::PlacementEdgeData::edge_num )
         )
+        // .def(
+        //     "recreate",
+        //     ( std::unique_ptr< BaseEdgeData > ( ::genesis::placement::PlacementEdgeData::* )(  ) const )( &::genesis::placement::PlacementEdgeData::recreate ),
+        //     get_docstring("std::unique_ptr< BaseEdgeData > ::genesis::placement::PlacementEdgeData::recreate () const")
+        // )
         .def(
             "reset_edge_num",
             ( void ( ::genesis::placement::PlacementEdgeData::* )( int ))( &::genesis::placement::PlacementEdgeData::reset_edge_num ),
             pybind11::arg("val")
         )
-        .def_static(
-            "create",
-            ( std::unique_ptr< PlacementEdgeData > ( * )(  ))( &::genesis::placement::PlacementEdgeData::create )
-        )
+        // .def_static(
+        //     "create",
+        //     ( std::unique_ptr< PlacementEdgeData > ( * )(  ))( &::genesis::placement::PlacementEdgeData::create )
+        // )
     ;
 }
-*/

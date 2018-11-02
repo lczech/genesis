@@ -111,16 +111,6 @@ public:
      */
     void number_of_threads( unsigned int number );
 
-    /**
-     * @brief Return whether the binary was compiled using Pthreads.
-     */
-    bool using_pthreads() const;
-
-    /**
-     * @brief Return whether the binary was compiled using OpenMP.
-     */
-    bool using_openmp() const;
-
     // -------------------------------------------------------------------------
     //     Random Seed & Engine
     // -------------------------------------------------------------------------
@@ -188,94 +178,7 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Run Time Environment
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Return true iff the standard input stream is a terminal, and false if not, i.e., if
-     * it is a file or a pipe.
-     */
-    bool stdin_is_terminal() const;
-
-    /**
-     * @brief Return true iff the standard output stream is a terminal, and false if not, i.e., if
-     * it is a file or a pipe.
-     */
-    bool stdout_is_terminal() const;
-
-    /**
-     * @brief Return true iff the standard error stream is a terminal, and false if not, i.e., if
-     * it is a file or a pipe.
-     */
-    bool stderr_is_terminal() const;
-
-    /**
-     * @brief Return the width and height of the terminal that is used to run the program,
-     * in number of columns and lines.
-     */
-    std::pair<int, int> terminal_size() const;
-
-    // -------------------------------------------------------------------------
-    //     Compile Time Environment
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Return whether the system uses little endian memory.
-     */
-    static bool is_little_endian();
-
-    /**
-     * @brief Return whether the system uses big endian memory.
-     */
-    static bool is_big_endian();
-
-    /**
-     * @brief Return the platform under which genesis was compiled.
-     *
-     * This can be either "Win32", "Linux", "Apple", "Unix" or "Unknown".
-     */
-    static std::string platform();
-
-    /**
-     * @brief Return the compiler family (name) that was used to compile genesis.
-     *
-     * See compiler_version() to get the version of the compiler.
-     */
-    static std::string compiler_family();
-
-    /**
-     * @brief Return the compiler version that was used to compile genesis.
-     *
-     * See compiler_family() to get the corresponding compiler name.
-     */
-    static std::string compiler_version();
-
-    /**
-     * @brief Return the CPP version that was used to compile genesis.
-     */
-    static std::string cpp_version();
-
-    // -------------------------------------------------------------------------
-    //     Build Type
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Return whether the binary was compiled with build type `DEBUG`.
-     */
-    static bool is_debug();
-
-    /**
-     * @brief Return whether the binary was compiled with build type `RELEASE`.
-     */
-    static bool is_release();
-
-    /**
-     * @brief Return the build type that was used to compile the binary, i.e., "debug" or "release".
-     */
-    static std::string build_type();
-
-    // -------------------------------------------------------------------------
-    //     Object Info & Overview
+    //     Object Info
     // -------------------------------------------------------------------------
 
     /**
@@ -338,6 +241,116 @@ public:
     {
         return print_obj_gists_;
     }
+
+    // -------------------------------------------------------------------------
+    //     Run Time Environment
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return true iff the standard input stream is a terminal, and false if not, i.e., if
+     * it is a file or a pipe.
+     */
+    static bool stdin_is_terminal();
+
+    /**
+     * @brief Return true iff the standard output stream is a terminal, and false if not, i.e., if
+     * it is a file or a pipe.
+     */
+    static bool stdout_is_terminal();
+
+    /**
+     * @brief Return true iff the standard error stream is a terminal, and false if not, i.e., if
+     * it is a file or a pipe.
+     */
+    static bool stderr_is_terminal();
+
+    /**
+     * @brief Return the width and height of the terminal that is used to run the program,
+     * in number of columns and lines.
+     */
+    static std::pair<int, int> terminal_size();
+
+    // -------------------------------------------------------------------------
+    //     Compile Time Environment
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return whether the binary was compiled with build type `DEBUG`.
+     */
+    static bool is_debug();
+
+    /**
+     * @brief Return whether the binary was compiled with build type `RELEASE`.
+     */
+    static bool is_release();
+
+    /**
+     * @brief Return the build type that was used to compile the binary, i.e., "debug" or "release".
+     */
+    static std::string build_type();
+
+    /**
+     * @brief Return whether the system uses little endian memory.
+     */
+    static bool is_little_endian();
+
+    /**
+     * @brief Return whether the system uses big endian memory.
+     */
+    static bool is_big_endian();
+
+    /**
+     * @brief Return the platform under which genesis was compiled.
+     *
+     * This can be either "Win32", "Linux", "Apple", "Unix" or "Unknown".
+     */
+    static std::string platform();
+
+    /**
+     * @brief Return the compiler family (name) that was used to compile genesis.
+     *
+     * See compiler_version() to get the version of the compiler.
+     */
+    static std::string compiler_family();
+
+    /**
+     * @brief Return the compiler version that was used to compile genesis.
+     *
+     * See compiler_family() to get the corresponding compiler name.
+     */
+    static std::string compiler_version();
+
+    /**
+     * @brief Return the CPP version that was used to compile genesis.
+     */
+    static std::string cpp_version();
+
+    /**
+     * @brief Return the date and time when genesis was compiled.
+     *
+     * Due to this using the preprocessor, the returned date and time are from when
+     * the Options class was first compiled in a clean build process.
+     */
+    static std::string compile_date_time();
+
+    /**
+     * @brief Return whether the binary was compiled using Pthreads.
+     */
+    static bool using_pthreads();
+
+    /**
+     * @brief Return whether the binary was compiled using OpenMP.
+     */
+    static bool using_openmp();
+
+    /**
+     * @brief Return whether the binary was compiled using zlib.
+     */
+    static bool using_zlib();
+
+    // -------------------------------------------------------------------------
+    //     Overview
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Return a list with compile time and run time options with their values.

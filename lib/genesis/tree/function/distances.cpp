@@ -160,7 +160,7 @@ utils::Matrix<size_t> edge_path_length_matrix(
         for( auto const& col_edge : tree.edges() ) {
 
             // Set the diagonal element of the matrix. We don't need to compare nodes in this case.
-            if (row_edge.index() == col_edge->index()) {
+            if (row_edge.index() == col_edge.index()) {
                 mat(row_edge.index(), row_edge.index()) = 0;
                 continue;
             }
@@ -168,19 +168,19 @@ utils::Matrix<size_t> edge_path_length_matrix(
             // primary-primary case
             auto pp = node_depth_mat(
                 row_edge.primary_node().index(),
-                col_edge->primary_node().index()
+                col_edge.primary_node().index()
             );
 
             // primary-secondary case
             auto ps = node_depth_mat(
                 row_edge.primary_node().index(),
-                col_edge->secondary_node().index()
+                col_edge.secondary_node().index()
             );
 
             // secondary-primary case
             auto sp = node_depth_mat(
                 row_edge.secondary_node().index(),
-                col_edge->primary_node().index()
+                col_edge.primary_node().index()
             );
 
             // Find min. Make sure that the fourth case "secondary-secondary" is not shorter
@@ -188,11 +188,11 @@ utils::Matrix<size_t> edge_path_length_matrix(
             auto dist = std::min({ pp, ps, sp });
             assert( dist <= node_depth_mat(
                 row_edge.secondary_node().index(),
-                col_edge->secondary_node().index()
+                col_edge.secondary_node().index()
             ));
 
             // Store in matrix.
-            mat( row_edge.index(), col_edge->index() ) = dist + 1;
+            mat( row_edge.index(), col_edge.index() ) = dist + 1;
         }
     }
 
@@ -218,27 +218,27 @@ std::vector<size_t> edge_path_length_vector(
 
     for( auto const& col_edge : tree.edges() ) {
 
-        if( edge.index() == col_edge->index() ) {
+        if( edge.index() == col_edge.index() ) {
             vec[ edge.index() ] = 0;
             continue;
         }
 
         // primary-primary case
-        double pp = p_node_dist[ col_edge->primary_node().index() ];
+        double pp = p_node_dist[ col_edge.primary_node().index() ];
 
         // primary-secondary case
-        double ps = p_node_dist[ col_edge->secondary_node().index() ];
+        double ps = p_node_dist[ col_edge.secondary_node().index() ];
 
         // secondary-primary case
-        double sp = s_node_dist[ col_edge->primary_node().index() ];
+        double sp = s_node_dist[ col_edge.primary_node().index() ];
 
         // Find min. Make sure that the fourth case "secondary-secondary" is not shorter
         // (if this ever happens, the tree is broken).
         double dist = std::min({ pp, ps, sp });
-        assert(dist <= s_node_dist[ col_edge->secondary_node().index() ]);
+        assert(dist <= s_node_dist[ col_edge.secondary_node().index() ]);
 
         // Store in vector.
-        vec[ col_edge->index() ] = dist + 1;
+        vec[ col_edge.index() ] = dist + 1;
     }
 
     return vec;
@@ -258,18 +258,17 @@ std::vector< std::pair< TreeNode const*, size_t >> closest_leaf_depth_vector (
     // fill the vector for every node.
     // this could be speed up by doing a postorder traversal followed by some sort of inside-out
     // traversal (preorder might do the job). but for now, this simple O(n^2) version works, too.
-    for( auto node_it = tree.begin_nodes(); node_it != tree.end_nodes(); ++node_it ) {
-        auto node = node_it->get();
+    for( auto const& node : tree.nodes() ) {
 
         // we have not visited this node. assertion holds as long as the indices are correct.
-        assert(vec[node->index()].first == nullptr);
+        assert(vec[ node.index() ].first == nullptr);
 
         // look for closest leaf node by doing a levelorder traversal.
-        for( auto it : levelorder( *node ) ) {
+        for( auto it : levelorder( node ) ) {
             // if we find a leaf, leave the loop.
             if( is_leaf( it.node() )) {
-                vec[node->index()].first  = &it.node();
-                vec[node->index()].second =  it.depth();
+                vec[ node.index() ].first  = &it.node();
+                vec[ node.index() ].second =  it.depth();
                 break;
             }
         }

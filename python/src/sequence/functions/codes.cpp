@@ -15,6 +15,22 @@ PYTHON_EXPORT_FUNCTIONS( sequence_functions_codes_export, ::genesis::sequence, s
 {
 
     scope.def(
+        "normalize_amino_acid_code",
+        ( char ( * )( char, bool ))( &::genesis::sequence::normalize_amino_acid_code ),
+            pybind11::arg("code"),
+            pybind11::arg("accept_degenerated")=(bool)(true),
+        get_docstring("char ::genesis::sequence::normalize_amino_acid_code (char code, bool accept_degenerated=true)")
+    );
+
+    scope.def(
+        "normalize_nucleic_acid_code",
+        ( char ( * )( char, bool ))( &::genesis::sequence::normalize_nucleic_acid_code ),
+            pybind11::arg("code"),
+            pybind11::arg("accept_degenerated")=(bool)(true),
+        get_docstring("char ::genesis::sequence::normalize_nucleic_acid_code (char code, bool accept_degenerated=true)")
+    );
+
+    scope.def(
         "nucleic_acid_ambiguity_code",
         ( char ( * )( std::string ))( &::genesis::sequence::nucleic_acid_ambiguity_code ),
             pybind11::arg("codes"),
@@ -70,6 +86,20 @@ PYTHON_EXPORT_FUNCTIONS( sequence_functions_codes_export, ::genesis::sequence, s
     );
 
     scope.def(
+        "amino_acid_name",
+        ( std::string ( * )( char ))( &::genesis::sequence::amino_acid_name ),
+            pybind11::arg("code"),
+        get_docstring("std::string ::genesis::sequence::amino_acid_name (char code)")
+    );
+
+    scope.def(
+        "normalize_code_alphabet",
+        ( std::string ( * )( std::string const & ))( &::genesis::sequence::normalize_code_alphabet ),
+            pybind11::arg("alphabet"),
+        get_docstring("std::string ::genesis::sequence::normalize_code_alphabet (std::string const & alphabet)")
+    );
+
+    scope.def(
         "nucleic_acid_ambiguities",
         ( std::string ( * )( char ))( &::genesis::sequence::nucleic_acid_ambiguities ),
             pybind11::arg("code"),
@@ -101,16 +131,17 @@ PYTHON_EXPORT_FUNCTIONS( sequence_functions_codes_export, ::genesis::sequence, s
     );
 
     scope.def(
-        "translate_amino_acid",
-        ( std::string ( * )( char ))( &::genesis::sequence::translate_amino_acid ),
+        "nucleic_acid_name",
+        ( std::string ( * )( char ))( &::genesis::sequence::nucleic_acid_name ),
             pybind11::arg("code"),
-        get_docstring("std::string ::genesis::sequence::translate_amino_acid (char code)")
+        get_docstring("std::string ::genesis::sequence::nucleic_acid_name (char code)")
     );
 
     scope.def(
-        "translate_nucleic_acid",
-        ( std::string ( * )( char ))( &::genesis::sequence::translate_nucleic_acid ),
-            pybind11::arg("code"),
-        get_docstring("std::string ::genesis::sequence::translate_nucleic_acid (char code)")
+        "reverse_complement",
+        ( std::string ( * )( std::string const &, bool ))( &::genesis::sequence::reverse_complement ),
+            pybind11::arg("sequence"),
+            pybind11::arg("accept_degenerated")=(bool)(true),
+        get_docstring("std::string ::genesis::sequence::reverse_complement (std::string const & sequence, bool accept_degenerated=true)")
     );
 }

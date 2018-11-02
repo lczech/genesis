@@ -89,10 +89,10 @@ struct GzipInputSource::ZlibData
 #ifdef GENESIS_ZLIB
 
 GzipInputSource::GzipInputSource(
-    std::unique_ptr<BaseInputSource> input_source,
+    std::shared_ptr<BaseInputSource> input_source,
     GzipInputSource::Format format
 )
-    : input_source_( std::move( input_source ))
+    : input_source_( input_source )
     , format_name_( translate_format_( format ))
     , zlib_data_(
         new ZlibData(),
@@ -256,7 +256,7 @@ GzipInputSource::~GzipInputSource()
 }
 
 GzipInputSource::GzipInputSource(
-    std::unique_ptr<BaseInputSource>,
+    std::shared_ptr<BaseInputSource>,
     GzipInputSource::Format
 )
     : input_source_()

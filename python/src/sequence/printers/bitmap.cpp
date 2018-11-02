@@ -31,9 +31,9 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::PrinterBitmap, scope )
 
         .def(
             "color_map",
-            ( PrinterBitmap & ( ::genesis::sequence::PrinterBitmap::* )( std::map< char, utils::Color > ))( &::genesis::sequence::PrinterBitmap::color_map ),
+            ( PrinterBitmap & ( ::genesis::sequence::PrinterBitmap::* )( std::map< char, utils::Color > const & ))( &::genesis::sequence::PrinterBitmap::color_map ),
             pybind11::arg("value"),
-            get_docstring("PrinterBitmap & ::genesis::sequence::PrinterBitmap::color_map (std::map< char, utils::Color > value)")
+            get_docstring("PrinterBitmap & ::genesis::sequence::PrinterBitmap::color_map (std::map< char, utils::Color > const & value)")
         )
         .def(
             "color_map",

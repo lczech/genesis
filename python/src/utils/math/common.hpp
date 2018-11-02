@@ -11,22 +11,6 @@
 
 using namespace ::genesis::utils;
 
-template <typename T>
-void PythonExportClass_::genesis::utils::MinMaxPair(std::string name)
-{
-
-    // -------------------------------------------------------------------
-    //     Class MinMaxPair
-    // -------------------------------------------------------------------
-
-    using namespace ::genesis::utils;
-
-    using MinMaxPairType = MinMaxPair<typename T>;
-
-    pybind11::class_< MinMaxPairType, std::shared_ptr<MinMaxPairType> > ( scope, name.c_str() )
-    ;
-}
-
 template<typename T>
 void python_export_function_utils_math_common_T ()
 {

@@ -90,7 +90,7 @@ void swap( Taxonomy& lhs, Taxonomy& rhs );
  * That means, only the Taxonomy should be seen as the top level of the hierarchy.
  *
  * This class serves as a container for storing a list of @link Taxon Taxa@endlink. It allows to
- * @link add_child( std::string const& ) add@endlink, @link remove_child() remove @endlink and
+ * @link add_child( std::string const&, bool ) add@endlink, @link remove_child() remove @endlink and
  * @link get_child() get @endlink Taxa by their name, as well as iterating over them.
  */
 class Taxonomy

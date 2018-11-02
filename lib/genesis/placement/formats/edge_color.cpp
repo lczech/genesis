@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -83,8 +83,7 @@ std::vector<utils::Color> placement_color_count_gradient( Sample const& smp, boo
     auto place_map = placements_per_edge( smp );
 
     // Calculate the heat gradient color based on the number of placements for each edge.
-    for (auto it = smp.tree().begin_edges(); it != smp.tree().end_edges(); ++it) {
-        auto const& edge = **it;
+    for( auto const& edge : smp.tree().edges() ) {
         auto const placements_on_edge = place_map[ edge.index() ].size();
 
         if( placements_on_edge > 0) {

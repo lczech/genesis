@@ -37,4 +37,68 @@
 #include "genesis/utils/io/stream_input_source.hpp"
 #include "genesis/utils/io/string_input_source.hpp"
 
+#include "genesis/utils/core/std.hpp"
+#include "genesis/utils/tools/gzip.hpp"
+
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+namespace genesis {
+namespace utils {
+
+// =================================================================================================
+//     Input Source Convenience Functions
+// =================================================================================================
+
+inline std::shared_ptr<BaseInputSource> from_file(
+    std::string const& file_name,
+    bool detect_compression = true
+) {
+    if( detect_compression && is_gzip_compressed_file( file_name )) {
+        return std::make_shared<utils::GzipInputSource>(
+            std::make_shared< FileInputSource >( file_name )
+        );
+    } else {
+        return std::make_shared< FileInputSource >( file_name );
+    }
+}
+
+inline std::vector<std::shared_ptr<BaseInputSource>> from_files(
+    std::vector<std::string> const& file_names,
+    bool detect_compression = true
+) {
+    std::vector<std::shared_ptr<BaseInputSource>> ret;
+    for( size_t i = 0; i < file_names.size(); ++i ) {
+        ret.emplace_back( from_file( file_names[i], detect_compression ));
+    }
+    return ret;
+}
+
+inline std::shared_ptr<BaseInputSource> from_string(
+    std::string const& input_string
+) {
+    return std::make_shared< StringInputSource >( input_string );
+}
+
+inline std::vector<std::shared_ptr<BaseInputSource>> from_strings(
+    std::vector<std::string> const& input_strings
+) {
+    std::vector<std::shared_ptr<BaseInputSource>> ret;
+    for( size_t i = 0; i < input_strings.size(); ++i ) {
+        ret.emplace_back( from_string( input_strings[i] ));
+    }
+    return ret;
+}
+
+inline std::shared_ptr<BaseInputSource> from_stream(
+    std::istream& input_stream
+) {
+    return std::make_shared< StreamInputSource >( input_stream );
+}
+
+} // namespace utils
+} // namespace genesis
+
 #endif // include guard

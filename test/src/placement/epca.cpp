@@ -54,6 +54,9 @@ using namespace genesis::placement;
 
 TEST( SampleMeasures, ImbalanceVector )
 {
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
     // Read sample
     std::string const infile = environment->data_dir + "placement/test_a.jplace";
     auto const smp = JplaceReader().from_file( infile );

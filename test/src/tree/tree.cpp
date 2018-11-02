@@ -44,7 +44,7 @@ TEST(Tree, Basics)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    Tree tree = CommonTreeNewickReader().from_string(input);
+    Tree const tree = CommonTreeNewickReader().from_string(input);
 
     EXPECT_EQ( 2, degree( tree.root_node() ));
     EXPECT_EQ( 7, leaf_node_count( tree ));
@@ -55,5 +55,11 @@ TEST(Tree, Basics)
     EXPECT_EQ("R", tree.root_node().data<CommonNodeData>().name);
     EXPECT_TRUE( validate_topology( tree ));
 
-    // LOG_INFO << tree;
+    // Copy constructor.
+    Tree copy_a{ tree };
+    EXPECT_TRUE( validate_topology( copy_a ));
+
+    // Copy assignment.
+    auto const copy_b = tree;
+    EXPECT_TRUE( validate_topology( copy_b ));
 }

@@ -59,6 +59,15 @@ PYTHON_EXPORT_CLASS( ::genesis::taxonomy::PrinterNested, scope )
             pybind11::arg("tax")
         )
         .def(
+            "print_ids",
+            ( PrinterNested & ( ::genesis::taxonomy::PrinterNested::* )( bool ))( &::genesis::taxonomy::PrinterNested::print_ids ),
+            pybind11::arg("value")
+        )
+        .def(
+            "print_ids",
+            ( bool ( ::genesis::taxonomy::PrinterNested::* )(  ) const )( &::genesis::taxonomy::PrinterNested::print_ids )
+        )
+        .def(
             "print_ranks",
             ( PrinterNested & ( ::genesis::taxonomy::PrinterNested::* )( bool ))( &::genesis::taxonomy::PrinterNested::print_ranks ),
             pybind11::arg("value")

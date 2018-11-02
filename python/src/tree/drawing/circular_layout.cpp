@@ -23,8 +23,10 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::CircularLayout, scope )
             pybind11::init<  >()
         )
         .def(
-            pybind11::init< Tree const & >(),
-            pybind11::arg("tree")
+            pybind11::init< Tree const &, LayoutType const, bool >(),
+            pybind11::arg("orig_tree"),
+            pybind11::arg("drawing_type"),
+            pybind11::arg("ladderize")=(bool)(true)
         )
         .def(
             pybind11::init< CircularLayout const & >(),
@@ -34,17 +36,13 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::CircularLayout, scope )
         // Public Member Functions
 
         .def(
-            "set_edge_strokes",
-            ( void ( ::genesis::tree::CircularLayout::* )( std::vector< utils::SvgStroke > ))( &::genesis::tree::CircularLayout::set_edge_strokes ),
-            pybind11::arg("strokes")
+            "radius",
+            ( CircularLayout & ( ::genesis::tree::CircularLayout::* )( double const ))( &::genesis::tree::CircularLayout::radius ),
+            pybind11::arg("value")
         )
         .def(
-            "to_svg_document",
-            ( utils::SvgDocument ( ::genesis::tree::CircularLayout::* )(  ) const )( &::genesis::tree::CircularLayout::to_svg_document )
-        )
-        .def(
-            "tree",
-            ( Tree & ( ::genesis::tree::CircularLayout::* )(  ))( &::genesis::tree::CircularLayout::tree )
+            "radius",
+            ( double ( ::genesis::tree::CircularLayout::* )(  ) const )( &::genesis::tree::CircularLayout::radius )
         )
     ;
 }

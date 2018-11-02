@@ -15,6 +15,38 @@ PYTHON_EXPORT_FUNCTIONS( tree_function_manipulation_export, ::genesis::tree, sco
 {
 
     scope.def(
+        "add_new_leaf_node",
+        ( TreeEdge & ( * )( Tree &, TreeEdge & ))( &::genesis::tree::add_new_leaf_node ),
+            pybind11::arg("tree"),
+            pybind11::arg("target_edge"),
+        get_docstring("TreeEdge & ::genesis::tree::add_new_leaf_node (Tree & tree, TreeEdge & target_edge)")
+    );
+
+    scope.def(
+        "add_new_node",
+        ( TreeEdge & ( * )( Tree &, TreeNode & ))( &::genesis::tree::add_new_node ),
+            pybind11::arg("tree"),
+            pybind11::arg("target_node"),
+        get_docstring("TreeEdge & ::genesis::tree::add_new_node (Tree & tree, TreeNode & target_node)")
+    );
+
+    scope.def(
+        "add_new_node",
+        ( TreeNode & ( * )( Tree &, TreeEdge & ))( &::genesis::tree::add_new_node ),
+            pybind11::arg("tree"),
+            pybind11::arg("target_edge"),
+        get_docstring("TreeNode & ::genesis::tree::add_new_node (Tree & tree, TreeEdge & target_edge)")
+    );
+
+    scope.def(
+        "add_root_node",
+        ( TreeNode & ( * )( Tree &, TreeEdge & ))( &::genesis::tree::add_root_node ),
+            pybind11::arg("tree"),
+            pybind11::arg("target_edge"),
+        get_docstring("TreeNode & ::genesis::tree::add_root_node (Tree & tree, TreeEdge & target_edge)")
+    );
+
+    scope.def(
         "ladderize",
         ( void ( * )( Tree &, LadderizeOrder ))( &::genesis::tree::ladderize ),
             pybind11::arg("tree"),

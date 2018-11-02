@@ -396,7 +396,7 @@ std::string to_string( T const& v )
  * Thus, this function can used with all types that support this operator.
  */
 template <typename T>
-std::string join( T const& v, std::string const& delimiter )
+std::string join( T const& v, std::string const& delimiter = ", " )
 {
     std::ostringstream s;
     for( auto const& i : v ) {

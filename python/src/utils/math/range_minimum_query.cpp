@@ -20,6 +20,9 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::RangeMinimumQuery, scope )
 
     pybind11::class_< ::genesis::utils::RangeMinimumQuery, std::shared_ptr<::genesis::utils::RangeMinimumQuery> > ( scope, "RangeMinimumQuery" )
         .def(
+            pybind11::init<  >()
+        )
+        .def(
             pybind11::init< std::vector< ::genesis::utils::RangeMinimumQuery::IntType > const & >(),
             pybind11::arg("array")
         )

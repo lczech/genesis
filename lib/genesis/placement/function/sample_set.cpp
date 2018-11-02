@@ -151,7 +151,7 @@ bool all_identical_trees( SampleSet const& sample_set )
                edge_l.secondary_node().index() == edge_r.secondary_node().index();
     };
 
-    return all_equal( tree_set( sample_set ), node_comparator, edge_comparator );
+    return equal( tree_set( sample_set ), node_comparator, edge_comparator );
 }
 
 tree::TreeSet tree_set( SampleSet const& sample_set )

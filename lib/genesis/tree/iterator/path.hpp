@@ -35,9 +35,10 @@
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/core/range.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <iterator>
 #include <vector>
+#include <type_traits>
 
 namespace genesis {
 namespace tree {
@@ -55,7 +56,7 @@ class TreeLink;
 //     Path Iterator
 // =================================================================================================
 
-template <typename LinkType, typename NodeType, typename EdgeType>
+template< bool is_const = true >
 class IteratorPath
 {
 
@@ -65,8 +66,18 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
+    // Make the memer types const or not, depending on iterator type.
+    using TreeType = typename std::conditional< is_const, Tree const, Tree >::type;
+    using LinkType = typename std::conditional< is_const, TreeLink const, TreeLink >::type;
+    using NodeType = typename std::conditional< is_const, TreeNode const, TreeNode >::type;
+    using EdgeType = typename std::conditional< is_const, TreeEdge const, TreeEdge >::type;
+
+    using self_type         = IteratorPath< is_const >;
     using iterator_category = std::forward_iterator_tag;
-    using self_type         = IteratorPath<LinkType, NodeType, EdgeType>;
+    // using value_type        = NodeType;
+    // using pointer           = NodeType*;
+    // using reference         = NodeType&;
+    // using difference_type   = std::ptrdiff_t;
 
     // -----------------------------------------------------
     //     Constructors and Rule of Five
@@ -322,22 +333,22 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< IteratorPath< TreeLink const, TreeNode const, TreeEdge const >>
+utils::Range< IteratorPath< true >>
 path( ElementType const& start, ElementType const& finish )
 {
     return {
-        IteratorPath< const TreeLink, const TreeNode, const TreeEdge >( start, finish ),
-        IteratorPath< const TreeLink, const TreeNode, const TreeEdge >()
+        IteratorPath< true >( start, finish ),
+        IteratorPath< true >()
     };
 }
 
 template<typename ElementType>
-utils::Range< IteratorPath< TreeLink, TreeNode, TreeEdge >>
+utils::Range< IteratorPath< false >>
 path( ElementType& start, ElementType& finish )
 {
     return {
-        IteratorPath< TreeLink, TreeNode, TreeEdge >( start, finish ),
-        IteratorPath< TreeLink, TreeNode, TreeEdge >()
+        IteratorPath< false >( start, finish ),
+        IteratorPath< false >()
     };
 }
 

@@ -86,18 +86,18 @@ PYTHON_EXPORT_CLASS( ::genesis::taxonomy::Taxopath, scope )
         //     "rbegin",
         //     ( const_reverse_iterator ( ::genesis::taxonomy::Taxopath::* )(  ) const )( &::genesis::taxonomy::Taxopath::rbegin )
         // )
-        // .def(
-        //     "rbegin",
-        //     ( reverse_iterator ( ::genesis::taxonomy::Taxopath::* )(  ))( &::genesis::taxonomy::Taxopath::rbegin )
-        // )
+        .def(
+            "rbegin",
+            ( ::genesis::taxonomy::Taxopath::reverse_iterator ( ::genesis::taxonomy::Taxopath::* )(  ))( &::genesis::taxonomy::Taxopath::rbegin )
+        )
         // .def(
         //     "rend",
         //     ( const_reverse_iterator ( ::genesis::taxonomy::Taxopath::* )(  ) const )( &::genesis::taxonomy::Taxopath::rend )
         // )
-        // .def(
-        //     "rend",
-        //     ( reverse_iterator ( ::genesis::taxonomy::Taxopath::* )(  ))( &::genesis::taxonomy::Taxopath::rend )
-        // )
+        .def(
+            "rend",
+            ( ::genesis::taxonomy::Taxopath::reverse_iterator ( ::genesis::taxonomy::Taxopath::* )(  ))( &::genesis::taxonomy::Taxopath::rend )
+        )
         .def(
             "size",
             ( size_t ( ::genesis::taxonomy::Taxopath::* )(  ) const )( &::genesis::taxonomy::Taxopath::size )
@@ -127,8 +127,9 @@ PYTHON_EXPORT_CLASS( ::genesis::taxonomy::Taxopath, scope )
             "__iter__",
             []( ::genesis::taxonomy::Taxopath& obj ){
                 return pybind11::make_iterator( obj.begin(), obj.end() );
-            },
-            pybind11::keep_alive<0, 1>()
+            }
+            // ,
+            // py::keep_alive<0, 1>()
         )
     ;
 }

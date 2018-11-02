@@ -26,8 +26,8 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::Bitvector, scope )
         .def(
             pybind11::init< const size_t, const bool >(),
             pybind11::arg("size"),
-            pybind11::arg("init")=(const bool)(false),
-            get_docstring("::genesis::utils::Bitvector::Bitvector (const size_t size, const bool init=false)")
+            pybind11::arg("initial_value")=(const bool)(false),
+            get_docstring("::genesis::utils::Bitvector::Bitvector (const size_t size, const bool initial_value=false)")
         )
         .def(
             pybind11::init< const size_t, const std::initializer_list< int > >(),
@@ -35,12 +35,23 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::Bitvector, scope )
             pybind11::arg("list"),
             get_docstring("::genesis::utils::Bitvector::Bitvector (const size_t size, const std::initializer_list< int > list)")
         )
+        .def(
+            pybind11::init< Bitvector const &, size_t >(),
+            pybind11::arg("other"),
+            pybind11::arg("bits"),
+            get_docstring("::genesis::utils::Bitvector::Bitvector (Bitvector const & other, size_t bits)")
+        )
+        .def(
+            pybind11::init< Bitvector const & >(),
+            pybind11::arg("arg")
+        )
 
         // Public Member Functions
 
         .def(
             "count",
-            ( size_t ( ::genesis::utils::Bitvector::* )(  ) const )( &::genesis::utils::Bitvector::count )
+            ( size_t ( ::genesis::utils::Bitvector::* )(  ) const )( &::genesis::utils::Bitvector::count ),
+            get_docstring("size_t ::genesis::utils::Bitvector::count () const")
         )
         .def(
             "dump",
@@ -65,20 +76,18 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::Bitvector, scope )
         )
         .def(
             "hash",
-            ( size_t ( ::genesis::utils::Bitvector::* )(  ) const )( &::genesis::utils::Bitvector::hash )
+            ( size_t ( ::genesis::utils::Bitvector::* )(  ) const )( &::genesis::utils::Bitvector::hash ),
+            get_docstring("size_t ::genesis::utils::Bitvector::hash () const")
         )
         .def(
-            "invert",
-            ( void ( ::genesis::utils::Bitvector::* )(  ))( &::genesis::utils::Bitvector::invert )
+            "negate",
+            ( void ( ::genesis::utils::Bitvector::* )(  ))( &::genesis::utils::Bitvector::negate ),
+            get_docstring("void ::genesis::utils::Bitvector::negate ()")
         )
         .def(
             "normalize",
-            ( void ( ::genesis::utils::Bitvector::* )(  ))( &::genesis::utils::Bitvector::normalize )
-        )
-        .def(
-            "reset",
-            ( void ( ::genesis::utils::Bitvector::* )( const bool ))( &::genesis::utils::Bitvector::reset ),
-            pybind11::arg("value")=(const bool)(false)
+            ( void ( ::genesis::utils::Bitvector::* )(  ))( &::genesis::utils::Bitvector::normalize ),
+            get_docstring("void ::genesis::utils::Bitvector::normalize ()")
         )
         .def(
             "set",
@@ -94,14 +103,15 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::Bitvector, scope )
             get_docstring("void ::genesis::utils::Bitvector::set (size_t index, bool value)")
         )
         .def(
+            "set_all",
+            ( void ( ::genesis::utils::Bitvector::* )( const bool ))( &::genesis::utils::Bitvector::set_all ),
+            pybind11::arg("value")=(const bool)(false),
+            get_docstring("void ::genesis::utils::Bitvector::set_all (const bool value=false)")
+        )
+        .def(
             "size",
             ( size_t ( ::genesis::utils::Bitvector::* )(  ) const )( &::genesis::utils::Bitvector::size ),
             get_docstring("size_t ::genesis::utils::Bitvector::size () const")
-        )
-        .def(
-            "symmetric_difference",
-            ( Bitvector ( ::genesis::utils::Bitvector::* )( Bitvector const & ) const )( &::genesis::utils::Bitvector::symmetric_difference ),
-            pybind11::arg("rhs")
         )
         .def(
             "unset",
@@ -111,24 +121,15 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::Bitvector, scope )
         )
         .def(
             "x_hash",
-            ( ::genesis::utils::Bitvector::IntType ( ::genesis::utils::Bitvector::* )(  ) const )( &::genesis::utils::Bitvector::x_hash )
-        )
-        .def_static(
-            "symmetric_difference",
-            ( Bitvector ( * )( Bitvector const &, Bitvector const & ))( &::genesis::utils::Bitvector::symmetric_difference ),
-            pybind11::arg("lhs"),
-            pybind11::arg("rhs")
+            ( ::genesis::utils::Bitvector::IntType ( ::genesis::utils::Bitvector::* )(  ) const )( &::genesis::utils::Bitvector::x_hash ),
+            get_docstring("IntType ::genesis::utils::Bitvector::x_hash () const")
         )
 
         // Operators
 
         .def( pybind11::self != pybind11::self )
         .def( pybind11::self &= pybind11::self )
-        .def( pybind11::self < pybind11::self )
-        .def( pybind11::self <= pybind11::self )
         .def( pybind11::self == pybind11::self )
-        .def( pybind11::self > pybind11::self )
-        .def( pybind11::self >= pybind11::self )
         .def(
             "__getitem__",
             ( bool ( ::genesis::utils::Bitvector::* )( size_t ) const )( &::genesis::utils::Bitvector::operator[] ),
@@ -147,36 +148,4 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::Bitvector, scope )
             }
         )
     ;
-}
-
-PYTHON_EXPORT_FUNCTIONS( utils_math_bitvector_export, ::genesis::utils, scope )
-{
-
-    scope.def(
-        "operator&",
-        ( Bitvector ( * )( Bitvector const &, Bitvector const & ))( &::genesis::utils::operator& ),
-            pybind11::arg("lhs"),
-            pybind11::arg("rhs")
-    );
-
-    scope.def(
-        "operator-",
-        ( Bitvector ( * )( Bitvector const &, Bitvector const & ))( &::genesis::utils::operator- ),
-            pybind11::arg("lhs"),
-            pybind11::arg("rhs")
-    );
-
-    scope.def(
-        "operator^",
-        ( Bitvector ( * )( Bitvector const &, Bitvector const & ))( &::genesis::utils::operator^ ),
-            pybind11::arg("lhs"),
-            pybind11::arg("rhs")
-    );
-
-    scope.def(
-        "operator|",
-        ( Bitvector ( * )( Bitvector const &, Bitvector const & ))( &::genesis::utils::operator| ),
-            pybind11::arg("lhs"),
-            pybind11::arg("rhs")
-    );
 }

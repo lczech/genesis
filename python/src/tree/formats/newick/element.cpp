@@ -31,6 +31,21 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::NewickBrokerElement, scope )
         // Public Member Functions
 
         .def(
+            "is_inner",
+            ( bool ( ::genesis::tree::NewickBrokerElement::* )(  ) const )( &::genesis::tree::NewickBrokerElement::is_inner ),
+            get_docstring("bool ::genesis::tree::NewickBrokerElement::is_inner () const")
+        )
+        .def(
+            "is_leaf",
+            ( bool ( ::genesis::tree::NewickBrokerElement::* )(  ) const )( &::genesis::tree::NewickBrokerElement::is_leaf ),
+            get_docstring("bool ::genesis::tree::NewickBrokerElement::is_leaf () const")
+        )
+        .def(
+            "is_root",
+            ( bool ( ::genesis::tree::NewickBrokerElement::* )(  ) const )( &::genesis::tree::NewickBrokerElement::is_root ),
+            get_docstring("bool ::genesis::tree::NewickBrokerElement::is_root () const")
+        )
+        .def(
             "rank",
             ( int ( ::genesis::tree::NewickBrokerElement::* )(  ) const )( &::genesis::tree::NewickBrokerElement::rank ),
             get_docstring("int ::genesis::tree::NewickBrokerElement::rank () const")

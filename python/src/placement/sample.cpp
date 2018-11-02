@@ -79,24 +79,24 @@ PYTHON_EXPORT_CLASS( ::genesis::placement::Sample, scope )
         //     ( utils::Range< const_iterator_pqueries > ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::pqueries ),
         //     get_docstring("utils::Range< const_iterator_pqueries > ::genesis::placement::Sample::pqueries () const")
         // )
-        // .def(
-        //     "pqueries",
-        //     ( utils::Range< iterator_pqueries > ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::pqueries ),
-        //     get_docstring("utils::Range< iterator_pqueries > ::genesis::placement::Sample::pqueries ()")
-        // )
-        // .def(
-        //     "remove",
-        //     ( void ( ::genesis::placement::Sample::* )( iterator_pqueries ))( &::genesis::placement::Sample::remove ),
-        //     pybind11::arg("position"),
-        //     get_docstring("void ::genesis::placement::Sample::remove (iterator_pqueries position)")
-        // )
-        // .def(
-        //     "remove",
-        //     ( void ( ::genesis::placement::Sample::* )( iterator_pqueries, iterator_pqueries ))( &::genesis::placement::Sample::remove ),
-        //     pybind11::arg("first"),
-        //     pybind11::arg("last"),
-        //     get_docstring("void ::genesis::placement::Sample::remove (iterator_pqueries first, iterator_pqueries last)")
-        // )
+        .def(
+            "pqueries",
+            ( utils::Range< ::genesis::placement::Sample::iterator_pqueries > ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::pqueries ),
+            get_docstring("utils::Range< iterator_pqueries > ::genesis::placement::Sample::pqueries ()")
+        )
+        .def(
+            "remove",
+            ( void ( ::genesis::placement::Sample::* )( ::genesis::placement::Sample::iterator_pqueries ))( &::genesis::placement::Sample::remove ),
+            pybind11::arg("position"),
+            get_docstring("void ::genesis::placement::Sample::remove (iterator_pqueries position)")
+        )
+        .def(
+            "remove",
+            ( void ( ::genesis::placement::Sample::* )( ::genesis::placement::Sample::iterator_pqueries, ::genesis::placement::Sample::iterator_pqueries ))( &::genesis::placement::Sample::remove ),
+            pybind11::arg("first"),
+            pybind11::arg("last"),
+            get_docstring("void ::genesis::placement::Sample::remove (iterator_pqueries first, iterator_pqueries last)")
+        )
         .def(
             "remove",
             ( void ( ::genesis::placement::Sample::* )( size_t ))( &::genesis::placement::Sample::remove ),
@@ -149,8 +149,9 @@ PYTHON_EXPORT_CLASS( ::genesis::placement::Sample, scope )
             "__iter__",
             []( ::genesis::placement::Sample& obj ){
                 return pybind11::make_iterator( obj.begin(), obj.end() );
-            },
-            pybind11::keep_alive<0, 1>()
+            }
+            // ,
+            // py::keep_alive<0, 1>()
         )
     ;
 }

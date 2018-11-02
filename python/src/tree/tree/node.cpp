@@ -50,72 +50,74 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::TreeNode, scope )
         //     "data_cast",
         //     ( NodeDataType const * ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::data_cast )
         // )
-        // .def(
-        //     "data_ptr",
-        //     ( BaseNodeData * ( ::genesis::tree::TreeNode::* )(  ))( &::genesis::tree::TreeNode::data_ptr )
-        // )
-        // .def(
-        //     "data_ptr",
-        //     ( BaseNodeData const * ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::data_ptr )
-        // )
         .def(
-            "dump",
-            ( std::string ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::dump )
+            "data_ptr",
+            ( BaseNodeData * ( ::genesis::tree::TreeNode::* )(  ))( &::genesis::tree::TreeNode::data_ptr ),
+            get_docstring("BaseNodeData * ::genesis::tree::TreeNode::data_ptr ()")
+        )
+        .def(
+            "data_ptr",
+            ( BaseNodeData const * ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::data_ptr ),
+            get_docstring("BaseNodeData const * ::genesis::tree::TreeNode::data_ptr () const")
         )
         .def(
             "has_data",
-            ( bool ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::has_data )
+            ( bool ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::has_data ),
+            get_docstring("bool ::genesis::tree::TreeNode::has_data () const")
         )
         .def(
             "index",
-            ( size_t ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::index )
-        )
-        .def(
-            "is_inner",
-            ( bool ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::is_inner )
-        )
-        .def(
-            "is_leaf",
-            ( bool ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::is_leaf )
-        )
-        .def(
-            "is_root",
-            ( bool ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::is_root )
+            ( size_t ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::index ),
+            get_docstring("size_t ::genesis::tree::TreeNode::index () const")
         )
         .def(
             "link",
-            ( TreeLink & ( ::genesis::tree::TreeNode::* )(  ))( &::genesis::tree::TreeNode::link )
+            ( TreeLink & ( ::genesis::tree::TreeNode::* )(  ))( &::genesis::tree::TreeNode::link ),
+            get_docstring("TreeLink & ::genesis::tree::TreeNode::link ()")
         )
         .def(
             "link",
-            ( TreeLink const & ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::link )
+            ( TreeLink const & ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::link ),
+            get_docstring("TreeLink const & ::genesis::tree::TreeNode::link () const")
         )
         .def(
             "primary_link",
-            ( TreeLink & ( ::genesis::tree::TreeNode::* )(  ))( &::genesis::tree::TreeNode::primary_link )
+            ( TreeLink & ( ::genesis::tree::TreeNode::* )(  ))( &::genesis::tree::TreeNode::primary_link ),
+            get_docstring("TreeLink & ::genesis::tree::TreeNode::primary_link ()")
         )
         .def(
             "primary_link",
-            ( TreeLink const & ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::primary_link )
-        )
-        .def(
-            "rank",
-            ( size_t ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::rank )
+            ( TreeLink const & ( ::genesis::tree::TreeNode::* )(  ) const )( &::genesis::tree::TreeNode::primary_link ),
+            get_docstring("TreeLink const & ::genesis::tree::TreeNode::primary_link () const")
         )
         // .def(
         //     "reset_data",
         //     ( TreeNode & ( ::genesis::tree::TreeNode::* )( std::unique_ptr< BaseNodeData > ))( &::genesis::tree::TreeNode::reset_data ),
-        //     pybind11::arg("data")
+        //     pybind11::arg("data"),
+        //     get_docstring("TreeNode & ::genesis::tree::TreeNode::reset_data (std::unique_ptr< BaseNodeData > data)")
         // )
         .def(
             "reset_index",
             ( TreeNode & ( ::genesis::tree::TreeNode::* )( size_t ))( &::genesis::tree::TreeNode::reset_index ),
-            pybind11::arg("val")
+            pybind11::arg("val"),
+            get_docstring("TreeNode & ::genesis::tree::TreeNode::reset_index (size_t val)")
         )
         .def(
             "reset_primary_link",
             ( TreeNode & ( ::genesis::tree::TreeNode::* )( TreeLink * ))( &::genesis::tree::TreeNode::reset_primary_link ),
-            pybind11::arg("val")
+            pybind11::arg("val"),
+            get_docstring("TreeNode & ::genesis::tree::TreeNode::reset_primary_link (TreeLink * val)")
+        )
+
+        // Operators
+
+        .def(
+            "__str__",
+            []( ::genesis::tree::TreeNode const& obj ) -> std::string {
+                std::ostringstream s;
+                s << obj;
+                return s.str();
+            }
         )
     ;
 }

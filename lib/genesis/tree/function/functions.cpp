@@ -33,7 +33,9 @@
 #include "genesis/tree/function/distances.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/iterator/eulertour.hpp"
+#include "genesis/tree/iterator/preorder.hpp"
 #include "genesis/tree/tree.hpp"
+#include "genesis/tree/tree/subtree.hpp"
 
 #include "genesis/utils/containers/matrix/operators.hpp"
 
@@ -59,9 +61,9 @@ bool is_leaf( TreeLink const& link )
     return &( link.next() ) == &link;
 }
 
-bool is_inner( TreeLink const& link )
+bool is_leaf( TreeNode const& node )
 {
-    return &( link.next() ) != &link;
+    return is_leaf( node.link() );
 }
 
 bool is_leaf( TreeEdge const& edge )
@@ -69,9 +71,33 @@ bool is_leaf( TreeEdge const& edge )
     return is_leaf( edge.secondary_link() );
 }
 
+bool is_inner( TreeLink const& link )
+{
+    return &( link.next() ) != &link;
+}
+
+bool is_inner( TreeNode const& node )
+{
+    return is_inner( node.link() );
+}
+
 bool is_inner( TreeEdge const& edge )
 {
     return is_inner( edge.secondary_link() );
+}
+
+bool is_root( TreeNode const& node )
+{
+    // The link_ is always the one pointing towards the root. Also, the edge of that link always has
+    // the primary link set to that it points towards the root.
+    // At the root itself, however, this means we are pointing to ourselves. Use this to check
+    // if this node is the root.
+    return &( node.link().edge().primary_link() ) == &( node.link() );
+}
+
+size_t degree( TreeLink const& link )
+{
+    return degree( link.node() );
 }
 
 size_t degree( TreeNode const& node )
@@ -87,25 +113,6 @@ size_t degree( TreeNode const& node )
     return dgr;
 }
 
-bool is_leaf( TreeNode const& node )
-{
-    return is_leaf( node.link() );
-}
-
-bool is_inner( TreeNode const& node )
-{
-    return is_inner( node.link() );
-}
-
-bool is_root( TreeNode const& node )
-{
-    // The link_ is always the one pointing towards the root. Also, the edge of that link always has
-    // the primary link set to that it points towards the root.
-    // At the root itself, however, this means we are pointing to ourselves. Use this to check
-    // if this node is the root.
-    return &( node.link().edge().primary_link() ) == &( node.link() );
-}
-
 // =================================================================================================
 //     Node Count Properties
 // =================================================================================================
@@ -119,20 +126,33 @@ size_t max_degree( Tree const& tree )
     return max;
 }
 
-bool is_bifurcating( Tree const& tree, bool strict )
+bool is_bifurcating( Tree const& tree, bool loose )
 {
-    if( strict ) {
-        // Only allow tips and bifurcating inner nodes.
-        for( size_t i = 0; i < tree.node_count(); ++i ) {
-            if( degree( tree.node_at(i) ) != 1 && degree( tree.node_at(i) ) != 3 ) {
+    // Iterate all nodes and verify their degree.
+    for( size_t i = 0; i < tree.node_count(); ++i ) {
+        auto const deg = degree( tree.node_at(i) );
+
+        // Any degree > 3 is multifurcating.
+        if( deg > 3 ) {
+            return false;
+        }
+
+        // A degree of 2 is okay of we are loose, and always okay for the root.
+        if( deg == 2 ) {
+            auto const isroot = ( tree.node_at(i).index() == tree.root_node().index() );
+            assert( isroot == is_root( tree.node_at(i) ));
+
+            if( ! isroot && ! loose ) {
                 return false;
             }
         }
-        return true;
     }
+    return true;
+}
 
-    // Non strict variant.
-    return max_degree( tree ) == 3;
+bool is_binary( Tree const& tree, bool loose )
+{
+    return is_bifurcating( tree, loose );
 }
 
 bool is_rooted( Tree const& tree )
@@ -166,7 +186,7 @@ size_t leaf_edge_count(  Tree const& tree )
 {
     size_t sum = 0;
     for( auto const& edge : tree.edges() ) {
-        if( is_leaf( edge->primary_node() ) || is_leaf( edge->secondary_node() ) ) {
+        if( is_leaf( edge.primary_node() ) || is_leaf( edge.secondary_node() ) ) {
             ++sum;
         }
     }
@@ -177,7 +197,7 @@ size_t inner_edge_count( Tree const& tree )
 {
     size_t sum = 0;
     for( auto const& edge : tree.edges() ) {
-        if( is_inner( edge->primary_node() ) && is_inner( edge->secondary_node() ) ) {
+        if( is_inner( edge.primary_node() ) && is_inner( edge.secondary_node() ) ) {
             ++sum;
         }
     }
@@ -192,9 +212,9 @@ size_t edge_count( Tree const& tree )
 std::vector<size_t> inner_edge_indices( Tree const& tree )
 {
     std::vector<size_t> result;
-    for( auto const& edge_it : tree.edges() ) {
-        if( is_inner( edge_it->secondary_node() ) ) {
-            result.push_back( edge_it->index() );
+    for( auto const& edge : tree.edges() ) {
+        if( is_inner( edge.secondary_node() ) ) {
+            result.push_back( edge.index() );
         }
     }
     return result;
@@ -203,9 +223,9 @@ std::vector<size_t> inner_edge_indices( Tree const& tree )
 std::vector<size_t> leaf_edge_indices( Tree const& tree )
 {
     std::vector<size_t> result;
-    for( auto const& edge_it : tree.edges() ) {
-        if( is_leaf( edge_it->secondary_node() ) ) {
-            result.push_back( edge_it->index() );
+    for( auto const& edge : tree.edges() ) {
+        if( is_leaf( edge.secondary_node() ) ) {
+            result.push_back( edge.index() );
         }
     }
     return result;
@@ -214,9 +234,9 @@ std::vector<size_t> leaf_edge_indices( Tree const& tree )
 std::vector<size_t> inner_node_indices( Tree const& tree )
 {
     std::vector<size_t> result;
-    for( auto const& node_it : tree.nodes() ) {
-        if( is_inner( *node_it )) {
-            result.push_back( node_it->index() );
+    for( auto const& node : tree.nodes() ) {
+        if( is_inner( node )) {
+            result.push_back( node.index() );
         }
     }
     return result;
@@ -225,9 +245,9 @@ std::vector<size_t> inner_node_indices( Tree const& tree )
 std::vector<size_t> leaf_node_indices( Tree const& tree )
 {
     std::vector<size_t> result;
-    for( auto const& node_it : tree.nodes() ) {
-        if( is_leaf( *node_it )) {
-            result.push_back( node_it->index() );
+    for( auto const& node : tree.nodes() ) {
+        if( is_leaf( node )) {
+            result.push_back( node.index() );
         }
     }
     return result;
@@ -475,6 +495,77 @@ std::vector<size_t> subtree_max_path_heights( Tree const& tree, TreeNode const& 
 std::vector<size_t> subtree_max_path_heights( Tree const& tree )
 {
     return subtree_max_path_heights( tree, tree.root_node() );
+}
+
+utils::Matrix<signed char> sign_matrix( Tree const& tree, bool compressed )
+{
+    // Edge cases and input checks.
+    if( tree.empty() ) {
+        return utils::Matrix<signed char>();
+    }
+    if( ! is_rooted( tree )) {
+        throw std::invalid_argument( "Tree is not rooted. Cannot calculate its sign matrix." );
+    }
+    if( ! is_bifurcating( tree )) {
+        throw std::invalid_argument( "Tree is not bifurcating. Cannot calculate its sign matrix." );
+    }
+
+    // Prepare a result matrix of the full size. For the compressed version,
+    // we later replate it again.
+    auto result = utils::Matrix<signed char>( tree.node_count(), tree.node_count(), 0 );
+
+    // Helper function that fills all columns of a subtree with a given sign.
+    auto fill_subtree_indices = [&]( size_t row_idx, Subtree const& st, signed char sign ){
+        for( auto const& it : preorder(st) ) {
+            result( row_idx, it.node().index() ) = sign;
+        }
+    };
+
+    // Fill every row of the matrix.
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.node_count(); ++i ) {
+        auto const& row_node = tree.node_at(i);
+        auto const  row_idx  = row_node.index();
+
+        if( row_idx == tree.root_node().index() ) {
+
+            // The root node is special: we use its two subtrees directly.
+            assert( &row_node.link().next().next() == &row_node.link() );
+            fill_subtree_indices( row_idx, Subtree{ row_node.link().outer() },        +1 );
+            fill_subtree_indices( row_idx, Subtree{ row_node.link().next().outer() }, -1 );
+
+        } else if( is_inner( row_node )) {
+
+            // All other inner nodes are filled using their subtrees.
+            assert( &row_node.link().next().next().next() == &row_node.link() );
+            fill_subtree_indices( row_idx, Subtree{ row_node.link().next().outer() },        +1 );
+            fill_subtree_indices( row_idx, Subtree{ row_node.link().next().next().outer() }, -1 );
+        }
+    }
+
+    // For the compressed version, we re-use the previous result matrix,
+    // and simply fill a new one with the needed rows and columns.
+    // The data is not too big, and this is way easier and cleaner to implement.
+    if( compressed ) {
+        // Create a matrix with rows for each inner node and columns for each tip node.
+        auto const in_node_idcs = inner_node_indices( tree );
+        auto const lf_node_idcs = leaf_node_indices( tree );
+        auto result_cmpr = utils::Matrix<signed char>( in_node_idcs.size(), lf_node_idcs.size(), 0 );
+
+        // Fill the matrix at the indices that belong to inner nodes (for rows) and
+        // leaf nodes (for columns).
+        for( size_t r = 0; r < in_node_idcs.size(); ++r ) {
+            for( size_t c = 0; c < lf_node_idcs.size(); ++c ) {
+                result_cmpr( r, c ) = result( in_node_idcs[r], lf_node_idcs[c] );
+            }
+        }
+
+        // Replace the result matrix efficiently.
+        using std::swap;
+        swap( result, result_cmpr );
+    }
+
+    return result;
 }
 
 // =================================================================================================

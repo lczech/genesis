@@ -65,8 +65,7 @@ std::vector<utils::Color> edge_color_branch_length_gradient( Tree const& tree, b
     }
 
     // Find min and max branch lengths.
-    for (auto it = tree.begin_edges(); it != tree.end_edges(); ++it) {
-        auto const& edge = **it;
+    for( auto const& edge : tree.edges() ) {
         min_bl = std::min(min_bl, edge.data<CommonEdgeData>().branch_length);
         max_bl = std::max(max_bl, edge.data<CommonEdgeData>().branch_length);
     }
@@ -79,10 +78,9 @@ std::vector<utils::Color> edge_color_branch_length_gradient( Tree const& tree, b
     }
 
     // Calculate the heat gradient color based on the branch length for each edge.
-    for (auto it = tree.begin_edges(); it != tree.end_edges(); ++it) {
-        auto const& edge = **it;
+    for( auto const& edge : tree.edges() ) {
         double val = ( edge.data<CommonEdgeData>().branch_length - min_bl) / dist;
-        ret[edge.index()] = utils::heat_gradient(val);
+        ret[ edge.index() ] = utils::heat_gradient(val);
     }
     return ret;
 }

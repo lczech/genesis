@@ -9,107 +9,131 @@
 
 #include "genesis/genesis.hpp"
 
-template <typename T>
-void PythonExportClass_::genesis::utils::Matrix(std::string name)
+using namespace ::genesis::utils;
+
+template<typename T, typename A, typename B>
+void python_export_function_utils_math_matrix_T_A_B ()
 {
+    scope.def(
+        "matrix_addition",
+        ( Matrix< T > ( * )( Matrix< A > const &, Matrix< B > const & ))( &::genesis::utils::matrix_addition ),
+            pybind11::arg("a"),
+            pybind11::arg("b"),
+        get_docstring("Matrix< T > ::genesis::utils::matrix_addition (Matrix< A > const & a, Matrix< B > const & b)")
+    );
 
-    // -------------------------------------------------------------------
-    //     Class Matrix
-    // -------------------------------------------------------------------
+    scope.def(
+        "matrix_addition",
+        ( Matrix< T > ( * )( Matrix< A > const &, B const & ))( &::genesis::utils::matrix_addition ),
+            pybind11::arg("matrix"),
+            pybind11::arg("scalar"),
+        get_docstring("Matrix< T > ::genesis::utils::matrix_addition (Matrix< A > const & matrix, B const & scalar)")
+    );
 
-    using namespace ::genesis::utils;
+    scope.def(
+        "matrix_multiplication",
+        ( Matrix< T > ( * )( Matrix< A > const &, Matrix< B > const & ))( &::genesis::utils::matrix_multiplication ),
+            pybind11::arg("a"),
+            pybind11::arg("b"),
+        get_docstring("Matrix< T > ::genesis::utils::matrix_multiplication (Matrix< A > const & a, Matrix< B > const & b)")
+    );
 
-    using MatrixType = Matrix<typename T>;
+    scope.def(
+        "matrix_multiplication",
+        ( Matrix< T > ( * )( Matrix< A > const &, B const & ))( &::genesis::utils::matrix_multiplication ),
+            pybind11::arg("matrix"),
+            pybind11::arg("scalar"),
+        get_docstring("Matrix< T > ::genesis::utils::matrix_multiplication (Matrix< A > const & matrix, B const & scalar)")
+    );
 
-    pybind11::class_< MatrixType, std::shared_ptr<MatrixType> > ( scope, name.c_str() )
-        .def(
-            pybind11::init<  >()
-        )
-        .def(
-            pybind11::init< size_t, size_t >(),
-            pybind11::arg("rows"),
-            pybind11::arg("cols")
-        )
-        .def(
-            pybind11::init< size_t, size_t, T >(),
-            pybind11::arg("rows"),
-            pybind11::arg("cols"),
-            pybind11::arg("init")
-        )
-        .def(
-            pybind11::init< size_t, size_t, std::initializer_list< T > const & >(),
-            pybind11::arg("rows"),
-            pybind11::arg("cols"),
-            pybind11::arg("init_list")
-        )
-        .def(
-            pybind11::init< Matrix const & >(),
-            pybind11::arg("arg")
-        )
+    scope.def(
+        "matrix_subtraction",
+        ( Matrix< T > ( * )( Matrix< A > const &, Matrix< B > const & ))( &::genesis::utils::matrix_subtraction ),
+            pybind11::arg("a"),
+            pybind11::arg("b"),
+        get_docstring("Matrix< T > ::genesis::utils::matrix_subtraction (Matrix< A > const & a, Matrix< B > const & b)")
+    );
 
-        // Public Member Functions
+    scope.def(
+        "matrix_multiplication",
+        ( std::vector< T > ( * )( Matrix< A > const &, std::vector< B > const & ))( &::genesis::utils::matrix_multiplication ),
+            pybind11::arg("a"),
+            pybind11::arg("b"),
+        get_docstring("std::vector< T > ::genesis::utils::matrix_multiplication (Matrix< A > const & a, std::vector< B > const & b)")
+    );
 
-        .def(
-            "at",
-            ( T & ( MatrixType::* )( const size_t, const size_t ))( &MatrixType::at ),
-            pybind11::arg("row"),
-            pybind11::arg("col")
-        )
-        .def(
-            "at",
-            ( const T ( MatrixType::* )( const size_t, const size_t ) const )( &MatrixType::at ),
-            pybind11::arg("row"),
-            pybind11::arg("col")
-        )
-        .def(
-            "cbegin",
-            ( const_iterator ( MatrixType::* )(  ) const )( &MatrixType::cbegin )
-        )
-        .def(
-            "cend",
-            ( const_iterator ( MatrixType::* )(  ) const )( &MatrixType::cend )
-        )
-        .def(
-            "col",
-            ( std::vector< T > ( MatrixType::* )( size_t ) const )( &MatrixType::col ),
-            pybind11::arg("index")
-        )
-        .def(
-            "cols",
-            ( size_t ( MatrixType::* )(  ) const )( &MatrixType::cols )
-        )
-        .def(
-            "row",
-            ( std::vector< T > ( MatrixType::* )( size_t ) const )( &MatrixType::row ),
-            pybind11::arg("index")
-        )
-        .def(
-            "rows",
-            ( size_t ( MatrixType::* )(  ) const )( &MatrixType::rows )
-        )
-        .def(
-            "size",
-            ( size_t ( MatrixType::* )(  ) const )( &MatrixType::size )
-        )
-        .def(
-            "swap",
-            ( void ( MatrixType::* )( Matrix & ))( &MatrixType::swap ),
-            pybind11::arg("other")
-        )
+    scope.def(
+        "matrix_multiplication",
+        ( std::vector< T > ( * )( std::vector< A > const &, Matrix< B > const & ))( &::genesis::utils::matrix_multiplication ),
+            pybind11::arg("a"),
+            pybind11::arg("b"),
+        get_docstring("std::vector< T > ::genesis::utils::matrix_multiplication (std::vector< A > const & a, Matrix< B > const & b)")
+    );
+}
 
-        // Operators
+template<typename T>
+void python_export_function_utils_math_matrix_T ()
+{
+    scope.def(
+        "matrix_sort_by_col_sum_symmetric",
+        ( Matrix< T > ( * )( Matrix< T > const & ))( &::genesis::utils::matrix_sort_by_col_sum_symmetric ),
+            pybind11::arg("data"),
+        get_docstring("Matrix< T > ::genesis::utils::matrix_sort_by_col_sum_symmetric (Matrix< T > const & data)")
+    );
 
-        .def( pybind11::self != pybind11::self )
-        .def( pybind11::self == pybind11::self )
+    scope.def(
+        "matrix_sort_by_row_sum_symmetric",
+        ( Matrix< T > ( * )( Matrix< T > const & ))( &::genesis::utils::matrix_sort_by_row_sum_symmetric ),
+            pybind11::arg("data"),
+        get_docstring("Matrix< T > ::genesis::utils::matrix_sort_by_row_sum_symmetric (Matrix< T > const & data)")
+    );
 
-        // Iterators
+    scope.def(
+        "matrix_sort_diagonal_symmetric",
+        ( Matrix< T > ( * )( Matrix< T > const & ))( &::genesis::utils::matrix_sort_diagonal_symmetric ),
+            pybind11::arg("data"),
+        get_docstring("Matrix< T > ::genesis::utils::matrix_sort_diagonal_symmetric (Matrix< T > const & data)")
+    );
 
-        .def(
-            "__iter__",
-            []( ::genesis::utils::Matrix& obj ){
-                return pybind11::make_iterator( obj.begin(), obj.end() );
-            },
-            pybind11::keep_alive<0, 1>()
-        )
-    ;
+    scope.def(
+        "matrix_minmax",
+        ( MinMaxPair< T > ( * )( Matrix< T > const & ))( &::genesis::utils::matrix_minmax ),
+            pybind11::arg("data"),
+        get_docstring("MinMaxPair< T > ::genesis::utils::matrix_minmax (Matrix< T > const & data)")
+    );
+
+    scope.def(
+        "matrix_sum",
+        ( T ( * )( Matrix< T > const & ))( &::genesis::utils::matrix_sum ),
+            pybind11::arg("data"),
+        get_docstring("T ::genesis::utils::matrix_sum (Matrix< T > const & data)")
+    );
+
+    scope.def(
+        "matrix_col_minmax",
+        ( std::vector< MinMaxPair< T > > ( * )( Matrix< T > const & ))( &::genesis::utils::matrix_col_minmax ),
+            pybind11::arg("data"),
+        get_docstring("std::vector< MinMaxPair< T > > ::genesis::utils::matrix_col_minmax (Matrix< T > const & data)")
+    );
+
+    scope.def(
+        "matrix_row_minmax",
+        ( std::vector< MinMaxPair< T > > ( * )( Matrix< T > const & ))( &::genesis::utils::matrix_row_minmax ),
+            pybind11::arg("data"),
+        get_docstring("std::vector< MinMaxPair< T > > ::genesis::utils::matrix_row_minmax (Matrix< T > const & data)")
+    );
+
+    scope.def(
+        "matrix_col_sums",
+        ( std::vector< T > ( * )( Matrix< T > const & ))( &::genesis::utils::matrix_col_sums ),
+            pybind11::arg("data"),
+        get_docstring("std::vector< T > ::genesis::utils::matrix_col_sums (Matrix< T > const & data)")
+    );
+
+    scope.def(
+        "matrix_row_sums",
+        ( std::vector< T > ( * )( Matrix< T > const & ))( &::genesis::utils::matrix_row_sums ),
+            pybind11::arg("data"),
+        get_docstring("std::vector< T > ::genesis::utils::matrix_row_sums (Matrix< T > const & data)")
+    );
 }

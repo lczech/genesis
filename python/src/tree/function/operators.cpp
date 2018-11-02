@@ -99,4 +99,35 @@ PYTHON_EXPORT_FUNCTIONS( tree_function_operators_export, ::genesis::tree, scope 
         ( bool ( * )( Tree const & ))( &::genesis::tree::validate_topology ),
             pybind11::arg("tree")
     );
+
+    scope.def(
+        "print_gist",
+        ( std::string ( * )( Tree const &, int ))( &::genesis::tree::print_gist ),
+            pybind11::arg("tree"),
+            pybind11::arg("items")=(int)(10)
+    );
+
+    scope.def(
+        "print_info",
+        ( std::string ( * )( Tree const & ))( &::genesis::tree::print_info ),
+            pybind11::arg("tree")
+    );
+
+    scope.def(
+        "print_info",
+        ( std::string ( * )( TreeEdge const & ))( &::genesis::tree::print_info ),
+            pybind11::arg("edge")
+    );
+
+    scope.def(
+        "print_info",
+        ( std::string ( * )( TreeLink const & ))( &::genesis::tree::print_info ),
+            pybind11::arg("link")
+    );
+
+    scope.def(
+        "print_info",
+        ( std::string ( * )( TreeNode const & ))( &::genesis::tree::print_info ),
+            pybind11::arg("node")
+    );
 }

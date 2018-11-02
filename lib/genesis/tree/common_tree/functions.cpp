@@ -39,6 +39,8 @@
 #include "genesis/tree/tree_set.hpp"
 #include "genesis/utils/text/string.hpp"
 
+#include <algorithm>
+
 namespace genesis {
 namespace tree {
 
@@ -46,70 +48,36 @@ namespace tree {
 //     Node Names
 // =================================================================================================
 
-std::unordered_set<std::string> node_names(
+std::vector<std::string> node_names(
     Tree const& tree,
     bool leaves_only
 ) {
-    std::unordered_set<std::string> name_set;
+    std::vector<std::string> names;
     for( auto const& node : tree.nodes() ) {
-        if( is_inner( *node ) && leaves_only ) {
+        if( is_inner( node ) && leaves_only ) {
             continue;
         }
-        auto const name = node->data<CommonNodeData>().name;
+        auto const name = node.data<CommonNodeData>().name;
         if( name == "" ) {
             continue;
         }
-        name_set.insert( std::move( name ));
+        names.push_back( std::move( name ));
     }
-    return name_set;
+    return names;
 }
 
-utils::SortedVector<std::string> node_names_sorted(
-    Tree const& tree,
-    bool leaves_only
-) {
-    utils::SortedVector<std::string> name_set;
-    for( auto const& node : tree.nodes() ) {
-        if( is_inner( *node ) && leaves_only ) {
-            continue;
-        }
-        auto const name = node->data<CommonNodeData>().name;
-        if( name == "" ) {
-            continue;
-        }
-        name_set.insert( std::move( name ));
-    }
-    return name_set;
-}
-
-std::unordered_set<std::string> node_names(
+std::vector<std::string> node_names(
     TreeSet const& tree_set,
     bool leaves_only
 ) {
     // It would be faster to directly insert into the resulting container, but this version
     // avoids code duplication and is fast enough for now.
-    std::unordered_set<std::string> name_set;
+    std::vector<std::string> names;
     for( auto const& tree : tree_set ) {
-        auto tree_name_set = node_names( tree.tree, leaves_only );
-        name_set.insert( tree_name_set.begin(), tree_name_set.end() );
+        auto tree_name_set = node_names( tree, leaves_only );
+        names.insert( names.end(), tree_name_set.begin(), tree_name_set.end() );
     }
-    return name_set;
-}
-
-utils::SortedVector<std::string> node_names_sorted(
-    TreeSet const& tree_set,
-    bool leaves_only
-) {
-    // It would be faster to directly insert into the resulting container, but this version
-    // avoids code duplication and is fast enough for now.
-    utils::SortedVector<std::string> name_set;
-    for( auto const& tree : tree_set ) {
-        // We can use the unsorted version here, which should be a bit faster (not tested...).
-        // Sorting is then done when inserting the names into the final set.
-        auto tree_name_set = node_names( tree.tree, leaves_only );
-        name_set.insert( tree_name_set.begin(), tree_name_set.end() );
-    }
-    return name_set;
+    return names;
 }
 
 TreeNode const* find_node(
@@ -122,9 +90,9 @@ TreeNode const* find_node(
         clean_name = utils::replace_all(name, "_", " ");
     }
 
-    for (auto it = tree.begin_nodes(); it != tree.end_nodes(); ++it) {
-        if( it->get()->data<CommonNodeData>().name == clean_name) {
-            return it->get();
+    for( auto const& node : tree.nodes() ) {
+        if( node.data<CommonNodeData>().name == clean_name) {
+            return &node;
         }
     }
 
@@ -151,7 +119,7 @@ double length(Tree const& tree)
 {
     double len = 0.0;
     for( auto const& edge : tree.edges() ) {
-        len += edge->data<CommonEdgeData>().branch_length;
+        len += edge.data<CommonEdgeData>().branch_length;
     }
     return len;
 }
@@ -184,7 +152,7 @@ void set_all_branch_lengths(
     double length
 ) {
     for( auto& edge : tree.edges() ) {
-        edge->data<CommonEdgeData>().branch_length = length;
+        edge.data<CommonEdgeData>().branch_length = length;
     }
 }
 
@@ -193,7 +161,7 @@ void scale_all_branch_lengths(
     double factor
 ) {
     for( auto& edge : tree.edges() ) {
-        edge->data<CommonEdgeData>().branch_length *= factor;
+        edge.data<CommonEdgeData>().branch_length *= factor;
     }
 }
 
@@ -205,12 +173,12 @@ Tree average_branch_length_tree( TreeSet const& tset )
         return TreeType();
     }
 
-    if( ! all_identical_topology( tset )) {
+    if( ! identical_topology( tset )) {
         throw std::runtime_error( "Trees in TreeSet do not have the same topology." );
     }
 
     // Prepare storage for average branch lengths.
-    size_t num_edges = tset.at(0).tree.edge_count();
+    size_t num_edges = tset.at(0).edge_count();
     auto avgs = std::vector<double>(num_edges, 0.0);
 
     // We traverse all trees (again, because all_identical_topology() already did this). This is
@@ -223,7 +191,7 @@ Tree average_branch_length_tree( TreeSet const& tset )
         size_t idx = 0;
 
         // Do a preorder traversal and collect branch lengths.
-        for( auto it : preorder(ct.tree) ) {
+        for( auto it : preorder(ct) ) {
             // The first iteration points to an edge which will be covered later again.
             // Skip it to prevent double coverage.
             if (it.is_first_iteration()) {
@@ -237,7 +205,7 @@ Tree average_branch_length_tree( TreeSet const& tset )
 
     // We know that all trees have the same topology. So we take a copy of the first one
     // (thus, also copying its node names) and modify its branch lengths.
-    TreeType tree = TreeType( tset.at(0).tree );
+    TreeType tree = TreeType( tset.at(0) );
 
     // Do the same kind of traversal as before in order to keep the indexing order (preorder) and
     // set the branch lengths.

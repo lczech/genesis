@@ -23,8 +23,10 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::RectangularLayout, scope )
             pybind11::init<  >()
         )
         .def(
-            pybind11::init< Tree const & >(),
-            pybind11::arg("tree")
+            pybind11::init< Tree const &, LayoutType const, bool >(),
+            pybind11::arg("orig_tree"),
+            pybind11::arg("drawing_type"),
+            pybind11::arg("ladderize")=(bool)(true)
         )
         .def(
             pybind11::init< RectangularLayout const & >(),
@@ -34,17 +36,22 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::RectangularLayout, scope )
         // Public Member Functions
 
         .def(
-            "set_edge_strokes",
-            ( void ( ::genesis::tree::RectangularLayout::* )( std::vector< utils::SvgStroke > ))( &::genesis::tree::RectangularLayout::set_edge_strokes ),
-            pybind11::arg("strokes")
+            "height",
+            ( RectangularLayout & ( ::genesis::tree::RectangularLayout::* )( double const ))( &::genesis::tree::RectangularLayout::height ),
+            pybind11::arg("value")
         )
         .def(
-            "to_svg_document",
-            ( utils::SvgDocument ( ::genesis::tree::RectangularLayout::* )(  ) const )( &::genesis::tree::RectangularLayout::to_svg_document )
+            "height",
+            ( double ( ::genesis::tree::RectangularLayout::* )(  ) const )( &::genesis::tree::RectangularLayout::height )
         )
         .def(
-            "tree",
-            ( Tree & ( ::genesis::tree::RectangularLayout::* )(  ))( &::genesis::tree::RectangularLayout::tree )
+            "width",
+            ( RectangularLayout & ( ::genesis::tree::RectangularLayout::* )( double const ))( &::genesis::tree::RectangularLayout::width ),
+            pybind11::arg("value")
+        )
+        .def(
+            "width",
+            ( double ( ::genesis::tree::RectangularLayout::* )(  ) const )( &::genesis::tree::RectangularLayout::width )
         )
     ;
 }

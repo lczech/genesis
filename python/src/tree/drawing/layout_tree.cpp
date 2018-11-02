@@ -27,6 +27,11 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::LayoutNodeData, scope )
             ( std::unique_ptr< BaseNodeData > ( ::genesis::tree::LayoutNodeData::* )(  ) const )( &::genesis::tree::LayoutNodeData::clone ),
             get_docstring("std::unique_ptr< BaseNodeData > ::genesis::tree::LayoutNodeData::clone () const")
         )
+        .def(
+            "recreate",
+            ( std::unique_ptr< BaseNodeData > ( ::genesis::tree::LayoutNodeData::* )(  ) const )( &::genesis::tree::LayoutNodeData::recreate ),
+            get_docstring("std::unique_ptr< BaseNodeData > ::genesis::tree::LayoutNodeData::recreate () const")
+        )
         .def_static(
             "create",
             ( std::unique_ptr< LayoutNodeData > ( * )(  ))( &::genesis::tree::LayoutNodeData::create )
@@ -49,6 +54,11 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::LayoutEdgeData, scope )
             "clone",
             ( std::unique_ptr< BaseEdgeData > ( ::genesis::tree::LayoutEdgeData::* )(  ) const )( &::genesis::tree::LayoutEdgeData::clone ),
             get_docstring("std::unique_ptr< BaseEdgeData > ::genesis::tree::LayoutEdgeData::clone () const")
+        )
+        .def(
+            "recreate",
+            ( std::unique_ptr< BaseEdgeData > ( ::genesis::tree::LayoutEdgeData::* )(  ) const )( &::genesis::tree::LayoutEdgeData::recreate ),
+            get_docstring("std::unique_ptr< BaseEdgeData > ::genesis::tree::LayoutEdgeData::recreate () const")
         )
         .def_static(
             "create",

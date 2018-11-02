@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,12 +31,13 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/formats/nexus/block.hpp"
 
+#include <algorithm>
 #include <ostream>
 #include <stdexcept>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 namespace genesis {
@@ -66,7 +67,7 @@ class NexusTaxa : public NexusBlock
 
 public:
 
-    using container      = std::unordered_set<std::string>;
+    using container      = std::vector<std::string>;
     using const_iterator = container::const_iterator;
 
     // -----------------------------------------------------
@@ -122,9 +123,9 @@ public:
         return taxa_.size();
     }
 
-    bool has_taxon( std::string name ) const
+    bool has_taxon( std::string const& name ) const
     {
-        return taxa_.count(name);
+        return utils::contains( taxa_, name );
     }
 
     // -----------------------------------------------------
@@ -149,19 +150,20 @@ public:
 
 public:
 
-    void add_taxon( std::string name )
+    void add_taxon( std::string const& name )
     {
-        taxa_.insert( name );
+        insert_sorted( taxa_, name );
     }
 
-    void add_taxa( std::unordered_set<std::string> taxa )
+    void add_taxa( std::vector<std::string> const& taxa )
     {
-        taxa_.insert( taxa.begin(), taxa.end() );
-    }
+        // for( auto const& taxon : taxa ) {
+        //     add_taxon( taxon );
+        // }
 
-    void erase_taxon( std::string name )
-    {
-        taxa_.erase( name );
+        // Faster: Don't move on every insertion, and only do the sorting once.
+        taxa_.insert( taxa_.end(), taxa.begin(), taxa.end() );
+        std::sort( taxa_.begin(), taxa_.end() );
     }
 
     void clear()

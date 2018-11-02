@@ -110,7 +110,7 @@ utils::Matrix<double> earth_movers_distance(
     bool const       with_pendant_length
 ) {
     // Get mass tress and the pendant work that was needed to create them.
-    auto const mass_trees = convert_sample_set_to_mass_trees( sample_set );
+    auto const mass_trees = convert_sample_set_to_mass_trees( sample_set, true );
 
     // Calculate the pairwise distance matrix.
     auto result = tree::earth_movers_distance( mass_trees.first, p );

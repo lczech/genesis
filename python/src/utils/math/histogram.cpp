@@ -113,15 +113,15 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::Histogram, scope )
             ( void ( ::genesis::utils::Histogram::* )( size_t ))( &::genesis::utils::Histogram::increment_bin ),
             pybind11::arg("bin")
         )
-        // .def(
-        //     "out_of_range_behaviour",
-        //     ( OutOfRangeBehaviour ( ::genesis::utils::Histogram::* )(  ) const )( &::genesis::utils::Histogram::out_of_range_behaviour )
-        // )
-        // .def(
-        //     "out_of_range_behaviour",
-        //     ( void ( ::genesis::utils::Histogram::* )( OutOfRangeBehaviour ))( &::genesis::utils::Histogram::out_of_range_behaviour ),
-        //     pybind11::arg("v")
-        // )
+        .def(
+            "out_of_range_behaviour",
+            ( ::genesis::utils::Histogram::OutOfRangeBehaviour ( ::genesis::utils::Histogram::* )(  ) const )( &::genesis::utils::Histogram::out_of_range_behaviour )
+        )
+        .def(
+            "out_of_range_behaviour",
+            ( void ( ::genesis::utils::Histogram::* )( ::genesis::utils::Histogram::OutOfRangeBehaviour ))( &::genesis::utils::Histogram::out_of_range_behaviour ),
+            pybind11::arg("v")
+        )
         .def(
             "range_max",
             ( double ( ::genesis::utils::Histogram::* )(  ) const )( &::genesis::utils::Histogram::range_max )
@@ -170,8 +170,9 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::Histogram, scope )
             "__iter__",
             []( ::genesis::utils::Histogram& obj ){
                 return pybind11::make_iterator( obj.begin(), obj.end() );
-            },
-            pybind11::keep_alive<0, 1>()
+            }
+            // ,
+            // py::keep_alive<0, 1>()
         )
     ;
 }
