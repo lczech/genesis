@@ -30,7 +30,8 @@
  * @file
  * @ingroup placement
  */
-#include "genesis/placement/placement_tree.hpp"
+
+#include "genesis/placement/sample.hpp"
 
 namespace genesis {
 namespace placement {
@@ -41,16 +42,26 @@ namespace placement {
 
 class Sample;
 
+// =================================================================================================
+//     Rooting
+// =================================================================================================
 
 /**
- * @brief Roots the underlying tree of a sample according to a specified outgroup.
+ * @brief Root the underlying PlacementTree of a Sample at a specified TreeEdge.
  *
- * Inserts a new root node at distance 0 to the trifurcation separating the outgroup from the remaining
- * tree.
- * Recalculates the edge ids and updates the placement data accordingly.
- * Also takes care of the possible change of distal/proximal length values.
+ * The function inserts a new root node on the given @p target_edge,
+ * which splits the edge into two edges. The edge closer to the (old) root of the tree gets a
+ * @link tree::CommonEdgeData::branch_length branch length@endlink of `0.0`, and receives no placements.
+ * The edge further away from the root gets the branch length and all placements of the @p target_edge.
+ * See tree::make_rooted() for further details.
+ *
+ * The function also recalculates the @link PlacementEdgeData::edge_num edge nums@endlink of all edges
+ * using reset_edge_nums(), and updates the placement data accordingly. This is because adding
+ * a node and an edge in the middle of the tree changes the traversal order, and hence the edge nums.
+ * It also takes care of changing the distal/proximal length values of the PqueryPlacement%s
+ * that sit in between the old (trifurcation) root and the new (proper) root.
  */
-void root(Sample& sample, PlacementTreeEdge& edge);
+void make_rooted( Sample& sample, PlacementTreeEdge& target_edge );
 
 } // namespace tree
 } // namespace placement

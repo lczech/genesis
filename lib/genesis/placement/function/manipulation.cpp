@@ -39,85 +39,96 @@
 #include "genesis/placement/pquery/placement.hpp"
 #include "genesis/placement/function/helper.hpp"
 
-#include "genesis/utils/core/algorithm.hpp"
-
-#include <cassert>
-#include <vector>
-#include <stdexcept>
 #include <algorithm>
+#include <cassert>
+#include <stdexcept>
+#include <unordered_set>
+#include <vector>
 
 namespace genesis {
 namespace placement {
 
-void root(Sample& sample, PlacementTreeEdge& edge)
+void make_rooted( Sample& sample, PlacementTreeEdge& target_edge )
 {
     auto& tree = sample.tree();
 
-    if (tree::is_rooted( tree )) {
-        throw std::invalid_argument{"This function is only valid for rooting unrooted trees."};
+    if( tree::is_rooted( tree )) {
+        throw std::invalid_argument{ "Cannot root a PlacementTree that is already rooted." };
+    }
+    if( not tree::belongs_to( tree, target_edge )) {
+        throw std::invalid_argument{ "The given edge does not belong to the tree." };
     }
 
-    if (not tree::belongs_to( tree, edge )) {
-        throw std::invalid_argument{"The given edge was not found in the tree."};
-    }
-
-    // get node_id of old root
+    // Get old root
     auto& old_root = tree.root_node();
-    // remember old branch length
-    auto original_branch_length = edge.data<PlacementEdgeData>().branch_length;
 
-    // add root to edge
-    add_root_node( tree, edge );
-    auto& new_edge = edge.primary_link().next().edge();
+    // Make rooted: add root to edge. Make sure that the new node points
+    auto& new_node = make_rooted( tree, target_edge );
+    auto& new_edge = target_edge.primary_link().next().edge();
+    assert( &new_node.primary_link() == &target_edge.primary_link() );
+    assert( degree( new_node ) == 2 );
+    (void) new_node;
 
-    /* this creates a new TreeNode, with the original `edge` being one of the two edges adjacent to the new node.
-     * the original edge will be the one that is more _towards_ the original root of the tree
-     * (see http://doc.genesis-lib.org/add_new_node_edge.png)
-     * Thus, as we generally want this new root to be more toward the interior of the tree,
-     * we scale the branch length accordingly.
-    */
-    // rescale adjacent branch lengths of newly created root node to 0% and 100%
-    edge.data<PlacementEdgeData>().branch_length = 0.0;
+    // This creates a new TreeNode, with the original `edge` being one of the two edges adjacent to the new node.
+    // the original edge will be the one that is more _towards_ the original root of the tree,
+    // see add_new_node( Tree&, TreeEdge&, ...)
+    // Thus, as we generally want this new root to be more toward the interior of the tree,
+    // we scale the branch length accordingly.
+
+    // Rescale adjacent branch lengths of newly created root node to 0% and 100%
+    auto const original_branch_length = target_edge.data<PlacementEdgeData>().branch_length;
+    target_edge.data<PlacementEdgeData>().branch_length = 0.0;
+    assert( new_edge.has_data() && new_edge.data<PlacementEdgeData>().branch_length == 0.0 );
     new_edge.data<PlacementEdgeData>().branch_length = original_branch_length;
 
-    /* Next, we need to identify the edges that had their direction to root changed
-     * as this is information used in the placements (`distal_length` or `proximal_length`).
-     * Once we know which they are, we can iterate over all placements and adjust those numbers
-     * for all placements associated with those edges.
-     */
-    // iterate over the path between old and new root
-    auto path = tree::path_to_root( old_root );
-    std::vector<PlacementTreeEdge*> edges_to_adjust;
-    // `path_to_root` also returns the root_link of the tree, but we can already get the
+    // Next, we need to identify the edges that had their direction to root changed,
+    // as this is information used in the placements (`distal_length` or `proximal_length`).
+    // Once we know which they are, we can iterate over all placements and adjust those numbers
+    // for all placements associated with those edges.
+
+    // Iterate over the path between old and new root.
+    // path_to_root() also returns the root_link of the tree, but we can already get the
     // relevant edge from the link before. So out with it
+    auto path = tree::path_to_root( old_root );
+    assert( ! path.empty() && is_root( *path.back() ));
     path.pop_back();
-    // get the set of edges
-    for ( auto link_ptr : path ) {
-        edges_to_adjust.push_back( const_cast<PlacementTreeEdge*>( &link_ptr->edge() ) );
+
+    // Get the set of edges towards the old root.
+    std::unordered_set<PlacementTreeEdge*> edges_to_adjust;
+    for( auto link_ptr : path ) {
+        edges_to_adjust.insert( const_cast<PlacementTreeEdge*>( &link_ptr->edge() ) );
     }
 
-    // look for relevant placements, adjust the distal length
-    for ( auto& pq : sample ) {
-        for ( auto& p : pq.placements() ) {
+    // Look for relevant placements, adjust the distal length
+    for( auto& pq : sample ) {
+        for( auto& p : pq.placements() ) {
             auto place_edge_ptr = &( p.edge() );
 
-            // if the placement points to the edge on which we rooted, change to new edge
-            if ( place_edge_ptr == &edge ) {
+            // If the placement points to the edge on which we rooted, change to new edge
+            if ( place_edge_ptr == &target_edge ) {
                 p.reset_edge( new_edge );
+
+                // The target edge is on the path. Check this, and change the current pointer
+                // to the new edge, which is not on the path. Otherwise we'd wrongly
+                // flip the proximal length later...
+                assert( edges_to_adjust.count( place_edge_ptr ) > 0 );
                 place_edge_ptr = &( p.edge() );
+                assert( edges_to_adjust.count( place_edge_ptr ) == 0 );
             }
 
-            // if this placement belongs to one of the relevant edges...
-            if ( utils::contains( edges_to_adjust, place_edge_ptr ) ) {
-                // adjust the `proximal_length`
+            // The current edge can never be the target edge, because we excluded this case above.
+            assert( place_edge_ptr != &target_edge );
+
+            // If this placement belongs to one of the relevant edges, adjust the proximal_length.
+            if( edges_to_adjust.count( place_edge_ptr ) > 0 ) {
                 auto full_length = place_edge_ptr->data<PlacementEdgeData>().branch_length;
                 p.proximal_length = full_length - p.proximal_length;
             }
-
         }
     }
 
-    // recalculate the edge ids (this changes the pointers in the placements)
+    // Recalculate the edge nums. As the placements use pointer to their edges to get the edge nums,
+    // no change is needed for the placements themselves.
     reset_edge_nums( tree );
 }
 

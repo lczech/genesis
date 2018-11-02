@@ -39,9 +39,9 @@
 #include "genesis/placement/function/helper.hpp"
 
 #include "genesis/tree/function/manipulation.hpp"
-#include "genesis/tree/default/functions.hpp"
-#include "genesis/tree/default/newick_reader.hpp"
-#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/newick_reader.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/iterator/levelorder.hpp"
 #include "genesis/tree/tree.hpp"
@@ -55,59 +55,30 @@ using namespace tree;
 //     Reroot
 // =================================================================================================
 
+static void TestPlacementReroot(
+    size_t reroot_edge_id,
+    std::string const& check_string,
+    std::vector<double> const& proximal_lengths
+) {
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
 
-
-static void TestPlacementReroot(size_t reroot_edge_id,
-                                std::string const& check_string,
-                                std::vector<double> const& proximal_lengths )
-{
-    std::string input(
-        "{\n"
-        "    \"tree\": \"(A:1.0{0},(B:1.0{1},(C:1.0{2},D:1.0{3})E:1.0{4})F:1.0{5},(G:1.0{6},H:1.0{7})I:1.0{8})R:1.0;\",\n"
-        "    \"placements\":\n"
-        "    [\n"
-        "    {\"p\": [\n"
-        "      [8, -332481.006816, 0.700564, 0.3, 0.201565],\n"
-        "      [6, -332482.554048, 0.149105, 0.6, 0.201505],\n"
-        "      [0, -332483.401552, 0.063889, 0.9, 0.172159]\n"
-        "      ],\n"
-        "    \"n\": [\"X\"]\n"
-        "    },\n"
-        "    {\"p\": [\n"
-        "      [2, -332592.702719, 0.999978, 0.1, 0.816126],\n"
-        "      [1, -332592.702719, 0.999978, 0.7, 0.816126]\n"
-        "      ],\n"
-        "    \"n\": [\"Y\"]\n"
-        "    },\n"
-        "    {\"p\": [\n"
-        "      [5, -332592.702719, 0.999978, 1.0, 0.816126]\n"
-        "      ],\n"
-        "    \"n\": [\"Z\"]\n"
-        "    }\n"
-        "    ],\n"
-        "  \"metadata\": {\"invocation\": \"\"},\n"
-        "  \"version\": 3,\n"
-        "  \"fields\": [\"edge_num\", \"likelihood\", \"like_weight_ratio\", \"proximal_length\", \"pendant_length\"]\n"
-        "}\n");
-
-    std::string result = "";
-
-    Sample sample = JplaceReader().from_string( input );
+    // Input data.
+    std::string infile = environment->data_dir + "placement/unrooted.jplace";
+    Sample sample = JplaceReader().from_file( infile );
     auto& tree = sample.tree();
-
-    if (not has_correct_edge_nums(tree)) {
-        throw std::runtime_error{"u wot m8"};
-    }
+    EXPECT_TRUE( has_correct_edge_nums( tree ));
 
     auto edge_map = edge_num_to_edge_map( sample );
-
     auto edge_ptr = edge_map.at( reroot_edge_id );
     ASSERT_NE( nullptr, edge_ptr );
 
     // reroot
-    placement::root( sample, *edge_ptr );
-    EXPECT_TRUE( validate_topology( tree ));
+    make_rooted( sample, *edge_ptr );
+    EXPECT_TRUE( validate_topology( sample.tree() ));
+    EXPECT_TRUE( has_correct_edge_nums( sample.tree() ));
 
+    std::string result = "";
     for (auto& pq : sample) {
         result += pq.name_at(0).name;
         for (auto& p : pq.placements()) {
@@ -115,6 +86,7 @@ static void TestPlacementReroot(size_t reroot_edge_id,
         }
         result += " ";
     }
+
     // Check if the edge_nums reordering outcome is correct.
     EXPECT_EQ( check_string, utils::trim( result )) << " with start edge " << reroot_edge_id;
 
@@ -122,8 +94,10 @@ static void TestPlacementReroot(size_t reroot_edge_id,
     size_t i = 0;
     for (auto& pq : sample) {
         for (auto& p : pq.placements()) {
-            EXPECT_DOUBLE_EQ( proximal_lengths[i++], p.proximal_length )
-                << " with placement " << pq.name_at(0).name << " and reroot edge " << reroot_edge_id;
+            EXPECT_DOUBLE_EQ( proximal_lengths[i], p.proximal_length )
+                << " with placement " << pq.name_at(0).name << " and reroot edge " << reroot_edge_id
+            ;
+            ++i;
         }
     }
 }
@@ -142,4 +116,3 @@ TEST( PlacementManipulation, Reroot )
     TestPlacementReroot( 8, "X970 Y21 Z5", {0.3, 0.6, 0.9, 0.1, 0.7, 1.0} );
 
 }
-

@@ -215,13 +215,6 @@ TreeNode& add_new_leaf_node(
     return add_new_node( tree, mid_node );
 }
 
-TreeNode& add_root_node( Tree& tree, TreeEdge& target_edge )
-{
-    auto& mid_node = add_new_node( tree, target_edge );
-    reroot( tree, mid_node );
-    return mid_node;
-}
-
 // =================================================================================================
 //     Delete Nodes
 // =================================================================================================
@@ -558,7 +551,39 @@ void delete_subtree( Tree& tree, Subtree const& subtree )
 //     Rerooting
 // =================================================================================================
 
-void reroot( Tree& tree, TreeLink& at_link )
+TreeNode& make_rooted(
+    Tree& tree,
+    TreeEdge& target_edge,
+    std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> adjust_edges
+) {
+    if( is_rooted( tree )) {
+        throw std::runtime_error( "Cannot make a Tree rooted if it is already rooted." );
+    }
+
+    auto& mid_node = add_new_node( tree, target_edge, adjust_edges );
+    change_rooting( tree, mid_node );
+    return mid_node;
+}
+
+TreeNode& make_rooted(
+    Tree& tree,
+    std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> adjust_edges
+) {
+    return make_rooted( tree, tree.root_link().edge(), adjust_edges );
+}
+
+void make_unrooted(
+    Tree& tree,
+    std::function<void( TreeEdge& remaining_edge, TreeEdge& deleted_edge )> adjust_edges
+) {
+    if( ! is_rooted( tree )) {
+        throw std::runtime_error( "Cannot make a Tree unrooted if it is already unrooted." );
+    }
+
+    delete_linear_node( tree, tree.root_node(), adjust_edges );
+}
+
+void change_rooting( Tree& tree, TreeLink& at_link )
 {
     if( ! belongs_to( at_link, tree ) ) {
         throw std::runtime_error( "Cannot reroot Tree on a Link that is not part of the Tree." );
@@ -572,6 +597,7 @@ void reroot( Tree& tree, TreeLink& at_link )
     TreeLink* cur_link = &tree.link_at( at_link.index() ).node().primary_link();
 
     // Set new root index and node link of the new root.
+    assert( &at_link == &tree.link_at( at_link.index() ));
     tree.reset_root_link( &at_link );
     at_link.node().reset_primary_link( &tree.link_at( at_link.index() ));
 
@@ -606,20 +632,12 @@ void reroot( Tree& tree, TreeLink& at_link )
     }
 }
 
-void reroot( Tree& tree, TreeNode& at_node )
+void change_rooting( Tree& tree, TreeNode& at_node )
 {
     if( ! belongs_to( at_node, tree ) ) {
         throw std::runtime_error( "Cannot reroot Tree on a Node that is not part of the Tree." );
     }
-    reroot( tree, at_node.link() );
-}
-
-void reroot_at_node( Tree& tree, size_t node_index )
-{
-    if( node_index >= tree.node_count() ) {
-        throw std::runtime_error( "Cannot reroot Tree on a Node that is not part of the Tree." );
-    }
-    reroot( tree, tree.node_at( node_index ));
+    change_rooting( tree, at_node.link() );
 }
 
 // =================================================================================================

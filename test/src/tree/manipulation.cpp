@@ -71,7 +71,7 @@ void TestReroot( std::string root_node_name, std::string out_nodes, size_t nexts
     }
 
     // Root the tree at the given link, validate its pointers.
-    reroot( tree, *root_link );
+    change_rooting( tree, *root_link );
     EXPECT_TRUE( validate_topology( tree ));
 
     // Build a string of the nodes in levelorder, starting from the new root.
@@ -329,7 +329,7 @@ TEST( TreeManipulation, DeleteLeafNodes )
     for( size_t r = 0; r < tree.node_count(); ++r ) {
         for( size_t i = 0; i < tree.node_count(); ++i ) {
             auto copy = tree;
-            reroot( copy, copy.node_at(r) );
+            change_rooting( copy, copy.node_at(r) );
 
             if( ! is_leaf( tree.node_at(i) )) {
                 EXPECT_ANY_THROW( delete_leaf_node( copy, copy.node_at(i) ));
@@ -365,7 +365,7 @@ TEST( TreeManipulation, DeleteSubtrees )
         // size_t p = 0;
         // do {
         //     auto copy = tree;
-        //     reroot( copy, copy.node_at(r) );
+        //     change_rooting( copy, copy.node_at(r) );
         //
         //     // Delete all nodes in the order given by the permutation.
         //     for( size_t i = 0; i < copy.link_count(); ++i ) {
@@ -393,7 +393,7 @@ TEST( TreeManipulation, DeleteSubtrees )
 
         for( size_t i = 0; i < tree.link_count(); ++i ) {
             auto copy = tree;
-            reroot( copy, copy.node_at(r) );
+            change_rooting( copy, copy.node_at(r) );
 
             // We cannot delete all but one node.
             if( is_leaf( copy.link_at(i).outer() )) {
@@ -427,7 +427,7 @@ TEST( TreeManipulation, DeleteNodes )
         // size_t p = 0;
         // do {
         //     auto copy = tree;
-        //     reroot( copy, copy.node_at(r) );
+        //     change_rooting( copy, copy.node_at(r) );
         //
         //     // Delete all nodes in the order given by the permutation.
         //     for( size_t i = 0; i < copy.node_count(); ++i ) {
@@ -455,7 +455,7 @@ TEST( TreeManipulation, DeleteNodes )
 
         for( size_t i = 0; i < tree.node_count(); ++i ) {
             auto copy = tree;
-            reroot( copy, copy.node_at(r) );
+            change_rooting( copy, copy.node_at(r) );
 
             // We cannot delete all but one node.
             if( is_leaf( copy.node_at(i).link().outer() )) {

@@ -172,14 +172,6 @@ TreeNode& add_new_leaf_node(
     std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> adjust_edges = {}
 );
 
-/**
- * @brief Add a new @link TreeNode Node@endlink that splits an existing @link TreeEdge Edge@endlink,
- * and root the tree on that new Node.
- *
- * The function combines add_new_node( Tree&, TreeEdge& ) and reroot( Tree&, TreeNode& ).
- */
-TreeNode& add_root_node( Tree& tree, TreeEdge& target_edge );
-
 // =================================================================================================
 //     Delete Nodes
 // =================================================================================================
@@ -247,11 +239,64 @@ void delete_subtree( Tree& tree, Subtree const& subtree );
 // );
 
 // =================================================================================================
-//     Rerooting
+//     Rooting, Rerooting, Unrooting
 // =================================================================================================
 
 /**
- * @brief Reroot the Tree at the given TreeLink.
+ * @brief Root a Tree at a given TreeEdge.
+ *
+ * The function expects an unrooted tree with a top-level tri- or multifurcation,
+ * which is checked via is_rooted().
+ * It then adds a new @link TreeNode Node@endlink that splits the given @p target_edge in two,
+ * and roots the tree on that new Node.
+ *
+ * The function simply combines
+ * @link add_new_node( Tree&, TreeEdge&, std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> ) add_new_node( Tree&, TreeEdge& )@endlink
+ * and change_rooting( Tree&, TreeNode& ). See there for details, and for the usage of @p adjust_edges.
+ *
+ * @see @link make_rooted( Tree&, std::function<void(TreeEdge& target_edge, TreeEdge& new_edge)>) make_rooted( Tree&, ... )@endlink
+ * @see make_unrooted()
+ *
+ * @return The newly created root TreeNode.
+ */
+TreeNode& make_rooted(
+    Tree& tree,
+    TreeEdge& target_edge,
+    std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> adjust_edges = {}
+);
+
+/**
+ * @brief Root a Tree on the first TreeEdge of its current top level TreeNode.
+ *
+ * The tree is expected to be unrooted. The function then roots the tree on the edge that is
+ * at the primary link of the current top level trifurcation.
+ *
+ * @see @link make_rooted( Tree&, TreeEdge&, std::function<void(TreeEdge& target_edge, TreeEdge& new_edge)>) make_rooted( Tree&, TreeEdge&, ... )@endlink
+ * @see make_unrooted()
+ *
+ * @return The newly created root TreeNode.
+ */
+TreeNode& make_rooted(
+    Tree& tree,
+    std::function<void( TreeEdge& target_edge, TreeEdge& new_edge )> adjust_edges = {}
+);
+
+/**
+ * @brief Unroot a Tree.
+ *
+ * The tree is expected to be rooted, which is checked via is_rooted(). The function then removes
+ * this root by calling delete_linear_node(). See there for details, and for the usage of
+ * @p adjust_edges.
+ *
+ * @see make_rooted()
+ */
+void make_unrooted(
+    Tree& tree,
+    std::function<void( TreeEdge& remaining_edge, TreeEdge& deleted_edge )> adjust_edges = {}
+);
+
+/**
+ * @brief "Reroot" the Tree at the given TreeLink.
  *
  * The function sets the root of the tree to the node of the given link. This operation does not
  * change the topology of the tree, but merely adjusts some internal properties. The main changes
@@ -267,7 +312,7 @@ void delete_subtree( Tree& tree, Subtree const& subtree );
  *   * Also, the (internal) root_link_index is changed to the new root link. This is used for
  *     the functions Tree::root_node() and Tree::root_link().
  *
- * The difference between this function and reroot( Tree& tree, TreeNode const& )
+ * The difference between this function and change_rooting( Tree& tree, TreeNode const& )
  * is that when specifying a specific link, this link is used as the (primary) link of the new root
  * node. This way, algorithms and iterators (e.g., IteratorLevelorder) will start traversing the
  * tree in the direction of this link by default.
@@ -278,25 +323,16 @@ void delete_subtree( Tree& tree, Subtree const& subtree );
  *
  * The link needs to be part of the tree, otherwise an exception is thrown.
  */
-void reroot( Tree& tree, TreeLink& at_link );
+void change_rooting( Tree& tree, TreeLink& at_link );
 
 /**
  * @brief Reroot the Tree at the given TreeNode.
  *
- * See reroot( Tree&, TreeLink& ) for details.
+ * See change_rooting( Tree&, TreeLink& ) for details.
  *
  * The node needs to be part of the tree, otherwise an exception is thrown.
  */
-void reroot( Tree& tree, TreeNode& at_node );
-
-/**
- * @brief Reroot the Tree at the TreeNode with the given index.
- *
- * See reroot( Tree&, TreeLink& ) for details.
- *
- * The node index needs to be valid for the tree, otherwise an exception is thrown.
- */
-void reroot_at_node( Tree& tree, size_t node_index );
+void change_rooting( Tree& tree, TreeNode& at_node );
 
 // =================================================================================================
 //     Ladderize
