@@ -83,6 +83,11 @@ bool is_inner( TreeNode const& node );
 bool is_inner( TreeEdge const& edge );
 
 /**
+ * @brief Return whether the link belongs to the root node of its Tree.
+ */
+bool is_root( TreeLink const& link );
+
+/**
  * @brief Return whether the node is the root of its Tree.
  */
 bool is_root( TreeNode const& node );

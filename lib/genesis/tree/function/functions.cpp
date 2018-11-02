@@ -86,6 +86,11 @@ bool is_inner( TreeEdge const& edge )
     return is_inner( edge.secondary_link() );
 }
 
+bool is_root( TreeLink const& link )
+{
+    return is_root( link.node() );
+}
+
 bool is_root( TreeNode const& node )
 {
     // The link_ is always the one pointing towards the root. Also, the edge of that link always has

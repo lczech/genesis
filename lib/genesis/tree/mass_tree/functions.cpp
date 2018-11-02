@@ -268,18 +268,6 @@ double mass_tree_binify_masses( MassTree& tree, size_t number_of_bins )
 //     Others
 // =================================================================================================
 
-bool mass_tree_all_identical_topology( std::vector<MassTree> const& mass_trees )
-{
-    // If all pairs of two adjacent trees have same the topology, all of them have.
-    // Thus, we do not need a complete pairwise comparision.
-    for (size_t i = 1; i < mass_trees.size(); i++) {
-        if( ! identical_topology( mass_trees[i-1], mass_trees[i] )) {
-            return false;
-        }
-    }
-    return true;
-}
-
 void mass_trees_make_average_branch_lengths( std::vector<MassTree>& mass_trees )
 {
     // Nothing to do.
@@ -351,6 +339,39 @@ std::vector<double> mass_tree_mass_per_edge( MassTree const& tree )
         for( auto const& mass : edge.data<MassTreeEdgeData>().masses ) {
             result[ idx ] += mass.second;
         }
+    }
+
+    return result;
+}
+
+std::vector<std::pair<double, double>> mass_tree_mass_per_edge_averaged( MassTree const& tree )
+{
+    // First value: position. Second value: mass at that position.
+    auto result = std::vector<std::pair<double, double>>( tree.edge_count(), { 0.0, 0.0 });
+
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        auto const& edge = tree.edge_at(i);
+        auto const& edge_data = edge.data<MassTreeEdgeData>();
+
+        // No masses on the edge. We need to skip the rest, otherwise we end up having a nan values.
+        if( edge_data.masses.empty() ) {
+            continue;
+        }
+
+        // Add up masses and positions.
+        double mass_pos = 0.0;
+        double mass_sum = 0.0;
+        for( auto const& mass : edge_data.masses ) {
+            mass_pos += mass.first * mass.second;
+            mass_sum += mass.second;
+        }
+
+        // Find average mass center by dividing by total mass.
+        mass_pos /= mass_sum;
+
+        result[ edge.index() ].first  = mass_pos;
+        result[ edge.index() ].second = mass_sum;
     }
 
     return result;

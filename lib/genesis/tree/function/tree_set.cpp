@@ -33,9 +33,7 @@
 #include "genesis/tree/tree.hpp"
 #include "genesis/tree/tree_set.hpp"
 
-#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/iterator/preorder.hpp"
 
 #include <stdexcept>
 #include <vector>
@@ -47,21 +45,21 @@ namespace tree {
 //     Tree Set Functions
 // =================================================================================================
 
-Tree* find_tree ( TreeSet& tset, std::string const& name)
+Tree* find_tree( TreeSet& tree_set, std::string const& name )
 {
-    for (auto& tree : tset) {
-        if( tree.name == name ) {
-            return &tree.tree;
+    for( size_t i = 0; i < tree_set.size(); ++i ) {
+        if( tree_set.name_at(i) == name ) {
+            return &tree_set[i];
         }
     }
     return nullptr;
 }
 
-Tree const* find_tree ( TreeSet const& tset, std::string const& name)
+Tree const* find_tree( TreeSet const& tree_set, std::string const& name )
 {
-    for (auto& tree : tset) {
-        if( tree.name == name ) {
-            return &tree.tree;
+    for( size_t i = 0; i < tree_set.size(); ++i ) {
+        if( tree_set.name_at(i) == name ) {
+            return &tree_set[i];
         }
     }
     return nullptr;
@@ -71,44 +69,29 @@ Tree const* find_tree ( TreeSet const& tset, std::string const& name)
 //     Comparators
 // =================================================================================================
 
-bool all_equal(
-    TreeSet const& tset,
+bool equal(
+    TreeSet const& tree_set,
     std::function<bool( TreeNode const&, TreeNode const& )> node_comparator,
     std::function<bool( TreeEdge const&, TreeEdge const& )> edge_comparator
 ) {
-    // If all pairs of two adjacent trees are equal, all of them are.
-    // Thus, we do not need a complete pairwise comparision.
-    // TODO the namespace thing is weird, but currently neccesary because of an ambiguous call...
-    for (size_t i = 1; i < tset.size(); i++) {
-        if( ! tree::equal( tset[i-1].tree, tset[i].tree, node_comparator, edge_comparator )) {
-            return false;
-        }
-    }
-    return true;
+    return equal( tree_set.trees(), node_comparator, edge_comparator );
 }
 
-// bool all_equal( TreeSet const& tset )
+// bool all_equal( TreeSet const& tree_set )
 // {
 //     // If all pairs of two adjacent trees are equal, all of them are.
 //     // Thus, we do not need a complete pairwise comparision.
-//     for (size_t i = 1; i < tset.size(); i++) {
-//         if( ! equal( tset[i-1].tree, tset[i].tree )) {
+//     for (size_t i = 1; i < tree_set.size(); i++) {
+//         if( ! equal( tree_set[i-1].tree, tree_set[i].tree )) {
 //             return false;
 //         }
 //     }
 //     return true;
 // }
 
-bool all_identical_topology( TreeSet const& tset )
+bool identical_topology( TreeSet const& tree_set )
 {
-    // If all pairs of two adjacent trees have same the topology, all of them have.
-    // Thus, we do not need a complete pairwise comparision.
-    for (size_t i = 1; i < tset.size(); i++) {
-        if( ! identical_topology( tset[i-1].tree, tset[i].tree )) {
-            return false;
-        }
-    }
-    return true;
+    return identical_topology( tree_set.trees() );
 }
 
 } // namespace tree

@@ -46,9 +46,6 @@
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/text/string.hpp"
 
-#include "genesis/tree/printer/compact.hpp"
-#include "genesis/tree/printer/detailed.hpp"
-
 using namespace genesis;
 using namespace tree;
 
@@ -74,7 +71,7 @@ void TestReroot( std::string root_node_name, std::string out_nodes, size_t nexts
     }
 
     // Root the tree at the given link, validate its pointers.
-    reroot( tree, *root_link );
+    change_rooting( tree, *root_link );
     EXPECT_TRUE( validate_topology( tree ));
 
     // Build a string of the nodes in levelorder, starting from the new root.
@@ -332,7 +329,7 @@ TEST( TreeManipulation, DeleteLeafNodes )
     for( size_t r = 0; r < tree.node_count(); ++r ) {
         for( size_t i = 0; i < tree.node_count(); ++i ) {
             auto copy = tree;
-            reroot( copy, copy.node_at(r) );
+            change_rooting( copy, copy.node_at(r) );
 
             if( ! is_leaf( tree.node_at(i) )) {
                 EXPECT_ANY_THROW( delete_leaf_node( copy, copy.node_at(i) ));
@@ -357,9 +354,46 @@ TEST( TreeManipulation, DeleteSubtrees )
 
     // Delete each subtree once by making a copy of the tree each time.
     for( size_t r = 0; r < tree.node_count(); ++r ) {
+
+        // Full test: takes waaaaay too long.
+
+        // // Generate every order of deletion.
+        // std::vector<size_t> link_idx_perms( tree.link_count() );
+        // std::iota( link_idx_perms.begin(), link_idx_perms.end(), 0 );
+        //
+        // // Iterate all permuations, and delete nodes in that order.
+        // size_t p = 0;
+        // do {
+        //     auto copy = tree;
+        //     change_rooting( copy, copy.node_at(r) );
+        //
+        //     // Delete all nodes in the order given by the permutation.
+        //     for( size_t i = 0; i < copy.link_count(); ++i ) {
+        //
+        //         // Need to skip if the node was already deleted from a previous subtree deletion.
+        //         if( link_idx_perms[i] >= copy.link_count() ) {
+        //             continue;
+        //         }
+        //
+        //         // LOG_DBG << "r " << r << " p " << p << " i " << i << " s " << copy.node_count() << " n " << node_idx;
+        //
+        //         // We try to delete every node, even the ones that cannot.
+        //         // This makes sure that the tree is in valid state even after such an operation.
+        //         try{
+        //             delete_subtree( copy, {copy.link_at(link_idx_perms[i])} );
+        //         } catch(...) {
+        //             // nothing
+        //         }
+        //         EXPECT_TRUE( validate_topology( copy ));
+        //     }
+        //
+        //     ++p;
+        // } while ( std::next_permutation( link_idx_perms.begin(), link_idx_perms.end() ));
+        // (void) p;
+
         for( size_t i = 0; i < tree.link_count(); ++i ) {
             auto copy = tree;
-            reroot( copy, copy.node_at(r) );
+            change_rooting( copy, copy.node_at(r) );
 
             // We cannot delete all but one node.
             if( is_leaf( copy.link_at(i).outer() )) {
@@ -382,7 +416,7 @@ TEST( TreeManipulation, DeleteNodes )
     // Run every possible rooting.
     for( size_t r = 0; r < tree.node_count(); ++r ) {
 
-        // Full test: takes waaaaay too long (30min or so).
+        // Full test: takes too long (30min or so).
         // We ran it once, it worked. Reactivate when needed.
 
         // // Generate every order of deletion.
@@ -393,42 +427,22 @@ TEST( TreeManipulation, DeleteNodes )
         // size_t p = 0;
         // do {
         //     auto copy = tree;
-        //     reroot( copy, copy.node_at(r) );
-        //
-        //     // Turn the permuation into pointers, so that they are stable while deleting stuff.
-        //     std::vector<TreeNode*> node_perm;
-        //     for( auto e : node_idx_perms ) {
-        //         node_perm.push_back( &copy.node_at( e ) );
-        //     }
+        //     change_rooting( copy, copy.node_at(r) );
         //
         //     // Delete all nodes in the order given by the permutation.
         //     for( size_t i = 0; i < copy.node_count(); ++i ) {
         //
-        //         // Get the next node index to delete.
-        //         auto const node_idx = node_perm[ i ]->index();
-        //
         //         // Need to skip if the node was already deleted from a previous subtree deletion.
-        //         // This is dirty, because in that case, node_perm is a dangling pointer,
-        //         // so basically, the retrieved index is random... Anyway, works for now.
-        //         if( node_idx >= copy.node_count() ) {
+        //         if( node_idx_perms[i] >= copy.node_count() ) {
         //             continue;
         //         }
         //
         //         // LOG_DBG << "r " << r << " p " << p << " i " << i << " s " << copy.node_count() << " n " << node_idx;
         //
-        //         // We cannot delete all but one node.
-        //         // if( is_leaf( copy.node_at(node_idx).link().outer() )) {
-        //         //     EXPECT_ANY_THROW( delete_node( copy, copy.node_at(node_idx) ));
-        //         //     continue;
-        //         // }
-        //
-        //         // if( p == 600 && i == 4 ) {
-        //         //     LOG_DBG << PrinterCompact().print(copy);
-        //         //     LOG_DBG << PrinterDetailed().print(copy);
-        //         // }
-        //
+        //         // We try to delete every node, even the ones that cannot.
+        //         // This makes sure that the tree is in valid state even after such an operation.
         //         try{
-        //             delete_node( copy, copy.node_at(node_idx) );
+        //             delete_node( copy, copy.node_at(node_idx_perms[i]) );
         //         } catch(...) {
         //             // nothing
         //         }
@@ -441,7 +455,7 @@ TEST( TreeManipulation, DeleteNodes )
 
         for( size_t i = 0; i < tree.node_count(); ++i ) {
             auto copy = tree;
-            reroot( copy, copy.node_at(r) );
+            change_rooting( copy, copy.node_at(r) );
 
             // We cannot delete all but one node.
             if( is_leaf( copy.node_at(i).link().outer() )) {
