@@ -160,12 +160,12 @@ double add_sample_to_mass_tree(
     return pendant_work;
 }
 
-std::pair< tree::MassTree, double > convert_sample_to_mass_tree( Sample const& sample )
+std::pair< tree::MassTree, double > convert_sample_to_mass_tree( Sample const& sample, bool normalize )
 {
     auto mass_tree = tree::convert_common_tree_to_mass_tree( sample.tree() );
-    double const total_mass = total_placement_mass_with_multiplicities( sample );
+    double const scaler = normalize ? total_placement_mass_with_multiplicities( sample ) : 1.0;
     double const pend_work = add_sample_to_mass_tree(
-        sample, +1.0, total_mass, mass_tree
+        sample, +1.0, scaler, mass_tree
     );
     return { std::move( mass_tree ), pend_work };
 }
@@ -173,7 +173,7 @@ std::pair< tree::MassTree, double > convert_sample_to_mass_tree( Sample const& s
 std::pair<
     std::vector<tree::MassTree>,
     std::vector<double>
-> convert_sample_set_to_mass_trees( SampleSet const& sample_set )
+> convert_sample_set_to_mass_trees( SampleSet const& sample_set, bool normalize )
 {
     // Build an average branch length tree for all trees in the SampleSet.
     // This also serves as a check whether all trees in the set are compatible with each other,
@@ -201,11 +201,14 @@ std::pair<
     #pragma omp parallel for schedule( dynamic )
     for( size_t i = 0; i < sample_set.size(); ++i ) {
         // Get the total sum of placement masses for the sample...
-        double const total_mass = total_placement_mass_with_multiplicities( sample_set[i].sample );
+        double const scaler = normalize
+            ? total_placement_mass_with_multiplicities( sample_set[i].sample )
+            : 1.0
+        ;
 
         // ... and use it as scaler to add the mass to the mass tree for this sample.
         double const pend_work = add_sample_to_mass_tree(
-            sample_set[i].sample, +1.0, total_mass, mass_trees[i]
+            sample_set[i].sample, +1.0, scaler, mass_trees[i]
         );
 
         // Also, store the pend work.

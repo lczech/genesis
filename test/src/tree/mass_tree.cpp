@@ -30,12 +30,22 @@
 
 #include "src/common.hpp"
 
+#include "genesis/placement/formats/jplace_reader.hpp"
+#include "genesis/placement/function/operators.hpp"
+#include "genesis/placement/sample.hpp"
+
+#include "genesis/tree/common_tree/newick_reader.hpp"
+#include "genesis/tree/mass_tree/balances.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
+
+#include "genesis/utils/containers/matrix/operators.hpp"
 #include "genesis/utils/math/common.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <vector>
 
 using namespace genesis;
+using namespace placement;
 using namespace tree;
 
 TEST( MassTree, Binify )
@@ -69,5 +79,35 @@ TEST( MassTree, Binify )
         EXPECT_TRUE( utils::almost_equal_relative( exp, bin ));
 
         // LOG_DBG << "i = " << i << "\tpos = " << pos << " \tbin = " << bin;
+    }
+}
+
+TEST( MassTree, PhylogeneticILR )
+{
+    // Read sample
+    std::string const infile = environment->data_dir + "placement/rooted.jplace";
+    auto const smp = JplaceReader().from_file( infile );
+
+    // Calculate balances. The tree has four inner nodes with balances != 0.0
+    // At the root however, both subtrees have exactly the same amount of branches,
+    // and there is a bijective mapping between the branches so that each pair of branches
+    // has the same mass. In other words: the set of masses per branch in both subtrees of the root
+    // is identical (although the positions of these masses in the subtrees differ).
+    // Hence, the geom mean is the same, hence the balance is 0 for the root (node 0, first entry).
+    // We did this to test this interesting special case.
+    auto const tree = convert_sample_to_mass_tree( smp, false ).first;
+    auto const bals = phylogenetic_ilr_transform( tree );
+
+    // Test
+    auto const exp = std::vector<double>({
+        0.0, 0.414042973972463, 0.335016128179832, 0.0, 0.0, 0.0,
+        0.819730425503731, 0.335016128179832, 0.0, 0.0, 0.0
+    });
+    // EXPECT_EQ( exp, bals );
+
+    EXPECT_EQ( exp.size(), bals.size() );
+    for( size_t i = 0; i < bals.size(); ++i ) {
+        // std::cout << std::setprecision (18) << bals[i] << "\n";
+        EXPECT_FLOAT_EQ( exp[i], bals[i] );
     }
 }

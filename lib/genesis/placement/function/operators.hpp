@@ -123,13 +123,13 @@ double add_sample_to_mass_tree(
  * The function takes all PqueryPlacement%s of the Sample and adds their masses in form of the
  * `like_weight_ratio` as mass points on a tree::MassTree.
  */
-std::pair< tree::MassTree, double > convert_sample_to_mass_tree( Sample const& sample );
+std::pair< tree::MassTree, double > convert_sample_to_mass_tree( Sample const& sample, bool normalize );
 
 /**
  * @brief Convert all Sample%s in a SampleSet to tree::MassTree%s.
  */
 std::pair< std::vector<tree::MassTree>, std::vector<double> >
-convert_sample_set_to_mass_trees( SampleSet const& sample_set );
+convert_sample_set_to_mass_trees( SampleSet const& sample_set, bool normalize );
 
 // =================================================================================================
 //     Output

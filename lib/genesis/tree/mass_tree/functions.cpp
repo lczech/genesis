@@ -356,6 +356,39 @@ std::vector<double> mass_tree_mass_per_edge( MassTree const& tree )
     return result;
 }
 
+std::vector<std::pair<double, double>> mass_tree_mass_per_edge_averaged( MassTree const& tree )
+{
+    // First value: position. Second value: mass at that position.
+    auto result = std::vector<std::pair<double, double>>( tree.edge_count(), { 0.0, 0.0 });
+
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        auto const& edge = tree.edge_at(i);
+        auto const& edge_data = edge.data<MassTreeEdgeData>();
+
+        // No masses on the edge. We need to skip the rest, otherwise we end up having a nan values.
+        if( edge_data.masses.empty() ) {
+            continue;
+        }
+
+        // Add up masses and positions.
+        double mass_pos = 0.0;
+        double mass_sum = 0.0;
+        for( auto const& mass : edge_data.masses ) {
+            mass_pos += mass.first * mass.second;
+            mass_sum += mass.second;
+        }
+
+        // Find average mass center by dividing by total mass.
+        mass_pos /= mass_sum;
+
+        result[ edge.index() ].first  = mass_pos;
+        result[ edge.index() ].second = mass_sum;
+    }
+
+    return result;
+}
+
 double mass_tree_sum_of_masses( MassTree const& tree )
 {
     double total_mass = 0.0;
