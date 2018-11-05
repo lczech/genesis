@@ -88,6 +88,71 @@ struct Quartiles
 };
 
 // =================================================================================================
+//     Normalization
+// =================================================================================================
+
+/**
+ * @brief Calculate the closure of a range of numbers.
+ *
+ * The iterators @p first and @p last need to point to a range of `double` values,
+ * with @p last being the past-the-end element. Then, the closure [1] of the elements is calcualted,
+ * that is, they are all divided by their total sum. This is used in compositional data analysis.
+ * Non-finite elements are ignored, negative elements throw an exception.
+ *
+ * > [1] J. Aitchison,
+ * > "The statistical analysis of compositional data".
+ * > Chapman and Hall London, 1986.
+ * > https://www.jstor.org/stable/2345821
+ */
+template <class ForwardIterator>
+void closure( ForwardIterator first, ForwardIterator last )
+{
+    // Prepare result.
+    double sum = 0.0;
+    size_t cnt = 0;
+
+    // Sum up elements.
+    auto it = first;
+    while( it != last ) {
+        if( std::isfinite( *it ) ) {
+            if( *it < 0.0 ) {
+                throw std::invalid_argument(
+                    "Cannot calculate closure of negative numbers."
+                );
+            }
+
+            sum += *it;
+            ++cnt;
+        }
+        ++it;
+    }
+
+    // If there are no valid elements, return.
+    if( cnt == 0 ) {
+        return;
+    }
+
+    // Make the closure.
+    it = first;
+    while( it != last ) {
+        if( std::isfinite( *it ) ) {
+            *it /= sum;
+        }
+        ++it;
+    }
+}
+
+/**
+ * @brief Calculate the closure of a `std::vector` of `double` elements.
+ *
+ * @see closure( ForwardIterator first, ForwardIterator last ) for details.
+ */
+inline void closure( std::vector<double>& vec )
+{
+    return closure( vec.begin(), vec.end() );
+}
+
+// =================================================================================================
 //     Mean Stddev
 // =================================================================================================
 

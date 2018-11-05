@@ -38,6 +38,28 @@
 
 using namespace genesis::utils;
 
+TEST( Math, Closure )
+{
+    // Get a vector of some elements, and the expected closure.
+    auto vals = std::vector<double>{
+        1.0, 2.0, 3.0, 4.0, 0.0,
+        std::numeric_limits<double>::infinity()
+    };
+    auto const expd = std::vector<double>{
+        1.0 / 10.0, 2.0 / 10.0, 3.0 / 10.0, 4.0 / 10.0, 0.0,
+        std::numeric_limits<double>::infinity()
+    };
+
+    // Run twice, because a closure should not change.
+    closure( vals );
+    EXPECT_EQ( expd, vals );
+    closure( vals );
+    EXPECT_EQ( expd, vals );
+
+    vals.push_back( -1.0 );
+    EXPECT_ANY_THROW( closure( vals ));
+}
+
 TEST( Math, ArithmeticMean )
 {
     // Empty.
