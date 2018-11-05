@@ -32,6 +32,7 @@
  */
 
 #include "genesis/tree/tree/node_data.hpp"
+#include "genesis/tree/tree/link.hpp"
 
 #include "genesis/utils/core/std.hpp"
 
@@ -138,6 +139,22 @@ public:
     TreeLink const& link() const
     {
         return *link_;
+    }
+
+    /**
+     * @brief Return the TreeEdge that points towards the root.
+     */
+    TreeEdge& primary_edge()
+    {
+        return link_->edge();
+    }
+
+    /**
+     * @brief Return the TreeEdge that points towards the root.
+     */
+    TreeEdge const& primary_edge() const
+    {
+        return link_->edge();
     }
 
     /**
