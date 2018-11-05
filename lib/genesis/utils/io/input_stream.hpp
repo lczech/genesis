@@ -407,7 +407,7 @@ private:
 
             // If we are not yet at the end of the data, start the reader again:
             // Copy the third block to the second, and read into the third one.
-            if( input_reader_->valid() ) {
+            if( input_reader_ && input_reader_->valid() ) {
                 data_end_ += input_reader_->finish_reading();
                 std::memcpy( buffer_ + BlockLength, buffer_ + 2 * BlockLength, BlockLength );
                 input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
