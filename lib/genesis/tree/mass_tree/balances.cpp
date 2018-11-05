@@ -79,7 +79,6 @@ double mass_balance(
             }
             sub_masses.push_back( edge_masses[idx] );
         }
-        LOG_DBG1 << "sub_masses " << utils::join( sub_masses );
         return utils::geometric_mean( sub_masses );
     };
 
