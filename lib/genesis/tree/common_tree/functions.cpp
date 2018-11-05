@@ -67,7 +67,7 @@ std::vector<std::string> node_names(
 }
 
 std::vector<std::string> node_names(
-    TreeSet const& tree_set,
+    std::vector<Tree> const& tree_set,
     bool leaves_only
 ) {
     // It would be faster to directly insert into the resulting container, but this version
@@ -165,16 +165,16 @@ void scale_all_branch_lengths(
     }
 }
 
-Tree average_branch_length_tree( TreeSet const& tset )
+Tree average_branch_length_tree( std::vector<Tree> const& tset )
 {
-    using TreeType = Tree;
-
     if( tset.size() == 0 ) {
-        return TreeType();
+        return Tree();
     }
 
     if( ! identical_topology( tset )) {
-        throw std::runtime_error( "Trees in TreeSet do not have the same topology." );
+        throw std::runtime_error(
+            "Cannot calculate average branch length tree. Trees do not have the same topology."
+        );
     }
 
     // Prepare storage for average branch lengths.
@@ -205,7 +205,7 @@ Tree average_branch_length_tree( TreeSet const& tset )
 
     // We know that all trees have the same topology. So we take a copy of the first one
     // (thus, also copying its node names) and modify its branch lengths.
-    TreeType tree = TreeType( tset.at(0) );
+    auto tree = tset.at(0);
 
     // Do the same kind of traversal as before in order to keep the indexing order (preorder) and
     // set the branch lengths.

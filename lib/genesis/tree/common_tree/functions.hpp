@@ -65,14 +65,14 @@ std::vector<std::string> node_names(
 );
 
 /**
- * @brief Returns a set of all TreeNode names of a TreeSet.
+ * @brief Returns a set of all TreeNode names of a vector of Tree%s or a TreeSet.
  *
  * The function returns the set of all names of all Tree%s in the set. See
  * @link node_names( Tree const&, bool ) node_names(...)@endlink this version of the
  * function for details.
  */
 std::vector<std::string> node_names(
-    TreeSet const& tree_set,
+    std::vector<Tree> const& tree_set,
     bool leaves_only = false
 );
 
@@ -143,8 +143,8 @@ void scale_all_branch_lengths(
 );
 
 /**
- * @brief Return a Tree where the branch lengths are the average of the Tree%s in the TreeSet,
- * given that they all have the same topology.
+ * @brief Return a Tree where the branch lengths are the average of the Tree%s in the given
+ * vector of Tree%s or TreeSet, given that they all have the same topology.
  *
  * The function works only under the following conditions:
  *
@@ -154,7 +154,7 @@ void scale_all_branch_lengths(
  * Otherwise, the function throws an `std::runtime_error`. It does not check for node names,
  * but the returned tree will contain the names of the first tree in the set.
  */
-Tree average_branch_length_tree( TreeSet const& tset );
+Tree average_branch_length_tree( std::vector<Tree> const& tset );
 
 } // namespace tree
 } // namespace genesis
