@@ -122,6 +122,12 @@ TEST( Math, PNorm )
     EXPECT_DOUBLE_EQ( 3.0,                maximum_norm( vals ));
 }
 
+TEST( Math, AitchisonNorm )
+{
+    auto const vals = std::vector<double>{ 1.0, 2.0, 3.0 };
+    EXPECT_DOUBLE_EQ( 0.78566403520078676, aitchison_norm( vals ));
+}
+
 TEST( Math, Median )
 {
     // Empty.

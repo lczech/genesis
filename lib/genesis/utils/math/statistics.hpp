@@ -387,6 +387,7 @@ inline double weighted_geometric_mean(
  *
  * @see euclidean_norm(), manhattan_norm(), and maximum_norm() for special cases,
  * which simply call this function with a fixed @p p, in order to make code more expressive.
+ * @see aitchison_norm() for another type of norm.
  */
 template <class ForwardIterator>
 double p_norm( ForwardIterator first, ForwardIterator last, double p = 2.0 )
@@ -436,6 +437,7 @@ double p_norm( ForwardIterator first, ForwardIterator last, double p = 2.0 )
  * @brief Calculate the p-norm of a `std::vector` of `double` elements.
  *
  * @see p_norm( ForwardIterator, ForwardIterator, double ) for details.
+ * @see aitchison_norm() for another type of norm.
  */
 inline double p_norm( std::vector<double> const& vec, double p = 2.0 )
 {
@@ -511,6 +513,78 @@ double maximum_norm( ForwardIterator first, ForwardIterator last )
 inline double maximum_norm( std::vector<double> const& vec )
 {
     return p_norm( vec.begin(), vec.end(), std::numeric_limits<double>::infinity() );
+}
+
+/**
+ * @brief Calculate the Aitchison norm of a range of positive numbers.
+ *
+ * The iterators @p first and @p last need to point to a range of `double` values,
+ * with @p last being the past-the-end element.
+ *
+ * Following [1], the Aitchison norm \f$ \| x \|_a \f$ of a vector \f$ x \f$ with \f$ s \f$ elements
+ * is caluclated as
+ *
+ * \f$ \| x \|_a = \sqrt{ \frac{1}{2s} \sum_{j=1}^{s} \sum_{k=1}^{s} \left( \ln{ \frac{x_j}{x_k} } \right)^2 } \f$
+ *
+ * That is, the calculation is in \f$ \mathcal{O}( s^2 ) \f$.
+ *
+ * > [1] V. Pawlowsky-Glahn, J. J. Egozcue, and R. Tolosana-Delgado,
+ * > "Modelling and Analysis of Compositional Data".
+ * > Chichester, UK: John Wiley & Sons, Ltd, 2015.
+ * > https://onlinelibrary.wiley.com/doi/book/10.1002/9781119003144
+ *
+ * @see p_norm(), euclidean_norm(), manhattan_norm(), and maximum_norm() for some standard norms.
+ */
+template <class ForwardIterator>
+double aitchison_norm( ForwardIterator first, ForwardIterator last )
+{
+    double sum = 0.0;
+    size_t cnt = 0;
+
+    // Outer loop.
+    auto it_out = first;
+    while( it_out != last ) {
+        if( std::isfinite( *it_out ) ) {
+
+            if( *it_out <= 0.0 ) {
+                throw std::invalid_argument(
+                    "Cannot calculate Aitchison norm of non-positive values."
+                );
+            }
+
+            // Inner loop.
+            auto it_in = first;
+            while( it_in != last ) {
+                if( std::isfinite( *it_in ) ) {
+                    auto const ln = std::log( *it_out / *it_in );
+                    sum += ln * ln;
+                }
+                ++it_in;
+            }
+
+            ++cnt;
+        }
+        ++it_out;
+    }
+
+    // If there are no valid elements, return an all-zero result.
+    if( cnt == 0 ) {
+        return 0.0;
+    }
+
+    // Return the result.
+    assert( cnt > 0 );
+    return std::sqrt( sum / ( 2.0 * static_cast<double>( cnt )));
+}
+
+/**
+ * @brief Calculate the Aitchison norm of a `std::vector` of `double` elements.
+ *
+ * @see aitchison_norm( ForwardIterator, ForwardIterator ) for details.
+ */
+inline double aitchison_norm( std::vector<double> const& vec )
+{
+    return aitchison_norm( vec.begin(), vec.end() );
 }
 
 // =================================================================================================
