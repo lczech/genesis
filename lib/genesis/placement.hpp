@@ -45,6 +45,7 @@
 #include "genesis/placement/function/epca.hpp"
 #include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/function/helper.hpp"
+#include "genesis/placement/function/manipulation.hpp"
 #include "genesis/placement/function/masses.hpp"
 #include "genesis/placement/function/measures.hpp"
 #include "genesis/placement/function/nhd.hpp"

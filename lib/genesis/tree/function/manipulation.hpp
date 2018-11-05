@@ -269,7 +269,9 @@ TreeNode& make_rooted(
  * @brief Root a Tree on the first TreeEdge of its current top level TreeNode.
  *
  * The tree is expected to be unrooted. The function then roots the tree on the edge that is
- * at the primary link of the current top level trifurcation.
+ * at the primary link of the current top level trifurcation. That is, a new node is inserted on
+ * that edge, see @link make_rooted( Tree&, TreeEdge&, std::function<void(TreeEdge& target_edge, TreeEdge& new_edge)>) make_rooted( Tree&, TreeEdge&, ... )@endlink
+ * for details.
  *
  * @see @link make_rooted( Tree&, TreeEdge&, std::function<void(TreeEdge& target_edge, TreeEdge& new_edge)>) make_rooted( Tree&, TreeEdge&, ... )@endlink
  * @see make_unrooted()

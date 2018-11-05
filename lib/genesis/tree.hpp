@@ -73,6 +73,7 @@
 #include "genesis/tree/iterator/path_set.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
 #include "genesis/tree/iterator/preorder.hpp"
+#include "genesis/tree/mass_tree/balances.hpp"
 #include "genesis/tree/mass_tree/emd.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
 #include "genesis/tree/mass_tree/kmeans.hpp"
@@ -87,7 +88,7 @@
 #include "genesis/tree/tree/link.hpp"
 #include "genesis/tree/tree/node_data.hpp"
 #include "genesis/tree/tree/node.hpp"
-#include "genesis/tree/tree/subtree.hpp"
 #include "genesis/tree/tree_set.hpp"
+#include "genesis/tree/tree/subtree.hpp"
 
 #endif // include guard

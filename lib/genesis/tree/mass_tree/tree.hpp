@@ -90,11 +90,11 @@ using MassTreeNode = TreeNode;
 // =================================================================================================
 
 /**
- * @brief Data class for @link MassTreeNode MassTreeNodes@endlink. Stores nothing.
+ * @brief Data class for @link MassTreeNode MassTreeNodes@endlink. Stores taxon names.
  *
  * See @link MassTree MassTree@endlink for more information.
  */
-class MassTreeNodeData : public BaseNodeData
+class MassTreeNodeData : public CommonNodeData
 {
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -215,8 +215,11 @@ inline MassTree convert_common_tree_to_mass_tree( CommonTree const& source )
     return convert(
         source,
         [] ( tree::BaseNodeData const& node_data ) {
-            (void) node_data;
-            return tree::MassTreeNodeData::create();
+            auto mass_node = tree::MassTreeNodeData::create();
+            auto const& orig_node = dynamic_cast< CommonNodeData const& >( node_data );
+            mass_node->name = orig_node.name;
+
+            return mass_node;
         },
         [] ( tree::BaseEdgeData const& edge_data ) {
             auto mass_edge = tree::MassTreeEdgeData::create();

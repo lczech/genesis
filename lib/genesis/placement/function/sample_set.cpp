@@ -47,9 +47,9 @@ namespace placement {
 
 Sample* find_sample( SampleSet& sample_set, std::string const& name )
 {
-    for (auto& nsmp : sample_set) {
-        if( nsmp.name == name ) {
-            return &nsmp.sample;
+    for( size_t i = 0; i < sample_set.size(); ++i ) {
+        if( sample_set.name_at(i) == name ) {
+            return &sample_set[i];
         }
     }
     return nullptr;
@@ -57,9 +57,9 @@ Sample* find_sample( SampleSet& sample_set, std::string const& name )
 
 Sample const* find_sample( SampleSet const& sample_set, std::string const& name )
 {
-    for (auto& nsmp : sample_set) {
-        if( nsmp.name == name ) {
-            return &nsmp.sample;
+    for( size_t i = 0; i < sample_set.size(); ++i ) {
+        if( sample_set.name_at(i) == name ) {
+            return &sample_set[i];
         }
     }
     return nullptr;
@@ -86,11 +86,11 @@ Sample merge_all( SampleSet const& sample_set )
     // TODO fix this!
     for (size_t i = 0; i < res.tree().node_count(); ++i) {
         res.tree().node_at(i).data<PlacementNodeData>().name
-            = sample_set[0].sample.tree().node_at(i).data<PlacementNodeData>().name;
+            = sample_set[0].tree().node_at(i).data<PlacementNodeData>().name;
     }
     for (size_t i = 0; i < res.tree().edge_count(); ++i) {
         res.tree().edge_at(i).data<PlacementEdgeData>().reset_edge_num(
-            sample_set[0].sample.tree().edge_at(i).data<PlacementEdgeData>().edge_num()
+            sample_set[0].tree().edge_at(i).data<PlacementEdgeData>().edge_num()
         );
     }
 
@@ -98,7 +98,7 @@ Sample merge_all( SampleSet const& sample_set )
     // In the merge method, we also check for identical topology (again), but mainly for identical
     // taxa names and edge_nums, which is important for correct merging.
     for (auto& smp : sample_set) {
-        copy_pqueries( smp.sample, res );
+        copy_pqueries( smp, res );
     }
 
     return res;
@@ -108,7 +108,7 @@ size_t total_pquery_count( SampleSet const& sample_set )
 {
     size_t s = 0;
     for( auto const& sample : sample_set ) {
-        s += sample.sample.size();
+        s += sample.size();
     }
     return s;
 }
@@ -157,8 +157,8 @@ bool all_identical_trees( SampleSet const& sample_set )
 tree::TreeSet tree_set( SampleSet const& sample_set )
 {
     tree::TreeSet tset;
-    for( auto const& smp : sample_set ) {
-        tset.add( smp.name, smp.sample.tree() );
+    for( size_t i = 0; i < sample_set.size(); ++i ) {
+        tset.add( sample_set[i].tree(), sample_set.name_at(i) );
     }
     return tset;
 }
@@ -166,7 +166,7 @@ tree::TreeSet tree_set( SampleSet const& sample_set )
 void adjust_branch_lengths( SampleSet& sample_set, tree::Tree const& source )
 {
     for( auto& smp : sample_set ) {
-        adjust_branch_lengths( smp.sample, source );
+        adjust_branch_lengths( smp, source );
     }
 }
 
@@ -184,13 +184,11 @@ std::ostream& operator << ( std::ostream& out, SampleSet const& sample_set )
     // TODO this was meant for full output. turn it into a printer instead!
     bool full = false;
 
-    size_t i = 0;
-    for( auto const& cm : sample_set ) {
-        out << std::to_string(i) << ": " << cm.name << "\n";
+    for( size_t i = 0; i < sample_set.size(); ++i ) {
+        out << std::to_string(i) << ": " << sample_set.name_at(i) << "\n";
         if (full) {
-            out << cm.sample << "\n";
+            out << sample_set[i] << "\n";
         }
-        ++i;
     }
     return out;
 }

@@ -176,7 +176,7 @@ void NewickReader::parse_multiple_trees(
         }
 
         // Store it in the TreeSet, without any copy steps.
-        tree_set.add( std::move( named_tree.first ), std::move( named_tree.second ));
+        tree_set.add( std::move( named_tree.second ), named_tree.first );
     }
 }
 

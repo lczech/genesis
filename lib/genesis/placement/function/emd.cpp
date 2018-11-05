@@ -73,8 +73,8 @@ double earth_movers_distance (
     // Get a tree with the average branch lengths of both provided trees.
     // This function also throws in case the trees have different topologies.
     tree::TreeSet tset;
-    tset.add( "lhs", lhs.tree() );
-    tset.add( "rhs", rhs.tree() );
+    tset.add( lhs.tree(), "lhs" );
+    tset.add( rhs.tree(), "rhs" );
     auto const avg_length_tree = tree::average_branch_length_tree( tset );
 
     // Create an EMD tree from the average branch length tree, then calc the EMD.

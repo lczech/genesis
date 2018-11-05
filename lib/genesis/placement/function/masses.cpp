@@ -109,7 +109,7 @@ utils::Matrix<double> placement_mass_per_edges_with_multiplicities( SampleSet co
 
     // Init matrix.
     auto const set_size = sample_set.size();
-    result = utils::Matrix<double>( set_size, sample_set[ 0 ].sample.tree().edge_count(), 0.0 );
+    result = utils::Matrix<double>( set_size, sample_set[ 0 ].tree().edge_count(), 0.0 );
 
     // Return completely empty matrix in edge cases.
     if( result.rows() == 0 || result.cols() == 0 ) {
@@ -119,7 +119,7 @@ utils::Matrix<double> placement_mass_per_edges_with_multiplicities( SampleSet co
     // Fill matrix.
     #pragma omp parallel for schedule(dynamic)
     for( size_t i = 0; i < set_size; ++i ) {
-        auto const& smp = sample_set[ i ].sample;
+        auto const& smp = sample_set[ i ];
 
         if( smp.tree().edge_count() != result.cols() ) {
             throw std::runtime_error(
@@ -185,7 +185,7 @@ utils::Matrix<double> placement_mass_per_edge_without_multiplicities( SampleSet 
 
     // Init matrix.
     auto const set_size = sample_set.size();
-    result = utils::Matrix<double>( set_size, sample_set[ 0 ].sample.tree().edge_count(), 0.0 );
+    result = utils::Matrix<double>( set_size, sample_set[ 0 ].tree().edge_count(), 0.0 );
 
     // Return completely empty matrix in edge cases.
     if( result.rows() == 0 || result.cols() == 0 ) {
@@ -195,7 +195,7 @@ utils::Matrix<double> placement_mass_per_edge_without_multiplicities( SampleSet 
     // Fill matrix.
     #pragma omp parallel for schedule(dynamic)
     for( size_t i = 0; i < set_size; ++i ) {
-        auto const& smp = sample_set[ i ].sample;
+        auto const& smp = sample_set[ i ];
 
         if( smp.tree().edge_count() != result.cols() ) {
             throw std::runtime_error(
