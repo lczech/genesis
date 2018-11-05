@@ -56,6 +56,20 @@ using MassTree = Tree;
 // =================================================================================================
 
 /**
+ * @brief Calculate taxon weights for soft thresholding.
+ *
+ * See [1], Section "Soft thresholding through weighting taxa" for details.
+ * We implement the weights `p` as described there, using the geometric mean of the raw counts
+ * multiplied by the euclidean norm of the relative abundances.
+ *
+ * > [1] J. D. Silverman, A. D. Washburne, S. Mukherjee, and L. A. David,
+ * > "A phylogenetic transform enhances analysis of compositional microbiota data,"
+ * > Elife, vol. 6, p. e21887, Feb. 2017.
+ * > https://elifesciences.org/articles/21887
+ */
+std::vector<double> balance_edge_weights( std::vector<MassTree> const& trees );
+
+/**
  * @brief Calcualte the balance of edge masses between two sets of edges.
  *
  * @see phylogenetic_ilr_transform( MassTree const& ) for a function that calcualtes this
@@ -64,7 +78,8 @@ using MassTree = Tree;
 double mass_balance(
     std::vector<double> const& edge_masses,
     std::unordered_set<size_t> const& numerator_edge_indices,
-    std::unordered_set<size_t> const& denominator_edge_indices
+    std::unordered_set<size_t> const& denominator_edge_indices,
+    std::vector<double> const& edge_weights = {}
 );
 
 /**
@@ -87,7 +102,10 @@ double mass_balance(
  * > Elife, vol. 6, p. e21887, Feb. 2017.
  * > https://elifesciences.org/articles/21887
  */
-std::vector<double> phylogenetic_ilr_transform( MassTree const& tree );
+std::vector<double> phylogenetic_ilr_transform(
+    MassTree const& tree,
+    std::vector<double> const& edge_weights = {}
+);
 
 /**
  * @brief Calcualte the Phylogenetic Isometric Log Ratio transformation of a set of MassTree%s.
@@ -97,7 +115,10 @@ std::vector<double> phylogenetic_ilr_transform( MassTree const& tree );
  *
  * @see phylogenetic_ilr_transform( MassTree const& ) for details.
  */
-utils::Matrix<double> phylogenetic_ilr_transform( std::vector<MassTree> const& trees );
+utils::Matrix<double> phylogenetic_ilr_transform(
+    std::vector<MassTree> const& trees,
+    bool use_taxon_weights = true
+);
 
 } // namespace tree
 } // namespace genesis

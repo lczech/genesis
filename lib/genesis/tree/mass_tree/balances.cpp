@@ -60,26 +60,77 @@ namespace tree {
 //     Phylogenetic ILR Tranform
 // =================================================================================================
 
+std::vector<double> balance_edge_weights( std::vector<MassTree> const& trees )
+{
+    if( trees.empty() ) {
+        return std::vector<double>();
+    }
+
+    // Get masses per edge of all tress.
+    auto const edge_masses = mass_tree_mass_per_edge( trees );
+
+    auto result = std::vector<double>( trees[0].edge_count(), 0.0 );
+    assert( edge_masses.rows() == trees.size() );
+    assert( edge_masses.cols() == result.size() );
+
+    // Calculate the weight for each edge.
+    for( size_t c = 0; c < trees[0].edge_count(); ++c ) {
+        auto const counts = edge_masses.col(c).to_vector();
+
+        // Get a central tendency of counts, by computing the geometric mean
+        // of the raw counts for a taxon across all trees.
+        auto raw = counts;
+        for( auto& e : raw ) {
+            e += 1.0;
+        }
+        auto const tendency = utils::geometric_mean( raw );
+
+        // Get a norm of the relative abundances of the taxon across all trees.
+        auto clo = counts;
+        utils::closure( clo );
+        auto const norm = utils::euclidean_norm( clo );
+
+        result[c] = tendency * norm;
+    }
+
+    return result;
+}
+
 double mass_balance(
     std::vector<double> const& edge_masses,
     std::unordered_set<size_t> const& numerator_edge_indices,
-    std::unordered_set<size_t> const& denominator_edge_indices
+    std::unordered_set<size_t> const& denominator_edge_indices,
+    std::vector<double> const& edge_weights
 ) {
     if( numerator_edge_indices.empty() || denominator_edge_indices.empty() ) {
         throw std::runtime_error( "Cannot calculate mass balance of empty edge sets." );
     }
+    if( ! edge_weights.empty() && edge_weights.size() != edge_masses.size() ) {
+        throw std::invalid_argument(
+            "Edge weights need to have same size as edge masses."
+        );
+    }
 
     // Helper function that calculates the geom mean of the `edge_masses` of the given edge indices.
     // (This would be a perfect fit for range filters... but we don't have them in CPP11...)
-    auto calc_mass_mean = [ &edge_masses ]( std::unordered_set<size_t> const& indices ){
+    auto calc_mass_mean = [ &edge_masses, &edge_weights ]( std::unordered_set<size_t> const& indices ){
         std::vector<double> sub_masses;
+        std::vector<double> sub_weights;
         for( auto idx : indices ) {
             if( idx >= edge_masses.size() ) {
                 throw std::runtime_error( "Invalid edge index in mass balance calculation." );
             }
+
             sub_masses.push_back( edge_masses[idx] );
+            if( edge_weights.empty() ) {
+                sub_weights.push_back( 1.0 );
+            } else {
+                sub_weights.push_back( edge_weights[idx] );
+            }
         }
-        return utils::geometric_mean( sub_masses );
+
+        // return utils::geometric_mean( sub_masses );
+        return utils::weighted_geometric_mean( sub_masses, sub_weights );
     };
 
     // Get geometric means of edge subset masses.
@@ -101,8 +152,10 @@ double mass_balance(
     return balance;
 }
 
-std::vector<double> phylogenetic_ilr_transform( MassTree const& tree )
-{
+std::vector<double> phylogenetic_ilr_transform(
+    MassTree const& tree,
+    std::vector<double> const& edge_weights
+) {
     // Edge cases and input checks.
     if( tree.empty() ) {
         return std::vector<double>();
@@ -118,7 +171,14 @@ std::vector<double> phylogenetic_ilr_transform( MassTree const& tree )
         );
     }
     if( ! tree_data_is< MassTreeNodeData, MassTreeEdgeData >( tree ) ) {
-        throw std::invalid_argument( "Tree is not a MassTree. cannot calculate its Phylogenetic ILR transform." );
+        throw std::invalid_argument(
+            "Tree is not a MassTree. Cannot calculate its Phylogenetic ILR transform."
+        );
+    }
+    if( ! edge_weights.empty() && edge_weights.size() != tree.edge_count() ) {
+        throw std::invalid_argument(
+            "Edge weights need to have same size as the edge count of the provided Tree."
+        );
     }
 
     // Prepare result list for each node.
@@ -199,14 +259,16 @@ std::vector<double> phylogenetic_ilr_transform( MassTree const& tree )
         );
 
         // Calculate and store balance.
-        result[ node_idx ] = mass_balance( edge_masses, lhs_indices, rhs_indices );
+        result[ node_idx ] = mass_balance( edge_masses, lhs_indices, rhs_indices, edge_weights );
     }
 
     return result;
 }
 
-utils::Matrix<double> phylogenetic_ilr_transform( std::vector<MassTree> const& trees )
-{
+utils::Matrix<double> phylogenetic_ilr_transform(
+    std::vector<MassTree> const& trees,
+    bool use_taxon_weights
+) {
     // Basic check. All other checks are done in the per-tree function.
     if( ! identical_topology( trees )) {
         throw std::invalid_argument(
@@ -218,10 +280,11 @@ utils::Matrix<double> phylogenetic_ilr_transform( std::vector<MassTree> const& t
     }
 
     auto result = utils::Matrix<double>( trees.size(), trees[0].node_count(), 0.0 );
+    auto const edge_weights = use_taxon_weights ? balance_edge_weights( trees ) : std::vector<double>();
 
     #pragma omp parallel for
     for( size_t i = 0; i < trees.size(); ++i ) {
-        result.row( i ) = phylogenetic_ilr_transform( trees[i] );
+        result.row( i ) = phylogenetic_ilr_transform( trees[i], edge_weights );
     }
 
     return result;
