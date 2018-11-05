@@ -183,7 +183,7 @@ utils::Matrix<double> epca_imbalance_matrix(
     }
 
     assert( samples.size() > 0 );
-    auto const edge_count = samples.at( 0 ).sample.tree().edge_count();
+    auto const edge_count = samples.at( 0 ).tree().edge_count();
 
     if( include_leaves ) {
 
@@ -191,7 +191,7 @@ utils::Matrix<double> epca_imbalance_matrix(
 
         #pragma omp parallel for
         for( size_t s = 0; s < samples.size(); ++s ) {
-            auto const& smp = samples[s].sample;
+            auto const& smp = samples[s];
             auto const imbalance_vec = epca_imbalance_vector( smp, normalize );
 
             // We need to have the right number of imbalance values.
@@ -203,7 +203,7 @@ utils::Matrix<double> epca_imbalance_matrix(
                 // Either the edge is an inner edge, or (if not, i.e., it leads to a leaf),
                 // it's imbalance is minus 1, as all its mass is on the root side.
                 assert(
-                    ! is_leaf( samples[s].sample.tree().edge_at(i).secondary_node() ) ||
+                    ! is_leaf( samples[s].tree().edge_at(i).secondary_node() ) ||
                     utils::almost_equal_relative( imbalance_vec[ i ], -1.0 )
                 );
 
@@ -216,14 +216,14 @@ utils::Matrix<double> epca_imbalance_matrix(
     } else {
 
         // Get the indices of all edges that do not lead to a tip.
-        auto const inner_edge_indices = tree::inner_edge_indices( samples.at( 0 ).sample.tree() );
+        auto const inner_edge_indices = tree::inner_edge_indices( samples.at( 0 ).tree() );
 
         // Prepare result
         auto imbalance_matrix = utils::Matrix<double>( samples.size(), inner_edge_indices.size() );
 
         #pragma omp parallel for
         for( size_t s = 0; s < samples.size(); ++s ) {
-            auto const& smp = samples[s].sample;
+            auto const& smp = samples[s];
             auto const imbalance_vec = epca_imbalance_vector( smp, normalize );
 
             // We need to have the right number of imbalance values, which also needs to be
@@ -323,10 +323,10 @@ EpcaData epca( SampleSet const& samples, double kappa, double epsilon, size_t co
     auto imbalance_matrix = epca_imbalance_matrix( samples, false );
     assert( samples.size() > 0 );
     assert( imbalance_matrix.rows() == samples.size() );
-    assert( imbalance_matrix.cols() == tree::inner_edge_count( samples[0].sample.tree() ) );
+    assert( imbalance_matrix.cols() == tree::inner_edge_count( samples[0].tree() ) );
 
     // Get the indices of the inner edges.
-    auto const inner_edge_indices = tree::inner_edge_indices( samples.at( 0 ).sample.tree() );
+    auto const inner_edge_indices = tree::inner_edge_indices( samples.at( 0 ).tree() );
     assert( imbalance_matrix.cols() == inner_edge_indices.size() );
 
     // Filter and transform the imbalance matrix.

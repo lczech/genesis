@@ -177,12 +177,12 @@ utils::Matrix<size_t> placement_count_per_edge( SampleSet const& sample_set )
     }
 
     // Init matrix.
-    auto result = utils::Matrix<size_t>( set_size, sample_set[ 0 ].sample.tree().edge_count(), 0 );
+    auto result = utils::Matrix<size_t>( set_size, sample_set[ 0 ].tree().edge_count(), 0 );
 
     // Fill matrix.
     #pragma omp parallel for
     for( size_t i = 0; i < set_size; ++i ) {
-        for( auto const& pqry : sample_set[ i ].sample.pqueries() ) {
+        for( auto const& pqry : sample_set[ i ].pqueries() ) {
             for( auto const& place : pqry.placements() ) {
                 ++result( i, place.edge().index() );
             }
@@ -277,7 +277,7 @@ void rectify_values( Sample& sample )
 void rectify_values( SampleSet& sset )
 {
     for( auto& smp : sset ) {
-        rectify_values( smp.sample );
+        rectify_values( smp );
     }
 }
 

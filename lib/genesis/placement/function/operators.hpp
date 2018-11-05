@@ -45,6 +45,7 @@ namespace genesis {
 namespace tree {
 
     class Tree;
+    class TreeSet;
 
     class CommonNodeData;
     class CommonEdgeData;
@@ -128,7 +129,7 @@ std::pair< tree::MassTree, double > convert_sample_to_mass_tree( Sample const& s
 /**
  * @brief Convert all Sample%s in a SampleSet to tree::MassTree%s.
  */
-std::pair< std::vector<tree::MassTree>, std::vector<double> >
+std::pair< tree::TreeSet, std::vector<double> >
 convert_sample_set_to_mass_trees( SampleSet const& sample_set, bool normalize );
 
 // =================================================================================================

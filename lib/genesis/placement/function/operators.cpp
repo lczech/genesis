@@ -170,10 +170,8 @@ std::pair< tree::MassTree, double > convert_sample_to_mass_tree( Sample const& s
     return { std::move( mass_tree ), pend_work };
 }
 
-std::pair<
-    std::vector<tree::MassTree>,
-    std::vector<double>
-> convert_sample_set_to_mass_trees( SampleSet const& sample_set, bool normalize )
+std::pair< tree::TreeSet, std::vector<double> >
+convert_sample_set_to_mass_trees( SampleSet const& sample_set, bool normalize )
 {
     // Build an average branch length tree for all trees in the SampleSet.
     // This also serves as a check whether all trees in the set are compatible with each other,
@@ -181,7 +179,7 @@ std::pair<
     // Then, turn the resulting tree into a MassTree.
     tree::TreeSet avg_tree_set;
     for( auto const& smp : sample_set ) {
-        avg_tree_set.add( "", smp.sample.tree() );
+        avg_tree_set.add( smp.tree() );
     }
     auto const mass_tree = tree::convert_common_tree_to_mass_tree(
         tree::average_branch_length_tree( avg_tree_set )
@@ -192,7 +190,11 @@ std::pair<
 
     // Prepare mass trees for all Samples, by copying the average mass tree.
     // This massively speeds up the calculations (at the cost of extra storage for all the trees).
-    auto mass_trees = std::vector<tree::MassTree>( sample_set.size(), mass_tree );
+    auto mass_trees = tree::TreeSet();
+    for( size_t i = 0; i < sample_set.size(); ++i ) {
+        mass_trees.add( mass_tree, sample_set.name_at(i) );
+    }
+    assert( mass_trees.size() == sample_set.size() );
 
     // Also, prepare a vector to store the pendant works.
     auto pend_works = std::vector<double>( sample_set.size(), 0.0 );
@@ -202,13 +204,13 @@ std::pair<
     for( size_t i = 0; i < sample_set.size(); ++i ) {
         // Get the total sum of placement masses for the sample...
         double const scaler = normalize
-            ? total_placement_mass_with_multiplicities( sample_set[i].sample )
+            ? total_placement_mass_with_multiplicities( sample_set[i] )
             : 1.0
         ;
 
         // ... and use it as scaler to add the mass to the mass tree for this sample.
         double const pend_work = add_sample_to_mass_tree(
-            sample_set[i].sample, +1.0, scaler, mass_trees[i]
+            sample_set[i], +1.0, scaler, mass_trees[i]
         );
 
         // Also, store the pend work.

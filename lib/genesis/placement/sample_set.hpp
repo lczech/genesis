@@ -33,6 +33,8 @@
 
 #include "genesis/placement/sample.hpp"
 
+#include <cassert>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -46,7 +48,7 @@ namespace placement {
 /**
  * @brief Store a set of Sample%s with associated names.
  *
- * The elements in this set are stored as a NamedSample. They are stored in the sequence in which
+ * The elements in this set are stored in the sequence in which
  * they are added to the set, and can be accessed via an index.
  */
 class SampleSet
@@ -57,30 +59,8 @@ public:
     //     Typedefs
     // -------------------------------------------------------------------------
 
-    /**
-     * @brief Store a Sample and a name for it.
-     *
-     * Access to the Sample and name is explicit via the public member variables.
-     * Additionally, an implicit cast to Sample is available to avoid tedious code.
-     */
-    struct NamedSample
-    {
-        std::string name;
-        Sample      sample;
-
-        operator Sample&()
-        {
-            return sample;
-        }
-
-        operator Sample const&() const
-        {
-            return sample;
-        }
-    };
-
-    typedef std::vector<NamedSample>::iterator       iterator;
-    typedef std::vector<NamedSample>::const_iterator const_iterator;
+    using iterator       = typename std::vector<Sample>::iterator;
+    using const_iterator = typename std::vector<Sample>::const_iterator;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -98,7 +78,8 @@ public:
     void swap( SampleSet& other )
     {
         using std::swap;
-        swap( smps_, other.smps_ );
+        swap( names_, other.names_ );
+        swap( smpls_, other.smpls_ );
     }
 
     // -------------------------------------------------------------------------
@@ -106,33 +87,14 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Add a Sample to the SampleSet.
-     *
-     * The Sample is copied. The name is set to empty string.
-     */
-    void add( Sample const& smp )
-    {
-        smps_.push_back( { "", smp } );
-    }
-
-    /**
      * @brief Add a Sample with a name to the SampleSet.
      *
      * The Sample is copied.
      */
-    void add( Sample const& smp, std::string const& name )
+    void add( Sample const& smp, std::string const& name ="" )
     {
-        smps_.push_back( { name, smp } );
-    }
-
-    /**
-     * @brief Add a Sample to the SampleSet.
-     *
-     * The Sample is moved. The name is set to empty string.
-     */
-    void add( Sample&& smp )
-    {
-        smps_.push_back( { "", std::move(smp) } );
+        names_.push_back( name );
+        smpls_.push_back( smp );
     }
 
     /**
@@ -140,9 +102,10 @@ public:
      *
      * The Sample is moved.
      */
-    void add( Sample&& smp, std::string const& name )
+    void add( Sample&& smp, std::string const& name = "" )
     {
-        smps_.push_back( { name, std::move(smp) } );
+        names_.push_back( name );
+        smpls_.push_back( std::move(smp) );
     }
 
     /**
@@ -153,7 +116,16 @@ public:
      */
     void remove_at( size_t index )
     {
-        smps_.erase( smps_.begin() + index );
+        if( index >= smpls_.size() ) {
+            throw std::invalid_argument(
+                "Cannot remove element at index " + std::to_string( index ) + " from SampleSet with " +
+                std::to_string( smpls_.size() ) + " samples."
+            );
+        }
+        assert( names_.size() == smpls_.size() );
+
+        names_.erase( names_.begin() + index );
+        smpls_.erase( smpls_.begin() + index );
     }
 
     /**
@@ -161,7 +133,28 @@ public:
      */
     void clear()
     {
-        smps_.clear();
+        names_.clear();
+        smpls_.clear();
+    }
+
+    // -------------------------------------------------------------------------
+    //     Name Accessors
+    // -------------------------------------------------------------------------
+
+    std::string const& name_at( size_t index ) const
+    {
+        if( index >= names_.size() ) {
+            throw std::invalid_argument(
+                "Cannot access element at index " + std::to_string( index ) + " from SampleSet with " +
+                std::to_string( names_.size() ) + " samples."
+            );
+        }
+        return names_[index];
+    }
+
+    std::vector<std::string> const& names() const
+    {
+        return names_;
     }
 
     // -------------------------------------------------------------------------
@@ -170,62 +163,69 @@ public:
 
     iterator begin()
     {
-        return smps_.begin();
+        return smpls_.begin();
     }
 
     const_iterator begin() const
     {
-        return smps_.cbegin();
+        return smpls_.cbegin();
     }
 
     iterator end()
     {
-        return smps_.end();
+        return smpls_.end();
     }
 
     const_iterator end() const
     {
-        return smps_.cend();
+        return smpls_.cend();
+    }
+
+    Sample& at ( size_t index )
+    {
+        return smpls_.at(index);
+    }
+
+    Sample const& at ( size_t index ) const
+    {
+        return smpls_.at(index);
+    }
+
+    Sample& operator [] ( size_t index )
+    {
+        return smpls_[index];
+    }
+
+    Sample const& operator [] ( size_t index ) const
+    {
+        return smpls_[index];
+    }
+
+    std::vector<Sample> const& samples() const
+    {
+        return smpls_;
     }
 
     /**
-     * @brief Get the NamedSample at a certain index position.
+     * @brief Implicit conversion, so that a SampleSet can be used in functions
+     * that expect a `std::vector` instead.
      */
-    NamedSample& at ( size_t index )
+    operator std::vector<Sample> const&() const
     {
-        return smps_.at(index);
+        return smpls_;
     }
 
-    /**
-     * @brief Get the NamedSample at a certain index position.
-     */
-    NamedSample const& at ( size_t index ) const
-    {
-        return smps_.at(index);
-    }
-
-    /**
-     * @brief Get the NamedSample at a certain index position.
-     */
-    NamedSample& operator [] ( size_t index )
-    {
-        return smps_[index];
-    }
-
-    /**
-     * @brief Get the NamedSample at a certain index position.
-     */
-    NamedSample const& operator [] ( size_t index ) const
-    {
-        return smps_[index];
-    }
+    // -------------------------------------------------------------------------
+    //     General Properties
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Return whether the SampleSet is empty.
      */
-    bool  empty() const
+    bool empty() const
     {
-        return smps_.empty();
+        assert( names_.empty() ==  smpls_.empty() );
+        return smpls_.empty();
     }
 
     /**
@@ -233,7 +233,8 @@ public:
      */
     size_t size() const
     {
-        return smps_.size();
+        assert( names_.size() ==  smpls_.size() );
+        return smpls_.size();
     }
 
     // -------------------------------------------------------------------------
@@ -242,7 +243,8 @@ public:
 
 private:
 
-    std::vector<NamedSample> smps_;
+    std::vector<std::string> names_;
+    std::vector<Sample>      smpls_;
 
 };
 

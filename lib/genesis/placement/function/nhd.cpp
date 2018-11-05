@@ -431,12 +431,12 @@ std::vector<NodeDistanceHistogramSet> node_distance_histogram_set(
     }
 
     // Prepare lookup for the trees. This assumes identical trees for all samples.
-    auto const node_distances = node_branch_length_distance_matrix( sample_set[0].sample.tree() );
-    auto const node_sides = node_root_direction_matrix( sample_set[0].sample.tree() );
+    auto const node_distances = node_branch_length_distance_matrix( sample_set[0].tree() );
+    auto const node_sides = node_root_direction_matrix( sample_set[0].tree() );
 
     // Prepare histograms for all samples, by copying empty histograms for the first sample.
     auto const empty_hist = make_empty_node_distance_histogram_set(
-        sample_set[ 0 ].sample.tree(), node_distances, node_sides, histogram_bins
+        sample_set[ 0 ].tree(), node_distances, node_sides, histogram_bins
     );
     auto result = std::vector<NodeDistanceHistogramSet>( set_size, empty_hist );
 
@@ -447,7 +447,7 @@ std::vector<NodeDistanceHistogramSet> node_distance_histogram_set(
         // Check compatibility.
         // It suffices to check adjacent pairs of samples, as compatibility is transitive.
         if( i > 0 ) {
-            if( ! compatible_trees( sample_set[ i - 1 ].sample, sample_set[ i ].sample )) {
+            if( ! compatible_trees( sample_set[ i - 1 ], sample_set[ i ] )) {
                 throw std::invalid_argument(
                     "Trees in SampleSet not compatible for calculating Node Histogram Distance."
                 );
@@ -456,9 +456,9 @@ std::vector<NodeDistanceHistogramSet> node_distance_histogram_set(
 
         // Fill the histograms for every node of the sample.
         fill_node_distance_histogram_set(
-            sample_set[ i ].sample, node_distances, node_sides, result[ i ]
+            sample_set[ i ], node_distances, node_sides, result[ i ]
         );
-        assert( result[ i ].histograms.size() == sample_set[ i ].sample.tree().node_count() );
+        assert( result[ i ].histograms.size() == sample_set[ i ].tree().node_count() );
     }
 
     return result;

@@ -72,6 +72,7 @@ public:
     void swap( TreeSet& other )
     {
         using std::swap;
+        swap( names_, other.names_ );
         swap( trees_, other.trees_ );
     }
 
@@ -84,7 +85,7 @@ public:
      *
      * The Tree is copied.
      */
-    void add( std::string const& name, Tree const& tree )
+    void add( Tree const& tree, std::string const& name = "" )
     {
         names_.push_back( name );
         trees_.push_back( tree );
@@ -95,20 +96,9 @@ public:
      *
      * The Tree is moved.
      */
-    void add( std::string const& name, Tree&& tree )
+    void add( Tree&& tree, std::string const& name = "" )
     {
         names_.push_back( name );
-        trees_.push_back( std::move( tree ));
-    }
-
-    /**
-    * @brief Add a Tree with a name to the TreeSet.
-    *
-    * The Tree is moved.
-    */
-    void add( std::string&& name, Tree&& tree )
-    {
-        names_.push_back( std::move( name ));
         trees_.push_back( std::move( tree ));
     }
 
@@ -210,6 +200,15 @@ public:
         return trees_;
     }
 
+    /**
+     * @brief Implicit conversion, so that a TreeSet can be used in functions
+     * that expect a `std::vector` instead.
+     */
+    operator std::vector<Tree> const&() const
+    {
+        return trees_;
+    }
+
     // -------------------------------------------------------------------------
     //     General Properties
     // -------------------------------------------------------------------------
@@ -219,6 +218,7 @@ public:
      */
     bool empty() const
     {
+        assert( names_.empty() ==  trees_.empty() );
         return trees_.empty();
     }
 
@@ -227,6 +227,7 @@ public:
      */
     size_t size() const
     {
+        assert( names_.size() ==  trees_.size() );
         return trees_.size();
     }
 
