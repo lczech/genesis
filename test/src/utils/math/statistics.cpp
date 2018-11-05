@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/math/ranking.hpp"
 #include "genesis/utils/math/statistics.hpp"
 
 #include<limits>
@@ -96,6 +97,29 @@ TEST( Math, WeightedGeometricMean )
     EXPECT_ANY_THROW( weighted_geometric_mean({ -1.0 }, { 1.0 }) );
     EXPECT_ANY_THROW( weighted_geometric_mean({ 5.0 }, { 1.0, 2.0 }) );
     EXPECT_ANY_THROW( weighted_geometric_mean({ 5.0, 2.0 }, { 1.0 }) );
+}
+
+TEST( Math, PNorm )
+{
+    auto const vals = std::vector<double>{ 1.0, 2.0, 3.0 };
+    auto const inf  = std::numeric_limits<double>::infinity();
+
+    // Valid cases
+    EXPECT_DOUBLE_EQ( 6.0, p_norm( vals, 1.0 ));
+    EXPECT_DOUBLE_EQ( 3.7416573867739413, p_norm( vals, 2.0 ));
+    EXPECT_DOUBLE_EQ( 3.3019272488946263, p_norm( vals, 3.0 ));
+    EXPECT_DOUBLE_EQ( 3.1463462836457885, p_norm( vals, 4.0 ));
+    EXPECT_DOUBLE_EQ( 3.0, p_norm( vals, inf ));
+
+    // Invalid cases
+    EXPECT_ANY_THROW( p_norm( vals, -inf ));
+    EXPECT_ANY_THROW( p_norm( vals, 0.0 ));
+    EXPECT_ANY_THROW( p_norm( vals, std::numeric_limits<double>::quiet_NaN() ));
+
+    // Named variants
+    EXPECT_DOUBLE_EQ( 6.0,                manhattan_norm( vals ));
+    EXPECT_DOUBLE_EQ( 3.7416573867739413, euclidean_norm( vals ));
+    EXPECT_DOUBLE_EQ( 3.0,                maximum_norm( vals ));
 }
 
 TEST( Math, Median )

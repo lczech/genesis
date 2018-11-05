@@ -32,6 +32,7 @@
  */
 
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/math/ranking.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -44,13 +45,6 @@
 
 namespace genesis {
 namespace utils {
-
-// =================================================================================================
-//     Forward Declarations
-// =================================================================================================
-
-// Needed for spearmans_rank_correlation_coefficient()
-std::vector<double> ranking_fractional( std::vector<double> const& vec );
 
 // =================================================================================================
 //     Structures and Classes
@@ -376,6 +370,147 @@ inline double weighted_geometric_mean(
     std::vector<double> const& weights
 ) {
     return weighted_geometric_mean( values.begin(), values.end(), weights.begin(), weights.end() );
+}
+
+// =================================================================================================
+//     Norms
+// =================================================================================================
+
+/**
+ * @brief Calculate the p-norm of a range of numbers.
+ *
+ * The iterators @p first and @p last need to point to a range of `double` values,
+ * with @p last being the past-the-end element. The parameter @p p has to be > 1.0.
+ * In order to get the maximum norm (or infinity norm), @p p can also be set to positive infinity,
+ * that is, \c std::numeric_limits<double>::infinity(). Default is `p == 2.0`, which is the Euclidean
+ * norm.
+ *
+ * @see euclidean_norm(), manhattan_norm(), and maximum_norm() for special cases,
+ * which simply call this function with a fixed @p p, in order to make code more expressive.
+ */
+template <class ForwardIterator>
+double p_norm( ForwardIterator first, ForwardIterator last, double p = 2.0 )
+{
+    // Validity. We allow positive inifity.
+    if( p < 1.0 || ( ! std::isfinite( p ) && ! std::isinf( p ))) {
+        throw std::runtime_error( "Cannot calculate p-norm with p < 1.0" );
+    }
+    assert( p >= 1.0 );
+    assert( std::isfinite( p ) || std::isinf( p ));
+
+    double sum = 0.0;
+    size_t cnt = 0;
+
+    // Add vector elements.
+    auto it = first;
+    while( it != last ) {
+        if( std::isfinite( *it ) ) {
+            if( std::isfinite( p )) {
+                sum += std::pow( std::abs( *it ), p );
+            } else {
+                sum = std::max( sum, *it );
+            }
+            ++cnt;
+        }
+        ++it;
+    }
+
+    // If there are no valid elements, return an all-zero result.
+    if( cnt == 0 ) {
+        return 0.0;
+    }
+
+    // Return the result.
+    assert( cnt > 0 );
+    if( std::isfinite( p )) {
+        return std::pow( sum, 1.0 / p );
+    } else {
+        return sum;
+    }
+
+    // Make old compilers happy.
+    return 0.0;
+}
+
+/**
+ * @brief Calculate the p-norm of a `std::vector` of `double` elements.
+ *
+ * @see p_norm( ForwardIterator, ForwardIterator, double ) for details.
+ */
+inline double p_norm( std::vector<double> const& vec, double p = 2.0 )
+{
+    return p_norm( vec.begin(), vec.end(), p );
+}
+
+/**
+ * @brief Calculate the Manhattan norm (L1 norm) of a range of numbers.
+ *
+ * The function is a more expressive version of p_norm( ForwardIterator, ForwardIterator, double )
+ * with `p == 1.0`, in order to make code more expressive. See there for details.
+ */
+template <class ForwardIterator>
+double manhattan_norm( ForwardIterator first, ForwardIterator last )
+{
+    return p_norm( first, last, 1.0 );
+}
+
+/**
+ * @brief Calculate the Manhattan norm (L1 norm) of a `std::vector` of `double` elements.
+ *
+ * The function is a more expressive version of p_norm( std::vector<double> const&, double )
+ * with `p == 1.0`, in order to make code more expressive. See there for details.
+ */
+inline double manhattan_norm( std::vector<double> const& vec )
+{
+    return p_norm( vec.begin(), vec.end(), 1.0 );
+}
+
+/**
+ * @brief Calculate the Euclidean norm (L2 norm) of a range of numbers.
+ *
+ * The function is a more expressive version of p_norm( ForwardIterator, ForwardIterator, double )
+ * with `p == 2.0`, in order to make code more expressive. See there for details.
+ */
+template <class ForwardIterator>
+double euclidean_norm( ForwardIterator first, ForwardIterator last )
+{
+    return p_norm( first, last, 2.0 );
+}
+
+/**
+ * @brief Calculate the Euclidean norm (L2 norm) of a `std::vector` of `double` elements.
+ *
+ * The function is a more expressive version of p_norm( std::vector<double> const&, double )
+ * with `p == 2.0`, in order to make code more expressive. See there for details.
+ */
+inline double euclidean_norm( std::vector<double> const& vec )
+{
+    return p_norm( vec.begin(), vec.end(), 2.0 );
+}
+
+/**
+ * @brief Calculate the Maximum norm (infinity norm) of a range of numbers.
+ *
+ * The function is a more expressive version of p_norm( ForwardIterator, ForwardIterator, double )
+ * with \c p == std::numeric_limits<double>::infinity(), in order to make code more expressive.
+ * See there for details.
+ */
+template <class ForwardIterator>
+double maximum_norm( ForwardIterator first, ForwardIterator last )
+{
+    return p_norm( first, last, std::numeric_limits<double>::infinity() );
+}
+
+/**
+ * @brief Calculate the Maximum norm (infinity norm) of a `std::vector` of `double` elements.
+ *
+ * The function is a more expressive version of p_norm( std::vector<double> const&, double )
+ * with \c p == std::numeric_limits<double>::infinity(), in order to make code more expressive.
+ * See there for details.
+ */
+inline double maximum_norm( std::vector<double> const& vec )
+{
+    return p_norm( vec.begin(), vec.end(), std::numeric_limits<double>::infinity() );
 }
 
 // =================================================================================================
@@ -802,283 +937,6 @@ inline std::vector<double> fisher_transformation( std::vector<double> const& cor
         elem = fisher_transformation( elem );
     }
     return res;
-}
-
-// =================================================================================================
-//     Ranking Standard
-// =================================================================================================
-
-/**
- * @brief Return the ranking of the values in the given range, using Standard competition ranking
- * ("1224" ranking).
- *
- * See https://en.wikipedia.org/wiki/Ranking for details.
- *
- * @see ranking_modified(), ranking_dense(), ranking_ordinal(), ranking_fractional() for other
- * ranking methods.
- */
-template <class RandomAccessIterator>
-std::vector<size_t> ranking_standard( RandomAccessIterator first, RandomAccessIterator last )
-{
-    // Prepare result, and get the sorting order of the vector.
-    auto const size = static_cast<size_t>( std::distance( first, last ));
-    auto result = std::vector<size_t>( size, 1 );
-    auto const order = stable_sort_indices( first, last );
-
-    // Shortcuts for better readability.
-    auto ordered_value = [&]( size_t i ){
-        return *( first + order[i] );
-    };
-    auto ordered_result = [&]( size_t i ) -> size_t& {
-        return result[ order[i] ];
-    };
-
-    // Calculate ranks.
-    for( size_t i = 1; i < size; ++i ) {
-
-        // Same values get the same rank. The next bigger one continues at the current i.
-        if( ordered_value( i ) == ordered_value( i - 1 ) ) {
-            ordered_result( i ) = ordered_result( i - 1 );
-        } else {
-            ordered_result( i ) = i + 1;
-        }
-    }
-
-    return result;
-}
-
-/**
- * @copydoc ranking_standard( RandomAccessIterator first, RandomAccessIterator last )
- */
-inline std::vector<size_t> ranking_standard( std::vector<double> const& vec )
-{
-    return ranking_standard( vec.begin(), vec.end() );
-}
-
-// =================================================================================================
-//     Ranking Modified
-// =================================================================================================
-
-/**
- * @brief Return the ranking of the values in the given range, using Modified competition ranking
- * ("1334" ranking).
- *
- * See https://en.wikipedia.org/wiki/Ranking for details.
- *
- * @see ranking_standard(), ranking_dense(), ranking_ordinal(), ranking_fractional() for other
- * ranking methods.
- */
-template <class RandomAccessIterator>
-std::vector<size_t> ranking_modified( RandomAccessIterator first, RandomAccessIterator last )
-{
-    // Prepare result, and get the sorting order of the vector.
-    auto const size = static_cast<size_t>( std::distance( first, last ));
-    auto result = std::vector<size_t>( size, 1 );
-    auto const order = stable_sort_indices( first, last );
-
-    // Shortcuts for better readability.
-    auto ordered_value = [&]( size_t i ){
-        return *( first + order[i] );
-    };
-    auto ordered_result = [&]( size_t i ) -> size_t& {
-        return result[ order[i] ];
-    };
-
-    // Calculate ranks. The loop variable is incremented at the end.
-    for( size_t i = 0; i < size; ) {
-
-        // Look ahead: How often does the value occur?
-        size_t j = 1;
-        while( i+j < size && ordered_value(i+j) == ordered_value(i) ) {
-            ++j;
-        }
-
-        // Set the j-next entries.
-        for( size_t k = 0; k < j; ++k ) {
-            ordered_result( i + k ) = i + j;
-        }
-
-        // We can skip the j-next loop iterations, as we just set their values
-        i += j;
-    }
-
-    return result;
-}
-
-/**
- * @copydoc ranking_modified( RandomAccessIterator first, RandomAccessIterator last )
- */
-inline std::vector<size_t> ranking_modified( std::vector<double> const& vec )
-{
-    return ranking_modified( vec.begin(), vec.end() );
-}
-
-// =================================================================================================
-//     Ranking Dense
-// =================================================================================================
-
-/**
- * @brief Return the ranking of the values in the given range, using Dense ranking ("1223" ranking).
- *
- * See https://en.wikipedia.org/wiki/Ranking for details.
- *
- * @see ranking_standard(), ranking_modified(), ranking_ordinal(), ranking_fractional() for other
- * ranking methods.
- */
-template <class RandomAccessIterator>
-std::vector<size_t> ranking_dense( RandomAccessIterator first, RandomAccessIterator last )
-{
-    // Prepare result, and get the sorting order of the vector.
-    auto const size = static_cast<size_t>( std::distance( first, last ));
-    auto result = std::vector<size_t>( size, 1 );
-    auto const order = stable_sort_indices( first, last );
-
-    // Shortcuts for better readability.
-    auto ordered_value = [&]( size_t i ){
-        return *( first + order[i] );
-    };
-    auto ordered_result = [&]( size_t i ) -> size_t& {
-        return result[ order[i] ];
-    };
-
-    // Calculate ranks.
-    for( size_t i = 1; i < size; ++i ) {
-
-        // Same values get the same rank. The next bigger one continues by incrementing.
-        if( ordered_value( i ) == ordered_value( i - 1 ) ) {
-            ordered_result( i ) = ordered_result( i - 1 );
-        } else {
-            ordered_result( i ) = ordered_result( i - 1 ) + 1;
-        }
-    }
-
-    return result;
-}
-
-/**
- * @copydoc ranking_dense( RandomAccessIterator first, RandomAccessIterator last )
- */
-inline std::vector<size_t> ranking_dense( std::vector<double> const& vec )
-{
-    return ranking_dense( vec.begin(), vec.end() );
-}
-
-// =================================================================================================
-//     Ranking Ordinal
-// =================================================================================================
-
-/**
- * @brief Return the ranking of the values in the given range, using Ordinal ranking ("1234" ranking).
- *
- * See https://en.wikipedia.org/wiki/Ranking for details.
- *
- * @see ranking_standard(), ranking_modified(), ranking_dense(), ranking_fractional() for other
- * ranking methods.
- */
-template <class RandomAccessIterator>
-std::vector<size_t> ranking_ordinal( RandomAccessIterator first, RandomAccessIterator last )
-{
-    // Prepare result, and get the sorting order of the vector.
-    auto const size = static_cast<size_t>( std::distance( first, last ));
-    auto result = std::vector<size_t>( size, 1 );
-    auto const order = stable_sort_indices( first, last );
-
-    // Shortcuts for better readability.
-    auto ordered_result = [&]( size_t i ) -> size_t& {
-        return result[ order[i] ];
-    };
-
-    // Calculate ranks. This is simply the order plus 1 (as ranks are 1-based).
-    for( size_t i = 0; i < size; ++i ) {
-        ordered_result( i ) = i + 1;
-    }
-
-    return result;
-}
-
-/**
- * @copydoc ranking_ordinal( RandomAccessIterator first, RandomAccessIterator last )
- */
-inline std::vector<size_t> ranking_ordinal( std::vector<double> const& vec )
-{
-    return ranking_ordinal( vec.begin(), vec.end() );
-}
-
-// =================================================================================================
-//     Ranking Fractional
-// =================================================================================================
-
-/**
- * @brief Return the ranking of the values in the given range, using Fractional ranking
- * ("1 2.5 2.5 4" ranking).
- *
- * See https://en.wikipedia.org/wiki/Ranking for details. This is the only raking method that
- * returns float values instead of integer values.
- *
- * @see ranking_standard(), ranking_modified(), ranking_dense(), ranking_ordinal() for other
- * ranking methods.
- */
-template <class RandomAccessIterator>
-std::vector<double> ranking_fractional( RandomAccessIterator first, RandomAccessIterator last )
-{
-    // Prepare result, and get the sorting order of the vector.
-    auto const size = static_cast<size_t>( std::distance( first, last ));
-    auto result = std::vector<double>( size, 1 );
-    auto const order = stable_sort_indices( first, last );
-
-    // Shortcuts for better readability.
-    auto ordered_value = [&]( size_t i ){
-        return *( first + order[i] );
-    };
-    auto ordered_result = [&]( size_t i ) -> double& {
-        return result[ order[i] ];
-    };
-
-    // Calculate the average of the sum of numbers in the given inclusive range.
-    auto sum_avg = []( size_t l, size_t r )
-    {
-        assert( l <= r );
-
-        // Example:  l == 7, r == 9
-        // We want:  (7 + 8 + 9) / 3 = 8.0
-        // Upper:    1+2+3+4+5+6+7+8+9 = 45
-        // Lower:    1+2+3+4+5+6       = 21
-        // Diff:     45 - 21 = 24
-        // Count:    9 - 7 + 1 = 3
-        // Result:   24 / 3 = 8
-        auto const upper = r * ( r + 1 ) / 2;
-        auto const lower = ( l - 1 ) * l / 2;
-        return static_cast<double>( upper - lower ) / static_cast<double>( r - l + 1 );
-    };
-
-    // Calculate ranks. The loop variable is incremented at the end.
-    for( size_t i = 0; i < size; ) {
-
-        // Look ahead: How often does the value occur?
-        size_t j = 1;
-        while( i+j < size && ordered_value(i+j) == ordered_value(i) ) {
-            ++j;
-        }
-
-        // Set the j-next entries.
-        auto entry = sum_avg( i + 1, i + j );
-        for( size_t k = 0; k < j; ++k ) {
-            ordered_result( i + k ) = entry;
-        }
-
-        // We can skip the j-next loop iterations, as we just set their values
-        i += j;
-    }
-
-    return result;
-}
-
-/**
- * @copydoc ranking_fractional( RandomAccessIterator first, RandomAccessIterator last )
- */
-inline std::vector<double> ranking_fractional( std::vector<double> const& vec )
-{
-    return ranking_fractional( vec.begin(), vec.end() );
 }
 
 } // namespace utils
