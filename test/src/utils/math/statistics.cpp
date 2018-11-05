@@ -75,6 +75,29 @@ TEST( Math, GeometricMean )
     EXPECT_ANY_THROW( geometric_mean({ -1.0 }) );
 }
 
+TEST( Math, WeightedGeometricMean )
+{
+    // Empty.
+    EXPECT_DOUBLE_EQ( 0.0,  weighted_geometric_mean({}, {}) );
+
+    // One value.
+    EXPECT_DOUBLE_EQ(  1.0,  weighted_geometric_mean({ 1.0 }, { 1.0 }) );
+    EXPECT_DOUBLE_EQ(  5.0,  weighted_geometric_mean({ 5.0 }, { 3.0 }) );
+
+    // Two values.
+    EXPECT_DOUBLE_EQ( 4.0,  weighted_geometric_mean({ 2.0, 8.0 }, { 1.0, 1.0 }) );
+    EXPECT_DOUBLE_EQ( 6.0,  weighted_geometric_mean({ 6.0, 6.0 }, { 3.0, 8.0 }) );
+
+    // Three values.
+    EXPECT_DOUBLE_EQ( 0.5,  weighted_geometric_mean({ 4.0, 1.0, 1.0/32.0 }, { 1.0, 1.0, 1.0 }) );
+
+    // Edge cases.
+    EXPECT_ANY_THROW( weighted_geometric_mean({  0.0 }, { 1.0 }) );
+    EXPECT_ANY_THROW( weighted_geometric_mean({ -1.0 }, { 1.0 }) );
+    EXPECT_ANY_THROW( weighted_geometric_mean({ 5.0 }, { 1.0, 2.0 }) );
+    EXPECT_ANY_THROW( weighted_geometric_mean({ 5.0, 2.0 }, { 1.0 }) );
+}
+
 TEST( Math, Median )
 {
     // Empty.

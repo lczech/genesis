@@ -240,6 +240,7 @@ inline double arithmetic_mean( std::vector<double> const& vec )
  * If finite non-positive numbers (zero or negative) are found, an exception is thrown.
  *
  * @see geometric_mean( std::vector<double> const& ) for a version for `std::vector`.
+ * @see weighted_geometric_mean() for a weighted version.
  * @see arithmetic_mean() for a function that calculates the arithmetic mean.
  */
 template <class ForwardIterator>
@@ -283,6 +284,98 @@ double geometric_mean( ForwardIterator first, ForwardIterator last )
 inline double geometric_mean( std::vector<double> const& vec )
 {
     return geometric_mean( vec.begin(), vec.end() );
+}
+
+/**
+ * @brief Calculate the weighted geometric mean of a range of positive numbers.
+ *
+ * The iterators @p first_value and @p last_value, as well as @p first_weight and @p last_weight,
+ * need to point to ranges of `double` values, with @p last_value and @p last_weight being the
+ * past-the-end elements. Both ranges need to have the same size.
+ * The function then calculates the weighted geometric mean of all positive finite elements
+ * in the range. If no elements are finite, or if the range is empty, the returned value is `0.0`.
+ * Non-finite numbers are ignored.
+ * If finite non-positive numbers (zero or negative) are found, an exception is thrown.
+ *
+ * For a set of values \f$ v \f$ and a set of weights \f$ w \f$,
+ * the weighted geometric mean \f$ g \f$ is calcualted following [1]:
+ *
+ * \f$ g = \exp \left( \frac{ \sum w \cdot \log v }{ \sum w } \right) \f$
+ *
+ * That is, if all weights are `1.0`, the formula yields the standard geometric mean.
+ *
+ * > [1] J. D. Silverman, A. D. Washburne, S. Mukherjee, and L. A. David,
+ * > "A phylogenetic transform enhances analysis of compositional microbiota data,"
+ * > Elife, vol. 6, p. e21887, Feb. 2017.
+ * > https://elifesciences.org/articles/21887
+ *
+ * @see weighted_geometric_mean( std::vector<double> const& ) for a version for `std::vector`.
+ * @see geometric_mean() for the unweighted version.
+ * @see arithmetic_mean() for a function that calculates the arithmetic mean.
+ */
+template <class ForwardIterator>
+double weighted_geometric_mean(
+    ForwardIterator first_value,  ForwardIterator last_value,
+    ForwardIterator first_weight, ForwardIterator last_weight
+) {
+    double num = 0.0;
+    double den = 0.0;
+    size_t cnt = 0;
+
+    // Multiply elements.
+    auto it_v = first_value;
+    auto it_w = first_weight;
+    while( it_v != last_value && it_w != last_weight ) {
+        if( std::isfinite( *it_v ) && std::isfinite( *it_w )) {
+            if( *it_v <= 0.0 ) {
+                throw std::invalid_argument(
+                    "Cannot calculate weighted geometric mean of non-positive values."
+                );
+            }
+            if( *it_w < 0.0 ) {
+                throw std::invalid_argument(
+                    "Cannot calculate weighted geometric mean with negative weights."
+                );
+            }
+
+            num += *it_w * std::log( *it_v );
+            den += *it_w;
+            ++cnt;
+        }
+        ++it_v;
+        ++it_w;
+    }
+
+    // Range check
+    if( it_v != last_value || it_w != last_weight ) {
+        throw std::runtime_error(
+            "The value and the weight ranges need to have same length "
+            "to compute the weighted geometric mean."
+        );
+    }
+
+    // If there are no valid elements, return an all-zero result.
+    if( cnt == 0 ) {
+        return 0.0;
+    }
+
+    // Return the result.
+    assert( cnt > 0 );
+    return std::exp( num / den );
+}
+
+/**
+ * @brief Calculate the weighted geometric mean of a `std::vector` of `double` elements.
+ *
+ * @see weighted_geometric_mean( ForwardIterator first, ForwardIterator last ) for details.
+ * @see geometric_mean() for the unweighted version.
+ * @see arithmetic_mean() for a function that calculates the arithmetic mean.
+ */
+inline double weighted_geometric_mean(
+    std::vector<double> const& values,
+    std::vector<double> const& weights
+) {
+    return weighted_geometric_mean( values.begin(), values.end(), weights.begin(), weights.end() );
 }
 
 // =================================================================================================
