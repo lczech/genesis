@@ -51,6 +51,7 @@ namespace utils {
 namespace tree {
 
     class Tree;
+    class TreeSet;
     class TreeNode;
     class TreeEdge;
 
@@ -182,12 +183,22 @@ double mass_tree_binify_masses( MassTree& tree, size_t number_of_bins );
 void mass_trees_make_average_branch_lengths( std::vector<MassTree>& mass_trees );
 
 /**
- * @brief Return a `std::vector` that contains the total @link MassTreeEdgeData::masses Mass@endlink
+ * @brief Return a `std::vector` that contains the total @link MassTreeEdgeData::masses mass@endlink
  * for each @link ::MassTreeEdge edge@endlink of the given @link ::MassTree MassTree@endlink.
  *
  * The vector is indexed using the @link MassTreeEdge::index() index@endlink of the edges.
  */
 std::vector<double> mass_tree_mass_per_edge( MassTree const& tree );
+
+/**
+ * @brief Return the total @link MassTreeEdgeData::masses mass@endlink
+ * for each @link ::MassTreeEdge edge@endlink of the given @link ::MassTree MassTrees@endlink.
+ *
+ * Each row represents one MassTree, and each column the edges, indexed using the
+ * @link MassTreeEdge::index() index@endlink of the edges.
+ * Hence, the Tree%s need to have identical topology.
+ */
+utils::Matrix<double> mass_tree_mass_per_edge( std::vector<MassTree> const& mass_trees );
 
 /**
  * @brief Return a `std::vector` that contains the total @link MassTreeEdgeData::masses Mass@endlink

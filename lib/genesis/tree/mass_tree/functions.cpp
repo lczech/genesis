@@ -335,10 +335,33 @@ std::vector<double> mass_tree_mass_per_edge( MassTree const& tree )
     #pragma omp parallel for
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
         auto const& edge = tree.edge_at(i);
-        auto const& idx = edge.index();
+        assert( i == edge.index() );
         for( auto const& mass : edge.data<MassTreeEdgeData>().masses ) {
-            result[ idx ] += mass.second;
+            result[ i ] += mass.second;
         }
+    }
+
+    return result;
+}
+
+utils::Matrix<double> mass_tree_mass_per_edge( std::vector<MassTree> const& mass_trees )
+{
+    if( mass_trees.empty() || mass_trees[0].empty() ) {
+        return {};
+    }
+
+    utils::Matrix<double> result{ mass_trees.size(), mass_trees[0].edge_count(), 0.0 };
+
+    #pragma omp parallel for
+    for( size_t i = 0; i < mass_trees.size(); ++i ) {
+        if(  mass_trees[i].edge_count() != result.cols() ) {
+            throw std::runtime_error(
+                "Cannot calculate masses per edge for a Tree set with Trees "
+                "whose topology is not identical."
+            );
+        }
+
+        result.row( i ) = mass_tree_mass_per_edge( mass_trees[i] );
     }
 
     return result;
