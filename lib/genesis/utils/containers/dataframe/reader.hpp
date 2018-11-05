@@ -149,6 +149,7 @@ private:
     {
         Dataframe<T> result;
         size_t const offset = ( names_from_first_col_ ? 1 : 0 );
+        size_t line_cnt = 0;
 
         // Early stop.
         if( ! input_stream ) {
@@ -158,6 +159,8 @@ private:
         // Read column names.
         if( names_from_first_row_ ) {
             auto const col_names = reader_.parse_line( input_stream );
+            ++line_cnt;
+
             size_t const start = offset;
             for( size_t i = start; i < col_names.size(); ++i ) {
                 result.add_col( col_names[i] );
@@ -167,10 +170,14 @@ private:
         // Read lines of data.
         while( input_stream ) {
             auto const line = reader_.parse_line( input_stream );
+            ++line_cnt;
 
             // Need to have a least one content element.
             if(( line.size() == 0 ) || ( names_from_first_col_ && line.size() == 1 )) {
-                throw std::runtime_error( "Cannot read Dataframe with empty lines." );
+                throw std::runtime_error(
+                    "Cannot read Dataframe with lines that do not contain any content (line " +
+                    std::to_string( line_cnt ) + "). Maybe the separator char is wrong."
+                );
             }
             assert( line.size() > offset );
 
@@ -195,7 +202,10 @@ private:
 
             // Check if the line has the correct size.
             if( line.size() != offset + result.cols() ) {
-                throw std::runtime_error( "Dataframe input has different line lengths." );
+                throw std::runtime_error(
+                    "Dataframe input has different line lengths (line " +
+                    std::to_string( line_cnt ) + ")."
+                );
             }
 
             // Parse and transfer the data. User specified parser or default one.
@@ -211,6 +221,7 @@ private:
             }
         }
 
+        assert( result.rows() == line_cnt - ( names_from_first_col_ ? 1 : 0 ));
         return result;
     }
 
