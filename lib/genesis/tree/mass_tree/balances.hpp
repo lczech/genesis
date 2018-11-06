@@ -67,7 +67,7 @@ using MassTree = Tree;
  * > Elife, vol. 6, p. e21887, Feb. 2017.
  * > https://elifesciences.org/articles/21887
  */
-std::vector<double> balance_edge_weights( std::vector<MassTree> const& trees );
+std::vector<double> mass_balance_edge_weights( std::vector<MassTree> const& trees );
 
 /**
  * @brief Calcualte the balance of edge masses between two sets of edges.

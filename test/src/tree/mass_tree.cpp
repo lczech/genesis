@@ -111,6 +111,10 @@ TEST( MassTree, PhylogeneticILR )
     EXPECT_EQ( exp.size(), bals.size() );
     for( size_t i = 0; i < bals.size(); ++i ) {
         // std::cout << std::setprecision (18) << bals[i] << "\n";
-        EXPECT_FLOAT_EQ( exp[i], bals[i] );
+        // EXPECT_DOUBLE_EQ( exp[i], bals[i] );
+
+        // We get slighly different results because of compiler floating point optimizations.
+        // Let's say that 10 digits precision are good enough ;-)
+        EXPECT_TRUE( utils::almost_equal_relative( exp[i], bals[i], 1e-10 ));
     }
 }

@@ -38,15 +38,16 @@
 #include "genesis/tree/tree/subtree.hpp"
 #include "genesis/tree/tree.hpp"
 
-#include "genesis/utils/math/statistics.hpp"
-
 #include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/math/common.hpp"
+#include "genesis/utils/math/statistics.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #ifdef GENESIS_OPENMP
@@ -60,7 +61,7 @@ namespace tree {
 //     Phylogenetic ILR Tranform
 // =================================================================================================
 
-std::vector<double> balance_edge_weights( std::vector<MassTree> const& trees )
+std::vector<double> mass_balance_edge_weights( std::vector<MassTree> const& trees )
 {
     if( trees.empty() ) {
         return std::vector<double>();
@@ -74,11 +75,12 @@ std::vector<double> balance_edge_weights( std::vector<MassTree> const& trees )
     assert( edge_masses.cols() == result.size() );
 
     // Calculate the weight for each edge.
+    #pragma omp parallel for
     for( size_t c = 0; c < trees[0].edge_count(); ++c ) {
         auto const counts = edge_masses.col(c).to_vector();
 
         // Get a central tendency of counts, by computing the geometric mean
-        // of the raw counts for a taxon across all trees.
+        // of the raw counts (plus one, to avoid zeros) for a taxon across all trees.
         auto raw = counts;
         for( auto& e : raw ) {
             e += 1.0;
@@ -112,8 +114,11 @@ double mass_balance(
     }
 
     // Helper function that calculates the geom mean of the `edge_masses` of the given edge indices.
-    // (This would be a perfect fit for range filters... but we don't have them in CPP11...)
-    auto calc_mass_mean = [ &edge_masses, &edge_weights ]( std::unordered_set<size_t> const& indices ){
+    // This would be a perfect fit for range filters. But we don't have them in CPP11,
+    // so we need to make copies instead...
+    auto calc_mass_mean_and_scaling_ = [ &edge_masses, &edge_weights ](
+        std::unordered_set<size_t> const& indices
+    ){
         std::vector<double> sub_masses;
         std::vector<double> sub_weights;
         for( auto idx : indices ) {
@@ -125,23 +130,39 @@ double mass_balance(
             if( edge_weights.empty() ) {
                 sub_weights.push_back( 1.0 );
             } else {
+                assert( idx < edge_weights.size() );
                 sub_weights.push_back( edge_weights[idx] );
             }
         }
+        assert( sub_masses.size()  == indices.size() );
+        assert( sub_weights.size() == indices.size() );
 
         // return utils::geometric_mean( sub_masses );
-        return utils::weighted_geometric_mean( sub_masses, sub_weights );
+
+        // Calcualte the mean and the n for scaling.
+        double geom_mean = utils::weighted_geometric_mean( sub_masses, sub_weights );
+        double scaling_n = std::accumulate( sub_weights.begin(), sub_weights.end(), 0.0 );
+
+        // If we have no edge weights, the scaling terms should be the same as the number of edges.
+        assert(
+            ! edge_weights.empty() ||
+            utils::almost_equal_relative( scaling_n, indices.size(), 0.1 )
+        );
+
+        return std::make_pair( geom_mean, scaling_n );
     };
 
-    // Get geometric means of edge subset masses.
-    double const num_mean = calc_mass_mean( numerator_edge_indices );
-    double const den_mean = calc_mass_mean( denominator_edge_indices );
+    // Get geometric means of edge subset masses, and the weighted scaling terms.
+    auto const num = calc_mass_mean_and_scaling_( numerator_edge_indices );
+    auto const den = calc_mass_mean_and_scaling_( denominator_edge_indices );
+    assert( num.first > 0.0 && den.first > 0.0 );
+
+    // double const size_l  = static_cast<double>( numerator_edge_indices.size() );
+    // double const size_r  = static_cast<double>( denominator_edge_indices.size() );
 
     // Calculate the balance.
-    double const size_l  = static_cast<double>( numerator_edge_indices.size() );
-    double const size_r  = static_cast<double>( denominator_edge_indices.size() );
-    double const scaling = std::sqrt(( size_l * size_r ) / ( size_l + size_r ));
-    double const balance = scaling * std::log( num_mean / den_mean );
+    double const scaling = std::sqrt(( num.second * den.second ) / ( num.second + den.second ));
+    double const balance = scaling * std::log( num.first / den.first );
     assert( std::isfinite( balance ));
 
     // LOG_DBG << "num_mean " << num_mean << " den_mean " << den_mean;
@@ -181,9 +202,6 @@ std::vector<double> phylogenetic_ilr_transform(
         );
     }
 
-    // Prepare result list for each node.
-    auto result = std::vector<double>( tree.node_count(), 0.0 );
-
     // Get per-edge masses, stored in edge index order.
     auto edge_masses = mass_tree_mass_per_edge( tree );
 
@@ -202,9 +220,17 @@ std::vector<double> phylogenetic_ilr_transform(
         );
     }
 
-    // Add compensation of zero values.
+    // Add compensation of zero values, then calculate the closure (relative abundances)
+    // of the masses, and if needed, take weights into account.
     for( auto& e : edge_masses ) {
         e += 0.65;
+    }
+    utils::closure( edge_masses );
+    if( ! edge_weights.empty() ) {
+        assert( edge_weights.size() == edge_masses.size() );
+        for( size_t i = 0; i < edge_weights.size(); ++i ) {
+            edge_masses[i] /= edge_weights[i];
+        }
     }
 
     // Get the edge indices of a particular subtree, including the edge that leads to it.
@@ -214,6 +240,9 @@ std::vector<double> phylogenetic_ilr_transform(
         std::unordered_set<size_t> sub_indices;
         for( auto it : preorder( subtree )) {
 
+            // The iterator visits each edge of the subtree once.
+            assert( sub_indices.count( it.edge().index() ) == 0 );
+
             // The preorder iterator is node based, so we start at the root node of the subtree,
             // meaning that we automatically also insert its edge index! No special case needed.
             sub_indices.insert( it.edge().index() );
@@ -221,10 +250,14 @@ std::vector<double> phylogenetic_ilr_transform(
         return sub_indices;
     };
 
+    // Prepare result list for each node.
+    auto result = std::vector<double>( tree.node_count(), 0.0 );
+
     // Calculate balance for every node of the tree.
     #pragma omp parallel for
     for( size_t node_idx = 0; node_idx < tree.node_count(); ++node_idx ) {
         auto const& node = tree.node_at( node_idx );
+        assert( node.index() == node_idx );
 
         // For leaf nodes do nothing. They just keep their initial value of 0.0.
         auto const deg = degree( node );
@@ -244,19 +277,19 @@ std::vector<double> phylogenetic_ilr_transform(
             // link of the node itself, and the right hand side the next one.
             lhs_indices = get_subtree_indices({ node.link().outer() });
             rhs_indices = get_subtree_indices({ node.link().next().outer() });
+
+            // After that, we should have all edges of the tree.
+            assert( lhs_indices.size() + rhs_indices.size() == tree.edge_count() );
         } else {
             assert( deg == 3 );
 
             // At inner nodes, the primary link points towards the root, so we use the next two links.
             lhs_indices = get_subtree_indices({ node.link().next().outer() });
             rhs_indices = get_subtree_indices({ node.link().next().next().outer() });
-        }
 
-        // We never have more edges than the tree, unless its the root node, then we have all.
-        assert(
-            ( lhs_indices.size() + rhs_indices.size()  < tree.edge_count() && ! is_root( node )) ||
-            ( lhs_indices.size() + rhs_indices.size() == tree.edge_count() && is_root( node ))
-        );
+            // We never have more edges than the tree.
+            assert( lhs_indices.size() + rhs_indices.size() < tree.edge_count() );
+        }
 
         // Calculate and store balance.
         result[ node_idx ] = mass_balance( edge_masses, lhs_indices, rhs_indices, edge_weights );
@@ -279,8 +312,13 @@ utils::Matrix<double> phylogenetic_ilr_transform(
         return {};
     }
 
+    // If we use edge weights, calcualte them.
+    auto const edge_weights = use_taxon_weights
+        ? mass_balance_edge_weights( trees )
+        : std::vector<double>()
+    ;
+
     auto result = utils::Matrix<double>( trees.size(), trees[0].node_count(), 0.0 );
-    auto const edge_weights = use_taxon_weights ? balance_edge_weights( trees ) : std::vector<double>();
 
     #pragma omp parallel for
     for( size_t i = 0; i < trees.size(); ++i ) {
