@@ -37,6 +37,7 @@
 #include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/mass_tree/balances.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
+#include "genesis/tree/mass_tree/phylo_ilr.hpp"
 
 #include "genesis/utils/containers/matrix/operators.hpp"
 #include "genesis/utils/math/common.hpp"
