@@ -52,22 +52,133 @@ class Subtree;
 using MassTree = Tree;
 
 // =================================================================================================
-//     Phylogenetic ILR Tranform
+//     Balance Weights
 // =================================================================================================
 
 /**
- * @brief Calculate taxon weights for soft thresholding.
+ * @brief Settings to calculate balances and the Phylogenetic ILR Transform.
  *
- * See [1], Section "Soft thresholding through weighting taxa" for details.
- * We implement the weights `p` as described there, using the geometric mean of the raw counts
- * multiplied by the euclidean norm of the relative abundances.
+ * The class stores settings for different parts of the balances calcualtion:
+ *
+ *  * The taxon weights used in soft thresholding are described in Section
+ *    "Soft thresholding through weighting taxa" of [1]. See there for details.
+ *    We implement the weights `p` as described there, offering different ways to assess the central
+ *    tendency of counts and to measure the norm of their relative abundances.
+ *    These two terms (BalanceSettings::tendency and BalanceSettings::norm) are multiplied
+ *    to get the weight for a taxon.
+ *  * To avoid zero counts in the taxon masses, two ways of adding pseudo-counts are offered:
+ *    Either a constant is added to all taxon masses, or just to the ones that are zero
+ *    (BalanceSettings::pseudo_count_summand_all and BalanceSettings::pseudo_count_summand_zeros).
  *
  * > [1] J. D. Silverman, A. D. Washburne, S. Mukherjee, and L. A. David,
  * > "A phylogenetic transform enhances analysis of compositional microbiota data,"
  * > Elife, vol. 6, p. e21887, Feb. 2017.
  * > https://elifesciences.org/articles/21887
+ *
+ * @see phylogenetic_ilr_transform().
  */
-std::vector<double> mass_balance_edge_weights( std::vector<MassTree> const& trees );
+struct BalanceSettings
+{
+    enum class WeightTendency
+    {
+        /**
+         * @brief Use no tendency, that is, use `1.0` for this term.
+         */
+        kNone,
+
+        /**
+         * @brief Use the median of the taxon masses.
+         * @see median()
+         */
+        kMedian,
+
+        /**
+         * @brief Use the arithmetic mean of the taxon masses.
+         * @see arithmetic_mean()
+         */
+        kArithmeticMean,
+
+        /**
+         * @brief Use the geometric mean of the taxon masses.
+         * @see geometric_mean()
+         */
+        kGeometricMean
+    };
+
+    enum class WeightNorm
+    {
+        /**
+         * @brief Use no norm, that is, use `1.0` for this term.
+         */
+        kNone,
+
+        /**
+         * @brief Use the Manhattan norm of the relative abundances of the taxon.
+         * @see manhattan_norm()
+         */
+        kManhattan,
+
+        /**
+         * @brief Use the Euclidean norm of the relative abundances of the taxon.
+         * @see euclidean_norm()
+         */
+        kEuclidean,
+
+        /**
+         * @brief Use the Maximum norm of the relative abundances of the taxon.
+         * @see maximum_norm()
+         */
+        kMaximum,
+
+        /**
+         * @brief Use the Aitchison norm of the relative abundances of the taxon.
+         * @see aitchison_norm()
+         */
+        kAitchison
+    };
+
+    /**
+     * @brief Set the term for asssing the central tendency of taxon masses for calculating
+     * the taxon weights.
+     */
+    WeightTendency tendency = WeightTendency::kGeometricMean;
+
+    /**
+    * @brief Set the term for the norm of relative abundances for calculating the taxon weights.
+    */
+    WeightNorm     norm     = WeightNorm::kEuclidean;
+
+    /**
+     * @brief Set the constant that is added to all taxon masses to avoid zero counts.
+     */
+    double pseudo_count_summand_all = 1.0;
+
+    /**
+    * @brief Set the constant that is added to taxon masses that are zero, to avoid zero counts.
+    */
+    double pseudo_count_summand_zeros = 0.0;
+
+    /**
+     * @brief If set to `true`, the numerator and the denominator of the ILR transform are flipped.
+     */
+    bool reverse_signs = false;
+};
+
+/**
+ * @brief Calcualte per-taxon weights for balances and Phylogenetic ILR Tranform.
+ *
+ * Per-taxon weights are calcuated per edge of the MassTree%s, as each edge represents a taxon
+ * (including inner edges) in our calculations. See BalanceSettings for the options
+ * to calculate these weights.
+ */
+std::vector<double> mass_balance_edge_weights(
+    std::vector<MassTree> const& trees,
+    BalanceSettings settings = {}
+);
+
+// =================================================================================================
+//     Balances
+// =================================================================================================
 
 /**
  * @brief Calcualte the balance of edge masses between two sets of edges.
@@ -81,6 +192,10 @@ double mass_balance(
     std::unordered_set<size_t> const& denominator_edge_indices,
     std::vector<double> const& edge_weights = {}
 );
+
+// =================================================================================================
+//     Phylogenetic ILR Tranform
+// =================================================================================================
 
 /**
  * @brief Calcualte the Phylogenetic Isometric Log Ratio transformation of a MassTree.
@@ -104,6 +219,7 @@ double mass_balance(
  */
 std::vector<double> phylogenetic_ilr_transform(
     MassTree const& tree,
+    BalanceSettings balance_settings = {},
     std::vector<double> const& edge_weights = {}
 );
 
@@ -117,7 +233,7 @@ std::vector<double> phylogenetic_ilr_transform(
  */
 utils::Matrix<double> phylogenetic_ilr_transform(
     std::vector<MassTree> const& trees,
-    bool use_taxon_weights = true
+    BalanceSettings balance_settings = {}
 );
 
 } // namespace tree
