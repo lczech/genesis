@@ -75,6 +75,20 @@ utils::Matrix<double> phylogenetic_ilr_transform(
     bool reverse_signs = false
 );
 
+/**
+ * @brief Calculate edge balances using the Isometric Log Ratio transformation.
+ *
+ * This is a hybrid method between the phylogenetic_ilr_transform() and
+ * @link epca_imbalance_matrix() edge imbalances@endlink: We calcualte the _balance_ between the
+ * masses on the two sides of the split induced by each edge. This is similar to edge imbalances,
+ * in that it splits the tree at each edge, but instead of calculating the imbalance, we
+ * use the ILR transform to calculate balances instead.
+ */
+utils::Matrix<double> edge_balances(
+    BalanceData const& data,
+    bool reverse_signs = false
+);
+
 } // namespace tree
 } // namespace genesis
 
