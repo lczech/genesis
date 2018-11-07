@@ -74,8 +74,8 @@ public:
     //     Declarations and Constructor
     // -------------------------------------------------------------
 
-    // /**
-    //  * @brief Default construct a subtree that does .
+    // /* *
+    //  * @ brief Default construct a subtree that does .
     //  */
     // Subtree() = default;
 

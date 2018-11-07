@@ -336,9 +336,12 @@ std::vector<double> mass_tree_mass_per_edge( MassTree const& tree )
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
         auto const& edge = tree.edge_at(i);
         assert( i == edge.index() );
+
+        double sum = 0.0;
         for( auto const& mass : edge.data<MassTreeEdgeData>().masses ) {
-            result[ i ] += mass.second;
+            sum += mass.second;
         }
+        result[ i ] = sum;
     }
 
     return result;
@@ -357,7 +360,7 @@ utils::Matrix<double> mass_tree_mass_per_edge( std::vector<MassTree> const& mass
         if(  mass_trees[i].edge_count() != result.cols() ) {
             throw std::runtime_error(
                 "Cannot calculate masses per edge for a Tree set with Trees "
-                "whose topology is not identical."
+                "with unequal edge count."
             );
         }
 

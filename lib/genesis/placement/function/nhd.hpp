@@ -70,7 +70,7 @@ namespace placement {
  * @brief Simple histogram data structure with equal sized bins.
  *
  * This struct is used as a fast and light-weight alternative to the proper utils::Histogram class
- * for calcualting Node Histogram distances.
+ * for calculating Node Histogram distances.
  */
 struct NodeDistanceHistogram
 {
@@ -92,7 +92,7 @@ struct NodeDistanceHistogramSet
 // =================================================================================================
 
 /**
- * @brief Calcualte the NodeDistanceHistogramSet representing a single Sample, given the necessary
+ * @brief Calculate the NodeDistanceHistogramSet representing a single Sample, given the necessary
  * matrices of this Sample.
  *
  * This is a basic function that is mainly used for speedup in applications. The two matrices
@@ -130,7 +130,7 @@ utils::Matrix<double> node_histogram_distance(
 * @brief Calculate the Node Histogram Distance of two Sample%s.
 *
 * The necessary matrices of the Samples are calculated, then their NodeDistanceHistogramSet are
-* build, and finally the distance is calcualted. Basically, this is a high level
+* build, and finally the distance is calculated. Basically, this is a high level
 * function that simply chains node_distance_histogram_set() and
 * @link node_histogram_distance( NodeDistanceHistogramSet const&, NodeDistanceHistogramSet const& ) node_histogram_distance()@endlink
 * for convenience.

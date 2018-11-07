@@ -105,6 +105,7 @@
 #include "genesis/utils/math/pca.hpp"
 #include "genesis/utils/math/random.hpp"
 #include "genesis/utils/math/range_minimum_query.hpp"
+#include "genesis/utils/math/ranking.hpp"
 #include "genesis/utils/math/statistics.hpp"
 #include "genesis/utils/math/twobit_vector/functions.hpp"
 #include "genesis/utils/math/twobit_vector.hpp"

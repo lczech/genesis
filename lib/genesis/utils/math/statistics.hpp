@@ -95,7 +95,7 @@ struct Quartiles
  * @brief Calculate the closure of a range of numbers.
  *
  * The iterators @p first and @p last need to point to a range of `double` values,
- * with @p last being the past-the-end element. Then, the closure [1] of the elements is calcualted,
+ * with @p last being the past-the-end element. Then, the closure [1] of the elements is calculated,
  * that is, they are all divided by their total sum. This is used in compositional data analysis.
  * Non-finite elements are ignored, negative elements throw an exception.
  *
@@ -246,7 +246,7 @@ inline MeanStddevPair mean_stddev( std::vector<double> const& vec, double epsilo
  * Non-finite numbers are ignored.
  *
  * @see arithmetic_mean( std::vector<double> const& ) for a version for `std::vector`.
- * @see mean_stddev() for a function that also calcualtes the standard deviation.
+ * @see mean_stddev() for a function that also calculates the standard deviation.
  * @see geometric_mean() for a function that calculates the geometric mean.
  */
 template <class ForwardIterator>
@@ -357,7 +357,7 @@ inline double geometric_mean( std::vector<double> const& vec )
  * If finite non-positive numbers (zero or negative) are found, an exception is thrown.
  *
  * For a set of values \f$ v \f$ and a set of weights \f$ w \f$,
- * the weighted geometric mean \f$ g \f$ is calcualted following [1]:
+ * the weighted geometric mean \f$ g \f$ is calculated following [1]:
  *
  * \f$ g = \exp \left( \frac{ \sum w \cdot \log v }{ \sum w } \right) \f$
  *
@@ -774,7 +774,7 @@ inline Quartiles quartiles( std::vector<double> const& vec )
  *
  * The coefficient of variation (CV), also known as the relative standard deviation (RSD),
  * is defined as the ratio of the standard deviation to the mean.
- * See mean_stddev() to calcualte those values.
+ * See mean_stddev() to calculate those values.
  * See https://en.wikipedia.org/wiki/Coefficient_of_variation for details.
  */
 inline double coefficient_of_variation( MeanStddevPair const& ms )
@@ -800,7 +800,7 @@ inline std::vector<double> coefficient_of_variation( std::vector<MeanStddevPair>
  * The index of dispersion, also known as the dispersion index, coefficient of dispersion,
  * relative variance, variance-to-mean ratio (VMR) or Fano factor, is defined as the ratio of the
  * variance to the mean. Variance is the square of the standard deviation.
- * See mean_stddev() to calcualte those values.
+ * See mean_stddev() to calculate those values.
  * See https://en.wikipedia.org/wiki/Index_of_dispersion for details.
  */
 inline double index_of_dispersion( MeanStddevPair const& ms )
@@ -946,7 +946,7 @@ double pearson_correlation_coefficient(
     }
     assert( it_a == last_a && it_b == last_b );
 
-    // Calcualte PCC, and assert that it is in the correct range
+    // Calculate PCC, and assert that it is in the correct range
     // (or not a number, which can happen if the std dev is 0.0, e.g. in all-zero vectors).
     auto const pcc = numerator / ( std::sqrt( stddev_a ) * std::sqrt( stddev_b ) );
     assert(( -1.0 <= pcc && pcc <= 1.0 ) || ( ! std::isfinite( pcc ) ));

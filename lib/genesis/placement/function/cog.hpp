@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -75,7 +75,7 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
 );
 
 /**
- * @brief Calcualte the variance of the PqueryPlacement%s of a Sample around its Center of Gravity.
+ * @brief Calculate the variance of the PqueryPlacement%s of a Sample around its Center of Gravity.
  *
  * The caluclation of the variance is as follows:
  *

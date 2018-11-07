@@ -167,30 +167,32 @@ bool equal(
 //     return equal<TreeTypeL, TreeTypeR>(lhs, rhs, node_comparator, edge_comparator);
 // }
 
-bool identical_topology( Tree const& lhs, Tree const& rhs)
+bool identical_topology( Tree const& lhs, Tree const& rhs, bool identical_indices )
 {
-    auto node_comparator = [] (
+    auto node_comparator = [ &identical_indices ] (
         TreeNode const& node_l,
         TreeNode const& node_r
     ) {
-        (void) node_l;
-        (void) node_r;
+        if( identical_indices && node_l.index() != node_r.index() ) {
+            return false;
+        }
         return true;
     };
 
-    auto edge_comparator = [] (
+    auto edge_comparator = [ &identical_indices ] (
         TreeEdge const& edge_l,
         TreeEdge const& edge_r
     ) {
-        (void) edge_l;
-        (void) edge_r;
+        if( identical_indices && edge_l.index() != edge_r.index() ) {
+            return false;
+        }
         return true;
     };
 
     return equal( lhs, rhs, node_comparator, edge_comparator );
 }
 
-bool identical_topology( std::vector<Tree> const& trees )
+bool identical_topology( std::vector<Tree> const& trees, bool identical_indices )
 {
     // If all pairs of two adjacent trees have same the topology, all of them have.
     // Thus, we do not need a complete pairwise comparision.
@@ -205,7 +207,7 @@ bool identical_topology( std::vector<Tree> const& trees )
             continue;
         }
 
-        if( ! identical_topology( trees[i-1], trees[i] )) {
+        if( ! identical_topology( trees[i-1], trees[i], identical_indices )) {
             result = false;
         }
     }

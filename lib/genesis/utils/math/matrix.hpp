@@ -268,7 +268,7 @@ std::vector<MeanStddevPair> standardize_rows(
 // =================================================================================================
 
 /**
- * @brief Calcualte the mean and standard deviation of all elements in a Matrix.
+ * @brief Calculate the mean and standard deviation of all elements in a Matrix.
  *
  * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
  * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
@@ -284,7 +284,7 @@ MeanStddevPair matrix_mean_stddev(
 );
 
 /**
- * @brief Calcualte the column-wise mean and standard deviation of a Matrix.
+ * @brief Calculate the column-wise mean and standard deviation of a Matrix.
  *
  * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
  * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
@@ -300,7 +300,7 @@ std::vector<MeanStddevPair> matrix_col_mean_stddev(
 );
 
 /**
- * @brief Calcualte the row-wise mean and standard deviation of a Matrix.
+ * @brief Calculate the row-wise mean and standard deviation of a Matrix.
  *
  * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
  * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
