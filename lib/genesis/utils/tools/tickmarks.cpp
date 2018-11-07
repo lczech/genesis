@@ -86,7 +86,7 @@ std::vector<double> Tickmarks::linear_ticks( double min, double max, size_t targ
     auto res = std::vector<double>();
 
     if( max < min ) {
-        throw std::runtime_error( "Cannot calcualte scale with max < min." );
+        throw std::runtime_error( "Cannot calculate scale with max < min." );
     }
 
     // The case of 0 target steps can happen for example in SvgPalette.
@@ -160,10 +160,10 @@ std::vector<Tickmarks::LabeledTick> Tickmarks::logarithmic_labels( double min, d
         throw std::runtime_error( "Cannot calculate logarithmic scale for negative values." );
     }
     if( min >= max ) {
-        throw std::runtime_error( "Cannot calcualte scale with min >= max." );
+        throw std::runtime_error( "Cannot calculate scale with min >= max." );
     }
     if( base < 0.0 ) {
-        throw std::runtime_error( "Cannot calcualte logarithmic scale with negative base." );
+        throw std::runtime_error( "Cannot calculate logarithmic scale with negative base." );
     }
 
     // Start at a power below min.

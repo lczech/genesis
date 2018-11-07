@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -266,7 +266,7 @@ size_t SignatureSpecifications::kmer_reverse_complement_list_size( bool with_pal
         throw std::runtime_error( "Reverse complement kmers only valid for nucleic acid codes." );
     }
 
-    // Calcualtions according to: https://stackoverflow.com/a/40953130
+    // Calculations according to: https://stackoverflow.com/a/40953130
 
     // Number of palindromic k-mers. For odd k, there are none, for even k, there are 4^(k/2) = 2^k
     auto const p = ( k_ % 2 == 1 ? 0 : utils::int_pow( 2, k_ ));

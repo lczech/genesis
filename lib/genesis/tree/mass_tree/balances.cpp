@@ -65,7 +65,7 @@ std::vector<double> mass_balance_edge_weights(
     // Prepare result. Default to 1.0, that is, no weights.
     auto result = std::vector<double>( trees[0].edge_count(), 1.0 );
 
-    // Shortcut: If no weights are to be calcualted, we can immediately return.
+    // Shortcut: If no weights are to be calculated, we can immediately return.
     if(
         balance_settings.tendency == BalanceSettings::WeightTendency::kNone &&
         balance_settings.norm     == BalanceSettings::WeightNorm::kNone
@@ -112,7 +112,7 @@ std::vector<double> mass_balance_edge_weights(
         }
 
         // Get a norm of the relative abundances of the taxon across all trees.
-        // This is calcualted on the relative abundances, so build the closure of the masses first.
+        // This is calculated on the relative abundances, so build the closure of the masses first.
         utils::closure( counts );
         double norm = 1.0;
         switch( balance_settings.norm ) {
@@ -197,7 +197,7 @@ double mass_balance(
         assert( sub_masses.size()  == indices.size() );
         assert( sub_weights.size() == indices.size() );
 
-        // Calcualte the mean and the n for scaling.
+        // Calculate the mean and the n for scaling.
         double geom_mean = utils::weighted_geometric_mean( sub_masses, sub_weights );
         double scaling_n = std::accumulate( sub_weights.begin(), sub_weights.end(), 0.0 );
 

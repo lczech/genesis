@@ -51,11 +51,11 @@ using MassTree = Tree;
 // =================================================================================================
 
 /**
- * @brief Calcualte the Phylogenetic Isometric Log Ratio transformation of a MassTree.
+ * @brief Calculate the Phylogenetic Isometric Log Ratio transformation of a MassTree.
  *
  * The balances are calculated per node of the tree, similar to [1]. We however extend this original
  * idea by being able to place masses on inner branches as well, instead of just the tips (OTUs).
- * The tree has to be bifurcating and rooted. The calcualted balances are stored using the node
+ * The tree has to be bifurcating and rooted. The calculated balances are stored using the node
  * indices. Their sign (order of the subtrees) is according to the TreeLink order of each TreeNode:
  * The numerator is the first link, the denominator is the second link.
  * Use sign_matrix() to get the ordering (sign) used for the subtrees.
@@ -77,7 +77,7 @@ std::vector<double> phylogenetic_ilr_transform(
 );
 
 /**
- * @brief Calcualte the Phylogenetic Isometric Log Ratio transformation of a set of MassTree%s.
+ * @brief Calculate the Phylogenetic Isometric Log Ratio transformation of a set of MassTree%s.
  *
  * Because we return a @link utils::Matrix Matrix@endlink of the results, all Tree%s have to have
  * identical topology.

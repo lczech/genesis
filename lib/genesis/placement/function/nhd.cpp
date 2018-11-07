@@ -217,7 +217,7 @@ void fill_node_distance_histogram_set (
             auto const side = node_sides( node_index, placement.primary_node_index );
             double const sign = ( side == 1 ? 1.0 : -1.0 );
 
-            // Calcualte the bin index.
+            // Calculate the bin index.
             auto const x = sign * dist;
             size_t bin = 0;
             if( x < min ) {

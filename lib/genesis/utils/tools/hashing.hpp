@@ -73,7 +73,7 @@ enum class HashingFunctions
 // ================================================================================================
 
 /**
- * @brief Calcualte the hash of a file, using a given hashing function, and return its hex
+ * @brief Calculate the hash of a file, using a given hashing function, and return its hex
  * representation as a string.
  *
  * See ::HashingFunctions for the list of available hashing functions.
@@ -84,7 +84,7 @@ enum class HashingFunctions
 std::string hash_from_file_hex( std::string const& filename, HashingFunctions hash_fct );
 
 /**
- * @brief Calcualte the hash of a string, using a given hashing function, and return its hex
+ * @brief Calculate the hash of a string, using a given hashing function, and return its hex
  * representation as a string.
  *
  * See ::HashingFunctions for the list of available hashing functions.
@@ -95,7 +95,7 @@ std::string hash_from_file_hex( std::string const& filename, HashingFunctions ha
 std::string hash_from_string_hex( std::string const& input, HashingFunctions hash_fct );
 
 /**
- * @brief Calcualte the hash of an input stream, using a given hashing function, and return its hex
+ * @brief Calculate the hash of an input stream, using a given hashing function, and return its hex
  * representation as a string.
  *
  * See ::HashingFunctions for the list of available hashing functions.
