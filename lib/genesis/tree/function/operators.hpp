@@ -193,15 +193,20 @@ bool equal(
  * This means, although two trees might have the same number of leaves and branches, they might
  * still be not identical (with respect to this function) when the branches appear in a different
  * order or when the root sits at a different node.
+ *
+ * Futhermore, if @p identical_indices is set to `true` (default), the function also checks
+ * whether the indices of nodes and edges are identical at the different nodes and edges of the
+ * trees. This is important if mulitple (identical) trees are used in a calculation, where the
+ * indices are used as indices into arrays or the like.
  */
-bool identical_topology( Tree const& lhs, Tree const& rhs);
+bool identical_topology( Tree const& lhs, Tree const& rhs, bool identical_indices = true );
 
 /**
  * @brief Return whether all trees have an identical topology.
  *
- * @copydetails identical_topology( Tree const&, Tree const& )
+ * See identical_topology( Tree const&, Tree const&, bool ) for details.
  */
-bool identical_topology( std::vector<Tree> const& trees );
+bool identical_topology( std::vector<Tree> const& trees, bool identical_indices = true );
 
 // =================================================================================================
 //     Element Ownership Checks
