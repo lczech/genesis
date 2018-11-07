@@ -30,6 +30,9 @@
 
 #include "genesis/tree/mass_tree/balances.hpp"
 
+#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/operators.hpp"
+#include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
 #include "genesis/tree/mass_tree/tree.hpp"
 #include "genesis/tree/tree.hpp"
@@ -37,8 +40,10 @@
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/statistics.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <functional>
 #include <stdexcept>
 #include <unordered_set>
 #include <vector>
@@ -51,114 +56,285 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Balances and Weights
+//     Balances Data Calculation
 // =================================================================================================
 
-std::vector<double> mass_balance_edge_weights(
+BalanceData mass_balance_data(
     std::vector<MassTree> const& trees,
-    BalanceSettings balance_settings
+    BalanceSettings settings
 ) {
+    // Prepare (empty) result.
+    BalanceData result;
+
+    // Basic checks.
     if( trees.empty() ) {
-        return std::vector<double>();
-    }
-
-    // Prepare result. Default to 1.0, that is, no weights.
-    auto result = std::vector<double>( trees[0].edge_count(), 1.0 );
-
-    // Shortcut: If no weights are to be calculated, we can immediately return.
-    if(
-        balance_settings.tendency == BalanceSettings::WeightTendency::kNone &&
-        balance_settings.norm     == BalanceSettings::WeightNorm::kNone
-    ) {
         return result;
     }
+    for( auto const& tree : trees ) {
+        if( ! tree_data_is< MassTreeNodeData, MassTreeEdgeData >( tree ) ) {
+            throw std::invalid_argument(
+                "Tree is not a MassTree. Cannot calculate its balance data."
+            );
+        }
+    }
+    if( ! identical_topology( trees )) {
+        throw std::invalid_argument(
+            "Trees do not have identical topology. Cannot calculate their balance data."
+        );
+    }
+    if(
+        ! std::isfinite( settings.pseudo_count_summand_all   ) ||
+        ! std::isfinite( settings.pseudo_count_summand_zeros ) ||
+        settings.pseudo_count_summand_all   < 0.0              ||
+        settings.pseudo_count_summand_zeros < 0.0
+    ) {
+        throw std::invalid_argument(
+            "Pseudo-count summands in balance settings have to be non-negative numbers."
+        );
+    }
 
-    // Get masses per edge of all tress.
-    auto const edge_masses = mass_tree_mass_per_edge( trees );
-    assert( edge_masses.rows() == trees.size() );
-    assert( edge_masses.cols() == result.size() );
+    // Make a nice copy of the tree.
+    result.tree = convert_to_common_tree( average_branch_length_tree( trees ));
 
-    // Calculate the weight for each edge.
-    #pragma omp parallel for
-    for( size_t c = 0; c < trees[0].edge_count(); ++c ) {
-        auto counts = edge_masses.col(c).to_vector();
+    // First, get the raw (total) masses. We make the relative later on,
+    // because first we might need the raw ones for the tendency and norm terms of the taxon weights.
+    result.edge_masses = mass_tree_mass_per_edge( trees );
+    assert( result.edge_masses.rows() == trees.size() );
+    assert( result.edge_masses.cols() == result.tree.edge_count() );
 
-        // Get a central tendency of counts.
-        double tendency = 1.0;
-        switch( balance_settings.tendency ) {
-            case BalanceSettings::WeightTendency::kNone: {
-                break;
-            }
-            case BalanceSettings::WeightTendency::kMedian: {
-                tendency = utils::median( counts );
-                break;
-            }
-            case BalanceSettings::WeightTendency::kArithmeticMean: {
-                tendency = utils::arithmetic_mean( counts );
-                break;
-            }
-            case BalanceSettings::WeightTendency::kGeometricMean: {
-                // For the geometric mean of the raw counts, we add one to avoid zeros.
-                auto raw = counts;
-                for( auto& e : raw ) {
-                    e += 1.0;
+    // Check that we do not use normalized masses here.
+    // For numerical reasons, we use a threshold of 1.1 here, to be sure.
+    // This means that metagenomic samples with less than 1.1 sequences cannot be processed.
+    // We can live with that.
+    for( size_t r = 0; r < result.edge_masses.rows(); ++r ) {
+        auto const sum = std::accumulate(
+            result.edge_masses.row(r).begin(), result.edge_masses.row(r).end(), 0.0
+        );
+        if( sum < 1.1 ) {
+            throw std::runtime_error(
+                "Cannot calculate balance data on trees with normalized masses."
+            );
+        }
+    }
+
+    // Calculate the central tendency of each taxon (column) of the edge masses.
+    // If we do not use the tendency term, we default to 1.0.
+    // If we only have one tree, we cannot calculate any weights, so we can also skip this.
+    auto tendencies = std::vector<double>( result.tree.edge_count(), 1.0 );
+    if( trees.size() > 1 && settings.tendency != BalanceSettings::WeightTendency::kNone ) {
+
+        #pragma omp parallel for
+        for( size_t c = 0; c < tendencies.size(); ++c ) {
+            switch( settings.tendency ) {
+                case BalanceSettings::WeightTendency::kNone: {
+                    // Can't happen, as we exluded this alreay above.
+                    assert( false );
+                    break;
                 }
-                tendency = utils::geometric_mean( raw );
-                break;
-            }
-            default: {
-                assert( false );
-            }
-        }
-
-        // Get a norm of the relative abundances of the taxon across all trees.
-        // This is calculated on the relative abundances, so build the closure of the masses first.
-        utils::closure( counts );
-        double norm = 1.0;
-        switch( balance_settings.norm ) {
-            case BalanceSettings::WeightNorm::kNone: {
-                break;
-            }
-            case BalanceSettings::WeightNorm::kManhattan: {
-                norm = utils::manhattan_norm( counts );
-                break;
-            }
-            case BalanceSettings::WeightNorm::kEuclidean: {
-                norm = utils::euclidean_norm( counts );
-                break;
-            }
-            case BalanceSettings::WeightNorm::kMaximum: {
-                norm = utils::maximum_norm( counts );
-                break;
-            }
-            case BalanceSettings::WeightNorm::kAitchison: {
-                norm = utils::aitchison_norm( counts );
-                break;
-            }
-            default: {
-                assert( false );
+                case BalanceSettings::WeightTendency::kMedian: {
+                    tendencies[c] = utils::median(
+                        result.edge_masses.col(c).begin(), result.edge_masses.col(c).end()
+                    );
+                    break;
+                }
+                case BalanceSettings::WeightTendency::kArithmeticMean: {
+                    tendencies[c] = utils::arithmetic_mean(
+                        result.edge_masses.col(c).begin(), result.edge_masses.col(c).end()
+                    );
+                    break;
+                }
+                case BalanceSettings::WeightTendency::kGeometricMean: {
+                    // For the geometric mean of the raw counts, we add one to avoid zeros.
+                    // This is in accordance with Silverman et al.
+                    auto raw = result.edge_masses.col(c).to_vector();
+                    for( auto& e : raw ) {
+                        e += 1.0;
+                    }
+                    tendencies[c] = utils::geometric_mean( raw );
+                    break;
+                }
+                default: {
+                    assert( false );
+                }
             }
         }
+    }
 
-        result[c] = tendency * norm;
-        assert( std::isfinite( result[c] ) && result[c] >= 0.0 );
+    // Caluclate the norm of the relative abundances across all trees. In Silverman et al.,
+    // it is not explicitly stated whether they calculate the norm on relative abundances with or
+    // without pseudo counts. Probably they do not use pseudo counts. So, we do the same here,
+    // which requires to make a copy of the masses...
+    // If we do not use the norm term, we default to 1.0.
+    auto norms = std::vector<double>( result.tree.edge_count(), 1.0 );
+    if( trees.size() > 1 && settings.norm != BalanceSettings::WeightNorm::kNone ) {
+
+        // Make a copy of the masses and calcualte relative abundances per row
+        // without any pseudo counts.
+        auto edge_masses_cpy = result.edge_masses;
+        assert( edge_masses_cpy.cols() == result.tree.edge_count() );
+        assert( edge_masses_cpy.cols() == norms.size() );
+        for( size_t r = 0; r < edge_masses_cpy.rows(); ++r ) {
+            utils::closure( edge_masses_cpy.row(r).begin(), edge_masses_cpy.row(r).end() );
+        }
+
+        // Calculate the norm on these masses.
+        #pragma omp parallel for
+        for( size_t c = 0; c < norms.size(); ++c ) {
+
+            // Get iterators, so that we avoid copying the vectors.
+            auto em_beg = edge_masses_cpy.col(c).begin();
+            auto em_end = edge_masses_cpy.col(c).end();
+
+            switch( settings.norm ) {
+                case BalanceSettings::WeightNorm::kNone: {
+                    // Can't happen, as we exluded this alreay above.
+                    assert( false );
+                    break;
+                }
+                case BalanceSettings::WeightNorm::kManhattan: {
+                    norms[c] = utils::manhattan_norm( em_beg, em_end );
+                    break;
+                }
+                case BalanceSettings::WeightNorm::kEuclidean: {
+                    norms[c] = utils::euclidean_norm( em_beg, em_end );
+                    break;
+                }
+                case BalanceSettings::WeightNorm::kMaximum: {
+                    norms[c] = utils::maximum_norm( em_beg, em_end );
+                    break;
+                }
+                case BalanceSettings::WeightNorm::kAitchison: {
+                    norms[c] = utils::aitchison_norm( em_beg, em_end );
+                    break;
+                }
+                default: {
+                    assert( false );
+                }
+            }
+        }
+    }
+
+    // Calculate taxon weights as the product of tendency and norm per edge.
+    // We only do that for more than one tree, otherwise we leave the weights empty.
+    if( trees.size() > 1 ) {
+        result.taxon_weights = std::vector<double>( result.tree.edge_count() );
+        assert( result.taxon_weights.size() == tendencies.size() );
+        assert( result.taxon_weights.size() == norms.size() );
+        assert( result.taxon_weights.size() == result.tree.edge_count() );
+
+        for( size_t c = 0; c < result.taxon_weights.size(); ++c ) {
+            assert( std::isfinite( tendencies[c] ) && tendencies[c] >= 0.0 );
+            assert( std::isfinite( norms[c] ) && norms[c] >= 0.0 );
+
+            result.taxon_weights[c] = tendencies[c] * norms[c];
+            assert( std::isfinite( result.taxon_weights[c] ) && result.taxon_weights[c] >= 0.0 );
+        }
+    }
+
+    // Now, we can add compensation of zero values in form of pseudo counts,
+    // then calculate the closure (relative abundances) per row (tree) of the masses.
+    for( auto& e : result.edge_masses ) {
+        assert( std::isfinite( e ) && e >= 0.0 );
+        if( e == 0.0 ) {
+            e += settings.pseudo_count_summand_zeros;
+        }
+        e += settings.pseudo_count_summand_all;
+    }
+    for( size_t r = 0; r < result.edge_masses.rows(); ++r ) {
+        utils::closure( result.edge_masses.row(r).begin(), result.edge_masses.row(r).end() );
+    }
+
+    // If needed, take taxon weights into account for the masses.
+    if( ! result.taxon_weights.empty() ) {
+        assert( trees.size() > 1 );
+        assert( result.taxon_weights.size() == result.edge_masses.cols() );
+
+        #pragma omp parallel for
+        for( size_t r = 0; r < result.edge_masses.rows(); ++r ) {
+            for( size_t c = 0; c < result.taxon_weights.size(); ++c ) {
+
+                // For some weird reason, Silverman et al. chose to divide by the weight instead
+                // of multiplying with it. It feels wrong, but we do it anyway.
+                result.edge_masses( r, c ) /= result.taxon_weights[c];
+
+                // if( result.edge_masses( r, c ) == 0.0 ) {
+                //     result.edge_masses( r, c ) = std::numeric_limits<double>::min();
+                // }
+            }
+        }
+    }
+
+    // Assert the result sizes again, just to have that stated explicitly somewhere.
+    assert( result.edge_masses.rows() == trees.size() );
+    assert( result.edge_masses.cols() == result.tree.edge_count() );
+    assert( trees.size() == 1 xor result.taxon_weights.size() == result.tree.edge_count() );
+
+    return result;
+}
+
+BalanceData mass_balance_data(
+    MassTree const& tree,
+    BalanceSettings settings
+) {
+    // Ugly, but we need to make a copy to avoid a lot of code duplication.
+    // At least, it's just a single tree.
+    auto const result = mass_balance_data( std::vector<MassTree>{ tree }, settings );
+
+    assert( identical_topology( result.tree, tree ));
+    assert( result.edge_masses.rows() == 1 );
+    assert( result.edge_masses.cols() == tree.edge_count() );
+    assert( result.taxon_weights.empty() );
+
+    return result;
+}
+
+// =================================================================================================
+//     Balance Calculation
+// =================================================================================================
+
+std::vector<double> mass_balance(
+    BalanceData const& data,
+    std::unordered_set<size_t> const& numerator_edge_indices,
+    std::unordered_set<size_t> const& denominator_edge_indices
+) {
+    auto result = std::vector<double>( data.edge_masses.rows(), 0.0 );
+
+    #pragma omp parallel for
+    for( size_t r = 0; r < data.edge_masses.rows(); ++r ) {
+        result[r] = mass_balance( data, numerator_edge_indices, denominator_edge_indices, r );
     }
 
     return result;
 }
 
 double mass_balance(
-    std::vector<double> const& edge_masses,
+    BalanceData const& data,
     std::unordered_set<size_t> const& numerator_edge_indices,
     std::unordered_set<size_t> const& denominator_edge_indices,
-    std::vector<double> const& edge_weights
+    size_t tree_index
 ) {
-    if( numerator_edge_indices.empty() || denominator_edge_indices.empty() ) {
-        throw std::runtime_error( "Cannot calculate mass balance of empty edge sets." );
+    // Consistency and input checks.
+    if( data.tree.empty() ) {
+        throw std::runtime_error(
+            "Invalid BalanceData: Cannot calculate balance of an empty tree."
+        );
     }
-    if( ! edge_weights.empty() && edge_weights.size() != edge_masses.size() ) {
+    if( ! data.taxon_weights.empty() && data.taxon_weights.size() != data.edge_masses.cols() ) {
+        throw std::runtime_error(
+            "Invalid BalanceData: Taxon weights need to have same size as edge masses."
+        );
+    }
+    if( data.edge_masses.cols() != data.tree.edge_count() ) {
+        throw std::runtime_error(
+            "Invalid BalanceData: Edge masses need to have same size as the Tree has edges."
+        );
+    }
+    if( numerator_edge_indices.empty() || denominator_edge_indices.empty() ) {
+        throw std::invalid_argument( "Cannot calculate mass balance of empty edge sets." );
+    }
+    if( tree_index >= data.edge_masses.rows() ) {
         throw std::invalid_argument(
-            "Edge weights need to have same size as edge masses."
+            "Cannot calculate mass balance with tree index greater than number of trees."
         );
     }
 
@@ -173,7 +349,7 @@ double mass_balance(
     // and the scaling term n used for normalization of the balance.
     // This would be a perfect fit for range filters. But we don't have them in CPP11,
     // so we need to make copies instead...
-    auto calc_mass_mean_and_scaling_ = [ &edge_masses, &edge_weights ](
+    auto calc_mass_mean_and_scaling_ = [ &data, &tree_index ](
         std::unordered_set<size_t> const& indices
     ){
         std::vector<double> sub_masses;
@@ -181,17 +357,18 @@ double mass_balance(
         for( auto idx : indices ) {
 
             // Collect masses at the edge indices.
-            if( idx >= edge_masses.size() ) {
+            if( idx >= data.edge_masses.cols() ) {
                 throw std::runtime_error( "Invalid edge index in mass balance calculation." );
             }
-            sub_masses.push_back( edge_masses[idx] );
+            assert( tree_index < data.edge_masses.rows() );
+            sub_masses.push_back( data.edge_masses( tree_index, idx ));
 
             // Collect weights at the edge indices. If we do not have weights, use 1.0 instead.
-            if( edge_weights.empty() ) {
+            if( data.taxon_weights.empty() ) {
                 sub_weights.push_back( 1.0 );
             } else {
-                assert( idx < edge_weights.size() );
-                sub_weights.push_back( edge_weights[idx] );
+                assert( idx < data.taxon_weights.size() );
+                sub_weights.push_back( data.taxon_weights[idx] );
             }
         }
         assert( sub_masses.size()  == indices.size() );
@@ -203,7 +380,7 @@ double mass_balance(
 
         // If we have no edge weights, the scaling terms should be the same as the number of edges.
         assert(
-            ! edge_weights.empty() ||
+            ! data.taxon_weights.empty() ||
             utils::almost_equal_relative( scaling_n, indices.size(), 0.1 )
         );
 
@@ -216,19 +393,10 @@ double mass_balance(
     auto const den = calc_mass_mean_and_scaling_( denominator_edge_indices );
     assert( num.mean > 0.0 && den.mean > 0.0 );
 
-    // Scaling terms without taking weights into account. Not longer needed.
-    // double const size_l  = static_cast<double>( numerator_edge_indices.size() );
-    // double const size_r  = static_cast<double>( denominator_edge_indices.size() );
-
     // Calculate the balance.
     double const scaling = std::sqrt(( num.scaling * den.scaling ) / ( num.scaling + den.scaling ));
     double const balance = scaling * std::log( num.mean / den.mean );
     assert( std::isfinite( balance ));
-
-    // LOG_DBG << "num_mean " << num_mean << " den_mean " << den_mean;
-    // LOG_DBG << "size_l " << size_l << " size_r " << size_r;
-    // LOG_DBG << "scaling " << scaling << " balance " << balance;
-    // LOG_DBG;
 
     return balance;
 }

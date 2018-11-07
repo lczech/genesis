@@ -31,6 +31,7 @@
  * @ingroup tree
  */
 
+#include "genesis/tree/tree.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 
 #include <vector>
@@ -43,7 +44,6 @@ namespace tree {
 //     Forward Declarations
 // =================================================================================================
 
-class Tree;
 using MassTree = Tree;
 
 // =================================================================================================
@@ -53,7 +53,7 @@ using MassTree = Tree;
 /**
  * @brief Settings to calculate balances and the Phylogenetic ILR Transform.
  *
- * The class stores settings for different parts of the balances calcualtion:
+ * The class stores settings for different parts of the balances calculation:
  *
  *  * The taxon weights used in soft thresholding are described in Section
  *    "Soft thresholding through weighting taxa" of [1]. See there for details.
@@ -61,6 +61,7 @@ using MassTree = Tree;
  *    tendency of counts and to measure the norm of their relative abundances.
  *    These two terms (BalanceSettings::tendency and BalanceSettings::norm) are multiplied
  *    to get the weight for a taxon.
+ *    By default, the geometric mean times the euclidean norm are used as weights.
  *  * To avoid zero counts in the taxon masses, two ways of adding pseudo-counts are offered:
  *    Either a constant is added to all taxon masses, or just to the ones that are zero
  *    (BalanceSettings::pseudo_count_summand_all and BalanceSettings::pseudo_count_summand_zeros).
@@ -152,40 +153,126 @@ struct BalanceSettings
     * @brief Set the constant that is added to taxon masses that are zero, to avoid zero counts.
     */
     double pseudo_count_summand_zeros = 0.0;
-
-    /**
-     * @brief If set to `true`, the numerator and the denominator of the ILR transform are flipped.
-     */
-    bool reverse_signs = false;
 };
 
 // =================================================================================================
-//     Balances and Weights
+//     Balance Data
 // =================================================================================================
 
 /**
-* @brief Calcualte per-taxon weights for balances and Phylogenetic ILR Tranform.
+ * @brief Data needed to calculate balances.
+ *
+ * This data is needed for calculations such as mass_balance(), phylogenetic_ilr_transform(), and
+ * phylogenetic_factorization(). Use
+ * @link mass_balance_data( std::vector<MassTree> const&, BalanceSettings ) mass_balance_data( std::vector<MassTree> const&, ... )@endlink
+ * to calculate this data, and see BalanceSettings for the settings to tune these calculations.
+ */
+struct BalanceData
+{
+    /**
+     * @brief The Tree on which to calculate balances.
+     *
+     * As multiple input tress need to have the same topology, it suffices to store just one copy.
+     * This copy is not a MassTree any more, in order to avoid accidents of trying to re-use this
+     * tree for mass calculations. Instead, it is a simple CommonTree.
+     */
+    Tree tree;
+
+    /**
+     * @brief The relative per-edge masses per original input Tree.
+     *
+     * Each row corresponds to a Tree, each column to the edges of the trees,
+     * stored in the order of their @link TreeEdge::index() indices@endlink.
+     * The masses are relative, that is, they were divided by their sum per row.
+     * Furthermore, prior to this normalization, pseudeo-counts might be added to the masses
+     * in order to compensate for zero values (which are not valid in balance calculations).
+     * Also, if taxon weighing is used, the masses are divided by their weight.
+     * See BalanceSettings for the possible options for pseudo-counts.
+     */
+    utils::Matrix<double> edge_masses;
+
+    /**
+     * @brief The taxon/edge weights calculated from mulitple trees.
+     *
+     * These weights are used in soft thresholding as described in Section
+     * "Soft thresholding through weighting taxa" of [1]. See there for details.
+     * See BalanceSettings for the possible options to calculate these weights.
+     * The weights are calculated per edge of the tree, which we call taxa here,
+     * to avoid confusion of masses and weights.
+     *
+     * > [1] J. D. Silverman, A. D. Washburne, S. Mukherjee, and L. A. David,
+     * > "A phylogenetic transform enhances analysis of compositional microbiota data,"
+     * > Elife, vol. 6, p. e21887, Feb. 2017.
+     * > https://elifesciences.org/articles/21887
+     */
+    std::vector<double> taxon_weights;
+};
+
+// =================================================================================================
+//     Balances and Weights Calculations
+// =================================================================================================
+
+/**
+* @brief Calculate the data needed to calculate balances on MassTree%s.
 *
-* Per-taxon weights are calcuated per edge of the MassTree%s, as each edge represents a taxon
-* (including inner edges) in our calculations. See BalanceSettings for the options
-* to calculate these weights. See phylogenetic_ilr_transform() for details on the calculation.
+* This function takes a set of MassTree%s and BalanceSettings and calculates the data needed
+* for calculations such as mass_balance(), phylogenetic_ilr_transform(), and
+* phylogenetic_factorization().
+*
+* The function assumes that the Tree%s are populated with masses along thir branches which represent
+* metagenomic sequences being placed there. The masses must not be normalized - there has to be
+* at least a mass of ~1.0 per Tree for this function to work. That is each sequence should contribute
+* about 1.0 mass to the tree (leaving out some lower masses in case of phylogenetic placement data).
 */
-std::vector<double> mass_balance_edge_weights(
+BalanceData mass_balance_data(
     std::vector<MassTree> const& trees,
     BalanceSettings settings = {}
 );
 
 /**
- * @brief Calcualte the balance of edge masses between two sets of edges.
+ * @brief Calculate the data needed to calculate balances of a MassTree.
+ *
+ * This is the version for a single MassTree.
+ * Here, the @link BalanceData::taxon_weights taxon weights@endlink are left empty, as they cannot
+ * be estimated from just a single tree.
+ * See @link mass_balance_data( std::vector<MassTree> const&, BalanceSettings ) mass_balance_data( std::vector<MassTree> const&, ... )@endlink
+ * for the version for multiple MassTree%s, which also calculates proper taxon weights.
+ */
+BalanceData mass_balance_data(
+    MassTree const& tree,
+    BalanceSettings settings = {}
+);
+
+/**
+ * @brief Calculate the balance of edge masses between two sets of edges.
+ *
+ * The function calculates all balances (for all trees) between the two sets of edges.
+ *
+ * @see phylogenetic_ilr_transform( MassTree const& ) for a function that calculates this
+ * for the subtrees below all nodes in a rooted Tree.
+ */
+std::vector<double> mass_balance(
+    BalanceData const& data,
+    std::unordered_set<size_t> const& numerator_edge_indices,
+    std::unordered_set<size_t> const& denominator_edge_indices
+);
+
+/**
+ * @brief Calculate the balance of edge masses between two sets of edges.
+ *
+ * The function calculates the balances of a specific tree between the two sets of edges.
+ * The given @p tree_index corresponds to the index in the original `vector` of MassTree%s
+ * used in @link mass_balance_data( std::vector<MassTree> const&, BalanceSettings ) mass_balance_data()@endlink.
+ * This index is thus also the row index in the BalanceData::edge_masses matrix.
  *
  * @see phylogenetic_ilr_transform( MassTree const& ) for a function that calculates this
  * for the subtrees below all nodes in a rooted Tree.
  */
 double mass_balance(
-    std::vector<double> const& edge_masses,
+    BalanceData const& data,
     std::unordered_set<size_t> const& numerator_edge_indices,
     std::unordered_set<size_t> const& denominator_edge_indices,
-    std::vector<double> const& edge_weights = {}
+    size_t tree_index
 );
 
 } // namespace tree

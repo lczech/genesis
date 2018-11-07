@@ -35,6 +35,7 @@
 #include "genesis/placement/sample.hpp"
 
 #include "genesis/tree/common_tree/newick_reader.hpp"
+#include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/mass_tree/balances.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
 #include "genesis/tree/mass_tree/phylo_ilr.hpp"
@@ -92,15 +93,27 @@ TEST( MassTree, PhylogeneticILR )
     std::string const infile = environment->data_dir + "placement/rooted.jplace";
     auto const smp = JplaceReader().from_file( infile );
 
+    // Prepare data. We deactivate taxon weighing.
+    auto const tree = convert_sample_to_mass_tree( smp, false ).first;
+    BalanceSettings bs;
+    bs.tendency = BalanceSettings::WeightTendency::kNone;
+    bs.norm     = BalanceSettings::WeightNorm::kNone;
+    bs.pseudo_count_summand_all = 0.65;
+    auto const data = mass_balance_data( tree, bs );
+
+    EXPECT_TRUE( identical_topology( data.tree, tree ));
+    EXPECT_TRUE( data.taxon_weights.empty() );
+    EXPECT_EQ( 1, data.edge_masses.rows() );
+    EXPECT_EQ( data.tree.edge_count(), data.edge_masses.cols() );
+
     // Calculate balances. The tree has four inner nodes with balances != 0.0
-    // At the root however, both subtrees have exactly the same amount of branches,
+    // At the root however, both subtrees have exactly the same number of branches,
     // and there is a bijective mapping between the branches so that each pair of branches
     // has the same mass. In other words: the set of masses per branch in both subtrees of the root
     // is identical (although the positions of these masses in the subtrees differ).
     // Hence, the geom mean is the same, hence the balance is 0 for the root (node 0, first entry).
     // We did this to test this interesting special case.
-    auto const tree = convert_sample_to_mass_tree( smp, false ).first;
-    auto const bals = phylogenetic_ilr_transform( tree );
+    auto const bals = phylogenetic_ilr_transform( data );
 
     // Test
     auto const exp = std::vector<double>({
@@ -109,13 +122,16 @@ TEST( MassTree, PhylogeneticILR )
     });
     // EXPECT_EQ( exp, bals );
 
-    EXPECT_EQ( exp.size(), bals.size() );
-    for( size_t i = 0; i < bals.size(); ++i ) {
+    EXPECT_EQ( 1, bals.rows() );
+    EXPECT_EQ( exp.size(), bals.cols() );
+    for( size_t i = 0; i < bals.cols(); ++i ) {
         // std::cout << std::setprecision (18) << bals[i] << "\n";
         // EXPECT_DOUBLE_EQ( exp[i], bals[i] );
 
         // We get slighly different results because of compiler floating point optimizations.
         // Let's say that 10 digits precision are good enough ;-)
-        EXPECT_TRUE( utils::almost_equal_relative( exp[i], bals[i], 1e-10 ));
+        EXPECT_TRUE( utils::almost_equal_relative( exp[i], bals( 0, i ), 1e-10 ));
+
+        std::cout << "exp " << exp[i] << " bals " << bals( 0, i ) << "\n";
     }
 }
