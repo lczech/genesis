@@ -162,7 +162,7 @@ ENDIF()
 # prior to calling CMake. It also activates test building automatically.
 # Do not use this when genesis is used as a dependency. In that case, simply set CMAKE_BUILD_TYPE
 # prior to including the genesis subdirectory.
-if( ${GENESIS_IS_MASTER_PROJECT} AND $ENV{GENESIS_DEBUG} )
+if( GENESIS_IS_MASTER_PROJECT AND DEFINED ENV{GENESIS_DEBUG} AND "$ENV{GENESIS_DEBUG}" )
 
     set (CMAKE_BUILD_TYPE DEBUG)
 
