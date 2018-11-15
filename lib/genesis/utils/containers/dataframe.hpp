@@ -460,6 +460,9 @@ public:
 
     size_t row_index( std::string const& row_name ) const
     {
+        if( row_lookup_.count( row_name ) == 0 ) {
+            throw std::out_of_range( "Dataframe has no row with name '" + row_name + "'." );
+        }
         return row_lookup_.at( row_name );
     }
 
@@ -485,6 +488,9 @@ public:
 
     size_t col_index( std::string const& col_name ) const
     {
+        if( col_lookup_.count( col_name ) == 0 ) {
+            throw std::out_of_range( "Dataframe has no column with name '" + col_name + "'." );
+        }
         return col_lookup_.at( col_name );
     }
 

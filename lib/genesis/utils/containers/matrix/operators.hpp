@@ -123,7 +123,7 @@ size_t triangular_size( size_t n );
  * @brief Transpose a Matrix.
  */
 template <typename T>
-Matrix<T> matrix_transpose( Matrix<T> const& data )
+Matrix<T> transpose( Matrix<T> const& data )
 {
     auto res = Matrix<T>( data.cols(), data.rows() );
     for( size_t r = 0; r < data.rows(); ++r ) {
@@ -135,11 +135,21 @@ Matrix<T> matrix_transpose( Matrix<T> const& data )
 }
 
 /**
+ * @brief Return whether a Matrix is a square matrix, that is, whether its number of rows and number
+ * of columns are idetical.
+ */
+template <typename T>
+bool is_square( Matrix<T> const& data )
+{
+    return data.rows() == data.cols();
+}
+
+/**
  * @brief Return whether a Matrix is symmetric, i.e., whether it is square and
  * `m[ i, j ] == m[ j, i ]` holds for all entries.
  */
 template <typename T>
-bool matrix_is_symmetric( Matrix<T> const& data )
+bool is_symmetric( Matrix<T> const& data )
 {
     if( data.rows() != data.cols() ) {
         return false;
@@ -245,7 +255,7 @@ std::string print( Matrix<T> const& matrix, size_t rows = 10, size_t cols = 10 )
  * @brief Swap (interchange) two rows of a Matrix, given their indices.
  */
 template <typename T>
-void matrix_swap_rows( Matrix<T>& data, size_t row_a, size_t row_b )
+void swap_rows( Matrix<T>& data, size_t row_a, size_t row_b )
 {
     if( row_a >= data.rows() || row_b >= data.rows() ) {
         throw std::invalid_argument( "Invalid row index for swap_rows()." );
@@ -261,7 +271,7 @@ void matrix_swap_rows( Matrix<T>& data, size_t row_a, size_t row_b )
  * @brief Swap (interchange) two columns of a Matrix, given their indices.
  */
 template <typename T>
-void matrix_swap_cols( Matrix<T>& data, size_t col_a, size_t col_b )
+void swap_cols( Matrix<T>& data, size_t col_a, size_t col_b )
 {
     if( col_a >= data.rows() || col_b >= data.rows() ) {
         throw std::invalid_argument( "Invalid column index for swap_cols()." );
