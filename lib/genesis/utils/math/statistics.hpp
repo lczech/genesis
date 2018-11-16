@@ -1078,6 +1078,131 @@ inline std::vector<double> fisher_transformation( std::vector<double> const& cor
     return res;
 }
 
+// =================================================================================================
+//     Linear Regression
+// =================================================================================================
+
+/**
+ * @brief Data structer to keep the two parameters of a linear function: its ::slope, and its
+ * ::intercept.
+ */
+struct LinearFunction
+{
+    double slope;
+    double intercept;
+};
+
+/**
+ * @brief Simple linear regression, for predicting the dependent variable `y` given the independent
+ * variable `x`, using ordinary least squares regression.
+ *
+ * See https://en.wikipedia.org/wiki/Simple_linear_regression for an explanation.
+ *
+ * @see sum_of_squared_residuals() for calculating the resulting error.
+ */
+template <class ForwardIteratorA, class ForwardIteratorB>
+LinearFunction simple_linear_regression(
+    ForwardIteratorA first_x, ForwardIteratorA last_x,
+    ForwardIteratorB first_y, ForwardIteratorB last_y
+) {
+    // Calculate means of x and y := Mean(x), Mean(y) in parallel.
+    double mean_x = 0.0;
+    double mean_y = 0.0;
+    size_t count = 0;
+    auto it_x = first_x;
+    auto it_y = first_y;
+    while( it_x != last_x && it_y != last_y ) {
+        if( std::isfinite( *it_x ) && std::isfinite( *it_y ) ) {
+            mean_x += *it_x;
+            mean_y += *it_y;
+            ++count;
+        }
+        ++it_x;
+        ++it_y;
+    }
+    if( it_x != last_x || it_y != last_y ) {
+        throw std::runtime_error(
+            "Ranges need to have same length to calculate a simple linear regression."
+        );
+    }
+    if( count == 0 ) {
+        return { std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN() };
+    }
+    assert( count > 0 );
+    mean_x /= static_cast<double>( count );
+    mean_y /= static_cast<double>( count );
+    assert( std::isfinite( mean_x ));
+    assert( std::isfinite( mean_y ));
+
+    // Calculate Cov(x,y) := covariance of x and y, and Var(x) := variance of x.
+    double covariance = 0.0;
+    double variance_x = 0.0;
+    it_x = first_x;
+    it_y = first_y;
+    while( it_x != last_x && it_y != last_y ) {
+        if( std::isfinite( *it_x ) && std::isfinite( *it_y ) ) {
+            double const dx = *it_x - mean_x;
+            double const dy = *it_y - mean_y;
+            covariance += dx * dy;
+            variance_x += dx * dx;
+        }
+        ++it_x;
+        ++it_y;
+    }
+    assert( it_x == last_x && it_y == last_y );
+    assert( std::isfinite( covariance ));
+    assert( std::isfinite( variance_x ));
+
+    // The linear parameters are slope := Cov(x,y) / Var(x), and intercept = Mean(y) - slope * Mean(x).
+    LinearFunction result;
+    result.slope = covariance / variance_x;
+    result.intercept = mean_y - result.slope * mean_x;
+    return result;
+}
+
+/**
+ * @brief Calculate the mean error obtained from a linear fit of the input variables.
+ *
+ * The error is calculated as the sum of squared differences between the data points `(x,y)`
+ * and the prediction given by the linear function @p lin_fct for values of `x`.
+ * The function returns the mean of the errors for all data points.
+ *
+ * @see simple_linear_regression() for calculating such a fit.
+ */
+template <class ForwardIteratorA, class ForwardIteratorB>
+double mean_sum_of_squared_residuals(
+    ForwardIteratorA first_x, ForwardIteratorA last_x,
+    ForwardIteratorB first_y, ForwardIteratorB last_y,
+    LinearFunction lin_fct
+) {
+    double error = 0.0;
+    size_t count = 0;
+
+    auto it_x = first_x;
+    auto it_y = first_y;
+    while( it_x != last_x && it_y != last_y ) {
+        if( std::isfinite( *it_x ) && std::isfinite( *it_y ) ) {
+            double const p = lin_fct.slope * (*it_x) + lin_fct.intercept;
+            double const e = (*it_y) - p;
+            error += e * e;
+            ++count;
+        }
+        ++it_x;
+        ++it_y;
+    }
+    if( it_x != last_x || it_y != last_y ) {
+        throw std::runtime_error(
+            "Ranges need to have same length to calculate sum of squared residuals."
+        );
+    }
+
+    if( count == 0 ) {
+        assert( error == 0.0 );
+        return error;
+    }
+    return error / static_cast<double>( count );
+}
+
 } // namespace utils
 } // namespace genesis
 
