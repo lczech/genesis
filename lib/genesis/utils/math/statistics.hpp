@@ -449,36 +449,22 @@ double weighted_geometric_mean(
     size_t cnt = 0;
 
     // Multiply elements.
-    auto it_v = first_value;
-    auto it_w = first_weight;
-    while( it_v != last_value && it_w != last_weight ) {
-        if( std::isfinite( *it_v ) && std::isfinite( *it_w )) {
-            if( *it_v <= 0.0 ) {
-                throw std::invalid_argument(
-                    "Cannot calculate weighted geometric mean of non-positive values."
-                );
-            }
-            if( *it_w < 0.0 ) {
-                throw std::invalid_argument(
-                    "Cannot calculate weighted geometric mean with negative weights."
-                );
-            }
-
-            num += *it_w * std::log( *it_v );
-            den += *it_w;
-            ++cnt;
+    for_each_finite_pair( first_value, last_value, first_weight, last_weight, [&]( double value, double weight ){
+        if( value <= 0.0 ) {
+            throw std::invalid_argument(
+                "Cannot calculate weighted geometric mean of non-positive values."
+            );
         }
-        ++it_v;
-        ++it_w;
-    }
+        if( weight < 0.0 ) {
+            throw std::invalid_argument(
+                "Cannot calculate weighted geometric mean with negative weights."
+            );
+        }
 
-    // Range check
-    if( it_v != last_value || it_w != last_weight ) {
-        throw std::runtime_error(
-            "The value and the weight ranges need to have same length "
-            "to compute the weighted geometric mean."
-        );
-    }
+        num += weight * std::log( value );
+        den += weight;
+        ++cnt;
+    });
 
     // If there are no valid elements, return an all-zero result.
     if( cnt == 0 ) {
@@ -936,22 +922,11 @@ double pearson_correlation_coefficient(
     double mean_a = 0.0;
     double mean_b = 0.0;
     size_t count = 0;
-    auto it_a = first_a;
-    auto it_b = first_b;
-    while( it_a != last_a && it_b != last_b ) {
-        if( std::isfinite( *it_a ) && std::isfinite( *it_b ) ) {
-            mean_a += *it_a;
-            mean_b += *it_b;
-            ++count;
-        }
-        ++it_a;
-        ++it_b;
-    }
-    if( it_a != last_a || it_b != last_b ) {
-        throw std::runtime_error(
-            "Ranges need to have same length to calculate their Pearson Correlation Coefficient."
-        );
-    }
+    for_each_finite_pair( first_a, last_a, first_b, last_b, [&]( double val_a, double val_b ){
+        mean_a += val_a;
+        mean_b += val_b;
+        ++count;
+    });
     if( count == 0 ) {
         return std::numeric_limits<double>::quiet_NaN();
     }
@@ -963,20 +938,13 @@ double pearson_correlation_coefficient(
     double numerator = 0.0;
     double stddev_a  = 0.0;
     double stddev_b  = 0.0;
-    it_a = first_a;
-    it_b = first_b;
-    while( it_a != last_a && it_b != last_b ) {
-        if( std::isfinite( *it_a ) && std::isfinite( *it_b ) ) {
-            double const d1 = *it_a - mean_a;
-            double const d2 = *it_b - mean_b;
-            numerator += d1 * d2;
-            stddev_a  += d1 * d1;
-            stddev_b  += d2 * d2;
-        }
-        ++it_a;
-        ++it_b;
-    }
-    assert( it_a == last_a && it_b == last_b );
+    for_each_finite_pair( first_a, last_a, first_b, last_b, [&]( double val_a, double val_b ){
+        double const d1 = val_a - mean_a;
+        double const d2 = val_b - mean_b;
+        numerator += d1 * d2;
+        stddev_a  += d1 * d1;
+        stddev_b  += d2 * d2;
+    });
 
     // Calculate PCC, and assert that it is in the correct range
     // (or not a number, which can happen if the std dev is 0.0, e.g. in all-zero vectors).
@@ -1012,46 +980,14 @@ double spearmans_rank_correlation_coefficient(
     RandomAccessIteratorA first_a, RandomAccessIteratorA last_a,
     RandomAccessIteratorB first_b, RandomAccessIteratorB last_b
 ) {
-    // Get cleaned results.
+    // Get cleaned results. We need to make these copies, as we need to calculate the fractional
+    // ranking on them, which would change if we used our normal for_each_finite_pair here...
     auto const cleaned = finite_pairs( first_a, last_a, first_b, last_b );
 
     // Get the ranking of both vectors.
     auto ranks_a = ranking_fractional( cleaned.first );
     auto ranks_b = ranking_fractional( cleaned.second );
     assert( ranks_a.size() == ranks_b.size() );
-
-    // Nice try. But removing them later does not work, as the ranges would be calculated
-    // differently... So we have to live with making copies of the data :-(
-    //
-    // if( ranks_a.size() != ranks_b.size() ) {
-    //     throw std::runtime_error(
-    //         "Ranges need to have same length to calculate their "
-    //         "Spearman's Rank Correlation Coefficient."
-    //     );
-    // }
-    //
-    // // Remove non finite values.
-    // size_t ins = 0;
-    // size_t pos = 0;
-    // while( first_a != last_a && first_b != last_b ) {
-    //     if( std::isfinite( *first_a ) && std::isfinite( *first_b ) ) {
-    //         ranks_a[ ins ] = ranks_a[ pos ];
-    //         ranks_b[ ins ] = ranks_b[ pos ];
-    //         ++ins;
-    //     }
-    //     ++first_a;
-    //     ++first_b;
-    //     ++pos;
-    // }
-    //
-    // // We already checked that the ranks have the same length. Assert this.
-    // assert( first_a == last_a && first_b == last_b );
-    // assert( pos == ranks_a.size() && pos == ranks_b.size() );
-    //
-    // // Erase the removed elements.
-    // assert( ins <= ranks_a.size() && ins <= ranks_b.size() );
-    // ranks_a.resize( ins );
-    // ranks_b.resize( ins );
 
     return pearson_correlation_coefficient( ranks_a, ranks_b );
 }
@@ -1148,22 +1084,11 @@ LinearFunction simple_linear_regression(
     double mean_x = 0.0;
     double mean_y = 0.0;
     size_t count = 0;
-    auto it_x = first_x;
-    auto it_y = first_y;
-    while( it_x != last_x && it_y != last_y ) {
-        if( std::isfinite( *it_x ) && std::isfinite( *it_y ) ) {
-            mean_x += *it_x;
-            mean_y += *it_y;
-            ++count;
-        }
-        ++it_x;
-        ++it_y;
-    }
-    if( it_x != last_x || it_y != last_y ) {
-        throw std::runtime_error(
-            "Ranges need to have same length to calculate a simple linear regression."
-        );
-    }
+    for_each_finite_pair( first_x, last_x, first_y, last_y, [&]( double val_x, double val_y ){
+        mean_x += val_x;
+        mean_y += val_y;
+        ++count;
+    });
     if( count == 0 ) {
         return { std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN() };
     }
@@ -1176,19 +1101,12 @@ LinearFunction simple_linear_regression(
     // Calculate Cov(x,y) := covariance of x and y, and Var(x) := variance of x.
     double covariance = 0.0;
     double variance_x = 0.0;
-    it_x = first_x;
-    it_y = first_y;
-    while( it_x != last_x && it_y != last_y ) {
-        if( std::isfinite( *it_x ) && std::isfinite( *it_y ) ) {
-            double const dx = *it_x - mean_x;
-            double const dy = *it_y - mean_y;
-            covariance += dx * dy;
-            variance_x += dx * dx;
-        }
-        ++it_x;
-        ++it_y;
-    }
-    assert( it_x == last_x && it_y == last_y );
+    for_each_finite_pair( first_x, last_x, first_y, last_y, [&]( double val_x, double val_y ){
+        double const dx = val_x - mean_x;
+        double const dy = val_y - mean_y;
+        covariance += dx * dy;
+        variance_x += dx * dx;
+    });
     assert( std::isfinite( covariance ));
     assert( std::isfinite( variance_x ));
 
@@ -1217,22 +1135,11 @@ double mean_squared_error(
     double error = 0.0;
     size_t count = 0;
 
-    auto it_x = first_x;
-    auto it_y = first_y;
-    while( it_x != last_x && it_y != last_y ) {
-        if( std::isfinite( *it_x ) && std::isfinite( *it_y ) ) {
-            double const e = (*it_y) - lin_fct.y( *it_x );
-            error += e * e;
-            ++count;
-        }
-        ++it_x;
-        ++it_y;
-    }
-    if( it_x != last_x || it_y != last_y ) {
-        throw std::runtime_error(
-            "Ranges need to have same length to calculate sum of squared residuals."
-        );
-    }
+    for_each_finite_pair( first_x, last_x, first_y, last_y, [&]( double val_x, double val_y ){
+        double const e = val_y - lin_fct.y( val_x );
+        error += e * e;
+        ++count;
+    });
 
     if( count == 0 ) {
         assert( error == 0.0 );
