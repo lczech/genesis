@@ -77,6 +77,19 @@ TEST( Math, ArithmeticMean )
     EXPECT_DOUBLE_EQ( 7.0,  arithmetic_mean({ 4.0, 6.0, 11.0 }) );
 }
 
+TEST( Math, WeightedArithmeticMean )
+{
+    // Empty.
+    EXPECT_DOUBLE_EQ( 0.0,  weighted_arithmetic_mean({}, {}) );
+
+    // One value.
+    EXPECT_DOUBLE_EQ(  1.0,  weighted_arithmetic_mean({ 1.0 }, { 1.0 }) );
+    EXPECT_DOUBLE_EQ(  5.0,  weighted_arithmetic_mean({ 5.0 }, { 3.0 }) );
+
+    // Two values.
+    EXPECT_DOUBLE_EQ( 86.0,  weighted_arithmetic_mean({ 80.0, 90.0 }, { 20.0, 30.0 }) );
+}
+
 TEST( Math, GeometricMean )
 {
     // Empty.

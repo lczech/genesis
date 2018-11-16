@@ -303,6 +303,10 @@ inline MeanStddevPair mean_stddev( std::vector<double> const& vec, double epsilo
     return mean_stddev( vec.begin(), vec.end(), epsilon );
 }
 
+// =================================================================================================
+//     Arithmetic Mean
+// =================================================================================================
+
 /**
  * @brief Calculate the arithmetic mean of a range of numbers.
  *
@@ -315,6 +319,7 @@ inline MeanStddevPair mean_stddev( std::vector<double> const& vec, double epsilo
  * @see arithmetic_mean( std::vector<double> const& ) for a version for `std::vector`.
  * @see mean_stddev() for a function that also calculates the standard deviation.
  * @see geometric_mean() for a function that calculates the geometric mean.
+ * @see weighted_arithmetic_mean() for a function that calculates the weighted arithmetic mean.
  */
 template <class ForwardIterator>
 double arithmetic_mean( ForwardIterator first, ForwardIterator last )
@@ -335,6 +340,7 @@ double arithmetic_mean( ForwardIterator first, ForwardIterator last )
 
     // If there are no valid elements, return an all-zero result.
     if( count == 0 ) {
+        assert( mean == 0.0 );
         return mean;
     }
 
@@ -356,14 +362,86 @@ inline double arithmetic_mean( std::vector<double> const& vec )
 }
 
 /**
+ * @brief Calculate the weighted arithmetic mean of a range of `double` values.
+ *
+ * The iterators @p first_value and @p last_value, as well as @p first_weight and @p last_weight,
+ * need to point to ranges of `double` values, with @p last_value and @p last_weight being the
+ * past-the-end elements. Both ranges need to have the same size.
+ * The function then calculates the weighted arithmetic mean of all finite elements
+ * in the range. If no elements are finite, or if the range is empty, the returned value is `0.0`.
+ * Non-finite numbers are ignored. The weights have to be non-negative.
+ *
+ * @see weighted_arithmetic_mean( std::vector<double> const& ) for a version for `std::vector`.
+ * @see arithmetic_mean() for the unweighted version.
+ * @see geometric_mean() for a function that calculates the geometric mean.
+ * @see weighted_geometric_mean() for a function that calculates the weighted geometric mean.
+ */
+template <class ForwardIterator>
+double weighted_arithmetic_mean(
+    ForwardIterator first_value,  ForwardIterator last_value,
+    ForwardIterator first_weight, ForwardIterator last_weight
+) {
+    double num = 0.0;
+    double den = 0.0;
+    size_t cnt = 0;
+
+    // Multiply elements.
+    for_each_finite_pair( first_value, last_value, first_weight, last_weight, [&]( double value, double weight ){
+        if( weight < 0.0 ) {
+            throw std::invalid_argument(
+                "Cannot calculate weighted arithmetic mean with negative weights."
+            );
+        }
+
+        num += weight * value;
+        den += weight;
+        ++cnt;
+    });
+
+    // If there are no valid elements, return an all-zero result.
+    if( cnt == 0 ) {
+        return 0.0;
+    }
+    if( den == 0.0 ) {
+        throw std::invalid_argument(
+            "Cannot calculate weighted arithmetic mean with all weights being 0."
+        );
+    }
+
+    // Return the result.
+    assert( cnt > 0 );
+    assert( den > 0.0 );
+    return ( num / den );
+}
+
+/**
+ * @brief Calculate the weighted arithmetic mean of a `std::vector` of `double` elements.
+ *
+ * @see weighted_arithmetic_mean( ForwardIterator first, ForwardIterator last ) for details.
+ * @see arithmetic_mean() for the unweighted version.
+ * @see geometric_mean() for a function that calculates the geometric mean.
+ * @see weighted_geometric_mean() for a function that calculates the weighted geometric mean.
+ */
+inline double weighted_arithmetic_mean(
+    std::vector<double> const& values,
+    std::vector<double> const& weights
+) {
+    return weighted_arithmetic_mean( values.begin(), values.end(), weights.begin(), weights.end() );
+}
+
+// =================================================================================================
+//     Geometric Mean
+// =================================================================================================
+
+/**
  * @brief Calculate the geometric mean of a range of positive numbers.
  *
  * The iterators @p first and @p last need to point to a range of `double` values,
  * with @p last being the past-the-end element.
  * The function then calculates the geometric mean of all positive finite elements in the range.
  * If no elements are finite, or if the range is empty, the returned value is `0.0`.
- * Non-finite numbers are ignored.
- * If finite non-positive numbers (zero or negative) are found, an exception is thrown.
+ * Non-finite numbers are ignored. If finite non-positive numbers (zero or negative) are found,
+ * an exception is thrown.
  *
  * @see geometric_mean( std::vector<double> const& ) for a version for `std::vector`.
  * @see weighted_geometric_mean() for a weighted version.
@@ -420,8 +498,8 @@ inline double geometric_mean( std::vector<double> const& vec )
  * past-the-end elements. Both ranges need to have the same size.
  * The function then calculates the weighted geometric mean of all positive finite elements
  * in the range. If no elements are finite, or if the range is empty, the returned value is `0.0`.
- * Non-finite numbers are ignored.
- * If finite non-positive numbers (zero or negative) are found, an exception is thrown.
+ * Non-finite numbers are ignored. If finite non-positive numbers (zero or negative) are found,
+ * an exception is thrown. The weights have to be non-negative.
  *
  * For a set of values \f$ v \f$ and a set of weights \f$ w \f$,
  * the weighted geometric mean \f$ g \f$ is calculated following [1]:
@@ -438,6 +516,7 @@ inline double geometric_mean( std::vector<double> const& vec )
  * @see weighted_geometric_mean( std::vector<double> const& ) for a version for `std::vector`.
  * @see geometric_mean() for the unweighted version.
  * @see arithmetic_mean() for a function that calculates the arithmetic mean.
+ * @see weighted_arithmetic_mean() for a function that calculates the weighted arithmetic mean.
  */
 template <class ForwardIterator>
 double weighted_geometric_mean(
@@ -470,9 +549,15 @@ double weighted_geometric_mean(
     if( cnt == 0 ) {
         return 0.0;
     }
+    if( den == 0.0 ) {
+        throw std::invalid_argument(
+            "Cannot calculate weighted geometric mean with all weights being 0."
+        );
+    }
 
     // Return the result.
     assert( cnt > 0 );
+    assert( den > 0.0 );
     return std::exp( num / den );
 }
 
@@ -482,6 +567,7 @@ double weighted_geometric_mean(
  * @see weighted_geometric_mean( ForwardIterator first, ForwardIterator last ) for details.
  * @see geometric_mean() for the unweighted version.
  * @see arithmetic_mean() for a function that calculates the arithmetic mean.
+ * @see weighted_arithmetic_mean() for a function that calculates the weighted arithmetic mean.
  */
 inline double weighted_geometric_mean(
     std::vector<double> const& values,
@@ -1149,9 +1235,12 @@ double mean_squared_error(
 }
 
 /**
- * @brief
+ * @brief Calculate the fraction of unexplained variance resulting from a linear fit of the input
+ * variables.
  *
  * See https://en.wikipedia.org/wiki/Fraction_of_variance_unexplained for some details.
+ *
+ * @see simple_linear_regression() for calculating such a fit.
  */
 template <class ForwardIteratorA, class ForwardIteratorB>
 double fraction_of_variance_unexplained(
