@@ -360,7 +360,7 @@ std::vector<PhyloFactor> phylogenetic_factorization(
 
         // Log the progress, if needed.
         if( log_progress ) {
-            log_progress( it, max_iterations );
+            log_progress( it + 1, max_iterations );
         }
 
         // Find and store the next (greedy) phylo factor.

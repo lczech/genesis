@@ -74,11 +74,17 @@ struct PhyloFactor
  *
  * Furthermore, the number of iterations can be set via @p max_iterations, that is, the number of
  * phylo factors to find. By default, all possible are found, which might take too long.
- * Currently, we do not have a  stopping criterion implemented, so it is up to the user to set a
+ * Currently, we do not have a stopping criterion implemented, so it is up to the user to set a
  * reasonable value here.
  *
  * Lastly, a functional for logging the progress can be set, which needs to take the current and
- * the maximal iteration counter (0-based) and can produce some logging for this.
+ * the maximal iteration counter (1-based) and can produce some logging for this:
+ *
+ *     []( size_t iteration, size_t max_iterations ){
+ *         LOG_DBG1 << "iteration " << iteration << " of " << max_iterations;
+ *     }
+ *
+ * More details on the method can be found in
  *
  * > [1] A. D. Washburne, J. D. Silverman, J. W. Leff, D. J. Bennett, J. L. Darcy, S. Mukherjee, N. Fierer, and L. A. David,
  * > "Phylogenetic factorization of compositional data yields lineage-level associations in microbiome datasets,"
