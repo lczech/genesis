@@ -352,8 +352,13 @@ double mass_balance(
     auto calc_mass_mean_and_scaling_ = [ &data, &tree_index ](
         std::unordered_set<size_t> const& indices
     ){
+        // Prepare temporary vectors that store copies of the masses and weights.
         std::vector<double> sub_masses;
         std::vector<double> sub_weights;
+        sub_masses.reserve( indices.size() );
+        sub_weights.reserve( indices.size() );
+
+        // Add the mases and weights to the vectors.
         for( auto idx : indices ) {
 
             // Collect masses at the edge indices.
@@ -384,7 +389,6 @@ double mass_balance(
             utils::almost_equal_relative( scaling_n, indices.size(), 0.1 )
         );
 
-        // return utils::geometric_mean( sub_masses );
         return BalanceTerms{ geom_mean, scaling_n };
     };
 

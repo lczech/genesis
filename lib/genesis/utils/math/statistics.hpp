@@ -38,6 +38,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstddef>
+#include <functional>
 #include <limits>
 #include <stdexcept>
 #include <utility>
@@ -86,6 +87,72 @@ struct Quartiles
     double q3 = 0.0;
     double q4 = 0.0;
 };
+
+// =================================================================================================
+//     Helper Functions
+// =================================================================================================
+
+/**
+ * @brief Helper function that cleans two ranges of `double` of the same length from non-finite values.
+ *
+ * This function is used for cleaning data input. It iterates both same-length ranges in parallel
+ * and copies pairs elements to the two result vectors (one for each range), if both values are
+ * finite. The result vectors thus have equal size.
+ */
+template <class ForwardIteratorA, class ForwardIteratorB>
+std::pair<std::vector<double>, std::vector<double>> finite_pairs(
+    ForwardIteratorA first_a, ForwardIteratorA last_a,
+    ForwardIteratorB first_b, ForwardIteratorB last_b
+) {
+    // Prepare result.
+    std::vector<double> vec_a;
+    std::vector<double> vec_b;
+
+    // Iterate in parallel.
+    while( first_a != last_a && first_b != last_b ) {
+        if( std::isfinite( *first_a ) && std::isfinite( *first_b ) ) {
+            vec_a.push_back( *first_a );
+            vec_b.push_back( *first_b );
+        }
+        ++first_a;
+        ++first_b;
+    }
+    if( first_a != last_a || first_b != last_b ) {
+        throw std::runtime_error(
+            "Ranges need to have same length."
+        );
+    }
+
+    assert( vec_a.size() == vec_b.size() );
+    return { vec_a, vec_b };
+}
+
+/**
+ * @brief Iterate two ranges of `double` values in parallel, and execute a function for
+ * each pair of values from the two ranges where both values are finite.
+ *
+ * The ranges need to have the same length.
+ */
+template <class ForwardIteratorA, class ForwardIteratorB>
+void for_each_finite_pair(
+    ForwardIteratorA first_a, ForwardIteratorA last_a,
+    ForwardIteratorB first_b, ForwardIteratorB last_b,
+    std::function<void( double value_a, double value_b )> execute
+) {
+    // Iterate in parallel.
+    while( first_a != last_a && first_b != last_b ) {
+        if( std::isfinite( *first_a ) && std::isfinite( *first_b ) ) {
+            execute( *first_a, *first_b );
+        }
+        ++first_a;
+        ++first_b;
+    }
+
+    // Check if the ranges have the same length.
+    if( first_a != last_a || first_b != last_b ) {
+        throw std::runtime_error( "Ranges need to have same length." );
+    }
+}
 
 // =================================================================================================
 //     Normalization
@@ -236,6 +303,10 @@ inline MeanStddevPair mean_stddev( std::vector<double> const& vec, double epsilo
     return mean_stddev( vec.begin(), vec.end(), epsilon );
 }
 
+// =================================================================================================
+//     Arithmetic Mean
+// =================================================================================================
+
 /**
  * @brief Calculate the arithmetic mean of a range of numbers.
  *
@@ -248,6 +319,7 @@ inline MeanStddevPair mean_stddev( std::vector<double> const& vec, double epsilo
  * @see arithmetic_mean( std::vector<double> const& ) for a version for `std::vector`.
  * @see mean_stddev() for a function that also calculates the standard deviation.
  * @see geometric_mean() for a function that calculates the geometric mean.
+ * @see weighted_arithmetic_mean() for a function that calculates the weighted arithmetic mean.
  */
 template <class ForwardIterator>
 double arithmetic_mean( ForwardIterator first, ForwardIterator last )
@@ -268,6 +340,7 @@ double arithmetic_mean( ForwardIterator first, ForwardIterator last )
 
     // If there are no valid elements, return an all-zero result.
     if( count == 0 ) {
+        assert( mean == 0.0 );
         return mean;
     }
 
@@ -289,14 +362,86 @@ inline double arithmetic_mean( std::vector<double> const& vec )
 }
 
 /**
+ * @brief Calculate the weighted arithmetic mean of a range of `double` values.
+ *
+ * The iterators @p first_value and @p last_value, as well as @p first_weight and @p last_weight,
+ * need to point to ranges of `double` values, with @p last_value and @p last_weight being the
+ * past-the-end elements. Both ranges need to have the same size.
+ * The function then calculates the weighted arithmetic mean of all finite elements
+ * in the range. If no elements are finite, or if the range is empty, the returned value is `0.0`.
+ * Non-finite numbers are ignored. The weights have to be non-negative.
+ *
+ * @see weighted_arithmetic_mean( std::vector<double> const& ) for a version for `std::vector`.
+ * @see arithmetic_mean() for the unweighted version.
+ * @see geometric_mean() for a function that calculates the geometric mean.
+ * @see weighted_geometric_mean() for a function that calculates the weighted geometric mean.
+ */
+template <class ForwardIterator>
+double weighted_arithmetic_mean(
+    ForwardIterator first_value,  ForwardIterator last_value,
+    ForwardIterator first_weight, ForwardIterator last_weight
+) {
+    double num = 0.0;
+    double den = 0.0;
+    size_t cnt = 0;
+
+    // Multiply elements.
+    for_each_finite_pair( first_value, last_value, first_weight, last_weight, [&]( double value, double weight ){
+        if( weight < 0.0 ) {
+            throw std::invalid_argument(
+                "Cannot calculate weighted arithmetic mean with negative weights."
+            );
+        }
+
+        num += weight * value;
+        den += weight;
+        ++cnt;
+    });
+
+    // If there are no valid elements, return an all-zero result.
+    if( cnt == 0 ) {
+        return 0.0;
+    }
+    if( den == 0.0 ) {
+        throw std::invalid_argument(
+            "Cannot calculate weighted arithmetic mean with all weights being 0."
+        );
+    }
+
+    // Return the result.
+    assert( cnt > 0 );
+    assert( den > 0.0 );
+    return ( num / den );
+}
+
+/**
+ * @brief Calculate the weighted arithmetic mean of a `std::vector` of `double` elements.
+ *
+ * @see weighted_arithmetic_mean( ForwardIterator first, ForwardIterator last ) for details.
+ * @see arithmetic_mean() for the unweighted version.
+ * @see geometric_mean() for a function that calculates the geometric mean.
+ * @see weighted_geometric_mean() for a function that calculates the weighted geometric mean.
+ */
+inline double weighted_arithmetic_mean(
+    std::vector<double> const& values,
+    std::vector<double> const& weights
+) {
+    return weighted_arithmetic_mean( values.begin(), values.end(), weights.begin(), weights.end() );
+}
+
+// =================================================================================================
+//     Geometric Mean
+// =================================================================================================
+
+/**
  * @brief Calculate the geometric mean of a range of positive numbers.
  *
  * The iterators @p first and @p last need to point to a range of `double` values,
  * with @p last being the past-the-end element.
  * The function then calculates the geometric mean of all positive finite elements in the range.
  * If no elements are finite, or if the range is empty, the returned value is `0.0`.
- * Non-finite numbers are ignored.
- * If finite non-positive numbers (zero or negative) are found, an exception is thrown.
+ * Non-finite numbers are ignored. If finite non-positive numbers (zero or negative) are found,
+ * an exception is thrown.
  *
  * @see geometric_mean( std::vector<double> const& ) for a version for `std::vector`.
  * @see weighted_geometric_mean() for a weighted version.
@@ -353,8 +498,8 @@ inline double geometric_mean( std::vector<double> const& vec )
  * past-the-end elements. Both ranges need to have the same size.
  * The function then calculates the weighted geometric mean of all positive finite elements
  * in the range. If no elements are finite, or if the range is empty, the returned value is `0.0`.
- * Non-finite numbers are ignored.
- * If finite non-positive numbers (zero or negative) are found, an exception is thrown.
+ * Non-finite numbers are ignored. If finite non-positive numbers (zero or negative) are found,
+ * an exception is thrown. The weights have to be non-negative.
  *
  * For a set of values \f$ v \f$ and a set of weights \f$ w \f$,
  * the weighted geometric mean \f$ g \f$ is calculated following [1]:
@@ -371,6 +516,7 @@ inline double geometric_mean( std::vector<double> const& vec )
  * @see weighted_geometric_mean( std::vector<double> const& ) for a version for `std::vector`.
  * @see geometric_mean() for the unweighted version.
  * @see arithmetic_mean() for a function that calculates the arithmetic mean.
+ * @see weighted_arithmetic_mean() for a function that calculates the weighted arithmetic mean.
  */
 template <class ForwardIterator>
 double weighted_geometric_mean(
@@ -382,44 +528,36 @@ double weighted_geometric_mean(
     size_t cnt = 0;
 
     // Multiply elements.
-    auto it_v = first_value;
-    auto it_w = first_weight;
-    while( it_v != last_value && it_w != last_weight ) {
-        if( std::isfinite( *it_v ) && std::isfinite( *it_w )) {
-            if( *it_v <= 0.0 ) {
-                throw std::invalid_argument(
-                    "Cannot calculate weighted geometric mean of non-positive values."
-                );
-            }
-            if( *it_w < 0.0 ) {
-                throw std::invalid_argument(
-                    "Cannot calculate weighted geometric mean with negative weights."
-                );
-            }
-
-            num += *it_w * std::log( *it_v );
-            den += *it_w;
-            ++cnt;
+    for_each_finite_pair( first_value, last_value, first_weight, last_weight, [&]( double value, double weight ){
+        if( value <= 0.0 ) {
+            throw std::invalid_argument(
+                "Cannot calculate weighted geometric mean of non-positive values."
+            );
         }
-        ++it_v;
-        ++it_w;
-    }
+        if( weight < 0.0 ) {
+            throw std::invalid_argument(
+                "Cannot calculate weighted geometric mean with negative weights."
+            );
+        }
 
-    // Range check
-    if( it_v != last_value || it_w != last_weight ) {
-        throw std::runtime_error(
-            "The value and the weight ranges need to have same length "
-            "to compute the weighted geometric mean."
-        );
-    }
+        num += weight * std::log( value );
+        den += weight;
+        ++cnt;
+    });
 
     // If there are no valid elements, return an all-zero result.
     if( cnt == 0 ) {
         return 0.0;
     }
+    if( den == 0.0 ) {
+        throw std::invalid_argument(
+            "Cannot calculate weighted geometric mean with all weights being 0."
+        );
+    }
 
     // Return the result.
     assert( cnt > 0 );
+    assert( den > 0.0 );
     return std::exp( num / den );
 }
 
@@ -429,6 +567,7 @@ double weighted_geometric_mean(
  * @see weighted_geometric_mean( ForwardIterator first, ForwardIterator last ) for details.
  * @see geometric_mean() for the unweighted version.
  * @see arithmetic_mean() for a function that calculates the arithmetic mean.
+ * @see weighted_arithmetic_mean() for a function that calculates the weighted arithmetic mean.
  */
 inline double weighted_geometric_mean(
     std::vector<double> const& values,
@@ -849,41 +988,6 @@ inline std::vector<double> quartile_coefficient_of_dispersion( std::vector<Quart
 // =================================================================================================
 
 /**
- * @brief Helper function that cleans two ranges of `double` of the same length from non-finite values.
- *
- * This function is used for cleaning data input. It iterates both same-length ranges in parallel
- * and copies pairs elements to the two result vectors (one for each range), if both values are
- * finite. The result vectors thus have equal size.
- */
-template <class ForwardIteratorA, class ForwardIteratorB>
-std::pair<std::vector<double>, std::vector<double>> finite_pairs(
-    ForwardIteratorA first_a, ForwardIteratorA last_a,
-    ForwardIteratorB first_b, ForwardIteratorB last_b
-) {
-    // Prepare result.
-    std::vector<double> vec_a;
-    std::vector<double> vec_b;
-
-    // Iterate in parallel.
-    while( first_a != last_a && first_b != last_b ) {
-        if( std::isfinite( *first_a ) && std::isfinite( *first_b ) ) {
-            vec_a.push_back( *first_a );
-            vec_b.push_back( *first_b );
-        }
-        ++first_a;
-        ++first_b;
-    }
-    if( first_a != last_a || first_b != last_b ) {
-        throw std::runtime_error(
-            "Ranges need to have same length."
-        );
-    }
-
-    assert( vec_a.size() == vec_b.size() );
-    return { vec_a, vec_b };
-}
-
-/**
  * @brief Calculate the Pearson Correlation Coefficient between two ranges of `double`.
  *
  * Both ranges need to have the same length. Then, the function calculates the PCC
@@ -904,22 +1008,11 @@ double pearson_correlation_coefficient(
     double mean_a = 0.0;
     double mean_b = 0.0;
     size_t count = 0;
-    auto it_a = first_a;
-    auto it_b = first_b;
-    while( it_a != last_a && it_b != last_b ) {
-        if( std::isfinite( *it_a ) && std::isfinite( *it_b ) ) {
-            mean_a += *it_a;
-            mean_b += *it_b;
-            ++count;
-        }
-        ++it_a;
-        ++it_b;
-    }
-    if( it_a != last_a || it_b != last_b ) {
-        throw std::runtime_error(
-            "Ranges need to have same length to calculate their Pearson Correlation Coefficient."
-        );
-    }
+    for_each_finite_pair( first_a, last_a, first_b, last_b, [&]( double val_a, double val_b ){
+        mean_a += val_a;
+        mean_b += val_b;
+        ++count;
+    });
     if( count == 0 ) {
         return std::numeric_limits<double>::quiet_NaN();
     }
@@ -931,20 +1024,13 @@ double pearson_correlation_coefficient(
     double numerator = 0.0;
     double stddev_a  = 0.0;
     double stddev_b  = 0.0;
-    it_a = first_a;
-    it_b = first_b;
-    while( it_a != last_a && it_b != last_b ) {
-        if( std::isfinite( *it_a ) && std::isfinite( *it_b ) ) {
-            double const d1 = *it_a - mean_a;
-            double const d2 = *it_b - mean_b;
-            numerator += d1 * d2;
-            stddev_a  += d1 * d1;
-            stddev_b  += d2 * d2;
-        }
-        ++it_a;
-        ++it_b;
-    }
-    assert( it_a == last_a && it_b == last_b );
+    for_each_finite_pair( first_a, last_a, first_b, last_b, [&]( double val_a, double val_b ){
+        double const d1 = val_a - mean_a;
+        double const d2 = val_b - mean_b;
+        numerator += d1 * d2;
+        stddev_a  += d1 * d1;
+        stddev_b  += d2 * d2;
+    });
 
     // Calculate PCC, and assert that it is in the correct range
     // (or not a number, which can happen if the std dev is 0.0, e.g. in all-zero vectors).
@@ -980,46 +1066,14 @@ double spearmans_rank_correlation_coefficient(
     RandomAccessIteratorA first_a, RandomAccessIteratorA last_a,
     RandomAccessIteratorB first_b, RandomAccessIteratorB last_b
 ) {
-    // Get cleaned results.
+    // Get cleaned results. We need to make these copies, as we need to calculate the fractional
+    // ranking on them, which would change if we used our normal for_each_finite_pair here...
     auto const cleaned = finite_pairs( first_a, last_a, first_b, last_b );
 
     // Get the ranking of both vectors.
     auto ranks_a = ranking_fractional( cleaned.first );
     auto ranks_b = ranking_fractional( cleaned.second );
     assert( ranks_a.size() == ranks_b.size() );
-
-    // Nice try. But removing them later does not work, as the ranges would be calculated
-    // differently... So we have to live with making copies of the data :-(
-    //
-    // if( ranks_a.size() != ranks_b.size() ) {
-    //     throw std::runtime_error(
-    //         "Ranges need to have same length to calculate their "
-    //         "Spearman's Rank Correlation Coefficient."
-    //     );
-    // }
-    //
-    // // Remove non finite values.
-    // size_t ins = 0;
-    // size_t pos = 0;
-    // while( first_a != last_a && first_b != last_b ) {
-    //     if( std::isfinite( *first_a ) && std::isfinite( *first_b ) ) {
-    //         ranks_a[ ins ] = ranks_a[ pos ];
-    //         ranks_b[ ins ] = ranks_b[ pos ];
-    //         ++ins;
-    //     }
-    //     ++first_a;
-    //     ++first_b;
-    //     ++pos;
-    // }
-    //
-    // // We already checked that the ranks have the same length. Assert this.
-    // assert( first_a == last_a && first_b == last_b );
-    // assert( pos == ranks_a.size() && pos == ranks_b.size() );
-    //
-    // // Erase the removed elements.
-    // assert( ins <= ranks_a.size() && ins <= ranks_b.size() );
-    // ranks_a.resize( ins );
-    // ranks_b.resize( ins );
 
     return pearson_correlation_coefficient( ranks_a, ranks_b );
 }
@@ -1076,6 +1130,162 @@ inline std::vector<double> fisher_transformation( std::vector<double> const& cor
         elem = fisher_transformation( elem );
     }
     return res;
+}
+
+// =================================================================================================
+//     Linear Regression
+// =================================================================================================
+
+/**
+ * @brief Data structer to keep the two parameters of a linear function: its ::slope, and its
+ * ::intercept.
+ *
+ * It also has a function to calcualte `y = slope * x + intercept`.
+ */
+struct LinearFunction
+{
+    double slope;
+    double intercept;
+
+    double y( double x )
+    {
+        return slope * x + intercept;
+    }
+};
+
+/**
+ * @brief Simple linear regression, for predicting the dependent variable `y` given the independent
+ * variable `x`, using ordinary least squares regression.
+ *
+ * See https://en.wikipedia.org/wiki/Simple_linear_regression for an explanation.
+ *
+ * @see sum_of_squared_residuals() for calculating the resulting error.
+ */
+template <class ForwardIteratorA, class ForwardIteratorB>
+LinearFunction simple_linear_regression(
+    ForwardIteratorA first_x, ForwardIteratorA last_x,
+    ForwardIteratorB first_y, ForwardIteratorB last_y
+) {
+    // Calculate means of x and y := Mean(x), Mean(y) in parallel.
+    double mean_x = 0.0;
+    double mean_y = 0.0;
+    size_t count = 0;
+    for_each_finite_pair( first_x, last_x, first_y, last_y, [&]( double val_x, double val_y ){
+        mean_x += val_x;
+        mean_y += val_y;
+        ++count;
+    });
+    if( count == 0 ) {
+        return { std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN() };
+    }
+    assert( count > 0 );
+    mean_x /= static_cast<double>( count );
+    mean_y /= static_cast<double>( count );
+    assert( std::isfinite( mean_x ));
+    assert( std::isfinite( mean_y ));
+
+    // Calculate Cov(x,y) := covariance of x and y, and Var(x) := variance of x.
+    double covariance = 0.0;
+    double variance_x = 0.0;
+    for_each_finite_pair( first_x, last_x, first_y, last_y, [&]( double val_x, double val_y ){
+        double const dx = val_x - mean_x;
+        double const dy = val_y - mean_y;
+        covariance += dx * dy;
+        variance_x += dx * dx;
+    });
+    assert( std::isfinite( covariance ));
+    assert( std::isfinite( variance_x ));
+
+    // The linear parameters are slope := Cov(x,y) / Var(x), and intercept = Mean(y) - slope * Mean(x).
+    LinearFunction result;
+    result.slope = covariance / variance_x;
+    result.intercept = mean_y - result.slope * mean_x;
+    return result;
+}
+
+/**
+ * @brief Calculate the mean squared error obtained from a linear fit of the input variables.
+ *
+ * The error per data point `(x,y)` is calculated as the squared differences between `y`
+ * and the prediction given by the linear function @p lin_fct for `x`.
+ * The function returns the mean of the errors for all data points.
+ *
+ * @see simple_linear_regression() for calculating such a fit.
+ */
+template <class ForwardIteratorA, class ForwardIteratorB>
+double mean_squared_error(
+    ForwardIteratorA first_x, ForwardIteratorA last_x,
+    ForwardIteratorB first_y, ForwardIteratorB last_y,
+    LinearFunction lin_fct
+) {
+    double error = 0.0;
+    size_t count = 0;
+
+    for_each_finite_pair( first_x, last_x, first_y, last_y, [&]( double val_x, double val_y ){
+        double const e = val_y - lin_fct.y( val_x );
+        error += e * e;
+        ++count;
+    });
+
+    if( count == 0 ) {
+        assert( error == 0.0 );
+        return error;
+    }
+    return error / static_cast<double>( count );
+}
+
+/**
+ * @brief Calculate the fraction of unexplained variance resulting from a linear fit of the input
+ * variables.
+ *
+ * See https://en.wikipedia.org/wiki/Fraction_of_variance_unexplained for some details.
+ *
+ * @see simple_linear_regression() for calculating such a fit.
+ */
+template <class ForwardIteratorA, class ForwardIteratorB>
+double fraction_of_variance_unexplained(
+    ForwardIteratorA first_x, ForwardIteratorA last_x,
+    ForwardIteratorB first_y, ForwardIteratorB last_y,
+    LinearFunction lin_fct
+) {
+    // Prepare mean of y and the count of valid value pairs.
+    double y_mean = 0.0;
+    size_t count = 0;
+
+    // First get mean of y. We use the x iterator only to make sure that we skip invalid pairs.
+    for_each_finite_pair( first_x, last_x, first_y, last_y, [&]( double, double y_val ){
+        y_mean += y_val;
+        ++count;
+    });
+    y_mean /= static_cast<double>( count );
+
+    // Edge case.
+    if( count == 0 ) {
+        return 0.0;
+    }
+
+    // Prepare sums of squares.
+    double ss_err = 0.0;
+    double ss_tot = 0.0;
+    // double ss_reg = 0.0;
+
+    // Iterate again, this time calculate the components needed.
+    for_each_finite_pair( first_x, last_x, first_y, last_y, [&]( double x_val, double y_val ){
+        double const y_hat = lin_fct.y( x_val );
+
+        double const d_err = y_val - y_hat;
+        double const d_tot = y_val - y_mean;
+        // double const d_reg = y_hat - y_mean;
+
+        ss_err += d_err * d_err;
+        ss_tot += d_tot * d_tot;
+        // ss_reg += d_reg * d_reg;
+    });
+
+    auto const fvu = ( ss_err / ss_tot );
+    // auto const fvu = ( 1.0 - ss_reg / ss_tot );
+    assert( 0.0 <= fvu && fvu <= 1.0 );
+    return fvu;
 }
 
 } // namespace utils

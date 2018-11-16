@@ -79,6 +79,8 @@ namespace placement {
  * edpl for many @link Pquery Pqueries@endlink at a time.
  *
  * @p node_distances has to be the result of node_branch_length_distance_matrix().
+ *
+ * @see edpl( Sample const& ) for details.
  */
 double edpl( Pquery const& pquery, utils::Matrix<double> const& node_distances );
 
@@ -87,6 +89,8 @@ double edpl( Pquery const& pquery, utils::Matrix<double> const& node_distances )
  * for all @link Pquery Pqueries@endlink in the Sample.
  *
  * @p node_distances has to be the result of node_branch_length_distance_matrix().
+ *
+ * @see edpl( Sample const& ) for details.
  */
 std::vector<double> edpl( Sample const& sample, utils::Matrix<double> const& node_distances );
 
@@ -97,14 +101,39 @@ std::vector<double> edpl( Sample const& sample, utils::Matrix<double> const& nod
  *
  * This function expects a Pquery and the Sample it belongs to. This is necessary in order to
  * get the Tree of the Sample and calculate distances between its Nodes.
+ *
+ * @see edpl( Sample const& ) for details.
  */
 double edpl( Sample const& sample, Pquery const& pquery );
 
 /**
- * @brief Calculate the @link edpl( Sample const&, Pquery const& ) edpl()@endlink
- * for all @link Pquery Pqueries@endlink in the Sample.
+* @brief Calculate the expected distance between placement locations (EDPL)
+* for all @link Pquery Pqueries@endlink in a Sample.
+ *
+ * The EDPL is a measure of uncertainty of how far the PqueryPlacement%s of a Pquery are spread
+ * across the branches of the PlacementTree. In a reference tree with similar sequences,
+ * a query sequence might be placed on several nearby branches with relatively high likelihood (LWR).
+ * This still constitutes a high confidence in the placement, as the spreading is due to the
+ * similar reference sequences, and not due to inherent uncertainty in the placement itself.
+ * This is opposed to a query sequence whose placements are spread all across the tree,
+ * which might indicate that a fitting reference sequence is missing from the tree, and
+ * hence yields uncertain placements.
+ *
+ * This can be assessed with the EDPL, which calculates the distances between different placements,
+ * weighted by their respective LWRs:
+ *
+ * ![Example of the EDPL for a pquery with three placement locations.](placement/edpl.png)
+ *
+ * The `p` values in the figure represent likelihood weight ratios of the placements at these
+ * locations. The distances `d` are calculated using the branch lengths of the tree on the path
+ * between the placement locations.
+ * Hence, a low EDPL indicates that the PqueryPlacement%s of a Pquery are focussed in a narrow
+ * region of the tree, whereas a high EDPL indicates that the placements are spread across the tree.
  *
  * See http://matsen.github.io/pplacer/generated_rst/guppy_edpl.html for more information.
+ * The function calculates the node distances of the tree first, which is needed for the computation.
+ * See the other `edpl` functions for versions that take this matrix, in order to get speedups
+ * when working with multiple Sample%s that use the same PlacementTree.
  */
 std::vector<double> edpl( Sample const& sample );
 
