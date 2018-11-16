@@ -45,6 +45,10 @@
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/functions.hpp"
 
+#include "genesis/utils/tools/color/sequential_lists.hpp"
+#include "genesis/utils/tools/color/norm_linear.hpp"
+
+
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
@@ -266,6 +270,9 @@ PhyloFactor phylo_factor_find_best_edge(
     // Init a result that has an objective value smaller than all we will encounter.
     PhyloFactor result;
     result.objective_value = - std::numeric_limits<double>::infinity();
+    result.all_objective_values = std::vector<double>(
+        data.tree.edge_count(), std::numeric_limits<double>::quiet_NaN()
+    );
 
     // We cheat for simplicity, and create a vector of the indices as well,
     // so that we can efficiently parallelize over it...
@@ -309,8 +316,9 @@ PhyloFactor phylo_factor_find_best_edge(
         // Calculate the balances of this edge for all trees.
         auto const balances = mass_balance( data, p_indices, s_indices );
 
-        // Calculate the objective function,
+        // Calculate the objective function, and store it in the result.
         auto const ov = objective( balances );
+        result.all_objective_values[ ce_idx ] = ov;
 
         // Update our greedy best hit if needed.
         #pragma omp critical( GENESIS_TREE_MASS_TREE_PHYLO_FACTOR_OBJECTIVE_UPDATE )

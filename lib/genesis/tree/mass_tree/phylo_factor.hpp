@@ -52,13 +52,47 @@ using MassTree = Tree;
 //     Phylogenetic Factorization
 // =================================================================================================
 
+/**
+ * @brief A single phylogenetic factor.
+ */
 struct PhyloFactor
 {
-    size_t edge_index;
+    /**
+     * @brief The edge that this factor found to be maximizing for the objective function.
+     */
+    size_t                     edge_index;
+
+    /**
+     * @brief The set of edges on the root (primary) side of the edge that belongs to this factor.
+     */
     std::unordered_set<size_t> edge_indices_primary;
+
+    /**
+     * @brief The set of edges on the non-root (secondary) side of the edge that belongs to this factor.
+     */
     std::unordered_set<size_t> edge_indices_secondary;
+
+    /**
+     * @brief The balances for all Samples calculated on the two sets of edge indices of this factor.
+     */
     std::vector<double>        balances;
-    double objective_value;
+
+    /**
+     * @brief The objective value obtained from the objective function using the balances.
+     */
+    double                     objective_value;
+
+    /**
+     * @brief For reference, all other objective values for the other edges of the tree.
+     *
+     * This is mainly used for visualization purposes in order to validate why a particular edge
+     * has been chosen as the next factor. This shows the objective value for all edges that
+     * have not yet been factored out by previous iterations.
+     *
+     * The vector is indexed by edge indices as usual. The edges of previous factors as well as
+     * leaf edges have a `NaN` value to distinguish them from proper values.
+     */
+    std::vector<double>        all_objective_values;
 };
 
 /**
