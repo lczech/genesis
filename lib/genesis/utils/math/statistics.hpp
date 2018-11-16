@@ -38,6 +38,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstddef>
+#include <functional>
 #include <limits>
 #include <stdexcept>
 #include <utility>
@@ -86,6 +87,72 @@ struct Quartiles
     double q3 = 0.0;
     double q4 = 0.0;
 };
+
+// =================================================================================================
+//     Helper Functions
+// =================================================================================================
+
+/**
+ * @brief Helper function that cleans two ranges of `double` of the same length from non-finite values.
+ *
+ * This function is used for cleaning data input. It iterates both same-length ranges in parallel
+ * and copies pairs elements to the two result vectors (one for each range), if both values are
+ * finite. The result vectors thus have equal size.
+ */
+template <class ForwardIteratorA, class ForwardIteratorB>
+std::pair<std::vector<double>, std::vector<double>> finite_pairs(
+    ForwardIteratorA first_a, ForwardIteratorA last_a,
+    ForwardIteratorB first_b, ForwardIteratorB last_b
+) {
+    // Prepare result.
+    std::vector<double> vec_a;
+    std::vector<double> vec_b;
+
+    // Iterate in parallel.
+    while( first_a != last_a && first_b != last_b ) {
+        if( std::isfinite( *first_a ) && std::isfinite( *first_b ) ) {
+            vec_a.push_back( *first_a );
+            vec_b.push_back( *first_b );
+        }
+        ++first_a;
+        ++first_b;
+    }
+    if( first_a != last_a || first_b != last_b ) {
+        throw std::runtime_error(
+            "Ranges need to have same length."
+        );
+    }
+
+    assert( vec_a.size() == vec_b.size() );
+    return { vec_a, vec_b };
+}
+
+/**
+ * @brief Iterate two ranges of `double` values in parallel, and execute a function for
+ * each pair of values from the two ranges where both values are finite.
+ *
+ * The ranges need to have the same length.
+ */
+template <class ForwardIteratorA, class ForwardIteratorB>
+void for_each_finite_pair(
+    ForwardIteratorA first_a, ForwardIteratorA last_a,
+    ForwardIteratorB first_b, ForwardIteratorB last_b,
+    std::function<void( double value_a, double value_b )> execute
+) {
+    // Iterate in parallel.
+    while( first_a != last_a && first_b != last_b ) {
+        if( std::isfinite( *first_a ) && std::isfinite( *first_b ) ) {
+            execute( *first_a, *first_b );
+        }
+        ++first_a;
+        ++first_b;
+    }
+
+    // Check if the ranges have the same length.
+    if( first_a != last_a || first_b != last_b ) {
+        throw std::runtime_error( "Ranges need to have same length." );
+    }
+}
 
 // =================================================================================================
 //     Normalization
@@ -849,41 +916,6 @@ inline std::vector<double> quartile_coefficient_of_dispersion( std::vector<Quart
 // =================================================================================================
 
 /**
- * @brief Helper function that cleans two ranges of `double` of the same length from non-finite values.
- *
- * This function is used for cleaning data input. It iterates both same-length ranges in parallel
- * and copies pairs elements to the two result vectors (one for each range), if both values are
- * finite. The result vectors thus have equal size.
- */
-template <class ForwardIteratorA, class ForwardIteratorB>
-std::pair<std::vector<double>, std::vector<double>> finite_pairs(
-    ForwardIteratorA first_a, ForwardIteratorA last_a,
-    ForwardIteratorB first_b, ForwardIteratorB last_b
-) {
-    // Prepare result.
-    std::vector<double> vec_a;
-    std::vector<double> vec_b;
-
-    // Iterate in parallel.
-    while( first_a != last_a && first_b != last_b ) {
-        if( std::isfinite( *first_a ) && std::isfinite( *first_b ) ) {
-            vec_a.push_back( *first_a );
-            vec_b.push_back( *first_b );
-        }
-        ++first_a;
-        ++first_b;
-    }
-    if( first_a != last_a || first_b != last_b ) {
-        throw std::runtime_error(
-            "Ranges need to have same length."
-        );
-    }
-
-    assert( vec_a.size() == vec_b.size() );
-    return { vec_a, vec_b };
-}
-
-/**
  * @brief Calculate the Pearson Correlation Coefficient between two ranges of `double`.
  *
  * Both ranges need to have the same length. Then, the function calculates the PCC
@@ -1085,11 +1117,18 @@ inline std::vector<double> fisher_transformation( std::vector<double> const& cor
 /**
  * @brief Data structer to keep the two parameters of a linear function: its ::slope, and its
  * ::intercept.
+ *
+ * It also has a function to calcualte `y = slope * x + intercept`.
  */
 struct LinearFunction
 {
     double slope;
     double intercept;
+
+    double y( double x )
+    {
+        return slope * x + intercept;
+    }
 };
 
 /**
@@ -1161,16 +1200,16 @@ LinearFunction simple_linear_regression(
 }
 
 /**
- * @brief Calculate the mean error obtained from a linear fit of the input variables.
+ * @brief Calculate the mean squared error obtained from a linear fit of the input variables.
  *
- * The error is calculated as the sum of squared differences between the data points `(x,y)`
- * and the prediction given by the linear function @p lin_fct for values of `x`.
+ * The error per data point `(x,y)` is calculated as the squared differences between `y`
+ * and the prediction given by the linear function @p lin_fct for `x`.
  * The function returns the mean of the errors for all data points.
  *
  * @see simple_linear_regression() for calculating such a fit.
  */
 template <class ForwardIteratorA, class ForwardIteratorB>
-double mean_sum_of_squared_residuals(
+double mean_squared_error(
     ForwardIteratorA first_x, ForwardIteratorA last_x,
     ForwardIteratorB first_y, ForwardIteratorB last_y,
     LinearFunction lin_fct
@@ -1182,8 +1221,7 @@ double mean_sum_of_squared_residuals(
     auto it_y = first_y;
     while( it_x != last_x && it_y != last_y ) {
         if( std::isfinite( *it_x ) && std::isfinite( *it_y ) ) {
-            double const p = lin_fct.slope * (*it_x) + lin_fct.intercept;
-            double const e = (*it_y) - p;
+            double const e = (*it_y) - lin_fct.y( *it_x );
             error += e * e;
             ++count;
         }
@@ -1201,6 +1239,57 @@ double mean_sum_of_squared_residuals(
         return error;
     }
     return error / static_cast<double>( count );
+}
+
+/**
+ * @brief
+ *
+ * See https://en.wikipedia.org/wiki/Fraction_of_variance_unexplained for some details.
+ */
+template <class ForwardIteratorA, class ForwardIteratorB>
+double fraction_of_variance_unexplained(
+    ForwardIteratorA first_x, ForwardIteratorA last_x,
+    ForwardIteratorB first_y, ForwardIteratorB last_y,
+    LinearFunction lin_fct
+) {
+    // Prepare mean of y and the count of valid value pairs.
+    double y_mean = 0.0;
+    size_t count = 0;
+
+    // First get mean of y. We use the x iterator only to make sure that we skip invalid pairs.
+    for_each_finite_pair( first_x, last_x, first_y, last_y, [&]( double, double y_val ){
+        y_mean += y_val;
+        ++count;
+    });
+    y_mean /= static_cast<double>( count );
+
+    // Edge case.
+    if( count == 0 ) {
+        return 0.0;
+    }
+
+    // Prepare sums of squares.
+    double ss_err = 0.0;
+    double ss_tot = 0.0;
+    // double ss_reg = 0.0;
+
+    // Iterate again, this time calculate the components needed.
+    for_each_finite_pair( first_x, last_x, first_y, last_y, [&]( double x_val, double y_val ){
+        double const y_hat = lin_fct.y( x_val );
+
+        double const d_err = y_val - y_hat;
+        double const d_tot = y_val - y_mean;
+        // double const d_reg = y_hat - y_mean;
+
+        ss_err += d_err * d_err;
+        ss_tot += d_tot * d_tot;
+        // ss_reg += d_reg * d_reg;
+    });
+
+    auto const fvu = ( ss_err / ss_tot );
+    // auto const fvu = ( 1.0 - ss_reg / ss_tot );
+    assert( 0.0 <= fvu && fvu <= 1.0 );
+    return fvu;
 }
 
 } // namespace utils
