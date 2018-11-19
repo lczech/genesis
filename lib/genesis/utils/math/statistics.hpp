@@ -1099,9 +1099,6 @@ inline double spearmans_rank_correlation_coefficient(
  * spearmans_rank_correlation_coefficient() and has to be in range `[ -1.0, 1.0 ]`.
  *
  * There is also a version of this function for a vector of coefficients.
- * See also matrix_col_pearson_correlation_coefficient(),
- * matrix_row_pearson_correlation_coefficient(), matrix_col_spearmans_rank_correlation_coefficient()
- * and matrix_row_spearmans_rank_correlation_coefficient() for matrix versions.
  */
 inline double fisher_transformation( double correlation_coefficient )
 {
