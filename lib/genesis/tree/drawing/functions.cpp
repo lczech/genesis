@@ -52,6 +52,7 @@
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/output_stream.hpp"
+#include "genesis/utils/tools/color/norm_linear.hpp"
 
 #include <fstream>
 #include <memory>
@@ -181,8 +182,13 @@ void write_tree_to_svg_file(
     LayoutParameters const& params,
     std::string const&      svg_filename
 ) {
+    // We use a dummy linear norm here, to satisfy the compiler (because the standard norm has
+    // purely virtual functiosn and can thus not be instanciated). As the color map however is
+    // empty, the called function will not use the norm.
     write_color_tree_to_svg_file(
-        tree, params, std::vector<utils::Color>{}, {}, {}, svg_filename
+        tree, params, std::vector<utils::Color>{},
+        {}, utils::ColorNormalizationLinear(),
+        svg_filename
     );
 }
 
@@ -192,8 +198,13 @@ void write_color_tree_to_svg_file(
     std::vector<utils::Color> const& color_per_branch,
     std::string const&               svg_filename
 ) {
+    // We use a dummy linear norm here, to satisfy the compiler (because the standard norm has
+    // purely virtual functiosn and can thus not be instanciated). As the color map however is
+    // empty, the called function will not use the norm.
     write_color_tree_to_svg_file(
-        tree, params, color_per_branch, {}, {}, svg_filename
+        tree, params, color_per_branch,
+        {}, utils::ColorNormalizationLinear(),
+        svg_filename
     );
 }
 
