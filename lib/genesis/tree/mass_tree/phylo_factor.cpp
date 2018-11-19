@@ -43,11 +43,6 @@
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/statistics.hpp"
 #include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/functions.hpp"
-
-#include "genesis/utils/tools/color/sequential_lists.hpp"
-#include "genesis/utils/tools/color/norm_linear.hpp"
-
 
 #include <cassert>
 #include <cmath>
@@ -67,18 +62,9 @@ namespace tree {
 //     Phylogenetic Factorization
 // =================================================================================================
 
-/**
- * @brief Local helper function for phylogenetic factorization subtrees.
- *
- * Helper function to get the edge indices of a particular subtree,
- * excluding the edge that leads to it, and excluding all subtrees that are not connected
- * to the given subtree via the candidate edges. In other words, a subtree is excluded
- * if it is connected to the given subtree by an edge that is not in the candidate list.
- * Consequently, the returned indices are all part of the candidates.
- */
 std::unordered_set<size_t> phylo_factor_subtree_indices(
-    std::unordered_set<size_t> const& candidate_edges,
-    Subtree const& subtree
+    Subtree const& subtree,
+    std::unordered_set<size_t> const& candidate_edges
 ) {
     // Prepare result
     std::unordered_set<size_t> sub_indices;
@@ -194,72 +180,6 @@ std::unordered_set<size_t> phylo_factor_subtree_indices(
     return sub_indices;
 }
 
-/**
- * @brief Local helper function for phylogenetic factorization tree visualization.
- *
- * This function is for debugging, and it colors all edges so that their current status is visible:
- *
- *  * light gray: not part of the current phylo factor.
- *  * black: edge of a previous factor, now excluded from the set.
- *  * cyan: the current edge considered for a factor.
- *  * blue: the primary set of edges of the current factor.
- *  * green: the secondary set of edges of the current factor.
- *  * red: an edge that belongs to more than one of the above - that is, an error in the algorithm!
- *
- * This can be used to find out if our algorithm, and in paraticular phylo_factor_subtree_indices(),
- * is doing the right thing.
- */
-void phylo_factor_write_tree(
-    Tree const& tree,
-    size_t edge_index,
-    std::unordered_set<size_t> const& p_indices,
-    std::unordered_set<size_t> const& s_indices,
-    std::unordered_set<size_t> const& candidate_edges,
-    std::string const& out_file
-) {
-    // Neutral color.
-    auto const neutral = utils::color_from_hex( "#DDDDDD" );
-
-    // Prepare all edges in gray.
-    auto edge_cols = std::vector<utils::Color>( tree.edge_count(), neutral );
-
-    // Helper to set the color of one edge to a value, unless it already has a value,
-    // in which case we have an error, and make it red.
-    auto set_color_ = [&]( size_t index, utils::Color color ){
-        if( edge_cols[ index ] == neutral ) {
-            edge_cols[ index ] = color;
-        } else {
-            edge_cols[ index ] = utils::color_from_hex( "#FF0000" );
-        }
-    };
-
-    // Set the edges of the factor and its subtrees (cyan, blue, green).
-    edge_cols[ edge_index ] = utils::color_from_hex( "#00FFFF" );
-    for( auto const e : p_indices ) {
-        set_color_( e, utils::color_from_hex( "#0000FF" ) );
-    }
-    for( auto const e : s_indices ) {
-        set_color_( e, utils::color_from_hex( "#00FF00" ) );
-    }
-
-    // Set the colors of the non-candidate edges, that is, the factors that are already done.
-    // Special case for leaves, as the are not in the candidates, but should not be black.
-    for( size_t i = 0; i < tree.edge_count(); ++i ) {
-        if( candidate_edges.count( tree.edge_at(i).index() ) == 0 && ! is_leaf( tree.edge_at(i) ) ) {
-            set_color_( i, utils::color_from_hex( "#000000" ) );
-        }
-    }
-
-    // Write the tree.
-    auto lm = LayoutParameters();
-    lm.stroke.width = 10;
-    write_color_tree_to_svg_file( tree, lm, edge_cols, out_file );
-}
-
-/**
- * @brief Local helper function that tries all candidate edges to find the one that maximizes
- * the objective function.
- */
 PhyloFactor phylo_factor_find_best_edge(
     BalanceData const& data,
     std::unordered_set<size_t> const& candidate_edges,
@@ -300,11 +220,15 @@ PhyloFactor phylo_factor_find_best_edge(
         // We can however not remove it from the candidates completely, as it is still part of the
         // edges needed for calculating balances. So, we'd need another set of edges distinct from
         // the candidates for storing which edges to use for the lookup... too complex for now!
-        auto const p_indices = phylo_factor_subtree_indices( candidate_edges, { edge.primary_link() });
+        auto const p_indices = phylo_factor_subtree_indices(
+            { edge.primary_link() }, candidate_edges
+        );
         if( p_indices.empty() ) {
             continue;
         }
-        auto const s_indices = phylo_factor_subtree_indices( candidate_edges, { edge.secondary_link() });
+        auto const s_indices = phylo_factor_subtree_indices(
+            { edge.secondary_link() }, candidate_edges
+        );
         if( s_indices.empty() ) {
             continue;
         }
@@ -380,6 +304,71 @@ std::vector<PhyloFactor> phylogenetic_factorization(
     }
 
     return result;
+}
+
+// =================================================================================================
+//     Helper Functions
+// =================================================================================================
+
+std::vector<size_t> phylo_factor_edges(
+    std::vector<PhyloFactor> const& factors,
+    size_t max_factor
+) {
+    // Find as many as we need.
+    max_factor = std::min( max_factor, factors.size() );
+    std::vector<size_t> result;
+    for( size_t i = 0; i < max_factor; ++i ) {
+        result.push_back( factors[i].edge_index );
+    }
+    return result;
+}
+
+std::vector<utils::Color> phylo_factor_edge_colors(
+    Tree const& tree,
+    std::vector<PhyloFactor> const& factors,
+    size_t factor_index,
+    PhyloFactorColors colors
+) {
+    if( factor_index > factors.size() ) {
+        throw std::invalid_argument( "Invalid index for a phylo factor." );
+    }
+    auto const& factor = factors[ factor_index ];
+
+    // Prepare all edges in neutral color.
+    auto edge_cols = std::vector<utils::Color>( tree.edge_count(), colors.neutral_edges );
+
+    // Helper to set the color of one edge to a value, unless it already has a value,
+    // in which case we have an error, and make it red.
+    auto set_color_ = [&]( size_t index, utils::Color color ){
+        if( index >= edge_cols.size() ) {
+            throw std::runtime_error( "Invalid edge index in a phylo factor." );
+        }
+        if( edge_cols[ index ] == colors.neutral_edges ) {
+            edge_cols[ index ] = color;
+        } else {
+            throw std::runtime_error(
+                "Edge at index " + std::to_string( index ) + " is in multiple edge sets of the "
+                "phylo factor."
+            );
+        }
+    };
+
+    // Set the edges of the factor and its subtrees.
+    set_color_( factor.edge_index, colors.factor_edge );
+    for( auto const e : factor.edge_indices_primary ) {
+        set_color_( e, colors.primary_edges );
+    }
+    for( auto const e : factor.edge_indices_secondary ) {
+        set_color_( e, colors.secondary_edges );
+    }
+
+    // Get all previous factor edges and colorize them.
+    auto const prev_factors = phylo_factor_edges( factors, factor_index );
+    for( auto const e : prev_factors ) {
+        set_color_( e, colors.previous_factors );
+    }
+
+    return edge_cols;
 }
 
 } // namespace tree

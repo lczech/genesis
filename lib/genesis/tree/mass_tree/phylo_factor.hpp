@@ -33,8 +33,10 @@
 
 #include "genesis/tree/mass_tree/balances.hpp"
 #include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/tools/color.hpp"
 
 #include <functional>
+#include <limits>
 #include <unordered_set>
 #include <vector>
 
@@ -45,6 +47,7 @@ namespace tree {
 //     Forward Declarations
 // =================================================================================================
 
+class Subtree;
 class Tree;
 using MassTree = Tree;
 
@@ -54,6 +57,8 @@ using MassTree = Tree;
 
 /**
  * @brief A single phylogenetic factor.
+ *
+ * @see phylogenetic_factorization()
  */
 struct PhyloFactor
 {
@@ -96,6 +101,31 @@ struct PhyloFactor
 };
 
 /**
+ * @brief Helper function for phylogenetic_factorization() to find the constrained subtrees
+ * that are split by an edge.
+ *
+ * Helper function to get the edge indices of a particular subtree,
+ * excluding the edge that leads to it, and excluding all subtrees that are not connected
+ * to the given subtree via the candidate edges. In other words, a subtree is excluded
+ * if it is connected to the given subtree by an edge that is not in the candidate list.
+ * Consequently, the returned indices are all part of the candidates.
+ */
+std::unordered_set<size_t> phylo_factor_subtree_indices(
+    Subtree const& subtree,
+    std::unordered_set<size_t> const& candidate_edges
+);
+
+/**
+ * @brief Helper function for phylogenetic_factorization() that tries all candidate edges
+ * to find the one that maximizes the objective function.
+ */
+PhyloFactor phylo_factor_find_best_edge(
+    BalanceData const& data,
+    std::unordered_set<size_t> const& candidate_edges,
+    std::function<double( std::vector<double> const& balances )> objective
+);
+
+/**
  * @brief Calculate the Phylogenetic Factorization (PhyloFactor) of a set of MassTree%s.
  *
  * This implementation is simiar to the ideas presented in [1]. We however extend this original
@@ -133,6 +163,74 @@ std::vector<PhyloFactor> phylogenetic_factorization(
     std::function<double( std::vector<double> const& balances )> objective,
     size_t max_iterations = 0,
     std::function<void( size_t iteration, size_t max_iterations )> log_progress = {}
+);
+
+// =================================================================================================
+//     Phylo Factor Color Trees
+// =================================================================================================
+
+/**
+ * @brief Store a set of colors for making visualizations of individual phylo factors.
+ *
+ * @see phylogenetic_factorization()
+ */
+struct PhyloFactorColors
+{
+    /**
+     * @brief Color for the edge of that phylo factor.
+     *
+     * Default is black.
+     */
+    utils::Color factor_edge = utils::Color( 0.0, 0.0, 0.0 );
+
+    /**
+     * @brief Color for the edges towards the root that have been used in this phylo factor.
+     *
+     * Default is purple.
+     */
+    utils::Color primary_edges = utils::Color( 0.529411765, 0.439215686, 0.670588235 );
+
+    /**
+    * @brief Color for the edges away from the root that have been used in this phylo factor.
+    *
+    * Default is green.
+    */
+    utils::Color secondary_edges = utils::Color( 0.352941176, 0.682352941, 0.380392157 );
+
+    /**
+    * @brief Color for the edges that have been factored out before (earlier factors in the greedy
+    * search).
+    *
+    * Default is black.
+    */
+    utils::Color previous_factors = utils::Color( 0.0, 0.0, 0.0 );
+
+    /**
+    * @brief Color for the edges that have not been used in this phylo factor.
+    *
+    * Defaut is a light gray.
+    */
+    utils::Color neutral_edges = utils::Color( 0.8, 0.8, 0.8 );
+};
+
+/**
+ * @brief Get a list of all edges that have factored out by phylogenetic_factorization().
+ *
+ * By default, all edges that are factors are returned, that is, the list of
+ * all PhyloFactor::edge_index in the input @p factors. If @p max_factor is set to a value > 0,
+ * only this many factors (the first ones) are returned. 0 is also allowed, in which case an
+ * empty vector is returned.
+ */
+std::vector<size_t> phylo_factor_edges(
+    std::vector<PhyloFactor> const& factors,
+    size_t max_factor = std::numeric_limits<std::size_t>::max()
+);
+
+std::vector<utils::Color> phylo_factor_edge_colors(
+    Tree const& tree,
+    std::vector<PhyloFactor> const& factors,
+    size_t factor_index,
+    PhyloFactorColors colors = {}
 );
 
 } // namespace tree
