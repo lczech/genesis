@@ -87,10 +87,41 @@ public:
     }
 
     InputBuffer(self_type const&) = delete;
-    InputBuffer(self_type&&)      = default;
+
+    InputBuffer( self_type&& other )
+        : buffer_( nullptr )
+    {
+        *this = std::move( other );
+    }
 
     self_type& operator= (self_type const&) = delete;
-    self_type& operator= (self_type&&)      = default;
+
+    self_type& operator= ( self_type&& other )
+    {
+        if( this == &other ) {
+            return *this;
+        }
+
+        input_reader_ = std::move( other.input_reader_ );
+        source_name_  = std::move( other.source_name_ );
+
+        // Need to free our current buffer.
+        if( buffer_ ) {
+            delete[] buffer_;
+        }
+
+        // Move the data.
+        buffer_ = other.buffer_;
+        data_pos_ = other.data_pos_;
+        data_end_ = other.data_end_;
+
+        // Set the other in a valid but empty state and avoid double freeing of the buffer.
+        other.buffer_ = nullptr;
+        other.data_pos_ = 0;
+        other.data_end_ = 0;
+
+        return *this;
+    }
 
     // -------------------------------------------------------------
     //     Reading
