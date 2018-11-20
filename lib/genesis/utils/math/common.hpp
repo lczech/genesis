@@ -32,8 +32,11 @@
  */
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
+#include <functional>
 #include <limits>
+#include <stdexcept>
 #include <type_traits>
 
 namespace genesis {
@@ -47,6 +50,11 @@ namespace utils {
  * @brief Make the world go round.
  */
 constexpr double PI = 3.141592653589793238463;
+
+inline double circumference( double radius )
+{
+    return 2 * PI * radius;
+}
 
 // =================================================================================================
 //     Number Handling
@@ -162,6 +170,72 @@ inline size_t int_pow( size_t base, size_t exp )
 inline bool is_valid_int_pow( size_t base, size_t exp )
 {
     return std::pow( base, exp ) < std::numeric_limits<size_t>::max();
+}
+
+// =================================================================================================
+//     Helper Functions
+// =================================================================================================
+
+/**
+ * @brief Helper function that cleans two ranges of `double` of the same length from non-finite values.
+ *
+ * This function is used for cleaning data input. It iterates both same-length ranges in parallel
+ * and copies pairs elements to the two result vectors (one for each range), if both values are
+ * finite. The result vectors thus have equal size.
+ */
+template <class ForwardIteratorA, class ForwardIteratorB>
+std::pair<std::vector<double>, std::vector<double>> finite_pairs(
+    ForwardIteratorA first_a, ForwardIteratorA last_a,
+    ForwardIteratorB first_b, ForwardIteratorB last_b
+) {
+    // Prepare result.
+    std::vector<double> vec_a;
+    std::vector<double> vec_b;
+
+    // Iterate in parallel.
+    while( first_a != last_a && first_b != last_b ) {
+        if( std::isfinite( *first_a ) && std::isfinite( *first_b ) ) {
+            vec_a.push_back( *first_a );
+            vec_b.push_back( *first_b );
+        }
+        ++first_a;
+        ++first_b;
+    }
+    if( first_a != last_a || first_b != last_b ) {
+        throw std::runtime_error(
+            "Ranges need to have same length."
+        );
+    }
+
+    assert( vec_a.size() == vec_b.size() );
+    return { vec_a, vec_b };
+}
+
+/**
+ * @brief Iterate two ranges of `double` values in parallel, and execute a function for
+ * each pair of values from the two ranges where both values are finite.
+ *
+ * The ranges need to have the same length.
+ */
+template <class ForwardIteratorA, class ForwardIteratorB>
+void for_each_finite_pair(
+    ForwardIteratorA first_a, ForwardIteratorA last_a,
+    ForwardIteratorB first_b, ForwardIteratorB last_b,
+    std::function<void( double value_a, double value_b )> execute
+) {
+    // Iterate in parallel.
+    while( first_a != last_a && first_b != last_b ) {
+        if( std::isfinite( *first_a ) && std::isfinite( *first_b ) ) {
+            execute( *first_a, *first_b );
+        }
+        ++first_a;
+        ++first_b;
+    }
+
+    // Check if the ranges have the same length.
+    if( first_a != last_a || first_b != last_b ) {
+        throw std::runtime_error( "Ranges need to have same length." );
+    }
 }
 
 } // namespace utils

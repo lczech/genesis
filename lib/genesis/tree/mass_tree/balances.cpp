@@ -38,6 +38,7 @@
 #include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/math/common.hpp"
+#include "genesis/utils/math/distance.hpp"
 #include "genesis/utils/math/statistics.hpp"
 
 #include <algorithm>

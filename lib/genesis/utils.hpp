@@ -93,6 +93,7 @@
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/common.hpp"
+#include "genesis/utils/math/distance.hpp"
 #include "genesis/utils/math/euclidean_kmeans.hpp"
 #include "genesis/utils/math/histogram/accumulator.hpp"
 #include "genesis/utils/math/histogram/distances.hpp"
