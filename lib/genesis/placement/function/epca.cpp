@@ -275,40 +275,6 @@ void epca_splitify_transform( utils::Matrix<double>& imbalance_matrix, double ka
 }
 
 // =================================================================================================
-//     Filter Constant Columns
-// =================================================================================================
-
-std::vector<size_t> epca_filter_constant_columns( utils::Matrix<double>& imbalance_matrix, double epsilon )
-{
-    // Get the column-wise min and max values.
-    auto const col_minmax = utils::matrix_col_minmax( imbalance_matrix );
-
-    // Store which columns to keep, by index.
-    std::vector<size_t> keep_cols;
-    for( size_t c = 0; c < imbalance_matrix.cols(); ++c ) {
-        assert( col_minmax[c].min <= col_minmax[c].max );
-        if (( col_minmax[c].max - col_minmax[c].min ) > epsilon ) {
-            keep_cols.push_back( c );
-        }
-    }
-    assert( keep_cols.size() <= imbalance_matrix.cols() );
-
-    // Produce new, filtered matrix.
-    auto new_mat = utils::Matrix<double>( imbalance_matrix.rows(), keep_cols.size() );
-
-    #pragma omp parallel for
-    for( size_t r = 0; r < imbalance_matrix.rows(); ++r ) {
-        for( size_t i = 0; i < keep_cols.size(); ++i ) {
-            new_mat( r, i ) = imbalance_matrix( r, keep_cols[i] );
-        }
-    }
-
-    // Overwrite the matrix.
-    imbalance_matrix = new_mat;
-    return keep_cols;
-}
-
-// =================================================================================================
 //     Edge PCA
 // =================================================================================================
 
@@ -330,7 +296,7 @@ EpcaData epca( SampleSet const& samples, double kappa, double epsilon, size_t co
     assert( imbalance_matrix.cols() == inner_edge_indices.size() );
 
     // Filter and transform the imbalance matrix.
-    auto const not_filtered_indices = epca_filter_constant_columns( imbalance_matrix, epsilon );
+    auto const not_filtered_indices = filter_constant_columns( imbalance_matrix, epsilon );
     epca_splitify_transform( imbalance_matrix, kappa );
 
     // We now use the list of not filtered indices to selected from the list of inner edge indices.

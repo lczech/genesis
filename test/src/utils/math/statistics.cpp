@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/math/distance.hpp"
 #include "genesis/utils/math/ranking.hpp"
 #include "genesis/utils/math/statistics.hpp"
 
@@ -161,6 +162,11 @@ TEST( Math, AitchisonNorm )
 {
     auto const vals = std::vector<double>{ 1.0, 2.0, 3.0 };
     EXPECT_DOUBLE_EQ( 0.78566403520078676, aitchison_norm( vals ));
+}
+
+TEST( Math, Distances )
+{
+    EXPECT_DOUBLE_EQ( 5.0, euclidean_distance({ 2.0, -1.0 }, { -2.0, 2.0 }));
 }
 
 TEST( Math, Median )

@@ -263,85 +263,23 @@ std::vector<MeanStddevPair> standardize_rows(
     bool            scale_std = true
 );
 
-// =================================================================================================
-//     Mean and Stddev
-// =================================================================================================
-
 /**
- * @brief Calculate the mean and standard deviation of all elements in a Matrix.
+ * @brief Filter out columns that have nearly constant values, measured using an @p epsilon.
  *
- * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
- * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
- * which for some use cases would cause problems like a division by zero later on.
- * By default, @p epsilon is `-1.0`, which deactivates this check - a standard deviation can never
- * be below `0.0`.
+ * The @link utils::Matrix Matrix@endlink is modified so that all columns `c` with
+ * `max(c) - min(c) <= epsilon` are removed.
  *
- * See also matrix_row_mean_stddev() and matrix_col_mean_stddev().
+ * The function returns a sorted list of all column indices of the original matrix that are kept,
+ * i.e., that have a greater min-max difference than @p epsilon. This is useful for e.g.,
+ * visualising the result of an @link epca() Edge PCA@endlink.
+ *
+ * @param[in,out] data    Matrix to filter inplace.
+ * @param[in]     epsilon Maximum deviation for what is considered constant.
+ * @return                List of original column indices that are kept (not filtered).
  */
-MeanStddevPair matrix_mean_stddev(
-    Matrix<double> const& data,
-    double epsilon = -1.0
-);
-
-/**
- * @brief Calculate the column-wise mean and standard deviation of a Matrix.
- *
- * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
- * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
- * which for some use cases would cause problems like a division by zero later on.
- * By default, @p epsilon is `-1.0`, which deactivates this check - a standard deviation can never
- * be below `0.0`.
- *
- * See also matrix_row_mean_stddev() and matrix_mean_stddev().
- */
-std::vector<MeanStddevPair> matrix_col_mean_stddev(
-    Matrix<double> const& data,
-    double epsilon = -1.0
-);
-
-/**
- * @brief Calculate the row-wise mean and standard deviation of a Matrix.
- *
- * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
- * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
- * which for some use cases would cause problems like a division by zero later on.
- * By default, @p epsilon is `-1.0`, which deactivates this check - a standard deviation can never
- * be below `0.0`.
- *
- * See also matrix_col_mean_stddev() and matrix_mean_stddev().
- */
-std::vector<MeanStddevPair> matrix_row_mean_stddev(
-    Matrix<double> const& data,
-    double epsilon = -1.0
-);
-
-// =================================================================================================
-//     Quartiles
-// =================================================================================================
-
-/**
- * @brief Calculate the Quartiles of the elmements in Matrix of `double`.
- */
-Quartiles matrix_quartiles(
-    Matrix<double> const& data
-);
-
-Quartiles matrix_row_quartiles(
-    Matrix<double> const& data,
-    size_t                row
-);
-
-std::vector<Quartiles> matrix_row_quartiles(
-    Matrix<double> const& data
-);
-
-Quartiles matrix_col_quartiles(
-    Matrix<double> const& data,
-    size_t                col
-);
-
-std::vector<Quartiles> matrix_col_quartiles(
-    Matrix<double> const& data
+std::vector<size_t> filter_constant_columns(
+    Matrix<double>& data,
+    double          epsilon = 1e-5
 );
 
 // =================================================================================================
@@ -368,58 +306,6 @@ Matrix<double> covariance_matrix( Matrix<double> const& data );
  * @brief Calculate the Sums of Squares and Cross Products Matrix (SSCP Matrix).
  */
 Matrix<double> sums_of_squares_and_cross_products_matrix( Matrix<double> const& data );
-
-// =================================================================================================
-//     Correlation Coefficients
-// =================================================================================================
-
-/**
- * @brief Calculate the Pearson Correlation Coefficient between two columns of two
- * @link Matrix Matrices@endlink.
- *
- * Both Matrices need to have the same number of rows. Then, the function calculates the PCC
- * between column @p col1 of Matrix @p mat1 and column @p col2 of Matrix @p mat2.
- */
-double matrix_col_pearson_correlation_coefficient(
-    Matrix<double> const& mat1, size_t col1,
-    Matrix<double> const& mat2, size_t col2
-);
-
-/**
- * @brief Calculate the Pearson Correlation Coefficient between two row of two
- * @link Matrix Matrices@endlink.
- *
- * Both Matrices need to have the same number of columns. Then, the function calculates the PCC
- * between row @p row1 of Matrix @p mat1 and row @p row2 of Matrix @p mat2.
- */
-double matrix_row_pearson_correlation_coefficient(
-    Matrix<double> const& mat1, size_t row1,
-    Matrix<double> const& mat2, size_t row2
-);
-
-/**
- * @brief Calculate Spearman's Rank Correlation Coefficient between two columns of two
- * @link Matrix Matrices@endlink.
- *
- * Both Matrices need to have the same number of rows. Then, the function calculates Spearman's Rho
- * between column @p col1 of Matrix @p mat1 and column @p col2 of Matrix @p mat2.
- */
-double matrix_col_spearmans_rank_correlation_coefficient(
-    Matrix<double> const& mat1, size_t col1,
-    Matrix<double> const& mat2, size_t col2
-);
-
-/**
- * @brief Calculate Spearman's Rank Correlation Coefficient between two row of two
- * @link Matrix Matrices@endlink.
- *
- * Both Matrices need to have the same number of columns. Then, the function calculates Spearman's
- * Rho between row @p row1 of Matrix @p mat1 and row @p row2 of Matrix @p mat2.
- */
-double matrix_row_spearmans_rank_correlation_coefficient(
-    Matrix<double> const& mat1, size_t row1,
-    Matrix<double> const& mat2, size_t row2
-);
 
 // =================================================================================================
 //     Sorting

@@ -38,6 +38,7 @@
 #include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/math/common.hpp"
+#include "genesis/utils/math/distance.hpp"
 #include "genesis/utils/math/statistics.hpp"
 
 #include <algorithm>
@@ -253,13 +254,21 @@ BalanceData mass_balance_data(
         for( size_t r = 0; r < result.edge_masses.rows(); ++r ) {
             for( size_t c = 0; c < result.taxon_weights.size(); ++c ) {
 
-                // For some weird reason, Silverman et al. chose to divide by the weight instead
-                // of multiplying with it. It feels wrong, but we do it anyway.
+                // The weights are divided instead of multiplied, which is counter-intuitive, but
+                // correct according to pers. comm. with Justin Silverman, who referred to
+                // > J. J. Egozcue and V. Pawlowsky-Glahn,
+                // > "Changing the Reference Measure in the Simplex and its Weighting Effects,"
+                // > Austrian J. Stat., vol. 45, no. 4, p. 25, Jul. 2016.
+                // for details.
                 result.edge_masses( r, c ) /= result.taxon_weights[c];
 
-                // if( result.edge_masses( r, c ) == 0.0 ) {
-                //     result.edge_masses( r, c ) = std::numeric_limits<double>::min();
-                // }
+                // Numerical correction for taxon weights that are 0.
+                if(
+                    ! std::isfinite( result.edge_masses( r, c )) ||
+                    result.edge_masses( r, c ) == 0.0
+                ) {
+                    result.edge_masses( r, c ) = 2 * std::numeric_limits<double>::min();
+                }
             }
         }
     }

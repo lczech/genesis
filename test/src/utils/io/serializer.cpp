@@ -161,3 +161,27 @@ TEST(Serializer, ToAndFromFile)
     // Make sure file is deleted.
     ASSERT_EQ (0, std::remove(file_name.c_str()));
 }
+
+TEST( Deserializer, MoveAssignment )
+{
+    // Write data to stream.
+    std::ostringstream out;
+    Serializer serial (out);
+    SerializerTestData input;
+    init_test_data(input);
+    apply_serializer(serial, input);
+
+    // Read data from stream.
+    std::istringstream in(out.str());
+    Deserializer deser (in);
+    SerializerTestData output;
+    apply_deserializer(deser, output);
+    compare_data(input, output);
+
+    // Move assign and repeat.
+    std::istringstream in2(out.str());
+    deser = Deserializer( in2 );
+    SerializerTestData output2;
+    apply_deserializer(deser, output2);
+    compare_data(input, output2);
+}

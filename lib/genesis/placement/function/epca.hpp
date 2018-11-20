@@ -158,25 +158,6 @@ void epca_splitify_transform(
 );
 
 /**
- * @brief Filter out columns that have nearly constant values, measured using an @p epsilon.
- *
- * The @link utils::Matrix Matrix@endlink is modified so that all columns `c` with
- * `max(c) - min(c) <= epsilon` are removed.
- *
- * The function returns a sorted list of all column indices of the original matrix that are kept,
- * i.e., that have a greater min-max difference than @p epsilon. This is useful for e.g.,
- * visualising the result of an @link epca() Edge PCA@endlink.
- *
- * @param[in,out] imbalance_matrix Matrix to filter inplace.
- * @param[in]     epsilon          Maximum deviation for what is considered constant.
- * @return                         List of original column indices that are kept (not filtered).
- */
-std::vector<size_t> epca_filter_constant_columns(
-    utils::Matrix<double>& imbalance_matrix,
-    double                 epsilon = 1e-5
-);
-
-/**
  * @brief Perform EdgePCA on a SampleSet.
  *
  * The parameters @p kappa and @p epsilon are as described in epca_splitify_transform() and
