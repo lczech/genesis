@@ -161,9 +161,10 @@ size_t GzipInputSource::read_( char* buffer, size_t size )
 
         // Error checks.
         assert( ret != Z_STREAM_ERROR );
+        if( ret == Z_NEED_DICT ) {
+            ret = Z_DATA_ERROR;
+        }
         switch( ret ) {
-            case Z_NEED_DICT:
-                ret = Z_DATA_ERROR;
             case Z_DATA_ERROR:
             case Z_MEM_ERROR:
                 report_zlib_error_( ret );
