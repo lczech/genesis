@@ -295,7 +295,15 @@ public:
         }
 
         // Set the end of the line to \0, so that downstream parses can work with it.
-        if( buffer_[ line_end ] == '\n' ) {
+        // We first check for the end of line, so that the other checks (for new lines) can be
+        // sure that there is actually some char left to check. Thanks valgrind ;-)
+        if( line_end == data_end_ ) {
+
+            // Files might be missing the line break at the end of the last line. Add it.
+            ++data_end_;
+            buffer_[ line_end ] = '\0';
+
+        } else if( buffer_[ line_end ] == '\n' ) {
             buffer_[ line_end ] = '\0';
 
         } else if( buffer_[ line_end ] == '\r' ) {
@@ -307,11 +315,9 @@ public:
                 buffer_[ line_end ] = '\0';
             }
         } else {
-
-            // Files might be missing the line break at the end of the last line. Add it.
-            assert( line_end == data_end_ );
-            ++data_end_;
-            buffer_[ line_end ] = '\0';
+            // We have checked all cases where the loop above can terminate.
+            // So this should not happen.
+            assert( false );
         }
 
         // Get pointer to beginning of the line, and length of the line, for returning it.
