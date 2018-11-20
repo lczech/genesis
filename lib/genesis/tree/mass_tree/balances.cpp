@@ -265,7 +265,8 @@ BalanceData mass_balance_data(
                 // Numerical correction for taxon weights that are 0.
                 if(
                     ! std::isfinite( result.edge_masses( r, c )) ||
-                    result.edge_masses( r, c ) == 0.0
+                    result.edge_masses( r, c ) == 0.0 ||
+                    result.taxon_weights[c] == 0.0
                 ) {
                     result.edge_masses( r, c ) = 2 * std::numeric_limits<double>::min();
                 }
@@ -276,7 +277,7 @@ BalanceData mass_balance_data(
     // Assert the result sizes again, just to have that stated explicitly somewhere.
     assert( result.edge_masses.rows() == trees.size() );
     assert( result.edge_masses.cols() == result.tree.edge_count() );
-    assert( trees.size() == 1 xor result.taxon_weights.size() == result.tree.edge_count() );
+    assert(( trees.size() == 1 ) xor ( result.taxon_weights.size() == result.tree.edge_count() ));
 
     return result;
 }
