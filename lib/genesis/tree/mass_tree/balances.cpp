@@ -234,12 +234,25 @@ BalanceData mass_balance_data(
 
     // Now, we can add compensation of zero values in form of pseudo counts,
     // then calculate the closure (relative abundances) per row (tree) of the masses.
-    for( auto& e : result.edge_masses ) {
-        assert( std::isfinite( e ) && e >= 0.0 );
-        if( e == 0.0 ) {
-            e += settings.pseudo_count_summand_zeros;
+    bool found_zero_mass = false;
+    for( auto& em : result.edge_masses ) {
+        assert( std::isfinite( em ) && em >= 0.0 );
+        if( em == 0.0 ) {
+            found_zero_mass = true;
+            em += settings.pseudo_count_summand_zeros;
         }
-        e += settings.pseudo_count_summand_all;
+        em += settings.pseudo_count_summand_all;
+    }
+    if(
+        found_zero_mass &&
+        settings.pseudo_count_summand_zeros == 0.0 &&
+        settings.pseudo_count_summand_all == 0.0
+    ) {
+        throw std::runtime_error(
+            "The balance data contains edge masses with value 0, but no pseudo counts were used. "
+            "As such 0 values cannot be used in the balances calculations, you must add pseudo "
+            "counts to them, e.g., via the BalanceSettings."
+        );
     }
     for( size_t r = 0; r < result.edge_masses.rows(); ++r ) {
         utils::closure( result.edge_masses.row(r).begin(), result.edge_masses.row(r).end() );
@@ -253,6 +266,14 @@ BalanceData mass_balance_data(
         #pragma omp parallel for
         for( size_t r = 0; r < result.edge_masses.rows(); ++r ) {
             for( size_t c = 0; c < result.taxon_weights.size(); ++c ) {
+                auto& edge_mass = result.edge_masses( r, c );
+                auto const& taxon_weight = result.taxon_weights[c];
+
+                // We already made sure that this holds, in the part where pseudo counts are added.
+                assert( std::isfinite( edge_mass ) && ( edge_mass > 0.0 ));
+
+                // We also already made this sure.
+                assert( std::isfinite( taxon_weight ) && taxon_weight >= 0.0 );
 
                 // The weights are divided instead of multiplied, which is counter-intuitive, but
                 // correct according to pers. comm. with Justin Silverman, who referred to
@@ -260,16 +281,31 @@ BalanceData mass_balance_data(
                 // > "Changing the Reference Measure in the Simplex and its Weighting Effects,"
                 // > Austrian J. Stat., vol. 45, no. 4, p. 25, Jul. 2016.
                 // for details.
-                result.edge_masses( r, c ) /= result.taxon_weights[c];
+                // We also need a special case for taxon weights of 0. Those cannot happen in the
+                // original code, because they base their masses on OTU counts of the data,
+                // so there is at least one sample that has a mass > 0 for the taxon.
+                // However, as we use a fixed reference tree, it might happen that there are
+                // branches/taxa where there is not a single placement in any of the samples.
+                // In that case, the taxon weight is 0, and we instead use the pseudo counts as
+                // replacement masses in order to avoid numerical issues with infinities etc.
+                // Basically, it doesn't matter what (finite) value we set the mass to in that case,
+                // as it will be completely ignored because of the 0 weight later on in the
+                // geometric mean calculation anyway... but still, better to set it to something
+                // reasonable!
+                if( taxon_weight == 0.0 ) {
+                    auto const& ps_zeros = settings.pseudo_count_summand_zeros;
+                    auto const& ps_all   = settings.pseudo_count_summand_all;
 
-                // Numerical correction for taxon weights that are 0.
-                if(
-                    ! std::isfinite( result.edge_masses( r, c )) ||
-                    result.edge_masses( r, c ) == 0.0 ||
-                    result.taxon_weights[c] == 0.0
-                ) {
-                    result.edge_masses( r, c ) = 2 * std::numeric_limits<double>::min();
+                    // The pseudo counts cannot be both 0 if we are here. We know that we are at a
+                    // taxon with no masses at all, so the above found_zero_mass check was triggered.
+                    // If then above both pseudo counts were 0, we'd have had an exception by now.
+                    assert(( ps_zeros > 0.0 ) || ( ps_all > 0.0 ));
+
+                    edge_mass = ps_zeros + ps_all;
+                } else {
+                    edge_mass /= taxon_weight;
                 }
+                assert( std::isfinite( edge_mass ) && ( edge_mass > 0.0 ));
             }
         }
     }
