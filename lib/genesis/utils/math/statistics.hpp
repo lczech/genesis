@@ -854,8 +854,9 @@ inline std::vector<double> fisher_transformation( std::vector<double> const& cor
 // =================================================================================================
 
 /**
- * @brief Data structer to keep the two parameters of a linear function: its ::slope, and its
- * ::intercept.
+ * @brief Data structer to keep the two parameters of a linear function:
+ * its @link LinearFunction::slope slope@endlink,
+ * and its @link LinearFunction::intercept intercept@endlink.
  *
  * It also has a function to calcualte `y = slope * x + intercept`.
  */

@@ -32,6 +32,7 @@
  */
 
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/ranking.hpp"
 
@@ -426,6 +427,48 @@ inline double maximum_distance(
         std::numeric_limits<double>::infinity()
     );
 }
+
+// =================================================================================================
+//     Distances Matrices
+// =================================================================================================
+
+/**
+ * @brief Calculate the pairwise distance matrix between the rows of a given matrix.
+ *
+ * The function uses p_norm_distance() to calculate the distances, see there for details.
+ * Each row of the matrix is considered a vector with the length of the columns of the matrix.
+ * Hence, the resulting quadratic distance matrix has dimensions `r * r`, with `r` being the
+ * number of rows of the input matrix.
+ *
+ * @see manhattan_distance_matrix(), euclidean_distance_matrix(), and maximum_distance_matrix()
+ * for specialized versions of this function with a fixed @p p for more expressive code.
+ */
+Matrix<double> p_norm_distance_matrix( Matrix<double> const& data, double p = 2.0 );
+
+/**
+ * @brief Calculate the pairwise manhatten distance matrix between the rows of a given matrix.
+ *
+ * See p_norm_distance_matrix() for details. This function simply uses a fixed `p == 1.0` for
+ * more expressive code.
+ */
+Matrix<double> manhattan_distance_matrix( Matrix<double> const& data );
+
+/**
+ * @brief Calculate the pairwise euclidean distance matrix between the rows of a given matrix.
+ *
+ * See p_norm_distance_matrix() for details. This function simply uses a fixed `p == 2.0` for
+ * more expressive code.
+ */
+Matrix<double> euclidean_distance_matrix( Matrix<double> const& data );
+
+/**
+ * @brief Calculate the pairwise maximum distance matrix between the rows of a given matrix.
+ *
+ * See p_norm_distance_matrix() for details. This function simply uses a fixed
+ * \c p == std::numeric_limits<double>::infinity()
+ * more expressive code.
+ */
+Matrix<double> maximum_distance_matrix( Matrix<double> const& data );
 
 } // namespace utils
 } // namespace genesis
