@@ -43,7 +43,7 @@ TEST( Containers, DataframeMatrix )
 
     auto reader = DataframeReader<double>();
     reader.csv_reader().separator_chars( "\t" );
-    auto df = reader.from_file( infile );
+    auto df = reader.read( from_file( infile ));
 
     EXPECT_EQ(  3, df.cols() );
     EXPECT_EQ( 10, df.rows() );
@@ -79,7 +79,7 @@ TEST( Containers, DataframeCsv )
     auto const infile = environment->data_dir + "utils/csv/table.csv";
 
     auto reader = DataframeReader<double>();
-    auto df = reader.from_file( infile );
+    auto df = reader.read( from_file( infile ));
 
     EXPECT_EQ(  3, df.cols() );
     EXPECT_EQ( 10, df.rows() );
