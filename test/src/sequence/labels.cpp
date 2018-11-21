@@ -37,6 +37,7 @@
 
 #include <string>
 
+using namespace genesis;
 using namespace genesis::sequence;
 
 TEST( SequenceSet, FilterByLabelList )
@@ -47,7 +48,7 @@ TEST( SequenceSet, FilterByLabelList )
     // Load sequence file.
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
     SequenceSet sset;
-    FastaReader().from_file(infile, sset);
+    FastaReader().read( utils::from_file(infile), sset);
 
     // Some basic assertments.
     EXPECT_EQ( 10, sset.size() );

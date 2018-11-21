@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ TEST( Sequence, KmerCounts )
     // Load sequence file.
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
     SequenceSet sset;
-    FastaReader().from_file(infile, sset);
+    FastaReader().read( from_file(infile), sset);
 
     remove_all_gaps( sset );
     EXPECT_TRUE( validate_chars( sset, nucleic_acid_codes_plain() ));
@@ -115,7 +115,7 @@ TEST( Sequence, SignatureFrequencies )
     // Load sequence file.
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
     SequenceSet sset;
-    FastaReader().from_file(infile, sset);
+    FastaReader().read( from_file(infile), sset);
 
     remove_all_gaps( sset );
     EXPECT_TRUE( validate_chars( sset, nucleic_acid_codes_plain() ));
@@ -210,7 +210,7 @@ TEST( Sequence, KmerStringOverlapping )
     // // Load sequence file.
     // std::string infile = environment->data_dir + "sequence/dna_10.fasta";
     // SequenceSet sset;
-    // FastaReader().from_file(infile, sset);
+    // FastaReader().read( from_file(infile), sset);
     //
     // remove_all_gaps( sset );
     // EXPECT_TRUE( validate_chars( sset, nucleic_acid_codes_plain() ));

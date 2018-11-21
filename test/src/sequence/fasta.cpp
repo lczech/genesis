@@ -56,7 +56,7 @@ TEST( Sequence, FastaReaderValidating )
     SequenceSet sset;
     FastaReader()
         .valid_chars( nucleic_acid_codes_all() )
-        .from_file(infile, sset);
+        .read( utils::from_file(infile), sset);
 
     // Check data.
     EXPECT_EQ( 10, sset.size() );
