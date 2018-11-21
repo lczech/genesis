@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,21 +52,9 @@ namespace utils {
 //     Reading
 // =================================================================================================
 
-JsonDocument JsonReader::from_stream( std::istream& input_stream ) const
+JsonDocument JsonReader::read( std::shared_ptr<utils::BaseInputSource> source ) const
 {
-    utils::InputStream is( utils::make_unique< utils::StreamInputSource >( input_stream ));
-    return parse( is );
-}
-
-JsonDocument JsonReader::from_file (const std::string& filename ) const
-{
-    utils::InputStream is( utils::make_unique< utils::FileInputSource >( filename ));
-    return parse( is );
-}
-
-JsonDocument JsonReader::from_string (const std::string& json ) const
-{
-    utils::InputStream is( utils::make_unique< utils::StringInputSource >( json ));
+    utils::InputStream is( source );
     return parse( is );
 }
 
