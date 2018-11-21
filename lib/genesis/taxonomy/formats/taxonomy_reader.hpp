@@ -33,6 +33,7 @@
 
 #include "genesis/taxonomy/formats/taxopath_parser.hpp"
 #include "genesis/utils/formats/csv/reader.hpp"
+#include "genesis/utils/io/input_source.hpp"
 
 #include <string>
 
@@ -59,11 +60,7 @@ namespace taxonomy {
 /**
  * @brief Read Taxonomy file formats.
  *
- * This reader populates a Taxonomy. It supports to read
- *
- *   * from_stream()
- *   * from_file()
- *   * from_string()
+ * This reader populates a Taxonomy.
  *
  * Exemplary usage:
  *
@@ -73,7 +70,7 @@ namespace taxonomy {
  *     TaxonomyReader()
  *         .rank_field_position( 2 )
  *         .expect_strict_order( true )
- *         .from_file( infile, tax );
+ *         .read( utils::from_file( infile ), tax );
  *
  * It expects one taxon per input line. This line can also contain other information, for example
  *
@@ -149,36 +146,20 @@ public:
     // ---------------------------------------------------------------------
 
     /**
-     * @brief Read taxonomy data until the end of the stream is reached,
-     * and add the contents to a Taxonomy.
+     * @brief Read taxonomy data from an input source, and add the contents to a Taxonomy.
+     *
+     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * get an input source that can be used here.
      */
-    void from_stream( std::istream&      is, Taxonomy& tax ) const;
+    void read( std::shared_ptr<utils::BaseInputSource> source, Taxonomy& target ) const;
 
     /**
-     * @brief Read a taxonomy file and add its contents to a Taxonomy.
+     * @brief Read a taxonomy from an input source and return the Taxonomy.
+     *
+     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * get an input source that can be used here.
      */
-    void from_file  ( std::string const& fn, Taxonomy& tax ) const;
-
-    /**
-     * @brief Read a string with taxonomy data and add its contents to a Taxonomy.
-     */
-    void from_string( std::string const& is, Taxonomy& tax ) const;
-
-    /**
-     * @brief Read taxonomy data until the end of the stream is reached,
-     * and return the Taxonomy.
-     */
-    Taxonomy from_stream( std::istream&      is ) const;
-
-    /**
-     * @brief Read a taxonomy file and and return the Taxonomy.
-     */
-    Taxonomy from_file  ( std::string const& fn ) const;
-
-    /**
-     * @brief Read a string with taxonomy data and and return the Taxonomy.
-     */
-    Taxonomy from_string( std::string const& is ) const;
+    Taxonomy read( std::shared_ptr<utils::BaseInputSource> source ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
