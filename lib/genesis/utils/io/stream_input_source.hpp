@@ -100,6 +100,14 @@ private:
         return "input stream";
     }
 
+    /**
+     * @brief Override of the source string funtion. Returns "stream".
+     */
+    std::string source_string_() const override
+    {
+        return "stream";
+    }
+
     // -------------------------------------------------------------
     //     Member Variables
     // -------------------------------------------------------------

@@ -52,6 +52,19 @@ namespace utils {
 //     Input Source Convenience Functions
 // =================================================================================================
 
+/**
+ * @brief Obtain an input source for reading from a file.
+ *
+ * The input source returned from this function can be used in the reader classes, e.g.,
+ * placement::JplaceReader or sequence::FastaReader.
+ *
+ * If the parameter @p detect_compression is `true` (default), it is first determined whether the
+ * file is gzip compressed, and if so, a transparent decompression layer is added.
+ * That means, gzip-compressed files can be decompressed automatically and on the fly.
+ *
+ * @see from_files(), from_string(), from_strings(), and from_stream() for similar
+ * helper functions for other types of input sources.
+ */
 inline std::shared_ptr<BaseInputSource> from_file(
     std::string const& file_name,
     bool detect_compression = true
@@ -65,6 +78,15 @@ inline std::shared_ptr<BaseInputSource> from_file(
     }
 }
 
+/**
+ * @brief Obtain a set of input sources for reading from files.
+ *
+ * See from_file() for details. This version returnes multiple input sources, which can be used
+ * for parallely reading from multiple files for speedup.
+ *
+ * @see from_file(), from_string(), from_strings(), and from_stream() for similar
+ * helper functions for other types of input sources.
+ */
 inline std::vector<std::shared_ptr<BaseInputSource>> from_files(
     std::vector<std::string> const& file_names,
     bool detect_compression = true
@@ -76,12 +98,29 @@ inline std::vector<std::shared_ptr<BaseInputSource>> from_files(
     return ret;
 }
 
+/**
+ * @brief Obtain an input sources for reading from a string.
+ *
+ * The input source returned from this function can be used in the reader classes, e.g.,
+ * placement::JplaceReader or sequence::FastaReader.
+ *
+ * @see from_file(), from_files(), from_strings(), and from_stream() for similar
+ * helper functions for other types of input sources.
+ */
 inline std::shared_ptr<BaseInputSource> from_string(
     std::string const& input_string
 ) {
     return std::make_shared< StringInputSource >( input_string );
 }
 
+/**
+ * @brief Obtain a set of input sources for reading from strings.
+ *
+ * See from_string() and from_files() for details.
+ *
+ * @see from_file(), from_files(), from_string(), and from_stream() for similar
+ * helper functions for other types of input sources.
+ */
 inline std::vector<std::shared_ptr<BaseInputSource>> from_strings(
     std::vector<std::string> const& input_strings
 ) {
@@ -92,6 +131,15 @@ inline std::vector<std::shared_ptr<BaseInputSource>> from_strings(
     return ret;
 }
 
+/**
+ * @brief Obtain an input source for reading from a stream.
+ *
+ * The input source returned from this function can be used in the reader classes, e.g.,
+ * placement::JplaceReader or sequence::FastaReader.
+ *
+ * @see from_file(), from_files(), from_string(), and from_strings() for similar
+ * helper functions for other types of input sources.
+ */
 inline std::shared_ptr<BaseInputSource> from_stream(
     std::istream& input_stream
 ) {

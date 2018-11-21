@@ -80,12 +80,22 @@ public:
     }
 
     /**
-     * @brief Get a name of the input source. Mainly interesting for user output.
+     * @brief Get a name of the input source. This is intended for user output.
      */
     std::string source_name() const
     {
         // Non-virtual interface.
         return source_name_();
+    }
+
+    /**
+     * @brief Get a string representing the input source. This is intended for the reader classes,
+     * which for example might want to examine the input file name.
+     */
+    std::string source_string() const
+    {
+        // Non-virtual interface.
+        return source_string_();
     }
 
     // -------------------------------------------------------------
@@ -97,6 +107,7 @@ private:
     virtual size_t read_( char* buffer, size_t size ) = 0;
 
     virtual std::string source_name_() const = 0;
+    virtual std::string source_string_() const = 0;
 
 };
 

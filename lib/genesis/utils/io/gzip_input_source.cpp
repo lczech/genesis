@@ -30,6 +30,8 @@
 
 #include "genesis/utils/io/gzip_input_source.hpp"
 
+#include "genesis/utils/core/fs.hpp"
+
 #include <cassert>
 #include <cstdio>
 #include <cstring>
@@ -193,6 +195,19 @@ size_t GzipInputSource::read_( char* buffer, size_t size )
     return out_pos;
 }
 
+std::string GzipInputSource::source_string_() const
+{
+    // Check if the extension is one that we want to remove.
+    auto const bn = file_basename( input_source_->source_string() );
+    auto const ex = file_extension( bn );
+
+    // If so, use the full name again to get the complete path, but remove the extension.
+    if( ex == "gz" || ex == "gzip" || ex == "zlib" ) {
+        return file_filename( input_source_->source_string() );
+    }
+    return input_source_->source_string();
+}
+
 void GzipInputSource::report_zlib_error_( int error_code ) const
 {
     // Nothing happens if there is no error.
@@ -271,6 +286,11 @@ GzipInputSource::GzipInputSource(
 size_t GzipInputSource::read_( char*, size_t )
 {
     return 0;
+}
+
+std::string GzipInputSource::source_string_() const
+{
+    return "";
 }
 
 void GzipInputSource::report_zlib_error_( int ) const

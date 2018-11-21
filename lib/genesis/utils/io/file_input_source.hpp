@@ -35,6 +35,7 @@
 #include "genesis/utils/io/base_input_source.hpp"
 
 #include <cstdio>
+#include <cerrno>
 #include <cstring>
 #include <istream>
 #include <stdexcept>
@@ -73,11 +74,13 @@ public:
             throw std::runtime_error( "File does not exists: " + file_name );
         }
 
+        errno = 0;
         file_ = std::fopen( file_name.c_str(), "rb" );
 
         if( file_ == nullptr ) {
-            // TODO use errno here.
-            throw std::runtime_error( "Cannot open file: " + file_name );
+            throw std::runtime_error(
+                "Cannot open file " + file_name + ": " + std::string( strerror( errno ))
+            );
         }
 
         // We do our own buffering.
@@ -108,18 +111,6 @@ public:
     }
 
     // -------------------------------------------------------------
-    //     Special Members
-    // -------------------------------------------------------------
-
-    /**
-     * @brief Rewind the source to its start, so that it can be re-read.
-     */
-    void rewind()
-    {
-        std::rewind( file_ );
-    }
-
-    // -------------------------------------------------------------
     //     Overloaded Internal Members
     // -------------------------------------------------------------
 
@@ -143,6 +134,14 @@ private:
     std::string source_name_() const override
     {
         return "input file (" + file_name_ + ")";
+    }
+
+    /**
+     * @brief Override of the source string funtion. Returns the file name.
+     */
+    std::string source_string_() const override
+    {
+        return file_name_;
     }
 
     // -------------------------------------------------------------
