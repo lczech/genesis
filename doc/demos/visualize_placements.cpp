@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -293,7 +293,7 @@ int main( int argc, char** argv )
     for( auto const& jplace_filename : jplace_files ) {
 
         // Read the Jplace file into a Sample object.
-        Sample sample = JplaceReader().from_file(jplace_filename);
+        Sample sample = JplaceReader().read( utils::from_file(jplace_filename));
 
         if( placement_mass.size() == 0 ) {
 

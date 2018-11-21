@@ -78,6 +78,7 @@ The examples in this tutorial assume that you use
 ~~~{.cpp}
 #include "genesis/genesis.hpp"
 using namespace genesis::tree;
+using namespace genesis::utils;
 ~~~
 
 at the beginning of your code.
@@ -89,7 +90,7 @@ Reading from a Newick file with node names and branch lengths is achieved via a
 
 ~~~{.cpp}
 // Read a Newick file into a Tree object.
-Tree tree = CommonTreeNewickReader().from_file( "path/to/tree.newick" );
+Tree tree = CommonTreeNewickReader().read( from_file( "path/to/tree.newick" ));
 ~~~
 
 It is also possible to read trees stored in strings. For example, the tree from above can be stored
@@ -102,7 +103,7 @@ which uses node "L" as the (virtual) root. Reading is then:
 ~~~{.cpp}
 // Given a string containing a Newick tree, read it into a Tree object.
 std::string newick = "(((A:0.2,B:0.3)C:0.3,(D:0.4,E:0.45,F:0.3,G:0.35)H:0.25)I:0.8,J:0.4,K:0.5)L;";
-tree = CommonTreeNewickReader().from_string( newick );
+tree = CommonTreeNewickReader().read( from_string( newick ));
 ~~~
 
 Writing a Tree to Newick and PhyloXML works similarly, using
@@ -157,7 +158,7 @@ use the Tree topology, for example to simply print all node names or branch leng
 ~~~{.cpp}
 // Print all node names.
 for( auto const& node : tree.nodes() ) {
-    auto const& name = node->data<CommonNodeData>().name;
+    auto const& name = node.data<CommonNodeData>().name;
     if( ! name.empty() ) {
         std::cout << name << std::endl;
     }
@@ -165,7 +166,7 @@ for( auto const& node : tree.nodes() ) {
 
 // Print all branch lenghts.
 for( auto const& edge : tree.edges() ) {
-    auto const& branch_length = edge->data<CommonEdgeData>().branch_length;
+    auto const& branch_length = edge.data<CommonEdgeData>().branch_length;
     std::cout << branch_length << std::endl;
 }
 ~~~

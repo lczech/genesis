@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -103,9 +103,9 @@ int main( int argc, const char* argv[] )
 
     // Read the files.
     std::cout << "Jplace file 1: " << jplace_filename_l << "\n";
-    Sample smpl_l = jplace_reader.from_file( jplace_filename_l );
+    Sample smpl_l = jplace_reader.read( utils::from_file( jplace_filename_l ));
     std::cout << "Jplace file 2: " << jplace_filename_r << "\n";
-    Sample smpl_r = jplace_reader.from_file( jplace_filename_r );
+    Sample smpl_r = jplace_reader.read( utils::from_file( jplace_filename_r ));
     std::cout << "\n";
 
     // Validation.

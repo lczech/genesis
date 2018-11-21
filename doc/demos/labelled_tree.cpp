@@ -81,14 +81,14 @@ int main( int argc, const char* argv[] )
 
     // Read the files.
     LOG_INFO << "Jplace file: " << jplace_filename;
-    auto sample = jplace_reader.from_file( jplace_filename );
+    auto sample = jplace_reader.read( utils::from_file( jplace_filename ));
     tree::Tree bstree;
     if( argc == 3 ) {
         bstree = sample.tree();
     }
     if( argc == 4 ) {
         LOG_INFO << "Bootstrap Tree file: " << bstree_filename;
-        bstree = tree::CommonTreeNewickReader().from_file( bstree_filename );
+        bstree = tree::CommonTreeNewickReader().read( utils::from_file( bstree_filename ));
     }
 
     // Validation. The second one is also done in labelled_tree(), but we do it here again

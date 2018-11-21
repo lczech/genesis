@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,16 +26,17 @@
 int main()
 {
     using namespace genesis::sequence;
+    using namespace genesis::utils;
 
     // Read a fasta file into a SequenceSet object.
-    SequenceSet sequences_a = FastaReader().from_file( "path/to/file_a.fasta" );
+    SequenceSet sequences_a = FastaReader().read( from_file( "path/to/file_a.fasta" ));
 
     // Read a phylip file into a SequenceSet object.
-    SequenceSet sequences_b = PhylipReader().from_file( "path/to/file_b.phylip" );
+    SequenceSet sequences_b = PhylipReader().read( from_file( "path/to/file_b.phylip" ));
 
     // Read more sequences into an existing SequenceSet object.
-    FastaReader().from_file( "path/to/file_c.fasta", sequences_b );
-    PhylipReader().from_file( "path/to/file_d.phylip", sequences_a );
+    FastaReader().read( from_file( "path/to/file_c.fasta" ), sequences_b );
+    PhylipReader().read( from_file( "path/to/file_d.phylip" ), sequences_a );
 
     // Write data from a SequenceSet object to a fasta file.
     FastaWriter().to_file( sequences_b, "path/to/file_e.fasta" );

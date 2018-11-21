@@ -59,9 +59,10 @@ To read the data from a `jplace` file into a Sample, use a
 
 ~~~{.cpp}
 using namespace genesis::placement;
+using namespace genesis::utils;
 
 // Read a jplace file into a Sample object.
-Sample sample = JplaceReader().from_file( "path/to/file.jplace" );
+Sample sample = JplaceReader().read( from_file( "path/to/file.jplace" ));
 ~~~
 
 Each Pquery contains the @ref genesis::placement::PqueryPlacement "Placements" of a query sequence,
