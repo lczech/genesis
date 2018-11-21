@@ -54,6 +54,51 @@ TEST( JplaceReader, FromFile )
     EXPECT_TRUE( has_correct_edge_nums(smp.tree()) );
 }
 
+TEST( JplaceReader, FromFileGzip )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    std::string infile = environment->data_dir + "placement/test_a.jplace.gz";
+
+    Sample smp = JplaceReader().read( from_file( infile ));
+    EXPECT_EQ  ( 5, total_placement_count(smp) );
+    EXPECT_TRUE( validate(smp, true, false) );
+    EXPECT_TRUE( has_correct_edge_nums(smp.tree()) );
+}
+
+TEST( JplaceReader, FromFiles )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    auto const indir = environment->data_dir + "placement/";
+    auto const infiles = std::vector<std::string>{
+        indir + "test_a.jplace", indir + "test_b.jplace", indir + "test_c.jplace"
+    };
+
+    SampleSet const smps = JplaceReader().read( from_files( infiles ));
+    EXPECT_EQ( 3, smps.size() );
+    EXPECT_EQ( 5, total_placement_count(smps[0]) );
+    EXPECT_EQ( "test_b", smps.name_at(1) );
+}
+
+TEST( JplaceReader, FromFilesGzip )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    auto const indir = environment->data_dir + "placement/";
+    auto const infiles = std::vector<std::string>{
+        indir + "test_a.jplace.gz", indir + "test_b.jplace.gz", indir + "test_c.jplace.gz"
+    };
+
+    SampleSet const smps = JplaceReader().read( from_files( infiles ));
+    EXPECT_EQ( 3, smps.size() );
+    EXPECT_EQ( 5, total_placement_count(smps[0]) );
+    EXPECT_EQ( "test_b", smps.name_at(1) );
+}
+
 // TEST( JplaceReader, Speed )
 // {
 //     std::string inputfile = "/home/lucas/Projects/data/for_testing/jplace/sample_0_all_big.jplace";
