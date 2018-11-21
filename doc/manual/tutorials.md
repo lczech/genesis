@@ -12,7 +12,7 @@ See @ref setup_apps for setup instructions. Once you have set everything up, you
 
 You find the code listings of the tutorials in
 
-    ./doc/tutorials/
+    ./doc/code/tutorials/
 
 Those files can be copied to the `./apps` directory for testing them. They contain the examples
 from the tutorials, plus all needed headers and namespace declarations (which are omitted in the

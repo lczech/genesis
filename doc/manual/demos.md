@@ -3,7 +3,7 @@ Demos {#demos}
 
 The demo programs are located in
 
-    ./doc/demos/
+    ./doc/code/demos/
 
 They are intended to show some of the functionality of genesis in a ready-to-use setting. You can
 also use them as starting point for developing your own applications. Be however aware that the

@@ -9,7 +9,7 @@ It outputs a `jplace` file for each clade, where each file contains all
 
 This demo is located at
 
-    genesis/doc/demos/extract_clade_placements.cpp
+    genesis/doc/code/demos/extract_clade_placements.cpp
 
 @section Details
 
@@ -79,7 +79,7 @@ placement positions while keeping the computational load relatively small.
 
 Example files to test the demo are located at
 
-    genesis/doc/demos/extract_clade_placements/
+    genesis/doc/code/demos/extract_clade_placements/
 
 This directory contains an `example.jplace` file, a `clades.tsv` file listing the taxa of the
 reference tree of the `jplace` file and assigning each of them to either `clade_a` or `clade_b`,
@@ -87,7 +87,7 @@ and an empty `output` directory.
 
 After compiling the demo program (using `make update`), you can run the example like this
 
-    cd genesis/doc/demos/extract_clade_placements/
+    cd genesis/doc/code/demos/extract_clade_placements/
     ../../../bin/extract_clade_placements example.jplace clades.tsv output/
 
 The expected output of the program is
@@ -98,7 +98,7 @@ The expected output of the program is
     INFO Found 2 clades
     INFO Finished.
 
-You will then find four output files in `./doc/demos/extract_clade_placements/output/`:
+You will then find four output files in `./doc/code/demos/extract_clade_placements/output/`:
 
  *  `basal_branches.jplace` contains 3 pqueries, which have most of their placement mass in the
     branches of the tree that do not belong to any of the two clades.

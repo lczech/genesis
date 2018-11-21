@@ -9,7 +9,7 @@ placements per branch). For this, it uses color coding and outputs a Nexus file.
 
 This demo is located at
 
-    genesis/doc/demos/visualize_placements.cpp
+    genesis/doc/code/demos/visualize_placements.cpp
 
 @section Details
 

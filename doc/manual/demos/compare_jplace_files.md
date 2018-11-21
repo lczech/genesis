@@ -9,7 +9,7 @@ differ in their placement on the tree.
 
 This demo is located at
 
-    genesis/doc/demos/compare_jplace_files.cpp
+    genesis/doc/code/demos/compare_jplace_files.cpp
 
 @section Details
 
@@ -43,13 +43,13 @@ yields comparable values in the range `[ 0.0, 1.0 ]`.
 
 Example files to test the demo are located at
 
-    genesis/doc/demos/compare_jplace_files/
+    genesis/doc/code/demos/compare_jplace_files/
 
 This directory contains two `jplace` files `jplace_a.jplace` and `jplace_b.jplace`.
 
 After compiling the demo program (using `make update`), you can run the example like this
 
-    cd genesis/doc/demos/compare_jplace_files/
+    cd genesis/doc/code/demos/compare_jplace_files/
     ../../../bin/compare_jplace_files jplace_a.jplace jplace_b.jplace
 
 The expected output are two tables with information about the Pqueries in those two files.

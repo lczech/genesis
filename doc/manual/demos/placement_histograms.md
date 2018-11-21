@@ -10,7 +10,7 @@ Locations (EDPL).
 
 This demo is located at
 
-    genesis/doc/demos/placement_histograms.cpp
+    genesis/doc/code/demos/placement_histograms.cpp
 
 @section Details
 

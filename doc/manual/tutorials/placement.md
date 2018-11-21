@@ -126,7 +126,7 @@ JplaceWriter().to_file( sample, "path/to/new_file.jplace" );
 
 You can find the whole code listing of this tutorial at
 
-    ./doc/tutorials/samples.cpp
+    ./doc/code/tutorials/samples.cpp
 
 See the API reference for details and for more functions and classes related to this topic.
 
