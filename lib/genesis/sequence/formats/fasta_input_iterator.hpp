@@ -128,6 +128,9 @@ public:
      * @brief Start reading from an input source.
      *
      * This reads the first Sequence so that it is available for dereferencing.
+     *
+     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * get an input source that can be used here.
      */
     self_type& read( std::shared_ptr<utils::BaseInputSource> source )
     {

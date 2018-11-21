@@ -72,7 +72,7 @@ namespace sequence {
  *     FastaReader()
  *         .site_casing( SiteCasing::kUnchanged )
  *         .valid_chars( nucleic_acid_codes_all() )
- *         .read( from_file( infile, sequence_set ));
+ *         .read( utils::from_file( infile ), sequence_set );
  *
  * The expected data format:
  *
@@ -183,6 +183,9 @@ public:
     /**
      * @brief Read all Sequence%s from an input source in Fasta format and return them as a
      * SequenceSet.
+     *
+     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * get an input source that can be used here.
      */
     SequenceSet read( std::shared_ptr< utils::BaseInputSource > source ) const;
 
@@ -192,6 +195,9 @@ public:
      * The Sequences are added to the SequenceSet, whose existing Sequences are kept. Thus, by
      * repeatedly calling this or similar read functions, multiple input files can easily be read
      * into one SequenceSet.
+     *
+     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * get an input source that can be used here.
      */
     void read( std::shared_ptr< utils::BaseInputSource > source, SequenceSet& sequence_set ) const;
 
