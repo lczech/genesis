@@ -34,6 +34,7 @@
 #include "genesis/sequence/formats/fasta_reader.hpp"
 #include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/core/std.hpp"
+#include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 
 #include <cstddef>
@@ -49,28 +50,30 @@ namespace sequence {
 // =================================================================================================
 
 /**
- * @brief Iterate an input stream and parse it as Fasta sequences.
+ * @brief Iterate an input source and parse it as Fasta sequences.
  *
- * This class allows to iterate over an input stream, iterpreting it as Fasta sequences, and
+ * This class allows to iterate over an input source, iterpreting it as Fasta sequences, and
  * yielding one such sequence per iteration step. This is useful for processing large files without
  * having to keep them fully in memory.
  *
  * Example:
  *
- *     auto it = FastaInputIterator();
- *     it.from_file( "/path/to/large_file.fasta" );
+ *     auto it = FastaInputIterator( from_file( "/path/to/large_file.fasta" ) );
  *     while( it ) {
  *         std::cout << it->length() << "\n";
  *         ++it;
  *     }
  *
+ * Use functions such as utils::from_file() and utils::from_string() to conveniently
+ * get an input source that can be used here.
+ *
  * See FastaReader for a description of the expected format. In order to change the reading
  * behaviour, use the reader() function to access the internal FastaReaser and change its
  * properties.
  *
- * The copy constructur copies a pointer the the underlying stream.
+ * The copy constructur copies a pointer to the underlying source.
  * Thus, when advancing the copy to the next Sequence, the original "skips" this Sequence,
- * as the stream then is at the next one.
+ * as the source then is at the next one.
  *
  * Thread safety: No thread safety. The common use case for this iterator is to loop over a file.
  * Thus, guarding induces unnecessary overhead. If multiple threads read from this iterator, both
@@ -99,17 +102,32 @@ public:
      * @brief Create a default instance, using a default FastaReader.
      */
     FastaInputIterator()
-        : reader_()
+        : input_stream_( nullptr )
+        , reader_()
         , sequence_()
     {}
 
     /**
+     * @brief Create an instance that reads from an input source.
+     */
+    FastaInputIterator( std::shared_ptr<utils::BaseInputSource> source )
+        : input_stream_( std::make_shared<utils::InputStream>( source ))
+        , reader_()
+        , sequence_()
+    {
+        increment();
+    }
+
+    /**
      * @brief Create an instance that copies the settings of a given FastaReader.
      */
-    FastaInputIterator( FastaReader const& reader )
-        : reader_( reader )
+    FastaInputIterator( std::shared_ptr<utils::BaseInputSource> source, FastaReader const& reader )
+        : input_stream_( std::make_shared<utils::InputStream>( source ))
+        , reader_( reader )
         , sequence_()
-    {}
+    {
+        increment();
+    }
 
     ~FastaInputIterator() = default;
 
@@ -118,55 +136,6 @@ public:
 
     self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
-
-    // -------------------------------------------------------------------------
-    //     Reading
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Start reading from an input stream.
-     *
-     * This reads the first Sequence so that it is available for dereferencing.
-     */
-    self_type& from_stream( std::istream& input_stream )
-    {
-        // Create input stream and read first sequence.
-        input_stream_ = std::make_shared<utils::InputStream>(
-            utils::make_unique< utils::StreamInputSource >( input_stream )
-        );
-        increment();
-        return *this;
-    }
-
-    /**
-     * @brief Start reading from an input string.
-     *
-     * @copydetails from_stream()
-     */
-    self_type& from_file( std::string const& file_name )
-    {
-        // Create input stream and read first sequence.
-        input_stream_ = std::make_shared<utils::InputStream>(
-            utils::make_unique< utils::FileInputSource >( file_name )
-        );
-        increment();
-        return *this;
-    }
-
-    /**
-     * @brief Start reading from an input file.
-     *
-     * @copydetails from_stream()
-     */
-    self_type& from_string( std::string const& input_string )
-    {
-        // Create input stream and read first sequence.
-        input_stream_ = std::make_shared<utils::InputStream>(
-            utils::make_unique< utils::StringInputSource >( input_string )
-        );
-        increment();
-        return *this;
-    }
 
     // -------------------------------------------------------------------------
     //     Comparators
@@ -233,7 +202,7 @@ public:
     {
         // Check whether the input stream is good (not end-of-stream) and can be read from.
         // If not, we reached its end, so we stop reading in the next iteration.
-        if( input_stream_ == nullptr || ! *input_stream_ ) {
+        if( ! input_stream_ || ! *input_stream_ ) {
             good_ = false;
             return;
         }
@@ -248,8 +217,8 @@ public:
 private:
 
     std::shared_ptr<utils::InputStream> input_stream_;
-    bool good_ = true;
 
+    bool        good_ = true;
     FastaReader reader_;
     Sequence    sequence_;
 };

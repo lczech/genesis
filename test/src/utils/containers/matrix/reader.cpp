@@ -61,13 +61,13 @@ TEST( Matrix, Reader )
 
     // Read simple matrix.
     auto reader = MatrixReader<double>( ' ' );
-    auto const simple = reader.from_file( environment->data_dir + "utils/matrix/simple.mat" );
+    auto const simple = reader.read( from_file( environment->data_dir + "utils/matrix/simple.mat" ));
 
     // Change settings and read matrix with tabs, headers, ec.
     reader.csv_reader().separator_chars("\t");
     reader.skip_first_col(true);
     reader.skip_first_row(true);
-    auto const headers = reader.from_file( environment->data_dir + "utils/matrix/headers.mat" );
+    auto const headers = reader.read( from_file( environment->data_dir + "utils/matrix/headers.mat" ));
 
     // Basic checks.
     ASSERT_EQ( expected.rows(), simple.rows() );

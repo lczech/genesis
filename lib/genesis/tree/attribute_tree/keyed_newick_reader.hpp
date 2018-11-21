@@ -135,7 +135,7 @@ public:
      * ~~~{.cpp}
      * KeyedAttributeTreeNewickReader reader;
      * reader.add_attribute( "bs", KeyedAttributeTreeNewickReader::Target::kEdge );
-     * auto tree = reader.from_file( "path/to/tree.newick" );
+     * auto tree = reader.read( from_file( "path/to/tree.newick" ));
      * ~~~
      *
      * This is a simple form which uses the same key for the source (Newick comment) and target
@@ -167,7 +167,7 @@ public:
      *  ~~~{.cpp}
      * KeyedAttributeTreeNewickReader reader;
      * reader.add_attribute( "!color", KeyedAttributeTreeNewickReader::Target::kEdge, "color" );
-     * auto tree = reader.from_file( "path/to/tree.newick" );
+     * auto tree = reader.read( from_file( "path/to/tree.newick" ));
      * ~~~
      *
      * which stores the values under the key `color` (without the leading exclamation mark).
@@ -229,7 +229,7 @@ public:
      *  ~~~{.cpp}
      * KeyedAttributeTreeNewickReader reader;
      * reader.add_catch_all( KeyedAttributeTreeNewickReader::Target::kEdge );
-     * auto tree = reader.from_file( "path/to/tree.newick" );
+     * auto tree = reader.read( from_file( "path/to/tree.newick" ));
      * ~~~
      *
      * Remark: This will store all data at either the Nodes or Edges of the Tree. This can lead

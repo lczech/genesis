@@ -65,7 +65,7 @@ static void TestPlacementReroot(
 
     // Input data.
     std::string infile = environment->data_dir + "placement/unrooted.jplace";
-    Sample sample = JplaceReader().from_file( infile );
+    Sample sample = JplaceReader().read( utils::from_file( infile ));
     auto& tree = sample.tree();
     EXPECT_TRUE( has_correct_edge_nums( tree ));
 

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@
 
 #include <string>
 
+using namespace genesis::utils;
 using namespace genesis::taxonomy;
 
 TEST( Taxonomy, ForEach )
@@ -52,12 +53,12 @@ TEST( Taxonomy, ForEach )
     Taxonomy tax;
     auto parser = TaxopathParser();
 
-    add_from_taxopath( tax, parser( "A;B;C;D" ));
-    add_from_taxopath( tax, parser( "A;B;E;F" ));
-    add_from_taxopath( tax, parser( "A;G;H;I" ));
-    add_from_taxopath( tax, parser( "A;G;H;J" ));
-    add_from_taxopath( tax, parser( "K;L" ));
-    add_from_taxopath( tax, parser( "K;M" ));
+    add_from_taxopath( tax, parser.parse( "A;B;C;D" ));
+    add_from_taxopath( tax, parser.parse( "A;B;E;F" ));
+    add_from_taxopath( tax, parser.parse( "A;G;H;I" ));
+    add_from_taxopath( tax, parser.parse( "A;G;H;J" ));
+    add_from_taxopath( tax, parser.parse( "K;L" ));
+    add_from_taxopath( tax, parser.parse( "K;M" ));
     EXPECT_EQ( 13, total_taxa_count( tax ));
 
     // std::cout << tax;
@@ -144,7 +145,7 @@ TEST( Taxonomy, IteratorPreorder )
     // Read file.
     Taxonomy tax;
     infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.unordered";
-    EXPECT_NO_THROW( reader.from_file( infile, tax ));
+    EXPECT_NO_THROW( reader.read( from_file( infile ), tax ));
     EXPECT_EQ( 32, total_taxa_count(tax) );
     EXPECT_TRUE( validate( tax ));
 

@@ -62,11 +62,7 @@ namespace sequence {
 /**
  * @brief Read Fasta sequence data.
  *
- * This class provides simple facilities for reading Fasta data. It supports to read
- *
- *   * from_stream()
- *   * from_file()
- *   * from_string()
+ * This class provides simple facilities for reading Fasta data.
  *
  * Exemplary usage:
  *
@@ -76,7 +72,7 @@ namespace sequence {
  *     FastaReader()
  *         .site_casing( SiteCasing::kUnchanged )
  *         .valid_chars( nucleic_acid_codes_all() )
- *         .from_file( infile, sequence_set );
+ *         .read( utils::from_file( infile ), sequence_set );
  *
  * The expected data format:
  *
@@ -184,52 +180,26 @@ public:
     //     Reading
     // ---------------------------------------------------------------------
 
-    // SequenceSet read( std::shared_ptr< utils::BaseInputSource > input ) const;
+    /**
+     * @brief Read all Sequence%s from an input source in Fasta format and return them as a
+     * SequenceSet.
+     *
+     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * get an input source that can be used here.
+     */
+    SequenceSet read( std::shared_ptr< utils::BaseInputSource > source ) const;
 
     /**
-     * @brief Read all Sequence%s from a std::istream in Fasta format into a SequenceSet.
+     * @brief Read all Sequence%s from an input source in Fasta format into a SequenceSet.
      *
      * The Sequences are added to the SequenceSet, whose existing Sequences are kept. Thus, by
      * repeatedly calling this or similar read functions, multiple input files can easily be read
      * into one SequenceSet.
-     */
-    void from_stream( std::istream& input_stream, SequenceSet& sequence_set ) const;
-
-    /**
-     * @brief Read all Sequence%s from a std::istream in Fasta format and return them as a
-     * SequenceSet.
-     */
-    SequenceSet from_stream( std::istream& input_stream ) const;
-
-    /**
-     * @brief Read all Sequence%s from a file in Fasta format into a SequenceSet.
      *
-     * The Sequences are added to the SequenceSet, whose existing Sequences are kept. Thus, by
-     * repeatedly calling this or similar read functions, multiple input files can easily be read
-     * into one SequenceSet.
+     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * get an input source that can be used here.
      */
-    void from_file( std::string const& file_name, SequenceSet& sequence_set ) const;
-
-    /**
-     * @brief Read all Sequence%s from a file in Fasta format and return them as a
-     * SequenceSet.
-     */
-    SequenceSet from_file( std::string const& file_name ) const;
-
-    /**
-     * @brief Read all Sequence%s from a std::string in Fasta format into a SequenceSet.
-     *
-     * The Sequences are added to the SequenceSet, whose existing Sequences are kept. Thus, by
-     * repeatedly calling this or similar read functions, multiple input files can easily be read
-     * into one SequenceSet.
-     */
-    void from_string( std::string const& input_string, SequenceSet& sequence_set ) const;
-
-    /**
-     * @brief Read all Sequence%s from a std::string in Fasta format and return them as a
-     * SequenceSet.
-     */
-    SequenceSet from_string( std::string const& input_string ) const;
+    void read( std::shared_ptr< utils::BaseInputSource > source, SequenceSet& sequence_set ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
@@ -238,7 +208,7 @@ public:
     /**
      * @brief Parse a whole fasta document into a SequenceSet.
      *
-     * This function is mainly used internally by the reading functions from_...().
+     * This function is mainly used internally by the reading functions read().
      * It uses the currently set parsing_method() for parsing the data.
      */
     void parse_document(

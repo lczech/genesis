@@ -31,6 +31,8 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/io/input_source.hpp"
+
 #include <iosfwd>
 #include <string>
 
@@ -46,9 +48,7 @@ namespace utils {
  *
  * This is useful in order to select the used hashing function at runtime for some algorithms.
  *
- * @see hash_from_file_hex()
- * @see hash_from_string_hex()
- * @see hash_from_stream_hex()
+ * @see hash_hex()
  */
 enum class HashingFunctions
 {
@@ -73,37 +73,12 @@ enum class HashingFunctions
 // ================================================================================================
 
 /**
- * @brief Calculate the hash of a file, using a given hashing function, and return its hex
+ * @brief Calculate the hash of an input source, using a given hashing function, and return its hex
  * representation as a string.
  *
  * See ::HashingFunctions for the list of available hashing functions.
- *
- * @see hash_from_string_hex()
- * @see hash_from_stream_hex()
  */
-std::string hash_from_file_hex( std::string const& filename, HashingFunctions hash_fct );
-
-/**
- * @brief Calculate the hash of a string, using a given hashing function, and return its hex
- * representation as a string.
- *
- * See ::HashingFunctions for the list of available hashing functions.
- *
- * @see hash_from_file_hex()
- * @see hash_from_stream_hex()
- */
-std::string hash_from_string_hex( std::string const& input, HashingFunctions hash_fct );
-
-/**
- * @brief Calculate the hash of an input stream, using a given hashing function, and return its hex
- * representation as a string.
- *
- * See ::HashingFunctions for the list of available hashing functions.
- *
- * @see hash_from_file_hex()
- * @see hash_from_string_hex()
- */
-std::string hash_from_stream_hex( std::istream& is, HashingFunctions hash_fct );
+std::string hash_hex( std::shared_ptr<BaseInputSource> source, HashingFunctions hash_fct );
 
 } // namespace utils
 } // namespace genesis

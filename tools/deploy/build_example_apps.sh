@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2016 Lucas Czech
+# Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,12 +37,12 @@ cd `git rev-parse --show-toplevel`
 file_paths=()
 
 # Collect demo files.
-for filename in `find ./doc/demos/ -name "*.cpp"`; do
+for filename in `find ./doc/code/demos/ -name "*.cpp"`; do
     file_paths+=( ${filename} )
 done
 
 # Collect tutorial files.
-for filename in `find ./doc/tutorials/ -name "*.cpp"`; do
+for filename in `find ./doc/code/tutorials/ -name "*.cpp"`; do
     file_paths+=( ${filename} )
 done
 

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -66,20 +66,20 @@ TEST( Taxonomy, AddChildren )
     auto parser = TaxopathParser();
 
     // Simple
-    add_from_taxopath( tax, parser( "Tax_1;Tax_2;Tax_3;Tax_4" ));
+    add_from_taxopath( tax, parser.parse( "Tax_1;Tax_2;Tax_3;Tax_4" ));
     EXPECT_EQ( 4, total_taxa_count( tax ));
     EXPECT_TRUE( validate( tax ));
 
     // Leave some out
-    add_from_taxopath( tax, parser( "Tax_1;Tax_5;Tax_6;" ));
-    auto& par = add_from_taxopath( tax, parser( "Tax_1;;;Tax_7;Tax8" ));
+    add_from_taxopath( tax, parser.parse( "Tax_1;Tax_5;Tax_6;" ));
+    auto& par = add_from_taxopath( tax, parser.parse( "Tax_1;;;Tax_7;Tax8" ));
     EXPECT_EQ( 4, taxon_level( par ));
     EXPECT_EQ( 10, total_taxa_count( tax ));
     EXPECT_EQ( "Tax_1", par.parent()->parent()->name() );
 
     // Invalid strings
-    EXPECT_THROW( add_from_taxopath( tax, parser( "" )), std::runtime_error );
-    EXPECT_THROW( add_from_taxopath( tax, parser( ";Tax_x" )), std::runtime_error );
+    EXPECT_THROW( add_from_taxopath( tax, parser.parse( "" )), std::runtime_error );
+    EXPECT_THROW( add_from_taxopath( tax, parser.parse( ";Tax_x" )), std::runtime_error );
 
     // Remove some
     par.parent()->parent()->remove_child( "Tax_7" );
@@ -95,13 +95,13 @@ TEST( Taxonomy, ToString )
 
     // Standard behaviour.
     std::string s1 = "Tax_1;Tax_2;Tax_3;Tax_4";
-    auto&       r1 = add_from_taxopath( tax, parser( s1 ));
+    auto&       r1 = add_from_taxopath( tax, parser.parse( s1 ));
     ASSERT_TRUE( validate( tax ));
     EXPECT_EQ( s1, generator( r1 ));
 
     // With left out elements.
     std::string s2 = "Tax_1;;Tax_3;Tax_4";
-    auto&       r2 = add_from_taxopath( tax, parser( s2 ));
+    auto&       r2 = add_from_taxopath( tax, parser.parse( s2 ));
     ASSERT_TRUE( validate( tax ));
     EXPECT_NE( s2, generator( r2 ));
 
@@ -117,11 +117,11 @@ TEST( Taxonomy, Remove )
     Taxonomy tax;
     auto parser = TaxopathParser();
 
-    add_from_taxopath( tax, parser( "Tax_1;Tax_2;Tax_3;Tax_4" ));
-    add_from_taxopath( tax, parser( "Tax_1;Tax_2;Tax_3;Tax_5" ));
-    add_from_taxopath( tax, parser( "Tax_1;Tax_2;Tax_3;Tax_6" ));
-    add_from_taxopath( tax, parser( "Tax_1;Tax_2;Tax_7;Tax_8" ));
-    add_from_taxopath( tax, parser( "Tax_1;Tax_2;Tax_9;Tax_10" ));
+    add_from_taxopath( tax, parser.parse( "Tax_1;Tax_2;Tax_3;Tax_4" ));
+    add_from_taxopath( tax, parser.parse( "Tax_1;Tax_2;Tax_3;Tax_5" ));
+    add_from_taxopath( tax, parser.parse( "Tax_1;Tax_2;Tax_3;Tax_6" ));
+    add_from_taxopath( tax, parser.parse( "Tax_1;Tax_2;Tax_7;Tax_8" ));
+    add_from_taxopath( tax, parser.parse( "Tax_1;Tax_2;Tax_9;Tax_10" ));
     EXPECT_EQ( 10, total_taxa_count( tax ));
 
     // Remove specific Taxon.

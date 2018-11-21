@@ -62,57 +62,20 @@ FastaReader::FastaReader()
 //     Reading
 // =================================================================================================
 
-// SequenceSet FastaReader::read( std::shared_ptr< utils::BaseInputSource > input ) const
-// {
-//     SequenceSet result;
-//     utils::InputStream is( input );
-//     parse_document( is, result );
-//     return result;
-// }
-
-void FastaReader::from_stream ( std::istream& input_stream, SequenceSet& sequence_set ) const
+SequenceSet FastaReader::read( std::shared_ptr< utils::BaseInputSource > source ) const
 {
-    // Create an input stream and process it.
-    utils::InputStream it( utils::make_unique< utils::StreamInputSource >( input_stream ));
-    parse_document( it, sequence_set );
-}
-
-SequenceSet FastaReader::from_stream( std::istream& input_stream ) const
-{
-    // Create a new set and fill it.
     SequenceSet result;
-    from_stream( input_stream, result );
+    utils::InputStream is( source );
+    parse_document( is, result );
     return result;
 }
 
-void FastaReader::from_file ( std::string const& file_name, SequenceSet& sequence_set ) const
-{
-    // Create an input stream and process it.
-    utils::InputStream it( utils::make_unique< utils::FileInputSource >( file_name ));
-    parse_document( it, sequence_set );
-}
-
-SequenceSet FastaReader::from_file( std::string const& file_name ) const
-{
-    // Create a new set and fill it.
-    SequenceSet result;
-    from_file( file_name, result );
-    return result;
-}
-
-void FastaReader::from_string ( std::string const& input_string, SequenceSet& sequence_set ) const
-{
-    // Create an input stream and process it.
-    utils::InputStream it( utils::make_unique< utils::StringInputSource >( input_string ));
-    parse_document( it, sequence_set );
-}
-
-SequenceSet FastaReader::from_string( std::string const& input_string ) const
-{
-    // Create a new set and fill it.
-    SequenceSet result;
-    from_string( input_string, result );
-    return result;
+void FastaReader::read(
+    std::shared_ptr< utils::BaseInputSource > source,
+    SequenceSet& sequence_set
+) const {
+    utils::InputStream is( source );
+    parse_document( is, sequence_set );
 }
 
 // =================================================================================================

@@ -55,7 +55,7 @@ void TestPathSet(
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
     std::string nodes = "";
 
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     auto start_node  = find_node( tree, start_node_name  );
     auto finish_node = find_node( tree, finish_node_name );

@@ -62,43 +62,17 @@ TaxonomyReader::TaxonomyReader()
 //     Reading
 // =================================================================================================
 
-void TaxonomyReader::from_stream( std::istream& is, Taxonomy& tax ) const
+void TaxonomyReader::read( std::shared_ptr<utils::BaseInputSource> source, Taxonomy& target ) const
 {
-    utils::InputStream it( utils::make_unique< utils::StreamInputSource >( is ));
-    parse_document( it, tax );
+    utils::InputStream it( source );
+    parse_document( it, target );
 }
 
-void TaxonomyReader::from_file( std::string const& fn, Taxonomy& tax ) const
+Taxonomy TaxonomyReader::read( std::shared_ptr<utils::BaseInputSource> source ) const
 {
-    utils::InputStream it( utils::make_unique< utils::FileInputSource >( fn ));
-    parse_document( it, tax );
-}
-
-void TaxonomyReader::from_string( std::string const& is, Taxonomy& tax ) const
-{
-    utils::InputStream it( utils::make_unique< utils::StringInputSource >( is ));
-    parse_document( it, tax );
-}
-
-Taxonomy TaxonomyReader::from_stream( std::istream& is ) const
-{
-    Taxonomy res;
-    from_stream( is, res );
-    return res;
-}
-
-Taxonomy TaxonomyReader::from_file( std::string const& fn ) const
-{
-    Taxonomy res;
-    from_file( fn, res );
-    return res;
-}
-
-Taxonomy TaxonomyReader::from_string( std::string const& is ) const
-{
-    Taxonomy res;
-    from_string( is, res );
-    return res;
+    Taxonomy result;
+    read( source, result );
+    return result;
 }
 
 // =================================================================================================
@@ -121,7 +95,7 @@ void TaxonomyReader::parse_document(
         // Parse the taxopath and add it to the taxonomy.
         auto& taxon = add_from_taxopath(
             tax,
-            taxopath_parser_.from_string( line.name ),
+            taxopath_parser_.parse( line.name ),
             expect_strict_order_
         );
 

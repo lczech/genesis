@@ -96,7 +96,7 @@ TEST( AttributeTree, IndexedNewickReaderIndex )
         IndexedAttributeTreeNewickReader::Target::kEdge,    "bootstrap"
     );
 
-    auto tree = reader.from_file( infile );
+    auto tree = reader.read( utils::from_file( infile ));
 
     auto counts = count_attribute_tree_data( tree );
     EXPECT_EQ( 0, counts.first );
@@ -119,7 +119,7 @@ TEST( AttributeTree, IndexedNewickReaderCatchAll )
         IndexedAttributeTreeNewickReader::Target::kEdge,    "comment_"
     );
 
-    auto tree = reader.from_file( infile );
+    auto tree = reader.read( utils::from_file( infile ));
 
     size_t node_attr_cnt = 0;
     for( auto const& node : tree.nodes() ) {
@@ -150,7 +150,7 @@ TEST( AttributeTree, KeyedNewickReaderKeys )
     reader.add_attribute( "bs",     KeyedAttributeTreeNewickReader::Target::kEdge );
     reader.add_attribute( "!color", KeyedAttributeTreeNewickReader::Target::kEdge, "color" );
 
-    auto tree = reader.from_file( infile );
+    auto tree = reader.read( utils::from_file( infile ));
 
     auto counts = count_attribute_tree_data( tree );
     EXPECT_EQ( 0, counts.first );
@@ -168,7 +168,7 @@ TEST( AttributeTree, KeyedNewickReaderCatchAll )
     KeyedAttributeTreeNewickReader reader;
     reader.add_catch_all( KeyedAttributeTreeNewickReader::Target::kEdge );
 
-    auto tree = reader.from_file( infile );
+    auto tree = reader.read( utils::from_file( infile ));
 
     auto counts = count_attribute_tree_data( tree );
     EXPECT_EQ( 0, counts.first );
@@ -189,7 +189,7 @@ TEST( AttributeTree, KeyedNewickReaderNHX )
     reader.add_nhx_attributes();
     // reader.add_catch_all( KeyedAttributeTreeNewickReader::Target::kNode );
 
-    auto tree = reader.from_file( infile );
+    auto tree = reader.read( utils::from_file( infile ));
 
     auto counts = count_attribute_tree_data( tree );
     EXPECT_EQ( 25, counts.first );

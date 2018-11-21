@@ -20,6 +20,7 @@ The code examples in this tutorial assume that you use
 ~~~{.cpp}
 #include "genesis/genesis.hpp"
 using namespace genesis::sequence;
+using namespace genesis::utils;
 ~~~
 
 at the beginning of your code.
@@ -31,14 +32,14 @@ Reading is done using reader classes like @ref genesis::sequence::FastaReader "F
 
 ~~~{.cpp}
 // Read a fasta file into a SequenceSet object.
-SequenceSet sequences_a = FastaReader().from_file( "path/to/file_a.fasta" );
+SequenceSet sequences_a = FastaReader().read( from_file( "path/to/file_a.fasta" ));
 
 // Read a phylip file into a SequenceSet object.
-SequenceSet sequences_b = PhylipReader().from_file( "path/to/file_b.phylip" );
+SequenceSet sequences_b = PhylipReader().read( from_file( "path/to/file_b.phylip" ));
 
 // Read more sequences into an existing SequenceSet object.
-FastaReader().from_file( "path/to/file_c.fasta", sequences_b );
-PhylipReader().from_file( "path/to/file_d.phylip", sequences_a );
+FastaReader().read( from_file( "path/to/file_c.fasta" ), sequences_b );
+PhylipReader().read( from_file( "path/to/file_d.phylip" ), sequences_a );
 ~~~
 
 Writing is done the other way round, using e.g., @ref genesis::sequence::FastaWriter "FastaWriter"

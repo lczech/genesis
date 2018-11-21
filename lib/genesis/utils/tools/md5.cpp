@@ -64,6 +64,8 @@
 
 #include "genesis/utils/tools/md5.hpp"
 
+#include "genesis/utils/io/input_buffer.hpp"
+
 #include <algorithm>
 #include <cinttypes>
 #include <cstdio>
@@ -87,12 +89,94 @@ MD5::MD5()
 }
 
 // ================================================================================================
-//     Member Functions
+//     Full Hashing
+// ================================================================================================
+
+std::string MD5::read_hex( std::shared_ptr<BaseInputSource> source )
+{
+    MD5 checksum;
+    checksum.update( source );
+    return checksum.final_hex();
+}
+
+MD5::DigestType MD5::read_digest( std::shared_ptr<BaseInputSource> source )
+{
+    MD5 checksum;
+    checksum.update( source );
+    return checksum.final_digest();
+}
+
+std::string MD5::digest_to_hex( MD5::DigestType const& digest )
+{
+    /* Hex std::string */
+    std::ostringstream result;
+    for (size_t i = 0; i < digest.size(); ++i) {
+        result << std::hex << std::setfill('0') << std::setw(2);
+        result << static_cast<int>( digest[i] );
+    }
+
+    return result.str();
+}
+
+MD5::DigestType MD5::hex_to_digest( std::string const& hex )
+{
+    // Safety first!
+    bool const all_hex = std::all_of( hex.begin(), hex.end(), []( char c ){
+        return std::isxdigit( c );
+    });
+    if( hex.size() != 32 || ! all_hex ) {
+        throw std::runtime_error( "Invalid MD5 hex string." );
+    }
+
+    // The following test was introduced to check the scanf format "%2hhx",
+    // which just is an "unsigned char", which is not a fixed size.
+    // We now use the SCNxN typedefs that offer fixed width replacements, see
+    // http://pubs.opengroup.org/onlinepubs/009604599/basedefs/inttypes.h.html
+
+    // Make sure that the scan works!
+    // static_assert(
+    //     sizeof( unsigned char ) == 1,
+    //     "Cannot compile MD5::hex_to_digest() with sizeof( unsigned char ) != 1"
+    // );
+
+    // Convert.
+    MD5::DigestType result;
+    for (size_t i = 0; i < result.size(); ++i) {
+        // auto const n = sscanf( &hex[ 2 * i ], "%2hhx", &(result[i]) );
+        auto const n = sscanf( &hex[ 2 * i ], "%2" SCNx8, &(result[i]) );
+        if( n != 1 ) {
+            throw std::runtime_error( "Invalid MD5 hex string." );
+        }
+    }
+
+    return result;
+}
+
+// ================================================================================================
+//     Iterative Hashing
 // ================================================================================================
 
 void MD5::clear()
 {
     reset_();
+}
+
+void MD5::update( std::shared_ptr<BaseInputSource> source )
+{
+    auto ib = InputBuffer( source );
+    char sbuf[MD5::BlockSize];
+
+    while (true) {
+
+        // Read a block and use it for an update.
+        auto cnt = ib.read( sbuf, MD5::BlockSize );
+        update( sbuf, cnt );
+
+        // If we didn't get a full block, the input is done.
+        if( cnt != MD5::BlockSize ) {
+            return;
+        }
+    }
 }
 
 void MD5::update( std::string const& s )
@@ -159,96 +243,6 @@ MD5::DigestType MD5::final_digest()
 
     reset_();
     return digest_;
-}
-
-std::string MD5::from_file_hex( std::string const& filename )
-{
-    std::ifstream stream( filename.c_str(), std::ios::binary );
-    MD5 checksum;
-    checksum.update(stream);
-    return checksum.final_hex();
-}
-
-MD5::DigestType MD5::from_file_digest( std::string const& filename )
-{
-    std::ifstream stream( filename.c_str(), std::ios::binary );
-    MD5 checksum;
-    checksum.update(stream);
-    return checksum.final_digest();
-}
-
-std::string MD5::from_string_hex( std::string const& input )
-{
-    MD5 checksum;
-    checksum.update( input );
-    return checksum.final_hex();
-}
-
-MD5::DigestType MD5::from_string_digest( std::string const& input )
-{
-    MD5 checksum;
-    checksum.update( input );
-    return checksum.final_digest();
-}
-
-std::string MD5::from_stream_hex( std::istream& is )
-{
-    MD5 checksum;
-    checksum.update(is);
-    return checksum.final_hex();
-}
-
-MD5::DigestType MD5::from_stream_digest( std::istream& is )
-{
-    MD5 checksum;
-    checksum.update(is);
-    return checksum.final_digest();
-}
-
-std::string MD5::digest_to_hex( MD5::DigestType const& digest )
-{
-    /* Hex std::string */
-    std::ostringstream result;
-    for (size_t i = 0; i < digest.size(); ++i) {
-        result << std::hex << std::setfill('0') << std::setw(2);
-        result << static_cast<int>( digest[i] );
-    }
-
-    return result.str();
-}
-
-MD5::DigestType MD5::hex_to_digest( std::string const& hex )
-{
-    // Safety first!
-    bool const all_hex = std::all_of( hex.begin(), hex.end(), []( char c ){
-        return std::isxdigit( c );
-    });
-    if( hex.size() != 32 || ! all_hex ) {
-        throw std::runtime_error( "Invalid MD5 hex string." );
-    }
-
-    // The following test was introduced to check the scanf format "%2hhx",
-    // which just is an "unsigned char", which is not a fixed size.
-    // We now use the SCNxN typedefs that offer fixed with replacements, see
-    // http://pubs.opengroup.org/onlinepubs/009604599/basedefs/inttypes.h.html
-
-    // Make sure that the scan works!
-    // static_assert(
-    //     sizeof( unsigned char ) == 1,
-    //     "Cannot compile MD5::hex_to_digest() with sizeof( unsigned char ) != 1"
-    // );
-
-    // Convert.
-    MD5::DigestType result;
-    for (size_t i = 0; i < result.size(); ++i) {
-        // auto const n = sscanf( &hex[ 2 * i ], "%2hhx", &(result[i]) );
-        auto const n = sscanf( &hex[ 2 * i ], "%2" SCNx8, &(result[i]) );
-        if( n != 1 ) {
-            throw std::runtime_error( "Invalid MD5 hex string." );
-        }
-    }
-
-    return result;
 }
 
 // ================================================================================================

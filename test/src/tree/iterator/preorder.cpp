@@ -51,7 +51,7 @@ void TestPreorder(std::string node_name, std::string out_nodes)
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
     std::string nodes = "";
 
-    Tree tree = CommonTreeNewickReader().from_string(input);
+    Tree tree = CommonTreeNewickReader().read( utils::from_string(input));
 
     auto node = find_node(tree, node_name);
     ASSERT_NE(nullptr, node);
@@ -99,7 +99,7 @@ TEST (TreeIterator, PreorderSubtree)
 {
     // Prepare Tree.
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     // The following heavily depends on the internal tree structure.
     // If this breaks, we might need a setup that finds nodes,

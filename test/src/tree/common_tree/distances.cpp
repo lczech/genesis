@@ -50,7 +50,7 @@ TEST(CommonTree, Distances)
 
     // Read and process tree.
     std::string infile = environment->data_dir + "tree/distances.newick";
-    Tree tree =  CommonTreeNewickReader().from_file( infile );
+    Tree tree =  CommonTreeNewickReader().read( utils::from_file( infile ));
 
     // Basic checks.
     EXPECT_EQ(7, leaf_node_count(tree));

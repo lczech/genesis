@@ -134,6 +134,12 @@ private:
     }
 
     /**
+     * @brief Override of the source string funtion. Returns the source string of its own
+     * source, potentially removing a trailing ".gz" (for convenience when reading files).
+     */
+    std::string source_string_() const override;
+
+    /**
      * @brief Throw an exception for zlib related errors.
      */
     void report_zlib_error_( int error_code ) const;

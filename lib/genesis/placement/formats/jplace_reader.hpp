@@ -31,7 +31,10 @@
  * @ingroup placement
  */
 
+#include "genesis/utils/io/input_source.hpp"
+
 #include <iosfwd>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -43,7 +46,6 @@ namespace genesis {
 // =================================================================================================
 
 namespace utils {
-    class InputStream;
     class JsonDocument;
 }
 
@@ -61,19 +63,13 @@ namespace placement {
 /**
  * @brief Read Jplace data.
  *
- * This class provides facilities for reading Jplace files. It supports to read
- *
- *   * from_file()
- *   * from_string()
- *   * from_stream()
- *   * from_document()
- *
+ * This class provides facilities for reading `jplace` files into a Sample or SampleSet.
  * Exemplary usage:
  *
  *     std::string infile = "path/to/file.jplace";
  *     Sample smp = JplaceReader()
  *         .invalid_number_behaviour( InvalidNumberBehaviour::kCorrect )
- *         .from_file( infile );
+ *         .read( from_file( infile ));
  *
  * Using @link invalid_number_behaviour( InvalidNumberBehaviour ) invalid_number_behaviour()@endlink,
  * it is possible to change how the reader reacts to malformed jplace files.
@@ -112,48 +108,41 @@ public:
 public:
 
     /**
-     * @brief Read `jplace` data from a stream into a Sample.
+     * @brief Read from an input source.
+     *
+     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * get an input source that can be used here.
      */
-    Sample from_stream( std::istream& is ) const;
-
-    /**
-     * @brief Read a file and parse it as a Jplace document into a Sample.
-     */
-    Sample from_file( std::string const& fn ) const;
-
-    /**
-     * @brief Parse a string as a Jplace document into a Sample.
-     */
-    Sample from_string( std::string const& jplace ) const;
+    Sample read(
+        std::shared_ptr<utils::BaseInputSource> source
+    ) const;
 
     /**
      * @brief Take a JsonDocument and parse it as a Jplace document into a Sample.
+     *
+     * Note that the JsonDocument is modified, in order to save memory.
      */
-    Sample from_document( utils::JsonDocument& doc ) const;
+    Sample read(
+        utils::JsonDocument& doc
+    ) const;
 
     /**
-     * @brief Read a list of files and parse them as a Jplace document into a SampleSet.
+     * @brief Read from multiple sources and parse them as a Jplace documents into a SampleSet.
      */
-    SampleSet from_files( std::vector<std::string> const& fns ) const;
+    SampleSet read(
+        std::vector<std::shared_ptr<utils::BaseInputSource>> sources
+    ) const;
 
     /**
-     * @brief Parse a list of strings as a Jplace document into a SampleSet.
-     */
-    SampleSet from_strings( std::vector<std::string> const& jps ) const;
-
-    /**
-     * @brief Read a list of files and parse them as a Jplace document into a SampleSet.
+     * @brief Read from multiple sources and parse them as a Jplace documents into an existing
+     * SampleSet.
      *
      * The Sample%s are added to the SampleSet, so that existing Samples in the SampleSet are kept.
      */
-    void from_files    ( std::vector<std::string> const& fns, SampleSet& set ) const;
-
-    /**
-     * @brief Parse a list of strings as a Jplace document into a SampleSet.
-     *
-     * The Sample%s are added to the SampleSet, so that existing Samples in the SampleSet are kept.
-     */
-    void from_strings  ( std::vector<std::string> const& jps, SampleSet& set ) const;
+    void read(
+        std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
+        SampleSet& target
+    ) const;
 
     // ---------------------------------------------------------------------
     //     Processing

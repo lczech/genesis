@@ -43,6 +43,7 @@
 
 using namespace genesis;
 using namespace genesis::placement;
+using namespace genesis::utils;
 
 TEST( SampleMeasures, EDPL )
 {
@@ -52,7 +53,7 @@ TEST( SampleMeasures, EDPL )
     // Input files.
     std::string infile = environment->data_dir + "placement/duplicates_b.jplace";
 
-    Sample smpl = JplaceReader().from_file( infile );
+    Sample smpl = JplaceReader().read( from_file( infile ));
 
     auto edpl_vec = edpl( smpl );
     std::vector<double> expect = { 1.5, 0, 1.218, 0, 0, 1.2, 0 };
@@ -74,8 +75,8 @@ TEST(SampleMeasures, EarthMoversDistance)
     std::string infile_rhs = environment->data_dir + "placement/test_b.jplace";
 
     // Read files.
-    Sample smp_lhs = JplaceReader().from_file( infile_lhs );
-    Sample smp_rhs = JplaceReader().from_file( infile_rhs );
+    Sample smp_lhs = JplaceReader().read( from_file( infile_lhs ));
+    Sample smp_rhs = JplaceReader().read( from_file( infile_rhs ));
 
     // Distances and symmetric cases.
     EXPECT_FLOAT_EQ( 2.8458333, earth_movers_distance( smp_lhs, smp_rhs, 1.0, false ));
@@ -118,8 +119,8 @@ TEST( SampleMeasures, NodeHistogramDistance )
     std::string infile_rhs = environment->data_dir + "placement/test_b.jplace";
 
     // Read files.
-    Sample smp_lhs = JplaceReader().from_file(infile_lhs);
-    Sample smp_rhs = JplaceReader().from_file(infile_rhs);
+    Sample smp_lhs = JplaceReader().read( from_file(infile_lhs));
+    Sample smp_rhs = JplaceReader().read( from_file(infile_rhs));
 
     // Distance and symmetric case.
     EXPECT_FLOAT_EQ( 1.9533334, node_histogram_distance( smp_lhs, smp_rhs, 10 ));

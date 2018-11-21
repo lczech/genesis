@@ -56,7 +56,7 @@ TEST( Sequence, FastaReaderValidating )
     SequenceSet sset;
     FastaReader()
         .valid_chars( nucleic_acid_codes_all() )
-        .from_file(infile, sset);
+        .read( utils::from_file(infile), sset);
 
     // Check data.
     EXPECT_EQ( 10, sset.size() );
@@ -71,8 +71,7 @@ TEST( FastaInputIterator, ReadingLoop )
     NEEDS_TEST_DATA;
 
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-    auto it = FastaInputIterator();
-    it.from_file( infile );
+    auto it = FastaInputIterator( utils::from_file( infile ));
 
     size_t len = 0;
     size_t cnt = 0;
@@ -101,8 +100,7 @@ TEST( FastaInputIterator, Advance )
     NEEDS_TEST_DATA;
 
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-    auto it = FastaInputIterator();
-    it.from_file( infile );
+    auto it = FastaInputIterator( utils::from_file( infile ));
 
     std::advance( it, 3 );
 
@@ -164,7 +162,7 @@ TEST( Sequence, FastaCompressed )
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
 
-    // Load sequence file.
+    // Get sequence file.
     std::string infile = environment->data_dir + "sequence/dna_10.fasta.gz";
     utils::InputStream cit { utils::make_unique<utils::GzipInputSource>(
         utils::make_unique<utils::FileInputSource>( infile )
@@ -173,6 +171,24 @@ TEST( Sequence, FastaCompressed )
     // Read.
     SequenceSet sset;
     FastaReader().parse_document( cit, sset );
+
+    // Check data.
+    EXPECT_EQ( 10, sset.size() );
+    EXPECT_EQ( 460,                    sset[0].length() );
+    EXPECT_EQ( "Di106BGTue",           sset[0].label() );
+    EXPECT_EQ( "TCGAAACCTGC------CTA", sset[0].sites().substr( 0, 20 ) );
+}
+
+TEST( Sequence, FastaGzip )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Get sequence file.
+    std::string infile = environment->data_dir + "sequence/dna_10.fasta.gz";
+
+    // Read.
+    auto const sset = FastaReader().read( utils::from_file( infile ));
 
     // Check data.
     EXPECT_EQ( 10, sset.size() );

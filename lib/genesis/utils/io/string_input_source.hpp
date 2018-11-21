@@ -93,19 +93,6 @@ public:
     {}
 
     // -------------------------------------------------------------
-    //     Special Members
-    // -------------------------------------------------------------
-
-    /**
-     * @brief Rewind the source to its start, so that it can be re-read.
-     */
-    void rewind()
-    {
-        cursor_    = in_str_;
-        rest_size_ = in_size_;
-    }
-
-    // -------------------------------------------------------------
     //     Overloaded Internal Members
     // -------------------------------------------------------------
 
@@ -134,6 +121,14 @@ private:
     std::string source_name_() const override
     {
         return "input string";
+    }
+
+    /**
+     * @brief Override of the source string funtion. Returns "string".
+     */
+    std::string source_string_() const override
+    {
+        return "string";
     }
 
     // -------------------------------------------------------------

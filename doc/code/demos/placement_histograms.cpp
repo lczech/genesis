@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -213,7 +213,7 @@ int main( int argc, const char* argv[] )
     for( auto const& jplace_filename : jplace_files ) {
 
         // Read the Jplace file into a Sample object.
-        Sample smp = jplace_reader.from_file(jplace_filename);
+        Sample smp = jplace_reader.read( utils::from_file(jplace_filename));
         sort_placements_by_weight( smp );
 
         // Accumulate LWRs into histogram accus.

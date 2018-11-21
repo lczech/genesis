@@ -10,7 +10,7 @@ original tree.
 
 This demo is located at
 
-    genesis/doc/demos/labelled_tree.cpp
+    genesis/doc/code/demos/labelled_tree.cpp
 
 @section Details
 

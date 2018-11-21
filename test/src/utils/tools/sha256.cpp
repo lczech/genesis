@@ -86,25 +86,37 @@ TEST( Utils, SHA256Files )
     NEEDS_TEST_DATA;
 
     std::string empty_file = environment->data_dir + "utils/hash/empty.txt";
-    EXPECT_EQ( "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", SHA256::from_file_hex( empty_file ));
+    EXPECT_EQ(
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        SHA256::read_hex( from_file( empty_file ))
+    );
 
     std::string abc_file = environment->data_dir + "utils/hash/abc.txt";
-    EXPECT_EQ( "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", SHA256::from_file_hex( abc_file ));
+    EXPECT_EQ(
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+        SHA256::read_hex( from_file( abc_file ))
+    );
 
+    // A million repetitions of 'a', compressed
+    std::string gzip_file = environment->data_dir + "utils/hash/aaa.txt.gz";
+    EXPECT_EQ(
+        "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0",
+        SHA256::read_hex( from_file( gzip_file ))
+    );
 }
 
 TEST( Utils, SHA256Convert )
 {
     // empty string
-    auto const empty_d = SHA256::from_string_digest( "" );
-    auto const empty_h = SHA256::from_string_hex( "" );
+    auto const empty_d = SHA256::read_digest( from_string( "" ));
+    auto const empty_h = SHA256::read_hex( from_string( "" ));
     EXPECT_EQ( "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", empty_h );
     EXPECT_EQ( empty_d, SHA256::hex_to_digest( empty_h ));
     EXPECT_EQ( empty_h, SHA256::digest_to_hex( empty_d ));
 
     // abc
-    auto const abc_d = SHA256::from_string_digest( "abc" );
-    auto const abc_h = SHA256::from_string_hex( "abc" );
+    auto const abc_d = SHA256::read_digest( from_string( "abc" ));
+    auto const abc_h = SHA256::read_hex( from_string( "abc" ));
     EXPECT_EQ( "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", abc_h );
     EXPECT_EQ( abc_d, SHA256::hex_to_digest( abc_h ));
     EXPECT_EQ( abc_h, SHA256::digest_to_hex( abc_d ));

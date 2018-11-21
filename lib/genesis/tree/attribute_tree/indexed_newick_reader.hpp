@@ -179,7 +179,7 @@ public:
      *     IndexedAttributeTreeNewickReader::Source::kComment, 0,
      *     IndexedAttributeTreeNewickReader::Target::kEdge,    "bootstrap"
      * );
-     * auto tree = reader.from_file( "path/to/tree.newick" );
+     * auto tree = reader.read( from_file( "path/to/tree.newick" ));
      * ~~~
      *
      * This stores the Newick comment (such as "[0.1]" in the example) with index `0` (the first
@@ -263,7 +263,7 @@ public:
      *     IndexedAttributeTreeNewickReader::Source::kComment,
      *     IndexedAttributeTreeNewickReader::Target::kNode,    "comment_"
      * );
-     * auto tree = reader.from_file( "path/to/tree.newick" );
+     * auto tree = reader.read( from_file( "path/to/tree.newick" ));
      * ~~~
      *
      * The resulting tree has attributes at the inner nodes, with the key `comment_0` and the values

@@ -41,18 +41,20 @@
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/formats/newick/writer.hpp"
 #include "genesis/tree/tree.hpp"
+#include "genesis/tree/tree_set.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/text/string.hpp"
 
 using namespace genesis;
-using namespace tree;
+using namespace genesis::tree;
+using namespace genesis::utils;
 
 TEST(Newick, FromAndToString)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    // Wead
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    // Read
+    Tree tree = CommonTreeNewickReader().read( from_string( input ));
 
     // Write
     auto writer = CommonTreeNewickWriter();
@@ -75,7 +77,7 @@ TEST(Newick, NewickVariants)
 
     // Stupid tree.
     newick_string = "();";
-    tree = CommonTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().read( from_string( newick_string ));
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( 2, tree.node_count() );
     EXPECT_FALSE( tree.empty() );
@@ -83,19 +85,19 @@ TEST(Newick, NewickVariants)
 
     // No nodes are named.
     newick_string = "(,,(,));";
-    tree = CommonTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().read( from_string( newick_string ));
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // Leaf nodes are named.
     newick_string = "(A,B,(C,D));";
-    tree = CommonTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().read( from_string( newick_string ));
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // All nodes are named.
     newick_string = "(A,B,(C,D)E)F;";
-    tree = CommonTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().read( from_string( newick_string ));
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string, writer.to_string( tree ));
 
@@ -104,32 +106,32 @@ TEST(Newick, NewickVariants)
 
     // All but root node have a distance to parent.
     newick_string = "(:0.1,:0.2,(:0.3,:0.4):0.5);";
-    tree = CommonTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().read( from_string( newick_string ));
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // All have a distance to parent.
     // We never write out the root branch length, so this test is skipped.
     newick_string = "(:0.1,:0.2,(:0.3,:0.4):0.5):0.0;";
-    tree = CommonTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().read( from_string( newick_string ));
     EXPECT_TRUE( validate_topology(tree) );
     // EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // Distances and leaf names (popular).
     newick_string = "(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);";
-    tree = CommonTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().read( from_string( newick_string ));
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // Distances and all names.
     newick_string = "(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;";
-    tree = CommonTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().read( from_string( newick_string ));
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string, writer.to_string( tree ));
 
     // A tree rooted on a leaf node (rare).
     newick_string = "((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;";
-    tree = CommonTreeNewickReader().from_string( newick_string );
+    tree = CommonTreeNewickReader().read( from_string( newick_string ));
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string, writer.to_string( tree ));
 
@@ -140,7 +142,7 @@ TEST(Newick, NewickVariants)
     auto const newick_string2 = "((Ant:0.2,Bee:0.09)Inner:0.7,Coyote:0.5);";
     auto reader = CommonTreeNewickReader();
     reader.enable_tags( true );
-    tree = reader.from_string( newick_string );
+    tree = reader.read( from_string( newick_string ));
     EXPECT_TRUE( validate_topology(tree) );
     EXPECT_EQ( newick_string2, writer.to_string( tree ));
 }
@@ -158,7 +160,7 @@ TEST(Newick, ColorPlugin)
 
     // Make sure that the plugin does not interfere with other Newick functionality. If it does, the
     // following line would hopefully crash.
-    tree = CommonTreeNewickReader().from_string(input);
+    tree = CommonTreeNewickReader().read( from_string(input));
 
     // Create a color vector for all edges that marks edges leading to a leaf node in red.
     auto color_vector = std::vector<utils::Color>( tree.edge_count() );
@@ -190,33 +192,52 @@ TEST( Newick, MultipleTrees )
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
 
+    // Read
+    std::string infile1 = environment->data_dir + "tree/multiple.newick";
+    std::string infile2 = environment->data_dir + "tree/multiple_named.newick";
+    auto treeset = CommonTreeNewickReader().read( from_files({ infile1 }) );
+    EXPECT_EQ( 7, treeset.size() );
+
+    CommonTreeNewickReader().read( from_files({ infile2 }), treeset );
+    EXPECT_EQ( 14, treeset.size() );
+}
+
+TEST( Newick, MultipleTreesIterator )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
     // Open a file stream.
     std::string infile = environment->data_dir + "tree/multiple.newick";
-    utils::InputStream instream( utils::make_unique< utils::FileInputSource >( infile ));
 
     // Get the iterator and start reading.
-    auto tree_iter = NewickInputIterator( instream );
+    auto tree_iter = NewickInputIterator( from_file( infile ));
 
+    size_t count = 0;
     while( tree_iter ) {
         EXPECT_EQ( 6, tree_iter->node_count() );
         ++tree_iter;
+        ++count;
     }
+    EXPECT_EQ( 7, count );
 }
 
-TEST( Newick, MultipleNamedTrees )
+TEST( Newick, MultipleNamedTreesIterator )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
 
     // Open a file stream.
     std::string infile = environment->data_dir + "tree/multiple_named.newick";
-    utils::InputStream instream( utils::make_unique< utils::FileInputSource >( infile ));
 
     // Get the iterator and start reading.
-    auto tree_iter = NewickInputIterator( instream );
+    auto tree_iter = NewickInputIterator( from_file( infile ));
 
+    size_t count = 0;
     while( tree_iter ) {
         EXPECT_EQ( 6, tree_iter->node_count() );
         ++tree_iter;
+        ++count;
     }
+    EXPECT_EQ( 7, count );
 }

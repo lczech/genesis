@@ -39,6 +39,7 @@
 
 using namespace genesis;
 using namespace genesis::sequence;
+using namespace genesis::utils;
 
 TEST( Sequence, Entropy )
 {
@@ -79,7 +80,7 @@ TEST( Sequence, ConsensusMajority )
     SequenceSet sset;
     PhylipReader()
         .label_length( 10 )
-        .from_file(infile, sset);
+        .read( from_file(infile), sset);
 
     // Create counts object.
     auto counts = SiteCounts( "ACGT", 42 );
@@ -102,7 +103,7 @@ TEST( Sequence, ConsensusAmbiguity )
     SequenceSet sset;
     PhylipReader()
         .label_length( 10 )
-        .from_file(infile, sset);
+        .read( from_file(infile), sset);
 
     // Create counts object.
     auto counts = SiteCounts( "ACGT", 42 );
@@ -159,7 +160,7 @@ TEST( Sequence, ConsensusThreshold )
     SequenceSet sset;
     PhylipReader()
         .label_length( 10 )
-        .from_file(infile, sset);
+        .read( from_file(infile), sset);
 
     // Create counts object.
     auto counts = SiteCounts( "ACGT", 42 );
@@ -216,7 +217,7 @@ TEST( Sequence, ConsensusCavener )
     SequenceSet sset;
     PhylipReader()
         .label_length( 10 )
-        .from_file(infile, sset);
+        .read( from_file(infile), sset);
 
     // Create counts object.
     auto counts = SiteCounts( "ACGT", 42 );

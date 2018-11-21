@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -107,7 +107,7 @@ TEST( Json, ReadWrite )
     };
 
     auto serialized   = JsonWriter().to_string( object );
-    auto deserialized = JsonReader().from_string( serialized );
+    auto deserialized = JsonReader().read( from_string( serialized ));
 
     // use Json internal comparison
     EXPECT_EQ( object, deserialized );
@@ -124,7 +124,7 @@ TEST( Json, ParsingFails )
 
     for( auto const& fail_file : fail_files ) {
         // LOG_DBG << fail_file;
-        EXPECT_ANY_THROW( reader.from_file( fail_file ));
+        EXPECT_ANY_THROW( reader.read( from_file( fail_file )));
     }
 }
 
@@ -144,7 +144,7 @@ TEST( Json, ParsingPasses )
 
     for( auto const& pass_file : pass_files ) {
         // LOG_DBG << pass_file;
-        EXPECT_NO_THROW( reader.from_file( pass_file ));
+        EXPECT_NO_THROW( reader.read( from_file( pass_file )));
         // reader.from_file( pass_file );
     }
 }

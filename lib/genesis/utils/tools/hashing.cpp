@@ -44,51 +44,17 @@ namespace utils {
 //     Hashing
 // ================================================================================================
 
-std::string hash_from_file_hex( std::string const& filename, HashingFunctions hash_fct )
+std::string hash_hex( std::shared_ptr<BaseInputSource> source, HashingFunctions hash_fct )
 {
     switch( hash_fct ) {
         case HashingFunctions::kMD5: {
-            return MD5::from_file_hex( filename );
+            return MD5::read_hex( source );
         }
         case HashingFunctions::kSHA1: {
-            return SHA1::from_file_hex( filename );
+            return SHA1::read_hex( source );
         }
         case HashingFunctions::kSHA256: {
-            return SHA256::from_file_hex( filename );
-        }
-    }
-
-    throw std::invalid_argument( "Invalid hashing function selected." );
-}
-
-std::string hash_from_string_hex( std::string const& input, HashingFunctions hash_fct )
-{
-    switch( hash_fct ) {
-        case HashingFunctions::kMD5: {
-            return MD5::from_string_hex( input );
-        }
-        case HashingFunctions::kSHA1: {
-            return SHA1::from_string_hex( input );
-        }
-        case HashingFunctions::kSHA256: {
-            return SHA256::from_string_hex( input );
-        }
-    }
-
-    throw std::invalid_argument( "Invalid hashing function selected." );
-}
-
-std::string hash_from_stream_hex( std::istream& is, HashingFunctions hash_fct )
-{
-    switch( hash_fct ) {
-        case HashingFunctions::kMD5: {
-            return MD5::from_stream_hex( is );
-        }
-        case HashingFunctions::kSHA1: {
-            return SHA1::from_stream_hex( is );
-        }
-        case HashingFunctions::kSHA256: {
-            return SHA256::from_stream_hex( is );
+            return SHA256::read_hex( source );
         }
     }
 

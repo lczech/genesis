@@ -79,7 +79,7 @@ CladeTaxaList get_clade_taxa_lists( std::string const& clade_filename )
 
     // Create a list of all clades and fill each clade with its taxa.
     CladeTaxaList clades;
-    auto table = csv_reader.from_file( clade_filename );
+    auto table = csv_reader.read( utils::from_file( clade_filename ));
     for( auto const& line : table ) {
         if( line.size() != 2 ) {
             throw std::runtime_error( "Invalid line in clade file." );
@@ -118,7 +118,7 @@ CladeEdgeList get_clade_edges( CladeTaxaList const& clades, TreeType& tree )
     // so that only the wanted ones remain.
     std::unordered_set<size_t> basal_branches;
     for( auto it = tree.begin_edges(); it != tree.end_edges(); ++it ) {
-        basal_branches.insert( (*it)->index() );
+        basal_branches.insert( it->index() );
     }
 
     // Process all clades.
@@ -248,8 +248,8 @@ void write_sample_set( placement::SampleSet const& sample_set, std::string outpu
     using namespace ::genesis::placement;
 
     auto writer = JplaceWriter();
-    for( auto const& named_sample : sample_set ) {
-        writer.to_file( named_sample.sample, output_dir + named_sample.name + ".jplace" );
+    for( size_t i = 0; i < sample_set.size(); ++i ) {
+        writer.to_file( sample_set[i], output_dir + sample_set.name_at(i) + ".jplace" );
     }
 }
 
@@ -361,7 +361,7 @@ int main( int argc, char** argv )
     LOG_INFO << "Found " << clades.size() << " clades";
 
     // Read the Jplace file into a Sample object.
-    Sample sample = JplaceReader().from_file( jplace_filename );
+    Sample sample = JplaceReader().read( utils::from_file( jplace_filename ));
 
     // Normalize the like_weight_ratios. This step makes sure that missing placement weights do not
     // lead to a pquery being placed in the uncertain clade. That means, we only use the provided

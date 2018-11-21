@@ -31,10 +31,11 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/formats/csv/reader.hpp"
+#include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/containers/matrix.hpp"
 
 #include <functional>
 #include <stdexcept>
@@ -79,22 +80,10 @@ public:
     //     Reading
     // -------------------------------------------------------------
 
-    Matrix<T> from_stream( std::istream&      is ) const
+    Matrix<T> read( std::shared_ptr<BaseInputSource> source ) const
     {
-        utils::InputStream it( utils::make_unique< utils::StreamInputSource >( is ));
-        return parse_( it );
-    }
-
-    Matrix<T> from_file  ( std::string const& fn ) const
-    {
-        utils::InputStream it( utils::make_unique< utils::FileInputSource >( fn ));
-        return parse_( it );
-    }
-
-    Matrix<T> from_string( std::string const& fs ) const
-    {
-        utils::InputStream it( utils::make_unique< utils::StringInputSource >( fs ));
-        return parse_( it );
+        utils::InputStream is( source );
+        return parse_( is );
     }
 
     // -------------------------------------------------------------

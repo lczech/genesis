@@ -103,6 +103,7 @@
 #include "genesis/utils/math/histogram/stats.hpp"
 #include "genesis/utils/math/kmeans.hpp"
 #include "genesis/utils/math/matrix.hpp"
+#include "genesis/utils/math/mds.hpp"
 #include "genesis/utils/math/pca.hpp"
 #include "genesis/utils/math/random.hpp"
 #include "genesis/utils/math/range_minimum_query.hpp"

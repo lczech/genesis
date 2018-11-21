@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,10 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/io/input_source.hpp"
+
 #include <iosfwd>
+#include <memory>
 #include <string>
 
 namespace genesis {
@@ -78,21 +81,13 @@ public:
     // ---------------------------------------------------------------------
 
     /**
-     * @brief Read from a stream containing a JSON document and parse its contents into a JsonDocument.
-     */
-    JsonDocument from_stream( std::istream& input_stream  ) const;
-
-    /**
-     * @brief Take a JSON document file path and parse its contents into a JsonDocument.
+     * @brief Read from a source containing a JSON document and
+     * parse its contents into a JsonDocument.
      *
-     * If the file does not exists, the function throws.
+     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * get an input source that can be used here.
      */
-    JsonDocument from_file   (const std::string& filename ) const;
-
-    /**
-     * @brief Take a string containing a JSON document and parse its contents into a JsonDocument.
-     */
-    JsonDocument from_string (const std::string& json     ) const;
+    JsonDocument read( std::shared_ptr<BaseInputSource> source ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing Functions

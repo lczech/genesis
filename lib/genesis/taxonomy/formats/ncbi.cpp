@@ -30,6 +30,8 @@
 
 #include "genesis/taxonomy/formats/ncbi.hpp"
 
+#include "genesis/utils/io/input_source.hpp"
+
 #include <cassert>
 #include <fstream>
 #include <functional>
@@ -217,8 +219,8 @@ Taxonomy read_ncbi_taxonomy( std::string const& node_file, std::string const& na
     reader.quotation_chars( "" );
 
     // Read data into lookup tables.
-    auto const nodes = convert_ncbi_node_table( reader.from_file( node_file ));
-    auto const names = convert_ncbi_name_table( reader.from_file( name_file ));
+    auto const nodes = convert_ncbi_node_table( reader.read( utils::from_file( node_file )));
+    auto const names = convert_ncbi_name_table( reader.read( utils::from_file( name_file )));
 
     // Do the table untangling.
     return convert_ncbi_tables( nodes, names );

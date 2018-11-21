@@ -51,40 +51,16 @@ namespace utils {
 //     Reading
 // =================================================================================================
 
-/**
- * @brief Read CSV data until the end of the stream is reached, and return it.
- */
-CsvReader::Table CsvReader::from_stream( std::istream& is ) const
+CsvReader::Table CsvReader::read( std::shared_ptr<BaseInputSource> source ) const
 {
-    utils::InputStream it( utils::make_unique< utils::StreamInputSource >( is ));
-    return parse_document( it );
-}
-
-/**
- * @brief Read a CSV file and return its contents.
- */
-CsvReader::Table CsvReader::from_file( std::string const& fn ) const
-{
-    utils::InputStream it( utils::make_unique< utils::FileInputSource >( fn ));
-    return parse_document( it );
-}
-
-/**
- * @brief Read a string in CSV format and return its contents.
- */
-CsvReader::Table CsvReader::from_string( std::string const& fs ) const
-{
-    utils::InputStream it( utils::make_unique< utils::StringInputSource >( fs ));
+    utils::InputStream it( source );
     return parse_document( it );
 }
 
 // =================================================================================================
-//     Parsing
+//     Parse Document
 // =================================================================================================
 
-/**
- * @brief Parse a whole CSV document and return its contents.
- */
 CsvReader::Table CsvReader::parse_document(
     utils::InputStream& input_stream
 ) const {
@@ -103,24 +79,10 @@ CsvReader::Table CsvReader::parse_document(
     return result;
 }
 
-/**
- * @brief Parse one field (i.e., one cell) of the CSV data and return it.
- *
- * This function reads from a given input stream until the column separator or the end of the line
- * or the end of the stream is found. It furthermore trims the necessary chars from the beginning
- * and end of the field, and handles quoted strings according to the settings of the CsvReader.
- *
- * The stream is left at either the separator char, the new line char, or the end of the file,
- * depending on which occurs first.
- *
- * See
- * @link trim_chars( std::string const& chars ) trim_chars()@endlink,
- * @link quotation_chars( std::string const& chars ) quotation_chars()@endlink,
- * @link separator_chars( std::string const& chars ) separator_chars()@endlink,
- * @link use_escapes( bool value ) use_escapes() @endlink and
- * @link use_twin_quotes( bool value ) use_twin_quotes() @endlink
- * to change the behaviour of this function.
- */
+// =================================================================================================
+//     Parse Field
+// =================================================================================================
+
 std::string CsvReader::parse_field( utils::InputStream& input_stream ) const
 {
     // Init. We use a buffer in order to keep memory reallocations to a minimum.
@@ -191,16 +153,10 @@ std::string CsvReader::parse_field( utils::InputStream& input_stream ) const
     return trim_right( buffer_, trim_chars_ );
 }
 
-/**
- * @brief Parse one line of the CSV data and return it.
- *
- * This function parses a whole line using parse_field() until the new line char (or the end of the
- * stream) is found. The fields are returned in a vector. The stream is left at either the next char
- * after the new line char or the end of the file, if there is no new line.
- *
- * See @link merge_separators( bool value ) merge_separators() @endlink to change the behaviour of
- * this function.
- */
+// =================================================================================================
+//     Parse Line
+// =================================================================================================
+
 std::vector<std::string> CsvReader::parse_line( utils::InputStream& input_stream ) const
 {
     // Init.
@@ -275,281 +231,6 @@ std::vector<std::string> CsvReader::parse_line( utils::InputStream& input_stream
     }
 
     return result;
-}
-
-// =================================================================================================
-//     Properties
-// =================================================================================================
-
-// ---------------------------------------------------------------------
-//     comment_chars
-// ---------------------------------------------------------------------
-
-/**
- * @brief Set chars that are used to mark comment lines.
- *
- * By default, no chars are used, that is, no line is interpreted as comment. Use this function
- * to change that behaviour, e.g., use `#` as marker for comment lines.
- * All lines starting with any of the set chars are then skipped while reading. The char has to
- * be the first on the line, that is, no leading blanks are allowed.
- *
- * The function returns a reference to the CsvReader object in order to allow a fluent interface.
- */
-CsvReader& CsvReader::comment_chars( std::string const& chars )
-{
-    comment_chars_ = chars;
-    return *this;
-}
-
-/**
- * @brief Return the currently set chars that are used to mark comment lines.
- *
- * See the @link comment_chars( std::string const& chars ) setter @endlink of this function for
- * more details.
- */
-std::string const& CsvReader::comment_chars() const
-{
-    return comment_chars_;
-}
-
-// ---------------------------------------------------------------------
-//     trim_chars
-// ---------------------------------------------------------------------
-
-/**
- * @brief Set chars that are trimmed from the start and end of each field.
- *
- * By default, no chars are trimmed. Use this function to change that behaviour, e.g., to trim
- * spaces and tabs. Be aware that according to some CSV definitions, blanks are considered
- * to be part of the field and should not be trimmed.
- *
- * The function returns a reference to the CsvReader object in order to allow a fluent interface.
- */
-CsvReader& CsvReader::trim_chars( std::string const& chars )
-{
-    trim_chars_ = chars;
-    return *this;
-}
-
-/**
- * @brief Return the currently set chars that are trimmed from the start and end of each field.
- *
- * See the @link trim_chars( std::string const& chars ) setter @endlink of this function for
- * more details.
- */
-std::string const& CsvReader::trim_chars() const
-{
-    return trim_chars_;
-}
-
-// ---------------------------------------------------------------------
-//     quotation_chars
-// ---------------------------------------------------------------------
-
-/**
- * @brief Set the chars that are used for quoting strings in fields.
- *
- * By default, the double quotation mark char \" is used as quotation mark. Any other set of chars
- * can be used instead, for example a combination of single and double quotation marks by providing
- * `'"` to this function.
- *
- * Within a quoted part, any char can appear, even new lines. However, in order to use the quotation
- * mark itself, it has to be escaped.
- * See @link use_escapes( bool value ) use_escapes() @endlink and
- * @link use_twin_quotes( bool value ) use_twin_quotes() @endlink for changing the behaviour
- * of escaping with backslashes and with twin quotation marks.
- *
- * The function returns a reference to the CsvReader object in order to allow a fluent interface.
- */
-CsvReader& CsvReader::quotation_chars( std::string const& chars )
-{
-    quotation_chars_ = chars;
-    return *this;
-}
-
-/**
- * @brief Return the currently set chars for quoting strings in fields.
- *
- * See the @link quotation_chars( std::string const& chars ) setter @endlink of this function for
- * more details.
- */
-std::string const& CsvReader::quotation_chars() const
-{
-    return quotation_chars_;
-}
-
-// ---------------------------------------------------------------------
-//     separator_chars
-// ---------------------------------------------------------------------
-
-/**
- * @brief Set the chars used to separate fields of the CSV data.
- *
- * By default, the comma char `,` is used. Any other set of chars can be used instead, for example
- * a combination of tabs and bars by providing `\t|` to this function.
- *
- * Caveat: If more than one char is used as separater, any of them separates fields. That is,
- * the string provided to this function is not taken as a whole to separate fields, but its single
- * chars are used.
- *
- * See @link merge_separators( bool value ) merge_separators() @endlink to set whether consecutive
- * separator chars are merged.
- *
- * The function returns a reference to the CsvReader object in order to allow a fluent interface.
- */
-CsvReader& CsvReader::separator_chars( std::string const& chars )
-{
-    separator_chars_ = chars;
-    return *this;
-}
-
-/**
- * @brief Return the currently set chars used to separate fields of the CSV data.
- *
- * See the @link separator_chars( std::string const& chars ) setter @endlink of this function
- * for more details.
- */
-std::string const& CsvReader::separator_chars() const
-{
-    return separator_chars_;
-}
-
-// ---------------------------------------------------------------------
-//     skip_empty_lines
-// ---------------------------------------------------------------------
-
-/**
- * @brief Set whether to skip empty lines.
- *
- * Default is `false`. If set to `true`, all lines that are empty (that is, no content, or just
- * consisting of spaces and tabs) are skipped while reading.
- *
- * The function returns a reference to the CsvReader object in order to allow a fluent interface.
- */
-CsvReader& CsvReader::skip_empty_lines( bool value )
-{
-    skip_empty_lines_ = value;
-    return *this;
-}
-
-/**
- * @brief Return whether currently empty lines are skipped.
- *
- * See the @link skip_empty_lines( bool value ) setter @endlink of this function for more details.
- */
-bool CsvReader::skip_empty_lines() const
-{
-    return skip_empty_lines_;
-}
-
-// ---------------------------------------------------------------------
-//     merge_separators
-// ---------------------------------------------------------------------
-
-/**
- * @brief Set whether consecutive separater chars are merged or whether each of them creates a
- * new field.
- *
- * Default is `false`. Usually, CSV data has the same number of columns for the whole dataset.
- * Thus, empty fields will result in consecutive separator chars. When this value is set to `false`,
- * those fields are correctly parsed into empty fields.
- *
- * It might however be useful to not create separate empty fields when consecutive separator chars
- * are encountered. This is particularly the case if spaces or tabs are used as separators.
- * In this case it makes sense to have more than one of them consecutively in order to align
- * the columns of the data. For such datasets, this value can be set to `true`.
- *
- * To put it in other words, this value determines whether empty strings resulting from adjacent
- * separator chars are excluded from the output.
- *
- * The function returns a reference to the CsvReader object in order to allow a fluent interface.
- */
-CsvReader& CsvReader::merge_separators( bool value )
-{
-    merge_separators_ = value;
-    return *this;
-}
-
-/**
- * @brief Return the current setting whether consecutive separators are merged or not.
- *
- * See the @link merge_separators( bool value ) setter @endlink of this function for details.
- */
-bool CsvReader::merge_separators() const
-{
-    return merge_separators_;
-}
-
-// ---------------------------------------------------------------------
-//     use_escapes
-// ---------------------------------------------------------------------
-
-/**
- * @brief Set whether to use backslash escape sequences.
- *
- * Default is `false`. If set to `true`, character sequences of `\x` (backslash and some other char)
- * are turned into the respective string form, according to the rules of deescape().
- * Also, see parse_quoted_string() for more information on escaping.
- *
- * This works inside and outside of quoted strings. In order to create new lines within a field,
- * either the sequence `\n` (backslash n) can be used, or a backslash at the end of the line.
- *
- * The function returns a reference to the CsvReader object in order to allow a fluent interface.
- */
-CsvReader& CsvReader::use_escapes( bool value )
-{
-    use_escapes_ = value;
-    return *this;
-}
-
-/**
- * @brief Return whether backslash escape sequences are used.
- *
- * See the @link use_escapes( bool value ) setter @endlink of this function for details.
- */
-bool CsvReader::use_escapes() const
-{
-    return use_escapes_;
-}
-
-// ---------------------------------------------------------------------
-//     use_twin_quotes
-// ---------------------------------------------------------------------
-
-/**
- * @brief Set whether to interpret two consequtive quotation marks as a single ("escaped") one.
- *
- * Default is `true`. Use this setting in order to be able to escape quotation marks by doubling
- * them. This is a common variant in CSV data. It means, whenever two consecutive quotation marks
- * are encountered, they are turned into one (thus, the first one "escapes" the second). This
- * works both inside and outside of regularly quoted parts. That is, the following two fields
- * are interpreted the same:
- *
- *     "My ""old"" friend"
- *     My ""old"" friend
- *
- * This also works in addition to normal backslash escape sequences, see
- * @link use_escapes( bool value ) use_escapes() @endlink for more on this.
- *
- * See @link quotation_chars( std::string const& chars ) quotation_chars() @endlink to set which
- * chars are interpreted as quotation marks.
- *
- * The function returns a reference to the CsvReader object in order to allow a fluent interface.
- */
-CsvReader& CsvReader::use_twin_quotes( bool value )
-{
-    use_twin_quotes_ = value;
-    return *this;
-}
-
-/**
- * @brief Return whether to interpret two consequtive quotation marks as a single ("escaped") one.
- *
- * See the @link use_twin_quotes( bool value ) setter @endlink of this function for details.
- */
-bool CsvReader::use_twin_quotes() const
-{
-    return use_twin_quotes_;
 }
 
 } // namespace utils

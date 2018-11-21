@@ -58,7 +58,7 @@ TEST( PlacementTreeEdgeColor, CountGradientPhyloxml )
 
     std::string infile = environment->data_dir + "placement/test_a.jplace";
 
-    Sample map = JplaceReader().from_file(infile);
+    Sample map = JplaceReader().read( from_file( infile ));
 
     auto writer = tree::CommonTreePhyloxmlWriter();
     auto color_plugin = PhyloxmlColorWriterPlugin();
@@ -79,7 +79,7 @@ TEST( PlacementTreeEdgeColor, CountGradientNewick )
 
     std::string infile = environment->data_dir + "placement/test_a.jplace";
 
-    Sample map = JplaceReader().from_file(infile);
+    Sample map = JplaceReader().read( from_file( infile ));
 
     // Create a writer and add a color plugin.
     auto writer = PlacementTreeNewickWriter();
@@ -100,7 +100,7 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
 
     std::string infile = environment->data_dir + "placement/test_a.jplace";
 
-    Sample map = JplaceReader().from_file(infile);
+    Sample map = JplaceReader().read( from_file( infile ));
 
     // Create a writer and add a color plugin.
     auto writer = PlacementTreeNewickWriter();

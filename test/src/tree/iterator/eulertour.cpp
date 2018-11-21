@@ -54,7 +54,7 @@ TEST (TreeIterator, EulertourNew)
     std::string expected_nodes = "RABACDCECARFRGHGIG";
 
     // Prepare Tree.
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     // Find the Node for this test run.
     auto const& ttr = tree;
@@ -105,7 +105,7 @@ TEST_P (Eulertour, Test)
     std::string nodes = "";
 
     CommonTree tree;
-    CommonTreeNewickProcessor().from_string(input, tree);
+    CommonTreeNewickProcessor().read( utils::from_string(input, tree));
 
     auto node = tree.find_node(GetParam().first);
     ASSERT_NE(nullptr, node);
@@ -192,7 +192,7 @@ void TestEulertour(const std::string node_name, const std::string expected_nodes
     // std::string resulting_nodes = "";
 
     // Prepare Tree.
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     do_test(node_name, expected_nodes, tree);
 }
@@ -234,7 +234,7 @@ TEST (TreeIterator, EulertourSubtree)
 {
     // Prepare Tree.
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     // The following heavily depends on the internal tree structure.
     // If this breaks, we might need a setup that finds nodes,

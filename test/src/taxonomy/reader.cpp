@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 #include <stdexcept>
 
 using namespace genesis::taxonomy;
+using namespace genesis::utils;
 
 TEST( Taxonomy, ReaderOrder )
 {
@@ -51,7 +52,7 @@ TEST( Taxonomy, ReaderOrder )
     Taxonomy tax_0;
     reader.expect_strict_order( true );
     infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.ordered";
-    EXPECT_NO_THROW( reader.from_file( infile, tax_0 ));
+    EXPECT_NO_THROW( reader.read( from_file( infile ), tax_0 ));
     EXPECT_EQ( 32, total_taxa_count(tax_0) );
     EXPECT_TRUE( validate( tax_0 ));
     sort_by_name( tax_0 );
@@ -61,7 +62,7 @@ TEST( Taxonomy, ReaderOrder )
     Taxonomy tax_1;
     reader.expect_strict_order( false );
     infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.ordered";
-    EXPECT_NO_THROW( reader.from_file( infile, tax_1 ));
+    EXPECT_NO_THROW( reader.read( from_file( infile ), tax_1 ));
     EXPECT_EQ( 32, total_taxa_count(tax_1) );
     EXPECT_TRUE( validate( tax_1 ));
     sort_by_name( tax_1 );
@@ -71,7 +72,7 @@ TEST( Taxonomy, ReaderOrder )
     Taxonomy tax_2;
     reader.expect_strict_order( true );
     infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.unordered";
-    EXPECT_THROW( reader.from_file( infile, tax_2 ), std::runtime_error );
+    EXPECT_THROW( reader.read( from_file( infile ), tax_2 ), std::runtime_error );
     EXPECT_EQ( 0, total_taxa_count(tax_2) );
     EXPECT_TRUE( validate( tax_2 ));
 
@@ -79,7 +80,7 @@ TEST( Taxonomy, ReaderOrder )
     Taxonomy tax_3;
     reader.expect_strict_order( false );
     infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.unordered";
-    EXPECT_NO_THROW( reader.from_file( infile, tax_3 ));
+    EXPECT_NO_THROW( reader.read( from_file( infile ), tax_3 ));
     EXPECT_EQ( 32, total_taxa_count(tax_3) );
     EXPECT_TRUE( validate( tax_3 ));
     sort_by_name( tax_3 );
@@ -96,7 +97,7 @@ TEST( Taxonomy, ReaderTrimming )
     Taxonomy tax;
     auto reader = TaxonomyReader();
     reader.taxopath_parser().trim_whitespaces( true );
-    EXPECT_NO_THROW( reader.from_file( infile, tax ));
+    EXPECT_NO_THROW( reader.read( from_file( infile ), tax ));
     EXPECT_EQ( 32, total_taxa_count(tax) );
     EXPECT_TRUE( validate( tax ));
 
