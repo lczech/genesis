@@ -46,7 +46,7 @@ TEST(TreePrinter, Compact)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     auto tp = PrinterCompact();
     auto res = tp.print(tree);
@@ -56,7 +56,7 @@ TEST(TreePrinter, Detailed)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     auto tp = PrinterDetailed();
     auto res = tp.print(tree);
@@ -66,7 +66,7 @@ TEST(TreePrinter, Table)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     auto tp = PrinterTable();
     auto res = tp.print(tree);

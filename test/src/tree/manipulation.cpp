@@ -47,7 +47,8 @@
 #include "genesis/utils/text/string.hpp"
 
 using namespace genesis;
-using namespace tree;
+using namespace genesis::tree;
+using namespace genesis::utils;
 
 // =================================================================================================
 //     Reroot
@@ -58,7 +59,7 @@ void TestReroot( std::string root_node_name, std::string out_nodes, size_t nexts
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
     std::string nodes = "";
 
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( from_string( input ));
 
     auto root_node = find_node( tree, root_node_name );
     ASSERT_NE( nullptr, root_node );
@@ -114,7 +115,7 @@ TEST( TreeManipulation, AddNewNodeNodeA )
 {
     // We use input with branch length, in order to make sure that new edges have a default one.
     std::string input = "((B:2.0,(D:2.0,E:2.0)C:2.0)A:2.0,F:2.0,(H:2.0,I:2.0)G:2.0)R:2.0;";
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( from_string( input ));
 
     // Find an inner node.
     auto node = find_node( tree, "A" );
@@ -149,7 +150,7 @@ TEST( TreeManipulation, AddNewNodeNodeB )
 {
     // We use input with branch length, in order to make sure that new edges have a default one.
     std::string input = "((B:2.0,(D:2.0,E:2.0)C:2.0)A:2.0,F:2.0,(H:2.0,I:2.0)G:2.0)R:2.0;";
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( from_string( input ));
 
     // Find a leaf node.
     auto node = find_node( tree, "B" );
@@ -184,7 +185,7 @@ TEST( TreeManipulation, AddNewNodeNodeAR )
 {
     // We use input with branch length, in order to make sure that new edges have a default one.
     std::string input = "((B:2.0,(D:2.0,E:2.0)C:2.0)A:2.0,F:2.0,(H:2.0,I:2.0)G:2.0)R:2.0;";
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( from_string( input ));
 
     // Find node A.
     auto node = find_node( tree, "A" );
@@ -225,7 +226,7 @@ TEST( TreeManipulation, AddNewNodeEdge )
 {
     // We use input with branch length, in order to make sure that new edges have a default one.
     std::string input = "((B:2.0,(D:2.0,E:2.0)C:2.0)A:2.0,F:2.0,(H:2.0,I:2.0)G:2.0)R:2.0;";
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( from_string( input ));
 
     // Find a node.
     auto node = find_node( tree, "C" );
@@ -261,7 +262,7 @@ TEST( TreeManipulation, DeleteLinearNodes )
 {
     // Get a tree
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( from_string( input ));
 
     // Do some weird deletions to test delete_linear_node().
     auto node_d = find_node( tree, "D" );
@@ -323,7 +324,7 @@ TEST( TreeManipulation, DeleteLeafNodes )
 {
     // Get a tree
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    Tree const tree = CommonTreeNewickReader().from_string( input );
+    Tree const tree = CommonTreeNewickReader().read( from_string( input ));
 
     // Try every rerooting of the tree, and delete every leaf once.
     for( size_t r = 0; r < tree.node_count(); ++r ) {
@@ -350,7 +351,7 @@ TEST( TreeManipulation, DeleteSubtrees )
 {
     // Get a tree
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    Tree const tree = CommonTreeNewickReader().from_string( input );
+    Tree const tree = CommonTreeNewickReader().read( from_string( input ));
 
     // Delete each subtree once by making a copy of the tree each time.
     for( size_t r = 0; r < tree.node_count(); ++r ) {
@@ -411,7 +412,7 @@ TEST( TreeManipulation, DeleteNodes )
 {
     // Get a tree
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    Tree const tree = CommonTreeNewickReader().from_string( input );
+    Tree const tree = CommonTreeNewickReader().read( from_string( input ));
 
     // Run every possible rooting.
     for( size_t r = 0; r < tree.node_count(); ++r ) {

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 
 #include "genesis/tree/tree.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 
 #include <iterator>
@@ -53,12 +54,15 @@ namespace tree {
  *
  * Example:
  *
- *     auto it = NewickInputIterator( some_istream );
+ *     auto it = NewickInputIterator( from_file( "/path/to/trees.newick" ));
  *     while( it ) {
  *         Tree const& t = *it;
  *         std::cout << t.node_count() << "\n";
  *         ++it;
  *     }
+ *
+ * Use functions such as utils::from_file() and utils::from_string() to conveniently
+ * get an input source that can be used here.
  *
  * See NewickReader for a description of the expected format. In order to change the reading
  * behaviour, use the reader() function to access the internal NewickReader and change its
@@ -80,30 +84,30 @@ public:
     // -------------------------------------------------------------------------
 
     NewickInputIterator()
-        : reader_()
-        , input_stream_( nullptr )
+        : input_stream_( nullptr )
+        , reader_()
         , tree_()
     {}
 
-    NewickInputIterator( utils::InputStream& in )
-        : reader_()
-        , input_stream_( &in )
+    NewickInputIterator( std::shared_ptr<utils::BaseInputSource> source )
+        : input_stream_( std::make_shared<utils::InputStream>( source ))
+        , reader_()
         , tree_()
     {
         // Setting so that we only read one tree at a time.
-        reader_.stop_at_semicolon( true );
+        reader_.stop_after_semicolon( true );
 
         // Read first tree.
         increment();
     }
 
-    NewickInputIterator( utils::InputStream& in, NewickReader const& reader )
-        : reader_( reader )
-        , input_stream_( &in )
+    NewickInputIterator( std::shared_ptr<utils::BaseInputSource> source, NewickReader const& reader )
+        : input_stream_( std::make_shared<utils::InputStream>( source ))
+        , reader_( reader )
         , tree_()
     {
         // Setting so that we only read one tree at a time.
-        reader_.stop_at_semicolon( true );
+        reader_.stop_after_semicolon( true );
 
         // Read first tree.
         increment();
@@ -182,7 +186,7 @@ public:
     {
         // Check whether the input stream is good (not end-of-stream) and can be read from.
         // If not, we reached its end, so we stop reading in the next iteration.
-        if( input_stream_ == nullptr || ! *input_stream_ ) {
+        if( ! input_stream_ || ! *input_stream_ ) {
             good_ = false;
             return;
         }
@@ -204,10 +208,11 @@ public:
 
 private:
 
-    NewickReader        reader_;
-    utils::InputStream* input_stream_;
-    Tree                tree_;
+    std::shared_ptr<utils::InputStream> input_stream_;
+
     bool                good_ = true;
+    NewickReader        reader_;
+    Tree                tree_;
 };
 
 } // namespace tree

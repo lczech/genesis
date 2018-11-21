@@ -31,6 +31,8 @@
  * @ingroup tree
  */
 
+#include "genesis/utils/io/input_source.hpp"
+
 #include <iosfwd>
 #include <functional>
 #include <string>
@@ -178,56 +180,19 @@ public:
     NewickReader& operator= (NewickReader&&)      = default;
 
     // -------------------------------------------------------------------------
-    //     Reading a single Tree
+    //     Reading
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Read a Tree from an input stream containing a Newick tree.
-     */
-    Tree from_stream( std::istream& input_stream ) const;
-
-    /**
-     * @brief Read a Tree from a file containing a Newick tree.
-     */
-    Tree from_file( std::string const& filename ) const;
-
-    /**
-     * @brief Read a Tree from a string containing a Newick tree.
-     */
-    Tree from_string( std::string const& tree_string ) const;
-
-    // -------------------------------------------------------------------------
-    //     Reading into a TreeSet
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Add Tree%s to a TreeSet from an input stream containing a list of Newick trees.
+     * @brief Read a single Tree from an input source containing a Newick tree.
      *
-     * See
-     * @link from_string( std::string const&, TreeSet&, std::string const& ) const from_string()@endlink
-     * for more information.
+     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * get an input source that can be used here.
      */
-    void from_stream(
-        std::istream& input_stream,
-        TreeSet&           tree_set,
-        std::string const& default_name = ""
-    ) const;
+    Tree read( std::shared_ptr<utils::BaseInputSource> source ) const;
 
     /**
-     * @brief Add Tree%s to a TreeSet from a file containing a list of Newick trees.
-     *
-     * See
-     * @link from_string( std::string const&, TreeSet&, std::string const& ) const from_string()@endlink
-     * for more information.
-     */
-    void from_file(
-        std::string const& filename,
-        TreeSet&           tree_set,
-        std::string const& default_name = ""
-    ) const;
-
-    /**
-     * @brief Add Tree%s to a TreeSet from a string containing a list of Newick trees.
+     * @brief Add Tree%s to a TreeSet from an input source containing a list of Newick trees.
      *
      * These trees can either be named or unnamed, using this syntax:
      *
@@ -244,36 +209,39 @@ public:
      * named "tree_0", "tree_1" etc. If no default name is given, the trees will simply be named
      * using the counter itself.
      *
-     * The Trees are simply added to the TreeSet. That means, Trees that already exist in the
+     * The Trees are added to the TreeSet. That means, Trees that already exist in the
      * TreeSet are kept. Thus, this function can be used to add additional Trees to the set.
+     *
+     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * get an input source that can be used here.
      */
-    void from_string(
-        std::string const& tree_string,
-        TreeSet&           tree_set,
+    void read(
+        std::shared_ptr<utils::BaseInputSource> source,
+        TreeSet& target,
         std::string const& default_name = ""
     ) const;
 
-    // -------------------------------------------------------------------------
-    //     Reading multiple input sources
-    // -------------------------------------------------------------------------
-
     /**
-     * @brief Fill a TreeSet from a list of files containing Newick trees.
+     * @brief Fill a TreeSet from a list of input sources containing Newick trees.
      *
-     * This function can for example be used with the output of utils::dir_list_files().
+     * See @link read( std::shared_ptr<utils::BaseInputSource>, TreeSet&, std::string const& ) read()@endlink
+     * for details.
      */
-    void from_files(
-        std::vector<std::string> const& filenames,
-        TreeSet&                        tree_set
+    void read(
+        std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
+        TreeSet& target,
+        std::string const& default_name = ""
     ) const;
 
     /**
-     * @brief Fill a TreeSet from a list of strings containing Newick trees.
+     * @brief Return a TreeSet from a list of input sources containing Newick trees.
+     *
+     * See @link read( std::shared_ptr<utils::BaseInputSource>, TreeSet&, std::string const& ) read()@endlink
+     * for details.
      */
-    void from_strings(
-        std::vector<std::string> const& tree_strings,
-        TreeSet&                        tree_set,
-        std::string const&              default_name = ""
+    TreeSet read(
+        std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
+        std::string const& default_name = ""
     ) const;
 
     // -------------------------------------------------------------------------
@@ -324,15 +292,15 @@ public:
      * part of some other file, e.g., Nexus. In this case, we simply want to stop and continue
      * parsing the rest of the input as Nexus data.
      */
-    NewickReader& stop_at_semicolon( bool value );
+    NewickReader& stop_after_semicolon( bool value );
 
     /**
      * @brief Return whether currently reading stops after the  semicolon that finishes a Newick
      * tree.
      *
-     * See stop_at_semicolon( bool ) for details.
+     * See stop_after_semicolon( bool ) for details.
      */
-    bool stop_at_semicolon() const;
+    bool stop_after_semicolon() const;
 
     // -------------------------------------------------------------------------
     //     Plugin Functions
@@ -352,7 +320,7 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Parse a single tree. Depending on stop_at_semicolon(), stop after the semicolon
+     * @brief Parse a single tree. Depending on stop_after_semicolon(), stop after the semicolon
      * or continue until the end of the input, checking if there are only comments.
      */
     Tree parse_single_tree( utils::InputStream& input_stream ) const;
@@ -403,7 +371,7 @@ private:
     // -------------------------------------------------------------------------
 
     bool enable_tags_       = false;
-    bool stop_at_semicolon_ = false;
+    bool stop_after_semicolon_ = false;
 
 };
 

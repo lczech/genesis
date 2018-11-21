@@ -78,7 +78,7 @@ void test_print_tree_sides_matrix( utils::Matrix<signed char> const& mat )
 TEST( TreeFunctions, EdgeSides )
 {
     std::string const input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    Tree const tree = CommonTreeNewickReader().from_string( input );
+    Tree const tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     auto const edge_side_mat = edge_sides( tree );
 
@@ -102,7 +102,7 @@ TEST( TreeFunctions, EdgeSides )
 TEST( TreeFunctions, NodeRootDirections )
 {
     std::string const input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    Tree const tree = CommonTreeNewickReader().from_string( input );
+    Tree const tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     auto const node_root_mat = node_root_direction_matrix( tree );
 
@@ -132,7 +132,7 @@ void TestSubtreeSize( size_t link_index, size_t out_subtree_size )
 {
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
 
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     auto st_size = subtree_size( tree, tree.link_at( link_index ));
     EXPECT_EQ( out_subtree_size, st_size ) << " with link index " << link_index;
@@ -168,7 +168,7 @@ void TestSubtreeSizes( std::string node_name, std::vector<size_t> out_sizes )
 {
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
 
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     auto node = find_node( tree, node_name );
     ASSERT_NE( nullptr, node );
@@ -199,7 +199,7 @@ void TestSubtreeMaxPathHeight( std::string node_name, size_t out_size )
 {
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
 
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     auto node = find_node( tree, node_name );
     ASSERT_NE( nullptr, node );
@@ -227,7 +227,7 @@ TEST( TreeFunctions, SubtreeMaxPathHeights )
 {
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
 
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     auto heights     = subtree_max_path_heights( tree );
     auto exp_heights = std::vector<size_t>({ 3, 1, 0, 0, 0, 2, 1, 0, 0, 0 });
@@ -242,7 +242,7 @@ void TestTreeLCA( std::string node_name_a, std::string node_name_b, std::string 
 {
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
 
-    Tree tree = CommonTreeNewickReader().from_string( input );
+    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     auto node_a = find_node( tree, node_name_a );
     auto node_b = find_node( tree, node_name_b );
@@ -267,7 +267,7 @@ TEST( TreeFunctions, LCA )
 TEST( TreeFunctions, LCAs )
 {
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    Tree const tree = CommonTreeNewickReader().from_string( input );
+    Tree const tree = CommonTreeNewickReader().read( utils::from_string( input ));
 
     auto const lcas = lowest_common_ancestors( tree );
     auto const exp = utils::Matrix<size_t>( 10, 10, {
@@ -293,7 +293,7 @@ TEST( TreeFunctions, SignMatrix )
 
     // Read and process tree.
     std::string infile = environment->data_dir + "tree/rooted.newick";
-    Tree tree = CommonTreeNewickReader().from_file( infile );
+    Tree tree = CommonTreeNewickReader().read( utils::from_file( infile ));
 
     // Full sign matrix
     auto const exf = utils::Matrix<signed char>( 9, 9, {

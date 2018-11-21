@@ -54,79 +54,43 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Reading a single Tree
+//     Reading
 // =================================================================================================
 
-Tree NewickReader::from_stream( std::istream& input_stream ) const
+Tree NewickReader::read( std::shared_ptr<utils::BaseInputSource> source ) const
 {
-    utils::InputStream it( utils::make_unique< utils::StreamInputSource >( input_stream ));
+    utils::InputStream it( source );
     return parse_single_tree( it );
 }
 
-Tree NewickReader::from_file( std::string const& filename ) const
-{
-    utils::InputStream it( utils::make_unique< utils::FileInputSource >( filename ));
-    return parse_single_tree( it );
-}
-
-Tree NewickReader::from_string( std::string const& tree_string ) const
-{
-    utils::InputStream it( utils::make_unique< utils::StringInputSource >( tree_string ));
-    return parse_single_tree( it );
-}
-
-// =================================================================================================
-//     Reading into a TreeSet
-// =================================================================================================
-
-void NewickReader::from_stream(
-    std::istream& input_stream,
-    TreeSet&           tree_set,
+void NewickReader::read(
+    std::shared_ptr<utils::BaseInputSource> source,
+    TreeSet&           target,
     std::string const& default_name
 ) const {
-    utils::InputStream it( utils::make_unique< utils::StreamInputSource >( input_stream ));
-    parse_multiple_trees( it, tree_set, default_name );
+    utils::InputStream it( source );
+    parse_multiple_trees( it, target, default_name );
 }
 
-void NewickReader::from_file (
-    std::string const& filename,
-    TreeSet&           tree_set,
+void NewickReader::read(
+    std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
+    TreeSet& target,
     std::string const& default_name
 ) const {
-    utils::InputStream it( utils::make_unique< utils::FileInputSource >( filename ));
-    parse_multiple_trees( it, tree_set, default_name );
-}
-
-void NewickReader::from_string (
-    std::string const& tree_string,
-    TreeSet&           tree_set,
-    std::string const& default_name
-) const {
-    utils::InputStream it( utils::make_unique< utils::StringInputSource >( tree_string ));
-    parse_multiple_trees( it, tree_set, default_name );
-}
-
-// =================================================================================================
-//     Reading multiple input sources
-// =================================================================================================
-
-void NewickReader::from_files (
-    std::vector<std::string> const& filenames,
-    TreeSet&                        tree_set
-) const {
-    for( auto const& fn : filenames ) {
-        from_file( fn, tree_set );
+    for( auto const& source : sources ) {
+        read( source, target, default_name );
     }
 }
 
-void NewickReader::from_strings (
-    std::vector<std::string> const& tree_strings,
-    TreeSet&                        tree_set,
-    std::string const&              default_name
+TreeSet NewickReader::read(
+    std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
+    std::string const& default_name
 ) const {
-    for( auto const& ts : tree_strings ) {
-        from_string (ts, tree_set, default_name);
+    TreeSet result;
+    for( auto const& source : sources ) {
+        read( source, result, default_name );
     }
+    return result;
 }
 
 // =================================================================================================
@@ -139,7 +103,7 @@ Tree NewickReader::parse_single_tree( utils::InputStream& input_stream ) const
     auto tree = parse_named_tree( input_stream ).second;
 
     // If we just read this tree, continue until end of stream.
-    if( ! stop_at_semicolon_ ) {
+    if( ! stop_after_semicolon_ ) {
         parse_trailing_input_( input_stream );
     }
 
@@ -831,15 +795,15 @@ bool NewickReader::enable_tags() const
     return enable_tags_;
 }
 
-NewickReader& NewickReader::stop_at_semicolon( bool value )
+NewickReader& NewickReader::stop_after_semicolon( bool value )
 {
-    stop_at_semicolon_ = value;
+    stop_after_semicolon_ = value;
     return *this;
 }
 
-bool NewickReader::stop_at_semicolon() const
+bool NewickReader::stop_after_semicolon() const
 {
-    return stop_at_semicolon_;
+    return stop_after_semicolon_;
 }
 
 } // namespace tree

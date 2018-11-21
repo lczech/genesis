@@ -204,7 +204,7 @@ void JplaceReader::process_json_tree( utils::JsonDocument const& doc, Sample& sm
             "Jplace document does not contain a valid Newick tree at key 'tree'."
         );
     }
-    smp.tree() = PlacementTreeNewickReader().from_string( tree_it->get_string() );
+    smp.tree() = PlacementTreeNewickReader().read( utils::from_string( tree_it->get_string() ));
     if( ! has_correct_edge_nums( smp.tree() )) {
         LOG_WARN << "Jplace document has a Newick tree where the edge_num tags are non standard. "
                  << "They are expected to be assigned in ascending order via postorder traversal. "

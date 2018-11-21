@@ -83,6 +83,7 @@ inline std::shared_ptr<BaseInputSource> from_file(
  *
  * See from_file() for details. This version returnes multiple input sources, which can be used
  * for parallely reading from multiple files for speedup.
+ * This function can for example be used with the output of utils::dir_list_files().
  *
  * @see from_file(), from_string(), from_strings(), and from_stream() for similar
  * helper functions for other types of input sources.

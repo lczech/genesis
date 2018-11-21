@@ -168,7 +168,7 @@ TEST( SampleFunctions, ConvertFromCommonTree )
 
     // Read and process a normal newick tree.
     std::string const infile = environment->data_dir + "tree/distances.newick";
-    auto const def_tree = tree::CommonTreeNewickReader().from_file( infile );
+    auto const def_tree = tree::CommonTreeNewickReader().read( from_file( infile ));
 
     // Convert it to a tree that is usable for samples.
     auto const place_tree = convert_common_tree_to_placement_tree( def_tree );
