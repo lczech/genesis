@@ -164,7 +164,7 @@ bool has_unique_labels( SequenceSet const& set, bool case_sensitive )
 
 void relabel_with_hash( Sequence& seq, utils::HashingFunctions hash_function )
 {
-    auto const digest = utils::hash_from_string_hex( seq.sites(), hash_function );
+    auto const digest = utils::hash_hex( utils::from_string( seq.sites() ), hash_function );
     seq.label( digest );
 }
 

@@ -71,6 +71,8 @@
 
 #include "genesis/utils/tools/sha256.hpp"
 
+#include "genesis/utils/io/input_buffer.hpp"
+
 #include <algorithm>
 #include <cinttypes>
 #include <cstdio>
@@ -113,7 +115,78 @@ SHA256::SHA256()
 }
 
 // ================================================================================================
-//     Member Functions
+//     Full Hashing
+// ================================================================================================
+
+std::string SHA256::read_hex( std::shared_ptr<BaseInputSource> source )
+{
+    SHA256 checksum;
+    checksum.update( source );
+    return checksum.final_hex();
+}
+
+SHA256::DigestType SHA256::read_digest( std::shared_ptr<BaseInputSource> source )
+{
+    SHA256 checksum;
+    checksum.update( source );
+    return checksum.final_digest();
+}
+
+std::string SHA256::digest_to_hex( SHA256::DigestType const& digest )
+{
+    // Simple version. Equally as fast as the printf one below.
+    std::ostringstream result;
+    for (size_t i = 0; i < digest.size(); ++i) {
+        result << std::hex << std::setfill('0') << std::setw(8);
+        result << static_cast<int>( digest[i] );
+    }
+    return result.str();
+
+    // Print bytes to string.
+    // char buf[ 2 * DigestSize + 1 ];
+    // buf[ 2 * DigestSize ] = '\0';
+    // for( size_t i = 0; i < 8; i++ ) {
+    //     sprintf( buf + i * 8, "%08x", digest[i] );
+    // }
+    // return std::string(buf);
+}
+
+SHA256::DigestType SHA256::hex_to_digest( std::string const& hex )
+{
+    // Safety first!
+    bool const all_hex = std::all_of( hex.begin(), hex.end(), []( char c ){
+        return std::isxdigit( c );
+    });
+    if( hex.size() != 64 || ! all_hex ) {
+        throw std::runtime_error( "Invalid SHA256 hex string." );
+    }
+
+    // The following test was introduced to check the scanf format "%8x",
+    // which just is an "unsigned int", which is not a fixed size.
+    // We now use the SCNxN typedefs that offer fixed width replacements, see
+    // http://pubs.opengroup.org/onlinepubs/009604599/basedefs/inttypes.h.html
+
+    // Make sure that the scan works! Need to have 32 bit type.
+    // static_assert(
+    //     sizeof( unsigned int ) == 4,
+    //     "Cannot compile SHA256::hex_to_digest() with sizeof( unsigned int ) != 4"
+    // );
+
+    // Convert.
+    SHA256::DigestType result;
+    for (size_t i = 0; i < result.size(); ++i) {
+        // auto const n = sscanf( &hex[ 8 * i ], "%8x", &(result[i]) );
+        auto const n = sscanf( &hex[ 8 * i ], "%8" SCNx32, &(result[i]) );
+        if( n != 1 ) {
+            throw std::runtime_error( "Invalid SHA256 hex string." );
+        }
+    }
+
+    return result;
+}
+
+// ================================================================================================
+//     Iterative Hashing
 // ================================================================================================
 
 void SHA256::clear()
@@ -121,12 +194,30 @@ void SHA256::clear()
     reset_();
 }
 
+void SHA256::update( std::shared_ptr<BaseInputSource> source )
+{
+    auto ib = InputBuffer( source );
+    char sbuf[SHA256::BlockSize];
+
+    while (true) {
+
+        // Read a block and use it for an update.
+        auto count = ib.read( sbuf, SHA256::BlockSize );
+        update( sbuf, count );
+
+        // If we didn't get a full block, the stream is done.
+        if( count != SHA256::BlockSize ) {
+            return;
+        }
+    }
+}
+
 void SHA256::update( std::string const& s )
 {
     update( s.c_str(), s.size() );
 }
 
-void SHA256::update(std::istream& is)
+void SHA256::update( std::istream& is )
 {
     char sbuf[SHA256::BlockSize];
     while (true) {
@@ -178,103 +269,6 @@ SHA256::DigestType SHA256::final_digest()
 
     auto const result = digest_;
     reset_();
-    return result;
-}
-
-std::string SHA256::from_file_hex( std::string const& filename )
-{
-    std::ifstream stream( filename.c_str(), std::ios::binary );
-    SHA256 checksum;
-    checksum.update(stream);
-    return checksum.final_hex();
-}
-
-SHA256::DigestType SHA256::from_file_digest( std::string const& filename )
-{
-    std::ifstream stream( filename.c_str(), std::ios::binary );
-    SHA256 checksum;
-    checksum.update(stream);
-    return checksum.final_digest();
-}
-
-std::string SHA256::from_string_hex( std::string const& input )
-{
-    SHA256 checksum;
-    checksum.update( input );
-    return checksum.final_hex();
-}
-
-SHA256::DigestType SHA256::from_string_digest( std::string const& input )
-{
-    SHA256 checksum;
-    checksum.update( input );
-    return checksum.final_digest();
-}
-
-std::string SHA256::from_stream_hex( std::istream& is )
-{
-    SHA256 checksum;
-    checksum.update(is);
-    return checksum.final_hex();
-}
-
-SHA256::DigestType SHA256::from_stream_digest( std::istream& is )
-{
-    SHA256 checksum;
-    checksum.update(is);
-    return checksum.final_digest();
-}
-
-std::string SHA256::digest_to_hex( SHA256::DigestType const& digest )
-{
-    // Simple version. Equally as fast as the printf one below.
-    std::ostringstream result;
-    for (size_t i = 0; i < digest.size(); ++i) {
-        result << std::hex << std::setfill('0') << std::setw(8);
-        result << static_cast<int>( digest[i] );
-    }
-    return result.str();
-
-    // Print bytes to string.
-    // char buf[ 2 * DigestSize + 1 ];
-    // buf[ 2 * DigestSize ] = '\0';
-    // for( size_t i = 0; i < 8; i++ ) {
-    //     sprintf( buf + i * 8, "%08x", digest[i] );
-    // }
-    // return std::string(buf);
-}
-
-SHA256::DigestType SHA256::hex_to_digest( std::string const& hex )
-{
-    // Safety first!
-    bool const all_hex = std::all_of( hex.begin(), hex.end(), []( char c ){
-        return std::isxdigit( c );
-    });
-    if( hex.size() != 64 || ! all_hex ) {
-        throw std::runtime_error( "Invalid SHA256 hex string." );
-    }
-
-    // The following test was introduced to check the scanf format "%8x",
-    // which just is an "unsigned int", which is not a fixed size.
-    // We now use the SCNxN typedefs that offer fixed with replacements, see
-    // http://pubs.opengroup.org/onlinepubs/009604599/basedefs/inttypes.h.html
-
-    // Make sure that the scan works! Need to have 32 bit type.
-    // static_assert(
-    //     sizeof( unsigned int ) == 4,
-    //     "Cannot compile SHA256::hex_to_digest() with sizeof( unsigned int ) != 4"
-    // );
-
-    // Convert.
-    SHA256::DigestType result;
-    for (size_t i = 0; i < result.size(); ++i) {
-        // auto const n = sscanf( &hex[ 8 * i ], "%8x", &(result[i]) );
-        auto const n = sscanf( &hex[ 8 * i ], "%8" SCNx32, &(result[i]) );
-        if( n != 1 ) {
-            throw std::runtime_error( "Invalid SHA256 hex string." );
-        }
-    }
-
     return result;
 }
 

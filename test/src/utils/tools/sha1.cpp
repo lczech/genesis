@@ -86,25 +86,28 @@ TEST( Utils, SHA1Files )
     NEEDS_TEST_DATA;
 
     std::string empty_file = environment->data_dir + "utils/hash/empty.txt";
-    EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", SHA1::from_file_hex( empty_file ));
+    EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", SHA1::read_hex( from_file( empty_file )));
 
     std::string abc_file = environment->data_dir + "utils/hash/abc.txt";
-    EXPECT_EQ( "a9993e364706816aba3e25717850c26c9cd0d89d", SHA1::from_file_hex( abc_file ));
+    EXPECT_EQ( "a9993e364706816aba3e25717850c26c9cd0d89d", SHA1::read_hex( from_file( abc_file )));
 
+    // A million repetitions of 'a', compressed to gz.
+    std::string gzip_file = environment->data_dir + "utils/hash/aaa.txt.gz";
+    EXPECT_EQ( "34aa973cd4c4daa4f61eeb2bdbad27316534016f", SHA1::read_hex( from_file( gzip_file )));
 }
 
 TEST( Utils, SHA1Convert )
 {
     // empty string
-    auto const empty_d = SHA1::from_string_digest( "" );
-    auto const empty_h = SHA1::from_string_hex( "" );
+    auto const empty_d = SHA1::read_digest( from_string( "" ));
+    auto const empty_h = SHA1::read_hex( from_string( "" ));
     EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", empty_h );
     EXPECT_EQ( empty_d, SHA1::hex_to_digest( empty_h ));
     EXPECT_EQ( empty_h, SHA1::digest_to_hex( empty_d ));
 
     // abc
-    auto const abc_d = SHA1::from_string_digest( "abc" );
-    auto const abc_h = SHA1::from_string_hex( "abc" );
+    auto const abc_d = SHA1::read_digest( from_string( "abc" ));
+    auto const abc_h = SHA1::read_hex( from_string( "abc" ));
     EXPECT_EQ( "a9993e364706816aba3e25717850c26c9cd0d89d", abc_h );
     EXPECT_EQ( abc_d, SHA1::hex_to_digest( abc_h ));
     EXPECT_EQ( abc_h, SHA1::digest_to_hex( abc_d ));

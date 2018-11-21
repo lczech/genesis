@@ -82,25 +82,28 @@ TEST( Utils, MD5Files )
     NEEDS_TEST_DATA;
 
     std::string empty_file = environment->data_dir + "utils/hash/empty.txt";
-    EXPECT_EQ( "d41d8cd98f00b204e9800998ecf8427e", MD5::from_file_hex( empty_file ));
+    EXPECT_EQ( "d41d8cd98f00b204e9800998ecf8427e", MD5::read_hex( from_file( empty_file )));
 
     std::string abc_file = environment->data_dir + "utils/hash/abc.txt";
-    EXPECT_EQ( "900150983cd24fb0d6963f7d28e17f72", MD5::from_file_hex( abc_file ));
+    EXPECT_EQ( "900150983cd24fb0d6963f7d28e17f72", MD5::read_hex( from_file( abc_file )));
 
+    // A million repetitions of 'a', compressed
+    std::string gzip_file = environment->data_dir + "utils/hash/aaa.txt.gz";
+    EXPECT_EQ( "7707d6ae4e027c70eea2a935c2296f21", MD5::read_hex( from_file( gzip_file )));
 }
 
 TEST( Utils, MD5Convert )
 {
     // empty string
-    auto const empty_d = MD5::from_string_digest( "" );
-    auto const empty_h = MD5::from_string_hex( "" );
+    auto const empty_d = MD5::read_digest( from_string( "" ));
+    auto const empty_h = MD5::read_hex( from_string( "" ));
     EXPECT_EQ( "d41d8cd98f00b204e9800998ecf8427e", empty_h );
     EXPECT_EQ( empty_d, MD5::hex_to_digest( empty_h ));
     EXPECT_EQ( empty_h, MD5::digest_to_hex( empty_d ));
 
     // abc
-    auto const abc_d = MD5::from_string_digest( "abc" );
-    auto const abc_h = MD5::from_string_hex( "abc" );
+    auto const abc_d = MD5::read_digest( from_string( "abc" ));
+    auto const abc_h = MD5::read_hex( from_string( "abc" ));
     EXPECT_EQ( "900150983cd24fb0d6963f7d28e17f72", abc_h );
     EXPECT_EQ( abc_d, MD5::hex_to_digest( abc_h ));
     EXPECT_EQ( abc_h, MD5::digest_to_hex( abc_d ));

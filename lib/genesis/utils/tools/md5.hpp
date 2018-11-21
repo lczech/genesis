@@ -31,6 +31,8 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/io/input_source.hpp"
+
 #include <array>
 #include <cstdint>
 #include <iosfwd>
@@ -47,11 +49,13 @@ namespace utils {
  * @brief Calculate MD5 hashes for strings and files.
  *
  * After creating an object of this type, call update() with your input data as argument, as often
- * as needed. Then, call final_hex() or final_digest() to obtain the hash and reset the object
- * for reuse.
+ * as needed. Then, call final_hex() or final_digest() to obtain the hash as either a hex string
+ * or a DigestType object and reset the object for reuse.
  *
- * If you simply need the hash for a string or content of a file, use from_string() or
- * from_file(), which are static shortcuts for the above.
+ * If you simply need the hash for a string or content of a file, use read_hex() or
+ * read_digest(), which are static shortcuts for the above using an input source.
+ * Use functions such as utils::from_file() and utils::from_string() to conveniently
+ * get an input source that can be used here.
  *
  * The implementation is based on http://www.zedwood.com/article/cpp-md5-function,
  * which itself was converted to C++ class by Frank Thilo (thilo@unix-ag.org) for bzflag
@@ -117,7 +121,24 @@ public:
     MD5& operator= ( MD5&& )      = default;
 
     // -------------------------------------------------------------------------
-    //     Member Functions
+    //     Full Hashing
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Calculate the checksum for the content of an input source.
+     */
+    static std::string read_hex( std::shared_ptr<BaseInputSource> source );
+
+    /**
+     * @brief Calculate the hash digest for the content of an input source.
+     */
+    static DigestType  read_digest( std::shared_ptr<BaseInputSource> source );
+
+    static std::string digest_to_hex( DigestType const& digest );
+    static DigestType hex_to_digest( std::string const& hex );
+
+    // -------------------------------------------------------------------------
+    //     Iterative Hashing
     // -------------------------------------------------------------------------
 
     /**
@@ -125,9 +146,7 @@ public:
      */
     void clear();
 
-    /**
-     * @brief Add the contents of a string to the hash digest.
-     */
+    void update( std::shared_ptr<BaseInputSource> source );
     void update( std::string const& s );
     void update( std::istream& is );
     void update( char const* input, size_type length );
@@ -141,39 +160,6 @@ public:
      * @brief Finish the calculation, prepare the object for next use, and return the digest.
      */
     DigestType  final_digest();
-
-    /**
-     * @brief Calculate the checksum for the content of a file, given its path.
-     */
-    static std::string from_file_hex(      std::string const& filename );
-
-    /**
-     * @brief Calculate the hash digest for the content of a file, given its path.
-     */
-    static DigestType  from_file_digest(   std::string const& filename );
-
-    /**
-     * @brief Calculate the checksum for the content of a string.
-     */
-    static std::string from_string_hex(    std::string const& input );
-
-    /**
-     * @brief Calculate the hash digest for the content of a string.
-     */
-    static DigestType  from_string_digest( std::string const& input );
-
-    /**
-     * @brief Calculate the checksum for the content of a stream.
-     */
-    static std::string from_stream_hex( std::istream& is );
-
-    /**
-     * @brief Calculate the hash digest for the content of a stream.
-     */
-    static DigestType  from_stream_digest( std::istream& is );
-
-    static std::string digest_to_hex( DigestType const& digest );
-    static DigestType hex_to_digest( std::string const& hex );
 
     // -------------------------------------------------------------------------
     //     Internal Functions

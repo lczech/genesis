@@ -30,6 +30,8 @@
 
 #include "genesis/utils/tools/sha1.hpp"
 
+#include "genesis/utils/io/input_buffer.hpp"
+
 #include <algorithm>
 #include <cinttypes>
 #include <cstdio>
@@ -52,6 +54,70 @@ SHA1::SHA1()
 }
 
 // ================================================================================================
+//     Full Hashing
+// ================================================================================================
+
+std::string SHA1::read_hex( std::shared_ptr<BaseInputSource> source )
+{
+    SHA1 checksum;
+    checksum.update( source );
+    return checksum.final_hex();
+}
+
+SHA1::DigestType SHA1::read_digest( std::shared_ptr<BaseInputSource> source )
+{
+    SHA1 checksum;
+    checksum.update( source );
+    return checksum.final_digest();
+}
+
+std::string SHA1::digest_to_hex( SHA1::DigestType const& digest )
+{
+    /* Hex std::string */
+    std::ostringstream result;
+    for (size_t i = 0; i < digest.size(); ++i) {
+        result << std::hex << std::setfill('0') << std::setw(8);
+        result << digest[i];
+    }
+
+    return result.str();
+}
+
+SHA1::DigestType SHA1::hex_to_digest( std::string const& hex )
+{
+    // Safety first!
+    bool const all_hex = std::all_of( hex.begin(), hex.end(), []( char c ){
+        return std::isxdigit( c );
+    });
+    if( hex.size() != 40 || ! all_hex ) {
+        throw std::runtime_error( "Invalid SHA1 hex string." );
+    }
+
+    // The following test was introduced to check the scanf format "%8x",
+    // which just is an "unsigned int", which is not a fixed size.
+    // We now use the SCNxN typedefs that offer fixed width replacements, see
+    // http://pubs.opengroup.org/onlinepubs/009604599/basedefs/inttypes.h.html
+
+    // Make sure that the scan works! Need to have 32 bit type.
+    // static_assert(
+    //     sizeof( unsigned int ) == 4,
+    //     "Cannot compile SHA1::hex_to_digest() with sizeof( unsigned int ) != 4"
+    // );
+
+    // Convert.
+    SHA1::DigestType result;
+    for (size_t i = 0; i < result.size(); ++i) {
+        // auto const n = sscanf( &hex[ 8 * i ], "%8x", &(result[i]) );
+        auto const n = sscanf( &hex[ 8 * i ], "%8" SCNx32, &(result[i]) );
+        if( n != 1 ) {
+            throw std::runtime_error( "Invalid SHA1 hex string." );
+        }
+    }
+
+    return result;
+}
+
+// ================================================================================================
 //     Member Functions
 // ================================================================================================
 
@@ -60,16 +126,41 @@ void SHA1::clear()
     reset_();
 }
 
+void SHA1::update( std::shared_ptr<BaseInputSource> source )
+{
+    auto ib = InputBuffer( source );
+    char sbuf[SHA1::BlockBytes];
+
+    while (true) {
+
+        // Read a block and use it for an update.
+        auto count = ib.read( sbuf, SHA1::BlockBytes - buffer_.size() );
+        buffer_.append( sbuf, count );
+
+        // If we didn't get a full block, the input is done.
+        if (buffer_.size() != SHA1::BlockBytes) {
+            return;
+        }
+
+        // If the buffer is full, transform it.
+        uint32_t block[SHA1::BlockInts];
+        buffer_to_block_(buffer_, block);
+        transform_( block );
+        buffer_.clear();
+    }
+}
+
 void SHA1::update( std::string const& s )
 {
     std::istringstream is(s);
     update(is);
 }
 
-void SHA1::update(std::istream& is)
+void SHA1::update( std::istream& is )
 {
+    char sbuf[SHA1::BlockBytes];
+
     while (true) {
-        char sbuf[SHA1::BlockBytes];
         is.read(sbuf, SHA1::BlockBytes - buffer_.size());
         buffer_.append(sbuf, is.gcount());
         if (buffer_.size() != SHA1::BlockBytes) {
@@ -119,96 +210,6 @@ SHA1::DigestType SHA1::final_digest()
 
     /* Reset for next run */
     reset_();
-
-    return result;
-}
-
-std::string SHA1::from_file_hex( std::string const& filename )
-{
-    std::ifstream stream( filename.c_str(), std::ios::binary );
-    SHA1 checksum;
-    checksum.update(stream);
-    return checksum.final_hex();
-}
-
-SHA1::DigestType SHA1::from_file_digest( std::string const& filename )
-{
-    std::ifstream stream( filename.c_str(), std::ios::binary );
-    SHA1 checksum;
-    checksum.update(stream);
-    return checksum.final_digest();
-}
-
-std::string SHA1::from_string_hex( std::string const& input )
-{
-    SHA1 checksum;
-    checksum.update( input );
-    return checksum.final_hex();
-}
-
-SHA1::DigestType SHA1::from_string_digest( std::string const& input )
-{
-    SHA1 checksum;
-    checksum.update( input );
-    return checksum.final_digest();
-}
-
-std::string SHA1::from_stream_hex( std::istream& is )
-{
-    SHA1 checksum;
-    checksum.update(is);
-    return checksum.final_hex();
-}
-
-SHA1::DigestType SHA1::from_stream_digest( std::istream& is )
-{
-    SHA1 checksum;
-    checksum.update(is);
-    return checksum.final_digest();
-}
-
-std::string SHA1::digest_to_hex( SHA1::DigestType const& digest )
-{
-    /* Hex std::string */
-    std::ostringstream result;
-    for (size_t i = 0; i < digest.size(); ++i) {
-        result << std::hex << std::setfill('0') << std::setw(8);
-        result << digest[i];
-    }
-
-    return result.str();
-}
-
-SHA1::DigestType SHA1::hex_to_digest( std::string const& hex )
-{
-    // Safety first!
-    bool const all_hex = std::all_of( hex.begin(), hex.end(), []( char c ){
-        return std::isxdigit( c );
-    });
-    if( hex.size() != 40 || ! all_hex ) {
-        throw std::runtime_error( "Invalid SHA1 hex string." );
-    }
-
-    // The following test was introduced to check the scanf format "%8x",
-    // which just is an "unsigned int", which is not a fixed size.
-    // We now use the SCNxN typedefs that offer fixed with replacements, see
-    // http://pubs.opengroup.org/onlinepubs/009604599/basedefs/inttypes.h.html
-
-    // Make sure that the scan works! Need to have 32 bit type.
-    // static_assert(
-    //     sizeof( unsigned int ) == 4,
-    //     "Cannot compile SHA1::hex_to_digest() with sizeof( unsigned int ) != 4"
-    // );
-
-    // Convert.
-    SHA1::DigestType result;
-    for (size_t i = 0; i < result.size(); ++i) {
-        // auto const n = sscanf( &hex[ 8 * i ], "%8x", &(result[i]) );
-        auto const n = sscanf( &hex[ 8 * i ], "%8" SCNx32, &(result[i]) );
-        if( n != 1 ) {
-            throw std::runtime_error( "Invalid SHA1 hex string." );
-        }
-    }
 
     return result;
 }
