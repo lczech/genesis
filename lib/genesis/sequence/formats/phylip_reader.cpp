@@ -60,148 +60,31 @@ PhylipReader::PhylipReader()
 //     Reading
 // =================================================================================================
 
-void PhylipReader::from_stream( std::istream& input_stream, SequenceSet& sequence_set ) const
+SequenceSet PhylipReader::read( std::shared_ptr<utils::BaseInputSource> source ) const
 {
-    utils::InputStream it( utils::make_unique< utils::StreamInputSource >( input_stream ));
+    // Create a new set and fill it.
+    SequenceSet result;
+    read( source, result );
+    return result;
+}
 
+void PhylipReader::read( std::shared_ptr<utils::BaseInputSource> source, SequenceSet& target ) const
+{
+    utils::InputStream it( source );
     switch( mode_ ) {
-        case Mode::kSequential:
-            parse_phylip_sequential( it, sequence_set );
+        case Mode::kSequential: {
+            parse_phylip_sequential( it, target );
             break;
-
-        case Mode::kInterleaved:
-            parse_phylip_interleaved( it, sequence_set );
+        }
+        case Mode::kInterleaved: {
+            parse_phylip_interleaved( it, target );
             break;
-
-        case Mode::kAutomatic:
-            throw std::runtime_error(
-                "Automatic mode of PhylipReader not possible when using from_stream()."
-            );
-
-        default:
+        }
+        default: {
             // We already covered all cases above. This cannot happen.
             assert( false );
+        }
     }
-}
-
-SequenceSet PhylipReader::from_stream( std::istream& input_stream ) const
-{
-    // Create a new set and fill it.
-    SequenceSet result;
-    from_stream( input_stream, result );
-    return result;
-}
-
-void PhylipReader::from_file( std::string const& file_name, SequenceSet& sequence_set ) const
-{
-    // This function is very similar to from_string, but has some differences in treating the input
-    // when needing to restart in automatic mode. Unfortunately, we have to live with this code
-    // duplication for now. Everything else would end up in a mess of small helper functions, which
-    // is also not nice.
-
-    // Get stream.
-    utils::InputStream it( utils::make_unique< utils::FileInputSource >( file_name ));
-
-    // If the mode is specified, use it.
-    if( mode_ == Mode::kSequential ) {
-        parse_phylip_sequential( it, sequence_set );
-    } else if( mode_ == Mode::kInterleaved ) {
-        parse_phylip_interleaved( it, sequence_set );
-
-    // If the mode is automatic, we need to do some magic.
-    } else if( mode_ == Mode::kAutomatic ) {
-
-        // We need a temporary set, because in case of failure, we need to start from the beginning,
-        // but we do not want to clear all other sequences in the set (that might be there from
-        // other stuff done before calling this function).
-        SequenceSet tmp;
-
-        // Try sequential first.
-        try {
-            parse_phylip_sequential( it, tmp );
-
-        // If it fails, restart the stream and try interleaved.
-        // If this also throws, the file is ill formatted and the exception will be forwared to
-        // the caller of this function.
-        } catch ( ... ) {
-            tmp.clear();
-
-            // Prepare stream. Again. Then parse.
-            utils::InputStream it( utils::make_unique< utils::FileInputSource >( file_name ));
-            parse_phylip_interleaved( it, tmp );
-        }
-
-        // If we reach this point, one of the parses succeeded.
-        // Move all sequences to the actual target.
-        for( auto s : tmp ) {
-            sequence_set.add( std::move(s) );
-        }
-
-    } else {
-        // We already covered all cases above. This cannot happen.
-        assert( false );
-    }
-}
-
-SequenceSet PhylipReader::from_file( std::string const& file_name ) const
-{
-    // Create a new set and fill it.
-    SequenceSet result;
-    from_file( file_name, result );
-    return result;
-}
-
-void PhylipReader::from_string( std::string const& input_string, SequenceSet& sequence_set ) const
-{
-    // This function is very similar to from_file. See there for some more code explanations and for
-    // the reason why we currently do not re-engineer this to avoid this code duplication.
-
-    // Prepare stream.
-    utils::InputStream it( utils::make_unique< utils::StringInputSource >( input_string ));
-
-    // If the mode is specified, use it.
-    if( mode_ == Mode::kSequential ) {
-        parse_phylip_sequential( it, sequence_set );
-    } else if( mode_ == Mode::kInterleaved ) {
-        parse_phylip_interleaved( it, sequence_set );
-
-    // If the mode is automatic, we need to do some magic.
-    } else if( mode_ == Mode::kAutomatic ) {
-
-        // Temporary set.
-        SequenceSet tmp;
-
-        // Try sequential first.
-        try {
-            parse_phylip_sequential( it, tmp );
-
-        // If it fails, restart the stream and try interleaved.
-        } catch ( ... ) {
-            tmp.clear();
-
-            // Prepare stream. Again. Then parse.
-            utils::InputStream it( utils::make_unique< utils::StringInputSource >( input_string ));
-            parse_phylip_interleaved( it, tmp );
-        }
-
-        // If we reach this point, one of the parses succeeded.
-        // Move all sequences to the actual target.
-        for( auto s : tmp ) {
-            sequence_set.add( std::move(s) );
-        }
-
-    } else {
-        // We already covered all cases above. This cannot happen.
-        assert( false );
-    }
-}
-
-SequenceSet PhylipReader::from_string( std::string const& input_string ) const
-{
-    // Create a new set and fill it.
-    SequenceSet result;
-    from_string( input_string, result );
-    return result;
 }
 
 // =================================================================================================
