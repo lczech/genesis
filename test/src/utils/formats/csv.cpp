@@ -83,7 +83,7 @@ TEST( Csv, ReaderDefault )
 
     // Simple table with default settings.
     infile = environment->data_dir + "utils/csv/simple.csv";
-    table  = reader.from_file( infile );
+    table  = reader.read( from_file( infile ));
 
     test_csv_table( infile, table, {
         { "1", "Bran",     "Stark" },
@@ -95,7 +95,7 @@ TEST( Csv, ReaderDefault )
 
     // Complex(ish) table with default settings.
     infile = environment->data_dir + "utils/csv/complex.csv";
-    table  = reader.from_file( infile );
+    table  = reader.read( from_file( infile ));
 
     test_csv_table( infile, table, {
         { "1",   "Bran", "" },
@@ -128,7 +128,7 @@ TEST( Csv, ReaderTabulatedEscaped )
 
     // Read table that uses tabs as separators and escape sequences.
     infile = environment->data_dir + "utils/csv/tab_esc.csv";
-    table  = reader.from_file( infile );
+    table  = reader.read( from_file( infile ));
 
     test_csv_table( infile, table, {
         { "1",  "Jon", "Snow" },
@@ -156,7 +156,7 @@ TEST( Csv, ReaderCommentEmpty )
 
     // Read table that has comments and empty lines and stuff.
     infile = environment->data_dir + "utils/csv/comment_empty.csv";
-    table  = reader.from_file( infile );
+    table  = reader.read( from_file( infile ));
 
     test_csv_table( infile, table, {
         { "1",  "Cersei", "Lannister" },

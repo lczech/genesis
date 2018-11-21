@@ -100,7 +100,7 @@ inline Matrix<double> read_stats_csv_data( std::string const& filename, size_t r
     // Read Iris dataset.
     auto        reader = CsvReader();
     std::string infile = environment->data_dir + filename;
-    auto        table  = reader.from_file( infile );
+    auto        table  = reader.read( from_file( infile ));
 
     // Create data matrix.
     auto data = Matrix<double>( rows, cols );

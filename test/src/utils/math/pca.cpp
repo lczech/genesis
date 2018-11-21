@@ -44,7 +44,7 @@ inline Matrix<double> read_pca_csv_data( std::string const& filename, size_t row
     // Read Iris dataset.
     auto        reader = CsvReader();
     std::string infile = environment->data_dir + filename;
-    auto        table  = reader.from_file( infile );
+    auto        table  = reader.read( from_file( infile ));
 
     // Create data matrix.
     auto data = Matrix<double>( rows, cols );
