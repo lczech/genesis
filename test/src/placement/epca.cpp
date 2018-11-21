@@ -51,6 +51,7 @@
 
 using namespace genesis;
 using namespace genesis::placement;
+using namespace genesis::utils;
 
 TEST( SampleMeasures, ImbalanceVector )
 {
@@ -59,7 +60,7 @@ TEST( SampleMeasures, ImbalanceVector )
 
     // Read sample
     std::string const infile = environment->data_dir + "placement/test_a.jplace";
-    auto const smp = JplaceReader().from_file( infile );
+    auto const smp = JplaceReader().read( from_file( infile ));
 
     // Get imbalance and weights per edge.
     auto const imbalance_vec   = epca_imbalance_vector( smp, false );

@@ -69,42 +69,16 @@ namespace placement {
 //     Reading
 // =================================================================================================
 
-// -------------------------------------------------------------------------
-//     Reading from Stream
-// -------------------------------------------------------------------------
-
-Sample JplaceReader::from_stream( std::istream& is ) const
-{
-    auto doc = utils::JsonReader().from_stream( is );
-    return from_document( doc );
+Sample JplaceReader::read(
+    std::shared_ptr<utils::BaseInputSource> source
+) const {
+    auto doc = utils::JsonReader().read( source );
+    return read( doc );
 }
 
-// -------------------------------------------------------------------------
-//     Reading from File
-// -------------------------------------------------------------------------
-
-Sample JplaceReader::from_file( std::string const& fn ) const
-{
-    auto doc = utils::JsonReader().from_file( fn );
-    return from_document( doc );
-}
-
-// -------------------------------------------------------------------------
-//     Reading from String
-// -------------------------------------------------------------------------
-
-Sample JplaceReader::from_string( std::string const& jplace ) const
-{
-    auto doc = utils::JsonReader().from_string( jplace );
-    return from_document( doc );
-}
-
-// -------------------------------------------------------------------------
-//     Reading from Document
-// -------------------------------------------------------------------------
-
-Sample JplaceReader::from_document( utils::JsonDocument& doc ) const
-{
+Sample JplaceReader::read(
+    utils::JsonDocument& doc
+) const {
     Sample smp;
 
     if( ! doc.is_object() ) {
@@ -121,97 +95,41 @@ Sample JplaceReader::from_document( utils::JsonDocument& doc ) const
     return smp;
 }
 
-// -------------------------------------------------------------------------
-//     Reading from Files
-// -------------------------------------------------------------------------
-
-SampleSet JplaceReader::from_files( std::vector<std::string> const& fns ) const
-{
-    SampleSet set;
-    from_files( fns, set );
-    return set;
+SampleSet JplaceReader::read(
+    std::vector<std::shared_ptr<utils::BaseInputSource>> sources
+) const {
+    SampleSet target;
+    read( sources, target );
+    return target;
 }
 
-// -------------------------------------------------------------------------
-//     Reading from Strings
-// -------------------------------------------------------------------------
+void JplaceReader::read(
+    std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
+    SampleSet& target
+) const {
 
-SampleSet JplaceReader::from_strings( std::vector<std::string> const& jps ) const
-{
-    SampleSet set;
-    from_strings( jps, set );
-    return set;
-}
+    // Make a vector of default-constructed Samples of the needed size.
+    // We do this so that the order of input jplace files is kept
+    // when reading with OpenMP.
+    auto tmp = std::vector<Sample>( sources.size() );
 
-// -------------------------------------------------------------------------
-//     Reading from Files
-// -------------------------------------------------------------------------
+    // Parallel parsing.
+    #pragma omp parallel for
+    for( size_t i = 0; i < sources.size(); ++i ) {
+        tmp[ i ] = read( sources[i] );
+    }
 
-void JplaceReader::from_files( std::vector<std::string> const& fns, SampleSet& set ) const
-{
-    #if defined( GENESIS_OPENMP )
-
-        // Make a vector of default-constructed Samples of the needed size.
-        // We do this so that the order of input jplace files is kept.
-        auto tmp = std::vector<Sample>( fns.size() );
-
-        // Parallel parsing.
-        #pragma omp parallel for
-        for( size_t i = 0; i < fns.size(); ++i ) {
-            tmp[ i ] = from_file( fns[i] );
+    // Move to target SampleSet.
+    for( size_t i = 0; i < sources.size(); ++i ) {
+        auto const bn = utils::file_basename( sources[i]->source_string() );
+        auto const ex = utils::file_extension( bn );
+        auto name = bn;
+        if( ex == "jplace" ) {
+            name = utils::file_filename( bn );
         }
 
-        // Move to target SampleSet.
-        for( size_t i = 0; i < fns.size(); ++i ) {
-            auto const name = utils::file_filename( utils::file_basename( fns[i] ) );
-            set.add( std::move( tmp[i] ), name );
-        }
-
-    #else
-
-        for( auto const& fn : fns ) {
-            auto const name = utils::file_filename( utils::file_basename(fn) );
-            set.add( from_file( fn ), name );
-        }
-
-    #endif
-}
-
-// -------------------------------------------------------------------------
-//     Reading from Strings
-// -------------------------------------------------------------------------
-
-void JplaceReader::from_strings( std::vector<std::string> const& jps, SampleSet& set ) const
-{
-    #if defined( GENESIS_OPENMP )
-
-        // Make a vector of default-constructed Samples of the needed size.
-        // We do this so that the order of input jplace files is kept.
-        auto tmp = std::vector<Sample>( jps.size() );
-
-        // Parallel parsing.
-        #pragma omp parallel for
-        for( size_t i = 0; i < jps.size(); ++i ) {
-            tmp[ i ] = from_string( jps[i] );
-        }
-
-        // Move to target SampleSet.
-        size_t cnt = set.size();
-        for( size_t i = 0; i < jps.size(); ++i ) {
-            auto const name = std::string("jplace_") + std::to_string(cnt);
-            set.add( std::move( tmp[i] ), name );
-            ++cnt;
-        }
-
-    #else
-
-        size_t cnt = set.size();
-        for( auto const& jplace : jps ) {
-            set.add( from_string( jplace ), std::string("jplace_") + std::to_string(cnt) );
-            ++cnt;
-        }
-
-    #endif
+        target.add( std::move( tmp[i] ), name );
+    }
 }
 
 // =================================================================================================

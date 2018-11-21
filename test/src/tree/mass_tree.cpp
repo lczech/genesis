@@ -91,7 +91,7 @@ TEST( MassTree, PhylogeneticILR )
 
     // Read sample
     std::string const infile = environment->data_dir + "placement/rooted.jplace";
-    auto const smp = JplaceReader().from_file( infile );
+    auto const smp = JplaceReader().read( utils::from_file( infile ));
 
     // Prepare data. We deactivate taxon weighing.
     auto const tree = convert_sample_to_mass_tree( smp, false ).first;

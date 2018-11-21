@@ -104,7 +104,7 @@ TEST(PlacementSimulator, Learning)
     std::string infile  = environment->data_dir + "placement/test_a.jplace";
 
     // Read the Jplace file into a Sample object.
-    Sample sample = JplaceReader().from_file( infile );
+    Sample sample = JplaceReader().read( utils::from_file( infile ));
 
     // Learn simulation parameters.
     auto sim = Simulator();

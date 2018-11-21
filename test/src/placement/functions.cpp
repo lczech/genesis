@@ -48,6 +48,7 @@
 
 using namespace genesis;
 using namespace genesis::placement;
+using namespace genesis::utils;
 
 TEST( SampleFunctions, FilterPlacements )
 {
@@ -56,7 +57,7 @@ TEST( SampleFunctions, FilterPlacements )
 
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_b.jplace";
-    Sample smp = JplaceReader().from_file(infile);
+    Sample smp = JplaceReader().read( from_file(infile));
 
     // Check before filtering.
     EXPECT_EQ( 10, total_placement_count(smp) );
@@ -66,14 +67,14 @@ TEST( SampleFunctions, FilterPlacements )
     EXPECT_EQ( 8, total_placement_count(smp) );
 
     // Re-read the file.
-    smp = JplaceReader().from_file(infile);
+    smp = JplaceReader().read( from_file(infile));
 
     // Filter max number of placements and check result.
     filter_n_max_weight_placements( smp, 1 );
     EXPECT_EQ( 7, total_placement_count(smp) );
 
     // Re-read the file.
-    smp = JplaceReader().from_file(infile);
+    smp = JplaceReader().read( from_file(infile));
 
     // Filter max number of placements and check result.
     filter_min_accumulated_weight( smp, 0.6 );
@@ -87,7 +88,7 @@ TEST( SampleFunctions, FilterPqueryNameRegex )
 
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_b.jplace";
-    Sample smp = JplaceReader().from_file(infile);
+    Sample smp = JplaceReader().read( from_file(infile));
 
     // Check before filtering.
     EXPECT_EQ( 10, total_placement_count(smp) );
@@ -97,7 +98,7 @@ TEST( SampleFunctions, FilterPqueryNameRegex )
     EXPECT_EQ( 6, total_placement_count(smp) );
 
     // Re-read the file.
-    smp = JplaceReader().from_file(infile);
+    smp = JplaceReader().read( from_file(infile));
 
     // Remove list.
     filter_pqueries_removing_names( smp, "[ac]" );
@@ -111,7 +112,7 @@ TEST( SampleFunctions, FilterPqueryNameLists )
 
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_b.jplace";
-    Sample smp = JplaceReader().from_file(infile);
+    Sample smp = JplaceReader().read( from_file(infile));
 
     // Check before filtering.
     EXPECT_EQ( 10, total_placement_count(smp) );
@@ -122,7 +123,7 @@ TEST( SampleFunctions, FilterPqueryNameLists )
     EXPECT_EQ( 6, total_placement_count(smp) );
 
     // Re-read the file.
-    smp = JplaceReader().from_file(infile);
+    smp = JplaceReader().read( from_file(infile));
 
     // Remove list.
     std::unordered_set<std::string> remove_list = { "a", "c" };
@@ -138,8 +139,8 @@ TEST( SampleFunctions, FilterPqueryNameSets )
     // Read files.
     std::string const infile_1 = environment->data_dir + "placement/duplicates_a.jplace";
     std::string const infile_2 = environment->data_dir + "placement/duplicates_b.jplace";
-    auto sample_1 = JplaceReader().from_file( infile_1 );
-    auto sample_2 = JplaceReader().from_file( infile_2 );
+    auto sample_1 = JplaceReader().read( from_file( infile_1 ));
+    auto sample_2 = JplaceReader().read( from_file( infile_2 ));
 
     // Checks before filtering.
     EXPECT_EQ(  8, total_placement_count( sample_1 ));
@@ -151,8 +152,8 @@ TEST( SampleFunctions, FilterPqueryNameSets )
     EXPECT_EQ(  8, total_placement_count( sample_2 ));
 
     // Re-read the files.
-    auto sample_3 = JplaceReader().from_file( infile_1 );
-    auto sample_4 = JplaceReader().from_file( infile_2 );
+    auto sample_3 = JplaceReader().read( from_file( infile_1 ));
+    auto sample_4 = JplaceReader().read( from_file( infile_2 ));
 
     // Symmetric difference.
     filter_pqueries_differing_names( sample_3, sample_4 );
@@ -184,7 +185,7 @@ TEST( SampleTree, LabelledTree )
 
     // Get sample.
     std::string const infile = environment->data_dir + "placement/test_c.jplace";
-    auto const sample = JplaceReader().from_file( infile );
+    auto const sample = JplaceReader().read( from_file( infile ));
 
     // Pre-checks
     EXPECT_EQ(  7, sample.size() );

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@
 
 using namespace genesis;
 using namespace genesis::placement;
+using namespace genesis::utils;
 
 TEST(Sample, WithTree)
 {
@@ -83,7 +84,7 @@ TEST(Sample, MergeDuplicatesSimple)
 
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_a.jplace";
-    Sample smp = JplaceReader().from_file(infile);
+    Sample smp = JplaceReader().read( from_file(infile));
 
     // Check before merging.
     test_sample_stats(smp, 7, 8, 7);
@@ -102,7 +103,7 @@ TEST(Sample, MergeDuplicatesTransitive)
 
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_b.jplace";
-    Sample smp = JplaceReader().from_file(infile);
+    Sample smp = JplaceReader().read( from_file(infile));
 
     // Check before merging.
     test_sample_stats(smp, 7, 10, 11);
