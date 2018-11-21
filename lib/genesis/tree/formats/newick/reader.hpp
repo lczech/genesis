@@ -224,7 +224,7 @@ public:
     /**
      * @brief Fill a TreeSet from a list of input sources containing Newick trees.
      *
-     * See @link read( std::shared_ptr<utils::BaseInputSource>, TreeSet&, std::string const& ) read()@endlink
+     * See @link read( std::shared_ptr<utils::BaseInputSource>, TreeSet&, std::string const& ) const read()@endlink
      * for details.
      */
     void read(
@@ -236,7 +236,7 @@ public:
     /**
      * @brief Return a TreeSet from a list of input sources containing Newick trees.
      *
-     * See @link read( std::shared_ptr<utils::BaseInputSource>, TreeSet&, std::string const& ) read()@endlink
+     * See @link read( std::shared_ptr<utils::BaseInputSource>, TreeSet&, std::string const& ) const read()@endlink
      * for details.
      */
     TreeSet read(
@@ -336,7 +336,7 @@ public:
 
     /**
      * @brief Parse one named tree, i.e., a tree as described
-     * @link read( std::shared_ptr<utils::BaseInputSource>, TreeSet&, std::string const& ) here@endlink.
+     * @link read( std::shared_ptr<utils::BaseInputSource>, TreeSet&, std::string const& ) const here@endlink.
      */
     std::pair< std::string, Tree > parse_named_tree( utils::InputStream& input_stream ) const;
 
