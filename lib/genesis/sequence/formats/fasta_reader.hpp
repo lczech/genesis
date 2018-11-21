@@ -208,7 +208,7 @@ public:
     /**
      * @brief Parse a whole fasta document into a SequenceSet.
      *
-     * This function is mainly used internally by the reading functions from_...().
+     * This function is mainly used internally by the reading functions read().
      * It uses the currently set parsing_method() for parsing the data.
      */
     void parse_document(

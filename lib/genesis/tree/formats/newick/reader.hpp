@@ -336,7 +336,7 @@ public:
 
     /**
      * @brief Parse one named tree, i.e., a tree as described
-     * @link from_string( std::string const&, TreeSet&, std::string const& ) const here@endlink.
+     * @link read( std::shared_ptr<utils::BaseInputSource>, TreeSet&, std::string const& ) here@endlink.
      */
     std::pair< std::string, Tree > parse_named_tree( utils::InputStream& input_stream ) const;
 
