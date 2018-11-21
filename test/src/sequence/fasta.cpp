@@ -71,8 +71,7 @@ TEST( FastaInputIterator, ReadingLoop )
     NEEDS_TEST_DATA;
 
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-    auto it = FastaInputIterator();
-    it.read( utils::from_file( infile ));
+    auto it = FastaInputIterator( utils::from_file( infile ));
 
     size_t len = 0;
     size_t cnt = 0;
@@ -101,8 +100,7 @@ TEST( FastaInputIterator, Advance )
     NEEDS_TEST_DATA;
 
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-    auto it = FastaInputIterator();
-    it.read( utils::from_file( infile ));
+    auto it = FastaInputIterator( utils::from_file( infile ));
 
     std::advance( it, 3 );
 

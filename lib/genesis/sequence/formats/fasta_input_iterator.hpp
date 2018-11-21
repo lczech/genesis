@@ -58,12 +58,14 @@ namespace sequence {
  *
  * Example:
  *
- *     auto it = FastaInputIterator();
- *     it.read( from_file( "/path/to/large_file.fasta" ));
+ *     auto it = FastaInputIterator( from_file( "/path/to/large_file.fasta" ) );
  *     while( it ) {
  *         std::cout << it->length() << "\n";
  *         ++it;
  *     }
+ *
+ * Use functions such as utils::from_file() and utils::from_string() to conveniently
+ * get an input source that can be used here.
  *
  * See FastaReader for a description of the expected format. In order to change the reading
  * behaviour, use the reader() function to access the internal FastaReaser and change its
@@ -100,17 +102,32 @@ public:
      * @brief Create a default instance, using a default FastaReader.
      */
     FastaInputIterator()
-        : reader_()
+        : input_stream_( nullptr )
+        , reader_()
         , sequence_()
     {}
 
     /**
+     * @brief Create an instance that reads from an input source.
+     */
+    FastaInputIterator( std::shared_ptr<utils::BaseInputSource> source )
+        : input_stream_( std::make_shared<utils::InputStream>( source ))
+        , reader_()
+        , sequence_()
+    {
+        increment();
+    }
+
+    /**
      * @brief Create an instance that copies the settings of a given FastaReader.
      */
-    FastaInputIterator( FastaReader const& reader )
-        : reader_( reader )
+    FastaInputIterator( std::shared_ptr<utils::BaseInputSource> source, FastaReader const& reader )
+        : input_stream_( std::make_shared<utils::InputStream>( source ))
+        , reader_( reader )
         , sequence_()
-    {}
+    {
+        increment();
+    }
 
     ~FastaInputIterator() = default;
 
@@ -119,26 +136,6 @@ public:
 
     self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
-
-    // -------------------------------------------------------------------------
-    //     Reading
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Start reading from an input source.
-     *
-     * This reads the first Sequence so that it is available for dereferencing.
-     *
-     * Use functions such as utils::from_file() and utils::from_string() to conveniently
-     * get an input source that can be used here.
-     */
-    self_type& read( std::shared_ptr<utils::BaseInputSource> source )
-    {
-        // Create input stream and read first sequence.
-        input_stream_ = std::make_shared<utils::InputStream>( source );
-        increment();
-        return *this;
-    }
 
     // -------------------------------------------------------------------------
     //     Comparators
@@ -205,7 +202,7 @@ public:
     {
         // Check whether the input stream is good (not end-of-stream) and can be read from.
         // If not, we reached its end, so we stop reading in the next iteration.
-        if( input_stream_ == nullptr || ! *input_stream_ ) {
+        if( ! input_stream_ || ! *input_stream_ ) {
             good_ = false;
             return;
         }
@@ -220,8 +217,8 @@ public:
 private:
 
     std::shared_ptr<utils::InputStream> input_stream_;
-    bool good_ = true;
 
+    bool        good_ = true;
     FastaReader reader_;
     Sequence    sequence_;
 };
