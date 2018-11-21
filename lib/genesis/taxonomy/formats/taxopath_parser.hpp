@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -99,24 +99,117 @@ public:
     //     Parsing
     // -------------------------------------------------------------------------
 
-    Taxopath from_string( std::string const& taxopath ) const;
-    Taxopath operator() ( std::string const& taxopath ) const;
+    /**
+     * @brief Parse a taxonomic path string into a Taxopath object and return it.
+     *
+     * See @link TaxopathParser the class description@endlink for details on what this parser does.
+     */
+    Taxopath parse( std::string const& taxopath ) const;
 
-    Taxopath from_taxon(  Taxon const& taxon ) const;
-    Taxopath operator() ( Taxon const& taxon ) const;
+    /**
+     * @brief Helper function to turn a Taxon into a Taxopath.
+     *
+     * This function is probably not need often, as the Taxopath is a helper object from
+     * a taxonomic path string towards a Taxon object, but not the other way round.
+     * In order to get the string from a Taxon, see the TaxopathGenerator class instead.
+     *
+     * However, this function might still be useful in some cases. You never know.
+     */
+    Taxopath parse(  Taxon const& taxon ) const;
 
     // -------------------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------------------
 
-    TaxopathParser& delimiters( std::string const& value );
-    std::string     delimiters() const;
+    /**
+     * @brief Set the chars used to split the taxonomic path string.
+     *
+     * Those chars are used to split the taxon name into its hierarchical parts.
+     * Default is ';', as this is the usual value in many databases. See Taxopath for details.
+     *
+     * If this value is set to multiple chars (string longer than 1), any of them is used for splitting.
+     *
+     * Example: The taxonomic path string
+     *
+     *     Archaea;Euryarchaeota;Halobacteria;
+     *
+     * is split into "Archaea", "Euryarchaeota" and "Halobacteria".
+     */
+    TaxopathParser& delimiters( std::string const& value )
+    {
+        delimiters_ = value;
+        return *this;
+    }
 
-    TaxopathParser& trim_whitespaces( bool value );
-    bool            trim_whitespaces() const;
+    /**
+     * @brief Return the currelty set delimiter chars used to split the taxonomic path string.
+     *
+     * See @link delimiters( std::string const& value ) the setter@endlink for details.
+     */
+    std::string     delimiters() const
+    {
+        return delimiters_;
+    }
 
-    TaxopathParser& remove_trailing_delimiter( bool value );
-    bool            remove_trailing_delimiter() const;
+    /**
+     * @brief Set whether to trim whitespaces around the taxonomic elements after splitting them.
+     *
+     * Default is `true`. If set to true, the taxa given are trimmed off white spaces after splitting
+     * them. This is helpful if the input string is copied from some spreadsheet application or
+     * CSV file, where spaces between cells might be added.
+     *
+     * If set to `false`, all elements are left as they are.
+     *
+     * Example: The line
+     *
+     *     Archaea; Aigarchaeota; Aigarchaeota Incertae Sedis;	11091	class	123
+     *
+     * contains spaces both between the taxa names (separated by `;`), as well as within the names.
+     * Only the former ones will be trimmed, while latter ones are left as they are.
+     */
+    TaxopathParser& trim_whitespaces( bool value )
+    {
+        trim_whitespaces_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Return the currently set value whether whitespaces are trimmed off the taxonomic elements.
+     *
+     * See @link trim_whitespaces( bool value ) the setter@endlink for details.
+     */
+    bool            trim_whitespaces() const
+    {
+        return trim_whitespaces_;
+    }
+
+    /**
+     * @brief Set whether to remove an empty taxonomic element at the end, if it occurs.
+     *
+     * In many taxonomic databases, the taxonomic string representation end with a ';' by default.
+     * When splitting such a string, this results in an empty last element. If this option is set to
+     * `true` (default), this element is removed from the Taxopath.
+     *
+     * If set to `false`, the element is not removed, but instead treated as a normal "empty" element,
+     * which means, it is replaced by the value of the preceeding element. See
+     * @link TaxopathParser the class description@endlink for details on that.
+     */
+    TaxopathParser& remove_trailing_delimiter( bool value )
+    {
+        remove_trailing_delimiter_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Return whether currently trailing delimiters are removed from the taxonomic path
+     * string.
+     *
+     * See @link remove_trailing_delimiter( bool value ) the setter@endlink for details.
+     */
+    bool            remove_trailing_delimiter() const
+    {
+        return remove_trailing_delimiter_;
+    }
 
     // -------------------------------------------------------------------------
     //     Data Members

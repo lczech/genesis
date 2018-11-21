@@ -48,9 +48,7 @@ namespace utils {
  *
  * This is useful in order to select the used hashing function at runtime for some algorithms.
  *
- * @see hash_from_file_hex()
- * @see hash_from_string_hex()
- * @see hash_from_stream_hex()
+ * @see hash_hex()
  */
 enum class HashingFunctions
 {

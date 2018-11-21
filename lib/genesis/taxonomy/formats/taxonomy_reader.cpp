@@ -95,7 +95,7 @@ void TaxonomyReader::parse_document(
         // Parse the taxopath and add it to the taxonomy.
         auto& taxon = add_from_taxopath(
             tax,
-            taxopath_parser_.from_string( line.name ),
+            taxopath_parser_.parse( line.name ),
             expect_strict_order_
         );
 

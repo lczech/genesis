@@ -53,12 +53,12 @@ TEST( Taxonomy, ForEach )
     Taxonomy tax;
     auto parser = TaxopathParser();
 
-    add_from_taxopath( tax, parser( "A;B;C;D" ));
-    add_from_taxopath( tax, parser( "A;B;E;F" ));
-    add_from_taxopath( tax, parser( "A;G;H;I" ));
-    add_from_taxopath( tax, parser( "A;G;H;J" ));
-    add_from_taxopath( tax, parser( "K;L" ));
-    add_from_taxopath( tax, parser( "K;M" ));
+    add_from_taxopath( tax, parser.parse( "A;B;C;D" ));
+    add_from_taxopath( tax, parser.parse( "A;B;E;F" ));
+    add_from_taxopath( tax, parser.parse( "A;G;H;I" ));
+    add_from_taxopath( tax, parser.parse( "A;G;H;J" ));
+    add_from_taxopath( tax, parser.parse( "K;L" ));
+    add_from_taxopath( tax, parser.parse( "K;M" ));
     EXPECT_EQ( 13, total_taxa_count( tax ));
 
     // std::cout << tax;
