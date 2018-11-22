@@ -68,8 +68,7 @@ namespace sequence {
  * get an input source that can be used here.
  *
  * See FastaReader for a description of the expected format. In order to change the reading
- * behaviour, use the reader() function to access the internal FastaReaser and change its
- * properties.
+ * behaviour, a FastaReader object can be handed over from which the settings are copied.
  *
  * The copy constructur copies a pointer to the underlying source.
  * Thus, when advancing the copy to the next Sequence, the original "skips" this Sequence,
@@ -99,7 +98,7 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Create a default instance, using a default FastaReader.
+     * @brief Create a default instance, with no input.
      */
     FastaInputIterator()
         : input_stream_( nullptr )
@@ -108,7 +107,7 @@ public:
     {}
 
     /**
-     * @brief Create an instance that reads from an input source.
+     * @brief Create an instance that reads from an input source, using a default FastaReader.
      */
     FastaInputIterator( std::shared_ptr<utils::BaseInputSource> source )
         : input_stream_( std::make_shared<utils::InputStream>( source ))
@@ -119,11 +118,12 @@ public:
     }
 
     /**
-     * @brief Create an instance that copies the settings of a given FastaReader.
+     * @brief Create an instance that reads from an input source,
+     * using the settings of a given FastaReader.
      */
-    FastaInputIterator( std::shared_ptr<utils::BaseInputSource> source, FastaReader const& reader )
+    FastaInputIterator( std::shared_ptr<utils::BaseInputSource> source, FastaReader const& settings )
         : input_stream_( std::make_shared<utils::InputStream>( source ))
-        , reader_( reader )
+        , reader_( settings )
         , sequence_()
     {
         increment();
@@ -176,16 +176,6 @@ public:
     value_type const& dereference() const
     {
         return sequence_;
-    }
-
-    /**
-     * @brief Return the FastaReader used for this iterator.
-     *
-     * Use this to change the reading behaviour of the iterator. See FastaReader for details.
-     */
-    FastaReader& reader()
-    {
-        return reader_;
     }
 
     // -------------------------------------------------------------------------

@@ -65,8 +65,7 @@ namespace tree {
  * get an input source that can be used here.
  *
  * See NewickReader for a description of the expected format. In order to change the reading
- * behaviour, use the reader() function to access the internal NewickReader and change its
- * properties.
+ * behaviour, a NewickReader object can be handed over from which the settings are copied.
  */
 class NewickInputIterator
 {
@@ -83,12 +82,18 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Create a default instance, with no input.
+     */
     NewickInputIterator()
         : input_stream_( nullptr )
         , reader_()
         , tree_()
     {}
 
+    /**
+     * @brief Create an instance that reads from an input source, using a default NewickReader.
+     */
     NewickInputIterator( std::shared_ptr<utils::BaseInputSource> source )
         : input_stream_( std::make_shared<utils::InputStream>( source ))
         , reader_()
@@ -101,9 +106,13 @@ public:
         increment();
     }
 
-    NewickInputIterator( std::shared_ptr<utils::BaseInputSource> source, NewickReader const& reader )
+    /**
+     * @brief Create an instance that reads from an input source,
+     * using the settings of a given NewickReader.
+     */
+    NewickInputIterator( std::shared_ptr<utils::BaseInputSource> source, NewickReader const& settings )
         : input_stream_( std::make_shared<utils::InputStream>( source ))
-        , reader_( reader )
+        , reader_( settings )
         , tree_()
     {
         // Setting so that we only read one tree at a time.
@@ -160,16 +169,6 @@ public:
     Tree const& dereference() const
     {
         return tree_;
-    }
-
-    /**
-     * @brief Return the NewickReader used for this iterator.
-     *
-     * Use this to change the reading behaviour of the iterator. See NewickReader for details.
-     */
-    NewickReader& reader()
-    {
-        return reader_;
     }
 
     // -------------------------------------------------------------------------
