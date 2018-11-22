@@ -76,8 +76,8 @@ public:
     // ---------------------------------------------------------------------
 
     using Field = std::string;
-    using Row   = std::vector<Field>;
-    using Table = std::vector<Row>;
+    using Line  = std::vector<Field>;
+    using Table = std::vector<Line>;
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five

@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/formats/csv/reader.hpp"
+#include "genesis/utils/formats/csv/input_iterator.hpp"
 
 #include <string>
 #include <vector>
@@ -166,4 +167,17 @@ TEST( Csv, ReaderCommentEmpty )
         { " # this is not", " but", " no!" },
         { "4",  "Daario", "Naharis" }
     });
+}
+
+TEST( Csv, InputIterator )
+{
+    NEEDS_TEST_DATA;
+
+    size_t count = 0;
+    auto line_it = CsvInputIterator( from_file( environment->data_dir + "utils/csv/complex.csv" ));
+    while( line_it ) {
+        ++count;
+        ++line_it;
+    }
+    EXPECT_EQ( 10, count );
 }

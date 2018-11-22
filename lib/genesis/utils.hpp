@@ -51,6 +51,7 @@
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/core/version.hpp"
 #include "genesis/utils/formats/bmp/writer.hpp"
+#include "genesis/utils/formats/csv/input_iterator.hpp"
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/formats/json/document.hpp"
 #include "genesis/utils/formats/json/iterator.hpp"
