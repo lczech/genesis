@@ -252,6 +252,23 @@ int GzipInputSource::get_format_( GzipInputSource::Format format ) const
     }
 }
 
+std::string GzipInputSource::translate_format_( GzipInputSource::Format format ) const
+{
+    switch( format ) {
+        case Format::kAutomatic:
+            return "gzip/zlib";
+        case Format::kGzip:
+            return "gzip";
+        case Format::kZlib:
+            return "zlib";
+        case Format::kDeflate:
+            return "deflate";
+        default:
+            assert( false );
+            return "";
+    }
+}
+
 // =================================================================================================
 //     Gzip Input Source: Functions without zlib
 // =================================================================================================
@@ -303,30 +320,12 @@ int GzipInputSource::get_format_( GzipInputSource::Format ) const
     return 0;
 }
 
-#endif // GENESIS_ZLIB
-
-// =================================================================================================
-//     Gzip Input Source: Common Functions
-// =================================================================================================
-
-std::string GzipInputSource::translate_format_( GzipInputSource::Format format ) const
+std::string GzipInputSource::translate_format_( GzipInputSource::Format ) const
 {
-    // This function does not need the zlib header, so we only define it once.
-
-    switch( format ) {
-        case Format::kAutomatic:
-            return "gzip/zlib";
-        case Format::kGzip:
-            return "gzip";
-        case Format::kZlib:
-            return "zlib";
-        case Format::kDeflate:
-            return "deflate";
-        default:
-            assert( false );
-            return "";
-    }
+    return "";
 }
+
+#endif // GENESIS_ZLIB
 
 } // namespace utils
 } // namespace genesis
