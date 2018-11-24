@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_TOOLS_MD5_H_
-#define GENESIS_UTILS_TOOLS_MD5_H_
+#ifndef GENESIS_UTILS_TOOLS_HASH_MD5_H_
+#define GENESIS_UTILS_TOOLS_HASH_MD5_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.

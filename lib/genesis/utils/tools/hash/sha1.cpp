@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/tools/sha1.hpp"
+#include "genesis/utils/tools/hash/sha1.hpp"
 
 #include "genesis/utils/io/input_buffer.hpp"
 

@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/tools/md5.hpp"
+#include "genesis/utils/tools/hash/md5.hpp"
 
 #include <string>
 #include <iostream>

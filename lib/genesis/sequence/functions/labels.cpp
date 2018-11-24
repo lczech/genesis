@@ -34,9 +34,9 @@
 #include "genesis/sequence/sequence.hpp"
 
 #include "genesis/utils/text/string.hpp"
-#include "genesis/utils/tools/md5.hpp"
-#include "genesis/utils/tools/sha1.hpp"
-#include "genesis/utils/tools/sha256.hpp"
+#include "genesis/utils/tools/hash/md5.hpp"
+#include "genesis/utils/tools/hash/sha1.hpp"
+#include "genesis/utils/tools/hash/sha256.hpp"
 
 #include <algorithm>
 #include <cctype>

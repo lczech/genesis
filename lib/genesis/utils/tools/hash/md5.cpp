@@ -62,7 +62,7 @@
     documentation and/or software.
 */
 
-#include "genesis/utils/tools/md5.hpp"
+#include "genesis/utils/tools/hash/md5.hpp"
 
 #include "genesis/utils/io/input_buffer.hpp"
 

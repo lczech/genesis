@@ -31,7 +31,7 @@
  * @ingroup sequence
  */
 
-#include "genesis/utils/tools/hashing.hpp"
+#include "genesis/utils/tools/hash/functions.hpp"
 
 #include <string>
 #include <utility>

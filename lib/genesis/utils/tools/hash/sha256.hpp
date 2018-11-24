@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_TOOLS_SHA256_H_
-#define GENESIS_UTILS_TOOLS_SHA256_H_
+#ifndef GENESIS_UTILS_TOOLS_HASH_SHA256_H_
+#define GENESIS_UTILS_TOOLS_HASH_SHA256_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
