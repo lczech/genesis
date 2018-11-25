@@ -210,7 +210,7 @@ private:
             }
         }
 
-        assert( result.rows() == line_cnt - ( names_from_first_col_ ? 1 : 0 ));
+        assert( result.rows() == line_cnt - ( names_from_first_row_ ? 1 : 0 ));
         return result;
     }
 
