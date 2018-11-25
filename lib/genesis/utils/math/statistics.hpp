@@ -865,7 +865,7 @@ struct LinearFunction
     double slope;
     double intercept;
 
-    double y( double x )
+    double y( double x ) const
     {
         return slope * x + intercept;
     }
