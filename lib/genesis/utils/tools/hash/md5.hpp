@@ -61,6 +61,7 @@ namespace utils {
  * which itself was converted to C++ class by Frank Thilo (thilo@unix-ag.org) for bzflag
  * (http://www.bzflag.org), and is based on the reference implementation of `RFC 1321`:
  *
+ * @htmlonly <details><summary>License</summary> @endhtmlonly
  * > Copyright (C) 1991-2, RSA Data Security, Inc. Created 1991. All rights reserved.
  * >
  * > License to copy and use this software is granted provided that it
@@ -80,6 +81,7 @@ namespace utils {
  * >
  * > These notices must be retained in any copies of any part of this
  * > documentation and/or software.
+ * @htmlonly </details> @endhtmlonly
  *
  * See also @link supplement_acknowledgements_code_reuse_md Acknowledgements@endlink.
  */

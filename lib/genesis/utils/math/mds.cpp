@@ -28,6 +28,14 @@
  * @ingroup utils
  */
 
+/*
+    The implementation is based on the [SimpleMatrix library](https://sites.google.com/site/simpmatrix/)
+    by [Quan Wang](https://github.com/wq2012), with his explicit permission to use this code here.
+    The copyright (C) of the implementation is held by Quan Wang, 2013.
+    We adapted the implementation to our genesis::utils::Matrix class and changed the error reporting
+    mechanism to exceptions. For further details, see the Acknowledgements section of the documentation.
+*/
+
 #include "genesis/utils/math/mds.hpp"
 
 #include "genesis/utils/containers/matrix/operators.hpp"
