@@ -53,8 +53,10 @@
 
 #include "genesis/utils/math/regression/helper.hpp"
 
+#include <cassert>
 #include <cstdlib>
 #include <limits>
+#include <stdexcept>
 
 namespace genesis {
 namespace utils {
@@ -63,167 +65,246 @@ namespace utils {
 //     Linear Algebra Helper Functions
 // =============================================================================
 
-/* If resid==0, return a vector containing the appropriate stratum (weighted)
+/* If resid==0, return a vector containing the appropriate strata (weighted)
      means. Otherwise, center the input    vector around these. i.e    calculate
      either the "fitted value" or the residual from a model in which only
-     strata are fitted. In this and following functions, ynew can coincide with
+     strata are fitted. In this and following functions, y_new can coincide with
      y. Matrices are stored in Fortran order
      Returns number of empty strata */
 
-int wcenter(const double *y, int n, const double *weight, const int *stratum,
-                        int nstrata, int resid, double *ynew) {
-    int i = 0, s = 0;
-    if (!stratum) {
-        if (!nstrata) {
-            /* Nothing to do ... if necessary copy input to output */
-            if (ynew != y)
-                for (i = 0; i < n; i++)
-                    ynew[i] = y[i];
-            return (0);
-        } else
-            nstrata = 1;
+size_t weighted_centering(
+    std::vector<double> const& y,
+    std::vector<double> const& weights,
+    std::vector<int> const&    strata,
+    bool                       with_intercept,
+    bool                       centering,
+    std::vector<double>&       y_new
+) {
+    if( &y_new != &y ) {
+        y_new.resize( y.size() );
     }
-    int empty = 0;
-    if (nstrata > 1) {
-        double *swy, *swt;
-        swy = (double *)calloc(nstrata, sizeof(double));
-        swt = (double *)calloc(nstrata, sizeof(double));
-        for (int i = 0; i < nstrata; ++i) {
-            swy[i] = 0.0;
-            swt[i] = 0.0;
+    assert( y_new.size() == y.size() );
+
+    size_t empty = 0;
+    if( strata.empty() ) {
+        if( ! with_intercept ) {
+            // Nothing to do ... if necessary copy input to output
+            if( &y_new != &y ) {
+                for( size_t i = 0; i < y.size(); ++i ) {
+                    y_new[i] = y[i];
+                }
+            }
+            return 0;
         }
 
-        if (weight) {
-            for (i = 0; i < n; i++) {
-                double wi = weight[i];
-                int s = stratum[i] - 1;
-                swt[s] += wi;
-                swy[s] += wi * y[i];
+        double swt = 0.0;
+        double swy = 0.0;
+
+        if( weights.empty() ) {
+            for( size_t i = 0; i < y.size(); ++i ) {
+                swy += y[i];
             }
+            swt = static_cast<double>( y.size() );
         } else {
-            for (i = 0; i < n; i++) {
-                int s = stratum[i] - 1;
-                swt[s]++;
-                swy[s] += y[i];
+            if( weights.size() != y.size() ) {
+                throw std::invalid_argument(
+                    "weighted_residuals: y and weights need to have same length."
+                );
             }
-        }
-        for (s = 0; s < nstrata; s++) {
-            double sws = swt[s];
-            if (sws > 0.0)
-                swy[s] /= sws;
-            else
-                empty++;
-        }
-        for (i = 0; i < n; i++) {
-            int s = stratum[i] - 1;
-            if (swt[s])
-                ynew[i] = resid ? y[i] - swy[s] : swy[s];
-        }
-        free(swy);
-        free(swt);
-    } else {
-        double swt = 0.0, swy = 0.0;
-        if (weight) {
-            for (i = 0; i < n; i++) {
-                double wi = weight[i];
+
+            for( size_t i = 0; i < y.size(); ++i ) {
+                double wi = weights[i];
                 swt += wi;
                 swy += wi * y[i];
             }
-        } else {
-            for (i = 0; i < n; i++) {
-                swy += y[i];
-            }
-            swt = (double)n;
         }
         swy /= swt;
-        if (swt > 0)
-            for (i = 0; i < n; i++)
-                ynew[i] = resid ? y[i] - swy : swy;
-        else
+
+        if( swt > 0 ) {
+            for( size_t i = 0; i < y.size(); ++i ) {
+                y_new[i] = centering ? y[i] - swy : swy;
+            }
+        } else {
             empty = 1;
+        }
+
+    } else {
+        if( strata.size() != y.size() ) {
+            throw std::invalid_argument(
+                "weighted_centering: y and strata need to have same length."
+            );
+        }
+
+        auto swy = std::vector<double>( strata.size(), 0.0 );
+        auto swt = std::vector<double>( strata.size(), 0.0 );
+
+        if( weights.empty() ) {
+            for( size_t i = 0; i < y.size(); ++i ) {
+                int s = strata[i] - 1;
+                swt[s]++;
+                swy[s] += y[i];
+            }
+        } else {
+            if( weights.size() != y.size() ) {
+                throw std::invalid_argument(
+                    "weighted_residuals: y and weights need to have same length."
+                );
+            }
+
+            for( size_t i = 0; i < y.size(); ++i ) {
+                double wi = weights[i];
+                int s = strata[i] - 1;
+                swt[s] += wi;
+                swy[s] += wi * y[i];
+            }
+        }
+
+        for( size_t s = 0; s < strata.size(); ++s ) {
+            double sws = swt[s];
+            if( sws > 0.0 ) {
+                swy[s] /= sws;
+            } else {
+                empty++;
+            }
+        }
+        for( size_t i = 0; i < y.size(); ++i ) {
+            int s = strata[i] - 1;
+            if( swt[s] ) {
+                y_new[i] = centering ? y[i] - swy[s] : swy[s];
+            }
+        }
     }
-    return (empty);
+
+    return empty;
 }
 
-/* Replace y by residual from (weighted) regression through the origin
-     Returns regression coefficient */
+double weighted_residuals(
+    std::vector<double> const& x,
+    std::vector<double> const& y,
+    std::vector<double> const& weights,
+    std::vector<double>&       y_new
+) {
+    if( x.size() != y.size() ) {
+        throw std::invalid_argument(
+            "weighted_residuals: x and y need to have same length."
+        );
+    }
 
-double wresid(const double *y, int n, const double *weight, const double *x,
-                            double *ynew) {
-    double swxx, swxy;
-    swxy = swxx = 0.0;
-    int i;
-    if (weight) {
-        for (i = 0; i < n; i++) {
-            double wi = weight[i];
-            double xi = x[i];
-            double wx = wi * xi;
-            swxy += wx * y[i];
-            swxx += wx * xi;
-        }
-    } else {
-        for (i = 0; i < n; i++) {
-            double xi = x[i];
+    double swxx = 0.0;
+    double swxy = 0.0;
+
+    if( weights.empty() ) {
+        for( size_t i = 0; i < x.size(); ++i ) {
+            double const xi = x[i];
             swxy += xi * y[i];
             swxx += xi * xi;
         }
-    }
-    if (swxx > 0) {
-        swxy /= swxx;
-        for (i = 0; i < n; i++)
-            ynew[i] = y[i] - swxy * x[i];
-        return (swxy);
     } else {
-        if (ynew != y) {
-            for (i = 0; i < n; i++)
-                ynew[i] = y[i];
+        if( weights.size() != x.size() ) {
+            throw std::invalid_argument(
+                "weighted_residuals: x and weights need to have same length."
+            );
+        }
+
+        for( size_t i = 0; i < x.size(); ++i ) {
+            double const xi = x[i];
+            double const wi = weights[i];
+            double const wx = wi * xi;
+            swxy += wx * y[i];
+            swxx += wx * xi;
+        }
+    }
+
+    if( &y_new != &y ) {
+        y_new.resize( y.size() );
+    }
+    assert( y_new.size() == y.size() );
+    if( swxx > 0 ) {
+        swxy /= swxx;
+        for( size_t i = 0; i < x.size(); ++i ) {
+            y_new[i] = y[i] - swxy * x[i];
+        }
+
+        return swxy;
+    } else {
+        if( &y_new != &y ) {
+            for( size_t i = 0; i < x.size(); ++i ) {
+                y_new[i] = y[i];
+            }
         }
         return std::numeric_limits<double>::quiet_NaN();
     }
 }
 
-/* Weighted sum of squares */
-
-double wssq(const double *y, int n, const double *weights) {
+double weighted_sum_of_squares( std::vector<double> const& x, std::vector<double> const& weights )
+{
     double res = 0.0;
-    if (weights) {
-        for (int i = 0; i < n; i++) {
-            double yi = y[i];
-            res += weights[i] * yi * yi;
+    if( weights.empty() ) {
+        for( size_t i = 0; i < x.size(); ++i ) {
+            res += x[i] * x[i];
         }
     } else {
-        for (int i = 0; i < n; i++) {
-            double yi = y[i];
-            res += yi * yi;
+        if( weights.size() != x.size() ) {
+            throw std::invalid_argument(
+                "weighted_sum: x and weights need to have same length."
+            );
+        }
+        for( size_t i = 0; i < x.size(); ++i ) {
+            res += weights[i] * x[i] * x[i];
         }
     }
-    return (res);
+    return res;
 }
 
-/* Weighted inner product */
+double weighted_inner_product(
+    std::vector<double> const& x,
+    std::vector<double> const& y,
+    std::vector<double> const& weights
+) {
+    if( x.size() != y.size() ) {
+        throw std::invalid_argument(
+            "weighted_inner_product: x and y need to have same length."
+        );
+    }
 
-double wspr(const double *y, const double *x, int n, const double *weights) {
     double res = 0.0;
-    if (weights)
-        for (int i = 0; i < n; i++)
-            res += weights[i] * y[i] * x[i];
-    else
-        for (int i = 0; i < n; i++)
+    if( weights.empty() ) {
+        for( size_t i = 0; i < y.size(); ++i ) {
             res += y[i] * x[i];
-    return (res);
+        }
+    } else {
+        if( weights.size() != y.size() ) {
+            throw std::invalid_argument(
+                "weighted_inner_product: x and weights need to have same length."
+            );
+        }
+        for( size_t i = 0; i < y.size(); ++i ) {
+            res += weights[i] * y[i] * x[i];
+        }
+    }
+    return res;
 }
 
-/* Weighted sum */
-
-double wsum(const double *y, int n, const double *weights) {
+double weighted_sum(
+    std::vector<double> const& x,
+    std::vector<double> const& weights
+) {
     double res = 0.0;
-    if (weights)
-        for (int i = 0; i < n; i++)
-            res += weights[i] * y[i];
-    else
-        for (int i = 0; i < n; i++)
-            res += y[i];
-    return (res);
+    if( weights.empty() ) {
+        for( size_t i = 0; i < x.size(); ++i ) {
+            res += x[i];
+        }
+    } else {
+        if( weights.size() != x.size() ) {
+            throw std::invalid_argument(
+                "weighted_sum: x and weights need to have same length."
+            );
+        }
+        for( size_t i = 0; i < x.size(); ++i ) {
+            res += weights[i] * x[i];
+        }
+    }
+    return res;
 }
 
 } // namespace utils

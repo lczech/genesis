@@ -57,6 +57,7 @@
 #include "genesis/utils/math/regression/helper.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -120,37 +121,66 @@ Return
 
 */
 
-int glm_fit(int family, int link, int N, int M, int P, int S, const double *y,
-                        const double *prior, const double *X, const int *stratum, int maxit,
-                        double conv, double r2max, int init, int *rank, double *Xb,
-                        double *fitted, double *resid, double *weights, double *scale,
-                        int *df_resid, int *P_est, int *which, double *betaQ, double *tri) {
-    double eta = 1.0 - r2max; /* Singularity threshold */
-    int Mskip = M - P;                /* Number of parameters NOT estimated */
+// int family, int link, int N, int M, int P, int S, const double *y,
+// const double *prior, const double *X, const int *stratum, int maxit,
+// double epsilon, double r2max, int init,
+// int *rank, double *Xb,
+// double *fitted, double *resid, double *weights, double *scale,
+// int *df_resid, int *P_est, int *which, double *betaQ, double *tri
+
+GlmOutput glm_fit(
+    int family, int link, int S, std::vector<double> const& y,
+    std::vector<double> const& prior, Matrix<double> const& X, std::vector<int> const& stratum, size_t maxit,
+    double epsilon, double r2max, int init
+) {
+
+    // Some shortcuts.
+    auto const N = y.size();
+    auto const M = X.cols();
+
+    // Error checks.
+    if( X.rows() != N ) {
+        throw std::invalid_argument( "glm_fit: size of rows of X is not size of y." );
+    }
+    if( ! prior.empty() && prior.size() != N ) {
+        throw std::invalid_argument( "glm_fit: size of prior is not size of y." );
+    }
+    assert( prior.empty() || prior.size() == N );
+    if( ! stratum.empty() && stratum.size() != N ) {
+        throw std::invalid_argument( "glm_fit: size of stratum is not size of y." );
+    }
+    assert( stratum.empty() || stratum.size() == N );
+
+    // Prepare results.
+    GlmOutput result;
+    result.Xb = Matrix<double>( N, M );
+    result.fitted = std::vector<double>( N );
+    result.resid = std::vector<double>( N );
+    result.weights = std::vector<double>( N );
+    result.which = std::vector<double>( M );
+    result.betaQ = std::vector<double>( M );
+    result.tri = std::vector<double>( (M * ( M+1 )) / 2 );
+
+    double eta = 1.0 - r2max; // Singularity threshold
     int Nu, irls;
     int dfr = 0;
     int empty = 0;
-    *scale = 1.0; /* Default scale factor */
-    if ((P > 0) && !(P_est && which && betaQ && tri))
-        throw std::runtime_error("Code bug: missing work arrays for estimation");
+    result.scale = 1.0; // Default scale factor
 
-    /*    Is iteration necessary? */
-
+    // Is iteration necessary?
     irls = (M > 0) && !((family == GAUSSIAN) && (link == IDENTITY));
 
     if (!init || !irls) {
-
-        /* Fit intercept and/or strata part of model */
-
-        empty = wcenter(y, N, prior, stratum, S, 0, fitted);
+        // Fit intercept and/or strata part of model
+        empty = weighted_centering( y, prior, stratum, S, false, result.fitted );
     }
 
     Nu = 0;
     int invalid = 0;
-    for (int i = 0; i < N; i++) {
-        double mu = fitted[i];
+    for( size_t i = 0; i < N; i++ ) {
+        double mu = result.fitted[i];
         double ri, wi;
-        double pi = prior ? prior[i] : 1.0;
+        double pi = prior.empty() ? 1.0 : prior[i];
         if (!(pi))
             wi = ri = 0.0;
         else {
@@ -165,68 +195,103 @@ int glm_fit(int family, int link, int N, int M, int P, int S, const double *y,
                 wi = pi / (D * D * Vmu);
             }
         }
-        weights[i] = wi;
-        resid[i] = ri;
+        result.weights[i] = wi;
+        result.resid[i] = ri;
     }
 
     /* If M>0, include covariates */
 
-    int x_rank = 0, skip_xb = 0, convg = 0, iter = 0;
+    int convg = 0;
+    result.num_iterations = 0;
     if (M) {
         convg = 0;
         if (irls) {
 
             /* IRLS algorithm */
 
-            double *yw = (double *)calloc(N, sizeof(double));
+            auto yw = std::vector<double>( N );
             double logL_prev = 0.0;
-            while (iter < maxit && !convg) {
+            while (result.num_iterations < maxit && !convg) {
                 double logL = 0.0;
-                for (int i = 0; i < N; i++)
-                    yw[i] = resid[i] + linkfun(family, fitted[i]);
-                empty = wcenter(yw, N, weights, stratum, S, 1, resid);
-                const double *xi = X; /* X matrix */
-                double *xbi = Xb;         /* Orthogonal basis matrix */
-                x_rank = 0;                     /* Columns in Xb matrix */
-                skip_xb = 0;                    /* Columns in Xb matrix not estimands */
-                /* Loop over columns of X matrix */
-                for (int i = 0, ii = 0, ij = 0; i < M; i++, xi += N) {
-                    wcenter(xi, N, weights, stratum, S, 1, xbi); /* Center */
-                    double ssx = wssq(xbi, N, weights);                    /* Corrected SSQ */
-                    /* Regress on earlier columns */
-                    double ssr = ssx;
-                    if (x_rank) {
-                        double *xbj = Xb;
-                        for (int j = 0; j < x_rank; j++, xbj += N) {
-                            double bij = wresid(xbi, N, weights, xbj, xbi); /* Coefficient */
-                            if (j >= skip_xb)
-                                tri[ij++] = bij; /* Save in off-diagonal elements of tri */
-                        }
-                        ssr = wssq(xbi, N, weights); /* Residual SSQ */
-                    }
-                    if ((ssx > 0.0) && (ssr / ssx > eta)) {
-                        double bQi = wresid(resid, N, weights, xbi, resid);
-                        x_rank++;
-                        xbi += N;
-                        if (i < Mskip)
-                            skip_xb++;
-                        else {
-                            tri[ij++] = ssr; /* Diagonal elements of tri */
-                            which[ii] = i;
-                            betaQ[ii++] = bQi;
-                        }
-                    } else
-                        ij -= (x_rank - skip_xb); /* Drop off-diagonal elements of tri */
+                for( size_t i = 0; i < N; i++ ) {
+                    yw[i] = result.resid[i] + linkfun(family, result.fitted[i]);
                 }
+                empty = weighted_centering( yw, result.weights, stratum, S, true, result.resid );
+
+                // Columns in Xb matrix
+                result.rank = 0;
+
+                // Orthogonal basis matrix
+                size_t xb_col = 0;
+                auto xb_tmp = std::vector<double>();
+
+                // Loop over columns of X matrix
+                for( size_t i = 0, ii = 0, ij = 0; i < M; ++i ) {
+                    // Center
+                    weighted_centering( X.col(i), result.weights, stratum, S, 1, xb_tmp );
+                    result.Xb.col( xb_col ) = xb_tmp;
+
+                    // Corrected SSQ
+                    double ssx = weighted_sum_of_squares(
+                        result.Xb.col( xb_col ), result.weights
+                    );
+
+                    // Regress on earlier columns
+                    double ssr = ssx;
+                    if (result.rank) {
+                        for( size_t j = 0; j < result.rank; ++j ) {
+
+                            // Coefficient
+                            double bij = weighted_residuals(
+                                result.Xb.col( j ),
+                                result.Xb.col( xb_col ),
+                                result.weights,
+                                xb_tmp
+                            );
+                            result.Xb.col( xb_col ) = xb_tmp;
+
+                            // Save in off-diagonal elements of tri
+                            result.tri[ij] = bij;
+                            ++ij;
+                        }
+
+                        // Residual SSQ
+                        ssr = weighted_sum_of_squares( result.Xb.col( xb_col ), result.weights );
+                    }
+
+                    if ((ssx > 0.0) && (ssr / ssx > eta)) {
+                        double const bQi = weighted_residuals(
+                            result.Xb.col( xb_col ),
+                            result.resid,
+                            result.weights,
+                            result.resid
+                        );
+
+                        ++result.rank;
+                        ++xb_col;
+                        assert(( xb_col < M ) xor ( i+1 == M ));
+
+                        // Diagonal elements of tri
+                        result.tri[ij] = ssr;
+                        result.which[ii] = i;
+                        result.betaQ[ii] = bQi;
+                        ++ii;
+                        ++ij;
+                    } else {
+                        // Drop off-diagonal elements of tri
+                        ij -= result.rank;
+                    }
+                }
+
                 double wss = 0.0;
                 Nu = 0;
-                for (int i = 0; i < N; i++) {
+                for (size_t i = 0; i < N; i++) {
                     double D, Vmu, ri, wi;
-                    double mu = invlink(link, yw[i] - resid[i]);
-                    fitted[i] = validmu(family, mu);
-                    double pi = prior ? prior[i] : 1.0;
+                    double mu = invlink(link, yw[i] - result.resid[i]);
+                    result.fitted[i] = validmu(family, mu);
+                    double pi = prior.empty() ? 1.0 : prior[i];
                     logL += pi * loglik(family, y[i], mu);
-                    if (!(pi && (weights[i] > 0.0)))
+                    if (!(pi && (result.weights[i] > 0.0)))
                         wi = ri = 0.0;
                     else {
                         Vmu = varfun(family, mu);
@@ -241,87 +306,102 @@ int glm_fit(int family, int link, int N, int M, int P, int S, const double *y,
                         }
                         wss += wi * ri * ri;
                     }
-                    weights[i] = wi;
-                    resid[i] = ri;
+                    result.weights[i] = wi;
+                    result.resid[i] = ri;
                 }
-                dfr = Nu - S + empty - x_rank;
+                dfr = Nu - S + empty - result.rank;
                 if (family > 2) {
-                    *scale = wss / (dfr);
+                    result.scale = wss / (dfr);
                 }
-                if (iter > 1) {
-                    double dL = (logL - logL_prev) / (*scale);
+                if (result.num_iterations > 1) {
+                    double dL = (logL - logL_prev) / (result.scale);
                     if (dL < 0.0)
                         convg = 2;
-                    if (iter < maxit && dL < conv)
+                    if (result.num_iterations < maxit && dL < epsilon)
                         convg = 1;
                 }
                 logL_prev = logL;
-                iter++;
+                result.num_iterations++;
             }
-            for (int i = 0; i < N; i++)
-                fitted[i] = invlink(link, yw[i] - resid[i]);
-            free(yw);
+            for( size_t i = 0; i < N; i++ ) {
+                result.fitted[i] = invlink(link, yw[i] - result.resid[i]);
+            }
+
         } else {
 
             /* Simple linear Gaussian case */
 
-            const double *xi = X;
-            double *xbi = Xb;
-            x_rank = 0;
-            skip_xb = 0;
-            for (int i = 0, ii = 0, ij = 0; i < M; i++, xi += N) {
-                wcenter(xi, N, weights, stratum, S, 1, xbi);
-                double ssx = wssq(xbi, N, weights);
+            size_t xb_col = 0;
+            auto xb_tmp = std::vector<double>();
+            result.rank = 0;
+
+            for( size_t i = 0, ii = 0, ij = 0; i < M; i++ ) {
+                weighted_centering( X.col(i), result.weights, stratum, S, true, xb_tmp );
+                result.Xb.col( xb_col ) = xb_tmp;
+
+                double ssx = weighted_sum_of_squares( result.Xb.col( xb_col ), result.weights );
                 double ssr = ssx;
-                if (x_rank) {
-                    double *xbj = Xb;
-                    for (int j = 0; j < x_rank; j++, xbj += N) {
-                        double bij = wresid(xbi, N, weights, xbj, xbi);
-                        if (j >= skip_xb)
-                            tri[ij++] = bij; /* Off-diagonal    */
+                if (result.rank) {
+                    for( size_t j = 0; j < result.rank; ++j ) {
+                        double const bij = weighted_residuals(
+                            result.Xb.col( j ),
+                            result.Xb.col( xb_col ),
+                            result.weights,
+                            xb_tmp
+                        );
+                        result.Xb.col( xb_col ) = xb_tmp;
+
+                        // Off-diagonal
+                        result.tri[ij] = bij;
+                        ++ij;
                     }
-                    ssr = wssq(xbi, N, weights);
+                    ssr = weighted_sum_of_squares( result.Xb.col( xb_col ), result.weights );
                 }
-                if ((ssx > 0.0) && (ssr / ssx > eta)) {
-                    double bQi = wresid(resid, N, weights, xbi, resid);
-                    x_rank++;
-                    xbi += N;
-                    if (i < Mskip)
-                        skip_xb++;
-                    else {
-                        tri[ij++] = ssr; /* Diagonal */
-                        which[ii] = i;
-                        betaQ[ii++] = bQi;
-                    }
-                } else
-                    ij -= (x_rank - skip_xb);
+                if(( ssx > 0.0) && (ssr / ssx > eta )) {
+                    double const bQi = weighted_residuals(
+                        result.Xb.col( xb_col ),
+                        result.resid,
+                        result.weights,
+                        result.resid
+                    );
+
+                    ++result.rank;
+                    ++xb_col;
+
+                    // Diagonal
+                    result.tri[ij] = ssr;
+                    result.which[ii] = i;
+                    result.betaQ[ii] = bQi;
+                    ++ij;
+                    ++ii;
+                } else {
+                    ij -= result.rank;
+                }
             }
-            double wss = wssq(resid, N, weights);
-            for (int i = 0; i < N; i++)
-                fitted[i] = y[i] - resid[i];
-            dfr = Nu - S + empty - x_rank;
-            *scale = wss / (dfr);
+            double wss = weighted_sum_of_squares( result.resid, result.weights );
+            for( size_t i = 0; i < N; ++i ) {
+                result.fitted[i] = y[i] - result.resid[i];
+            }
+            dfr = Nu - S + empty - result.rank;
+            result.scale = wss / (dfr);
         }
-    }
+    } else {
+        /* No covariates */
 
-    /* No covariates */
-
-    else {
         if ((S > 1) && invalid) /* Need to recalculate empty stratum count    */
-            empty = wcenter(fitted, N, weights, stratum, S, 0, fitted);
+            empty = weighted_centering( result.fitted, result.weights, stratum, S, false, result.fitted );
         dfr = Nu - S + empty;
         if (family > 2)
-            *scale = wssq(resid, N, weights) / (dfr);
+            result.scale = weighted_sum_of_squares( result.resid, result.weights ) / (dfr);
         else
-            *scale = 1.0;
-        x_rank = 0;
+            result.scale = 1.0;
+        result.rank = 0;
     }
-    *df_resid = dfr > 0 ? dfr : 0;
-    *rank = x_rank;
-    if (P_est) {
-        *P_est = x_rank - skip_xb;
-    }
-    return (irls && !convg);
+
+    result.df_resid = dfr > 0 ? dfr : 0;
+    result.converged = (irls && !convg);
+
+    return result;
 }
 
 /*
@@ -481,21 +561,21 @@ Output:
 score       P*1 vector of scores
 score-var   Upper triangle of variance-covariance matrix of scores
 
-*/
+* /
 
 void glm_score_test(int N, int M, int S, const int *stratum, int P,
                                         const double *Z, int C, const int *cluster,
                                         const double *resid, const double *weights,
                                         const double *Xb, double scale, double max_R2,
                                         double *score, double *score_var) {
-    const double eta = 1.e-8; /* First stage singularity test */
+    const double eta = 1.e-8; // First stage singularity test
     const double *Zi = Z;
     double *Zr, *Zri;
     double *U = NULL, *Ui = NULL;
 
     (void) max_R2;
 
-    /* Work array */
+    // Work array
 
     Zri = Zr = (double *)calloc(N * P, sizeof(double));
     int nc = 0;
@@ -505,11 +585,11 @@ void glm_score_test(int N, int M, int S, const int *stratum, int P,
         memset(U, 0x00, nc * P * sizeof(double));
     }
 
-    /* Main algorithm */
+    // Main algorithm
 
     for (int i = 0, ij = 0; i < P; i++, Zi += N, Zri += N) {
 
-        /* Regress each column of Z on strata indicators and X basis */
+        // Regress each column of Z on strata indicators and X basis
 
         double ssz = wssq(Zi, N, weights);
         wcenter(Zi, N, weights, stratum, S, 1, Zri);
@@ -518,11 +598,11 @@ void glm_score_test(int N, int M, int S, const int *stratum, int P,
             wresid(Zri, N, weights, Xbj, Zri);
         double ssr = wssq(Zri, N, weights);
 
-        if (ssr / ssz > eta) { /* Singularity test */
+        if (ssr / ssz > eta) { // Singularity test
 
             if (C) {
 
-                /* Add new column to matrix of score contributions */
+                // Add new column to matrix of score contributions
 
                 if (C == 1) {
                     for (int k = 0; k < N; k++)
@@ -534,7 +614,7 @@ void glm_score_test(int N, int M, int S, const int *stratum, int P,
                     }
                 }
 
-                /* Update score and score-variance */
+                // Update score and score-variance
 
                 score[i] = wsum(Ui, nc, NULL);
                 double *Uj = U;
@@ -543,7 +623,7 @@ void glm_score_test(int N, int M, int S, const int *stratum, int P,
                 score_var[ij++] = wssq(Ui, nc, NULL);
             } else {
 
-                /* Update score and score-variance */
+                // Update score and score-variance
 
                 score[i] = wspr(Zri, resid, N, weights);
                 double *Zrj = Zr;
@@ -564,6 +644,8 @@ void glm_score_test(int N, int M, int S, const int *stratum, int P,
     if (C)
         free(U);
 }
+
+// */
 
 // =================================================================================================
 //     Parameter Estimation

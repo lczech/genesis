@@ -31,6 +31,10 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/containers/matrix.hpp"
+
+#include <vector>
+
 namespace genesis {
 namespace utils {
 
@@ -61,7 +65,41 @@ double linkfun(int, double);
 double invlink(int, double);
 double dlink(int, double);
 
+struct GlmInput
+{
+    int family;
+    int link;
+    int N;
+    int M;
+    int S;
+    const double *y;
+    const double *prior;
+    const double *X;
+    const int *stratum;
+    int maxit;
+    double epsilon;
+    double r2max;
+    int init;
+};
 
+struct GlmOutput
+{
+    bool converged;
+    size_t num_iterations;
+
+    size_t rank;
+    double scale;
+    int df_resid;
+
+    Matrix<double> Xb; // size N * M
+    std::vector<double> fitted; // size N
+    std::vector<double> resid; // size N
+    std::vector<double> weights; // size N
+
+    std::vector<double> which; // size M
+    std::vector<double> betaQ; // size M
+    std::vector<double> tri; // size (M * (M+1)) / 2
+};
 
 /* Fit a base model */
 
@@ -72,13 +110,11 @@ double dlink(int, double);
  * on the license and original authors.
  */
 
-int glm_fit(int family, int link, int N, int M, int P, int S,
-        const double *y, const double *prior, const double *X,
-        const int *stratum, int maxit, double conv, double r2max, int init,
-        int *rank, double *Xb,
-        double *fitted, double *resid, double *weights,
-        double *scale, int *df_resid,
-        int *P_est, int *which, double *beta, double *tri);
+GlmOutput glm_fit(
+    int family, int link, int S, std::vector<double> const& y,
+    std::vector<double> const& prior, Matrix<double> const& X, std::vector<int> const& stratum, size_t maxit,
+    double epsilon, double r2max, int init
+);
 
 /* Score test for additional terms */
 
