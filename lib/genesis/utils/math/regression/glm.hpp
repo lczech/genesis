@@ -75,21 +75,44 @@ struct GlmInput
     const double *y;
     const double *prior;
     const double *X;
-    const int *stratum;
-    int maxit;
-    double epsilon;
-    double r2max;
+    const int *strata;
     int init;
+};
+
+struct GlmControl
+{
+    /**
+     * @brief Maximum number of iterations to run the IRLS algorithm for.
+     */
+    size_t max_iterations = 25;
+
+    /**
+     * @brief Minimal difference in log likelihood between two iterations of the IRLS algorithm
+     * that we consider for convergence.
+     */
+    double epsilon = 1.e-5;
+
+    /**
+     * @brief Threshold for singluarities. Used as `eta = 1.0 - r2max`.
+     */
+    double r2max = 0.99;
+};
+
+struct GlmExtras
+{
+    std::vector<double> initial_fittings;
+    std::vector<double> priors;
+    std::vector<int>    strata;
 };
 
 struct GlmOutput
 {
-    bool converged;
-    size_t num_iterations;
+    bool converged = false;
+    size_t num_iterations = 0;
 
-    size_t rank;
-    double scale;
-    int df_resid;
+    size_t rank = 0;
+    double scale = 1.0;
+    size_t df_resid = 0;
 
     Matrix<double> Xb; // size N * M
     std::vector<double> fitted; // size N
@@ -111,9 +134,11 @@ struct GlmOutput
  */
 
 GlmOutput glm_fit(
-    int family, int link, int S, std::vector<double> const& y,
-    std::vector<double> const& prior, Matrix<double> const& X, std::vector<int> const& stratum, size_t maxit,
-    double epsilon, double r2max, int init
+    int family, int link, int S,
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmExtras const&           extras = {},
+    GlmControl const&          control = {}
 );
 
 /* Score test for additional terms */
@@ -125,7 +150,7 @@ GlmOutput glm_fit(
  * on the license and original authors.
  */
 
-void glm_score_test(int N, int M, int S, const int *stratum,
+void glm_score_test(int N, int M, int S, const int *strata,
             int P, const double *Z, int C, const int *cluster,
             const double *resid, const double *weights,
             const double *Xb, double scale,
