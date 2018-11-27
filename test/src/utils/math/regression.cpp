@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/math/statistics.hpp"
+#include "genesis/utils/math/regression/slr.hpp"
 #include "genesis/utils/containers/dataframe.hpp"
 #include "genesis/utils/containers/dataframe/reader.hpp"
 

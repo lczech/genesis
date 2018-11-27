@@ -111,6 +111,7 @@
 #include "genesis/utils/math/ranking.hpp"
 #include "genesis/utils/math/regression/glm.hpp"
 #include "genesis/utils/math/regression/helper.hpp"
+#include "genesis/utils/math/regression/slr.hpp"
 #include "genesis/utils/math/statistics.hpp"
 #include "genesis/utils/math/twobit_vector/functions.hpp"
 #include "genesis/utils/math/twobit_vector.hpp"
