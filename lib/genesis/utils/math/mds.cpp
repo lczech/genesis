@@ -165,6 +165,7 @@ static Matrix<double> multi_dimensional_scaling_smacof(
     assert( iterations >= 1 );
     assert( initial_values.rows() == distances.rows() );
     assert( initial_values.cols() == dimensions );
+    (void) dimensions;
 
     // Prepare result and a copy of it for the updating process.
     auto result = initial_values;
