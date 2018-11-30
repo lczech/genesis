@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,16 @@
  * @ingroup test
  */
 
+// =================================================================================================
+//     Common Headers
+// =================================================================================================
+
+#include "genesis/utils/core/logging.hpp"
+
+// =================================================================================================
+//     Compiler Details
+// =================================================================================================
+
 // Disable warnings for GCC, also works in Clang, see http://stackoverflow.com/a/13492589/4184258
 // Furthermore, while we are at it, also disable the warning produced by the pragma
 // for disabling warnings in MSVC...
@@ -48,7 +58,9 @@
 #pragma warning (pop)
 #pragma GCC diagnostic pop
 
-#include "genesis/utils/core/logging.hpp"
+// =================================================================================================
+//     Useful Macros
+// =================================================================================================
 
 /**
  * @brief Macro to be used in test bodies that depend on the data directory.
@@ -62,6 +74,58 @@
         }                                                  \
         return;                                            \
     };
+
+#define EXPECT_ITERABLE_DOUBLE_EQ( TYPE, ref, target) \
+{ \
+    const TYPE& _ref(ref); \
+    const TYPE& _target(target); \
+    TYPE::const_iterator tarIter   = _target.begin(); \
+    TYPE::const_iterator refIter = _ref.begin(); \
+    unsigned int i = 0; \
+    while(refIter != _ref.end()) { \
+        if ( tarIter == _target.end() ) { \
+            ADD_FAILURE() << #target \
+                " has a smaller length than " #ref ; \
+            break; \
+        } \
+        EXPECT_DOUBLE_EQ(* refIter, * tarIter) \
+            << "Vectors " #ref  " (refIter) " \
+               "and " #target " (tarIter) " \
+               "differ at index " << i; \
+        ++refIter; ++tarIter; ++i; \
+    } \
+    EXPECT_TRUE( tarIter == _target.end() ) \
+        << #ref " has a smaller length than " \
+           #target ; \
+}
+
+#define EXPECT_ITERABLE_DOUBLE_NEAR( TYPE, ref, target, delta) \
+{ \
+    const TYPE& _ref(ref); \
+    const TYPE& _target(target); \
+    TYPE::const_iterator tarIter   = _target.begin(); \
+    TYPE::const_iterator refIter = _ref.begin(); \
+    unsigned int i = 0; \
+    while(refIter != _ref.end()) { \
+        if ( tarIter == _target.end() ) { \
+            ADD_FAILURE() << #target \
+                " has a smaller length than " #ref ; \
+            break; \
+        } \
+        EXPECT_NEAR(* refIter, * tarIter, delta) \
+            << "Vectors " #ref  " (refIter) " \
+               "and " #target " (tarIter) " \
+               "differ at index " << i; \
+        ++refIter; ++tarIter; ++i; \
+    } \
+    EXPECT_TRUE( tarIter == _target.end() ) \
+        << #ref " has a smaller length than " \
+           #target ; \
+}
+
+// =================================================================================================
+//     Test Environment
+// =================================================================================================
 
 /**
  * @Brief Environment class for testing genesis.
