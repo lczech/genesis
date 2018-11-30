@@ -79,6 +79,14 @@ struct GlmInput
     int init;
 };
 
+struct GlmExtras
+{
+    std::vector<double> initial_fittings;
+    std::vector<double> priors;
+    std::vector<size_t> strata;
+    bool const          with_intercept = true;
+};
+
 struct GlmControl
 {
     /**
@@ -93,16 +101,9 @@ struct GlmControl
     double epsilon = 1.e-5;
 
     /**
-     * @brief Threshold for singluarities. Used as `eta = 1.0 - r2max`.
+     * @brief Threshold for singluarities. Internally used as `eta = 1.0 - max_r2`.
      */
-    double r2max = 0.99;
-};
-
-struct GlmExtras
-{
-    std::vector<double> initial_fittings;
-    std::vector<double> priors;
-    std::vector<int>    strata;
+    double max_r2 = 0.99;
 };
 
 struct GlmOutput
@@ -111,8 +112,8 @@ struct GlmOutput
     size_t num_iterations = 0;
 
     size_t rank = 0;
-    double scale = 1.0;
     size_t df_resid = 0;
+    double scale = 1.0;
 
     Matrix<double> Xb; // size N * M
     std::vector<double> fitted; // size N
@@ -126,6 +127,61 @@ struct GlmOutput
 
 /* Fit a base model */
 
+/* Fit GLM, possibly with a stratification in the RHS
+
+Input:
+
+family       GLM family (see below)
+link         Link function (see below)
+N            # units
+M            # X variables
+P            # X variables for which parameter estimates required
+S            # strata (0 means no intercept)
+y            y-variable (N-vector)
+prior        prior weights (if present)
+X            If M>0, N*M matrix of X variables
+strata      If S>1, strata assignments coded 1...S (N-vector)
+maxit        Maximum number of iterations of IRLS algorithm
+conv         Proportional change in weighted sum of squares residuals to
+             declare convergence
+max_r2        Maximum value of R^2 between an X variable and previous variables
+             before it is dropped as aliased
+init         If true (non-zero), the iteration starts from initial estimates
+             of fitted values (see below). This option has no effect if
+             no iteration is required
+
+Output:
+
+rank         rank of X after regression on strata
+Xb           orthogonal basis for X space (N*rank matrix)
+fitted       fitted values
+resid        working residuals (on linear predictor scale) (N-vector)
+weights      weights (N-vector)
+scale        scale factor (scalar)
+df_resid     residual degrees of freedom
+
+Output for coefficients to be estimated (can be set NULL if not required):
+
+P_est        # coefficients which could be estimated
+which        which columns in the X matrix were estimated (first = 0)
+betaQ        vector of parameter estimates (in terms of basis matrix, Xb)
+tri          upper unit triangular transformation matrix, with Xb-tr.Xb
+             placed in the diagonal
+
+Return
+
+0            convergence
+1            no convergence after maxit iterations
+
+*/
+
+// int family, int link, int N, int M, int P, int S, const double *y,
+// const double *prior, const double *X, const int *strata, int maxit,
+// double epsilon, double max_r2, int init,
+// int *rank, double *Xb,
+// double *fitted, double *resid, double *weights, double *scale,
+// int *df_resid, int *P_est, int *which, double *betaQ, double *tri
+
 /**
  * @brief
  *
@@ -134,7 +190,7 @@ struct GlmOutput
  */
 
 GlmOutput glm_fit(
-    int family, int link, int S,
+    int family, int link,
     Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmExtras const&           extras = {},

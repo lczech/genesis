@@ -42,17 +42,38 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief
- *
- * See the @link supplement_acknowledgements_code_reuse_glm Acknowledgements@endlink for details
- * on the license and original authors.
+ * @brief Internal helper structure for GLMs to calcualte the residual degrees of freedom.
  */
+struct GlmFreedom
+{
+    /**
+     * @brief Number of valid priors (Nu).
+     */
+    size_t valid_entries = 0;
 
-// old
-int wcenter_(
-    std::vector<double> const& y, int n, std::vector<double> const& weight, const int *stratum,
-    int nstrata, int resid, double *ynew
-);
+    /**
+     * @brief Number of empty strata.
+     */
+    size_t empty_strata = 0;
+
+    /**
+     * @brief Maximum stratum found (S).
+     */
+    size_t max_stratum = 1;
+
+    /**
+     * @brief Calculate the degrees of freedom (dfr).
+     */
+    int degrees_of_freedom( size_t rank ) const
+    {
+        auto const vi = static_cast<int>( valid_entries );
+        auto const mi = static_cast<int>( max_stratum );
+        auto const ei = static_cast<int>( empty_strata );
+        auto const ri = static_cast<int>( rank );
+
+        return vi - mi + ei - ri;
+    }
+};
 
 /**
  * @brief (Weighted) mean and centering.
@@ -64,21 +85,13 @@ int wcenter_(
  * The @p weights and @p strata can be empty.
  * @p y and @p y_new can be the same vector.
  */
-size_t weighted_centering(
+GlmFreedom weighted_centering(
     std::vector<double> const& y,
     std::vector<double> const& weights,
-    std::vector<int> const&    strata,
+    std::vector<size_t> const& strata,
     bool                       with_intercept,
     bool                       centering,
     std::vector<double>&       y_new
-);
-
-
-
-// old
-double wresid_(
-    std::vector<double> const& y, int n, std::vector<double> const& weight, std::vector<double> const& x,
-    double *ynew
 );
 
 /**
@@ -122,7 +135,6 @@ double weighted_inner_product(
 *
 * The @p weights can be empty, in which case the simple sum of @p x is returned.
 */
-
 double weighted_sum(
     std::vector<double> const& x,
     std::vector<double> const& weights = {}

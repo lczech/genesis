@@ -72,29 +72,37 @@ namespace utils {
      y. Matrices are stored in Fortran order
      Returns number of empty strata */
 
-size_t weighted_centering(
+GlmFreedom weighted_centering(
     std::vector<double> const& y,
     std::vector<double> const& weights,
-    std::vector<int> const&    strata,
+    std::vector<size_t> const& strata,
     bool                       with_intercept,
     bool                       centering,
     std::vector<double>&       y_new
 ) {
+    // Prepare return value. Has reasonable defaults already.
+    GlmFreedom result;
+
+    // Prepare result vector.
     if( &y_new != &y ) {
         y_new.resize( y.size() );
     }
     assert( y_new.size() == y.size() );
 
-    size_t empty = 0;
+    // Check
+    if( ! weights.empty() && weights.size() != y.size() ) {
+        throw std::invalid_argument(
+            "weighted_residuals: y and weights need to have same length."
+        );
+    }
+
     if( strata.empty() ) {
         if( ! with_intercept ) {
             // Nothing to do ... if necessary copy input to output
             if( &y_new != &y ) {
-                for( size_t i = 0; i < y.size(); ++i ) {
-                    y_new[i] = y[i];
-                }
+                y_new = y;
             }
-            return 0;
+            return result;
         }
 
         double swt = 0.0;
@@ -106,12 +114,6 @@ size_t weighted_centering(
             }
             swt = static_cast<double>( y.size() );
         } else {
-            if( weights.size() != y.size() ) {
-                throw std::invalid_argument(
-                    "weighted_residuals: y and weights need to have same length."
-                );
-            }
-
             for( size_t i = 0; i < y.size(); ++i ) {
                 double wi = weights[i];
                 swt += wi;
@@ -120,12 +122,12 @@ size_t weighted_centering(
         }
         swy /= swt;
 
-        if( swt > 0 ) {
+        if( swt > 0.0 ) {
             for( size_t i = 0; i < y.size(); ++i ) {
                 y_new[i] = centering ? y[i] - swy : swy;
             }
         } else {
-            empty = 1;
+            result.empty_strata = 1;
         }
 
     } else {
@@ -138,19 +140,25 @@ size_t weighted_centering(
         auto swy = std::vector<double>( strata.size(), 0.0 );
         auto swt = std::vector<double>( strata.size(), 0.0 );
 
+        // Error check.
+        for( size_t s = 0; s < strata.size(); ++s ) {
+            if( strata[s] < 1 || strata[s] > strata.size() ) {
+                throw std::invalid_argument(
+                    "weighted_residuals: invalid stratum value outside of [1,N] found."
+                );
+            }
+            if( strata[s] > result.max_stratum ) {
+                result.max_stratum = strata[s];
+            }
+        }
+
         if( weights.empty() ) {
             for( size_t i = 0; i < y.size(); ++i ) {
                 int s = strata[i] - 1;
-                swt[s]++;
+                swt[s] += 1.0;
                 swy[s] += y[i];
             }
         } else {
-            if( weights.size() != y.size() ) {
-                throw std::invalid_argument(
-                    "weighted_residuals: y and weights need to have same length."
-                );
-            }
-
             for( size_t i = 0; i < y.size(); ++i ) {
                 double wi = weights[i];
                 int s = strata[i] - 1;
@@ -164,7 +172,7 @@ size_t weighted_centering(
             if( sws > 0.0 ) {
                 swy[s] /= sws;
             } else {
-                empty++;
+                ++result.empty_strata;
             }
         }
         for( size_t i = 0; i < y.size(); ++i ) {
@@ -175,7 +183,7 @@ size_t weighted_centering(
         }
     }
 
-    return empty;
+    return result;
 }
 
 double weighted_residuals(

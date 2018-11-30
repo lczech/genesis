@@ -74,7 +74,7 @@ namespace utils {
 // =================================================================================================
 
 void glm_irls(
-    int family, int link, int S,
+    int family, int link,
     Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmExtras const&           extras,
@@ -103,7 +103,9 @@ void glm_irls(
         for( size_t i = 0; i < N; i++ ) {
             yw[i] = result.resid[i] + linkfun(family, result.fitted[i]);
         }
-        auto empty = weighted_centering( yw, result.weights, extras.strata, S, true, result.resid );
+        auto freedom = weighted_centering(
+            yw, result.weights, extras.strata, extras.with_intercept, true, result.resid
+        );
 
         // Columns in Xb matrix
         result.rank = 0;
@@ -117,37 +119,40 @@ void glm_irls(
         size_t ij = 0;
         for( size_t i = 0; i < M; ++i ) {
             // Center
-            weighted_centering( x_predictors.col(i), result.weights, extras.strata, S, true, xb_tmp );
+            weighted_centering(
+                x_predictors.col(i), result.weights, extras.strata,
+                extras.with_intercept, true, xb_tmp
+            );
             result.Xb.col( xb_col ) = xb_tmp;
 
             // Corrected SSQ
             double ssx = weighted_sum_of_squares(
                 result.Xb.col( xb_col ), result.weights
             );
+            double ssr = ssx;
 
             // Regress on earlier columns
-            double ssr = ssx;
-            for( size_t j = 0; j < result.rank; ++j ) {
+            if( result.rank > 0 ) {
+                for( size_t j = 0; j < result.rank; ++j ) {
 
-                // Coefficient
-                double bij = weighted_residuals(
-                    result.Xb.col( j ),
-                    result.Xb.col( xb_col ),
-                    result.weights,
-                    xb_tmp
-                );
-                result.Xb.col( xb_col ) = xb_tmp;
+                    // Coefficient
+                    double bij = weighted_residuals(
+                        result.Xb.col( j ),
+                        result.Xb.col( xb_col ),
+                        result.weights,
+                        xb_tmp
+                    );
+                    result.Xb.col( xb_col ) = xb_tmp;
 
-                // Save in off-diagonal elements of tri
-                result.tri[ij] = bij;
-                ++ij;
+                    // Save in off-diagonal elements of tri
+                    result.tri[ij] = bij;
+                    ++ij;
+                }
+                ssr = weighted_sum_of_squares( result.Xb.col( xb_col ), result.weights );
             }
 
-            // Residual SSQ
-            ssr = weighted_sum_of_squares( result.Xb.col( xb_col ), result.weights );
-
             // Check if greater than singularity threshold
-            if ((ssx > 0.0) && (ssr / ssx > 1.0 - control.r2max)) {
+            if ((ssx > 0.0) && (ssr / ssx > 1.0 - control.max_r2)) {
                 double const bQi = weighted_residuals(
                     result.Xb.col( xb_col ),
                     result.resid,
@@ -173,7 +178,7 @@ void glm_irls(
         }
 
         double wss = 0.0;
-        size_t Nu = 0;
+        freedom.valid_entries = 0;
         double logL = 0.0;
         for (size_t i = 0; i < N; i++) {
             double D, Vmu, ri, wi;
@@ -185,7 +190,8 @@ void glm_irls(
                 wi = ri = 0.0;
             else {
                 Vmu = varfun(family, mu);
-                ++Nu;
+                ++freedom.valid_entries;
+
                 if (link == family) {
                     ri = (y_response[i] - mu) / Vmu;
                     wi = pi * Vmu;
@@ -200,7 +206,7 @@ void glm_irls(
             result.resid[i] = ri;
         }
 
-        int const dfr = Nu - S + empty - result.rank;
+        int const dfr = freedom.degrees_of_freedom( result.rank );
         result.df_resid = dfr > 0 ? dfr : 0;
         if (family > 2) {
             result.scale = wss / (dfr);
@@ -227,11 +233,11 @@ void glm_irls(
 // =================================================================================================
 
 void glm_linear_gaussian(
-    int S, size_t Nu, int empty,
     Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmExtras const&           extras,
     GlmControl const&          control,
+    GlmFreedom const&          freedom,
     GlmOutput&                 result
 ) {
     // Some shortcuts.
@@ -249,14 +255,17 @@ void glm_linear_gaussian(
     size_t ii = 0;
     size_t ij = 0;
     for( size_t i = 0; i < M; i++ ) {
-        weighted_centering( x_predictors.col(i), result.weights, extras.strata, S, true, xb_tmp );
+        weighted_centering(
+            x_predictors.col(i), result.weights, extras.strata,
+            extras.with_intercept, true, xb_tmp
+        );
         result.Xb.col( xb_col ) = xb_tmp;
 
         double ssx = weighted_sum_of_squares( result.Xb.col( xb_col ), result.weights );
         double ssr = ssx;
 
         // Regress on earlier columns
-        if (result.rank) {
+        if( result.rank > 0 ) {
             for( size_t j = 0; j < result.rank; ++j ) {
                 double const bij = weighted_residuals(
                     result.Xb.col( j ),
@@ -274,7 +283,7 @@ void glm_linear_gaussian(
         }
 
         // Check if we are above the singularity threshold
-        if(( ssx > 0.0) && (ssr / ssx > 1.0 - control.r2max )) {
+        if(( ssx > 0.0) && (ssr / ssx > 1.0 - control.max_r2 )) {
             double const bQi = weighted_residuals(
                 result.Xb.col( xb_col ),
                 result.resid,
@@ -297,12 +306,12 @@ void glm_linear_gaussian(
         }
     }
 
-    double wss = weighted_sum_of_squares( result.resid, result.weights );
     for( size_t i = 0; i < N; ++i ) {
         result.fitted[i] = y_response[i] - result.resid[i];
     }
 
-    int dfr = Nu - S + empty - result.rank;
+    double const wss = weighted_sum_of_squares( result.resid, result.weights );
+    int const dfr = freedom.degrees_of_freedom( result.rank );
     result.scale = wss / dfr;
     result.df_resid = dfr > 0 ? dfr : 0;
 
@@ -314,63 +323,8 @@ void glm_linear_gaussian(
 //     Generalized Linear Model
 // =================================================================================================
 
-/* Fit GLM, possibly with a stratification in the RHS
-
-Input:
-
-family       GLM family (see below)
-link         Link function (see below)
-N            # units
-M            # X variables
-P            # X variables for which parameter estimates required
-S            # strata (0 means no intercept)
-y            y-variable (N-vector)
-prior        prior weights (if present)
-X            If M>0, N*M matrix of X variables
-strata      If S>1, strata assignments coded 1...S (N-vector)
-maxit        Maximum number of iterations of IRLS algorithm
-conv         Proportional change in weighted sum of squares residuals to
-             declare convergence
-r2max        Maximum value of R^2 between an X variable and previous variables
-             before it is dropped as aliased
-init         If true (non-zero), the iteration starts from initial estimates
-             of fitted values (see below). This option has no effect if
-             no iteration is required
-
-Output:
-
-rank         rank of X after regression on strata
-Xb           orthogonal basis for X space (N*rank matrix)
-fitted       fitted values
-resid        working residuals (on linear predictor scale) (N-vector)
-weights      weights (N-vector)
-scale        scale factor (scalar)
-df_resid     residual degrees of freedom
-
-Output for coefficients to be estimated (can be set NULL if not required):
-
-P_est        # coefficients which could be estimated
-which        which columns in the X matrix were estimated (first = 0)
-betaQ        vector of parameter estimates (in terms of basis matrix, Xb)
-tri          upper unit triangular transformation matrix, with Xb-tr.Xb
-             placed in the diagonal
-
-Return
-
-0            convergence
-1            no convergence after maxit iterations
-
-*/
-
-// int family, int link, int N, int M, int P, int S, const double *y,
-// const double *prior, const double *X, const int *strata, int maxit,
-// double epsilon, double r2max, int init,
-// int *rank, double *Xb,
-// double *fitted, double *resid, double *weights, double *scale,
-// int *df_resid, int *P_est, int *which, double *betaQ, double *tri
-
 GlmOutput glm_fit(
-    int family, int link, int S,
+    int family, int link,
     Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmExtras const&           extras,
@@ -401,6 +355,9 @@ GlmOutput glm_fit(
         throw std::invalid_argument( "glm_fit: epsilon has to be in ( 0.0, 1.0 ]" );
     }
 
+    // TODO
+    // with intercept and empty strata
+
     // Prepare results.
     GlmOutput result;
     result.Xb = Matrix<double>( N, M );
@@ -415,10 +372,12 @@ GlmOutput glm_fit(
     bool const irls = (M > 0) && !((family == GAUSSIAN) && (link == IDENTITY));
 
     // Initialize the fittings.
-    int empty = 0;
+    GlmFreedom freedom;
     if( extras.initial_fittings.empty() || ! irls ) {
         // Fit intercept and/or strata part of model
-        empty = weighted_centering( y_response, extras.priors, extras.strata, S, false, result.fitted );
+        freedom = weighted_centering(
+            y_response, extras.priors, extras.strata, extras.with_intercept, false, result.fitted
+        );
     } else {
         assert( irls );
         assert( extras.initial_fittings.size() == N );
@@ -426,7 +385,7 @@ GlmOutput glm_fit(
     }
 
     // Prepare residuals and weights.
-    size_t Nu = 0;
+    freedom.valid_entries = 0;
     for( size_t i = 0; i < N; i++ ) {
         double const mu = result.fitted[i];
         double const pi = extras.priors.empty() ? 1.0 : extras.priors[i];
@@ -437,13 +396,14 @@ GlmOutput glm_fit(
             result.resid[i]   = 0.0;
             result.weights[i] = 0.0;
         } else {
-            ++Nu;
-            double Vmu = varfun(family, mu);
+            ++freedom.valid_entries;
+
+            double const Vmu = varfun(family, mu);
             if (link == family) {
                 result.resid[i]   = (y_response[i] - mu) / Vmu;
                 result.weights[i] = pi * Vmu;
             } else {
-                double D = dlink(link, mu);
+                double const D = dlink(link, mu);
                 result.resid[i]   = D * (y_response[i] - mu);
                 result.weights[i] = pi / (D * D * Vmu);
             }
@@ -455,15 +415,15 @@ GlmOutput glm_fit(
 
         // IRLS algorithm, or simple linear Gaussian case
         if (irls) {
-            glm_irls( family, link, S, x_predictors, y_response, extras, control, result );
+            glm_irls( family, link, x_predictors, y_response, extras, control, result );
         } else {
-            glm_linear_gaussian( S, Nu, empty, x_predictors, y_response, extras, control, result );
+            glm_linear_gaussian( x_predictors, y_response, extras, control, freedom, result );
         }
 
     } else {
 
         // No covariates
-        int dfr = Nu - S + empty;
+        auto const dfr = freedom.degrees_of_freedom( 0 );
         if( family > 2 ) {
             result.scale = weighted_sum_of_squares( result.resid, result.weights ) / (dfr);
         } else {
