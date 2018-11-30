@@ -65,20 +65,6 @@ double linkfun(int, double);
 double invlink(int, double);
 double dlink(int, double);
 
-struct GlmInput
-{
-    int family;
-    int link;
-    int N;
-    int M;
-    int S;
-    const double *y;
-    const double *prior;
-    const double *X;
-    const int *strata;
-    int init;
-};
-
 struct GlmExtras
 {
     std::vector<double> initial_fittings;
@@ -188,7 +174,6 @@ Return
  * See the @link supplement_acknowledgements_code_reuse_glm Acknowledgements@endlink for details
  * on the license and original authors.
  */
-
 GlmOutput glm_fit(
     int family, int link,
     Matrix<double> const&      x_predictors,
@@ -196,47 +181,6 @@ GlmOutput glm_fit(
     GlmExtras const&           extras = {},
     GlmControl const&          control = {}
 );
-
-/* Score test for additional terms */
-
-/**
- * @brief
- *
- * See the @link supplement_acknowledgements_code_reuse_glm Acknowledgements@endlink for details
- * on the license and original authors.
- */
-
-void glm_score_test(int N, int M, int S, const int *strata,
-            int P, const double *Z, int C, const int *cluster,
-            const double *resid, const double *weights,
-            const double *Xb, double scale,
-            double max_r2, double *U, double *V);
-
-/* Parameter estimation */
-
-/**
- * @brief
- *
- * See the @link supplement_acknowledgements_code_reuse_glm Acknowledgements@endlink for details
- * on the license and original authors.
- */
-
-void glm_est(int P_est, const double *betaQ, double *tri,
-         double scale, const double *meatrix,
-         double *beta, double *var_beta);
-
-/**
- * @brief
- *
- * See the @link supplement_acknowledgements_code_reuse_glm Acknowledgements@endlink for details
- * on the license and original authors.
- */
-
-void meat_matrix(int N, int P, int C, const int *cluster,
-         const double *Xb, const double *resid, const double *weights,
-         double *meatrix);
-
-
 
 } // namespace utils
 } // namespace genesis
