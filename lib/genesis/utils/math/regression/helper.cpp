@@ -37,6 +37,8 @@
     David Clayton <david.clayton@cimr.cam.ac.uk> and Hin-Tak Leung <htl10@users.sourceforge.net>.
     The source is in C, but is originally intended for usage in R.
     This file in particular is based on snpStats_1.32.0/src/mla.c
+    We massively refactored the original code, for example by using vectors and matrices instead
+    of pointers, and by using proper data structures instead of lists of in/out function parameters.
 
     The original code is published under the GNU General Public Licence version 3 (GPLv3).
     We use the same license, hence see above for details.
@@ -65,14 +67,7 @@ namespace utils {
 //     Linear Algebra Helper Functions
 // =============================================================================
 
-/* If resid==0, return a vector containing the appropriate strata (weighted)
-     means. Otherwise, center the input    vector around these. i.e    calculate
-     either the "fitted value" or the residual from a model in which only
-     strata are fitted. In this and following functions, y_new can coincide with
-     y. Matrices are stored in Fortran order
-     Returns number of empty strata */
-
-GlmFreedom weighted_centering(
+GlmFreedom weighted_mean_centering(
     std::vector<double> const& y,
     std::vector<double> const& weights,
     std::vector<size_t> const& strata,

@@ -37,6 +37,9 @@
     David Clayton <david.clayton@cimr.cam.ac.uk> and Hin-Tak Leung <htl10@users.sourceforge.net>.
     The source is in C, but is originally intended for usage in R.
     This file in particular is based on snpStats_1.32.0/src/glm_test.c
+    We massively refactored the original code, for example by using vectors and matrices instead
+    of pointers, and by using proper data structures instead of lists of in/out function parameters.
+    Furthermore, we added some new code for calculating additional statistical values such as the deviance.
 
     The original code is published under the GNU General Public Licence version 3 (GPLv3).
     We use the same license, hence see above for details.
@@ -105,7 +108,7 @@ void glm_irls(
             // TODO this used the family id instead of the link id. is that correct?
             yw[i] = result.resid[i] + link.link( result.fitted[i] );
         }
-        auto freedom = weighted_centering(
+        auto freedom = weighted_mean_centering(
             yw, result.weights, extras.strata, extras.with_intercept, true, result.resid
         );
 
@@ -121,7 +124,7 @@ void glm_irls(
         size_t ij = 0;
         for( size_t i = 0; i < M; ++i ) {
             // Center
-            weighted_centering(
+            weighted_mean_centering(
                 x_predictors.col(i), result.weights, extras.strata,
                 extras.with_intercept, true, xb_tmp
             );
@@ -257,7 +260,7 @@ void glm_gaussian(
     size_t ii = 0;
     size_t ij = 0;
     for( size_t i = 0; i < M; i++ ) {
-        weighted_centering(
+        weighted_mean_centering(
             x_predictors.col(i), result.weights, extras.strata,
             extras.with_intercept, true, xb_tmp
         );
@@ -388,10 +391,10 @@ GlmOutput glm_fit(
     // Initialize the fittings.
     GlmFreedom freedom;
     if( extras.initial_fittings.empty() || ! irls ) {
-        // Fit intercept and/or strata part of model
-        freedom = weighted_centering(
-            y_response, extras.prior_weights, extras.strata, extras.with_intercept,
-            false, result.fitted
+        // Fit intercept and/or strata part of model,
+        // that is, set the fitted values to the (strata) (weighted) mean of the y values.
+        freedom = weighted_mean_centering(
+            y_response, extras.prior_weights, extras.strata, extras.with_intercept, false, result.fitted
         );
     } else {
         assert( irls );
@@ -399,12 +402,14 @@ GlmOutput glm_fit(
         result.fitted = extras.initial_fittings;
     }
 
-    // Prepare residuals and weights.
+    // Prepare residuals and weights, and calculate null deviance.
     freedom.valid_entries = 0;
+    assert( result.null_deviance == 0.0 );
     for( size_t i = 0; i < N; i++ ) {
         double const mu = result.fitted[i];
         double const pi = extras.prior_weights.empty() ? 1.0 : extras.prior_weights[i];
 
+        // Residuals and weights.
         if(( ! std::isfinite(pi) ) || ( pi < 0.0 )) {
             throw std::invalid_argument( "glm_fit: prior weights have to be non-negative." );
         } else if( pi == 0.0 ) {
@@ -423,6 +428,9 @@ GlmOutput glm_fit(
                 result.weights[i] = pi / (D * D * Vmu);
             }
         }
+
+        // Null deviance
+        result.null_deviance += result.weights[i] * family.unit_deviance( y_response[i], mu );
     }
 
     // If X has data, include covariates
@@ -433,6 +441,13 @@ GlmOutput glm_fit(
             glm_irls( x_predictors, y_response, family, link, extras, control, result );
         } else {
             glm_gaussian( x_predictors, y_response, extras, control, freedom, result );
+        }
+
+        // Calcualte deviance.
+        assert( result.deviance == 0.0 );
+        for( size_t i = 0; i < N; i++ ) {
+            auto const ud = family.unit_deviance( y_response[i], result.fitted[i] );
+            result.deviance += result.weights[i] * ud;
         }
 
     } else {

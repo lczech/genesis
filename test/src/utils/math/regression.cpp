@@ -163,6 +163,9 @@ TEST( Math, GlmGaussSimple )
     EXPECT_EQ( 103, result.df_resid );
     EXPECT_NEAR( 0.0792109, result.scale, delta );
 
+    EXPECT_NEAR( 20.7981, result.null_deviance, 0.0001 );
+    EXPECT_NEAR( 8.1587, result.deviance, 0.0001 );
+
     EXPECT_ITERABLE_DOUBLE_NEAR( Matrix<double>, xb_exp, result.Xb, delta );
     EXPECT_ITERABLE_DOUBLE_NEAR( std::vector<double>, fitted_exp, result.fitted, delta );
     EXPECT_ITERABLE_DOUBLE_NEAR( std::vector<double>, resid_exp, result.resid, delta );

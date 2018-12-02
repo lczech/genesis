@@ -132,6 +132,9 @@ struct GlmOutput
      * (size `(M * (M+1)) / 2`).
      */
     std::vector<double> tri;
+
+    double null_deviance = 0.0;
+    double deviance = 0.0;
 };
 
 /**

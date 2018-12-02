@@ -85,7 +85,7 @@ struct GlmFreedom
  * The @p weights and @p strata can be empty.
  * @p y and @p y_new can be the same vector.
  */
-GlmFreedom weighted_centering(
+GlmFreedom weighted_mean_centering(
     std::vector<double> const& y,
     std::vector<double> const& weights,
     std::vector<size_t> const& strata,
