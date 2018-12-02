@@ -74,9 +74,10 @@ namespace utils {
 // =================================================================================================
 
 void glm_irls(
-    int family, int link,
     Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
+    GlmFamily const&           family,
+    GlmLink const&             link,
     GlmExtras const&           extras,
     GlmControl const&          control,
     GlmOutput&                 result
@@ -87,7 +88,7 @@ void glm_irls(
 
     // Already checked in main function. Assert here again for better overview.
     assert( x_predictors.rows() == N );
-    assert( extras.priors.empty() || extras.priors.size() == N );
+    assert( extras.prior_weights.empty() || extras.prior_weights.size() == N );
     assert( extras.strata.empty() || extras.strata.size() == N );
 
     // Working data.
@@ -101,7 +102,8 @@ void glm_irls(
     double logL_prev = 0.0;
     while( result.num_iterations < control.max_iterations && ! result.converged ) {
         for( size_t i = 0; i < N; i++ ) {
-            yw[i] = result.resid[i] + linkfun(family, result.fitted[i]);
+            // TODO this used the family id instead of the link id. is that correct?
+            yw[i] = result.resid[i] + link.link( result.fitted[i] );
         }
         auto freedom = weighted_centering(
             yw, result.weights, extras.strata, extras.with_intercept, true, result.resid
@@ -182,21 +184,21 @@ void glm_irls(
         double logL = 0.0;
         for (size_t i = 0; i < N; i++) {
             double D, Vmu, ri, wi;
-            double mu = invlink(link, yw[i] - result.resid[i]);
-            result.fitted[i] = validmu(family, mu);
-            double pi = extras.priors.empty() ? 1.0 : extras.priors[i];
-            logL += pi * loglik(family, y_response[i], mu);
+            double mu = link.inverse_link( yw[i] - result.resid[i] );
+            result.fitted[i] = family.rectify( mu );
+            double pi = extras.prior_weights.empty() ? 1.0 : extras.prior_weights[i];
+            logL += pi * family.log_likelihood( y_response[i], mu );
             if (!(pi && (result.weights[i] > 0.0)))
                 wi = ri = 0.0;
             else {
-                Vmu = varfun(family, mu);
+                Vmu = family.variance( mu );
                 ++freedom.valid_entries;
 
-                if (link == family) {
+                if( link.id == family.canonical_link_id ) {
                     ri = (y_response[i] - mu) / Vmu;
                     wi = pi * Vmu;
                 } else {
-                    D = dlink(link, mu);
+                    D = link.derivative( mu );
                     ri = D * (y_response[i] - mu);
                     wi = pi / (D * D * Vmu);
                 }
@@ -208,7 +210,7 @@ void glm_irls(
 
         int const dfr = freedom.degrees_of_freedom( result.rank );
         result.df_resid = dfr > 0 ? dfr : 0;
-        if (family > 2) {
+        if( family.id == GlmFamily::kGaussian || family.id == GlmFamily::kGamma ) {
             result.scale = wss / (dfr);
         }
 
@@ -224,7 +226,7 @@ void glm_irls(
     }
 
     for( size_t i = 0; i < N; i++ ) {
-        result.fitted[i] = invlink( link, yw[i] - result.resid[i] );
+        result.fitted[i] = link.inverse_link( yw[i] - result.resid[i] );
     }
 }
 
@@ -232,7 +234,7 @@ void glm_irls(
 //     Simple Linear Gaussian Case
 // =================================================================================================
 
-void glm_linear_gaussian(
+void glm_gaussian(
     Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmExtras const&           extras,
@@ -324,9 +326,10 @@ void glm_linear_gaussian(
 // =================================================================================================
 
 GlmOutput glm_fit(
-    int family, int link,
     Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
+    GlmFamily const&           family,
+    GlmLink const&             link,
     GlmExtras const&           extras,
     GlmControl const&          control
 ) {
@@ -343,16 +346,25 @@ GlmOutput glm_fit(
         throw std::invalid_argument( "glm_fit: size of initial fittings is not size of y." );
     }
     assert( extras.initial_fittings.empty() || extras.initial_fittings.size() == N );
-    if( ! extras.priors.empty() && extras.priors.size() != N ) {
-        throw std::invalid_argument( "glm_fit: size of prior is not size of y." );
+    if( ! extras.prior_weights.empty() && extras.prior_weights.size() != N ) {
+        throw std::invalid_argument( "glm_fit: size of prior weights is not size of y." );
     }
-    assert( extras.priors.empty() || extras.priors.size() == N );
+    assert( extras.prior_weights.empty() || extras.prior_weights.size() == N );
     if( ! extras.strata.empty() && extras.strata.size() != N ) {
         throw std::invalid_argument( "glm_fit: size of strata is not size of y." );
     }
     assert( extras.strata.empty() || extras.strata.size() == N );
     if( control.epsilon <= 0.0 || control.epsilon > 1.0 ) {
         throw std::invalid_argument( "glm_fit: epsilon has to be in ( 0.0, 1.0 ]" );
+    }
+    if( control.max_r2 <= 0.0 || control.max_r2 >= 1.0 ) {
+        throw std::invalid_argument( "glm_fit: max_r2 has to be in ( 0.0, 1.0 )" );
+    }
+    if( ! is_defined( family )) {
+        throw std::invalid_argument( "glm_fit: family is not properly defined." );
+    }
+    if( ! is_defined( link )) {
+        throw std::invalid_argument( "glm_fit: link is not properly defined." );
     }
 
     // TODO
@@ -369,14 +381,17 @@ GlmOutput glm_fit(
     result.tri = std::vector<double>( (M * ( M+1 )) / 2 );
 
     // Is iteration necessary?
-    bool const irls = (M > 0) && !((family == GAUSSIAN) && (link == IDENTITY));
+    bool const irls = (M > 0) && !(
+        ( family.id == GlmFamily::kGaussian ) && ( link.id == GlmLink::kIdentity )
+    );
 
     // Initialize the fittings.
     GlmFreedom freedom;
     if( extras.initial_fittings.empty() || ! irls ) {
         // Fit intercept and/or strata part of model
         freedom = weighted_centering(
-            y_response, extras.priors, extras.strata, extras.with_intercept, false, result.fitted
+            y_response, extras.prior_weights, extras.strata, extras.with_intercept,
+            false, result.fitted
         );
     } else {
         assert( irls );
@@ -388,22 +403,22 @@ GlmOutput glm_fit(
     freedom.valid_entries = 0;
     for( size_t i = 0; i < N; i++ ) {
         double const mu = result.fitted[i];
-        double const pi = extras.priors.empty() ? 1.0 : extras.priors[i];
+        double const pi = extras.prior_weights.empty() ? 1.0 : extras.prior_weights[i];
 
         if(( ! std::isfinite(pi) ) || ( pi < 0.0 )) {
-            throw std::invalid_argument( "glm_fit: priors have to be non-negative." );
+            throw std::invalid_argument( "glm_fit: prior weights have to be non-negative." );
         } else if( pi == 0.0 ) {
             result.resid[i]   = 0.0;
             result.weights[i] = 0.0;
         } else {
             ++freedom.valid_entries;
 
-            double const Vmu = varfun(family, mu);
-            if (link == family) {
+            double const Vmu = family.variance( mu );
+            if( link.id == family.canonical_link_id ) {
                 result.resid[i]   = (y_response[i] - mu) / Vmu;
                 result.weights[i] = pi * Vmu;
             } else {
-                double const D = dlink(link, mu);
+                double const D = link.derivative( mu );
                 result.resid[i]   = D * (y_response[i] - mu);
                 result.weights[i] = pi / (D * D * Vmu);
             }
@@ -415,16 +430,16 @@ GlmOutput glm_fit(
 
         // IRLS algorithm, or simple linear Gaussian case
         if (irls) {
-            glm_irls( family, link, x_predictors, y_response, extras, control, result );
+            glm_irls( x_predictors, y_response, family, link, extras, control, result );
         } else {
-            glm_linear_gaussian( x_predictors, y_response, extras, control, freedom, result );
+            glm_gaussian( x_predictors, y_response, extras, control, freedom, result );
         }
 
     } else {
 
         // No covariates
         auto const dfr = freedom.degrees_of_freedom( 0 );
-        if( family > 2 ) {
+        if( family.id == GlmFamily::kGaussian || family.id == GlmFamily::kGamma ) {
             result.scale = weighted_sum_of_squares( result.resid, result.weights ) / (dfr);
         } else {
             result.scale = 1.0;
@@ -435,135 +450,17 @@ GlmOutput glm_fit(
     return result;
 }
 
-/*
-
-Variance function
-
-family:
-    1        Binomial
-    2        Poisson
-    3        Gaussian
-    4        Gamma
-
-*/
-
-double varfun(int family, double mu) {
-    switch (family) {
-    case 1:
-        return ((mu * (1.0 - mu))); /* Binomial */
-    case 2:
-        return (mu); /* Poisson */
-    case 3:
-        return (1.0); /* Gaussian */
-    case 4:
-        return (mu * mu); /* Gamma */
-    default:
-        return (0.0);
+GlmOutput glm_fit(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmFamily const&           family,
+    GlmExtras const&           extras,
+    GlmControl const&          control
+) {
+    if( ! family.canonical_link ) {
+        throw std::runtime_error( "glm_fit: family does not provide a canonical link." );
     }
-}
-
-/* Valid values for fitted value, mu.
-
-Suitable values for extreme predictions
-
-*/
-
-double validmu(int family, double mu) {
-    const double zero = 1.e-10, one = 1.0 - 1.e-10;
-    switch (family) {
-    case 1: /* Binomial */
-        if (mu < zero)
-            return (zero);
-        else if (mu > one)
-            return (one);
-        else
-            return (mu);
-    case 2: /* Poisson */
-        if (mu < zero)
-            return (zero);
-        else
-            return (mu);
-    default:
-        return (mu);
-    }
-}
-
-/* Log likelihood contribution
-     (to be multiplied by prior weight */
-
-double loglik(int family, double y, double mu) {
-    double x = 0.0;
-    switch (family) {
-    case 1: /* Binomial */
-        return (y * log(mu) + (1. - y) * log(1. - mu));
-    case 2: /* Poisson */
-        return (y * log(mu) - mu);
-    case 3: /* Gaussian */
-        x = y - mu;
-        return (x * x);
-    case 4: /* Gamma */
-        x = y / mu;
-        return (log(x) - x);
-    default:
-        return std::numeric_limits<double>::quiet_NaN();
-    }
-}
-/* Link function
-
-Link
-    1        Logit
-    2        Log
-    3        Identity
-    4        Inverse
-
-Note that a canonical link shares the code of the corresponding family
-so that the test for canonical link is (link==family)
-
-*/
-
-double linkfun(int link, double mu) {
-    switch (link) {
-    case 1:
-        return (log(mu / (1.0 - mu))); /* Logit */
-    case 2:
-        return (log(mu)); /* Log */
-    case 3:
-        return (mu); /* Identity */
-    case 4:
-        return (1.0 / mu); /* Inverse */
-    default:
-        return 0.0;
-    }
-}
-
-double invlink(int link, double eta) {
-    switch (link) {
-    case 1:
-        return (exp(eta) / (1.0 + exp(eta))); /* Logit */
-    case 2:
-        return (exp(eta)); /* Log */
-    case 3:
-        return (eta); /* Identity */
-    case 4:
-        return (1.0 / eta); /* Inverse */
-    default:
-        return (0.0);
-    }
-}
-
-double dlink(int link, double mu) {
-    switch (link) {
-    case 1:
-        return (1.0 / (mu * (1.0 - mu))); /* Logit */
-    case 2:
-        return (1.0 / mu); /* Log */
-    case 3:
-        return (1.0); /* Identity */
-    case 4:
-        return (1.0 / (mu * mu)); /* Inverse */
-    default:
-        return 0.0;
-    }
+    return glm_fit( x_predictors, y_response, family, family.canonical_link(), extras, control );
 }
 
 } // namespace utils
