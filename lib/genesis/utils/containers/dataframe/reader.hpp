@@ -201,11 +201,13 @@ private:
             auto const row_idx = result.rows() - 1;
             if( parse_value_ ) {
                 for( size_t i = 0; i < result.cols(); ++i ) {
-                    result( row_idx, i ) = parse_value_( line[ offset + i ] );
+                    // result( row_idx, i ) = parse_value_( line[ offset + i ] );
+                    result[i][row_idx] = parse_value_( line[ offset + i ] );
                 }
             } else {
                 for( size_t i = 0; i < result.cols(); ++i ) {
-                    result( row_idx, i ) = parse_value_stringstream_( line[ offset + i ] );
+                    // result( row_idx, i ) = parse_value_stringstream_( line[ offset + i ] );
+                    result[i][row_idx] = parse_value_stringstream_( line[ offset + i ] );
                 }
             }
         }
