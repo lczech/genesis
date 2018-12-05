@@ -1,5 +1,5 @@
-#ifndef GENESIS_SEQUENCE_FORMATS_FASTA_INPUT_ITERATOR_H_
-#define GENESIS_SEQUENCE_FORMATS_FASTA_INPUT_ITERATOR_H_
+#ifndef GENESIS_UTILS_FORMATS_CSV_INPUT_ITERATOR_H_
+#define GENESIS_UTILS_FORMATS_CSV_INPUT_ITERATOR_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -28,114 +28,82 @@
  * @brief
  *
  * @file
- * @ingroup sequence
+ * @ingroup utils
  */
 
-#include "genesis/sequence/formats/fasta_reader.hpp"
-#include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 
-#include <cstddef>
-#include <iterator>
+#include <iosfwd>
 #include <memory>
-#include <sstream>
+#include <string>
+#include <vector>
 
 namespace genesis {
-namespace sequence {
+namespace utils {
 
 // =================================================================================================
-//     Fasta Input Iterator
+//     Csv Input Iterator
 // =================================================================================================
 
-/**
- * @brief Iterate an input source and parse it as Fasta sequences.
- *
- * This class allows to iterate over an input source, iterpreting it as Fasta sequences, and
- * yielding one such sequence per iteration step. This is useful for processing large files without
- * having to keep them fully in memory.
- *
- * Example:
- *
- *     auto it = FastaInputIterator( from_file( "/path/to/large_file.fasta" ) );
- *     while( it ) {
- *         std::cout << it->length() << "\n";
- *         ++it;
- *     }
- *
- * Use functions such as utils::from_file() and utils::from_string() to conveniently
- * get an input source that can be used here.
- *
- * See FastaReader for a description of the expected format. In order to change the reading
- * behaviour, a FastaReader object can be handed over from which the settings are copied.
- *
- * The copy constructur copies a pointer to the underlying source.
- * Thus, when advancing the copy to the next Sequence, the original "skips" this Sequence,
- * as the source then is at the next one.
- *
- * Thread safety: No thread safety. The common use case for this iterator is to loop over a file.
- * Thus, guarding induces unnecessary overhead. If multiple threads read from this iterator, both
- * dereferencing and incrementing need to be guarded.
- */
-class FastaInputIterator
+class CsvInputIterator
 {
 public:
 
-    // -------------------------------------------------------------------------
-    //     Member Types
-    // -------------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    //     Typedefs and Enums
+    // ---------------------------------------------------------------------
 
-    using self_type         = FastaInputIterator;
-    using value_type        = Sequence;
+    using self_type         = CsvInputIterator;
+    using value_type        = CsvReader::Line;
     using pointer           = value_type&;
     using reference         = value_type*;
-    using difference_type   = std::ptrdiff_t;
     using iterator_category = std::input_iterator_tag;
 
-    // -------------------------------------------------------------------------
-    //     Constructors and Rule of Five
-    // -------------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // ---------------------------------------------------------------------
 
     /**
      * @brief Create a default instance, with no input.
      */
-    FastaInputIterator()
+    CsvInputIterator()
         : input_stream_( nullptr )
         , reader_()
-        , sequence_()
+        , line_()
     {}
 
     /**
-     * @brief Create an instance that reads from an input source, using a default FastaReader.
+     * @brief Create an instance that reads from an input source, using a default CsvReader.
      */
-    FastaInputIterator( std::shared_ptr<utils::BaseInputSource> source )
+    CsvInputIterator( std::shared_ptr<utils::BaseInputSource> source )
         : input_stream_( std::make_shared<utils::InputStream>( source ))
         , reader_()
-        , sequence_()
+        , line_()
     {
         increment();
     }
 
     /**
      * @brief Create an instance that reads from an input source,
-     * using the settings of a given FastaReader.
+     * using the settings of a given CsvReader.
      */
-    FastaInputIterator( std::shared_ptr<utils::BaseInputSource> source, FastaReader const& settings )
+    CsvInputIterator( std::shared_ptr<utils::BaseInputSource> source, CsvReader const& settings )
         : input_stream_( std::make_shared<utils::InputStream>( source ))
         , reader_( settings )
-        , sequence_()
+        , line_()
     {
         increment();
     }
 
-    ~FastaInputIterator() = default;
+    ~CsvInputIterator() = default;
 
-    FastaInputIterator( self_type const& ) = default;
-    FastaInputIterator( self_type&& )      = default;
+    CsvInputIterator( CsvInputIterator const& ) = default;
+    CsvInputIterator( CsvInputIterator&& )      = default;
 
-    self_type& operator= ( self_type const& ) = default;
-    self_type& operator= ( self_type&& )      = default;
+    CsvInputIterator& operator= ( CsvInputIterator const& ) = default;
+    CsvInputIterator& operator= ( CsvInputIterator&& )      = default;
 
     // -------------------------------------------------------------------------
     //     Comparators
@@ -152,7 +120,7 @@ public:
     }
 
     /**
-    * @brief Return true iff dereferencing is valid, i.e., iff there is a Sequence available.
+    * @brief Return true iff dereferencing is valid, i.e., iff there is a Csv Line available.
     */
     explicit operator bool() const
     {
@@ -165,17 +133,17 @@ public:
 
     value_type const& operator * () const
     {
-        return sequence_;
+        return line_;
     }
 
     value_type const* operator -> () const
     {
-        return &sequence_;
+        return &line_;
     }
 
     value_type const& dereference() const
     {
-        return sequence_;
+        return line_;
     }
 
     // -------------------------------------------------------------------------
@@ -197,23 +165,23 @@ public:
             return;
         }
 
-        reader_.parse_sequence( *input_stream_, sequence_ );
+        line_ = reader_.parse_line( *input_stream_ );
     }
 
     // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
-private:
+    private:
 
     std::shared_ptr<utils::InputStream> input_stream_;
 
-    bool        good_ = true;
-    FastaReader reader_;
-    Sequence    sequence_;
+    bool            good_ = true;
+    CsvReader       reader_;
+    CsvReader::Line line_;
 };
 
-} // namespace sequence
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_TOOLS_GEODESY_H_
-#define GENESIS_UTILS_TOOLS_GEODESY_H_
+#ifndef GENESIS_UTILS_TOOLS_GEODESY_GEO_COORDINATE_H_
+#define GENESIS_UTILS_TOOLS_GEODESY_GEO_COORDINATE_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

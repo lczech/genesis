@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/tools/sha1.hpp"
+#include "genesis/utils/tools/hash/sha1.hpp"
 
 #include <string>
 #include <iostream>

@@ -28,11 +28,11 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/tools/hashing.hpp"
+#include "genesis/utils/tools/hash/functions.hpp"
 
-#include "genesis/utils/tools/md5.hpp"
-#include "genesis/utils/tools/sha1.hpp"
-#include "genesis/utils/tools/sha256.hpp"
+#include "genesis/utils/tools/hash/md5.hpp"
+#include "genesis/utils/tools/hash/sha1.hpp"
+#include "genesis/utils/tools/hash/sha256.hpp"
 
 #include <iostream>
 #include <stdexcept>

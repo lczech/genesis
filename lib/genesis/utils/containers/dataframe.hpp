@@ -268,6 +268,18 @@ public:
         }
 
         // -------------------------------------------------------------------------
+        //     Interaction Operators
+        // -------------------------------------------------------------------------
+
+        /**
+         * @brief Get a copy of the column in form of a `std::vector`.
+         */
+        operator std::vector<value_type> const&() const
+        {
+            return content_;
+        }
+
+        // -------------------------------------------------------------------------
         //     Data Members
         // -------------------------------------------------------------------------
 
@@ -414,49 +426,54 @@ public:
     //     Element Access
     // ---------------------------------------------------------------------------------------------
 
-    typename Column::reference operator () ( size_type row_index, size_type col_index )
-    {
-        return at( col_index ).at( row_index );
-    }
-
-    typename Column::const_reference operator () ( size_type row_index, size_type col_index ) const
-    {
-        return at( col_index ).at( row_index );
-    }
-
-    typename Column::reference operator () ( std::string const& row_name, size_type col_index )
-    {
-        return at( col_index ).at( row_name );
-    }
-
-    typename Column::const_reference operator () ( std::string const& row_name, size_type col_index ) const
-    {
-        return at( col_index ).at( row_name );
-    }
-
-    typename Column::reference operator () ( size_type row_index, std::string const& col_name )
-    {
-        return at( col_name ).at( row_index );
-    }
-
-    typename Column::const_reference operator () ( size_type row_index, std::string const& col_name ) const
-    {
-        return at( col_name ).at( row_index );
-    }
-
-    typename Column::reference operator () ( std::string const& row_name, std::string const& col_name )
-    {
-        return at( col_name ).at( row_name );
-    }
-
-    typename Column::const_reference operator () ( std::string const& row_name, std::string const& col_name ) const
-    {
-        return at( col_name ).at( row_name );
-    }
+    // typename Column::reference operator () ( size_type row_index, size_type col_index )
+    // {
+    //     return at( col_index ).at( row_index );
+    // }
+    //
+    // typename Column::const_reference operator () ( size_type row_index, size_type col_index ) const
+    // {
+    //     return at( col_index ).at( row_index );
+    // }
+    //
+    // typename Column::reference operator () ( std::string const& row_name, size_type col_index )
+    // {
+    //     return at( col_index ).at( row_name );
+    // }
+    //
+    // typename Column::const_reference operator () ( std::string const& row_name, size_type col_index ) const
+    // {
+    //     return at( col_index ).at( row_name );
+    // }
+    //
+    // typename Column::reference operator () ( size_type row_index, std::string const& col_name )
+    // {
+    //     return at( col_name ).at( row_index );
+    // }
+    //
+    // typename Column::const_reference operator () ( size_type row_index, std::string const& col_name ) const
+    // {
+    //     return at( col_name ).at( row_index );
+    // }
+    //
+    // typename Column::reference operator () ( std::string const& row_name, std::string const& col_name )
+    // {
+    //     return at( col_name ).at( row_name );
+    // }
+    //
+    // typename Column::const_reference operator () ( std::string const& row_name, std::string const& col_name ) const
+    // {
+    //     return at( col_name ).at( row_name );
+    // }
 
     // ---------------------------------------------------------------------------------------------
     //     Indexing and Naming
     // ---------------------------------------------------------------------------------------------
+
+    bool has_row_name( std::string const& row_name ) const
+    {
+        return ( row_lookup_.count( row_name ) > 0 );
+    }
 
     size_t row_index( std::string const& row_name ) const
     {
@@ -484,6 +501,11 @@ public:
     std::vector<std::string> const& row_names() const
     {
         return row_names_;
+    }
+
+    bool has_col_name( std::string const& col_name ) const
+    {
+        return ( col_lookup_.count( col_name ) > 0 );
     }
 
     size_t col_index( std::string const& col_name ) const
@@ -518,17 +540,17 @@ public:
     //     Adding rows and cols
     // ---------------------------------------------------------------------------------------------
 
-    self_type& add_col()
+    Column& add_col()
     {
         auto const index = columns_.size();
         columns_.emplace_back( *this, index );
         columns_.back().content_.resize( row_names_.size() );
         col_names_.emplace_back();
 
-        return *this;
+        return columns_.back();
     }
 
-    self_type& add_col( std::string const& name )
+    Column& add_col( std::string const& name )
     {
         if( col_lookup_.count( name ) > 0 ) {
             throw std::runtime_error( "Column with name " + name + " already exists in Dataframe." );
@@ -540,7 +562,7 @@ public:
         col_names_.emplace_back( name );
         col_lookup_[ name ] = index;
 
-        return *this;
+        return columns_.back();
     }
 
     self_type& add_row()

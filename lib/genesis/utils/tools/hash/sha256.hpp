@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_TOOLS_SHA256_H_
-#define GENESIS_UTILS_TOOLS_SHA256_H_
+#ifndef GENESIS_UTILS_TOOLS_HASH_SHA256_H_
+#define GENESIS_UTILS_TOOLS_HASH_SHA256_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -60,6 +60,7 @@ namespace utils {
  * The implementation is based on http://www.zedwood.com/article/cpp-sha256-function,
  * which itself is based on Olivier Gay's version, and was published with a Modified BSD License:
  *
+ * @htmlonly <details><summary>License</summary> @endhtmlonly
  * > Updated to C++, zedwood.com 2012
  * > Based on Olivier Gay's version
  * > See Modified BSD License below:
@@ -94,6 +95,7 @@ namespace utils {
  * > LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * > OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * > SUCH DAMAGE.
+ * @htmlonly </details> @endhtmlonly
  *
  * See also @link supplement_acknowledgements_code_reuse_sha256 Acknowledgements@endlink.
  */

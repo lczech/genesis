@@ -54,7 +54,7 @@ NcbiNodeLookup convert_ncbi_node_table(
     NcbiNodeLookup result;
 
     // Helper to get a field or throw.
-    auto get_field = []( utils::CsvReader::Row const& line, size_t pos, std::string const& field_name ){
+    auto get_field = []( utils::CsvReader::Line const& line, size_t pos, std::string const& field_name ){
         if( pos >= line.size() ) {
             throw std::runtime_error(
                 "NCBI node table line does not contain position " + std::to_string( pos ) +
@@ -94,7 +94,7 @@ NcbiNameLookup convert_ncbi_name_table(
     NcbiNameLookup result;
 
     // Helper to get a field or throw.
-    auto get_field = []( utils::CsvReader::Row const& line, size_t pos, std::string const& field_name ){
+    auto get_field = []( utils::CsvReader::Line const& line, size_t pos, std::string const& field_name ){
         if( pos >= line.size() ) {
             throw std::runtime_error(
                 "NCBI name table line does not contain position " + std::to_string( pos ) +

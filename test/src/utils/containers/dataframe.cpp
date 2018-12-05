@@ -49,12 +49,12 @@ TEST( Containers, DataframeMatrix )
     EXPECT_EQ( 10, df.rows() );
 
     // Index access
-    EXPECT_EQ( 4.5, df( 0, 2 ));
-    EXPECT_EQ( 1.0, df( 8, 0 ));
+    EXPECT_EQ( 4.5, df[2][0]);
+    EXPECT_EQ( 1.0, df[0][8]);
 
     // Name acces
-    EXPECT_EQ( 4.7, df( "gamma", "Third" ));
-    EXPECT_EQ( 0.0, df( "kappa", "First" ));
+    EXPECT_EQ( 4.7, df["Third"]["gamma"]);
+    EXPECT_EQ( 0.0, df["First"]["kappa"]);
 
     // for( size_t c = 0; c < df.cols(); ++c ) {
     //     std::cout << df.col_name(c) << " ";
@@ -85,17 +85,17 @@ TEST( Containers, DataframeCsv )
     EXPECT_EQ( 10, df.rows() );
 
     // Index access
-    EXPECT_EQ( 4.5, df( 0, 2 ));
-    EXPECT_EQ( 1.0, df( 8, 0 ));
+    EXPECT_EQ( 4.5, df[2][0]);
+    EXPECT_EQ( 1.0, df[0][8]);
 
     // Name acces
-    EXPECT_EQ( 4.7, df( "gamma", "Third" ));
-    EXPECT_EQ( 0.0, df( "kappa", "First" ));
+    EXPECT_EQ( 4.7, df["Third"]["gamma"]);
+    EXPECT_EQ( 0.0, df["First"]["kappa"]);
 
     // Remove some things.
     df.remove_col( "Second" );
     EXPECT_EQ(  2, df.cols() );
     df.remove_row( 3 );
     EXPECT_EQ( 9, df.rows() );
-    EXPECT_EQ( 5.5, df( 3, "Third" ));
+    EXPECT_EQ( 5.5, df["Third"][3]);
 }

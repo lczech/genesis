@@ -290,9 +290,12 @@ public:
         }
 
         // If the line is too long, throw.
-        if( line_end - data_pos_ + 1 > BlockLength ) {
+        if( line_end - data_pos_ >= BlockLength ) {
             throw std::runtime_error( "Input line too long in " + source_name() + " at " + at() );
         }
+
+        // Because of the studid windows linebreaks, we need a special case...
+        size_t windows_offset = 0;
 
         // Set the end of the line to \0, so that downstream parses can work with it.
         // We first check for the end of line, so that the other checks (for new lines) can be
@@ -312,6 +315,7 @@ public:
             // Treat stupid Windows \r\n lines breaks.
             if( line_end + 1 < data_end_ && buffer_[ line_end + 1 ] == '\n' ) {
                 ++line_end;
+                windows_offset = 1;
                 buffer_[ line_end ] = '\0';
             }
         } else {
@@ -320,9 +324,14 @@ public:
             assert( false );
         }
 
+        // Some safty
+        assert( data_pos_ < data_end_ );
+        assert( line_end >= data_pos_ );
+        assert( line_end - data_pos_ < BlockLength );
+
         // Get pointer to beginning of the line, and length of the line, for returning it.
-        char*  ret_ptr = buffer_ + data_pos_;
-        size_t ret_len = line_end - data_pos_;
+        char*  const ret_ptr = buffer_ + data_pos_;
+        size_t const ret_len = line_end - data_pos_ - windows_offset;
 
         // Move to the first char of the next line, so that future calls for reading a line or
         // char start at the right position.
