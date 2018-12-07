@@ -370,8 +370,9 @@ GlmOutput glm_fit(
         throw std::invalid_argument( "glm_fit: link is not properly defined." );
     }
 
-    // TODO
-    // with intercept and empty strata
+    // TODO with intercept and empty strata
+    // TODO use input x dataframe instead of matrix, so that vectors can be used!
+    // TODO factors
 
     // Prepare results.
     GlmOutput result;

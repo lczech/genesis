@@ -30,6 +30,7 @@
 
 #include "src/common.hpp"
 
+#include "genesis/utils/math/regression/factor.hpp"
 #include "genesis/utils/math/regression/glm.hpp"
 #include "genesis/utils/math/regression/slr.hpp"
 #include "genesis/utils/containers/matrix.hpp"
@@ -38,6 +39,89 @@
 #include "genesis/utils/text/string.hpp"
 
 using namespace genesis::utils;
+
+TEST( Math, GlmFactors )
+{
+    auto const data = std::vector<std::string>{
+        "B", "A", "B", "A", "C", "C", "B", "A", "A", "C", "D", "A"
+    };
+    auto const maxs = std::numeric_limits<std::size_t>::max();
+
+    // Fully automatic (no optional params given).
+    auto const factor1 = glm_factor( data.begin(), data.end() );
+    auto levels1 = std::vector<std::string>{ "A", "B", "C", "D" };
+    auto values1 = std::vector<size_t>{ 1, 0, 1, 0, 2, 2, 1, 0, 0, 2, 3, 0 };
+    EXPECT_EQ( levels1.size(), factor1.levels.size() );
+    EXPECT_EQ( values1.size(), factor1.values.size() );
+    EXPECT_EQ( levels1, factor1.levels );
+    EXPECT_EQ( values1, factor1.values );
+
+    // With given list of levels, leaving out "D", and different order.
+    auto const factor2 = glm_factor( data.begin(), data.end(), { "C", "B", "A" } );
+    auto levels2 = std::vector<std::string>{ "C", "B", "A" };
+    auto values2 = std::vector<size_t>{ 1, 2, 1, 2, 0, 0, 1, 2, 2, 0, maxs, 2 };
+    EXPECT_EQ( levels2.size(), factor2.levels.size() );
+    EXPECT_EQ( values2.size(), factor2.values.size() );
+    EXPECT_EQ( levels2, factor2.levels );
+    EXPECT_EQ( values2, factor2.values );
+
+    // With given exlusion list of levels.
+    auto const factor3 = glm_factor( data.begin(), data.end(), {}, { "B" } );
+    auto levels3 = std::vector<std::string>{ "A", "C", "D" };
+    auto values3 = std::vector<size_t>{ maxs, 0, maxs, 0, 1, 1, maxs, 0, 0, 1, 2, 0  };
+    EXPECT_EQ( levels3.size(), factor3.levels.size() );
+    EXPECT_EQ( values3.size(), factor3.values.size() );
+    EXPECT_EQ( levels3, factor3.levels );
+    EXPECT_EQ( values3, factor3.values );
+}
+
+TEST( Math, GlmIndicatorVariables )
+{
+    auto const data = std::vector<std::string>{
+        "B", "A", "B", "A", "C", "C", "B", "A", "A", "C", "D", "A"
+    };
+
+    // Basic test
+    auto const factor1 = glm_factor( data.begin(), data.end() );
+    auto const df_iv1 = glm_indicator_variables( factor1 );
+    auto const col10  = std::vector<double>{ 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+    auto const col11  = std::vector<double>{ 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 };
+    auto const col12  = std::vector<double>{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 };
+    ASSERT_EQ( 3, df_iv1.cols() );
+    EXPECT_EQ( 12, df_iv1.rows() );
+    EXPECT_EQ( col10, df_iv1[0].operator std::vector<double> const&() );
+    EXPECT_EQ( col11, df_iv1[1].operator std::vector<double> const&() );
+    EXPECT_EQ( col12, df_iv1[2].operator std::vector<double> const&() );
+
+    auto const nan = std::numeric_limits<double>::quiet_NaN();
+
+    // With excluded value and different order.
+    auto const factor2 = glm_factor( data.begin(), data.end(), { "C", "B", "A" }, { "D" } );
+    auto const df_iv2 = glm_indicator_variables( factor2, std::string( "B" ));
+    auto const col20  = std::vector<double>{ 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, nan, 0.0 };
+    auto const col21  = std::vector<double>{ 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, nan, 1.0 };
+    ASSERT_EQ( 2, df_iv2.cols() );
+    ASSERT_EQ( 12, df_iv2.rows() );
+
+    // Have to compare manually because of nans
+    for( size_t i = 0; i < 12; ++i ) {
+        if( std::isnan( col20[i] )) {
+            EXPECT_TRUE( std::isnan( df_iv2[0][i] ));
+        } else {
+            EXPECT_EQ( col20[i], df_iv2[0][i] );
+        }
+        if( std::isnan( col21[i] )) {
+            EXPECT_TRUE( std::isnan( df_iv2[1][i] ));
+        } else {
+            EXPECT_EQ( col21[i], df_iv2[1][i] );
+        }
+    }
+    // EXPECT_EQ( col20, df_iv2[0].operator std::vector<double> const&() );
+    // EXPECT_EQ( col21, df_iv2[1].operator std::vector<double> const&() );
+
+    // Error check.
+    EXPECT_ANY_THROW( glm_indicator_variables( factor2, std::string( "X" )));
+}
 
 TEST( Math, SimpleLinearRegression )
 {
@@ -184,129 +268,129 @@ TEST( Math, GlmGaussSimple )
     EXPECT_NEAR( 27.7548, result.tri[0], 0.0001 );
 }
 
-// TEST( Math, GlmGaussNoIntercept )
-// {
-//     NEEDS_TEST_DATA;
-//
-//     // Read data
-//     auto const infile = environment->data_dir + "utils/csv/linear_regression.csv";
-//     auto dfr = DataframeReader<double>();
-//     dfr.names_from_first_col(false);
-//     auto const data = dfr.read( from_file( infile ));
-//
-//     // Set up
-//     int family = 3;
-//     int link = 3;
-//
-//     int N = data.rows();
-//     int M = 1;
-//     auto x = Matrix<double>(N, M);
-//     x.col(0) = data[ "x1" ];
-//
-//     // No intercept
-//     GlmExtras extras;
-//     extras.with_intercept = false;
-//
-//     // Run
-//     auto const result = glm_fit( family, link, x, data[ "x5" ], extras );
-//
-//     // Allowed error for double comparisons.
-//     double delta = 0.00001;
-//
-//     // Gaussian algo should not iterate at all.
-//     EXPECT_TRUE( result.converged );
-//     EXPECT_EQ( 0, result.num_iterations );
-//
-//     // Check expected result vectors and matrices.
-//     // Results were obtained from R, using the script test/data/utils/csv/linear_regression.R
-//     // We also compared these results to the original snp.matrix and X.snp.matrix implementation,
-//     // just to be sure. Also works!
-//     auto xb_exp = Matrix<double>(N, M, {
-//         2.09, 3.14, 3.48, 3.52, 2.78, 2.7, 3.15, 2.83, 2.24, 3.29, 2.92, 3.61, 2.71, 3.92, 3.28,
-//         2.65, 3.94, 2.14, 3.22, 3.42, 2.42, 3.52, 3.45, 3.49, 3.07, 2.23, 3.28, 2.67, 3.34, 3.41,
-//         2.83, 3.42, 3.21, 3.11, 2.52, 2.71, 3.32, 3.61, 3.56, 3.24, 3.09, 3.72, 3.51, 3.56, 3.9,
-//         2.48, 2.91, 3.76, 2.64, 2.36, 3.81, 2.19, 2.66, 3.87, 2.62, 2.54, 2.81, 3.17, 3.12, 3.51,
-//         2.83, 2.48, 3.46, 3.24, 3.02, 3.42, 3.44, 3.62, 2.74, 2.76, 4, 2.46, 2.15, 3.34, 3.67,
-//         3.21, 2.19, 3.91, 3.48, 2.24, 2.84, 2.71, 3.46, 3.28, 2.89, 2.52, 3.14, 2.1, 3.68, 3.68,
-//         2.41, 3.06, 3.19, 2.82, 2.48, 3.29, 3.82, 2.29, 2.03, 2.59, 3.72, 3.42, 3.48, 3.28, 3.51
-//     });
-//     auto fitted_exp = std::vector<double>({
-//         2.13529657732442, 3.20805323100412, 3.55542205219565, 3.59628897233583, 2.8402509497425,
-//         2.75851710946214, 3.21826996103917, 2.89133459991773, 2.28854752785007, 3.3613041815298,
-//         2.98328517023313, 3.68823954265124, 2.76873383949719, 4.00495817373763, 3.35108745149475,
-//         2.70743345928692, 4.02539163380772, 2.18638022749962, 3.28978707128448, 3.49412167198538,
-//         2.47244866848088, 3.59628897233583, 3.52477186209052, 3.5656387822307, 3.13653612075881,
-//         2.27833079781503, 3.35108745149475, 2.72786691935701, 3.41238783170502, 3.48390494195034,
-//         2.89133459991773, 3.49412167198538, 3.27957034124944, 3.17740304089899, 2.57461596883133,
-//         2.76873383949719, 3.39195437163493, 3.68823954265124, 3.63715589247601, 3.31022053135457,
-//         3.1569695808289, 3.80062357303673, 3.58607224230079, 3.63715589247601, 3.98452471366754,
-//         2.53374904869115, 2.97306844019809, 3.84149049317691, 2.69721672925187, 2.41114828827061,
-//         3.89257414335214, 2.23746387767485, 2.71765018932196, 3.95387452356241, 2.67678326918178,
-//         2.59504942890142, 2.87090113984764, 3.23870342110926, 3.18761977093403, 3.58607224230079,
-//         2.89133459991773, 2.53374904869115, 3.53498859212556, 3.31022053135457, 3.08545247058358,
-//         3.49412167198538, 3.51455513205547, 3.69845627268628, 2.79938402960232, 2.81981748967241,
-//         4.08669201401799, 2.51331558862106, 2.19659695753467, 3.41238783170502, 3.74953992286151,
-//         3.27957034124944, 2.23746387767485, 3.99474144370259, 3.55542205219565, 2.28854752785007,
-//         2.90155132995277, 2.76873383949719, 3.53498859212556, 3.35108745149475, 2.952634980128,
-//         2.57461596883133, 3.20805323100412, 2.14551330735944, 3.75975665289655, 3.75975665289655,
-//         2.46223193844584, 3.12631939072376, 3.25913688117935, 2.88111786988268, 2.53374904869115,
-//         3.3613041815298, 3.90279087338718, 2.3396311780253, 2.07399619711413, 2.64613307907665,
-//         3.80062357303673, 3.49412167198538, 3.55542205219565, 3.35108745149475, 3.58607224230079
-//     });
-//     auto resid_exp = std::vector<double>({
-//         1.28470342267558, 0.191946768995878, 0.0345779478043488, -0.0562889723358307,
-//         0.0697490502574973, 0.411482890537857, -0.0482699610391673, 0.108665400082272,
-//         0.0514524721499253, 0.0486958184702034, 0.186714829766868, -0.0782395426512358,
-//         -0.418733839497188, -0.35495817373763, 0.138912548505249, 0.572566540713082,
-//         -0.31539163380772, 0.353619772500375, 0.180212928715518, -0.484121671985381,
-//         0.547551331519116, -0.226288972335831, -0.00477186209051664, -0.145638782230696,
-//         0.113463879241193, 0.0116692021849705, -0.0610874514947514, 0.352133080642992,
-//         0.167612168294979, -0.0839049419503365, 0.178665400082272, -0.324121671985381,
-//         -0.269570341249437, 0.232596959101014, -0.304615968831334, 0.421266160502812,
-//         -0.0219543716349311, -0.408239542651236, -0.257155892476011, 0.0697794686454278,
-//         0.133030419171103, -0.0906235730367304, -0.266072242300786, -0.0171558924760108,
-//         -0.39452471366754, -0.163749048691154, 0.306931559801912, -0.20149049317691,
-//         -0.297216729251874, -0.171148288270614, -0.292574143352136, -0.0274638776748495,
-//         0.362349810678037, -0.313874523562405, 0.443216730818217, -0.0750494289014235,
-//         0.329098860152363, 0.171296578890743, 0.0923802290659678, -0.246072242300786,
-//         0.498665400082272, -0.453749048691154, 0.175011407874439, 0.159779468645428,
-//         0.194547529416418, -0.054121671985381, 0.00544486794452875, -0.188456272686281,
-//         0.0306159703976765, -0.479817489672413, -0.32669201401799, 0.766684411378936,
-//         0.0534030424653308, 0.00761216829497846, -0.279539922861505, 0.140429658750564,
-//         0.52253612232515, -0.264741443702585, -0.0454220521956512, 0.921452472149925,
-//         -0.501551329952773, -0.388733839497188, -0.124988592125561, 0.128912548505249,
-//         0.517365019872002, -0.174615968831334, 0.161946768995878, 0.224486692640556,
-//         -0.159756652896551, -0.359756652896551, 0.727768061554161, 0.113680609276238,
-//         0.0208631188206528, -0.481117869882683, -0.293749048691154, -0.0713041815297968,
-//         -0.0927908733871806, 0.660368821974701, 0.666003802885871, 0.543866920923352,
-//         -0.31062357303673, 0.00587832801461904, -0.165422052195651, -0.0410874514947514,
-//         -0.00607224230078576
-//     });
-//
-//     EXPECT_EQ( 1, result.rank );
-//     EXPECT_EQ( 103, result.df_resid );
-//     EXPECT_NEAR( 0.0792109, result.scale, delta );
-//
-//     // EXPECT_ITERABLE_DOUBLE_NEAR( Matrix<double>, xb_exp, result.Xb, delta );
-//     // EXPECT_ITERABLE_DOUBLE_NEAR( std::vector<double>, fitted_exp, result.fitted, delta );
-//     // EXPECT_ITERABLE_DOUBLE_NEAR( std::vector<double>, resid_exp, result.resid, delta );
-//
-//     EXPECT_NEAR( 2.13529657732442, result.fitted[0], 0.0001 );
-//     EXPECT_NEAR( 1.28470342267558, result.resid[0], 0.0001 );
-//
-//     LOG_DBG << "fitted " << join(result.fitted);
-//
-//
-//     // In this case, all weights are 1. No need for storing them in a vector.
-//     EXPECT_EQ( N, result.weights.size() );
-//     for( size_t i = 0; i < result.weights.size(); ++i ) {
-//         EXPECT_NEAR( 1.0, result.weights[i], delta );
-//     }
-//
-//     EXPECT_EQ( 1, result.which.size() );
-//     EXPECT_EQ( 1, result.betaQ.size() );
-//     EXPECT_EQ( 1, result.tri.size() );
-//     EXPECT_NEAR( 0.0, result.which[0], delta );
-//     EXPECT_NEAR( 1.021673, result.betaQ[0], delta );
-//     EXPECT_NEAR( 27.7548, result.tri[0], 0.0001 );
-// }
+/*
+TEST( Math, GlmGaussNoIntercept )
+{
+    NEEDS_TEST_DATA;
+
+    // Read data
+    auto const infile = environment->data_dir + "utils/csv/linear_regression.csv";
+    auto dfr = DataframeReader<double>();
+    dfr.names_from_first_col(false);
+    auto const data = dfr.read( from_file( infile ));
+
+    int N = data.rows();
+    int M = 1;
+    auto x = Matrix<double>(N, M);
+    x.col(0) = data[ "x1" ];
+
+    // No intercept
+    GlmExtras extras;
+    extras.with_intercept = false;
+
+    // Run
+    auto const result = glm_fit( x, data[ "x5" ], glm_family_gaussian(), extras );
+
+    // Allowed error for double comparisons.
+    double delta = 0.00001;
+
+    // Gaussian algo should not iterate at all.
+    EXPECT_TRUE( result.converged );
+    EXPECT_EQ( 0, result.num_iterations );
+
+    // Check expected result vectors and matrices.
+    // Results were obtained from R, using the script test/data/utils/csv/linear_regression.R
+    // We also compared these results to the original snp.matrix and X.snp.matrix implementation,
+    // just to be sure. Also works!
+    auto xb_exp = Matrix<double>(N, M, {
+        2.09, 3.14, 3.48, 3.52, 2.78, 2.7, 3.15, 2.83, 2.24, 3.29, 2.92, 3.61, 2.71, 3.92, 3.28,
+        2.65, 3.94, 2.14, 3.22, 3.42, 2.42, 3.52, 3.45, 3.49, 3.07, 2.23, 3.28, 2.67, 3.34, 3.41,
+        2.83, 3.42, 3.21, 3.11, 2.52, 2.71, 3.32, 3.61, 3.56, 3.24, 3.09, 3.72, 3.51, 3.56, 3.9,
+        2.48, 2.91, 3.76, 2.64, 2.36, 3.81, 2.19, 2.66, 3.87, 2.62, 2.54, 2.81, 3.17, 3.12, 3.51,
+        2.83, 2.48, 3.46, 3.24, 3.02, 3.42, 3.44, 3.62, 2.74, 2.76, 4, 2.46, 2.15, 3.34, 3.67,
+        3.21, 2.19, 3.91, 3.48, 2.24, 2.84, 2.71, 3.46, 3.28, 2.89, 2.52, 3.14, 2.1, 3.68, 3.68,
+        2.41, 3.06, 3.19, 2.82, 2.48, 3.29, 3.82, 2.29, 2.03, 2.59, 3.72, 3.42, 3.48, 3.28, 3.51
+    });
+    auto fitted_exp = std::vector<double>({
+        2.13529657732442, 3.20805323100412, 3.55542205219565, 3.59628897233583, 2.8402509497425,
+        2.75851710946214, 3.21826996103917, 2.89133459991773, 2.28854752785007, 3.3613041815298,
+        2.98328517023313, 3.68823954265124, 2.76873383949719, 4.00495817373763, 3.35108745149475,
+        2.70743345928692, 4.02539163380772, 2.18638022749962, 3.28978707128448, 3.49412167198538,
+        2.47244866848088, 3.59628897233583, 3.52477186209052, 3.5656387822307, 3.13653612075881,
+        2.27833079781503, 3.35108745149475, 2.72786691935701, 3.41238783170502, 3.48390494195034,
+        2.89133459991773, 3.49412167198538, 3.27957034124944, 3.17740304089899, 2.57461596883133,
+        2.76873383949719, 3.39195437163493, 3.68823954265124, 3.63715589247601, 3.31022053135457,
+        3.1569695808289, 3.80062357303673, 3.58607224230079, 3.63715589247601, 3.98452471366754,
+        2.53374904869115, 2.97306844019809, 3.84149049317691, 2.69721672925187, 2.41114828827061,
+        3.89257414335214, 2.23746387767485, 2.71765018932196, 3.95387452356241, 2.67678326918178,
+        2.59504942890142, 2.87090113984764, 3.23870342110926, 3.18761977093403, 3.58607224230079,
+        2.89133459991773, 2.53374904869115, 3.53498859212556, 3.31022053135457, 3.08545247058358,
+        3.49412167198538, 3.51455513205547, 3.69845627268628, 2.79938402960232, 2.81981748967241,
+        4.08669201401799, 2.51331558862106, 2.19659695753467, 3.41238783170502, 3.74953992286151,
+        3.27957034124944, 2.23746387767485, 3.99474144370259, 3.55542205219565, 2.28854752785007,
+        2.90155132995277, 2.76873383949719, 3.53498859212556, 3.35108745149475, 2.952634980128,
+        2.57461596883133, 3.20805323100412, 2.14551330735944, 3.75975665289655, 3.75975665289655,
+        2.46223193844584, 3.12631939072376, 3.25913688117935, 2.88111786988268, 2.53374904869115,
+        3.3613041815298, 3.90279087338718, 2.3396311780253, 2.07399619711413, 2.64613307907665,
+        3.80062357303673, 3.49412167198538, 3.55542205219565, 3.35108745149475, 3.58607224230079
+    });
+    auto resid_exp = std::vector<double>({
+        1.28470342267558, 0.191946768995878, 0.0345779478043488, -0.0562889723358307,
+        0.0697490502574973, 0.411482890537857, -0.0482699610391673, 0.108665400082272,
+        0.0514524721499253, 0.0486958184702034, 0.186714829766868, -0.0782395426512358,
+        -0.418733839497188, -0.35495817373763, 0.138912548505249, 0.572566540713082,
+        -0.31539163380772, 0.353619772500375, 0.180212928715518, -0.484121671985381,
+        0.547551331519116, -0.226288972335831, -0.00477186209051664, -0.145638782230696,
+        0.113463879241193, 0.0116692021849705, -0.0610874514947514, 0.352133080642992,
+        0.167612168294979, -0.0839049419503365, 0.178665400082272, -0.324121671985381,
+        -0.269570341249437, 0.232596959101014, -0.304615968831334, 0.421266160502812,
+        -0.0219543716349311, -0.408239542651236, -0.257155892476011, 0.0697794686454278,
+        0.133030419171103, -0.0906235730367304, -0.266072242300786, -0.0171558924760108,
+        -0.39452471366754, -0.163749048691154, 0.306931559801912, -0.20149049317691,
+        -0.297216729251874, -0.171148288270614, -0.292574143352136, -0.0274638776748495,
+        0.362349810678037, -0.313874523562405, 0.443216730818217, -0.0750494289014235,
+        0.329098860152363, 0.171296578890743, 0.0923802290659678, -0.246072242300786,
+        0.498665400082272, -0.453749048691154, 0.175011407874439, 0.159779468645428,
+        0.194547529416418, -0.054121671985381, 0.00544486794452875, -0.188456272686281,
+        0.0306159703976765, -0.479817489672413, -0.32669201401799, 0.766684411378936,
+        0.0534030424653308, 0.00761216829497846, -0.279539922861505, 0.140429658750564,
+        0.52253612232515, -0.264741443702585, -0.0454220521956512, 0.921452472149925,
+        -0.501551329952773, -0.388733839497188, -0.124988592125561, 0.128912548505249,
+        0.517365019872002, -0.174615968831334, 0.161946768995878, 0.224486692640556,
+        -0.159756652896551, -0.359756652896551, 0.727768061554161, 0.113680609276238,
+        0.0208631188206528, -0.481117869882683, -0.293749048691154, -0.0713041815297968,
+        -0.0927908733871806, 0.660368821974701, 0.666003802885871, 0.543866920923352,
+        -0.31062357303673, 0.00587832801461904, -0.165422052195651, -0.0410874514947514,
+        -0.00607224230078576
+    });
+
+    EXPECT_EQ( 1, result.rank );
+    EXPECT_EQ( 103, result.df_resid );
+    EXPECT_NEAR( 0.0792109, result.scale, delta );
+
+    // EXPECT_ITERABLE_DOUBLE_NEAR( Matrix<double>, xb_exp, result.Xb, delta );
+    // EXPECT_ITERABLE_DOUBLE_NEAR( std::vector<double>, fitted_exp, result.fitted, delta );
+    // EXPECT_ITERABLE_DOUBLE_NEAR( std::vector<double>, resid_exp, result.resid, delta );
+
+    EXPECT_NEAR( 2.13529657732442, result.fitted[0], 0.0001 );
+    EXPECT_NEAR( 1.28470342267558, result.resid[0], 0.0001 );
+
+    LOG_DBG << "Xb " << join(result.Xb);
+    LOG_DBG << "resid " << join(result.resid);
+    LOG_DBG << "fitted " << join(result.fitted);
+
+
+    // In this case, all weights are 1. No need for storing them in a vector.
+    EXPECT_EQ( N, result.weights.size() );
+    for( size_t i = 0; i < result.weights.size(); ++i ) {
+        EXPECT_NEAR( 1.0, result.weights[i], delta );
+    }
+
+    EXPECT_EQ( 1, result.which.size() );
+    EXPECT_EQ( 1, result.betaQ.size() );
+    EXPECT_EQ( 1, result.tri.size() );
+    EXPECT_NEAR( 0.0, result.which[0], delta );
+    EXPECT_NEAR( 1.021673, result.betaQ[0], delta );
+    EXPECT_NEAR( 27.7548, result.tri[0], 0.0001 );
+}
+*/
