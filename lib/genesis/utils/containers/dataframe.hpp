@@ -279,6 +279,14 @@ public:
             return content_;
         }
 
+        /**
+         * @brief Get a copy of the column in form of a `std::vector`.
+         */
+        operator std::vector<value_type>&()
+        {
+            return content_;
+        }
+
         // -------------------------------------------------------------------------
         //     Data Members
         // -------------------------------------------------------------------------
@@ -531,7 +539,7 @@ public:
         return *this;
     }
 
-    std::vector<std::string> col_names() const
+    std::vector<std::string> const& col_names() const
     {
         return col_names_;
     }
