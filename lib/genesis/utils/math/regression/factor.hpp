@@ -66,6 +66,23 @@ struct GlmFactor
     std::vector<size_t> values;
 };
 
+/**
+ * @brief Reduce a list of values in the given range to a set of unique factors.
+ *
+ * The function takes a range (@p first to @p last, with last being the past-the-end element)
+ * and finds all unique values (called `levels`) in the range. These are stored in the
+ * GlmFactor::levels set of the result. The provided values in the given range are then encoded
+ * in GlmFactor::values using the indices of the unique values in the levels.
+ *
+ * If the parameter @p levels is not provided, the found unique levels are sorted.
+ * If however @p levels are provided, these are used instead, and their ordering is used for the
+ * encoding of the values. Any value that is not found in the provided @p levels is assigned
+ * `max size_t` as an indicator of an unused/missing level.
+ *
+ * The paramter @p exclude works similary: All levels in the @p exlcude list are removed from the
+ * result (no matter whether @p levels were provided or the found ones are used), and all
+ * corresponding values are encoded as `max size_t`.
+ */
 template <class ForwardIterator>
 GlmFactor<typename ForwardIterator::value_type> glm_factor(
     ForwardIterator first,
@@ -113,7 +130,8 @@ GlmFactor<typename ForwardIterator::value_type> glm_factor(
         }
     }
 
-    // Fill the values. This is inefficient, but for now, good enough.
+    // Fill the values. This is inefficient because of the repeated lookup of levels,
+    // but for now, good enough, because the set of levels is usually small.
     auto it = first;
     while( it != last ) {
         auto fit = std::find( result.levels.begin(), result.levels.end(), *it );
@@ -129,6 +147,20 @@ GlmFactor<typename ForwardIterator::value_type> glm_factor(
     return result;
 }
 
+/**
+ * @brief Get the number of occurrences of each level in a GlmFactor.
+ *
+ * The resulting vector indicates how often each level of the factor occurs in its values,
+ * using the same indices as the levels:
+ *
+ *     // List the number of occurrences for each factor.
+ *     auto const smry = glm_factor_summary( factor );
+ *     for( size_t i = 0; i < factor.levels.size(); ++i ) {
+ *      std::cout << "Level " << factor.levels[i] << ": " << smry[i];
+ *     }
+ *
+ * This is for example useful for user output.
+ */
 template<class T>
 std::vector<size_t> glm_factor_summary( GlmFactor<T> const& factor )
 {
@@ -141,12 +173,25 @@ std::vector<size_t> glm_factor_summary( GlmFactor<T> const& factor )
     return result;
 }
 
+/**
+ * @brief Turn a GlmFactor into a set of (dummy) indicator variables to be used in regression.
+ *
+ * The function takes a @p factor object, and for its `k` levels creates `k - 1` dummy indicator
+ * variables that encode the factors for regression. The given @p reference_level is excluded,
+ * and for all other levels, a column is returned that contains `1.0` wherever the `values`
+ * of the @p factor are equal to that level, and `0.0` otherwise.
+ * Missing/exluded levels are encoded as `NaN`.
+ */
 template<class T>
 Dataframe<double> glm_indicator_variables(
     GlmFactor<T> const& factor,
     T const& reference_level,
     std::vector<std::string> row_names = {}
 ) {
+    // Error checks.
+    if( factor.levels.empty() ) {
+        throw std::runtime_error( "Cannot create indicator variable from empty factor." );
+    }
     if( ! row_names.empty() && row_names.size() != factor.values.size() ) {
         throw std::runtime_error(
             "Row names for indicator variable do not have the same size as the values of the factor."
@@ -181,6 +226,7 @@ Dataframe<double> glm_indicator_variables(
             result.add_row( row_names[i] );
         }
     }
+    assert( result.rows() == factor.values.size() );
 
     // Make indicator variables for each but the reference level.
     for( size_t lvl_idx = 0; lvl_idx < factor.levels.size(); ++lvl_idx ) {
@@ -199,10 +245,18 @@ Dataframe<double> glm_indicator_variables(
             }
         }
     }
+    assert( factor.levels.size() > 0 );
+    assert( result.cols() == factor.levels.size() - 1 );
 
     return result;
 }
 
+/**
+ * @brief Turn a GlmFactor into a set of (dummy) indicator variables to be used in regression.
+ *
+ * The function uses the most common level as reference level, and otherwise behaves the same as
+ * @link glm_indicator_variables( GlmFactor<T> const&, T const&, std::vector<std::string> row_names ) glm_indicator_variables()@endlink.
+ */
 template<class T>
 Dataframe<double> glm_indicator_variables(
     GlmFactor<T> const& factor,

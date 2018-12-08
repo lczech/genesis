@@ -372,7 +372,7 @@ GlmOutput glm_fit(
 
     // TODO with intercept and empty strata
     // TODO use input x dataframe instead of matrix, so that vectors can be used!
-    // TODO factors
+    // TODO interactions
 
     // Prepare results.
     GlmOutput result;
