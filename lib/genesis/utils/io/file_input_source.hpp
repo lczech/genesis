@@ -71,7 +71,7 @@ public:
         : file_name_( file_name )
     {
         if( ! file_exists( file_name ) ) {
-            throw std::runtime_error( "File does not exists: " + file_name );
+            throw std::runtime_error( "File does not exist or is not readable: " + file_name );
         }
 
         errno = 0;
