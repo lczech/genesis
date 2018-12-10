@@ -73,18 +73,6 @@ public:
         if( ! file_exists( file_name ) ) {
             throw std::runtime_error( "File does not exist or is not readable: " + file_name );
         }
-
-        errno = 0;
-        file_ = std::fopen( file_name.c_str(), "rb" );
-
-        if( file_ == nullptr ) {
-            throw std::runtime_error(
-                "Cannot open file " + file_name + ": " + std::string( strerror( errno ))
-            );
-        }
-
-        // We do our own buffering.
-        std::setvbuf( file_, 0, _IONBF, 0 );
     }
 
     /**
@@ -105,10 +93,7 @@ public:
     FileInputSource& operator= ( FileInputSource const& ) = default;
     FileInputSource& operator= ( FileInputSource&& )      = default;
 
-    ~FileInputSource()
-    {
-        std::fclose( file_ );
-    }
+    ~FileInputSource() = default;
 
     // -------------------------------------------------------------
     //     Overloaded Internal Members
@@ -121,10 +106,35 @@ private:
      */
     size_t read_( char* buffer, size_t size ) override
     {
+        // We need to do lazy loading, otherwise, we might end up having too many open files
+        // if we are using the from_files() function, which opens all files at once...
+        if( file_ == nullptr ) {
+            errno = 0;
+            file_ = std::fopen( file_name_.c_str(), "rb" );
+
+            if( file_ == nullptr ) {
+                throw std::runtime_error(
+                    "Cannot open file " + file_name_ + ": " + std::string( strerror( errno ))
+                );
+            }
+
+            // We do our own buffering.
+            std::setvbuf( file_, 0, _IONBF, 0 );
+        }
+
+        // Do the reading.
         size_t const ret = std::fread( buffer, 1, size, file_ );
         if( std::ferror( file_ ) ) {
             throw std::runtime_error( "Cannot read from file: " + file_name_ );
         }
+
+        // Similarly, we need to close again once we are done, so that the file is not kept
+        // open unnecesasrily long after reading.
+        if( ret < size ) {
+            std::fclose( file_ );
+            file_ = nullptr;
+        }
+
         return ret;
     }
 
@@ -148,7 +158,7 @@ private:
     //     Member Variables
     // -------------------------------------------------------------
 
-    FILE*       file_;
+    FILE*       file_ = nullptr;
     std::string file_name_;
 };
 
