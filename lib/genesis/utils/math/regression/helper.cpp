@@ -68,24 +68,24 @@ namespace utils {
 // =============================================================================
 
 GlmFreedom weighted_mean_centering(
-    std::vector<double> const& y,
+    std::vector<double> const& y_input,
     std::vector<double> const& weights,
     std::vector<size_t> const& strata,
     bool                       with_intercept,
     bool                       centering,
-    std::vector<double>&       y_new
+    std::vector<double>&       y_output
 ) {
     // Prepare return value. Has reasonable defaults already.
     GlmFreedom result;
 
     // Prepare result vector.
-    if( &y_new != &y ) {
-        y_new.resize( y.size() );
+    if( &y_output != &y_input ) {
+        y_output.resize( y_input.size() );
     }
-    assert( y_new.size() == y.size() );
+    assert( y_output.size() == y_input.size() );
 
     // Check
-    if( ! weights.empty() && weights.size() != y.size() ) {
+    if( ! weights.empty() && weights.size() != y_input.size() ) {
         throw std::invalid_argument(
             "weighted_residuals: y and weights need to have same length."
         );
@@ -94,8 +94,8 @@ GlmFreedom weighted_mean_centering(
     if( strata.empty() ) {
         if( ! with_intercept ) {
             // Nothing to do ... if necessary copy input to output
-            if( &y_new != &y ) {
-                y_new = y;
+            if( &y_output != &y_input ) {
+                y_output = y_input;
             }
             return result;
         }
@@ -104,29 +104,29 @@ GlmFreedom weighted_mean_centering(
         double swy = 0.0;
 
         if( weights.empty() ) {
-            for( size_t i = 0; i < y.size(); ++i ) {
-                swy += y[i];
+            for( size_t i = 0; i < y_input.size(); ++i ) {
+                swy += y_input[i];
             }
-            swt = static_cast<double>( y.size() );
+            swt = static_cast<double>( y_input.size() );
         } else {
-            for( size_t i = 0; i < y.size(); ++i ) {
+            for( size_t i = 0; i < y_input.size(); ++i ) {
                 double wi = weights[i];
                 swt += wi;
-                swy += wi * y[i];
+                swy += wi * y_input[i];
             }
         }
         swy /= swt;
 
         if( swt > 0.0 ) {
-            for( size_t i = 0; i < y.size(); ++i ) {
-                y_new[i] = centering ? y[i] - swy : swy;
+            for( size_t i = 0; i < y_input.size(); ++i ) {
+                y_output[i] = centering ? y_input[i] - swy : swy;
             }
         } else {
             result.empty_strata = 1;
         }
 
     } else {
-        if( strata.size() != y.size() ) {
+        if( strata.size() != y_input.size() ) {
             throw std::invalid_argument(
                 "weighted_centering: y and strata need to have same length."
             );
@@ -148,17 +148,17 @@ GlmFreedom weighted_mean_centering(
         }
 
         if( weights.empty() ) {
-            for( size_t i = 0; i < y.size(); ++i ) {
+            for( size_t i = 0; i < y_input.size(); ++i ) {
                 int s = strata[i] - 1;
                 swt[s] += 1.0;
-                swy[s] += y[i];
+                swy[s] += y_input[i];
             }
         } else {
-            for( size_t i = 0; i < y.size(); ++i ) {
+            for( size_t i = 0; i < y_input.size(); ++i ) {
                 double wi = weights[i];
                 int s = strata[i] - 1;
                 swt[s] += wi;
-                swy[s] += wi * y[i];
+                swy[s] += wi * y_input[i];
             }
         }
 
@@ -170,10 +170,10 @@ GlmFreedom weighted_mean_centering(
                 ++result.empty_strata;
             }
         }
-        for( size_t i = 0; i < y.size(); ++i ) {
+        for( size_t i = 0; i < y_input.size(); ++i ) {
             int s = strata[i] - 1;
             if( swt[s] ) {
-                y_new[i] = centering ? y[i] - swy[s] : swy[s];
+                y_output[i] = centering ? y_input[i] - swy[s] : swy[s];
             }
         }
     }
@@ -182,12 +182,12 @@ GlmFreedom weighted_mean_centering(
 }
 
 double weighted_residuals(
-    std::vector<double> const& x,
-    std::vector<double> const& y,
+    std::vector<double> const& x_input,
+    std::vector<double> const& y_input,
     std::vector<double> const& weights,
-    std::vector<double>&       y_new
+    std::vector<double>&       y_output
 ) {
-    if( x.size() != y.size() ) {
+    if( x_input.size() != y_input.size() ) {
         throw std::invalid_argument(
             "weighted_residuals: x and y need to have same length."
         );
@@ -197,74 +197,74 @@ double weighted_residuals(
     double swxy = 0.0;
 
     if( weights.empty() ) {
-        for( size_t i = 0; i < x.size(); ++i ) {
-            double const xi = x[i];
-            swxy += xi * y[i];
+        for( size_t i = 0; i < x_input.size(); ++i ) {
+            double const xi = x_input[i];
+            swxy += xi * y_input[i];
             swxx += xi * xi;
         }
     } else {
-        if( weights.size() != x.size() ) {
+        if( weights.size() != x_input.size() ) {
             throw std::invalid_argument(
                 "weighted_residuals: x and weights need to have same length."
             );
         }
 
-        for( size_t i = 0; i < x.size(); ++i ) {
-            double const xi = x[i];
+        for( size_t i = 0; i < x_input.size(); ++i ) {
+            double const xi = x_input[i];
             double const wi = weights[i];
             double const wx = wi * xi;
-            swxy += wx * y[i];
+            swxy += wx * y_input[i];
             swxx += wx * xi;
         }
     }
 
-    if( &y_new != &y ) {
-        y_new.resize( y.size() );
+    if( &y_output != &y_input ) {
+        y_output.resize( y_input.size() );
     }
-    assert( y_new.size() == y.size() );
+    assert( y_output.size() == y_input.size() );
     if( swxx > 0 ) {
         swxy /= swxx;
-        for( size_t i = 0; i < x.size(); ++i ) {
-            y_new[i] = y[i] - swxy * x[i];
+        for( size_t i = 0; i < x_input.size(); ++i ) {
+            y_output[i] = y_input[i] - swxy * x_input[i];
         }
 
         return swxy;
     } else {
-        if( &y_new != &y ) {
-            for( size_t i = 0; i < x.size(); ++i ) {
-                y_new[i] = y[i];
+        if( &y_output != &y_input ) {
+            for( size_t i = 0; i < x_input.size(); ++i ) {
+                y_output[i] = y_input[i];
             }
         }
         return std::numeric_limits<double>::quiet_NaN();
     }
 }
 
-double weighted_sum_of_squares( std::vector<double> const& x, std::vector<double> const& weights )
+double weighted_sum_of_squares( std::vector<double> const& x_input, std::vector<double> const& weights )
 {
     double res = 0.0;
     if( weights.empty() ) {
-        for( size_t i = 0; i < x.size(); ++i ) {
-            res += x[i] * x[i];
+        for( size_t i = 0; i < x_input.size(); ++i ) {
+            res += x_input[i] * x_input[i];
         }
     } else {
-        if( weights.size() != x.size() ) {
+        if( weights.size() != x_input.size() ) {
             throw std::invalid_argument(
                 "weighted_sum: x and weights need to have same length."
             );
         }
-        for( size_t i = 0; i < x.size(); ++i ) {
-            res += weights[i] * x[i] * x[i];
+        for( size_t i = 0; i < x_input.size(); ++i ) {
+            res += weights[i] * x_input[i] * x_input[i];
         }
     }
     return res;
 }
 
 double weighted_inner_product(
-    std::vector<double> const& x,
-    std::vector<double> const& y,
+    std::vector<double> const& x_input,
+    std::vector<double> const& y_input,
     std::vector<double> const& weights
 ) {
-    if( x.size() != y.size() ) {
+    if( x_input.size() != y_input.size() ) {
         throw std::invalid_argument(
             "weighted_inner_product: x and y need to have same length."
         );
@@ -272,39 +272,39 @@ double weighted_inner_product(
 
     double res = 0.0;
     if( weights.empty() ) {
-        for( size_t i = 0; i < y.size(); ++i ) {
-            res += y[i] * x[i];
+        for( size_t i = 0; i < y_input.size(); ++i ) {
+            res += y_input[i] * x_input[i];
         }
     } else {
-        if( weights.size() != y.size() ) {
+        if( weights.size() != y_input.size() ) {
             throw std::invalid_argument(
                 "weighted_inner_product: x and weights need to have same length."
             );
         }
-        for( size_t i = 0; i < y.size(); ++i ) {
-            res += weights[i] * y[i] * x[i];
+        for( size_t i = 0; i < y_input.size(); ++i ) {
+            res += weights[i] * y_input[i] * x_input[i];
         }
     }
     return res;
 }
 
 double weighted_sum(
-    std::vector<double> const& x,
+    std::vector<double> const& x_input,
     std::vector<double> const& weights
 ) {
     double res = 0.0;
     if( weights.empty() ) {
-        for( size_t i = 0; i < x.size(); ++i ) {
-            res += x[i];
+        for( size_t i = 0; i < x_input.size(); ++i ) {
+            res += x_input[i];
         }
     } else {
-        if( weights.size() != x.size() ) {
+        if( weights.size() != x_input.size() ) {
             throw std::invalid_argument(
                 "weighted_sum: x and weights need to have same length."
             );
         }
-        for( size_t i = 0; i < x.size(); ++i ) {
-            res += weights[i] * x[i];
+        for( size_t i = 0; i < x_input.size(); ++i ) {
+            res += weights[i] * x_input[i];
         }
     }
     return res;

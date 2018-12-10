@@ -78,65 +78,66 @@ struct GlmFreedom
 /**
  * @brief (Weighted) mean and centering.
  *
- * If @p centering is `false`, write @p y_new to contain the (strata) (weighted) means.
- * If @p centering is `true`, center the input @p y around these means, i.e., calculaute either
+ * If @p centering is `false`, write @p y_output to contain the (strata) (weighted) means.
+ * If @p centering is `true`, center the input @p y_input around these means, i.e., calculaute either
  * the "fitted value" or the residual from a model in which only strata are fitted.
  *
  * The @p weights and @p strata can be empty.
- * @p y and @p y_new can be the same vector.
+ * @p y_input and @p y_output can be the same vector.
  */
 GlmFreedom weighted_mean_centering(
-    std::vector<double> const& y,
+    std::vector<double> const& y_input,
     std::vector<double> const& weights,
     std::vector<size_t> const& strata,
     bool                       with_intercept,
     bool                       centering,
-    std::vector<double>&       y_new
+    std::vector<double>&       y_output
 );
 
 /**
  * @brief Calculate the residuals from (weighted) regression through the origin.
  *
  * The @p weights can be empty.
- * The results are written to @p y_new.
- * @p y and @p y_new can be the same vector.
+ * The results are written to @p y_output.
+ * @p y_input and @p y_output can be the same vector.
  * Returns the regression coefficient.
  */
 double weighted_residuals(
-    std::vector<double> const& x,
-    std::vector<double> const& y,
+    std::vector<double> const& x_input,
+    std::vector<double> const& y_input,
     std::vector<double> const& weights,
-    std::vector<double>&       y_new
+    std::vector<double>&       y_output
 );
 
 /**
  * @brief (Weighted) sum of squares.
  *
- * The @p weights can be empty, in which case the simple sum of squares of @p x is returned.
+ * The @p weights can be empty, in which case the simple sum of squares of @p x_input is returned.
  */
 double weighted_sum_of_squares(
-    std::vector<double> const& x,
+    std::vector<double> const& x_input,
     std::vector<double> const& weights = {}
 );
 
 /**
  * @brief (Weighted) inner product of two vectors.
  *
- * The @p weights can be empty, in which case the simple inner product of @p x and @p y is returned.
+ * The @p weights can be empty, in which case the simple inner product of @p x_input
+ * and @p y_input is returned.
  */
 double weighted_inner_product(
-    std::vector<double> const& x,
-    std::vector<double> const& y,
+    std::vector<double> const& x_input,
+    std::vector<double> const& y_input,
     std::vector<double> const& weights = {}
 );
 
 /**
 * @brief (Weighted) sum of a vector of values.
 *
-* The @p weights can be empty, in which case the simple sum of @p x is returned.
+* The @p weights can be empty, in which case the simple sum of @p x_input is returned.
 */
 double weighted_sum(
-    std::vector<double> const& x,
+    std::vector<double> const& x_input,
     std::vector<double> const& weights = {}
 );
 
