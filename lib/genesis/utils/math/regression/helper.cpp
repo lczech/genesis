@@ -56,6 +56,7 @@
 #include "genesis/utils/math/regression/helper.hpp"
 
 #include <cassert>
+#include <cmath>
 #include <cstdlib>
 #include <limits>
 #include <stdexcept>
@@ -68,24 +69,24 @@ namespace utils {
 // =============================================================================
 
 GlmFreedom weighted_mean_centering(
-    std::vector<double> const& y,
+    std::vector<double> const& y_input,
     std::vector<double> const& weights,
     std::vector<size_t> const& strata,
     bool                       with_intercept,
     bool                       centering,
-    std::vector<double>&       y_new
+    std::vector<double>&       y_output
 ) {
     // Prepare return value. Has reasonable defaults already.
     GlmFreedom result;
 
     // Prepare result vector.
-    if( &y_new != &y ) {
-        y_new.resize( y.size() );
+    if( &y_output != &y_input ) {
+        y_output.resize( y_input.size() );
     }
-    assert( y_new.size() == y.size() );
+    assert( y_output.size() == y_input.size() );
 
     // Check
-    if( ! weights.empty() && weights.size() != y.size() ) {
+    if( ! weights.empty() && weights.size() != y_input.size() ) {
         throw std::invalid_argument(
             "weighted_residuals: y and weights need to have same length."
         );
@@ -94,39 +95,56 @@ GlmFreedom weighted_mean_centering(
     if( strata.empty() ) {
         if( ! with_intercept ) {
             // Nothing to do ... if necessary copy input to output
-            if( &y_new != &y ) {
-                y_new = y;
+            if( &y_output != &y_input ) {
+                y_output = y_input;
             }
             return result;
         }
 
+        // Calcualte the (weighted) mean of the y values.
         double swt = 0.0;
         double swy = 0.0;
-
         if( weights.empty() ) {
-            for( size_t i = 0; i < y.size(); ++i ) {
-                swy += y[i];
+            size_t swt_cnt = 0;
+            for( size_t i = 0; i < y_input.size(); ++i ) {
+                if( std::isfinite( y_input[i] )) {
+                    swy += y_input[i];
+                    ++swt_cnt;
+                }
             }
-            swt = static_cast<double>( y.size() );
+            swt = static_cast<double>( swt_cnt );
         } else {
-            for( size_t i = 0; i < y.size(); ++i ) {
-                double wi = weights[i];
-                swt += wi;
-                swy += wi * y[i];
+            for( size_t i = 0; i < y_input.size(); ++i ) {
+                if( weights[i] < 0.0 ) {
+                    throw std::runtime_error(
+                        "weighted_mean_centering: weights have to be non-negative."
+                    );
+                }
+                if( std::isfinite( weights[i] ) && std::isfinite( y_input[i] )) {
+                    swy += weights[i] * y_input[i];
+                    swt += weights[i];
+                }
             }
         }
-        swy /= swt;
+        assert( std::isfinite( swy ) );
+        assert( std::isfinite( swt ) );
+        assert( swt >= 0.0 );
 
+        // Calculate the centring (or set to mean).
+        // Non-finite y values will simply stay non finite here - no need for extra checks.
         if( swt > 0.0 ) {
-            for( size_t i = 0; i < y.size(); ++i ) {
-                y_new[i] = centering ? y[i] - swy : swy;
+            swy /= swt;
+            assert( std::isfinite( swy ) );
+
+            for( size_t i = 0; i < y_input.size(); ++i ) {
+                y_output[i] = centering ? y_input[i] - swy : swy;
             }
         } else {
             result.empty_strata = 1;
         }
 
     } else {
-        if( strata.size() != y.size() ) {
+        if( strata.size() != y_input.size() ) {
             throw std::invalid_argument(
                 "weighted_centering: y and strata need to have same length."
             );
@@ -135,7 +153,7 @@ GlmFreedom weighted_mean_centering(
         auto swy = std::vector<double>( strata.size(), 0.0 );
         auto swt = std::vector<double>( strata.size(), 0.0 );
 
-        // Error check.
+        // Error checking, and finding max stratum.
         for( size_t s = 0; s < strata.size(); ++s ) {
             if( strata[s] < 1 || strata[s] > strata.size() ) {
                 throw std::invalid_argument(
@@ -147,33 +165,48 @@ GlmFreedom weighted_mean_centering(
             }
         }
 
+        // Calcualte the (weighted) mean of the y values per stratum.
         if( weights.empty() ) {
-            for( size_t i = 0; i < y.size(); ++i ) {
-                int s = strata[i] - 1;
-                swt[s] += 1.0;
-                swy[s] += y[i];
+            for( size_t i = 0; i < y_input.size(); ++i ) {
+                if( std::isfinite( y_input[i] )) {
+                    int const s = strata[i] - 1;
+                    swy[s] += y_input[i];
+                    swt[s] += 1.0;
+                }
             }
         } else {
-            for( size_t i = 0; i < y.size(); ++i ) {
-                double wi = weights[i];
-                int s = strata[i] - 1;
-                swt[s] += wi;
-                swy[s] += wi * y[i];
+            for( size_t i = 0; i < y_input.size(); ++i ) {
+                if( weights[i] < 0.0 ) {
+                    throw std::runtime_error(
+                        "weighted_mean_centering: weights have to be non-negative."
+                    );
+                }
+                if( std::isfinite( weights[i] ) && std::isfinite( y_input[i] )) {
+                    int const s = strata[i] - 1;
+                    swy[s] += weights[i] * y_input[i];
+                    swt[s] += weights[i];
+                }
             }
         }
-
         for( size_t s = 0; s < strata.size(); ++s ) {
-            double sws = swt[s];
-            if( sws > 0.0 ) {
-                swy[s] /= sws;
+            assert( std::isfinite( swy[s] ) );
+            assert( std::isfinite( swt[s] ) );
+            assert( swt[s] >= 0.0 );
+
+            if( swt[s] > 0.0 ) {
+                swy[s] /= swt[s];
             } else {
                 ++result.empty_strata;
             }
+            assert( std::isfinite( swy[s] ) );
         }
-        for( size_t i = 0; i < y.size(); ++i ) {
-            int s = strata[i] - 1;
-            if( swt[s] ) {
-                y_new[i] = centering ? y[i] - swy[s] : swy[s];
+
+        // Calculate the centring (or set to mean).
+        // Again, non-finite y values will simply stay non finite here - no need for extra checks.
+        for( size_t i = 0; i < y_input.size(); ++i ) {
+            int const s = strata[i] - 1;
+            if( swt[s] > 0.0 ) {
+                y_output[i] = centering ? y_input[i] - swy[s] : swy[s];
             }
         }
     }
@@ -182,12 +215,12 @@ GlmFreedom weighted_mean_centering(
 }
 
 double weighted_residuals(
-    std::vector<double> const& x,
-    std::vector<double> const& y,
+    std::vector<double> const& x_input,
+    std::vector<double> const& y_input,
     std::vector<double> const& weights,
-    std::vector<double>&       y_new
+    std::vector<double>&       y_output
 ) {
-    if( x.size() != y.size() ) {
+    if( x_input.size() != y_input.size() ) {
         throw std::invalid_argument(
             "weighted_residuals: x and y need to have same length."
         );
@@ -197,74 +230,97 @@ double weighted_residuals(
     double swxy = 0.0;
 
     if( weights.empty() ) {
-        for( size_t i = 0; i < x.size(); ++i ) {
-            double const xi = x[i];
-            swxy += xi * y[i];
-            swxx += xi * xi;
+        for( size_t i = 0; i < x_input.size(); ++i ) {
+            if( std::isfinite( x_input[i] ) && std::isfinite( y_input[i] )) {
+                swxy += x_input[i] * y_input[i];
+                swxx += x_input[i] * x_input[i];
+            }
         }
     } else {
-        if( weights.size() != x.size() ) {
+        if( weights.size() != x_input.size() ) {
             throw std::invalid_argument(
                 "weighted_residuals: x and weights need to have same length."
             );
         }
 
-        for( size_t i = 0; i < x.size(); ++i ) {
-            double const xi = x[i];
-            double const wi = weights[i];
-            double const wx = wi * xi;
-            swxy += wx * y[i];
-            swxx += wx * xi;
+        for( size_t i = 0; i < x_input.size(); ++i ) {
+            if( weights[i] < 0.0 ) {
+                throw std::runtime_error(
+                    "weighted_residuals: weights have to be non-negative."
+                );
+            }
+            if( std::isfinite( x_input[i] )
+                && std::isfinite( y_input[i] )
+                && std::isfinite( weights[i] )
+            ) {
+                double const wx = weights[i] * x_input[i];
+                swxy += wx * y_input[i];
+                swxx += wx * x_input[i];
+            }
         }
     }
+    assert( std::isfinite( swxx ));
+    assert( std::isfinite( swxy ));
 
-    if( &y_new != &y ) {
-        y_new.resize( y.size() );
+    if( &y_output != &y_input ) {
+        y_output.resize( y_input.size() );
     }
-    assert( y_new.size() == y.size() );
-    if( swxx > 0 ) {
+    assert( y_output.size() == y_input.size() );
+    if( swxx > 0.0 ) {
         swxy /= swxx;
-        for( size_t i = 0; i < x.size(); ++i ) {
-            y_new[i] = y[i] - swxy * x[i];
+        for( size_t i = 0; i < x_input.size(); ++i ) {
+            y_output[i] = y_input[i] - swxy * x_input[i];
         }
 
         return swxy;
     } else {
-        if( &y_new != &y ) {
-            for( size_t i = 0; i < x.size(); ++i ) {
-                y_new[i] = y[i];
+        if( &y_output != &y_input ) {
+            for( size_t i = 0; i < x_input.size(); ++i ) {
+                y_output[i] = y_input[i];
             }
         }
         return std::numeric_limits<double>::quiet_NaN();
     }
 }
 
-double weighted_sum_of_squares( std::vector<double> const& x, std::vector<double> const& weights )
-{
+double weighted_sum_of_squares(
+    std::vector<double> const& x_input,
+    std::vector<double> const& weights
+) {
     double res = 0.0;
     if( weights.empty() ) {
-        for( size_t i = 0; i < x.size(); ++i ) {
-            res += x[i] * x[i];
+        for( size_t i = 0; i < x_input.size(); ++i ) {
+            if( std::isfinite( x_input[i] )) {
+                res += x_input[i] * x_input[i];
+            }
         }
     } else {
-        if( weights.size() != x.size() ) {
+        if( weights.size() != x_input.size() ) {
             throw std::invalid_argument(
                 "weighted_sum: x and weights need to have same length."
             );
         }
-        for( size_t i = 0; i < x.size(); ++i ) {
-            res += weights[i] * x[i] * x[i];
+        for( size_t i = 0; i < x_input.size(); ++i ) {
+            if( weights[i] < 0.0 ) {
+                throw std::runtime_error(
+                    "weighted_sum_of_squares: weights have to be non-negative."
+                );
+            }
+            if( std::isfinite( x_input[i] ) && std::isfinite( weights[i] )) {
+                res += weights[i] * x_input[i] * x_input[i];
+            }
         }
     }
+    assert( std::isfinite( res ));
     return res;
 }
 
 double weighted_inner_product(
-    std::vector<double> const& x,
-    std::vector<double> const& y,
+    std::vector<double> const& x_input,
+    std::vector<double> const& y_input,
     std::vector<double> const& weights
 ) {
-    if( x.size() != y.size() ) {
+    if( x_input.size() != y_input.size() ) {
         throw std::invalid_argument(
             "weighted_inner_product: x and y need to have same length."
         );
@@ -272,41 +328,64 @@ double weighted_inner_product(
 
     double res = 0.0;
     if( weights.empty() ) {
-        for( size_t i = 0; i < y.size(); ++i ) {
-            res += y[i] * x[i];
+        for( size_t i = 0; i < y_input.size(); ++i ) {
+            if( std::isfinite( y_input[i] ) && std::isfinite( x_input[i] )) {
+                res += y_input[i] * x_input[i];
+            }
         }
     } else {
-        if( weights.size() != y.size() ) {
+        if( weights.size() != y_input.size() ) {
             throw std::invalid_argument(
                 "weighted_inner_product: x and weights need to have same length."
             );
         }
-        for( size_t i = 0; i < y.size(); ++i ) {
-            res += weights[i] * y[i] * x[i];
+        for( size_t i = 0; i < y_input.size(); ++i ) {
+            if( weights[i] < 0.0 ) {
+                throw std::runtime_error(
+                    "weighted_inner_product: weights have to be non-negative."
+                );
+            }
+            if( std::isfinite( weights[i] )
+                && std::isfinite( y_input[i] )
+                && std::isfinite( x_input[i] )
+            ) {
+                res += weights[i] * y_input[i] * x_input[i];
+            }
         }
     }
+    assert( std::isfinite( res ));
     return res;
 }
 
 double weighted_sum(
-    std::vector<double> const& x,
+    std::vector<double> const& x_input,
     std::vector<double> const& weights
 ) {
     double res = 0.0;
     if( weights.empty() ) {
-        for( size_t i = 0; i < x.size(); ++i ) {
-            res += x[i];
+        for( size_t i = 0; i < x_input.size(); ++i ) {
+            if( std::isfinite( x_input[i] )) {
+                res += x_input[i];
+            }
         }
     } else {
-        if( weights.size() != x.size() ) {
+        if( weights.size() != x_input.size() ) {
             throw std::invalid_argument(
                 "weighted_sum: x and weights need to have same length."
             );
         }
-        for( size_t i = 0; i < x.size(); ++i ) {
-            res += weights[i] * x[i];
+        for( size_t i = 0; i < x_input.size(); ++i ) {
+            if( weights[i] < 0.0 ) {
+                throw std::runtime_error(
+                    "weighted_sum: weights have to be non-negative."
+                );
+            }
+            if( std::isfinite( weights[i] ) && std::isfinite( x_input[i] )) {
+                res += weights[i] * x_input[i];
+            }
         }
     }
+    assert( std::isfinite( res ));
     return res;
 }
 

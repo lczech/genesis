@@ -31,6 +31,7 @@
  * @ingroup taxonomy
  */
 
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -67,16 +68,16 @@ class Taxonomy;
  *
  * Each of those strings is then called a taxonomic path element.
  *
- * This class is mainly an intermediate broker between a taxonomic path string and a Taxon.
+ * This class serves as an intermediate broker between a taxonomic path string and a Taxon.
  * It is useful to transition between a Taxonomy and its string representation, for storing it
  * in a text file or some other database format. It is also useful for looking up certain Taxa
  * in a Taxonomy by using their taxonomic path.
  *
+ * It furthermore offers all comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`),
+ * which behave naturally for sorting a set of Taxopath%s (akin to `std::lexicographical_compare`).
+ *
  * See the TaxopathParser and TaxopathGenerator classes for populating a Taxopath and for
  * turning it back into a string, respectively.
- *
- * Internally, it is a thin wrapper for a vector of strings. This might be a bit overengineered for
- * now, but offers expansion that might become necessary in the future.
  */
 class Taxopath
 {
@@ -98,8 +99,26 @@ public:
     Taxopath()  = default;
     ~Taxopath() = default;
 
-    explicit Taxopath( std::vector< std::string > const& elements );
-    explicit Taxopath( std::vector< std::string > &&     elements );
+    /**
+     * @brief Fill constructor that uses the given strings to initialize the taxonomic elements.
+     *
+     * The strings are copied and used as Taxopath elements in the order in which they are stored
+     * in the vector.
+     */
+    explicit Taxopath( std::vector< std::string > const& elements )
+        : elements_( elements )
+    {}
+
+    /**
+     * @brief Fill constructor that uses the given strings to initialize the taxonomic elements.
+     *
+     * The strings are moved and used as Taxopath elements in the order in which they are stored
+     * in the vector.
+     */
+    explicit Taxopath( std::vector< std::string > &&     elements )
+        : elements_( std::move( elements ))
+    {}
+
 
     Taxopath( Taxopath const& ) = default;
     Taxopath( Taxopath&& )      = default;
@@ -107,52 +126,247 @@ public:
     Taxopath& operator= ( Taxopath const& ) = default;
     Taxopath& operator= ( Taxopath&& )      = default;
 
-    void swap( Taxopath& other );
+    /**
+     * @brief Swap the elements of two Taxopath%s.
+     */
+    void swap( Taxopath& other )
+    {
+        using std::swap;
+        swap( elements_, other.elements_ );
+    }
 
     // -------------------------------------------------------------------------
     //     Accessors
     // -------------------------------------------------------------------------
 
-    bool empty() const;
-    size_t size() const;
+    /**
+     * @brief Return whether the Taxopath is empty, i.e., does not contain any elements.
+     */
+    bool empty() const
+    {
+        return elements_.empty();
+    }
 
-    std::string const& at ( size_t index ) const;
-    std::string&       at ( size_t index );
+    /**
+     * @brief Return the number of elements of this Taxopath.
+     */
+    size_t size() const
+    {
+        return elements_.size();
+    }
 
-    std::string const& operator [] ( size_t index ) const;
-    std::string&       operator [] ( size_t index );
+    /**
+     * @brief Return the taxonomic element at a certain position.
+     *
+     * The function throws if the given index is not within the size of the taxonomic elements.
+     */
+    std::string const& at ( size_t index ) const
+    {
+        return elements_.at( index );
+    }
 
-    std::vector< std::string > const& elements() const;
-    std::vector< std::string > &      elements();
+    /**
+     * @brief Return the taxonomic element at a certain position.
+     *
+     * The function throws if the given index is not within the size of the taxonomic elements.
+     */
+    std::string& at ( size_t index )
+    {
+        return elements_.at( index );
+    }
+
+    /**
+     * @brief Return the taxonomic element at a certain position.
+     *
+     * The function does not check whether the given index is valid.
+     */
+    std::string const& operator [] ( size_t index ) const
+    {
+        return elements_[ index ];
+    }
+
+    /**
+     * @brief Return the taxonomic element at a certain position.
+     *
+     * The function does not check whether the given index is valid.
+     */
+    std::string& operator [] ( size_t index )
+    {
+        return elements_[ index ];
+    }
+
+    /**
+     * @brief Return the elements of the Taxopath as a vector of strings.
+     */
+    std::vector< std::string > const& elements() const
+    {
+        return elements_;
+    }
+
+    /**
+     * @brief Return the elements of the Taxopath as a vector of strings.
+     */
+    std::vector< std::string > & elements()
+    {
+        return elements_;
+    }
+
 
     // -------------------------------------------------------------------------
     //     Modifiers
     // -------------------------------------------------------------------------
 
-    void assign( std::vector< std::string > const& from );
+    /**
+     * @brief Replace the current elements of the Taxopath by a list of strings.
+     *
+     * The strings are copied and used as Taxopath elements in the order in which they are stored
+     * in the vector.
+     */
+    void assign( std::vector< std::string > const& from )
+    {
+        elements_ = from;
+    }
 
-    void push_back( std::string const& value );
-    void push_back( std::string&& value );
+    /**
+     * @brief Add an element to the end of the Taxopath by copying it.
+     */
+    void push_back( std::string const& value )
+    {
+        elements_.push_back( value );
+    }
 
-    std::string pop_back();
+    /**
+     * @brief Add an element to the end of the Taxopath by moving it.
+     */
+    void push_back( std::string&& value )
+    {
+        elements_.push_back( std::move( value ));
+    }
 
-    void clear();
+    /**
+     * @brief Remove the last element of the Taxopath and return its value.
+     *
+     * The returned value is obtained as a copy of the last element before it is removed.
+     */
+    std::string pop_back()
+    {
+        if( elements_.empty() ) {
+            throw std::out_of_range( "Cannot pop last element of empty Taxopath." );
+        }
+        auto last = elements_.back();
+        elements_.pop_back();
+        return last;
+    }
+
+    /**
+     * @brief Clear all taxonomic elements. This results in an empty Taxopath.
+     */
+    void clear()
+    {
+        elements_.clear();
+    }
+
+    // -------------------------------------------------------------------------
+    //     Comparison
+    // -------------------------------------------------------------------------
+
+    friend bool operator ==( Taxopath const & lhs, Taxopath const & rhs )
+    {
+        return lhs.elements_ == rhs.elements_;
+    }
+
+    friend bool operator !=( Taxopath const & lhs, Taxopath const & rhs )
+    {
+        return lhs.elements_ != rhs.elements_;
+    }
+
+    friend bool operator < ( Taxopath const & lhs, Taxopath const & rhs )
+    {
+        return lhs.elements_ < rhs.elements_;
+    }
+
+    friend bool operator <= ( Taxopath const & lhs, Taxopath const & rhs )
+    {
+        return lhs.elements_ <= rhs.elements_;
+    }
+
+    friend bool operator > ( Taxopath const & lhs, Taxopath const & rhs )
+    {
+        return lhs.elements_ > rhs.elements_;
+    }
+
+    friend bool operator >= ( Taxopath const & lhs, Taxopath const & rhs )
+    {
+        return lhs.elements_ >= rhs.elements_;
+    }
 
     // -------------------------------------------------------------------------
     //     Iterators
     // -------------------------------------------------------------------------
 
-    iterator begin();
-    iterator end();
+    /**
+     * @brief Return an iterator to the beginning of the taxonomic elements.
+     */
+    iterator begin()
+    {
+        return elements_.begin();
+    }
 
-    const_iterator begin() const;
-    const_iterator end() const;
+    /**
+     * @brief Return an iterator to the end of the taxonomic elements.
+     */
+    iterator end()
+    {
+        return elements_.end();
+    }
 
-    reverse_iterator rbegin();
-    reverse_iterator rend();
+    /**
+     * @brief Return a const iterator to the beginning of the taxonomic elements.
+     */
+    const_iterator begin() const
+    {
+        return elements_.cbegin();
+    }
 
-    const_reverse_iterator rbegin() const;
-    const_reverse_iterator rend() const;
+    /**
+     * @brief Return a const iterator to the end of the taxonomic elements.
+     */
+    const_iterator end() const
+    {
+        return elements_.cend();
+    }
+
+    /**
+     * @brief Return a reverse iterator to the reverse beginning of the taxonomic elements.
+     */
+    reverse_iterator rbegin()
+    {
+        return elements_.rbegin();
+    }
+
+    /**
+     * @brief Return a reverse iterator to the reverse end of the taxonomic elements.
+     */
+    reverse_iterator rend()
+    {
+        return elements_.rend();
+    }
+
+    /**
+     * @brief Return a const reverse iterator to the reverse beginning of the taxonomic elements.
+     */
+    const_reverse_iterator rbegin() const
+    {
+        return elements_.crbegin();
+    }
+
+    /**
+     * @brief Return a const reverse iterator to the reverse end of the taxonomic elements.
+     */
+    const_reverse_iterator rend() const
+    {
+        return elements_.crend();
+    }
 
     // -------------------------------------------------------------------------
     //     Data Members

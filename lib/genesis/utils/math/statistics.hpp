@@ -385,10 +385,11 @@ inline double weighted_arithmetic_mean(
 template <class ForwardIterator>
 double geometric_mean( ForwardIterator first, ForwardIterator last )
 {
-    double prod  = 1.0;
+    double sum   = 0.0;
     size_t count = 0;
 
-    // Multiply elements.
+    // Iterate elements. For numeric stability, we use sum of logs instead of products;
+    // otherwise, we run into overflows too quickly!
     auto it = first;
     while( it != last ) {
         if( std::isfinite( *it ) ) {
@@ -397,7 +398,7 @@ double geometric_mean( ForwardIterator first, ForwardIterator last )
                     "Cannot calculate geometric mean of non-positive numbers."
                 );
             }
-            prod *= *it;
+            sum += std::log( *it );
             ++count;
         }
         ++it;
@@ -409,9 +410,9 @@ double geometric_mean( ForwardIterator first, ForwardIterator last )
     }
 
     // Return the result.
-    assert( prod  > 0.0 );
     assert( count > 0 );
-    return std::pow( prod, 1.0 / static_cast<double>( count ));
+    assert( std::isfinite( sum ));
+    return std::exp( sum / static_cast<double>( count ));
 }
 
 /**
@@ -492,7 +493,8 @@ double weighted_geometric_mean(
 
     // Return the result.
     assert( cnt > 0 );
-    assert( den > 0.0 );
+    assert( std::isfinite( num ));
+    assert( std::isfinite( den ) && ( den > 0.0 ));
     return std::exp( num / den );
 }
 
