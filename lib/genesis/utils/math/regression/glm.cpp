@@ -95,7 +95,7 @@ void glm_irls(
     assert( extras.strata.empty() || extras.strata.size() == N );
 
     // Working data.
-    auto yw = std::vector<double>( N );
+    auto y_working = std::vector<double>( N );
 
     // Default scale factor
     result.scale = 1.0;
@@ -106,10 +106,10 @@ void glm_irls(
     while( result.num_iterations < control.max_iterations && ! result.converged ) {
         for( size_t i = 0; i < N; i++ ) {
             // TODO this used the family id instead of the link id. is that correct?
-            yw[i] = result.resid[i] + link.link( result.fitted[i] );
+            y_working[i] = result.resid[i] + link.link( result.fitted[i] );
         }
         auto freedom = weighted_mean_centering(
-            yw, result.weights, extras.strata, extras.with_intercept, true, result.resid
+            y_working, result.weights, extras.strata, extras.with_intercept, true, result.resid
         );
 
         // Columns in Xb matrix
@@ -131,7 +131,7 @@ void glm_irls(
             result.Xb.col( xb_col ) = xb_tmp;
 
             // Corrected SSQ
-            double ssx = weighted_sum_of_squares(
+            double const ssx = weighted_sum_of_squares(
                 result.Xb.col( xb_col ), result.weights
             );
             double ssr = ssx;
@@ -185,23 +185,27 @@ void glm_irls(
         double wss = 0.0;
         freedom.valid_entries = 0;
         double logL = 0.0;
-        for (size_t i = 0; i < N; i++) {
-            double D, Vmu, ri, wi;
-            double mu = link.inverse_link( yw[i] - result.resid[i] );
+        for( size_t i = 0; i < N; ++i ) {
+            double ri;
+            double wi;
+            double const mu = link.inverse_link( y_working[i] - result.resid[i] );
+            double const pi = extras.prior_weights.empty() ? 1.0 : extras.prior_weights[i];
+
             result.fitted[i] = family.rectify( mu );
-            double pi = extras.prior_weights.empty() ? 1.0 : extras.prior_weights[i];
             logL += pi * family.log_likelihood( y_response[i], mu );
-            if (!(pi && (result.weights[i] > 0.0)))
-                wi = ri = 0.0;
-            else {
-                Vmu = family.variance( mu );
+
+            if (!(pi && (result.weights[i] > 0.0))) {
+                wi = 0.0;
+                ri = 0.0;
+            } else {
+                double const Vmu = family.variance( mu );
                 ++freedom.valid_entries;
 
                 if( link.id == family.canonical_link_id ) {
                     ri = (y_response[i] - mu) / Vmu;
                     wi = pi * Vmu;
                 } else {
-                    D = link.derivative( mu );
+                    double const D = link.derivative( mu );
                     ri = D * (y_response[i] - mu);
                     wi = pi / (D * D * Vmu);
                 }
@@ -229,7 +233,7 @@ void glm_irls(
     }
 
     for( size_t i = 0; i < N; i++ ) {
-        result.fitted[i] = link.inverse_link( yw[i] - result.resid[i] );
+        result.fitted[i] = link.inverse_link( y_working[i] - result.resid[i] );
     }
 }
 
@@ -376,13 +380,13 @@ GlmOutput glm_fit(
 
     // Prepare results.
     GlmOutput result;
-    result.Xb = Matrix<double>( N, M );
-    result.fitted = std::vector<double>( N );
-    result.resid = std::vector<double>( N );
+    result.Xb      = Matrix<double>( N, M );
+    result.fitted  = std::vector<double>( N );
+    result.resid   = std::vector<double>( N );
     result.weights = std::vector<double>( N );
-    result.which = std::vector<double>( M );
-    result.betaQ = std::vector<double>( M );
-    result.tri = std::vector<double>( (M * ( M+1 )) / 2 );
+    result.which   = std::vector<double>( M );
+    result.betaQ   = std::vector<double>( M );
+    result.tri     = std::vector<double>( (M * ( M+1 )) / 2 );
 
     // Is iteration necessary?
     bool const irls = (M > 0) && !(
@@ -417,6 +421,7 @@ GlmOutput glm_fit(
             result.resid[i]   = 0.0;
             result.weights[i] = 0.0;
         } else {
+            assert( std::isfinite( pi ) || ( pi > 0.0 ));
             ++freedom.valid_entries;
 
             double const Vmu = family.variance( mu );
@@ -431,14 +436,17 @@ GlmOutput glm_fit(
         }
 
         // Null deviance
-        result.null_deviance += result.weights[i] * family.unit_deviance( y_response[i], mu );
+        auto const ud = family.unit_deviance( y_response[i], mu );
+        if( std::isfinite( ud )) {
+            result.null_deviance += result.weights[i] * ud;
+        }
     }
 
     // If X has data, include covariates
     if( M > 0 ) {
 
         // IRLS algorithm, or simple linear Gaussian case
-        if (irls) {
+        if( irls ) {
             glm_irls( x_predictors, y_response, family, link, extras, control, result );
         } else {
             glm_gaussian( x_predictors, y_response, extras, control, freedom, result );
@@ -448,7 +456,9 @@ GlmOutput glm_fit(
         assert( result.deviance == 0.0 );
         for( size_t i = 0; i < N; i++ ) {
             auto const ud = family.unit_deviance( y_response[i], result.fitted[i] );
-            result.deviance += result.weights[i] * ud;
+            if( std::isfinite( ud )) {
+                result.deviance += result.weights[i] * ud;
+            }
         }
 
     } else {

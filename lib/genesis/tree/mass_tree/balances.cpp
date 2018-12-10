@@ -45,6 +45,7 @@
 #include <cassert>
 #include <cmath>
 #include <functional>
+#include <limits>
 #include <stdexcept>
 #include <unordered_set>
 #include <vector>
@@ -158,6 +159,8 @@ BalanceData mass_balance_data(
                     assert( false );
                 }
             }
+            assert( std::isfinite( tendencies[c] ));
+            assert( tendencies[c] >= 0.0 );
         }
     }
 
@@ -212,6 +215,8 @@ BalanceData mass_balance_data(
                     assert( false );
                 }
             }
+            assert( std::isfinite( norms[c] ));
+            assert( norms[c] >= 0.0 );
         }
     }
 
@@ -412,6 +417,8 @@ double mass_balance(
                 throw std::runtime_error( "Invalid edge index in mass balance calculation." );
             }
             assert( tree_index < data.edge_masses.rows() );
+            assert( std::isfinite( data.edge_masses( tree_index, idx )));
+            assert( data.edge_masses( tree_index, idx ) >= 0.0 );
             sub_masses.push_back( data.edge_masses( tree_index, idx ));
 
             // Collect weights at the edge indices. If we do not have weights, use 1.0 instead.
@@ -419,6 +426,7 @@ double mass_balance(
                 sub_weights.push_back( 1.0 );
             } else {
                 assert( idx < data.taxon_weights.size() );
+                assert( std::isfinite( data.taxon_weights[idx] ));
                 sub_weights.push_back( data.taxon_weights[idx] );
             }
         }
@@ -426,8 +434,17 @@ double mass_balance(
         assert( sub_weights.size() == indices.size() );
 
         // Calculate the mean and the n for scaling.
-        double geom_mean = utils::weighted_geometric_mean( sub_masses, sub_weights );
+        // Check if all weights are zero, which can happen for subtrees with no placements at all.
+        // Set them to nan, so that subsequent calculations simply ignore these values.
         double scaling_n = std::accumulate( sub_weights.begin(), sub_weights.end(), 0.0 );
+        assert( std::isfinite( scaling_n ));
+        double geom_mean;
+        if( scaling_n > 0.0 ) {
+            geom_mean = utils::weighted_geometric_mean( sub_masses, sub_weights );
+            assert( std::isfinite( geom_mean ));
+        } else {
+            geom_mean = std::numeric_limits<double>::quiet_NaN();
+        }
 
         // If we have no edge weights, the scaling terms should be the same as the number of edges.
         assert(
@@ -441,12 +458,13 @@ double mass_balance(
     // Get geometric means of edge subset masses, and the weighted scaling terms.
     auto const num = calc_mass_mean_and_scaling_( numerator_edge_indices );
     auto const den = calc_mass_mean_and_scaling_( denominator_edge_indices );
-    assert( num.mean > 0.0 && den.mean > 0.0 );
+    assert( std::isnan( num.mean ) || ( num.mean > 0.0 ));
+    assert( std::isnan( den.mean ) || ( den.mean > 0.0 ));
 
     // Calculate the balance.
     double const scaling = std::sqrt(( num.scaling * den.scaling ) / ( num.scaling + den.scaling ));
     double const balance = scaling * std::log( num.mean / den.mean );
-    assert( std::isfinite( balance ));
+    assert( std::isnan( balance ) || std::isfinite( balance ));
 
     return balance;
 }
