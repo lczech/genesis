@@ -40,6 +40,7 @@
 #   include <io.h>
 #   include <windows.h>
 #else
+#   include <cpuid.h>
 #   include <stdio.h>
 #   include <sys/ioctl.h>
 #   include <unistd.h>
@@ -70,24 +71,8 @@ namespace utils {
 
 Options::Options()
 {
-
-    #if defined( GENESIS_OPENMP )
-
-        // Initialize threads to number of OpenMP threads, which might be set through the
-        // `OMP_NUM_THREADS` environment variable.
-        number_of_threads( omp_get_num_threads() );
-
-    #elif defined( GENESIS_PTHREADS )
-
-        // Initialize threads with actual number of cores.
-        number_of_threads( std::thread::hardware_concurrency() );
-
-    #else
-
-        // Set to single threaded.
-        number_of_threads( 1 );
-
-    #endif
+    // Initialize number of threads to hardware cores.
+    number_of_threads( guess_number_of_threads() );
 
     // Initialize random seed with time.
     random_seed( std::chrono::system_clock::now().time_since_epoch().count() );
@@ -138,6 +123,51 @@ void Options::number_of_threads ( unsigned int number )
 
         // If we use OpenMp, set the thread number there, too.
         omp_set_num_threads( number );
+
+    #endif
+}
+
+bool Options::hyperthreads_enabled() const
+{
+    // Get CPU info.
+    int32_t info[4];
+    #ifdef _WIN32
+        __cpuid( info, 1 );
+    #else
+        __cpuid_count( 1, 0, info[0], info[1], info[2], info[3] );
+    #endif
+
+    return (bool) (info[3] & (0x1 << 28));
+}
+
+unsigned int Options::guess_number_of_threads( bool use_openmp ) const
+{
+    // Dummy to avoid compiler warnings.
+    (void) use_openmp;
+
+    #if defined( GENESIS_OPENMP )
+
+        // Use number of OpenMP threads, which might be set through the
+        // `OMP_NUM_THREADS` environment variable.
+        if( use_openmp ) {
+            return omp_get_num_threads();
+        }
+
+    #endif
+
+    #if defined( GENESIS_PTHREADS )
+
+        // Initialize threads with actual number of cores.
+        // return std::thread::hardware_concurrency();
+
+        auto const lcores = std::thread::hardware_concurrency();
+        auto const threads_per_core = hyperthreads_enabled() ? 2 : 1;
+        return lcores / threads_per_core;
+
+    #else
+
+        // Default to single threaded.
+        return 1;
 
     #endif
 }

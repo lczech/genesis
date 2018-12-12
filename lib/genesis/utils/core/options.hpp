@@ -111,6 +111,19 @@ public:
      */
     void number_of_threads( unsigned int number );
 
+    /**
+     * @brief Try to guess the number of hardware threads of the current system.
+     *
+     * This function uses multiple sources and ways to try to guess the number of physical cores
+     * of the system.
+     */
+    unsigned int guess_number_of_threads( bool use_openmp = true ) const;
+
+    /**
+     * @brief Try to get whether hyperthreads are enabled in the current system.
+     */
+    bool hyperthreads_enabled() const;
+
     // -------------------------------------------------------------------------
     //     Random Seed & Engine
     // -------------------------------------------------------------------------
