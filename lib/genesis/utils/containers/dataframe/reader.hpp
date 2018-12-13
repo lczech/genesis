@@ -176,7 +176,7 @@ private:
             if( row_names_from_first_col_ ) {
                 result.add_row( line[0] );
             } else {
-                result.add_row();
+                result.add_unnamed_row();
             }
 
             // If there was no column names, make columns.
@@ -187,7 +187,7 @@ private:
 
                 // Add unnamed cols.
                 for( size_t i = offset; i < line.size(); ++i ) {
-                    result.add_col<T>();
+                    result.add_unnamed_col<T>();
                 }
                 assert( line.size() == offset + result.cols() );
             }

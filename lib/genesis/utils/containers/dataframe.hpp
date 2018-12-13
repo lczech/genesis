@@ -50,7 +50,7 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Data Frame
+//     Dataframe
 // =================================================================================================
 
 /**
@@ -516,8 +516,6 @@ public:
         }
     }
 
-    Dataframe ( Dataframe&& ) = default;
-
     Dataframe& operator= ( Dataframe const& other )
     {
         // Check for self assignment. Just in case.
@@ -531,6 +529,7 @@ public:
         return *this;
     }
 
+    Dataframe( Dataframe&& )             = default;
     Dataframe& operator= ( Dataframe&& ) = default;
 
     void swap( self_type& other )
@@ -722,7 +721,7 @@ public:
     // ---------------------------------------------------------------------------------------------
 
     template<class T>
-    Column<T>& add_col()
+    Column<T>& add_unnamed_col()
     {
         auto const index = columns_.size();
         columns_.emplace_back( std::unique_ptr<Column<T>>( new Column<T>( *this, index )));
@@ -730,6 +729,31 @@ public:
         col_names_.emplace_back();
 
         return columns_.back()->as<T>();
+    }
+
+    template<class T>
+    Column<T>& add_unnamed_col( T const& init )
+    {
+        auto& col = add_unnamed_col<T>();
+        for( auto& e : col.content_ ) {
+            e = init;
+        }
+        return col;
+    }
+
+    template<class T>
+    Column<T>& add_unnamed_col( std::vector<T> const& init )
+    {
+        auto& col = add_unnamed_col<T>();
+        if( init.size() != col.size() ) {
+            throw std::invalid_argument(
+                "Cannot add col to Dataframe if initial values vector is of different size."
+            );
+        }
+        for( size_t i = 0; i < init.size(); ++i ) {
+            col.content_[i] = init[i];
+        }
+        return col;
     }
 
     template<class T>
@@ -762,7 +786,22 @@ public:
         return col;
     }
 
-    self_type& add_row()
+    template<class T>
+    Column<T>& add_col( std::string const& name, std::vector<T> const& init )
+    {
+        auto& col = add_col<T>( name );
+        if( init.size() != col.size() ) {
+            throw std::invalid_argument(
+                "Cannot add col to Dataframe if initial values vector is of different size."
+            );
+        }
+        for( size_t i = 0; i < init.size(); ++i ) {
+            col.content_[i] = init[i];
+        }
+        return col;
+    }
+
+    self_type& add_unnamed_row()
     {
         row_names_.emplace_back();
 
@@ -916,6 +955,13 @@ private:
     std::unordered_map< std::string, size_t > col_lookup_;
 
 };
+
+// =================================================================================================
+//     Dataframe Assertions
+// =================================================================================================
+
+static_assert( std::is_move_constructible<Dataframe>::value, "Dataframe is not move constructible." );
+static_assert( std::is_move_assignable<Dataframe>::value, "Dataframe is not move assignable." );
 
 } // namespace utils
 } // namespace genesis

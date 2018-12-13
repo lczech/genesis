@@ -218,7 +218,7 @@ Dataframe glm_indicator_variables(
     Dataframe result;
     if( row_names.empty() ) {
         for( size_t i = 0; i < factor.values.size(); ++i ) {
-            result.add_row();
+            result.add_unnamed_row();
         }
     } else {
         assert( row_names.size() == factor.values.size() );
@@ -234,7 +234,7 @@ Dataframe glm_indicator_variables(
             continue;
         }
 
-        auto& col = result.add_col<double>();
+        auto& col = result.add_unnamed_col<double>();
         for( size_t val_idx = 0; val_idx < factor.values.size(); ++val_idx ) {
             if( factor.values[val_idx] >= factor.levels.size() ) {
                 col[val_idx] = std::numeric_limits<double>::quiet_NaN();
