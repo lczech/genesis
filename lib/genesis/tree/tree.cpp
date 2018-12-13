@@ -35,6 +35,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <typeinfo>
+#include <type_traits>
 
 namespace genesis {
 namespace tree {
@@ -42,6 +43,9 @@ namespace tree {
 // =================================================================================================
 //     Construction and Rule of Five
 // =================================================================================================
+
+static_assert( std::is_move_constructible<Tree>::value, "Tree is not move constructible." );
+static_assert( std::is_move_assignable<Tree>::value, "Tree is not move assignable." );
 
 Tree::Tree( const Tree& other )
 {
