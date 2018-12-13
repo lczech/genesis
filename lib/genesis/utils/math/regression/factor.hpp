@@ -183,7 +183,7 @@ std::vector<size_t> glm_factor_summary( GlmFactor<T> const& factor )
  * Missing/exluded levels are encoded as `NaN`.
  */
 template<class T>
-Dataframe<double> glm_indicator_variables(
+Dataframe glm_indicator_variables(
     GlmFactor<T> const& factor,
     T const& reference_level,
     std::vector<std::string> row_names = {}
@@ -215,7 +215,7 @@ Dataframe<double> glm_indicator_variables(
     assert( ref_idx >= 0 );
 
     // Prepare result, add all needed rows.
-    Dataframe<double> result;
+    Dataframe result;
     if( row_names.empty() ) {
         for( size_t i = 0; i < factor.values.size(); ++i ) {
             result.add_row();
@@ -234,7 +234,7 @@ Dataframe<double> glm_indicator_variables(
             continue;
         }
 
-        auto& col = result.add_col();
+        auto& col = result.add_col<double>();
         for( size_t val_idx = 0; val_idx < factor.values.size(); ++val_idx ) {
             if( factor.values[val_idx] >= factor.levels.size() ) {
                 col[val_idx] = std::numeric_limits<double>::quiet_NaN();
@@ -258,7 +258,7 @@ Dataframe<double> glm_indicator_variables(
  * @link glm_indicator_variables( GlmFactor<T> const&, T const&, std::vector<std::string> row_names ) glm_indicator_variables()@endlink.
  */
 template<class T>
-Dataframe<double> glm_indicator_variables(
+Dataframe glm_indicator_variables(
     GlmFactor<T> const& factor,
     std::vector<std::string> row_names = {}
 ) {

@@ -32,10 +32,13 @@
  */
 
 #include "genesis/utils/core/std.hpp"
+#include "genesis/utils/containers/deref_iterator.hpp"
 
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <iterator>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -53,10 +56,166 @@ namespace utils {
 /**
  * @brief
  */
-template <typename T>
 class Dataframe
 {
 public:
+
+    // ---------------------------------------------------------------------------------------------
+    //     Forward Declarations
+    // ---------------------------------------------------------------------------------------------
+
+    template <typename T>
+    class Column;
+
+    // ---------------------------------------------------------------------------------------------
+    //     Column Base
+    // ---------------------------------------------------------------------------------------------
+
+    class ColumnBase
+    {
+    public:
+
+        // -------------------------------------------------------------------------
+        //     Member Types
+        // -------------------------------------------------------------------------
+
+        using size_type = size_t;
+
+        friend class Dataframe;
+
+        // -------------------------------------------------------------------------
+        //     Constructor and Rule of Five
+        // -------------------------------------------------------------------------
+
+    protected:
+
+        ColumnBase() = delete;
+
+        ColumnBase( Dataframe& df, size_type index )
+            : df_( &df )
+            , index_( index )
+        {}
+
+        ColumnBase( ColumnBase const& ) = delete;
+        ColumnBase( ColumnBase&& )      = delete;
+
+        ColumnBase& operator= ( ColumnBase const& ) = delete;
+        ColumnBase& operator= ( ColumnBase&& )      = delete;
+
+    public:
+
+        virtual ~ColumnBase() = default;
+
+        // -------------------------------------------------------------------------
+        //     Properties
+        // -------------------------------------------------------------------------
+
+        Dataframe& dataframe()
+        {
+            return *df_;
+        }
+
+        Dataframe const& dataframe() const
+        {
+            return *df_;
+        }
+
+        size_type index() const
+        {
+            return index_;
+        }
+
+        std::string const& name() const
+        {
+            return df_->col_name( index_ );
+        }
+
+        size_type size() const
+        {
+            // Non-virtual interface
+            return size_();
+        }
+
+        bool empty() const
+        {
+            // Non-virtual interface
+            return empty_();
+        }
+
+        // -------------------------------------------------------------------------
+        //     Casting and Types
+        // -------------------------------------------------------------------------
+
+        template<typename T>
+        Column<T>& as()
+        {
+            return dynamic_cast<Column<T>&>( *this );
+        }
+
+        template<typename T>
+        Column<T> const& as() const
+        {
+            return dynamic_cast<Column<T> const&>( *this );
+        }
+
+        template<typename T>
+        bool is() const
+        {
+            auto const c = dynamic_cast<Column<T> const*>( this );
+            return ( c != nullptr );
+        }
+
+        template<typename T>
+        T& get( size_type index )
+        {
+            return as<T>()[index];
+        }
+
+        template<typename T>
+        T const& get( size_type index ) const
+        {
+            return as<T>()[index];
+        }
+
+        template<typename T>
+        T& get( std::string const& row_name )
+        {
+            return as<T>()[ dataframe().row_index( row_name ) ];
+        }
+
+        template<typename T>
+        T const& get( std::string const& row_name ) const
+        {
+            return as<T>()[ dataframe().row_index( row_name ) ];
+        }
+
+        // -------------------------------------------------------------------------
+        //     Purely Virtual Functions
+        // -------------------------------------------------------------------------
+
+    protected:
+
+        // Non-virtual interface for public functions.
+        virtual size_type size_() const = 0;
+        virtual bool empty_() const = 0;
+
+        // Private functions for internal use only.
+        virtual void clear_() = 0;
+        virtual void resize_( size_type ) = 0;
+        virtual void add_row_() = 0;
+        virtual void remove_row_( size_type row_index ) = 0;
+        virtual std::unique_ptr<ColumnBase> clone_() const = 0;
+
+        // -------------------------------------------------------------------------
+        //     Data Members
+        // -------------------------------------------------------------------------
+
+    private:
+
+        Dataframe* df_;
+        size_type   index_;
+
+    };
 
     // ---------------------------------------------------------------------------------------------
     //     Column Class
@@ -65,7 +224,8 @@ public:
     /**
      * @brief
      */
-    class Column
+    template <typename T>
+    class Column : public ColumnBase
     {
     public:
 
@@ -73,64 +233,43 @@ public:
         //     Member Types
         // -------------------------------------------------------------------------
 
-        using self_type       = Column;
+        using self_type       = Column<T>;
         using value_type      = T;
+        using container_type  = std::vector< value_type >;
 
-        using       reference =       value_type&;
-        using const_reference = const value_type&;
-        using       pointer   =       value_type*;
-        using const_pointer   = const value_type*;
+        using       reference = value_type&;
+        using const_reference = value_type const&;
+        using       pointer   = value_type*;
+        using const_pointer   = value_type const*;
 
-        using       iterator  = typename std::vector< value_type >::iterator;
-        using const_iterator  = typename std::vector< value_type >::const_iterator;
+        using       iterator  = typename container_type::iterator;
+        using const_iterator  = typename container_type::const_iterator;
 
         using size_type       = size_t;
+
+        friend class Dataframe;
 
         // -------------------------------------------------------------------------
         //     Constructor and Rule of Five
         // -------------------------------------------------------------------------
 
-        friend class Dataframe;
+    private:
+
+        Column() = delete;
 
         Column( Dataframe& df, size_type index )
-            : df_( &df )
-            , index_( index )
+            : ColumnBase( df, index )
         {}
 
+        Column( Column const& ) = delete;
+        Column( Column&& )      = delete;
+
+        Column& operator= ( Column const& other ) = delete;
+        Column& operator= ( Column&& other )      = delete;
+
+    public:
+
         ~Column() = default;
-
-        Column( Column const& ) = default;
-        Column( Column&& )      = default;
-
-        Column& operator= ( Column const& other )
-        {
-            // Either we assign when constructing (thanks, STL), in which case the assigned-to
-            // column has size 0, or we do so when moving the vector contents, in which case
-            // the size needs to stay the same.
-            if( content_.size() > 0 && content_.size() != other.size() ) {
-                throw std::runtime_error(
-                    "Cannot assign Dataframe column with different size."
-                );
-            }
-
-            content_ = other.content_;
-            return *this;
-        }
-
-        Column& operator= ( Column&& other )
-        {
-            // Either we assign when constructing (thanks, STL), in which case the assigned-to
-            // column has size 0, or we do so when moving the vector contents, in which case
-            // the size needs to stay the same.
-            if( content_.size() > 0 && content_.size() != other.size() ) {
-                throw std::runtime_error(
-                    "Cannot assign Dataframe column with different size."
-                );
-            }
-
-            content_ = std::move( other.content_ );
-            return *this;
-        }
 
         // -------------------------------------------------------------------------
         //     Iterators
@@ -169,40 +308,6 @@ public:
         }
 
         // -------------------------------------------------------------------------
-        //     Properties
-        // -------------------------------------------------------------------------
-
-        Dataframe& dataframe()
-        {
-            return *df_;
-        }
-
-        Dataframe const& dataframe() const
-        {
-            return *df_;
-        }
-
-        size_type size() const
-        {
-            return content_.size();
-        }
-
-        bool empty() const
-        {
-            return content_.empty();
-        }
-
-        size_type index() const
-        {
-            return index_;
-        }
-
-        std::string const& name() const
-        {
-            return df_->col_name( index_ );
-        }
-
-        // -------------------------------------------------------------------------
         //     Element Access
         // -------------------------------------------------------------------------
 
@@ -218,12 +323,12 @@ public:
 
         reference operator[] ( std::string const& row_name )
         {
-            return content_[ df_->row_index( row_name ) ];
+            return content_[ dataframe().row_index( row_name ) ];
         }
 
         const_reference operator[] ( std::string const& row_name ) const
         {
-            return content_[ df_->row_index( row_name ) ];
+            return content_[ dataframe().row_index( row_name ) ];
         }
 
         reference at( size_type index )
@@ -238,12 +343,12 @@ public:
 
         reference at( std::string const& row_name )
         {
-            return content_[ df_->row_index( row_name ) ];
+            return content_[ dataframe().row_index( row_name ) ];
         }
 
         const_reference at( std::string const& row_name ) const
         {
-            return content_[ df_->row_index( row_name ) ];
+            return content_[ dataframe().row_index( row_name ) ];
         }
 
         // -------------------------------------------------------------------------
@@ -254,6 +359,7 @@ public:
          * @brief Overwrite a column by the elements of a `std::vector`.
          *
          * The size of the vector needs to match the number of rows of the Dataframe.
+         * The elements are copied.
          */
         self_type& operator = ( std::vector<value_type> const& vec )
         {
@@ -267,12 +373,34 @@ public:
             return *this;
         }
 
+        /**
+         * @brief Overwrite a column by the elements of a `std::vector`.
+         *
+         * The size of the vector needs to match the number of rows of the Dataframe.
+         * The elements are moved.
+         */
+        self_type& operator = ( std::vector<value_type>&& vec )
+        {
+            if( vec.size() != content_.size() ) {
+                throw std::runtime_error(
+                    "Cannot assign vector with different size to Dataframe column."
+                );
+            }
+
+            content_ = std::move( vec );
+            return *this;
+        }
+
         // -------------------------------------------------------------------------
         //     Interaction Operators
         // -------------------------------------------------------------------------
 
         /**
-         * @brief Get a copy of the column in form of a `std::vector`.
+         * @brief Implicit conversion to `std::vector`.
+         *
+         * We can only offer const ref (or copy), but no non-const ref, as this would allow
+         * users to change the vector size, breaking our invariants of equal-sized columns in the
+         * dataframe.
          */
         operator std::vector<value_type> const&() const
         {
@@ -280,11 +408,58 @@ public:
         }
 
         /**
-         * @brief Get a copy of the column in form of a `std::vector`.
+         * @brief Explicit conversion to `std::vector`.
+         *
+         * We can only offer const ref (or copy), but no non-const ref, as this would allow
+         * users to change the vector size, breaking our invariants of equal-sized columns in the
+         * dataframe.
          */
-        operator std::vector<value_type>&()
+        std::vector<value_type> const& to_vector() const
         {
             return content_;
+        }
+
+        // -------------------------------------------------------------------------
+        //     Internal Members
+        // -------------------------------------------------------------------------
+
+    private:
+
+        size_type size_() const override
+        {
+            return content_.size();
+        }
+
+        bool empty_() const override
+        {
+            return content_.empty();
+        }
+
+        void clear_() override
+        {
+            content_.clear();
+        }
+
+        void resize_( size_type size ) override
+        {
+            content_.resize( size );
+        }
+
+        void add_row_() override
+        {
+            content_.emplace_back();
+        }
+
+        void remove_row_( size_type row_index ) override
+        {
+            content_.erase( content_.begin() + row_index );
+        }
+
+        std::unique_ptr<ColumnBase> clone_() const override
+        {
+            auto ret = std::unique_ptr< self_type >( new self_type( *df_, index_ ));
+            ret->content_ = content_;
+            return ret;
         }
 
         // -------------------------------------------------------------------------
@@ -293,28 +468,26 @@ public:
 
     private:
 
-        Dataframe* df_ = nullptr;
-        size_type  index_;
-
         std::vector< value_type > content_;
-
-
     };
 
     // ---------------------------------------------------------------------------------------------
     //     Member Types
     // ---------------------------------------------------------------------------------------------
 
+public:
+
     using self_type       = Dataframe;
-    using value_type      = Column;
+    using value_type      = ColumnBase;
+    using container_type  = std::vector< std::unique_ptr< value_type >>;
 
-    using       reference =       value_type&;
-    using const_reference = const value_type&;
-    using       pointer   =       value_type*;
-    using const_pointer   = const value_type*;
+    using       reference = value_type&;
+    using const_reference = value_type const&;
+    using       pointer   = value_type*;
+    using const_pointer   = value_type const*;
 
-    using       iterator  = typename std::vector< value_type >::iterator;
-    using const_iterator  = typename std::vector< value_type >::const_iterator;
+    using       iterator  = utils::DereferenceIterator< container_type::iterator >;
+    using const_iterator  = utils::DereferenceIterator< container_type::const_iterator >;
 
     using size_type       = size_t;
 
@@ -322,16 +495,53 @@ public:
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------------------------------
 
-    friend class Column;
-
     Dataframe()  = default;
     ~Dataframe() = default;
 
-    Dataframe( Dataframe const& ) = default;
-    Dataframe ( Dataframe&& )      = default;
+    Dataframe( Dataframe const& other )
+    {
+        row_names_  = other.row_names_;
+        col_names_  = other.col_names_;
+        row_lookup_ = other.row_lookup_;
+        col_lookup_ = other.col_lookup_;
 
-    Dataframe& operator= ( Dataframe const& ) = default;
-    Dataframe& operator= ( Dataframe&& )      = default;
+        columns_.clear();
+        for( auto const& col : other.columns_ ) {
+            columns_.emplace_back( col->clone_() );
+            columns_.back()->df_ = this;
+            columns_.back()->index_ = columns_.size() - 1;
+
+            assert( columns_.size() > 0 );
+            assert( columns_.back()->size() == row_names_.size() );
+        }
+    }
+
+    Dataframe ( Dataframe&& ) = default;
+
+    Dataframe& operator= ( Dataframe const& other )
+    {
+        // Check for self assignment. Just in case.
+        if( &other == this ) {
+            return *this;
+        }
+
+        // Copy-swap-idiom.
+        self_type temp( other );
+        temp.swap( *this );
+        return *this;
+    }
+
+    Dataframe& operator= ( Dataframe&& ) = default;
+
+    void swap( self_type& other )
+    {
+        using std::swap;
+        swap( columns_,    other.columns_ );
+        swap( row_names_,  other.row_names_ );
+        swap( col_names_,  other.col_names_ );
+        swap( row_lookup_, other.row_lookup_ );
+        swap( col_lookup_, other.col_lookup_ );
+    }
 
     // ---------------------------------------------------------------------------------------------
     //     Iterators
@@ -378,6 +588,7 @@ public:
 
     size_type cols() const
     {
+        assert( columns_.size() == col_names_.size() );
         return columns_.size();
     }
 
@@ -392,87 +603,43 @@ public:
 
     reference operator[] ( size_type col_index )
     {
-        return columns_.at( col_index );
+        return *columns_.at( col_index );
     }
 
     const_reference operator[] ( size_type col_index ) const
     {
-        return columns_.at( col_index );
+        return *columns_.at( col_index );
     }
 
     reference operator[] ( std::string const& col_name )
     {
-        return columns_[ col_index( col_name ) ];
+        return *columns_[ col_index( col_name ) ];
     }
 
     const_reference operator[] ( std::string const& col_name ) const
     {
-        return columns_[ col_index( col_name ) ];
+        return *columns_[ col_index( col_name ) ];
     }
 
     reference at( size_type col_index )
     {
-        return columns_.at( col_index );
+        return *columns_.at( col_index );
     }
 
     const_reference at( size_type col_index ) const
     {
-        return columns_.at( col_index );
+        return *columns_.at( col_index );
     }
 
     reference at( std::string const& col_name )
     {
-        return columns_[ col_index( col_name ) ];
+        return *columns_[ col_index( col_name ) ];
     }
 
     const_reference at( std::string const& col_name ) const
     {
-        return columns_[ col_index( col_name ) ];
+        return *columns_[ col_index( col_name ) ];
     }
-
-    // ---------------------------------------------------------------------------------------------
-    //     Element Access
-    // ---------------------------------------------------------------------------------------------
-
-    // typename Column::reference operator () ( size_type row_index, size_type col_index )
-    // {
-    //     return at( col_index ).at( row_index );
-    // }
-    //
-    // typename Column::const_reference operator () ( size_type row_index, size_type col_index ) const
-    // {
-    //     return at( col_index ).at( row_index );
-    // }
-    //
-    // typename Column::reference operator () ( std::string const& row_name, size_type col_index )
-    // {
-    //     return at( col_index ).at( row_name );
-    // }
-    //
-    // typename Column::const_reference operator () ( std::string const& row_name, size_type col_index ) const
-    // {
-    //     return at( col_index ).at( row_name );
-    // }
-    //
-    // typename Column::reference operator () ( size_type row_index, std::string const& col_name )
-    // {
-    //     return at( col_name ).at( row_index );
-    // }
-    //
-    // typename Column::const_reference operator () ( size_type row_index, std::string const& col_name ) const
-    // {
-    //     return at( col_name ).at( row_index );
-    // }
-    //
-    // typename Column::reference operator () ( std::string const& row_name, std::string const& col_name )
-    // {
-    //     return at( col_name ).at( row_name );
-    // }
-    //
-    // typename Column::const_reference operator () ( std::string const& row_name, std::string const& col_name ) const
-    // {
-    //     return at( col_name ).at( row_name );
-    // }
 
     // ---------------------------------------------------------------------------------------------
     //     Indexing and Naming
@@ -480,6 +647,9 @@ public:
 
     bool has_row_name( std::string const& row_name ) const
     {
+        if( row_name.empty() ) {
+            throw std::runtime_error( "Cannot use empty row name." );
+        }
         return ( row_lookup_.count( row_name ) > 0 );
     }
 
@@ -513,6 +683,9 @@ public:
 
     bool has_col_name( std::string const& col_name ) const
     {
+        if( col_name.empty() ) {
+            throw std::runtime_error( "Cannot use empty column name." );
+        }
         return ( col_lookup_.count( col_name ) > 0 );
     }
 
@@ -548,29 +721,45 @@ public:
     //     Adding rows and cols
     // ---------------------------------------------------------------------------------------------
 
-    Column& add_col()
+    template<class T>
+    Column<T>& add_col()
     {
         auto const index = columns_.size();
-        columns_.emplace_back( *this, index );
-        columns_.back().content_.resize( row_names_.size() );
+        columns_.emplace_back( std::unique_ptr<Column<T>>( new Column<T>( *this, index )));
+        columns_.back()->resize_( row_names_.size() );
         col_names_.emplace_back();
 
-        return columns_.back();
+        return columns_.back()->as<T>();
     }
 
-    Column& add_col( std::string const& name )
+    template<class T>
+    Column<T>& add_col( std::string const& name )
     {
+        if( name.empty() ) {
+            throw std::runtime_error( "Cannot add a column with an empty name." );
+        }
         if( col_lookup_.count( name ) > 0 ) {
             throw std::runtime_error( "Column with name " + name + " already exists in Dataframe." );
         }
 
         auto const index = columns_.size();
-        columns_.emplace_back( *this, index );
-        columns_.back().content_.resize( row_names_.size() );
+        // columns_.emplace_back( *this, index );
+        columns_.emplace_back( std::unique_ptr<Column<T>>( new Column<T>( *this, index )));
+        columns_.back()->resize_( row_names_.size() );
         col_names_.emplace_back( name );
         col_lookup_[ name ] = index;
 
-        return columns_.back();
+        return columns_.back()->as<T>();
+    }
+
+    template<class T>
+    Column<T>& add_col( std::string const& name, T const& init )
+    {
+        auto& col = add_col<T>( name );
+        for( auto& e : col.content_ ) {
+            e = init;
+        }
+        return col;
     }
 
     self_type& add_row()
@@ -578,7 +767,8 @@ public:
         row_names_.emplace_back();
 
         for( auto& col : columns_ ) {
-            col.content_.emplace_back();
+            assert( row_names_.size() == col->size() + 1 );
+            col->add_row_();
         }
 
         return *this;
@@ -586,16 +776,21 @@ public:
 
     self_type& add_row( std::string const& name )
     {
-        // Add name.
+        if( name.empty() ) {
+            throw std::runtime_error( "Cannot add a row with an empty name." );
+        }
         if( row_lookup_.count( name ) > 0 ) {
             throw std::runtime_error( "Row with name " + name + " already exists in Dataframe." );
         }
+
+        // Add name.
         row_names_.emplace_back( name );
         row_lookup_[ name ] = row_names_.size() - 1;
 
         // Add content.
         for( auto& col : columns_ ) {
-            col.content_.emplace_back();
+            assert( row_names_.size() == col->size() + 1 );
+            col->add_row_();
         }
 
         return *this;
@@ -618,7 +813,7 @@ public:
     self_type& clear_rows()
     {
         for( auto& col : columns_ ) {
-            col.content_.clear();
+            col->clear_();
         }
         row_names_.clear();
         row_lookup_.clear();
@@ -647,13 +842,9 @@ public:
         col_lookup_.erase( name );
 
         // Adjust remaining indices.
-        for( size_t i = 0; i < columns_.size(); ++i ) {
-            // --columns_[i].index_;
-
-            // We do not need to adjust the indices, as the erase uses the assignment operators,
-            // which already make sure that the indices stay correct (simply by not changing them).
-            // So here, we simply control whether the indices of the columns are intact.
-            assert( columns_[i].index_ == i );
+        for( size_t i = col_index; i < columns_.size(); ++i ) {
+            --columns_[i]->index_;
+            assert( columns_[i]->index() == i );
         }
 
         // Adjust indices of all lookup table values that are greater than the removed index.
@@ -683,8 +874,9 @@ public:
 
         // Remove elements.
         for( auto& col : columns_ ) {
-            assert( col.content_.size() == row_names_.size() );
-            col.content_.erase( col.content_.begin() + row_index );
+            assert( col->size() == row_names_.size() );
+            // col.content_.erase( col.content_.begin() + row_index );
+            col->remove_row_( row_index );
         }
         auto const name = row_names_[ row_index ];
         row_names_.erase( row_names_.begin() + row_index );
@@ -715,7 +907,7 @@ public:
 
 private:
 
-    std::vector< value_type > columns_;
+    container_type columns_;
 
     std::vector< std::string > row_names_;
     std::vector< std::string > col_names_;

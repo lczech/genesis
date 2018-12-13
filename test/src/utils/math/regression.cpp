@@ -89,9 +89,9 @@ TEST( Math, GlmIndicatorVariables )
     auto const col12  = std::vector<double>{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 };
     ASSERT_EQ( 3, df_iv1.cols() );
     EXPECT_EQ( 12, df_iv1.rows() );
-    EXPECT_EQ( col10, df_iv1[0].operator std::vector<double> const&() );
-    EXPECT_EQ( col11, df_iv1[1].operator std::vector<double> const&() );
-    EXPECT_EQ( col12, df_iv1[2].operator std::vector<double> const&() );
+    EXPECT_EQ( col10, df_iv1[0].as<double>().to_vector() );
+    EXPECT_EQ( col11, df_iv1[1].as<double>().to_vector() );
+    EXPECT_EQ( col12, df_iv1[2].as<double>().to_vector() );
 
     auto const nan = std::numeric_limits<double>::quiet_NaN();
 
@@ -106,18 +106,18 @@ TEST( Math, GlmIndicatorVariables )
     // Have to compare manually because of nans
     for( size_t i = 0; i < 12; ++i ) {
         if( std::isnan( col20[i] )) {
-            EXPECT_TRUE( std::isnan( df_iv2[0][i] ));
+            EXPECT_TRUE( std::isnan( df_iv2[0].get<double>(i) ));
         } else {
-            EXPECT_EQ( col20[i], df_iv2[0][i] );
+            EXPECT_EQ( col20[i], df_iv2[0].get<double>(i) );
         }
         if( std::isnan( col21[i] )) {
-            EXPECT_TRUE( std::isnan( df_iv2[1][i] ));
+            EXPECT_TRUE( std::isnan( df_iv2[1].get<double>(i) ));
         } else {
-            EXPECT_EQ( col21[i], df_iv2[1][i] );
+            EXPECT_EQ( col21[i], df_iv2[1].get<double>(i) );
         }
     }
-    // EXPECT_EQ( col20, df_iv2[0].operator std::vector<double> const&() );
-    // EXPECT_EQ( col21, df_iv2[1].operator std::vector<double> const&() );
+    // EXPECT_EQ( col20, df_iv2[0].to_vector() );
+    // EXPECT_EQ( col21, df_iv2[1].to_vector() );
 
     // Error check.
     EXPECT_ANY_THROW( glm_indicator_variables( factor2, std::string( "X" )));
@@ -130,13 +130,13 @@ TEST( Math, SimpleLinearRegression )
     // Read data
     auto const infile = environment->data_dir + "utils/csv/linear_regression.csv";
     auto reader = DataframeReader<double>();
-    reader.names_from_first_col(false);
+    reader.row_names_from_first_col(false);
     auto const data = reader.read( from_file( infile ));
 
     // Perform regression
     auto const slr = simple_linear_regression(
-        data["x1"].begin(), data["x1"].end(),
-        data["x5"].begin(), data["x5"].end()
+        data["x1"].as<double>().begin(), data["x1"].as<double>().end(),
+        data["x5"].as<double>().begin(), data["x5"].as<double>().end()
     );
 
     // Check results
@@ -151,17 +151,17 @@ TEST( Math, GlmGaussSimple )
     // Read data
     auto const infile = environment->data_dir + "utils/csv/linear_regression.csv";
     auto dfr = DataframeReader<double>();
-    dfr.names_from_first_col(false);
+    dfr.row_names_from_first_col(false);
     auto const data = dfr.read( from_file( infile ));
 
     // Set up
     int N = data.rows();
     int M = 1;
     auto x = Matrix<double>(N, M);
-    x.col(0) = data[ "x1" ];
+    x.col(0) = data[ "x1" ].as<double>();
 
     // Run
-    auto const result = glm_fit( x, data[ "x5" ], glm_family_gaussian() );
+    auto const result = glm_fit( x, data[ "x5" ].as<double>(), glm_family_gaussian() );
 
     // Allowed error for double comparisons.
     double delta = 0.00001;

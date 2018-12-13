@@ -50,7 +50,7 @@ namespace utils {
 //     DataframeReader
 // =================================================================================================
 
-template <typename T>
+template<typename T = std::string>
 class DataframeReader
 {
 public:
@@ -80,8 +80,9 @@ public:
     //     Reading
     // -------------------------------------------------------------
 
-    Dataframe<T> read( std::shared_ptr<BaseInputSource> source ) const
-    {
+    Dataframe read(
+        std::shared_ptr<BaseInputSource> source
+    ) const {
         utils::InputStream is( source );
         return parse_( is );
     }
@@ -90,25 +91,25 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
-    bool names_from_first_row() const
+    bool col_names_from_first_row() const
     {
-        return names_from_first_row_;
+        return col_names_from_first_row_;
     }
 
-    bool names_from_first_col() const
+    bool row_names_from_first_col() const
     {
-        return names_from_first_col_;
+        return row_names_from_first_col_;
     }
 
-    DataframeReader& names_from_first_row( bool value )
+    DataframeReader& col_names_from_first_row( bool value )
     {
-        names_from_first_row_ = value;
+        col_names_from_first_row_ = value;
         return *this;
     }
 
-    DataframeReader& names_from_first_col( bool value )
+    DataframeReader& row_names_from_first_col( bool value )
     {
-        names_from_first_col_ = value;
+        row_names_from_first_col_ = value;
         return *this;
     }
 
@@ -134,10 +135,11 @@ public:
 
 private:
 
-    Dataframe<T> parse_( utils::InputStream& input_stream ) const
-    {
-        Dataframe<T> result;
-        size_t const offset = ( names_from_first_col_ ? 1 : 0 );
+    Dataframe parse_(
+        utils::InputStream& input_stream
+    ) const {
+        Dataframe result;
+        size_t const offset = ( row_names_from_first_col_ ? 1 : 0 );
         size_t line_cnt = 0;
 
         // Early stop.
@@ -146,13 +148,13 @@ private:
         }
 
         // Read column names.
-        if( names_from_first_row_ ) {
+        if( col_names_from_first_row_ ) {
             auto const col_names = reader_.parse_line( input_stream );
             ++line_cnt;
 
             size_t const start = offset;
             for( size_t i = start; i < col_names.size(); ++i ) {
-                result.add_col( col_names[i] );
+                result.add_col<T>( col_names[i] );
             }
         }
 
@@ -162,7 +164,7 @@ private:
             ++line_cnt;
 
             // Need to have a least one content element.
-            if(( line.size() == 0 ) || ( names_from_first_col_ && line.size() == 1 )) {
+            if(( line.size() == 0 ) || ( row_names_from_first_col_ && line.size() == 1 )) {
                 throw std::runtime_error(
                     "Cannot read Dataframe with lines that do not contain any content (line " +
                     std::to_string( line_cnt ) + "). Maybe the separator char is wrong."
@@ -171,7 +173,7 @@ private:
             assert( line.size() > offset );
 
             // Add a row for the line. Use row name if wanted.
-            if( names_from_first_col_ ) {
+            if( row_names_from_first_col_ ) {
                 result.add_row( line[0] );
             } else {
                 result.add_row();
@@ -181,12 +183,13 @@ private:
             if( result.cols() == 0 ) {
                 // This can only happen in the first line, and if no col names were read.
                 assert( result.rows() == 1 );
-                assert( ! names_from_first_row_ );
+                assert( ! col_names_from_first_row_ );
 
                 // Add unnamed cols.
                 for( size_t i = offset; i < line.size(); ++i ) {
-                    result.add_col();
+                    result.add_col<T>();
                 }
+                assert( line.size() == offset + result.cols() );
             }
 
             // Check if the line has the correct size.
@@ -202,17 +205,21 @@ private:
             if( parse_value_ ) {
                 for( size_t i = 0; i < result.cols(); ++i ) {
                     // result( row_idx, i ) = parse_value_( line[ offset + i ] );
-                    result[i][row_idx] = parse_value_( line[ offset + i ] );
+                    // result[i][row_idx] = parse_value_( line[ offset + i ] );
+                    auto& col = dynamic_cast<Dataframe::Column<T>&>(result[i]);
+                    col[row_idx] = parse_value_( line[ offset + i ] );
                 }
             } else {
                 for( size_t i = 0; i < result.cols(); ++i ) {
                     // result( row_idx, i ) = parse_value_stringstream_( line[ offset + i ] );
-                    result[i][row_idx] = parse_value_stringstream_( line[ offset + i ] );
+                    // result[i][row_idx] = parse_value_stringstream_( line[ offset + i ] );
+                    auto& col = dynamic_cast<Dataframe::Column<T>&>(result[i]);
+                    col[row_idx] = parse_value_stringstream_( line[ offset + i ] );
                 }
             }
         }
 
-        assert( result.rows() == line_cnt - ( names_from_first_row_ ? 1 : 0 ));
+        assert( result.rows() == line_cnt - ( col_names_from_first_row_ ? 1 : 0 ));
         return result;
     }
 
@@ -230,8 +237,8 @@ private:
 
 private:
 
-    bool names_from_first_row_ = true;
-    bool names_from_first_col_ = true;
+    bool col_names_from_first_row_ = true;
+    bool row_names_from_first_col_ = true;
 
     CsvReader reader_;
 
