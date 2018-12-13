@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/containers/dataframe.hpp"
+#include "genesis/utils/containers/dataframe/operators.hpp"
 #include "genesis/utils/containers/dataframe/reader.hpp"
 
 using namespace genesis::utils;
@@ -80,6 +81,8 @@ TEST( Containers, DataframeMatrix )
     EXPECT_ANY_THROW( df.at("omega").as<double>().at(0) );
     EXPECT_ANY_THROW( df[0].as<double>()["Ninetinineth"] );
     EXPECT_ANY_THROW( df[0].as<double>().at("Ninetinineth") );
+
+    EXPECT_TRUE( validate(df) );
 }
 
 TEST( Containers, DataframeCsv )
@@ -127,6 +130,9 @@ TEST( Containers, DataframeCsv )
         EXPECT_EQ( r, df2.row_index( df2.row_name(r) ));
         EXPECT_EQ( df2.row_names()[r], df2.row_name(r) );
     }
+
+    EXPECT_TRUE( validate(df) );
+    EXPECT_TRUE( validate(df2) );
 }
 
 /**
@@ -170,4 +176,7 @@ TEST( Containers, DataframeExtra )
     EXPECT_EQ( 1.0, df2["Fourth"].as<double>()["gamma"] );
     EXPECT_EQ( 100.0, df2["First"].as<double>()["lambda"] );
     EXPECT_NE( 100.0, df2["First"].as<double>()["delta"] );
+
+    EXPECT_TRUE( validate(df1) );
+    EXPECT_TRUE( validate(df2) );
 }

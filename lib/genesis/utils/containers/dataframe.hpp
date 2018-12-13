@@ -542,6 +542,13 @@ public:
         swap( col_lookup_, other.col_lookup_ );
     }
 
+    /**
+     * @brief Helper function to validate internal invariants.
+     *
+     * Located in genesis/utils/containers/dataframe/operators.hpp
+     */
+    friend bool validate( Dataframe const& );
+
     // ---------------------------------------------------------------------------------------------
     //     Iterators
     // ---------------------------------------------------------------------------------------------
