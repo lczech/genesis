@@ -659,6 +659,11 @@ public:
         return ( row_lookup_.count( row_name ) > 0 );
     }
 
+    bool has_unnamed_rows() const
+    {
+        return row_lookup_.size() < row_names_.size();
+    }
+
     size_t row_index( std::string const& row_name ) const
     {
         if( row_lookup_.count( row_name ) == 0 ) {
@@ -693,6 +698,11 @@ public:
             throw std::runtime_error( "Cannot use empty column name." );
         }
         return ( col_lookup_.count( col_name ) > 0 );
+    }
+
+    bool has_unnamed_cols() const
+    {
+        return col_lookup_.size() < col_names_.size();
     }
 
     size_t col_index( std::string const& col_name ) const
