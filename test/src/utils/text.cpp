@@ -30,12 +30,16 @@
 
 #include "src/common.hpp"
 
+#include "genesis/utils/text/convert.hpp"
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/text/style.hpp"
 #include "genesis/utils/text/table.hpp"
 
 #include <cctype>
+#include <limits>
 #include <sstream>
+#include <string>
+#include <vector>
 
 using namespace genesis::utils;
 
@@ -247,4 +251,53 @@ TEST( Text, ToString )
     EXPECT_EQ( "42",      to_string_rounded( zeros, 0 ) );
     EXPECT_EQ( "42.4",    to_string_rounded( zeros, 1 ) );
     EXPECT_EQ( "42.42",   to_string_rounded( zeros, 4 ) );
+}
+
+TEST( Text, ConvertBool )
+{
+    auto vals = std::vector<std::string>{
+        "yes", "no", "1", "0", "true", "false", "on", "off"
+    };
+    auto const exp = std::vector<bool>{
+        true, false, true, false, true, false, true, false
+    };
+    EXPECT_TRUE( is_convertible_to_bool( vals.begin(), vals.end() ));
+    EXPECT_EQ( exp, convert_to_bool( vals.begin(), vals.end() ));
+
+    vals.push_back( "x" );
+    EXPECT_FALSE( is_convertible_to_bool( vals.begin(), vals.end() ));
+    EXPECT_ANY_THROW( convert_to_bool( vals.begin(), vals.end() ));
+}
+
+TEST( Text, ConvertDouble )
+{
+    auto vals = std::vector<std::string>{
+        "3.14", " 42 ", "-1", "-6.023e23", "11e-11"
+    };
+    auto exp = std::vector<double>{
+        3.14, 42.0, -1.0, -6.023e23, 11e-11
+    };
+    EXPECT_TRUE( is_convertible_to_double( vals.begin(), vals.end() ));
+    EXPECT_EQ( exp, convert_to_double( vals.begin(), vals.end() ));
+
+    // Infinity.
+    vals.push_back( "inf" );
+    vals.push_back( "-infinity" );
+    exp.push_back( std::numeric_limits<double>::infinity() );
+    exp.push_back( - std::numeric_limits<double>::infinity() );
+    EXPECT_TRUE( is_convertible_to_double( vals.begin(), vals.end() ));
+    EXPECT_EQ( exp, convert_to_double( vals.begin(), vals.end() ));
+
+    // NaN. Need manual check, as nans do not compare.
+    vals.push_back( "nan" );
+    vals.push_back( "NAN(abc)" );
+    EXPECT_TRUE( is_convertible_to_double( vals.begin(), vals.end() ));
+    auto const nan_vals = convert_to_double( vals.begin(), vals.end() );
+    EXPECT_TRUE( std::isnan( nan_vals[7] ));
+    EXPECT_TRUE( std::isnan( nan_vals[8] ));
+
+    // Invalids.
+    vals.push_back( "nope" );
+    EXPECT_FALSE( is_convertible_to_double( vals.begin(), vals.end() ));
+    EXPECT_ANY_THROW( convert_to_double( vals.begin(), vals.end() ));
 }
