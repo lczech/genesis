@@ -135,6 +135,28 @@ TEST( Containers, DataframeCsv )
     EXPECT_TRUE( validate(df2) );
 }
 
+TEST( Containers, DataframeReplaceCol )
+{
+    // Get data as before.
+    NEEDS_TEST_DATA;
+    auto const infile = environment->data_dir + "utils/csv/table.csv";
+    auto reader = DataframeReader<double>();
+    auto df = reader.read( from_file( infile ));
+    EXPECT_EQ(  3, df.cols() );
+    EXPECT_EQ( 10, df.rows() );
+
+    auto const strvec = std::vector<std::string>{
+        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j"
+    };
+
+    df.replace_col<std::string>( "Second", strvec );
+    EXPECT_EQ(  3, df.cols() );
+    EXPECT_EQ( 10, df.rows() );
+    EXPECT_TRUE( validate(df) );
+
+    EXPECT_EQ( "c", df[1].as<std::string>()[2] );
+}
+
 /**
  * @brief Read and return directly.
  */
