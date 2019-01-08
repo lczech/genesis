@@ -370,7 +370,9 @@ std::string current_path_unix_()
         throw std::runtime_error( "Cannot read current directory." );
     }
 
-    fchdir(start_fd);
+    if( fchdir(start_fd) ) {
+        throw std::runtime_error( "Cannot change directory." );
+    }
     close(start_fd);
 
     return path;
@@ -428,7 +430,9 @@ std::string chdir_getcwd_( std::string const& dir )
     auto const path = current_path();
 
     // And change back of course
-    fchdir(start_fd);
+    if( fchdir(start_fd) ) {
+        throw std::runtime_error( "Cannot change directory." );
+    }
     close(start_fd);
 
     return path;
