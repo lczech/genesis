@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -319,7 +319,7 @@ std::string file_extension( std::string const& filename )
 //     File Names
 // =================================================================================================
 
-bool is_valid_filname( std::string const& filename )
+bool is_valid_filename( std::string const& filename )
 {
     // No empty filenames.
     if( trim( filename ) == "" ) {
@@ -347,7 +347,7 @@ bool is_valid_filname( std::string const& filename )
     return true;
 }
 
-std::string sanitize_filname( std::string const& filename )
+std::string sanitize_filename( std::string const& filename )
 {
     // Prepare result.
     std::string result = "";
