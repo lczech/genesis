@@ -463,8 +463,14 @@ public:
 
         std::unique_ptr<ColumnBase> clone_() const override
         {
-            auto ret = std::unique_ptr< self_type >( new self_type( *df_, index_ ));
-            ret->content_ = content_;
+            // Nicer version, doesn't work in gcc 4.9 though...
+            // auto ret = std::unique_ptr< self_type >( new self_type( *df_, index_ ));
+            // ret->content_ = content_;
+            // return ret;
+
+            // Seem to need this for older compilers...
+            auto ret = std::unique_ptr< ColumnBase >( new self_type( *df_, index_ ));
+            dynamic_cast<self_type&>( *ret ).content_ = content_;
             return ret;
         }
 
