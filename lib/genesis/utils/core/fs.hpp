@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -84,6 +84,10 @@ void file_write( std::string const& content, std::string const& filename );
  */
 void file_append( std::string const& content, std::string const& filename );
 
+// =================================================================================================
+//     Directory Access
+// =================================================================================================
+
 /**
  * @brief Return true iff the provided path is a directory.
  *
@@ -148,6 +152,30 @@ std::vector<std::string> dir_list_directories(
     bool full_path = false,
     std::string const& regex = ""
 );
+
+// =================================================================================================
+//     Path Information
+// =================================================================================================
+
+/**
+ * @brief Return the current (working) directory, simiar to getcwd().
+ *
+ * The function behaves similar to getcwd(). The path is returned with a trailing slash,
+ * for conveniently apppending file names to it.
+ *
+ * As this function changes the directory in the process, it is not thread safe.
+ */
+std::string current_path();
+
+/**
+ * @brief Return the real path of a file or directory, similar to realpath().
+ *
+ * The function behaves similar to realpath(), but (hopefully) offers better protability
+ * and error handling (long paths etc).
+ *
+ * As this function changes the directory in the process, it is not thread safe.
+ */
+std::string real_path( std::string const& path, bool resolve_link = true );
 
 // =================================================================================================
 //     File Information
@@ -215,12 +243,12 @@ std::string file_extension ( std::string const& filename );
  * This might be too converative for some system, or allow too much for others. It however should
  * return true for filenames that work on most systems.
  */
-bool        is_valid_filname( std::string const& filename );
+bool        is_valid_filename( std::string const& filename );
 
 /**
  * @brief Remove or replace all invalid parts of a filename.
  *
- * Similar to is_valid_filname(), this function is not meant to be an ultimate solution to valid
+ * Similar to is_valid_filename(), this function is not meant to be an ultimate solution to valid
  * filenames. See there for details.
  *
  * The function is meant to be called on the file name itself, without the directory path leading
@@ -231,14 +259,14 @@ bool        is_valid_filname( std::string const& filename );
  *
  *   * All non-printable characters are removed.
  *   * Spaces at the beginning and end are removed.
- *   * All invalid chars are replaced by an underscore. See is_valid_filname() for a list of those
+ *   * All invalid chars are replaced by an underscore. See is_valid_filename() for a list of those
  *     chars.
  *
  * If after this procedure the filename is empty, an exception is thrown. This is meant to save the
  * user from checking this, or from running into trouble when trying to write to this "file" -
  * because an empty filename will point to a directory name.
  */
-std::string sanitize_filname( std::string const& filename );
+std::string sanitize_filename( std::string const& filename );
 
 } // namespace utils
 } // namespace genesis

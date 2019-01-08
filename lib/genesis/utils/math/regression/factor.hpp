@@ -37,6 +37,7 @@
 #include <cassert>
 #include <limits>
 #include <stdexcept>
+#include <sstream>
 #include <vector>
 
 namespace genesis {
@@ -234,7 +235,12 @@ Dataframe glm_indicator_variables(
             continue;
         }
 
-        auto& col = result.add_unnamed_col<double>();
+        // Make column name by concatenating the ref level and current level.
+        std::stringstream ss;
+        ss << factor.levels[ ref_idx ] << "." << factor.levels[ lvl_idx ];
+        auto& col = result.add_col<double>( ss.str() );
+
+        // Add the column content.
         for( size_t val_idx = 0; val_idx < factor.values.size(); ++val_idx ) {
             if( factor.values[val_idx] >= factor.levels.size() ) {
                 col[val_idx] = std::numeric_limits<double>::quiet_NaN();

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -248,6 +248,12 @@ public:
         using size_type       = size_t;
 
         friend class Dataframe;
+
+        static_assert(
+            ! std::is_same<value_type, bool>::value,
+            "Cannot instanciate Dataframe Column with type bool, "
+            "because std::vector<bool> does not offer proper references."
+        );
 
         // -------------------------------------------------------------------------
         //     Constructor and Rule of Five
@@ -659,6 +665,11 @@ public:
         return ( row_lookup_.count( row_name ) > 0 );
     }
 
+    bool has_unnamed_rows() const
+    {
+        return row_lookup_.size() < row_names_.size();
+    }
+
     size_t row_index( std::string const& row_name ) const
     {
         if( row_lookup_.count( row_name ) == 0 ) {
@@ -693,6 +704,11 @@ public:
             throw std::runtime_error( "Cannot use empty column name." );
         }
         return ( col_lookup_.count( col_name ) > 0 );
+    }
+
+    bool has_unnamed_cols() const
+    {
+        return col_lookup_.size() < col_names_.size();
     }
 
     size_t col_index( std::string const& col_name ) const
@@ -751,12 +767,13 @@ public:
     template<class T>
     Column<T>& add_unnamed_col( std::vector<T> const& init )
     {
-        auto& col = add_unnamed_col<T>();
-        if( init.size() != col.size() ) {
+        if( init.size() != row_names_.size() ) {
             throw std::invalid_argument(
-                "Cannot add col to Dataframe if initial values vector is of different size."
+                "Cannot add column to Dataframe if initial values vector is of different size."
             );
         }
+        auto& col = add_unnamed_col<T>();
+        assert( col.size() == row_names_.size() );
         for( size_t i = 0; i < init.size(); ++i ) {
             col.content_[i] = init[i];
         }
@@ -796,12 +813,13 @@ public:
     template<class T>
     Column<T>& add_col( std::string const& name, std::vector<T> const& init )
     {
-        auto& col = add_col<T>( name );
-        if( init.size() != col.size() ) {
+        if( init.size() != row_names_.size() ) {
             throw std::invalid_argument(
-                "Cannot add col to Dataframe if initial values vector is of different size."
+                "Cannot add column to Dataframe if initial values vector is of different size."
             );
         }
+        auto& col = add_col<T>( name );
+        assert( col.size() == row_names_.size() );
         for( size_t i = 0; i < init.size(); ++i ) {
             col.content_[i] = init[i];
         }
@@ -843,6 +861,94 @@ public:
     }
 
     // ---------------------------------------------------------------------------------------------
+    //     Replacing cols
+    // ---------------------------------------------------------------------------------------------
+
+    template<class T>
+    Column<T>& replace_col( size_type at_index )
+    {
+        assert( columns_.size() == col_names_.size() );
+        if( at_index >= columns_.size() ) {
+            throw std::runtime_error(
+                "Invalid column index greater than or equal to number of columns."
+            );
+        }
+
+        columns_[ at_index ] = std::unique_ptr<Column<T>>( new Column<T>( *this, at_index ));
+        columns_[ at_index ]->resize_( row_names_.size() );
+        return columns_[ at_index ]->as<T>();
+    }
+
+    template<class T>
+    Column<T>& replace_col( size_type at_index, T const& init )
+    {
+        auto& col = replace_col<T>( at_index );
+        for( auto& e : col.content_ ) {
+            e = init;
+        }
+        return col;
+    }
+
+    template<class T>
+    Column<T>& replace_col( size_type at_index, std::vector<T> const& init )
+    {
+        if( init.size() != row_names_.size() ) {
+            throw std::invalid_argument(
+                "Cannot replace column in Dataframe if initial values vector is of different size."
+            );
+        }
+        auto& col = replace_col<T>( at_index );
+        assert( col.size() == row_names_.size() );
+        for( size_t i = 0; i < init.size(); ++i ) {
+            col.content_[i] = init[i];
+        }
+        return col;
+    }
+
+    template<class T>
+    Column<T>& replace_col( std::string const& at_name )
+    {
+        if( at_name.empty() ) {
+            throw std::runtime_error( "Cannot replace column with empty name given." );
+        }
+        if( col_lookup_.count( at_name ) == 0 ) {
+            throw std::runtime_error(
+                "Column with name " + at_name + " does not exist in Dataframe."
+            );
+        }
+
+        auto const index = col_index( at_name );
+        assert( col_names_[ index ] == at_name );
+        return replace_col<T>( index );
+    }
+
+    template<class T>
+    Column<T>& replace_col( std::string const& at_name, T const& init )
+    {
+        auto& col = replace_col<T>( at_name );
+        for( auto& e : col.content_ ) {
+            e = init;
+        }
+        return col;
+    }
+
+    template<class T>
+    Column<T>& replace_col( std::string const& at_name, std::vector<T> const& init )
+    {
+        if( init.size() != row_names_.size() ) {
+            throw std::invalid_argument(
+                "Cannot replace column in Dataframe if initial values vector is of different size."
+            );
+        }
+        auto& col = replace_col<T>( at_name );
+        assert( col.size() == row_names_.size() );
+        for( size_t i = 0; i < init.size(); ++i ) {
+            col.content_[i] = init[i];
+        }
+        return col;
+    }
+
+    // ---------------------------------------------------------------------------------------------
     //     Removing rows and cols
     // ---------------------------------------------------------------------------------------------
 
@@ -878,7 +984,9 @@ public:
     {
         assert( columns_.size() == col_names_.size() );
         if( col_index >= columns_.size() ) {
-            throw std::runtime_error( "Invalid column index greater than number of columns." );
+            throw std::runtime_error(
+                "Invalid column index greater than or equal to number of columns."
+            );
         }
 
         // Remove elements.
@@ -915,7 +1023,7 @@ public:
     self_type& remove_row( size_type row_index )
     {
         if( row_index >= row_names_.size() ) {
-            throw std::runtime_error( "Invalid row index greater than number of rows." );
+            throw std::runtime_error( "Invalid row index greater than or equal to number of rows." );
         }
 
         // Remove elements.

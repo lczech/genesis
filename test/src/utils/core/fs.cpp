@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,4 +43,27 @@ TEST( FileSystem, DirCreate )
 
     std::string dir = environment->data_dir + "/foo/bar/test/long";
     // dir_create( dir, true );
+}
+
+TEST( FileSystem, CurrentPath )
+{
+    // Run once for exception check.
+    ASSERT_NO_THROW( current_path() );
+
+    // Run again for result check.
+    auto const cwd = current_path();
+    EXPECT_NE( 0, cwd.size() );
+
+    // std::cout << cwd << "\n";
+}
+
+TEST( FileSystem, RealPath )
+{
+    auto const cwd = current_path();
+    ASSERT_NO_THROW( real_path( cwd ));
+
+    auto rp = real_path( cwd );
+    EXPECT_NE( 0, rp.size() );
+
+    // std::cout << rp << "\n";
 }

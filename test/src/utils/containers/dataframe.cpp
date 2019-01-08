@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -135,6 +135,28 @@ TEST( Containers, DataframeCsv )
     EXPECT_TRUE( validate(df2) );
 }
 
+TEST( Containers, DataframeReplaceCol )
+{
+    // Get data as before.
+    NEEDS_TEST_DATA;
+    auto const infile = environment->data_dir + "utils/csv/table.csv";
+    auto reader = DataframeReader<double>();
+    auto df = reader.read( from_file( infile ));
+    EXPECT_EQ(  3, df.cols() );
+    EXPECT_EQ( 10, df.rows() );
+
+    auto const strvec = std::vector<std::string>{
+        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j"
+    };
+
+    df.replace_col<std::string>( "Second", strvec );
+    EXPECT_EQ(  3, df.cols() );
+    EXPECT_EQ( 10, df.rows() );
+    EXPECT_TRUE( validate(df) );
+
+    EXPECT_EQ( "c", df[1].as<std::string>()[2] );
+}
+
 /**
  * @brief Read and return directly.
  */
@@ -179,4 +201,32 @@ TEST( Containers, DataframeExtra )
 
     EXPECT_TRUE( validate(df1) );
     EXPECT_TRUE( validate(df2) );
+}
+
+TEST( Containers, DataframeConvertString )
+{
+    // Read stuff.
+    NEEDS_TEST_DATA;
+    auto const infile = environment->data_dir + "utils/csv/table.csv";
+    auto reader = DataframeReader<std::string>();
+    auto df = reader.read( from_file( infile ));
+    EXPECT_EQ(  3, df.cols() );
+    EXPECT_EQ( 10, df.rows() );
+
+    EXPECT_TRUE( is_convertible_to_bool( df, "First" ));
+    EXPECT_TRUE( is_convertible_to_double( df, "First" ));
+    EXPECT_FALSE( is_convertible_to_bool( df, "Second" ));
+    EXPECT_TRUE( is_convertible_to_double( df, "Second" ));
+    EXPECT_FALSE( is_convertible_to_bool( df, "Third" ));
+    EXPECT_TRUE( is_convertible_to_double( df, "Third" ));
+
+    // First column only contains 1 and 0.
+    convert_to_bool( df, "First" );
+    EXPECT_EQ( false, df["First"].as<char>()[0] );
+    EXPECT_EQ( true, df["First"].as<char>()[1] );
+
+    // Second column contains integers.
+    convert_to_double( df, "Second" );
+    EXPECT_EQ( 0, df["Second"].get<double>(0) );
+    EXPECT_EQ( 8, df["Second"].get<double>(1) );
 }
