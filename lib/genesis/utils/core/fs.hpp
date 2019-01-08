@@ -154,6 +154,30 @@ std::vector<std::string> dir_list_directories(
 );
 
 // =================================================================================================
+//     Path Information
+// =================================================================================================
+
+/**
+ * @brief Return the current (working) directory, simiar to getcwd().
+ *
+ * The function behaves similar to getcwd(). The path is returned with a trailing slash,
+ * for conveniently apppending file names to it.
+ *
+ * As this function changes the directory in the process, it is not thread safe.
+ */
+std::string current_path();
+
+/**
+ * @brief Return the real path of a file or directory, similar to realpath().
+ *
+ * The function behaves similar to realpath(), but (hopefully) offers better protability
+ * and error handling (long paths etc).
+ *
+ * As this function changes the directory in the process, it is not thread safe.
+ */
+std::string real_path( std::string const& path, bool resolve_link = true );
+
+// =================================================================================================
 //     File Information
 // =================================================================================================
 
