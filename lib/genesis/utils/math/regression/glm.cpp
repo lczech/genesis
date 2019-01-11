@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -57,6 +57,8 @@
 #include "genesis/utils/math/regression/glm.hpp"
 
 #include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/math/common.hpp"
+#include "genesis/utils/math/regression/family.hpp"
 #include "genesis/utils/math/regression/helper.hpp"
 
 #include <algorithm>
@@ -202,12 +204,30 @@ void glm_irls(
                 ++freedom.valid_entries;
 
                 if( link.id == family.canonical_link_id ) {
-                    ri = (y_response[i] - mu) / Vmu;
                     wi = pi * Vmu;
+
+                    switch( extras.residual_type ) {
+                        case GlmExtras::kDefault: {
+                            ri = ( y_response[i] - mu ) / Vmu;
+                            break;
+                        }
+                        case GlmExtras::kPearsonResiduals: {
+                            ri = ( y_response[i] - mu ) / std::sqrt( Vmu );
+                            break;
+                        }
+                        case GlmExtras::kDevianceResiduals: {
+                            auto const ud = family.unit_deviance( y_response[i], mu );
+                            ri = signum( y_response[i] - mu ) * std::sqrt( ud );
+                            break;
+                        }
+                        default: {
+                            throw std::invalid_argument( "Invalid residual type specified." );
+                        }
+                    }
                 } else {
                     double const D = link.derivative( mu );
-                    ri = D * (y_response[i] - mu);
                     wi = pi / (D * D * Vmu);
+                    ri = D * (y_response[i] - mu);
                 }
                 wss += wi * ri * ri;
             }
@@ -374,8 +394,6 @@ GlmOutput glm_fit(
         throw std::invalid_argument( "glm_fit: link is not properly defined." );
     }
 
-    // TODO with intercept and empty strata
-    // TODO use input x dataframe instead of matrix, so that vectors can be used!
     // TODO interactions
 
     // Prepare results.
@@ -414,6 +432,12 @@ GlmOutput glm_fit(
         double const mu = result.fitted[i];
         double const pi = extras.prior_weights.empty() ? 1.0 : extras.prior_weights[i];
 
+        // Null deviance
+        auto const ud = family.unit_deviance( y_response[i], mu );
+        if( std::isfinite( ud )) {
+            result.null_deviance += ud;
+        }
+
         // Residuals and weights.
         if(( ! std::isfinite(pi) ) || ( pi < 0.0 )) {
             throw std::invalid_argument( "glm_fit: prior weights have to be non-negative." );
@@ -426,19 +450,29 @@ GlmOutput glm_fit(
 
             double const Vmu = family.variance( mu );
             if( link.id == family.canonical_link_id ) {
-                result.resid[i]   = (y_response[i] - mu) / Vmu;
+                switch( extras.residual_type ) {
+                    case GlmExtras::kDefault: {
+                        result.resid[i] = ( y_response[i] - mu ) / Vmu;
+                        break;
+                    }
+                    case GlmExtras::kPearsonResiduals: {
+                        result.resid[i] = ( y_response[i] - mu ) / std::sqrt( Vmu );
+                        break;
+                    }
+                    case GlmExtras::kDevianceResiduals: {
+                        result.resid[i] = signum( y_response[i] - mu ) * std::sqrt( ud );
+                        break;
+                    }
+                    default: {
+                        throw std::invalid_argument( "Invalid residual type specified." );
+                    }
+                }
                 result.weights[i] = pi * Vmu;
             } else {
                 double const D = link.derivative( mu );
                 result.resid[i]   = D * (y_response[i] - mu);
                 result.weights[i] = pi / (D * D * Vmu);
             }
-        }
-
-        // Null deviance
-        auto const ud = family.unit_deviance( y_response[i], mu );
-        if( std::isfinite( ud )) {
-            result.null_deviance += result.weights[i] * ud;
         }
     }
 
@@ -457,7 +491,7 @@ GlmOutput glm_fit(
         for( size_t i = 0; i < N; i++ ) {
             auto const ud = family.unit_deviance( y_response[i], result.fitted[i] );
             if( std::isfinite( ud )) {
-                result.deviance += result.weights[i] * ud;
+                result.deviance += ud;
             }
         }
 
@@ -486,6 +520,16 @@ GlmOutput glm_fit(
     if( ! family.canonical_link ) {
         throw std::runtime_error( "glm_fit: family does not provide a canonical link." );
     }
+    return glm_fit( x_predictors, y_response, family, family.canonical_link(), extras, control );
+}
+
+GlmOutput glm_fit(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmExtras const&           extras,
+    GlmControl const&          control
+) {
+    auto family = glm_family_gaussian();
     return glm_fit( x_predictors, y_response, family, family.canonical_link(), extras, control );
 }
 
