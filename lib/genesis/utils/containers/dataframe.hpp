@@ -821,7 +821,8 @@ public:
     {
         if( init.size() != row_names_.size() ) {
             throw std::invalid_argument(
-                "Cannot add column to Dataframe if initial values vector is of different size."
+                "Cannot add column to Dataframe if initial values vector is of different size: "
+                + std::to_string( init.size() ) + " != " + std::to_string( row_names_.size() )
             );
         }
         auto& col = add_col<T>( name );

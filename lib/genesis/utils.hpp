@@ -110,6 +110,7 @@
 #include "genesis/utils/math/random.hpp"
 #include "genesis/utils/math/range_minimum_query.hpp"
 #include "genesis/utils/math/ranking.hpp"
+#include "genesis/utils/math/regression/dataframe.hpp"
 #include "genesis/utils/math/regression/factor.hpp"
 #include "genesis/utils/math/regression/family.hpp"
 #include "genesis/utils/math/regression/glm.hpp"

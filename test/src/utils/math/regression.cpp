@@ -30,12 +30,14 @@
 
 #include "src/common.hpp"
 
+#include "genesis/utils/containers/dataframe.hpp"
+#include "genesis/utils/containers/dataframe/reader.hpp"
+#include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/utils/math/regression/dataframe.hpp"
 #include "genesis/utils/math/regression/factor.hpp"
 #include "genesis/utils/math/regression/glm.hpp"
 #include "genesis/utils/math/regression/slr.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/dataframe.hpp"
-#include "genesis/utils/containers/dataframe/reader.hpp"
 #include "genesis/utils/text/string.hpp"
 
 using namespace genesis::utils;
@@ -457,4 +459,39 @@ TEST( Math, GlmBinomial )
     EXPECT_NEAR( 0.0, result.which[0], delta );
     EXPECT_NEAR( 1.504645, result.betaQ[0], delta );
     EXPECT_NEAR( 2.530456, result.tri[0], 0.0001 );
+}
+
+TEST( Math, GlmDataframe )
+{
+    NEEDS_TEST_DATA;
+
+    // Read data
+    auto const infile = environment->data_dir + "utils/csv/mixed.csv";
+    auto const dfr = DataframeReader<std::string>();
+    auto const dfs = dfr.read( from_file( infile ));
+
+    std::string report;
+    auto const dfd = glm_prepare_dataframe( dfs, report );
+    // LOG_DBG << join(dfd.col_names());
+    // LOG_DBG << report;
+
+    auto const md = glm_convert_dataframe( dfd, {
+        "alpha","beta","gamma","delta","epsilon","zeta","eta","theta","iota","kappa"
+    });
+    // LOG_DBG << md;
+
+    auto const md_exp = Matrix<double>( 10, 6, {
+        0, 0, 4.5, 1, 0, 0,
+        1, 8, 5, 1, 0, 1,
+        1, 8, 4.7, 1, 1, 0,
+        1, 8, 5.3, 0, 0, 0,
+        1, 10, 5.5, 0, 0, 0,
+        1, 10, 5.3, 0, 0, 1,
+        1, 10, 5.3, 1, 0, 0,
+        1, 8, 5.3, 1, 1, 0,
+        1, 1, 5.3, 1, 0, 0,
+        0, 0, 5, 0, 1, 0
+    });
+
+    EXPECT_EQ( md_exp, md );
 }
