@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ namespace utils {
 //     Bool Text Conversion
 // =================================================================================================
 
-bool convert_to_bool( std::string const& str )
+inline bool convert_to_bool( std::string const& str )
 {
     // Prep.
     auto const cont = to_lower_ascii( trim( str ));
@@ -83,7 +83,7 @@ std::vector<bool> convert_to_bool(
     return ret;
 }
 
-bool is_convertible_to_bool( std::string const& str )
+inline bool is_convertible_to_bool( std::string const& str )
 {
     try{
         convert_to_bool( str );
@@ -113,7 +113,7 @@ bool is_convertible_to_bool(
 //     Double Text Conversion
 // =================================================================================================
 
-double convert_to_double( std::string const& str )
+inline double convert_to_double( std::string const& str )
 {
     bool err = false;
     double ret;
@@ -152,7 +152,7 @@ std::vector<double> convert_to_double(
     return ret;
 }
 
-bool is_convertible_to_double( std::string const& str )
+inline bool is_convertible_to_double( std::string const& str )
 {
     try{
         convert_to_double( str );

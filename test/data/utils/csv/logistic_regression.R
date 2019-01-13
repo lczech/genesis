@@ -1,9 +1,9 @@
 #!/usr/bin/Rscript
 
-data <- read.csv( file="linear_regression.csv", sep=",", head=TRUE )
+data <- read.csv( file="logistic_regression.csv", sep=",", head=TRUE )
 
-x <- data[,'x1']
-y <- data[,'x5']
+x <- data[,'Hours']
+y <- data[,'Pass']
 
 # # Normal
 # res <- lm(formula = y ~ x, model=TRUE, x=TRUE, y=TRUE, qr=TRUE )
@@ -47,7 +47,7 @@ y <- data[,'x5']
 # print( res['df.residual'] )
 
 
-fit <- glm( formula = y ~ x - 1, family=gaussian() )
+fit <- glm( formula = y ~ x, family=binomial(link='logit') )
 summary(fit) # display results
 confint(fit) # 95% CI for the coefficients
 exp(coef(fit)) # exponentiated coefficients

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,7 +53,16 @@ struct GlmExtras
      * @brief Strata assignments coded `1...S`.
      */
     std::vector<size_t> strata;
-    bool const          with_intercept = true;
+    bool                with_intercept = true;
+
+    enum ResidualType
+    {
+        kDefault,
+        kPearsonResiduals,
+        kDevianceResiduals
+    };
+
+    ResidualType residual_type = ResidualType::kDefault;
 };
 
 struct GlmControl
@@ -164,6 +173,19 @@ GlmOutput glm_fit(
     Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmFamily const&           family,
+    GlmExtras const&           extras = {},
+    GlmControl const&          control = {}
+);
+
+/**
+ * @brief Fit a Generalized Linear Model (GLM) using a linear gaussian model.
+ *
+ * See the @link supplement_acknowledgements_code_reuse_glm Acknowledgements@endlink for details
+ * on the license and original authors.
+ */
+GlmOutput glm_fit(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
     GlmExtras const&           extras = {},
     GlmControl const&          control = {}
 );

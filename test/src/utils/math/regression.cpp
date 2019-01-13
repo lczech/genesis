@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,12 +30,14 @@
 
 #include "src/common.hpp"
 
+#include "genesis/utils/containers/dataframe.hpp"
+#include "genesis/utils/containers/dataframe/reader.hpp"
+#include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/utils/math/regression/dataframe.hpp"
 #include "genesis/utils/math/regression/factor.hpp"
 #include "genesis/utils/math/regression/glm.hpp"
 #include "genesis/utils/math/regression/slr.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/dataframe.hpp"
-#include "genesis/utils/containers/dataframe/reader.hpp"
 #include "genesis/utils/text/string.hpp"
 
 using namespace genesis::utils;
@@ -268,7 +270,6 @@ TEST( Math, GlmGaussSimple )
     EXPECT_NEAR( 27.7548, result.tri[0], 0.0001 );
 }
 
-/*
 TEST( Math, GlmGaussNoIntercept )
 {
     NEEDS_TEST_DATA;
@@ -276,20 +277,20 @@ TEST( Math, GlmGaussNoIntercept )
     // Read data
     auto const infile = environment->data_dir + "utils/csv/linear_regression.csv";
     auto dfr = DataframeReader<double>();
-    dfr.names_from_first_col(false);
+    dfr.row_names_from_first_col(false);
     auto const data = dfr.read( from_file( infile ));
 
     int N = data.rows();
     int M = 1;
     auto x = Matrix<double>(N, M);
-    x.col(0) = data[ "x1" ];
+    x.col(0) = data[ "x1" ].as<double>();
 
     // No intercept
     GlmExtras extras;
     extras.with_intercept = false;
 
     // Run
-    auto const result = glm_fit( x, data[ "x5" ], glm_family_gaussian(), extras );
+    auto const result = glm_fit( x, data[ "x5" ].as<double>(), glm_family_gaussian(), extras );
 
     // Allowed error for double comparisons.
     double delta = 0.00001;
@@ -366,19 +367,14 @@ TEST( Math, GlmGaussNoIntercept )
 
     EXPECT_EQ( 1, result.rank );
     EXPECT_EQ( 103, result.df_resid );
-    EXPECT_NEAR( 0.0792109, result.scale, delta );
+    EXPECT_NEAR( 0.112533, result.scale, delta );
 
-    // EXPECT_ITERABLE_DOUBLE_NEAR( Matrix<double>, xb_exp, result.Xb, delta );
-    // EXPECT_ITERABLE_DOUBLE_NEAR( std::vector<double>, fitted_exp, result.fitted, delta );
-    // EXPECT_ITERABLE_DOUBLE_NEAR( std::vector<double>, resid_exp, result.resid, delta );
+    EXPECT_NEAR( 1077.835, result.null_deviance, 0.001 );
+    EXPECT_NEAR( 11.591, result.deviance, 0.001 );
 
-    EXPECT_NEAR( 2.13529657732442, result.fitted[0], 0.0001 );
-    EXPECT_NEAR( 1.28470342267558, result.resid[0], 0.0001 );
-
-    LOG_DBG << "Xb " << join(result.Xb);
-    LOG_DBG << "resid " << join(result.resid);
-    LOG_DBG << "fitted " << join(result.fitted);
-
+    EXPECT_ITERABLE_DOUBLE_NEAR( Matrix<double>, xb_exp, result.Xb, delta );
+    EXPECT_ITERABLE_DOUBLE_NEAR( std::vector<double>, fitted_exp, result.fitted, delta );
+    EXPECT_ITERABLE_DOUBLE_NEAR( std::vector<double>, resid_exp, result.resid, delta );
 
     // In this case, all weights are 1. No need for storing them in a vector.
     EXPECT_EQ( N, result.weights.size() );
@@ -391,6 +387,111 @@ TEST( Math, GlmGaussNoIntercept )
     EXPECT_EQ( 1, result.tri.size() );
     EXPECT_NEAR( 0.0, result.which[0], delta );
     EXPECT_NEAR( 1.021673, result.betaQ[0], delta );
-    EXPECT_NEAR( 27.7548, result.tri[0], 0.0001 );
+    EXPECT_NEAR( 1021.4874, result.tri[0], 0.0001 );
 }
-*/
+
+TEST( Math, GlmBinomial )
+{
+    NEEDS_TEST_DATA;
+
+    // Read data
+    auto const infile = environment->data_dir + "utils/csv/logistic_regression.csv";
+    auto dfr = DataframeReader<double>();
+    dfr.row_names_from_first_col(false);
+    auto const data = dfr.read( from_file( infile ));
+
+    int N = data.rows();
+    int M = 1;
+    auto x = Matrix<double>(N, M);
+    x.col(0) = data[ "Hours" ].as<double>();
+
+    // No intercept
+    GlmExtras extras;
+    // extras.with_intercept = false;
+    // extras.residual_type = GlmExtras::kPearsonResiduals;
+
+    // Run
+    auto const result = glm_fit( x, data[ "Pass" ].as<double>(), glm_family_binomial(), extras );
+
+    // Allowed error for double comparisons.
+    double delta = 0.00001;
+
+    // Gaussian algo should not iterate at all.
+    EXPECT_TRUE( result.converged );
+
+    // Check expected result vectors and matrices.
+    // Results were obtained from R, using the script test/data/utils/csv/logistic_regression.R
+
+    auto fitted_exp = std::vector<double>({
+        0.0347228, 0.049788, 0.0709093, 0.100047, 0.139363, 0.190852, 0.190769, 0.255714,
+        0.333522, 0.421626, 0.51501, 0.607373, 0.692598, 0.766568, 0.874418, 0.910251,
+        0.936601, 0.955592, 0.969082, 0.985186
+    });
+    // auto resid_exp = std::vector<double>({
+    //     -0.252506, -0.304082, -0.365612, -0.438609, -0.524547, -0.624673, 1.8602, -0.739748,
+    //     1.52013, -1.01364, 1.1856, -1.33347, 0.883778, -1.67365, 0.534062, 0.446733, 0.372485,
+    //      0.309859, 0.257338, 0.176942
+    // });
+
+    EXPECT_EQ( 1, result.rank );
+    EXPECT_EQ( 18, result.df_resid );
+    EXPECT_NEAR( 1.0, result.scale, delta );
+
+    EXPECT_NEAR( 27.726, result.null_deviance, 0.01 );
+    EXPECT_NEAR( 16.060, result.deviance, 0.01 );
+
+    // LOG_DBG << "result.fitted " << join( result.fitted );
+    // LOG_DBG << "result.resid " << join( result.resid );
+
+    // EXPECT_ITERABLE_DOUBLE_NEAR( Matrix<double>, xb_exp, result.Xb, delta );
+    EXPECT_ITERABLE_DOUBLE_NEAR( std::vector<double>, fitted_exp, result.fitted, delta );
+    // EXPECT_ITERABLE_DOUBLE_NEAR( std::vector<double>, resid_exp, result.resid, delta );
+
+    // In this case, all weights are 1. No need for storing them in a vector.
+    // EXPECT_EQ( N, result.weights.size() );
+    // for( size_t i = 0; i < result.weights.size(); ++i ) {
+    //     EXPECT_NEAR( 1.0, result.weights[i], delta );
+    // }
+
+    EXPECT_EQ( 1, result.which.size() );
+    EXPECT_EQ( 1, result.betaQ.size() );
+    EXPECT_EQ( 1, result.tri.size() );
+    EXPECT_NEAR( 0.0, result.which[0], delta );
+    EXPECT_NEAR( 1.504645, result.betaQ[0], delta );
+    EXPECT_NEAR( 2.530456, result.tri[0], 0.0001 );
+}
+
+TEST( Math, GlmDataframe )
+{
+    NEEDS_TEST_DATA;
+
+    // Read data
+    auto const infile = environment->data_dir + "utils/csv/mixed.csv";
+    auto const dfr = DataframeReader<std::string>();
+    auto const dfs = dfr.read( from_file( infile ));
+
+    std::string report;
+    auto const dfd = glm_prepare_dataframe( dfs, report );
+    // LOG_DBG << join(dfd.col_names());
+    // LOG_DBG << report;
+
+    auto const md = glm_convert_dataframe( dfd, {
+        "alpha","beta","gamma","delta","epsilon","zeta","eta","theta","iota","kappa"
+    });
+    // LOG_DBG << md;
+
+    auto const md_exp = Matrix<double>( 10, 6, {
+        0, 0, 4.5, 1, 0, 0,
+        1, 8, 5, 1, 0, 1,
+        1, 8, 4.7, 1, 1, 0,
+        1, 8, 5.3, 0, 0, 0,
+        1, 10, 5.5, 0, 0, 0,
+        1, 10, 5.3, 0, 0, 1,
+        1, 10, 5.3, 1, 0, 0,
+        1, 8, 5.3, 1, 1, 0,
+        1, 1, 5.3, 1, 0, 0,
+        0, 0, 5, 0, 1, 0
+    });
+
+    EXPECT_EQ( md_exp, md );
+}

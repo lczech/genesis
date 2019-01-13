@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -96,7 +96,11 @@ GlmFreedom weighted_mean_centering(
         if( ! with_intercept ) {
             // Nothing to do ... if necessary copy input to output
             if( &y_output != &y_input ) {
-                y_output = y_input;
+                if( centering ) {
+                    y_output = y_input;
+                } else {
+                    y_output = std::vector<double>( y_input.size(), 0.0 );
+                }
             }
             return result;
         }
@@ -137,7 +141,7 @@ GlmFreedom weighted_mean_centering(
             assert( std::isfinite( swy ) );
 
             for( size_t i = 0; i < y_input.size(); ++i ) {
-                y_output[i] = centering ? y_input[i] - swy : swy;
+                y_output[i] = ( centering ? y_input[i] - swy : swy );
             }
         } else {
             result.empty_strata = 1;
@@ -206,7 +210,7 @@ GlmFreedom weighted_mean_centering(
         for( size_t i = 0; i < y_input.size(); ++i ) {
             int const s = strata[i] - 1;
             if( swt[s] > 0.0 ) {
-                y_output[i] = centering ? y_input[i] - swy[s] : swy[s];
+                y_output[i] = ( centering ? y_input[i] - swy[s] : swy[s] );
             }
         }
     }
