@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -139,7 +139,7 @@ void SiteCounts::add_sequence( Sequence const& sequence, bool use_abundance )
 
 void SiteCounts::add_sequence( std::string const& sites, CountsIntType weight )
 {
-    if( num_seqs_ == std::numeric_limits< CountsIntType >::max() ) {
+    if( num_seqs_ >= std::numeric_limits< CountsIntType >::max() - weight ) {
         throw std::runtime_error(
             "Cannot add Sequence to SiteCounts as it might lead to an overflow in the counts."
         );
@@ -147,7 +147,7 @@ void SiteCounts::add_sequence( std::string const& sites, CountsIntType weight )
     if( sites.size() != counts_.rows() ) {
         throw std::runtime_error(
             "Cannot add Sequence to SiteCounts if it has different number of sites: Expected "
-            + std::to_string( counts_.rows() ) + " sites, but sequence has"
+            + std::to_string( counts_.rows() ) + " sites, but sequence has "
             + std::to_string( sites.size() ) + " sites."
         );
     }
@@ -164,13 +164,13 @@ void SiteCounts::add_sequence( std::string const& sites, CountsIntType weight )
     }
 
     // We finished a sequence. Add to the counter.
-    ++num_seqs_;
+    num_seqs_ += weight;
 }
 
-void SiteCounts::add_sequences( SequenceSet const& sequences )
+void SiteCounts::add_sequences( SequenceSet const& sequences, bool use_abundances )
 {
     for( auto const& seq : sequences ) {
-        add_sequence( seq );
+        add_sequence( seq, use_abundances );
     }
 }
 
