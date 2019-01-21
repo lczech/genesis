@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -304,71 +304,6 @@ std::vector<PhyloFactor> phylogenetic_factorization(
     }
 
     return result;
-}
-
-// =================================================================================================
-//     Helper Functions
-// =================================================================================================
-
-std::vector<size_t> phylo_factor_edges(
-    std::vector<PhyloFactor> const& factors,
-    size_t max_factor
-) {
-    // Find as many as we need.
-    max_factor = std::min( max_factor, factors.size() );
-    std::vector<size_t> result;
-    for( size_t i = 0; i < max_factor; ++i ) {
-        result.push_back( factors[i].edge_index );
-    }
-    return result;
-}
-
-std::vector<utils::Color> phylo_factor_edge_colors(
-    Tree const& tree,
-    std::vector<PhyloFactor> const& factors,
-    size_t factor_index,
-    PhyloFactorColors colors
-) {
-    if( factor_index > factors.size() ) {
-        throw std::invalid_argument( "Invalid index for a phylo factor." );
-    }
-    auto const& factor = factors[ factor_index ];
-
-    // Prepare all edges in neutral color.
-    auto edge_cols = std::vector<utils::Color>( tree.edge_count(), colors.neutral_edges );
-
-    // Helper to set the color of one edge to a value, unless it already has a value,
-    // in which case we have an error, and make it red.
-    auto set_color_ = [&]( size_t index, utils::Color color ){
-        if( index >= edge_cols.size() ) {
-            throw std::runtime_error( "Invalid edge index in a phylo factor." );
-        }
-        if( edge_cols[ index ] == colors.neutral_edges ) {
-            edge_cols[ index ] = color;
-        } else {
-            throw std::runtime_error(
-                "Edge at index " + std::to_string( index ) + " is in multiple edge sets of the "
-                "phylo factor."
-            );
-        }
-    };
-
-    // Set the edges of the factor and its subtrees.
-    set_color_( factor.edge_index, colors.factor_edge );
-    for( auto const e : factor.edge_indices_primary ) {
-        set_color_( e, colors.primary_edges );
-    }
-    for( auto const e : factor.edge_indices_secondary ) {
-        set_color_( e, colors.secondary_edges );
-    }
-
-    // Get all previous factor edges and colorize them.
-    auto const prev_factors = phylo_factor_edges( factors, factor_index );
-    for( auto const e : prev_factors ) {
-        set_color_( e, colors.previous_factors );
-    }
-
-    return edge_cols;
 }
 
 } // namespace tree

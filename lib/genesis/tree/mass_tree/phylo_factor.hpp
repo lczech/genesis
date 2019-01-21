@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,10 +33,8 @@
 
 #include "genesis/tree/mass_tree/balances.hpp"
 #include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/tools/color.hpp"
 
 #include <functional>
-#include <limits>
 #include <unordered_set>
 #include <vector>
 
@@ -163,74 +161,6 @@ std::vector<PhyloFactor> phylogenetic_factorization(
     std::function<double( std::vector<double> const& balances )> objective,
     size_t max_iterations = 0,
     std::function<void( size_t iteration, size_t max_iterations )> log_progress = {}
-);
-
-// =================================================================================================
-//     Phylo Factor Color Trees
-// =================================================================================================
-
-/**
- * @brief Store a set of colors for making visualizations of individual phylo factors.
- *
- * @see phylogenetic_factorization()
- */
-struct PhyloFactorColors
-{
-    /**
-     * @brief Color for the edge of that phylo factor.
-     *
-     * Default is black.
-     */
-    utils::Color factor_edge = utils::Color( 0.0, 0.0, 0.0 );
-
-    /**
-     * @brief Color for the edges towards the root that have been used in this phylo factor.
-     *
-     * Default is purple.
-     */
-    utils::Color primary_edges = utils::Color( 0.529411765, 0.439215686, 0.670588235 );
-
-    /**
-    * @brief Color for the edges away from the root that have been used in this phylo factor.
-    *
-    * Default is green.
-    */
-    utils::Color secondary_edges = utils::Color( 0.352941176, 0.682352941, 0.380392157 );
-
-    /**
-    * @brief Color for the edges that have been factored out before (earlier factors in the greedy
-    * search).
-    *
-    * Default is black.
-    */
-    utils::Color previous_factors = utils::Color( 0.0, 0.0, 0.0 );
-
-    /**
-    * @brief Color for the edges that have not been used in this phylo factor.
-    *
-    * Defaut is a light gray.
-    */
-    utils::Color neutral_edges = utils::Color( 0.8, 0.8, 0.8 );
-};
-
-/**
- * @brief Get a list of all edges that have factored out by phylogenetic_factorization().
- *
- * By default, all edges that are factors are returned, that is, the list of
- * all PhyloFactor::edge_index in the input @p factors. If @p max_factor is set to a value > 0,
- * only this many factors (the first ones) are returned. 0 is also allowed, in which case an
- * empty vector is returned.
- */
-std::vector<size_t> phylo_factor_edges(
-    std::vector<PhyloFactor> const& factors,
-    size_t max_factor = std::numeric_limits<std::size_t>::max()
-);
-
-std::vector<utils::Color> phylo_factor_edge_colors(
-    Tree const& tree,
-    std::vector<PhyloFactor> const& factors,
-    size_t factor_index,
-    PhyloFactorColors colors = {}
 );
 
 } // namespace tree
