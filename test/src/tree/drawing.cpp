@@ -45,13 +45,16 @@ using namespace tree;
 
 TEST(Tree, Drawing)
 {
-    std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+    // std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+    std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L,(M,N)O)R;";
 
     Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
     // EXPECT_TRUE( CommonTreeNewickReader().from_file( "/home/lucas/best_tree.newick", tree ));
 
-    // auto layout = RectangularLayout( tree );
-    auto layout = CircularLayout( tree, LayoutType::kPhylogram );
+    auto layout = RectangularLayout( tree, LayoutType::kPhylogram );
+    // auto layout = CircularLayout( tree, LayoutType::kPhylogram );
+    // auto const spreading = LayoutSpreading::kAllNodes;
+    auto const spreading = LayoutSpreading::kAllNodesButRoot;
 
     std::vector<std::string> scheme = {
         "Crimson",
@@ -97,8 +100,8 @@ TEST(Tree, Drawing)
     layout.align_labels( true );
     auto spacer_stroke = utils::SvgStroke( utils::Color( 0.8, 0.8, 0.8 ));
     spacer_stroke.dash_array = std::vector<double>({ 2.0, 0.5 });
-    spacer_stroke.dash_offset = 0.5;
-    layout.set_label_spacer_strokes( spacer_stroke, false );
+    spacer_stroke.dash_offset = 2.0;
+    layout.set_label_spacer_strokes( spacer_stroke, spreading );
 
     // Set colourful node shapes.
     std::vector<utils::SvgGroup> node_shapes;
@@ -117,6 +120,9 @@ TEST(Tree, Drawing)
         // ));
     }
     // layout.set_node_shapes( node_shapes );
+
+    // Set node spreading
+    layout.inner_node_spreading( spreading );
 
     // Do the drawing.
     std::ostringstream out;

@@ -44,16 +44,44 @@ namespace tree {
 //     Layout Shape and Type
 // =================================================================================================
 
+/**
+ * @brief Shape of the tree for drawing, either circular or rectangular.
+ */
 enum class LayoutShape
 {
     kCircular,
     kRectangular
 };
 
+/**
+ * @brief Type of tree for drawing, either phylogram or cladogram.
+ *
+ * A phylogram uses and shows branch lengths, while a cladegram aligns all leaf nodes to each
+ * other, and adjusts inner nodes accordingly.
+ */
 enum class LayoutType
 {
     kPhylogram,
     kCladogram
+};
+
+/**
+ * @brief Spreading of the nodes of a tree for drawing.
+ *
+ * In tree drawing, one axis is usually used for the branch lengths (or at least, for distancing
+ * nodes from each other in a cladegram), while the other axis does not have a biological meaning.
+ * It is instead used to spread out the nodes so that the tree is actually drawn in a plane instead
+ * of just a line.
+ *
+ * Using this setting, the spreading can be controlled: Default is to spread out the leaves evenly,
+ * giving the typical tree layout. Sometimes however it is necessary to also make space for inner
+ * nodes. This is what the other options are for (with or without the root as a special case).
+ */
+enum class LayoutSpreading
+{
+    kLeafNodesOnly,
+    kAllNodesButRoot,
+    kAllNodes
 };
 
 // =================================================================================================
@@ -107,7 +135,10 @@ public:
     void set_edge_distance_strokes( utils::SvgStroke const& stroke );
     void set_edge_distance_strokes( std::vector< utils::SvgStroke > const& strokes );
 
-    void set_label_spacer_strokes( utils::SvgStroke const& stroke, bool leaves_only = true );
+    void set_label_spacer_strokes(
+        utils::SvgStroke const& stroke,
+        LayoutSpreading spreading = LayoutSpreading::kLeafNodesOnly
+    );
     void set_label_spacer_strokes( std::vector< utils::SvgStroke > const& strokes );
 
     // -------------------------------------------------------------
@@ -135,6 +166,9 @@ public:
 
     void type( LayoutType const drawing_type );
     LayoutType type() const;
+
+    void inner_node_spreading( LayoutSpreading value );
+    LayoutSpreading inner_node_spreading() const;
 
     void align_labels( bool value );
     bool align_labels() const;
@@ -168,7 +202,8 @@ private:
     void init_tree_( Tree const& orig_tree );
     void init_layout_();
 
-    void set_node_spreadings_();
+    void set_node_spreadings_leaves_();
+    void set_node_spreadings_all_( LayoutSpreading spreading );
     void set_node_distances_phylogram_();
     void set_node_distances_cladogram_();
 
@@ -181,6 +216,7 @@ private:
     LayoutTree tree_;
 
     LayoutType type_ = LayoutType::kCladogram;
+    LayoutSpreading inner_node_spreading_ = LayoutSpreading::kLeafNodesOnly;
 
     bool align_labels_ = false;
     utils::SvgText text_template_ = utils::SvgText();
