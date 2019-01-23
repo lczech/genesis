@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -94,6 +94,10 @@ public:
     void tree( Tree const& orig_tree, bool ladderize = true );
     Tree const& tree() const;
 
+    // -------------------------------------------------------------
+    //     Edge Strokes
+    // -------------------------------------------------------------
+
     void set_edge_strokes( utils::SvgStroke const& stroke );
     void set_edge_strokes( std::vector< utils::SvgStroke > const& strokes );
 
@@ -102,6 +106,13 @@ public:
 
     void set_edge_distance_strokes( utils::SvgStroke const& stroke );
     void set_edge_distance_strokes( std::vector< utils::SvgStroke > const& strokes );
+
+    void set_label_spacer_strokes( utils::SvgStroke const& stroke, bool leaves_only = true );
+    void set_label_spacer_strokes( std::vector< utils::SvgStroke > const& strokes );
+
+    // -------------------------------------------------------------
+    //     Edge and Node Shapes
+    // -------------------------------------------------------------
 
     void set_edge_shapes( utils::SvgGroup const& shape );
     void set_edge_shapes( std::vector< utils::SvgGroup> const& shapes );
@@ -122,12 +133,15 @@ public:
     //     Options
     // -------------------------------------------------------------
 
+    void type( LayoutType const drawing_type );
+    LayoutType type() const;
+
+    void align_labels( bool value );
+    bool align_labels() const;
+
     void text_template( utils::SvgText const& tt );
     utils::SvgText& text_template();
     utils::SvgText const& text_template() const;
-
-    void type( LayoutType const drawing_type );
-    LayoutType type() const;
 
     // -------------------------------------------------------------
     //     Protected Functions
@@ -168,6 +182,7 @@ private:
 
     LayoutType type_ = LayoutType::kCladogram;
 
+    bool align_labels_ = false;
     utils::SvgText text_template_ = utils::SvgText();
 
 };

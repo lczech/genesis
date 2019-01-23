@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@
 #include "genesis/tree/function/manipulation.hpp"
 
 #include <cassert>
+#include <stdexcept>
 
 namespace genesis {
 namespace tree {
@@ -70,6 +71,10 @@ Tree const& LayoutBase::tree() const
 {
      return tree_;
 }
+
+// =================================================================================================
+//     Edge Strokes
+// =================================================================================================
 
 void LayoutBase::set_edge_strokes( utils::SvgStroke const& stroke )
 {
@@ -130,6 +135,50 @@ void LayoutBase::set_edge_distance_strokes( std::vector< utils::SvgStroke > cons
         tree_.edge_at(i).data<LayoutEdgeData>().distance_stroke = strokes[ i ];
     }
 }
+
+void LayoutBase::set_label_spacer_strokes( utils::SvgStroke const& stroke, bool leaves_only )
+{
+    for( size_t i = 0; i < tree_.node_count(); ++i ) {
+        auto& node = tree_.node_at(i);
+        if( ! leaves_only || is_leaf( node ) ) {
+            node.data<LayoutNodeData>().spacer_stroke = stroke;
+        }
+    }
+}
+
+void LayoutBase::set_label_spacer_strokes( std::vector< utils::SvgStroke > const& strokes )
+{
+    // Empty: Reset to default.
+    if( strokes.empty() ) {
+        set_label_spacer_strokes( utils::SvgStroke( utils::SvgStroke::Type::kNone ), false );
+        return;
+    }
+
+    // Non-empty case. We offer all edges or leaves only.
+    if( strokes.size() == tree_.node_count() ) {
+        for( size_t i = 0; i < tree_.node_count(); ++i ) {
+            tree_.node_at(i).data<LayoutNodeData>().spacer_stroke = strokes[ i ];
+        }
+    } else if( strokes.size() == leaf_node_count( tree_ )) {
+        size_t si = 0;
+        for( size_t i = 0; i < tree_.node_count(); ++i ) {
+            auto& node = tree_.node_at(i);
+            if( is_leaf( node )) {
+                node.data<LayoutNodeData>().spacer_stroke = strokes[ si ];
+                ++si;
+            }
+        }
+    } else {
+        throw std::runtime_error(
+            "Edge stroke vector has wrong size. Has to be either tree.edge_count() "
+            "or leaf_edge_count( tree )."
+        );
+    }
+}
+
+// =================================================================================================
+//     Edge and Node Shapes
+// =================================================================================================
 
 void LayoutBase::set_edge_shapes( utils::SvgGroup const& shape )
 {
@@ -237,7 +286,7 @@ void LayoutBase::init_layout_()
     } else if( type() == LayoutType::kPhylogram ) {
         set_node_distances_phylogram_();
     } else {
-        assert( false );
+        throw std::runtime_error( "Invalid LayoutType value." );
     }
 
     // Set spreadings of nodes.
@@ -341,6 +390,29 @@ void LayoutBase::set_node_distances_cladogram_()
 //     Options
 // =================================================================================================
 
+void LayoutBase::type( LayoutType const drawing_type )
+{
+    type_ = drawing_type;
+    if( ! tree_.empty() ) {
+        init_layout_();
+    }
+}
+
+LayoutType LayoutBase::type() const
+{
+    return type_;
+}
+
+void LayoutBase::align_labels( bool value )
+{
+    align_labels_ = value;
+}
+
+bool LayoutBase::align_labels() const
+{
+    return align_labels_;
+}
+
 void LayoutBase::text_template( utils::SvgText const& tt )
 {
     text_template_ = tt;
@@ -354,19 +426,6 @@ utils::SvgText& LayoutBase::text_template()
 utils::SvgText const& LayoutBase::text_template() const
 {
     return text_template_;
-}
-
-void LayoutBase::type( LayoutType const drawing_type )
-{
-    type_ = drawing_type;
-    if( ! tree_.empty() ) {
-        init_layout_();
-    }
-}
-
-LayoutType LayoutBase::type() const
-{
-    return type_;
 }
 
 } // namespace tree

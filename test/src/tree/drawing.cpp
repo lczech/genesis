@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,8 +31,9 @@
 #include "src/common.hpp"
 
 #include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/drawing/rectangular_layout.hpp"
 #include "genesis/tree/drawing/circular_layout.hpp"
+#include "genesis/tree/drawing/rectangular_layout.hpp"
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/core/fs.hpp"
@@ -50,7 +51,7 @@ TEST(Tree, Drawing)
     // EXPECT_TRUE( CommonTreeNewickReader().from_file( "/home/lucas/best_tree.newick", tree ));
 
     // auto layout = RectangularLayout( tree );
-    auto layout = CircularLayout( tree );
+    auto layout = CircularLayout( tree, LayoutType::kPhylogram );
 
     std::vector<std::string> scheme = {
         "Crimson",
@@ -81,10 +82,23 @@ TEST(Tree, Drawing)
     // Set colourful edges.
     std::vector<utils::SvgStroke> strokes;
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        auto const& cv = scheme[ i % scheme.size() ];
         strokes.push_back( utils::SvgStroke() );
-        strokes.back().color = utils::color_from_name_web( scheme[ i % scheme.size() ] );
+        strokes.back().color = utils::color_from_name_web( cv );
+
+        // auto& node = tree.edge_at(i).secondary_link().node();
+        // if( is_leaf(node) ) {
+        //     node.data<CommonNodeData>().name = cv;
+        // }
     }
     layout.set_edge_strokes( strokes );
+
+    // Set label alignment.
+    layout.align_labels( true );
+    auto spacer_stroke = utils::SvgStroke( utils::Color( 0.8, 0.8, 0.8 ));
+    spacer_stroke.dash_array = std::vector<double>({ 2.0, 0.5 });
+    spacer_stroke.dash_offset = 0.5;
+    layout.set_label_spacer_strokes( spacer_stroke, false );
 
     // Set colourful node shapes.
     std::vector<utils::SvgGroup> node_shapes;
@@ -102,7 +116,7 @@ TEST(Tree, Drawing)
         //     utils::SvgSize( 120, 120 )
         // ));
     }
-    layout.set_node_shapes( node_shapes );
+    // layout.set_node_shapes( node_shapes );
 
     // Do the drawing.
     std::ostringstream out;

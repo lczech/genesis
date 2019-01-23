@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -75,6 +75,7 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
     using namespace utils;
     SvgDocument doc;
     SvgGroup    tree_lines;
+    SvgGroup    taxa_lines;
     SvgGroup    taxa_names;
     SvgGroup    edge_shapes;
     SvgGroup    node_shapes;
@@ -152,6 +153,26 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
             assert( is_root( node ));
         }
 
+        // In the following, we will draw the label and the spacer (if labels shall be aligned).
+        // As aligning chances the x dist of the label, we store it here first, change if needed,
+        // and later use it for positioning the label text.
+        auto label_dist = node_x;
+
+        // If we want to align all labels, adjust the distance to the max,
+        // and draw a line from the node to there. This line is also drawn if there is no label,
+        // which is what we want. Users will have to explicitly set an empty line if they don't
+        // want one. This makes sure that we can also draw these lines for inner nodes, which
+        // might be needed in some scenarious.
+        if( align_labels() ) {
+            label_dist = width;
+
+            taxa_lines << SvgLine(
+                node_x, node_y,
+                width,  node_y,
+                node_data.spacer_stroke
+            );
+        }
+
         // If the node has a name, print it.
         if( node_data.name != "" ) {
             // auto label = SvgText(
@@ -165,7 +186,7 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
             label.alignment_baseline = SvgText::AlignmentBaseline::kMiddle;
 
             // Move label to tip node.
-            label.transform.append( SvgTransform::Translate( node_x + 5, node_y ));
+            label.transform.append( SvgTransform::Translate( label_dist + 5, node_y ));
             taxa_names << std::move( label );
             max_text_len = std::max( max_text_len, node_data.name.size() );
         }
@@ -189,6 +210,9 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
 
     // We are sure that we won't use the groups again, so let's move them!
     doc << std::move( tree_lines );
+    if( ! taxa_lines.empty() ) {
+        doc << std::move( taxa_lines );
+    }
     if( ! taxa_names.empty() ) {
         doc << std::move( taxa_names );
     }
