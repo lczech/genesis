@@ -33,6 +33,7 @@
 
 #include "genesis/utils/math/regression/link.hpp"
 
+#include <cassert>
 #include <cmath>
 #include <cstdint>
 #include <functional>
@@ -127,7 +128,15 @@ inline GlmFamily glm_family_binomial()
     };
     family.log_likelihood = []( double y, double mu )
     {
-        return y * std::log(mu) + (1.0 - y) * std::log(1.0 - mu);
+        // Calculate both parts.
+        double l = y * std::log(mu);
+        double r = (1.0 - y) * std::log(1.0 - mu);
+
+        // Because of floating point nan propagation, we need to reset if needed.
+        l = ( std::isfinite(l) ? l : 0.0 );
+        r = ( std::isfinite(r) ? r : 0.0 );
+
+        return l + r;
     };
     family.rectify = []( double mu )
     {
@@ -180,6 +189,7 @@ inline GlmFamily glm_family_poisson()
     };
     family.log_likelihood = []( double y, double mu )
     {
+        assert( mu > 0.0 );
         return y * std::log(mu) - mu;
     };
     family.rectify = []( double mu )
@@ -193,6 +203,8 @@ inline GlmFamily glm_family_poisson()
     };
     family.unit_deviance = []( double y, double mu )
     {
+        assert( y > 0.0 );
+        assert( mu > 0.0 );
         return 2.0 * ( y * std::log( y / mu ) - ( y - mu ));
     };
     family.canonical_link = []()
@@ -263,6 +275,7 @@ inline GlmFamily glm_family_gamma()
     family.log_likelihood = []( double y, double mu )
     {
         auto const x = y / mu;
+        assert( x > 0.0 );
         return std::log(x) - x;
     };
     family.rectify = []( double mu )
@@ -272,6 +285,7 @@ inline GlmFamily glm_family_gamma()
     family.unit_deviance = []( double y, double mu )
     {
         double const f = y / mu;
+        assert( f > 0.0 );
         return 2.0 * ( f - std::log( f ) - 1.0 );
     };
     family.canonical_link = []()

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -209,8 +209,11 @@ public:
     /**
     * @brief Process a SequenceSet and add its counts to the existing ones for all contained
     * Sequence%s.
+    *
+    * If @p use_abundances is `true` (default), the abundances of the Sequences are used as weights
+    * for the counting. Otherwise, a weight of `1` is used.
     */
-    void add_sequences( SequenceSet const& sequences );
+    void add_sequences( SequenceSet const& sequences, bool use_abundances = true );
 
     /**
      * @brief Clear the object, that is, delete everything.

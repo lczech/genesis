@@ -77,6 +77,7 @@
 #include "genesis/tree/mass_tree/emd.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
 #include "genesis/tree/mass_tree/kmeans.hpp"
+#include "genesis/tree/mass_tree/phylo_factor_colors.hpp"
 #include "genesis/tree/mass_tree/phylo_factor.hpp"
 #include "genesis/tree/mass_tree/phylo_ilr.hpp"
 #include "genesis/tree/mass_tree/squash_clustering.hpp"
