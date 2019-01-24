@@ -51,8 +51,9 @@ TEST(Tree, Drawing)
     Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
     // EXPECT_TRUE( CommonTreeNewickReader().from_file( "/home/lucas/best_tree.newick", tree ));
 
-    auto layout = RectangularLayout( tree, LayoutType::kPhylogram );
-    // auto layout = CircularLayout( tree, LayoutType::kPhylogram );
+    // auto layout = RectangularLayout( tree, LayoutType::kPhylogram );
+    auto layout = CircularLayout( tree, LayoutType::kPhylogram );
+    // auto const spreading = LayoutSpreading::kLeafNodesOnly;
     // auto const spreading = LayoutSpreading::kAllNodes;
     auto const spreading = LayoutSpreading::kAllNodesButRoot;
 
@@ -98,6 +99,7 @@ TEST(Tree, Drawing)
 
     // Set label alignment.
     layout.align_labels( true );
+    layout.extra_spacer( 50.0 );
     auto spacer_stroke = utils::SvgStroke( utils::Color( 0.8, 0.8, 0.8 ));
     spacer_stroke.dash_array = std::vector<double>({ 2.0, 0.5 });
     spacer_stroke.dash_offset = 2.0;

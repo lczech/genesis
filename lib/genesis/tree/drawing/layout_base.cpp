@@ -514,6 +514,16 @@ bool LayoutBase::align_labels() const
     return align_labels_;
 }
 
+void LayoutBase::extra_spacer( double value )
+{
+    extra_spacer_ = value;
+}
+
+double LayoutBase::extra_spacer() const
+{
+    return extra_spacer_;
+}
+
 void LayoutBase::text_template( utils::SvgText const& tt )
 {
     text_template_ = tt;

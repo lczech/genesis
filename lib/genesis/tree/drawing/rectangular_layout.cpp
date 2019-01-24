@@ -164,11 +164,11 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
         // want one. This makes sure that we can also draw these lines for inner nodes, which
         // might be needed in some scenarious.
         if( align_labels() ) {
-            label_dist = width;
+            label_dist = width + extra_spacer();
 
             taxa_lines << SvgLine(
                 node_x, node_y,
-                width,  node_y,
+                label_dist, node_y,
                 node_data.spacer_stroke
             );
         }

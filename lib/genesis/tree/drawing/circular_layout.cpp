@@ -147,7 +147,7 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
         // In the following, we will draw the label and the spacer (if labels shall be aligned).
         // As aligning chances the x dist of the label, we store it here first, change if needed,
         // and later use it for positioning the label text.
-        auto label_dist = node_data.distance;
+        auto label_dist = node_data.distance * radius;
 
         // If we want to align all labels, adjust the distance to the max,
         // and draw a line from the node to there. This line is also drawn if there is no label,
@@ -155,12 +155,12 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
         // want one. This makes sure that we can also draw these lines for inner nodes, which
         // might be needed in some scenarious.
         if( align_labels() ) {
-            label_dist = 1.0;
+            label_dist = radius + extra_spacer();
 
             taxa_lines << SvgLine(
                 node_x, node_y,
-                radius * cos( node_spreading ),
-                radius * sin( node_spreading ),
+                label_dist * cos( node_spreading ),
+                label_dist * sin( node_spreading ),
                 node_data.spacer_stroke
             );
         }
@@ -176,8 +176,8 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
 
             // Move label to tip node.
             label.transform.append( SvgTransform::Translate(
-                ( label_dist * radius + 10 ) * cos( node_spreading ),
-                ( label_dist * radius + 10 ) * sin( node_spreading )
+                ( label_dist + 10 ) * cos( node_spreading ),
+                ( label_dist + 10 ) * sin( node_spreading )
             ));
 
             // Rotate label so that its orientation is correct.

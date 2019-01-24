@@ -170,8 +170,30 @@ public:
     void inner_node_spreading( LayoutSpreading value );
     LayoutSpreading inner_node_spreading() const;
 
+    /**
+     * @brief Align the taxon labels/node names/texts to each other.
+     *
+     * If set to `true`, the taxon names are aligned with each other. This is particularly interesting
+     * in phylograms, where they otherwise are placed close to their nodes. In cladograms, the tip
+     * nodes are aligned to each other anyway, so there is not much of a difference there.
+     *
+     * In order to still be able to see which label belongs to which node, a label spacer line is
+     * drawn for each node, using LayoutNodeData::spacer_stroke. These strokes can be set with
+     * set_label_spacer_strokes().
+     *
+     * Note also the extra_spacer() setting, which modifies how much longer the spacer line is
+     * than the exact alignment. This setting is useful to create some extra space between the
+     * tree and the aligned labels.
+     */
     void align_labels( bool value );
     bool align_labels() const;
+
+    /**
+     * @brief Set some extra space betwen the tree nodes and their labels when align_labels()
+     * is set to `true`.
+     */
+    void extra_spacer( double value );
+    double extra_spacer() const;
 
     void text_template( utils::SvgText const& tt );
     utils::SvgText& text_template();
@@ -219,6 +241,8 @@ private:
     LayoutSpreading inner_node_spreading_ = LayoutSpreading::kLeafNodesOnly;
 
     bool align_labels_ = false;
+    double extra_spacer_ = 10.0;
+
     utils::SvgText text_template_ = utils::SvgText();
 
 };
