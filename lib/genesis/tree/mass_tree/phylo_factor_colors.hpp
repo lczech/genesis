@@ -194,7 +194,7 @@ struct PhyloFactorCladeColors
  * The visualization is done by setting the color for the _secondary_ edges of the factor (away from
  * the root). This is done so that nested clades (factors found within a previously split clade)
  * are not overwritten. Thus, the first factor leaves its primary part uncolorized,
- * for which the @link PhyloFactorCladeColors::base_color base_color@endlink is used.
+ * for which the @link PhyloFactorCladeColors::base_edges base_color@endlink is used.
  */
 std::vector<utils::Color> phylo_factor_clade_colors(
     Tree const& tree,
