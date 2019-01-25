@@ -272,6 +272,9 @@ BalanceData mass_balance_data(
         assert( trees.size() > 1 );
         assert( result.taxon_weights.size() == result.edge_masses.cols() );
 
+        // Get the minimum, which we use as a dummy for taxon weights of zero.
+        auto const em_min = utils::minimum( result.edge_masses.begin(), result.edge_masses.end() );
+
         #pragma omp parallel for
         for( size_t r = 0; r < result.edge_masses.rows(); ++r ) {
             for( size_t c = 0; c < result.taxon_weights.size(); ++c ) {
@@ -302,15 +305,17 @@ BalanceData mass_balance_data(
                 // geometric mean calculation anyway... but still, better to set it to something
                 // reasonable!
                 if( taxon_weight == 0.0 ) {
-                    auto const& ps_zeros = settings.pseudo_count_summand_zeros;
-                    auto const& ps_all   = settings.pseudo_count_summand_all;
+                    // auto const& ps_zeros = settings.pseudo_count_summand_zeros;
+                    // auto const& ps_all   = settings.pseudo_count_summand_all;
 
                     // The pseudo counts cannot be both 0 if we are here. We know that we are at a
                     // taxon with no masses at all, so the above found_zero_mass check was triggered.
                     // If then above both pseudo counts were 0, we'd have had an exception by now.
-                    assert(( ps_zeros > 0.0 ) || ( ps_all > 0.0 ));
+                    // assert(( ps_zeros > 0.0 ) || ( ps_all > 0.0 ));
+                    // edge_mass = ps_zeros + ps_all;
 
-                    edge_mass = ps_zeros + ps_all;
+                    // Use a dummy weight.
+                    edge_mass = em_min;
                 } else {
                     edge_mass /= taxon_weight;
                 }
