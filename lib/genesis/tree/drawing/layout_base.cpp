@@ -190,8 +190,8 @@ void LayoutBase::set_label_spacer_strokes( std::vector< utils::SvgStroke > const
         }
     } else {
         throw std::runtime_error(
-            "Edge stroke vector has wrong size. Has to be either tree.edge_count() "
-            "or leaf_edge_count( tree )."
+            "Edge stroke vector has wrong size. Has to be either tree.node_count(), "
+            "tree.node_count() - 1, or leaf_edge_count( tree )."
         );
     }
 }
@@ -329,18 +329,22 @@ void LayoutBase::init_layout_()
 
 void LayoutBase::set_node_spreadings_leaves_()
 {
-    auto const num_leaves = static_cast<double>( leaf_node_count( tree() ));
+    // Maximum number of nodes that we spread. We are actually spreading intervals between nodes,
+    // and not nodes themselves, so we need to subtract 1.
+    auto const num_leaves = leaf_node_count( tree() ) - 1;
 
     // Set spreading of leaves.
     size_t leaf_count = 0;
     for( auto it : eulertour( tree() )) {
         auto& node_data = tree().node_at( it.node().index() ).data<LayoutNodeData>();
         if( is_leaf( it.node() )) {
-            node_data.spreading = static_cast<double>(leaf_count) / num_leaves;
+            auto const lcd = static_cast<double>( leaf_count );
+            auto const nld = static_cast<double>( num_leaves );
+            node_data.spreading = lcd / nld;
             leaf_count++;
         }
     }
-    assert( leaf_count == static_cast<size_t>( num_leaves ));
+    assert( leaf_count == num_leaves + 1 );
 
     // Min and max spreading of the children of each node.
     // Init to -1.0 so that we can check which ones are done already.
@@ -386,9 +390,13 @@ void LayoutBase::set_node_spreadings_all_( LayoutSpreading spreading )
     //     );
     // }
 
-    size_t node_counter = 0;
-    auto const num_nodes = tree().node_count();
+    // Maximum number of nodes that we spread. We are actually spreading intervals between nodes,
+    // and not nodes themselves, so we need to subtract 1.
+    auto const num_nodes = tree().node_count() - 1 - (
+        spreading == LayoutSpreading::kAllNodesButRoot ? 1 : 0
+    );
     auto visits = std::vector<size_t>( tree_.node_count(), 0 );
+    size_t node_counter = 0;
 
     for( auto it : eulertour( tree_ )) {
         auto&      node_data  = it.node().data<LayoutNodeData>();
@@ -402,10 +410,13 @@ void LayoutBase::set_node_spreadings_all_( LayoutSpreading spreading )
         if( spreading == LayoutSpreading::kAllNodesButRoot && is_root( it.node() )) {
             continue;
         } else if( is_leaf( it.node() ) || visits[ node_index ] == 2 ) {
-            node_data.spreading = static_cast<double>( node_counter ) / static_cast<double>( num_nodes );
+            auto const ncd = static_cast<double>( node_counter );
+            auto const nnd = static_cast<double>( num_nodes );
+            node_data.spreading = ncd / nnd;
             ++node_counter;
         }
     }
+    assert( node_counter == num_nodes + 1 );
 
     // Special case for the root if we do not want to spread it:
     // if the root is bifurcating (actual root), set its spread to the middle.
