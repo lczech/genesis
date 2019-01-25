@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -92,6 +92,108 @@ struct Quartiles
 // =================================================================================================
 //     Normalization
 // =================================================================================================
+
+/**
+ * @brief Return the minimum of a range of double values.
+ *
+ * Only finite values are used in the comparison. If there are no finite values at all
+ * in the range, a quite NaN is returned.
+ */
+template <class ForwardIterator>
+double minimum( ForwardIterator first, ForwardIterator last )
+{
+    // Prepare result.
+    double min = std::numeric_limits<double>::max();
+    size_t cnt = 0;
+
+    // Iterate.
+    while( first != last ) {
+        if( std::isfinite( *first ) ) {
+            if( *first < min ) {
+                min = *first;
+            }
+            ++cnt;
+        }
+        ++first;
+    }
+
+    // If there are no valid elements, return nan.
+    if( cnt == 0 ) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    return min;
+}
+
+/**
+ * @brief Return the maximum of a range of double values.
+ *
+ * Only finite values are used in the comparison. If there are no finite values at all
+ * in the range, a quite NaN is returned.
+ */
+template <class ForwardIterator>
+double maximum( ForwardIterator first, ForwardIterator last )
+{
+    // Prepare result.
+    double max = std::numeric_limits<double>::lowest();
+    size_t cnt = 0;
+
+    // Iterate.
+    while( first != last ) {
+        if( std::isfinite( *first ) ) {
+            if( *first > max ) {
+                max = *first;
+            }
+            ++cnt;
+        }
+        ++first;
+    }
+
+    // If there are no valid elements, return nan.
+    if( cnt == 0 ) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    return max;
+}
+
+/**
+ * @brief Return the minimum and the maximum of a range of double values.
+ *
+ * Only finite values are used in the comparison. If there are no finite values at all
+ * in the range, a quite NaN is returned.
+ */
+template <class ForwardIterator>
+MinMaxPair<double> minimum_maximum( ForwardIterator first, ForwardIterator last )
+{
+    // Prepare result.
+    MinMaxPair<double> result;
+    result.min = std::numeric_limits<double>::max();
+    result.max = std::numeric_limits<double>::lowest();
+    size_t cnt = 0;
+
+    // Iterate.
+    while( first != last ) {
+        if( std::isfinite( *first ) ) {
+            if( *first < result.min ) {
+                result.min = *first;
+            }
+            if( *first > result.max ) {
+                result.max = *first;
+            }
+            ++cnt;
+        }
+        ++first;
+    }
+
+    // If there are no valid elements, return nan.
+    if( cnt == 0 ) {
+        result.min = std::numeric_limits<double>::quiet_NaN();
+        result.max = std::numeric_limits<double>::quiet_NaN();
+    }
+
+    return result;
+}
 
 /**
  * @brief Calculate the closure of a range of numbers.
