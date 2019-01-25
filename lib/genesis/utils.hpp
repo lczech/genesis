@@ -71,6 +71,7 @@
 #include "genesis/utils/formats/svg/group.hpp"
 #include "genesis/utils/formats/svg/helper.hpp"
 #include "genesis/utils/formats/svg/image.hpp"
+#include "genesis/utils/formats/svg/matrix.hpp"
 #include "genesis/utils/formats/svg/object.hpp"
 #include "genesis/utils/formats/svg/shapes.hpp"
 #include "genesis/utils/formats/svg/svg.hpp"

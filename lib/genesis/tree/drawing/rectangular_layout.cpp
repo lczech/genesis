@@ -166,11 +166,19 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
         if( align_labels() ) {
             label_dist = width + extra_spacer();
 
-            taxa_lines << SvgLine(
-                node_x, node_y,
-                label_dist, node_y,
-                node_data.spacer_stroke
+            auto label_path = SvgPath( node_data.spacer_stroke, SvgFill( SvgFill::Type::kNone ));
+            label_path.elements.push_back(
+                "M " + std::to_string( node_x ) + " " + std::to_string( node_y )
             );
+            label_path.elements.push_back(
+                "L " + std::to_string( label_dist ) + " " + std::to_string( node_y )
+            );
+            taxa_lines << label_path;
+            // taxa_lines << SvgLine(
+            //     node_x, node_y,
+            //     label_dist, node_y,
+            //     node_data.spacer_stroke
+            // );
         }
 
         // If the node has a name, print it.
