@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,14 +30,19 @@
 
 #include "src/common.hpp"
 
+#include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/formats/svg/svg.hpp"
-#include "genesis/utils/tools/color/functions.hpp"
+#include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/diverging_lists.hpp"
-#include "genesis/utils/tools/color/sequential_lists.hpp"
+#include "genesis/utils/tools/color/functions.hpp"
 #include "genesis/utils/tools/color/map.hpp"
-#include "genesis/utils/tools/color/norm_diverging.hpp"
 #include "genesis/utils/tools/color/norm_boundary.hpp"
+#include "genesis/utils/tools/color/norm_diverging.hpp"
+#include "genesis/utils/tools/color/sequential_lists.hpp"
+
+#include <string>
+#include <vector>
 
 using namespace genesis::utils;
 
@@ -183,6 +188,51 @@ TEST( Svg, ColorBarBoundaryNorm )
     std::ostringstream out;
     doc.write( out );
 
+    // LOG_DBG << out.str();
+    // file_write( out.str(), "/home/lucas/test.svg" );
+}
+
+TEST( Svg, Matrix )
+{
+    auto doc = SvgDocument();
+    doc.overflow = SvgDocument::Overflow::kVisible;
+
+    // Make a matrix with the red-blue color plane.
+    auto mat = Matrix<Color>( 64, 128 );
+    for( size_t r = 0; r < mat.rows(); ++r ) {
+        for( size_t c = 0; c < mat.cols(); ++c ) {
+            auto const vr = static_cast<double>( r ) / static_cast<double>( mat.rows() );
+            auto const vc = static_cast<double>( c ) / static_cast<double>( mat.cols() );
+            mat( r, c ) = Color( vr, 0.0, vc );
+        }
+    }
+
+    // Labels.
+    std::vector<std::string> row_labels;
+    for( size_t r = 0; r < mat.rows(); ++r ) {
+        row_labels.push_back( std::to_string( r ) );
+    }
+    std::vector<std::string> col_labels;
+    for( size_t c = 0; c < mat.cols(); ++c ) {
+        col_labels.push_back( std::to_string( c ) );
+    }
+
+    // Settings
+    SvgMatrixSettings settings;
+    // settings.pixel_width = 10.0;
+    // settings.pixel_height = 10.0;
+    // settings.width_overlap = 1.0;
+    // settings.height_overlap = 1.0;
+    // settings.column_label_rotation = -45.0;
+    // settings.label_template.font.size = 8.0;
+
+    // Write to test file.
+    doc << make_svg_matrix( mat, settings, row_labels, col_labels );
+    doc.margin.left += 20.0;
+    doc.margin.top += 20.0;
+
+    std::ostringstream out;
+    doc.write( out );
     // LOG_DBG << out.str();
     // file_write( out.str(), "/home/lucas/test.svg" );
 }

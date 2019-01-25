@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -237,8 +237,7 @@ BalanceData mass_balance_data(
         }
     }
 
-    // Now, we can add compensation of zero values in form of pseudo counts,
-    // then calculate the closure (relative abundances) per row (tree) of the masses.
+    // Now, we can add compensation of zero values in form of pseudo counts.
     bool found_zero_mass = false;
     for( auto& em : result.edge_masses ) {
         assert( std::isfinite( em ) && em >= 0.0 );
@@ -259,6 +258,11 @@ BalanceData mass_balance_data(
             "counts to them, e.g., via the BalanceSettings."
         );
     }
+
+    // So far, we have only added pseudo counts to the edge masses, but no other transformations.
+    // This is what we want for the raw masses data. Store it.
+    // Then, calculate the closure (relative abundances) per row (tree) of the masses.
+    result.raw_edge_masses = result.edge_masses;
     for( size_t r = 0; r < result.edge_masses.rows(); ++r ) {
         utils::closure( result.edge_masses.row(r).begin(), result.edge_masses.row(r).end() );
     }
@@ -267,6 +271,9 @@ BalanceData mass_balance_data(
     if( ! result.taxon_weights.empty() ) {
         assert( trees.size() > 1 );
         assert( result.taxon_weights.size() == result.edge_masses.cols() );
+
+        // Get the minimum, which we use as a dummy for taxon weights of zero.
+        auto const em_min = utils::minimum( result.edge_masses.begin(), result.edge_masses.end() );
 
         #pragma omp parallel for
         for( size_t r = 0; r < result.edge_masses.rows(); ++r ) {
@@ -298,15 +305,17 @@ BalanceData mass_balance_data(
                 // geometric mean calculation anyway... but still, better to set it to something
                 // reasonable!
                 if( taxon_weight == 0.0 ) {
-                    auto const& ps_zeros = settings.pseudo_count_summand_zeros;
-                    auto const& ps_all   = settings.pseudo_count_summand_all;
+                    // auto const& ps_zeros = settings.pseudo_count_summand_zeros;
+                    // auto const& ps_all   = settings.pseudo_count_summand_all;
 
                     // The pseudo counts cannot be both 0 if we are here. We know that we are at a
                     // taxon with no masses at all, so the above found_zero_mass check was triggered.
                     // If then above both pseudo counts were 0, we'd have had an exception by now.
-                    assert(( ps_zeros > 0.0 ) || ( ps_all > 0.0 ));
+                    // assert(( ps_zeros > 0.0 ) || ( ps_all > 0.0 ));
+                    // edge_mass = ps_zeros + ps_all;
 
-                    edge_mass = ps_zeros + ps_all;
+                    // Use a dummy weight.
+                    edge_mass = em_min;
                 } else {
                     edge_mass /= taxon_weight;
                 }

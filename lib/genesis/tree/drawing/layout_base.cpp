@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@
 #include "genesis/tree/function/manipulation.hpp"
 
 #include <cassert>
+#include <stdexcept>
 
 namespace genesis {
 namespace tree {
@@ -70,6 +71,10 @@ Tree const& LayoutBase::tree() const
 {
      return tree_;
 }
+
+// =================================================================================================
+//     Edge Strokes
+// =================================================================================================
 
 void LayoutBase::set_edge_strokes( utils::SvgStroke const& stroke )
 {
@@ -130,6 +135,70 @@ void LayoutBase::set_edge_distance_strokes( std::vector< utils::SvgStroke > cons
         tree_.edge_at(i).data<LayoutEdgeData>().distance_stroke = strokes[ i ];
     }
 }
+
+void LayoutBase::set_label_spacer_strokes( utils::SvgStroke const& stroke, LayoutSpreading spreading )
+{
+    for( size_t i = 0; i < tree_.node_count(); ++i ) {
+        auto& node = tree_.node_at(i);
+
+        bool set_stroke = ( spreading == LayoutSpreading::kAllNodes );
+        set_stroke |= (( spreading == LayoutSpreading::kLeafNodesOnly ) && ( is_leaf( node ) ));
+        set_stroke |= (( spreading == LayoutSpreading::kAllNodesButRoot ) && ( ! is_root( node ) ));
+
+        if( set_stroke ) {
+            node.data<LayoutNodeData>().spacer_stroke = stroke;
+        }
+    }
+}
+
+void LayoutBase::set_label_spacer_strokes( std::vector< utils::SvgStroke > const& strokes )
+{
+    // Empty: Reset to default.
+    if( strokes.empty() ) {
+        set_label_spacer_strokes(
+            utils::SvgStroke( utils::SvgStroke::Type::kNone ),
+            LayoutSpreading::kAllNodes
+        );
+        return;
+    }
+
+    // Non-empty case. We offer all edges or leaves only.
+    if( strokes.size() == tree_.node_count() ) {
+        // All nodes get a stroke.
+        for( size_t i = 0; i < tree_.node_count(); ++i ) {
+            tree_.node_at(i).data<LayoutNodeData>().spacer_stroke = strokes[ i ];
+        }
+    } else if( strokes.size() == tree_.node_count() -1 ) {
+        // All nodes but the root get a stroke.
+        size_t si = 0;
+        for( size_t i = 0; i < tree_.node_count(); ++i ) {
+            auto& node = tree_.node_at(i);
+            if( ! is_root( node )) {
+                node.data<LayoutNodeData>().spacer_stroke = strokes[ si ];
+                ++si;
+            }
+        }
+    } else if( strokes.size() == leaf_node_count( tree_ )) {
+        // Only leaf nodes get a stroke.
+        size_t si = 0;
+        for( size_t i = 0; i < tree_.node_count(); ++i ) {
+            auto& node = tree_.node_at(i);
+            if( is_leaf( node )) {
+                node.data<LayoutNodeData>().spacer_stroke = strokes[ si ];
+                ++si;
+            }
+        }
+    } else {
+        throw std::runtime_error(
+            "Edge stroke vector has wrong size. Has to be either tree.node_count(), "
+            "tree.node_count() - 1, or leaf_edge_count( tree )."
+        );
+    }
+}
+
+// =================================================================================================
+//     Edge and Node Shapes
+// =================================================================================================
 
 void LayoutBase::set_edge_shapes( utils::SvgGroup const& shape )
 {
@@ -231,40 +300,51 @@ void LayoutBase::init_layout_()
         return;
     }
 
+    // Set node parent indices.
+    size_t parent = tree_.root_node().index();
+    for( auto it : eulertour( tree() )) {
+        auto& node_data = tree().node_at( it.node().index() ).data<LayoutNodeData>();
+        if( node_data.parent_index == -1 ) {
+            node_data.parent_index = parent;
+        }
+        parent = it.node().index();
+    }
+
     // Set distances of nodes.
     if( type() == LayoutType::kCladogram ) {
         set_node_distances_cladogram_();
     } else if( type() == LayoutType::kPhylogram ) {
         set_node_distances_phylogram_();
     } else {
-        assert( false );
+        throw std::runtime_error( "Invalid LayoutType value." );
     }
 
     // Set spreadings of nodes.
-    set_node_spreadings_();
+    if( inner_node_spreading_ == LayoutSpreading::kLeafNodesOnly ) {
+        set_node_spreadings_leaves_();
+    } else {
+        set_node_spreadings_all_( inner_node_spreading_ );
+    }
 }
 
-void LayoutBase::set_node_spreadings_()
+void LayoutBase::set_node_spreadings_leaves_()
 {
-    auto const num_leaves = static_cast<double>( leaf_node_count( tree() ));
+    // Maximum number of nodes that we spread. We are actually spreading intervals between nodes,
+    // and not nodes themselves, so we need to subtract 1.
+    auto const num_leaves = leaf_node_count( tree() ) - 1;
 
-    // Set node parents and spreading of leaves.
+    // Set spreading of leaves.
     size_t leaf_count = 0;
-    size_t parent = 0;
     for( auto it : eulertour( tree() )) {
         auto& node_data = tree().node_at( it.node().index() ).data<LayoutNodeData>();
-
-        if( node_data.parent_index == -1 ) {
-            node_data.parent_index = parent;
-        }
         if( is_leaf( it.node() )) {
-            node_data.spreading = static_cast<double>(leaf_count) / num_leaves;
+            auto const lcd = static_cast<double>( leaf_count );
+            auto const nld = static_cast<double>( num_leaves );
+            node_data.spreading = lcd / nld;
             leaf_count++;
         }
-
-        parent = it.node().index();
     }
-    assert( leaf_count == static_cast<size_t>( num_leaves ));
+    assert( leaf_count == num_leaves + 1 );
 
     // Min and max spreading of the children of each node.
     // Init to -1.0 so that we can check which ones are done already.
@@ -278,7 +358,7 @@ void LayoutBase::set_node_spreadings_()
         auto const prnt_index = node_data.parent_index;
 
         if( node_data.spreading < 0.0 ) {
-            // We already have done those nodes because of the postorder.
+            // We already have done the following nodes because of the postorder.
             assert( chrn_min_s[ node_index ] > -1.0 );
             assert( chrn_max_s[ node_index ] > -1.0 );
 
@@ -291,6 +371,74 @@ void LayoutBase::set_node_spreadings_()
         }
         if( chrn_max_s[ prnt_index ] < 0.0 || chrn_max_s[ prnt_index ] < node_data.spreading ) {
             chrn_max_s[ prnt_index ] = node_data.spreading;
+        }
+    }
+}
+
+void LayoutBase::set_node_spreadings_all_( LayoutSpreading spreading )
+{
+    assert( ! tree_.empty() );
+    if( ! is_bifurcating( tree_ )) {
+        throw std::invalid_argument(
+            "Tree is not bifurcating. Cannot draw with inner node spreading."
+        );
+    }
+    // We now allow unrooted tree (top level trifurcation) as well ;-)
+    // if( ! is_rooted( tree_ )) {
+    //     throw std::invalid_argument(
+    //         "Tree is not rooted. Cannot draw with inner node spreading."
+    //     );
+    // }
+
+    // Maximum number of nodes that we spread. We are actually spreading intervals between nodes,
+    // and not nodes themselves, so we need to subtract 1.
+    auto const num_nodes = tree().node_count() - 1 - (
+        spreading == LayoutSpreading::kAllNodesButRoot ? 1 : 0
+    );
+    auto visits = std::vector<size_t>( tree_.node_count(), 0 );
+    size_t node_counter = 0;
+
+    for( auto it : eulertour( tree_ )) {
+        auto&      node_data  = it.node().data<LayoutNodeData>();
+        auto const node_index = it.node().index();
+
+        // Count the how many-th visit this is. As we have a bifurcating tree,
+        // it can never surpass 3 visits.
+        ++visits[ node_index ];
+        assert( visits[ node_index ] <= 3 );
+
+        if( spreading == LayoutSpreading::kAllNodesButRoot && is_root( it.node() )) {
+            continue;
+        } else if( is_leaf( it.node() ) || visits[ node_index ] == 2 ) {
+            auto const ncd = static_cast<double>( node_counter );
+            auto const nnd = static_cast<double>( num_nodes );
+            node_data.spreading = ncd / nnd;
+            ++node_counter;
+        }
+    }
+    assert( node_counter == num_nodes + 1 );
+
+    // Special case for the root if we do not want to spread it:
+    // if the root is bifurcating (actual root), set its spread to the middle.
+    // if it is a virtual root (top level trifurcation), set its spread the the mid node.
+    if( spreading == LayoutSpreading::kAllNodesButRoot ) {
+        auto& root = tree_.root_node();
+        auto& root_data = root.data<LayoutNodeData>();
+        auto const degr = degree( root );
+        // assert( root_data.spreading < 0.0 );
+
+        if( degr == 2 ) {
+            auto const& l_data = root.link().outer().node().data<LayoutNodeData>();
+            auto const& r_data = root.link().next().outer().node().data<LayoutNodeData>();
+            root_data.spreading = ( l_data.spreading + r_data.spreading ) / 2.0;
+        } else {
+            assert( degr == 3 );
+            auto const& l_data = root.link().outer().node().data<LayoutNodeData>();
+            auto const& r_data = root.link().next().next().outer().node().data<LayoutNodeData>();
+            root_data.spreading = ( l_data.spreading + r_data.spreading ) / 2.0;
+
+            // auto const& m_data = root.link().next().outer().node().data<LayoutNodeData>();
+            // root_data.spreading = m_data.spreading;
         }
     }
 }
@@ -341,6 +489,52 @@ void LayoutBase::set_node_distances_cladogram_()
 //     Options
 // =================================================================================================
 
+void LayoutBase::type( LayoutType const drawing_type )
+{
+    type_ = drawing_type;
+    if( ! tree_.empty() ) {
+        init_layout_();
+    }
+}
+
+LayoutType LayoutBase::type() const
+{
+    return type_;
+}
+
+void LayoutBase::inner_node_spreading( LayoutSpreading value )
+{
+    inner_node_spreading_ = value;
+    if( ! tree_.empty() ) {
+        init_layout_();
+    }
+}
+
+LayoutSpreading LayoutBase::inner_node_spreading() const
+{
+    return inner_node_spreading_;
+}
+
+void LayoutBase::align_labels( bool value )
+{
+    align_labels_ = value;
+}
+
+bool LayoutBase::align_labels() const
+{
+    return align_labels_;
+}
+
+void LayoutBase::extra_spacer( double value )
+{
+    extra_spacer_ = value;
+}
+
+double LayoutBase::extra_spacer() const
+{
+    return extra_spacer_;
+}
+
 void LayoutBase::text_template( utils::SvgText const& tt )
 {
     text_template_ = tt;
@@ -354,19 +548,6 @@ utils::SvgText& LayoutBase::text_template()
 utils::SvgText const& LayoutBase::text_template() const
 {
     return text_template_;
-}
-
-void LayoutBase::type( LayoutType const drawing_type )
-{
-    type_ = drawing_type;
-    if( ! tree_.empty() ) {
-        init_layout_();
-    }
-}
-
-LayoutType LayoutBase::type() const
-{
-    return type_;
 }
 
 } // namespace tree

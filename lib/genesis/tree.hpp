@@ -48,6 +48,7 @@
 #include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/drawing/circular_layout.hpp"
 #include "genesis/tree/drawing/functions.hpp"
+#include "genesis/tree/drawing/heat_tree.hpp"
 #include "genesis/tree/drawing/layout_base.hpp"
 #include "genesis/tree/drawing/layout_tree.hpp"
 #include "genesis/tree/drawing/rectangular_layout.hpp"

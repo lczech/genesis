@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@
 #include "genesis/utils/formats/svg/group.hpp"
 #include "genesis/utils/formats/svg/helper.hpp"
 #include "genesis/utils/formats/svg/image.hpp"
+#include "genesis/utils/formats/svg/matrix.hpp"
 #include "genesis/utils/formats/svg/object.hpp"
 #include "genesis/utils/formats/svg/shapes.hpp"
 #include "genesis/utils/formats/svg/text.hpp"
