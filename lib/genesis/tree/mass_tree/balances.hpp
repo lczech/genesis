@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -181,15 +181,36 @@ struct BalanceData
     /**
      * @brief The relative per-edge masses per original input Tree.
      *
-     * Each row corresponds to a Tree, each column to the edges of the trees,
+     * Each row corresponds to a Tree/Sample, each column to the edges of the trees,
      * stored in the order of their @link TreeEdge::index() indices@endlink.
+     *
      * The masses are relative, that is, they were divided by their sum per row.
      * Furthermore, prior to this normalization, pseudeo-counts might be added to the masses
      * in order to compensate for zero values (which are not valid in balance calculations).
      * Also, if taxon weighing is used, the masses are divided by their weight.
      * See BalanceSettings for the possible options for pseudo-counts.
+     * These are the values that are used for the balances computations.
+     *
+     * In order to get the absolute masses without taxon weighing, and without normalization,
+     * see #raw_edge_masses.
      */
     utils::Matrix<double> edge_masses;
+
+    /**
+     * @brief The absolute raw per-edge masses per original input Tree.
+     *
+     * Each row corresponds to a Tree/Sample, each column to the edges of the trees,
+     * stored in the order of their @link TreeEdge::index() indices@endlink.
+     *
+     * The masses are absolute, that is, they just add up the MassTreeEdgeData::masses per edge.
+     * Furthermore, pseudeo-counts might be added to the masses in order to compensate
+     * for zero values (which are not valid in balance calculations).
+     * See BalanceSettings for the possible options for pseudo-counts.
+     *
+     * In order to get the final edge masses that are used in the balances computation,
+     * see #edge_masses.
+     */
+    utils::Matrix<double> raw_edge_masses;
 
     /**
      * @brief The taxon/edge weights calculated from mulitple trees.

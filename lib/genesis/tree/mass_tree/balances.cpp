@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -237,8 +237,7 @@ BalanceData mass_balance_data(
         }
     }
 
-    // Now, we can add compensation of zero values in form of pseudo counts,
-    // then calculate the closure (relative abundances) per row (tree) of the masses.
+    // Now, we can add compensation of zero values in form of pseudo counts.
     bool found_zero_mass = false;
     for( auto& em : result.edge_masses ) {
         assert( std::isfinite( em ) && em >= 0.0 );
@@ -259,6 +258,11 @@ BalanceData mass_balance_data(
             "counts to them, e.g., via the BalanceSettings."
         );
     }
+
+    // So far, we have only added pseudo counts to the edge masses, but no other transformations.
+    // This is what we want for the raw masses data. Store it.
+    // Then, calculate the closure (relative abundances) per row (tree) of the masses.
+    result.raw_edge_masses = result.edge_masses;
     for( size_t r = 0; r < result.edge_masses.rows(); ++r ) {
         utils::closure( result.edge_masses.row(r).begin(), result.edge_masses.row(r).end() );
     }
