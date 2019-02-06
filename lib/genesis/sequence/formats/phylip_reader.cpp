@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -96,8 +96,8 @@ PhylipReader::Header PhylipReader::parse_phylip_header( utils::InputStream& it )
     Header result;
 
     // Read number of sequences.
-    utils::skip_while( it, isblank );
-    std::string num_seq_str = utils::read_while( it, isdigit );
+    utils::skip_while( it, ::isblank );
+    std::string num_seq_str = utils::read_while( it, ::isdigit );
     if( num_seq_str.length() == 0 ) {
         throw std::runtime_error(
             "Malformed Phylip " + it.source_name() + ": Expecting sequence number at "
@@ -107,8 +107,8 @@ PhylipReader::Header PhylipReader::parse_phylip_header( utils::InputStream& it )
     result.num_sequences = std::stoi( num_seq_str );
 
     // Read length of sequences.
-    utils::skip_while( it, isblank );
-    std::string len_seq_str = utils::read_while( it, isdigit );
+    utils::skip_while( it, ::isblank );
+    std::string len_seq_str = utils::read_while( it, ::isdigit );
     if( len_seq_str.length() == 0 ) {
         throw std::runtime_error(
             "Malformed Phylip " + it.source_name() + ": Expecting sequence length at "
@@ -125,7 +125,7 @@ PhylipReader::Header PhylipReader::parse_phylip_header( utils::InputStream& it )
     }
 
     // Process end of header line and proceed to first non-empty line.
-    utils::skip_while( it, isblank );
+    utils::skip_while( it, ::isblank );
     result.options = utils::trim_right( utils::read_to_end_of_line( it ));
     if( !it || *it != '\n' ) {
         throw std::runtime_error(
@@ -142,7 +142,7 @@ std::string PhylipReader::parse_phylip_label( utils::InputStream& it ) const
     std::string label;
 
     // Labels need to start with some graphical char.
-    if( !it || !isgraph( *it ) ) {
+    if( !it || ! ::isgraph( *it ) ) {
         throw std::runtime_error(
             "Malformed Phylip " + it.source_name() + ": Expecting label at " + it.at() + "."
         );
@@ -150,19 +150,19 @@ std::string PhylipReader::parse_phylip_label( utils::InputStream& it ) const
 
     // Scan label until first blank/tab.
     if( label_length_ == 0 ) {
-        label = utils::read_while( it, isgraph );
-        if( !it || !isblank( *it ) ) {
+        label = utils::read_while( it, ::isgraph );
+        if( !it || ! ::isblank( *it ) ) {
             throw std::runtime_error(
                 "Malformed Phylip " + it.source_name() + ": Expecting delimiting white space at "
                 + it.at() + "."
             );
         }
-        utils::skip_while( it, isblank );
+        utils::skip_while( it, ::isblank );
 
     // Scan label for `label_length` many chars.
     } else {
         for( size_t i = 0; i < label_length_; ++i ) {
-            if( !it || !isprint( *it ) ) {
+            if( !it || ! ::isprint( *it ) ) {
                 throw std::runtime_error(
                     "Malformed Phylip " + it.source_name() + ": Invalid label at " + it.at() + "."
                 );
@@ -185,7 +185,7 @@ std::string PhylipReader::parse_phylip_sequence_line( utils::InputStream& it ) c
     // Process the whole line.
     while( it && *it != '\n' ) {
         // Skip all blanks and digits.
-        if( isblank( *it ) || isdigit( *it ) ) {
+        if( ::isblank( *it ) || ::isdigit( *it ) ) {
             ++it;
             continue;
         }

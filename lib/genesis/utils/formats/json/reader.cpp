@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@ JsonDocument JsonReader::read( std::shared_ptr<utils::BaseInputSource> source ) 
 JsonDocument JsonReader::parse( InputStream& input_stream ) const
 {
     JsonDocument result = parse_value( input_stream );
-    skip_while( input_stream, isspace );
+    skip_while( input_stream, ::isspace );
     if( input_stream ) {
         throw std::runtime_error(
             "Expected end of input while reading Json at " + input_stream.at()
@@ -87,7 +87,7 @@ JsonDocument JsonReader::parse_value( InputStream& input_stream ) const
     auto& it = input_stream;
 
     // Go to first non-white char.
-    skip_while( it, isspace );
+    skip_while( it, ::isspace );
     // while( it && lookup_[ *it ] == CharTypes::kSpace ) {
     //     ++it;
     // }
@@ -110,8 +110,8 @@ JsonDocument JsonReader::parse_value( InputStream& input_stream ) const
         return parse_quoted_string( it );
 
     // Either null or boolean.
-    } else if( isalpha( *it ) ) {
-        auto value = to_lower( read_while( it, isalpha ));
+    } else if( ::isalpha( *it ) ) {
+        auto value = to_lower( read_while( it, ::isalpha ));
 
         // If it is a null token, return an empty Json doc.
         if(  value == "null" ) {
@@ -129,7 +129,7 @@ JsonDocument JsonReader::parse_value( InputStream& input_stream ) const
         }
 
     // Parse a number.
-    } else if( isdigit( *it ) or char_is_sign( *it ) or *it == '.' ) {
+} else if( ::isdigit( *it ) or char_is_sign( *it ) or *it == '.' ) {
         return parse_number( it );
 
     // Parse error.
@@ -150,11 +150,11 @@ JsonDocument JsonReader::parse_array( InputStream& input_stream ) const
     auto& it = input_stream;
 
     // Initial check whether this actually is an array.
-    skip_while( it, isspace );
+    skip_while( it, ::isspace );
     read_char_or_throw( it, '[' );
 
     // Check for empty array.
-    skip_while( it, isspace );
+    skip_while( it, ::isspace );
     if( it && *it == ']' ) {
         assert( it && *it == ']' );
         ++it;
@@ -166,14 +166,14 @@ JsonDocument JsonReader::parse_array( InputStream& input_stream ) const
         doc.emplace_back( parse_value( it ));
 
         // Check for end of array, leave if found.
-        skip_while( it, isspace );
+        skip_while( it, ::isspace );
         if( !it || *it == ']' ) {
             break;
         }
 
         // We expect more. Or throw, if we unexpectedly are at the end or have an illegal char.
         read_char_or_throw( it, ',' );
-        skip_while( it, isspace );
+        skip_while( it, ::isspace );
     }
 
     // We are at the end of the array. Move to next char.
@@ -196,11 +196,11 @@ JsonDocument JsonReader::parse_object( InputStream& input_stream ) const
     auto& it = input_stream;
 
     // Initial check whether this actually is an object.
-    skip_while( it, isspace );
+    skip_while( it, ::isspace );
     read_char_or_throw( it, '{' );
 
     // Check for empty object.
-    skip_while( it, isspace );
+    skip_while( it, ::isspace );
     if( it && *it == '}' ) {
         assert( it && *it == '}' );
         ++it;
@@ -213,22 +213,22 @@ JsonDocument JsonReader::parse_object( InputStream& input_stream ) const
         auto key = parse_quoted_string( it );
 
         // Find the colon and skip it.
-        skip_while( it, isspace );
+        skip_while( it, ::isspace );
         read_char_or_throw( it, ':' );
 
         // Get the value and insert into object.
-        skip_while( it, isspace );
+        skip_while( it, ::isspace );
         doc[ key ] = parse_value( it );
 
         // Check for end of object, leave if found.
-        skip_while( it, isspace );
+        skip_while( it, ::isspace );
         if( !it || *it == '}' ) {
             break;
         }
 
         // We expect more. Or throw, if we unexpectedly are at the end or have an illegal char.
         read_char_or_throw( it, ',' );
-        skip_while( it, isspace );
+        skip_while( it, ::isspace );
     }
 
     // We are at the end of the object. Move to next char.
@@ -248,7 +248,7 @@ JsonDocument JsonReader::parse_object( InputStream& input_stream ) const
 JsonDocument JsonReader::parse_number( InputStream& input_stream ) const
 {
     auto& it = input_stream;
-    skip_while( it, isspace );
+    skip_while( it, ::isspace );
     if( !it ) {
         throw std::runtime_error(
             "Expecting number in " + it.source_name() + " at " + it.at() + "."
@@ -267,7 +267,7 @@ JsonDocument JsonReader::parse_number( InputStream& input_stream ) const
     // Integer Part
     bool found_mantisse = false;
     JsonDocument::NumberUnsignedType ix = 0;
-    while( it && isdigit( *it )) {
+    while( it && ::isdigit( *it )) {
         int y = *it - '0';
         ix *= 10;
         ix += y;
@@ -290,7 +290,7 @@ JsonDocument JsonReader::parse_number( InputStream& input_stream ) const
         ++it;
 
         JsonDocument::NumberFloatType pos = 1.0;
-        while( it && isdigit( *it )) {
+        while( it && ::isdigit( *it )) {
             pos /= 10.0;
             int y = *it - '0';
             dx += y * pos;
