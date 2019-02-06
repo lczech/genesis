@@ -79,6 +79,31 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
         radius = std::max( 50.0, static_cast<double>( tree().node_count() ));
     }
 
+    // The spreading of nodes is in [ 0.0, 1.0 ]. This would mean that the first and the last
+    // node end up at the same position in the circle. Fix this by re-scaling so that an
+    // interval is added at the end. That is, we set a maximum spread < 1.0, that rescales
+    // the actual calculated spreads of the nodes.
+    double node_count = 0;
+    assert( ! tree().empty() );
+    switch( inner_node_spreading() ) {
+        case LayoutSpreading::kLeafNodesOnly: {
+            node_count = static_cast<double>( leaf_node_count( tree() ) - 1 );
+            break;
+        }
+        case LayoutSpreading::kAllNodesButRoot: {
+            node_count = static_cast<double>( tree().node_count() - 2 );
+            break;
+        }
+        case LayoutSpreading::kAllNodes: {
+            node_count = static_cast<double>( tree().node_count() - 1 );
+            break;
+        }
+        default: {
+            assert( false );
+        }
+    }
+    double const max_spreading = node_count / ( node_count + 1 );
+
     size_t max_text_len = 0;
 
     for( auto const& node : tree().nodes() ) {
@@ -86,8 +111,8 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
         auto const& node_data = node.data<LayoutNodeData>();
         auto const& prnt_data = tree().node_at( node_data.parent_index ).data<LayoutNodeData>();
 
-        auto const node_spreading = 2.0 * utils::PI * node_data.spreading;
-        auto const prnt_spreading = 2.0 * utils::PI * prnt_data.spreading;
+        auto const node_spreading = 2.0 * utils::PI * node_data.spreading * max_spreading;
+        auto const prnt_spreading = 2.0 * utils::PI * prnt_data.spreading * max_spreading;
 
         auto const node_x = node_data.distance * radius * cos( node_spreading );
         auto const node_y = node_data.distance * radius * sin( node_spreading );
@@ -182,13 +207,20 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
 
             // Rotate label so that its orientation is correct.
             // Caveat: here, we use the spreading [0, 1] value directly.
-            if( node_data.spreading > 0.25 && node_data.spreading <= 0.75 ) {
+            if(
+                node_data.spreading * max_spreading > 0.25 &&
+                node_data.spreading * max_spreading <= 0.75
+            ) {
                 // Left hemisphere.
                 label.anchor = SvgText::Anchor::kEnd;
-                label.transform.append( SvgTransform::Rotate( 360 * node_data.spreading + 180 ));
+                label.transform.append( SvgTransform::Rotate(
+                    360 * node_data.spreading * max_spreading + 180
+                ));
             } else {
                 // Right hemisphere.
-                label.transform.append( SvgTransform::Rotate( 360 * node_data.spreading ));
+                label.transform.append( SvgTransform::Rotate(
+                    360 * node_data.spreading * max_spreading
+                ));
             }
 
             taxa_names << std::move( label );

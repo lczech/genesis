@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -465,6 +465,9 @@ private:
                 input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
             }
         }
+
+        // After the update, the current position needs to be within the first block.
+        assert( data_pos_ < BlockLength );
     }
 
     /**
@@ -579,7 +582,7 @@ private:
 
     // Input data comes from here...
     // (we use a unique ptr to make the class movable)
-    std::unique_ptr<InputReader> input_reader_;
+    std::unique_ptr<InputReader> input_reader_ = nullptr;
     std::string source_name_;
 
     // ...and is buffered here.
