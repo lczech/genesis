@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -106,6 +106,13 @@ private:
      */
     size_t read_( char* buffer, size_t size ) override
     {
+        // Special case: we already finished reading the file.
+        // We need this check as otherwise the file would be reopened again and
+        // read again from the start.
+        if( finished_ ) {
+            return 0;
+        }
+
         // We need to do lazy loading, otherwise, we might end up having too many open files
         // if we are using the from_files() function, which opens all files at once...
         if( file_ == nullptr ) {
@@ -133,6 +140,7 @@ private:
         if( ret < size ) {
             std::fclose( file_ );
             file_ = nullptr;
+            finished_ = true;
         }
 
         return ret;
@@ -160,6 +168,7 @@ private:
 
     FILE*       file_ = nullptr;
     std::string file_name_;
+    bool        finished_ = false;
 };
 
 } // namespace utils
