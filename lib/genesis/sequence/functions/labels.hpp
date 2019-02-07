@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 
 #include <string>
 #include <utility>
+#include <unordered_map>
 #include <unordered_set>
 
 namespace genesis {
@@ -46,6 +47,16 @@ namespace sequence {
 
 class Sequence;
 class SequenceSet;
+
+// =================================================================================================
+//     Helper Structs
+// =================================================================================================
+
+struct LabelAttributes
+{
+    std::string label;
+    std::unordered_map<std::string, std::string> attributes;
+};
 
 // =================================================================================================
 //     General
@@ -82,10 +93,39 @@ std::pair<std::string, size_t> guess_sequence_abundance( Sequence const& sequenc
 /**
  * @brief Guess the abundance of a Sequence, given it's label.
  *
- * This is the same as guess_sequence_abundance( Sequence const& ), but takes just the label
- * instead of the Sequence object.
+ * This is the same as guess_sequence_abundance( Sequence const& ), but takes the label
+ * as a string, instead of the Sequence object. See there for details.
  */
 std::pair<std::string, size_t> guess_sequence_abundance( std::string const& label );
+
+/**
+ * @brief Get the attributes list (semicolons-separated) from a Sequence.
+ *
+ * It is common to store additional information in sequence headers, e.g., in the `fasta` format,
+ * using a semicolon-separated list of attributes like this:
+ *
+ *     >some_name;size=123;thing=foo;
+ *
+ * This function disects this kind of information and returns it.
+ * The returned struct contains the label (the part before the first semicolon),
+ * as well as a map for the attributes. As this is not a multimap, later attributes with the same
+ * key overwrite earlier ones.
+ *
+ * If the sequence label does not contain any information that is separated via a semicolon,
+ * the attributes list is returned empty. However, if semicola are found in the label,
+ * the correct format is expected (with the syntax `;key=value;`) for each attribute.
+ * Otherwise, an exception is thrown. The last semicolon is optional; that is, the label
+ * can simply end after the last value.
+ */
+LabelAttributes label_attributes( Sequence const& sequence );
+
+/**
+ * @brief Get the attributes list (semicolons-separated) from a Sequence, given it's label.
+ *
+ * This is the same as label_attributes( Sequence const& ), but takes the label
+ * as a string, instead of the Sequence object. See there for details.
+ */
+LabelAttributes label_attributes( std::string const& label );
 
 // =================================================================================================
 //     Uniqueness

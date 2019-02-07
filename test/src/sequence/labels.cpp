@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -114,4 +114,23 @@ TEST( Sequence, GuessAbundances )
         std::make_pair( std::string{ "abc;size=x" }, size_t{1} ),
         guess_sequence_abundance( Sequence( "abc;size=x", "" ))
     );
+}
+
+TEST( Sequence, LabelAttributes )
+{
+    LabelAttributes exp1;
+    exp1.label = "bla";
+    exp1.attributes = { {"size", "123"}, {"weight", "100"} };
+    auto const act1 = label_attributes( "bla;size=123;weight=100;" );
+    EXPECT_EQ( exp1.label, act1.label );
+    EXPECT_EQ( exp1.attributes, act1.attributes );
+
+    LabelAttributes exp2;
+    exp2.label = "bla";
+    exp2.attributes = {};
+    auto const act2 = label_attributes( "bla;" );
+    EXPECT_EQ( exp2.label, act2.label );
+    EXPECT_EQ( exp2.attributes, act2.attributes );
+
+    EXPECT_ANY_THROW( label_attributes( "bla;foo" ) );
 }
