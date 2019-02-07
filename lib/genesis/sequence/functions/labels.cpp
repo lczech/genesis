@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,8 +39,10 @@
 #include "genesis/utils/tools/hash/sha256.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cctype>
 // #include <regex>
+#include <stdexcept>
 
 namespace genesis {
 namespace sequence {
@@ -78,46 +80,59 @@ std::pair<std::string, size_t> guess_sequence_abundance( std::string const& labe
     size_t      res_abun = 1;
 
     // We only look for a simple number, no sign oder decimal points etc
-    auto is_digits = []( std::string const& s )
+    auto is_digits_ = []( std::string const& s )
     {
         return s.find_first_not_of( "0123456789" ) == std::string::npos;
     };
 
-    // Try to find "size=123"
-    auto spos = label.find( "size=" );
-    if( spos != std::string::npos && spos + 5 < label.size() && isdigit( label[ spos + 5 ]) ) {
-
-        // Parse the substring as far as possible, that is, get all digits.
-        auto const sub = label.substr( spos + 5 );
-        try{
-            res_abun = std::stoull( sub );
-
-            // If the number parsing above succeeds, also change the name/label.
-            // Here, we need to take care of a semicolon (or other non-alpha char)
-            // that might appear in front of the "size=" part. If there is one, ignore it.
-            if( spos > 0 && ispunct( label[ spos - 1 ] )) {
-                --spos;
-            }
-            res_name = label.substr( 0, spos );
-        } catch( ... ){
-            res_name = label;
-            res_abun = 1;
+    // Try to find ";size=123;", using label attributes.
+    try{
+        auto const la = label_attributes( label );
+        res_name = la.label;
+        if( la.attributes.count( "size" ) > 0 && is_digits_( la.attributes.at( "size" ))) {
+            res_abun = std::stoull( la.attributes.at( "size" ));
         }
+    } catch( ... ) {
+        res_name = label;
+        res_abun = 1;
     }
 
-    // Try to find "_123" at the end
+    // Try to find "_123" at the end.
     auto const upos = label.find_last_of( "_" );
-    if( upos != std::string::npos && upos + 1 < label.size() && isdigit( label[ upos + 1 ]) ) {
+    if( upos != std::string::npos && upos + 1 < label.size() && ::isdigit( label[ upos + 1 ]) ) {
 
         // The rest of the label needs to be a number.
         auto const sub = label.substr( upos + 1 );
-        if( is_digits( sub ) ) {
+        if( is_digits_( sub ) ) {
             res_name =  label.substr( 0, upos );
             res_abun = std::stoull( sub );
         }
     }
 
     return { res_name, res_abun };
+
+    // Try to find "size=123".
+    // This is the old version that directly parses the label.
+    // auto spos = label.find( "size=" );
+    // if( spos != std::string::npos && spos + 5 < label.size() && ::isdigit( label[ spos + 5 ]) ) {
+    //
+    //     // Parse the substring as far as possible, that is, get all digits.
+    //     auto const sub = label.substr( spos + 5 );
+    //     try{
+    //         res_abun = std::stoull( sub );
+    //
+    //         // If the number parsing above succeeds, also change the name/label.
+    //         // Here, we need to take care of a semicolon (or other non-alpha char)
+    //         // that might appear in front of the "size=" part. If there is one, ignore it.
+    //         if( spos > 0 && ::ispunct( label[ spos - 1 ] )) {
+    //             --spos;
+    //         }
+    //         res_name = label.substr( 0, spos );
+    //     } catch( ... ){
+    //         res_name = label;
+    //         res_abun = 1;
+    //     }
+    // }
 
     // Slow regex version
     // Prepare static regex (no need to re-compile it on every function call).
@@ -135,6 +150,32 @@ std::pair<std::string, size_t> guess_sequence_abundance( std::string const& labe
     // } else {
     //     return 1;
     // }
+}
+
+LabelAttributes label_attributes( Sequence const& sequence )
+{
+    return label_attributes( sequence.label() );
+}
+
+LabelAttributes label_attributes( std::string const& label )
+{
+    // Set the label to the first part (before the first semicolon).
+    // This is always correct, even if there are no semicola.
+    LabelAttributes result;
+    auto const attribs = utils::split( label, ";" );
+    assert( attribs.size() > 0 );
+    result.label = attribs.front();
+
+    // Set the other parts. We here require that the attribs follow the needed structure.
+    for( size_t i = 1; i < attribs.size(); ++i ) {
+        auto const ap = utils::split( attribs[i], "=" );
+        if( ap.size() != 2 ) {
+            throw std::runtime_error( "Invalid Sequence label for extracting label attributes." );
+        }
+        result.attributes[ ap[0] ] = ap[1];
+    }
+
+    return result;
 }
 
 // =================================================================================================

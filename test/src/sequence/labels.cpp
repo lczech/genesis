@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -87,31 +87,64 @@ TEST( Sequence, GuessAbundances )
 {
     std::pair<std::string, size_t> const good = { "abc", 123 };
 
-    EXPECT_EQ( good, guess_sequence_abundance( Sequence( "abc_123", "" )));
-    EXPECT_EQ( good, guess_sequence_abundance( Sequence( "abc;size=123;", "" )));
-    EXPECT_EQ( good, guess_sequence_abundance( Sequence( "abc_size=123_", "" )));
-    EXPECT_EQ( good, guess_sequence_abundance( Sequence( "abc;size=123", "" )));
-    EXPECT_EQ( good, guess_sequence_abundance( Sequence( "abcsize=123", "" )));
-    EXPECT_EQ( good, guess_sequence_abundance( Sequence( "abc;size=123x", "" )));
+    EXPECT_EQ( good, guess_sequence_abundance( "abc_123" ));
+    EXPECT_EQ( good, guess_sequence_abundance( "abc;size=123;" ));
+    EXPECT_EQ( good, guess_sequence_abundance( "abc;size=123" ));
+    EXPECT_EQ( good, guess_sequence_abundance( "abc;key=value;size=123;foo=bar;" ));
+    // EXPECT_EQ( good, guess_sequence_abundance( "abc_size=123_" ));
+    // EXPECT_EQ( good, guess_sequence_abundance( "abcsize=123" ));
+    // EXPECT_EQ( good, guess_sequence_abundance( "abc;size=123x" ));
+
+    EXPECT_EQ(
+        std::make_pair( std::string{ "abc_size=123_" }, size_t{1} ),
+        guess_sequence_abundance( "abc_size=123_" )
+    );
+    EXPECT_EQ(
+        std::make_pair( std::string{ "abcsize=123" }, size_t{1} ),
+        guess_sequence_abundance( "abcsize=123" )
+    );
+    EXPECT_EQ(
+        std::make_pair( std::string{ "abc" }, size_t{1} ),
+        guess_sequence_abundance( "abc;size=123x" )
+    );
 
     EXPECT_EQ(
         std::make_pair( std::string{ "abc_" },       size_t{1} ),
-        guess_sequence_abundance( Sequence( "abc_", "" ))
+        guess_sequence_abundance( "abc_" )
     );
     EXPECT_EQ(
         std::make_pair( std::string{ "abc;size=" },  size_t{1} ),
-        guess_sequence_abundance( Sequence( "abc;size=", "" ))
+        guess_sequence_abundance( "abc;size=" )
     );
     EXPECT_EQ(
         std::make_pair( std::string{ "abc_123x" },   size_t{1} ),
-        guess_sequence_abundance( Sequence( "abc_123x", "" ))
+        guess_sequence_abundance( "abc_123x" )
     );
     EXPECT_EQ(
         std::make_pair( std::string{ "abc_x" },      size_t{1} ),
-        guess_sequence_abundance( Sequence( "abc_x", "" ))
+        guess_sequence_abundance( "abc_x" )
     );
     EXPECT_EQ(
-        std::make_pair( std::string{ "abc;size=x" }, size_t{1} ),
-        guess_sequence_abundance( Sequence( "abc;size=x", "" ))
+        std::make_pair( std::string{ "abc" }, size_t{1} ),
+        guess_sequence_abundance( "abc;size=x" )
     );
+}
+
+TEST( Sequence, LabelAttributes )
+{
+    LabelAttributes exp1;
+    exp1.label = "bla";
+    exp1.attributes = { {"size", "123"}, {"weight", "100"} };
+    auto const act1 = label_attributes( "bla;size=123;weight=100;" );
+    EXPECT_EQ( exp1.label, act1.label );
+    EXPECT_EQ( exp1.attributes, act1.attributes );
+
+    LabelAttributes exp2;
+    exp2.label = "bla";
+    exp2.attributes = {};
+    auto const act2 = label_attributes( "bla;" );
+    EXPECT_EQ( exp2.label, act2.label );
+    EXPECT_EQ( exp2.attributes, act2.attributes );
+
+    EXPECT_ANY_THROW( label_attributes( "bla;foo" ) );
 }
