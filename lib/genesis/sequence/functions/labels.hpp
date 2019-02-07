@@ -84,7 +84,8 @@ std::unordered_set<std::string> labels( SequenceSet const& set );
  *
  *  * Appended via underscore: `name_123`. In this case, the number has to be the last in
  *    the label, that is, no other text may follow.
- *  * Using the format `[;]size=123[;]`. The semicoli are optional.
+ *  * Using the format `;size=123;`. The semicoli are mandatory, except the second one if nothing
+ *    else follows in the label. See label_attributes() for details.
  *
  * If neither of them is found, a default abundance of 1 is returned.
  */

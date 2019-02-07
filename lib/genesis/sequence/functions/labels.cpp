@@ -80,46 +80,59 @@ std::pair<std::string, size_t> guess_sequence_abundance( std::string const& labe
     size_t      res_abun = 1;
 
     // We only look for a simple number, no sign oder decimal points etc
-    auto is_digits = []( std::string const& s )
+    auto is_digits_ = []( std::string const& s )
     {
         return s.find_first_not_of( "0123456789" ) == std::string::npos;
     };
 
-    // Try to find "size=123"
-    auto spos = label.find( "size=" );
-    if( spos != std::string::npos && spos + 5 < label.size() && ::isdigit( label[ spos + 5 ]) ) {
-
-        // Parse the substring as far as possible, that is, get all digits.
-        auto const sub = label.substr( spos + 5 );
-        try{
-            res_abun = std::stoull( sub );
-
-            // If the number parsing above succeeds, also change the name/label.
-            // Here, we need to take care of a semicolon (or other non-alpha char)
-            // that might appear in front of the "size=" part. If there is one, ignore it.
-            if( spos > 0 && ::ispunct( label[ spos - 1 ] )) {
-                --spos;
-            }
-            res_name = label.substr( 0, spos );
-        } catch( ... ){
-            res_name = label;
-            res_abun = 1;
+    // Try to find ";size=123;", using label attributes.
+    try{
+        auto const la = label_attributes( label );
+        res_name = la.label;
+        if( la.attributes.count( "size" ) > 0 && is_digits_( la.attributes.at( "size" ))) {
+            res_abun = std::stoull( la.attributes.at( "size" ));
         }
+    } catch( ... ) {
+        res_name = label;
+        res_abun = 1;
     }
 
-    // Try to find "_123" at the end
+    // Try to find "_123" at the end.
     auto const upos = label.find_last_of( "_" );
     if( upos != std::string::npos && upos + 1 < label.size() && ::isdigit( label[ upos + 1 ]) ) {
 
         // The rest of the label needs to be a number.
         auto const sub = label.substr( upos + 1 );
-        if( is_digits( sub ) ) {
+        if( is_digits_( sub ) ) {
             res_name =  label.substr( 0, upos );
             res_abun = std::stoull( sub );
         }
     }
 
     return { res_name, res_abun };
+
+    // Try to find "size=123".
+    // This is the old version that directly parses the label.
+    // auto spos = label.find( "size=" );
+    // if( spos != std::string::npos && spos + 5 < label.size() && ::isdigit( label[ spos + 5 ]) ) {
+    //
+    //     // Parse the substring as far as possible, that is, get all digits.
+    //     auto const sub = label.substr( spos + 5 );
+    //     try{
+    //         res_abun = std::stoull( sub );
+    //
+    //         // If the number parsing above succeeds, also change the name/label.
+    //         // Here, we need to take care of a semicolon (or other non-alpha char)
+    //         // that might appear in front of the "size=" part. If there is one, ignore it.
+    //         if( spos > 0 && ::ispunct( label[ spos - 1 ] )) {
+    //             --spos;
+    //         }
+    //         res_name = label.substr( 0, spos );
+    //     } catch( ... ){
+    //         res_name = label;
+    //         res_abun = 1;
+    //     }
+    // }
 
     // Slow regex version
     // Prepare static regex (no need to re-compile it on every function call).
