@@ -30,6 +30,7 @@
 
 #include "genesis/utils/core/fs.hpp"
 
+#include <cassert>
 #include <cctype>
 #include <dirent.h>
 #include <errno.h>
@@ -48,7 +49,10 @@
 #include <utility>
 
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/output_stream.hpp"
+#include "genesis/utils/io/scanner.hpp"
 #include "genesis/utils/text/string.hpp"
 
 namespace genesis {
@@ -97,6 +101,18 @@ std::string file_read( std::string const& filename )
     str.assign((std::istreambuf_iterator<char>(infile)),
                 std::istreambuf_iterator<char>());
     return str;
+}
+
+std::vector<std::string> file_read_lines( std::string const& filename )
+{
+    std::vector<std::string> result;
+    utils::InputStream it( from_file( filename ));
+    while( it ) {
+        result.push_back( read_to_end_of_line( it ));
+        assert( !it || *it == '\n'  );
+        ++it;
+    }
+    return result;
 }
 
 void file_write( std::string const& content, std::string const& filename )

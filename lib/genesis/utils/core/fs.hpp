@@ -68,6 +68,13 @@ bool file_exists( std::string const& filename );
 std::string file_read( std::string const& filename );
 
 /**
+ * @brief Return the contents of a file as a vector of strings, one entry for each line.
+ *
+ * If the file is not readable, the function throws `std::runtime_error`.
+ */
+std::vector<std::string> file_read_lines( std::string const& filename );
+
+/**
  * @brief Write the content of a string to a file.
  *
  * If the file cannot be written to, the function throws an exception. Also, by default, if the file
