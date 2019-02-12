@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -553,6 +553,68 @@ std::string reverse_complement( std::string const& sequence, bool accept_degener
         result[ sequence.size() - i - 1 ] = rev_comp( c );
     }
     return result;
+}
+
+bool nucleic_acid_code_containment( char a, char b, bool undetermined_matches_all )
+{
+    // This is slightly bad, because we are not actually encoding binary,
+    // but using hex here (for simplicity of writing...). Should still work as expected.
+    auto binary_code_ = [ undetermined_matches_all ]( char c ){
+        switch( c ) {
+            case 'A':
+                return 0x0001;
+            case 'C':
+                return 0x0010;
+            case 'G':
+                return 0x0100;
+            case 'T':
+                return 0x1000;
+
+            case 'W':
+                return 0x1001;
+            case 'S':
+                return 0x0110;
+            case 'M':
+                return 0x0011;
+            case 'K':
+                return 0x1100;
+            case 'R':
+                return 0x0101;
+            case 'Y':
+                return 0x1010;
+
+            case 'B':
+                return 0x1110;
+            case 'D':
+                return 0x1101;
+            case 'H':
+                return 0x1011;
+            case 'V':
+                return 0x0111;
+
+            case '-': {
+                if( undetermined_matches_all ) {
+                    return 0x1111;
+                } else {
+                    return 0x0000;
+                }
+            }
+
+            default:
+                // We already checked for invalid chars in the normalize function.
+                // Just do this to be safe.
+                assert( false );
+                throw std::invalid_argument( "Not a nucleic acid code: " + std::string( 1, c ) );
+        }
+    };
+
+    auto const an = normalize_nucleic_acid_code( a, true );
+    auto const bn = normalize_nucleic_acid_code( b, true );
+
+    auto const ab = binary_code_( an );
+    auto const bb = binary_code_( bn );
+
+    return ( ab & bb ) > 0;
 }
 
 // =================================================================================================

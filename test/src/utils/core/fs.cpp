@@ -67,3 +67,15 @@ TEST( FileSystem, RealPath )
 
     // std::cout << rp << "\n";
 }
+
+TEST( File, ReadLines )
+{
+    // Skip test if no data directory availabe.
+    NEEDS_TEST_DATA;
+
+    std::string const infile = environment->data_dir + "utils/csv/table.csv";
+    auto const lines = file_read_lines( infile );
+
+    ASSERT_EQ( 11, lines.size() );
+    EXPECT_EQ( "alpha,0,0,4.5", lines[1] );
+}
