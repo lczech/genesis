@@ -166,6 +166,9 @@ Finally, we want to point out some other interesting functions:
     allows to remove certain characters by deleting sites in Sequences.
   * @ref genesis::sequence::relabel_with_hash( SequenceSet&, utils::HashingFunctions ) "relabel_with_hash()"
     sets new labels for all Sequences according to the hash of the sequence sites, offering different hash functions.
+  * @ref genesis::sequence::nucleic_acid_code_containment() "nucleic_acid_code_containment()"
+    checks whether two nucleic acid codes are equal, taking degenerated/ambiguous characters
+    into account.
 
 There are more classes and functions to work with @ref genesis::sequence::Sequence "Sequences", see
 @ref genesis::sequence "namespace sequence" for the full list.

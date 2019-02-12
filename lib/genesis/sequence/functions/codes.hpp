@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -155,6 +155,17 @@ char normalize_amino_acid_code( char code, bool accept_degenerated = true );
  * `V = GCA`. If set to `false`, an exception is thrown when degenerated chars are found.
  */
 std::string reverse_complement( std::string const& sequence, bool accept_degenerated = true );
+
+/**
+ * @brief Compare two nucleic acid codes and check if they are equal, taking degenerated/ambiguous
+ * characters into account.
+ *
+ * That is, 'A' and 'W' yield `true`, as 'W' contains 'A' and 'T'.
+ * The order and casing of the input does not matter.
+ * The parameter @p undetermined_matches_all selects how undetermined characters ("NOX.-?") are
+ * treated: if set to `true` (default), they match ALL other chars, if set to `false`, they match none.
+ */
+bool nucleic_acid_code_containment( char a, char b, bool undetermined_matches_all = true );
 
 // =================================================================================================
 //     Color Codes

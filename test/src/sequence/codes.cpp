@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,4 +46,26 @@ TEST( Sequence, CodeAmbiguities )
         auto code_char   = nucleic_acid_ambiguity_code( code_string );
         EXPECT_EQ( code, code_char );
     }
+}
+
+TEST( Sequence, CodeContainment )
+{
+    EXPECT_TRUE( nucleic_acid_code_containment( 'A', 'A' ));
+    EXPECT_TRUE( nucleic_acid_code_containment( 'C', 'C' ));
+    EXPECT_TRUE( nucleic_acid_code_containment( 'G', 'G' ));
+    EXPECT_TRUE( nucleic_acid_code_containment( 'T', 'T' ));
+
+    EXPECT_TRUE( nucleic_acid_code_containment( 'A', 'W' ));
+    EXPECT_TRUE( nucleic_acid_code_containment( 'T', 'W' ));
+    EXPECT_TRUE( nucleic_acid_code_containment( 'C', 'H' ));
+
+    EXPECT_FALSE( nucleic_acid_code_containment( 'C', 'D' ));
+    EXPECT_FALSE( nucleic_acid_code_containment( 'A', 'T' ));
+    EXPECT_FALSE( nucleic_acid_code_containment( 'A', 'Y' ));
+
+    EXPECT_TRUE( nucleic_acid_code_containment( '-', 'C', true ));
+    EXPECT_TRUE( nucleic_acid_code_containment( '-', 'H', true ));
+
+    EXPECT_FALSE( nucleic_acid_code_containment( '-', 'C', false ));
+    EXPECT_FALSE( nucleic_acid_code_containment( '-', 'H', false ));
 }
