@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -340,6 +340,14 @@ public:
      */
     std::pair< std::string, Tree > parse_named_tree( utils::InputStream& input_stream ) const;
 
+    /**
+     * @brief Build a Tree from a NewickBroker.
+     *
+     * This is mainly an internal function, but can be used by other functions that have
+     * a NewickBroker and want to convert it into an actual Tree object.
+     */
+    Tree broker_to_tree( NewickBroker const& broker ) const;
+
     // -------------------------------------------------------------------------
     //     Internal Member Functions
     // -------------------------------------------------------------------------
@@ -360,11 +368,6 @@ private:
      * @brief Parse input and build a broker. Stop after the semicolon.
      */
     NewickBroker parse_tree_to_broker_( utils::InputStream& input_stream ) const;
-
-    /**
-     * @brief Build a Tree from a NewickBroker.
-     */
-    Tree broker_to_tree_( NewickBroker const& broker ) const;
 
     // -------------------------------------------------------------------------
     //     Member Data

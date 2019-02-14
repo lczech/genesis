@@ -229,7 +229,7 @@ std::pair< std::string, Tree > NewickReader::parse_named_tree( utils::InputStrea
     }
 
     // Parse the tree and return it.
-    return { name, broker_to_tree_( parse_tree_to_broker_( input_stream )) };
+    return { name, broker_to_tree( parse_tree_to_broker_( input_stream )) };
 }
 
 // =================================================================================================
@@ -635,7 +635,7 @@ NewickBroker NewickReader::parse_tree_to_broker_( utils::InputStream& input_stre
 //     Broker to Tree
 // =================================================================================================
 
-Tree NewickReader::broker_to_tree_ (
+Tree NewickReader::broker_to_tree (
     NewickBroker const& broker
 ) const {
     Tree tree;
