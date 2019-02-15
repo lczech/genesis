@@ -59,8 +59,8 @@ namespace taxonomy {
  */
 void add_subtaxonomy_(
     Taxonomy const& taxonomy,
-    bool drop_singleton_inner_nodes,
-    bool no_inner_node_names,
+    bool keep_singleton_inner_nodes,
+    bool keep_inner_node_names,
     int max_level,
     int parent_level,
     tree::NewickBroker& broker
@@ -75,13 +75,13 @@ void add_subtaxonomy_(
             // a max level set.
             broker.push_bottom({ taxon.name(), level });
 
-        } else  if( drop_singleton_inner_nodes && taxon.size() == 1 ) {
+        } else if( ! keep_singleton_inner_nodes && taxon.size() == 1 ) {
             // Here, we are at a taxon that only contains a single child taxon, which would
-            // add a branch to the tree that does not furcate in any we. If the option to drop
+            // add a branch to the tree that does not furcate in any way. If the option to drop
             // such entities is set, we simply recurse to the single child, without adding it
             // to the tree.
             add_subtaxonomy_(
-                taxon, drop_singleton_inner_nodes, no_inner_node_names, max_level,
+                taxon, keep_singleton_inner_nodes, keep_inner_node_names, max_level,
                 parent_level, broker
             );
 
@@ -89,13 +89,13 @@ void add_subtaxonomy_(
             // Here, we are in the default case: A taxon to be added to the tree.
             // Whether we set a name or not depends on whether it is an inner one or has children.
             std::string const tax_name = (
-                ( no_inner_node_names && taxon.size() > 0 )
+                ( ! keep_inner_node_names && taxon.size() > 0 )
                 ? ""
                 : taxon.name()
             );
             broker.push_bottom({ tax_name, level });
             add_subtaxonomy_(
-                taxon, drop_singleton_inner_nodes, no_inner_node_names, max_level,
+                taxon, keep_singleton_inner_nodes, keep_inner_node_names, max_level,
                 level, broker
             );
         }
@@ -104,22 +104,26 @@ void add_subtaxonomy_(
 
 tree::Tree taxonomy_to_tree(
     Taxonomy const& taxonomy,
-    bool drop_singleton_inner_nodes,
-    bool no_inner_node_names,
+    bool keep_singleton_inner_nodes,
+    bool keep_inner_node_names,
     int  max_level
 ) {
     using namespace genesis::tree;
 
-    // Make a broker. Add a dummy root node if the top leven of the taxonomy contains multiple
-    // elements.
+    // Make a broker.
+    // Add a dummy root node if the top leven of the taxonomy contains multiple elements.
+    // This is needed as we otherwise do not have a root node in the broker, but multiple,
+    // which is not allowed.
     NewickBroker broker;
     if( taxonomy.size() > 1 ) {
         broker.push_bottom({0});
     }
 
-    // Recursively add taxa. We could
+    // Recursively add taxa. We could try something non-recursive here (see below for an example),
+    // but this makes early stopping for the max level a bit difficult.
+    // Taxonomies are not that deep, so this should not yield any trouble at all.
     add_subtaxonomy_(
-        taxonomy, drop_singleton_inner_nodes, no_inner_node_names, max_level, 1, broker
+        taxonomy, keep_singleton_inner_nodes, keep_inner_node_names, max_level, 1, broker
     );
     broker.assign_ranks();
 
@@ -141,8 +145,8 @@ tree::Tree taxonomy_to_tree(
 tree::Tree taxonomy_to_tree(
     Taxonomy const& taxonomy,
     std::unordered_map<std::string, Taxopath> const& extra_taxa,
-    bool drop_singleton_inner_nodes,
-    bool no_inner_node_names,
+    bool keep_singleton_inner_nodes,
+    bool keep_inner_node_names,
     int  max_level,
     bool add_extra_taxa_parents
 ) {
@@ -170,19 +174,19 @@ tree::Tree taxonomy_to_tree(
         tax->add_child( tp.first );
     }
 
-    return taxonomy_to_tree( copy, drop_singleton_inner_nodes, no_inner_node_names, max_level );
+    return taxonomy_to_tree( copy, keep_singleton_inner_nodes, keep_inner_node_names, max_level );
 }
 
 tree::Tree taxonomy_to_tree(
     std::unordered_map<std::string, Taxopath> const& taxon_map,
-    bool drop_singleton_inner_nodes,
-    bool no_inner_node_names,
+    bool keep_singleton_inner_nodes,
+    bool keep_inner_node_names,
     int  max_level
 ) {
     // Use an empty dummy taxonomy that gets filled as needed.
     Taxonomy tmp;
     return taxonomy_to_tree(
-        tmp, taxon_map, drop_singleton_inner_nodes, no_inner_node_names, max_level, true
+        tmp, taxon_map, keep_singleton_inner_nodes, keep_inner_node_names, max_level, true
     );
 }
 
