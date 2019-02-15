@@ -72,7 +72,7 @@ TEST( Taxonomy, Tree )
     );
 
     // LOG_DBG << "false, true, -1";
-    auto const t2 = taxonomy_to_tree( tax, false, true, -1 );
+    auto const t2 = taxonomy_to_tree( tax, true, false, -1 );
     // LOG_DBG << nw.to_string( t2 );
     // nw.to_file( t2, "/home/lucas/t2.newick" );
     EXPECT_EQ(
@@ -81,7 +81,7 @@ TEST( Taxonomy, Tree )
     );
 
     // LOG_DBG << "true, false, -1";
-    auto const t3 = taxonomy_to_tree( tax, true, false, -1 );
+    auto const t3 = taxonomy_to_tree( tax, false, true, -1 );
     // LOG_DBG << nw.to_string( t3 );
     // nw.to_file( t3, "/home/lucas/t3.newick" );
     EXPECT_EQ(
@@ -90,7 +90,7 @@ TEST( Taxonomy, Tree )
     );
 
     // LOG_DBG << "false, false, 2";
-    auto const t4 = taxonomy_to_tree( tax, false, false, 2 );
+    auto const t4 = taxonomy_to_tree( tax, true, true, 2 );
     // LOG_DBG << nw.to_string( t4 );
     // nw.to_file( t4, "/home/lucas/t4.newick" );
     EXPECT_EQ(

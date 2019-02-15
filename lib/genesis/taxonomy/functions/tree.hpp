@@ -61,11 +61,11 @@ class Taxopath;
  * It might happen that a taxonomic path goes down several levels with just one taxon at each level.
  * This would create inner nodes in the tree that just connect two other nodes, that is, nodes that
  * do not furcate at all. Many downstream programs might have problems with such trees.
- * Hence, @p drop_singleton_inner_nodes can be used to not include these inner nodes in the tree,
+ * Hence, @p keep_singleton_inner_nodes can be used to not include these inner nodes in the tree,
  * and immediately add their children instead.
  *
  * Furthermore, a Taxonomy contains names at every level, while a Tree usually does not contain
- * inner node names. Thus, @p no_inner_node_names leads to not using the inner taxonomic labels
+ * inner node names. Thus, @p keep_inner_node_names leads to not using the inner taxonomic labels
  * in the tree.
  *
  * Lastly, @p max_level can be used to only turn the first few levels (starting at 0) of the
@@ -74,8 +74,8 @@ class Taxopath;
  */
 tree::Tree taxonomy_to_tree(
     Taxonomy const& taxonomy,
-    bool drop_singleton_inner_nodes = true,
-    bool no_inner_node_names = true,
+    bool keep_singleton_inner_nodes = false,
+    bool keep_inner_node_names = false,
     int  max_level = -1
 );
 
@@ -106,8 +106,8 @@ tree::Tree taxonomy_to_tree(
 tree::Tree taxonomy_to_tree(
     Taxonomy const& taxonomy,
     std::unordered_map<std::string, Taxopath> const& extra_taxa,
-    bool drop_singleton_inner_nodes = true,
-    bool no_inner_node_names = true,
+    bool keep_singleton_inner_nodes = false,
+    bool keep_inner_node_names = false,
     int  max_level = -1,
     bool add_extra_taxa_parents = true
 );
@@ -127,8 +127,8 @@ tree::Tree taxonomy_to_tree(
  */
 tree::Tree taxonomy_to_tree(
     std::unordered_map<std::string, Taxopath> const& taxon_map,
-    bool drop_singleton_inner_nodes = true,
-    bool no_inner_node_names = true,
+    bool keep_singleton_inner_nodes = false,
+    bool keep_inner_node_names = false,
     int  max_level = -1
 );
 
