@@ -61,16 +61,16 @@ class Taxopath;
  * It might happen that a taxonomic path goes down several levels with just one taxon at each level.
  * This would create inner nodes in the tree that just connect two other nodes, that is, nodes that
  * do not furcate at all. Many downstream programs might have problems with such trees.
- * Hence, @p keep_singleton_inner_nodes can be used to not include these inner nodes in the tree,
- * and immediately add their children instead.
+ * By default, such nodes are collapsed. @p keep_singleton_inner_nodes can be used to include these
+ * inner nodes in the tree, instead of immediately adding their children.
  *
  * Furthermore, a Taxonomy contains names at every level, while a Tree usually does not contain
- * inner node names. Thus, @p keep_inner_node_names leads to not using the inner taxonomic labels
- * in the tree.
+ * inner node names. Thus, inner node are not named by default. Use @p keep_inner_node_names
+ * to still set the inner taxonomic labels in the tree.
  *
  * Lastly, @p max_level can be used to only turn the first few levels (starting at 0) of the
- * Taxonomy to the tree, and stopping after that. Per default, the whole Taxonomy is turned into
- * a Tree.
+ * Taxonomy to the tree, and stopping after that. By default, the whole Taxonomy (all levels)
+ * is turned into a Tree.
  */
 tree::Tree taxonomy_to_tree(
     Taxonomy const& taxonomy,
@@ -89,7 +89,7 @@ tree::Tree taxonomy_to_tree(
  *
  * This is useful if the Taxonomy is used for a set of sequences that have taxonomic assignments:
  * One might wish to build a tree where tips correspond to sequences, and the tree topology
- * reflects the taxonomy of these sequences. For such a use case, this function can the the
+ * reflects the taxonomy of these sequences. For such a use case, this function can use the
  * Taxonomy of the sequences, as well as a mapping of sequences names to Taxopath%s.
  * The output tree will then contain "extra taxa" that are made up of the sequences names,
  * added as children to the Taxonomy (and hence, added as tips to the tree).
