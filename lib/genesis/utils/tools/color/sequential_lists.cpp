@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     ColorBrewer Diverging Color Lists
+//     Custom Sequential Color Lists
 // =================================================================================================
 
 /**
@@ -52,6 +52,10 @@ const std::vector<Color> color_list_bupubk_ = {{
     { 0.752941176, 0.250980392, 0.745098039 }, // purple     #c040be
     { 0.0, 0.0, 0.0 }                          // black      #000000
 }};
+
+// =================================================================================================
+//     ColorBrewer Sequential Color Lists
+// =================================================================================================
 
 /*
  * These ColorBrewer color palettes are adapted from https://github.com/axismaps/colorbrewer and
@@ -275,6 +279,27 @@ const std::vector<Color> color_list_ylorrd_ = {{
     { 0.988235, 0.305882, 0.164706 }, // medium yellow-orange-red
     { 0.890196, 0.101961, 0.109804 },
     { 0.694118, 0.000000, 0.149020 }, // dark yellow-orange-red
+}};
+
+// =================================================================================================
+//     R Sequential Color Lists
+// =================================================================================================
+
+/*
+ * We only just started adding R color schemes here.
+ * See https://github.com/EmilHvitfeldt/r-color-palettes for a comprehensive list!
+ */
+
+// Inspired by https://github.com/SurajGupta/r-source/blob/master/src/library/grDevices/R/colorstuff.R
+const std::vector<Color> color_list_heat_ = {{
+    { 1.000000, 1.000000, 1.000000 }, // white
+    { 1.000000, 1.000000, 0.500000 },
+    { 1.000000, 1.000000, 0.000000 }, // pure yellow
+    { 1.000000, 0.800000, 0.000000 },
+    { 1.000000, 0.600000, 0.000000 }, // orange
+    { 1.000000, 0.400000, 0.000000 },
+    { 1.000000, 0.200000, 0.000000 },
+    { 1.000000, 0.000000, 0.000000 }  // red
 }};
 
 // =================================================================================================
@@ -1473,6 +1498,11 @@ std::vector<Color> const& color_list_ylorrd()
     return color_list_ylorrd_;
 }
 
+std::vector<Color> const& color_list_heat()
+{
+    return color_list_heat_;
+}
+
 std::vector<Color> const& color_list_magma()
 {
     return  color_list_magma_;
@@ -1556,6 +1586,9 @@ std::vector<Color> const& sequential_color_list( SequentialColorList palette )
     if( palette == SequentialColorList::kYlorrd ) {
         return color_list_ylorrd_;
     }
+    if( palette == SequentialColorList::kHeat ) {
+        return color_list_heat_;
+    }
     if( palette == SequentialColorList::kMagma ) {
         return color_list_magma_;
     }
@@ -1633,6 +1666,9 @@ std::vector<Color> const& sequential_color_list( std::string const& palette )
     if( p == "ylorrd" ) {
         return color_list_ylorrd_;
     }
+    if( p == "heat" ) {
+        return color_list_heat_;
+    }
     if( p == "magma" ) {
         return color_list_magma_;
     }
@@ -1671,6 +1707,7 @@ std::vector<std::string> sequential_color_list_names()
         "YlGnBu",
         "YlOrBr",
         "YlOrRd",
+        "Heat",
         "Magma",
         "Inferno",
         "Plasma",
