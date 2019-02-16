@@ -48,12 +48,12 @@ struct GlmExtras
 {
     std::vector<double> initial_fittings;
     std::vector<double> prior_weights;
+    bool                with_intercept = true;
 
     /**
      * @brief Strata assignments coded `1...S`.
      */
     std::vector<size_t> strata;
-    bool                with_intercept = true;
 
     enum ResidualType
     {
@@ -63,6 +63,16 @@ struct GlmExtras
     };
 
     ResidualType residual_type = ResidualType::kDefault;
+
+    /**
+     * @brief Calculate mean `null_deviance` and mean `deviance` instead of their sums.
+     *
+     * By default, (`mean_deviance = false`), we calculate the `null_deviance` and `deviance`
+     * as the sum of unit deviances (see GlmFamily::unit_deviance). If we however set
+     * `mean_deviance = true`, we divide these values by the number of data points,
+     * that is, we calculate their mean.
+     */
+    bool         mean_deviance = false;
 };
 
 struct GlmControl

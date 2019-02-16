@@ -475,6 +475,9 @@ GlmOutput glm_fit(
             }
         }
     }
+    if( extras.mean_deviance ) {
+        result.null_deviance /= static_cast<double>(N);
+    }
 
     // If X has data, include covariates
     if( M > 0 ) {
@@ -493,6 +496,9 @@ GlmOutput glm_fit(
             if( std::isfinite( ud )) {
                 result.deviance += ud;
             }
+        }
+        if( extras.mean_deviance ) {
+            result.deviance /= static_cast<double>(N);
         }
 
     } else {
