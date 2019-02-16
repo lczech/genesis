@@ -253,6 +253,7 @@ utils::SvgDocument heat_tree(
     auto const svg_matrix_left = svg_doc.bounding_box().width() + 20.0;
     auto const svg_matrix_width = svg_matrix.bounding_box().width();
     svg_doc << std::move( svg_matrix );
+    svg_doc.margin.right += svg_matrix_width + 200;
 
     // Add color scale for the matrix.
     if( ! matrix_color_map.empty() ) {
