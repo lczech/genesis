@@ -66,7 +66,7 @@ Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
 
             // User output.
             auto const mm = std::minmax_element( dbl_col.begin(), dbl_col.end() );
-            ss << i << ": \"" << df[i].name() << "\" <number> (min: " << ( *mm.first );
+            ss << i << ": \"" << df[i].name() << "\" (numerical, min: " << ( *mm.first );
             ss << ", max: " << ( *mm.second ) << ")\n";
 
         } else if( df[i].is<std::string>() ) {
@@ -88,7 +88,7 @@ Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
 
                 // User output.
                 assert( bool_col.size() >= true_cnt );
-                ss << i << ": \"" << df[i].name() << "\" <bool> (true: " << ( true_cnt );
+                ss << i << ": \"" << df[i].name() << "\" (binary, true: " << ( true_cnt );
                 ss << ", false: " << ( bool_col.size() - true_cnt ) << ")\n";
 
             } else if( is_convertible_to_double( df_col.begin(), df_col.end() )) {
@@ -98,7 +98,7 @@ Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
 
                 // User output.
                 auto const mm = std::minmax_element( col.begin(), col.end() );
-                ss << i << ": \"" << df[i].name() << "\" <number> (min: " << ( *mm.first );
+                ss << i << ": \"" << df[i].name() << "\" (numerical, min: " << ( *mm.first );
                 ss << ", max: " << ( *mm.second ) << ")\n";
 
             } else {
@@ -115,7 +115,7 @@ Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
                 }
 
                 // User output.
-                ss << i << ": \"" << df[i].name() << "\" <factor> (factors: ";
+                ss << i << ": \"" << df[i].name() << "\" (categorical, levels: ";
                 ss << fact.levels.size() << ")\n";
             }
 
