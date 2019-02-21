@@ -238,7 +238,7 @@ PhyloFactor phylo_factor_find_best_edge(
         assert( p_indices.count( edge.index() ) == 0 );
 
         // Calculate the balances of this edge for all trees.
-        auto const balances = mass_balance( data, p_indices, s_indices );
+        auto const balances = mass_balance( data, s_indices, p_indices );
 
         // Calculate the objective function, and store it in the result.
         auto const ov = objective( balances );

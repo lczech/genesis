@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -194,19 +194,19 @@ utils::Matrix<double> edge_balances(
         }
 
         // Get the indices of the edges in the two subtrees away from the given edge.
-        auto lhs_indices = get_subtree_indices_({ edge.primary_link() });
-        auto rhs_indices = get_subtree_indices_({ edge.secondary_link() });
+        auto p_indices = get_subtree_indices_({ edge.primary_link() });
+        auto s_indices = get_subtree_indices_({ edge.secondary_link() });
 
         // After that, we should have all edges of the tree except one.
-        assert( lhs_indices.size() + rhs_indices.size() == data.tree.edge_count() - 1 );
+        assert( p_indices.size() + s_indices.size() == data.tree.edge_count() - 1 );
 
         // If needed, flip lhs and rhs.
         if( reverse_signs ) {
-            std::swap( lhs_indices, rhs_indices );
+            std::swap( p_indices, s_indices );
         }
 
         // Calculate and store the balance for all rows (trees) of the data.
-        result.col( edge_idx ) = mass_balance( data, lhs_indices, rhs_indices );
+        result.col( edge_idx ) = mass_balance( data, s_indices, p_indices );
     }
 
     return result;
