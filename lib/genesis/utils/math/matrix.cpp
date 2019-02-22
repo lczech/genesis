@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -163,6 +163,11 @@ std::vector<size_t> filter_constant_columns( utils::Matrix<double>& data, double
     // Store which columns to keep, by index.
     std::vector<size_t> keep_cols;
     for( size_t c = 0; c < data.cols(); ++c ) {
+        // Non finite columns are left out in any case.
+        if( ! std::isfinite( col_minmax[c].min ) || ! std::isfinite( col_minmax[c].max )) {
+            continue;
+        }
+
         assert( col_minmax[c].min <= col_minmax[c].max );
         if (( col_minmax[c].max - col_minmax[c].min ) > epsilon ) {
             keep_cols.push_back( c );
