@@ -49,6 +49,43 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//     Static Assersions
+// =================================================================================================
+
+// We need to make sure that doubles and their infinities behave the way we expect!
+
+static_assert(
+    std::numeric_limits<double>::is_iec559,
+    "IEC 559/IEEE 754 floating-point types required (wrong double type)."
+);
+static_assert(
+    std::numeric_limits<double>::has_infinity,
+    "IEC 559/IEEE 754 floating-point types required (does not have infinity)."
+);
+static_assert(
+    std::numeric_limits<double>::has_quiet_NaN,
+    "IEC 559/IEEE 754 floating-point types required (does not have quite NaN)."
+);
+static_assert(
+    std::isinf( - std::numeric_limits<double>::infinity() ),
+    "IEC 559/IEEE 754 floating-point types required (infinity is not working properly)."
+);
+static_assert(
+    - std::numeric_limits<double>::infinity() < std::numeric_limits<double>::lowest(),
+    "IEC 559/IEEE 754 floating-point types required (infinity is not the lowest value)."
+);
+
+// Clang fails to compile these as const expr. Well, the above tests should suffice anyway.
+// static_assert(
+//     std::isinf( -1 * std::numeric_limits<double>::infinity()),
+//     "IEC 559/IEEE 754 floating-point types required."
+// );
+// static_assert(
+//     -1 * std::numeric_limits<double>::infinity() < std::numeric_limits<double>::lowest(),
+//     "IEC 559/IEEE 754 floating-point types required."
+// );
+
+// =================================================================================================
 //     Structures and Classes
 // =================================================================================================
 

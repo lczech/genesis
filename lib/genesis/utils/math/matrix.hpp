@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,8 @@
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/math/statistics.hpp"
 
+#include <cmath>
+#include <limits>
 #include <vector>
 
 namespace genesis {
@@ -46,23 +48,42 @@ namespace utils {
 /**
  * @brief Calculate the min and max values of a Matrix.
  *
+ * If @p ignore_non_finite_values is `true` (default), non-finite values are ignored.
  * See also matrix_col_minmax() and matrix_row_minmax().
  */
 template< typename T >
-MinMaxPair<T> matrix_minmax( Matrix<T> const& data )
+MinMaxPair<T> matrix_minmax( Matrix<T> const& data, bool ignore_non_finite_values = true )
 {
     // Edge case
     if( data.rows() == 0 || data.cols() == 0 ) {
-        return { 0.0, 0.0 };
+        return {
+            std::numeric_limits<double>::quiet_NaN(),
+            std::numeric_limits<double>::quiet_NaN()
+        };
     }
 
     // Init with first element
-    auto ret = MinMaxPair<T>{ data( 0, 0 ), data( 0, 0 ) };
+    auto ret = MinMaxPair<T>{
+        std::numeric_limits<double>::infinity(),
+        - std::numeric_limits<double>::infinity()
+    };
 
     // Iterate
+    size_t cnt = 0;
     for( auto const& e : data ) {
-        ret.min = std::min( ret.min, e );
-        ret.max = std::max( ret.max, e );
+        if( std::isfinite( e ) || ! ignore_non_finite_values ) {
+            ret.min = std::min( ret.min, e );
+            ret.max = std::max( ret.max, e );
+            ++cnt;
+        }
+    }
+
+    // If we found no valid values at all, return nan.
+    if( cnt == 0 ) {
+        return {
+            std::numeric_limits<double>::quiet_NaN(),
+            std::numeric_limits<double>::quiet_NaN()
+        };
     }
 
     return ret;
@@ -71,32 +92,43 @@ MinMaxPair<T> matrix_minmax( Matrix<T> const& data )
 /**
  * @brief Calculate the column-wise min and max values of a Matrix.
  *
+ * If @p ignore_non_finite_values is `true` (default), non-finite values are ignored.
  * See also matrix_row_minmax() and matrix_minmax().
  */
 template< typename T >
-std::vector<MinMaxPair<T>> matrix_col_minmax( Matrix<T> const& data )
+std::vector<MinMaxPair<T>> matrix_col_minmax( Matrix<T> const& data, bool ignore_non_finite_values = true )
 {
-    auto ret = std::vector<MinMaxPair<T>>( data.cols(), { 0.0, 0.0 } );
+    auto ret = std::vector<MinMaxPair<T>>( data.cols(), {
+        std::numeric_limits<double>::quiet_NaN(),
+        std::numeric_limits<double>::quiet_NaN()
+    });
 
     // Nothing to do.
     if( data.rows() == 0 ) {
         return ret;
     }
 
-    // Init with the first row.
+    // Iterate
     for( size_t c = 0; c < data.cols(); ++c ) {
-        ret[ c ].min = data( 0, c );
-        ret[ c ].max = data( 0, c );
-    }
+        ret[ c ].min = std::numeric_limits<double>::infinity();
+        ret[ c ].max = - std::numeric_limits<double>::infinity();
 
-    // Now go through all other rows.
-    // Our Matrix is row-major, so this way we make best use of the cache.
-    for( size_t r = 1; r < data.rows(); ++r ) {
-        for( size_t c = 0; c < data.cols(); ++c ) {
+        size_t cnt = 0;
+        for( size_t r = 0; r < data.rows(); ++r ) {
 
-            // Find min and max of the column.
-            ret[ c ].min = std::min( ret[ c ].min, data( r, c ) );
-            ret[ c ].max = std::max( ret[ c ].max, data( r, c ) );
+            // Find min and max of the column. If the value is not finite, skip it.
+            auto const& e = data( r, c );
+            if( std::isfinite( e ) || ! ignore_non_finite_values ) {
+                ret[ c ].min = std::min( ret[ c ].min, data( r, c ) );
+                ret[ c ].max = std::max( ret[ c ].max, data( r, c ) );
+                ++cnt;
+            }
+        }
+
+        // If we found no valid values at all, return nan.
+        if( cnt == 0 ) {
+            ret[ c ].min = std::numeric_limits<double>::quiet_NaN();
+            ret[ c ].max = std::numeric_limits<double>::quiet_NaN();
         }
     }
 
@@ -106,12 +138,16 @@ std::vector<MinMaxPair<T>> matrix_col_minmax( Matrix<T> const& data )
 /**
 * @brief Calculate the row-wise min and max values of a Matrix.
 *
+* If @p ignore_non_finite_values is `true` (default), non-finite values are ignored.
 * See also matrix_col_minmax() and matrix_minmax().
 */
 template< typename T >
-std::vector<MinMaxPair<T>> matrix_row_minmax( Matrix<T> const& data )
+std::vector<MinMaxPair<T>> matrix_row_minmax( Matrix<T> const& data, bool ignore_non_finite_values = true )
 {
-    auto ret = std::vector<MinMaxPair<T>>( data.rows(), { 0.0, 0.0 } );
+    auto ret = std::vector<MinMaxPair<T>>( data.rows(), {
+        std::numeric_limits<double>::quiet_NaN(),
+        std::numeric_limits<double>::quiet_NaN()
+    });
 
     // Nothing to do.
     if( data.cols() == 0 ) {
@@ -120,13 +156,24 @@ std::vector<MinMaxPair<T>> matrix_row_minmax( Matrix<T> const& data )
 
     for( size_t r = 0; r < data.rows(); ++r ) {
         // Init with the first col.
-        ret[ r ].min = data( r, 0 );
-        ret[ r ].max = data( r, 0 );
+        ret[ r ].min = std::numeric_limits<double>::infinity();
+        ret[ r ].max = - std::numeric_limits<double>::infinity();
 
-        // Go through all other cols.
-        for( size_t c = 1; c < data.cols(); ++c ) {
-            ret[ r ].min = std::min( ret[ r ].min, data( r, c ) );
-            ret[ r ].max = std::max( ret[ r ].max, data( r, c ) );
+        // Go through all other cols. If the value is not finite, skip it.
+        size_t cnt = 0;
+        for( size_t c = 0; c < data.cols(); ++c ) {
+            auto const& e = data( r, c );
+            if( std::isfinite( e ) || ! ignore_non_finite_values ) {
+                ret[ r ].min = std::min( ret[ r ].min, data( r, c ) );
+                ret[ r ].max = std::max( ret[ r ].max, data( r, c ) );
+                ++cnt;
+            }
+        }
+
+        // If we found no valid values at all, return nan.
+        if( cnt == 0 ) {
+            ret[ r ].min = std::numeric_limits<double>::quiet_NaN();
+            ret[ r ].max = std::numeric_limits<double>::quiet_NaN();
         }
     }
 
@@ -136,15 +183,18 @@ std::vector<MinMaxPair<T>> matrix_row_minmax( Matrix<T> const& data )
 /**
  * @brief Calculate the sum of all elements in a Matrix.
  *
+ * If @p ignore_non_finite_values is `true` (default), non-finite values are ignored.
  * See also matrix_col_sums() and matrix_row_sums().
  */
 template< typename T >
-T matrix_sum( Matrix<T> const& data )
+T matrix_sum( Matrix<T> const& data, bool ignore_non_finite_values = true )
 {
     // Get row sums.
     auto sum = T{};
     for( auto const& e : data ) {
-        sum += e;
+        if( std::isfinite( e ) || ! ignore_non_finite_values ) {
+            sum += e;
+        }
     }
     return sum;
 }
@@ -152,16 +202,20 @@ T matrix_sum( Matrix<T> const& data )
 /**
  * @brief Calculate the sum of each row and return the result as a vector.
  *
+ * If @p ignore_non_finite_values is `true` (default), non-finite values are ignored.
  * See also matrix_col_sums() and matrix_sum().
  */
 template< typename T >
-std::vector<T> matrix_row_sums( Matrix<T> const& data )
+std::vector<T> matrix_row_sums( Matrix<T> const& data, bool ignore_non_finite_values = true )
 {
     // Get row sums.
     auto row_sums = std::vector<T>( data.rows(), T{} );
     for( size_t i = 0; i < data.rows(); ++i ) {
         for( size_t j = 0; j < data.cols(); ++j ) {
-            row_sums[ i ] += data( i, j );
+            auto const& e = data( i, j );
+            if( std::isfinite( e ) || ! ignore_non_finite_values ) {
+                row_sums[ i ] += e;
+            }
         }
     }
     return row_sums;
@@ -170,16 +224,20 @@ std::vector<T> matrix_row_sums( Matrix<T> const& data )
 /**
  * @brief Calculate the sum of each column and return the result as a vector.
  *
+ * If @p ignore_non_finite_values is `true` (default), non-finite values are ignored.
  * See also matrix_row_sums() and matrix_sum().
  */
 template< typename T >
-std::vector<T> matrix_col_sums( Matrix<T> const& data )
+std::vector<T> matrix_col_sums( Matrix<T> const& data, bool ignore_non_finite_values = true )
 {
     // Get col sums.
     auto col_sums = std::vector<T>( data.cols(), T{} );
     for( size_t i = 0; i < data.rows(); ++i ) {
         for( size_t j = 0; j < data.cols(); ++j ) {
-            col_sums[ j ] += data( i, j );
+            auto const& e = data( i, j );
+            if( std::isfinite( e ) || ! ignore_non_finite_values ) {
+                col_sums[ j ] += e;
+            }
         }
     }
     return col_sums;
