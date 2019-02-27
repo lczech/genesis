@@ -552,6 +552,14 @@ public:
         swap( col_names_,  other.col_names_ );
         swap( row_lookup_, other.row_lookup_ );
         swap( col_lookup_, other.col_lookup_ );
+
+        // Need to swap dataframe pointers of the columns as well!
+        for( size_t i = 0; i < columns_.size(); ++i ) {
+            columns_[i]->df_ = this;
+        }
+        for( size_t i = 0; i < other.columns_.size(); ++i ) {
+            other.columns_[i]->df_ = &other;
+        }
     }
 
     /**
