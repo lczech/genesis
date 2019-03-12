@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -212,15 +212,18 @@ std::vector<size_t> get_subtree_edges( TreeLink const& subtree )
 std::vector<size_t> find_monophyletic_subtree_edges(
     Tree const& tree,
     std::vector<Bipartition> const& bips,
-    std::vector<TreeNode const*> nodes
+    std::vector<TreeNode const*> nodes,
+    bool include_splitting_edges,
+    bool include_leaf_edges
 ) {
     // Result. We use a bitvec of the edges that we want, to save space.
     auto result_edges = utils::Bitvector( tree.edge_count() );
 
     // Helper funciton to set result edges of a bipartition.
-    auto set_result_edges = [ &result_edges ]( Bipartition const& bip ){
+    auto set_result_edges = [&]( Bipartition const& bip ){
 
-        // Add all subtree edges via custom traversal
+        // Add all subtree edges via custom traversal.
+        // (We do have preorder traversal for subtrees not, could use that. But too lazy right now...)
         using Preorder = IteratorPreorder< true >;
         for(
             auto it = Preorder( bip.link().next() );
@@ -235,7 +238,9 @@ std::vector<size_t> find_monophyletic_subtree_edges(
 
         // Also add the edge of the split itself. This is necessary for leaves,
         // but also we want to consider inner branches to be part of the clade.
-        result_edges.set( bip.link().edge().index() );
+        if( include_splitting_edges || ( include_leaf_edges && is_leaf( bip.link().edge() ) )) {
+            result_edges.set( bip.link().edge().index() );
+        }
     };
 
     // Get the bitvec that represets the leaf nodes we are looking for.
