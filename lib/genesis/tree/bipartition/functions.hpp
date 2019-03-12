@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -60,11 +60,23 @@ std::vector<size_t> get_subtree_edges( TreeLink const& subtree );
 /**
  * @brief Find clades of the tree that are monophyletic with respect to the given list of nodes,
  * that is, clades that only contain nodes from that list. Retun all edge indices of those clades.
+ *
+ * If @p include_splitting_edge is `true` (default), the edges that separate each clade from the
+ * rest of the tree are also included. This is particularly important for edges leading to a
+ * leaf/tip of the tree: If set to `false`, those edges are not included, meaning that
+ * the respective node does not contribute to the result at all.
+ *
+ * In order to solve/refine this, that is to *not* include the splitting edge of larger clades,
+ * but still include an edge that leads to a single leaf node (if this node is not part of any
+ * larger clade), the additional parameter @p include_leaf_edges can be used.
+ * It also defaults to `true`, meaning that those edges are included by default.
  */
 std::vector<size_t> find_monophyletic_subtree_edges(
     Tree const& tree,
     std::vector<Bipartition> const& bipartitions,
-    std::vector<TreeNode const*> nodes
+    std::vector<TreeNode const*> nodes,
+    bool include_splitting_edges = true,
+    bool include_leaf_edges = true
 );
 
 /**
