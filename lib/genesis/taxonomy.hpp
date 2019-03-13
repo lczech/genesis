@@ -44,6 +44,7 @@
 #include "genesis/taxonomy/functions/ranks.hpp"
 #include "genesis/taxonomy/functions/taxonomy.hpp"
 #include "genesis/taxonomy/functions/taxopath.hpp"
+#include "genesis/taxonomy/functions/tree.hpp"
 #include "genesis/taxonomy/iterator/levelorder.hpp"
 #include "genesis/taxonomy/iterator/postorder.hpp"
 #include "genesis/taxonomy/iterator/preorder.hpp"
