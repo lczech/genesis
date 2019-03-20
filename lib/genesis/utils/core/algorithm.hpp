@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 #include <cmath>
 #include <functional>
 #include <numeric>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -57,6 +58,25 @@ template<class C, class T>
 inline bool contains(const C& v, const T& x)
 {
     return std::end(v) != std::find(std::begin(v), std::end(v), x);
+}
+
+/**
+ * @brief Return whether a container contains duplicates.
+ *
+ * The container does not need to be sorted.
+ * For speed, the function internally copies the elements of the container.
+ */
+template<class C>
+inline bool contains_duplicates( C const& v )
+{
+    auto test = std::unordered_set< typename C::value_type >();
+    for( auto const& e : v ) {
+        if( test.count(e) > 0 ) {
+            return true;
+        }
+        test.insert(e);
+    }
+    return false;
 }
 
 /**

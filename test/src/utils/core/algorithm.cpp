@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,4 +55,13 @@ TEST( Algorithm, SortIndices )
     for( size_t i = 0; i < act_greater_order.size(); ++i ) {
         EXPECT_EQ( exp_greater_order[i], list[ act_greater_order[i] ] );
     }
+}
+
+
+TEST( Algorithm, ContainsDuplicates )
+{
+    auto list = std::vector<int>({ 3, 100, -1, 0, 13, 42, -32 });
+    EXPECT_FALSE( contains_duplicates( list ));
+    list.push_back( 100 );
+    EXPECT_TRUE( contains_duplicates( list ));
 }
