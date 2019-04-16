@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -78,18 +78,52 @@ public:
     //     Properties
     // -------------------------------------------------------------------------
 
-    std::string const& label() const;
-    void               label( std::string const& value );
+    std::string const& label() const
+    {
+        return label_;
+    }
 
-    std::string const& sites() const;
-    void               sites( std::string const& value );
-    void               sites( std::string &&     value );
-    std::string&       sites();
+    void label( std::string const& value )
+    {
+        label_ = value;
+    }
 
-    size_t abundance() const;
-    void   abundance( size_t value );
+    std::string const& sites() const
+    {
+        return sites_;
+    }
 
-    void clear();
+    void sites( std::string const& value )
+    {
+        sites_ = value;
+    }
+
+    void sites( std::string && value )
+    {
+        sites_ = std::move(value);
+    }
+
+    std::string& sites()
+    {
+        return sites_;
+    }
+
+    size_t abundance() const
+    {
+        return abundance_;
+    }
+
+    void abundance( size_t value )
+    {
+        abundance_ = value;
+    }
+
+    void clear()
+    {
+        label_     = "";
+        sites_     = "";
+        abundance_ = 1;
+    }
 
     // -------------------------------------------------------------------------
     //     Accessors
@@ -98,31 +132,72 @@ public:
     /**
     * @brief Return the length (number of sites) of this sequence.
     */
-    size_t length() const;
+    size_t length() const
+    {
+        return sites_.size();
+    }
 
     /**
      * @brief Alias for length().
      */
-    size_t size() const;
+    size_t size() const
+    {
+        return sites_.size();
+    }
 
-    char& site_at( size_t index );
-    char  site_at( size_t index ) const;
+    char& site_at( size_t index )
+    {
+        return sites_.at(index);
+    }
 
-    char& operator [] (size_t index);
-    char  operator [] (size_t index) const;
+    char site_at( size_t index ) const
+    {
+        return sites_.at(index);
+    }
+
+    char& operator [] (size_t index)
+    {
+        return sites_[index];
+    }
+
+    char  operator [] (size_t index) const
+    {
+        return sites_[index];
+    }
 
     // -------------------------------------------------------------------------
     //     Iterators
     // -------------------------------------------------------------------------
 
-    iterator begin();
-    iterator end();
+    iterator begin()
+    {
+        return sites_.begin();
+    }
 
-    const_iterator begin() const;
-    const_iterator end() const;
+    iterator end()
+    {
+        return sites_.end();
+    }
 
-    const_iterator cbegin() const;
-    const_iterator cend() const;
+    const_iterator begin() const
+    {
+        return sites_.cbegin();
+    }
+
+    const_iterator end() const
+    {
+        return sites_.cend();
+    }
+
+    const_iterator cbegin() const
+    {
+        return sites_.cbegin();
+    }
+
+    const_iterator cend() const
+    {
+        return sites_.cend();
+    }
 
     // -------------------------------------------------------------------------
     //     Data Members
