@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ std::vector<std::string> node_names(
             continue;
         }
         auto const name = node.data<CommonNodeData>().name;
-        if( name == "" ) {
+        if( name.empty() ) {
             continue;
         }
         names.push_back( std::move( name ));
@@ -126,13 +126,21 @@ double length(Tree const& tree)
 
 double height(Tree const& tree)
 {
+    if( tree.empty() ) {
+        return 0.0;
+    }
     auto dists = node_branch_length_distance_vector(tree);
     return *std::max_element(dists.begin(), dists.end());
 }
 
 double diameter( Tree const& tree )
 {
+    if( tree.empty() ) {
+        return 0.0;
+    }
     auto dist_mat = node_branch_length_distance_matrix( tree );
+    assert( ! dist_mat.empty() );
+    assert( dist_mat.rows() == dist_mat.cols() );
     return *std::max_element( dist_mat.begin(), dist_mat.end() );
 }
 

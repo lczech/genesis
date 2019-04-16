@@ -229,7 +229,9 @@ std::pair< std::string, Tree > NewickReader::parse_named_tree( utils::InputStrea
     }
 
     // Parse the tree and return it.
-    return { name, broker_to_tree( parse_tree_to_broker_( input_stream )) };
+    auto broker = parse_tree_to_broker_( input_stream );
+    auto tree = broker_to_tree_destructive( broker );
+    return { name, std::move( tree ) };
 }
 
 // =================================================================================================
@@ -635,17 +637,46 @@ NewickBroker NewickReader::parse_tree_to_broker_( utils::InputStream& input_stre
 //     Broker to Tree
 // =================================================================================================
 
-Tree NewickReader::broker_to_tree (
-    NewickBroker const& broker
-) const {
+Tree NewickReader::broker_to_tree( NewickBroker const& broker ) const
+{
+    // Prepare result and intermediate data.
     Tree tree;
-
-    auto& links = tree.expose_link_container();
-    auto& nodes = tree.expose_node_container();
-    auto& edges = tree.expose_edge_container();
-
     std::vector< TreeLink* > link_stack;
+    broker_to_tree_prepare_( broker, tree );
 
+    // Iterate over all nodes of the tree broker.
+    for( auto b_itr = broker.cbegin(); b_itr != broker.cend(); ++b_itr ) {
+        broker_to_tree_element_( *b_itr, link_stack, tree );
+    }
+    assert(link_stack.empty());
+
+    // Finish the work.
+    broker_to_tree_finish_( tree );
+    return tree;
+}
+
+Tree NewickReader::broker_to_tree_destructive( NewickBroker& broker ) const
+{
+    // Prepare result and intermediate data.
+    Tree tree;
+    std::vector< TreeLink* > link_stack;
+    broker_to_tree_prepare_( broker, tree );
+
+    // Iterate over all nodes of the tree broker,
+    // then delete the element from the broker to save space.
+    while( ! broker.empty() ) {
+        broker_to_tree_element_( broker.top(), link_stack, tree );
+        broker.pop_top();
+    }
+    assert(link_stack.empty());
+
+    // Finish the work.
+    broker_to_tree_finish_( tree );
+    return tree;
+}
+
+void NewickReader::broker_to_tree_prepare_( NewickBroker const& broker, Tree& tree ) const
+{
     // we need the ranks (number of immediate children) of all nodes
     broker.assign_ranks();
 
@@ -653,105 +684,119 @@ Tree NewickReader::broker_to_tree (
     for( auto const& prepare_plugin : prepare_reading_plugins ) {
         prepare_plugin( broker, tree );
     }
+}
 
-    // iterate over all nodes of the tree broker
-    for (auto b_itr = broker.cbegin(); b_itr != broker.cend(); ++b_itr) {
-        NewickBrokerElement const& broker_node = *b_itr;
+void NewickReader::broker_to_tree_element_(
+    NewickBrokerElement const& broker_node,
+    std::vector<TreeLink*>& link_stack,
+    Tree& tree
+) const {
+    // Shortcut to tree containers.
+    auto& links = tree.expose_link_container();
+    auto& nodes = tree.expose_node_container();
+    auto& edges = tree.expose_edge_container();
 
-        // create the tree node for this broker node
-        auto cur_node_u  = utils::make_unique< TreeNode >();
-        auto cur_node    = cur_node_u.get();
-        cur_node->reset_index( nodes.size() );
+    // create the tree node for this broker node
+    auto cur_node_u  = utils::make_unique< TreeNode >();
+    auto cur_node    = cur_node_u.get();
+    cur_node->reset_index( nodes.size() );
+
+    // Create data pointer, if there is a suitable function. Otherwise, data is
+    // simply a nullptr, i.e., there is no data.
+    if( create_node_data_plugin ) {
+        create_node_data_plugin( *cur_node );
+    }
+
+    // Call all node plugins.
+    for( auto const& node_plugin : element_to_node_plugins ) {
+        node_plugin( broker_node, *cur_node );
+    }
+
+    // Add the node.
+    nodes.push_back(std::move(cur_node_u));
+
+    // create the link that points towards the root.
+    // this link is created for every node, root, inner and leaves.
+    auto up_link_u  = utils::make_unique< TreeLink >();
+    auto up_link    = up_link_u.get();
+    up_link->reset_node( cur_node );
+    cur_node->reset_primary_link( up_link );
+    up_link->reset_index( links.size() );
+    links.push_back(std::move(up_link_u));
+
+    // establish the link towards the root
+    if (link_stack.empty()) {
+        // if the link stack is empty, we are currently at the very beginning of this loop,
+        // which means we are at the root itself. in this case, make the "link towards the root"
+        // point to itself.
+        up_link->reset_outer( up_link );
+    } else {
+        // if we are however in some other node (leaf or inner, but not the root), we establish
+        // the link "upwards" to the root, and back from there.
+        up_link->reset_outer( link_stack.back() );
+        link_stack.back()->reset_outer( up_link );
+
+        // also, create an edge that connects both nodes
+        auto up_edge = utils::make_unique< TreeEdge >(
+            edges.size(),
+            link_stack.back(),
+            up_link
+        );
+
+        up_link->reset_edge( up_edge.get() );
+        link_stack.back()->reset_edge( up_edge.get() );
 
         // Create data pointer, if there is a suitable function. Otherwise, data is
         // simply a nullptr, i.e., there is no data.
-        if( create_node_data_plugin ) {
-            create_node_data_plugin( *cur_node );
+        if( create_edge_data_plugin ) {
+            create_edge_data_plugin( *up_edge );
         }
 
-        // Call all node plugins.
-        for( auto const& node_plugin : element_to_node_plugins ) {
-            node_plugin( broker_node, *cur_node );
+        // Call all edge plugins.
+        for( auto const& edge_plugin : element_to_edge_plugins ) {
+            edge_plugin( broker_node, *up_edge );
         }
 
-        // Add the node.
-        nodes.push_back(std::move(cur_node_u));
+        // Add the edge.
+        edges.push_back(std::move(up_edge));
 
-        // create the link that points towards the root.
-        // this link is created for every node, root, inner and leaves.
-        auto up_link_u  = utils::make_unique< TreeLink >();
-        auto up_link    = up_link_u.get();
-        up_link->reset_node( cur_node );
-        cur_node->reset_primary_link( up_link );
-        up_link->reset_index( links.size() );
-        links.push_back(std::move(up_link_u));
-
-        // establish the link towards the root
-        if (link_stack.empty()) {
-            // if the link stack is empty, we are currently at the very beginning of this loop,
-            // which means we are at the root itself. in this case, make the "link towards the root"
-            // point to itself.
-            up_link->reset_outer( up_link );
-        } else {
-            // if we are however in some other node (leaf or inner, but not the root), we establish
-            // the link "upwards" to the root, and back from there.
-            up_link->reset_outer( link_stack.back() );
-            link_stack.back()->reset_outer( up_link );
-
-            // also, create an edge that connects both nodes
-            auto up_edge = utils::make_unique< TreeEdge >(
-                edges.size(),
-                link_stack.back(),
-                up_link
-            );
-
-            up_link->reset_edge( up_edge.get() );
-            link_stack.back()->reset_edge( up_edge.get() );
-
-            // Create data pointer, if there is a suitable function. Otherwise, data is
-            // simply a nullptr, i.e., there is no data.
-            if( create_edge_data_plugin ) {
-                create_edge_data_plugin( *up_edge );
-            }
-
-            // Call all edge plugins.
-            for( auto const& edge_plugin : element_to_edge_plugins ) {
-                edge_plugin( broker_node, *up_edge );
-            }
-
-            // Add the edge.
-            edges.push_back(std::move(up_edge));
-
-            // we can now delete the head of the stack, because we just estiablished its "downlink"
-            // and thus are done with it
-            link_stack.pop_back();
-        }
-
-        // in the following, we create the links that will connect to the nodes' children.
-        // for leaf nodes, this makes the next pointer point to the node itself (the loop
-        // is never executed in this case, as leaves have rank 0).
-        // for inner nodes, we create as many "down" links as they have children. each of them
-        // is pushed to the stack, so that for the next broker nodes they are available as
-        // reciever for the "up" links.
-        // in summary, make all next pointers of a node point to each other in a circle.
-        auto prev_link = up_link;
-        for (int i = 0; i < broker_node.rank(); ++i) {
-            auto down_link = utils::make_unique< TreeLink >();
-            prev_link->reset_next( down_link.get() );
-            prev_link = down_link.get();
-
-            down_link->reset_node( cur_node );
-            down_link->reset_index( links.size() );
-            link_stack.push_back(down_link.get());
-            links.push_back(std::move(down_link));
-        }
-        prev_link->reset_next( up_link );
+        // we can now delete the head of the stack, because we just estiablished its "downlink"
+        // and thus are done with it
+        link_stack.pop_back();
     }
+
+    // in the following, we create the links that will connect to the nodes' children.
+    // for leaf nodes, this makes the next pointer point to the node itself (the loop
+    // is never executed in this case, as leaves have rank 0).
+    // for inner nodes, we create as many "down" links as they have children. each of them
+    // is pushed to the stack, so that for the next broker nodes they are available as
+    // reciever for the "up" links.
+    // in summary, make all next pointers of a node point to each other in a circle.
+    auto prev_link = up_link;
+    for (int i = 0; i < broker_node.rank(); ++i) {
+        auto down_link = utils::make_unique< TreeLink >();
+        prev_link->reset_next( down_link.get() );
+        prev_link = down_link.get();
+
+        down_link->reset_node( cur_node );
+        down_link->reset_index( links.size() );
+        link_stack.push_back(down_link.get());
+        links.push_back(std::move(down_link));
+    }
+    prev_link->reset_next( up_link );
+}
+
+void NewickReader::broker_to_tree_finish_(
+    Tree& tree
+) const {
+    // Shortcut to tree containers.
+    auto& links = tree.expose_link_container();
 
     // we pushed elements to the link_stack for all children of the nodes and popped them when we
     // were done processing those children, so there should be no elements left. this assumes that
     // NewickBroker.assign_ranks() does its job properly!
-    assert(link_stack.empty());
+    // Already checked in the caller functions!
+    // assert(link_stack.empty());
 
     // now delete the uplink of the root, in order to make the tree fully unrooted.
     // (we do that after the tree creation, as it is way easier this way)
@@ -775,10 +820,8 @@ Tree NewickReader::broker_to_tree (
 
     // Call all finish plugins.
     for( auto const& finish_plugin : finish_reading_plugins ) {
-        finish_plugin( broker, tree );
+        finish_plugin( tree );
     }
-
-    return tree;
 }
 
 // =================================================================================================

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -95,9 +95,8 @@ public:
         edge_data.reset_edge_num( std::stoi( element.tags[0] ));
     }
 
-    void finish_reading( tree::NewickBroker const& broker, tree::Tree& tree ) const
+    void finish_reading( tree::Tree& tree ) const
     {
-        (void) broker;
         if( ! has_correct_edge_nums( tree )) {
             LOG_INFO << "Placement Tree does not have edge_nums that are increasing with a "
                      << "post-order traversal of the tree, as is demanded by the jplace standard. "
@@ -127,8 +126,8 @@ public:
 
         // Add finish reading plugin.
         reader.finish_reading_plugins.push_back(
-            [&]( tree::NewickBroker const& broker, tree::Tree& tree ) {
-                finish_reading( broker, tree );
+            [&]( tree::Tree& tree ) {
+                finish_reading( tree );
             }
         );
     }

@@ -54,6 +54,7 @@ namespace tree {
 class  Tree;
 class  TreeNode;
 class  TreeEdge;
+class  TreeLink;
 class  TreeSet;
 
 class  NewickBroker;
@@ -83,13 +84,13 @@ public:
     ) >;
 
     /**
-     * @brief Function type that allows to do some finalizing work with the NewickBroker and Tree
+     * @brief Function type that allows to do some finalizing work with the Tree
      * after the actual tree reading finished.
      *
      * This can for example be used for some cleanup.
      */
     using finish_reading_function = std::function< void(
-        NewickBroker const& broker, Tree& tree
+        Tree& tree
     ) >;
 
     /**
@@ -348,11 +349,49 @@ public:
      */
     Tree broker_to_tree( NewickBroker const& broker ) const;
 
+    /**
+     * @brief Build a Tree from a NewickBroker.
+     *
+     * Same as broker_to_tree(), but destroys the NewickBroker while building the Tree.
+     * This saves memory (~50%), and is mainly intended as an internal function for reading.
+     */
+    Tree broker_to_tree_destructive( NewickBroker& broker ) const;
+
     // -------------------------------------------------------------------------
     //     Internal Member Functions
     // -------------------------------------------------------------------------
 
 private:
+
+    /**
+     * @brief Internal function to prepare a Tree for filling it with data from a NewickBroker.
+     *
+     * Used by broker_to_tree() and broker_to_tree_destructive_().
+     */
+    void broker_to_tree_prepare_(
+        NewickBroker const& broker,
+        Tree& tree
+    ) const;
+
+    /**
+     * @brief Internal function to fill a Tree with data from a NewickBroker.
+     *
+     * Used by broker_to_tree() and broker_to_tree_destructive_().
+     */
+    void broker_to_tree_element_(
+        NewickBrokerElement const& broker_node,
+        std::vector<TreeLink*>& link_stack,
+        Tree& tree
+    ) const;
+
+    /**
+     * @brief Internal function to finish a Tree after filling it with data from a NewickBroker.
+     *
+     * Used by broker_to_tree() and broker_to_tree_destructive_().
+     */
+    void broker_to_tree_finish_(
+        Tree& tree
+    ) const;
 
     /**
      * @brief Check for input after a semicolon and throw if it is not a comment.
