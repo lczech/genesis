@@ -86,11 +86,11 @@ public:
     /**
      * @brief Block length for internal buffering.
      *
-     * The buffer uses three blocks of this size (16MB each).
+     * The buffer uses three blocks of this size (4MB each).
      * This is also the maximum line length that can be read at a time with get_line().
      * If this is too short, change the BlockLength.
      */
-    static const size_t BlockLength = 1 << 24;
+    static const size_t BlockLength = 1 << 22;
 
     using self_type         = InputStream;
     using value_type        = char;
