@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,13 +33,15 @@
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/lca_lookup.hpp"
 #include "genesis/tree/iterator/levelorder.hpp"
+#include "genesis/tree/iterator/preorder.hpp"
 #include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/containers/matrix/operators.hpp"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <stdexcept>
+#include <vector>
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>
@@ -55,65 +57,63 @@ namespace tree {
 utils::Matrix<double> node_branch_length_distance_matrix(
     Tree const& tree
 ) {
-    // Init result matrix.
-    auto const node_count = tree.node_count();
-    utils::Matrix<double> result( node_count, node_count, 0.0 );
+    utils::Matrix<double> result( tree.node_count(), tree.node_count(), 0.0 );
 
-    // Get distances from every node to the root, in branch length units.
-    auto const dists_to_root = node_branch_length_distance_vector( tree );
+    // We need to keep track of the edges for which we run updates in the iterations below.
+    // Init with root node, as it does not have a proximal edge, and hence is not going to be visited.
+    std::vector<size_t> visited_indices;
+    visited_indices.reserve( tree.node_count() );
+    visited_indices.push_back( tree.root_node().index() );
 
-    // Get an LCA lookup for the tree.
-    auto const lca_lookup = LcaLookup( tree );
+    // Go through the tree, and use the preorder traversal to get inner distances towards the root
+    // first, and later use them to calculate the outer ones, getting further and further away
+    // from the root.
+    for( auto it : preorder( tree )) {
 
-    // Parallel specialized code.
-    #ifdef GENESIS_OPENMP
-
-        // We only need to calculate the upper triangle.
-        // Get the number of indices needed to describe this triangle.
-        size_t const max_k = utils::triangular_size( node_count );
-
-        // Calculate distance matrix for every pair of nodes.
-        #pragma omp parallel for
-        for( size_t k = 0; k < max_k; ++k ) {
-
-            // For the given linear index, get the actual position in the Matrix.
-            auto const ij = utils::triangular_indices( k, node_count );
-            auto const i = ij.first;
-            auto const j = ij.second;
-
-            // Make sure we have not touched those entries yet.
-            assert( result(i, j) == 0.0 );
-            assert( result(j, i) == 0.0 );
-
-            // Calculate and store distance.
-            auto const lca = lca_lookup( i, j );
-            auto const dist = dists_to_root[i] + dists_to_root[j] - 2 * dists_to_root[lca];
-            result(i, j) = dist;
-            result(j, i) = dist;
+        // We want to visit each edge once: it.edge() gives the edge going towards the root.
+        // Hence, we skip the first iteration, which gives one of the edges of the root that will
+        // be visited later again anyway, and we do not want to visit it twice.
+        if( it.is_first_iteration() ) {
+            continue;
         }
 
-    // If no threads are available at all, use serial version.
-    #else
+        // Get the node away from the root, its parent towards the root,
+        // and the length of the current edge (the one between those two nodes).
+        auto const node_id = it.node().index();
+        auto const upper_id = it.node().primary_link().outer().node().index();
+        auto const br_len = it.edge().data<CommonEdgeData>().branch_length;
+        assert( node_id == it.edge().secondary_node().index() );
+        assert( upper_id == it.edge().primary_node().index() );
 
-        // Calculate distance matrix for every pair of nodes.
-        for( size_t i = 0; i < node_count; ++i ) {
+        // Now set the length from the given node to all the ones that we have visited before
+        // in the preorder. We already have their distances, and can use them to calculate the
+        // distances for the given node. This is kind of like dynamic programming combined with
+        // an upper triangle matrix calculation or inductive computation. Fancy fancy.
+        for( auto const& cur_id : visited_indices ) {
 
-            // The result is symmetric - we only calculate the upper triangle.
-            for( size_t j = i + 1; j < node_count; ++j ) {
+            // We are visiting each node once. The current one, being part of the already visited
+            // nodes, can hence not be the one of the outer preorder loop.
+            assert( cur_id != node_id );
 
-                // Make sure we have not touched those entries yet.
-                assert( result(i, j) == 0.0 );
-                assert( result(j, i) == 0.0 );
+            // Get the distance between the node currently being updated and the parent node
+            // of the node of the outer preorder loop.
+            auto const upper_br_len = result( upper_id, cur_id );
+            assert( upper_br_len == result( cur_id, upper_id ));
 
-                // Calculate and store distance.
-                auto const lca = lca_lookup( i, j );
-                auto const dist = dists_to_root[i] + dists_to_root[j] - 2 * dists_to_root[lca];
-                result(i, j) = dist;
-                result(j, i) = dist;
-            }
+            // Set the branch length between the current node and the outer preorder node
+            // as the sum of the parent and the current branch length.
+            // That is, we use the distance of the parent node plus the distance from that parent
+            // to the outer preorder node.
+            assert( result( node_id, cur_id ) == 0.0 );
+            assert( result( cur_id, node_id ) == 0.0 );
+            result( node_id, cur_id ) = upper_br_len + br_len;
+            result( cur_id, node_id ) = upper_br_len + br_len;
         }
 
-    #endif
+        // Now add the preorder node to the already visited ones, so that it is updated in
+        // the subsequent iterations.
+        visited_indices.push_back( node_id );
+    }
 
     return result;
 }
