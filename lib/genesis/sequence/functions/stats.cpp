@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 #include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/tools/char_lookup.hpp"
 
+#include <array>
 #include <cassert>
 
 namespace genesis {
@@ -51,18 +52,50 @@ namespace sequence {
 
 std::map<char, size_t> site_histogram( Sequence const& seq )
 {
-    std::map<char, size_t> result;
+    // We do a detour via an array, as this has way faster access times.
+
+    // Init the array.
+    auto freqs = std::array<size_t, 256>{};
+    for( size_t i = 0; i < freqs.size(); ++i ) {
+        freqs[i] = 0;
+    }
+
+    // Count frequencies.
     for( auto const& s : seq ) {
-        ++result[s];
+        ++freqs[s];
+    }
+
+    // Convert to final format.
+    std::map<char, size_t> result;
+    for( size_t i = 0; i < freqs.size(); ++i ) {
+        if( freqs[i] > 0 ) {
+            result[i] = freqs[i];
+        }
     }
     return result;
 }
 std::map<char, size_t> site_histogram( SequenceSet const& set )
 {
-    std::map<char, size_t> result;
+    // We do a detour via an array, as this has way faster access times.
+
+    // Init the array.
+    auto freqs = std::array<size_t, 256>{};
+    for( size_t i = 0; i < freqs.size(); ++i ) {
+        freqs[i] = 0;
+    }
+
+    // Count frequencies.
     for( auto const& seq : set ) {
         for( auto const& s : seq ) {
-            ++result[s];
+            ++freqs[s];
+        }
+    }
+
+    // Convert to final format.
+    std::map<char, size_t> result;
+    for( size_t i = 0; i < freqs.size(); ++i ) {
+        if( freqs[i] > 0 ) {
+            result[i] = freqs[i];
         }
     }
     return result;
