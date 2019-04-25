@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+# Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -208,6 +208,11 @@ if( IS_BIG_ENDIAN )
         "with such systems. There might be bugs because of this!${ColorEnd}"
     )
 endif()
+
+# Policy CMP0042: Enable MACOSX_RPATH
+if (APPLE)
+   set(CMAKE_MACOSX_RPATH ON)
+endif (APPLE)
 
 # --------------------------------------------------------------------------------------------------
 #   External Dependencies
