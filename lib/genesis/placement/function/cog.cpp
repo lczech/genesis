@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -493,8 +493,8 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
 
         // Also the masses: the mass of the current point moves from the distal fulcrum to the
         // proximal one.
-        prox_sum.mass   += curr_point.mass;
-        dist_sum.mass   -= curr_point.mass;
+        prox_sum.mass += curr_point.mass;
+        dist_sum.mass -= curr_point.mass;
 
         LOG_DBG2 << "new prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
         LOG_DBG2 << "new dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;

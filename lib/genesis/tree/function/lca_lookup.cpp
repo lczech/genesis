@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ namespace tree {
 // =================================================================================================
 
 LcaLookup::LcaLookup( Tree const& tree )
-    : tree_( tree )
+    : tree_( &tree )
 {
     init_( tree );
 }
@@ -65,7 +65,7 @@ size_t LcaLookup::operator()( size_t node_index_a, size_t node_index_b, size_t r
 TreeNode const& LcaLookup::operator()( TreeNode const& node_a, TreeNode const& node_b, TreeNode const& root_node ) const
 {
     auto const idx = lookup_( node_a.index(), node_b.index(), root_node.index() );
-    return tree_.node_at( idx );
+    return tree_->node_at( idx );
 }
 
 size_t LcaLookup::operator()( size_t node_index_a, size_t node_index_b ) const
@@ -76,7 +76,7 @@ size_t LcaLookup::operator()( size_t node_index_a, size_t node_index_b ) const
 TreeNode const& LcaLookup::operator()( TreeNode const& node_a, TreeNode const& node_b ) const
 {
     auto const idx = lookup_( node_a.index(), node_b.index(), root_idx_ );
-    return tree_.node_at( idx );
+    return tree_->node_at( idx );
 }
 
 // =================================================================================================

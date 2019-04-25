@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -135,7 +135,7 @@ void NewickWriter::broker_to_stream( NewickBroker const& broker, std::ostream& o
 
     // Iterate broker in reverse order, because Newick...
     size_t prev_depth = 0;
-    for( int pos = broker.size() - 1; pos >= 0 ; --pos ) {
+    for( int pos = broker.size() - 1; pos >= 0; --pos ) {
         auto const& elem = broker[pos];
 
         // Opening parenthesis.
@@ -272,7 +272,7 @@ std::string NewickWriter::to_string_rec_( NewickBroker const& broker, size_t pos
     // build the string by iterating the stack
     std::ostringstream out;
     out << "(";
-    for (size_t i = 0; i < children.size(); ++i) {
+    for( size_t i = 0; i < children.size(); ++i ) {
         if (i>0) {
             out << ",";
         }

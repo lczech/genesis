@@ -271,12 +271,12 @@ public:
     //     Comparison
     // -------------------------------------------------------------------------
 
-    friend bool operator ==( Taxopath const & lhs, Taxopath const & rhs )
+    friend bool operator == ( Taxopath const & lhs, Taxopath const & rhs )
     {
         return lhs.elements_ == rhs.elements_;
     }
 
-    friend bool operator !=( Taxopath const & lhs, Taxopath const & rhs )
+    friend bool operator != ( Taxopath const & lhs, Taxopath const & rhs )
     {
         return lhs.elements_ != rhs.elements_;
     }

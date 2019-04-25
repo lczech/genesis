@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -215,7 +215,7 @@ void filter_min_accumulated_weight( Pquery& pquery, double threshold )
     sort_placements_by_weight( pquery );
 
     // Find the position where enough weight is accumulated.
-    size_t i          = 0 ;
+    size_t i          = 0;
     double weight_sum = 0.0;
     do {
         weight_sum += pquery.placement_at(i).like_weight_ratio;
@@ -571,7 +571,7 @@ void collect_duplicate_pqueries (Sample& smp)
             // Assert that this is an empty pquery. We cleared the ones that are marked for
             // deletion, so in case that it is not empty, we are about to delete the wrong one!
             assert( smp.at( *it ).placement_size() == 0 );
-            assert( smp.at( *it ).name_size()      == 0 );
+            assert( smp.at( *it ).name_size() == 0 );
 
             smp.remove( *it );
         }

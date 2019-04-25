@@ -81,7 +81,7 @@ bool file_exists( std::string const& filename )
     // Thus, we use a simple approach that does a basic check, and then also tests for dir...
 
     std::ifstream infile(filename);
-    infile.seekg( 0, std::ios::end) ;
+    infile.seekg( 0, std::ios::end);
     return infile.good() && ! is_dir( filename );
 }
 

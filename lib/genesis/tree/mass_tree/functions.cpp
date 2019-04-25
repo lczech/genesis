@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -168,7 +168,7 @@ double mass_tree_center_masses_on_branches( MassTree& tree )
 
         for( auto const& mass : edge_data.masses ) {
             #pragma omp atomic
-            work         += mass.second * std::abs( branch_center - mass.first );
+            work += mass.second * std::abs( branch_center - mass.first );
             central_mass += mass.second;
         }
 
@@ -200,7 +200,7 @@ double mass_tree_center_masses_on_branches_averaged( MassTree& tree )
         // and accumulate the total sum of weights.
         for( auto const& mass : edge_data.masses ) {
             mass_center += mass.first * mass.second;
-            mass_sum    += mass.second;
+            mass_sum += mass.second;
         }
 
         // Find average mass center by dividing by weight sum.
@@ -253,7 +253,7 @@ double mass_tree_binify_masses( MassTree& tree, size_t number_of_bins )
         for( auto const& mass : edge_data.masses ) {
             auto const bin = get_bin_pos( mass.first, edge_data.branch_length );
 
-            work              += mass.second * std::abs( bin - mass.first );
+            work += mass.second * std::abs( bin - mass.first );
             new_masses[ bin ] += mass.second;
         }
 

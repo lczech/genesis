@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -97,7 +97,7 @@ double earth_movers_distance( MassTree const& lhs, MassTree const& rhs, double c
     auto rhs_it  = postorder( rhs ).begin();
     auto lhs_end = postorder( lhs ).end();
     auto rhs_end = postorder( rhs ).end();
-    for( ; lhs_it != lhs_end && rhs_it != rhs_end ; ++lhs_it, ++rhs_it ) {
+    for( ; lhs_it != lhs_end && rhs_it != rhs_end; ++lhs_it, ++rhs_it ) {
 
         // If we are at the last iteration, we reached the root. Thus, we have moved all masses
         // and don't need to proceed. If we did, we would count an edge of the root again

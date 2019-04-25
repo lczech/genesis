@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -70,8 +70,7 @@ bool compatible_trees( PlacementTree const& lhs, PlacementTree const& rhs )
         if( l_ptr == nullptr || r_ptr == nullptr ) {
             return false;
         }
-        return l_ptr->name    == r_ptr->name &&
-               node_l.index() == node_r.index();
+        return ( l_ptr->name == r_ptr->name) && ( node_l.index() == node_r.index() );
     };
 
     auto edge_comparator = [] (
@@ -83,9 +82,9 @@ bool compatible_trees( PlacementTree const& lhs, PlacementTree const& rhs )
         if( l_ptr == nullptr || r_ptr == nullptr ) {
             return false;
         }
-        return l_ptr->edge_num()               == r_ptr->edge_num()               &&
-               edge_l.primary_node().index()   == edge_r.primary_node().index()   &&
-               edge_l.secondary_node().index() == edge_r.secondary_node().index();
+        return ( l_ptr->edge_num()               == r_ptr->edge_num()               ) &&
+               ( edge_l.primary_node().index()   == edge_r.primary_node().index()   ) &&
+               ( edge_l.secondary_node().index() == edge_r.secondary_node().index() );
     };
 
     return tree::equal(
