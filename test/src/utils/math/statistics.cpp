@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -172,27 +172,27 @@ TEST( Math, Distances )
 TEST( Math, Median )
 {
     // Empty.
-    EXPECT_DOUBLE_EQ( 0.0,  median({ }) );
+    EXPECT_DOUBLE_EQ( 0.0,  median(std::vector<double>{ }) );
 
     // One value.
-    EXPECT_DOUBLE_EQ(  0.0,  median({ 0.0 }) );
-    EXPECT_DOUBLE_EQ(  1.0,  median({ 1.0 }) );
-    EXPECT_DOUBLE_EQ( -1.0,  median({ -1.0 }) );
+    EXPECT_DOUBLE_EQ(  0.0,  median(std::vector<double>{ 0.0 }) );
+    EXPECT_DOUBLE_EQ(  1.0,  median(std::vector<double>{ 1.0 }) );
+    EXPECT_DOUBLE_EQ( -1.0,  median(std::vector<double>{ -1.0 }) );
 
     // Two values.
-    EXPECT_DOUBLE_EQ( 0.0,  median({ 0.0, 0.0 }) );
-    EXPECT_DOUBLE_EQ( 0.5,  median({ 0.0, 1.0 }) );
-    EXPECT_DOUBLE_EQ( 2.0,  median({ 1.0, 3.0 }) );
-    EXPECT_DOUBLE_EQ( 2.5,  median({ 1.0, 4.0 }) );
+    EXPECT_DOUBLE_EQ( 0.0,  median(std::vector<double>{ 0.0, 0.0 }) );
+    EXPECT_DOUBLE_EQ( 0.5,  median(std::vector<double>{ 0.0, 1.0 }) );
+    EXPECT_DOUBLE_EQ( 2.0,  median(std::vector<double>{ 1.0, 3.0 }) );
+    EXPECT_DOUBLE_EQ( 2.5,  median(std::vector<double>{ 1.0, 4.0 }) );
 
-    EXPECT_DOUBLE_EQ( -0.5,  median({ -1.0, 0.0 }) );
-    EXPECT_DOUBLE_EQ(  0.0,  median({ -1.0, 1.0 }) );
+    EXPECT_DOUBLE_EQ( -0.5,  median(std::vector<double>{ -1.0, 0.0 }) );
+    EXPECT_DOUBLE_EQ(  0.0,  median(std::vector<double>{ -1.0, 1.0 }) );
 
     // Three values.
-    EXPECT_DOUBLE_EQ( 1.0,  median({ 0.0, 1.0, 2.0 }) );
+    EXPECT_DOUBLE_EQ( 1.0,  median(std::vector<double>{ 0.0, 1.0, 2.0 }) );
 
     // Four values.
-    EXPECT_DOUBLE_EQ( 1.5,  median({ 0.0, 1.0, 2.0, 3.0 }) );
+    EXPECT_DOUBLE_EQ( 1.5,  median(std::vector<double>{ 0.0, 1.0, 2.0, 3.0 }) );
 }
 
 TEST( Math, Quartiles )

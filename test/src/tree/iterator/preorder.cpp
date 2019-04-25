@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 #include <string>
 #include <utility>
 
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/common_tree/functions.hpp"
 #include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
@@ -82,14 +83,14 @@ void TestPreorderSubtree( Subtree const& subtree, const std::string expected_nod
     auto const name = subtree.node().data<CommonNodeData>().name + "(" + std::to_string( subtree.link().index() ) + ")";
 
     // Do a normal traversal.
-    for( auto it : preorder(subtree) ) {
+    for( auto it : tree::preorder(subtree) ) {
         resulting_nodes += it.node().data<CommonNodeData>().name;
     }
     EXPECT_EQ( expected_nodes, resulting_nodes ) << " with start node " << name;
 
     // Use free function iterator wrapper.
     resulting_nodes = "";
-    for( auto it = preorder(subtree).begin(); it != preorder(subtree).end(); ++it ) {
+    for( auto it = tree::preorder(subtree).begin(); it != tree::preorder(subtree).end(); ++it ) {
         resulting_nodes += it.node().data<CommonNodeData>().name;
     }
     EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << name;
