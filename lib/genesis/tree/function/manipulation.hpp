@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,9 @@
 #include <cstddef> // size_t
 #include <functional>
 
+#include "genesis/tree/tree.hpp"
+#include "genesis/tree/common_tree/tree.hpp"
+
 namespace genesis {
 namespace tree {
 
@@ -46,6 +49,46 @@ class TreeNode;
 class TreeEdge;
 class TreeLink;
 class Subtree;
+
+// =================================================================================================
+//     Minimal Tree
+// =================================================================================================
+
+/**
+ * @brief Create a minimal Tree that can be used with manipulation functions such as add_new_node()
+ * or add_new_leaf_node() to build a custom tree.
+ *
+ * A minimal tree for our purposes consists of two TreeNode%s, a TreeEdge between them,
+ * and the respective TreeLink%s.
+ *
+ * Note that the resulting tree does not have any data types at its nodes and edges.
+ * See minimal_tree() for a version of this function that also creates these data types.
+ */
+Tree minimal_tree_topology();
+
+/**
+ * @brief Create a minimal Tree that can be used with manipulation functions such as add_new_node()
+ * or add_new_leaf_node() to build a custom tree, including default data types at nodees and edges.
+ *
+ * A minimal tree for our purposes consists of two TreeNode%s, a TreeEdge between them,
+ * and the respective TreeLink%s.
+ *
+ * The resulting tree has default-constructed node and edge data types of the given template
+ * arugments. See minimal_tree_topology() for a version of this function that does not create
+ * any data.
+ */
+template< class NodeDataType = CommonNodeData, class EdgeDataType = CommonEdgeData >
+Tree minimal_tree()
+{
+    auto tree = minimal_tree_topology();
+    for( size_t i = 0; i < tree.node_count(); ++i ) {
+        tree.node_at(i).reset_data( NodeDataType::create() );
+    }
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        tree.edge_at(i).reset_data( EdgeDataType::create() );
+    }
+    return tree;
+}
 
 // =================================================================================================
 //     Add Nodes
