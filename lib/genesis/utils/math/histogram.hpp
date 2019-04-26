@@ -172,7 +172,7 @@ public:
 
     double bin_width( size_t bin_num ) const;
 
-    int find_bin( double x ) const;
+    long find_bin( double x ) const;
 
     double range_min() const;
 
@@ -184,9 +184,9 @@ public:
     //     Modifiers
     // -------------------------------------------------------------------------
 
-    int increment( double x );
+    long increment( double x );
 
-    int accumulate( double x, double weight );
+    long accumulate( double x, double weight );
 
     void increment_bin( size_t bin );
 

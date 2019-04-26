@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -119,9 +119,9 @@ void NewickBroker::assign_ranks() const
     }
 }
 
-int NewickBroker::leaf_count() const
+size_t NewickBroker::leaf_count() const
 {
-    int sum = 0;
+    size_t sum = 0;
     for (auto const& node : stack_) {
         if (node.rank_ == -1) {
             throw std::logic_error("NewickBroker::assign_ranks() was not called before.");
@@ -133,19 +133,22 @@ int NewickBroker::leaf_count() const
     return sum;
 }
 
-int NewickBroker::inner_count() const
+size_t NewickBroker::inner_count() const
 {
-    return node_count() - leaf_count();
+    auto const nc = node_count();
+    auto const lc = leaf_count();
+    assert( nc >= lc );
+    return nc - lc;
 }
 
-int NewickBroker::node_count() const
+size_t NewickBroker::node_count() const
 {
     return stack_.size();
 }
 
-int NewickBroker::max_rank() const
+long NewickBroker::max_rank() const
 {
-    int max = -1;
+    long max = -1;
     for (auto const& node : stack_) {
         if (node.rank_ == -1) {
             throw std::logic_error("NewickBroker::assign_ranks() was not called before.");

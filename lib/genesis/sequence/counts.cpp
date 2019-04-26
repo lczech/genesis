@@ -131,7 +131,7 @@ SiteCounts::CountsIntType SiteCounts::count_at(
 void SiteCounts::add_sequence( Sequence const& sequence, bool use_abundance )
 {
     if( use_abundance ) {
-        add_sequence( sequence.sites(), sequence.abundance() );
+        add_sequence( sequence.sites(), static_cast<CountsIntType>( sequence.abundance() ));
     } else {
         add_sequence( sequence.sites(), 1 );
     }

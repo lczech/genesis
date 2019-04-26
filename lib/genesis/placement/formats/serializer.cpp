@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -95,11 +95,11 @@ void SampleSerializer::save( Sample const& map, std::string const& file_name )
             // consinstend with Pquery.add_placement() parameters.
             ser.put_int   (place.edge().index());
 
-            ser.put_float (place.likelihood);
-            ser.put_float (place.like_weight_ratio);
-            ser.put_float (place.proximal_length);
-            ser.put_float (place.pendant_length);
-            ser.put_int   (place.parsimony);
+            ser.put_float( place.likelihood );
+            ser.put_float( place.like_weight_ratio );
+            ser.put_float( place.proximal_length );
+            ser.put_float( place.pendant_length );
+            ser.put_float( place.parsimony );
         }
 
         // Write names.
@@ -160,7 +160,7 @@ Sample SampleSerializer::load( std::string const& file_name )
             place.like_weight_ratio = des.get_float<double>();
             place.proximal_length   = des.get_float<double>();
             place.pendant_length    = des.get_float<double>();
-            place.parsimony         = des.get_int<int>();
+            place.parsimony         = des.get_float<double>();
         }
 
         // Read names.

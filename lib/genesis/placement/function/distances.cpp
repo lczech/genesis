@@ -261,7 +261,7 @@ double pquery_distance( Pquery const& pquery, DistanceFunction distance_function
     for( size_t pai = 0; pai < pquery.placement_size(); ++pai ) {
         auto const& placement = pquery.placement_at( pai );
 
-        auto dist = distance_function( placement );
+        double dist = distance_function( placement );
         dist *= placement.like_weight_ratio;
 
         #pragma omp atomic

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -64,12 +64,12 @@ struct GlmFreedom
     /**
      * @brief Calculate the degrees of freedom (dfr).
      */
-    int degrees_of_freedom( size_t rank ) const
+    long degrees_of_freedom( size_t rank ) const
     {
-        auto const vi = static_cast<int>( valid_entries );
-        auto const mi = static_cast<int>( max_stratum );
-        auto const ei = static_cast<int>( empty_strata );
-        auto const ri = static_cast<int>( rank );
+        auto const vi = static_cast<long>( valid_entries );
+        auto const mi = static_cast<long>( max_stratum );
+        auto const ei = static_cast<long>( empty_strata );
+        auto const ri = static_cast<long>( rank );
 
         return vi - mi + ei - ri;
     }

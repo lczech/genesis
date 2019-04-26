@@ -33,6 +33,7 @@
 
 #include "genesis/utils/io/input_source.hpp"
 
+#include <cassert>
 #include <memory>
 #include <string>
 #include <utility>
@@ -220,7 +221,11 @@ public:
                     }
 
                     // Read.
-                    achieved_size_ = input_source_->read( target_buffer_, target_size_ );
+                    assert( target_size_ >= 0 );
+                    achieved_size_ = input_source_->read(
+                        target_buffer_,
+                        static_cast<size_t>( target_size_ )
+                    );
                     target_size_   = -1;
 
                     // If we did not get any data, we are done with the input source.
@@ -259,7 +264,7 @@ public:
     //     Reading
     // -------------------------------------------------------------
 
-    void start_reading( char* target_buffer, int target_size )
+    void start_reading( char* target_buffer, long target_size )
     {
         // Set the target variables and start the worker.
         std::unique_lock< std::mutex > guard( lock_ );
@@ -269,7 +274,7 @@ public:
         cond_read_requested_.notify_one();
     }
 
-    int finish_reading()
+    long finish_reading()
     {
         // Wait until the worker is done reading.
         std::unique_lock< std::mutex > guard(lock_);
@@ -297,8 +302,8 @@ private:
     std::shared_ptr<BaseInputSource> input_source_;
 
     char* target_buffer_;
-    int   target_size_;
-    int   achieved_size_;
+    long  target_size_;
+    long  achieved_size_;
 
     std::thread worker_;
     bool destructor_called_;
@@ -374,13 +379,13 @@ public:
     //     Reading
     // -------------------------------------------------------------
 
-    void start_reading( char* target_buffer, int target_size )
+    void start_reading( char* target_buffer, long target_size )
     {
         target_buffer_ = target_buffer;
         target_size_   = target_size;
     }
 
-    int finish_reading()
+    long finish_reading()
     {
         return input_source_->read( target_buffer_, target_size_ );
     }
@@ -394,7 +399,7 @@ private:
     std::shared_ptr<BaseInputSource> input_source_;
 
     char* target_buffer_;
-    int   target_size_;
+    long  target_size_;
 };
 
 } // namespace utils

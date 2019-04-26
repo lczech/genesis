@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -78,16 +78,19 @@ void BmpWriter::to_stream( Matrix<Color> const& image, std::ostream& outstream )
             " bytes."
         );
     }
+    assert( data_size <= static_cast<size_t>( std::numeric_limits<uint32_t>::max() ) );
+    assert( height    <= static_cast<size_t>( std::numeric_limits<uint32_t>::max() ) );
+    assert( width     <= static_cast<size_t>( std::numeric_limits<uint32_t>::max() ) );
 
     // File header.
     BitmapFileheader file_header;
-    file_header.bfSize     = 14 + 40 + data_size;
+    file_header.bfSize     = 14 + 40 + static_cast<uint32_t>( data_size );
     file_header.bfOffBits  = 14 + 40;
 
     // Info header.
     BitmapInfoheader info_header;
-    info_header.biWidth    = width;
-    info_header.biHeight   = height;
+    info_header.biWidth    = static_cast<uint32_t>( width );
+    info_header.biHeight   = static_cast<uint32_t>( height );
     info_header.biBitCount = 24;
 
     // Write headers.
@@ -178,16 +181,19 @@ void BmpWriter::to_stream(
             " bytes."
         );
     }
+    assert( data_size <= static_cast<size_t>( std::numeric_limits<uint32_t>::max() ) );
+    assert( height    <= static_cast<size_t>( std::numeric_limits<uint32_t>::max() ) );
+    assert( width     <= static_cast<size_t>( std::numeric_limits<uint32_t>::max() ) );
 
     // File header.
     BitmapFileheader file_header;
-    file_header.bfSize        = 14 + 40 + 256 * 4 + data_size;
+    file_header.bfSize        = 14 + 40 + 256 * 4 + static_cast<uint32_t>( data_size );
     file_header.bfOffBits     = 14 + 40 + 256 * 4;
 
     // Info and info header.
     BitmapInfo info;
-    info.bmiHeader.biWidth    = width;
-    info.bmiHeader.biHeight   = height;
+    info.bmiHeader.biWidth    = static_cast<uint32_t>( width );
+    info.bmiHeader.biHeight   = static_cast<uint32_t>( height );
     info.bmiHeader.biBitCount = 8;
 
     // Palette size check.

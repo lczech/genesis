@@ -173,7 +173,7 @@ GlmFreedom weighted_mean_centering(
         if( weights.empty() ) {
             for( size_t i = 0; i < y_input.size(); ++i ) {
                 if( std::isfinite( y_input[i] )) {
-                    int const s = strata[i] - 1;
+                    size_t const s = strata[i] - 1;
                     swy[s] += y_input[i];
                     swt[s] += 1.0;
                 }
@@ -186,7 +186,7 @@ GlmFreedom weighted_mean_centering(
                     );
                 }
                 if( std::isfinite( weights[i] ) && std::isfinite( y_input[i] )) {
-                    int const s = strata[i] - 1;
+                    size_t const s = strata[i] - 1;
                     swy[s] += weights[i] * y_input[i];
                     swt[s] += weights[i];
                 }
@@ -208,7 +208,7 @@ GlmFreedom weighted_mean_centering(
         // Calculate the centring (or set to mean).
         // Again, non-finite y values will simply stay non finite here - no need for extra checks.
         for( size_t i = 0; i < y_input.size(); ++i ) {
-            int const s = strata[i] - 1;
+            size_t const s = strata[i] - 1;
             if( swt[s] > 0.0 ) {
                 y_output[i] = ( centering ? y_input[i] - swy[s] : swy[s] );
             }

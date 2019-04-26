@@ -124,7 +124,7 @@ public:
      *
      * This property is defined by the `jplace` standard.
      */
-    double    likelihood;
+    double likelihood;
 
     /**
     * @brief Likelihood weight ratio of this placement.
@@ -136,7 +136,7 @@ public:
     *
     * This property is defined by the `jplace` standard.
     */
-    double    like_weight_ratio;
+    double like_weight_ratio;
 
     /**
     * @brief Distance of this placement to the next node towards the root.
@@ -154,7 +154,7 @@ public:
     *
     * This is also the formula that is internally used to convert between the two.
     */
-    double    proximal_length;
+    double proximal_length;
 
     /**
     * @brief Length of the attached branch of this placement.
@@ -164,14 +164,14 @@ public:
     *
     * This property is defined by the `jplace` standard.
     */
-    double    pendant_length;
+    double pendant_length;
 
     /**
     * @brief Parsimony value.
     *
     * This property is defined by the `jplace` standard. It is currently not used.
     */
-    int       parsimony;
+    double parsimony;
 
     // -------------------------------------------------------------------
     //     Properties

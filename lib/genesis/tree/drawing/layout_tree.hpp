@@ -143,7 +143,7 @@ public:
      */
     double spreading = -1.0;
 
-    int parent_index = -1;
+    long parent_index = -1;
 
     utils::SvgGroup shape;
     utils::SvgStroke spacer_stroke = utils::SvgStroke( utils::SvgStroke::Type::kNone );

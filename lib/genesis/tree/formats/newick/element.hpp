@@ -78,7 +78,7 @@ public:
     /**
      * @brief Constructor, initializes the item values and sets the depth.
      */
-    explicit NewickBrokerElement( int depth )
+    explicit NewickBrokerElement( long depth )
         : depth( depth )
         , rank_( -1 )
     {}
@@ -86,7 +86,7 @@ public:
     /**
      * @brief Constructor, initializes the item values and sets the name and the depth.
      */
-    NewickBrokerElement( std::string const& name, int depth )
+    NewickBrokerElement( std::string const& name, long depth )
         : name( name )
         , depth( depth )
         , rank_( -1 )
@@ -134,7 +134,7 @@ public:
     /**
      * @brief Depth of the node in the tree, i.e. its distance from the root.
      */
-    int         depth;
+    long depth;
 
     // -------------------------------------------------------------------------
     //     Additional Members
@@ -146,7 +146,7 @@ public:
      * NewickBroker::assign_ranks() has to be called before using this function. Otherwise,
      * this function will throw an std::logic_error.
      */
-    int rank() const
+    long rank() const
     {
         if (rank_ < 0) {
             throw std::logic_error("NewickBroker::assign_ranks() was not called before.");
@@ -189,7 +189,7 @@ private:
     /**
      * @brief Rank of the node, i.e. how many children it has.
      */
-    mutable int rank_;
+    mutable long rank_;
 };
 
 } // namespace tree

@@ -135,13 +135,17 @@ void NewickWriter::broker_to_stream( NewickBroker const& broker, std::ostream& o
 
     // Iterate broker in reverse order, because Newick...
     size_t prev_depth = 0;
-    for( int pos = broker.size() - 1; pos >= 0; --pos ) {
+    for( long pos = broker.size() - 1; pos >= 0; --pos ) {
         auto const& elem = broker[pos];
+        if( elem.depth < 0 ) {
+            throw std::runtime_error( "Invalid NewickBroker: Depth < 0." );
+        }
 
         // Opening parenthesis.
         // We open as many as needed to get to the depth of the current element.
         // They will all be closed when processing the respective parent elements.
-        for( int i = prev_depth; i < elem.depth; ++i ) {
+        assert( elem.depth >= 0 );
+        for( size_t i = prev_depth; i < static_cast<size_t>( elem.depth ); ++i ) {
             os << "(";
             ++op;
         }

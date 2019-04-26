@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -131,7 +131,7 @@ public:
     /**
      * @brief Returns the random seed that was used to initialize the engine.
      */
-    inline unsigned random_seed() const
+    inline unsigned long random_seed() const
     {
         return random_seed_;
     }
@@ -142,7 +142,7 @@ public:
      * On startup, the random engine is initialized using the current system time. This value can
      * be overwritten using this method.
      */
-    void random_seed (const unsigned seed);
+    void random_seed (const unsigned long seed);
 
     /**
      * @brief Returns the default engine for random number generation.
@@ -379,7 +379,7 @@ private:
     std::vector<std::string>   command_line_;
     unsigned int               number_of_threads_;
 
-    unsigned                   random_seed_;
+    unsigned long              random_seed_;
     std::default_random_engine random_engine_;
 
     bool                       allow_file_overwriting_ = false;

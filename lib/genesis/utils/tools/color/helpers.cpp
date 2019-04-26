@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -222,11 +222,14 @@ std::map<double, std::string> color_tickmarks( ColorNormalizationDiverging const
     // fractions 2/3 and 1/3 here.
     auto const frac_lower = ( norm.mid_value() - norm.min_value() ) / ( norm.max_value() - norm.min_value() );
     auto const frac_upper = ( norm.max_value() - norm.mid_value() ) / ( norm.max_value() - norm.min_value() );
+    if( frac_lower <= 0.0 || frac_upper <= 0.0 ) {
+        throw std::runtime_error( "Invalid color normalization for calculating tickmarks." );
+    }
 
     // Lower half.
     tm.include_max = false;
     auto const tm_labels_l = tm.linear_labels(
-        norm.min_value(), norm.mid_value(), frac_lower * num_ticks
+        norm.min_value(), norm.mid_value(), static_cast<size_t>( frac_lower * num_ticks )
     );
     for( auto const& tm_label : tm_labels_l ) {
         auto const pos =  frac_lower * tm_label.relative_position;
@@ -245,7 +248,7 @@ std::map<double, std::string> color_tickmarks( ColorNormalizationDiverging const
     // Upper half.
     tm.include_max = true;
     auto const tm_labels_u = tm.linear_labels(
-        norm.mid_value(), norm.max_value(), frac_upper * num_ticks
+        norm.mid_value(), norm.max_value(), static_cast<size_t>( frac_upper * num_ticks )
     );
     for( auto const& tm_label : tm_labels_u ) {
         auto const pos =  frac_lower + frac_upper * tm_label.relative_position;

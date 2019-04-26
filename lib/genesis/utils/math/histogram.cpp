@@ -261,7 +261,7 @@ double Histogram::bin_width( size_t bin_num ) const
     return ranges_[bin_num + 1] - ranges_[bin_num];
 }
 
-int Histogram::find_bin( double x ) const
+long Histogram::find_bin( double x ) const
 {
     const auto r_min = ranges_.front();
     const auto r_max = ranges_.back();
@@ -275,7 +275,7 @@ int Histogram::find_bin( double x ) const
 
     // Get the bin for the uniform ranges case.
     const double bin_width = (r_max - r_min) / static_cast<double>( bins_.size() );
-    const int bin = static_cast<int>( std::floor( (x - r_min) / bin_width ) );
+    const long bin = static_cast<long>( std::floor( (x - r_min) / bin_width ) );
 
     // With the calculation above, we always end up within the boundaries.
     assert(r_min <= x && x < r_max);
@@ -309,14 +309,14 @@ bool Histogram::check_range(double x) const
 //     Modifiers
 // =================================================================================================
 
-int Histogram::increment( double x )
+long Histogram::increment( double x )
 {
     return accumulate(x, 1.0);
 }
 
-int Histogram::accumulate( double x, double weight )
+long Histogram::accumulate( double x, double weight )
 {
-    int bin = find_bin(x);
+    long bin = find_bin(x);
 
     // Do boundary check on the bin.
     // The cast is only done if we already know that bin >= 0, so it is always valid.

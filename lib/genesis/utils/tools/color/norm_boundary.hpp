@@ -123,7 +123,7 @@ public:
     /**
      * @brief Return the interval index of a value.
      */
-    int interval( double value ) const
+    long interval( double value ) const
     {
         // Make sure that the norm is set up correctly.
         // This is now done while setting, so no need to do this here.
@@ -276,7 +276,7 @@ protected:
         if( idx < 0 ) {
             return -1.0;
         }
-        if( idx >= static_cast<int>( boundaries_.size() - 1 )) {
+        if( idx >= static_cast<long>( boundaries_.size() - 1 )) {
             return 2.0;
         }
 

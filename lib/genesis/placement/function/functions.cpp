@@ -733,9 +733,9 @@ std::vector<double> closest_leaf_weight_distribution( Sample const& sample )
         for( auto& place : pquery.placements() ) {
             // Try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            int dp = depths[ place.edge().primary_node().index()   ].second;
-            int ds = depths[ place.edge().secondary_node().index() ].second;
-            unsigned int ld = std::min(dp, ds);
+            auto dp = depths[ place.edge().primary_node().index()   ].second;
+            auto ds = depths[ place.edge().secondary_node().index() ].second;
+            auto ld = std::min(dp, ds);
 
             // Put the closer one into the histogram, resize if necessary.
             if( distrib.size() < ld + 1 ) {
@@ -761,9 +761,9 @@ std::vector<int> closest_leaf_depth_histogram( Sample const& smp )
         for( auto& place : pquery.placements() ) {
             // Try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            int dp = depths[ place.edge().primary_node().index()   ].second;
-            int ds = depths[ place.edge().secondary_node().index() ].second;
-            unsigned int ld = std::min(dp, ds);
+            auto dp = depths[ place.edge().primary_node().index()   ].second;
+            auto ds = depths[ place.edge().secondary_node().index() ].second;
+            auto ld = std::min(dp, ds);
 
             // Put the closer one into the histogram, resize if necessary.
             if (ld + 1 > hist.size()) {
