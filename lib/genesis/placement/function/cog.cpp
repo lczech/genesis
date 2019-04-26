@@ -359,8 +359,8 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     // We store the influence that each placement on the edge has.
     struct BalancePoint
     {
-        BalancePoint()                : proximal_length(0.0),      mass(0.0), pendant_torque(0.0) {};
-        BalancePoint(double prox_len) : proximal_length(prox_len), mass(0.0), pendant_torque(0.0) {};
+        BalancePoint()                : proximal_length(0.0),      mass(0.0), pendant_torque(0.0) {}
+        BalancePoint(double prox_len) : proximal_length(prox_len), mass(0.0), pendant_torque(0.0) {}
 
         double proximal_length;
         double mass;
@@ -438,6 +438,8 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     //     Experimental Extension
     // -------------------------------------------------------------------------
 
+    /*
+
     // Finally, story the dummy for the end of the edge.
     edge_balance.push_back(BalancePoint( central_edge_data.branch_length ));
 
@@ -513,7 +515,7 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     assert(pos < edge_balance.size());
 
     // if (pos == edge_balance.size() - 1) {
-    //     /* code */
+    //     // code...
     // }
 
     dist_sum.torque -= dist_sum.mass * dist_diff;
@@ -525,6 +527,8 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     LOG_DBG << "result_proximal_length " << result_proximal_length;
 
     return std::make_pair(central_edge, result_proximal_length);
+
+    */
 }
 
 // =================================================================================================

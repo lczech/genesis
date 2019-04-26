@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,11 +38,11 @@ namespace utils {
 
 std::string current_date()
 {
-    time_t now = time(0);
-    tm*    ltm = localtime(&now);
+    time_t now = std::time( nullptr );
+    tm*    ltm = std::localtime( &now );
 
     char out[12];
-    sprintf (out, "%u-%02u-%02u",
+    std::sprintf (out, "%u-%02u-%02u",
         ltm->tm_year + 1900, ltm->tm_mon + 1, ltm->tm_mday
     );
     return out;
@@ -50,11 +50,11 @@ std::string current_date()
 
 std::string current_time()
 {
-    time_t now = time(0);
-    tm*    ltm = localtime(&now);
+    time_t now = std::time( nullptr );
+    tm*    ltm = std::localtime( &now );
 
     char out[10];
-    sprintf (out, "%02u:%02u:%02u", ltm->tm_hour, ltm->tm_min, ltm->tm_sec);
+    std::sprintf (out, "%02u:%02u:%02u", ltm->tm_hour, ltm->tm_min, ltm->tm_sec);
     return out;
 }
 

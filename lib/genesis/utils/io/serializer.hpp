@@ -66,11 +66,11 @@ public:
         : outstream (outfile)
     {
         utils::file_output_stream( filename, outfile, std::ofstream::out | std::ofstream::binary );
-    };
+    }
 
     explicit Serializer (std::ostream& outstream)
         : outstream (outstream)
-    {};
+    {}
 
     ~Serializer()
     {
@@ -172,7 +172,7 @@ public:
     template<typename T>
     void put_plain (const T v)
     {
-        outstream.write((char*)(&v), sizeof(v));
+        outstream.write( reinterpret_cast<char const*>( &v ), sizeof(v));
     }
 
     /**

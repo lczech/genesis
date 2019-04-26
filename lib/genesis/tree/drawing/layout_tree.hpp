@@ -85,7 +85,7 @@ class LayoutNodeData : public tree::CommonNodeData
 
 public:
 
-    virtual ~LayoutNodeData() = default;
+    virtual ~LayoutNodeData() override = default;
 
     // Move ctor and assignment.
     LayoutNodeData( LayoutNodeData&& )             = delete;
@@ -168,7 +168,7 @@ class LayoutEdgeData : public tree::CommonEdgeData
 
 public:
 
-    virtual ~LayoutEdgeData() = default;
+    virtual ~LayoutEdgeData() override = default;
 
     // Move ctor and assignment.
     LayoutEdgeData( LayoutEdgeData&& )             = delete;

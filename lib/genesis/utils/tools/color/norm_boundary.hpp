@@ -100,7 +100,7 @@ public:
         scale( min, max, intervals );
     }
 
-    virtual ~ColorNormalizationBoundary() = default;
+    virtual ~ColorNormalizationBoundary() override = default;
 
     ColorNormalizationBoundary(ColorNormalizationBoundary const&) = default;
     ColorNormalizationBoundary(ColorNormalizationBoundary&&)      = default;

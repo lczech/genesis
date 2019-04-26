@@ -89,7 +89,7 @@ Sample JplaceReader::read(
     process_json_metadata( doc, smp );
 
     process_json_tree( doc, smp );
-    auto fields = process_json_fields( doc );
+    auto const fields = process_json_fields( doc );
     process_json_placements( doc, smp, fields );
 
     return smp;
@@ -277,9 +277,9 @@ std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument 
 // -------------------------------------------------------------------------
 
 void JplaceReader::process_json_placements(
-    utils::JsonDocument&      doc,
-    Sample&                   smp,
-    std::vector<std::string>  fields
+    utils::JsonDocument&            doc,
+    Sample&                         smp,
+    std::vector<std::string> const& fields
 ) const {
     // create a map from edge nums to the actual edge pointers, for later use when processing
     // the pqueries. we do not use Sample::EdgeNumMap() here, because we need to do extra

@@ -89,7 +89,7 @@ public:
     StringInputSource& operator= ( StringInputSource const& ) = default;
     StringInputSource& operator= ( StringInputSource&& )      = default;
 
-    ~StringInputSource()
+    ~StringInputSource() override
     {}
 
     // -------------------------------------------------------------

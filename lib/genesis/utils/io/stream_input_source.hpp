@@ -74,7 +74,7 @@ public:
     StreamInputSource& operator= ( StreamInputSource const& ) = default;
     StreamInputSource& operator= ( StreamInputSource&& )      = default;
 
-    ~StreamInputSource()
+    ~StreamInputSource() override
     {}
 
     // -------------------------------------------------------------

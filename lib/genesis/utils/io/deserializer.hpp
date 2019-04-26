@@ -200,7 +200,7 @@ public:
     T get_plain ()
     {
         T res;
-        get_raw( (char*)(&res), sizeof(T) );
+        get_raw( reinterpret_cast<char*>( &res ), sizeof(T) );
         return res;
     }
 
@@ -211,7 +211,7 @@ public:
     template<typename T>
     void get_plain (T& res)
     {
-        get_raw( (char*)(&res), sizeof(T) );
+        get_raw( reinterpret_cast<char*>( &res ), sizeof(T) );
     }
 
     /**

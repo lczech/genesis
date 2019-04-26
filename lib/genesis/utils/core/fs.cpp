@@ -280,7 +280,7 @@ std::string current_path_getcwd_()
     // The local buffer of size PATH_MAX is fine for Windows, but pretty much no other OS.
     char temp[ PATH_MAX ];
     errno = 0;
-    if( getcwd( temp, PATH_MAX ) != 0 ) {
+    if( getcwd( temp, PATH_MAX ) != nullptr ) {
         return dir_normalize_path( std::string( temp ));
     }
 

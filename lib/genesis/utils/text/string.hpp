@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 
 #include "genesis/utils/text/char.hpp"
 
+#include <cctype>
 #include <functional>
 #include <iostream>
 #include <sstream>
@@ -207,7 +208,9 @@ inline std::string to_lower( std::string const& str )
 {
     auto res = str;
     for( auto& c : res ){
-        c = tolower(c);
+        // Weird C relicts need weird conversions...
+        // See https://en.cppreference.com/w/cpp/string/byte/tolower
+        c = static_cast<char>( std::tolower( static_cast<unsigned char>( c )));
     }
     return res;
 }
@@ -218,7 +221,7 @@ inline std::string to_lower( std::string const& str )
 inline void to_lower_inplace( std::string& str )
 {
     for( auto& c : str ){
-        c = tolower(c);
+        c = static_cast<char>( std::tolower( static_cast<unsigned char>( c )));
     }
 }
 
@@ -229,7 +232,7 @@ inline std::string to_upper( std::string const& str )
 {
     auto res = str;
     for( auto& c : res ){
-        c = toupper(c);
+        c = static_cast<char>( std::toupper( static_cast<unsigned char>( c )));
     }
     return res;
 }
@@ -240,7 +243,7 @@ inline std::string to_upper( std::string const& str )
 inline void to_upper_inplace( std::string& str )
 {
     for( auto& c : str ){
-        c = toupper(c);
+        c = static_cast<char>( std::toupper( static_cast<unsigned char>( c )));
     }
 }
 

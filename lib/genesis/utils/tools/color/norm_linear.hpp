@@ -97,7 +97,7 @@ public:
         autoscale( first, last );
     }
 
-    virtual ~ColorNormalizationLinear() = default;
+    virtual ~ColorNormalizationLinear() override = default;
 
     ColorNormalizationLinear(ColorNormalizationLinear const&) = default;
     ColorNormalizationLinear(ColorNormalizationLinear&&)      = default;

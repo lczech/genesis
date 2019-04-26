@@ -91,7 +91,7 @@ public:
         autoscale( first, last );
     }
 
-    virtual ~ColorNormalizationLogarithmic() = default;
+    virtual ~ColorNormalizationLogarithmic() override = default;
 
     ColorNormalizationLogarithmic(ColorNormalizationLogarithmic const&) = default;
     ColorNormalizationLogarithmic(ColorNormalizationLogarithmic&&)      = default;

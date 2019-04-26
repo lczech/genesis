@@ -275,7 +275,7 @@ public:
 
     public:
 
-        ~Column() = default;
+        virtual ~Column() override = default;
 
         // -------------------------------------------------------------------------
         //     Iterators

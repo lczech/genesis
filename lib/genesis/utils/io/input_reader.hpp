@@ -201,7 +201,7 @@ public:
 
         // Prepare worker thread.
         worker_ = std::thread( [&] {
-            std::unique_lock< std::mutex > guard( lock_ );
+            std::unique_lock< std::mutex > worker_guard( lock_ );
             try {
 
                 // Read until termination requested.
@@ -209,7 +209,7 @@ public:
 
                     // Condition: wait until the master wants the worker to read.
                     cond_read_requested_.wait(
-                        guard,
+                        worker_guard,
                         [&] () {
                             return ( target_size_ != -1 ) || destructor_called_;
                         }

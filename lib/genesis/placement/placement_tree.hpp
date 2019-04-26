@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ class PlacementNodeData : public tree::CommonNodeData
 
 public:
 
-    virtual ~PlacementNodeData() = default;
+    virtual ~PlacementNodeData() override = default;
 
     // Move ctor and assignment.
     PlacementNodeData( PlacementNodeData&& )             = delete;
@@ -144,7 +144,7 @@ class PlacementEdgeData : public tree::CommonEdgeData
 
 public:
 
-    virtual ~PlacementEdgeData() = default;
+    virtual ~PlacementEdgeData() override = default;
 
     // Move ctor and assignment.
     PlacementEdgeData( PlacementEdgeData&& )             = delete;

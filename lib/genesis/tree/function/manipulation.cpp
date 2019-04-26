@@ -661,7 +661,7 @@ void ladderize( Tree& tree, LadderizeOrder order )
         // Get the sizes of the children/subtrees of this node.
         std::vector<size_t>    child_sizes;
         std::vector<TreeLink*> child_links;
-        for( auto const& link_it : node_links( node ) ) {
+        for( auto link_it : node_links( node ) ) {
 
             // Don't treat the link towards the root; we only want to sort the subtree.
             // Assert that the first iteration is actually this link towards the root.

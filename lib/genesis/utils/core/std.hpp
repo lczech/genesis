@@ -80,8 +80,8 @@ template <typename T>
 class ArrowOperatorProxy {
 public:
 
-    explicit ArrowOperatorProxy( T const& t )
-        : t(t)
+    explicit ArrowOperatorProxy( T const& v )
+        : t(v)
     {}
 
     T* operator ->() const {

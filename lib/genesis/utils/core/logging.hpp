@@ -399,13 +399,13 @@ public:
         kDebug4
     };
 
-    Logging() {};
+    Logging() {}
     ~Logging();
 
     // Logging is kind of singleton, its instances are only provided via the
     // get functions. do not allow other instances by blocking the copy
     // constructors and copy assignment
-    Logging (const Logging&) {};
+    Logging (const Logging&) {}
     Logging& operator = (const Logging&) = delete;
 
     // getter for the singleton instance of log, is called by the macros

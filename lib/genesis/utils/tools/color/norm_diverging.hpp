@@ -122,7 +122,7 @@ public:
         autoscale( first, last );
     }
 
-    virtual ~ColorNormalizationDiverging() = default;
+    virtual ~ColorNormalizationDiverging() override = default;
 
     ColorNormalizationDiverging(ColorNormalizationDiverging const&) = default;
     ColorNormalizationDiverging(ColorNormalizationDiverging&&)      = default;

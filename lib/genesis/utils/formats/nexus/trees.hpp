@@ -85,7 +85,7 @@ public:
 public:
 
     NexusTrees() = default;
-    ~NexusTrees() = default;
+    virtual ~NexusTrees() override = default;
 
     NexusTrees( NexusTrees const& ) = default;
     NexusTrees( NexusTrees&& )      = default;

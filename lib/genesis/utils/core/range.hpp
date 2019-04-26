@@ -39,7 +39,8 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Simple wrapper for typical `begin()` and `end()` iterators, to be used in range-based
+ * for loops.
  */
 template <typename IteratorType>
 class Range

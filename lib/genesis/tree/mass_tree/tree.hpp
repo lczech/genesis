@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -102,7 +102,7 @@ class MassTreeNodeData : public CommonNodeData
 
 public:
 
-    virtual ~MassTreeNodeData() = default;
+    virtual ~MassTreeNodeData() override = default;
 
     // Move ctor and assignment.
     MassTreeNodeData( MassTreeNodeData&& )             = delete;
@@ -153,7 +153,7 @@ class MassTreeEdgeData : public CommonEdgeData
 
 public:
 
-    virtual ~MassTreeEdgeData() = default;
+    virtual ~MassTreeEdgeData() override = default;
 
     // Move ctor and assignment.
     MassTreeEdgeData( MassTreeEdgeData&& )             = delete;
