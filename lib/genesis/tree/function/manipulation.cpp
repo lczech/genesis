@@ -48,6 +48,60 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
+//     Minimal Tree
+// =================================================================================================
+
+Tree minimal_tree_topology()
+{
+    Tree result;
+
+    // Get container access shortcuts.
+    auto& links = result.expose_link_container();
+    auto& nodes = result.expose_node_container();
+    auto& edges = result.expose_edge_container();
+
+    // Create all needed elements...
+    auto link1_u = utils::make_unique< TreeLink >();
+    auto link2_u = utils::make_unique< TreeLink >();
+    auto node1_u = utils::make_unique< TreeNode >();
+    auto node2_u = utils::make_unique< TreeNode >();
+    auto edge0_u = utils::make_unique< TreeEdge >();
+
+    // ... and connect them with each other.
+    link1_u->reset_index( 0 );
+    link1_u->reset_next( link1_u.get() );
+    link1_u->reset_outer( link2_u.get() );
+    link1_u->reset_node( node1_u.get() );
+    link1_u->reset_edge( edge0_u.get() );
+
+    link2_u->reset_index( 1 );
+    link2_u->reset_next( link2_u.get() );
+    link2_u->reset_outer( link1_u.get() );
+    link2_u->reset_node( node2_u.get() );
+    link2_u->reset_edge( edge0_u.get() );
+
+    node1_u->reset_index( 0 );
+    node1_u->reset_primary_link( link1_u.get() );
+
+    node2_u->reset_index( 1 );
+    node2_u->reset_primary_link( link2_u.get() );
+
+    edge0_u->reset_index( 0 );
+    edge0_u->reset_primary_link( link1_u.get() );
+    edge0_u->reset_secondary_link( link2_u.get() );
+
+    // Finally, move all elements to the tree and reset the tree root link.
+    links.push_back( std::move( link1_u ));
+    links.push_back( std::move( link2_u ));
+    nodes.push_back( std::move( node1_u ));
+    nodes.push_back( std::move( node2_u ));
+    edges.push_back( std::move( edge0_u ));
+    result.reset_root_link( links.front().get() );
+
+    return result;
+}
+
+// =================================================================================================
 //     Add Nodes
 // =================================================================================================
 
