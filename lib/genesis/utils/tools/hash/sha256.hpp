@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -290,12 +290,12 @@ namespace std
         using result_type   = std::size_t;
 
         result_type operator()( argument_type const& s ) const {
-            result_type hash = 0;
-            hash ^= s[0] ^ ( static_cast<result_type>( s[1] ) << 32 );
-            hash ^= s[2] ^ ( static_cast<result_type>( s[3] ) << 32 );
-            hash ^= s[4] ^ ( static_cast<result_type>( s[5] ) << 32 );
-            hash ^= s[6] ^ ( static_cast<result_type>( s[7] ) << 32 );
-            return hash;
+            result_type result = 0;
+            result ^= s[0] ^ ( static_cast<result_type>( s[1] ) << 32 );
+            result ^= s[2] ^ ( static_cast<result_type>( s[3] ) << 32 );
+            result ^= s[4] ^ ( static_cast<result_type>( s[5] ) << 32 );
+            result ^= s[6] ^ ( static_cast<result_type>( s[7] ) << 32 );
+            return result;
         }
     };
 }

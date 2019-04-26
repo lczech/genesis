@@ -240,22 +240,22 @@ TEST (TreeIterator, EulertourSubtree)
     // The following heavily depends on the internal tree structure.
     // If this breaks, we might need a setup that finds nodes,
     // instead of assuming certain link indices. But for now, this is good enough and stable.
-    TestEulertourSubtree( { tree.link_at(0) }, "RFRGHGIG" );
-    TestEulertourSubtree( { tree.link_at(1) }, "RGHGIGRABACDCECA" );
-    TestEulertourSubtree( { tree.link_at(2) }, "RABACDCECARF" );
-    TestEulertourSubtree( { tree.link_at(3) }, "GHGI" );
-    TestEulertourSubtree( { tree.link_at(4) }, "GIGRABACDCECARFR" );
-    TestEulertourSubtree( { tree.link_at(5) }, "GRABACDCECARFRGH" );
-    TestEulertourSubtree( { tree.link_at(6) }, "I" );
-    TestEulertourSubtree( { tree.link_at(7) }, "H" );
-    TestEulertourSubtree( { tree.link_at(8) }, "F" );
-    TestEulertourSubtree( { tree.link_at(9) }, "ABACDCEC" );
-    TestEulertourSubtree( { tree.link_at(10) }, "ACDCECARFRGHGIGR" );
-    TestEulertourSubtree( { tree.link_at(11) }, "ARFRGHGIGRAB" );
-    TestEulertourSubtree( { tree.link_at(12) }, "CDCE" );
-    TestEulertourSubtree( { tree.link_at(13) }, "CECARFRGHGIGRABA" );
-    TestEulertourSubtree( { tree.link_at(14) }, "CARFRGHGIGRABACD" );
-    TestEulertourSubtree( { tree.link_at(15) }, "E" );
-    TestEulertourSubtree( { tree.link_at(16) }, "D" );
-    TestEulertourSubtree( { tree.link_at(17) }, "B" );
+    TestEulertourSubtree( Subtree{ tree.link_at(0) }, "RFRGHGIG" );
+    TestEulertourSubtree( Subtree{ tree.link_at(1) }, "RGHGIGRABACDCECA" );
+    TestEulertourSubtree( Subtree{ tree.link_at(2) }, "RABACDCECARF" );
+    TestEulertourSubtree( Subtree{ tree.link_at(3) }, "GHGI" );
+    TestEulertourSubtree( Subtree{ tree.link_at(4) }, "GIGRABACDCECARFR" );
+    TestEulertourSubtree( Subtree{ tree.link_at(5) }, "GRABACDCECARFRGH" );
+    TestEulertourSubtree( Subtree{ tree.link_at(6) }, "I" );
+    TestEulertourSubtree( Subtree{ tree.link_at(7) }, "H" );
+    TestEulertourSubtree( Subtree{ tree.link_at(8) }, "F" );
+    TestEulertourSubtree( Subtree{ tree.link_at(9) }, "ABACDCEC" );
+    TestEulertourSubtree( Subtree{ tree.link_at(10) }, "ACDCECARFRGHGIGR" );
+    TestEulertourSubtree( Subtree{ tree.link_at(11) }, "ARFRGHGIGRAB" );
+    TestEulertourSubtree( Subtree{ tree.link_at(12) }, "CDCE" );
+    TestEulertourSubtree( Subtree{ tree.link_at(13) }, "CECARFRGHGIGRABA" );
+    TestEulertourSubtree( Subtree{ tree.link_at(14) }, "CARFRGHGIGRABACD" );
+    TestEulertourSubtree( Subtree{ tree.link_at(15) }, "E" );
+    TestEulertourSubtree( Subtree{ tree.link_at(16) }, "D" );
+    TestEulertourSubtree( Subtree{ tree.link_at(17) }, "B" );
 }

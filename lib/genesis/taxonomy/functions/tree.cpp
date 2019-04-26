@@ -116,7 +116,7 @@ tree::Tree taxonomy_to_tree(
     // which is not allowed.
     NewickBroker broker;
     if( taxonomy.size() > 1 ) {
-        broker.push_bottom({0});
+        broker.push_bottom( NewickBrokerElement{0} );
     }
 
     // Recursively add taxa. We could try something non-recursive here (see below for an example),

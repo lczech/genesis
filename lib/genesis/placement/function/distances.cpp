@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -159,7 +159,7 @@ double placement_distance(
     PqueryPlacement const& place_b,
     utils::Matrix<double> const& node_distances
 ) {
-    double pp, pd, dp, dist;
+    double dist;
 
     if( place_a.edge().index() == place_b.edge().index() ) {
         // same branch case
@@ -167,7 +167,7 @@ double placement_distance(
 
     } else {
         // proximal-proximal case
-        pp = place_a.proximal_length
+        double pp = place_a.proximal_length
            + node_distances(
                place_a.edge().primary_node().index(),
                place_b.edge().primary_node().index()
@@ -175,7 +175,7 @@ double placement_distance(
            + place_b.proximal_length;
 
         // proximal-distal case
-        pd = place_a.proximal_length
+        double pd = place_a.proximal_length
            + node_distances(
                place_a.edge().primary_node().index(),
                place_b.edge().secondary_node().index()
@@ -184,7 +184,7 @@ double placement_distance(
            - place_b.proximal_length;
 
         // distal-proximal case
-        dp = place_a.edge().data<tree::CommonEdgeData>().branch_length
+        double dp = place_a.edge().data<tree::CommonEdgeData>().branch_length
            - place_a.proximal_length
            + node_distances(
                place_a.edge().secondary_node().index(),

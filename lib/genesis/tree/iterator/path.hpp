@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -112,7 +112,7 @@ public:
 
         // Helper function to find all links between a given link and the root.
         auto path_to_root = [] ( LinkType* link ) {
-            std::vector<LinkType*> path;
+            std::vector<LinkType*> link_path;
 
             // Move towards the root and record all links in between.
             LinkType* cur_link = link;
@@ -126,7 +126,7 @@ public:
                 assert( cur_link == &cur_link->edge().secondary_link() );
 
                 // Add the primary link of the current node to the list.
-                path.push_back( cur_link );
+                link_path.push_back( cur_link );
 
                 // Move one node towards the root.
                 // Assert that the default way of finding the next node towards the root (by using
@@ -139,8 +139,8 @@ public:
 
             // Now finally add the root itself and return the list.
             assert( is_root( cur_link->node() ));
-            path.push_back( cur_link );
-            return path;
+            link_path.push_back( cur_link );
+            return link_path;
         };
 
         // Treat special case start == finish.

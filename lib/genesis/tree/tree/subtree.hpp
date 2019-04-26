@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ public:
      * @brief Construct a Subtree that contains all of the tree except for the part that the
      * @link TreeLink::outer() outer()@endlink link of the given TreeLink belongs to.
      */
-    Subtree( TreeLink const& link )
+    explicit Subtree( TreeLink const& link )
         : link_( &link )
     {}
 
@@ -91,7 +91,7 @@ public:
      * @brief Construct a Subtree representing the given TreeNode and the part of the Tree
      * away from its root node.
      */
-    Subtree( TreeNode const& node )
+    explicit Subtree( TreeNode const& node )
         : link_( &node.primary_link() )
     {}
 

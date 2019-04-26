@@ -122,8 +122,8 @@ utils::Matrix<double> phylogenetic_ilr_transform(
 
             // The tree is rooted, so that the root node, the left hand side is the primary
             // link of the node itself, and the right hand side the next one.
-            lhs_indices = get_subtree_indices_({ node.link().outer() });
-            rhs_indices = get_subtree_indices_({ node.link().next().outer() });
+            lhs_indices = get_subtree_indices_( Subtree{ node.link().outer() });
+            rhs_indices = get_subtree_indices_( Subtree{ node.link().next().outer() });
 
             // After that, we should have all edges of the tree.
             assert( lhs_indices.size() + rhs_indices.size() == data.tree.edge_count() );
@@ -131,8 +131,8 @@ utils::Matrix<double> phylogenetic_ilr_transform(
             assert( deg == 3 );
 
             // At inner nodes, the primary link points towards the root, so we use the next two links.
-            lhs_indices = get_subtree_indices_({ node.link().next().outer() });
-            rhs_indices = get_subtree_indices_({ node.link().next().next().outer() });
+            lhs_indices = get_subtree_indices_( Subtree{ node.link().next().outer() });
+            rhs_indices = get_subtree_indices_( Subtree{ node.link().next().next().outer() });
 
             // We never have more edges than the tree.
             assert( lhs_indices.size() + rhs_indices.size() < data.tree.edge_count() );
@@ -194,8 +194,8 @@ utils::Matrix<double> edge_balances(
         }
 
         // Get the indices of the edges in the two subtrees away from the given edge.
-        auto p_indices = get_subtree_indices_({ edge.primary_link() });
-        auto s_indices = get_subtree_indices_({ edge.secondary_link() });
+        auto p_indices = get_subtree_indices_( Subtree{ edge.primary_link() });
+        auto s_indices = get_subtree_indices_( Subtree{ edge.secondary_link() });
 
         // After that, we should have all edges of the tree except one.
         assert( p_indices.size() + s_indices.size() == data.tree.edge_count() - 1 );

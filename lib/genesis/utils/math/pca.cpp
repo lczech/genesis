@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -60,11 +60,12 @@ TridiagonalDecompositionData reduce_to_tridiagonal_matrix( Matrix<double>& data 
     tri.intermediates = std::vector<double>( data.cols() );
 
     for( size_t i = data.cols()-1; i >= 1; --i ) {
-        size_t l     = i - 1;
-        double h     = 0.0;
-        double scale = 0.0;
+        size_t l = i - 1;
+        double h = 0.0;
 
         if( l > 0 ) {
+            double scale = 0.0;
+
             for( size_t k = 0; k <= l; ++k ) {
                 scale += fabs(data( i, k ));
             }

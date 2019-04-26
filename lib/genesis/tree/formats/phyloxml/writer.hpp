@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -169,27 +169,27 @@ public:
     /**
      * @brief Writes the tree to a file in Phyloxml format.
      *
-     * If the file cannot be written to, the function throws an exception. Also, by default, if the file
-     * already exists, an exception is thrown.
+     * If the file cannot be written to, the function throws an exception. Also, by default,
+     * if the file already exists, an exception is thrown.
      * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink
      * to change this behaviour.
      */
-    void        to_file     (const Tree& tree, const std::string filename) const;
+    void        to_file     ( Tree const& tree, std::string const& filename) const;
 
     /**
      * @brief Gives a Phyloxml string representation of the tree.
      */
-    void        to_string   (const Tree& tree, std::string& ts) const;
+    void        to_string   ( Tree const& tree, std::string& ts) const;
 
     /**
      * @brief Return a Phyloxml string representation of the tree.
      */
-    std::string to_string   (const Tree& tree) const;
+    std::string to_string   ( Tree const& tree) const;
 
     /**
      * @brief Store the information of the tree into an Phyloxml-formatted XmlDocument.
      */
-    void        to_document (const Tree& tree, utils::XmlDocument& xml) const;
+    void        to_document ( Tree const& tree, utils::XmlDocument& xml) const;
 
     // -------------------------------------------------------------------------
     //     Plugin Functions

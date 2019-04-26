@@ -140,14 +140,12 @@ std::vector<std::string> split (
     size_t advance_by,
     const bool trim_empty
 ) {
-    size_t pos;
-    size_t last_pos = 0;
-
     std::vector<std::string> result;
 
+    size_t last_pos = 0;
     while( true ) {
         // Find first matching char.
-        pos = find_pos( string, last_pos );
+        size_t pos = find_pos( string, last_pos );
 
         // If not found, push back rest and stop.
         if( pos == std::string::npos ) {

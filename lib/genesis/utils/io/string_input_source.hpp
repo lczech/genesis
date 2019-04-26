@@ -76,7 +76,7 @@ public:
     /**
     * @brief Construct the input source from a `std::string`.
     */
-    StringInputSource( std::string const& str )
+    explicit StringInputSource( std::string const& str )
         : in_str_(    str.c_str() )
         , cursor_(    str.c_str() )
         , in_size_(   str.size()  )

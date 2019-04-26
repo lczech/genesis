@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1033,14 +1033,14 @@ private:
     {
         // Avoid memory leaks.
         std::allocator<T> alloc;
-        auto deleter = [&](T * object)
+        auto deleter = [&]( T * obj )
         {
-            alloc.deallocate(object, 1);
+            alloc.deallocate( obj, 1 );
         };
-        std::unique_ptr<T, decltype(deleter)> object(alloc.allocate(1), deleter);
-        alloc.construct(object.get(), std::forward<Args>(args)...);
-        assert(object != nullptr);
-        return object.release();
+        std::unique_ptr<T, decltype(deleter)> obj( alloc.allocate(1), deleter );
+        alloc.construct( obj.get(), std::forward<Args>(args)... );
+        assert( obj != nullptr );
+        return obj.release();
 
         // auto object = new T(std::forward<Args>(args)...);
         // assert( object != nullptr );

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -131,7 +131,7 @@ public:
         return entries_.size();
     }
 
-    bool has_tree( std::string name ) const
+    bool has_tree( std::string const& name ) const
     {
         return entries_.end() != std::find_if(
             entries_.begin(),
@@ -171,7 +171,7 @@ public:
 
 public:
 
-    void add_tree( std::string name, std::string tree )
+    void add_tree( std::string const& name, std::string const& tree )
     {
         if( has_tree(name) ) {
             throw std::invalid_argument(
@@ -188,7 +188,7 @@ public:
         // entries_.emplace_back(name, {}, tree);
     }
 
-    void erase_tree( std::string name )
+    void erase_tree( std::string const& name )
     {
         utils::erase_if(
             entries_,

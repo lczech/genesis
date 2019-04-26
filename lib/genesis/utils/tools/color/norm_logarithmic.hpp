@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ public:
      * @brief Constructor that sets min() and max() to the min and max of the provided @p values,
      * and mid() to their midpoint.
      */
-    ColorNormalizationLogarithmic( std::vector<double> const& values )
+    explicit ColorNormalizationLogarithmic( std::vector<double> const& values )
     {
         autoscale( values.begin(), values.end() );
     }

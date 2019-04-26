@@ -221,13 +221,13 @@ PhyloFactor phylo_factor_find_best_edge(
         // edges needed for calculating balances. So, we'd need another set of edges distinct from
         // the candidates for storing which edges to use for the lookup... too complex for now!
         auto const p_indices = phylo_factor_subtree_indices(
-            { edge.primary_link() }, candidate_edges
+            Subtree{ edge.primary_link() }, candidate_edges
         );
         if( p_indices.empty() ) {
             continue;
         }
         auto const s_indices = phylo_factor_subtree_indices(
-            { edge.secondary_link() }, candidate_edges
+            Subtree{ edge.secondary_link() }, candidate_edges
         );
         if( s_indices.empty() ) {
             continue;

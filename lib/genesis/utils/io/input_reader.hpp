@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -191,7 +191,7 @@ public:
     void init( std::shared_ptr< BaseInputSource > input_source )
     {
         // Get a lock.
-        std::unique_lock< std::mutex > guard( lock_ );
+        std::unique_lock< std::mutex > init_guard( lock_ );
 
         // Prepare input variables.
         input_source_      = input_source;

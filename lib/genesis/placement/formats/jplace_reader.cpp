@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@
 #include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <cctype>
 #include <functional>
 #include <sstream>
@@ -240,13 +240,13 @@ std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument 
             field == "distal_length" || field == "pendant_length" || field == "proximal_length"   ||
             field == "parsimony"
         ) {
-            for (std::string fn : fields) {
-                if (fn == field) {
-                    throw std::runtime_error(
-                        "Jplace document contains field name '" + field
-                        + "' more than once at key 'fields'."
-                    );
-                }
+            if( std::any_of( fields.begin(), fields.end(), [&]( std::string const& fn ){
+                return fn == field;
+            })) {
+                throw std::runtime_error(
+                    "Jplace document contains field name '" + field
+                    + "' more than once at key 'fields'."
+                );
             }
         } else {
             LOG_WARN << "Jplace document contains a field name '" << field << "' "

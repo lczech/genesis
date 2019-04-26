@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -78,7 +78,7 @@ public:
     /**
      * @brief Constructor that sets all values to a given one.
      */
-    CharLookup( T const& init_all )
+    explicit CharLookup( T const& init_all )
     {
         for( size_t i = 0; i < ArraySize; ++i ) {
             table_[i] = init_all;
@@ -91,7 +91,7 @@ public:
      * The given list needs to have as many entries as the lookup table itself (see ArraySize),
      * otherwise it throws.
      */
-    CharLookup( std::initializer_list<T> init )
+    explicit CharLookup( std::initializer_list<T> init )
     {
         if( init.size() != ArraySize ) {
             throw std::domain_error(

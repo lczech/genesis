@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -89,10 +89,10 @@ public:
     /**
      * @brief
      */
-    ColorNormalizationBoundary( std::vector<double> const& boundaries )
+    explicit ColorNormalizationBoundary( std::vector<double> const& boundaries )
         : boundaries_( boundaries )
     {
-        is_valid_or_throw_();
+        ColorNormalizationBoundary::is_valid_or_throw_();
     }
 
     ColorNormalizationBoundary( double min, double max, size_t intervals )
@@ -175,19 +175,19 @@ public:
 
     /**
      * @brief Set the boundaries to equal-sizes intervals between @p min and @p max,
-     * using @p interval many steps.
+     * using @p intervals many steps.
      */
     ColorNormalizationBoundary& scale( double min, double max, size_t intervals )
     {
         // Make evenly distributed boundary intervals between min and max.
         // We add max separately to increase precision.
         boundaries_.clear();
-        double const interval = ( max - min ) / static_cast<double>( intervals );
+        double const interv = ( max - min ) / static_cast<double>( intervals );
         for( size_t i = 0; i < intervals; ++i ) {
-            boundaries_.push_back( min + static_cast<double>(i) * interval );
+            boundaries_.push_back( min + static_cast<double>(i) * interv );
         }
         boundaries_.push_back( max );
-        is_valid_or_throw_();
+        ColorNormalizationBoundary::is_valid_or_throw_();
 
         return *this;
     }

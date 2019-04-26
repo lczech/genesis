@@ -78,7 +78,7 @@ public:
     /**
      * @brief Constructor, initializes the item values and sets the depth.
      */
-    NewickBrokerElement( int depth )
+    explicit NewickBrokerElement( int depth )
         : depth( depth )
         , rank_( -1 )
     {}

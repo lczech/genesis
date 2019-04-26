@@ -74,7 +74,7 @@ std::vector<size_t> get_subtree_edges( TreeLink const& subtree );
 std::vector<size_t> find_monophyletic_subtree_edges(
     Tree const& tree,
     std::vector<Bipartition> const& bipartitions,
-    std::vector<TreeNode const*> nodes,
+    std::vector<TreeNode const*> const& nodes,
     bool include_splitting_edges = true,
     bool include_leaf_edges = true
 );
@@ -90,7 +90,7 @@ std::vector<size_t> find_monophyletic_subtree_edges(
 Bipartition find_smallest_subtree(
     Tree const& tree,
     std::vector<Bipartition> const& bipartitions,
-    std::vector<TreeNode const*> nodes
+    std::vector<TreeNode const*> const& nodes
 );
 
 std::vector<size_t> get_clade_edges( Tree const& tree, std::vector< tree::TreeNode const* > const& nodes );
