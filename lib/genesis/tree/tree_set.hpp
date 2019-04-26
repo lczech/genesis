@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -218,7 +218,7 @@ public:
      */
     bool empty() const
     {
-        assert( names_.empty() ==  trees_.empty() );
+        assert( names_.empty() == trees_.empty() );
         return trees_.empty();
     }
 
@@ -227,7 +227,7 @@ public:
      */
     size_t size() const
     {
-        assert( names_.size() ==  trees_.size() );
+        assert( names_.size() == trees_.size() );
         return trees_.size();
     }
 

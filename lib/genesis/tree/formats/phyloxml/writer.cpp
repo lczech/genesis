@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@
 #include "genesis/utils/formats/xml/writer.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <stdexcept>
 #include <vector>
 
@@ -53,26 +53,26 @@ namespace tree {
 //     Printing
 // =================================================================================================
 
-void PhyloxmlWriter::to_file (const Tree& tree, const std::string filename) const
+void PhyloxmlWriter::to_file( Tree const& tree, std::string const& filename) const
 {
     std::string ts;
     to_string(tree, ts);
     utils::file_write(ts, filename);
 }
 
-void PhyloxmlWriter::to_string (const Tree& tree, std::string& ts) const
+void PhyloxmlWriter::to_string( Tree const& tree, std::string& ts ) const
 {
     ts = to_string(tree);
 }
 
-std::string PhyloxmlWriter::to_string (const Tree& tree) const
+std::string PhyloxmlWriter::to_string( Tree const& tree ) const
 {
     utils::XmlDocument xml;
     to_document(tree, xml);
     return utils::XmlWriter().to_string(xml);
 }
 
-void PhyloxmlWriter::to_document (const Tree& tree, utils::XmlDocument& xml) const
+void PhyloxmlWriter::to_document( Tree const& tree, utils::XmlDocument& xml ) const
 {
     xml.clear();
 

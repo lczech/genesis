@@ -36,7 +36,7 @@
 #include "genesis/utils/math/common.hpp"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <cmath>
 #include <stdexcept>
 

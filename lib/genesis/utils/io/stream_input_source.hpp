@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -65,7 +65,7 @@ public:
      * @brief Construct the input source from an `std::istream`.
      */
     explicit StreamInputSource( std::istream& in )
-        : in_( in )
+        : in_( &in )
     {}
 
     StreamInputSource( StreamInputSource const& ) = default;
@@ -74,7 +74,7 @@ public:
     StreamInputSource& operator= ( StreamInputSource const& ) = default;
     StreamInputSource& operator= ( StreamInputSource&& )      = default;
 
-    ~StreamInputSource()
+    ~StreamInputSource() override
     {}
 
     // -------------------------------------------------------------
@@ -88,8 +88,8 @@ private:
      */
     size_t read_( char* buffer, size_t size ) override
     {
-        in_.read( buffer, size );
-        return in_.gcount();
+        in_->read( buffer, size );
+        return in_->gcount();
     }
 
     /**
@@ -112,7 +112,7 @@ private:
     //     Member Variables
     // -------------------------------------------------------------
 
-    std::istream& in_;
+    std::istream* in_;
 };
 
 } // namespace utils

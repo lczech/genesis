@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ public:
         return type_ == kElement;
     }
 
-    virtual ~XmlValue() {};
+    virtual ~XmlValue() {}
 
 protected:
     /**
@@ -101,7 +101,7 @@ protected:
      * Storing the type of each object as a special member saves the issue of using run time type
      * inference, making it faster and easier to work with objects of different types.
      */
-    XmlValue (const Type type) : type_(type) {};
+    XmlValue (const Type type) : type_(type) {}
 
     /** @brief Stores the type of an object. Set by the constructor. */
     const Type type_;
@@ -117,8 +117,8 @@ protected:
 class XmlComment : public XmlValue
 {
 public:
-    XmlComment()                           : XmlValue(kComment)                   {};
-    XmlComment(const std::string& comment) : XmlValue(kComment), content(comment) {};
+    XmlComment()                           : XmlValue(kComment)                   {}
+    XmlComment(const std::string& comment) : XmlValue(kComment), content(comment) {}
 
     std::string content;
 };
@@ -133,8 +133,8 @@ public:
 class XmlMarkup : public XmlValue
 {
 public:
-    XmlMarkup()                           : XmlValue(kMarkup)                   {};
-    XmlMarkup(const std::string& content) : XmlValue(kMarkup), content(content) {};
+    XmlMarkup()                           : XmlValue(kMarkup)                   {}
+    XmlMarkup(const std::string& content) : XmlValue(kMarkup), content(content) {}
 
     std::string content;
 };
@@ -151,8 +151,8 @@ class XmlElement : public XmlValue
 public:
     typedef std::unordered_map<std::string, std::string> StringMapType;
 
-    XmlElement()                       : XmlValue(kElement)           {};
-    XmlElement(const std::string& tag) : XmlValue(kElement), tag(tag) {};
+    XmlElement()                       : XmlValue(kElement)           {}
+    XmlElement(const std::string& tag) : XmlValue(kElement), tag(tag) {}
 
     virtual ~XmlElement() override
     {
@@ -182,9 +182,9 @@ public:
         return ptr;
     }
 
-    inline XmlElement* append_element (const std::string& tag)
+    inline XmlElement* append_element (const std::string& tag_value)
     {
-        auto elm = utils::make_unique<XmlElement>(tag);
+        auto elm = utils::make_unique<XmlElement>(tag_value);
         auto ptr = elm.get();
         content.push_back(std::move(elm));
         return ptr;

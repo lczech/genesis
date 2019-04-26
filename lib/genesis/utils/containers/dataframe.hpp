@@ -275,7 +275,7 @@ public:
 
     public:
 
-        ~Column() = default;
+        virtual ~Column() override = default;
 
         // -------------------------------------------------------------------------
         //     Iterators
@@ -511,12 +511,11 @@ public:
     ~Dataframe() = default;
 
     Dataframe( Dataframe const& other )
+        : row_names_ ( other.row_names_ )
+        , col_names_ ( other.col_names_ )
+        , row_lookup_( other.row_lookup_ )
+        , col_lookup_( other.col_lookup_ )
     {
-        row_names_  = other.row_names_;
-        col_names_  = other.col_names_;
-        row_lookup_ = other.row_lookup_;
-        col_lookup_ = other.col_lookup_;
-
         columns_.clear();
         for( auto const& col : other.columns_ ) {
             columns_.emplace_back( col->clone_() );

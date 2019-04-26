@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -140,14 +140,12 @@ std::vector<std::string> split (
     size_t advance_by,
     const bool trim_empty
 ) {
-    size_t pos;
-    size_t last_pos = 0;
-
     std::vector<std::string> result;
 
+    size_t last_pos = 0;
     while( true ) {
         // Find first matching char.
-        pos = find_pos( string, last_pos );
+        size_t pos = find_pos( string, last_pos );
 
         // If not found, push back rest and stop.
         if( pos == std::string::npos ) {
@@ -423,7 +421,7 @@ std::string repeat( std::string const& word, size_t times )
 
     // Concat repeats.
     for( size_t i = 0; i < times; ++i ) {
-        result += word ;
+        result += word;
     }
     return result;
 }

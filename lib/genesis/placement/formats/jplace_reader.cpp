@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@
 #include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <cctype>
 #include <functional>
 #include <sstream>
@@ -89,7 +89,7 @@ Sample JplaceReader::read(
     process_json_metadata( doc, smp );
 
     process_json_tree( doc, smp );
-    auto fields = process_json_fields( doc );
+    auto const fields = process_json_fields( doc );
     process_json_placements( doc, smp, fields );
 
     return smp;
@@ -240,13 +240,13 @@ std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument 
             field == "distal_length" || field == "pendant_length" || field == "proximal_length"   ||
             field == "parsimony"
         ) {
-            for (std::string fn : fields) {
-                if (fn == field) {
-                    throw std::runtime_error(
-                        "Jplace document contains field name '" + field
-                        + "' more than once at key 'fields'."
-                    );
-                }
+            if( std::any_of( fields.begin(), fields.end(), [&]( std::string const& fn ){
+                return fn == field;
+            })) {
+                throw std::runtime_error(
+                    "Jplace document contains field name '" + field
+                    + "' more than once at key 'fields'."
+                );
             }
         } else {
             LOG_WARN << "Jplace document contains a field name '" << field << "' "
@@ -277,9 +277,9 @@ std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument 
 // -------------------------------------------------------------------------
 
 void JplaceReader::process_json_placements(
-    utils::JsonDocument&      doc,
-    Sample&                   smp,
-    std::vector<std::string>  fields
+    utils::JsonDocument&            doc,
+    Sample&                         smp,
+    std::vector<std::string> const& fields
 ) const {
     // create a map from edge nums to the actual edge pointers, for later use when processing
     // the pqueries. we do not use Sample::EdgeNumMap() here, because we need to do extra

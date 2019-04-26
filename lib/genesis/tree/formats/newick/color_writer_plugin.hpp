@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@
 #include "genesis/tree/formats/newick/element.hpp"
 #include "genesis/tree/formats/newick/writer.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <stdexcept>
 #include <string>
 
@@ -83,7 +83,7 @@ public:
      * By default, this string is set to `&!color=`, which is for example used by FigTree to mark
      * color in trees. This will result in a Newick comment like `[&!color=#%c0ffee]`.
      */
-    void color_tag_prefix( std::string prefix )
+    void color_tag_prefix( std::string const& prefix )
     {
         color_tag_prefix_ = prefix;
     }
@@ -102,7 +102,7 @@ public:
      *
      * By default, this string is empty. See the setter color_tag_prefix() for more information.
      */
-    void color_tag_suffix( std::string suffix )
+    void color_tag_suffix( std::string const& suffix )
     {
         color_tag_suffix_ = suffix;
     }

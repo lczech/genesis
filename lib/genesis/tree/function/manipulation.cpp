@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ TreeNode& add_new_node( Tree& tree, TreeNode& target_node )
     last_link->reset_next( con_link );
     con_link->reset_next( up_link );
     assert( &last_link->next() == con_link );
-    assert( &con_link->next()  == up_link  );
+    assert( &con_link->next() == up_link );
 
     // Add the link to the tree. This changes the size of the links vector, so the next call to
     // links.size() will give a new, proper value for the other link.
@@ -661,7 +661,7 @@ void ladderize( Tree& tree, LadderizeOrder order )
         // Get the sizes of the children/subtrees of this node.
         std::vector<size_t>    child_sizes;
         std::vector<TreeLink*> child_links;
-        for( auto const& link_it : node_links( node ) ) {
+        for( auto link_it : node_links( node ) ) {
 
             // Don't treat the link towards the root; we only want to sort the subtree.
             // Assert that the first iteration is actually this link towards the root.

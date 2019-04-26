@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 #include "genesis/utils/math/histogram/distances.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <cmath>
 #include <stdexcept>
 #include <vector>
@@ -68,11 +68,10 @@ double earth_movers_distance (const Histogram& h1, const Histogram& h2, bool nor
 
         std::vector<double> emd (h1.bins(), 0.0);
         double result = 0.0;
-        double delta;
 
         for (size_t i = 0; i < h1.bins() - 1; ++i) {
-            emd[i + 1]  = h1[i] + emd[i] - h2[i];
-            delta       = h1.bin_midpoint(i + 1) - h1.bin_midpoint(i);
+            emd[i + 1] = h1[i] + emd[i] - h2[i];
+            double const delta = h1.bin_midpoint(i + 1) - h1.bin_midpoint(i);
 
             // If delta is < 0, our Histograms have non-sorted ranges. Should not happen.
             assert(delta >= 0);

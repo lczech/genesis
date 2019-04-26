@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -117,22 +117,22 @@ TEST (TreeIterator, LevelorderSubtree)
     // The following heavily depends on the internal tree structure.
     // If this breaks, we might need a setup that finds nodes,
     // instead of assuming certain link indices. But for now, this is good enough and stable.
-    TestLevelorderSubtree( { tree.link_at(0) }, "0R 1F 1G 2H 2I" );
-    TestLevelorderSubtree( { tree.link_at(1) }, "0R 1G 1A 2H 2I 2B 2C 3D 3E" );
-    TestLevelorderSubtree( { tree.link_at(2) }, "0R 1A 1F 2B 2C 3D 3E" );
-    TestLevelorderSubtree( { tree.link_at(3) }, "0G 1H 1I" );
-    TestLevelorderSubtree( { tree.link_at(4) }, "0G 1I 1R 2A 2F 3B 3C 4D 4E" );
-    TestLevelorderSubtree( { tree.link_at(5) }, "0G 1R 1H 2A 2F 3B 3C 4D 4E" );
-    TestLevelorderSubtree( { tree.link_at(6) }, "0I" );
-    TestLevelorderSubtree( { tree.link_at(7) }, "0H" );
-    TestLevelorderSubtree( { tree.link_at(8) }, "0F" );
-    TestLevelorderSubtree( { tree.link_at(9) }, "0A 1B 1C 2D 2E" );
-    TestLevelorderSubtree( { tree.link_at(10) }, "0A 1C 1R 2D 2E 2F 2G 3H 3I" );
-    TestLevelorderSubtree( { tree.link_at(11) }, "0A 1R 1B 2F 2G 3H 3I" );
-    TestLevelorderSubtree( { tree.link_at(12) }, "0C 1D 1E" );
-    TestLevelorderSubtree( { tree.link_at(13) }, "0C 1E 1A 2R 2B 3F 3G 4H 4I" );
-    TestLevelorderSubtree( { tree.link_at(14) }, "0C 1A 1D 2R 2B 3F 3G 4H 4I" );
-    TestLevelorderSubtree( { tree.link_at(15) }, "0E" );
-    TestLevelorderSubtree( { tree.link_at(16) }, "0D" );
-    TestLevelorderSubtree( { tree.link_at(17) }, "0B" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(0) }, "0R 1F 1G 2H 2I" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(1) }, "0R 1G 1A 2H 2I 2B 2C 3D 3E" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(2) }, "0R 1A 1F 2B 2C 3D 3E" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(3) }, "0G 1H 1I" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(4) }, "0G 1I 1R 2A 2F 3B 3C 4D 4E" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(5) }, "0G 1R 1H 2A 2F 3B 3C 4D 4E" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(6) }, "0I" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(7) }, "0H" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(8) }, "0F" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(9) }, "0A 1B 1C 2D 2E" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(10) }, "0A 1C 1R 2D 2E 2F 2G 3H 3I" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(11) }, "0A 1R 1B 2F 2G 3H 3I" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(12) }, "0C 1D 1E" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(13) }, "0C 1E 1A 2R 2B 3F 3G 4H 4I" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(14) }, "0C 1A 1D 2R 2B 3F 3G 4H 4I" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(15) }, "0E" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(16) }, "0D" );
+    TestLevelorderSubtree( Subtree{ tree.link_at(17) }, "0B" );
 }

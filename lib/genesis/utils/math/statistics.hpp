@@ -883,19 +883,19 @@ double pearson_correlation_coefficient(
 
     // Calculate PCC parts.
     double numerator = 0.0;
-    double stddev_a  = 0.0;
-    double stddev_b  = 0.0;
+    double std_dev_a = 0.0;
+    double std_dev_b = 0.0;
     for_each_finite_pair( first_a, last_a, first_b, last_b, [&]( double val_a, double val_b ){
         double const d1 = val_a - mean_a;
         double const d2 = val_b - mean_b;
         numerator += d1 * d2;
-        stddev_a  += d1 * d1;
-        stddev_b  += d2 * d2;
+        std_dev_a += d1 * d1;
+        std_dev_b += d2 * d2;
     });
 
     // Calculate PCC, and assert that it is in the correct range
     // (or not a number, which can happen if the std dev is 0.0, e.g. in all-zero vectors).
-    auto const pcc = numerator / ( std::sqrt( stddev_a ) * std::sqrt( stddev_b ) );
+    auto const pcc = numerator / ( std::sqrt( std_dev_a ) * std::sqrt( std_dev_b ) );
     assert(( -1.0 <= pcc && pcc <= 1.0 ) || ( ! std::isfinite( pcc ) ));
     return pcc;
 }

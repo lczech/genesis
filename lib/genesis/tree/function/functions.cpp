@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -386,7 +386,7 @@ std::vector<size_t> subtree_sizes( Tree const& tree, TreeNode const& node )
     stack.push_back( &node.link() );
 
     // Traverse the tree.
-    for( auto const& it : eulertour( node )) {
+    for( auto it : eulertour( node )) {
 
         // If this is the last time we visit that node on our way back up the tree.
         // (The second part of the condition checks whether it is the starting node, because

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -215,7 +215,7 @@ void filter_min_accumulated_weight( Pquery& pquery, double threshold )
     sort_placements_by_weight( pquery );
 
     // Find the position where enough weight is accumulated.
-    size_t i          = 0 ;
+    size_t i          = 0;
     double weight_sum = 0.0;
     do {
         weight_sum += pquery.placement_at(i).like_weight_ratio;
@@ -517,7 +517,7 @@ void collect_duplicate_pqueries (Sample& smp)
 
                     // We are here because we found no pquery to merge with. This means that the
                     // name cannot be in the hash smp already.
-                    assert(hash.count(name.name) == 0);
+                    assert( hash.count(name.name) == 0 );
 
                     // Now add it.
                     hash[name.name] = &pqry;
@@ -571,7 +571,7 @@ void collect_duplicate_pqueries (Sample& smp)
             // Assert that this is an empty pquery. We cleared the ones that are marked for
             // deletion, so in case that it is not empty, we are about to delete the wrong one!
             assert( smp.at( *it ).placement_size() == 0 );
-            assert( smp.at( *it ).name_size()      == 0 );
+            assert( smp.at( *it ).name_size() == 0 );
 
             smp.remove( *it );
         }
@@ -733,9 +733,9 @@ std::vector<double> closest_leaf_weight_distribution( Sample const& sample )
         for( auto& place : pquery.placements() ) {
             // Try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            int dp = depths[ place.edge().primary_node().index()   ].second;
-            int ds = depths[ place.edge().secondary_node().index() ].second;
-            unsigned int ld = std::min(dp, ds);
+            auto dp = depths[ place.edge().primary_node().index()   ].second;
+            auto ds = depths[ place.edge().secondary_node().index() ].second;
+            auto ld = std::min(dp, ds);
 
             // Put the closer one into the histogram, resize if necessary.
             if( distrib.size() < ld + 1 ) {
@@ -761,9 +761,9 @@ std::vector<int> closest_leaf_depth_histogram( Sample const& smp )
         for( auto& place : pquery.placements() ) {
             // Try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            int dp = depths[ place.edge().primary_node().index()   ].second;
-            int ds = depths[ place.edge().secondary_node().index() ].second;
-            unsigned int ld = std::min(dp, ds);
+            auto dp = depths[ place.edge().primary_node().index()   ].second;
+            auto ds = depths[ place.edge().secondary_node().index() ].second;
+            auto ld = std::min(dp, ds);
 
             // Put the closer one into the histogram, resize if necessary.
             if (ld + 1 > hist.size()) {

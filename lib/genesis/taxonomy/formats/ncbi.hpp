@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ NcbiNameLookup convert_ncbi_name_table(
     size_t tax_id_pos = 0,
     size_t name_pos = 1,
     size_t name_class_pos = 3,
-    std::string name_class_filter = "scientific name"
+    std::string const& name_class_filter = "scientific name"
 );
 
 Taxonomy convert_ncbi_tables(

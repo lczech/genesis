@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/text/string.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <cmath>
 #include <ostream>
 #include <stdexcept>
@@ -234,9 +234,9 @@ void set_depths_distributed_weights(
     // Set the weight of each edge according to its depth in the tree.
     for( auto const& edge : sample.tree().edges() ) {
         // Try both nodes at the end of the edge and see which one is closer to a leaf.
-        int dp = depths[ edge.primary_node().index() ].second;
-        int ds = depths[ edge.secondary_node().index() ].second;
-        unsigned int ld = std::min(dp, ds);
+        auto dp = depths[ edge.primary_node().index() ].second;
+        auto ds = depths[ edge.secondary_node().index() ].second;
+        auto ld = std::min(dp, ds);
 
         // Some safty. This holds as long as the indices are correct.
         assert( edge.index() < num_edges );
@@ -264,11 +264,16 @@ void set_depths_distributed_weights(
  */
 size_t set_random_subtree_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib )
 {
+    if( sample.tree().empty() ) {
+        throw std::runtime_error("Cannot set weights using an empty Tree.");
+    }
+
     // Reset all edge weights.
     size_t edge_count = sample.tree().edge_count();
     edge_distrib.edge_weights = std::vector<double>( edge_count, 0.0 );
 
-    std::uniform_int_distribution<int> edge_selection( 0, edge_count - 1 );
+    assert( edge_count > 0 );
+    std::uniform_int_distribution<size_t> edge_selection( 0, edge_count - 1 );
     size_t edge_idx = edge_selection( utils::Options::get().random_engine() );
 
     // Randomly select a subtree, either starting at the end of the edge in direction of the root,

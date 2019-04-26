@@ -80,9 +80,9 @@ Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
                 // Convert to double, which is what we need for the result dataframe.
                 auto dbl_col = std::vector<double>( bool_col.size() );
                 size_t true_cnt = 0;
-                for( size_t i = 0; i < bool_col.size(); ++i ) {
-                    dbl_col[i] = ( bool_col[i] ? 1.0 : 0.0 );
-                    true_cnt += ( bool_col[i] ? 1 : 0 );
+                for( size_t j = 0; j < bool_col.size(); ++j ) {
+                    dbl_col[j] = ( bool_col[j] ? 1.0 : 0.0 );
+                    true_cnt += ( bool_col[j] ? 1 : 0 );
                 }
                 result.add_col<double>( df.col_name(i), dbl_col );
 

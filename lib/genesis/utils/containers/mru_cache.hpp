@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -128,7 +128,7 @@ public:
      * A capacity of 0 means limitless, meaning that no elements are ever removed.
      * @see capacity( size_t value )
      */
-    MruCache( size_t capacity )
+    explicit MruCache( size_t capacity )
         : capacity_( capacity )
     {}
 
@@ -278,7 +278,7 @@ public:
         shrink_();
 
         // Finally, return the element.
-        assert( cache_.size() > 0 );
+        assert( ! cache_.empty() );
         return cache_.begin()->second;
     }
 
@@ -370,7 +370,7 @@ public:
             shrink_();
 
             // Finally, return the element.
-            assert( cache_.size() > 0 );
+            assert( ! cache_.empty() );
             return cache_.begin()->second;
         }
     }
@@ -483,7 +483,9 @@ private:
      */
     mapped_type& promote_and_get_( iterator const& cache_it )
     {
-        assert( cache_.size() > 0 );
+        // The function is internally called only if we found an iterator.
+        // This can of course only happen if there are elements in the cache.
+        assert( ! cache_.empty() );
 
         // Only move if it is not already at the front.
         if( cache_it != cache_.begin() ) {

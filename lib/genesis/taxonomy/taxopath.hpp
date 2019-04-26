@@ -271,12 +271,12 @@ public:
     //     Comparison
     // -------------------------------------------------------------------------
 
-    friend bool operator ==( Taxopath const & lhs, Taxopath const & rhs )
+    friend bool operator == ( Taxopath const & lhs, Taxopath const & rhs )
     {
         return lhs.elements_ == rhs.elements_;
     }
 
-    friend bool operator !=( Taxopath const & lhs, Taxopath const & rhs )
+    friend bool operator != ( Taxopath const & lhs, Taxopath const & rhs )
     {
         return lhs.elements_ != rhs.elements_;
     }
@@ -399,11 +399,11 @@ namespace std
         using result_type   = std::size_t;
 
         result_type operator()( argument_type const& t ) const {
-            result_type hash = 0;
+            result_type result = 0;
             for( auto const& e : t ) {
-                hash ^= std::hash<std::string>{}( e );
+                result ^= std::hash<std::string>{}( e );
             }
-            return hash;
+            return result;
         }
     };
 }

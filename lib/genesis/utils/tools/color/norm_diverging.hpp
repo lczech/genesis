@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -100,14 +100,14 @@ public:
         : ColorNormalizationLinear( min, max )
         , mid_value_( mid )
     {
-        is_valid_or_throw_();
+        ColorNormalizationDiverging::is_valid_or_throw_();
     }
 
     /**
      * @brief Constructor that sets min() and max() to the min and max of the provided @p values,
      * and mid() to their midpoint.
      */
-    ColorNormalizationDiverging( std::vector<double> const& values )
+    explicit ColorNormalizationDiverging( std::vector<double> const& values )
     {
         autoscale( values.begin(), values.end() );
     }
@@ -122,7 +122,7 @@ public:
         autoscale( first, last );
     }
 
-    virtual ~ColorNormalizationDiverging() = default;
+    virtual ~ColorNormalizationDiverging() override = default;
 
     ColorNormalizationDiverging(ColorNormalizationDiverging const&) = default;
     ColorNormalizationDiverging(ColorNormalizationDiverging&&)      = default;

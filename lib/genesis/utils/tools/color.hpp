@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -205,7 +205,14 @@ inline void swap (Color& lhs, Color& rhs)
 
 inline bool operator == (Color const& lhs, Color const& rhs)
 {
-    return lhs.r() == rhs.r() && lhs.g() == rhs.g() && lhs.b() == rhs.b() && lhs.a() == rhs.a();
+    // We consider two colors equal if their byte representations are equal.
+    // This should be good enough for all practical purposes.
+    return (
+        ( lhs.r_byte() == rhs.r_byte() ) &&
+        ( lhs.g_byte() == rhs.g_byte() ) &&
+        ( lhs.b_byte() == rhs.b_byte() ) &&
+        ( lhs.a_byte() == rhs.a_byte() )
+    );
 }
 
 inline bool operator != (Color const& lhs, Color const& rhs)

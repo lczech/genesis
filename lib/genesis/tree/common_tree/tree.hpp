@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -84,7 +84,7 @@ class CommonNodeData : public BaseNodeData
 
 public:
 
-    virtual ~CommonNodeData() = default;
+    virtual ~CommonNodeData() override = default;
 
     // Move ctor and assignment.
     CommonNodeData( CommonNodeData&& )             = delete;
@@ -149,7 +149,7 @@ class CommonEdgeData : public BaseEdgeData
 
 public:
 
-    virtual ~CommonEdgeData() = default;
+    virtual ~CommonEdgeData() override = default;
 
     // Move ctor and assignment.
     CommonEdgeData( CommonEdgeData&& )             = delete;
@@ -168,7 +168,7 @@ public:
     static std::unique_ptr< CommonEdgeData > create()
     {
         return std::unique_ptr< CommonEdgeData >( new CommonEdgeData() );
-    };
+    }
 
     virtual std::unique_ptr< BaseEdgeData > recreate() const override
     {

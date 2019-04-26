@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -95,7 +95,7 @@ public:
     /**
      * @brief Constructor that takes the edge where this placement is being placed at.
      */
-    PqueryPlacement( PlacementTreeEdge& edge )
+    explicit PqueryPlacement( PlacementTreeEdge& edge )
         : likelihood(0.0)
         , like_weight_ratio(0.0)
         , proximal_length(0.0)
@@ -124,7 +124,7 @@ public:
      *
      * This property is defined by the `jplace` standard.
      */
-    double    likelihood;
+    double likelihood;
 
     /**
     * @brief Likelihood weight ratio of this placement.
@@ -136,7 +136,7 @@ public:
     *
     * This property is defined by the `jplace` standard.
     */
-    double    like_weight_ratio;
+    double like_weight_ratio;
 
     /**
     * @brief Distance of this placement to the next node towards the root.
@@ -154,7 +154,7 @@ public:
     *
     * This is also the formula that is internally used to convert between the two.
     */
-    double    proximal_length;
+    double proximal_length;
 
     /**
     * @brief Length of the attached branch of this placement.
@@ -164,14 +164,14 @@ public:
     *
     * This property is defined by the `jplace` standard.
     */
-    double    pendant_length;
+    double pendant_length;
 
     /**
     * @brief Parsimony value.
     *
     * This property is defined by the `jplace` standard. It is currently not used.
     */
-    int       parsimony;
+    double parsimony;
 
     // -------------------------------------------------------------------
     //     Properties

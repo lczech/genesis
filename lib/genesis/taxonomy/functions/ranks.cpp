@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ static const std::unordered_map<char, std::string> rank_abbreviations = {
  */
 std::string rank_from_abbreviation( char r )
 {
-    char c = tolower( r );
+    char const c = static_cast<char>( std::tolower( static_cast<unsigned char>( r )));
     if( rank_abbreviations.count( c ) > 0 ) {
         return rank_abbreviations.at( c );
     } else {

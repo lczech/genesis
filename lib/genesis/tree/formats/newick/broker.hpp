@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -163,19 +163,19 @@ public:
     /**
      * @brief Returns the number of leaf nodes in the tree. assign_ranks() has to be called first.
      */
-    int leaf_count() const;
+    size_t leaf_count() const;
 
-    int inner_count() const;
+    size_t inner_count() const;
 
     /**
      * @brief Alias for size().
      */
-    int node_count() const;
+    size_t node_count() const;
 
     /**
      * @brief Returns the highest rank of the nodes in the tree. assign_ranks() has to be called first.
      */
-    int max_rank() const;
+    long max_rank() const;
 
     bool is_bifurcating() const;
 

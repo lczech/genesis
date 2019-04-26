@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <limits>
 #include <stdexcept>
 
@@ -48,7 +49,7 @@ namespace tree {
 // =================================================================================================
 
 LcaLookup::LcaLookup( Tree const& tree )
-    : tree_( tree )
+    : tree_( &tree )
 {
     init_( tree );
 }
@@ -65,7 +66,7 @@ size_t LcaLookup::operator()( size_t node_index_a, size_t node_index_b, size_t r
 TreeNode const& LcaLookup::operator()( TreeNode const& node_a, TreeNode const& node_b, TreeNode const& root_node ) const
 {
     auto const idx = lookup_( node_a.index(), node_b.index(), root_node.index() );
-    return tree_.node_at( idx );
+    return tree_->node_at( idx );
 }
 
 size_t LcaLookup::operator()( size_t node_index_a, size_t node_index_b ) const
@@ -76,7 +77,7 @@ size_t LcaLookup::operator()( size_t node_index_a, size_t node_index_b ) const
 TreeNode const& LcaLookup::operator()( TreeNode const& node_a, TreeNode const& node_b ) const
 {
     auto const idx = lookup_( node_a.index(), node_b.index(), root_idx_ );
-    return tree_.node_at( idx );
+    return tree_->node_at( idx );
 }
 
 // =================================================================================================
@@ -91,26 +92,32 @@ void LcaLookup::init_( Tree const& tree )
     // Store root, so that tree can be re-rooted outside of this class.
     root_idx_ = tree.root_node().index();
 
+    using RmqIntType = utils::RangeMinimumQuery::IntType;
+
     // Init vectors.
-    std::vector<int> eulertour_levels;
+    std::vector<RmqIntType> eulertour_levels;
     eulertour_first_occurrence_.resize( tree.node_count() );
-	std::fill(
+    std::fill(
         eulertour_first_occurrence_.begin(),
         eulertour_first_occurrence_.end(),
         std::numeric_limits<size_t>::max()
     );
 
     // Fill data structures.
-	for( auto it : eulertour( tree )) {
+    for( auto it : eulertour( tree )) {
         auto const node_idx = it.node().index();
 
-		eulertour_order_.push_back( node_idx );
-		eulertour_levels.push_back( dists_to_root[ node_idx ]);
-		if( eulertour_first_occurrence_[ node_idx ] == std::numeric_limits<size_t>::max() ) {
-			eulertour_first_occurrence_[ node_idx ] = eulertour_order_.size() - 1;
-		}
-	}
-	eulertour_rmq_ = utils::RangeMinimumQuery( eulertour_levels );
+        if( dists_to_root[ node_idx ] >= static_cast<size_t>( std::numeric_limits<RmqIntType>::max() )) {
+            throw std::runtime_error( "Tree too large for building LCA Lookup." );
+        }
+
+        eulertour_order_.push_back( node_idx );
+        eulertour_levels.push_back( static_cast<RmqIntType>( dists_to_root[ node_idx ] ));
+        if( eulertour_first_occurrence_[ node_idx ] == std::numeric_limits<size_t>::max() ) {
+            eulertour_first_occurrence_[ node_idx ] = eulertour_order_.size() - 1;
+        }
+    }
+    eulertour_rmq_ = utils::RangeMinimumQuery( eulertour_levels );
 }
 
 size_t LcaLookup::eulertour_query_( size_t i, size_t j ) const
@@ -130,29 +137,29 @@ size_t LcaLookup::lookup_( size_t node_index_a, size_t node_index_b, size_t root
     }
 
     size_t u_euler_idx = eulertour_first_occurrence_[ node_index_a ];
-	size_t v_euler_idx = eulertour_first_occurrence_[ node_index_b ];
-	size_t r_euler_idx = eulertour_first_occurrence_[ root_index   ];
+    size_t v_euler_idx = eulertour_first_occurrence_[ node_index_b ];
+    size_t r_euler_idx = eulertour_first_occurrence_[ root_index   ];
 
-	if( root_index == root_idx_ ) {
-		return eulertour_order_[ eulertour_query_( u_euler_idx, v_euler_idx )];
+    if( root_index == root_idx_ ) {
+        return eulertour_order_[ eulertour_query_( u_euler_idx, v_euler_idx )];
 
-	} else {
+    } else {
 
         // Use the "odd man out",
         // see http://stackoverflow.com/questions/25371865/find-multiple-lcas-in-unrooted-tree
-		size_t candidate_a = eulertour_order_[ eulertour_query_( u_euler_idx, v_euler_idx )];
-		size_t candidate_b = eulertour_order_[ eulertour_query_( u_euler_idx, r_euler_idx )];
-		size_t candidate_c = eulertour_order_[ eulertour_query_( v_euler_idx, r_euler_idx )];
+        size_t candidate_a = eulertour_order_[ eulertour_query_( u_euler_idx, v_euler_idx )];
+        size_t candidate_b = eulertour_order_[ eulertour_query_( u_euler_idx, r_euler_idx )];
+        size_t candidate_c = eulertour_order_[ eulertour_query_( v_euler_idx, r_euler_idx )];
 
-		if( candidate_a == candidate_b ) {
-			return candidate_c;
-		} else if( candidate_a == candidate_c ) {
-			return candidate_b;
-		} else {
+        if( candidate_a == candidate_b ) {
+            return candidate_c;
+        } else if( candidate_a == candidate_c ) {
+            return candidate_b;
+        } else {
             assert( candidate_b == candidate_c );
-			return candidate_a;
-		}
-	}
+            return candidate_a;
+        }
+    }
 }
 
 } // namespace tree

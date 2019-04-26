@@ -184,7 +184,7 @@ LabelAttributes label_attributes( std::string const& label )
 
 bool has_unique_labels( SequenceSet const& set, bool case_sensitive )
 {
-    std::unordered_set< std::string > labels;
+    std::unordered_set< std::string > label_set;
     std::string label;
 
     for( auto const& seq : set ) {
@@ -194,10 +194,10 @@ bool has_unique_labels( SequenceSet const& set, bool case_sensitive )
             label = utils::to_lower( seq.label() );
         }
 
-        if( labels.count( label ) > 0 ) {
+        if( label_set.count( label ) > 0 ) {
             return false;
         } else {
-            labels.insert( label );
+            label_set.insert( label );
         }
     }
     return true;

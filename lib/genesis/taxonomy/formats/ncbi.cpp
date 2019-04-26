@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -89,7 +89,7 @@ NcbiNameLookup convert_ncbi_name_table(
     size_t tax_id_pos,
     size_t name_pos,
     size_t name_class_pos,
-    std::string name_class_filter
+    std::string const& name_class_filter
 ) {
     NcbiNameLookup result;
 

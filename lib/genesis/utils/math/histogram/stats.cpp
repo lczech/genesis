@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 #include "genesis/utils/math/histogram/stats.hpp"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <cmath>
 #include <iterator>
 #include <numeric>
@@ -130,7 +130,7 @@ double sigma(const Histogram& h)
             const double delta = (xi - wmean);
 
             weight += wi;
-            wvar   += (delta * delta - wvar) * (wi / weight);
+            wvar += (delta * delta - wvar) * (wi / weight);
         }
     }
 

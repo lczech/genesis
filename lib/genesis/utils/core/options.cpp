@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -176,7 +176,7 @@ unsigned int Options::guess_number_of_threads( bool use_openmp ) const
 //     Random Seed & Engine
 // =================================================================================================
 
-void Options::random_seed(const unsigned seed)
+void Options::random_seed(const unsigned long seed)
 {
     random_seed_ = seed;
     random_engine_.seed( seed );

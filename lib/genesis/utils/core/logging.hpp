@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -399,13 +399,13 @@ public:
         kDebug4
     };
 
-    Logging() {};
+    Logging() {}
     ~Logging();
 
     // Logging is kind of singleton, its instances are only provided via the
     // get functions. do not allow other instances by blocking the copy
     // constructors and copy assignment
-    Logging (const Logging&) {};
+    Logging (const Logging&) {}
     Logging& operator = (const Logging&) = delete;
 
     // getter for the singleton instance of log, is called by the macros
@@ -508,10 +508,10 @@ protected:
     // storage for information needed during one invocation of a log
     std::ostringstream buff_;
     std::string        file_;
-    int                line_;
+    int                line_ = 0;
     std::string        function_;
-    LoggingLevel       level_;
-    LoggingDetails     details_;
+    LoggingLevel       level_ = {};
+    LoggingDetails     details_ = {};
 
     // dynamic log level limit
     static LoggingLevel max_level_;
@@ -540,7 +540,7 @@ protected:
 class LoggingScopeLevel
 {
 public:
-    LoggingScopeLevel(Logging::LoggingLevel scope_level)
+    explicit LoggingScopeLevel( Logging::LoggingLevel scope_level )
     {
         previous_level = Logging::max_level();
         Logging::max_level(scope_level);

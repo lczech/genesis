@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,7 +46,9 @@ std::pair<size_t, size_t> triangular_indices( size_t k, size_t n )
     // Using equations from http://stackoverflow.com/a/27088560/4184258
     // See also https://en.wikipedia.org/wiki/Triangular_number
 
-    size_t const i = n - 2 - std::floor( std::sqrt( 4 * n * ( n - 1 ) - 7 - ( 8 * k )) / 2.0 - 0.5 );
+    size_t const i = n - 2 - static_cast<size_t>(
+        std::floor( std::sqrt( 4 * n * ( n - 1 ) - 7 - ( 8 * k )) / 2.0 - 0.5 )
+    );
     size_t const j = k + i + 1 - n * ( n - 1 ) / 2 + ( n - i ) * (( n - i ) - 1 ) / 2;
     return { i, j };
 }

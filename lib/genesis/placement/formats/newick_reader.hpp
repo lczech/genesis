@@ -31,7 +31,7 @@
  * @ingroup placement
  */
 
-#include <assert.h>
+#include <cassert>
 #include <stdexcept>
 
 #include "genesis/placement/placement_tree.hpp"

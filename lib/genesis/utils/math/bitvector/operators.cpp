@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -154,7 +154,7 @@ bool is_superset( Bitvector const& super, Bitvector const& sub )
 
 std::ostream& operator << (std::ostream& s, Bitvector const& bv)
 {
-    for(size_t i = 0; i < bv.size() ; ++i) {
+    for( size_t i = 0; i < bv.size(); ++i ) {
         s << (bv.get(i) ? "1" : "0");
     }
     return s;

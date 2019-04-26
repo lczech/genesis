@@ -182,7 +182,7 @@ public:
 
             // Read one block.
             std::memcpy( target + done_reading, buffer_ + data_pos_, BlockLength );
-            data_pos_    += BlockLength;
+            data_pos_ += BlockLength;
 
             // Update our track keeping.
             done_reading += BlockLength;
@@ -208,7 +208,7 @@ public:
 
         // Read rest.
         std::memcpy( target + done_reading, buffer_ + data_pos_, yet_to_read );
-        data_pos_    += yet_to_read;
+        data_pos_ += yet_to_read;
 
         // Update our track keeping.
         done_reading += yet_to_read;

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@
 #include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/string.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <cctype>
 #include <fstream>
 #include <sstream>
@@ -313,11 +313,14 @@ bool FastaReader::parse_sequence_pedantic(
 
         size_t count = 0;
         while( it && *it != '\n' ) {
+
+            // Weird C relicts need weird conversions...
+            // See https://en.cppreference.com/w/cpp/string/byte/tolower
             char c = *it;
             if( site_casing_ == SiteCasing::kToUpper ) {
-                c = toupper(c);
+                c = static_cast<char>( std::toupper( static_cast<unsigned char>( c )));
             } else if( site_casing_ == SiteCasing::kToLower ) {
-                c = tolower(c);
+                c = static_cast<char>( std::tolower( static_cast<unsigned char>( c )));
             }
             if( use_validation_ && ! lookup_[c] ) {
                 throw std::runtime_error(

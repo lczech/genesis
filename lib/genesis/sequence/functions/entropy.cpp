@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ double site_entropy(
     }
 
     // Prepare some constants (speedup).
-    auto const ln_2      = log( 2.0 );
+    auto const ln_2      = std::log( 2.0 );
     auto const num_seqs  = static_cast<double>( counts.added_sequences_count() );
     auto const num_chars = counts.characters().size();
 
@@ -73,7 +73,7 @@ double site_entropy(
 
         double char_prob = static_cast<double>( char_count ) / num_seqs;
         if( char_prob > 0.0 ) {
-            entropy -= char_prob * log( char_prob ) / ln_2;
+            entropy -= char_prob * std::log( char_prob ) / ln_2;
         }
     }
 
@@ -82,7 +82,7 @@ double site_entropy(
         assert( counts_sum <= num_seqs );
         double gap_prob = 1.0 - ( static_cast<double>( counts_sum ) / num_seqs );
         if( gap_prob > 0.0 ) {
-            entropy -= gap_prob * log( gap_prob ) / ln_2;
+            entropy -= gap_prob * std::log( gap_prob ) / ln_2;
         }
     }
 
@@ -95,9 +95,10 @@ double site_entropy(
     if( options & SiteEntropyOptions::kNormalized ) {
         double hmax = 1.0;
         if( options & SiteEntropyOptions::kIncludeGaps ) {
-            hmax = log( static_cast<double>( num_chars + 1 )) / ln_2;
+            // Calculate log( num_chars + 1 )
+            hmax = std::log1p( static_cast<double>( num_chars )) / ln_2;
         } else {
-            hmax = log( static_cast<double>( num_chars )) / ln_2;
+            hmax = std::log( static_cast<double>( num_chars )) / ln_2;
         }
         return entropy / hmax;
 

@@ -36,7 +36,7 @@
 #include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <limits>
 #include <stdexcept>
 
@@ -55,10 +55,10 @@ SiteCounts::SiteCounts( std::string const& characters, size_t length )
 
     // Add characters to lookup table, set all other to a max value indicating that this char
     // is not part of the table.
-    lookup_.set_all( characters_.size() );
+    lookup_.set_all( static_cast<unsigned char>( characters_.size() ));
     for( size_t i = 0; i < characters_.size(); ++i ) {
         auto c = characters_[i];
-        lookup_.set_char_upper_lower( c, i );
+        lookup_.set_char_upper_lower( c, static_cast<unsigned char>(i) );
     }
 
     // Use number of chars and number of sites to init data matrix.
@@ -131,7 +131,7 @@ SiteCounts::CountsIntType SiteCounts::count_at(
 void SiteCounts::add_sequence( Sequence const& sequence, bool use_abundance )
 {
     if( use_abundance ) {
-        add_sequence( sequence.sites(), sequence.abundance() );
+        add_sequence( sequence.sites(), static_cast<CountsIntType>( sequence.abundance() ));
     } else {
         add_sequence( sequence.sites(), 1 );
     }

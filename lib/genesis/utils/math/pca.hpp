@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -120,6 +120,7 @@ struct PcaData
  *
  * The implementation of this function is largely borrowed from
  * http://www.classification-society.org/csna/mda-sw/pca.c
+ * and http://ftp.uni-bayreuth.de/math/statlib/multi/pca.c
  * published as Public Domain by Fionn Murtagh.
  *
  * @param data Input data matrix. Operations are performed inline, that is, the matrix is changed

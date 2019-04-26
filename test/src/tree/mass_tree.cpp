@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ TEST( MassTree, Binify )
 
     // Copied here from lib/genesis/tree/mass_tree/functions.cpp
     // Ugly, but I did not want to make it a stand alone function.
-    auto get_bin_pos = [ number_of_bins ]( double pos, double bl )
+    auto get_bin_pos = []( double pos, double bl )
     {
         auto const nb = static_cast<double>( number_of_bins );
 

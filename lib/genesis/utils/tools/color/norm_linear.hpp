@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -77,13 +77,13 @@ public:
         : min_value_( min )
         , max_value_( max )
     {
-        is_valid_or_throw_();
+        ColorNormalizationLinear::is_valid_or_throw_();
     }
 
     /**
      * @brief Constructor that sets min() and max() to the min and max of the provided @p values.
      */
-    ColorNormalizationLinear( std::vector<double> const& values )
+    explicit ColorNormalizationLinear( std::vector<double> const& values )
     {
         autoscale( values.begin(), values.end() );
     }
@@ -97,7 +97,7 @@ public:
         autoscale( first, last );
     }
 
-    virtual ~ColorNormalizationLinear() = default;
+    virtual ~ColorNormalizationLinear() override = default;
 
     ColorNormalizationLinear(ColorNormalizationLinear const&) = default;
     ColorNormalizationLinear(ColorNormalizationLinear&&)      = default;
@@ -208,7 +208,7 @@ public:
         // Set the values simply to what we found.
         min_value_ = min;
         max_value_ = max;
-        update_hook_( min, max );
+        ColorNormalizationLinear::update_hook_( min, max );
 
         return *this;
     }
@@ -222,7 +222,7 @@ public:
         auto const max = max_value_;
         autoscale( first, last );
         max_value_ = max;
-        update_hook_( min_value_, max_value_ );
+        ColorNormalizationLinear::update_hook_( min_value_, max_value_ );
         return *this;
     }
 
@@ -235,7 +235,7 @@ public:
         auto const min = min_value_;
         autoscale( first, last );
         min_value_ = min;
-        update_hook_( min_value_, max_value_ );
+        ColorNormalizationLinear::update_hook_( min_value_, max_value_ );
         return *this;
     }
 
@@ -245,7 +245,7 @@ public:
     ColorNormalizationLinear& min_value( double value )
     {
         min_value_ = value;
-        update_hook_( min_value_, max_value_ );
+        ColorNormalizationLinear::update_hook_( min_value_, max_value_ );
         return *this;
     }
 
@@ -255,7 +255,7 @@ public:
     ColorNormalizationLinear& max_value( double value )
     {
         max_value_ = value;
-        update_hook_( min_value_, max_value_ );
+        ColorNormalizationLinear::update_hook_( min_value_, max_value_ );
         return *this;
     }
 

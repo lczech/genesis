@@ -196,7 +196,7 @@ void glm_irls(
             result.fitted[i] = family.rectify( mu );
             logL += pi * family.log_likelihood( y_response[i], mu );
 
-            if (!(pi && (result.weights[i] > 0.0))) {
+            if( !( pi != 0.0 && ( result.weights[i] > 0.0 ))) {
                 wi = 0.0;
                 ri = 0.0;
             } else {
@@ -235,8 +235,8 @@ void glm_irls(
             result.resid[i] = ri;
         }
 
-        int const dfr = freedom.degrees_of_freedom( result.rank );
-        result.df_resid = dfr > 0 ? dfr : 0;
+        long const dfr = freedom.degrees_of_freedom( result.rank );
+        result.df_resid = dfr > 0 ? static_cast<size_t>( dfr ) : 0;
         if( family.id == GlmFamily::kGaussian || family.id == GlmFamily::kGamma ) {
             result.scale = wss / (dfr);
         }
@@ -340,9 +340,9 @@ void glm_gaussian(
     }
 
     double const wss = weighted_sum_of_squares( result.resid, result.weights );
-    int const dfr = freedom.degrees_of_freedom( result.rank );
+    long const dfr = freedom.degrees_of_freedom( result.rank );
     result.scale = wss / dfr;
-    result.df_resid = dfr > 0 ? dfr : 0;
+    result.df_resid = dfr > 0 ? static_cast<size_t>( dfr ) : 0;
 
     result.converged = true;
     result.num_iterations = 0;
@@ -510,7 +510,7 @@ GlmOutput glm_fit(
         } else {
             result.scale = 1.0;
         }
-        result.df_resid = dfr > 0 ? dfr : 0;
+        result.df_resid = dfr > 0 ? static_cast<size_t>( dfr ) : 0;
     }
 
     return result;

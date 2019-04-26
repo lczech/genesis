@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -146,16 +146,18 @@ size_t GzipInputSource::read_( char* buffer, size_t size )
             in_pos_ = 0;
             in_end_ = input_source_->read( in_buf_, BlockLength );
         }
+        assert( in_end_ >= in_pos_ );
+        assert( out_end >= out_pos );
 
         // Read starting from the current input position, as much as there still is data.
         // We use char data, but zlib expects unsigned char. So here, we cast in one direction,
         // and in the output buffer, we again cast back. This doesn't change the byte content,
         // so this is okay.
-        z_stream_.avail_in = in_end_ - in_pos_;
+        z_stream_.avail_in = static_cast<unsigned int>( in_end_ - in_pos_ );
         z_stream_.next_in = reinterpret_cast<Bytef*>( in_buf_ ) + in_pos_;
 
         // Write to the current output position, as much as there still is space.
-        z_stream_.avail_out = out_end - out_pos;
+        z_stream_.avail_out = static_cast<unsigned int>( out_end - out_pos );
         z_stream_.next_out = reinterpret_cast<Bytef*>( out_buf ) + out_pos;
 
         // Run.

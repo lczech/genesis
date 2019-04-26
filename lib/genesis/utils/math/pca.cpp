@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,6 +48,11 @@ namespace utils {
 
 TridiagonalDecompositionData reduce_to_tridiagonal_matrix( Matrix<double>& data )
 {
+    if( data.empty() ) {
+        throw std::runtime_error(
+            "Cannot calculate reduce_to_tridiagonal_matrix() with an empty matrix."
+        );
+    }
     if( data.rows() != data.cols() ) {
         throw std::runtime_error(
             "Expecting symmetrical matrix for reduce_to_tridiagonal_matrix()"
@@ -60,13 +65,14 @@ TridiagonalDecompositionData reduce_to_tridiagonal_matrix( Matrix<double>& data 
     tri.intermediates = std::vector<double>( data.cols() );
 
     for( size_t i = data.cols()-1; i >= 1; --i ) {
-        size_t l     = i - 1;
-        double h     = 0.0;
-        double scale = 0.0;
+        size_t const l = i - 1;
+        double h = 0.0;
 
         if( l > 0 ) {
+            double scale = 0.0;
+
             for( size_t k = 0; k <= l; ++k ) {
-                scale += fabs(data( i, k ));
+                scale += std::fabs(data( i, k ));
             }
 
             if( scale == 0.0 ) {
@@ -119,14 +125,14 @@ TridiagonalDecompositionData reduce_to_tridiagonal_matrix( Matrix<double>& data 
     tri.intermediates[0] = 0.0;
 
     for( size_t i = 0; i < data.cols(); ++i ) {
-        int l = i - 1;
-        if( tri.eigenvalues[i] ) {
-            for( int j = 0; j <= l; ++j ) {
+        if( i > 0 && tri.eigenvalues[i] != 0.0 ) {
+            size_t const l = i - 1;
+            for( size_t j = 0; j <= l; ++j ) {
                 double g = 0.0;
-                for( int k = 0; k <= l; ++k ) {
+                for( size_t k = 0; k <= l; ++k ) {
                     g += data( i, k ) * data( k, j );
                 }
-                for( int k = 0; k <= l; ++k ) {
+                for( size_t k = 0; k <= l; ++k ) {
                     data( k, j ) -= g * data( k, i );
                 }
             }
@@ -134,9 +140,13 @@ TridiagonalDecompositionData reduce_to_tridiagonal_matrix( Matrix<double>& data 
 
         tri.eigenvalues[i] = data( i, i );
         data( i, i ) = 1.0;
-        for( int j = 0; j <= l; ++j ) {
-            data( i, j ) = 0.0;
-            data( j, i ) = 0.0;
+
+        if( i > 0 ) {
+            size_t const l = i - 1;
+            for( size_t j = 0; j <= l; ++j ) {
+                data( i, j ) = 0.0;
+                data( j, i ) = 0.0;
+            }
         }
     }
 
@@ -152,6 +162,11 @@ void tridiagonal_ql_algorithm(
     TridiagonalDecompositionData& tri,
     size_t                        max_iterations
 ) {
+    if( data.empty() ) {
+        throw std::runtime_error(
+            "Cannot calculate tridiagonal_ql_algorithm() with an empty matrix."
+        );
+    }
     if( data.rows() != data.cols() ) {
         throw std::runtime_error(
             "Expecting symmetrical matrix for tridiagonal_ql_algorithm()"
@@ -167,43 +182,46 @@ void tridiagonal_ql_algorithm(
     // Some shorthands.
     auto& d = tri.eigenvalues;
     auto& e = tri.intermediates;
-    int n  = static_cast<int>( data.rows() );
+    size_t const n = data.rows();
 
-    for( int i = 1; i < n; ++i ) {
+    for( size_t i = 1; i < n; ++i ) {
         e[i-1] = e[i];
     }
+    assert( n > 0 );
     e[n-1] = 0.0;
 
-    for( int l = 0; l < n; ++l ) {
+    for( size_t l = 0; l < n; ++l ) {
         size_t iter = 0;
-        int m = 0;
+        size_t m = 0;
 
         do {
             for( m = l; m < n-1; ++m ) {
-                double dd = fabs(d[m]) + fabs(d[m+1]);
-                if (fabs(e[m]) + dd == dd) {
+                double const dd = std::fabs( d[m]) + std::fabs(d[m+1] );
+                if( std::fabs(e[m]) + dd == dd ) {
                     break;
                 }
             }
 
             if( m != l ) {
-                if( max_iterations > 0 && iter++ == max_iterations ) {
+                if( max_iterations > 0 && iter == max_iterations ) {
                     throw std::runtime_error( "No convergence in tridiagonal_ql_algorithm()." );
                 }
+                ++iter;
 
+                assert( l < n - 1 );
                 double s = 1.0;
                 double c = 1.0;
                 double p = 0.0;
                 double g = (d[l+1] - d[l]) / (2.0 * e[l]);
                 double r = sqrt((g * g) + 1.0);
-                auto sign = ( (g) < 0 ? -fabs(r) : fabs(r) );
+                auto sign = ( (g) < 0 ? -std::fabs(r) : std::fabs(r) );
                 g = d[m] - d[l] + e[l] / (g + sign);
 
-                for( int i = m-1; i >= l; --i ) {
+                for( long i = static_cast<long>( m ) - 1; i >= static_cast<long>( l ); --i ) {
                     double f = s * e[i];
                     double b = c * e[i];
 
-                    if (fabs(f) >= fabs(g)) {
+                    if( std::fabs(f) >= std::fabs(g) ) {
                         c = g / f;
                         r = sqrt((c * c) + 1.0);
                         e[i+1] = f * r;
@@ -220,7 +238,7 @@ void tridiagonal_ql_algorithm(
                     p = s * r;
                     d[i+1] = g + p;
                     g = c * r - b;
-                    for( int k = 0; k < n; ++k ) {
+                    for( size_t k = 0; k < n; ++k ) {
                         f = data( k, i+1 );
                         data( k, i+1 ) = s * data( k, i ) + c * f;
                         data( k, i ) = c * data( k, i ) - s * f;

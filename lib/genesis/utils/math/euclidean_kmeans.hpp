@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ public:
     // -------------------------------------------------------------------------
 
     EuclideanKmeans( size_t dimensions );
-    virtual ~EuclideanKmeans() = default;
+    virtual ~EuclideanKmeans() override = default;
 
     EuclideanKmeans( EuclideanKmeans const& ) = default;
     EuclideanKmeans( EuclideanKmeans&& )      = default;

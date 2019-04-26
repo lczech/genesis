@@ -84,7 +84,7 @@ public:
         , file_name_( file_name )
     {
         // We do our own buffering.
-        std::setvbuf( file_, 0, _IONBF, 0 );
+        std::setvbuf( file_, nullptr, _IONBF, 0 );
     }
 
     FileInputSource( FileInputSource const& ) = default;
@@ -93,7 +93,7 @@ public:
     FileInputSource& operator= ( FileInputSource const& ) = default;
     FileInputSource& operator= ( FileInputSource&& )      = default;
 
-    ~FileInputSource() = default;
+    ~FileInputSource() override = default;
 
     // -------------------------------------------------------------
     //     Overloaded Internal Members
@@ -126,7 +126,7 @@ private:
             }
 
             // We do our own buffering.
-            std::setvbuf( file_, 0, _IONBF, 0 );
+            std::setvbuf( file_, nullptr, _IONBF, 0 );
         }
 
         // Do the reading.

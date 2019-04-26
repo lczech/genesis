@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 #include <string>
 #include <utility>
 
+#include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/common_tree/functions.hpp"
 #include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
@@ -104,22 +105,22 @@ TEST (TreeIterator, PostorderSubtree)
     // The following heavily depends on the internal tree structure.
     // If this breaks, we might need a setup that finds nodes,
     // instead of assuming certain link indices. But for now, this is good enough and stable.
-    TestPostorderSubtree( { tree.link_at(0) }, "FHIGR" );
-    TestPostorderSubtree( { tree.link_at(1) }, "HIGBDECAR" );
-    TestPostorderSubtree( { tree.link_at(2) }, "BDECAFR" );
-    TestPostorderSubtree( { tree.link_at(3) }, "HIG" );
-    TestPostorderSubtree( { tree.link_at(4) }, "IBDECAFRG" );
-    TestPostorderSubtree( { tree.link_at(5) }, "BDECAFRHG" );
-    TestPostorderSubtree( { tree.link_at(6) }, "I" );
-    TestPostorderSubtree( { tree.link_at(7) }, "H" );
-    TestPostorderSubtree( { tree.link_at(8) }, "F" );
-    TestPostorderSubtree( { tree.link_at(9) }, "BDECA" );
-    TestPostorderSubtree( { tree.link_at(10) }, "DECFHIGRA" );
-    TestPostorderSubtree( { tree.link_at(11) }, "FHIGRBA" );
-    TestPostorderSubtree( { tree.link_at(12) }, "DEC" );
-    TestPostorderSubtree( { tree.link_at(13) }, "EFHIGRBAC" );
-    TestPostorderSubtree( { tree.link_at(14) }, "FHIGRBADC" );
-    TestPostorderSubtree( { tree.link_at(15) }, "E" );
-    TestPostorderSubtree( { tree.link_at(16) }, "D" );
-    TestPostorderSubtree( { tree.link_at(17) }, "B" );
+    TestPostorderSubtree( Subtree{ tree.link_at(0) }, "FHIGR" );
+    TestPostorderSubtree( Subtree{ tree.link_at(1) }, "HIGBDECAR" );
+    TestPostorderSubtree( Subtree{ tree.link_at(2) }, "BDECAFR" );
+    TestPostorderSubtree( Subtree{ tree.link_at(3) }, "HIG" );
+    TestPostorderSubtree( Subtree{ tree.link_at(4) }, "IBDECAFRG" );
+    TestPostorderSubtree( Subtree{ tree.link_at(5) }, "BDECAFRHG" );
+    TestPostorderSubtree( Subtree{ tree.link_at(6) }, "I" );
+    TestPostorderSubtree( Subtree{ tree.link_at(7) }, "H" );
+    TestPostorderSubtree( Subtree{ tree.link_at(8) }, "F" );
+    TestPostorderSubtree( Subtree{ tree.link_at(9) }, "BDECA" );
+    TestPostorderSubtree( Subtree{ tree.link_at(10) }, "DECFHIGRA" );
+    TestPostorderSubtree( Subtree{ tree.link_at(11) }, "FHIGRBA" );
+    TestPostorderSubtree( Subtree{ tree.link_at(12) }, "DEC" );
+    TestPostorderSubtree( Subtree{ tree.link_at(13) }, "EFHIGRBAC" );
+    TestPostorderSubtree( Subtree{ tree.link_at(14) }, "FHIGRBADC" );
+    TestPostorderSubtree( Subtree{ tree.link_at(15) }, "E" );
+    TestPostorderSubtree( Subtree{ tree.link_at(16) }, "D" );
+    TestPostorderSubtree( Subtree{ tree.link_at(17) }, "B" );
 }

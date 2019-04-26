@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -224,18 +224,18 @@ std::vector<size_t> edge_path_length_vector(
         }
 
         // primary-primary case
-        double pp = p_node_dist[ col_edge.primary_node().index() ];
+        auto pp = p_node_dist[ col_edge.primary_node().index() ];
 
         // primary-secondary case
-        double ps = p_node_dist[ col_edge.secondary_node().index() ];
+        auto ps = p_node_dist[ col_edge.secondary_node().index() ];
 
         // secondary-primary case
-        double sp = s_node_dist[ col_edge.primary_node().index() ];
+        auto sp = s_node_dist[ col_edge.primary_node().index() ];
 
         // Find min. Make sure that the fourth case "secondary-secondary" is not shorter
         // (if this ever happens, the tree is broken).
-        double dist = std::min({ pp, ps, sp });
-        assert(dist <= s_node_dist[ col_edge.secondary_node().index() ]);
+        auto dist = std::min({ pp, ps, sp });
+        assert( dist <= s_node_dist[ col_edge.secondary_node().index() ] );
 
         // Store in vector.
         vec[ col_edge.index() ] = dist + 1;

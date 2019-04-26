@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ public:
      * The tree has to have the data types PlacementNodeData and PlacementEdgeData at its nodes and
      * edges, respectively. If not, an exception is thrown.
      */
-    Sample( PlacementTree const& tree );
+    explicit Sample( PlacementTree const& tree );
 
     /**
      * @brief Copy constructor.
