@@ -31,7 +31,7 @@
 #include "genesis/utils/math/histogram/stats.hpp"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <cmath>
 #include <iterator>
 #include <numeric>

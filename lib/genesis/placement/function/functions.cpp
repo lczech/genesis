@@ -517,7 +517,7 @@ void collect_duplicate_pqueries (Sample& smp)
 
                     // We are here because we found no pquery to merge with. This means that the
                     // name cannot be in the hash smp already.
-                    assert(hash.count(name.name) == 0);
+                    assert( hash.count(name.name) == 0 );
 
                     // Now add it.
                     hash[name.name] = &pqry;

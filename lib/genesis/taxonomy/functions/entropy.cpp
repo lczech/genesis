@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/text/style.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <algorithm>
 #include <functional>
 #include <limits>

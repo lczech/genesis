@@ -30,7 +30,7 @@
 
 #include "genesis/utils/math/histogram/distances.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <cmath>
 #include <stdexcept>
 #include <vector>

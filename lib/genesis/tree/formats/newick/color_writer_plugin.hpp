@@ -36,7 +36,7 @@
 #include "genesis/tree/formats/newick/element.hpp"
 #include "genesis/tree/formats/newick/writer.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <stdexcept>
 #include <string>
 

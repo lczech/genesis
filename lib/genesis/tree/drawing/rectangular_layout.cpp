@@ -34,7 +34,7 @@
 #include "genesis/tree/function/operators.hpp"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <stdexcept>
 
 namespace genesis {

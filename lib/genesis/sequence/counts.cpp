@@ -36,7 +36,7 @@
 #include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <limits>
 #include <stdexcept>
 

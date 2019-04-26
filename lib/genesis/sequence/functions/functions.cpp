@@ -40,7 +40,7 @@
 
 #include <algorithm>
 #include <array>
-#include <assert.h>
+#include <cassert>
 #include <cctype>
 #include <numeric>
 #include <ostream>

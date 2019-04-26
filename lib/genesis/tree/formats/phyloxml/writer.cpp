@@ -42,7 +42,7 @@
 #include "genesis/utils/formats/xml/writer.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <stdexcept>
 #include <vector>
 
