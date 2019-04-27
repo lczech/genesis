@@ -55,7 +55,7 @@ std::map<char, size_t> site_histogram( Sequence const& seq )
     // We do a detour via an array, as this has way faster access times.
 
     // Init the array.
-    auto freqs = std::array<size_t, 256>{};
+    std::array<size_t, 256> freqs;
     for( size_t i = 0; i < freqs.size(); ++i ) {
         freqs[i] = 0;
     }
@@ -79,7 +79,7 @@ std::map<char, size_t> site_histogram( SequenceSet const& set )
     // We do a detour via an array, as this has way faster access times.
 
     // Init the array.
-    auto freqs = std::array<size_t, 256>{};
+    std::array<size_t, 256> freqs;
     for( size_t i = 0; i < freqs.size(); ++i ) {
         freqs[i] = 0;
     }

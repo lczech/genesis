@@ -247,18 +247,36 @@ inline long logging_progress_value (long value = -1)
  * sec after the last log message. It was called from main.cc line 28 in function main
  * and has LoggingLevel Info.
  */
-typedef struct {
+struct LoggingDetails {
+
+    LoggingDetails() = default;
+
+    LoggingDetails(
+        bool v_count, bool v_date, bool v_time, bool v_runtime, bool v_rundiff,
+        bool v_file, bool v_line, bool v_function, bool v_level
+    )
+        : count( v_count )
+        , date( v_date )
+        , time( v_time )
+        , runtime( v_runtime )
+        , rundiff( v_rundiff )
+        , file( v_file )
+        , line( v_line )
+        , function( v_function )
+        , level( v_level )
+    {}
+
     /** @brief Include a counter of how many messages have been logged so far. */
-    bool count;
+    bool count = false;
 
     /** @brief Include the current date. */
-    bool date;
+    bool date = false;
 
     /** @brief Include the current time. */
-    bool time;
+    bool time = false;
 
     /** @brief Include the current run time of the program in sec. */
-    bool runtime;
+    bool runtime = false;
 
     /**
      * @brief Include the run time difference to the last log message
@@ -267,27 +285,27 @@ typedef struct {
      * Useful for timing and profiling code sections. Is 0.0 at the first
      * log message.
      */
-    bool rundiff;
+    bool rundiff = false;
 
     /** @brief Include the filename where the log message was generated. */
-    bool file;
+    bool file = false;
 
     /**
      * @brief Include the line of the file where the log message was
      * generated.
      */
-    bool line;
+    bool line = false;
 
     /**
      * @brief Include the function name where the log message was generated.
      *
      * This might not be available on certain compilers. In this case, it is empty.
      */
-    bool function;
+    bool function = false;
 
     /** @brief Include the level (e.g. Info, Debug) of the message. */
-    bool level;
-} LoggingDetails;
+    bool level = false;
+};
 
 // =============================================================================
 //     Logging
