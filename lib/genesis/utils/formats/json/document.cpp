@@ -69,7 +69,8 @@
 #include "genesis/utils/formats/json/iterator.hpp"
 #include "genesis/utils/core/logging.hpp"
 
-#include<algorithm>
+#include <algorithm>
+#include <array>
 
 namespace genesis {
 namespace utils {
