@@ -402,6 +402,10 @@ std::string current_path()
     #else
         return current_path_unix_();
     #endif
+
+    // We use conditional compilation. Silence compiler warnings about unused functions.
+    (void) current_path_getcwd_;
+    (void) current_path_unix_;
 }
 
 // The following set of helper functions is adapted from
@@ -612,6 +616,10 @@ std::string real_path( std::string const& path, bool resolve_link )
     #else
         return real_path_unix_( path, resolve_link );
     #endif
+
+    // We use conditional compilation. Silence compiler warnings about unused functions.
+    (void) real_path_realpath_;
+    (void) real_path_unix_;
 }
 
 // =================================================================================================
