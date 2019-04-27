@@ -67,23 +67,30 @@ static_assert(
     "IEC 559/IEEE 754 floating-point types required (does not have quite NaN)."
 );
 static_assert(
-    std::isinf( - std::numeric_limits<double>::infinity() ),
-    "IEC 559/IEEE 754 floating-point types required (infinity is not working properly)."
-);
-static_assert(
     - std::numeric_limits<double>::infinity() < std::numeric_limits<double>::lowest(),
     "IEC 559/IEEE 754 floating-point types required (infinity is not the lowest value)."
 );
 
-// Clang fails to compile these as const expr. Well, the above tests should suffice anyway.
-// static_assert(
-//     std::isinf( -1 * std::numeric_limits<double>::infinity()),
-//     "IEC 559/IEEE 754 floating-point types required."
-// );
-// static_assert(
-//     -1 * std::numeric_limits<double>::infinity() < std::numeric_limits<double>::lowest(),
-//     "IEC 559/IEEE 754 floating-point types required."
-// );
+// Clang fails to compile the following assertions, because of missing const expr markers
+// in their std lib implementation. We hence need to skip those tests for clang :-(
+// Hopefully, the above assertions are enough to cover the basics.
+
+#ifndef __clang__
+
+static_assert(
+    std::isinf( - std::numeric_limits<double>::infinity() ),
+    "IEC 559/IEEE 754 floating-point types required (infinity is not working properly)."
+);
+static_assert(
+    std::isinf( -1 * std::numeric_limits<double>::infinity()),
+    "IEC 559/IEEE 754 floating-point types required."
+);
+static_assert(
+    -1 * std::numeric_limits<double>::infinity() < std::numeric_limits<double>::lowest(),
+    "IEC 559/IEEE 754 floating-point types required."
+);
+
+#endif // __clang__
 
 // =================================================================================================
 //     Structures and Classes
