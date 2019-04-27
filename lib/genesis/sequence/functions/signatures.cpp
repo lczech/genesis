@@ -354,7 +354,7 @@ std::vector<double> signature_jensen_shannon(
 /**
  * @brief Local helper function that writes one kmer string to a stream.
  */
-void kmer_string_single_kmer(
+static void kmer_string_single_kmer(
     Sequence const&                sequence,
     SignatureSpecifications const& settings,
     size_t                         start,
@@ -384,7 +384,7 @@ void kmer_string_single_kmer(
 /**
  * @brief Local helper function that writes an overlapping kmer string to a stream.
  */
-void kmer_string_overlapping_line(
+static void kmer_string_overlapping_line(
     Sequence const&                sequence,
     SignatureSpecifications const& settings,
     std::ostream&                  out
@@ -408,7 +408,7 @@ void kmer_string_overlapping_line(
 /**
  * @brief Local helper function that does one line of a non overlapping kmer string.
  */
-void kmer_strings_non_overlapping_line(
+static void kmer_strings_non_overlapping_line(
     Sequence const&                sequence,
     SignatureSpecifications const& settings,
     std::ostream&                  out,

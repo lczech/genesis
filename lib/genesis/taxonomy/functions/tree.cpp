@@ -57,7 +57,7 @@ namespace taxonomy {
 /**
  * @brief Recursive local helper function to add taxa to the tree broker.
  */
-void add_subtaxonomy_(
+static void add_subtaxonomy_(
     Taxonomy const& taxonomy,
     bool keep_singleton_inner_nodes,
     bool keep_inner_node_names,

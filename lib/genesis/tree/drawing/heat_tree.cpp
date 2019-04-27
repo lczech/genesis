@@ -49,7 +49,7 @@ namespace tree {
 //     Helper Functions
 // =================================================================================================
 
-std::vector<size_t> heat_tree_row_order_(
+static std::vector<size_t> heat_tree_row_order_(
     Tree const&     tree,
     LayoutSpreading spreading
 ) {

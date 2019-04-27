@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ using CountPair = std::pair< size_t, char >;
  * The comparatorfirst sorts by count, and for equal counts, sorts alphanumercially by the char.
  * Thus, gaps are always first (their ascii code is smaller than all letters).
  */
-bool CountPairComparator ( CountPair const& lhs, CountPair const& rhs )
+static bool CountPairComparator ( CountPair const& lhs, CountPair const& rhs )
 {
     return ( lhs.first > rhs.first ) || ( lhs.first == rhs.first && lhs.second < rhs.second );
 }

@@ -134,7 +134,7 @@ size_t count_substring_occurrences( std::string const& str, std::string const& s
 /**
  * @brief Local function that does the work for the split cuntions.
  */
-std::vector<std::string> split (
+static std::vector<std::string> split_ (
     std::string const& string,
     std::function<size_t ( std::string const&, size_t )> find_pos,
     size_t advance_by,
@@ -175,7 +175,7 @@ std::vector<std::string> split (
     std::string const& delimiters,
     const bool trim_empty
 ) {
-    return split(
+    return split_(
         str,
         [&]( std::string const& str, size_t last_pos ){
             return str.find_first_of( delimiters, last_pos );
@@ -190,7 +190,7 @@ std::vector<std::string> split (
     std::function<bool(char)> delimiter_predicate,
     const bool trim_empty
 ) {
-    return split(
+    return split_(
         str,
         [&]( std::string const& str, size_t last_pos ){
             // Find first matching char.
@@ -213,7 +213,7 @@ std::vector<std::string> split_at (
     std::string const& delimiter,
     const bool trim_empty
 ) {
-    return split(
+    return split_(
         str,
         [&]( std::string const& str, size_t last_pos ){
             return str.find( delimiter, last_pos );

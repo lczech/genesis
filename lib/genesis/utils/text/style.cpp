@@ -190,7 +190,7 @@ Style& Style::background_color( std::string const& color )
  * @brief Internal helper function that returns the attribute string of a Style based on its
  * properties.
  */
-std::string get_attribute_string( Style const& s)
+static std::string get_attribute_string_( Style const& s)
 {
     if( ! s.enabled() ) {
         return "";
@@ -230,11 +230,11 @@ std::string Style::operator() ( std::string const& text ) const
  */
 std::string Style::to_bash_string( std::string const& text ) const
 {
-    // return "\e[" + get_attribute_string(*this) + "m" + text_ + "\e[0m";
+    // return "\e[" + get_attribute_string_(*this) + "m" + text_ + "\e[0m";
 
-    auto attribs = get_attribute_string(*this);
+    auto attribs = get_attribute_string_(*this);
     if( attribs.size() > 0 ) {
-        return "\033[" + get_attribute_string(*this) + "m" + text + "\033[0m";
+        return "\033[" + get_attribute_string_(*this) + "m" + text + "\033[0m";
     } else {
         return text;
     }
@@ -248,9 +248,9 @@ std::string Style::to_bash_string( std::string const& text ) const
  */
 std::string Style::to_python_string( std::string const& text ) const
 {
-    auto attribs = get_attribute_string(*this);
+    auto attribs = get_attribute_string_(*this);
     if( attribs.size() > 0 ) {
-        return "\x1b[" + get_attribute_string(*this) + "m" + text + "\x1b[0m";
+        return "\x1b[" + get_attribute_string_(*this) + "m" + text + "\x1b[0m";
     } else {
         return text;
     }
