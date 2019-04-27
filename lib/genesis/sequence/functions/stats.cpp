@@ -108,7 +108,7 @@ std::map<char, size_t> site_histogram( SequenceSet const& set )
 /**
  * @brief Local helper function that turns a site histogram into base frequencies.
  */
-std::map<char, double> base_frequencies_accumulator(
+static std::map<char, double> base_frequencies_accumulator(
     std::map<char, size_t> const& sitehistogram,
     std::string            const& plain_chars
 ) {

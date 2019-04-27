@@ -196,7 +196,7 @@ std::string dir_normalize_path( std::string const& path )
     return utils::trim_right( path, "/") + "/";
 }
 
-std::vector<std::string> dir_list_contents_(
+static std::vector<std::string> dir_list_contents_(
     std::string const& dir,
     bool full_path,
     std::string const& regex,
@@ -272,7 +272,7 @@ std::vector<std::string> dir_list_directories(
 //     Path Information
 // =================================================================================================
 
-std::string current_path_getcwd_()
+static std::string current_path_getcwd_()
 {
     // Wrapper for the standard getcwd() function to bring it into C++
     // Adapted from https://stackoverflow.com/a/2203853/4184258
@@ -303,7 +303,7 @@ std::string current_path_getcwd_()
     return "";
 }
 
-std::string current_path_unix_()
+static std::string current_path_unix_()
 {
     // Code adapted from http://insanecoding.blogspot.com/2007/11/pathmax-simply-isnt.html
     // Does not work on Windows systems.
@@ -408,7 +408,7 @@ std::string current_path()
 // http://insanecoding.blogspot.com/2007/11/implementing-realpath-in-c.html
 // See there for details.
 
-void relative_dir_base_split_( std::string const& path, std::string& dir, std::string& base )
+static void relative_dir_base_split_( std::string const& path, std::string& dir, std::string& base )
 {
     // Find the last slash
     auto slash_pos = path.rfind("/");
@@ -429,7 +429,7 @@ void relative_dir_base_split_( std::string const& path, std::string& dir, std::s
     }
 }
 
-std::string chdir_getcwd_( std::string const& dir )
+static std::string chdir_getcwd_( std::string const& dir )
 {
     // Open current directory so we can save a handle to it
     int start_fd = open(".", O_RDONLY);
@@ -454,7 +454,7 @@ std::string chdir_getcwd_( std::string const& dir )
     return path;
 }
 
-std::string realpath_file_(const std::string& path )
+static std::string realpath_file_(const std::string& path )
 {
     std::string dir;
     std::string base;
@@ -465,7 +465,7 @@ std::string realpath_file_(const std::string& path )
     return resolved_path + base;
 }
 
-bool readlink_internal_(const std::string& path, std::string& buffer, ssize_t length)
+static bool readlink_internal_(const std::string& path, std::string& buffer, ssize_t length)
 {
     bool success = false;
     if (length > 0) {
@@ -489,7 +489,7 @@ bool readlink_internal_(const std::string& path, std::string& buffer, ssize_t le
     return success;
 }
 
-void build_path_base_swap_(std::string &path, const std::string& newbase)
+static void build_path_base_swap_(std::string &path, const std::string& newbase)
 {
     std::string dir;
     std::string base;
@@ -502,7 +502,7 @@ void build_path_base_swap_(std::string &path, const std::string& newbase)
     }
 }
 
-bool symlink_resolve_( const std::string& start, std::string& end )
+static bool symlink_resolve_( const std::string& start, std::string& end )
 {
     typedef std::pair<dev_t, ino_t> file_id;
 
@@ -553,7 +553,7 @@ bool symlink_resolve_( const std::string& start, std::string& end )
     return(success);
 }
 
-std::string real_path_unix_( std::string const& path, bool resolve_link )
+static std::string real_path_unix_( std::string const& path, bool resolve_link )
 {
     // Custom implementation, using the above helper functions. Based on
     // http://insanecoding.blogspot.com/2007/11/implementing-realpath-in-c.html
@@ -587,7 +587,7 @@ std::string real_path_unix_( std::string const& path, bool resolve_link )
     return path;
 }
 
-std::string real_path_realpath_( std::string const& path, bool resolve_link )
+static std::string real_path_realpath_( std::string const& path, bool resolve_link )
 {
     // Wrapper for the standard realpath() function to bring it into C++
     // Works on Windows.

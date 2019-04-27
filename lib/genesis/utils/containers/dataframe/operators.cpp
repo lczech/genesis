@@ -44,7 +44,7 @@ namespace utils {
 //     Check Conversion Functions
 // ================================================================================================
 
-bool is_numerical_type_( Dataframe const& df, size_t col_index )
+static bool is_numerical_type_( Dataframe const& df, size_t col_index )
 {
     // Try all supported types. Probably, some template meta-programming could help here...
     return df[col_index].is<float>() || df[col_index].is<double>()

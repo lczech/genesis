@@ -78,7 +78,7 @@ namespace utils {
 //     Iteratively Reweighted Least Squares
 // =================================================================================================
 
-void glm_irls(
+static void glm_irls_(
     Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmFamily const&           family,
@@ -261,7 +261,7 @@ void glm_irls(
 //     Simple Linear Gaussian Case
 // =================================================================================================
 
-void glm_gaussian(
+static void glm_gaussian_(
     Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmExtras const&           extras,
@@ -484,9 +484,9 @@ GlmOutput glm_fit(
 
         // IRLS algorithm, or simple linear Gaussian case
         if( irls ) {
-            glm_irls( x_predictors, y_response, family, link, extras, control, result );
+            glm_irls_( x_predictors, y_response, family, link, extras, control, result );
         } else {
-            glm_gaussian( x_predictors, y_response, extras, control, freedom, result );
+            glm_gaussian_( x_predictors, y_response, extras, control, freedom, result );
         }
 
         // Calcualte deviance.

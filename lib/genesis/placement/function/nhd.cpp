@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,13 +62,13 @@ namespace placement {
 // =================================================================================================
 
 // -------------------------------------------------------------------------------------------------
-//     make_empty_node_distance_histogram_set
+//     make_empty_node_distance_histogram_set_
 // -------------------------------------------------------------------------------------------------
 
 /**
- * @brief Create a set of Histograms without any weights for a given Tree.
+ * @brief Local helper function to create a set of Histograms without any weights for a given Tree.
  */
-NodeDistanceHistogramSet make_empty_node_distance_histogram_set (
+static NodeDistanceHistogramSet make_empty_node_distance_histogram_set_ (
     tree::Tree const& tree,
     utils::Matrix<double> const& node_distances,
     utils::Matrix<signed char> const& node_sides,
@@ -140,9 +140,9 @@ NodeDistanceHistogramSet make_empty_node_distance_histogram_set (
 // -------------------------------------------------------------------------------------------------
 
 /**
- * @brief Fill the placements of a Sample into Histograms.
+ * @brief Local helper function to fill the placements of a Sample into Histograms.
  */
-void fill_node_distance_histogram_set (
+static void fill_node_distance_histogram_set_ (
     Sample const& sample,
     utils::Matrix<double> const& node_distances,
     utils::Matrix<signed char> const& node_sides,
@@ -256,10 +256,10 @@ NodeDistanceHistogramSet node_distance_histogram_set (
     size_t const  histogram_bins
 ) {
     // Make the histograms, fill them, return them.
-    auto histograms = make_empty_node_distance_histogram_set(
+    auto histograms = make_empty_node_distance_histogram_set_(
         sample.tree(), node_distances, node_sides, histogram_bins
     );
-    fill_node_distance_histogram_set( sample, node_distances, node_sides, histograms );
+    fill_node_distance_histogram_set_( sample, node_distances, node_sides, histograms );
     return histograms;
 }
 
@@ -267,7 +267,7 @@ NodeDistanceHistogramSet node_distance_histogram_set (
 //     node_histogram_distance
 // -------------------------------------------------------------------------------------------------
 
-double node_histogram_distance (
+static double node_histogram_distance (
     NodeDistanceHistogram const& lhs,
     NodeDistanceHistogram const& rhs
 ) {
@@ -372,7 +372,7 @@ utils::Matrix<double> node_histogram_distance(
 //     Sample
 // -------------------------------------------------------------------------------------------------
 
-NodeDistanceHistogramSet node_distance_histogram_set(
+static NodeDistanceHistogramSet node_distance_histogram_set(
     Sample const& sample,
     size_t const  histogram_bins
 ) {
@@ -383,10 +383,10 @@ NodeDistanceHistogramSet node_distance_histogram_set(
     auto const node_sides = node_root_direction_matrix( sample.tree() );
 
     // Make the histograms, fill them, return them.
-    auto histograms = make_empty_node_distance_histogram_set(
+    auto histograms = make_empty_node_distance_histogram_set_(
         sample.tree(), node_distances, node_sides, histogram_bins
     );
-    fill_node_distance_histogram_set( sample, node_distances, node_sides, histograms );
+    fill_node_distance_histogram_set_( sample, node_distances, node_sides, histograms );
     return histograms;
 }
 
@@ -419,7 +419,7 @@ double node_histogram_distance (
 /**
  * @brief Local helper function that calculates all Histograms for all Samples in a SampleSet.
  */
-std::vector<NodeDistanceHistogramSet> node_distance_histogram_set(
+static std::vector<NodeDistanceHistogramSet> node_distance_histogram_set(
     SampleSet const& sample_set,
     size_t const  histogram_bins
 ) {
@@ -435,7 +435,7 @@ std::vector<NodeDistanceHistogramSet> node_distance_histogram_set(
     auto const node_sides = node_root_direction_matrix( sample_set[0].tree() );
 
     // Prepare histograms for all samples, by copying empty histograms for the first sample.
-    auto const empty_hist = make_empty_node_distance_histogram_set(
+    auto const empty_hist = make_empty_node_distance_histogram_set_(
         sample_set[ 0 ].tree(), node_distances, node_sides, histogram_bins
     );
     auto result = std::vector<NodeDistanceHistogramSet>( set_size, empty_hist );
@@ -455,7 +455,7 @@ std::vector<NodeDistanceHistogramSet> node_distance_histogram_set(
         }
 
         // Fill the histograms for every node of the sample.
-        fill_node_distance_histogram_set(
+        fill_node_distance_histogram_set_(
             sample_set[ i ], node_distances, node_sides, result[ i ]
         );
         assert( result[ i ].histograms.size() == sample_set[ i ].tree().node_count() );

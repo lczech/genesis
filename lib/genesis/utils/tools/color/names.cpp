@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1184,7 +1184,7 @@ const NamedColorList color_list_xkcd_ = {{
  * Returns an iterator into the vector if the given name is a named color or an iterator to the end
  * of the color map if it is not a named color.
  */
-NamedColorList::const_iterator get_color_list_iterator_(
+static NamedColorList::const_iterator get_color_list_iterator_(
     NamedColorList const & list,
     std::string       name
 ) {
@@ -1209,7 +1209,7 @@ NamedColorList::const_iterator get_color_list_iterator_(
 /**
  * @brief Local helper function to convert a list of byte colors into a proper Color vector.
  */
-std::vector<Color> convert_to_palette_( NamedColorList const & list )
+static std::vector<Color> convert_to_palette_( NamedColorList const & list )
 {
     // We fully convert. This is expensive, but this function is not used often anyway.
 

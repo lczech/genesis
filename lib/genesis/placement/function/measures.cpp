@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -172,10 +172,10 @@ double pairwise_distance(
  * @brief Internal function that calculates the sum of distances contributed by one pquery for
  * the variance. See variance() for more information.
  *
- * This function is intended to be called by variance() or variance_thread() -- it is not a
+ * This function is intended to be called by variance() or variance_thread_() -- it is not a
  * stand-alone function.
  */
-double variance_partial (
+static double variance_partial_ (
     const PqueryPlain&              pqry_a,
     const std::vector<PqueryPlain>& pqrys_b,
     const utils::Matrix<double>&    node_distances,
@@ -205,7 +205,7 @@ double variance_partial (
  * It takes an offset and an incrementation value and does an interleaved loop over the pqueries,
  * similar to the sequential version for calculating the variance.
  */
-void variance_thread (
+static void variance_thread_ (
     const int                       offset,
     const int                       incr,
     const std::vector<PqueryPlain>* pqrys,
@@ -222,7 +222,7 @@ void variance_thread (
         // LOG_PROG(i, pqrys->size()) << "of Variance() finished (Thread " << offset << ").";
 
         PqueryPlain const& pqry_a = (*pqrys)[i];
-        tmp_partial += variance_partial(pqry_a, *pqrys, *node_distances, with_pendant_length);
+        tmp_partial += variance_partial_(pqry_a, *pqrys, *node_distances, with_pendant_length);
     }
 
     // Return the results.
@@ -255,7 +255,7 @@ double variance(
     // Start all threads.
     for (int i = 0; i < num_threads; ++i) {
         threads.emplace_back(
-            &variance_thread,
+            &variance_thread_,
             i, num_threads, &vd_pqueries, &node_distances,
             &partials[i],
             with_pendant_length
@@ -275,7 +275,7 @@ double variance(
     // int progress = 0;
     for (const PqueryPlain& pqry_a : vd_pqueries) {
         // LOG_PROG(++progress, vd_pqueries.size()) << "of Variance() finished.";
-        variance += variance_partial(pqry_a, vd_pqueries, node_distances, with_pendant_length);
+        variance += variance_partial_(pqry_a, vd_pqueries, node_distances, with_pendant_length);
     }
 
 #endif
@@ -288,6 +288,11 @@ double variance(
             mass += place.like_weight_ratio * pqry.multiplicity;
         }
     }
+
+    // As we conditionally compile the above, we add dummies here to avoid compiler warnings
+    // about unused functions:
+    (void) variance_thread_;
+    (void) variance_partial_;
 
     // Return the normalized value.
     return ((variance / mass) / mass);

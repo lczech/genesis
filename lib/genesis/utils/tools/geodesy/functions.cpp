@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ enum class GeoCoordinateComponent
  * The parameter @p component is the hemisphere of this coordinate component, NS or EW,
  * which is determined by whether the matches are the first or the second component of the coordinate.
  */
-double convert_single_geo_coordinate(
+static double convert_single_geo_coordinate_(
     std::string const& h1, // Hemisphere
     std::string const& d,  // Degrees
     std::string const& m,  // Minutes
@@ -295,11 +295,11 @@ GeoCoordinate convert_geo_coordinate( std::string const& coordinate )
     // }
 
     // Calculate component values.
-    double const lat = convert_single_geo_coordinate(
+    double const lat = convert_single_geo_coordinate_(
         matches[1].str(), matches[2].str(), matches[3].str(), matches[4].str(), matches[5].str(),
         GeoCoordinateComponent::kLatitude
     );
-    double const lon = convert_single_geo_coordinate(
+    double const lon = convert_single_geo_coordinate_(
         matches[6].str(), matches[7].str(), matches[8].str(), matches[9].str(), matches[10].str(),
         GeoCoordinateComponent::kLongitude
     );

@@ -61,7 +61,7 @@ namespace utils {
 //     Local Helper Functions
 // =================================================================================================
 
-std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_gradient(
+static std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_gradient_(
     SvgColorBarSettings const& settings,
     ColorMap const& map,
     ColorNormalization const& norm,
@@ -126,7 +126,7 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_gradient(
     return { grad, group };
 }
 
-std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_discrete(
+static std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_discrete_(
     SvgColorBarSettings const& settings,
     std::map<double, Color> const& stops
 ) {
@@ -208,7 +208,7 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_discrete(
     return { SvgGradientLinear(), group };
 }
 
-void make_svg_color_bar_tickmarks(
+static void make_svg_color_bar_tickmarks_(
     SvgColorBarSettings const& settings,
     ColorMap const& map,
     ColorNormalization const& norm,
@@ -347,13 +347,13 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar(
     auto norm_boundary = dynamic_cast<ColorNormalizationBoundary const*>( &norm );
     if( norm_boundary ) {
         auto const norm_gradient = color_stops( map, norm );
-        result = make_svg_color_bar_discrete( settings, norm_gradient );
+        result = make_svg_color_bar_discrete_( settings, norm_gradient );
     } else {
-        result = make_svg_color_bar_gradient( settings, map, norm, id );
+        result = make_svg_color_bar_gradient_( settings, map, norm, id );
     }
 
     // Add the tickmarks to the bar/
-    make_svg_color_bar_tickmarks( settings, map, norm, result.second );
+    make_svg_color_bar_tickmarks_( settings, map, norm, result.second );
 
     return result;
 }
