@@ -60,7 +60,11 @@ void scale (Histogram& h, double factor)
 
 void normalize (Histogram& h, double total)
 {
-    scale(h, total / sum(h));
+    // Don't do anything for empty histograms.
+    auto const s = sum( h );
+    if( std::isfinite(s) && s > 0.0 ) {
+        scale( h, total / s );
+    }
 }
 
 } // namespace utils
