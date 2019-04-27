@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -858,7 +858,7 @@ bool operator<(JsonDocument::const_reference lhs, JsonDocument::const_reference 
 bool operator<(const JsonDocument::ValueType lhs, const JsonDocument::ValueType rhs)
 {
     // Use the order of the ValueType enum!
-    static constexpr std::array<uint8_t, 8> order = {{
+    static std::array<uint8_t, 8> order = {{
             0, // null
             4, // array
             3, // object
