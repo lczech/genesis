@@ -138,11 +138,20 @@ public:
  */
 class PlacementEdgeData : public tree::CommonEdgeData
 {
+public:
+
+    // -------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------
+
+    /**
+     * @brief Data type used for the edge_num() property of the edges in a PlacementTree.
+     */
+    using EdgeNumType = int;
+
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
-
-public:
 
     virtual ~PlacementEdgeData() override = default;
 
@@ -182,7 +191,7 @@ public:
     /**
      * @brief Return the `edge_num` of this edge. This value is defined by the `jplace` standard.
      */
-    int edge_num() const
+    EdgeNumType edge_num() const
     {
         return edge_num_;
     }
@@ -193,7 +202,7 @@ public:
      * The edge_num is usually considered to be constant for the tree. It rarely needs to be set,
      * except for when constructing the object. Use with care.
      */
-    void reset_edge_num( int val )
+    void reset_edge_num( EdgeNumType val )
     {
         edge_num_ = val;
     }
@@ -204,7 +213,7 @@ public:
 
 private:
 
-    int edge_num_;
+    EdgeNumType edge_num_;
 };
 
 } // namespace placement

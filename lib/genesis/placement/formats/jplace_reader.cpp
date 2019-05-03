@@ -198,18 +198,14 @@ void JplaceReader::process_json_tree( utils::JsonDocument const& doc, Sample& sm
 {
     // Find and process the reference tree.
     auto tree_it = doc.find( "tree" );
-    if( tree_it == doc.end() || ! tree_it->is_string()
-    ) {
+    if( tree_it == doc.end() || ! tree_it->is_string() ) {
         throw std::runtime_error(
             "Jplace document does not contain a valid Newick tree at key 'tree'."
         );
     }
     smp.tree() = PlacementTreeNewickReader().read( utils::from_string( tree_it->get_string() ));
-    if( ! has_correct_edge_nums( smp.tree() )) {
-        LOG_WARN << "Jplace document has a Newick tree where the edge_num tags are non standard. "
-                 << "They are expected to be assigned in ascending order via postorder traversal. "
-                 << "Now continuing to parse, as we can cope with this.";
-    }
+
+    // The tree reader already does all necessary checks of the tree. No need to repeat them here.
 }
 
 // -------------------------------------------------------------------------
@@ -290,7 +286,9 @@ void JplaceReader::process_json_placements(
         if (edge_num_map.count( edge_data.edge_num()) > 0) {
             throw std::runtime_error(
                 "Jplace document contains a tree where the edge_num tag '"
-                + std::to_string( edge_data.edge_num() ) + "' is used more than once."
+                + std::to_string( edge_data.edge_num() ) + "' is used more than once, "
+                "and hence cannot be used to uniquely identify edges of the placements. "
+                "This indicates a severe issue with the program that created the jplace file."
             );
         }
         edge_num_map.emplace( edge_data.edge_num(), &edge );
@@ -360,8 +358,8 @@ void JplaceReader::process_json_placements(
                     if (edge_num_map.count( val_int ) == 0) {
                         throw std::runtime_error(
                             "Jplace document contains a pquery where field 'edge_num' has value '"
-                            + std::to_string( val_int ) + "', which is not marked in the "
-                            + "given tree as an edge_num."
+                            + std::to_string( val_int ) + "', which does not correspond to any "
+                            "edge_num in the given Newick tree of the document."
                         );
                     }
                     pqry_place.reset_edge( *edge_num_map.at( val_int ) );
