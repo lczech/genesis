@@ -81,7 +81,7 @@ public:
         edge_data.reset_edge_num( -1 );
 
         // Depending on the setting, we either use Newick tags {} or comments [] to get the edge nums.
-        auto const& en_vec = ( use_edge_num_tags_ ? element.tags : element.comments );
+        auto const& en_vec = ( get_edge_num_from_comments_ ? element.comments : element.tags );
 
         // Process the edge num.
         if( en_vec.size() == 1 ) {
@@ -114,15 +114,15 @@ public:
             // Cannot cope with multiple values, as we would not know which one is the correct
             // one intended to be used as edge num.
             if( en_vec.size() > 1 ) {
-                if( use_edge_num_tags_ ) {
-                    throw std::invalid_argument(
-                        "Edge at " + name + " contains more than one tag value such as "
-                        "'{xyz}'. Expecting only one for the placement edge_num of this edge."
-                    );
-                } else {
+                if( get_edge_num_from_comments_ ) {
                     throw std::invalid_argument(
                         "Edge at " + name + " contains more than one comment value such as "
                         "'[xyz]'. Expecting only one for the placement edge_num of this edge."
+                    );
+                } else {
+                    throw std::invalid_argument(
+                        "Edge at " + name + " contains more than one tag value such as "
+                        "'{xyz}'. Expecting only one for the placement edge_num of this edge."
                     );
                 }
             }
@@ -249,11 +249,11 @@ public:
      * In version 1 of the `jplace` standard, the edge num properties of the reference tree
      * were noted down as Newick comments in brackets (e.g., `[42]`) instead of the curly braces
      * used in later versions of the standard (e.g., `{42}`). By default, we use the newer tags.
-     * Set this to `false` in order to fall back to the old version using comments instead.
+     * Set this to `true` in order to fall back to the old version using comments instead.
      */
-    PlacementTreeNewickReaderPlugin& use_edge_num_tags( bool value )
+    PlacementTreeNewickReaderPlugin& get_edge_num_from_comments( bool value )
     {
-        use_edge_num_tags_ = value;
+        get_edge_num_from_comments_ = value;
         return *this;
     }
 
@@ -262,9 +262,9 @@ public:
      *
      * See the setter function for details.
      */
-    bool use_edge_num_tags() const
+    bool get_edge_num_from_comments() const
     {
-        return use_edge_num_tags_;
+        return get_edge_num_from_comments_;
     }
 
     // -------------------------------------------------------------------------
@@ -273,7 +273,7 @@ public:
 
 private:
 
-    bool use_edge_num_tags_ = true;
+    bool get_edge_num_from_comments_ = false;
 
 };
 

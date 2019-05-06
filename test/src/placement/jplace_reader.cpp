@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -97,6 +97,19 @@ TEST( JplaceReader, FromFilesGzip )
     EXPECT_EQ( 3, smps.size() );
     EXPECT_EQ( 5, total_placement_count(smps[0]) );
     EXPECT_EQ( "test_b", smps.name_at(1) );
+}
+
+TEST( JplaceReader, VersionOne )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    std::string infile = environment->data_dir + "placement/version_1.jplace";
+
+    Sample smp = JplaceReader().read( from_file( infile ));
+    EXPECT_EQ( 9, total_placement_count(smp) );
+    EXPECT_TRUE( validate(smp, true, false) );
+    EXPECT_TRUE( has_correct_edge_nums(smp.tree()) );
 }
 
 // TEST( JplaceReader, Speed )
