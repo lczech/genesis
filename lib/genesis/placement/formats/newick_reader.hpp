@@ -101,15 +101,16 @@ public:
 
             // If there is no edge num value at all, we keep it at the default
             // of -1, which will then be fixed later in finish_reading().
-            // But still, warn about this.
-            if( en_vec.size() == 0 ) {
-                LOG_WARN << "Jplace document contains a Newick tree where the edge at " << name
-                         << " does not contain an edge_num value. "
-                         << "This might be because the document uses an old jplace standard "
-                         << "where edges at the root do not have an edge_num. "
-                         << "We can still work with this tree, but it might also indicate "
-                         << "a more severe issue with the data.";
-            }
+            // We do not warn about this here, as this might just clutter the output too much
+            // if there are several edges with missing edge_nums.
+            // if( en_vec.size() == 0 ) {
+            //     LOG_WARN << "Jplace document contains a Newick tree where the edge at " << name
+            //              << " does not contain an edge_num value. "
+            //              << "This might be because the document uses an old jplace standard "
+            //              << "where edges at the root do not have an edge_num. "
+            //              << "We can still work with this tree, but it might also indicate "
+            //              << "a more severe issue with the data.";
+            // }
 
             // Cannot cope with multiple values, as we would not know which one is the correct
             // one intended to be used as edge num.
@@ -164,11 +165,20 @@ public:
             // are not identifiable and hence cannot receive any placements.
             // So, let's stop being nice.
             throw std::invalid_argument(
-                "Jplace document contains several edges without an edge_num. We can cope with a few "
+                "Jplace document contains too many edges without an edge_num. We can cope with a few "
                 "of them missing. But as none of them can receive any placements, it does not make "
                 "sense if too many are missing. This hence indicates a severe issue with the program "
-                "that created the jplace file."
+                "that created the jplace file. Possibly, the provided jplace version (1-3) does not "
+                "match the format used to specify the edge_num values in the tree."
             );
+        } else if( tree.edge_count() >= 3 && edge_nums.size() < tree.edge_count() ) {
+            // If there are edge nums missing, still warn about this.
+            LOG_WARN << "Jplace document contains a Newick tree where some edges do not contain "
+                     << "an edge_num value. "
+                     << "This might be because the document uses an old jplace standard (version 1)"
+                     << "where edges at the root do not have an edge_num. "
+                     << "We can still work with this tree, but it might also indicate "
+                     << "a more severe issue with the data.";
         }
 
         // If there are edge nums that were not set by the element_to_edge() function,

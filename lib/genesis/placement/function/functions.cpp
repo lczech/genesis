@@ -601,7 +601,6 @@ void merge_duplicate_placements (Pquery& pquery)
             merge_into.like_weight_ratio += place.like_weight_ratio;
             merge_into.proximal_length   += place.proximal_length;
             merge_into.pendant_length    += place.pendant_length;
-            merge_into.parsimony         += place.parsimony;
         }
     }
 
@@ -617,7 +616,6 @@ void merge_duplicate_placements (Pquery& pquery)
             place.like_weight_ratio /= denom;
             place.proximal_length   /= denom;
             place.pendant_length    /= denom;
-            place.parsimony         /= denom;
         }
 
         pquery.add_placement(place);

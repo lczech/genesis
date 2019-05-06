@@ -99,7 +99,6 @@ void SampleSerializer::save( Sample const& map, std::string const& file_name )
             ser.put_float( place.like_weight_ratio );
             ser.put_float( place.proximal_length );
             ser.put_float( place.pendant_length );
-            ser.put_float( place.parsimony );
         }
 
         // Write names.
@@ -160,7 +159,6 @@ Sample SampleSerializer::load( std::string const& file_name )
             place.like_weight_ratio = des.get_float<double>();
             place.proximal_length   = des.get_float<double>();
             place.pendant_length    = des.get_float<double>();
-            place.parsimony         = des.get_float<double>();
         }
 
         // Read names.
