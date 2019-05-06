@@ -54,7 +54,7 @@ namespace placement {
  * internally used @link tree::TreeEdge::index index @endlink property of tree edges. Instead, it is
  * a value defined by the `jplace` standard to identify edges. See Sample for more information.
  */
-using PlacementTree     = tree::Tree;
+using PlacementTree = tree::Tree;
 
 /**
 * @brief Alias for tree::TreeNode used in a ::PlacementTree.
@@ -138,11 +138,20 @@ public:
  */
 class PlacementEdgeData : public tree::CommonEdgeData
 {
+public:
+
+    // -------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------
+
+    /**
+     * @brief Data type used for the edge_num() property of the edges in a PlacementTree.
+     */
+    using EdgeNumType = int;
+
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
-
-public:
 
     virtual ~PlacementEdgeData() override = default;
 
@@ -179,8 +188,24 @@ public:
     //     Data Functions
     // -----------------------------------------------------
 
-    int edge_num() const;
-    void reset_edge_num( int val );
+    /**
+     * @brief Return the `edge_num` of this edge. This value is defined by the `jplace` standard.
+     */
+    EdgeNumType edge_num() const
+    {
+        return edge_num_;
+    }
+
+    /**
+     * @brief Force to set the edge_num to a certain value.
+     *
+     * The edge_num is usually considered to be constant for the tree. It rarely needs to be set,
+     * except for when constructing the object. Use with care.
+     */
+    void reset_edge_num( EdgeNumType val )
+    {
+        edge_num_ = val;
+    }
 
     // -----------------------------------------------------
     //     Data Members
@@ -188,7 +213,7 @@ public:
 
 private:
 
-    int edge_num_;
+    EdgeNumType edge_num_;
 };
 
 } // namespace placement

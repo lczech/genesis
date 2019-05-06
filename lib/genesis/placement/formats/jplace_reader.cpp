@@ -85,12 +85,12 @@ Sample JplaceReader::read(
         throw std::runtime_error( "Json value is not a Json document." );
     }
 
-    process_json_version( doc );
-    process_json_metadata( doc, smp );
+    process_jplace_version_( doc );
+    process_jplace_metadata_( doc, smp );
 
-    process_json_tree( doc, smp );
-    auto const fields = process_json_fields( doc );
-    process_json_placements( doc, smp, fields );
+    process_jplace_tree_( doc, smp );
+    auto const fields = process_jplace_fields_( doc );
+    process_jplace_placements_( doc, smp, fields );
 
     return smp;
 }
@@ -137,36 +137,51 @@ void JplaceReader::read(
 // =================================================================================================
 
 // -------------------------------------------------------------------------
-//     Processing Version
+//     Get Version
 // -------------------------------------------------------------------------
 
-void JplaceReader::process_json_version( utils::JsonDocument const& doc ) const
+int JplaceReader::get_jplace_version_( utils::JsonDocument const& doc ) const
 {
     // Check if there is a version key.
     auto v_it = doc.find( "version" );
-    if( v_it == doc.end() || !( v_it->is_string() || v_it->is_number() ) ) {
+    if( v_it == doc.end() ) {
+        return -1;
+    }
+
+    // Try string and int, return -1 otherwise.
+    int version = -1;
+    assert( v_it != doc.end() );
+    if( v_it->is_string() ) {
+        try {
+            version = std::stoi( v_it->get_string() );
+        } catch(...) {
+            version = -1;
+        }
+    } else if( v_it->is_number_unsigned() ) {
+        version = v_it->get_number_unsigned();
+    }
+    return version;
+}
+
+// -------------------------------------------------------------------------
+//     Processing Version
+// -------------------------------------------------------------------------
+
+void JplaceReader::process_jplace_version_( utils::JsonDocument const& doc ) const
+{
+    auto const version = get_jplace_version_( doc );
+
+    // Check if there is a valid version key.
+    if( version == -1 ) {
         LOG_WARN << "Jplace document does not contain a valid version number at key 'version'. "
                  << "Now continuing to parse in the hope that it still works.";
         return;
     }
 
-    // The key can be a number (3) or a string ("3"), check both.
-    std::string doc_version;
-    if( v_it->is_number() ) {
-        if( v_it->is_number_float() ) {
-            doc_version = std::to_string( v_it->get_number_float() );
-        } else {
-            doc_version = std::to_string( v_it->get_number_unsigned() );
-        }
-    }
-    if( v_it->is_string() ) {
-        doc_version = v_it->get_string();
-    }
-
-    // Check if the version is correct.
-    if( ! check_version( doc_version )) {
-        LOG_WARN << "Jplace document has version '" << doc_version << "', however this parser "
-                 << "is written for version " << version() << " of the Jplace format. "
+    // Check if the version is working for us.
+    if( version == 0 || version >= 4 ) {
+        LOG_WARN << "Jplace document has version " << version << " specified at the 'version' key. "
+                 << "This parser however is written for versions 1-3 of the Jplace standard. "
                  << "Now continuing to parse in the hope that it still works.";
     }
 }
@@ -175,7 +190,7 @@ void JplaceReader::process_json_version( utils::JsonDocument const& doc ) const
 //     Processing Metadata
 // -------------------------------------------------------------------------
 
-void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, Sample& smp ) const
+void JplaceReader::process_jplace_metadata_( utils::JsonDocument const& doc, Sample& smp ) const
 {
     // Check if there is metadata.
     auto meta_it = doc.find( "metadata" );
@@ -194,29 +209,34 @@ void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, Sample
 //     Processing Tree
 // -------------------------------------------------------------------------
 
-void JplaceReader::process_json_tree( utils::JsonDocument const& doc, Sample& smp ) const
+void JplaceReader::process_jplace_tree_( utils::JsonDocument const& doc, Sample& smp ) const
 {
+    // Get the jplace version. Version 1 uses Newick comments in brackets [] for the edge_nums,
+    // while later versions store them in "tags" in curly braces {}.
+    // Prepare the Newick reader accordingly.
+    auto const version = get_jplace_version_( doc );
+    auto reader = PlacementTreeNewickReader();
+    if( version == 1 ) {
+        reader.get_edge_num_from_comments( true );
+    }
+
     // Find and process the reference tree.
     auto tree_it = doc.find( "tree" );
-    if( tree_it == doc.end() || ! tree_it->is_string()
-    ) {
+    if( tree_it == doc.end() || ! tree_it->is_string() ) {
         throw std::runtime_error(
             "Jplace document does not contain a valid Newick tree at key 'tree'."
         );
     }
-    smp.tree() = PlacementTreeNewickReader().read( utils::from_string( tree_it->get_string() ));
-    if( ! has_correct_edge_nums( smp.tree() )) {
-        LOG_WARN << "Jplace document has a Newick tree where the edge_num tags are non standard. "
-                 << "They are expected to be assigned in ascending order via postorder traversal. "
-                 << "Now continuing to parse, as we can cope with this.";
-    }
+    smp.tree() = reader.read( utils::from_string( tree_it->get_string() ));
+
+    // The tree reader already does all necessary checks of the tree. No need to repeat them here.
 }
 
 // -------------------------------------------------------------------------
 //     Processing Fields
 // -------------------------------------------------------------------------
 
-std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument const& doc ) const
+std::vector<std::string> JplaceReader::process_jplace_fields_( utils::JsonDocument const& doc ) const
 {
     // get the field names and store them in array fields
     auto fields_it = doc.find( "fields" );
@@ -276,7 +296,7 @@ std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument 
 //     Processing Placements
 // -------------------------------------------------------------------------
 
-void JplaceReader::process_json_placements(
+void JplaceReader::process_jplace_placements_(
     utils::JsonDocument&            doc,
     Sample&                         smp,
     std::vector<std::string> const& fields
@@ -290,7 +310,9 @@ void JplaceReader::process_json_placements(
         if (edge_num_map.count( edge_data.edge_num()) > 0) {
             throw std::runtime_error(
                 "Jplace document contains a tree where the edge_num tag '"
-                + std::to_string( edge_data.edge_num() ) + "' is used more than once."
+                + std::to_string( edge_data.edge_num() ) + "' is used more than once, "
+                "and hence cannot be used to uniquely identify edges of the placements. "
+                "This indicates a severe issue with the program that created the jplace file."
             );
         }
         edge_num_map.emplace( edge_data.edge_num(), &edge );
@@ -342,8 +364,9 @@ void JplaceReader::process_json_placements(
             for (size_t i = 0; i < pqry_fields.size(); ++i) {
                 // Up to version 3 of the jplace specification, the p-fields in a jplace document
                 // only contain numbers (float or int), so we can do this check here once for all
-                // fields, instead of repetition for every field. If in the future there are fields
-                // with non-number type, this check has to go into the single field assignments.
+                // fields, instead of repetition for every field. If in the future (jplace 4 and
+                // later) there are fields introduced with non-number type, this check
+                // has to go into the single field assignments.
                 if (!pqry_fields.at(i).is_number()) {
                     throw std::runtime_error(
                         "Jplace document contains pquery where field " + fields[i]
@@ -360,8 +383,8 @@ void JplaceReader::process_json_placements(
                     if (edge_num_map.count( val_int ) == 0) {
                         throw std::runtime_error(
                             "Jplace document contains a pquery where field 'edge_num' has value '"
-                            + std::to_string( val_int ) + "', which is not marked in the "
-                            + "given tree as an edge_num."
+                            + std::to_string( val_int ) + "', which does not correspond to any "
+                            "edge_num in the given Newick tree of the document."
                         );
                     }
                     pqry_place.reset_edge( *edge_num_map.at( val_int ) );
@@ -544,26 +567,6 @@ void JplaceReader::process_json_placements(
         smp.add( pqry );
         pqry_obj.clear();
     }
-}
-
-// =================================================================================================
-//     Jplace Version
-// =================================================================================================
-
-std::string JplaceReader::version ()
-{
-    return "3";
-}
-
-bool JplaceReader::check_version ( size_t version )
-{
-    return version == 2 || version == 3;
-}
-
-bool JplaceReader::check_version ( std::string const& version )
-{
-    auto v = utils::trim( version );
-    return v == "2" || v == "3";
 }
 
 // =================================================================================================

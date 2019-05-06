@@ -68,7 +68,8 @@ void Simulator::generate( Sample& sample, size_t n )
 
         // Get a random edge.
         size_t edge_idx = edge_distribution_.generate();
-        auto&  edge     = sample.tree().edge_at( edge_idx );
+        assert( edge_idx < sample.tree().edge_count() );
+        auto& edge = sample.tree().edge_at( edge_idx );
 
         // Add a placement at the edge.
         add_random_placement( pqry, edge );
@@ -80,6 +81,7 @@ void Simulator::generate( Sample& sample, size_t n )
             // Make sure that the distribution works correctly and actually gives us only indices
             // that are not our current central one.
             assert( extra_edge_idx != edge_idx );
+            assert( extra_edge_idx < sample.tree().edge_count() );
 
             // Add a placement at the edge.
             auto& extra_edge = sample.tree().edge_at( extra_edge_idx );

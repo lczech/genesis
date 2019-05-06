@@ -82,6 +82,9 @@ namespace placement {
  *     PLoS ONE 7(2): e31009. doi:10.1371/journal.pone.0031009
  *     http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009
  *
+ * This parser is written according to the `jplace` standard version 3, as described in the above
+ * document, but also incorporates parsing of the previous versions 1 and 2.
+ *
  * See Sample for the data structure used to store the Pqueries and the reference Tree.
  */
 class JplaceReader
@@ -151,62 +154,49 @@ public:
 private:
 
     /**
+     * @brief Get the version of the jplace document.
+     *
+     * The function simply returns the value of the `version` field of the top level `json` object.
+     * If that field is not found, or does not contain an integer number, `-1` is returned.
+     *
+     * According to the standard, this is an integer number. If this ever changes to a different
+     * format, this function has to be changed accordingly.
+     */
+    int get_jplace_version_( utils::JsonDocument const& doc ) const;
+
+    /**
      * @brief Internal helper function that checks whether the `version` key in a JsonDocument
      * corresponds to a valid version number for the JplaceReader.
      */
-    void process_json_version(    utils::JsonDocument const& doc ) const;
+    void process_jplace_version_( utils::JsonDocument const& doc ) const;
 
     /**
      * @brief Internal helper function that processes the `metadata` key of a JsonDocument and stores
      * its value in the Sample metadata member.
      */
-    void process_json_metadata( utils::JsonDocument const& doc, Sample& smp ) const;
+    void process_jplace_metadata_( utils::JsonDocument const& doc, Sample& smp ) const;
 
     /**
      * @brief Internal helper function that processes the `tree` key of a JsonDocument and stores it as
      * the Tree of a Sample.
      */
-    void process_json_tree(       utils::JsonDocument const& doc, Sample& smp ) const;
+    void process_jplace_tree_( utils::JsonDocument const& doc, Sample& smp ) const;
 
     /**
      * @brief Internal helper function that processes the `fields` key of a JsonDocument and returns
      * its values.
      */
-    std::vector<std::string> process_json_fields( utils::JsonDocument const& doc ) const;
+    std::vector<std::string> process_jplace_fields_( utils::JsonDocument const& doc ) const;
 
     /**
      * @brief Internal helper function that processes the `placements` key of a JsonDocument and stores
      * the contained pqueries in the Sample.
      */
-    void process_json_placements(
+    void process_jplace_placements_(
         utils::JsonDocument&            doc,
         Sample&                         smp,
         std::vector<std::string> const& fields
     ) const;
-
-    // ---------------------------------------------------------------------
-    //     Jplace Version
-    // ---------------------------------------------------------------------
-
-public:
-
-    /**
-     * @brief Returns the version number that this class is written for. Currently, this is "3".
-     */
-    static std::string version   ();
-
-    /**
-     * @brief Checks whether the version of the jplace format works with this parser.
-     *
-     * This parser is intended for `jplace` versions 2 and 3. If while reading a different version
-     * tag is found, the reader will trigger a warning and try to continue anyway.
-     */
-    static bool        check_version ( size_t             version );
-
-    /**
-     * @copydoc check_version( size_t version ).
-     */
-    static bool        check_version ( std::string const& version );
 
     // ---------------------------------------------------------------------
     //     Properties
