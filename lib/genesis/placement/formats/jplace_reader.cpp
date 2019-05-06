@@ -400,6 +400,38 @@ void JplaceReader::process_jplace_placements_p_(
     std::unordered_map<size_t, PlacementTreeEdge*> const& edge_num_map
 ) const {
 
+    // Helper function that takes a value and input used to report or fix incorrect input,
+    // depnding on the invalid number behaviour setting.
+    auto invalid_number_checker = [this] (
+        double&                              actual,
+        std::function<bool (double, double)> comparator,
+        double                               expected,
+        std::string                          error_message
+    ) {
+        if(
+            comparator( actual, expected ) && (
+            invalid_number_behaviour() == InvalidNumberBehaviour::kLog ||
+            invalid_number_behaviour() == InvalidNumberBehaviour::kLogAndFix
+        )) {
+            LOG_WARN << error_message;
+        }
+
+        if(
+            comparator( actual, expected ) && (
+            invalid_number_behaviour() == InvalidNumberBehaviour::kFix ||
+            invalid_number_behaviour() == InvalidNumberBehaviour::kLogAndFix
+        )) {
+            actual = expected;
+        }
+
+        if(
+            comparator( actual, expected ) && (
+            invalid_number_behaviour() == InvalidNumberBehaviour::kThrow
+        )) {
+            throw std::runtime_error( error_message );
+        }
+    };
+
     // Check basic validity.
     assert( pqry_obj.is_object() );
     auto const pqry_p_arr = pqry_obj.find( "p" );
@@ -493,38 +525,6 @@ void JplaceReader::process_jplace_placements_p_(
             auto const& edge_data = pqry_place.edge().data<PlacementEdgeData>();
             pqry_place.proximal_length = edge_data.branch_length - distal_length;
         }
-
-        // Helper function that takes a value and input used to report or fix incorrect input,
-        // depnding on the invalid number behaviour setting.
-        auto invalid_number_checker = [this] (
-            double&                              actual,
-            std::function<bool (double, double)> comparator,
-            double                               expected,
-            std::string                          error_message
-        ) {
-            if(
-                comparator( actual, expected ) && (
-                invalid_number_behaviour() == InvalidNumberBehaviour::kLog ||
-                invalid_number_behaviour() == InvalidNumberBehaviour::kLogAndFix
-            )) {
-                LOG_WARN << error_message;
-            }
-
-            if(
-                comparator( actual, expected ) && (
-                invalid_number_behaviour() == InvalidNumberBehaviour::kFix ||
-                invalid_number_behaviour() == InvalidNumberBehaviour::kLogAndFix
-            )) {
-                actual = expected;
-            }
-
-            if(
-                comparator( actual, expected ) && (
-                invalid_number_behaviour() == InvalidNumberBehaviour::kThrow
-            )) {
-                throw std::runtime_error( error_message );
-            }
-        };
 
         // Check validity of placement values.
         invalid_number_checker(

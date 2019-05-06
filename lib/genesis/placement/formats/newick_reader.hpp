@@ -171,14 +171,6 @@ public:
                 "that created the jplace file. Possibly, the provided jplace version (1-3) does not "
                 "match the format used to specify the edge_num values in the tree."
             );
-        } else if( tree.edge_count() >= 3 && edge_nums.size() < tree.edge_count() ) {
-            // If there are edge nums missing, still warn about this.
-            LOG_WARN << "Jplace document contains a Newick tree where some edges do not contain "
-                     << "an edge_num value. "
-                     << "This might be because the document uses an old jplace standard (version 1)"
-                     << "where edges at the root do not have an edge_num. "
-                     << "We can still work with this tree, but it might also indicate "
-                     << "a more severe issue with the data.";
         }
 
         // If there are edge nums that were not set by the element_to_edge() function,
@@ -189,12 +181,11 @@ public:
         // from the pqueries), we simply set a dummy value here, in order for the rest of our code
         // to have working edge nums.
         if( edge_nums.count( -1 ) > 0 ) {
-            // Already warned about this before. Commented the following out.
-            // LOG_WARN << "Jplace document contains a Newick tree where not all edges have a proper "
-            //          << "edge_num assigned to them. This might be because the document uses "
-            //          << "an old jplace standard where the edge at the root does not have an edge_num. "
-            //          << "We can still work with this tree, but it might also indicate a more severe "
-            //          << "issue with the data."
+            LOG_WARN << "Jplace document contains a Newick tree where not all edges have a proper "
+                     << "edge_num assigned to them. This might be because the document uses "
+                     << "an old jplace standard (version 1), where the edge at the root does not "
+                     << "have an edge_num. We can still work with this tree, but it might also "
+                     << "indicate a more severe issue with the data.";
 
             for( auto& edge : tree.edges() ) {
                 auto& edge_data = edge.data<PlacementEdgeData>();
