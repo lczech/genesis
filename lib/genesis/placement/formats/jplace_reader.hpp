@@ -49,7 +49,14 @@ namespace utils {
     class JsonDocument;
 }
 
+namespace tree {
+    class TreeEdge;
+}
+
 namespace placement {
+    using PlacementTreeEdge = tree::TreeEdge;
+
+    class Pquery;
     class Sample;
     class SampleSet;
 }
@@ -68,7 +75,7 @@ namespace placement {
  *
  *     std::string infile = "path/to/file.jplace";
  *     Sample smp = JplaceReader()
- *         .invalid_number_behaviour( InvalidNumberBehaviour::kCorrect )
+ *         .invalid_number_behaviour( InvalidNumberBehaviour::kFix )
  *         .read( from_file( infile ));
  *
  * Using @link invalid_number_behaviour( InvalidNumberBehaviour ) invalid_number_behaviour()@endlink,
@@ -84,8 +91,10 @@ namespace placement {
  *
  * This parser is written according to the `jplace` standard version 3, as described in the above
  * document, but also incorporates parsing of the previous versions 1 and 2.
+ * See http://matsen.github.io/pplacer/generated_rst/pplacer.html#json-format-specification
+ * for differences between the versions of the jplace standard.
  *
- * See Sample for the data structure used to store the Pqueries and the reference Tree.
+ * See Sample and SampleSet for the data structures used to store the Pqueries and the reference Tree.
  */
 class JplaceReader
 {
@@ -198,6 +207,24 @@ private:
         std::vector<std::string> const& fields
     ) const;
 
+    /**
+     * @brief Internal helper function that processes the `p` part of a placement.
+     */
+    void process_jplace_placements_p_(
+        utils::JsonDocument const&      pqry_obj,
+        Pquery&                         pquery,
+        std::vector<std::string> const& fields,
+        std::unordered_map<size_t, PlacementTreeEdge*> const& edge_num_map
+    ) const;
+
+    /**
+     * @brief Internal helper function that processes the `n`, `m`, and `nm` part of a placement.
+     */
+    void process_jplace_placements_nm_(
+        utils::JsonDocument const&      pqry_obj,
+        Pquery&                         pquery
+    ) const;
+
     // ---------------------------------------------------------------------
     //     Properties
     // ---------------------------------------------------------------------
@@ -240,17 +267,17 @@ public:
         kLog,
 
         /**
-         * @brief Correct invalid numbers to the next best correct number.
+         * @brief Fix invalid numbers to the next best correct number.
          *
          * Erroneous numbers are silently corrected. This means, they are set to the nearest correct
          * value. For example, a value that cannot be smaller than 0.0 will be set to 0.0.
          */
-        kCorrect,
+        kFix,
 
         /**
-         * @brief Combination of kLog and kCorrect.
+         * @brief Combination of kLog and kFix.
          */
-        kLogAndCorrect,
+        kLogAndFix,
 
         /**
          * @brief Throw an `std::runtime_error` when encountering an invalid number.
@@ -261,7 +288,10 @@ public:
     /**
      * @brief Return the currenlty set InvalidNumberBehaviour.
      */
-    InvalidNumberBehaviour invalid_number_behaviour() const;
+    InvalidNumberBehaviour invalid_number_behaviour() const
+    {
+        return invalid_number_behaviour_;
+    }
 
     /**
      * @brief Set the InvalidNumberBehaviour.
@@ -271,7 +301,11 @@ public:
      *
      * The function returns the JplaceReader object to allow for a fluent interface.
      */
-    JplaceReader&          invalid_number_behaviour( InvalidNumberBehaviour val );
+    JplaceReader& invalid_number_behaviour( InvalidNumberBehaviour val )
+    {
+        invalid_number_behaviour_ = val;
+        return *this;
+    }
 
     // ---------------------------------------------------------------------
     //     Members

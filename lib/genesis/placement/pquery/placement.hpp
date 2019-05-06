@@ -88,7 +88,6 @@ public:
         , like_weight_ratio(0.0)
         , proximal_length(0.0)
         , pendant_length(0.0)
-        , parsimony(0)
         , edge_(nullptr)
     {}
 
@@ -100,7 +99,6 @@ public:
         , like_weight_ratio(0.0)
         , proximal_length(0.0)
         , pendant_length(0.0)
-        , parsimony(0)
         , edge_(&edge)
     {}
 
@@ -127,51 +125,53 @@ public:
     double likelihood;
 
     /**
-    * @brief Likelihood weight ratio of this placement.
-    *
-    * The likelihood weight ratio is a probability-like value of how certain the placement
-    * algorithm was when placing the Pquery at the edge of this placement.
-    * The `like_weight_ratio`s of all placements for one Pquery sum up to 1.0. As not all of them
-    * might be stored in the Pquery, however, the sum might be lower.
-    *
-    * This property is defined by the `jplace` standard.
-    */
+     * @brief Likelihood weight ratio of this placement.
+     *
+     * The likelihood weight ratio is a probability-like value of how certain the placement
+     * algorithm was when placing the Pquery at the edge of this placement.
+     * The `like_weight_ratio`s of all placements for one Pquery sum up to 1.0. As not all of them
+     * might be stored in the Pquery, however, the sum might be lower.
+     *
+     * This property is defined by the `jplace` standard.
+     */
     double like_weight_ratio;
 
     /**
-    * @brief Distance of this placement to the next node towards the root.
-    *
-    * This value determines the distance of the placement attachement position on the edge to the
-    * next TreeNode that lies towards the root of the Tree.
-    *
-    * This property is not defined by the `jplace` standard. Instead, the standard uses
-    * `distal_length`, which is the opposite of this value: It determines the distance to the next
-    * node that lies away from the root. We use the `proximal_length` instead, as it is much more
-    * convenient for most purposes. In order to obtain the `distal_length`, use
-    *
-    *     PqueryPlacement p;
-    *     double distal_length = p.edge().data<PlacementEdgeData>().branch_length - p.proximal_length;
-    *
-    * This is also the formula that is internally used to convert between the two.
-    */
+     * @brief Distance of this placement to the next node towards the root.
+     *
+     * This value determines the distance of the placement attachement position on the edge to the
+     * next TreeNode that lies towards the root of the Tree.
+     *
+     * This property is not defined by the `jplace` standard. Instead, the standard uses
+     * `distal_length`, which is the opposite of this value: It determines the distance to the next
+     * node that lies away from the root. We use the `proximal_length` instead, as it is much more
+     * convenient for most purposes. In order to obtain the `distal_length`, use
+     *
+     *     PqueryPlacement p;
+     *     double distal_length = p.edge().data<PlacementEdgeData>().branch_length - p.proximal_length;
+     *
+     * This is also the formula that is internally used to convert between the two.
+     */
     double proximal_length;
 
     /**
-    * @brief Length of the attached branch of this placement.
-    *
-    * The placement can be interpreted as a new branch on the Tree. This value then gives
-    * the length of that branch.
-    *
-    * This property is defined by the `jplace` standard.
-    */
+     * @brief Length of the attached branch of this placement.
+     *
+     * The placement can be interpreted as a new branch on the Tree. This value then gives
+     * the length of that branch.
+     *
+     * This property is defined by the `jplace` standard.
+     */
     double pendant_length;
 
-    /**
-    * @brief Parsimony value.
-    *
-    * This property is defined by the `jplace` standard. It is currently not used.
-    */
-    double parsimony;
+    // Additional properties that are defined by the `jplace` standard. They are currently not used
+    // by any genesis function, so we completely ignore them in order to save memory.
+    // double parsimony;
+    // double post_prob;
+    // double marginal_like; // or marginal_prob in jplace version 1
+    // std::string classification;
+    // double map_ratio;
+    // double map_overlap;
 
     // -------------------------------------------------------------------
     //     Properties
@@ -183,7 +183,7 @@ public:
      * This number corresponds to the `edge_num` property as described in the `jplace` standard.
      * It is not to be confused with the index of the PlacementTreeEdge.
      */
-    int edge_num() const
+    PlacementEdgeData::EdgeNumType edge_num() const
     {
         return edge_->data<PlacementEdgeData>().edge_num();
     }
@@ -191,7 +191,7 @@ public:
     /**
      * @brief Get the PlacementTreeEdge where this PqueryPlacement is placed.
      */
-    const PlacementTreeEdge& edge() const
+    PlacementTreeEdge const& edge() const
     {
         return *edge_;
     }

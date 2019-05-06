@@ -32,9 +32,11 @@
 
 #include "genesis/placement/function/helper.hpp"
 #include "genesis/placement/formats/newick_reader.hpp"
+#include "genesis/placement/placement_tree.hpp"
 #include "genesis/placement/sample_set.hpp"
 #include "genesis/placement/sample.hpp"
 
+#include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/options.hpp"
@@ -85,9 +87,25 @@ Sample JplaceReader::read(
         throw std::runtime_error( "Json value is not a Json document." );
     }
 
+    // Check if the top level keys are according to the standard.
+    auto const& keymap = doc.get_object();
+    for( auto const& kv : keymap ) {
+        auto const& key = kv.first;
+        if(
+            key != "version" && key != "tree" && key != "placements" &&
+            key != "fields" && key != "metadata"
+        ) {
+            LOG_WARN << "Jplace document contains top-level key '" << key << "', which is not part "
+                     << "of the jplace standard and hence ignored. This might indicate an issue "
+                     << "with the data or the program which generated the document.";
+        }
+    }
+
+    // Basics.
     process_jplace_version_( doc );
     process_jplace_metadata_( doc, smp );
 
+    // Content.
     process_jplace_tree_( doc, smp );
     auto const fields = process_jplace_fields_( doc );
     process_jplace_placements_( doc, smp, fields );
@@ -181,8 +199,8 @@ void JplaceReader::process_jplace_version_( utils::JsonDocument const& doc ) con
     // Check if the version is working for us.
     if( version == 0 || version >= 4 ) {
         LOG_WARN << "Jplace document has version " << version << " specified at the 'version' key. "
-                 << "This parser however is written for versions 1-3 of the Jplace standard. "
-                 << "Now continuing to parse in the hope that it still works.";
+                 << "We can process versions 1-3 of the jplace standard, "
+                 << "but now still continue to parse in the hope that it works.";
     }
 }
 
@@ -200,6 +218,9 @@ void JplaceReader::process_jplace_metadata_( utils::JsonDocument const& doc, Sam
             // Only use metadata that is a string. Everything else is ignored.
             if( it.value().is_string() ) {
                 smp.metadata[ it.key() ] = it.value().get_string();
+            } else {
+                LOG_WARN << "Jplace document contains meta-data at key '" << it.key()
+                         << "' that is not stored as a string, and hence ignored.";
             }
         }
     }
@@ -238,14 +259,14 @@ void JplaceReader::process_jplace_tree_( utils::JsonDocument const& doc, Sample&
 
 std::vector<std::string> JplaceReader::process_jplace_fields_( utils::JsonDocument const& doc ) const
 {
-    // get the field names and store them in array fields
+    // Basics.
     auto fields_it = doc.find( "fields" );
-
     if( fields_it == doc.end() || ! fields_it->is_array() ) {
         throw std::runtime_error( "Jplace document does not contain field names at key 'fields'." );
     }
+
+    // Store the fields in a vecor in the order that they are specified.
     std::vector<std::string> fields;
-    bool has_edge_num = false;
     for( auto const& fields_val : *fields_it ) {
         if( ! fields_val.is_string() ) {
             throw std::runtime_error(
@@ -254,12 +275,13 @@ std::vector<std::string> JplaceReader::process_jplace_fields_( utils::JsonDocume
             );
         }
 
-        // check field validity
+        // Check field validity.
         std::string const& field = fields_val.get_string();
-        if (field == "edge_num"      || field == "likelihood"     || field == "like_weight_ratio" ||
-            field == "distal_length" || field == "pendant_length" || field == "proximal_length"   ||
-            field == "parsimony"
+        if( field == "edge_num"      || field == "likelihood"     || field == "like_weight_ratio" ||
+            field == "distal_length" || field == "pendant_length" || field == "proximal_length"
         ) {
+            // These are the fields that we use internally.
+            // Check for duplicates.
             if( std::any_of( fields.begin(), fields.end(), [&]( std::string const& fn ){
                 return fn == field;
             })) {
@@ -268,26 +290,49 @@ std::vector<std::string> JplaceReader::process_jplace_fields_( utils::JsonDocume
                     + "' more than once at key 'fields'."
                 );
             }
+        } else if(
+            field == "parsimony"     || field == "post_prob"      || field == "marginal_like"     ||
+            field == "marginal_prob" || field == "classification" || field == "map_ratio"         ||
+            field == "map_overlap"
+        ) {
+            // These are fields defined by the jplace standard, but not used by us.
+            LOG_WARN << "Jplace document contains a field name '" << field << "' at key 'fields', "
+                     << "which is part of the jplace standard, but not used by any of our functions, "
+                     << "and hence ignored.";
         } else {
-            LOG_WARN << "Jplace document contains a field name '" << field << "' "
-                     << "at key 'fields', which is not used by this parser and thus ignored.";
+            // These are fields that are not part of the standard.
+            LOG_WARN << "Jplace document contains a field name '" << field << "' at key 'fields', "
+                     << "which is not part of the jplace standard, and hence ignored.";
         }
         fields.push_back(field);
-        has_edge_num |= (field == "edge_num");
     }
-    if (!has_edge_num) {
+
+    // Check if all required fields are present. First, the must-haves, and then our little
+    // extra thing of offering to have a proximal_length field instead of of distal_length.
+    std::vector<std::string> required_fields = {
+        "edge_num", "likelihood", "like_weight_ratio", "pendant_length"
+    };
+    for( auto const& req : required_fields ) {
+        if( ! utils::contains( fields, req ) ) {
+            throw std::runtime_error(
+                "Jplace document does not contain necessary field '" + req + "' at key 'fields'."
+            );
+        }
+    }
+    auto const contains_distal = utils::contains( fields, "distal_length" );
+    auto const contains_proximal = utils::contains( fields, "proximal_length" );
+    if( ! contains_distal && ! contains_proximal ) {
         throw std::runtime_error(
-            "Jplace document does not contain necessary field 'edge_num' at key 'fields'."
+            "Jplace document does not contain one of the necessary fields 'distal_length' "
+            "or 'proximal_length' at key 'fields'."
         );
     }
-    if (
-        std::end(fields) != std::find(std::begin(fields), std::end(fields), "distal_length") &&
-        std::end(fields) != std::find(std::begin(fields), std::end(fields), "proximal_length")
-    ) {
+    if( contains_distal && contains_proximal ) {
         LOG_WARN << "Jplace document contains both fields 'distal_length', and 'proximal_length'. "
                  << "Currently, only one value is used internally to represent both, which might "
                  << "lead to inconsistency if the sum of both is not equal to the branch length.";
     }
+    assert( contains_distal || contains_proximal );
 
     return fields;
 }
@@ -301,7 +346,7 @@ void JplaceReader::process_jplace_placements_(
     Sample&                         smp,
     std::vector<std::string> const& fields
 ) const {
-    // create a map from edge nums to the actual edge pointers, for later use when processing
+    // Create a map from edge nums to the actual edge pointers, for later use when processing
     // the pqueries. we do not use Sample::EdgeNumMap() here, because we need to do extra
     // checking for validity first!
     std::unordered_map<size_t, PlacementTreeEdge*> edge_num_map;
@@ -332,179 +377,267 @@ void JplaceReader::process_jplace_placements_(
                 + "' instead of an object with a pquery at key 'placements'."
             );
         }
-        auto pqry_p_arr = pqry_obj.find( "p" );
-        if( pqry_p_arr == pqry_obj.end() || ! pqry_p_arr->is_array() ) {
+
+        // Create new pquery and fill it with the p, n, m, and nm values.
+        auto pquery = Pquery();
+        process_jplace_placements_p_( pqry_obj, pquery, fields, edge_num_map );
+        process_jplace_placements_nm_( pqry_obj, pquery );
+
+        // Add the pquery to the smp object, and remove the values from the json doc to save memory.
+        smp.add( pquery );
+        pqry_obj.clear();
+    }
+}
+
+// -------------------------------------------------------------------------
+//     Processing Placements P
+// -------------------------------------------------------------------------
+
+void JplaceReader::process_jplace_placements_p_(
+    utils::JsonDocument const&      pqry_obj,
+    Pquery&                         pquery,
+    std::vector<std::string> const& fields,
+    std::unordered_map<size_t, PlacementTreeEdge*> const& edge_num_map
+) const {
+
+    // Check basic validity.
+    assert( pqry_obj.is_object() );
+    auto const pqry_p_arr = pqry_obj.find( "p" );
+    if( pqry_p_arr == pqry_obj.end() || ! pqry_p_arr->is_array() ) {
+        throw std::runtime_error(
+            "Jplace document contains a pquery at key 'placements' that does not contain an "
+            "array of placements at key 'p'."
+        );
+    }
+    if( pqry_p_arr->size() == 0 ) {
+        throw std::runtime_error(
+            "Jplace document contains a pquery at key 'placements' that does not contain any "
+            "placements at key 'p'."
+        );
+    }
+
+    // Process the placements and store them in the pquery.
+    for( auto const& pqry_fields : *pqry_p_arr ) {
+        if( ! pqry_fields.is_array() ) {
             throw std::runtime_error(
-                "Jplace document contains a pquery at key 'placements' that does not contain an "
-                + std::string( "array of placements at sub-key 'p'." )
+                "Jplace document contains a pquery with invalid placement at key 'p'."
             );
         }
 
-        // Create new pquery.
-        auto pqry = Pquery();
+        if( pqry_fields.size() != fields.size() ) {
+            throw std::runtime_error(
+                "Jplace document contains a placement fields array with different size "
+                "than the fields name array."
+            );
+        }
 
-        // Process the placements and store them in the pquery.
-        for( auto const& pqry_fields : *pqry_p_arr ) {
-            if( ! pqry_fields.is_array() ) {
-                throw std::runtime_error(
-                    "Jplace document contains a pquery with invalid placement at key 'p'."
-                );
-            }
+        // Init a placement and set some distal/proximal lengths temps.
+        auto pqry_place = PqueryPlacement();
+        double distal_length = -1.0;
+        pqry_place.proximal_length = 0.0;
 
-            if (pqry_fields.size() != fields.size()) {
-                throw std::runtime_error(
-                    "Jplace document contains a placement fields array with different size "
-                    + std::string( "than the fields name array." )
-                );
-            }
+        // Process all fields of the placement.
+        for( size_t i = 0; i < pqry_fields.size(); ++i ) {
 
-            // Process all fields of the placement.
-            auto pqry_place = PqueryPlacement();
-            double distal_length = -1.0;
-            for (size_t i = 0; i < pqry_fields.size(); ++i) {
-                // Up to version 3 of the jplace specification, the p-fields in a jplace document
-                // only contain numbers (float or int), so we can do this check here once for all
-                // fields, instead of repetition for every field. If in the future (jplace 4 and
-                // later) there are fields introduced with non-number type, this check
-                // has to go into the single field assignments.
-                if (!pqry_fields.at(i).is_number()) {
+            // Switch on the field name to set the correct value, and store the target value.
+            // We currently only process number fields, as all values in a PqueryPlacement
+            // are of type double. This makes our life here easy.
+            // If we ever decide to also process other values such as strings in the `classification`
+            // field of the jplace standard, the following has to be refactored.
+            double* target = nullptr;
+            if( fields[i] == "edge_num" ) {
+                size_t val_int = pqry_fields.at(i).get_number<size_t>();
+
+                if( edge_num_map.count( val_int ) == 0 ) {
                     throw std::runtime_error(
-                        "Jplace document contains pquery where field " + fields[i]
+                        "Jplace document contains a pquery where field 'edge_num' has value '"
+                        + std::to_string( val_int ) + "', which does not correspond to any "
+                        "edge_num in the given Newick tree of the document."
+                    );
+                }
+                pqry_place.reset_edge( *edge_num_map.at( val_int ) );
+
+            } else if( fields[i] == "likelihood" ) {
+                target = &pqry_place.likelihood;
+            } else if( fields[i] == "like_weight_ratio" ) {
+                target = &pqry_place.like_weight_ratio;
+            } else if( fields[i] == "distal_length" ) {
+                target = &distal_length;
+            } else if( fields[i] == "proximal_length" ) {
+                target = &pqry_place.proximal_length;
+            } else if( fields[i] == "pendant_length" ) {
+                target = &pqry_place.pendant_length;
+            }
+
+            // If we set a porper target above, we are at a field that we actually want to process.
+            // Hence, check if it is numercial (again, we currently are only interested in these),
+            // and set it accordingly.
+            if( target ) {
+                if( !pqry_fields.at(i).is_number() ) {
+                    throw std::runtime_error(
+                        "Jplace document contains a pquery where the field " + fields[i]
                         + " is of type '" + pqry_fields.at(i).type_name()
                         + "' instead of a number."
                     );
                 }
+                *target = pqry_fields.at(i).get_number<double>();
+            }
+        }
 
-                // Switch on the field name to set the correct value.
-                double pqry_place_val = pqry_fields.at(i).get_number<double>();
-                if (fields[i] == "edge_num") {
-                    size_t val_int = pqry_fields.at(i).get_number<size_t>();
+        // The jplace format uses distal length, but we use proximal, so we need to convert here.
+        // We have to do this here (unlike all the other values, which are set in the loop
+        // above), because it may happen that the edge_num field was not yet set while
+        // processing the loop. Also, we only set it if it was actually available in the fields
+        // and not overwritten by the (more appropriate) field for the proximal length.
+        if( distal_length >= 0.0 && pqry_place.proximal_length == 0.0 ) {
+            auto const& edge_data = pqry_place.edge().data<PlacementEdgeData>();
+            pqry_place.proximal_length = edge_data.branch_length - distal_length;
+        }
 
-                    if (edge_num_map.count( val_int ) == 0) {
-                        throw std::runtime_error(
-                            "Jplace document contains a pquery where field 'edge_num' has value '"
-                            + std::to_string( val_int ) + "', which does not correspond to any "
-                            "edge_num in the given Newick tree of the document."
-                        );
-                    }
-                    pqry_place.reset_edge( *edge_num_map.at( val_int ) );
-
-                } else if (fields[i] == "likelihood") {
-                    pqry_place.likelihood = pqry_place_val;
-
-                } else if (fields[i] == "like_weight_ratio") {
-                    pqry_place.like_weight_ratio = pqry_place_val;
-
-                } else if (fields[i] == "distal_length") {
-                    distal_length = pqry_place_val;
-
-                } else if (fields[i] == "proximal_length") {
-                    pqry_place.proximal_length = pqry_place_val;
-
-                } else if (fields[i] == "pendant_length") {
-                    pqry_place.pendant_length = pqry_place_val;
-
-                } else if (fields[i] == "parsimony") {
-                    pqry_place.parsimony = pqry_place_val;
-                }
+        // Helper function that takes a value and input used to report or fix incorrect input,
+        // depnding on the invalid number behaviour setting.
+        auto invalid_number_checker = [this] (
+            double&                              actual,
+            std::function<bool (double, double)> comparator,
+            double                               expected,
+            std::string                          error_message
+        ) {
+            if(
+                comparator( actual, expected ) && (
+                invalid_number_behaviour() == InvalidNumberBehaviour::kLog ||
+                invalid_number_behaviour() == InvalidNumberBehaviour::kLogAndFix
+            )) {
+                LOG_WARN << error_message;
             }
 
-            // The jplace format uses distal length, but we use proximal, so we need to convert here.
-            // We have to do this here (unlike all the other values, which are set in the loop
-            // above), because it may happen that the edge_num field was not yet set while
-            // processing. Also, we only set it if it was actually available in the fields and not
-            // overwritten by the (more appropriate) field for the proximal length.
-            if (distal_length >= 0.0 && pqry_place.proximal_length == 0.0) {
-                auto const& edge_data = pqry_place.edge().data<PlacementEdgeData>();
-                pqry_place.proximal_length = edge_data.branch_length - distal_length;
+            if(
+                comparator( actual, expected ) && (
+                invalid_number_behaviour() == InvalidNumberBehaviour::kFix ||
+                invalid_number_behaviour() == InvalidNumberBehaviour::kLogAndFix
+            )) {
+                actual = expected;
             }
 
-            auto invalid_number_checker = [this] (
-                double&                              actual,
-                std::function<bool (double, double)> comparator,
-                double                               expected,
-                std::string                          error_message
-            ) {
-                if(
-                    comparator( actual, expected ) && (
-                    invalid_number_behaviour() == InvalidNumberBehaviour::kLog ||
-                    invalid_number_behaviour() == InvalidNumberBehaviour::kLogAndCorrect
-                )) {
-                    LOG_WARN << error_message;
-                }
+            if(
+                comparator( actual, expected ) && (
+                invalid_number_behaviour() == InvalidNumberBehaviour::kThrow
+            )) {
+                throw std::runtime_error( error_message );
+            }
+        };
 
-                if(
-                    comparator( actual, expected ) && (
-                    invalid_number_behaviour() == InvalidNumberBehaviour::kCorrect ||
-                    invalid_number_behaviour() == InvalidNumberBehaviour::kLogAndCorrect
-                )) {
-                    actual = expected;
-                }
+        // Check validity of placement values.
+        invalid_number_checker(
+            pqry_place.like_weight_ratio,
+            std::less<double>(),
+            0.0,
+            "Invalid placement with like_weight_ratio < 0.0."
+        );
+        invalid_number_checker(
+            pqry_place.like_weight_ratio,
+            std::greater<double>(),
+            1.0,
+            "Invalid placement with like_weight_ratio > 1.0."
+        );
+        invalid_number_checker(
+            pqry_place.pendant_length,
+            std::less<double>(),
+            0.0,
+            "Invalid placement with pendant_length < 0.0."
+        );
+        invalid_number_checker(
+            pqry_place.proximal_length,
+            std::less<double>(),
+            0.0,
+            "Invalid placement with proximal_length < 0.0."
+        );
+        invalid_number_checker(
+            pqry_place.proximal_length,
+            std::greater<double>(),
+            pqry_place.edge().data<PlacementEdgeData>().branch_length,
+            "Invalid placement with proximal_length > branch_length."
+        );
 
-                if(
-                    comparator( actual, expected ) && (
-                    invalid_number_behaviour() == InvalidNumberBehaviour::kThrow
-                )) {
-                    throw std::runtime_error( error_message );
-                }
-            };
+        // Add the placement to the query and vice versa.
+        pquery.add_placement( pqry_place );
+    }
+}
 
-            // Check validity of placement values.
-            invalid_number_checker(
-                pqry_place.like_weight_ratio,
-                std::less<double>(),
-                0.0,
-                "Invalid placement with like_weight_ratio < 0.0."
-            );
-            invalid_number_checker(
-                pqry_place.like_weight_ratio,
-                std::greater<double>(),
-                1.0,
-                "Invalid placement with like_weight_ratio > 1.0."
-            );
-            invalid_number_checker(
-                pqry_place.pendant_length,
-                std::less<double>(),
-                0.0,
-                "Invalid placement with pendant_length < 0.0."
-            );
-            invalid_number_checker(
-                pqry_place.proximal_length,
-                std::less<double>(),
-                0.0,
-                "Invalid placement with proximal_length < 0.0."
-            );
-            invalid_number_checker(
-                pqry_place.proximal_length,
-                std::greater<double>(),
-                pqry_place.edge().data<PlacementEdgeData>().branch_length,
-                "Invalid placement with proximal_length > branch_length."
-            );
+// -------------------------------------------------------------------------
+//     Processing Placements P
+// -------------------------------------------------------------------------
 
-            // Add the placement to the query and vice versa.
-            pqry.add_placement( pqry_place );
-        }
+void JplaceReader::process_jplace_placements_nm_(
+    utils::JsonDocument const&      pqry_obj,
+    Pquery&                         pquery
+) const {
 
-        // Check name/named multiplicity validity.
-        if( pqry_obj.count("n") > 0 && pqry_obj.count("nm") > 0 ) {
-            throw std::runtime_error(
-                "Jplace document contains a pquery with both an 'n' and an 'nm' key."
-            );
-        }
-        if( pqry_obj.count("n") == 0 && pqry_obj.count("nm") == 0 ) {
-            throw std::runtime_error(
-                "Jplace document contains a pquery with neither an 'n' nor an 'nm' key."
-            );
-        }
+    // Check name/named multiplicity validity.
+    assert( pqry_obj.is_object() );
+    if( pqry_obj.count("n") > 0 && pqry_obj.count("nm") > 0 ) {
+        throw std::runtime_error(
+            "Jplace document contains a pquery with both an 'n' and an 'nm' key."
+        );
+    }
+    if( pqry_obj.count("n") == 0 && pqry_obj.count("nm") == 0 ) {
+        throw std::runtime_error(
+            "Jplace document contains a pquery with neither an 'n' nor an 'nm' key."
+        );
+    }
+    if( pqry_obj.count("m") > 0 && pqry_obj.count("n") == 0 ) {
+        throw std::runtime_error(
+            "Jplace document contains a pquery with key 'm' but without 'n' key."
+        );
+    }
 
-        // Process names.
-        if( pqry_obj.count("n") > 0 ) {
-            if( ! pqry_obj[ "n" ].is_array() ) {
+    // Process names.
+    if( pqry_obj.count("n") > 0 ) {
+        assert( pqry_obj.count("nm") == 0 );
+
+        // Get the multiplicity for the name. This is only relevant for the old case of
+        // jplace version 2, which offered an 'm' key for this. If the key is not provided,
+        // we simply use the default multiplicity of 1.
+        double m = 1.0;
+        if( pqry_obj.count("m") > 0 ) {
+
+            // The 'm' key is expected to be a single float.
+            if( ! pqry_obj[ "m" ].is_number() ) {
                 throw std::runtime_error(
-                    "Jplace document contains a pquery with key 'n' that is not array."
+                    "Jplace document contains a pquery where key 'm' has a "
+                    "value is not a valid number for the multiplicity."
                 );
             }
 
+            // Furthermore, if 'm' is provided, 'n' can only contain a single element,
+            // that is, either be a string, or an array with one string. Both is covered by
+            // the Json Document size() property.
+            if( pqry_obj[ "n" ].size() != 1 ) {
+                throw std::runtime_error(
+                    "Jplace document contains a pquery with key 'n' that is an array of size greater "
+                    "than one, while also having key 'm' for the multiplicity. This is not allowed."
+                );
+            }
+
+            // Finally, set the multiplicity to be used for the name.
+            m = pqry_obj[ "m" ].get_number<double>();
+        }
+
+        // The 'n' key can either be a string or an array containing one string.
+        // Process accordingly.
+        if( pqry_obj[ "n" ].is_array() ) {
+
+            // Validity check.
+            if( pqry_obj[ "n" ].size() == 0 ) {
+                throw std::runtime_error(
+                    "Jplace document contains a pquery with key 'n' that does not contain any values."
+                );
+            }
+
+            // If we are here, and there is an 'm' key, the array can only have size 1.
+            // We checked this before, so assert it here.
+            assert(!( pqry_obj[ "n" ].size() > 1 && pqry_obj.count("m") > 0 ));
+
+            // Add all names.
             for( auto const& pqry_n_val : pqry_obj[ "n" ] ) {
                 if( ! pqry_n_val.is_string() ) {
                     throw std::runtime_error(
@@ -513,75 +646,78 @@ void JplaceReader::process_jplace_placements_(
                 }
 
                 // Add the name with a default multiplicity.
-                pqry.add_name( pqry_n_val.get_string() );
+                pquery.add_name( pqry_n_val.get_string(), m );
             }
+
+        } else if( pqry_obj[ "n" ].is_string() ) {
+            pquery.add_name( pqry_obj[ "n" ].get_string(), m );
+
+        } else {
+            throw std::runtime_error(
+                "Jplace document contains a pquery with key 'n' that "
+                "is neither an array nor a string."
+            );
+        }
+    }
+
+    // Process named multiplicities.
+    if( pqry_obj.count("nm") > 0 ) {
+        assert( pqry_obj.count("n") == 0 );
+        assert( pqry_obj.count("m") == 0 );
+
+        // Validity check.
+        if ( ! pqry_obj[ "nm" ].is_array() ) {
+            throw std::runtime_error(
+                "Jplace document contains a pquery with key 'nm' that is not array."
+            );
+        }
+        if( pqry_obj[ "nm" ].size() == 0 ) {
+            throw std::runtime_error(
+                "Jplace document contains a pquery with key 'nm' that does not contain any values."
+            );
         }
 
-        // Process named multiplicities.
-        if( pqry_obj.count("nm") > 0 ) {
-            if ( ! pqry_obj[ "nm" ].is_array() ) {
+        // Add all n/m value pairs to the pquery.
+        for( auto const& pqry_nm_val : pqry_obj[ "nm" ] ) {
+
+            // Validity checks.
+            if( ! pqry_nm_val.is_array() ) {
                 throw std::runtime_error(
-                    "Jplace document contains a pquery with key 'nm' that is not array."
+                    "Jplace document contains a pquery where key 'nm' has a non-array field."
+                );
+            }
+            if( pqry_nm_val.size() != 2 ) {
+                throw std::runtime_error(
+                    std::string( "Jplace document contains a pquery where key 'nm' has an " )
+                    + "array field with size != 2 (one for the name, one for the multiplicity)."
+                );
+            }
+            if( ! pqry_nm_val.at(0).is_string() ) {
+                throw std::runtime_error(
+                    std::string( "Jplace document contains a pquery where key 'nm' has an " )
+                    + "array whose first value is not a string for the name."
+                );
+            }
+            if( ! pqry_nm_val.at(1).is_number() ) {
+                throw std::runtime_error(
+                    std::string( "Jplace document contains a pquery where key 'nm' has an " )
+                    + "array whose second value is not a number for the multiplicity."
                 );
             }
 
-            for( auto const& pqry_nm_val : pqry_obj[ "nm" ] ) {
-                if( ! pqry_nm_val.is_array() ) {
-                    throw std::runtime_error(
-                        "Jplace document contains a pquery where key 'nm' has a non-array field."
-                    );
-                }
-
-                if( pqry_nm_val.size() != 2 ) {
-                    throw std::runtime_error(
-                        std::string( "Jplace document contains a pquery where key 'nm' has an " )
-                        + "array field with size != 2 (one for the name, one for the multiplicity)."
-                    );
-                }
-                if( ! pqry_nm_val.at(0).is_string() ) {
-                    throw std::runtime_error(
-                        std::string( "Jplace document contains a pquery where key 'nm' has an " )
-                        + "array whose first value is not a string for the name."
-                    );
-                }
-                if( ! pqry_nm_val.at(1).is_number() ) {
-                    throw std::runtime_error(
-                        std::string( "Jplace document contains a pquery where key 'nm' has an " )
-                        + "array whose second value is not a number for the multiplicity."
-                    );
-                }
-
-                auto pqry_name = PqueryName();
-                pqry_name.name         = pqry_nm_val.at(0).get_string();
-                pqry_name.multiplicity = pqry_nm_val.at(1).get_number<double>();
-                if (pqry_name.multiplicity < 0.0) {
-                    LOG_WARN << "Jplace document contains pquery with negative multiplicity at "
-                             << "name '" << pqry_name.name << "'.";
-                }
-
-                pqry.add_name( pqry_name );
+            // Set the values and create a pquery name.
+            auto pqry_name = PqueryName();
+            pqry_name.name         = pqry_nm_val.at(0).get_string();
+            pqry_name.multiplicity = pqry_nm_val.at(1).get_number<double>();
+            if (pqry_name.multiplicity < 0.0) {
+                LOG_WARN << "Jplace document contains pquery with negative multiplicity at "
+                         << "name '" << pqry_name.name << "'.";
             }
+
+            // Add the name to the pquery.
+            pquery.add_name( pqry_name );
         }
-
-        // Finally, add the pquery to the smp object.
-        smp.add( pqry );
-        pqry_obj.clear();
     }
-}
-
-// =================================================================================================
-//     Properties
-// =================================================================================================
-
-JplaceReader::InvalidNumberBehaviour JplaceReader::invalid_number_behaviour() const
-{
-    return invalid_number_behaviour_;
-}
-
-JplaceReader& JplaceReader::invalid_number_behaviour( InvalidNumberBehaviour val )
-{
-    invalid_number_behaviour_ = val;
-    return *this;
 }
 
 } // namespace placement
