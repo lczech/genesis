@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -192,7 +192,7 @@ int main( int argc, const char* argv[] )
     // Prepare a Jplace reader that reports wrong values.
     auto jplace_reader = JplaceReader();
     jplace_reader.invalid_number_behaviour(
-        genesis::placement::JplaceReader::InvalidNumberBehaviour::kLogAndCorrect
+        genesis::placement::JplaceReader::InvalidNumberBehaviour::kLogAndFix
     );
 
     // -------------------------------------------------------------------------
