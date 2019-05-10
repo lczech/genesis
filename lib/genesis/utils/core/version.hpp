@@ -63,7 +63,7 @@ namespace genesis {
 inline std::string genesis_version()
 {
     // The following line is automatically replaced by the deploy scripts. Do not change manually.
-    return "v0.21.0"; // #GENESIS_VERSION#
+    return "v0.22.0"; // #GENESIS_VERSION#
 }
 
 /**
@@ -74,7 +74,7 @@ inline std::string genesis_version()
 inline std::string genesis_version_name()
 {
     // The following line is automatically replaced by the deploy scripts. Do not change manually.
-    return "Meta Collecting"; // #GENESIS_VERSION_NAME#
+    return "Cubesat Launch"; // #GENESIS_VERSION_NAME#
 }
 
 /**
