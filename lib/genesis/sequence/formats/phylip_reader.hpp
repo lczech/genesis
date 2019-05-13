@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -286,7 +286,7 @@ public:
      *
      * See the setter mode( Mode ) for details.
      */
-    Mode          mode() const;
+    Mode mode() const;
 
     /**
      * @brief Set the length of the label in front of the sequences.
@@ -329,6 +329,30 @@ public:
      * @brief Return whether Sequence sites are automatically turned into upper or lower case.
      */
     SiteCasing site_casing() const;
+
+    /**
+     * @brief Set whether digits in the Sequence should be kept (default) or removed.
+     *
+     * Usually, sequences do not contain digits. However, some Phylip variants allow to annotate
+     * sequences with positions in between, for example
+     *
+     *     2 10
+     *     foofoofoo AAGCC
+     *     5 TTGGC
+     *     barbarbar AAACC
+     *     5 CTTGC
+     *
+     * See http://evolution.genetics.washington.edu/phylip/doc/sequence.html for the definition
+     * of the Phylip standard that allows this. By default, we keep all symbols except white space,
+     * because some multi-state models might use digits as symbols. However, for files that use
+     * this weird variant of the standard, this option can be activated to remove the digits.
+     */
+    PhylipReader& remove_digits( bool value );
+
+    /**
+     * @brief Return whether digits are removed from the Sequence.
+     */
+    bool remove_digits() const;
 
     /**
      * @brief Set the chars that are used for validating Sequence sites when reading them.
@@ -374,6 +398,7 @@ private:
     size_t                  label_length_   = 0;
 
     SiteCasing              site_casing_    = SiteCasing::kToUpper;
+    bool                    remove_digits_ = false;
     bool                    use_validation_ = false;
     utils::CharLookup<bool> lookup_;
 

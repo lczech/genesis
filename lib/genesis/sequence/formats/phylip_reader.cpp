@@ -32,12 +32,14 @@
 
 #include "genesis/sequence/sequence_set.hpp"
 #include "genesis/sequence/sequence.hpp"
+#include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/scanner.hpp"
 #include "genesis/utils/text/string.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <fstream>
@@ -180,45 +182,39 @@ std::string PhylipReader::parse_phylip_label( utils::InputStream& it ) const
 
 std::string PhylipReader::parse_phylip_sequence_line( utils::InputStream& it ) const
 {
-    std::string seq;
+    // Read the (rest of) the current line from the input.
+    auto line_pair = it.get_line();
+    auto seq = std::string( line_pair.first, line_pair.second );
 
-    // Process the whole line.
-    while( it && *it != '\n' ) {
-        // Skip all blanks and digits.
-        if( ::isblank( *it ) || ::isdigit( *it ) ) {
-            ++it;
-            continue;
-        }
-
-        // Check and process current char.
-        // Weird C relicts need weird conversions...
-        // See https://en.cppreference.com/w/cpp/string/byte/tolower
-        char c = *it;
-        if( site_casing_ == SiteCasing::kToUpper ) {
-            c = static_cast<char>( std::toupper( static_cast<unsigned char>( c )));
-        } else if( site_casing_ == SiteCasing::kToLower ) {
-            c = static_cast<char>( std::tolower( static_cast<unsigned char>( c )));
-        }
-        if( use_validation_ && !lookup_[c] ) {
-            throw std::runtime_error(
-                "Malformed Phylip " + it.source_name() + ": Invalid sequence symbols at "
-                + it.at() + "."
-            );
-        }
-        seq += c;
-        ++it;
+    // Clean up as needed. Blanks always, digits only on demand.
+    utils::erase_if( seq, []( char c ){
+        return c == ' ' || c == '\t';
+    });
+    if( remove_digits_ ) {
+        utils::erase_if( seq, []( char c ){
+            return  ::isdigit( c );
+        });
     }
 
-    // All lines need to end with \n
-    if( !it ) {
-        throw std::runtime_error(
-            "Malformed Phylip " + it.source_name() + ": Sequence line does not end with '\\n' "
-            + it.at() + "."
-        );
+    // Change case as needed.
+    if( site_casing_ == SiteCasing::kToUpper ) {
+        seq = utils::to_upper_ascii( seq );
+    } else if( site_casing_ == SiteCasing::kToLower ) {
+        seq = utils::to_lower_ascii( seq );
     }
 
-    assert( it && *it == '\n' );
-    ++it;
+    // Validate as needed.
+    if( use_validation_ ) {
+        for( auto const& c : seq ) {
+            if( !lookup_[c] ) {
+                throw std::runtime_error(
+                    "Malformed Phylip " + it.source_name() + ": Invalid sequence symbol "
+                    + utils::char_to_hex( c, true )
+                    + " in sequence near line " + std::to_string( it.line() - 1 ) + "."
+                );
+            }
+        }
+    }
 
     return seq;
 }
@@ -378,6 +374,17 @@ PhylipReader& PhylipReader::site_casing( SiteCasing value )
 PhylipReader::SiteCasing PhylipReader::site_casing() const
 {
     return site_casing_;
+}
+
+PhylipReader& PhylipReader::remove_digits( bool value )
+{
+    remove_digits_ = value;
+    return *this;
+}
+
+bool PhylipReader::remove_digits() const
+{
+    return remove_digits_;
 }
 
 PhylipReader& PhylipReader::valid_chars( std::string const& chars )
