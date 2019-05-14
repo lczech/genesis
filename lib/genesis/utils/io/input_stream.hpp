@@ -219,6 +219,7 @@ public:
 
         // Read data if necessary.
         update_blocks_();
+        assert( data_pos_ < BlockLength );
 
         // In case we are moving to a new line, set the counters accordingly.
         if( current_ == '\n' ) {
@@ -262,61 +263,74 @@ public:
     // -------------------------------------------------------------
 
     /**
-     * @brief Return the current line and move to the beginning of the next.
+     * @brief Read the current line and move to the beginning of the next.
      *
-     * The function finds the end of the current line, starting from the current position.
-     * It returns a pointer to the current position and the length of the line. Furthermore,
-     * a null char is set at the end of the line, replacing the new line char.
-     * This allows downstream parses to directly use the returned pointer as a c-string.
-     *
+     * The function finds the end of the current line, starting from the current position,
+     * and appends the content to the given @p target, excluding the trailing new line char(s).
      * The stream is left at the first char of the next line.
      */
-    std::pair< char*, size_t > get_line()
+    void get_line( std::string& target )
     {
+        // Check edge case.
         if( data_pos_ >= data_end_ ) {
-            return { nullptr, 0 };
+            return;
         }
 
-        // Read data if necessary.
-        update_blocks_();
+        // Loop until we find the end of the line. As this can be longer than one block,
+        // we might need to update the blocks and store the results in between.
+        while( true ) {
+            // Read data if necessary.
+            update_blocks_();
+            assert( data_pos_ < BlockLength );
 
-        // Find the end of the line.
-        size_t line_end = data_pos_;
-        while( line_end != data_end_       &&
-               buffer_[ line_end ] != '\n' &&
-               buffer_[ line_end ] != '\r'
-        ) {
-            ++line_end;
+            // Read until the end of the line, but also stop before the end of the data,
+            // and after we read a full block. End of data: we are done anyway.
+            // End of block: need to read the next one first, so loop again.
+            size_t const start = data_pos_;
+            while(
+                data_pos_ != data_end_          &&
+                data_pos_ - start < BlockLength &&
+                buffer_[ data_pos_ ] != '\n'    &&
+                buffer_[ data_pos_ ] != '\r'
+            ) {
+                ++data_pos_;
+            }
+
+            // Store what we have so far.
+            target.append( buffer_ + start, data_pos_ - start );
+
+            // If the line is too long, we need an extra round. Start the loop again.
+            assert( data_pos_ >= start );
+            if( data_pos_ - start >= BlockLength ) {
+                continue;
+            }
+
+            // In all other cases, we stop here.
+            break;
         }
 
-        // If the line is too long, throw.
-        if( line_end - data_pos_ >= BlockLength ) {
-            throw std::runtime_error( "Input line too long in " + source_name() + " at " + at() );
-        }
+        // Some safty.
+        assert( data_pos_ <= data_end_ );
+        assert( data_pos_ < 2 * BlockLength );
 
-        // Because of the studid windows linebreaks, we need a special case...
-        size_t windows_offset = 0;
+        // Check all cases that can occur.
+        if( data_pos_ == data_end_ ) {
 
-        // Set the end of the line to \0, so that downstream parses can work with it.
-        // We first check for the end of line, so that the other checks (for new lines) can be
-        // sure that there is actually some char left to check. Thanks valgrind ;-)
-        if( line_end == data_end_ ) {
+            // Files might be missing the line break at the end of the last line.
+            // We catch this case here, so that we can be sure that the next conditions
+            // are actually valid when accessing the buffer.
+            // But we don't need to do anything in this case.
 
-            // Files might be missing the line break at the end of the last line. Add it.
-            ++data_end_;
-            buffer_[ line_end ] = '\0';
+        } else if( buffer_[ data_pos_ ] == '\n' ) {
+            ++data_pos_;
 
-        } else if( buffer_[ line_end ] == '\n' ) {
-            buffer_[ line_end ] = '\0';
-
-        } else if( buffer_[ line_end ] == '\r' ) {
-            buffer_[ line_end ] = '\0';
+        } else if( buffer_[ data_pos_ ] == '\r' ) {
+            ++data_pos_;
 
             // Treat stupid Windows \r\n lines breaks.
-            if( line_end + 1 < data_end_ && buffer_[ line_end + 1 ] == '\n' ) {
-                ++line_end;
-                windows_offset = 1;
-                buffer_[ line_end ] = '\0';
+            // We already moved past the \r, so check the next char.
+            if( data_pos_ < data_end_ && buffer_[ data_pos_ ] == '\n' ) {
+                ++data_pos_;
             }
         } else {
             // We have checked all cases where the loop above can terminate.
@@ -324,25 +338,25 @@ public:
             assert( false );
         }
 
-        // Some safty
-        assert( data_pos_ < data_end_ );
-        assert( line_end >= data_pos_ );
-        assert( line_end - data_pos_ < BlockLength );
-
-        // Get pointer to beginning of the line, and length of the line, for returning it.
-        char*  const ret_ptr = buffer_ + data_pos_;
-        size_t const ret_len = line_end - data_pos_ - windows_offset;
-
-        // Move to the first char of the next line, so that future calls for reading a line or
-        // char start at the right position.
-        data_pos_ = line_end + 1;
+        // Set char and counters. It checks for end of the file,
+        // so this is safe if we are past the end already.
         set_current_char_();
-
-        // Set counters.
         ++line_;
         column_ = 1;
+    }
 
-        return { ret_ptr, ret_len };
+    /**
+     * @brief Read the current line and move to the beginning of the next.
+     *
+     * The function finds the end of the current line, starting from the current position,
+     * and returns the content, excluding the trailing new line char(s).
+     * The stream is left at the first char of the next line.
+     */
+    std::string get_line()
+    {
+        std::string result;
+        get_line( result );
+        return result;
     }
 
     // -------------------------------------------------------------

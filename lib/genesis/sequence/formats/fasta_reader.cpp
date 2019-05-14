@@ -123,26 +123,22 @@ bool FastaReader::parse_sequence(
     // while we actually are in that line.
     {
 
-    // Get the label line.
-    auto  line_pair = it.get_line();
-    char* line = line_pair.first;
-
     // Check beginning of sequence.
-    if( line == nullptr || *line != '>' ) {
+    if( !it || *it != '>' ) {
         throw std::runtime_error(
             "Malformed Fasta " + it.source_name()
-            + ": Expecting '>' at beginning of sequence at line " + std::to_string( it.line() - 1 ) + "."
+            + ": Expecting '>' at beginning of sequence at line " + std::to_string( it.line() ) + "."
         );
     }
-    assert( line && *line == '>' );
-    ++line;
+    assert( it && *it == '>' );
+    ++it;
 
     // Parse label.
-    std::string label = utils::read_while( line, isprint );
+    std::string const label = utils::read_while( it, isprint );
     if( label == "" ) {
         throw std::runtime_error(
             "Malformed Fasta " + it.source_name()
-            + ": Expecting label after '>' in sequence at line " + std::to_string( it.line() - 1 ) + "."
+            + ": Expecting label after '>' in sequence at line " + std::to_string( it.line() ) + "."
         );
     }
     if( guess_abundances_ ) {
@@ -154,14 +150,15 @@ bool FastaReader::parse_sequence(
     }
 
     // Check for unexpected end of file.
-    if( *line != '\0' ) {
+    if( !it || *it != '\n' ) {
         throw std::runtime_error(
             "Malformed Fasta " + it.source_name()
             + ": Unexpected characters at the end of the label line in sequence at line "
-            + std::to_string( it.line() - 1 ) + "."
+            + std::to_string( it.line() ) + "."
         );
     }
-    assert( *line == '\0' );
+    assert( it && *it == '\n' );
+    ++it;
 
     } // End of line scope. We are done with the label line.
 
@@ -191,11 +188,7 @@ bool FastaReader::parse_sequence(
     // Parse sequence. At every beginning of the loop, we are at a line start.
     while( it && *it != '>' ) {
         assert( it.column() == 1 );
-
-        auto line_pair = it.get_line();
-        if( line_pair.second > 0 ) {
-            sites += std::string( line_pair.first, line_pair.second );
-        }
+        it.get_line( sites );
     }
     assert( !it || *it == '>' );
 
