@@ -183,8 +183,7 @@ std::string PhylipReader::parse_phylip_label( utils::InputStream& it ) const
 std::string PhylipReader::parse_phylip_sequence_line( utils::InputStream& it ) const
 {
     // Read the (rest of) the current line from the input.
-    auto line_pair = it.get_line();
-    auto seq = std::string( line_pair.first, line_pair.second );
+    auto seq = it.get_line();
 
     // Clean up as needed. Blanks always, digits only on demand.
     utils::erase_if( seq, []( char c ){

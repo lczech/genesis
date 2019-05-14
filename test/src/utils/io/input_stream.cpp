@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,10 +34,11 @@
 #include "genesis/utils/core/std.hpp"
 
 #include <algorithm>
-#include <iterator>
+#include <cstdio>
 #include <fstream>
-#include <string>
+#include <iterator>
 #include <sstream>
+#include <string>
 
 using namespace genesis;
 using namespace genesis::utils;
@@ -75,10 +76,10 @@ TEST(InputStream, Strings)
     test_string ("xyz\nxy\nx\nx", 4, 4);
 }
 
-TEST(InputStream, LargeFile)
+TEST(InputStream, FileReading)
 {
     NEEDS_TEST_DATA;
-    SCOPED_TRACE("InputStream.LargeFile");
+    SCOPED_TRACE("InputStream.FileReading");
 
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
     InputStream instr( utils::make_unique< FileInputSource >( infile ));
@@ -102,4 +103,59 @@ TEST(InputStream, NewLines)
 
     // Go crazy.
     test_string( "\r\r\n\r\n\n", 4, 1);
+}
+
+TEST( InputStream, LargeFile )
+{
+    // Skip test if no data directory availabe.
+    NEEDS_TEST_DATA;
+
+    // Create a large file with a known number and length of lines.
+    std::string tmpfile = environment->data_dir + "utils/large_file.txt";
+    std::ofstream out{ tmpfile };
+    ASSERT_TRUE( out );
+
+    // We use a quarter of the block len as our text block,
+    // and then construct a file with multiples of this for the lines.
+    // That means, at some point we will have lines that are exact multiples of the block size.
+    // This is good for testing boundary conditions of exact matches of lengths,
+    // so that we can check some of the assertions of the input stream!
+    auto const block_len = InputStream::BlockLength;
+    auto const text = std::string( block_len / 4, 'x' );
+
+    // Make a file with the form
+    //
+    // x
+    // xx
+    // xxx
+    // xxxx
+    // ...
+    for( size_t i = 0; i < 16; ++i ) {
+        for( size_t j = 0; j < i; ++j ) {
+            out << text;
+        }
+        out << "\n";
+    }
+    out.close();
+
+    // Now read it again and expect the correct line length.
+    auto it = InputStream( from_file( tmpfile ));
+    size_t cnt = 0;
+    while( it ) {
+        LOG_DBG << "at " << cnt;
+
+        EXPECT_EQ( cnt + 1, it.line() );
+        EXPECT_EQ( 1, it.column() );
+
+        auto const line = it.get_line();
+
+        EXPECT_EQ( cnt * text.size(), line.size() );
+        EXPECT_EQ( cnt + 2, it.line() );
+        EXPECT_EQ( 1, it.column() );
+
+        ++cnt;
+    }
+
+    // Make sure the file is deleted.
+    ASSERT_EQ( 0, std::remove(tmpfile.c_str()) );
 }
