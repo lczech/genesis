@@ -36,6 +36,7 @@
 #include <cctype>
 #include <cstdio>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 
@@ -266,6 +267,36 @@ std::vector<size_t> split_range_list( std::string const& str )
 // =================================================================================================
 //     Manipulate
 // =================================================================================================
+
+std::string wrap(
+    std::string const& text,
+    size_t line_length
+) {
+    /*
+        Code is adapted from https://www.rosettacode.org/wiki/Word_wrap#C.2B.2B,
+        which is published under the GNU Free Documentation License 1.2,
+        see https://www.gnu.org/licenses/old-licenses/fdl-1.2.html
+     */
+
+    std::istringstream text_stream( text );
+    std::ostringstream output;
+    std::string word;
+
+    if( text_stream >> word ) {
+        output << word;
+        long space_left = line_length - word.length();
+        while( text_stream >> word ) {
+            if( space_left < static_cast<long>( word.length() + 1 )) {
+                output << '\n' << word;
+                space_left = line_length - word.length();
+            } else {
+                output << ' ' << word;
+                space_left -= word.length() + 1;
+            }
+        }
+    }
+    return output.str();
+}
 
 std::string indent(
     std::string const& text,

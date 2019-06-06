@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -300,4 +300,16 @@ TEST( Text, ConvertDouble )
     vals.push_back( "nope" );
     EXPECT_FALSE( is_convertible_to_double( vals.begin(), vals.end() ));
     EXPECT_ANY_THROW( convert_to_double( vals.begin(), vals.end() ));
+}
+
+TEST( Text, Wrap )
+{
+    std::string const text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a "
+    "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec "
+    "consectetur ante hendrerit. Donec et mollis dolor. Praesent et diam eget libero egestas "
+    "mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur!";
+
+    // LOG_DBG << wrap( text );
+    // LOG_DBG << wrap( text, 15 );
+    // LOG_DBG << wrap( text, 5 );
 }

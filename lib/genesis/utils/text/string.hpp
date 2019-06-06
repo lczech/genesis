@@ -143,6 +143,14 @@ std::vector<size_t> split_range_list( std::string const& str );
 // =================================================================================================
 
 /**
+ * @brief Wrap a @p text at a given @p line_length.
+ */
+std::string wrap(
+    std::string const& text,
+    size_t line_length = 80
+);
+
+/**
  * @brief Indent each line of `text` with `indentation` and return the result.
  *
  * By default, four spaces are used to indent. Whether the text ends with a new line or not is not

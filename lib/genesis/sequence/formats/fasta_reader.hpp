@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -105,14 +105,10 @@ public:
         /**
          * @brief Fast method, used by default.
          *
-         * There are two limitations of this method:
-         *
-         *  *  It has a max line length of utils::InputStream::BlockLength.
-         *  *  It only reports errors using the line where the sequence starts.
-         *
-         * Those limitations do not affect most applications, as the maximum line length
-         * is long enough for most files, and if your data is good, there won't be errors to
-         * report. If you however have files with longer lines or want error reporting at the
+         * This is by far the preferred method, it however has one slight limitation:
+         * It only reports errors using the line where the sequence starts.
+         * This does not affect most applications, as good data won't produce errors to
+         * report. If you however want error reporting at the
          * exact line and column where the error occurs, use kPedantic instead.
          *
          * With this setting, parse_sequence() is used for parsing.
@@ -123,13 +119,13 @@ public:
         /**
          * @brief Pedantic method.
          *
-         * Compared to the fast method, this one allows for arbitrarily long lines and
-         * reports errors at the exact line and column where they occur. It is however
-         * slower (~3.5x the time of the default method). Apart from that, there are no differences.
+         * Compared to the fast method, this one reports errors at the exact line and column
+         * where they occur. It is however slower (~3.5x the time of the default method).
+         * Apart from that, there are no differences.
          *
          * If you need this method for certain files, it might be useful to use it only once and
-         * use a FastaWriter to write out a new Fasta file with fitting line lengths and without
-         * errors. This way, for subsequent reading you can then use the faster default method.
+         * use a FastaWriter to write out a new Fasta file without errors.
+         * This way, for subsequent reading you can then use the faster default method.
          *
          * With this setting, parse_sequence_pedantic() is used for parsing.
          * In our tests, it achieved ~100 MB/s parsing speed.
@@ -226,11 +222,6 @@ public:
      * The function stops after parsing one such sequence. It returns true if a sequence was extracted
      * and false if the stream is empty. If the input is not in the correct format, an
      * `std::runtime_error` exception is thrown indicating the malicious position in the input stream.
-     *
-     * This method has a maximum line length of utils::InputStream::BlockLength and reports errors
-     * only on the line where the sequence starts.  If you have files with longer lines or want error
-     * reporting at the exact line and column where the error occurs, use ParsingMethod::kPedantic
-     * instead. See FastaReader::ParsingMethod for details.
      */
     bool parse_sequence(
         utils::InputStream& input_stream,
@@ -248,9 +239,9 @@ public:
      * and false if the stream is empty. If the input is not in the correct format, an
      * `std::runtime_error` exception is thrown indicating the malicious position in the input stream.
      *
-     * Compared to parse_sequence(), this function allows for arbitrarily long lines and
-     * reports errors at the exact line and column where they occur. It is however
-     * slower. Apart from that, there are no differences. See FastaReader::ParsingMethod for details.
+     * Compared to parse_sequence(), this function reports errors at the exact line and column
+     * where they occur. It is however slower.
+     * Apart from that, there are no differences. See FastaReader::ParsingMethod for details.
      */
     bool parse_sequence_pedantic(
         utils::InputStream& input_stream,
