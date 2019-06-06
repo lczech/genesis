@@ -276,25 +276,34 @@ std::string wrap(
         Code is adapted from https://www.rosettacode.org/wiki/Word_wrap#C.2B.2B,
         which is published under the GNU Free Documentation License 1.2,
         see https://www.gnu.org/licenses/old-licenses/fdl-1.2.html
+        We fixed the handling of overly long words,
+        and added correct handling of new lines in the text.
+        It is totally inefficient, but we only need this function for small texts anyway,
+        so for now, this is good enough.
      */
 
-    std::istringstream text_stream( text );
     std::ostringstream output;
-    std::string word;
+    auto const lines = split( text, "\n", false );
+    for( auto const& line : lines ) {
+        std::istringstream text_stream( line );
+        std::string word;
 
-    if( text_stream >> word ) {
-        output << word;
-        long space_left = line_length - word.length();
-        while( text_stream >> word ) {
-            if( space_left < static_cast<long>( word.length() + 1 )) {
-                output << '\n' << word;
-                space_left = line_length - word.length();
-            } else {
-                output << ' ' << word;
-                space_left -= word.length() + 1;
+        if( text_stream >> word ) {
+            output << word;
+            long space_left = static_cast<long>( line_length ) - static_cast<long>( word.length() );
+            while( text_stream >> word ) {
+                if( space_left < static_cast<long>( word.length() + 1 )) {
+                    output << "\n" << word;
+                    space_left = line_length - word.length();
+                } else {
+                    output << " " << word;
+                    space_left -= word.length() + 1;
+                }
             }
         }
+        output << "\n";
     }
+
     return output.str();
 }
 

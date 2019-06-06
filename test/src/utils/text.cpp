@@ -302,14 +302,19 @@ TEST( Text, ConvertDouble )
     EXPECT_ANY_THROW( convert_to_double( vals.begin(), vals.end() ));
 }
 
-TEST( Text, Wrap )
-{
-    std::string const text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a "
-    "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec "
-    "consectetur ante hendrerit. Donec et mollis dolor. Praesent et diam eget libero egestas "
-    "mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur!";
-
+// TEST( Text, Wrap )
+// {
+    // std::string const text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a "
+    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec "
+    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec "
+    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec\n\n"
+    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec "
+    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec "
+    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec\n"
+    // "consectetur ante hendrerit. Donec et mollis dolor. Praesent et diam eget libero egestas "
+    // "mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur!";
+    //
     // LOG_DBG << wrap( text );
     // LOG_DBG << wrap( text, 15 );
     // LOG_DBG << wrap( text, 5 );
-}
+// }
