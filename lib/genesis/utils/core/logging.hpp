@@ -37,6 +37,7 @@
 #include "genesis/utils/core/std.hpp"
 
 #include <cmath>
+#include <iosfwd>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -96,6 +97,21 @@ namespace utils {
 
 /** @brief Log an info message. See genesis::utils::LoggingLevel. */
 #define LOG_INFO GENESIS_LOG(genesis::utils::Logging::kInfo)
+
+/** @brief Log an info message. See genesis::utils::LoggingLevel. */
+#define LOG_MSG GENESIS_LOG(genesis::utils::Logging::kMessage)
+
+/** @brief Log an info message. See genesis::utils::LoggingLevel. */
+#define LOG_MSG1 GENESIS_LOG(genesis::utils::Logging::kMessage1)
+
+/** @brief Log an info message. See genesis::utils::LoggingLevel. */
+#define LOG_MSG2 GENESIS_LOG(genesis::utils::Logging::kMessage2)
+
+/** @brief Log an info message. See genesis::utils::LoggingLevel. */
+#define LOG_MSG3 GENESIS_LOG(genesis::utils::Logging::kMessage3)
+
+/** @brief Log an info message. See genesis::utils::LoggingLevel. */
+#define LOG_MSG4 GENESIS_LOG(genesis::utils::Logging::kMessage4)
 
 /** @brief Log a debug message. See genesis::utils::LoggingLevel. */
 #define LOG_DBG  GENESIS_LOG(genesis::utils::Logging::kDebug)
@@ -401,6 +417,21 @@ public:
         /** @brief Progess, used in long executing functions. See #LOG_PROG. */
         kProgress,
 
+        /** @brief Basic message. See #LOG_MSG. */
+        kMessage,
+
+        /** @brief Message with level 1. See #LOG_MSG1. */
+        kMessage1,
+
+        /** @brief Message with level 2. See #LOG_MSG2. */
+        kMessage2,
+
+        /** @brief Message with level 3. See #LOG_MSG3. */
+        kMessage3,
+
+        /** @brief Message with level 4. See #LOG_MSG4. */
+        kMessage4,
+
         /** @brief Basic debugging message. See #LOG_DBG. */
         kDebug,
 
@@ -447,6 +478,7 @@ public:
     static void log_to_stdout ();
     static void log_to_stream (std::ostream& os);
     static void log_to_file   (const std::string& fn);
+    static void clear();
 
     /**
      * @brief Settings for which information is included with each log message.
@@ -491,6 +523,31 @@ public:
     static inline void log_info (const std::string& msg)
     {
         LOG_INFO << msg;
+    }
+
+    static inline void log_message (const std::string& msg)
+    {
+        LOG_MSG << msg;
+    }
+
+    static inline void log_message_1 (const std::string& msg)
+    {
+        LOG_MSG1 << msg;
+    }
+
+    static inline void log_message_2 (const std::string& msg)
+    {
+        LOG_MSG2 << msg;
+    }
+
+    static inline void log_message_3 (const std::string& msg)
+    {
+        LOG_MSG3 << msg;
+    }
+
+    static inline void log_message_4 (const std::string& msg)
+    {
+        LOG_MSG4 << msg;
     }
 
     static inline void log_debug (const std::string& msg)
@@ -543,8 +600,10 @@ protected:
     // when was the last call to logging (used for time measurements)
     static clock_t last_clock_;
 
-    // array of streams that are used for output
+    // Arrays of streams that are used for output.
+    // We separate normal output streams from file streams, so that the latter can be closes properly.
     static std::vector<std::ostream*> ostreams_;
+    static std::vector<std::ofstream*> fstreams_;
 };
 
 // =============================================================================
