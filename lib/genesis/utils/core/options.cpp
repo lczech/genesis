@@ -150,7 +150,7 @@ unsigned int Options::guess_number_of_threads( bool use_openmp ) const
         // Use number of OpenMP threads, which might be set through the
         // `OMP_NUM_THREADS` environment variable.
         if( use_openmp ) {
-            return omp_get_num_threads();
+            return omp_get_max_threads();
         }
 
     #endif
