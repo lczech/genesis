@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -69,12 +69,13 @@ LoggingDetails Logging::details = {
     false, // function
     true   // level
 };
-Logging::LoggingLevel      Logging::max_level_  = kDebug4;
-long                       Logging::count_      = 0;
-clock_t                    Logging::last_clock_ = 0;
-std::vector<std::ostream*> Logging::ostreams_;
-int                        Logging::report_percentage_ = 5;
-std::string                Logging::debug_indent       = "    ";
+Logging::LoggingLevel       Logging::max_level_  = kDebug4;
+long                        Logging::count_      = 0;
+clock_t                     Logging::last_clock_ = 0;
+std::vector<std::ostream*>  Logging::ostreams_;
+std::vector<std::ofstream*> Logging::fstreams_;
+int                         Logging::report_percentage_ = 5;
+std::string                 Logging::debug_indent       = "    ";
 
 /**
  * @brief Set the highest log level that is reported.
@@ -86,9 +87,10 @@ std::string                Logging::debug_indent       = "    ";
 void Logging::max_level (const LoggingLevel level)
 {
     if (level > LOG_LEVEL_MAX) {
-        LOG_WARN << "Logging max level set to " << level << ", but compile "
-                 << "time max level is " << LOG_LEVEL_MAX << ", so that "
-                 << "everything above that will not be logged.";
+        throw std::runtime_error(
+            "Logging max level set to " + std::to_string( level ) + ", but compile time max level is " +
+            std::to_string( LOG_LEVEL_MAX ) + ", so that everything above that will not be logged."
+        );
     }
     max_level_ = level;
 }
@@ -99,14 +101,10 @@ void Logging::max_level (const LoggingLevel level)
 void Logging::report_percentage (const int percentage)
 {
     if (percentage <= 0) {
-        LOG_WARN << "Logging report percentage less than 1% not possible.";
-        report_percentage_ = 1;
-        return;
+        throw std::runtime_error( "Logging report percentage less than 1% not possible." );
     }
     if (percentage > 100) {
-        LOG_WARN << "Logging report percentage greater than 100% not meaningful.";
-        report_percentage_ = 100;
-        return;
+        throw std::runtime_error( "Logging report percentage greater than 100% not meaningful." );
     }
     report_percentage_ = percentage;
 }
@@ -117,7 +115,9 @@ void Logging::report_percentage (const int percentage)
 std::string Logging::level_to_string(const LoggingLevel level)
 {
     static const char* const buffer[] = {
-        "NONE", "ERR ", "WARN", "INFO", "PROG", "DBG ", "DBG1", "DBG2", "DBG3", "DBG4"
+        "NONE", "ERR ", "WARN", "INFO", "PROG",
+        "MSG ", "MSG1", "MSG2", "MSG3", "MSG4",
+        "DBG ", "DBG1", "DBG2", "DBG3", "DBG4"
     };
     return buffer[level];
 }
@@ -135,7 +135,7 @@ void Logging::log_to_stdout ()
     }
 
     // if not, add it as output stream.
-    ostreams_.push_back (&std::cout);
+    ostreams_.push_back( &std::cout );
 }
 
 /**
@@ -143,7 +143,7 @@ void Logging::log_to_stdout ()
  */
 void Logging::log_to_stream (std::ostream& os)
 {
-    ostreams_.push_back (&os);
+    ostreams_.push_back( &os );
 }
 
 /**
@@ -153,13 +153,23 @@ void Logging::log_to_stream (std::ostream& os)
  */
 void Logging::log_to_file( std::string const& filename )
 {
-    // TODO the log file stream is never deleted. this is not a big leak,
-    // as commonly only one file is used for logging, but still is a smell.
-    // use uniqute stored statically in the log class instead!
-
     std::ofstream* file_stream = new std::ofstream();
     utils::file_output_stream( filename, *file_stream );
-    ostreams_.push_back( file_stream );
+    fstreams_.push_back( file_stream );
+}
+
+/**
+ * @brief Remove all output streams, so that nothing is logged any more.
+ */
+void Logging::clear()
+{
+    ostreams_.clear();
+
+    for( auto ofs : fstreams_ ) {
+        ofs->close();
+        delete ofs;
+    }
+    fstreams_.clear();
 }
 
 // =============================================================================
@@ -240,9 +250,14 @@ Logging::~Logging()
 #   ifdef GENESIS_PTHREADS
     log_mutex.lock();
 #   endif
+
     for (std::ostream* out : ostreams_) {
         (*out) << msg << std::endl << std::flush;
     }
+    for (std::ostream* out : fstreams_) {
+        (*out) << msg << std::endl << std::flush;
+    }
+
 #   ifdef GENESIS_PTHREADS
     log_mutex.unlock();
 #   endif

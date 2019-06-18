@@ -32,6 +32,7 @@
 
 #include "genesis/utils/containers/dataframe/operators.hpp"
 #include "genesis/utils/math/regression/factor.hpp"
+#include "genesis/utils/math/statistics.hpp"
 #include "genesis/utils/text/convert.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -57,6 +58,9 @@ Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
 
     // While iterating the dataframe, we also produce some user info.
     std::stringstream ss;
+    ss << "Data contains " << result.rows() << " rows, and the following columns:\n";
+
+    // Do the conversions.
     for( size_t i = 0; i < df.cols(); ++i ) {
         if( df[i].is<double>() ) {
 
@@ -64,59 +68,95 @@ Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
             auto const& dbl_col = df[i].as<double>();
             result.add_col<double>( df.col_name(i), dbl_col );
 
+            // Get the min and max, excluding nan entries.
+            // Then, count the number of valid and total entries,
+            // and use this to determine the number of unused entries.
+            auto const mm = minimum_maximum( dbl_col.begin(), dbl_col.end() );
+            auto const ip = valid_size( dbl_col.begin(), dbl_col.end() );
+            assert( ip.first <= ip.second );
+            assert( ip.second == df.rows() );
+            auto const iv = ip.second - ip.first;
+
             // User output.
-            auto const mm = std::minmax_element( dbl_col.begin(), dbl_col.end() );
-            ss << i << ": \"" << df[i].name() << "\" (numerical, min: " << ( *mm.first );
-            ss << ", max: " << ( *mm.second ) << ")\n";
+            ss << i << ": \"" << df[i].name() << "\" (numerical, min: " << ( mm.min );
+            ss << ", max: " << ( mm.max ) << ", unused entries: " << iv << ")\n";
 
         } else if( df[i].is<std::string>() ) {
             auto const& df_col = df[i].as<std::string>();
 
-            if( is_convertible_to_bool( df_col.begin(), df_col.end() )) {
+            if( is_convertible_to_bool_double( df_col.begin(), df_col.end() )) {
 
-                // First, detour to convert to bool.
-                auto const bool_col = convert_to_bool( df_col.begin(), df_col.end(), df_col.size() );
+                // Convert to bool, but as doubles. This ensures that empty cells
+                // are converted to nan instead of false/0.
+                auto const bool_col = convert_to_bool_double(
+                    df_col.begin(), df_col.end(), df_col.size()
+                );
+                result.add_col<double>( df.col_name(i), bool_col );
 
-                // Convert to double, which is what we need for the result dataframe.
-                auto dbl_col = std::vector<double>( bool_col.size() );
-                size_t true_cnt = 0;
+                // Count the number of entries for user output.
+                size_t true_cnt  = 0;
+                size_t false_cnt = 0;
                 for( size_t j = 0; j < bool_col.size(); ++j ) {
-                    dbl_col[j] = ( bool_col[j] ? 1.0 : 0.0 );
-                    true_cnt += ( bool_col[j] ? 1 : 0 );
+                    true_cnt  += ( bool_col[j] == 1.0 ? 1 : 0 );
+                    false_cnt += ( bool_col[j] == 0.0 ? 1 : 0 );
                 }
-                result.add_col<double>( df.col_name(i), dbl_col );
+                assert( bool_col.size() >= true_cnt );
+                assert( bool_col.size() >= false_cnt );
+                auto const ip = valid_size( bool_col.begin(), bool_col.end() );
+                assert( ip.first <= ip.second );
+                assert( ip.second == df.rows() );
+                auto const iv = ip.second - ip.first;
 
                 // User output.
-                assert( bool_col.size() >= true_cnt );
                 ss << i << ": \"" << df[i].name() << "\" (binary, true: " << ( true_cnt );
-                ss << ", false: " << ( bool_col.size() - true_cnt ) << ")\n";
+                ss << ", false: " << ( false_cnt ) << ", unused entries: " << iv << ")\n";
 
             } else if( is_convertible_to_double( df_col.begin(), df_col.end() )) {
 
                 auto const dbl_col = convert_to_double( df_col.begin(), df_col.end(), df_col.size() );
-                auto const& col = result.add_col<double>( df.col_name(i), dbl_col );
+                result.add_col<double>( df.col_name(i), dbl_col );
+
+                // Get the min and max, excluding nan entries.
+                // Then, count the number of valid and total entries,
+                // and use this to determine the number of unused entries.
+                auto const mm = minimum_maximum( dbl_col.begin(), dbl_col.end() );
+                auto const ip = valid_size( dbl_col.begin(), dbl_col.end() );
+                assert( ip.first <= ip.second );
+                assert( ip.second == df.rows() );
+                auto const iv = ip.second - ip.first;
 
                 // User output.
-                auto const mm = std::minmax_element( col.begin(), col.end() );
-                ss << i << ": \"" << df[i].name() << "\" (numerical, min: " << ( *mm.first );
-                ss << ", max: " << ( *mm.second ) << ")\n";
+                ss << i << ": \"" << df[i].name() << "\" (numerical, min: " << ( mm.min );
+                ss << ", max: " << ( mm.max ) << ", unused entries: " << iv << ")\n";
 
             } else {
 
-                // No conversion possible. Make it a factor.
-                auto const fact = glm_factor( df_col.begin(), df_col.end() );
+                // No conversion possible. Make it a factor. We exclude empty entries,
+                // as they do not contain any valid information, and hence would add random signal.
+                auto const fact = glm_factor( df_col.begin(), df_col.end(), {}, {""} );
                 auto const fact_df = glm_indicator_variables( fact, df.row_names() );
 
-                // Add factor cols to result.
+                // Add factor cols to result. They are named using the format:
+                // <original column name>.<reference level>.<factor level>,
+                // where the level names come from the glm_indicator_variables() function.
                 for( size_t j = 0; j < fact_df.cols(); ++j ) {
                     assert( fact_df[j].is<double>() );
                     auto const& fact_col = fact_df[j].as<double>();
-                    result.add_col<double>( fact_col.name(), fact_col );
+                    result.add_col<double>( df_col.name() + "." + fact_col.name(), fact_col );
                 }
+
+                // Count number of empty entries that were excluded.
+                size_t empty_cnt = 0;
+                for( auto const& c : df_col ) {
+                    if( c.empty() ) {
+                        ++empty_cnt;
+                    }
+                }
+                assert( empty_cnt <= df_col.size() );
 
                 // User output.
                 ss << i << ": \"" << df[i].name() << "\" (categorical, levels: ";
-                ss << fact.levels.size() << ")\n";
+                ss << fact.levels.size() << ", unused entries: " << empty_cnt << ")\n";
             }
 
         } else {
