@@ -370,6 +370,16 @@ public:
      */
     std::string info() const;
 
+    /**
+     * @brief Return a list of compile time options.
+     */
+    std::string info_compile_time() const;
+
+    /**
+     * @brief Return a list of run time options.
+     */
+    std::string info_run_time() const;
+
     // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------

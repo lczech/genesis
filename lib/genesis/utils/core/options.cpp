@@ -392,9 +392,16 @@ bool Options::using_zlib()
 
 std::string Options::info() const
 {
-    std::string res = genesis_header();
+    std::string res;
+    res += genesis_header() + "\n";
+    res += info_compile_time() + "\n";
+    res += info_run_time() + "\n";
+    return res;
+}
 
-    res += "\n";
+std::string Options::info_compile_time() const
+{
+    std::string res;
     res += "Compile Time Options\n";
     res += "=============================================\n\n";
     res += "Platform:          " + platform() + "\n";
@@ -404,8 +411,12 @@ std::string Options::info() const
     res += "Endianness:        " + std::string( is_little_endian() ? "little endian" : "big endian" ) + "\n";
     res += "Using Pthreads:    " + std::string( using_pthreads() ? "true" : "false" ) + "\n";
     res += "Using OpenMP:      " + std::string( using_openmp() ? "true" : "false" ) + "\n";
+    return res;
+}
 
-    res += "\n";
+std::string Options::info_run_time() const
+{
+    std::string res;
     res += "Run Time Options\n";
     res += "=============================================\n\n";
     auto const cli_str = command_line_string();
