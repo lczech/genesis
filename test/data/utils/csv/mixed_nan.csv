@@ -1,0 +1,11 @@
+Name,First,Second,Third,Fourth,Fifth
+gamma,1,8,4.7,TRUE,nice
+alpha,0,0,4.5,TRUE,bad
+kappa,0,nan,5,,nice
+theta,1,8,,TRUE,nice
+iota,,1,5.3,TRUE,bad
+zeta,1,10,nan,FALSE,none
+delta,1,8,5.3,FALSE,bad
+beta,,8,5,TRUE,
+eta,1,,5.3,TRUE,bad
+epsilon,1,10,5.5,FALSE,bad

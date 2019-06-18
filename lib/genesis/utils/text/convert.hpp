@@ -55,7 +55,7 @@ inline bool convert_to_bool( std::string const& str )
     // Value check.
     if( cont == "true" || cont == "yes" || cont == "on" || cont == "1" ) {
         return true;
-    } else if( cont == "false" || cont == "no" || cont == "off" || cont == "0" ) {
+    } else if( cont.empty() || cont == "false" || cont == "no" || cont == "off" || cont == "0" ) {
         return false;
     } else {
         throw std::runtime_error( "String is not convertible to bool." );
@@ -110,13 +110,85 @@ bool is_convertible_to_bool(
 }
 
 // =================================================================================================
+//     Bool Double Text Conversion
+// =================================================================================================
+
+inline double convert_to_bool_double( std::string const& str )
+{
+    // Prep.
+    auto const cont = to_lower_ascii( trim( str ));
+
+    // Value check.
+    if( cont == "true" || cont == "yes" || cont == "on" || cont == "1" ) {
+        return 1.0;
+    } else if( cont == "false" || cont == "no" || cont == "off" || cont == "0" ) {
+        return 0.0;
+    } else if( cont.empty() ) {
+        return std::numeric_limits<double>::quiet_NaN();
+    } else {
+        throw std::runtime_error( "String is not convertible to bool." );
+    }
+
+    // For old compilers.
+    return false;
+}
+
+template<typename ForwardIterator>
+std::vector<double> convert_to_bool_double(
+    ForwardIterator first,
+    ForwardIterator last,
+    size_t size = 0
+) {
+    // Prep.
+    std::vector<double> ret;
+    ret.reserve( size );
+
+    // Add all values. Throws on error.
+    while( first != last ) {
+        ret.push_back( convert_to_bool_double( *first ));
+        ++first;
+    }
+    return ret;
+}
+
+inline bool is_convertible_to_bool_double( std::string const& str )
+{
+    try{
+        convert_to_bool_double( str );
+        return true;
+    } catch(...) {
+        return false;
+    }
+}
+
+template<typename ForwardIterator>
+bool is_convertible_to_bool_double(
+    ForwardIterator first,
+    ForwardIterator last
+) {
+    try{
+        while( first != last ) {
+            convert_to_bool_double( *first );
+            ++first;
+        }
+        return true;
+    } catch(...) {
+        return false;
+    }
+}
+
+// =================================================================================================
 //     Double Text Conversion
 // =================================================================================================
 
 inline double convert_to_double( std::string const& str )
 {
     bool err = false;
-    double ret;
+    double ret = std::numeric_limits<double>::quiet_NaN();
+    if( str.empty() ) {
+        return ret;
+    }
+
     try{
         // Try conversion. Throws on failure.
         auto const val = trim( str );

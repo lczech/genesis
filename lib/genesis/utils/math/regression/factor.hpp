@@ -236,9 +236,17 @@ Dataframe glm_indicator_variables(
         }
 
         // Make column name by concatenating the ref level and current level.
-        std::stringstream ss;
-        ss << factor.levels[ ref_idx ] << "." << factor.levels[ lvl_idx ];
-        auto& col = result.add_col<double>( ss.str() );
+        auto make_name = []( T const& level ){
+            std::stringstream ss;
+            ss << level;
+            auto ret = ss.str();
+            if( ret.empty() ) {
+                ret = "[empty]";
+            }
+            return ret;
+        };
+        auto col_name = make_name( factor.levels[ ref_idx ] ) + "." + make_name( factor.levels[ lvl_idx ] );
+        auto& col = result.add_col<double>( col_name );
 
         // Add the column content.
         for( size_t val_idx = 0; val_idx < factor.values.size(); ++val_idx ) {
