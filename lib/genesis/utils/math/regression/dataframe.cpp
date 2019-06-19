@@ -72,7 +72,7 @@ Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
             // Then, count the number of valid and total entries,
             // and use this to determine the number of unused entries.
             auto const mm = minimum_maximum( dbl_col.begin(), dbl_col.end() );
-            auto const ip = valid_size( dbl_col.begin(), dbl_col.end() );
+            auto const ip = count_finite_elements( dbl_col.begin(), dbl_col.end() );
             assert( ip.first <= ip.second );
             assert( ip.second == df.rows() );
             auto const iv = ip.second - ip.first;
@@ -102,7 +102,7 @@ Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
                 }
                 assert( bool_col.size() >= true_cnt );
                 assert( bool_col.size() >= false_cnt );
-                auto const ip = valid_size( bool_col.begin(), bool_col.end() );
+                auto const ip = count_finite_elements( bool_col.begin(), bool_col.end() );
                 assert( ip.first <= ip.second );
                 assert( ip.second == df.rows() );
                 auto const iv = ip.second - ip.first;
@@ -120,7 +120,7 @@ Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
                 // Then, count the number of valid and total entries,
                 // and use this to determine the number of unused entries.
                 auto const mm = minimum_maximum( dbl_col.begin(), dbl_col.end() );
-                auto const ip = valid_size( dbl_col.begin(), dbl_col.end() );
+                auto const ip = count_finite_elements( dbl_col.begin(), dbl_col.end() );
                 assert( ip.first <= ip.second );
                 assert( ip.second == df.rows() );
                 auto const iv = ip.second - ip.first;
