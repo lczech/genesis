@@ -138,16 +138,16 @@ struct Quartiles
 // =================================================================================================
 
 /**
- * @brief Count the number of valid entries in a range of double values.
+ * @brief Count the number of finite elements in a range of double values.
  *
  * The function iterates a range of values that are expected to be double values.
  * It uses `std::isfinite` as criterion for validity of the values.
  *
- * The return value is a pair containing the number of valid entries as `first`,
- * and the number of total entries in the range as `second`.
+ * The return value is a pair containing the number of finite elements as `first`,
+ * and the number of total number elements in the range as `second` (the size of the range).
  */
 template <class ForwardIterator>
-std::pair<size_t, size_t> valid_size( ForwardIterator first, ForwardIterator last )
+std::pair<size_t, size_t> count_finite_elements( ForwardIterator first, ForwardIterator last )
 {
     // Prepare result.
     size_t valid = 0;
