@@ -60,9 +60,19 @@ class ExistingFileError : public Error
 {
 public:
 
-    ExistingFileError( std::string const& message )
+    ExistingFileError( std::string const& message, std::string const& filename )
         : Error( message )
+        , filename_( filename )
     {}
+
+    std::string const& filename() const
+    {
+        return filename_;
+    }
+
+private:
+
+    std::string filename_;
 };
 
 } // namespace genesis

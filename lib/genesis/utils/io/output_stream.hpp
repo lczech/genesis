@@ -73,7 +73,8 @@ inline void file_output_stream(
     if( ! Options::get().allow_file_overwriting() && utils::file_exists( filename ) ) {
         throw ExistingFileError(
             "File '" + filename + "' already exists. If you want to allow overwriting of existing "
-            "files, activate genesis::utils::Options::get().allow_file_overwriting() first."
+            "files, activate genesis::utils::Options::get().allow_file_overwriting() first.",
+            filename
         );
     }
 
