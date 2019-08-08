@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -378,7 +378,7 @@ tree::Tree labelled_tree(
                 p_data.branch_length = placement_pair.placement->pendant_length - min_pen_len;
 
                 // Set the leaf node name.
-                auto& p_node_data = new_node.data<tree::CommonNodeData>();
+                auto& p_node_data = p_node.data<tree::CommonNodeData>();
                 p_node_data.name = name_prefix + pquery_name.name;
             }
         }
