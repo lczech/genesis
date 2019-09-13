@@ -140,14 +140,11 @@ void rf_get_bitvectors_template(
         if( it.is_last_iteration() ) {
             continue;
         }
-        // Also skip root if rooted.
+
+        // Also skip one of the root edges if the tree is rooted.
         if( it.node().index() == root_skip ) {
             continue;
         }
-
-        // We need a special check for nodes that only have two neighbors. The common case
-        // is a rooted tree, but it might also happen at other nodes. In these cases, both
-        // edges next to the node induce identical splits, so we do not want
 
         // If the iterator is at a leaf, just set one bit in the bitvector.
         if( is_leaf( it.node() ) ) {
@@ -186,10 +183,10 @@ void rf_get_bitvectors_template(
             // But as above, we ignore and hence allow them.
 
             // We do postorder traversal, so all subtrees of the current node have been processed.
-            // They stored trivial splits as single unique bits in their respective bitvectors.
+            // They store trivial splits as single unique bits in their respective bitvectors.
             // So here, we simply combine them (using or), to get a bitvector of all tips of the
             // current split. This is not normalized yet, meaning that these bits could stand
-            // for both ways of denoting that split. We later do this normalization.
+            // for both ways of denoting that split. We later do the needed normalization.
             auto l = &it.link().next();
             while( l != &it.link() ) {
                 current |= bipartitions[ l->edge().index() ];
@@ -197,10 +194,12 @@ void rf_get_bitvectors_template(
             }
 
             // Store at the current edge in the intermediate structure.
+            // This needs to be the not yet normalized one, because we are still filling up further
+            // inner nodes, and hence need to maintain these bits as they are.
             bipartitions[ it.edge().index() ] = current;
 
-            // Call the bitvector processor, as it is an inner edge.
-            // We normalize first to make sure that we always get comparable bitvectors.
+            // Call the bitvector processor functor now, as we just finished constructing a split.
+            // We normalize first to make sure that we always get comparable bitvectors in the end.
             current.normalize();
             process_bitvector( current );
         }
@@ -243,7 +242,7 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences( TreeS
     using utils::Bitvector;
 
     // Map from bitvectors of splits to bitvectors of occurences:
-    // which bitvector (keys of the map) occurs in which tree (values assiciated with each key).
+    // which bitvector (keys of the map) occurs in which tree (values associated with each key).
     auto result = std::unordered_map<utils::Bitvector, utils::Bitvector>();
 
     // Edge case.
@@ -340,7 +339,7 @@ utils::Matrix<size_t> rf_distance( TreeSet const& trees )
             }
 
             // If we are here, we have a split that occured in tree i.
-            // Now see, if it also appeared in tree j (for all j!=i).
+            // Now we check, if it also appeared in tree j (for all j!=i).
             // If not, we have a split that is part of i but not of j,
             // so it adds to their pairwise distance.
             for( size_t j = 0; j < trees.size(); ++j ) {
