@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -205,12 +205,12 @@ public:
     /**
      * @brief Count the number of set bits in the Bitvector, that is, its Hamming weight.
      */
-    size_t  count() const;
+    size_t count() const;
 
     /**
      * @brief Return an std::hash value for the Bitvector.
      */
-    size_t  hash()  const;
+    size_t hash()  const;
 
     /**
      * @brief Return a hash value of type IntType that is quicker to calculate than hash().
@@ -273,6 +273,54 @@ private:
     std::vector<IntType> data_;
 };
 
+// =============================================================================
+//     Hashing
+// =============================================================================
+
+/**
+ * @brief Helper structure that yields the hash of a given Bitvector.
+ *
+ * It is meant to be used in containers such as `unordered_set` or `unordered_map`
+ * that can make use of custom hash functions for the key objects. By default,
+ * these containers use a specialization of the `std::hash` template, which we also offer,
+ * and that also uses the Bitvector::hash() function.
+ *
+ * Hence, this class here is slightly redundant, as it gives the same result as just using
+ * the `std::hash` specialization. Still, it might be useful to have.
+ *
+ * See also BitvectorXhash for an alternative version that uses Bitvector::xhash() instead.
+ */
+struct BitvectorHash
+{
+    std::size_t operator() ( genesis::utils::Bitvector const& value ) const
+    {
+        return value.hash();
+    }
+};
+
+/**
+ * @brief Helper structer that yields the xhash of a given Bitvector.
+ *
+ * It is meant to be used in containers such as `unordered_set` or `unordered_map`
+ * that can make use of custom hash functions for the key objects. Using this class instead
+ * of the standard `std::hash` specialization, the Bitvector::xhash() function is used instead
+ * of the standard hash() function. It is hence faster to compute, but without avalanche effect.
+ *
+ * In some use cases, this might be preferrable - we however recommend to test this, in order to
+ * make sure that colliding hashes to not slow down the performance in the end.
+ *
+ * Note that the function needs to cast from Bitvector::IntType to std::size_t.
+ * On most modern systems, these are expecte to be the same, i.e., 64 bit unsigned integers.
+ * However, this might cause problem on systems where this is not the case.
+ */
+struct BitvectorXhash
+{
+    std::size_t operator() ( genesis::utils::Bitvector const& value ) const
+    {
+        return static_cast<std::size_t>( value.x_hash() );
+    }
+};
+
 } // namespace utils
 } // namespace genesis
 
@@ -280,19 +328,24 @@ private:
 //     Namespace std extension
 // =============================================================================
 
-/*
 namespace std {
 
+/**
+ * @brief Specialization of std::hash for the Bitvector class.
+ *
+ * It uses Bitvector::hash() for the hashing. See also BitvectorHash for an alternative class
+ * that does the same, but resides in the same namespace as Bitvector, and see BitvectorXhash
+ * for a variant that uses Bitvector::xhash() instead as the hashing function.
+ */
 template<>
 struct hash<genesis::utils::Bitvector>
 {
-    size_t operator() (genesis::utils::Bitvector const &rhs) const
+    std::size_t operator() ( genesis::utils::Bitvector const& value ) const
     {
-      return rhs.hash();
+        return value.hash();
     }
 };
 
 } // namespace std
-*/
 
 #endif // include guard

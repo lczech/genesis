@@ -48,6 +48,22 @@ namespace utils {
 // =================================================================================================
 
 /**
+ * @brief Binary search on a sorted/partitioned range, returns an iterator to the element if found.
+ *
+ * See https://en.cppreference.com/w/cpp/algorithm/lower_bound for details.
+ */
+template<class ForwardIt, class T, class Compare=std::less<T>>
+ForwardIt binary_find(ForwardIt first, ForwardIt last, const T& value, Compare comp={})
+{
+    // Note: BOTH type T and the type after ForwardIt is dereferenced
+    // must be implicitly convertible to BOTH Type1 and Type2, used in Compare.
+    // This is stricter than lower_bound requirement (see above)
+
+    first = std::lower_bound(first, last, value, comp);
+    return first != last && !comp(value, *first) ? first : last;
+}
+
+/**
  * @brief Returns whether a container object has a certain element.
  *
  * The usage of std::find just to check for presence of a certain item is a bit cumbersome.
