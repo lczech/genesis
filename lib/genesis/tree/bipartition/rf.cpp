@@ -34,7 +34,6 @@
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
 #include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/tools/hash/fnv.hpp"
 
 #include <cstdint>
 #include <algorithm>
