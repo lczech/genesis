@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
  * @ingroup tree
  */
 
+#include <cassert>
 #include <string>
 
 namespace genesis {
@@ -129,6 +130,7 @@ public:
         while( &res->next() != this ) {
             res = &res->next();
         }
+        assert( &res->next() == this );
         return *res;
     }
 
@@ -144,6 +146,7 @@ public:
         while( &res->next() != this ) {
             res = &res->next();
         }
+        assert( &res->next() == this );
         return *res;
     }
 
