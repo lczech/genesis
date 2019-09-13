@@ -45,6 +45,7 @@
 #include "genesis/utils/containers/matrix/writer.hpp"
 #include "genesis/utils/containers/mru_cache.hpp"
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/core/exception.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/options.hpp"

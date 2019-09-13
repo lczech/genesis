@@ -22,7 +22,7 @@
 */
 
 /**
- * @brief Implementation of BipartitionSet class.
+ * @brief
  *
  * @file
  * @ingroup tree

@@ -38,6 +38,7 @@
 #include "genesis/tree/attribute_tree/tree.hpp"
 #include "genesis/tree/bipartition/bipartition.hpp"
 #include "genesis/tree/bipartition/functions.hpp"
+#include "genesis/tree/bipartition/rf.hpp"
 #include "genesis/tree/common_tree/distances.hpp"
 #include "genesis/tree/common_tree/edge_color.hpp"
 #include "genesis/tree/common_tree/functions.hpp"

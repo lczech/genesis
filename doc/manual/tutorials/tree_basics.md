@@ -350,8 +350,71 @@ We see that each branch length appears exactly once.
 
 ## Levelorder Traversal
 
-TODO
+In some cases, one needs to compute values starting from inner nodes outward,
+for instance, for pairwise distances between nodes (as implemented in
+@ref genesis::tree::node_branch_length_distance_matrix() "node_branch_length_distance_matrix()").
+While a preorder traversal does work for this, a level order traversal might conceptually be simpler:
+
+![Levelorder Traversal of a Tree.](tree/traversal_levelorder.png)
+
+The traversal starts at the root node (or, if provided, an arbitrary other node),
+and then spirals outward. Within each level, the order is the same in which the subset of nodes
+would be visited in an Eulertour traversal.
+
+The iterator is used like this:
+
+~~~{.cpp}
+// Traverse the Tree in levelorder fashion, starting from the root Node "L".
+for( auto it : levelorder( tree ) ) {
+    std::cout << it.node().data<CommonNodeData>().name << " ";
+}
+std::cout << std::endl;
+~~~
+
+This prints
+
+    L I J K C H A B D E F G
+
+As before, the iterator offers a function
+@ref genesis::tree::IteratorLevelorder::is_first_iteration() "is_first_iteration()"
+that can be used to skip the stop at the starting node, which is useful when iterating edges
+instead of nodes. Furthermore, the
+@ref genesis::tree::IteratorLevelorder::depth() "depth()" function can be used to get the level
+(depth with respect to the starting node) of the current node.
+Note also that the iterator again can take an arbitrary node as starting node instead of using the root,
+by calling it via `levelorder( node )`.
 
 ## Path Traversal
 
-TODO
+For some special algorithms, one might want to traverse the path between specific nodes.
+To this end, we offer an iterator that works like this:
+
+
+~~~{.cpp}
+// Traverse a path between two nodes in the tree.
+auto node_A = find_node( tree, "A" );
+auto node_D = find_node( tree, "D" );
+for( auto it : path( *node_A, *node_D ) ) {
+    std::cout << it.node().data<CommonNodeData>().name << " ";
+}
+std::cout << std::endl;
+~~~
+
+This prints
+
+    A C I H D
+
+Instead of the first/last iteration functions offered by the other iterators, this one has a function
+@ref genesis::tree::IteratorPath::is_last_common_ancestor() "is_last_common_ancestor()"
+that serves the same purpose. This is because the path between two nodes always contains their last common
+ancestor, which is the node whose adjacent edges are both visited by the iterator.
+
+Furthermore, this function is useful when the LCA of the two nodes is needed for the algorithm.
+However, using this method to find LCAs is inefficient.
+See the @ref genesis::tree::LcaLookup "LcaLookup" class for a better approach to finding LCAs of nodes.
+Also, for individual LCAs, one can use
+@ref genesis::tree::lowest_common_ancestor() "lowest_common_ancestor()" or
+@ref genesis::tree::lowest_common_ancestors() "lowest_common_ancestors()" to get a full matrix of LCAs.
+
+We also offer a @ref genesis::tree::path_set() "path_set()" iterator, which is slightly more efficient,
+and hence meant for speed-sensitive applications, but visits the nodes in a different order.

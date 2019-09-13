@@ -33,6 +33,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 namespace genesis {
@@ -92,6 +93,41 @@ private:
 
     T t;
 };
+
+template <typename T>
+inline std::size_t hash_combine_32( std::size_t seed, T const& value )
+{
+    return seed ^ ( std::hash<T>()( value ) + 0x9e3779b9 + ( seed << 6 ) + ( seed >> 2 ));
+}
+
+template <typename T>
+inline std::size_t hash_combine_64( std::size_t seed, T const& value )
+{
+    return seed ^ ( std::hash<T>()( value ) + 0x9e3779b97f4a7c16 + ( seed << 12 ) + ( seed >> 4 ));
+}
+
+/**
+ * @brief Combine a seed value (e.g., another hash) with the hash of a given type.
+ */
+template <typename T>
+inline std::size_t hash_combine( std::size_t seed, T const& value )
+{
+    // We use a run-time check for the size of size_t,
+    // which however most likely is already resolved at compile time.
+    // The inner functions use the golden ratio phi = (1 + sqrt(5))/2 as an irrational number
+    // with random independent bits, by using its inverse and the max size:
+    // 2^64 / phi = 0x9e3779b97f4a7c16 for the 64bit version for example.
+    // Furthermore, shifting is added in order to spread bits around for greater diversity.
+    // This whole approach follows the Boost hash combine functions.
+
+    if( sizeof( std::size_t ) == 4 ) {
+        return hash_combine_32( seed, value );
+    } else if( sizeof( std::size_t ) == 8 ) {
+        return hash_combine_64( seed, value );
+    } else {
+        throw std::runtime_error( "Invalid std::size_t size." );
+    }
+}
 
 } // namespace utils
 } // namespace genesis

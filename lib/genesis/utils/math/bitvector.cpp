@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@
  */
 
 #include "genesis/utils/math/bitvector.hpp"
+
+#include "genesis/utils/core/std.hpp"
 
 #include <algorithm>
 #include <functional>
@@ -202,12 +204,9 @@ size_t Bitvector::count() const
 
 size_t Bitvector::hash() const
 {
-    // TODO this might be a poor hash function. check what kind of value a hash fct needs to return and decide whether xhash is a good choice instead!
-    size_t res = 0;
-    for (size_t i = 0; i < size_; ++i) {
-        if (get(i)) {
-            res ^= std::hash<size_t>()(i);
-        }
+    std::size_t res = 0;
+    for( auto const& d : data_ ) {
+        res = hash_combine( res, d );
     }
     return res;
 }
@@ -215,8 +214,8 @@ size_t Bitvector::hash() const
 Bitvector::IntType Bitvector::x_hash() const
 {
     IntType res = 0;
-    for (IntType e : data_) {
-        res ^= e;
+    for( auto const& d : data_ ) {
+        res ^= d;
     }
     return res;
 }
