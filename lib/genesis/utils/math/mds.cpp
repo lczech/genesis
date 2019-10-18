@@ -67,7 +67,7 @@ static Matrix<double> multi_dimensional_scaling_ucf(
     size_t                iterations
 ) {
     // This function is local, and we already checked the conditions below.
-    // Thus, just assert them here agian.
+    // Thus, just assert them here again.
     assert( is_square( distances ));
     assert( dimensions >= 1 );
     assert( iterations >= 1 );
@@ -159,7 +159,7 @@ static Matrix<double> multi_dimensional_scaling_smacof(
     size_t                iterations
 ) {
     // This function is local, and we already checked the conditions below.
-    // Thus, just assert them here agian.
+    // Thus, just assert them here again.
     assert( is_square( distances ));
     assert( dimensions >= 1 );
     assert( iterations >= 1 );
