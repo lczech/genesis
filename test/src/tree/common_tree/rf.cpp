@@ -67,7 +67,7 @@ TEST(CommonTree, RFDistance)
     CommonTreeNewickReader().read( utils::from_file( infile ), trees );
     EXPECT_EQ( 10, trees.size() );
 
-    auto const rf_mat = rf_distance( trees );
+    auto const rf_mat = rf_distance_absolute( trees );
     // for( size_t i = 0; i < rf_mat.rows(); ++i ) {
     //     for( size_t j = i + 1; j < rf_mat.cols(); ++j ) {
     //         LOG_DBG << i << "\t" << j << "\t" << rf_mat( i, j );
@@ -89,7 +89,7 @@ TEST(CommonTree, RFDistance)
     });
     EXPECT_EQ( rf_mat_exp, rf_mat );
 
-    auto const rf_vec = rf_distance( trees[0], trees );
+    auto const rf_vec = rf_distance_absolute( trees[0], trees );
     // for( size_t i = 0; i < rf_vec.size(); ++i ) {
     //     LOG_DBG << i << "\t" << rf_vec[i];
     // }

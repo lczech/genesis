@@ -318,11 +318,44 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
     return result;
 }
 
+std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
+    Tree const& lhs,
+    Tree const& rhs
+) {
+    using utils::Bitvector;
+
+    // Map from bitvectors of splits to bitvectors of occurences:
+    // which bitvector (keys of the map) occurs in which tree (values assiciated with each key).
+    auto result = std::unordered_map<utils::Bitvector, utils::Bitvector>();
+
+    // Get a unique ID for each taxon name.
+    auto const names = rf_taxon_name_map( lhs );
+
+    // Get the split bitvectors for the lhs tree. We initialize with enough room
+    // for lhs and rhs trees.
+    rf_get_bitvectors_template( lhs, names, [&]( Bitvector const& bitvec ){
+        assert( result.count( bitvec ) == 0 );
+        result[bitvec] = Bitvector( 2 );
+        result[bitvec].set( 0 );
+    });
+
+    // Do the same for the rhs tree. This time we need to make sure not to overwrite any
+    // existing splits in the map.
+    rf_get_bitvectors_template( rhs, names, [&]( Bitvector const& bitvec ){
+        if( result.count( bitvec ) == 0 ) {
+            result[bitvec] = utils::Bitvector( 2 );
+        }
+        result[bitvec].set( 1 );
+    });
+
+    return result;
+}
+
 // =================================================================================================
-//     Calculating the Distance
+//     Absolute RF Distance Functions
 // =================================================================================================
 
-utils::Matrix<size_t> rf_distance( TreeSet const& trees )
+utils::Matrix<size_t> rf_distance_absolute( TreeSet const& trees )
 {
     using utils::Matrix;
 
@@ -357,7 +390,7 @@ utils::Matrix<size_t> rf_distance( TreeSet const& trees )
     return result;
 }
 
-std::vector<size_t> rf_distance( Tree const& lhs, TreeSet const& rhs )
+std::vector<size_t> rf_distance_absolute( Tree const& lhs, TreeSet const& rhs )
 {
     auto result = std::vector<size_t>( rhs.size(), 0 );
     auto const hash_occs = rf_get_occurrences( lhs, rhs );
@@ -386,6 +419,116 @@ std::vector<size_t> rf_distance( Tree const& lhs, TreeSet const& rhs )
     }
 
     return result;
+}
+
+size_t rf_distance_absolute( Tree const& lhs, Tree const& rhs )
+{
+    size_t result = 0;
+
+    // Get a map of all splits that appear in the two trees to a bitvector of size two
+    // indicating in which of the trees the split appeared.
+    auto const hash_occs = rf_get_occurrences( lhs, rhs );
+
+    // We test every split that occurred in all of the trees.
+    for( auto const& hash_occ : hash_occs ) {
+        assert( hash_occ.second.size() == 2 );
+
+        // See if it was in the lhs tree, and rhs tree, respectively.
+        bool const in_lhs = hash_occ.second[ 0 ];
+        bool const in_rhs = hash_occ.second[ 1 ];
+
+        // At least one of them needs to be set, otherwise the split should not have ended
+        // up in the split list in the first place.
+        assert( in_lhs || in_rhs );
+
+        // Now, in_lhs and in_rhs indicate in which of the trees the split appeared.
+        // It adds to the distance between lhs and rhs[i] only if those two differ,
+        // which is the case if in_lhs ^ in_rhs == true.
+
+        // Bool converts to 1, so we can use this to process without branching.
+        result += (in_lhs ^ in_rhs);
+    }
+
+    return result;
+}
+
+// =================================================================================================
+//     Relative RF Distance Functions
+// =================================================================================================
+
+utils::Matrix<double> rf_distance_relative( TreeSet const& trees )
+{
+    // Prepare result.
+    auto result = utils::Matrix<double>( trees.size(), trees.size() );
+    if( trees.size() == 0 ) {
+        return result;
+    }
+
+    // Compute abs rf dist.
+    auto const rf = rf_distance_absolute( trees );
+    assert( rf.rows() == trees.size() );
+    assert( rf.cols() == trees.size() );
+
+    // Get norm factor.
+    assert( trees.size() > 0 );
+    if( trees[0].node_count() < 3 ) {
+        throw std::runtime_error(
+            "Cannot compute relative RF distance for trees with less than 3 taxa."
+        );
+    }
+    double const norm = 2.0 * static_cast<double>( trees[0].node_count() - 3 );
+
+    // Compute matrix.
+    #pragma omp parallel for
+    for( size_t i = 0; i < rf.rows(); ++i ) {
+        for( size_t j = 0; j < rf.cols(); ++j ) {
+            result( i, j ) = static_cast<double>( rf( i, j )) / norm;
+        }
+    }
+
+    return result;
+}
+
+std::vector<double> rf_distance_relative( Tree const& lhs, TreeSet const& rhs )
+{
+    // Prepare result.
+    auto result = std::vector<double>( rhs.size() );
+
+    // Compute abs rf dist.
+    auto const rf = rf_distance_absolute( lhs, rhs );
+    assert( rf.size() == rhs.size() );
+
+    // Get norm factor.
+    if( lhs.node_count() < 3 ) {
+        throw std::runtime_error(
+            "Cannot compute relative RF distance for trees with less than 3 taxa."
+        );
+    }
+    double const norm = 2.0 * static_cast<double>( lhs.node_count() - 3 );
+
+    // Compute vector.
+    #pragma omp parallel for
+    for( size_t i = 0; i < rf.size(); ++i ) {
+        result[i] = static_cast<double>( rf[i] ) / norm;
+    }
+
+    return result;
+}
+
+double rf_distance_relative( Tree const& lhs, Tree const& rhs )
+{
+    // Compute abs rf dist.
+    auto const rf = rf_distance_absolute( lhs, rhs );
+
+    // Get norm factor.
+    if( lhs.node_count() < 3 ) {
+        throw std::runtime_error(
+            "Cannot compute relative RF distance for trees with less than 3 taxa."
+        );
+    }
+    double const norm = 2.0 * static_cast<double>( lhs.node_count() - 3 );
+
+    return static_cast<double>( rf ) / norm;
 }
 
 } // namespace tree
