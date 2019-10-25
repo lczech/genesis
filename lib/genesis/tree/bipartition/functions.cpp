@@ -34,12 +34,14 @@
 #include "genesis/tree/common_tree/functions.hpp"
 #include "genesis/tree/common_tree/tree.hpp"
 #include "genesis/tree/function/functions.hpp"
+#include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
 #include "genesis/tree/iterator/preorder.hpp"
 #include "genesis/tree/tree.hpp"
+#include "genesis/tree/tree/subtree.hpp"
 #include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/text/string.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <cassert>
 #include <limits>
@@ -281,6 +283,15 @@ Bipartition find_smallest_subtree(
     std::vector<Bipartition> const& bipartitions,
     std::vector<TreeNode const*> const& nodes
 ) {
+    // Error checks.
+    if( bipartitions.size() != tree.edge_count() ) {
+        throw std::runtime_error(
+            "Cannot find smallest subtree, as the nunber of given bipartitions does not match "
+            "the number of edges in the given tree. Use bipartition_set( tree ) to obtain a valid "
+            "set of bipartitions for the tree."
+        );
+    }
+
     // Get the bitvector to compare against
     auto const comp = leaf_node_bitvector( tree, nodes );
 
@@ -293,6 +304,13 @@ Bipartition find_smallest_subtree(
     for( Bipartition const& bip : bipartitions ) {
         if( bip.empty() ) {
             continue;
+        }
+        if( ! belongs_to( bip.link(), tree )) {
+            throw std::runtime_error(
+                "Cannot find smallest subtree, as the bipartitions were not extracted for the given "
+                "tree. Use bipartition_set( tree ) to obtain a valid "
+                "set of bipartitions for the tree."
+            );
         }
 
         auto const inverted = ~(bip.leaf_nodes());
@@ -314,18 +332,21 @@ Bipartition find_smallest_subtree(
     return best_bip;
 }
 
-std::vector<size_t> get_clade_edges( Tree const& tree, std::vector< tree::TreeNode const* > const& nodes )
-{
+std::vector<size_t> get_clade_edges(
+    Tree const& tree,
+    std::vector< tree::TreeNode const* > const& nodes
+) {
     // Find the edges that are part of the subtree of this clade.
-    // This part is a bit messy and might be cleaned up in the future.
     auto const bipartitions = bipartition_set( tree );
     auto const smallest     = find_smallest_subtree( tree, bipartitions, nodes );
     auto const subedges     = get_subtree_edges( smallest.link() );
     return subedges;
 }
 
-std::vector<size_t> get_clade_edges( Tree const& tree, std::vector< std::string > const& node_names )
-{
+std::vector<size_t> get_clade_edges(
+    Tree const& tree,
+    std::vector< std::string > const& node_names
+) {
     // Find the nodes that belong to the taxa of this clade.
     std::vector< tree::TreeNode const* > node_list;
     for( auto const& taxon : node_names ) {

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,7 +32,10 @@
  */
 
 #include "genesis/tree/tree.hpp"
+#include "genesis/tree/tree/subtree.hpp"
 #include "genesis/utils/math/bitvector.hpp"
+
+#include <stdexcept>
 
 namespace genesis {
 namespace tree {
@@ -67,6 +70,14 @@ public:
     // -------------------------------------------------------------
     //     Member Functions
     // -------------------------------------------------------------
+
+    Subtree subtree() const
+    {
+        if( empty() ) {
+            throw std::runtime_error( "Cannot return Subtree for empty Bipartition." );
+        }
+        return Subtree( *link_ );
+    }
 
     TreeLink const& link() const
     {
