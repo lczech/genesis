@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -72,6 +72,7 @@ public:
     using LinkType = typename std::conditional< is_const, TreeLink const, TreeLink >::type;
     using NodeType = typename std::conditional< is_const, TreeNode const, TreeNode >::type;
     using EdgeType = typename std::conditional< is_const, TreeEdge const, TreeEdge >::type;
+    using SubtreeType = typename std::conditional< is_const, Subtree const, Subtree >::type;
 
     using self_type         = IteratorPreorder< is_const >;
     using iterator_category = std::forward_iterator_tag;
@@ -125,7 +126,7 @@ public:
      * @brief Start a preorder traversal at the top TreeNode of a Subtree,
      * only traversing the nodes in the subtree
      */
-    explicit IteratorPreorder( Subtree const& subtree )
+    explicit IteratorPreorder( SubtreeType& subtree )
         : start_( &(subtree.link()) )
         , link_(  &(subtree.link()) )
     {
