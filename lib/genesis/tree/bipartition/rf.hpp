@@ -40,12 +40,13 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <utility>
 
 namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     RF Distance Functions
+//     Helper Functions
 // =================================================================================================
 
 /**
@@ -98,7 +99,7 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
  * Bitvectors of the mapped values, while all trees in @p rhs get their index in the TreeSet plus one.
  *
  * The function is meant as an accelaration for computing the distance from one Tree to several
- * other Tree%s, and is used by rf_distance( Tree const& lhs, TreeSet const& rhs ).
+ * other Tree%s, and is used by rf_distance_absolute( Tree const& lhs, TreeSet const& rhs ).
  */
 std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
     Tree const& lhs,
@@ -106,20 +107,84 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
 );
 
 /**
- * @brief Compute the pairwise RF (Robinson-Foulds) distance metric between a set of @p trees.
+ * @brief Get an occurrence map for each split found in two trees.
  *
- * The function computes the unweighted absolute RF distance.
+ * This is a special case of the more general rf_get_occurrences( TreeSet const& trees ) function,
+ * which takes two Tree%s and computes their split occurences.
  */
-utils::Matrix<size_t> rf_distance( TreeSet const& trees );
+std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
+    Tree const& lhs,
+    Tree const& rhs
+);
+
+// =================================================================================================
+//     Absolute RF Distance Functions
+// =================================================================================================
 
 /**
- * @brief Compute the RF (Robinson-Foulds) distance metric between a given @p lhs Tree
- * and an @p rhs TreeSet.
+ * @brief Compute the pairwise absolute RF (Robinson-Foulds) distance metric between a set of @p trees.
  *
- * This is meant as an accelaration if the pairwise distance is not needed.
  * The function computes the unweighted absolute RF distance.
  */
-std::vector<size_t> rf_distance( Tree const& lhs, TreeSet const& rhs );
+utils::Matrix<size_t> rf_distance_absolute( TreeSet const& trees );
+
+/**
+ * @brief Compute the absolute RF (Robinson-Foulds) distance metric between a given @p lhs Tree
+ * and all of the trees in the @p rhs TreeSet.
+ *
+ * The function computes the unweighted absolute RF distance.
+ * This is meant as an accelaration if the pairwise distance is not needed.
+ */
+std::vector<size_t> rf_distance_absolute( Tree const& lhs, TreeSet const& rhs );
+
+/**
+ * @brief Compute the absolute RF (Robinson-Foulds) distance metric between two Tree%s.
+ *
+ * The function computes the unweighted absolute RF distance.
+ */
+size_t rf_distance_absolute( Tree const& lhs, Tree const& rhs );
+
+// =================================================================================================
+//     Relative RF Distance Functions
+// =================================================================================================
+
+/**
+ * @brief Compute the pairwise relative RF (Robinson-Foulds) distance metric between a set of @p trees.
+ *
+ * The function computes the unweighted relative RF distance.
+ *
+ * This internally simply uses rf_distance_absolute(), and divides the result properly;
+ * hence, if both variants are needed (absolute and relative), it might be faster to duplicate
+ * that normalization code (simply copy from this function), instead of computing the RF distance
+ * twice, which is what happens if both rf_distance_relative() and rf_distance_absolute() are called.
+ */
+utils::Matrix<double> rf_distance_relative( TreeSet const& trees );
+
+/**
+ * @brief Compute the relative RF (Robinson-Foulds) distance metric between a given @p lhs Tree
+ * and all of the trees in the @p rhs TreeSet.
+ *
+ * The function computes the unweighted relative RF distance.
+ * This is meant as an accelaration if the pairwise distance is not needed.
+ *
+ * This internally simply uses rf_distance_absolute(), and divides the result properly;
+ * hence, if both variants are needed (absolute and relative), it might be faster to duplicate
+ * that normalization code (simply copy from this function), instead of computing the RF distance
+ * twice, which is what happens if both rf_distance_relative() and rf_distance_absolute() are called.
+ */
+std::vector<double> rf_distance_relative( Tree const& lhs, TreeSet const& rhs );
+
+/**
+ * @brief Compute the relative RF (Robinson-Foulds) distance metric between two Tree%s.
+ *
+ * The function computes the unweighted relative RF distance.
+ *
+ * This internally simply uses rf_distance_absolute(), and divides the result properly;
+ * hence, if both variants are needed (absolute and relative), it might be faster to duplicate
+ * that normalization code (simply copy from this function), instead of computing the RF distance
+ * twice, which is what happens if both rf_distance_relative() and rf_distance_absolute() are called.
+ */
+double rf_distance_relative( Tree const& lhs, Tree const& rhs );
 
 } // namespace tree
 } // namespace genesis
