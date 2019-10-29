@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ public:
     struct Cluster
     {
         /**
-         * @brief The MassTree that this cluster represetns.
+         * @brief The MassTree that this cluster represents.
          *
          * In the beginning of the algorithm, those are simply the MassTree%s of the Sample%s. Those
          * are then successively merged to form bigger clusters.
@@ -182,11 +182,13 @@ public:
     void clear();
 
     // -------------------------------------------------------------------------
-    //     Progress Report
+    //     Progress Report & Output
     // -------------------------------------------------------------------------
 
     std::function<void( void )>                   report_initialization;
     std::function<void( size_t i, size_t total )> report_step;
+
+    std::function<void( MassTree const& cluster_tree )> write_cluster_tree;
 
     // -------------------------------------------------------------------------
     //     Private Functions
