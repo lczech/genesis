@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -145,6 +145,12 @@ void SquashClustering::merge_clusters_( size_t i, size_t j )
     );
     mass_tree_normalize_masses( new_cluster.tree );
 
+    // If the user wants to write intermediate trees, to so now,
+    // so that we later can free the memory again.
+    if( write_cluster_tree ) {
+        write_cluster_tree( new_cluster.tree );
+    }
+
     // Old way: Scale masses, merge them, scale back.
     // Scale both trees according to their weight (= count).
     // mass_tree_scale_masses( clusters_[i].tree, static_cast<double>( clusters_[i].count ));
@@ -191,9 +197,9 @@ void SquashClustering::merge_clusters_( size_t i, size_t j )
     clusters_[i].distances.clear();
     clusters_[j].distances.clear();
 
-    // We can also destroy those trees. For now. Maybe later, we want to write them first.
-    // clusters_[i].tree.clear();
-    // clusters_[j].tree.clear();
+    // We can also destroy those trees. They haven been written before, and are not needed any more.
+    clusters_[i].tree.clear();
+    clusters_[j].tree.clear();
 }
 
 void SquashClustering::run( std::vector<MassTree>&& trees )
