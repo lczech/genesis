@@ -148,7 +148,8 @@ void SquashClustering::merge_clusters_( size_t i, size_t j )
     // If the user wants to write intermediate trees, to so now,
     // so that we later can free the memory again.
     if( write_cluster_tree ) {
-        write_cluster_tree( new_cluster.tree );
+        assert( clusters_.size() > 0 );
+        write_cluster_tree( new_cluster.tree, clusters_.size() - 1 );
     }
 
     // Old way: Scale masses, merge them, scale back.

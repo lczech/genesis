@@ -188,7 +188,7 @@ public:
     std::function<void( void )>                   report_initialization;
     std::function<void( size_t i, size_t total )> report_step;
 
-    std::function<void( MassTree const& cluster_tree )> write_cluster_tree;
+    std::function<void( MassTree const& cluster_tree, size_t index )> write_cluster_tree;
 
     // -------------------------------------------------------------------------
     //     Private Functions
