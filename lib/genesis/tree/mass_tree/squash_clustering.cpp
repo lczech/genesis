@@ -83,6 +83,11 @@ void SquashClustering::init_( std::vector<MassTree>&& trees )
             auto const dist = earth_movers_distance( clusters_[i].tree, clusters_[k].tree, p_ );
             clusters_[i].distances[k] = dist;
         }
+
+        // Also, write out the trees for user output if needed.
+        if( write_cluster_tree ) {
+            write_cluster_tree( clusters_[i].tree, i );
+        }
     }
 }
 
