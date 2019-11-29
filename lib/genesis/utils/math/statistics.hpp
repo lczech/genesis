@@ -623,7 +623,7 @@ inline double geometric_mean( std::vector<double> const& vec )
  * > Elife, vol. 6, p. e21887, Feb. 2017.
  * > https://elifesciences.org/articles/21887
  *
- * @see weighted_geometric_mean( std::vector<double> const& ) for a version for `std::vector`.
+ * @see weighted_geometric_mean( std::vector<double> const&, std::vector<double> const& ) for a version for `std::vector`.
  * @see geometric_mean() for the unweighted version.
  * @see arithmetic_mean() for a function that calculates the arithmetic mean.
  * @see weighted_arithmetic_mean() for a function that calculates the weighted arithmetic mean.
