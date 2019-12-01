@@ -42,7 +42,7 @@ In the above snippet, we made all edges red. The @ref genesis::tree::TreeEdge::i
 ~~~{.cpp}
 for( auto const& edge : tree.edges() ) {
     if( is_leaf( edge )) {
-        edge_colors[ edge.index() ] = Color( 0.0, 1.0, 0.0 );
+        edge_colors[ edge.index() ] = Color( 0.0, 0.0, 1.0 );
     }
 }
 ~~~
@@ -114,6 +114,10 @@ params.stroke.width = 3.0;
 write_color_tree_to_svg_file( tree, params, edge_colors, "path/to/new_tree.svg" );
 ~~~
 
+This yields the following figure:
+
+![Tree with edges leading to leaf nodes marked in blue.](tree/red_blue_tree.png)
+
 Again, there also is a version write_tree_to_svg_file() that does not use colors, but simply write a tree with black branches.
 
 ## Adding a color legend
@@ -137,7 +141,9 @@ color_norm.autoscale_max( edge_values );
 write_color_tree_to_svg_file( tree, params, edge_values, color_map, color_norm, "branch_length_tree.svg" );
 ~~~
 
-This yields a figure similar to this one, where longer branches have a darker color:
+See the @ref tutorials_colors "Colors" tutorial on how color is handled in genesis, and on the @ref genesis::utils::ColorMap "ColorMap" and @ref genesis::utils::ColorNormalization "ColorNormalization" classes in particular.
+
+The above snippet yields a figure similar to the following one, where longer branches have a darker color:
 
 ![Tree with branch lengths visualized by colors.](tree/branch_length_tree.png)
 

@@ -32,15 +32,17 @@ Given their name, @ref genesis::utils::color_from_name() "color_from_name()" ret
 
 For more advanced use cases, one usually wants a palette of colors that are tuned to look good in combination. To this end, we offer three different types of palettes:
 
- * Qualitative color palettes, that is, distinct colors that are useful for sets of items.
  * Sequential color palettes, for increasing ranges of values, e.g., `0` to `100`.
  * Diverging color palettes, for ranges with two directions and a center value, e.g., `-1` to `1`.
+ * Qualitative color palettes, that is, distinct colors that are useful for sets of items.
 
 The available color palettes are:
 
 ![Color palettes.](utils/color_lists.png)
 
-These can be used by their name, e.g., color_list_viridis(), to obtain a vector of Colors. Furthermore, they can be used via functions that take the name of the list either from an enum or as a string, see e.g., sequential_color_list(). The latter is useful in applications where the user can pick a color scheme.
+The above list contains color palettes from sources such as [ColorBrewer](https://rdrr.io/cran/RColorBrewer/man/ColorBrewer.html), and [viridis](https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html) that look nice and have favorable properties in terms of their color composition, for example for color blind people. Furthermore, we recommend our own palette `BuPuBk` (the first one) for visualizing trees, as its lightest color (light blue) is still well visible for the thin branches of a tree when printed on paper.
+
+The palettes can be used by their name, e.g., color_list_viridis(), to obtain a vector of Colors. Furthermore, they can be used via functions that take the name of the list either from an enum or as a string, see e.g., sequential_color_list(). The latter is useful in applications where the user can pick a color scheme.
 
 These palettes are simply stored as a `std::vector` of @ref genesis::utils::Color "Color" objects.
 For artistic users, it is of course also possible to fill a `vector` with a user defined set of colors.

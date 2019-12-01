@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="65.059448"
+   height="110.79187"
+   version="1.1"
+   id="svg70"
+   sodipodi:docname="red_blue_tree.svg"
+   inkscape:export-filename="/home/lucas/Dropbox/HITS/genesis/doc/png/tree/red_blue_tree.png"
+   inkscape:export-xdpi="188.89473"
+   inkscape:export-ydpi="188.89473"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+  <metadata
+     id="metadata76">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs74" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1871"
+     inkscape:window-height="1056"
+     id="namedview72"
+     showgrid="false"
+     fit-margin-top="1"
+     fit-margin-left="1"
+     fit-margin-bottom="1"
+     fit-margin-right="1"
+     inkscape:zoom="1.8568057"
+     inkscape:cx="78.233561"
+     inkscape:cy="22.085063"
+     inkscape:window-x="49"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg70" />
+  <!-- Created with genesis v0.22.1 (http://genesis-lib.org) on 2019-12-01 at 17:41:42 -->
+  <g
+     transform="translate(2.5213637,8.2705078)"
+     id="g68">
+    <g
+       id="g50">
+      <line
+         x1="9.6412601"
+         y1="0"
+         x2="19.506701"
+         y2="0"
+         id="line2"
+         style="stroke:#0000ff;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="9.6412601"
+         y1="12.5"
+         x2="9.6412601"
+         y2="0"
+         id="line4"
+         style="stroke:#0000ff;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="14.574"
+         y1="16.6667"
+         x2="30.418501"
+         y2="16.6667"
+         id="line6"
+         style="stroke:#0000ff;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="14.574"
+         y1="25"
+         x2="14.574"
+         y2="16.6667"
+         id="line8"
+         style="stroke:#0000ff;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="14.574"
+         y1="33.333302"
+         x2="28.251101"
+         y2="33.333302"
+         id="line10"
+         style="stroke:#0000ff;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="14.574"
+         y1="25"
+         x2="14.574"
+         y2="33.333302"
+         id="line12"
+         style="stroke:#0000ff;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="9.6412601"
+         y1="25"
+         x2="14.574"
+         y2="25"
+         id="line14"
+         style="stroke:#ff0000;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="9.6412601"
+         y1="12.5"
+         x2="9.6412601"
+         y2="25"
+         id="line16"
+         style="stroke:#ff0000;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="0"
+         y1="12.5"
+         x2="9.6412601"
+         y2="12.5"
+         id="line18"
+         style="stroke:#ff0000;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="0"
+         y1="38.541698"
+         x2="0"
+         y2="12.5"
+         id="line20"
+         style="stroke:#ff0000;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="27.129999"
+         y1="66.666702"
+         x2="38.639801"
+         y2="66.666702"
+         id="line22"
+         style="stroke:#0000ff;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="27.129999"
+         y1="79.166702"
+         x2="27.129999"
+         y2="66.666702"
+         id="line24"
+         style="stroke:#0000ff;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="35.351299"
+         y1="83.333298"
+         x2="44.3946"
+         y2="83.333298"
+         id="line26"
+         style="stroke:#0000ff;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="35.351299"
+         y1="91.666702"
+         x2="35.351299"
+         y2="83.333298"
+         id="line28"
+         style="stroke:#0000ff;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="35.351299"
+         y1="100"
+         x2="50"
+         y2="100"
+         id="line30"
+         style="stroke:#0000ff;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="35.351299"
+         y1="91.666702"
+         x2="35.351299"
+         y2="100"
+         id="line32"
+         style="stroke:#0000ff;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="27.129999"
+         y1="91.666702"
+         x2="35.351299"
+         y2="91.666702"
+         id="line34"
+         style="stroke:#ff0000;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="27.129999"
+         y1="79.166702"
+         x2="27.129999"
+         y2="91.666702"
+         id="line36"
+         style="stroke:#ff0000;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="4.7085199"
+         y1="79.166702"
+         x2="27.129999"
+         y2="79.166702"
+         id="line38"
+         style="stroke:#ff0000;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="4.7085199"
+         y1="64.583298"
+         x2="4.7085199"
+         y2="79.166702"
+         id="line40"
+         style="stroke:#ff0000;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="4.7085199"
+         y1="50"
+         x2="16.965599"
+         y2="50"
+         id="line42"
+         style="stroke:#0000ff;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="4.7085199"
+         y1="64.583298"
+         x2="4.7085199"
+         y2="50"
+         id="line44"
+         style="stroke:#0000ff;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="0"
+         y1="64.583298"
+         x2="4.7085199"
+         y2="64.583298"
+         id="line46"
+         style="stroke:#ff0000;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+      <line
+         x1="0"
+         y1="38.541698"
+         x2="0"
+         y2="64.583298"
+         id="line48"
+         style="stroke:#ff0000;stroke-width:3;stroke-linecap:round;stroke-opacity:1" />
+    </g>
+    <g
+       id="g66">
+      <text
+         x="0"
+         y="0"
+         font-size="10"
+         alignment-baseline="middle"
+         transform="translate(21.9656,50)"
+         id="text52"
+         style="font-size:10px;font-family:Verdana;fill:#000000;fill-opacity:1">K</text>
+      <text
+         x="0"
+         y="0"
+         font-size="10"
+         alignment-baseline="middle"
+         transform="translate(55,100)"
+         id="text54"
+         style="font-size:10px;font-family:Verdana;fill:#000000;fill-opacity:1">H</text>
+      <text
+         x="0"
+         y="0"
+         font-size="10"
+         alignment-baseline="middle"
+         transform="translate(49.3946,83.3333)"
+         id="text56"
+         style="font-size:10px;font-family:Verdana;fill:#000000;fill-opacity:1">G</text>
+      <text
+         x="0"
+         y="0"
+         font-size="10"
+         alignment-baseline="middle"
+         transform="translate(43.6398,66.6667)"
+         id="text58"
+         style="font-size:10px;font-family:Verdana;fill:#000000;fill-opacity:1">F</text>
+      <text
+         x="0"
+         y="0"
+         font-size="10"
+         alignment-baseline="middle"
+         transform="translate(33.2511,33.3333)"
+         id="text60"
+         style="font-size:10px;font-family:Verdana;fill:#000000;fill-opacity:1">C</text>
+      <text
+         x="0"
+         y="0"
+         font-size="10"
+         alignment-baseline="middle"
+         transform="translate(35.4185,16.6667)"
+         id="text62"
+         style="font-size:10px;font-family:Verdana;fill:#000000;fill-opacity:1">B</text>
+      <text
+         x="0"
+         y="0"
+         font-size="10"
+         alignment-baseline="middle"
+         transform="translate(24.5067)"
+         id="text64"
+         style="font-size:10px;font-family:Verdana;fill:#000000;fill-opacity:1">A</text>
+    </g>
+  </g>
+</svg>

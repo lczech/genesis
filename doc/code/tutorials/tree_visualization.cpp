@@ -40,7 +40,7 @@ int main()
     // Make tips blue
     for( auto const& edge : tree.edges() ) {
         if( is_leaf( edge )) {
-            edge_colors[ edge.index() ] = Color( 0.0, 1.0, 0.0 );
+            edge_colors[ edge.index() ] = Color( 0.0, 0.0, 1.0 );
         }
     }
 
