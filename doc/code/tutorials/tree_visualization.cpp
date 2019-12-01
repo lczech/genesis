@@ -31,7 +31,7 @@ int main()
     using namespace genesis::utils;
 
     // Get a tree
-    Tree tree = CommonTreeNewickReader().read( from_file( "path/to/tree.newick" ));
+    Tree tree = CommonTreeNewickReader().read( from_file( "genesis/doc/code/tutorials/tree.newick" ));
     LOG_INFO << "Tree has " << tree.edge_count() << " edges.";
 
     // Make all edges red
@@ -51,18 +51,25 @@ int main()
 
     // Prepare the layout parameters
     LayoutParameters params;
-    params.shape = LayoutShape::kCircular;
+    params.type = LayoutType::kPhylogram;
+    params.shape = LayoutShape::kRectangular;
     params.stroke.width = 3.0;
 
     // Use them to write an svg file
     write_color_tree_to_svg_file( tree, params, edge_colors, "path/to/new_tree.svg" );
 
-    // Assume we have some per-edge values that we want to visualize
-    auto edge_values = std::vector<double>{ 739.2, 25.1, 934.2, 47.5, 9.3, 86.6 };
-    assert( edge_values.size() == tree.edge_count() );
+    // Collect the branch lengths of the tree
+    auto edge_values = std::vector<double>( tree.edge_count() );
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        edge_values[i] = tree.edge_at(i).data<CommonEdgeData>().branch_length;
+    }
 
-    // Make a color map and norm and use it to create a legend
+    // Make a color map and a normalization that is scaled to the largest value in the data,
+    // while keeping the min at 0
     auto color_map = ColorMap( color_list_viridis() );
-    auto color_norm = ColorNormalizationLogarithmic( 1.0, 1000.0);
-    write_color_tree_to_svg_file( tree, params, edge_values, color_map, color_norm, "path/to/new_tree_2.svg" );
+    auto color_norm = ColorNormalizationLinear();
+    color_norm.autoscale_max( edge_values );
+
+    // Use this to create an svg drawing including a color legend
+    write_color_tree_to_svg_file( tree, params, edge_values, color_map, color_norm, "branch_length_tree.svg" );
 }

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -230,7 +230,8 @@ void write_color_tree_to_svg_file(
     std::string const&               svg_filename
 ) {
 
-    // Make a layout tree.
+    // Make a layout tree. We need a pointer to it in order to allow for the two different classes
+    // (circular/rectancular) to be returned here. Make it a unique ptr for automatic cleanup.
     std::unique_ptr<LayoutBase> layout = [&]() -> std::unique_ptr<LayoutBase> {
         if( params.shape == LayoutShape::kCircular ) {
             return utils::make_unique<CircularLayout>( tree, params.type, params.ladderize );
@@ -241,7 +242,7 @@ void write_color_tree_to_svg_file(
         throw std::runtime_error( "Unknown Tree shape parameter." );
     }();
 
-    // Set edge colors.
+    // Set edge colors and strokes.
     if( ! color_per_branch.empty() ) {
         std::vector<utils::SvgStroke> strokes;
         for( auto const& color : color_per_branch ) {
@@ -257,9 +258,10 @@ void write_color_tree_to_svg_file(
     auto svg_doc = layout->to_svg_document();
     svg_doc.margin.left = svg_doc.margin.top = svg_doc.margin.bottom = svg_doc.margin.right = 200;
 
-    // Add scale.
+    // Add the color legend / scale.
     if( ! color_map.empty() ) {
-        // Make the scale.
+
+        // Make the scale with nice sizes.
         auto svg_pal_settings = utils::SvgColorBarSettings();
         svg_pal_settings.height = svg_doc.bounding_box().height() / 2.0;
         svg_pal_settings.width = svg_pal_settings.height / 10.0;
@@ -280,14 +282,14 @@ void write_color_tree_to_svg_file(
             svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() + 2 * svg_pal_settings.width + 200;
         }
 
-        // Add it to the doc.
+        // Add it to the svg doc.
         if( ! svg_scale.first.empty() ) {
             svg_doc.defs.push_back( svg_scale.first );
         }
         svg_doc.add( svg_scale.second );
     }
 
-    // Write to file.
+    // Write the whole svg doc to file.
     std::ofstream ofs;
     utils::file_output_stream( svg_filename, ofs );
     svg_doc.write( ofs );

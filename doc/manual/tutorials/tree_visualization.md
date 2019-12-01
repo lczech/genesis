@@ -97,8 +97,10 @@ This means that all layout parameters have to be set in the code. Most important
 
  * The @ref genesis::tree::LayoutShape "LayoutShape" of the tree: Is the tree drawn circularly or rectangularly?
  * The @ref genesis::tree::LayoutType "LayoutType" of the tree: Is the tree drawn as a phylogram (with branch lengths), or as a cladogram (without branch lengths - all leaf nodes end at the same distance)?
- * Do we want to ladderize the tree, i.e., sort the subtrees by number of leaves?
+ * Do we want to ladderize() the tree, i.e., sort the subtrees by number of leaves?
  * What kind of @ref genesis::utils::SvgStroke "SvgStroke" do we want for the edges? Line widths, dashed lines, and line colors.
+
+## Simple wrapper functions
 
 These properties are summarized in @ref genesis::tree::LayoutParameters "LayoutParameters", which can be used again with simple wrapper functions to get `svg` drawings of a tree:
 
@@ -114,28 +116,41 @@ write_color_tree_to_svg_file( tree, params, edge_colors, "path/to/new_tree.svg" 
 
 Again, there also is a version write_tree_to_svg_file() that does not use colors, but simply write a tree with black branches.
 
-Writing to `svg` is the only way to directly draw the legend for the edge colors into the document. This allows to interpret which edge color corresponds to which value. Keep in mind that the interpretation of these values on the other hand of course depends on the type of analysis that they come from.
+## Adding a color legend
+
+Writing to `svg` is the only way to directly draw the legend for the edge colors into the document. This allows to interpret which edge color corresponds to which value. Let's visualize the branch lengths of the tree:
 
 ~~~{.cpp}
-// Assume we have some per-edge values that we want to visualize
-auto edge_values = std::vector<double>{ 739.2, 25.1, 934.2, 47.5, 9.3, 86.6 };
-assert( edge_values.size() == tree.edge_count() );
+// Collect the branch lengths of the tree
+auto edge_values = std::vector<double>( tree.edge_count() );
+for( size_t i = 0; i < tree.edge_count(); ++i ) {
+    edge_values[i] = tree.edge_at(i).data<CommonEdgeData>().branch_length;
+}
 
-// Make a color map and norm and use it to create a legend
+// Make a color map and a normalization that is scaled to the largest value in the data,
+// while keeping the min at 0
 auto color_map = ColorMap( color_list_viridis() );
-auto color_norm = ColorNormalizationLogarithmic( 1.0, 1000.0);
-write_color_tree_to_svg_file( tree, params, edge_values, color_map, color_norm, "path/to/new_tree_2.svg" );
+auto color_norm = ColorNormalizationLinear();
+color_norm.autoscale_max( edge_values );
+
+// Use this to create an svg drawing including a color legend
+write_color_tree_to_svg_file( tree, params, edge_values, color_map, color_norm, "branch_length_tree.svg" );
 ~~~
 
-This function also accepts the `edge_colors` directly instead of `edge_values`.
+This yields a figure similar to this one, where longer branches have a darker color:
+
+![Tree with branch lengths visualized by colors.](tree/branch_length_tree.png)
+
+The figure was fine tuned afterwards, because programmatically setting all font sizes, line widths, spaces between figure elements, etc, to nice values is tricky. We however did not remove or add any elements to the drawing: For example, all parts of the legend, including the labeling with fitting intervals (`0` to `0.3`), are automatic. We recommend [Inkscape](https://inkscape.org/) for fine tuning of the resulting `svg` files.
+
+## Beyond the wrapper functions
 
 The above functions are all wrappers for simplicity. They cover the most common use cases, and in particular cover per-edge colors. They however do not allow for other types of individual edge styles (dashed, line widths, etc). If this is required, one can use the implementation of the wrappers as a starting point to create their own visualizations.
 
 The @ref genesis::tree::LayoutBase "LayoutBase" class is a good starting point for more specialized visualizations. It allows:
 
- * Individual strokes for the two parts of an edge (the one that spreads away from the parent, and the one that symbolizes branch lengths), as well as an additional stroke towards the label with the taxon name. These strokes can have individual colors, widths, dashes, etc.
+ * Individual strokes for the two parts of an edge (the one that spreads away from the parent, and the one that symbolizes branch lengths). These strokes can have individual colors, widths, dashes, etc.
+ * Aligning the taxon labels to each other, as well as an additional stroke towards these labels (typically, a gray dashed line or something similar can be used here).
  * Individual per-edge and per-node shapes, for example to mark leaf nodes with colored dots that symbolize additional information about the taxa of the tree.
 
 A final set of functions that we want to mention are the heat_tree() functions, which allow to draw a tree to `svg`, with a heat matrix next to it for each of its taxa, which can for example show per-sample data for each of the taxa of the tree. This is commonly used in metagenomic and environmental studies.
-
-We recommend [Inkscape](https://inkscape.org/) for fine tuning of the resulting `svg` files, for example to properly place the legend, add some text, remove surplus document boundaries, etc. Unfortunately, some of these steps are still necessary to obtain clean figures, as `svg` is a quite complex file format, and genesis only supports some of more basic concepts of it.

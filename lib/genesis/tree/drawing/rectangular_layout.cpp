@@ -118,8 +118,8 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
             // Get line strokes
             auto spreading_stroke = edge_data.spreading_stroke;
             auto distance_stroke = edge_data.distance_stroke;
-            spreading_stroke.line_cap = utils::SvgStroke::LineCap::kSquare;
-            distance_stroke.line_cap = utils::SvgStroke::LineCap::kButt;
+            // spreading_stroke.line_cap = utils::SvgStroke::LineCap::kSquare;
+            // distance_stroke.line_cap = utils::SvgStroke::LineCap::kButt;
 
             // Calculate linear distance
             auto const dist_start_x = prnt_data.distance * width;
