@@ -1,7 +1,7 @@
-Placement {#tutorials_placement}
+Placement Basics {#tutorials_placement_basics}
 ===========
 
-# Evolutionary Placement {#tutorials_placement_epa}
+# Evolutionary Placement {#tutorials_placement_basics_epa}
 
 Metagenomic studies often need to biologically classify millions of DNA sequences, for example
 so-called *short reads*. The assignment of those reads to known reference sequences helps to assess
@@ -41,7 +41,7 @@ is the name of the original query sequence) and the placements with their featur
 the edge where the placement is located, its likelihood, etc.).
 See [[3]](#placement_references_3) for details.
 
-# Samples {#tutorials_placement_samples}
+# Samples {#tutorials_placement_basics_samples}
 
 Genesis has classes and functions to work with all relevant data of evolutionary placement.
 This tutorial focuses on the actual placement data, that is, Pqueries with their placement
@@ -130,7 +130,7 @@ You can find the whole code listing of this tutorial at
 
 See the API reference for details and for more functions and classes related to this topic.
 
-# References {#tutorials_placement_references}
+# References {#tutorials_placement_basics_references}
 
 Please refer to the following articles for more information on phylogenetic placement of short
 reads:

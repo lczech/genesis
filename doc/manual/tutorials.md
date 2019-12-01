@@ -20,10 +20,13 @@ tutorials to keep them simple).
 
 # Tutorials Chapters
 
-  * @subpage tutorials_placement : For working with evolutionary placement data, e.g. in `jplace` format.
+  * @subpage tutorials_placement_basics : For working with phylogenetic placement data, e.g. in `jplace` format.
+  * @subpage tutorials_placement_analyses : Conducting typical analyses of placement data.
   * @subpage tutorials_tree_basics : Provides a flexible structure and functions for phylogenetic trees.
   * @subpage tutorials_tree_advanced : More details about the data structure and its data.
+  * @subpage tutorials_tree_visualization : Visualization of trees, such as drawing them to `svg` files.
   * @subpage tutorials_sequence : Works with genetic sequences in e.g. `fasta` or `phylip` format.
+  * @subpage tutorials_colors : Working with colors, for visualization of trees and others.
   <!-- * @subpage tutorials_utils: Provides auxiliary tools for e.g., file system, logging, math, texts, colors, etc. -->
 
 For more code examples, see the @ref demos page.
