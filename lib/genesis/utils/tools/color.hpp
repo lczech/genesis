@@ -92,8 +92,14 @@ public:
     //     Factories
     // -------------------------------------------------------------------------
 
+    /**
+     * @copydoc color_from_bytes()
+     */
     static Color from_bytes( unsigned char r, unsigned char g, unsigned char b, unsigned char a = 255 );
 
+    /**
+     * @copydoc color_from_hex()
+     */
     static Color from_hex( std::string const& hex_color, std::string const& prefix = "#" );
 
     // -------------------------------------------------------------------------
