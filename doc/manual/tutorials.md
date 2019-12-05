@@ -26,6 +26,7 @@ tutorials to keep them simple).
   * @subpage tutorials_tree_advanced : More details about the data structure and its data.
   * @subpage tutorials_tree_visualization : Visualization of trees, such as drawing them to `svg` files.
   * @subpage tutorials_sequence : Works with genetic sequences in e.g. `fasta` or `phylip` format.
+  * @subpage tutorials_taxonomy : Works with taxonomies and taxonomic databases.
   * @subpage tutorials_colors : Working with colors, for visualization of trees and others.
   <!-- * @subpage tutorials_utils: Provides auxiliary tools for e.g., file system, logging, math, texts, colors, etc. -->
 
