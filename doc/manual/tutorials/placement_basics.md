@@ -4,20 +4,22 @@ Placement Basics {#tutorials_placement_basics}
 # Evolutionary Placement {#tutorials_placement_basics_epa}
 
 Metagenomic studies often need to biologically classify millions of DNA sequences, for example
-so-called *short reads*. The assignment of those reads to known reference sequences helps to assess
+so-called *short reads*, coming from environments such as water, soil, or the human body.
+The assignment of those reads to known reference sequences helps to assess
 the composition and diversity of microbial communities and allows for comparing them.
 
-For obtaining these assignments, you can use
- *  Evolutionary Placement Algorithm (EPA) [[1]](#placement_references_1), implemented within RAxML.
+Phylogenetic (or evolutionary) placement is a method to obtain a classification of metagenomic sequences in terms of a reference phylogenetic tree. The following publications introduce the topic in detail. They are the main programs to obtain phylogenetic placements:
+
+ *  EPA-ng [[1]](#placement_references_1), the most recent, fastest, and most scalable implementation. [Webpage](https://github.com/Pbdas/epa-ng).
+ *  Evolutionary Placement Algorithm (EPA) [[2]](#placement_references_2), implemented within RAxML.
     [Webpage](http://sco.h-its.org/exelixis/web/software/epa/index.html).
- *  pplacer [[2]](#placement_references_2).
+ *  pplacer [[3]](#placement_references_3).
     [Webpage](http://matsen.fhcrc.org/pplacer/).
 
-In the following description, we will focus on EPA, although both programs work similarly.
-Their output is standardized in the `jplace` file format [[3]](#placement_references_3),
-thus, genesis works with both of them.
+<!-- In the following description, we will focus on EPA, although both programs work similarly. -->
+The output of a phylogenetic placement analysis is standardized in the `jplace` file format [[4]](#placement_references_4).
 
-The EPA takes as input:
+The placement algorithm typically takes as input:
 
  *  An alignment of *reference sequences* (e.g., single 16S or barcoding gene).
  *  A species *tree* (usually inferred from the reference sequences).
@@ -39,7 +41,7 @@ They can thus be seen as a probability distribution of possible placement positi
 The set of placements for a query sequence is called a *Pquery*. It contains a name (usually, that
 is the name of the original query sequence) and the placements with their features (e.g., an ID of
 the edge where the placement is located, its likelihood, etc.).
-See [[3]](#placement_references_3) for details.
+See [[4]](#placement_references_4) for details.
 
 # Samples {#tutorials_placement_basics_samples}
 
@@ -124,10 +126,6 @@ Writing back your results to a new `jplace` file is done using a
 JplaceWriter().to_file( sample, "path/to/new_file.jplace" );
 ~~~
 
-You can find the whole code listing of this tutorial at
-
-    ./doc/code/tutorials/samples.cpp
-
 See the API reference for details and for more functions and classes related to this topic.
 
 # References {#tutorials_placement_basics_references}
@@ -135,19 +133,24 @@ See the API reference for details and for more functions and classes related to 
 Please refer to the following articles for more information on phylogenetic placement of short
 reads:
 
-> <a name="placement_references_1">`[1]`</a> S. Berger, D. Krompass, and A. Stamatakis,
+> <a name="placement_references_1">`[1]`</a> P. Barbera, A. M. Kozlov, L. Czech, B. Morel, D. Darriba, T.Flouri, A. Stamatakis,
+> **EPA-ng: Massively Parallel Evolutionary Placement of Genetic Sequences**,
+> *Systematic Biology, vol. 68, no. 2, pp. 365–369, 2018*.
+> [DOI: 10.1093/sysbio/syy054](https://doi.org/10.1093/sysbio/syy054)
+
+> <a name="placement_references_2">`[2]`</a> S. Berger, D. Krompass, and A. Stamatakis,
 > **Performance, accuracy, and web server for evolutionary placement of short sequence reads
 > under maximum likelihood**,
-> *Syst. Biol., vol. 60, no. 3, pp. 291–302, 2011*.
+> *Systematic Biology, vol. 60, no. 3, pp. 291–302, 2011*.
 > [DOI: 10.1093/sysbio/syr010](http://dx.doi.org/10.1093/sysbio/syr010)
 
-> <a name="placement_references_2">`[2]`</a> F. A. Matsen, R. B. Kodner, and E. V. Armbrust,
+> <a name="placement_references_3">`[3]`</a> F. A. Matsen, R. B. Kodner, and E. V. Armbrust,
 > **pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences
 > onto a fixed reference tree**,
 > *BMC Bioinformatics, vol. 11, no. 1, p. 538, 2010*.
 > [DOI: 10.1186/1471-2105-11-538](http://dx.doi.org/10.1186/1471-2105-11-538)
 
-> <a name="placement_references_3">`[3]`</a> F. A. Matsen, N. G. Hoffman, A. Gallagher, and A. Stamatakis,
+> <a name="placement_references_4">`[4]`</a> F. A. Matsen, N. G. Hoffman, A. Gallagher, and A. Stamatakis,
 > **A format for phylogenetic placements**,
 > *PLoS One, vol. 7, no. 2, pp. 1–4, Jan. 2012*.
 > [DOI: 10.1371/journal.pone.0031009](http://dx.doi.org/10.1371/journal.pone.0031009)

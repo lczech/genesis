@@ -102,12 +102,13 @@ This means that all layout parameters have to be set in the code. Most important
 
 ## Simple wrapper functions
 
-These properties are summarized in @ref genesis::tree::LayoutParameters "LayoutParameters", which can be used again with simple wrapper functions to get `svg` drawings of a tree:
+These properties are summarized in @ref genesis::tree::LayoutParameters "LayoutParameters", which can be used again with simple wrapper functions to get `svg` drawings of a tree. We here use the `edge_colors` from above to show edges that lead to leaf nodes in blue:
 
 ~~~{.cpp}
 // Prepare the layout parameters
 LayoutParameters params;
-params.shape = LayoutShape::kCircular;
+params.type = LayoutType::kPhylogram;
+params.shape = LayoutShape::kRectangular;
 params.stroke.width = 3.0;
 
 // Use them to write an svg file
