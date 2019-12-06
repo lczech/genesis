@@ -37,6 +37,10 @@ int main()
     // auto const jplace_files = dir_list_files( "path/to/files", true, "\\.jplace$" );
     SampleSet sample_set = JplaceReader().read( from_files( jplace_files ));
 
+    // ------------------------------------------
+    //     Edge PCA
+    // ------------------------------------------
+
     // Run Edge PCA
     EpcaData epca_data = epca( sample_set );
 
@@ -83,6 +87,10 @@ int main()
     }
     proj_os.close();
 
+    // ------------------------------------------
+    //     Squash Clustering
+    // ------------------------------------------
+
     // Convert to Mass Trees
     std::vector<Tree> mass_trees;
     for( auto const& sample : sample_set ) {
@@ -98,4 +106,46 @@ int main()
     file_output_stream( "path/to/cluster.newick", sc_tree_os );
     sc_tree_os << squash_clustering.tree_string( sample_set.names() );
     sc_tree_os.close();
+
+    // ------------------------------------------
+    //     Edge Dispersion and Edge Correlation
+    // ------------------------------------------
+
+    // Get empty matrices of the correct size.
+    auto edge_masses     = Matrix<double>( sample_set.size(), tree.edge_count() );
+    auto edge_imbalances = Matrix<double>( sample_set.size(), tree.edge_count() );
+
+    // Fill them with the data.
+    for( size_t i = 0; i < sample_set.size(); ++i ) {
+        auto const& sample = sample_set[i];
+        edge_masses.row( i )     = placement_mass_per_edges_with_multiplicities( sample );
+        edge_imbalances.row( i ) = epca_imbalance_vector( sample );
+    }
+
+    auto means_deviations = std::vector<MeanStddevPair>( edge_imbalances.cols(), { 0.0, 0.0 } );
+    for( size_t c = 0; c < edge_imbalances.cols(); ++c ) {
+        means_deviations[c] = mean_stddev( edge_imbalances.col(c).begin(), edge_imbalances.col(c).end() );
+    }
+
+    // ------------------------------------------
+    //     Phylogenetic k-means and Imbalance k-means
+    // ------------------------------------------
+
+    // Run the clustering
+    size_t const k = 10;
+    auto phylogenetic_kmeans = MassTreeKmeans();
+    phylogenetic_kmeans.run( mass_trees, k );
+
+    // Get results
+    auto const cluster_info = phylogenetic_kmeans.cluster_info( mass_trees );
+    auto const assignments = phylogenetic_kmeans.assignments();
+
+    // Write results
+    std::cout << "Sample\tCluster\tDistance\n";
+    for( size_t i = 0; i < assignments.size(); ++i ) {
+        std::cout << sample_set.name_at(i);
+        std::cout << "\t" << assignments[i];
+        std::cout << "\t" << cluster_info.distances[i];
+        std::cout << "\n";
+    }
 }
