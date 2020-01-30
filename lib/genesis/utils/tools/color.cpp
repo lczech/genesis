@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2019 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,7 +46,10 @@ namespace utils {
 Color::Color( double r, double g, double b, double a )
     : r_( r ), g_( g ), b_( b ), a_( a )
 {
-    if( r < 0.0 || r > 1.0 || g < 0.0 || g > 1.0 || b < 0.0 || b > 1.0 || a < 0.0 || a > 1.0 ) {
+    if(
+        ! std::isfinite(r) || ! std::isfinite(g) || ! std::isfinite(b) || ! std::isfinite(a) ||
+        r < 0.0 || r > 1.0 || g < 0.0 || g > 1.0 || b < 0.0 || b > 1.0 || a < 0.0 || a > 1.0
+    ) {
         throw std::invalid_argument(
             "Color can only be constructed with values in range [ 0.0, 1.0 ]."
         );
@@ -73,7 +76,7 @@ Color Color::from_hex( std::string const& hex_color, std::string const& prefix )
 
 void Color::r (double value)
 {
-    if( value < 0.0 || value > 1.0 ) {
+    if( ! std::isfinite(value) || value < 0.0 || value > 1.0 ) {
         throw std::invalid_argument(
             "Color can only be used with values in range [ 0.0, 1.0 ]."
         );
@@ -83,7 +86,7 @@ void Color::r (double value)
 
 void Color::g (double value)
 {
-    if( value < 0.0 || value > 1.0 ) {
+    if( ! std::isfinite(value) || value < 0.0 || value > 1.0 ) {
         throw std::invalid_argument(
             "Color can only be used with values in range [ 0.0, 1.0 ]."
         );
@@ -93,7 +96,7 @@ void Color::g (double value)
 
 void Color::b (double value)
 {
-    if( value < 0.0 || value > 1.0 ) {
+    if( ! std::isfinite(value) || value < 0.0 || value > 1.0 ) {
         throw std::invalid_argument(
             "Color can only be used with values in range [ 0.0, 1.0 ]."
         );
@@ -103,7 +106,7 @@ void Color::b (double value)
 
 void Color::a (double value)
 {
-    if( value < 0.0 || value > 1.0 ) {
+    if( ! std::isfinite(value) || value < 0.0 || value > 1.0 ) {
         throw std::invalid_argument(
             "Color can only be used with values in range [ 0.0, 1.0 ]."
         );
@@ -117,7 +120,7 @@ void Color::a (double value)
 
 unsigned char Color::to_byte_( double v )
 {
-    assert( 0.0 <= v && v <= 1.0 );
+    assert( std::isfinite(v) && 0.0 <= v && v <= 1.0 );
     return static_cast<unsigned char>( std::round( 255.0 * v ));
 }
 

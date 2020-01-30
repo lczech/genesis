@@ -269,7 +269,7 @@ Dataframe glm_indicator_variables(
  * @brief Turn a GlmFactor into a set of (dummy) indicator variables to be used in regression.
  *
  * The function uses the most common level as reference level, and otherwise behaves the same as
- * @link glm_indicator_variables( GlmFactor<T> const&, T const&, std::vector<std::string> row_names ) glm_indicator_variables()@endlink.
+ * @link glm_indicator_variables( GlmFactor<T> const&, T const&, std::vector<std::string> const& ) glm_indicator_variables()@endlink.
  */
 template<class T>
 Dataframe glm_indicator_variables(
