@@ -26,7 +26,7 @@ Firstly, get a tree and see how many edges it has:
 
 ~~~{.cpp}
 Tree tree = CommonTreeNewickReader().read( from_file( "path/to/tree.newick" ));
-LOG_INFO << "Tree has " tree.edge_count() << " edges.";
+LOG_INFO << "Tree has " << tree.edge_count() << " edges.";
 ~~~
 
 Now, create a vector of @ref genesis::utils::Color "Color" objects for each edge of the tree:
