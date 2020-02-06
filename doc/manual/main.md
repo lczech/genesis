@@ -48,9 +48,13 @@ For bug reports and feature requests, please
 
 # Citation
 
-Currently, there is no publication to be cited. This is unfortunate and will hopefully change.
-Until then, please write an email to <a href="mailto:lucas.czech@h-its.org">lucas.czech@h-its.org</a>
-to ask for instructions.
+When using Genesis, please cite
+
+> Genesis and Gappa: processing, analyzing and visualizing phylogenetic (placement) data.<br />
+> Lucas Czech, Pierre Barbera, and Alexandros Stamatakis.<br />
+> Bioinformatics, 2020. https://doi.org/10.1093/bioinformatics/btaa070<br />
+
+Also, see [Gappa](https://github.com/lczech/gappa) for our command line tool to run your own analyses.
 
 # Acknowledgements
 <!-- # Acknowledgements {#main_acknowledgements} -->
@@ -65,7 +69,7 @@ dependencies. See the webpage of the [Exelixis Lab](http://exelixis-lab.org/) fo
 # License
 
 Genesis - A toolkit for working with phylogenetic data.<br />
-Copyright (C) 2014-2016 Lucas Czech
+Copyright (C) 2014-2020 Lucas Czech
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
