@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,4 +40,11 @@ int main()
     auto values = std::vector<double>{ 2.3, 43.5, 195.8, 566.0, 846.2 };
     auto color_norm = ColorNormalizationLogarithmic( 1.0, 1000.0);
     auto colors = color_map( color_norm, values );
+
+    // Let's avoid ugly compiler warnings about unused variables.
+    // Not part of the tutorial. Just part of being clean.
+    (void) c1;
+    (void) c2;
+    (void) c3;
+    (void) some_color;
 }
