@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    FastaOutputIterator() = default;
+    FastaOutputIterator() = delete;
 
     explicit FastaOutputIterator( std::ostream& out )
         : writer_()
@@ -76,11 +76,11 @@ public:
 
     ~FastaOutputIterator() = default;
 
-    FastaOutputIterator( self_type const& ) = default;
-    FastaOutputIterator( self_type&& )      = default;
+    FastaOutputIterator( self_type const& ) = delete;
+    FastaOutputIterator( self_type&& )      = delete;
 
-    self_type& operator= ( self_type const& ) = default;
-    self_type& operator= ( self_type&& )      = default;
+    self_type& operator= ( self_type const& ) = delete;
+    self_type& operator= ( self_type&& )      = delete;
 
     // -------------------------------------------------------------------------
     //     Accessors
