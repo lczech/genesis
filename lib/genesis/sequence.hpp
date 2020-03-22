@@ -45,6 +45,7 @@
 #include "genesis/sequence/functions/entropy.hpp"
 #include "genesis/sequence/functions/functions.hpp"
 #include "genesis/sequence/functions/labels.hpp"
+#include "genesis/sequence/functions/quality.hpp"
 #include "genesis/sequence/functions/signatures.hpp"
 #include "genesis/sequence/functions/signature_specifications.hpp"
 #include "genesis/sequence/functions/stats.hpp"
