@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 
 #include "genesis/tree/tree.hpp"
 
+#include <cassert>
 #include <functional>
 #include <iosfwd>
 #include <memory>
@@ -66,9 +67,14 @@ bool tree_data_is( Tree const& tree, bool allow_null = false )
 {
     // Check node data types.
     for( auto const& node : tree.nodes() ) {
-        if( ! node.has_data() && ! allow_null ) {
-            return false;
+        if( ! node.has_data() ) {
+            if( allow_null ) {
+                continue;
+            } else {
+                return false;
+            }
         }
+        assert( node.data_ptr() );
         auto const& ref = *node.data_ptr();
         if( typeid( ref ) != typeid( NodeDataType )) {
             return false;
@@ -77,9 +83,14 @@ bool tree_data_is( Tree const& tree, bool allow_null = false )
 
     // Check edge data types.
     for( auto const& edge : tree.edges() ) {
-        if( ! edge.has_data() && ! allow_null ) {
-            return false;
+        if( ! edge.has_data() ) {
+            if( allow_null ) {
+                continue;
+            } else {
+                return false;
+            }
         }
+        assert( edge.data_ptr() );
         auto const& ref = *edge.data_ptr();
         if( typeid( ref ) != typeid( EdgeDataType )) {
             return false;
@@ -102,9 +113,14 @@ bool tree_data_is_derived_from( Tree const& tree, bool allow_null = false )
 {
     // Check node data types.
     for( auto const& node : tree.nodes() ) {
-        if( ! node.has_data() && ! allow_null ) {
-            return false;
+        if( ! node.has_data() ) {
+            if( allow_null ) {
+                continue;
+            } else {
+                return false;
+            }
         }
+        assert( node.data_ptr() );
         if( dynamic_cast< NodeDataType const* >( node.data_ptr() ) == nullptr ) {
             return false;
         }
@@ -112,9 +128,14 @@ bool tree_data_is_derived_from( Tree const& tree, bool allow_null = false )
 
     // Check edge data types.
     for( auto const& edge : tree.edges() ) {
-        if( ! edge.has_data() && ! allow_null ) {
-            return false;
+        if( ! edge.has_data() ) {
+            if( allow_null ) {
+                continue;
+            } else {
+                return false;
+            }
         }
+        assert( edge.data_ptr() );
         if( dynamic_cast< EdgeDataType const* >( edge.data_ptr() ) == nullptr ) {
             return false;
         }
