@@ -32,11 +32,22 @@
  */
 
 #include <array>
+#include <iosfwd>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
 namespace genesis {
+
+// =================================================================================================
+//     Forward declarations
+// =================================================================================================
+
+namespace utils {
+    class BaseInputSource;
+}
+
 namespace sequence {
 
 // =================================================================================================
@@ -160,6 +171,8 @@ inline std::string quality_encode_from_phred_score(
  * which chars appear.
  */
 QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_counts );
+
+QualityEncoding guess_quality_encoding( std::shared_ptr< utils::BaseInputSource > source );
 
 // =================================================================================================
 //     Quality Computations
