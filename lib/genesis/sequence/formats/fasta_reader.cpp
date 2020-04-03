@@ -224,7 +224,7 @@ bool FastaReader::parse_sequence(
                 throw std::runtime_error(
                     "Malformed Fasta " + it.source_name() + ": Invalid sequence symbol "
                     + utils::char_to_hex( c, true )
-                    + " in sequence near line " + std::to_string( it.line() - 1 ) + "."
+                    + " in the sequence at/above line " + std::to_string( it.line() - 1 ) + "."
                 );
             }
         }
