@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -187,7 +187,9 @@ private:
 
         // TODO do not create new element if there is already one!
         // TODO add functor for converting color to string. maybe not all want hex format...
-        element.comments.push_back( color_tag_prefix_ + color_to_hex(color) + color_tag_suffix_ );
+        element.comments.push_back(
+            color_tag_prefix_ + utils::color_to_hex(color) + color_tag_suffix_
+        );
     }
 
     // -------------------------------------------------------------------------
