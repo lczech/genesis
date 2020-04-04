@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,10 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+
+#ifdef GENESIS_AVX
+    #include <immintrin.h>
+#endif
 
 namespace genesis {
 namespace utils {
@@ -392,6 +396,96 @@ std::string trim (
     std::string const& delimiters
 ) {
     return trim_left(trim_right(s, delimiters), delimiters);
+}
+
+// =================================================================================================
+//     Case Conversion
+// =================================================================================================
+
+#ifdef GENESIS_AVX
+
+inline void toggle_case_ascii_inplace_avx_( std::string& str, char char_a, char char_z )
+{
+    // We use AVX2 here, which uses 256bit = 32byte. Hence, we move through the string in strides
+    // of 32. Concidentally, the ASCII marker for "upper/lower case" also has the value 32 (0x20),
+    // which might lead to confusion when reading the following code. Be warned.
+
+    // Fill val_32 with 32x 0x20=32
+    auto static const val_32 = _mm256_set1_epi8( 0x20 );
+
+    // Fill mask_a with 32x 'a/A', mask_z with 32x 'z/Z'
+    auto const mask_a = _mm256_set1_epi8( char_a );
+    auto const mask_z = _mm256_set1_epi8( char_z );
+
+    // Loop in increments of 32, which is the AVX vector size in bytes.
+    for( size_t i = 0; i < str.size() / 32 * 32; i += 32 ) {
+        auto reg = _mm256_loadu_si256( reinterpret_cast<__m256i*>( &str[i] ) );
+
+        // mask_az contains 0x00 where the character is between 'a/A' and 'z/Z', 0xff otherwise.
+        auto mask_az = _mm256_or_si256( _mm256_cmpgt_epi8( mask_a, reg ), _mm256_cmpgt_epi8( reg, mask_z ) );
+
+        // Toggle the upper/lower char bit (0x20), 1 means lower case, 0 means upper case.
+        reg = _mm256_xor_si256( _mm256_andnot_si256( mask_az, val_32 ), reg );
+
+        _mm256_storeu_si256( reinterpret_cast<__m256i*>( &str[i] ), reg );
+    }
+
+    // Convert the rest that remains by toggling the upper/lower case bit.
+    for( size_t i = str.size() / 32 * 32; i < str.size(); ++i ) {
+        if( char_a <= str[i] && str[i] <= char_z ){
+            str[i] ^= 0x20;
+        }
+    }
+}
+
+#endif // GENESIS_AVX
+
+void to_lower_ascii_inplace( std::string& str )
+{
+    #ifdef GENESIS_AVX
+
+    // Toggle the ascii case bit for all values between the two mask boundaries.
+    toggle_case_ascii_inplace_avx_( str, 'A', 'Z' );
+
+    #else // GENESIS_AVX
+
+    // Naive implementation that might use compiler-generated vector intrinsics.
+    for( auto& c : str ){
+        c = to_lower_ascii(c);
+    }
+
+    #endif // GENESIS_AVX
+}
+
+std::string to_lower_ascii( std::string const& str )
+{
+    auto res = str;
+    to_lower_ascii_inplace( res );
+    return res;
+}
+
+void to_upper_ascii_inplace( std::string& str )
+{
+    #ifdef GENESIS_AVX
+
+    // Toggle the ascii case bit for all values between the two mask boundaries.
+    toggle_case_ascii_inplace_avx_( str, 'a', 'z' );
+
+    #else // GENESIS_AVX
+
+    // Naive implementation that might use compiler-generated vector intrinsics.
+    for( auto& c : str ){
+        c = to_upper_ascii(c);
+    }
+
+    #endif // GENESIS_AVX
+}
+
+std::string to_upper_ascii( std::string const& str )
+{
+    auto res = str;
+    to_upper_ascii_inplace( res );
+    return res;
 }
 
 // =================================================================================================

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -206,7 +206,7 @@ std::string trim (
 );
 
 // =================================================================================================
-//     Normalize
+//     Case Conversion
 // =================================================================================================
 
 /**
@@ -256,48 +256,30 @@ inline void to_upper_inplace( std::string& str )
 }
 
 /**
- * @brief Return an all-lowercase copy of the given string, ascii-only.
+ * @brief Turn the given string to all-lowercase, ASCII-only.
  */
-inline std::string to_lower_ascii( std::string const& str )
-{
-    auto res = str;
-    for( auto& c : res ){
-        c = to_lower_ascii(c);
-    }
-    return res;
-}
+void to_lower_ascii_inplace( std::string& str );
 
 /**
- * @brief Turn the given string to all-lowercase, ascii-only.
+ * @brief Return an all-lowercase copy of the given string, ASCII-only.
  */
-inline void to_lower_ascii_inplace( std::string& str )
-{
-    for( auto& c : str ){
-        c = to_lower_ascii(c);
-    }
-}
+std::string to_lower_ascii( std::string const& str );
 
 /**
- * @brief Return an all-uppercase copy of the given string, ascii-only.
+ * @brief Turn the given string to all-uppercase, ASCII-only, inline.
+ *
+ * Uses AVX2 if available.
  */
-inline std::string to_upper_ascii( std::string const& str )
-{
-    auto res = str;
-    for( auto& c : res ){
-        c = to_upper_ascii(c);
-    }
-    return res;
-}
+void to_upper_ascii_inplace( std::string& str );
 
 /**
- * @brief Turn the given string to all-uppercase, ascii-only.
+ * @brief Return an all-uppercase copy of the given string, ASCII-only.
  */
-inline void to_upper_ascii_inplace( std::string&       str )
-{
-    for( auto& c : str ){
-        c = to_upper_ascii(c);
-    }
-}
+std::string to_upper_ascii( std::string const& str );
+
+// =================================================================================================
+//     Normalize
+// =================================================================================================
 
 /**
  * @brief Return a string where special chars are replaces by their escape sequence.
