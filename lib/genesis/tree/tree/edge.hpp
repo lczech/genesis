@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 
 #include <memory>
 #include <string>
+#include <typeinfo>
 
 namespace genesis {
 namespace tree {
@@ -171,12 +172,45 @@ public:
         return link_s_->node();
     }
 
+    // ---------------------------------------------------------------------
+    //     Data Accessors
+    // ---------------------------------------------------------------------
+
     /**
      * @brief Return `true` if the TreeEdge has a data object assigned to it.
      */
     bool has_data() const
     {
         return data_.get() != nullptr;
+    }
+
+    /**
+     * @brief Return `true` iff the TreeEdge has a data object assigned to it that is of a particular
+     * given data type.
+     */
+    template< class EdgeDataType >
+    bool data_is( bool allow_null = false ) const
+    {
+        if( data_.get() == nullptr ) {
+            return allow_null;
+        }
+        assert( data_.get() );
+        auto const& ref = *data_.get();
+        return ( typeid( ref ) == typeid( EdgeDataType ));
+    }
+
+    /**
+     * @brief Return `true` iff the TreeEdge has a data object assigned to it that is derived from
+     * a particular given data type.
+     */
+    template< class EdgeDataType >
+    bool data_is_derived_from( bool allow_null = false ) const
+    {
+        if( data_.get() == nullptr ) {
+            return allow_null;
+        }
+        assert( data_.get() );
+        return ( dynamic_cast< EdgeDataType const* >( data_.get() ) != nullptr );
     }
 
     template< class EdgeDataType >

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -91,7 +91,7 @@ std::ostream& operator<< ( std::ostream& os, Color const& h );
 /**
  * @brief Resolve a string representing a color.
  *
- * The string can either be a hex color as accepted by color_to_hex(), e.g., "#003366[ff]",
+ * The string can either be a hex color as accepted by color_from_hex(), e.g., "#003366[ff]",
  * or one of the named colors, see is_color_name() and color_from_name().
  */
 Color resolve_color_string( std::string const& color_str );

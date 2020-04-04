@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -119,6 +119,10 @@ bool FastaReader::parse_sequence(
         return false;
     }
 
+    // ---------------------------------------------
+    //     Label
+    // ---------------------------------------------
+
     // Scope to ensure that the label line is only used
     // while we actually are in that line.
     {
@@ -161,6 +165,10 @@ bool FastaReader::parse_sequence(
     ++it;
 
     } // End of line scope. We are done with the label line.
+
+    // ---------------------------------------------
+    //     Sites
+    // ---------------------------------------------
 
     // Skip comments.
     while( it && *it == ';' ) {
@@ -216,7 +224,7 @@ bool FastaReader::parse_sequence(
                 throw std::runtime_error(
                     "Malformed Fasta " + it.source_name() + ": Invalid sequence symbol "
                     + utils::char_to_hex( c, true )
-                    + " in sequence near line " + std::to_string( it.line() - 1 ) + "."
+                    + " in the sequence at/above line " + std::to_string( it.line() - 1 ) + "."
                 );
             }
         }

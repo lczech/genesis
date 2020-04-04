@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -97,20 +97,13 @@ inline char to_upper_ascii( char c )
  * By default, just the two-byte hex presentation is returned (e.g., `4e` for `N`).
  * If @p full is `true`, a text-representation is returned instead, using the form
  *
+ *     LF (0x0a)
  *     'N' (0x4e)
  *
- * instead.
+ * instead, where non-printable characters are abbreviated by their symbol, and printable
+ * characters are included in single quotation marks.
  */
-inline std::string char_to_hex( char c, bool full = false )
-{
-    std::stringstream ss;
-    if( full ) {
-        ss << "'" << std::string( 1, c ) << "' (0x" << std::hex << static_cast<int>( c ) << ")";
-    } else {
-        ss << std::hex << static_cast<int>( c );
-    }
-    return ss.str();
-}
+std::string char_to_hex( char c, bool full = false );
 
 } // namespace utils
 } // namespace genesis
