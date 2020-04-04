@@ -32,9 +32,7 @@
  */
 
 #include <cctype>
-#include <iostream>
 #include <string>
-#include <sstream>
 
 namespace genesis {
 namespace utils {
@@ -72,7 +70,7 @@ inline bool char_is_number_part( char const c )
  */
 inline bool char_match_ci(const char c1, const char c2)
 {
-    return std::tolower(c1) == std::tolower(c2);
+    return std::tolower( static_cast<unsigned char>( c1 )) == std::tolower( static_cast<unsigned char>( c2 ));
 }
 
 /**

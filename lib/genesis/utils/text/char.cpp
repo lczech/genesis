@@ -34,6 +34,8 @@
 #include <cassert>
 #include <cctype>
 #include <iomanip>
+#include <iostream>
+#include <sstream>
 #include <stdexcept>
 
 namespace genesis {
@@ -76,7 +78,7 @@ std::string char_to_hex( char c, bool full )
             ss << ascii_symbols_[c] << " (0x";
         }
     }
-    ss << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>( c );
+    ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( c );
     if( full ) {
         ss << ")";
     }
