@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -273,7 +273,9 @@ BalanceData mass_balance_data(
         assert( result.taxon_weights.size() == result.edge_masses.cols() );
 
         // Get the minimum, which we use as a dummy for taxon weights of zero.
-        auto const em_min = utils::minimum( result.edge_masses.begin(), result.edge_masses.end() );
+        auto const em_min = utils::finite_minimum(
+            result.edge_masses.begin(), result.edge_masses.end()
+        );
 
         #pragma omp parallel for
         for( size_t r = 0; r < result.edge_masses.rows(); ++r ) {

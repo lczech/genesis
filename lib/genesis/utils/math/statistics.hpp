@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -134,7 +134,7 @@ struct Quartiles
 };
 
 // =================================================================================================
-//     Normalization
+//     Standard Helper Functions
 // =================================================================================================
 
 /**
@@ -172,7 +172,7 @@ std::pair<size_t, size_t> count_finite_elements( ForwardIterator first, ForwardI
  * in the range, a quite NaN is returned.
  */
 template <class ForwardIterator>
-double minimum( ForwardIterator first, ForwardIterator last )
+double finite_minimum( ForwardIterator first, ForwardIterator last )
 {
     // Prepare result.
     double min = std::numeric_limits<double>::max();
@@ -204,7 +204,7 @@ double minimum( ForwardIterator first, ForwardIterator last )
  * in the range, a quite NaN is returned.
  */
 template <class ForwardIterator>
-double maximum( ForwardIterator first, ForwardIterator last )
+double finite_maximum( ForwardIterator first, ForwardIterator last )
 {
     // Prepare result.
     double max = std::numeric_limits<double>::lowest();
@@ -236,7 +236,7 @@ double maximum( ForwardIterator first, ForwardIterator last )
  * in the range, a quite NaN is returned.
  */
 template <class ForwardIterator>
-MinMaxPair<double> minimum_maximum( ForwardIterator first, ForwardIterator last )
+MinMaxPair<double> finite_minimum_maximum( ForwardIterator first, ForwardIterator last )
 {
     // Prepare result.
     MinMaxPair<double> result;
@@ -266,6 +266,10 @@ MinMaxPair<double> minimum_maximum( ForwardIterator first, ForwardIterator last 
 
     return result;
 }
+
+// =================================================================================================
+//     Normalization and Compositional Data Analysis
+// =================================================================================================
 
 /**
  * @brief Calculate the closure of a range of numbers.
@@ -344,8 +348,7 @@ inline void closure( std::vector<double>& vec )
  * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
  * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
  * which for some use cases would cause problems like a division by zero later on.
- * By default, @p epsilon is `-1.0`, which deactivates this check - a standard deviation can never
- * be below `0.0`.
+ * By default, @p epsilon is `-1.0`, which deactivates this check`.
  *
  * @see mean_stddev( std::vector<double> const&, double epsilon ) for a version for `std::vector`.
  * @see arithmetic_mean() for a function that only calculates the mean, and thus saves the effort

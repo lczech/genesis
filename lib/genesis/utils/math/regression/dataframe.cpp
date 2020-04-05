@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
             // Get the min and max, excluding nan entries.
             // Then, count the number of valid and total entries,
             // and use this to determine the number of unused entries.
-            auto const mm = minimum_maximum( dbl_col.begin(), dbl_col.end() );
+            auto const mm = finite_minimum_maximum( dbl_col.begin(), dbl_col.end() );
             auto const ip = count_finite_elements( dbl_col.begin(), dbl_col.end() );
             assert( ip.first <= ip.second );
             assert( ip.second == df.rows() );
@@ -119,7 +119,7 @@ Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
                 // Get the min and max, excluding nan entries.
                 // Then, count the number of valid and total entries,
                 // and use this to determine the number of unused entries.
-                auto const mm = minimum_maximum( dbl_col.begin(), dbl_col.end() );
+                auto const mm = finite_minimum_maximum( dbl_col.begin(), dbl_col.end() );
                 auto const ip = count_finite_elements( dbl_col.begin(), dbl_col.end() );
                 assert( ip.first <= ip.second );
                 assert( ip.second == df.rows() );
