@@ -52,6 +52,72 @@ std::string current_date();
  */
 std::string current_time();
 
+/**
+ * @brief Convert `std::tm` object to a `std::time_t` object, using the local time zone.
+ */
+std::time_t tm_to_time( std::tm time );
+
+/**
+ * @brief Convert a `std::vector` of `std::tm` objects to a `std::vector` of `std::time_t` objects,
+ * using the local time zone.
+ */
+std::vector<std::time_t> tm_to_time( std::vector<std::tm> const& times );
+
+/**
+ * @brief Convert a list of `std::tm` objects to a `std::vector` of `std::time_t` objects,
+ * using the local time zone.
+ */
+template<typename ForwardIterator>
+std::vector<std::time_t> tm_to_time(
+    ForwardIterator first,
+    ForwardIterator last,
+    size_t size = 0
+) {
+    // Prep.
+    std::vector<std::time_t> ret;
+    ret.reserve( size );
+
+    // Add all values. Throws on error.
+    while( first != last ) {
+        ret.push_back( tm_to_time( *first ));
+        ++first;
+    }
+    return ret;
+}
+
+/**
+ * @brief Convert `std::time_t` object to a `std::tm` object, using the local time zone.
+ */
+std::tm time_to_tm( std::time_t const& time );
+
+/**
+ * @brief Convert a `std::vector` of `std::time_t` objects to a `std::vector` of `std::tm` objects,
+ * using the local time zone.
+ */
+std::vector<std::tm> time_to_tm( std::vector<std::time_t> const& times );
+
+/**
+ * @brief Convert a list of `std::time_t` objects to a `std::vector` of `std::tm` objects,
+ * using the local time zone.
+ */
+template<typename ForwardIterator>
+std::vector<std::tm> time_to_tm(
+    ForwardIterator first,
+    ForwardIterator last,
+    size_t size = 0
+) {
+    // Prep.
+    std::vector<std::tm> ret;
+    ret.reserve( size );
+
+    // Add all values. Throws on error.
+    while( first != last ) {
+        ret.push_back( time_to_tm( *first ));
+        ++first;
+    }
+    return ret;
+}
+
 // =================================================================================================
 //     Date/Time Conversion to std::tm
 // =================================================================================================

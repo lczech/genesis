@@ -81,6 +81,29 @@ std::string current_time()
     return out;
 }
 
+std::time_t tm_to_time( std::tm time )
+{
+    // We take the @p time object by value, as we need a non-const copy anyway to call the function.
+    // This wrapper function basically just translates from needing an ugly pointer to not needing
+    // an ugly pointer...
+    return std::mktime( &time );
+}
+
+std::vector<std::time_t> tm_to_time( std::vector<std::tm> const& times )
+{
+    return tm_to_time( times.begin(), times.end(), times.size() );
+}
+
+std::tm time_to_tm( std::time_t const& time )
+{
+    return *std::localtime( &time );
+}
+
+std::vector<std::tm> time_to_tm( std::vector<std::time_t> const& times )
+{
+    return time_to_tm( times.begin(), times.end(), times.size() );
+}
+
 // =================================================================================================
 //     Date/Time Conversion to std::tm
 // =================================================================================================
@@ -111,7 +134,7 @@ bool convert_to_tm_( std::string const& str, std::string const& format, std::str
     ss >> std::get_time( &t, format.c_str() );
 
     // Return whether that worked or failed, and whether we also reached the end of the stream.
-    // If we did not reach EOF, there is more data in the stream, which means, we only partically
+    // If we did not reach EOF, there is more data in the stream, which means, we only partially
     // matched the string, so that it is not an actual fit.
     return ! ss.fail() && ss.eof();
 }
