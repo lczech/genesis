@@ -344,6 +344,7 @@ bool is_convertible_to_tm(
     std::string const& format,
     std::string const& locale
 ) {
+    // If one of the conversions fails, the list is not convertible.
     while( first != last ) {
         if( ! is_convertible_to_tm( *first, format, locale )) {
             return false;
@@ -364,6 +365,7 @@ bool is_convertible_to_tm(
     ForwardIterator last,
     std::string const& format
 ) {
+    // If one of the conversions fails, the list is not convertible.
     while( first != last ) {
         if( ! is_convertible_to_tm( *first, format )) {
             return false;
@@ -384,6 +386,7 @@ bool is_convertible_to_tm(
     ForwardIterator first,
     ForwardIterator last
 ) {
+    // If one of the conversions fails, the list is not convertible.
     while( first != last ) {
         if( ! is_convertible_to_tm( *first )) {
             return false;

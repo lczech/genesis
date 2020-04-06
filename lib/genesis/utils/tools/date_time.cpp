@@ -32,17 +32,29 @@
 
 #include "genesis/utils/text/string.hpp"
 
-#include "genesis/utils/core/logging.hpp"
-
 #include <array>
 #include <cstdio>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
 #include <sstream>
 
 namespace genesis {
 namespace utils {
+
+// =================================================================================================
+//     Thread Safety
+// =================================================================================================
+
+/**
+ * @brief The std::localtime function is not thread safe, due to its internal state.
+ * Make sure that we can use it from multiple threads.
+ *
+ * Caveat: Currently, this file is the only place where we use std::localtime. If this changes
+ * later, we might want to move this mutex to be available for other usages as well.
+ */
+static std::mutex localtime_mutex_;
 
 // =================================================================================================
 //     Convenience Functions
@@ -50,6 +62,9 @@ namespace utils {
 
 std::string current_date()
 {
+    // std::localtime is not threadsafe.
+    std::lock_guard<std::mutex> const localtime_lock( localtime_mutex_ );
+
     std::time_t now = std::time( nullptr );
     std::tm*    ltm = std::localtime( &now );
 
@@ -67,6 +82,9 @@ std::string current_date()
 
 std::string current_time()
 {
+    // std::localtime is not threadsafe.
+    std::lock_guard<std::mutex> const localtime_lock( localtime_mutex_ );
+
     std::time_t now = std::time( nullptr );
     std::tm*    ltm = std::localtime( &now );
 
@@ -97,6 +115,8 @@ std::vector<std::time_t> tm_to_time( std::vector<std::tm> const& times )
 
 std::tm time_to_tm( std::time_t const& time )
 {
+    // std::localtime is not threadsafe.
+    std::lock_guard<std::mutex> const localtime_lock( localtime_mutex_ );
     return *std::localtime( &time );
 }
 
@@ -232,24 +252,26 @@ bool is_convertible_to_tm( std::string const& str, std::string const& format, st
 
 bool is_convertible_to_tm( std::string const& str, std::string const& format )
 {
+    // If one of the locales works, the string is convertible.
     std::tm t = {};
     for( auto const& locale : locales_ ) {
-        if( ! convert_to_tm_( str, format, locale, t )) {
-            return false;
+        if( convert_to_tm_( str, format, locale, t )) {
+            return true;
         }
     }
-    return true;
+    return false;
 }
 
 bool is_convertible_to_tm( std::string const& str )
 {
+    // If one of the formats works, the string is convertible.
     std::tm t = {};
     for( auto const& format : formats_ ) {
-        if( ! convert_to_tm_( str, format, "C", t )) {
-            return false;
+        if( convert_to_tm_( str, format, "C", t )) {
+            return true;
         }
     }
-    return true;
+    return false;
 }
 
 } // namespace utils

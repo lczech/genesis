@@ -40,7 +40,7 @@ using namespace genesis::utils;
 
 TEST( DateTime, ConversionTM )
 {
-    std::vector<std::string> const valids = {
+    std::vector<std::string> valids = {
         "2020-04-17 ", " 20200417", " 2020-04-17T00:27:58 ", "2020-04-17 00:27:58\t", "\t20200417T002758",
         "\n20200417 002758 \t", "    20200417002758", "\n\n\t00:27:58", "002758\t\t\n"
     };
@@ -52,14 +52,18 @@ TEST( DateTime, ConversionTM )
     EXPECT_NO_THROW( convert_to_tm( valids.begin(), valids.end() ));
     EXPECT_TRUE( is_convertible_to_tm( valids.begin(), valids.end() ));
 
+    valids.push_back( "xyz" );
+    EXPECT_ANY_THROW( convert_to_tm( valids.begin(), valids.end() ));
+    EXPECT_FALSE( is_convertible_to_tm( valids.begin(), valids.end() ));
+
     std::vector<std::string> const invalids = {
         "2020/04/17", "04/17/2020", "2020-04-17T00:27:58Z", "2020-04-17 00:27:58Z", "20200417T002758+0100",
         "20200417x002758", "120200417002758", "00:27:58+0", "02758", "What time is it?"
     };
 
-    for( auto const& valid : invalids ) {
-        EXPECT_ANY_THROW( convert_to_tm( valid ));
-        EXPECT_FALSE( is_convertible_to_tm( valid ));
+    for( auto const& invalid : invalids ) {
+        EXPECT_ANY_THROW( convert_to_tm( invalid ));
+        EXPECT_FALSE( is_convertible_to_tm( invalid ));
     }
     EXPECT_ANY_THROW( convert_to_tm( invalids.begin(), invalids.end() ));
     EXPECT_FALSE( is_convertible_to_tm( invalids.begin(), invalids.end() ));
