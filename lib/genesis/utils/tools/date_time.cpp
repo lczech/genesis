@@ -38,6 +38,7 @@
 #include <cstdio>
 #include <ctime>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 
 namespace genesis {
@@ -105,6 +106,38 @@ std::vector<std::tm> time_to_tm( std::vector<std::time_t> const& times )
 }
 
 // =================================================================================================
+//     Date/Time Conversion from std::tm
+// =================================================================================================
+
+std::string tm_to_string( std::tm const& time, std::string const& format, std::string const& locale )
+{
+    std::ostringstream ss{};
+    ss.imbue(std::locale( locale ));
+    ss << std::put_time( &time, format.c_str() );
+    return ss.str();
+}
+
+std::string tm_to_string( std::tm const& time, std::string const& format )
+{
+    return tm_to_string( time, format, "C" );
+}
+
+std::string tm_to_string( std::tm const& time )
+{
+    return tm_to_string( time, "%Y-%m-%dT%H:%M:%S", "C" );
+}
+
+std::string tm_date_to_string( std::tm const& time )
+{
+    return tm_to_string( time, "%Y-%m-%d", "C" );
+}
+
+std::string tm_time_to_string( std::tm const& time )
+{
+    return tm_to_string( time, "%H:%M:%S", "C" );
+}
+
+// =================================================================================================
 //     Date/Time Conversion to std::tm
 // =================================================================================================
 
@@ -126,7 +159,16 @@ static const std::array<std::string, 9> formats_ = {
 bool convert_to_tm_( std::string const& str, std::string const& format, std::string const& locale, std::tm& t )
 {
     // Init the tm object to all zeros, see https://en.cppreference.com/w/cpp/io/manip/get_time
-    t.tm_sec = t.tm_min = t.tm_hour = t.tm_mday = t.tm_mon = t.tm_year = t.tm_wday = t.tm_yday = t.tm_isdst = 0;
+    // We are re-using the object when called from looping functions, so this is necessary.
+    t.tm_sec   = 0;
+    t.tm_min   = 0;
+    t.tm_hour  = 0;
+    t.tm_mday  = 0;
+    t.tm_mon   = 0;
+    t.tm_year  = 0;
+    t.tm_wday  = 0;
+    t.tm_yday  = 0;
+    t.tm_isdst = 0;
 
     // Run the conversion, using all provided information.
     std::istringstream ss( trim( str ));
@@ -192,22 +234,22 @@ bool is_convertible_to_tm( std::string const& str, std::string const& format )
 {
     std::tm t = {};
     for( auto const& locale : locales_ ) {
-        if( convert_to_tm_( str, format, locale, t )) {
-            return true;
+        if( ! convert_to_tm_( str, format, locale, t )) {
+            return false;
         }
     }
-    return false;
+    return true;
 }
 
 bool is_convertible_to_tm( std::string const& str )
 {
     std::tm t = {};
     for( auto const& format : formats_ ) {
-        if( convert_to_tm_( str, format, "C", t )) {
-            return true;
+        if( ! convert_to_tm_( str, format, "C", t )) {
+            return false;
         }
     }
-    return false;
+    return true;
 }
 
 } // namespace utils

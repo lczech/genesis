@@ -119,6 +119,54 @@ std::vector<std::tm> time_to_tm(
 }
 
 // =================================================================================================
+//     Date/Time Conversion from std::tm
+// =================================================================================================
+
+/**
+ * @brief Print the given `std::tm` object as a `std::string`, using the @p format and @p locale.
+ *
+ * For a list of the available @p format parameters, see https://en.cppreference.com/w/cpp/io/manip/get_time
+ * or http://www.cplusplus.com/reference/ctime/strftime/
+ *
+ * The available @p locale strings depend on the operating system and user settings. Typically,
+ * on Unix/Linux/POSIX/MacOS machines, the command `locale -a` should give a valid list.
+ */
+std::string tm_to_string( std::tm const& time, std::string const& format, std::string const& locale );
+
+/**
+ * @brief Print the given `std::tm` object as a `std::string`, using the @p format.
+ *
+ * If the @p format uses locale-depended qualifiers, the "C" locale is used.
+ */
+std::string tm_to_string( std::tm const& time, std::string const& format );
+
+/**
+ * @brief Print the given `std::tm` object as a `std::string`, using the ISO 8601 extended format.
+ *
+ * <!-- need to escape the % sign here for doxygen... -->
+ * The format is `%%Y-%%m-%%dT%%H:%%M:%%S`, for example 2020-04-17T00:27:58.
+ */
+std::string tm_to_string( std::tm const& time );
+
+/**
+ * @brief Print the given `std::tm` object as a `std::string` containing only the date,
+ * using the ISO 8601 extended format.
+ *
+ * <!-- need to escape the % sign here for doxygen... -->
+ * The format is `%%Y-%%m-%%d`, for example 2020-04-17.
+ */
+std::string tm_date_to_string( std::tm const& time );
+
+/**
+ * @brief Print the given `std::tm` object as a `std::string` containing only the time,
+ * using the ISO 8601 extended format.
+ *
+ * <!-- need to escape the % sign here for doxygen... -->
+ * The format is `%%H:%%M:%%S`, for example 00:27:58.
+ */
+std::string tm_time_to_string( std::tm const& time );
+
+// =================================================================================================
 //     Date/Time Conversion to std::tm
 // =================================================================================================
 
@@ -169,14 +217,15 @@ std::tm convert_to_tm( std::string const& str, std::string const& format );
  * 8 | `%%H:%%M:%%S` | Time | ISO 8601 extended format | 00:27:58
  * 9 | `%%H%%M%%S` | Time | ISO 8601 basic format | 002758
  *
+ * While this will most likely be able to parse any given date/time string that is used in scientific
+ * data, it is almost certainly slower than setting the format manually, if known, using the
+ * function convert_to_tm( std::string const&, std::string const& )
+ *
  * More exotic formats, such as the stupid US format 04/17/2020, or the slighly more reasonable
  * UK format 17/04/2020, are not tried, as they might be mistaken for one another. Furthermore,
  * time zone information is not used and leads to an exception being thrown
  * (e.g., "2020-04-06T00:27:58+00:00" or "20200406T002758Z"). If those are needed, they have to be
- * specified, using the function convert_to_tm( std::string const&, std::string const& )
- *
- * While this will most likely be able to parse a given date/time string that is used in scientific
- * data, it is almost certainly slower than setting the format manually, if known.
+ * specified, again using the function convert_to_tm( std::string const&, std::string const& )
  */
 std::tm convert_to_tm( std::string const& str );
 

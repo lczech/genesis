@@ -93,3 +93,15 @@ TEST( DateTime, ConversionTime )
         // LOG_DBG << "2: " << tm2.tm_sec << " " << tm2.tm_min << " " << tm2.tm_hour << " " << tm2.tm_mday << " " << tm2.tm_mon << " " << tm2.tm_year << " " << tm2.tm_wday << " " << tm2.tm_yday << " " << tm2.tm_isdst << " ";
     }
 }
+
+TEST( DateTime, ConversionString )
+{
+    std::string const s1 = "2020-04-17";
+    EXPECT_EQ( s1, tm_date_to_string( convert_to_tm( s1 )));
+
+    std::string const s2 = "00:27:58";
+    EXPECT_EQ( s2, tm_time_to_string( convert_to_tm( s2 )));
+
+    std::string const s3 = "2020-04-17T00:27:58";
+    EXPECT_EQ( s3, tm_to_string( convert_to_tm( s3 )));
+}
