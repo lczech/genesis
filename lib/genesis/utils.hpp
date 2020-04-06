@@ -135,6 +135,7 @@
 #include "genesis/utils/tools/color/helpers.hpp"
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/list_diverging.hpp"
+#include "genesis/utils/tools/color/list_misc.hpp"
 #include "genesis/utils/tools/color/list_qualitative.hpp"
 #include "genesis/utils/tools/color/list_sequential.hpp"
 #include "genesis/utils/tools/color/map.hpp"
