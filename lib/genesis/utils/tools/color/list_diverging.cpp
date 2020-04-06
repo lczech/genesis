@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/tools/color/diverging_lists.hpp"
+#include "genesis/utils/tools/color/list_diverging.hpp"
 
 #include "genesis/utils/tools/color/functions.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -246,40 +246,40 @@ std::vector<Color> const& color_list_spectral()
 //     Convenience Functions
 // =================================================================================================
 
-std::vector<Color> const& diverging_color_list( DivergingColorList palette )
+std::vector<Color> const& color_list_diverging( ColorListDiverging palette )
 {
-    if( palette == DivergingColorList::kBrbg ) {
+    if( palette == ColorListDiverging::kBrbg ) {
         return color_list_brbg_;
     }
-    if( palette == DivergingColorList::kPiyg ) {
+    if( palette == ColorListDiverging::kPiyg ) {
         return color_list_piyg_;
     }
-    if( palette == DivergingColorList::kPrgn ) {
+    if( palette == ColorListDiverging::kPrgn ) {
         return color_list_prgn_;
     }
-    if( palette == DivergingColorList::kPuor ) {
+    if( palette == ColorListDiverging::kPuor ) {
         return color_list_puor_;
     }
-    if( palette == DivergingColorList::kRdbu ) {
+    if( palette == ColorListDiverging::kRdbu ) {
         return color_list_rdbu_;
     }
-    if( palette == DivergingColorList::kRdgy ) {
+    if( palette == ColorListDiverging::kRdgy ) {
         return color_list_rdgy_;
     }
-    if( palette == DivergingColorList::kRdylbu ) {
+    if( palette == ColorListDiverging::kRdylbu ) {
         return color_list_rdylbu_;
     }
-    if( palette == DivergingColorList::kRdylgn ) {
+    if( palette == ColorListDiverging::kRdylgn ) {
         return color_list_rdylgn_;
     }
-    if( palette == DivergingColorList::kSpectral ) {
+    if( palette == ColorListDiverging::kSpectral ) {
         return color_list_spectral_;
     }
 
-    throw std::invalid_argument( "Invalid DivergingColorList value." );
+    throw std::invalid_argument( "Invalid ColorListDiverging value." );
 }
 
-std::vector<Color> const& diverging_color_list( std::string const& palette )
+std::vector<Color> const& color_list_diverging( std::string const& palette )
 {
     auto const p = to_lower_ascii( palette );
 
@@ -311,10 +311,10 @@ std::vector<Color> const& diverging_color_list( std::string const& palette )
         return color_list_spectral_;
     }
 
-    throw std::invalid_argument( "Invalid DivergingColorList name: '" + palette + "'." );
+    throw std::invalid_argument( "Invalid ColorListDiverging name: '" + palette + "'." );
 }
 
-std::vector<std::string> diverging_color_list_names()
+std::vector<std::string> color_list_diverging_names()
 {
     return {
         "BrBg",

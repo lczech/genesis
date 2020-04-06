@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,9 +32,9 @@
 
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/functions.hpp"
-#include "genesis/utils/tools/color/diverging_lists.hpp"
-#include "genesis/utils/tools/color/qualitative_lists.hpp"
-#include "genesis/utils/tools/color/sequential_lists.hpp"
+#include "genesis/utils/tools/color/list_diverging.hpp"
+#include "genesis/utils/tools/color/list_qualitative.hpp"
+#include "genesis/utils/tools/color/list_sequential.hpp"
 #include "genesis/utils/tools/color/names.hpp"
 #include "genesis/utils/tools/color/map.hpp"
 #include "genesis/utils/tools/color/normalization.hpp"

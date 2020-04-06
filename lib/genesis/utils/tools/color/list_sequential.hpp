@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_TOOLS_COLOR_SEQUENTIAL_LISTS_H_
-#define GENESIS_UTILS_TOOLS_COLOR_SEQUENTIAL_LISTS_H_
+#ifndef GENESIS_UTILS_TOOLS_COLOR_LIST_SEQUENTIAL_H_
+#define GENESIS_UTILS_TOOLS_COLOR_LIST_SEQUENTIAL_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -259,7 +259,7 @@ std::vector<Color> const& color_list_viridis();
 //     Convenience Functions
 // =================================================================================================
 
-enum class SequentialColorList
+enum class ColorListSequential
 {
     kBupubk,
     kBlues,
@@ -287,10 +287,10 @@ enum class SequentialColorList
     kViridis
 };
 
-std::vector<Color> const& sequential_color_list( SequentialColorList palette );
-std::vector<Color> const& sequential_color_list( std::string const&  palette );
+std::vector<Color> const& color_list_sequential( ColorListSequential palette );
+std::vector<Color> const& color_list_sequential( std::string const&  palette );
 
-std::vector<std::string> sequential_color_list_names();
+std::vector<std::string> color_list_sequential_names();
 
 } // namespace utils
 } // namespace genesis

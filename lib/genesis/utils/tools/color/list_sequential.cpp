@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/tools/color/sequential_lists.hpp"
+#include "genesis/utils/tools/color/list_sequential.hpp"
 
 #include "genesis/utils/tools/color/functions.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -1527,85 +1527,85 @@ std::vector<Color> const& color_list_viridis()
 //     Convenience Functions
 // =================================================================================================
 
-std::vector<Color> const& sequential_color_list( SequentialColorList palette )
+std::vector<Color> const& color_list_sequential( ColorListSequential palette )
 {
-    if( palette == SequentialColorList::kBupubk ) {
+    if( palette == ColorListSequential::kBupubk ) {
         return color_list_bupubk_;
     }
-    if( palette == SequentialColorList::kBlues ) {
+    if( palette == ColorListSequential::kBlues ) {
         return color_list_blues_;
     }
-    if( palette == SequentialColorList::kBugn ) {
+    if( palette == ColorListSequential::kBugn ) {
         return color_list_bugn_;
     }
-    if( palette == SequentialColorList::kBupu ) {
+    if( palette == ColorListSequential::kBupu ) {
         return color_list_bupu_;
     }
-    if( palette == SequentialColorList::kGnbu ) {
+    if( palette == ColorListSequential::kGnbu ) {
         return color_list_gnbu_;
     }
-    if( palette == SequentialColorList::kGreens ) {
+    if( palette == ColorListSequential::kGreens ) {
         return color_list_greens_;
     }
-    if( palette == SequentialColorList::kGreys ) {
+    if( palette == ColorListSequential::kGreys ) {
         return color_list_greys_;
     }
-    if( palette == SequentialColorList::kOranges ) {
+    if( palette == ColorListSequential::kOranges ) {
         return color_list_oranges_;
     }
-    if( palette == SequentialColorList::kOrrd ) {
+    if( palette == ColorListSequential::kOrrd ) {
         return color_list_orrd_;
     }
-    if( palette == SequentialColorList::kPubu ) {
+    if( palette == ColorListSequential::kPubu ) {
         return color_list_pubu_;
     }
-    if( palette == SequentialColorList::kPubugn ) {
+    if( palette == ColorListSequential::kPubugn ) {
         return color_list_pubugn_;
     }
-    if( palette == SequentialColorList::kPurd ) {
+    if( palette == ColorListSequential::kPurd ) {
         return color_list_purd_;
     }
-    if( palette == SequentialColorList::kPurples ) {
+    if( palette == ColorListSequential::kPurples ) {
         return color_list_purples_;
     }
-    if( palette == SequentialColorList::kRdpu ) {
+    if( palette == ColorListSequential::kRdpu ) {
         return color_list_rdpu_;
     }
-    if( palette == SequentialColorList::kReds ) {
+    if( palette == ColorListSequential::kReds ) {
         return color_list_reds_;
     }
-    if( palette == SequentialColorList::kYlgn ) {
+    if( palette == ColorListSequential::kYlgn ) {
         return color_list_ylgn_;
     }
-    if( palette == SequentialColorList::kYlgnbu ) {
+    if( palette == ColorListSequential::kYlgnbu ) {
         return color_list_ylgnbu_;
     }
-    if( palette == SequentialColorList::kYlorbr ) {
+    if( palette == ColorListSequential::kYlorbr ) {
         return color_list_ylorbr_;
     }
-    if( palette == SequentialColorList::kYlorrd ) {
+    if( palette == ColorListSequential::kYlorrd ) {
         return color_list_ylorrd_;
     }
-    if( palette == SequentialColorList::kHeat ) {
+    if( palette == ColorListSequential::kHeat ) {
         return color_list_heat_;
     }
-    if( palette == SequentialColorList::kMagma ) {
+    if( palette == ColorListSequential::kMagma ) {
         return color_list_magma_;
     }
-    if( palette == SequentialColorList::kInferno ) {
+    if( palette == ColorListSequential::kInferno ) {
         return color_list_inferno_;
     }
-    if( palette == SequentialColorList::kPlasma ) {
+    if( palette == ColorListSequential::kPlasma ) {
         return color_list_plasma_;
     }
-    if( palette == SequentialColorList::kViridis ) {
+    if( palette == ColorListSequential::kViridis ) {
         return color_list_viridis_;
     }
 
-    throw std::invalid_argument( "Invalid SequentialColorList value." );
+    throw std::invalid_argument( "Invalid ColorListSequential value." );
 }
 
-std::vector<Color> const& sequential_color_list( std::string const& palette )
+std::vector<Color> const& color_list_sequential( std::string const& palette )
 {
     auto const p = to_lower_ascii( palette );
 
@@ -1682,10 +1682,10 @@ std::vector<Color> const& sequential_color_list( std::string const& palette )
         return color_list_viridis_;
     }
 
-    throw std::invalid_argument( "Invalid SequentialColorList name: '" + palette + "'." );
+    throw std::invalid_argument( "Invalid ColorListSequential name: '" + palette + "'." );
 }
 
-std::vector<std::string> sequential_color_list_names()
+std::vector<std::string> color_list_sequential_names()
 {
     return {
         "BuPuBk",
