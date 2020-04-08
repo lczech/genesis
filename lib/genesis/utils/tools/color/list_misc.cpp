@@ -55,7 +55,7 @@ namespace utils {
  * See also our @link supplement_acknowledgements_code_reuse_nextstrain Acknowledgements@endlink.
  */
 
-const std::vector<std::vector<Color>> color_lists_nextstrain_1_16_ = {{
+static const std::vector<std::vector<Color>> color_lists_nextstrain_1_16_ = {{
     {
         { 0.29687500, 0.56250000, 0.75000000 },
     }, {
@@ -194,7 +194,7 @@ const std::vector<std::vector<Color>> color_lists_nextstrain_1_16_ = {{
     }
 }};
 
-const std::vector<Color> color_list_nextstrain_256_ = {{
+static const std::vector<Color> color_list_nextstrain_256_ = {{
     { 0.36718750, 0.11328125, 0.61328125 },
     { 0.35937500, 0.11328125, 0.62109375 },
     { 0.34765625, 0.11328125, 0.62890625 },
