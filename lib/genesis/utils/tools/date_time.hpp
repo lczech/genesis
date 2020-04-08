@@ -53,24 +53,34 @@ std::string current_date();
 std::string current_time();
 
 /**
- * @brief Convert `std::tm` object to a `std::time_t` object, using the local time zone.
+ * @brief Convert `std::tm` object to a `std::time_t` object.
+ *
+ * By default, we use Coordinated Universal Time (UTC), so that results are reproducible.
+ * If local time is needed instead, set @p use_local_time to `true`.
  */
-std::time_t tm_to_time( std::tm time );
+std::time_t tm_to_time( std::tm time, bool use_local_time = false );
 
 /**
- * @brief Convert a `std::vector` of `std::tm` objects to a `std::vector` of `std::time_t` objects,
- * using the local time zone.
+ * @brief Convert a `std::vector` of `std::tm` objects to a `std::vector` of `std::time_t` objects.
+ *
+ * By default, we use Coordinated Universal Time (UTC), so that results are reproducible.
+ * If local time is needed instead, set @p use_local_time to `true`.
  */
-std::vector<std::time_t> tm_to_time( std::vector<std::tm> const& times );
+std::vector<std::time_t> tm_to_time( std::vector<std::tm> const& times, bool use_local_time = false );
 
 /**
- * @brief Convert a list of `std::tm` objects to a `std::vector` of `std::time_t` objects,
- * using the local time zone.
+ * @brief Convert a list of `std::tm` objects to a `std::vector` of `std::time_t` objects.
+ *
+ * By default, we use Coordinated Universal Time (UTC), so that results are reproducible.
+ * If local time is needed instead, set @p use_local_time to `true`.
+ *
+ * If the @p size of the list is known, this can be given to reserve that much memory first.
  */
 template<typename ForwardIterator>
 std::vector<std::time_t> tm_to_time(
     ForwardIterator first,
     ForwardIterator last,
+    bool use_local_time = false,
     size_t size = 0
 ) {
     // Prep.
@@ -79,31 +89,41 @@ std::vector<std::time_t> tm_to_time(
 
     // Add all values. Throws on error.
     while( first != last ) {
-        ret.push_back( tm_to_time( *first ));
+        ret.push_back( tm_to_time( *first, use_local_time ));
         ++first;
     }
     return ret;
 }
 
 /**
- * @brief Convert `std::time_t` object to a `std::tm` object, using the local time zone.
+ * @brief Convert `std::time_t` object to a `std::tm` object.
+ *
+ * By default, we use Coordinated Universal Time (UTC), so that results are reproducible.
+ * If local time is needed instead, set @p use_local_time to `true`.
  */
-std::tm time_to_tm( std::time_t const& time );
+std::tm time_to_tm( std::time_t const& time, bool use_local_time = false );
 
 /**
- * @brief Convert a `std::vector` of `std::time_t` objects to a `std::vector` of `std::tm` objects,
- * using the local time zone.
+ * @brief Convert a `std::vector` of `std::time_t` objects to a `std::vector` of `std::tm` objects.
+ *
+ * By default, we use Coordinated Universal Time (UTC), so that results are reproducible.
+ * If local time is needed instead, set @p use_local_time to `true`.
  */
-std::vector<std::tm> time_to_tm( std::vector<std::time_t> const& times );
+std::vector<std::tm> time_to_tm( std::vector<std::time_t> const& times, bool use_local_time = false );
 
 /**
- * @brief Convert a list of `std::time_t` objects to a `std::vector` of `std::tm` objects,
- * using the local time zone.
+ * @brief Convert a list of `std::time_t` objects to a `std::vector` of `std::tm` objects.
+ *
+ * By default, we use Coordinated Universal Time (UTC), so that results are reproducible.
+ * If local time is needed instead, set @p use_local_time to `true`.
+ *
+ * If the @p size of the list is known, this can be given to reserve that much memory first.
  */
 template<typename ForwardIterator>
 std::vector<std::tm> time_to_tm(
     ForwardIterator first,
     ForwardIterator last,
+    bool use_local_time = false,
     size_t size = 0
 ) {
     // Prep.
@@ -112,7 +132,7 @@ std::vector<std::tm> time_to_tm(
 
     // Add all values. Throws on error.
     while( first != last ) {
-        ret.push_back( time_to_tm( *first ));
+        ret.push_back( time_to_tm( *first, use_local_time ));
         ++first;
     }
     return ret;

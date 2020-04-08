@@ -33,12 +33,15 @@
 #include "genesis/utils/text/string.hpp"
 
 #include <array>
+#include <cerrno>
 #include <cstdio>
+#include <cstdlib>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
 #include <mutex>
 #include <sstream>
+#include <stdexcept>
 
 namespace genesis {
 namespace utils {
@@ -48,13 +51,13 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief The std::localtime function is not thread safe, due to its internal state.
- * Make sure that we can use it from multiple threads.
+ * @brief The std::localtime and std::gmtime functions are not thread safe, due to their shared
+ * internal state. Make sure that we can use them from multiple threads.
  *
- * Caveat: Currently, this file is the only place where we use std::localtime. If this changes
- * later, we might want to move this mutex to be available for other usages as well.
+ * Caveat: Currently, this file is the only place where we use std::localtime and std::gmtime.
+ * If this changes later, we might want to move this mutex to be available for other usages as well.
  */
-static std::mutex localtime_mutex_;
+static std::mutex tm_mutex_;
 
 // =================================================================================================
 //     Convenience Functions
@@ -63,7 +66,7 @@ static std::mutex localtime_mutex_;
 std::string current_date()
 {
     // std::localtime is not threadsafe.
-    std::lock_guard<std::mutex> const localtime_lock( localtime_mutex_ );
+    std::lock_guard<std::mutex> const tm_lock( tm_mutex_ );
 
     std::time_t now = std::time( nullptr );
     std::tm*    ltm = std::localtime( &now );
@@ -83,7 +86,7 @@ std::string current_date()
 std::string current_time()
 {
     // std::localtime is not threadsafe.
-    std::lock_guard<std::mutex> const localtime_lock( localtime_mutex_ );
+    std::lock_guard<std::mutex> const tm_lock( tm_mutex_ );
 
     std::time_t now = std::time( nullptr );
     std::tm*    ltm = std::localtime( &now );
@@ -100,29 +103,71 @@ std::string current_time()
     return out;
 }
 
-std::time_t tm_to_time( std::tm time )
+std::time_t tm_to_time( std::tm time, bool use_local_time )
 {
-    // We take the @p time object by value, as we need a non-const copy anyway to call the function.
-    // This wrapper function basically just translates from needing an ugly pointer to not needing
-    // an ugly pointer...
-    return std::mktime( &time );
+    // We take the @p time object by value, as we need a non-const copy anyway to call the function:
+    // std::mktime changes and fixes values in the time object.
+
+    std::time_t ret;
+    if( use_local_time ) {
+        ret = std::mktime( &time );
+    } else {
+
+        // Set the time zone to UTC if needed, and store the previous value.
+        // Unfortunately, some of the functions are not in the std namespace... Ugly C++ standard!
+        char* tz;
+        tz = ::getenv("TZ");
+        ::setenv("TZ", "", 1);
+        ::tzset();
+
+        // Convert.
+        ret = std::mktime( &time );
+
+        // Reverse the time zone if needed.
+        if( tz ) {
+            ::setenv("TZ", tz, 1);
+        } else {
+            ::unsetenv("TZ");
+        }
+        ::tzset();
+    }
+    if( ret == -1 ) {
+        throw std::invalid_argument( "Cannot convert std::tm object to std::time." );
+    }
+    return ret;
 }
 
-std::vector<std::time_t> tm_to_time( std::vector<std::tm> const& times )
+std::vector<std::time_t> tm_to_time( std::vector<std::tm> const& times, bool use_local_time )
 {
-    return tm_to_time( times.begin(), times.end(), times.size() );
+    return tm_to_time( times.begin(), times.end(), use_local_time, times.size() );
 }
 
-std::tm time_to_tm( std::time_t const& time )
+std::tm time_to_tm( std::time_t const& time, bool use_local_time )
 {
-    // std::localtime is not threadsafe.
-    std::lock_guard<std::mutex> const localtime_lock( localtime_mutex_ );
-    return *std::localtime( &time );
+    // std::localtime and std::gmtime are not threadsafe.
+    std::lock_guard<std::mutex> const tm_lock( tm_mutex_ );
+
+    std::tm* ret;
+    if( use_local_time ) {
+        ret = std::localtime( &time );
+    } else {
+        ret = std::gmtime( &time );
+    }
+    if( ret == nullptr ) {
+        if( errno == EOVERFLOW ) {
+            throw std::invalid_argument(
+                "Cannot convert std::time object to std::tm, because the argument is too large."
+            );
+        } else {
+            throw std::invalid_argument( "Cannot convert std::time object to std::tm." );
+        }
+    }
+    return *ret;
 }
 
-std::vector<std::tm> time_to_tm( std::vector<std::time_t> const& times )
+std::vector<std::tm> time_to_tm( std::vector<std::time_t> const& times, bool use_local_time )
 {
-    return time_to_tm( times.begin(), times.end(), times.size() );
+    return time_to_tm( times.begin(), times.end(), use_local_time, times.size() );
 }
 
 // =================================================================================================
