@@ -55,7 +55,7 @@ namespace utils {
  * See also our @link supplement_acknowledgements_code_reuse_nextstrain Acknowledgements@endlink.
  */
 
-const std::vector<std::vector<Color>> color_lists_nextstrain_ = {{
+const std::vector<std::vector<Color>> color_lists_nextstrain_1_16_ = {{
     {
         { 0.29687500, 0.56250000, 0.75000000 },
     }, {
@@ -194,7 +194,7 @@ const std::vector<std::vector<Color>> color_lists_nextstrain_ = {{
     }
 }};
 
-const std::vector<Color> color_list_nextstrain_ = {{
+const std::vector<Color> color_list_nextstrain_256_ = {{
     { 0.36718750, 0.11328125, 0.61328125 },
     { 0.35937500, 0.11328125, 0.62109375 },
     { 0.34765625, 0.11328125, 0.62890625 },
@@ -461,16 +461,16 @@ std::vector<Color> color_list_nextstrain( size_t n )
 {
     if( n == 0 ) {
         return {};
-    } else if( n < color_lists_nextstrain_.size() ) {
-        return color_lists_nextstrain_[n];
+    } else if( n < color_lists_nextstrain_1_16_.size() ) {
+        return color_lists_nextstrain_1_16_[n];
     } else {
-        return ColorMap( color_list_nextstrain_ ).color_list( n );
+        return ColorMap( color_list_nextstrain_256_ ).color_list( n );
     }
 }
 
 std::vector<Color> const& color_list_nextstrain()
 {
-    return color_list_nextstrain_;
+    return color_list_nextstrain_256_;
 }
 
 // =================================================================================================
@@ -480,7 +480,7 @@ std::vector<Color> const& color_list_nextstrain()
 std::vector<Color> const& color_list_misc( ColorListMisc palette )
 {
     if( palette == ColorListMisc::kNextstrain ) {
-        return color_list_nextstrain_;
+        return color_list_nextstrain_256_;
     }
 
     throw std::invalid_argument( "Invalid ColorListMisc value." );
@@ -491,7 +491,7 @@ std::vector<Color> const& color_list_misc( std::string const& palette )
     auto const p = to_lower_ascii( palette );
 
     if( p == "nextstrain" ) {
-        return color_list_nextstrain_;
+        return color_list_nextstrain_256_;
     }
 
     throw std::invalid_argument( "Invalid ColorListMisc name: '" + palette + "'." );
