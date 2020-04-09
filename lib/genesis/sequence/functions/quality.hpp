@@ -172,7 +172,7 @@ inline std::string quality_encode_from_phred_score(
  */
 QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_counts );
 
-QualityEncoding guess_quality_encoding( std::shared_ptr< utils::BaseInputSource > source );
+// QualityEncoding guess_quality_encoding( std::shared_ptr< utils::BaseInputSource > source );
 
 // =================================================================================================
 //     Quality Computations

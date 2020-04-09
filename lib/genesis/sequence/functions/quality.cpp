@@ -30,7 +30,6 @@
 
 #include "genesis/sequence/functions/quality.hpp"
 
-#include "genesis/sequence/formats/fastq_reader.hpp"
 #include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
@@ -235,35 +234,35 @@ QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_coun
     return QualityEncoding::kIllumina15;
 }
 
-QualityEncoding guess_quality_encoding( std::shared_ptr< utils::BaseInputSource > source )
-{
-    // Init a counting array for each char, use value-initialization to 0
-    std::array<size_t, 128> char_counts{};
-
-    // Prepare a reader that simply increments all char counts for the quality chars
-    // that are found in the sequences.
-    auto reader = FastqReader();
-    reader.quality_string_plugin(
-        [&]( std::string const& quality_string, Sequence& sequence )
-        {
-            (void) sequence;
-            for( auto q : quality_string ) {
-                assert( (q & ~0x7f) == 0 );
-                ++char_counts[ q ];
-            }
-        }
-    );
-
-    // Read the input, sequence by sequence.
-    utils::InputStream input_stream( source );
-    Sequence seq;
-    while( reader.parse_sequence( input_stream, seq ) ) {
-        // Do nothing. All the work is done in the plugin function above.
-    }
-
-    // Return our guess based on the quality charactgers that were found in the sequences.
-    return guess_quality_encoding( char_counts );
-}
+// QualityEncoding guess_quality_encoding( std::shared_ptr< utils::BaseInputSource > source )
+// {
+//     // Init a counting array for each char, use value-initialization to 0
+//     std::array<size_t, 128> char_counts{};
+//
+//     // Prepare a reader that simply increments all char counts for the quality chars
+//     // that are found in the sequences.
+//     auto reader = FastqReader();
+//     reader.quality_string_plugin(
+//         [&]( std::string const& quality_string, Sequence& sequence )
+//         {
+//             (void) sequence;
+//             for( auto q : quality_string ) {
+//                 assert( (q & ~0x7f) == 0 );
+//                 ++char_counts[ q ];
+//             }
+//         }
+//     );
+//
+//     // Read the input, sequence by sequence.
+//     utils::InputStream input_stream( source );
+//     Sequence seq;
+//     while( reader.parse_sequence( input_stream, seq ) ) {
+//         // Do nothing. All the work is done in the plugin function above.
+//     }
+//
+//     // Return our guess based on the quality charactgers that were found in the sequences.
+//     return guess_quality_encoding( char_counts );
+// }
 
 // =================================================================================================
 //     Quality Computations
