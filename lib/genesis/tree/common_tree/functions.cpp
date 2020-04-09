@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@
 #include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
+#include <stdexcept>
 
 namespace genesis {
 namespace tree {
@@ -83,6 +84,7 @@ std::vector<std::string> node_names(
 TreeNode const* find_node(
     Tree const& tree,
     const std::string& name,
+    bool throw_on_failure,
     bool replace_underscores
 ) {
     auto clean_name = name;
@@ -90,25 +92,65 @@ TreeNode const* find_node(
         clean_name = utils::replace_all(name, "_", " ");
     }
 
+    // Try to find the node, return immediately on success.
     for( auto const& node : tree.nodes() ) {
-        if( node.data<CommonNodeData>().name == clean_name) {
+        if( node.data<CommonNodeData>().name == clean_name ) {
             return &node;
         }
     }
 
+    // If we are here, we did not find the not. Fail.
+    if( throw_on_failure ) {
+        throw std::invalid_argument( "Cannot find node '" + name + "' in tree." );
+    }
     return nullptr;
 }
 
 TreeNode* find_node(
     Tree& tree,
     const std::string& name,
+    bool throw_on_failure,
     bool replace_underscores
 ) {
     // Avoid code duplication according to Scott Meyers.
     auto const& ctree = static_cast< Tree const& >( tree );
     return const_cast< TreeNode* >(
-        find_node( ctree, name, replace_underscores )
+        find_node( ctree, name, throw_on_failure, replace_underscores )
     );
+}
+
+std::vector<TreeNode const*> find_nodes(
+    Tree const& tree,
+    std::vector<std::string> const& node_names,
+    bool throw_on_failure,
+    bool replace_underscores
+) {
+    // Prepare result
+    std::vector<TreeNode const*> node_list;
+    node_list.reserve( node_names.size() );
+
+    // Find and return nodes
+    for( auto const& taxon : node_names ) {
+        node_list.push_back( find_node( tree, taxon, throw_on_failure, replace_underscores ));
+    }
+    return node_list;
+}
+
+std::vector<TreeNode*> find_nodes(
+    Tree& tree,
+    std::vector<std::string> const& node_names,
+    bool throw_on_failure,
+    bool replace_underscores
+) {
+    // Prepare result
+    std::vector<TreeNode*> node_list;
+    node_list.reserve( node_names.size() );
+
+    // Find and return nodes
+    for( auto const& taxon : node_names ) {
+        node_list.push_back( find_node( tree, taxon, throw_on_failure, replace_underscores ));
+    }
+    return node_list;
 }
 
 // =================================================================================================
