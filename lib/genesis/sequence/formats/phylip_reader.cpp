@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -208,7 +208,7 @@ std::string PhylipReader::parse_phylip_sequence_line( utils::InputStream& it ) c
             if( !lookup_[c] ) {
                 throw std::runtime_error(
                     "Malformed Phylip " + it.source_name() + ": Invalid sequence symbol "
-                    + utils::char_to_hex( c, true )
+                    + utils::char_to_hex( c )
                     + " in sequence near line " + std::to_string( it.line() - 1 ) + "."
                 );
             }

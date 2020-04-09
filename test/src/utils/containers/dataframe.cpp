@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -222,8 +222,8 @@ TEST( Containers, DataframeConvertString )
 
     // First column only contains 1 and 0.
     convert_to_bool( df, "First" );
-    EXPECT_EQ( false, df["First"].as<char>()[0] );
-    EXPECT_EQ( true, df["First"].as<char>()[1] );
+    EXPECT_EQ( 0, df["First"].as<char>()[0] );
+    EXPECT_EQ( 1, df["First"].as<char>()[1] );
 
     // Second column contains integers.
     convert_to_double( df, "Second" );

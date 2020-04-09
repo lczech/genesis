@@ -36,6 +36,11 @@ using namespace genesis::utils;
 
 TEST( Text, CharToHex )
 {
-    EXPECT_EQ( "LF (0x0a)", char_to_hex( '\n', true ));
-    EXPECT_EQ( "'N' (0x4e)", char_to_hex( 'N', true ));
+    EXPECT_EQ( "LF (0x0A)", char_to_hex( '\n', true ));
+    EXPECT_EQ( "'N' (0x4E)", char_to_hex( 'N', true ));
+    EXPECT_EQ( "non-ASCII char (0xF7)", char_to_hex( static_cast<char>( 0xF7 ), true ));
+
+    EXPECT_EQ( "LF (0x0A)", char_to_hex( static_cast<unsigned char>( 0x0A ), true ));
+    EXPECT_EQ( "'N' (0x4E)", char_to_hex( static_cast<unsigned char>( 0x4E ), true ));
+    EXPECT_EQ( "non-ASCII char (0xF7)", char_to_hex( static_cast<unsigned char>( 0xF7 ), true ));
 }

@@ -39,6 +39,7 @@
 #include <ctime>
 #include <iomanip>
 #include <iostream>
+#include <locale>
 #include <mutex>
 #include <sstream>
 #include <stdexcept>
@@ -176,10 +177,25 @@ std::vector<std::tm> time_to_tm( std::vector<std::time_t> const& times, bool use
 
 std::string tm_to_string( std::tm const& time, std::string const& format, std::string const& locale )
 {
+    // gcc claims that version 4.8.1 was feature complete for C+=11. That fact that std::put_time
+    // is only available starting with gcc 5 determines that this is not true. Hence, to also
+    // support gcc < 5, we have to work around this limitation.
+
+    // Prepare a locale and a stream
+    auto const loc = std::locale( locale.c_str() );
     std::ostringstream ss{};
-    ss.imbue(std::locale( locale ));
-    ss << std::put_time( &time, format.c_str() );
+    ss.imbue( loc );
+
+    // Explicitly create a time facet that we can use to put the time to the stream.
+    std::time_put<char> const& tmput = std::use_facet<std::time_put<char>>( loc );
+    tmput.put( ss, ss, ' ', &time, &format[0], &format[0] + format.size() );
     return ss.str();
+
+    // Simple version that does not work with gcc < 5
+    // std::ostringstream ss{};
+    // ss.imbue(std::locale( locale.c_str() ));
+    // ss << std::put_time( &time, format.c_str() );
+    // return ss.str();
 }
 
 std::string tm_to_string( std::tm const& time, std::string const& format )
@@ -237,7 +253,7 @@ bool convert_to_tm_( std::string const& str, std::string const& format, std::str
 
     // Run the conversion, using all provided information.
     std::istringstream ss( trim( str ));
-    ss.imbue( std::locale( locale ));
+    ss.imbue( std::locale( locale.c_str() ));
     ss >> std::get_time( &t, format.c_str() );
 
     // Return whether that worked or failed, and whether we also reached the end of the stream.
@@ -248,7 +264,7 @@ bool convert_to_tm_( std::string const& str, std::string const& format, std::str
 
 std::tm convert_to_tm( std::string const& str, std::string const& format, std::string const& locale )
 {
-    std::tm t = {};
+    std::tm t;
     if( !convert_to_tm_( str, format, locale, t )) {
         throw std::invalid_argument(
             "Cannot convert string to tm date/time object."
@@ -259,7 +275,7 @@ std::tm convert_to_tm( std::string const& str, std::string const& format, std::s
 
 std::tm convert_to_tm( std::string const& str, std::string const& format )
 {
-    std::tm t = {};
+    std::tm t;
     for( auto const& locale : locales_ ) {
         if( convert_to_tm_( str, format, locale, t )) {
             return t;
@@ -273,7 +289,7 @@ std::tm convert_to_tm( std::string const& str, std::string const& format )
 
 std::tm convert_to_tm( std::string const& str )
 {
-    std::tm t = {};
+    std::tm t;
 
     // The formats that we try here are not dependent on the locale. If we introduce additional
     // formats in the future, it might be necessary to also loop over those, for example the
@@ -291,14 +307,14 @@ std::tm convert_to_tm( std::string const& str )
 
 bool is_convertible_to_tm( std::string const& str, std::string const& format, std::string const& locale )
 {
-    std::tm t = {};
+    std::tm t;
     return convert_to_tm_( str, format, locale, t );
 }
 
 bool is_convertible_to_tm( std::string const& str, std::string const& format )
 {
     // If one of the locales works, the string is convertible.
-    std::tm t = {};
+    std::tm t;
     for( auto const& locale : locales_ ) {
         if( convert_to_tm_( str, format, locale, t )) {
             return true;
@@ -310,7 +326,7 @@ bool is_convertible_to_tm( std::string const& str, std::string const& format )
 bool is_convertible_to_tm( std::string const& str )
 {
     // If one of the formats works, the string is convertible.
-    std::tm t = {};
+    std::tm t;
     for( auto const& format : formats_ ) {
         if( convert_to_tm_( str, format, "C", t )) {
             return true;
