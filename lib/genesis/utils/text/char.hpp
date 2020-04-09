@@ -90,18 +90,32 @@ inline char to_upper_ascii( char c )
 }
 
 /**
- * @brief Return the hex representation of a char.
+ * @brief Return the name and hex representation of a `char`.
  *
- * By default, just the two-byte hex presentation is returned (e.g., `4e` for `N`).
- * If @p full is `true`, a text-representation is returned instead, using the form
+ * This is meant for user output, for example to warn about invalid input characters.
+ * Hence, by default, a text-representation is returned, using the form
  *
- *     LF (0x0a)
- *     'N' (0x4e)
+ *     LF (0x0A)
+ *     'N' (0x4E)
  *
- * instead, where non-printable characters are abbreviated by their symbol, and printable
+ * where non-printable characters are abbreviated by their symbol, and printable
  * characters are included in single quotation marks.
+ *
+ * Non-ASCII characters (those outside of the 0-127 interval) are written in the form
+ *
+ *     non-ASCII char (0xF7)
+ *
+ * If @p full is set to `false`, just the two-byte hex presentation is returned (e.g., `4E` for `N`).
  */
-std::string char_to_hex( char c, bool full = false );
+std::string char_to_hex( char c, bool full = true );
+
+/**
+ * @brief Return the name and hex representation of a `char`, given as an `unsigned char`.
+ *
+ * This overload is meant for situations were a text input is read from file as `unsigned char`.
+ * The rest of the function is identical to char_to_hex( char, bool ), see there for details.
+ */
+std::string char_to_hex( unsigned char c, bool full = true );
 
 } // namespace utils
 } // namespace genesis

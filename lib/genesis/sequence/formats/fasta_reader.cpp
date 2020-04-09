@@ -223,7 +223,7 @@ bool FastaReader::parse_sequence(
             if( !lookup_[c] ) {
                 throw std::runtime_error(
                     "Malformed Fasta " + it.source_name() + ": Invalid sequence symbol "
-                    + utils::char_to_hex( c, true )
+                    + utils::char_to_hex( c )
                     + " in the sequence at/above line " + std::to_string( it.line() - 1 ) + "."
                 );
             }
@@ -326,7 +326,7 @@ bool FastaReader::parse_sequence_pedantic(
             if( use_validation_ && ! lookup_[c] ) {
                 throw std::runtime_error(
                     "Malformed Fasta " + it.source_name() + ": Invalid sequence symbol "
-                    + utils::char_to_hex( c, true ) + " in sequence at " + it.at() + "."
+                    + utils::char_to_hex( c ) + " in sequence at " + it.at() + "."
                 );
             }
 

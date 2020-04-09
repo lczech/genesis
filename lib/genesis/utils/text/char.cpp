@@ -34,6 +34,7 @@
 #include <cassert>
 #include <cctype>
 #include <iomanip>
+#include <ios>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -65,20 +66,40 @@ static const std::array<std::string, 128> ascii_symbols_ = {
 
 std::string char_to_hex( char c, bool full )
 {
-    if( c < 0 || c > 127 ) {
-        throw std::runtime_error( "Invalid ASCII char " + std::to_string( static_cast<int>( c )));
-    }
+    // By conversion to unsigned char, we transform potential negative numbers to their mod 256
+    // equivalent. This helps to mitigate the irritation that is caused by allowing char to be
+    // signed or unsigned in the standard.
+    return char_to_hex( static_cast<unsigned char>( c ), full );
 
+    // The following check is obsolte now, as we accept the whole byte range.
+
+    // Check that we are in the valid ascii range. If not, outputting an ascii char does not make
+    // sense anyway. We cast to int here, because char can either be signed or unsigned, and hence
+    // different compilers will warn that one of the comparisons is always false. But we need both,
+    // because of compilers differ...
+    // if( static_cast<int>( c ) < 0 || static_cast<int>( c ) > 127 ) {
+    //     throw std::runtime_error( "Invalid ASCII char " + std::to_string( static_cast<int>( c )));
+    // }
+}
+
+std::string char_to_hex( unsigned char c, bool full )
+{
     std::stringstream ss;
     if( full ) {
-        if( std::isprint(c) ) {
-            assert( std::string(1, c) == ascii_symbols_[c] );
-            ss << "'" << std::string( 1, c ) << "' (0x";
+        if( c < 128 ) {
+            if( std::isprint(c) ) {
+                assert( std::string(1, c) == ascii_symbols_[c] );
+                ss << "'" << std::string( 1, c ) << "'";
+            } else {
+                ss << ascii_symbols_[c];
+            }
         } else {
-            ss << ascii_symbols_[c] << " (0x";
+            ss << "non-ASCII char";
         }
+
+        ss << " (0x";
     }
-    ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( c );
+    ss << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>( c );
     if( full ) {
         ss << ")";
     }
