@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 */
 
 /**
- * @brief Testing string functions.
+ * @brief
  *
  * @file
  * @ingroup test
@@ -30,69 +30,13 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/text/convert.hpp"
+#include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/string.hpp"
-#include "genesis/utils/text/style.hpp"
-#include "genesis/utils/text/table.hpp"
 
-#include <cctype>
-#include <limits>
-#include <sstream>
+#include <cstdlib>
 #include <string>
-#include <vector>
 
 using namespace genesis::utils;
-
-TEST(Text, Table)
-{
-    // Not sure yet how to test all this automatically...
-
-    auto t = Table();
-    t.add_column("TEST").justify(Table::Column::Justification::kRight);
-    t.add_column("ME").justify(Table::Column::Justification::kCentered);
-    t.add_column("MORE");
-
-    t << "hello" << "world" << "madness";
-    t << "my" << "goodness my" << "guinness!";
-    t << "time" << "again?" << "yes";
-    // t << "time" << Style("again?") << Style("yes", "blue");
-    t << "something" << "" << "end.";
-
-    // Disabled, because it spams the test output.
-    // std::cout << "no layout:\n";
-    // std::cout << t << "\n";
-    //
-    // std::cout << "minimal_layout:\n";
-    // std::cout << minimal_layout()(t) << "\n";
-    //
-    // std::cout << "simple_layout:\n";
-    // std::cout << simple_layout(true)(t) << "\n";
-    // std::cout << simple_layout(false)(t) << "\n";
-    //
-    // std::cout << "simple_grid:\n";
-    // std::cout << simple_grid(true)(t) << "\n";
-    // std::cout << simple_grid(false)(t) << "\n";
-    //
-    // std::cout << "simple_frame:\n";
-    // std::cout << simple_frame(true)(t) << "\n";
-    // std::cout << simple_frame(false)(t) << "\n";
-    //
-    // std::cout << "extended_grid:\n";
-    // std::cout << extended_grid(true)(t) << "\n";
-    // std::cout << extended_grid(false)(t) << "\n";
-    //
-    // std::cout << "extended_frame:\n";
-    // std::cout << extended_frame(true)(t) << "\n";
-    // std::cout << extended_frame(false)(t) << "\n";
-    //
-    // std::cout << "double_grid:\n";
-    // std::cout << double_grid(true)(t) << "\n";
-    // std::cout << double_grid(false)(t) << "\n";
-    //
-    // std::cout << "double_frame:\n";
-    // std::cout << double_frame(true)(t) << "\n";
-    // std::cout << double_frame(false)(t) << "\n";
-}
 
 TEST( Text, HeadTail )
 {
@@ -204,30 +148,6 @@ TEST( Text, SplitRangeList )
     EXPECT_THROW( split_range_list( "x" ), std::runtime_error );
 }
 
-TEST( Text, Style )
-{
-    Style blue( "blue" );
-    blue.bold( true );
-
-    // Basic
-    std::stringstream ss;
-    ss << blue( "text" );
-    EXPECT_EQ( "\x1B[1;34mtext\x1B[0m", ss.str() );
-
-    // Weird color names.
-    blue.foreground_color( "_R eD_ " );
-    blue.bold( false );
-    ss.str("");
-    ss << blue( "is now red!" );
-    EXPECT_EQ( "\x1B[31mis now red!\x1B[0m", ss.str() );
-
-    // Reset manually.
-    blue.foreground_color( "" );
-    ss.str("");
-    ss << blue( "empty" );
-    EXPECT_EQ( "empty", ss.str() );
-}
-
 TEST( Text, ToString )
 {
     double pi    = 3.14159267535;
@@ -253,68 +173,66 @@ TEST( Text, ToString )
     EXPECT_EQ( "42.42",   to_string_rounded( zeros, 4 ) );
 }
 
-TEST( Text, ConvertBool )
+std::string test_get_random_string( size_t len )
 {
-    auto vals = std::vector<std::string>{
-        "yes", "no", "1", "0", "true", "false", "on", "off"
-    };
-    auto const exp = std::vector<bool>{
-        true, false, true, false, true, false, true, false
-    };
-    EXPECT_TRUE( is_convertible_to_bool( vals.begin(), vals.end() ));
-    EXPECT_EQ( exp, convert_to_bool( vals.begin(), vals.end() ));
-
-    vals.push_back( "x" );
-    EXPECT_FALSE( is_convertible_to_bool( vals.begin(), vals.end() ));
-    EXPECT_ANY_THROW( convert_to_bool( vals.begin(), vals.end() ));
+    std::string str;
+    for( size_t i = 0; i < len; ++i ) {
+        // Valid ASCII range: 32 - 126, inclusive. That's 94 valid chars.
+        str += static_cast<char>( 32 + rand() % 95 );
+    }
+    return str;
 }
 
-TEST( Text, ConvertDouble )
+TEST( Text, ToLower )
 {
-    auto vals = std::vector<std::string>{
-        "3.14", " 42 ", "-1", "-6.023e23", "11e-11"
-    };
-    auto exp = std::vector<double>{
-        3.14, 42.0, -1.0, -6.023e23, 11e-11
-    };
-    EXPECT_TRUE( is_convertible_to_double( vals.begin(), vals.end() ));
-    EXPECT_EQ( exp, convert_to_double( vals.begin(), vals.end() ));
+    // Need strings of sufficient length, to trigger the AVX2 part.
+    std::string const all = "\n\tABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890_"
+    "!@#$%^&*()_+=[]{};:'\",.<>?\\|ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz_"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\tABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    std::string const aim = "\n\tabcdefghijklmnopqrstuvwxyz_1234567890_"
+    "!@#$%^&*()_+=[]{};:'\",.<>?\\|abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_"
+    "abcdefghijklmnopqrstuvwxyz\n\tabcdefghijklmnopqrstuvwxyz";
 
-    // Infinity.
-    vals.push_back( "inf" );
-    vals.push_back( "-infinity" );
-    exp.push_back( std::numeric_limits<double>::infinity() );
-    exp.push_back( - std::numeric_limits<double>::infinity() );
-    EXPECT_TRUE( is_convertible_to_double( vals.begin(), vals.end() ));
-    EXPECT_EQ( exp, convert_to_double( vals.begin(), vals.end() ));
+    EXPECT_EQ( aim, to_lower_ascii( all ));
 
-    // NaN. Need manual check, as nans do not compare.
-    vals.push_back( "nan" );
-    vals.push_back( "NAN(abc)" );
-    EXPECT_TRUE( is_convertible_to_double( vals.begin(), vals.end() ));
-    auto const nan_vals = convert_to_double( vals.begin(), vals.end() );
-    EXPECT_TRUE( std::isnan( nan_vals[7] ));
-    EXPECT_TRUE( std::isnan( nan_vals[8] ));
+    // Run some random tests as well, with increasing length, so that all parts
+    // of the functions, including the AVX2 part, get triggered sufficienty.
+    for( size_t i = 0; i < 100; ++i ) {
+        auto text = test_get_random_string( i );
+        auto test = to_lower_ascii( text );
 
-    // Invalids.
-    vals.push_back( "nope" );
-    EXPECT_FALSE( is_convertible_to_double( vals.begin(), vals.end() ));
-    EXPECT_ANY_THROW( convert_to_double( vals.begin(), vals.end() ));
+        // Convert manually, using the char based function.
+        for( auto& c : text ){
+            c = to_lower_ascii(c);
+        }
+
+        EXPECT_EQ( text, test );
+    }
 }
 
-// TEST( Text, Wrap )
-// {
-    // std::string const text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a "
-    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec "
-    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec "
-    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec\n\n"
-    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec "
-    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec "
-    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec\n"
-    // "consectetur ante hendrerit. Donec et mollis dolor. Praesent et diam eget libero egestas "
-    // "mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur!";
-    //
-    // LOG_DBG << wrap( text );
-    // LOG_DBG << wrap( text, 15 );
-    // LOG_DBG << wrap( text, 5 );
-// }
+TEST( Text, ToUpper )
+{
+    // Need strings of sufficient length, to trigger the AVX2 part.
+    std::string const all = "\n\tabcdefghijklmnopqrstuvwxyz_1234567890_"
+    "!@#$%^&*()_+=[]{};:'\",.<>?\\|abcdefghijklmnopqrstuvwxyz_ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+    "abcdefghijklmnopqrstuvwxyz\n\tabcdefghijklmnopqrstuvwxyz";
+    std::string const aim = "\n\tABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890_"
+    "!@#$%^&*()_+=[]{};:'\",.<>?\\|ABCDEFGHIJKLMNOPQRSTUVWXYZ_ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\tABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    EXPECT_EQ( aim, to_upper_ascii( all ));
+
+    // Run some random tests as well, with increasing length, so that all parts
+    // of the functions, including the AVX2 part, get triggered sufficienty.
+    for( size_t i = 0; i < 100; ++i ) {
+        auto text = test_get_random_string( i );
+        auto test = to_upper_ascii( text );
+
+        // Convert manually, using the char based function.
+        for( auto& c : text ){
+            c = to_upper_ascii(c);
+        }
+
+        EXPECT_EQ( text, test );
+    }
+}

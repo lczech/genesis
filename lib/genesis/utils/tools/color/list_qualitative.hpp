@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_TOOLS_COLOR_QUALITATIVE_LISTS_H_
-#define GENESIS_UTILS_TOOLS_COLOR_QUALITATIVE_LISTS_H_
+#ifndef GENESIS_UTILS_TOOLS_COLOR_LIST_QUALITATIVE_H_
+#define GENESIS_UTILS_TOOLS_COLOR_LIST_QUALITATIVE_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -124,7 +124,7 @@ std::vector<Color> const& color_list_set3();
 //     Convenience Functions
 // =================================================================================================
 
-enum class QualitativeColorList
+enum class ColorListQualitative
 {
     kAccent,
     kDark2,
@@ -136,10 +136,10 @@ enum class QualitativeColorList
     kSet3
 };
 
-std::vector<Color> const& qualitative_color_list( QualitativeColorList palette );
-std::vector<Color> const& qualitative_color_list( std::string const& palette );
+std::vector<Color> const& color_list_qualitative( ColorListQualitative palette );
+std::vector<Color> const& color_list_qualitative( std::string const& palette );
 
-std::vector<std::string> qualitative_color_list_names();
+std::vector<std::string> color_list_qualitative_names();
 
 } // namespace utils
 } // namespace genesis

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/tools/color/qualitative_lists.hpp"
+#include "genesis/utils/tools/color/list_qualitative.hpp"
 
 #include "genesis/utils/tools/color/functions.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -199,37 +199,37 @@ std::vector<Color> const& color_list_set3()
 //     Convenience Functions
 // =================================================================================================
 
-std::vector<Color> const& qualitative_color_list( QualitativeColorList palette )
+std::vector<Color> const& color_list_qualitative( ColorListQualitative palette )
 {
-    if( palette == QualitativeColorList::kAccent ) {
+    if( palette == ColorListQualitative::kAccent ) {
         return color_list_accent_;
     }
-    if( palette == QualitativeColorList::kDark2 ) {
+    if( palette == ColorListQualitative::kDark2 ) {
         return color_list_dark2_;
     }
-    if( palette == QualitativeColorList::kPaired ) {
+    if( palette == ColorListQualitative::kPaired ) {
         return color_list_paired_;
     }
-    if( palette == QualitativeColorList::kPastel1 ) {
+    if( palette == ColorListQualitative::kPastel1 ) {
         return color_list_pastel1_;
     }
-    if( palette == QualitativeColorList::kPastel2 ) {
+    if( palette == ColorListQualitative::kPastel2 ) {
         return color_list_pastel1_;
     }
-    if( palette == QualitativeColorList::kSet1 ) {
+    if( palette == ColorListQualitative::kSet1 ) {
         return color_list_set1_;
     }
-    if( palette == QualitativeColorList::kSet2 ) {
+    if( palette == ColorListQualitative::kSet2 ) {
         return color_list_set2_;
     }
-    if( palette == QualitativeColorList::kSet3 ) {
+    if( palette == ColorListQualitative::kSet3 ) {
         return color_list_set3_;
     }
 
-    throw std::invalid_argument( "Invalid QualitativeColorList value." );
+    throw std::invalid_argument( "Invalid ColorListQualitative value." );
 }
 
-std::vector<Color> const& qualitative_color_list( std::string const& palette )
+std::vector<Color> const& color_list_qualitative( std::string const& palette )
 {
     auto const p = to_lower_ascii( palette );
 
@@ -258,10 +258,10 @@ std::vector<Color> const& qualitative_color_list( std::string const& palette )
         return color_list_set3_;
     }
 
-    throw std::invalid_argument( "Invalid QualitativeColorList name: '" + palette + "'." );
+    throw std::invalid_argument( "Invalid ColorListQualitative name: '" + palette + "'." );
 }
 
-std::vector<std::string> qualitative_color_list_names()
+std::vector<std::string> color_list_qualitative_names()
 {
     return {
         "Accent",

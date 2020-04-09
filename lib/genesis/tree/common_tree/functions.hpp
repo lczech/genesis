@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -77,20 +77,54 @@ std::vector<std::string> node_names(
 );
 
 /**
- * @brief Finds a Node, given its name. If not found, nullptr is returned.
+ * @brief Finds a Node, given its name.
+ *
+ * If not found, by default, `nullptr` is returned. If however @p throw_on_failure is set to `true`,
+ * an exception is thrown instead. This is useful if the continuation of the calling function
+ * does not make sense without having found the node.
  */
 TreeNode const* find_node(
     Tree const& tree,
     std::string const& name,
+    bool throw_on_failure = false,
     bool replace_underscores = false
 );
 
 /**
  * @brief Finds a Node, given its name. If not found, nullptr is returned.
+ *
+ * @copydoc find_node( Tree const&,std::string const&, bool, bool )
  */
 TreeNode* find_node(
     Tree& tree,
     std::string const& name,
+    bool throw_on_failure = false,
+    bool replace_underscores = false
+);
+
+/**
+ * @brief Find TreeNode%s in a Tree, given their name.
+ *
+ * If a particular node is not found, by default, the respective entry is a `nullptr`.
+ * If however @p throw_on_failure is set to `true`, an exception is thrown instead. This is useful
+ * if the continuation of the calling function does not make sense without having found the node.
+ */
+std::vector<TreeNode const*> find_nodes(
+    Tree const& tree,
+    std::vector<std::string> const& node_names,
+    bool throw_on_failure = false,
+    bool replace_underscores = false
+);
+
+/**
+ * @brief Find TreeNode%s in a Tree, given their name.
+ *
+ * @copydoc find_nodes( Tree const&, std::vector<std::string> const&, bool, bool )
+ */
+std::vector<TreeNode*> find_nodes(
+    Tree& tree,
+    std::vector<std::string> const& node_names,
+    bool throw_on_failure = false,
     bool replace_underscores = false
 );
 

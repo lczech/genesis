@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Bipartition Functions
+//     Bipartition Helper Functions
 // =================================================================================================
 
 /**
@@ -59,6 +59,26 @@ std::vector<size_t> node_to_leaf_map( Tree const& tree );
 utils::Bitvector leaf_node_bitvector( Tree const& tree, std::vector<TreeNode const*> leaf_nodes );
 
 std::vector<size_t> get_subtree_edges( TreeLink const& subtree );
+
+/**
+ * @brief Find the smallest subtree (measured in number of nodes) that contains all given nodes.
+ *
+ * A subtree is defined by one of the two parts of a tree that are splitted by one edge. Thus,
+ * conceptually, this function tries all subtrees by leaving out each edge once.
+ * It then returns the smalles subtree that contains all of the given nodes.
+ *
+ * The subtree might contain additional nodes that are not in the given set.
+ * If no fitting subtree exists, the function returns an empty Bipartition.
+ */
+Bipartition find_smallest_subtree(
+    Tree const& tree,
+    std::vector<Bipartition> const& bipartitions,
+    std::vector<TreeNode const*> const& nodes
+);
+
+// =================================================================================================
+//     Monophyletic Subtree Functions
+// =================================================================================================
 
 /**
  * @brief Find clades of the tree that are monophyletic with respect to the given list of nodes,
@@ -95,21 +115,23 @@ std::vector<size_t> find_monophyletic_subtree_edges(
     bool include_leaf_edges = true
 );
 
-/**
- * @brief Find the smallest subtree (measured in number of nodes) that contains all given nodes.
- *
- * A subtree is defined by one of the two parts of a tree that are splitted by one edge. Thus,
- * conceptually, this function tries all subtrees by leaving out each edge once.
- * It then returns the smalles subtree that contains all of the given nodes.
- *
- * The subtree might contain additional nodes that are not in the given set.
- * If no fitting subtree exists, the function returns an empty Bipartition.
- */
-Bipartition find_smallest_subtree(
+std::vector<size_t> find_monophyletic_subtree_edges(
     Tree const& tree,
-    std::vector<Bipartition> const& bipartitions,
-    std::vector<TreeNode const*> const& nodes
+    std::vector<TreeNode const*> const& nodes,
+    bool include_splitting_edges = true,
+    bool include_leaf_edges = true
 );
+
+std::vector<size_t> find_monophyletic_subtree_edges(
+    Tree const& tree,
+    std::vector< std::string > const& node_names,
+    bool include_splitting_edges = true,
+    bool include_leaf_edges = true
+);
+
+// =================================================================================================
+//     Whole Clade Functions
+// =================================================================================================
 
 std::vector<size_t> get_clade_edges(
     Tree const& tree,

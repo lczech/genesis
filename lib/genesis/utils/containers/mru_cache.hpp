@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -82,6 +82,10 @@ namespace utils {
  * // Access an element, that is, load a file into the cache.
  * auto const& content = cache.fetch( "test.txt" );
  * ~~~
+ *
+ * Caching large files in a multi-threaded environment is a main use case of this class. In order
+ * to avoid fetching actual copies of the data each time, `std::shared_ptr` can be used.
+ * See fetch_copy() for details.
  *
  * Lastly, a second functor @link MruCache::release_function release_function@endlink can be used
  * to specify a function that is exectued before an element is removed from the cache.
@@ -313,7 +317,7 @@ public:
      *
      * // Fetch an element, that is, load a file into the cache.
      * // Store it by copy, which just copies the shared pointer.
-     * auto content = cache.fetch_copy( "fail2.jtest" );
+     * auto content = cache.fetch_copy( "large_file.txt" );
      * ~~~
      *
      * As the control block of `std::shared_ptr` is thread safe, these shared pointer copies can
@@ -414,7 +418,7 @@ public:
     {
         // Lock access to everything. It would be a weird use case where this function is called
         // while also fetching copies of elements in a different thread, but still,
-        // we need do protect this.
+        // we need to protect this.
         std::lock_guard<std::mutex> lock( mutex_ );
 
         capacity_ = value;
@@ -461,7 +465,7 @@ private:
             // This needs to be maintained.
             assert( lookup_.size() == cache_.size() );
 
-            // If we are here, size > capacity_ > 0
+            // If we are here, size > capacity > 0. Hence, size > 1.
             assert( cache_.size() > 1 );
 
             auto& last = cache_.back();
@@ -538,7 +542,7 @@ private:
     std::list< value_type > cache_;
 
     /**
-     * @brief Lookup to find elemetns in the list quickly.
+     * @brief Lookup to find elements in the list quickly.
      *
      * Introduces space overhead for storing the keys again, but allows to find an iterator
      * to an element in the list quickly.

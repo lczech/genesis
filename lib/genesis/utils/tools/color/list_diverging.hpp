@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_TOOLS_COLOR_DIVERGING_LISTS_H_
-#define GENESIS_UTILS_TOOLS_COLOR_DIVERGING_LISTS_H_
+#ifndef GENESIS_UTILS_TOOLS_COLOR_LIST_DIVERGING_H_
+#define GENESIS_UTILS_TOOLS_COLOR_LIST_DIVERGING_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -133,7 +133,7 @@ std::vector<Color> const& color_list_spectral();
 //     Convenience Functions
 // =================================================================================================
 
-enum class DivergingColorList
+enum class ColorListDiverging
 {
     kBrbg,
     kPiyg,
@@ -146,10 +146,10 @@ enum class DivergingColorList
     kSpectral
 };
 
-std::vector<Color> const& diverging_color_list( DivergingColorList palette );
-std::vector<Color> const& diverging_color_list( std::string const& palette );
+std::vector<Color> const& color_list_diverging( ColorListDiverging palette );
+std::vector<Color> const& color_list_diverging( std::string const& palette );
 
-std::vector<std::string> diverging_color_list_names();
+std::vector<std::string> color_list_diverging_names();
 
 } // namespace utils
 } // namespace genesis
