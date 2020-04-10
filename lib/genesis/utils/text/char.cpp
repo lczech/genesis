@@ -53,7 +53,7 @@ namespace utils {
  * by their ASCII code directly. But as there is the "DEL" symbol at the end, using this list is
  * easier than introducing a special case for that.
  */
-static const std::array<std::string, 128> ascii_symbols_ = {
+static const std::array<std::string, 128> ascii_symbols_ = {{
     "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL", "BS", "HT", "LF", "VT", "FF", "CR", "SO", "SI",
     "DLE", "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB", "CAN", "EM", "SUB", "ESC", "FS", "GS", "RS", "US",
     " ", "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/",
@@ -62,7 +62,7 @@ static const std::array<std::string, 128> ascii_symbols_ = {
     "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "\\", "]", "^", "_",
     "`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o",
     "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "{", "|", "}", "~", "DEL"
-};
+}};
 
 std::string char_to_hex( char c, bool full )
 {

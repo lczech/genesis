@@ -33,10 +33,20 @@
 #include "genesis/utils/tools/date_time.hpp"
 
 #include <cmath>
+#include <ctime>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
 using namespace genesis::utils;
+
+// Run these tests only if the compiler is gcc >= 5, or not gcc at all.
+// This is because gcc < 5 does not support std::get_time and std::put_time, and only partially
+// supports their raw alternatives. All these tests are for functionality that uses these unsupported
+// functions. We hence cannot run the tests with gcc < 5.
+#if !( defined(__GNUC__) && (__GNUC___ < 5) && !defined(__clang__) && !defined(__INTEL_COMPILER) )
 
 TEST( DateTime, ConversionTM )
 {
@@ -109,3 +119,41 @@ TEST( DateTime, ConversionString )
     std::string const s3 = "2020-04-17T00:27:58";
     EXPECT_EQ( s3, tm_to_string( convert_to_tm( s3 )));
 }
+
+TEST( DateTime, ClangMktimeBug )
+{
+    // Pick a date. Coincidentally, we use the one from
+    // https://stackoverflow.com/questions/46031765/convert-time-string-to-stdtime-t-using-stdget-time-wrong-result
+    std::string const testdate = "2016:07:30 09:27:06";
+
+    // Set up stream and parsing information
+    struct std::tm tm;
+    std::istringstream iss;
+    iss.str( testdate );
+    iss.imbue( std::locale( "C" ));
+    iss >> std::get_time(&tm,"%Y:%m:%d %H:%M:%S");
+
+    // Set time zone.
+    char* tz;
+    tz = ::getenv("TZ");
+    ::setenv("TZ", "", 1);
+    ::tzset();
+
+    // Make the conversion.
+    std::time_t time = std::mktime(&tm);
+
+    // Return to previous time zone.
+    if( tz ) {
+        ::setenv("TZ", tz, 1);
+    } else {
+        ::unsetenv("TZ");
+    }
+    ::tzset();
+
+    // Converted manually with https://www.epochconverter.com/
+    EXPECT_EQ( 1469870826, time ) << "Conversion with std::mktime is broken. This is probably due to a bug in the compiler and STL implementation you are using. Try to upgrade to a new compiler version!";
+    // std::cout << testdate << " = " << time << std::endl;
+
+}
+
+#endif

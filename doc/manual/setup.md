@@ -69,8 +69,10 @@ in the main directory. This builds all parts of Genesis for which the dependenci
 Requirements:
 
  *  [Make](https://www.gnu.org/software/make/) and [CMake](https://cmake.org/) 2.8.7 or higher.
- *  A fairly up-to-date C++11 compiler. We currently test with [clang++](http://clang.llvm.org/)
-    3.6 and 3.7, as well as [GCC](https://gcc.gnu.org/) 4.9 and 5.0.
+ *  A fairly up-to-date C++11 compiler. We recommend using [clang++](http://clang.llvm.org/) >= 3.9
+    or [gcc](https://gcc.gnu.org/) >= 5.
+    <!-- We currently test with [clang++](http://clang.llvm.org/)
+    3.6 and 3.7, as well as [gcc](https://gcc.gnu.org/) 4.9 and 5.0. -->
 
 <!-- The requirements are of course also needed when using Genesis as a library. -->
 For details, see the @ref supplement_build_process "Build Process" page.
