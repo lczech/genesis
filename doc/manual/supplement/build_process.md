@@ -161,21 +161,30 @@ where, instead of `MODULE`, you can also use `OFF`.
 # Supported Compilers @anchor supplement_build_process_supported_compilers
 
 Genesis uses C++11, thus we need a compiler that supports all its features.
+We recommend gcc >= 5 or clang >= 3.9.
 
-The first GCC version with all necessary features (including `std::regex`) is 4.9, see
+The first gcc version with all necessary features is gcc 5.
+Before that, gcc 4.8 and gcc 4.9 promised to be feature-complete for C++11, see
 [here](https://gcc.gnu.org/projects/cxx-status.html#cxx11) and
-[here](https://gcc.gnu.org/ml/gcc/2014-04/msg00195.html). Compiling with GCC 4.8 should work,
-and most features of Genesis can be used, too. However, this throws an exception when trying to call
-any function that uses `std::regex`.
+[here](https://gcc.gnu.org/ml/gcc/2014-04/msg00195.html).
+Unfortunately, some functionality is still not available in these versions, in particular,
+`std::regex`, `std::get_time`, and `std::put_time`, which are used in some functions of genesis.
+Hence, we recommend at least gcc 5.
+Compiling with gcc 4.8 and 4.9 should still work, and most features of Genesis can be used, too.
+However, this throws an exception when trying to call any function that uses `std::regex`,
+`std::get_time`, and `std::put_time` (which are just a few).
 
 Clang supports C++11 since version 3.3, see [here](https://clang.llvm.org/cxx_status.html).
-However, we currently test it with Clang 3.6 and 3.7 only. You are welcome to report any issues
+We currently only test it with later versions though. You are welcome to report any issues
 with other Clang versions to the [GitHub Issues Page](https://github.com/lczech/genesis/issues).
+Also, older versions of clang have issues with finding OpenMP. If this causes issues,
+you can either deactivate OpenMP via the CMake options (not recommended), or install `libomp5` and
+`libiomp-dev` before compiling.
 
 Make sure that your `libstdc++` is also up to date. This is the standard library for C++, which is
-heavily used in Genesis. It is usually installed with `g++`. However, `clang++` uses the `g++`
-version of `libstdc++`, so if you have a new `clang++`, but old `g++` version, this might cause
-trouble. Best to update both of them.
+heavily used in Genesis. It is usually installed with `g++`. However, some versions of `clang++` seem
+to use the `g++` version of `libstdc++`, so if you have a new `clang++`, but old `g++` version,
+this might cause trouble. Best to update both of them.
 
 # Testing Genesis with GTest @anchor supplement_build_process_testing_with_gtest
 

@@ -31,6 +31,7 @@
 #include "genesis/utils/tools/date_time.hpp"
 
 #include "genesis/utils/text/string.hpp"
+#include "genesis/utils/core/options.hpp"
 
 #include <array>
 #include <cerrno>
@@ -177,25 +178,26 @@ std::vector<std::tm> time_to_tm( std::vector<std::time_t> const& times, bool use
 
 std::string tm_to_string( std::tm const& time, std::string const& format, std::string const& locale )
 {
-    // gcc claims that version 4.8.1 was feature complete for C+=11. That fact that std::put_time
-    // is only available starting with gcc 5 determines that this is not true. Hence, to also
-    // support gcc < 5, we have to work around this limitation.
+    // gcc claims that version 4.8.1 was feature-complete for C+=11, see
+    // https://gcc.gnu.org/projects/cxx-status.html#cxx11. That fact that std::put_time and
+    // std::get_time are only available starting with gcc 5 determines that this is not true.
+    // Hence, to also support gcc < 5, we have to work around this limitation.
 
     // Prepare a locale and a stream
     auto const loc = std::locale( locale.c_str() );
-    std::ostringstream ss{};
-    ss.imbue( loc );
+    std::ostringstream oss{};
+    oss.imbue( loc );
 
     // Explicitly create a time facet that we can use to put the time to the stream.
     std::time_put<char> const& tmput = std::use_facet<std::time_put<char>>( loc );
-    tmput.put( ss, ss, ' ', &time, &format[0], &format[0] + format.size() );
-    return ss.str();
+    tmput.put( oss, oss, ' ', &time, &format[0], &format[0] + format.size() );
+    return oss.str();
 
     // Simple version that does not work with gcc < 5
-    // std::ostringstream ss{};
-    // ss.imbue(std::locale( locale.c_str() ));
-    // ss << std::put_time( &time, format.c_str() );
-    // return ss.str();
+    // std::ostringstream oss{};
+    // oss.imbue(std::locale( locale.c_str() ));
+    // oss << std::put_time( &time, format.c_str() );
+    // return oss.str();
 }
 
 std::string tm_to_string( std::tm const& time, std::string const& format )
@@ -223,13 +225,13 @@ std::string tm_time_to_string( std::tm const& time )
 // =================================================================================================
 
 // Typical locales that we expect to see in scientific data.
-static const std::array<std::string, 3> locales_ = { "C", "en_US.UTF-8", "" };
+static const std::array<std::string, 3> locales_ = {{ "C", "en_US.UTF-8", "" }};
 
 // Typical formats that we expect to see in scientific data.
-static const std::array<std::string, 9> formats_ = {
+static const std::array<std::string, 9> formats_ = {{
     "%Y-%m-%d", "%Y%m%d", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y%m%dT%H%M%S",
     "%Y%m%d %H%M%S", "%Y%m%d%H%M%S", "%H:%M:%S", "%H%M%S"
-};
+}};
 
 /**
  * @brief Local helper function that does the heavy load of time conversion.
@@ -239,6 +241,14 @@ static const std::array<std::string, 9> formats_ = {
  */
 bool convert_to_tm_( std::string const& str, std::string const& format, std::string const& locale, std::tm& t )
 {
+    // gcc claims that version 4.8.1 was feature-complete for C+=11, see
+    // https://gcc.gnu.org/projects/cxx-status.html#cxx11. That fact that std::put_time and
+    // std::get_time are only available starting with gcc 5 determines that this is not true.
+    // Hence, to also support gcc < 5, we have to work around this limitation.
+    // Still, it does not work with gcc 4.8, unfortunately.
+
+    #if !( defined(__GNUC__) && (__GNUC___ < 5) && !defined(__clang__) && !defined(__INTEL_COMPILER) )
+
     // Init the tm object to all zeros, see https://en.cppreference.com/w/cpp/io/manip/get_time
     // We are re-using the object when called from looping functions, so this is necessary.
     t.tm_sec   = 0;
@@ -251,15 +261,53 @@ bool convert_to_tm_( std::string const& str, std::string const& format, std::str
     t.tm_yday  = 0;
     t.tm_isdst = 0;
 
+    // Prepare a locale and a stream
+    auto loc = std::locale( locale.c_str() );
+    std::istringstream iss( trim( str ));
+    iss.imbue( loc );
+
+    // Explicitly create a time facet and other helper objects
+    // that we can use to get the time from the stream.
+    std::time_get<char> const& tmget = std::use_facet<std::time_get<char>>( loc );
+    std::ios::iostate state = std::ios_base::goodbit;
+
     // Run the conversion, using all provided information.
-    std::istringstream ss( trim( str ));
-    ss.imbue( std::locale( locale.c_str() ));
-    ss >> std::get_time( &t, format.c_str() );
+    tmget.get(
+        iss, std::time_get<char>::iter_type(), iss, state, &t, &format[0], &format[0] + format.size()
+    );
 
     // Return whether that worked or failed, and whether we also reached the end of the stream.
     // If we did not reach EOF, there is more data in the stream, which means, we only partially
     // matched the string, so that it is not an actual fit.
-    return ! ss.fail() && ss.eof();
+    // We do this by a hard comparison against the eof bit mask. We cannot use the iss.eof()
+    // function here, because the iss state is not set by our code above.
+    return ! iss.fail() && state == std::ios_base::eofbit;
+
+    #else
+
+    (void) str;
+    (void) format;
+    (void) locale;
+    (void) t;
+
+    throw std::runtime_error(
+        "You compiled with " + Options::get().compiler_family() + " " + Options::get().compiler_version() +
+        ", which does not support time conversion functions std::get_time and std::time_get::get. " +
+        "Please upgrade to a newer compiler."
+    );
+
+    #endif
+
+    // Simple version that does not work with gcc < 5
+    // // Run the conversion, using all provided information.
+    // std::istringstream iss( trim( str ));
+    // iss.imbue( std::locale( locale.c_str() ));
+    // iss >> std::get_time( &t, format.c_str() );
+    //
+    // // Return whether that worked or failed, and whether we also reached the end of the stream.
+    // // If we did not reach EOF, there is more data in the stream, which means, we only partially
+    // // matched the string, so that it is not an actual fit.
+    // return ! iss.fail() && iss.eof();
 }
 
 std::tm convert_to_tm( std::string const& str, std::string const& format, std::string const& locale )
