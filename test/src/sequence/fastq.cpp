@@ -65,7 +65,25 @@ TEST( Sequence, FastqReader )
     EXPECT_EQ( sset[0].size(), sset[0].phred_scores().size() );
 
     // Check quality scores. We just pick one of them here.
+    // As this is an early one in the sequence, this also catches the AVX conversion
     EXPECT_EQ( 6, sset[0].phred_scores()[1] );
+
+    // Now also check the full encoding. Because we can.
+    auto const qual_0 = std::vector<unsigned char>{{
+         0,  6,  6,  9,  7,  7,  7,  7,  9,  9,  9, 10,  8,  8,  4,  4,  4, 10, 10,  8,
+         7,  4,  4,  4,  4,  8, 13, 16,  9,  9,  9, 12, 10,  9,  6,  6,  8,  8,  9,  9,
+        20, 20, 34, 34, 37, 29, 29, 29, 29, 29, 29, 34, 34, 34, 34, 34, 34, 34, 21, 20
+    }};
+    auto const qual_1 = std::vector<unsigned char>{{
+        68, 69, 66, 69, 69, 69, 69, 69, 66, 69, 68, 68, 69, 69, 69, 66, 69, 69, 69, 69,
+        69, 69, 67, 67, 69, 63, 69, 66, 68, 69, 60, 63, 60, 62, 33, 64, 62, 61, 62, 62,
+        58, 56, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 49, 51, 51, 59, 60, 60, 58, 60,
+        67, 67, 67, 67, 63, 67, 67, 67, 61, 67, 67, 67, 64, 67, 67, 61, 33, 33, 33, 33,
+        33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33
+    }};
+
+    EXPECT_EQ( qual_0, sset[0].phred_scores() );
+    EXPECT_EQ( qual_1, sset[1].phred_scores() );
 }
 
 TEST( Sequence, FastqEncoding )
@@ -73,7 +91,7 @@ TEST( Sequence, FastqEncoding )
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
 
-    // Load sequence file.
+    // Load sequence file. We use a different file, to have more testing variety.
     std::string infile = environment->data_dir + "sequence/SP1.fq";
 
     auto const enc = guess_fastq_quality_encoding( utils::from_file( infile ));
