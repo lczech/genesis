@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/sequence/formats/fastq_reader.hpp"
+#include "genesis/sequence/formats/fastq_input_iterator.hpp"
 #include "genesis/sequence/functions/quality.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 
@@ -96,4 +97,28 @@ TEST( Sequence, FastqEncoding )
 
     auto const enc = guess_fastq_quality_encoding( utils::from_file( infile ));
     EXPECT_EQ( QualityEncoding::kSanger, enc );
+}
+
+TEST( Sequence, FastqInputIterator )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string infile = environment->data_dir + "sequence/SP1.fq";
+
+    size_t cnt = 0;
+    auto it = FastqInputIterator( utils::from_file( infile ));
+    while( it ) {
+        // std::cout << "A " << cnt << " " << it->length() << "\n";
+        ++cnt;
+        ++it;
+    }
+    EXPECT_EQ( 250, cnt );
+
+    cnt = 0;
+    for( auto const& s : FastqInputIterator( utils::from_file( infile )) ) {
+        (void) s;
+        // std::cout << "B " << cnt << " " << s.length() << "\n";
+        ++cnt;
+    }
+    EXPECT_EQ( 250, cnt );
 }

@@ -38,6 +38,7 @@
 #include "genesis/sequence/formats/fasta_output_iterator.hpp"
 #include "genesis/sequence/formats/fasta_reader.hpp"
 #include "genesis/sequence/formats/fasta_writer.hpp"
+#include "genesis/sequence/formats/fastq_input_iterator.hpp"
 #include "genesis/sequence/formats/fastq_reader.hpp"
 #include "genesis/sequence/formats/phylip_reader.hpp"
 #include "genesis/sequence/formats/phylip_writer.hpp"
