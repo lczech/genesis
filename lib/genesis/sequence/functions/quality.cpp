@@ -30,6 +30,7 @@
 
 #include "genesis/sequence/functions/quality.hpp"
 
+#include "genesis/sequence/formats/fastq_reader.hpp"
 #include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
@@ -38,6 +39,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <cstdint>
 #include <stdexcept>
 
 namespace genesis {
@@ -53,7 +55,7 @@ namespace sequence {
 inline void throw_invalid_quality_code_( char quality_code, QualityEncoding encoding )
 {
     throw std::invalid_argument(
-        "Invalid quality code: " + utils::char_to_hex( quality_code, true ) +
+        "Invalid quality code: " + utils::char_to_hex( quality_code ) +
         " is not in the valid range for " + quality_encoding_name( encoding ) + " quality codes."
     );
 }
@@ -157,7 +159,6 @@ std::vector<unsigned char> quality_decode_to_phred_score(
         }
 
         result[i] = static_cast<unsigned char>( quality_codes[i] ) - offset;
-        assert( result[i] >= 0 );
     }
 
     // For Solexa, we iterate the sequence again in order to convert it to phred.
@@ -175,7 +176,7 @@ std::vector<unsigned char> quality_decode_to_phred_score(
 //     Guess Quality Encoding Type
 // =================================================================================================
 
-QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_counts )
+QualityEncoding guess_fastq_quality_encoding( std::array<size_t, 128> const& char_counts )
 {
     // Find the first entry that is not 0
     size_t min = 0;
@@ -234,35 +235,46 @@ QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_coun
     return QualityEncoding::kIllumina15;
 }
 
-// QualityEncoding guess_quality_encoding( std::shared_ptr< utils::BaseInputSource > source )
-// {
-//     // Init a counting array for each char, use value-initialization to 0
-//     std::array<size_t, 128> char_counts{};
-//
-//     // Prepare a reader that simply increments all char counts for the quality chars
-//     // that are found in the sequences.
-//     auto reader = FastqReader();
-//     reader.quality_string_plugin(
-//         [&]( std::string const& quality_string, Sequence& sequence )
-//         {
-//             (void) sequence;
-//             for( auto q : quality_string ) {
-//                 assert( (q & ~0x7f) == 0 );
-//                 ++char_counts[ q ];
-//             }
-//         }
-//     );
-//
-//     // Read the input, sequence by sequence.
-//     utils::InputStream input_stream( source );
-//     Sequence seq;
-//     while( reader.parse_sequence( input_stream, seq ) ) {
-//         // Do nothing. All the work is done in the plugin function above.
-//     }
-//
-//     // Return our guess based on the quality charactgers that were found in the sequences.
-//     return guess_quality_encoding( char_counts );
-// }
+QualityEncoding guess_fastq_quality_encoding( std::shared_ptr< utils::BaseInputSource > source )
+{
+    // Init a counting array for each char, use value-initialization to 0
+    auto char_counts = std::array<size_t, 128>();
+
+    // Prepare a reader that simply increments all char counts for the quality chars
+    // that are found in the sequences.
+    auto reader = FastqReader();
+    reader.quality_string_plugin(
+        [&]( std::string const& quality_string, Sequence& sequence )
+        {
+            (void) sequence;
+            for( auto q : quality_string ) {
+
+                // Cast, so that we catch the issue that char can be signed or unsigned,
+                // depending on the compiler. This might cause unnecessary warnings otherwise.
+                auto qu = static_cast<unsigned char>(q);
+                if( qu > 127 ) {
+                    throw std::invalid_argument(
+                        "Invalid quality score character outside of the ASCII range."
+                    );
+                }
+
+                // assert( (q & ~0x7f) == 0 );
+                assert( qu < char_counts.size() );
+                ++char_counts[ qu ];
+            }
+        }
+    );
+
+    // Read the input, sequence by sequence.
+    utils::InputStream input_stream( source );
+    Sequence seq;
+    while( reader.parse_sequence( input_stream, seq ) ) {
+        // Do nothing. All the work is done in the plugin function above.
+    }
+
+    // Return our guess based on the quality characters that were found in the sequences.
+    return guess_fastq_quality_encoding( char_counts );
+}
 
 // =================================================================================================
 //     Quality Computations

@@ -67,3 +67,15 @@ TEST( Sequence, FastqReader )
     // Check quality scores. We just pick one of them here.
     EXPECT_EQ( 6, sset[0].phred_scores()[1] );
 }
+
+TEST( Sequence, FastqEncoding )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Load sequence file.
+    std::string infile = environment->data_dir + "sequence/SP1.fq";
+
+    auto const enc = guess_fastq_quality_encoding( utils::from_file( infile ));
+    EXPECT_EQ( QualityEncoding::kSanger, enc );
+}
