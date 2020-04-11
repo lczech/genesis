@@ -32,6 +32,7 @@
  */
 
 #include <string>
+#include <vector>
 
 namespace genesis {
 namespace sequence {
@@ -74,9 +75,22 @@ public:
         swap( sites_,    other.sites_ );
     }
 
+    void clear()
+    {
+        label_.clear();
+        sites_.clear();
+        phred_scores_.clear();
+        abundance_ = 1;
+    }
+
     // -------------------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------------------
+
+    std::string& label()
+    {
+        return label_;
+    }
 
     std::string const& label() const
     {
@@ -91,6 +105,11 @@ public:
     void label( std::string&& value )
     {
         label_ = std::move( value );
+    }
+
+    std::string& sites()
+    {
+        return sites_;
     }
 
     std::string const& sites() const
@@ -108,9 +127,24 @@ public:
         sites_ = std::move( value );
     }
 
-    std::string& sites()
+    std::vector<unsigned char>& phred_scores()
     {
-        return sites_;
+        return phred_scores_;
+    }
+
+    std::vector<unsigned char> const& phred_scores() const
+    {
+        return phred_scores_;
+    }
+
+    void phred_scores( std::vector<unsigned char> const& value )
+    {
+        phred_scores_ = value;
+    }
+
+    void phred_scores( std::vector<unsigned char>&& value )
+    {
+        phred_scores_ = std::move( value );
     }
 
     size_t abundance() const
@@ -121,13 +155,6 @@ public:
     void abundance( size_t value )
     {
         abundance_ = value;
-    }
-
-    void clear()
-    {
-        label_     = "";
-        sites_     = "";
-        abundance_ = 1;
     }
 
     // -------------------------------------------------------------------------
@@ -212,6 +239,8 @@ private:
 
     std::string label_;
     std::string sites_;
+
+    std::vector<unsigned char> phred_scores_;
     size_t      abundance_ = 1;
 
 };
