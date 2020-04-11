@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,11 +52,17 @@ namespace sequence {
 /**
  * @brief Iterate an input source and parse it as Fasta sequences.
  *
- * This class allows to iterate over an input source, iterpreting it as Fasta sequences, and
+ * This class allows to iterate over an input source, interpreting it as Fasta sequences, and
  * yielding one such sequence per iteration step. This is useful for processing large files without
  * having to keep them fully in memory.
  *
  * Example:
+ *
+ *     for( auto const& s : FastaInputIterator( from_file( "/path/to/large_file.fasta" ))) {
+ *         std::cout << s.length() << "\n";
+ *     }
+ *
+ * Alternatively, the following also works:
  *
  *     auto it = FastaInputIterator( from_file( "/path/to/large_file.fasta" ) );
  *     while( it ) {
@@ -102,8 +108,8 @@ public:
      */
     FastaInputIterator()
         : input_stream_( nullptr )
-        , reader_()
         , sequence_()
+        , reader_()
     {}
 
     /**
@@ -111,8 +117,8 @@ public:
      */
     explicit FastaInputIterator( std::shared_ptr<utils::BaseInputSource> source )
         : input_stream_( std::make_shared<utils::InputStream>( source ))
-        , reader_()
         , sequence_()
+        , reader_()
     {
         increment();
     }
@@ -123,8 +129,8 @@ public:
      */
     FastaInputIterator( std::shared_ptr<utils::BaseInputSource> source, FastaReader const& settings )
         : input_stream_( std::make_shared<utils::InputStream>( source ))
-        , reader_( settings )
         , sequence_()
+        , reader_( settings )
     {
         increment();
     }
@@ -182,10 +188,38 @@ public:
     //     Iteration
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Beginning of the iterator.
+     *
+     * This is a bit uncommon, as the iterator provides its own begin() and end() functions.
+     * We do this to allow the easy use case that is explained above.
+     */
+    self_type& begin()
+    {
+        return *this;
+    }
+
+    /**
+     * @brief End of the iterator.
+     *
+     * @copydoc begin()
+     */
+    self_type end()
+    {
+        return FastaInputIterator();
+    }
+
     self_type& operator ++ ()
     {
         increment();
         return *this;
+    }
+
+    self_type operator ++(int)
+    {
+        auto r = *this;
+        increment();
+        return r;
     }
 
     void increment()
@@ -194,6 +228,8 @@ public:
         // If not, we reached its end, so we stop reading in the next iteration.
         if( ! input_stream_ || ! *input_stream_ ) {
             good_ = false;
+            input_stream_ = nullptr;
+            sequence_ = Sequence();
             return;
         }
 
@@ -206,11 +242,11 @@ public:
 
 private:
 
+    bool good_ = true;
     std::shared_ptr<utils::InputStream> input_stream_;
 
-    bool        good_ = true;
-    FastaReader reader_;
     Sequence    sequence_;
+    FastaReader reader_;
 };
 
 } // namespace sequence
