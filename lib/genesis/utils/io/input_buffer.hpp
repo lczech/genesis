@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -134,17 +134,20 @@ public:
 
     char peek( size_t ahead = 1 )
     {
-        if( ahead > BlockLength ) {
-            throw std::runtime_error(
-                "Cannot peek ahead more than one block length of the Input Buffer."
-            );
-        }
-
-        // Common use case: we can securely peek ahead.
-        // Make sure we do not peek at data behind the end.
         if( data_pos_ + ahead < data_end_ ) {
+
+            // Common use case: we can securely peek ahead.
+            // Make sure we do not peek at data behind the end.
             return buffer_[ data_pos_ + ahead ];
+
         } else {
+            // More complex use case where we peek ahead a bit further
+
+            if( ahead > BlockLength ) {
+                throw std::runtime_error(
+                    "Cannot peek ahead more than one block length of the Input Buffer."
+                );
+            }
 
             // Read blocks if necessary. Now we are surely in the first block.
             update_blocks_();
