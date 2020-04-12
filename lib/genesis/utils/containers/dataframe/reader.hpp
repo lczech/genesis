@@ -36,6 +36,7 @@
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/text/convert.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <functional>
@@ -126,6 +127,17 @@ public:
         return reader_;
     }
 
+    bool trim_whitespace() const
+    {
+        return trim_whitespace_;
+    }
+
+    DataframeReader& trim_whitespace( bool value )
+    {
+        trim_whitespace_ = value;
+        return *this;
+    }
+
     DataframeReader& parse_value_functor( std::function<T( std::string const& )> functor )
     {
         parse_value_ = functor;
@@ -207,55 +219,53 @@ private:
             auto const row_idx = result.rows() - 1;
             if( parse_value_ ) {
                 for( size_t i = 0; i < result.cols(); ++i ) {
+                    auto& col = dynamic_cast<Dataframe::Column<T>&>(result[i]);
+                    col[row_idx] = parse_value_(
+                        trim_whitespace_ ? trim(line[ offset + i ]) : line[ offset + i ]
+                    );
+
+                    // Some old ideas, for reference.
                     // result( row_idx, i ) = parse_value_( line[ offset + i ] );
                     // result[i][row_idx] = parse_value_( line[ offset + i ] );
-                    auto& col = dynamic_cast<Dataframe::Column<T>&>(result[i]);
-                    col[row_idx] = parse_value_( line[ offset + i ] );
                 }
             } else {
                 for( size_t i = 0; i < result.cols(); ++i ) {
+                    auto& col = dynamic_cast<Dataframe::Column<T>&>(result[i]);
+
+                    // Here, we assume that the value we are reading is the only thing in the str.
+                    // The Csv Reader offers to trim chars (eg whitespace), but does not do so by default,
+                    // in order to follow the csv specification, which states that any whitespace is considered
+                    // to be part of the field. So, we treat this specification with respect, and also do not
+                    // trim it here by default. That means, we fail whenever there is whitespace.
+                    // The option trim_whitespace() is then used to allow whitespace around each cell.
+
+                    // We need to catch exceptions, in order to give more useful error messages
+                    // here. In the normal non-throw case, this does not cost us any speed,
+                    // so this is okay.
+                    try {
+                        col[row_idx] = convert_from_string<T>(
+                            trim_whitespace_ ? trim(line[ offset + i ]) : line[ offset + i ]
+                        );
+                    } catch(...) {
+                        throw std::runtime_error(
+                            "Cannot parse value \"" + line[ offset + i ] + "\" into Dataframe. "
+                            "Either the input data does not represent values of the specified data "
+                            "type, or the input data table contains whitespace around the fields. "
+                            "If the latter, allow to trim the respective whitespace chars by "
+                            "setting the CsvReader::trim_chars() option accordingly."
+                        );
+                    }
+
+                    // Some old ideas, for reference.
                     // result( row_idx, i ) = parse_value_default_( line[ offset + i ] );
                     // result[i][row_idx] = parse_value_default_( line[ offset + i ] );
-                    auto& col = dynamic_cast<Dataframe::Column<T>&>(result[i]);
-                    col[row_idx] = parse_value_default_<T>( line[ offset + i ] );
+                    // col[row_idx] = parse_value_default_<T>( line[ offset + i ] );
                 }
             }
         }
 
         assert( result.rows() == line_cnt - ( col_names_from_first_row_ ? 1 : 0 ));
         return result;
-    }
-
-    template <typename S>
-    T parse_value_default_( std::string const& cell ) const
-    {
-        // Generic parser that just uses a string stream.
-        std::stringstream ss( cell );
-        T value;
-
-        // Here, we assume that the value we are reading is the only thing in the cell.
-        // The Csv Reader offers to trim chars (eg whitespace), but does not do so by default,
-        // in order to follow the csv specification, which states that any whitespace is considered
-        // to be part of the field. So, we treat this specification with respect, and also do not
-        // trim it here. That means, we fail whenever there is whitespace.
-        ss >> std::noskipws >> value;
-        if( !ss.eof() ) {
-            throw std::runtime_error(
-                "Cannot parse value \"" + cell + "\" into Dataframe. Either the input data does not "
-                "represent values of the specified data type, or the input data table contains "
-                "whitespace around the fields. If the latter, allow to trim the respective "
-                "whitespace chars by setting the CsvReader::trim_chars() option accordingly."
-            );
-        }
-        return value;
-    }
-
-    template <>
-    T parse_value_default_<std::string>( std::string const& cell ) const
-    {
-        // We need special treatment of strings here, as the stringstream would only give
-        // us the first word of the input otherwise.
-        return cell;
     }
 
     // -------------------------------------------------------------
@@ -266,6 +276,7 @@ private:
 
     bool col_names_from_first_row_ = true;
     bool row_names_from_first_col_ = true;
+    bool trim_whitespace_ = false;
 
     CsvReader reader_;
 
