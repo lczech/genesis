@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -122,6 +122,7 @@ public:
 
         size_type index() const
         {
+            assert( df_ && &(df_->at(index_)) == this );
             return index_;
         }
 
@@ -365,7 +366,7 @@ public:
          * @brief Overwrite a column by the elements of a `std::vector`.
          *
          * The size of the vector needs to match the number of rows of the Dataframe.
-         * The elements are copied.
+         * The vector is copied.
          */
         self_type& operator = ( std::vector<value_type> const& vec )
         {
@@ -383,7 +384,7 @@ public:
          * @brief Overwrite a column by the elements of a `std::vector`.
          *
          * The size of the vector needs to match the number of rows of the Dataframe.
-         * The elements are moved.
+         * The vector is moved.
          */
         self_type& operator = ( std::vector<value_type>&& vec )
         {
@@ -402,25 +403,24 @@ public:
         // -------------------------------------------------------------------------
 
         /**
-         * @brief Implicit conversion to `std::vector`.
+         * @brief Explicit conversion to `std::vector`.
          *
-         * We can only offer const ref (or copy), but no non-const ref, as this would allow
+         * We can only offer const ref (or copy), but no non-const ref, as the latter would allow
          * users to change the vector size, breaking our invariants of equal-sized columns in the
-         * dataframe.
+         * dataframe. In order to modify all elements as if they were a vector, use the iterators
+         * obtained from begin() and end() instead.
          */
-        operator std::vector<value_type> const&() const
+        std::vector<value_type> const& to_vector() const
         {
             return content_;
         }
 
         /**
-         * @brief Explicit conversion to `std::vector`.
+         * @brief Implicit conversion to `std::vector`.
          *
-         * We can only offer const ref (or copy), but no non-const ref, as this would allow
-         * users to change the vector size, breaking our invariants of equal-sized columns in the
-         * dataframe.
+         * @copydoc to_vector()
          */
-        std::vector<value_type> const& to_vector() const
+        operator std::vector<value_type> const&() const
         {
             return content_;
         }
@@ -529,6 +529,8 @@ public:
 
     Dataframe& operator= ( Dataframe const& other )
     {
+        using std::swap;
+
         // Check for self assignment. Just in case.
         if( &other == this ) {
             return *this;
@@ -536,28 +538,28 @@ public:
 
         // Copy-swap-idiom.
         self_type temp( other );
-        temp.swap( *this );
+        swap( *this, temp );
         return *this;
     }
 
     Dataframe( Dataframe&& )             = default;
     Dataframe& operator= ( Dataframe&& ) = default;
 
-    void swap( self_type& other )
+    friend void swap( self_type& lhs, self_type& rhs )
     {
         using std::swap;
-        swap( columns_,    other.columns_ );
-        swap( row_names_,  other.row_names_ );
-        swap( col_names_,  other.col_names_ );
-        swap( row_lookup_, other.row_lookup_ );
-        swap( col_lookup_, other.col_lookup_ );
+        swap( lhs.columns_,    rhs.columns_ );
+        swap( lhs.row_names_,  rhs.row_names_ );
+        swap( lhs.col_names_,  rhs.col_names_ );
+        swap( lhs.row_lookup_, rhs.row_lookup_ );
+        swap( lhs.col_lookup_, rhs.col_lookup_ );
 
         // Need to swap dataframe pointers of the columns as well!
-        for( size_t i = 0; i < columns_.size(); ++i ) {
-            columns_[i]->df_ = this;
+        for( size_t i = 0; i < lhs.columns_.size(); ++i ) {
+            lhs.columns_[i]->df_ = &lhs;
         }
-        for( size_t i = 0; i < other.columns_.size(); ++i ) {
-            other.columns_[i]->df_ = &other;
+        for( size_t i = 0; i < rhs.columns_.size(); ++i ) {
+            rhs.columns_[i]->df_ = &rhs;
         }
     }
 
@@ -797,7 +799,9 @@ public:
     Column<T>& add_col( std::string const& name )
     {
         if( name.empty() ) {
-            throw std::runtime_error( "Cannot add a column with an empty name." );
+            throw std::runtime_error(
+                "Cannot add a column with an empty name. Use add_unnamed_col() instead."
+            );
         }
         if( col_lookup_.count( name ) > 0 ) {
             throw std::runtime_error( "Column with name " + name + " already exists in Dataframe." );
@@ -855,7 +859,9 @@ public:
     self_type& add_row( std::string const& name )
     {
         if( name.empty() ) {
-            throw std::runtime_error( "Cannot add a row with an empty name." );
+            throw std::runtime_error(
+                "Cannot add a row with an empty name. Use add_unnamed_row() instead."
+            );
         }
         if( row_lookup_.count( name ) > 0 ) {
             throw std::runtime_error( "Row with name " + name + " already exists in Dataframe." );
