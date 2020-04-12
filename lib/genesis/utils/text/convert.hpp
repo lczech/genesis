@@ -31,11 +31,63 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/text/string.hpp"
+
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
 namespace genesis {
 namespace utils {
+
+// =================================================================================================
+//     Generic Conversion
+// =================================================================================================
+
+/**
+ * @brief Generic conversion from string to any data type that is supported by `std::stringsteam operator >>`.
+ *
+ * This function is useful for general conversion. It throws when the string cannot be fully
+ * converted. That is, if there is more content after the converted value. If @p trim is `false`
+ * (default), this is also affected by white space. In that case, the value to be parsed has to be
+ * the only content of the input string.
+ */
+template <typename T>
+T convert_from_string( std::string const& str, bool trim = false )
+{
+    T value;
+
+    // Generic parser that just uses a string stream.
+    // Convert, and fail if there is more in the string that we expect.
+    bool good = true;
+    try {
+        std::stringstream ss( trim ? utils::trim(str) : str );
+        ss >> std::noskipws >> value;
+        good = ss.eof();
+    } catch(...) {
+        good = false;
+    }
+
+    // If we are here, either the string stream conversion itself failed (that's what the catch
+    // is for), or there was more data in the stream that we could convert. Either way, throw.
+    if( !good ) {
+        throw std::invalid_argument( "Cannot convert string '" + str + "' to specified type." );
+    }
+    return value;
+}
+
+/**
+ * @brief Specialization of the generic conversion function for for `std::string`.
+ */
+template <>
+inline std::string convert_from_string<std::string>( std::string const& str, bool trim )
+{
+    // We need special treatment of strings here, as the stringstream would only give
+    // us the first word of the input otherwise.
+    return (trim ? utils::trim(str) : str);
+}
 
 // =================================================================================================
 //     Bool Text Conversion
