@@ -35,24 +35,24 @@ matrix:
             - g++-5
       env: COMPILER=g++-5
     # Cannot use clang in travis right now because of stupid apt-get shutdown.
-    # - compiler: clang
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #         - llvm-toolchain-precise-3.6
-    #       packages:
-    #         - clang-3.6
-    #   env: COMPILER=clang++-3.6
-    # - compiler: clang
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #         - llvm-toolchain-precise-3.7
-    #       packages:
-    #         - clang-3.7
-    #   env: COMPILER=clang++-3.7
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.6
+          packages:
+            - clang-3.6
+      env: COMPILER=clang++-3.6
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.7
+          packages:
+            - clang-3.7
+      env: COMPILER=clang++-3.7
 
 before_install:
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
