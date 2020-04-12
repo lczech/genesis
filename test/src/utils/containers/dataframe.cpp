@@ -222,8 +222,8 @@ TEST( Containers, DataframeConvertString )
 
     // First column only contains 1 and 0.
     convert_to_bool( df, "First" );
-    EXPECT_EQ( 0, df["First"].as<char>()[0] );
-    EXPECT_EQ( 1, df["First"].as<char>()[1] );
+    EXPECT_EQ( 0, df["First"].as<signed char>()[0] );
+    EXPECT_EQ( 1, df["First"].as<signed char>()[1] );
 
     // Second column contains integers.
     convert_to_double( df, "Second" );

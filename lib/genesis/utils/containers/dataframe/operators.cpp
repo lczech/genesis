@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -160,13 +160,13 @@ void convert_to_bool( Dataframe& df, size_t col_index )
         auto const& df_cast = df[col_index].as<std::string>();
         auto const bool_col = convert_to_bool( df_cast.begin(), df_cast.end(), df_cast.size() );
 
-        // Convert to char, because std::vector<bool> is not a container...
-        auto char_col = std::vector<char>( bool_col.size() );
+        // Convert to signed char, because std::vector<bool> is not a container...
+        auto char_col = std::vector<signed char>( bool_col.size() );
         for( size_t i = 0; i < bool_col.size(); ++i ) {
             char_col[i] = bool_col[i];
         }
 
-        df.replace_col<char>( col_index, char_col );
+        df.replace_col<signed char>( col_index, char_col );
     } else {
         // Currently, we do not need number to bool conversion,
         // and with the given helper functions, it does not work the way we want it to.

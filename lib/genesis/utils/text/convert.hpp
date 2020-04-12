@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,13 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/text/string.hpp"
-
-#include <algorithm>
-#include <cctype>
-#include <limits>
 #include <string>
-#include <stdexcept>
 #include <vector>
 
 namespace genesis {
@@ -47,23 +41,8 @@ namespace utils {
 //     Bool Text Conversion
 // =================================================================================================
 
-inline bool convert_to_bool( std::string const& str )
-{
-    // Prep.
-    auto const cont = to_lower_ascii( trim( str ));
-
-    // Value check.
-    if( cont == "true" || cont == "yes" || cont == "on" || cont == "1" ) {
-        return true;
-    } else if( cont.empty() || cont == "false" || cont == "no" || cont == "off" || cont == "0" ) {
-        return false;
-    } else {
-        throw std::runtime_error( "String is not convertible to bool." );
-    }
-
-    // For old compilers.
-    return false;
-}
+bool convert_to_bool( std::string const& str );
+bool is_convertible_to_bool( std::string const& str );
 
 template<typename ForwardIterator>
 std::vector<bool> convert_to_bool(
@@ -83,55 +62,26 @@ std::vector<bool> convert_to_bool(
     return ret;
 }
 
-inline bool is_convertible_to_bool( std::string const& str )
-{
-    try{
-        convert_to_bool( str );
-        return true;
-    } catch(...) {
-        return false;
-    }
-}
-
 template<typename ForwardIterator>
 bool is_convertible_to_bool(
     ForwardIterator first,
     ForwardIterator last
 ) {
-    try{
-        while( first != last ) {
-            convert_to_bool( *first );
-            ++first;
+    while( first != last ) {
+        if( !is_convertible_to_bool( *first )) {
+            return false;
         }
-        return true;
-    } catch(...) {
-        return false;
+        ++first;
     }
+    return true;
 }
 
 // =================================================================================================
 //     Bool Double Text Conversion
 // =================================================================================================
 
-inline double convert_to_bool_double( std::string const& str )
-{
-    // Prep.
-    auto const cont = to_lower_ascii( trim( str ));
-
-    // Value check.
-    if( cont == "true" || cont == "yes" || cont == "on" || cont == "1" ) {
-        return 1.0;
-    } else if( cont == "false" || cont == "no" || cont == "off" || cont == "0" ) {
-        return 0.0;
-    } else if( cont.empty() ) {
-        return std::numeric_limits<double>::quiet_NaN();
-    } else {
-        throw std::runtime_error( "String is not convertible to bool." );
-    }
-
-    // For old compilers.
-    return false;
-}
+double convert_to_bool_double( std::string const& str );
+bool is_convertible_to_bool_double( std::string const& str );
 
 template<typename ForwardIterator>
 std::vector<double> convert_to_bool_double(
@@ -151,60 +101,26 @@ std::vector<double> convert_to_bool_double(
     return ret;
 }
 
-inline bool is_convertible_to_bool_double( std::string const& str )
-{
-    try{
-        convert_to_bool_double( str );
-        return true;
-    } catch(...) {
-        return false;
-    }
-}
-
 template<typename ForwardIterator>
 bool is_convertible_to_bool_double(
     ForwardIterator first,
     ForwardIterator last
 ) {
-    try{
-        while( first != last ) {
-            convert_to_bool_double( *first );
-            ++first;
+    while( first != last ) {
+        if( !is_convertible_to_bool_double( *first )) {
+            return false;
         }
-        return true;
-    } catch(...) {
-        return false;
+        ++first;
     }
+    return true;
 }
 
 // =================================================================================================
 //     Double Text Conversion
 // =================================================================================================
 
-inline double convert_to_double( std::string const& str )
-{
-    bool err = false;
-    double ret = std::numeric_limits<double>::quiet_NaN();
-    if( str.empty() ) {
-        return ret;
-    }
-
-    try{
-        // Try conversion. Throws on failure.
-        auto const val = trim( str );
-        std::string::size_type sz;
-        ret = std::stod( val, &sz );
-        if( sz != val.size() ) {
-            err = true;
-        }
-    } catch(...) {
-        err = true;
-    }
-    if( err ) {
-        throw std::runtime_error( "String is not convertible to double." );
-    }
-    return ret;
-}
+double convert_to_double( std::string const& str );
+bool is_convertible_to_double( std::string const& str );
 
 template<typename ForwardIterator>
 std::vector<double> convert_to_double(
@@ -224,33 +140,18 @@ std::vector<double> convert_to_double(
     return ret;
 }
 
-inline bool is_convertible_to_double( std::string const& str )
-{
-    try{
-        convert_to_double( str );
-        return true;
-    } catch(...) {
-        return false;
-    }
-
-    // For old compilers.
-    return false;
-}
-
 template<typename ForwardIterator>
 bool is_convertible_to_double(
     ForwardIterator first,
     ForwardIterator last
 ) {
-    try{
-        while( first != last ) {
-            convert_to_double( *first );
-            ++first;
+    while( first != last ) {
+        if( !is_convertible_to_double( *first )) {
+            return false;
         }
-        return true;
-    } catch(...) {
-        return false;
+        ++first;
     }
+    return true;
 }
 
 } // namespace utils
