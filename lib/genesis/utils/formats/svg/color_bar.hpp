@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -98,6 +98,11 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar(
 
 SvgGroup make_svg_color_list(
     ColorMap const& map,
+    std::vector<std::string> const& labels
+);
+
+SvgGroup make_svg_color_list(
+    std::vector<Color> const& colors,
     std::vector<std::string> const& labels
 );
 

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,7 +35,9 @@
 #include "genesis/utils/io/input_reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
 
+#include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -263,7 +265,8 @@ public:
     // -------------------------------------------------------------
 
     /**
-     * @brief Read the current line and move to the beginning of the next.
+     * @brief Read the current line, append it to the @p target, and move to the beginning of the
+     * next line.
      *
      * The function finds the end of the current line, starting from the current position,
      * and appends the content to the given @p target, excluding the trailing new line char(s).
@@ -283,14 +286,101 @@ public:
             update_blocks_();
             assert( data_pos_ < BlockLength );
 
+            // Store the starting position, so that we can copy from there once we found the end.
+            size_t const start = data_pos_;
+
             // Read until the end of the line, but also stop before the end of the data,
             // and after we read a full block. End of data: we are done anyway.
             // End of block: need to read the next one first, so loop again.
-            size_t const start = data_pos_;
+            auto const stop = std::min( data_end_, start + BlockLength );
+
+            // 8-fold loop unrolling. Yes, the compiler does not do that.
+            // It gives some speedup, in particular if the reading is used in a parser that also
+            // does other things with the data. In a stand-alone line reader, it still gives
+            // a slight advantage.
             while(
-                data_pos_ != data_end_          &&
-                data_pos_ - start < BlockLength &&
-                buffer_[ data_pos_ ] != '\n'    &&
+                data_pos_ + 7 < stop &&
+                buffer_[ data_pos_ + 0 ] != '\n'    &&
+                buffer_[ data_pos_ + 0 ] != '\r'    &&
+                buffer_[ data_pos_ + 1 ] != '\n'    &&
+                buffer_[ data_pos_ + 1 ] != '\r'    &&
+                buffer_[ data_pos_ + 2 ] != '\n'    &&
+                buffer_[ data_pos_ + 2 ] != '\r'    &&
+                buffer_[ data_pos_ + 3 ] != '\n'    &&
+                buffer_[ data_pos_ + 3 ] != '\r'    &&
+                buffer_[ data_pos_ + 4 ] != '\n'    &&
+                buffer_[ data_pos_ + 4 ] != '\r'    &&
+                buffer_[ data_pos_ + 5 ] != '\n'    &&
+                buffer_[ data_pos_ + 5 ] != '\r'    &&
+                buffer_[ data_pos_ + 6 ] != '\n'    &&
+                buffer_[ data_pos_ + 6 ] != '\r'    &&
+                buffer_[ data_pos_ + 7 ] != '\n'    &&
+                buffer_[ data_pos_ + 7 ] != '\r'
+            ) {
+                data_pos_ += 8;
+            }
+
+            // Working AVX version. Not worth the trouble as of now. Keeping it here for reference.
+
+            // #ifdef GENESIS_AVX
+            //     #include <immintrin.h>
+            // #endif
+            //
+            // auto b = _mm256_loadu_si256(( __m256i const* )( buffer_ + data_pos_ ));
+            //
+            // static auto const n = _mm256_set1_epi8( '\n' );
+            // static auto const r = _mm256_set1_epi8( '\r' );
+            //
+            // auto bn = _mm256_cmpeq_epi8( b, n );
+            // auto br = _mm256_cmpeq_epi8( b, r );
+            //
+            // while(
+            //     data_pos_ + 32 <= stop &&
+            //     _mm256_testz_si256( bn, bn ) &&
+            //     _mm256_testz_si256( bn, bn )
+            // ) {
+            //     data_pos_ += 32;
+            //     b = _mm256_loadu_si256(( __m256i const* )( buffer_ + data_pos_ ));
+            //     bn = _mm256_cmpeq_epi8( b, n );
+            //     br = _mm256_cmpeq_epi8( b, r );
+            // }
+
+            // Alternative version taht uses 64bit words instead, and hence works without AVX.
+            // Uses macros from https://graphics.stanford.edu/~seander/bithacks.html
+
+            // static auto const nmask = ~static_cast<uint64_t>(0) / 255U * '\n';
+            // static auto const rmask = ~static_cast<uint64_t>(0) / 255U * '\r';
+            //
+            // #define haszero(v) (((v) - static_cast<uint64_t>(0x0101010101010101)) & ~(v) & static_cast<uint64_t>(0x8080808080808080))
+            // #define hasvalue(x,n) (haszero((x) ^ (~static_cast<uint64_t>(0) / 255U * (n))))
+            //
+            // auto const* buffc = reinterpret_cast<uint64_t const*>( buffer_ + data_pos_ );
+            // size_t i = 0;
+            // while( true ) {
+            //     bool const e = i*8 >= data_end_;
+            //     bool const b = i*8 - start >= BlockLength;
+            //
+            //     // bool const n = buffc[i] ^ nmask;
+            //     // bool const r = buffc[i] ^ rmask;
+            //     bool const n = hasvalue( buffc[i], '\n' );
+            //     bool const r = hasvalue( buffc[i], '\r' );
+            //
+            //     if( e | b | n | r ) {
+            //         break;
+            //     }
+            //
+            //     ++i;
+            // }
+            // data_pos_ += i*8;
+            //
+            // #undef haszero
+            // #undef hasvalue
+
+            // The above loop ends with data_pos_ somewhere before the exact line break.
+            // We now need to walk the rest by foot, and examine char by char.
+            while(
+                data_pos_ < stop &&
+                buffer_[ data_pos_ ] != '\n' &&
                 buffer_[ data_pos_ ] != '\r'
             ) {
                 ++data_pos_;
@@ -299,7 +389,7 @@ public:
             // Store what we have so far.
             target.append( buffer_ + start, data_pos_ - start );
 
-            // If the line is too long, we need an extra round. Start the loop again.
+            // If the line is not yet finished, we need an extra round. Start the loop again.
             assert( data_pos_ >= start );
             if( data_pos_ - start >= BlockLength ) {
                 continue;

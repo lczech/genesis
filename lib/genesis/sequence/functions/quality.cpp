@@ -30,6 +30,7 @@
 
 #include "genesis/sequence/functions/quality.hpp"
 
+#include "genesis/sequence/formats/fastq_reader.hpp"
 #include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
@@ -38,7 +39,12 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <cstdint>
 #include <stdexcept>
+
+#ifdef GENESIS_AVX
+    #include <immintrin.h>
+#endif
 
 namespace genesis {
 namespace sequence {
@@ -53,7 +59,7 @@ namespace sequence {
 inline void throw_invalid_quality_code_( char quality_code, QualityEncoding encoding )
 {
     throw std::invalid_argument(
-        "Invalid quality code: " + utils::char_to_hex( quality_code, true ) +
+        "Invalid quality code: " + utils::char_to_hex( quality_code ) +
         " is not in the valid range for " + quality_encoding_name( encoding ) + " quality codes."
     );
 }
@@ -142,23 +148,103 @@ std::vector<unsigned char> quality_decode_to_phred_score(
             throw std::invalid_argument( "Invalid quality encoding type." );
     };
 
-    // Run the conversion. For now, we convert Solexa as if it was phred, and fix this below.
+    // We use this as an indicator whether we found an error in the sequence.
+    // This allows to run the inner loops without branching.
+    bool good = true;
+
+    // We use a loop variable here that is shared between the AVX and normal version,
+    // so that we do not have to duplicate the loop.
+    size_t i = 0;
+
+    // In the loops below, we convert Solexa as if it was phred, and fix this later.
     // This avoids code duplication for the error checking.
-    for( size_t i = 0; i < quality_codes.size(); ++i ) {
 
-        // TODO speed this up by using words!
-        // https://graphics.stanford.edu/~seander/bithacks.html#HasLessInWord
-        // also for the subtraction: use a whole word and subtract.
-        // probably need to cast the string to a unsigned char first, but that should be doable.
+    #ifdef GENESIS_AVX
 
-        // Strict error checking!
-        if( quality_codes[i] < offset || quality_codes[i] >= 127 ) {
-            throw_invalid_quality_code_( quality_codes[i], encoding );
+    // Get the data in the right format
+    auto const* data = reinterpret_cast<__m256i const*>( quality_codes.c_str() );
+    auto* write = reinterpret_cast<__m256i*>( result.data() );
+
+    // Define some masks. We use 32 byte full of the offset, and full of the upper limit for
+    // ascii-encoded phred scores.
+    auto const m_offset = _mm256_set1_epi8( offset );
+    auto static const m_upper = _mm256_set1_epi8( 126 );
+
+    // Process in 32-byte chunks. The loop condition uses integer division / 32, so we miss the rest
+    // that is above a multiple of 32. We process this later.
+    for( size_t j = 0; j < quality_codes.size() / 32; ++j ) {
+
+        // Load the data and compare it to the offset and upper limit.
+        auto const m_data = _mm256_loadu_si256( data + j );
+        auto const m_min = _mm256_cmpgt_epi8( m_offset, m_data );
+        auto const m_max = _mm256_cmpgt_epi8( m_data, m_upper );
+
+        // If any char is below the offset or above the upper limit, we have an error.
+        // We just store the result of the test, to avoid branching.
+        good &= _mm256_testz_si256( m_min, m_min ) && _mm256_testz_si256( m_max, m_max );
+
+        // Subtract the offset, and store the result.
+        auto const m_result = _mm256_sub_epi8( m_data, m_offset );
+        _mm256_storeu_si256( write + j, m_result );
+    }
+
+    // Set i to what it needs to be so that the loop below processes the remaining chars that are
+    // left in the string after AVX is done with the 32 byte chunks.
+    i = quality_codes.size() / 32 * 32;
+
+    #endif // GENESIS_AVX
+
+    // Run the conversion. Again, we avoid branching in the inner loop.
+    // i is already initialized, either from before the AVX code, or from within the AVX code.
+    // This avoids duplicating the below loop for the rest of the chars that are in the remainder
+    // of the string after AVX has processed all 32 byte chunks.
+    for( ; i < quality_codes.size(); ++i ) {
+        good &= ( quality_codes[i] >= offset ) && ( quality_codes[i] <= 126 );
+        result[i] = static_cast<unsigned char>( quality_codes[i] ) - offset;
+    }
+
+    // If we found an error in the sequence, throw an exception. We run the whole sequence again,
+    // to get the exact char that is bad. This is only in the error case, so we do not care about speed.
+    if( !good ) {
+        for( size_t i = 0; i < quality_codes.size(); ++i ) {
+            if( quality_codes[i] < offset || quality_codes[i] >= 127 ) {
+                throw_invalid_quality_code_( quality_codes[i], encoding );
+            }
         }
 
-        result[i] = static_cast<unsigned char>( quality_codes[i] ) - offset;
-        assert( result[i] >= 0 );
+        // We cannot get here, otherwise, the !good condition would not have led us here.
+        assert( false );
     }
+
+    // Use 64bit words instead of vectorization. Maybe later, as an alternative to AVX.
+    // Macros from https://graphics.stanford.edu/~seander/bithacks.html#HasLessInWord
+    //
+    // #define hasless(x,n) (((x)-~static_cast<uint64_t>(0)/255U*(n))&~(x)&~static_cast<uint64_t>(0)/255U*128)
+    // #define hasmore(x,n) (((x)+~static_cast<uint64_t>(0)/255U*(127-(n))|(x))&~static_cast<uint64_t>(0)/255U*128)
+    //
+    // auto const subtrahend = ~static_cast<uint64_t>(0) / 255U * offset;
+    //
+    // auto const* data = reinterpret_cast<uint64_t const*>( quality_codes.c_str() );
+    // auto* write = reinterpret_cast<uint64_t*>( result.data() );
+    // bool failed = false;
+    //
+    // for( size_t i = 0; i < quality_codes.size() / 8; ++i ) {
+    //     bool const l = hasless( data[i], offset );
+    //     bool const m = hasmore( data[i], 126 );
+    //     failed |= l | m;
+    //
+    //     write[i] = data[i] - subtrahend;
+    // }
+    //
+    // #undef hasless
+    // #undef hasmore
+    //
+    // if( failed ) {
+    //     throw std::invalid_argument(
+    //         "Invalid quality code that is not in the valid range for " +
+    //         quality_encoding_name( encoding ) + " quality codes found in sequence."
+    //     );
+    // }
 
     // For Solexa, we iterate the sequence again in order to convert it to phred.
     // This is slower and could be avoided with a bit of code duplication, but no one uses that
@@ -168,6 +254,8 @@ std::vector<unsigned char> quality_decode_to_phred_score(
             result[i] = solexa_score_to_phred_score( result[i] - 5 );
         }
     }
+
+    // Finally, we are done.
     return result;
 }
 
@@ -175,7 +263,7 @@ std::vector<unsigned char> quality_decode_to_phred_score(
 //     Guess Quality Encoding Type
 // =================================================================================================
 
-QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_counts )
+QualityEncoding guess_fastq_quality_encoding( std::array<size_t, 128> const& char_counts )
 {
     // Find the first entry that is not 0
     size_t min = 0;
@@ -234,35 +322,46 @@ QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_coun
     return QualityEncoding::kIllumina15;
 }
 
-// QualityEncoding guess_quality_encoding( std::shared_ptr< utils::BaseInputSource > source )
-// {
-//     // Init a counting array for each char, use value-initialization to 0
-//     std::array<size_t, 128> char_counts{};
-//
-//     // Prepare a reader that simply increments all char counts for the quality chars
-//     // that are found in the sequences.
-//     auto reader = FastqReader();
-//     reader.quality_string_plugin(
-//         [&]( std::string const& quality_string, Sequence& sequence )
-//         {
-//             (void) sequence;
-//             for( auto q : quality_string ) {
-//                 assert( (q & ~0x7f) == 0 );
-//                 ++char_counts[ q ];
-//             }
-//         }
-//     );
-//
-//     // Read the input, sequence by sequence.
-//     utils::InputStream input_stream( source );
-//     Sequence seq;
-//     while( reader.parse_sequence( input_stream, seq ) ) {
-//         // Do nothing. All the work is done in the plugin function above.
-//     }
-//
-//     // Return our guess based on the quality charactgers that were found in the sequences.
-//     return guess_quality_encoding( char_counts );
-// }
+QualityEncoding guess_fastq_quality_encoding( std::shared_ptr< utils::BaseInputSource > source )
+{
+    // Init a counting array for each char, use value-initialization to 0
+    auto char_counts = std::array<size_t, 128>();
+
+    // Prepare a reader that simply increments all char counts for the quality chars
+    // that are found in the sequences.
+    auto reader = FastqReader();
+    reader.quality_string_plugin(
+        [&]( std::string const& quality_string, Sequence& sequence )
+        {
+            (void) sequence;
+            for( auto q : quality_string ) {
+
+                // Cast, so that we catch the issue that char can be signed or unsigned,
+                // depending on the compiler. This might cause unnecessary warnings otherwise.
+                auto qu = static_cast<unsigned char>(q);
+                if( qu > 127 ) {
+                    throw std::invalid_argument(
+                        "Invalid quality score character outside of the ASCII range."
+                    );
+                }
+
+                // assert( (qu & ~0x7f) == 0 );
+                assert( qu < char_counts.size() );
+                ++char_counts[ qu ];
+            }
+        }
+    );
+
+    // Read the input, sequence by sequence.
+    utils::InputStream input_stream( source );
+    Sequence seq;
+    while( reader.parse_sequence( input_stream, seq ) ) {
+        // Do nothing. All the work is done in the plugin function above.
+    }
+
+    // Return our guess based on the quality characters that were found in the sequences.
+    return guess_fastq_quality_encoding( char_counts );
+}
 
 // =================================================================================================
 //     Quality Computations

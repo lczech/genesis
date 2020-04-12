@@ -222,11 +222,47 @@ TEST( Containers, DataframeConvertString )
 
     // First column only contains 1 and 0.
     convert_to_bool( df, "First" );
-    EXPECT_EQ( 0, df["First"].as<char>()[0] );
-    EXPECT_EQ( 1, df["First"].as<char>()[1] );
+    EXPECT_EQ( 0, df["First"].as<signed char>()[0] );
+    EXPECT_EQ( 1, df["First"].as<signed char>()[1] );
 
     // Second column contains integers.
     convert_to_double( df, "Second" );
     EXPECT_EQ( 0, df["Second"].get<double>(0) );
     EXPECT_EQ( 8, df["Second"].get<double>(1) );
+
+    EXPECT_TRUE( validate(df) );
+}
+
+TEST( Containers, DataframeAddReplaceCols )
+{
+    // Read stuff.
+    NEEDS_TEST_DATA;
+    auto const infile = environment->data_dir + "utils/csv/table.csv";
+    auto reader = DataframeReader<std::string>();
+    auto df = reader.read( from_file( infile ));
+    EXPECT_EQ(  3, df.cols() );
+    EXPECT_EQ( 10, df.rows() );
+
+    std::vector<std::string> insert1 = {{ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" }};
+    std::vector<std::string> insert2 = {{ "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T" }};
+
+    // Copy unnamed col.
+    df.add_unnamed_col( insert1 );
+
+    // Move unnamed col.
+    df.add_unnamed_col( std::vector<std::string>{{ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" }} );
+
+    // Copy named col.
+    df.add_col( "Sixth", insert1 );
+
+    // Move named col.
+    df.add_col( "Seventh", std::vector<std::string>{{ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" }} );
+
+    // Copy replacement.
+    df.replace_col( "Sixth", insert2 );
+
+    // Move replacement.
+    df.replace_col( "Seventh", std::vector<std::string>{{ "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T" }} );
+
+    EXPECT_TRUE( validate(df) );
 }

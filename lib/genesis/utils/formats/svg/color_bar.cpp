@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -358,6 +358,20 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar(
     return result;
 }
 
+// =================================================================================================
+//     Svg Color List
+// =================================================================================================
+
+void make_svg_color_list_entry_( size_t i, Color const& color, std::string const& label, SvgGroup& group )
+{
+    group << SvgRect(
+        0.0, i * 15.0, 10.0, 10.0,
+        SvgStroke( SvgStroke::Type::kNone ),
+        SvgFill( color )
+    );
+    group << SvgText( label, SvgPoint( 20.0, i * 15.0 + 10.0 ));
+}
+
 SvgGroup make_svg_color_list(
     ColorMap const& map,
     std::vector<std::string> const& labels
@@ -365,14 +379,24 @@ SvgGroup make_svg_color_list(
     SvgGroup group;
 
     for( size_t i = 0; i < labels.size(); ++i ) {
-        group << SvgRect(
-            0.0, i * 15.0, 10.0, 10.0,
-            SvgStroke( SvgStroke::Type::kNone ),
-            SvgFill( map.color(i) )
-        );
-        group << SvgText( labels[i], SvgPoint( 20.0, i * 15.0 + 10.0 ));
+        make_svg_color_list_entry_( i, map.color(i), labels[i], group );
     }
 
+    return group;
+}
+
+SvgGroup make_svg_color_list(
+    std::vector<Color> const& colors,
+    std::vector<std::string> const& labels
+) {
+    if( colors.size() != labels.size() ) {
+        throw std::invalid_argument( "List of colors and list of labels have different size." );
+    }
+
+    SvgGroup group;
+    for( size_t i = 0; i < labels.size(); ++i ) {
+        make_svg_color_list_entry_( i, colors[i], labels[i], group );
+    }
     return group;
 }
 

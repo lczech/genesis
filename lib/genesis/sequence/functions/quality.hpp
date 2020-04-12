@@ -170,9 +170,16 @@ inline std::string quality_encode_from_phred_score(
  * encodings. Otherwise, it guesses which QualityEncoding was used for the fastq file, based on
  * which chars appear.
  */
-QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_counts );
+QualityEncoding guess_fastq_quality_encoding( std::array<size_t, 128> const& char_counts );
 
-// QualityEncoding guess_quality_encoding( std::shared_ptr< utils::BaseInputSource > source );
+/**
+ * @brief Guess the quality score encoding for a fastq input, based on counts of how often each
+ * char appeared in the quality string (of the input fastq file for example).
+ *
+ * The function reads and parses the input source as a fastq file, counts all quality score chars
+ * as they appear in there, and then guesses the encoding that was used.
+ */
+QualityEncoding guess_fastq_quality_encoding( std::shared_ptr< utils::BaseInputSource > source );
 
 // =================================================================================================
 //     Quality Computations

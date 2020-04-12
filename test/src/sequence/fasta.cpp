@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -117,6 +117,21 @@ TEST( FastaInputIterator, Advance )
     // Fails assertion, as expected for an input iterator.
     // The test is problematic because of the threaded reading routines. so we leave it out for now.
     // EXPECT_DEATH_IF_SUPPORTED( std::advance( it, -2 ), ".*" );
+}
+
+TEST( FastaInputIterator, RangeBased )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string infile = environment->data_dir + "sequence/dna_10.fasta";
+
+    size_t cnt = 0;
+    for( auto const& s : FastaInputIterator( utils::from_file( infile ))) {
+        (void) s;
+        // std::cout << s.length() << "\n";
+        ++cnt;
+    }
+    EXPECT_EQ( 10, cnt );
 }
 
 // TEST( FastaInputIterator, ReadingInput )

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -177,6 +177,41 @@ void write_color_tree_to_nexus_file(
 //     SVG Functions
 // =================================================================================================
 
+utils::SvgDocument get_color_tree_svg_doc_(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<utils::Color> const& color_per_branch
+) {
+    // Make a layout tree. We need a pointer to it in order to allow for the two different classes
+    // (circular/rectancular) to be returned here. Make it a unique ptr for automatic cleanup.
+    std::unique_ptr<LayoutBase> layout = [&]() -> std::unique_ptr<LayoutBase> {
+        if( params.shape == LayoutShape::kCircular ) {
+            return utils::make_unique<CircularLayout>( tree, params.type, params.ladderize );
+        }
+        if( params.shape == LayoutShape::kRectangular ) {
+            return utils::make_unique<RectangularLayout>( tree, params.type, params.ladderize );
+        }
+        throw std::runtime_error( "Unknown Tree shape parameter." );
+    }();
+
+    // Set edge colors and strokes.
+    if( ! color_per_branch.empty() ) {
+        std::vector<utils::SvgStroke> strokes;
+        for( auto const& color : color_per_branch ) {
+            auto stroke = params.stroke;
+            stroke.color = color;
+            stroke.line_cap = utils::SvgStroke::LineCap::kRound;
+            strokes.push_back( std::move( stroke ));
+        }
+        layout->set_edge_strokes( strokes );
+    }
+
+    // Prepare svg doc.
+    auto svg_doc = layout->to_svg_document();
+    svg_doc.margin.left = svg_doc.margin.top = svg_doc.margin.bottom = svg_doc.margin.right = 200;
+    return svg_doc;
+}
+
 void write_tree_to_svg_file(
     CommonTree const&       tree,
     LayoutParameters const& params,
@@ -229,34 +264,8 @@ void write_color_tree_to_svg_file(
     utils::ColorNormalization const& color_norm,
     std::string const&               svg_filename
 ) {
-
-    // Make a layout tree. We need a pointer to it in order to allow for the two different classes
-    // (circular/rectancular) to be returned here. Make it a unique ptr for automatic cleanup.
-    std::unique_ptr<LayoutBase> layout = [&]() -> std::unique_ptr<LayoutBase> {
-        if( params.shape == LayoutShape::kCircular ) {
-            return utils::make_unique<CircularLayout>( tree, params.type, params.ladderize );
-        }
-        if( params.shape == LayoutShape::kRectangular ) {
-            return utils::make_unique<RectangularLayout>( tree, params.type, params.ladderize );
-        }
-        throw std::runtime_error( "Unknown Tree shape parameter." );
-    }();
-
-    // Set edge colors and strokes.
-    if( ! color_per_branch.empty() ) {
-        std::vector<utils::SvgStroke> strokes;
-        for( auto const& color : color_per_branch ) {
-            auto stroke = params.stroke;
-            stroke.color = color;
-            stroke.line_cap = utils::SvgStroke::LineCap::kRound;
-            strokes.push_back( std::move( stroke ));
-        }
-        layout->set_edge_strokes( strokes );
-    }
-
-    // Prepare svg doc.
-    auto svg_doc = layout->to_svg_document();
-    svg_doc.margin.left = svg_doc.margin.top = svg_doc.margin.bottom = svg_doc.margin.right = 200;
+    // Get the basic svg tree layout.
+    auto svg_doc = get_color_tree_svg_doc_( tree, params, color_per_branch );
 
     // Add the color legend / scale.
     if( ! color_map.empty() ) {
@@ -288,6 +297,50 @@ void write_color_tree_to_svg_file(
         }
         svg_doc.add( svg_scale.second );
     }
+
+    // Write the whole svg doc to file.
+    std::ofstream ofs;
+    utils::file_output_stream( svg_filename, ofs );
+    svg_doc.write( ofs );
+}
+
+void write_color_tree_to_svg_file(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<utils::Color> const& color_per_branch,
+    std::vector<utils::Color> const& color_list,
+    std::vector<std::string> const&  color_labels,
+    std::string const&               svg_filename
+) {
+    // Get the basic svg tree layout.
+    auto svg_doc = get_color_tree_svg_doc_( tree, params, color_per_branch );
+
+    // Add the color legend / scale.
+
+    // Make the color list.
+    auto svg_color_list = make_svg_color_list( color_list, color_labels );
+
+    // Move it to the bottom right corner.
+    if( params.shape == LayoutShape::kCircular ) {
+        svg_color_list.transform.append( utils::SvgTransform::Translate(
+            1.2 * svg_doc.bounding_box().width() / 2.0, 0.0
+        ));
+        // svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() / 2.0 + 2 * svg_pal_settings.width + 200;
+    }
+    if( params.shape == LayoutShape::kRectangular ) {
+        svg_color_list.transform.append( utils::SvgTransform::Translate(
+            1.2 * svg_doc.bounding_box().width(), svg_doc.bounding_box().height() / 2.0
+        ));
+        // svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() + 2 * svg_pal_settings.width + 200;
+    }
+
+    // Apply a scale factor that scales the box to be half the figure height.
+    // The denominator is the number items in the list times their height (15px, used by make_svg_color_list)
+    auto const sf = ( svg_doc.bounding_box().height() / 2.0 ) / (static_cast<double>( color_list.size() ) * 15.0 );
+    svg_color_list.transform.append( utils::SvgTransform::Scale( sf ));
+
+    // Add it to the svg doc.
+    svg_doc.add( svg_color_list );
 
     // Write the whole svg doc to file.
     std::ofstream ofs;

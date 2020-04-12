@@ -1,9 +1,9 @@
-#ifndef GENESIS_SEQUENCE_FORMATS_FASTA_INPUT_ITERATOR_H_
-#define GENESIS_SEQUENCE_FORMATS_FASTA_INPUT_ITERATOR_H_
+#ifndef GENESIS_SEQUENCE_FORMATS_FASTQ_INPUT_ITERATOR_H_
+#define GENESIS_SEQUENCE_FORMATS_FASTQ_INPUT_ITERATOR_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/formats/fasta_reader.hpp"
+#include "genesis/sequence/formats/fastq_reader.hpp"
 #include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_source.hpp"
@@ -46,25 +46,25 @@ namespace genesis {
 namespace sequence {
 
 // =================================================================================================
-//     Fasta Input Iterator
+//     Fastq Input Iterator
 // =================================================================================================
 
 /**
- * @brief Iterate an input source and parse it as Fasta sequences.
+ * @brief Iterate an input source and parse it as Fastq sequences.
  *
- * This class allows to iterate over an input source, interpreting it as Fasta sequences, and
+ * This class allows to iterate over an input source, interpreting it as Fastq sequences, and
  * yielding one such sequence per iteration step. This is useful for processing large files without
  * having to keep them fully in memory.
  *
  * Example:
  *
- *     for( auto const& s : FastaInputIterator( from_file( "/path/to/large_file.fasta" ))) {
+ *     for( auto const& s : FastqInputIterator( from_file( "/path/to/large_file.fastq" ))) {
  *         std::cout << s.length() << "\n";
  *     }
  *
  * Alternatively, the following also works:
  *
- *     auto it = FastaInputIterator( from_file( "/path/to/large_file.fasta" ) );
+ *     auto it = FastqInputIterator( from_file( "/path/to/large_file.fastq" ));
  *     while( it ) {
  *         std::cout << it->length() << "\n";
  *         ++it;
@@ -73,8 +73,8 @@ namespace sequence {
  * Use functions such as utils::from_file() and utils::from_string() to conveniently
  * get an input source that can be used here.
  *
- * See FastaReader for a description of the expected format. In order to change the reading
- * behaviour, a FastaReader object can be handed over from which the settings are copied.
+ * See FastqReader for a description of the expected format. In order to change the reading
+ * behaviour, a FastqReader object can be handed over from which the settings are copied.
  *
  * The copy constructur copies a pointer to the underlying source.
  * Thus, when advancing the copy to the next Sequence, the original "skips" this Sequence,
@@ -84,7 +84,7 @@ namespace sequence {
  * Thus, guarding induces unnecessary overhead. If multiple threads read from this iterator, both
  * dereferencing and incrementing need to be guarded.
  */
-class FastaInputIterator
+class FastqInputIterator
 {
 public:
 
@@ -92,7 +92,7 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using self_type         = FastaInputIterator;
+    using self_type         = FastqInputIterator;
     using value_type        = Sequence;
     using pointer           = value_type&;
     using reference         = value_type*;
@@ -106,16 +106,16 @@ public:
     /**
      * @brief Create a default instance, with no input.
      */
-    FastaInputIterator()
+    FastqInputIterator()
         : input_stream_( nullptr )
         , sequence_()
         , reader_()
     {}
 
     /**
-     * @brief Create an instance that reads from an input source, using a default FastaReader.
+     * @brief Create an instance that reads from an input source, using a default FastqReader.
      */
-    explicit FastaInputIterator( std::shared_ptr<utils::BaseInputSource> source )
+    explicit FastqInputIterator( std::shared_ptr<utils::BaseInputSource> source )
         : input_stream_( std::make_shared<utils::InputStream>( source ))
         , sequence_()
         , reader_()
@@ -125,9 +125,9 @@ public:
 
     /**
      * @brief Create an instance that reads from an input source,
-     * using the settings of a given FastaReader.
+     * using the settings of a given FastqReader.
      */
-    FastaInputIterator( std::shared_ptr<utils::BaseInputSource> source, FastaReader const& settings )
+    FastqInputIterator( std::shared_ptr<utils::BaseInputSource> source, FastqReader const& settings )
         : input_stream_( std::make_shared<utils::InputStream>( source ))
         , sequence_()
         , reader_( settings )
@@ -135,10 +135,10 @@ public:
         increment();
     }
 
-    ~FastaInputIterator() = default;
+    ~FastqInputIterator() = default;
 
-    FastaInputIterator( self_type const& ) = default;
-    FastaInputIterator( self_type&& )      = default;
+    FastqInputIterator( self_type const& ) = default;
+    FastqInputIterator( self_type&& )      = default;
 
     self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
@@ -206,7 +206,7 @@ public:
      */
     self_type end()
     {
-        return FastaInputIterator();
+        return FastqInputIterator();
     }
 
     self_type& operator ++ ()
@@ -246,7 +246,7 @@ private:
     std::shared_ptr<utils::InputStream> input_stream_;
 
     Sequence    sequence_;
-    FastaReader reader_;
+    FastqReader reader_;
 };
 
 } // namespace sequence

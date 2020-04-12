@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -154,6 +154,15 @@ void write_color_tree_to_svg_file(
     std::vector<utils::Color> const& color_per_branch,
     utils::ColorMap const&           color_map,
     utils::ColorNormalization const& color_norm,
+    std::string const&               svg_filename
+);
+
+void write_color_tree_to_svg_file(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<utils::Color> const& color_per_branch,
+    std::vector<utils::Color> const& color_list,
+    std::vector<std::string> const&  color_labels,
     std::string const&               svg_filename
 );
 
