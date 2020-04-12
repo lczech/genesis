@@ -70,6 +70,7 @@ matrix:
             # - libiomp-dev
             # - libiomp5
             # - libomp5
+            - libomp
       env: COMPILER=clang++-3.8
     - compiler: clang
       addons:
