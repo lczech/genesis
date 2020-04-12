@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,11 +36,14 @@
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <functional>
-#include <stdexcept>
+#include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace genesis {
@@ -211,10 +214,10 @@ private:
                 }
             } else {
                 for( size_t i = 0; i < result.cols(); ++i ) {
-                    // result( row_idx, i ) = parse_value_stringstream_( line[ offset + i ] );
-                    // result[i][row_idx] = parse_value_stringstream_( line[ offset + i ] );
+                    // result( row_idx, i ) = parse_value_default_( line[ offset + i ] );
+                    // result[i][row_idx] = parse_value_default_( line[ offset + i ] );
                     auto& col = dynamic_cast<Dataframe::Column<T>&>(result[i]);
-                    col[row_idx] = parse_value_stringstream_( line[ offset + i ] );
+                    col[row_idx] = parse_value_default_<T>( line[ offset + i ] );
                 }
             }
         }
@@ -223,12 +226,36 @@ private:
         return result;
     }
 
-    inline T parse_value_stringstream_( std::string const& cell ) const
+    template <typename S>
+    T parse_value_default_( std::string const& cell ) const
     {
+        // Generic parser that just uses a string stream.
         std::stringstream ss( cell );
         T value;
-        ss >> value;
+
+        // Here, we assume that the value we are reading is the only thing in the cell.
+        // The Csv Reader offers to trim chars (eg whitespace), but does not do so by default,
+        // in order to follow the csv specification, which states that any whitespace is considered
+        // to be part of the field. So, we treat this specification with respect, and also do not
+        // trim it here. That means, we fail whenever there is whitespace.
+        ss >> std::noskipws >> value;
+        if( !ss.eof() ) {
+            throw std::runtime_error(
+                "Cannot parse value \"" + cell + "\" into Dataframe. Either the input data does not "
+                "represent values of the specified data type, or the input data table contains "
+                "whitespace around the fields. If the latter, allow to trim the respective "
+                "whitespace chars by setting the CsvReader::trim_chars() option accordingly."
+            );
+        }
         return value;
+    }
+
+    template <>
+    T parse_value_default_<std::string>( std::string const& cell ) const
+    {
+        // We need special treatment of strings here, as the stringstream would only give
+        // us the first word of the input otherwise.
+        return cell;
     }
 
     // -------------------------------------------------------------
