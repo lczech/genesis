@@ -64,7 +64,7 @@ script:
   - export GENESIS_DEBUG=1
   - mkdir build
   - cd build
-  - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_C_COMPILER=$COMPILER ..
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
   - make
   - cd ..
   - ./bin/test/genesis_tests
