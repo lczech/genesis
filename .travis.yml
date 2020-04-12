@@ -67,9 +67,9 @@ matrix:
             - llvm-toolchain-precise-3.8
           packages:
             - clang-3.8
-            - libiomp-dev
-            - libiomp5
-            - libomp5
+            # - libiomp-dev
+            # - libiomp5
+            # - libomp5
       env: COMPILER=clang++-3.8
     - compiler: clang
       addons:
