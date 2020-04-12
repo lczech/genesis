@@ -29,13 +29,17 @@
  */
 
 #include "genesis/utils/containers/dataframe/operators.hpp"
+
+#include "genesis/utils/math/statistics.hpp"
 #include "genesis/utils/text/convert.hpp"
 #include "genesis/utils/text/string.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <functional>
 #include <stdexcept>
+#include <unordered_set>
 
 namespace genesis {
 namespace utils {
@@ -203,6 +207,107 @@ void convert_to_double( Dataframe& df, std::string const& col_name )
 {
     // Throws if column name is not found.
     return convert_to_double( df, df.col_index( col_name ));
+}
+
+// =================================================================================================
+//     Summarize Columns
+// =================================================================================================
+
+std::string summarize_column_common_( Dataframe const& df, size_t col_index, std::string const& description )
+{
+    return std::to_string( col_index ) + ": \"" + df[col_index].name() + "\" " + description + "\n";
+}
+
+template<typename T>
+std::string summarize_column_double_( Dataframe const& df, size_t col_index )
+{
+    auto const& col_cast = df[col_index].as<T>();
+
+    // Get the min and max, excluding nan entries.
+    // Then, count the number of valid and total entries,
+    // and use this to determine the number of unused entries.
+    auto const mm = finite_minimum_maximum( col_cast.begin(), col_cast.end() );
+    auto const ip = count_finite_elements( col_cast.begin(), col_cast.end() );
+    assert( ip.first <= ip.second );
+    assert( ip.second == df.rows() );
+    auto const iv = ip.second - ip.first;
+
+    return summarize_column_common_(
+        df, col_index,
+        "(numerical, min: " + std::to_string( mm.min ) + ", max: " + std::to_string( mm.max ) +
+        ", unused entries: " + std::to_string(iv) + ")"
+    );
+}
+
+template<typename T>
+std::string summarize_column_int_( Dataframe const& df, size_t col_index )
+{
+    auto const& col_cast = df[col_index].as<T>();
+    auto const mm = std::minmax_element( col_cast.begin(), col_cast.end() );
+    return summarize_column_common_(
+        df, col_index,
+        "(numerical, min: " + std::to_string( *mm.first ) + ", max: " +
+        std::to_string( *mm.second ) + ")"
+    );
+}
+
+std::string summarize_column_string_( Dataframe const& df, size_t col_index )
+{
+    // Make copies to get number of unique entries.
+    auto const& str_cast = df[col_index].as<std::string>();
+    std::unordered_set<std::string> uniq( str_cast.begin(), str_cast.end() );
+
+    return summarize_column_common_(
+        df, col_index,
+        "(string, unique elements: " + std::to_string( uniq.size() ) + ")"
+    );
+}
+
+std::string summarize_column( Dataframe const& df, size_t col_index )
+{
+    if( df[col_index].is<float>() ) {
+        return summarize_column_double_<float>( df, col_index );
+    } else if( df[col_index].is<double>() ) {
+        return summarize_column_double_<double>( df, col_index );
+    } else if( df[col_index].is<int8_t>() ) {
+        return summarize_column_int_<int8_t>( df, col_index );
+    } else if( df[col_index].is<int16_t>() ) {
+        return summarize_column_int_<int16_t>( df, col_index );
+    } else if( df[col_index].is<int32_t>() ) {
+        return summarize_column_int_<int32_t>( df, col_index );
+    } else if( df[col_index].is<int64_t>() ) {
+        return summarize_column_int_<int64_t>( df, col_index );
+    } else if( df[col_index].is<uint8_t>() ) {
+        return summarize_column_int_<uint8_t>( df, col_index );
+    } else if( df[col_index].is<uint16_t>() ) {
+        return summarize_column_int_<uint16_t>( df, col_index );
+    } else if( df[col_index].is<uint32_t>() ) {
+        return summarize_column_int_<uint32_t>( df, col_index );
+    } else if( df[col_index].is<uint64_t>() ) {
+        return summarize_column_int_<uint64_t>( df, col_index );
+    } else if( df[col_index].is<std::string>() ) {
+        return summarize_column_string_( df, col_index );
+    }
+
+    return summarize_column_common_(
+        df, col_index,
+        "(unknown data type)"
+    );
+}
+
+std::string summarize_column( Dataframe const& df, std::string const& col_name )
+{
+    // Throws if column name is not found.
+    return summarize_column( df, df.col_index( col_name ));
+}
+
+std::string summarize_columns( Dataframe const& df )
+{
+    std::string result = "Data contains " + std::to_string( df.rows() ) + " rows, and the following columns:\n";
+    for( size_t i = 0; i < df.cols(); ++i ) {
+        result += summarize_column( df, i );
+    }
+    return result;
 }
 
 // =================================================================================================

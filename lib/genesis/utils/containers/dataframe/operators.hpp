@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -54,6 +54,11 @@ void convert_to_bool( Dataframe& df, std::string const& col_name );
 
 void convert_to_double( Dataframe& df, size_t col_index );
 void convert_to_double( Dataframe& df, std::string const& col_name );
+
+std::string summarize_column( Dataframe const& df, size_t col_index );
+std::string summarize_column( Dataframe const& df, std::string const& col_name );
+
+std::string summarize_columns( Dataframe const& df );
 
 // =================================================================================================
 //     Merging and Combining
