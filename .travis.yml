@@ -41,6 +41,7 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.6
+            - libiomp-dev
           packages:
             - clang-3.6
       env: COMPILER=clang++-3.6
@@ -50,6 +51,7 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.7
+            - libiomp-dev
           packages:
             - clang-3.7
       env: COMPILER=clang++-3.7
@@ -62,7 +64,7 @@ script:
   - export GENESIS_DEBUG=1
   - mkdir build
   - cd build
-  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_C_COMPILER=$COMPILER ..
   - make
   - cd ..
   - ./bin/test/genesis_tests
