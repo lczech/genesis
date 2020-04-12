@@ -42,6 +42,7 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.6
             - libiomp-dev
+            - libiomp5
           packages:
             - clang-3.6
       env: COMPILER=clang++-3.6
@@ -52,6 +53,7 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.7
             - libiomp-dev
+            - libiomp5
           packages:
             - clang-3.7
       env: COMPILER=clang++-3.7
