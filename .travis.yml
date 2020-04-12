@@ -1,5 +1,6 @@
 sudo: required
-dist: xenial
+# dist: xenial
+dist: trusty
 language: cpp
 
 branches:
@@ -43,7 +44,7 @@ matrix:
             - llvm-toolchain-xenial-3.6
           packages:
             - clang-3.6
-      env: COMPILER=clang++-3.6 GENESIS_USE_OPENMP=OFF
+      env: COMPILER=clang++-3.6 OPENMP=OFF
 
     - compiler: clang
       addons:
@@ -56,26 +57,8 @@ matrix:
             # - libiomp-dev
             # - libiomp5
             # - libomp5
-      env: COMPILER=clang++-3.7 GENESIS_USE_OPENMP=OFF
+      env: COMPILER=clang++-3.7 OPENMP=OFF
 
-
-
-
-    # Other compilers
-
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.8
-          packages:
-            - clang-3.8
-            # - libiomp-dev
-            # - libiomp5
-            # - libomp5
-            # - libomp
-      env: COMPILER=clang++-3.8
     - compiler: clang
       addons:
         apt:
@@ -89,60 +72,7 @@ matrix:
             # - libomp5
             # - libomp
       env: COMPILER=clang++-3.8
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.8
-          packages:
-            - clang-3.8
-            # - libiomp-dev
-            - libiomp5
-            # - libomp5
-            # - libomp
-      env: COMPILER=clang++-3.8
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.8
-          packages:
-            - clang-3.8
-            # - libiomp-dev
-            # - libiomp5
-            - libomp5
-            # - libomp
-      env: COMPILER=clang++-3.8
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.8
-          packages:
-            - clang-3.8
-            # - libiomp-dev
-            # - libiomp5
-            # - libomp5
-            - libomp
-      env: COMPILER=clang++-3.8
 
-
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.9
-          packages:
-            - clang-3.9
-            # - libiomp-dev
-            # - libiomp5
-            # - libomp5
-            # - libomp
-      env: COMPILER=clang++-3.9
     - compiler: clang
       addons:
         apt:
@@ -156,60 +86,7 @@ matrix:
             # - libomp5
             # - libomp
       env: COMPILER=clang++-3.9
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.9
-          packages:
-            - clang-3.9
-            # - libiomp-dev
-            - libiomp5
-            # - libomp5
-            # - libomp
-      env: COMPILER=clang++-3.9
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.9
-          packages:
-            - clang-3.9
-            # - libiomp-dev
-            # - libiomp5
-            - libomp5
-            # - libomp
-      env: COMPILER=clang++-3.9
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.9
-          packages:
-            - clang-3.9
-            # - libiomp-dev
-            # - libiomp5
-            # - libomp5
-            - libomp
-      env: COMPILER=clang++-3.9
 
-
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-4.0
-          packages:
-            - clang-4.0
-            # - libiomp-dev
-            # - libiomp5
-            # - libomp5
-            # - libomp
-      env: COMPILER=clang++-4.0
     - compiler: clang
       addons:
         apt:
@@ -222,45 +99,6 @@ matrix:
             # - libiomp5
             # - libomp5
             # - libomp
-      env: COMPILER=clang++-4.0
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-4.0
-          packages:
-            - clang-4.0
-            # - libiomp-dev
-            - libiomp5
-            # - libomp5
-            # - libomp
-      env: COMPILER=clang++-4.0
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-4.0
-          packages:
-            - clang-4.0
-            # - libiomp-dev
-            # - libiomp5
-            - libomp5
-            # - libomp
-      env: COMPILER=clang++-4.0
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-4.0
-          packages:
-            - clang-4.0
-            # - libiomp-dev
-            # - libiomp5
-            # - libomp5
-            - libomp
       env: COMPILER=clang++-4.0
 
 
@@ -273,10 +111,14 @@ script:
   - apt-cache pkgnames gcc
   - apt-cache pkgnames g++
   - apt-cache pkgnames clang
+
   - export GENESIS_DEBUG=1
   - mkdir build
   - cd build
-  - if [[ "${GENESIS_USE_OPENMP}" == "" ]]; then export GENESIS_USE_OPENMP=ON; fi
+
+  - export GENESIS_USE_OPENMP=ON
+  - if [[ "${OPENMP}" == "OFF" ]]; then export GENESIS_USE_OPENMP=OFF; fi
+
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DGENESIS_USE_OPENMP=$GENESIS_USE_OPENMP ..
   - make
   - cd ..
