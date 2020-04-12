@@ -41,10 +41,11 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.6
-            - libiomp-dev
-            - libiomp5
           packages:
             - clang-3.6
+            - libiomp-dev
+            - libiomp5
+            - libomp5
       env: COMPILER=clang++-3.6
     - compiler: clang
       addons:
@@ -52,10 +53,11 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.7
-            - libiomp-dev
-            - libiomp5
           packages:
             - clang-3.7
+            - libiomp-dev
+            - libiomp5
+            - libomp5
       env: COMPILER=clang++-3.7
 
 before_install:
