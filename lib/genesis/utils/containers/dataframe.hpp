@@ -82,6 +82,7 @@ public:
         using size_type = size_t;
 
         friend class Dataframe;
+        friend void swap( Dataframe& lhs, Dataframe& rhs );
 
         // -------------------------------------------------------------------------
         //     Constructor and Rule of Five
