@@ -25,352 +25,330 @@ addons:
 jobs:
   include:
 
-    # ==========================================================================
-    #     trusty
-    # ==========================================================================
-
-    # default
-    - os: linux
-      dist: trusty
-      name: "trusty"
-
-    # --------------------------------------------------------------------------
-    #     trusty / gcc
-    # --------------------------------------------------------------------------
-
-    # Cannot use gcc 4.8 because of missing regex implementation.
+    # # ==========================================================================
+    # #     trusty
+    # # ==========================================================================
+    #
+    # # default
+    # - os: linux
+    #   dist: trusty
+    #   name: "trusty"
+    #
+    # # --------------------------------------------------------------------------
+    # #     trusty / gcc
+    # # --------------------------------------------------------------------------
+    #
+    # # Cannot use gcc 4.8 because of missing regex implementation.
+    # # - os: linux
+    # #   dist: trusty
+    # #   addons:
+    # #     apt:
+    # #       packages:
+    # #       - g++-4.8
+    # #   env: COMPILER=g++-4.8
+    #
     # - os: linux
     #   dist: trusty
     #   addons:
     #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - g++-4.8
-    #   env: COMPILER=g++-4.8
-
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - g++-4.9
-      env: COMPILER=g++-4.9
-
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - g++-5
-      env: COMPILER=g++-5
-
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - g++-6
-      env: COMPILER=g++-6
-
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - g++-7
-      env: COMPILER=g++-7
-
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - g++-8
-      env: COMPILER=g++-8
-
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - g++-9
-      env: COMPILER=g++-9
-
-    # --------------------------------------------------------------------------
-    #     trusty / clang
-    # --------------------------------------------------------------------------
-
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-3.5
-      env: COMPILER=clang++-3.5 OPENMP=OFF
-
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-3.6
-      env: COMPILER=clang++-3.6 OPENMP=OFF
-
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-3.7
-      env: COMPILER=clang++-3.7 OPENMP=OFF
-
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-3.8
-          - libiomp-dev
-      env: COMPILER=clang++-3.8
-
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-3.9
-          - libiomp-dev
-      env: COMPILER=clang++-3.9
-
-    # ==========================================================================
-    #     xenial
-    # ==========================================================================
-
-    # default
-    - os: linux
-      dist: xenial
-      name: "xenial"
-
-    # --------------------------------------------------------------------------
-    #     xenial / gcc
-    # --------------------------------------------------------------------------
-
-    # Cannot use gcc 4.8 because of missing regex implementation.
+    #       - g++-4.9
+    #   env: COMPILER=g++-4.9
+    #
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - g++-5
+    #   env: COMPILER=g++-5
+    #
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - g++-6
+    #   env: COMPILER=g++-6
+    #
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - g++-7
+    #   env: COMPILER=g++-7
+    #
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - g++-8
+    #   env: COMPILER=g++-8
+    #
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - g++-9
+    #   env: COMPILER=g++-9
+    #
+    # # --------------------------------------------------------------------------
+    # #     trusty / clang
+    # # --------------------------------------------------------------------------
+    #
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - clang-3.5
+    #   env: COMPILER=clang++-3.5 OPENMP=OFF
+    #
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - clang-3.6
+    #   env: COMPILER=clang++-3.6 OPENMP=OFF
+    #
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - clang-3.7
+    #   env: COMPILER=clang++-3.7 OPENMP=OFF
+    #
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - clang-3.8
+    #       - libiomp-dev
+    #   env: COMPILER=clang++-3.8
+    #
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - clang-3.9
+    #       - libiomp-dev
+    #   env: COMPILER=clang++-3.9
+    #
+    # # ==========================================================================
+    # #     xenial
+    # # ==========================================================================
+    #
+    # # default
+    # - os: linux
+    #   dist: xenial
+    #   name: "xenial"
+    #
+    # # --------------------------------------------------------------------------
+    # #     xenial / gcc
+    # # --------------------------------------------------------------------------
+    #
+    # # Cannot use gcc 4.8 because of missing regex implementation.
+    # # - os: linux
+    # #   dist: xenial
+    # #   addons:
+    # #     apt:
+    # #       packages:
+    # #       - g++-4.8
+    # #   env: COMPILER=g++-4.8
+    #
     # - os: linux
     #   dist: xenial
     #   addons:
     #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - g++-4.8
-    #   env: COMPILER=g++-4.8
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - g++-4.9
-      env: COMPILER=g++-4.9
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - g++-5
-      env: COMPILER=g++-5
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - g++-6
-      env: COMPILER=g++-6
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - g++-7
-      env: COMPILER=g++-7
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - g++-8
-      env: COMPILER=g++-8
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - g++-9
-      env: COMPILER=g++-9
-
-    # --------------------------------------------------------------------------
-    #     xenial / clang
-    # --------------------------------------------------------------------------
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-3.5
-      env: COMPILER=clang++-3.5 OPENMP=OFF
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-3.6
-      env: COMPILER=clang++-3.6 OPENMP=OFF
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-3.7
-      env: COMPILER=clang++-3.7 OPENMP=OFF
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-3.8
-          - libiomp-dev
-      env: COMPILER=clang++-3.8
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-3.9
-          - libiomp-dev
-      env: COMPILER=clang++-3.9
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-4.0
-          - libiomp-dev
-      env: COMPILER=clang++-4.0
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-5.0
-          - libiomp-dev
-      env: COMPILER=clang++-5.0
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-6.0
-          - libiomp-dev
-      env: COMPILER=clang++-6.0
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-7.0
-          - libiomp-dev
-      env: COMPILER=clang++-7.0
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-          - clang-8.0
-          - libiomp-dev
-      env: COMPILER=clang++-8.0
-
-    # ==========================================================================
-    #     bionic
-    # ==========================================================================
-
-    # default
-    - os: linux
-      dist: bionic
-      name: "bionic"
-
-    # --------------------------------------------------------------------------
-    #     bionic / gcc
-    # --------------------------------------------------------------------------
-
-    - os: linux
-      dist: bionic
+    #       - g++-4.9
+    #   env: COMPILER=g++-4.9
+    #
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - g++-5
+    #   env: COMPILER=g++-5
+    #
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - g++-6
+    #   env: COMPILER=g++-6
+    #
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - g++-7
+    #   env: COMPILER=g++-7
+    #
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - g++-8
+    #   env: COMPILER=g++-8
+    #
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - g++-9
+    #   env: COMPILER=g++-9
+    #
+    # # --------------------------------------------------------------------------
+    # #     xenial / clang
+    # # --------------------------------------------------------------------------
+    #
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - clang-3.5
+    #   env: COMPILER=clang++-3.5 OPENMP=OFF
+    #
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - clang-3.6
+    #   env: COMPILER=clang++-3.6 OPENMP=OFF
+    #
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - clang-3.7
+    #   env: COMPILER=clang++-3.7 OPENMP=OFF
+    #
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - clang-3.8
+    #       - libiomp-dev
+    #   env: COMPILER=clang++-3.8
+    #
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - clang-3.9
+    #       - libiomp-dev
+    #   env: COMPILER=clang++-3.9
+    #
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - clang-4.0
+    #       - libiomp-dev
+    #   env: COMPILER=clang++-4.0
+    #
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - clang-5.0
+    #       - libiomp-dev
+    #   env: COMPILER=clang++-5.0
+    #
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #       - clang-6.0
+    #       - libiomp-dev
+    #   env: COMPILER=clang++-6.0
+    #
+    # # ==========================================================================
+    # #     bionic
+    # # ==========================================================================
+    #
+    # # default
+    # - os: linux
+    #   dist: bionic
+    #   name: "bionic"
+    #
+    # # --------------------------------------------------------------------------
+    # #     bionic / gcc
+    # # --------------------------------------------------------------------------
+    #
+    # - os: linux
+    #   dist: bionic
 
     # ==========================================================================
     #     osx
@@ -395,6 +373,12 @@ jobs:
     - os: osx
       osx_image: xcode11.3
       env: OPENMP=OFF
+
+  # The default trusty gcc version is 4.8, which does not properly support regex.
+  # As of now, it still compiles, but some tests that need functions with regexes fail.
+  # This is okay, as we do not need that level of compatibility.
+  allow_failures:
+    - name: trusty
 
 # ==================================================================================================
 #     Install
@@ -437,7 +421,7 @@ script:
   # - echo -e "\ntravis_fold:end:available compilers\r"
 
   # travis environment
-  - echo -e "travis_fold:start:travis environment\033[33;1m$2\033[0m"
+  - echo -e "travis_fold:start:travis_environment\033[33;1mtravis environment\033[0m"
   - echo "PATH = $PATH"
   - echo "HOME = $HOME"
   - echo ${CC}
@@ -446,7 +430,7 @@ script:
   - ${CXX} --version
   - ${COMPILER} --version
   - cmake --version
-  - echo -e "\ntravis_fold:end:travis environment\r"
+  - echo -e "\ntravis_fold:end:travis_environment\r"
 
   - export GENESIS_DEBUG=1
   - mkdir build

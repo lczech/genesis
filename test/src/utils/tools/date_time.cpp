@@ -74,6 +74,20 @@ TEST( DateTime, ConversionTM )
     for( auto const& invalid : invalids ) {
         EXPECT_ANY_THROW( convert_to_tm( invalid )) << invalid;
         EXPECT_FALSE( is_convertible_to_tm( invalid )) << invalid;
+
+        // TODO Mac OSX test
+        if( is_convertible_to_tm( invalid )) {
+            LOG_DBG << "valid invalid " << invalid;
+            auto const tm = convert_to_tm( invalid );
+            LOG_DBG1 << "tm.tm_sec   " << tm.tm_sec;
+            LOG_DBG1 << "tm.tm_min   " << tm.tm_min;
+            LOG_DBG1 << "tm.tm_hour  " << tm.tm_hour;
+            LOG_DBG1 << "tm.tm_mday  " << tm.tm_mday;
+            LOG_DBG1 << "tm.tm_mon   " << tm.tm_mon;
+            LOG_DBG1 << "tm.tm_year  " << tm.tm_year;
+            LOG_DBG1 << "tm.tm_wday  " << tm.tm_wday;
+            LOG_DBG1 << "tm.tm_yday  " << tm.tm_yday;
+        }
     }
     EXPECT_ANY_THROW( convert_to_tm( invalids.begin(), invalids.end() ));
     EXPECT_FALSE( is_convertible_to_tm( invalids.begin(), invalids.end() ));
@@ -89,6 +103,17 @@ TEST( DateTime, ConversionTime )
     auto const tms = convert_to_tm( times.begin(), times.end() );
     for( size_t i = 0; i < tms.size(); ++i ) {
         auto const& tm1 = tms[i];
+
+        // TODO Mac OSX test
+        LOG_DBG << "at " << times[i];
+        LOG_DBG1 << "tm1.tm_sec   " << tm1.tm_sec;
+        LOG_DBG1 << "tm1.tm_min   " << tm1.tm_min;
+        LOG_DBG1 << "tm1.tm_hour  " << tm1.tm_hour;
+        LOG_DBG1 << "tm1.tm_mday  " << tm1.tm_mday;
+        LOG_DBG1 << "tm1.tm_mon   " << tm1.tm_mon;
+        LOG_DBG1 << "tm1.tm_year  " << tm1.tm_year;
+        LOG_DBG1 << "tm1.tm_wday  " << tm1.tm_wday;
+        LOG_DBG1 << "tm1.tm_yday  " << tm1.tm_yday;
 
         EXPECT_NO_THROW( tm_to_time( tm1 )) << times[i];
         EXPECT_NO_THROW( time_to_tm( tm_to_time( tm1 ))) << times[i];
@@ -136,6 +161,17 @@ TEST( DateTime, ClangMktimeBug )
     iss.str( testdate );
     iss.imbue( std::locale( "C" ));
     iss >> std::get_time(&tm,"%Y:%m:%d %H:%M:%S");
+
+    // TODO Mac OSX test
+    LOG_DBG << "at " << testdate;
+    LOG_DBG1 << "tm.tm_sec   " << tm.tm_sec;
+    LOG_DBG1 << "tm.tm_min   " << tm.tm_min;
+    LOG_DBG1 << "tm.tm_hour  " << tm.tm_hour;
+    LOG_DBG1 << "tm.tm_mday  " << tm.tm_mday;
+    LOG_DBG1 << "tm.tm_mon   " << tm.tm_mon;
+    LOG_DBG1 << "tm.tm_year  " << tm.tm_year;
+    LOG_DBG1 << "tm.tm_wday  " << tm.tm_wday;
+    LOG_DBG1 << "tm.tm_yday  " << tm.tm_yday;
 
     // Set time zone.
     char* tz;
