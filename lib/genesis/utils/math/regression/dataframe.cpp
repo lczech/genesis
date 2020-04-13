@@ -215,5 +215,11 @@ Matrix<double> glm_convert_dataframe(
     return result;
 }
 
+Matrix<double> glm_convert_dataframe(
+    Dataframe const& df
+) {
+    return glm_convert_dataframe( df, std::vector<std::string>() );
+}
+
 } // namespace utils
 } // namespace genesis

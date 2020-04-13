@@ -2,21 +2,20 @@
 #     Header
 # ==================================================================================================
 
+# General settings
 language: cpp
 sudo: required
 cache: apt
 
+# Jobs are on linux/bionic unless specified otherwise
+os: linux
+dist: bionic
+
+# We do not want to run all feature branches
 branches:
   only:
     - master
     - misc
-
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    update: true
-    # sources: &sources
 
 # ==================================================================================================
 #     Matrix
@@ -44,7 +43,7 @@ jobs:
     # #   addons:
     # #     apt:
     # #       packages:
-    # #       - g++-4.8
+    # #         - g++-4.8
     # #   env: COMPILER=g++-4.8
     #
     # - os: linux
@@ -54,7 +53,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - g++-4.9
+    #         - g++-4.9
     #   env: COMPILER=g++-4.9
     #
     # - os: linux
@@ -64,7 +63,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - g++-5
+    #         - g++-5
     #   env: COMPILER=g++-5
     #
     # - os: linux
@@ -74,7 +73,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - g++-6
+    #         - g++-6
     #   env: COMPILER=g++-6
     #
     # - os: linux
@@ -84,7 +83,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - g++-7
+    #         - g++-7
     #   env: COMPILER=g++-7
     #
     # - os: linux
@@ -94,7 +93,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - g++-8
+    #        - g++-8
     #   env: COMPILER=g++-8
     #
     # - os: linux
@@ -104,7 +103,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - g++-9
+    #         - g++-9
     #   env: COMPILER=g++-9
 
     # --------------------------------------------------------------------------
@@ -118,7 +117,7 @@ jobs:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-          - clang-3.5
+            - clang-3.5
       env: COMPILER=clang++-3.5 OPENMP=OFF
 
     - os: linux
@@ -128,7 +127,7 @@ jobs:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-          - clang-3.6
+            - clang-3.6
       env: COMPILER=clang++-3.6 OPENMP=OFF
 
     - os: linux
@@ -137,8 +136,9 @@ jobs:
         apt:
           sources:
             - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-3.7
           packages:
-          - clang-3.7
+            - clang-3.7
       env: COMPILER=clang++-3.7 OPENMP=OFF
 
     - os: linux
@@ -148,8 +148,8 @@ jobs:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-          - clang-3.8
-          - libiomp-dev
+            - clang-3.8
+            - libiomp-dev
       env: COMPILER=clang++-3.8
 
     - os: linux
@@ -159,8 +159,8 @@ jobs:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-          - clang-3.9
-          - libiomp-dev
+           - clang-3.9
+            - libiomp-dev
       env: COMPILER=clang++-3.9
 
     # # ==========================================================================
@@ -182,7 +182,7 @@ jobs:
     # #   addons:
     # #     apt:
     # #       packages:
-    # #       - g++-4.8
+    # #         - g++-4.8
     # #   env: COMPILER=g++-4.8
     #
     # - os: linux
@@ -192,7 +192,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - g++-4.9
+    #         - g++-4.9
     #   env: COMPILER=g++-4.9
     #
     # - os: linux
@@ -202,7 +202,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - g++-5
+    #         - g++-5
     #   env: COMPILER=g++-5
     #
     # - os: linux
@@ -212,7 +212,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - g++-6
+    #         - g++-6
     #   env: COMPILER=g++-6
     #
     # - os: linux
@@ -222,7 +222,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - g++-7
+    #         - g++-7
     #   env: COMPILER=g++-7
     #
     # - os: linux
@@ -232,7 +232,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - g++-8
+    #         - g++-8
     #   env: COMPILER=g++-8
     #
     # - os: linux
@@ -242,7 +242,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - g++-9
+    #         - g++-9
     #   env: COMPILER=g++-9
     #
     # # --------------------------------------------------------------------------
@@ -256,7 +256,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - clang-3.5
+    #         - clang-3.5
     #   env: COMPILER=clang++-3.5 OPENMP=OFF
     #
     # - os: linux
@@ -266,7 +266,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - clang-3.6
+    #         - clang-3.6
     #   env: COMPILER=clang++-3.6 OPENMP=OFF
     #
     # - os: linux
@@ -276,7 +276,7 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - clang-3.7
+    #         - clang-3.7
     #   env: COMPILER=clang++-3.7 OPENMP=OFF
     #
     # - os: linux
@@ -286,8 +286,8 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - clang-3.8
-    #       - libiomp-dev
+    #         - clang-3.8
+    #         - libiomp-dev
     #   env: COMPILER=clang++-3.8
     #
     # - os: linux
@@ -297,8 +297,8 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - clang-3.9
-    #       - libiomp-dev
+    #         - clang-3.9
+    #         - libiomp-dev
     #   env: COMPILER=clang++-3.9
     #
     # - os: linux
@@ -308,8 +308,8 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - clang-4.0
-    #       - libiomp-dev
+    #         - clang-4.0
+    #         - libiomp-dev
     #   env: COMPILER=clang++-4.0
     #
     # - os: linux
@@ -319,8 +319,8 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - clang-5.0
-    #       - libiomp-dev
+    #         - clang-5.0
+    #         - libiomp-dev
     #   env: COMPILER=clang++-5.0
     #
     # - os: linux
@@ -330,8 +330,8 @@ jobs:
     #       sources:
     #         - ubuntu-toolchain-r-test
     #       packages:
-    #       - clang-6.0
-    #       - libiomp-dev
+    #         - clang-6.0
+    #         - libiomp-dev
     #   env: COMPILER=clang++-6.0
     #
     # # ==========================================================================
