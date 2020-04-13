@@ -106,63 +106,63 @@ jobs:
     #       packages:
     #       - g++-9
     #   env: COMPILER=g++-9
-    #
-    # # --------------------------------------------------------------------------
-    # #     trusty / clang
-    # # --------------------------------------------------------------------------
-    #
-    # - os: linux
-    #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #       - clang-3.5
-    #   env: COMPILER=clang++-3.5 OPENMP=OFF
-    #
-    # - os: linux
-    #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #       - clang-3.6
-    #   env: COMPILER=clang++-3.6 OPENMP=OFF
-    #
-    # - os: linux
-    #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #       - clang-3.7
-    #   env: COMPILER=clang++-3.7 OPENMP=OFF
-    #
-    # - os: linux
-    #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #       - clang-3.8
-    #       - libiomp-dev
-    #   env: COMPILER=clang++-3.8
-    #
-    # - os: linux
-    #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #       - clang-3.9
-    #       - libiomp-dev
-    #   env: COMPILER=clang++-3.9
-    #
+
+    # --------------------------------------------------------------------------
+    #     trusty / clang
+    # --------------------------------------------------------------------------
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+          - clang-3.5
+      env: COMPILER=clang++-3.5 OPENMP=OFF
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+          - clang-3.6
+      env: COMPILER=clang++-3.6 OPENMP=OFF
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+          - clang-3.7
+      env: COMPILER=clang++-3.7 OPENMP=OFF
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+          - clang-3.8
+          - libiomp-dev
+      env: COMPILER=clang++-3.8
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+          - clang-3.9
+          - libiomp-dev
+      env: COMPILER=clang++-3.9
+
     # # ==========================================================================
     # #     xenial
     # # ==========================================================================
