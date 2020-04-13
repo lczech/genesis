@@ -1,117 +1,54 @@
-sudo: required
-# dist: xenial
-dist: trusty
 language: cpp
+sudo: false
 
 branches:
   only:
     - master
     - misc
 
+env:
+  # Workaround for https://github.com/travis-ci/travis-ci/issues/4681
+  matrix:
+    - TRAVIS_EMPTY_JOB_WORKAROUND=true
+
+addons:
+  apt:
+    sources: &sources
+      - ubuntu-toolchain-r-test
+
 matrix:
+  exclude:
+    - env: TRAVIS_EMPTY_JOB_WORKAROUND=true
+
   include:
-    # Cannot use gcc 4.8 because of missing regex implementation.
-    # - compiler: gcc
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-4.8
-    #   env: COMPILER=g++-4.8
-    # - compiler: gcc
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-4.9
-    #   env: COMPILER=g++-4.9
-    # - compiler: gcc
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-5
-    #   env: COMPILER=g++-5
-    # Cannot use clang in travis right now because of stupid apt-get shutdown.
-    - compiler: clang
+    - os: linux
+      dist: xenial
       addons:
         apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.6
           packages:
-            - clang-3.6
+          - g++-7
+      env: COMPILER=g++-7
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - clang-3.6
       env: COMPILER=clang++-3.6 OPENMP=OFF
 
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.7
-          packages:
-            - clang-3.7
-            # - libiomp-dev
-            # - libiomp5
-            # - libomp5
-      env: COMPILER=clang++-3.7 OPENMP=OFF
+    - os: osx
+      osx_image: xcode9.2
 
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.8
-          packages:
-            - clang-3.8
-            - libiomp-dev
-            # - libiomp5
-            # - libomp5
-            # - libomp
-      env: COMPILER=clang++-3.8
-
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.9
-          packages:
-            - clang-3.9
-            - libiomp-dev
-            # - libiomp5
-            # - libomp5
-            # - libomp
-      env: COMPILER=clang++-3.9
-
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-4.0
-          packages:
-            - clang-4.0
-            - libiomp-dev
-            # - libiomp5
-            # - libomp5
-            # - libomp
-      env: COMPILER=clang++-4.0
+    - os: osx
+      osx_image: xcode8.3
 
 
-
-before_install:
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  - sudo apt-get update -qq
+# before_install:
+  # - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  # - sudo apt-get update -qq
 
 script:
-  - apt-cache pkgnames gcc
-  - apt-cache pkgnames g++
-  - apt-cache pkgnames clang
-
   - export GENESIS_DEBUG=1
   - mkdir build
   - cd build
