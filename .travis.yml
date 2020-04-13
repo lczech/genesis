@@ -27,6 +27,22 @@ matrix:
       addons:
         apt:
           packages:
+          - g++-5
+      env: COMPILER=g++-5
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - gcc-5
+      env: COMPILER=gcc-5
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
           - g++-7
       env: COMPILER=g++-7
 
