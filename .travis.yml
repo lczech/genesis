@@ -191,6 +191,8 @@ matrix:
       dist: xenial
       addons:
         apt:
+          sources:
+            - ubuntu-toolchain-r-test
           packages:
           - g++-6
       env: COMPILER=g++-6
@@ -356,7 +358,7 @@ matrix:
 
 before_install:
 
-  - echo "before_install"
+  - echo -e "\e[1;34mentering before_install\e[0m"
   - echo ${TRAVIS_OS_NAME}
 
   - |
@@ -374,23 +376,25 @@ before_install:
       export PATH="$(brew --prefix llvm)/bin:$PATH";
     fi
 
+  - echo -e "\e[1;34mexiting before_install\e[0m"
+
 # ==================================================================================================
 #     Script
 # ==================================================================================================
 
 script:
-  - echo "script"
+  - echo -e "\e[1;34mentering script\e[0m"
 
   # List available gcc and clang versions
   # - apt-cache pkgnames g++ | sort
   # - apt-cache pkgnames clang | sort
 
-  - echo -e "\e[1;31mTravis environment\e[0m"
+  - echo -e "\e[1;34mTravis environment\e[0m"
   - echo "PATH = $PATH"
   - echo "HOME = $HOME"
-  - echo "Compiler"
   - echo ${CC}
   - echo ${CXX}
+  - echo ${COMPILER}
   - ${CXX} --version
   - ${COMPILER} --version
   - cmake --version
@@ -406,3 +410,5 @@ script:
   - make
   - cd ..
   - ./bin/test/genesis_tests
+
+  - echo -e "\e[1;34mexiting script\e[0m"
