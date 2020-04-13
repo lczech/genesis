@@ -460,7 +460,7 @@ static const std::vector<Color> color_list_nextstrain_256_ = {{
 std::vector<Color> color_list_nextstrain( size_t n )
 {
     if( n == 0 ) {
-        return {};
+        return std::vector<Color>{};
     } else if( n < color_lists_nextstrain_1_16_.size() ) {
         return color_lists_nextstrain_1_16_[n];
     } else {

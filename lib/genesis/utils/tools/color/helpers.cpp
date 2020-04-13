@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ std::map<double, Color> color_stops( ColorMap const& map, ColorNormalization con
         return color_stops( map, *norm_lin );
     }
 
-    return {};
+    return std::map<double, Color>{};
 }
 
 std::map<double, Color> color_stops( ColorMap const& map, ColorNormalizationLinear const& norm )
@@ -175,7 +175,7 @@ std::map<double, std::string> color_tickmarks( ColorNormalization const& norm, s
         return color_tickmarks( *norm_lin, num_ticks );
     }
 
-    return {};
+    return std::map<double, std::string>{};
 }
 
 std::map<double, std::string> color_tickmarks( ColorNormalizationLinear const& norm, size_t num_ticks )
