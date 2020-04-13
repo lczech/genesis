@@ -18,8 +18,10 @@ branches:
 
 addons:
   apt:
-    sources: &sources
+    sources:
       - ubuntu-toolchain-r-test
+    update: true
+    # sources: &sources
 
 # ==================================================================================================
 #     Matrix
@@ -30,6 +32,15 @@ matrix:
   #   - env: TRAVIS_EMPTY_JOB_WORKAROUND=true
 
   include:
+
+    # ==========================================================================
+    #     trusty
+    # ==========================================================================
+
+    # default
+    - os: linux
+      dist: trusty
+      name: "trusty"
 
     # --------------------------------------------------------------------------
     #     trusty / gcc
@@ -126,6 +137,7 @@ matrix:
         apt:
           packages:
           - clang-3.8
+          - libiomp-dev
       env: COMPILER=clang++-3.8
 
     - os: linux
@@ -134,7 +146,17 @@ matrix:
         apt:
           packages:
           - clang-3.9
+          - libiomp-dev
       env: COMPILER=clang++-3.9
+
+    # ==========================================================================
+    #     xenial
+    # ==========================================================================
+
+    # default
+    - os: linux
+      dist: xenial
+      name: "xenial"
 
     # --------------------------------------------------------------------------
     #     xenial / gcc
@@ -231,6 +253,7 @@ matrix:
         apt:
           packages:
           - clang-3.8
+          - libiomp-dev
       env: COMPILER=clang++-3.8
 
     - os: linux
@@ -239,6 +262,7 @@ matrix:
         apt:
           packages:
           - clang-3.9
+          - libiomp-dev
       env: COMPILER=clang++-3.9
 
     - os: linux
@@ -247,6 +271,7 @@ matrix:
         apt:
           packages:
           - clang-4.0
+          - libiomp-dev
       env: COMPILER=clang++-4.0
 
     - os: linux
@@ -255,6 +280,7 @@ matrix:
         apt:
           packages:
           - clang-5.0
+          - libiomp-dev
       env: COMPILER=clang++-5.0
 
     - os: linux
@@ -263,6 +289,7 @@ matrix:
         apt:
           packages:
           - clang-6.0
+          - libiomp-dev
       env: COMPILER=clang++-6.0
 
     - os: linux
@@ -271,6 +298,7 @@ matrix:
         apt:
           packages:
           - clang-7.0
+          - libiomp-dev
       env: COMPILER=clang++-7.0
 
     - os: linux
@@ -279,7 +307,17 @@ matrix:
         apt:
           packages:
           - clang-8.0
+          - libiomp-dev
       env: COMPILER=clang++-8.0
+
+    # ==========================================================================
+    #     bionic
+    # ==========================================================================
+
+    # default
+    - os: linux
+      dist: bionic
+      name: "bionic"
 
     # --------------------------------------------------------------------------
     #     bionic / gcc
@@ -288,9 +326,9 @@ matrix:
     - os: linux
       dist: bionic
 
-    # --------------------------------------------------------------------------
+    # ==========================================================================
     #     osx
-    # --------------------------------------------------------------------------
+    # ==========================================================================
 
     - os: osx
       osx_image: xcode8.3
@@ -306,10 +344,21 @@ matrix:
 
 before_install:
 
+  - echo "before_install"
+  - echo ${TRAVIS_OS_NAME}
+
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      echo "adding toolchain"
       sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
       sudo apt-get update -qq
+    fi
+  # The following Homebrew packages aren't linked by default, and need to be
+  # prepended to the path explicitly.
+  - |
+    if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+      echo "exporting llvm path"
+      export PATH="$(brew --prefix llvm)/bin:$PATH";
     fi
 
 # ==================================================================================================
@@ -317,8 +366,11 @@ before_install:
 # ==================================================================================================
 
 script:
-  - apt-cache pkgnames g++ | sort
-  - apt-cache pkgnames clang | sort
+  - echo "script"
+
+  # List available gcc and clang versions
+  # - apt-cache pkgnames g++ | sort
+  # - apt-cache pkgnames clang | sort
 
   - echo -e "\e[1;31mTravis environment\e[0m"
   - echo "PATH = $PATH"
