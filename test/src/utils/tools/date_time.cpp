@@ -56,8 +56,8 @@ TEST( DateTime, ConversionTM )
     };
 
     for( auto const& valid : valids ) {
-        EXPECT_NO_THROW( convert_to_tm( valid ));
-        EXPECT_TRUE( is_convertible_to_tm( valid ));
+        EXPECT_NO_THROW( convert_to_tm( valid )) << valid;
+        EXPECT_TRUE( is_convertible_to_tm( valid )) << valid;
     }
     EXPECT_NO_THROW( convert_to_tm( valids.begin(), valids.end() ));
     EXPECT_TRUE( is_convertible_to_tm( valids.begin(), valids.end() ));
@@ -72,8 +72,8 @@ TEST( DateTime, ConversionTM )
     };
 
     for( auto const& invalid : invalids ) {
-        EXPECT_ANY_THROW( convert_to_tm( invalid ));
-        EXPECT_FALSE( is_convertible_to_tm( invalid ));
+        EXPECT_ANY_THROW( convert_to_tm( invalid )) << invalid;
+        EXPECT_FALSE( is_convertible_to_tm( invalid )) << invalid;
     }
     EXPECT_ANY_THROW( convert_to_tm( invalids.begin(), invalids.end() ));
     EXPECT_FALSE( is_convertible_to_tm( invalids.begin(), invalids.end() ));
@@ -87,7 +87,11 @@ TEST( DateTime, ConversionTime )
     };
 
     auto const tms = convert_to_tm( times.begin(), times.end() );
-    for( auto const& tm1 : tms ) {
+    for( size_t i = 0; i < tms.size(); ++i ) {
+        auto const& tm1 = tms[i];
+
+        EXPECT_NO_THROW( tm_to_time( tm1 )) << times[i];
+        EXPECT_NO_THROW( time_to_tm( tm_to_time( tm1 ))) << times[i];
         auto tm2 = time_to_tm( tm_to_time( tm1 ));
 
         // We cannot directly compare the times, as some blanks are filled in in the conversion.

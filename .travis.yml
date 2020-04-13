@@ -1,3 +1,7 @@
+# ==================================================================================================
+#     Header
+# ==================================================================================================
+
 language: cpp
 sudo: required
 cache: apt
@@ -17,11 +21,142 @@ addons:
     sources: &sources
       - ubuntu-toolchain-r-test
 
+# ==================================================================================================
+#     Matrix
+# ==================================================================================================
+
 matrix:
   # exclude:
   #   - env: TRAVIS_EMPTY_JOB_WORKAROUND=true
 
   include:
+
+    # --------------------------------------------------------------------------
+    #     trusty / gcc
+    # --------------------------------------------------------------------------
+
+    # Cannot use gcc 4.8 because of missing regex implementation.
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       packages:
+    #       - g++-4.8
+    #   env: COMPILER=g++-4.8
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+          - g++-4.9
+      env: COMPILER=g++-4.9
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+          - g++-5
+      env: COMPILER=g++-5
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+          - g++-6
+      env: COMPILER=g++-6
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+          - g++-7
+      env: COMPILER=g++-7
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+          - g++-8
+      env: COMPILER=g++-8
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+          - g++-9
+      env: COMPILER=g++-9
+
+    # --------------------------------------------------------------------------
+    #     trusty / clang
+    # --------------------------------------------------------------------------
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+          - clang-3.5
+      env: COMPILER=clang++-3.5 OPENMP=OFF
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+          - clang-3.6
+      env: COMPILER=clang++-3.6 OPENMP=OFF
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+          - clang-3.7
+      env: COMPILER=clang++-3.7 OPENMP=OFF
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+          - clang-3.8
+      env: COMPILER=clang++-3.8
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+          - clang-3.9
+      env: COMPILER=clang++-3.9
+
+    # --------------------------------------------------------------------------
+    #     xenial / gcc
+    # --------------------------------------------------------------------------
+
+    # Cannot use gcc 4.8 because of missing regex implementation.
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       packages:
+    #       - g++-4.8
+    #   env: COMPILER=g++-4.8
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - g++-4.9
+      env: COMPILER=g++-4.9
+
     - os: linux
       dist: xenial
       addons:
@@ -35,8 +170,8 @@ matrix:
       addons:
         apt:
           packages:
-          - gcc-5
-      env: COMPILER=gcc-5
+          - g++-6
+      env: COMPILER=g++-6
 
     - os: linux
       dist: xenial
@@ -51,21 +186,125 @@ matrix:
       addons:
         apt:
           packages:
+          - g++-8
+      env: COMPILER=g++-8
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - g++-9
+      env: COMPILER=g++-9
+
+    # --------------------------------------------------------------------------
+    #     xenial / clang
+    # --------------------------------------------------------------------------
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - clang-3.5
+      env: COMPILER=clang++-3.5 OPENMP=OFF
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
           - clang-3.6
       env: COMPILER=clang++-3.6 OPENMP=OFF
 
-    - os: osx
-      osx_image: xcode9.2
-      env: OPENMP=OFF
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - clang-3.7
+      env: COMPILER=clang++-3.7 OPENMP=OFF
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - clang-3.8
+      env: COMPILER=clang++-3.8
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - clang-3.9
+      env: COMPILER=clang++-3.9
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - clang-4.0
+      env: COMPILER=clang++-4.0
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - clang-5.0
+      env: COMPILER=clang++-5.0
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - clang-6.0
+      env: COMPILER=clang++-6.0
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - clang-7.0
+      env: COMPILER=clang++-7.0
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - clang-8.0
+      env: COMPILER=clang++-8.0
+
+    # --------------------------------------------------------------------------
+    #     bionic / gcc
+    # --------------------------------------------------------------------------
+
+    - os: linux
+      dist: bionic
+
+    # --------------------------------------------------------------------------
+    #     osx
+    # --------------------------------------------------------------------------
 
     - os: osx
       osx_image: xcode8.3
       env: OPENMP=OFF
 
+    - os: osx
+      osx_image: xcode9.2
+      env: OPENMP=OFF
+
+# ==================================================================================================
+#     Install
+# ==================================================================================================
 
 before_install:
-  - echo "PATH = $PATH"
-  - echo "HOME = $HOME"
 
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
@@ -73,7 +312,24 @@ before_install:
       sudo apt-get update -qq
     fi
 
+# ==================================================================================================
+#     Script
+# ==================================================================================================
+
 script:
+  - apt-cache pkgnames g++ | sort
+  - apt-cache pkgnames clang | sort
+
+  - echo -e "\e[1;31mTravis environment\e[0m"
+  - echo "PATH = $PATH"
+  - echo "HOME = $HOME"
+  - echo "Compiler"
+  - echo ${CC}
+  - echo ${CXX}
+  - ${CXX} --version
+  - ${COMPILER} --version
+  - cmake --version
+
   - export GENESIS_DEBUG=1
   - mkdir build
   - cd build
