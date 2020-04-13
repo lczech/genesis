@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -184,7 +184,7 @@ public:
         // e.tree = tree;
         // entries_.push_back(e);
 
-        entries_.push_back({ name, {}, tree });
+        entries_.push_back({ name, std::vector<std::string>{}, tree });
         // entries_.emplace_back(name, {}, tree);
     }
 

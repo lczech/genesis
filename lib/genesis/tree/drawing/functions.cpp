@@ -81,7 +81,7 @@ void write_tree_to_phyloxml_file(
     std::string const& phyloxml_filename
 ) {
     write_color_tree_to_phyloxml_file(
-        tree, {}, phyloxml_filename
+        tree, std::vector<utils::Color>{}, phyloxml_filename
     );
 }
 
@@ -124,7 +124,7 @@ void write_tree_to_nexus_file(
     std::string const& nexus_filename
 ) {
     write_color_tree_to_nexus_file(
-        tree, {}, nexus_filename
+        tree, std::vector<utils::Color>{}, nexus_filename
     );
 }
 
