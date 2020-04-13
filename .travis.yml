@@ -27,7 +27,7 @@ addons:
 #     Matrix
 # ==================================================================================================
 
-matrix:
+jobs:
   # exclude:
   #   - env: TRAVIS_EMPTY_JOB_WORKAROUND=true
 
