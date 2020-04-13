@@ -410,6 +410,7 @@ before_install:
 install:
 
   - if [[ "${COMPILER}" == "default" ]]; then COMPILER=clang++-7; fi
+  - if [[ "${COMPILER}" == "clang++" ]]; then COMPILER=clang++-7; fi
 
 # ==================================================================================================
 #     Script

@@ -88,8 +88,8 @@ template <class ForwardIterator>
 GlmFactor<typename ForwardIterator::value_type> glm_factor(
     ForwardIterator first,
     ForwardIterator last,
-    std::vector<typename ForwardIterator::value_type> const& levels = std::vector<typename ForwardIterator::value_type>{},
-    std::vector<typename ForwardIterator::value_type> const& exclude = std::vector<typename ForwardIterator::value_type>{}
+    std::vector<typename ForwardIterator::value_type> const& levels,
+    std::vector<typename ForwardIterator::value_type> const& exclude
 ) {
     // Prepare result.
     using T = typename ForwardIterator::value_type;
@@ -146,6 +146,33 @@ GlmFactor<typename ForwardIterator::value_type> glm_factor(
     }
 
     return result;
+}
+
+template <class ForwardIterator>
+GlmFactor<typename ForwardIterator::value_type> glm_factor(
+    ForwardIterator first,
+    ForwardIterator last,
+    std::vector<typename ForwardIterator::value_type> const& levels
+) {
+    return glm_factor(
+        first,
+        last,
+        levels,
+        std::vector<typename ForwardIterator::value_type>()
+    );
+}
+
+template <class ForwardIterator>
+GlmFactor<typename ForwardIterator::value_type> glm_factor(
+    ForwardIterator first,
+    ForwardIterator last
+) {
+    return glm_factor(
+        first,
+        last,
+        std::vector<typename ForwardIterator::value_type>(),
+        std::vector<typename ForwardIterator::value_type>()
+    );
 }
 
 /**
