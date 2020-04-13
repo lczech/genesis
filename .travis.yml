@@ -130,16 +130,17 @@ jobs:
             - clang-3.6
       env: COMPILER=clang++-3.6 OPENMP=OFF
 
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-3.7
-          packages:
-            - clang-3.7
-      env: COMPILER=clang++-3.7 OPENMP=OFF
+    # TODO somehow, this just does not work...
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #         - llvm-toolchain-trusty-3.7
+    #       packages:
+    #         - clang-3.7
+    #   env: COMPILER=clang++-3.7 OPENMP=OFF
 
     - os: linux
       dist: trusty
@@ -159,7 +160,7 @@ jobs:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-           - clang-3.9
+            - clang-3.9
             - libiomp-dev
       env: COMPILER=clang++-3.9
 
@@ -350,29 +351,29 @@ jobs:
     # - os: linux
     #   dist: bionic
 
-    # ==========================================================================
-    #     osx
-    # ==========================================================================
-
-    - os: osx
-      osx_image: xcode8.3
-      env: OPENMP=OFF
-
-    - os: osx
-      osx_image: xcode9.2
-      env: OPENMP=OFF
-
-    - os: osx
-      osx_image: xcode10
-      env: OPENMP=OFF
-
-    - os: osx
-      osx_image: xcode11
-      env: OPENMP=OFF
-
-    - os: osx
-      osx_image: xcode11.3
-      env: OPENMP=OFF
+    # # ==========================================================================
+    # #     osx
+    # # ==========================================================================
+    #
+    # - os: osx
+    #   osx_image: xcode8.3
+    #   env: OPENMP=OFF
+    #
+    # - os: osx
+    #   osx_image: xcode9.2
+    #   env: OPENMP=OFF
+    #
+    # - os: osx
+    #   osx_image: xcode10
+    #   env: OPENMP=OFF
+    #
+    # - os: osx
+    #   osx_image: xcode11
+    #   env: OPENMP=OFF
+    #
+    # - os: osx
+    #   osx_image: xcode11.3
+    #   env: OPENMP=OFF
 
   # The default trusty gcc version is 4.8, which does not properly support regex.
   # As of now, it still compiles, but some tests that need functions with regexes fail.
@@ -386,9 +387,13 @@ jobs:
 
 before_install:
 
-  - echo -e "\e[1;34mentering before_install\e[0m"
-  - echo ${TRAVIS_OS_NAME}
+  - # entering before_install
 
+  # List available gcc and clang versions
+  # - apt-cache pkgnames g++ | sort
+  # - apt-cache pkgnames clang | sort
+
+  - # install ubuntu toolchain
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
       echo "adding toolchain"
@@ -399,37 +404,74 @@ before_install:
 
   # The following homebrew packages are not on the path by default. We need to prepend them to the
   # path explicitly, so that clang can find OpenMP.
+  - # set llvm path
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       echo "exporting llvm path"
       export PATH="$(brew --prefix llvm)/bin:$PATH";
     fi
 
-  - echo -e "\e[1;34mexiting before_install\e[0m"
+  - # exiting before_install
 
 install:
 
-  # We need a few back and forths between the variables, in the following order:
-  #  1. For default builds, COMPILER is not set, so we use CXX instead
-  #  2. and 3. Somehow, clang++-7 has issues being found...
-  #  4. We also need to set CXX, as travis is so nice as to override this.
-  - if [[ "${COMPILER}" == "" ]]; then COMPILER=${CXX}; fi
-  - if [[ "${COMPILER}" == "default" ]]; then COMPILER=clang++-7; fi
-  - if [[ "${COMPILER}" == "clang++" ]]; then COMPILER=clang++-7; fi
-  - export CXX=${COMPILER}
+  - # entering install
+
+  # Dependencies required by the CI are installed in ${TRAVIS_BUILD_DIR}/deps/
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir -p "${DEPS_DIR}"
+  - cd "${DEPS_DIR}"
+
+  - # clang install libc++
+  - |
+    LLVM_INSTALL=${DEPS_DIR}/llvm/install
+    # if in linux and compiler clang and llvm not installed
+    if [[ "${TRAVIS_OS_NAME}" == "linux" && "${CXX%%+*}" == "clang" && -n "$(ls -A ${LLVM_INSTALL})" ]]; then
+      if   [[ "${CXX}" == "clang++-3.5" ]]; then LLVM_VERSION="3.5.1";
+      elif [[ "${CXX}" == "clang++-3.6" ]]; then LLVM_VERSION="3.6.2";
+      elif [[ "${CXX}" == "clang++-3.7" ]]; then LLVM_VERSION="3.7.1";
+      elif [[ "${CXX}" == "clang++-3.8" ]]; then LLVM_VERSION="3.8.1";
+      elif [[ "${CXX}" == "clang++-3.9" ]]; then LLVM_VERSION="3.9.1";
+      elif [[ "${CXX}" == "clang++-4.0" ]]; then LLVM_VERSION="4.0.1";
+      elif [[ "${CXX}" == "clang++-5.0" ]]; then LLVM_VERSION="5.0.2";
+      elif [[ "${CXX}" == "clang++-6.0" ]]; then LLVM_VERSION="6.0.1";
+      elif [[ "${CXX}" == "clang++-7" ]];   then LLVM_VERSION="7.0.1";
+      fi
+      LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
+      LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
+      LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
+      mkdir -p llvm llvm/build llvm/projects/libcxx llvm/projects/libcxxabi
+      travis_retry wget -O - ${LLVM_URL} | tar --strip-components=1 -xJ -C llvm
+      travis_retry wget -O - ${LIBCXX_URL} | tar --strip-components=1 -xJ -C llvm/projects/libcxx
+      travis_retry wget -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C llvm/projects/libcxxabi
+      (cd llvm/build && cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL})
+      (cd llvm/build/projects/libcxx && make install -j2)
+      (cd llvm/build/projects/libcxxabi && make install -j2)
+      export CXXFLAGS="-isystem ${LLVM_INSTALL}/include/c++/v1"
+      export LDFLAGS="-L ${LLVM_INSTALL}/lib -l c++ -l c++abi"
+      export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
+    fi
+
+  - # exiting install
 
 # ==================================================================================================
 #     Script
 # ==================================================================================================
 
-script:
-  - echo -e "\e[1;34mentering script\e[0m"
+before_script:
 
-  # List available gcc and clang versions
-  # - echo -e "travis_fold:start:available compilers\033[33;1m$2\033[0m"
-  # - apt-cache pkgnames g++ | sort
-  # - apt-cache pkgnames clang | sort
-  # - echo -e "\ntravis_fold:end:available compilers\r"
+  - # entering before_script
+
+  # We need a few backs and forths between the variables, in the following order:
+  #  1. For default builds, COMPILER is not set, so we use CXX instead.
+  #  2. We also need to set CXX, as travis is so nice as to override this otherwise.
+  - if [[ "${COMPILER}" == "" ]]; then COMPILER=${CXX}; fi
+  - export CXX=${COMPILER}
+
+  # Tests from when clang 3.7 did not work. Might also have other benefits, see
+  # https://github.com/ldionne/hana/blob/a5923b48456e47174cf62ae580b003605b297590/.travis.yml#L146
+  # - if [[ "${COMPILER}" == "default" ]]; then COMPILER=clang++-7; fi
+  # - if [[ "${COMPILER}" == "clang++" ]]; then COMPILER=clang++-7; fi
 
   - # travis environment
   - echo "PATH = $PATH"
@@ -440,16 +482,27 @@ script:
   - ${COMPILER} --version
   - cmake --version
 
-  - export GENESIS_DEBUG=1
+  - # exiting before_script
+
+script:
+  - # entering script
+  - cd "${TRAVIS_BUILD_DIR}"
+
+  - # set up directories
   - mkdir build
   - cd build
 
+  - # export cmake variables
+  - export GENESIS_DEBUG=1
   - export GENESIS_USE_OPENMP=ON
   - if [[ "${OPENMP}" == "OFF" ]]; then export GENESIS_USE_OPENMP=OFF; fi
 
+  - # build
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DGENESIS_USE_OPENMP=$GENESIS_USE_OPENMP ..
   - make -j 4
   - cd ..
+
+  - # run tests
   - ./bin/test/genesis_tests
 
-  - echo -e "\e[1;34mexiting script\e[0m"
+  - # exiting script
