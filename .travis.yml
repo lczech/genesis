@@ -332,11 +332,23 @@ matrix:
 
     - os: osx
       osx_image: xcode8.3
-      env: OPENMP=OFF
+      # env: OPENMP=OFF
 
     - os: osx
       osx_image: xcode9.2
-      env: OPENMP=OFF
+      # env: OPENMP=OFF
+
+    - os: osx
+      osx_image: xcode10
+      # env: OPENMP=OFF
+
+    - os: osx
+      osx_image: xcode11
+      # env: OPENMP=OFF
+
+    - os: osx
+      osx_image: xcode11.3
+      # env: OPENMP=OFF
 
 # ==================================================================================================
 #     Install
@@ -353,8 +365,9 @@ before_install:
       sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
       sudo apt-get update -qq
     fi
-  # The following Homebrew packages aren't linked by default, and need to be
-  # prepended to the path explicitly.
+
+  # The following homebrew packages are not on the path by default. We need to prepend them to the
+  # path explicitly, so that clang can find OpenMP.
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       echo "exporting llvm path"
