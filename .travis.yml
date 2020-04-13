@@ -11,11 +11,6 @@ branches:
     - master
     - misc
 
-# env:
-#   # Workaround for https://github.com/travis-ci/travis-ci/issues/4681
-#   matrix:
-#     - TRAVIS_EMPTY_JOB_WORKAROUND=true
-
 addons:
   apt:
     sources:
@@ -28,9 +23,6 @@ addons:
 # ==================================================================================================
 
 jobs:
-  # exclude:
-  #   - env: TRAVIS_EMPTY_JOB_WORKAROUND=true
-
   include:
 
     # ==========================================================================
@@ -464,7 +456,7 @@ script:
   - if [[ "${OPENMP}" == "OFF" ]]; then export GENESIS_USE_OPENMP=OFF; fi
 
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DGENESIS_USE_OPENMP=$GENESIS_USE_OPENMP ..
-  - make
+  - make -j 4
   - cd ..
   - ./bin/test/genesis_tests
 
