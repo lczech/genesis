@@ -411,6 +411,17 @@ before_install:
       export PATH="$(brew --prefix llvm)/bin:$PATH";
     fi
 
+  # We need a few backs and forths between the variables, in the following order:
+  #  1. For default builds, COMPILER is not set, so we use CXX instead.
+  #  2. We also need to set CXX, as travis is so nice as to override this otherwise.
+  - if [[ "${COMPILER}" == "" ]]; then COMPILER=${CXX}; fi
+  - export CXX=${COMPILER}
+
+  # Tests from when clang 3.7 did not work. Might also have other benefits, see
+  # https://github.com/ldionne/hana/blob/a5923b48456e47174cf62ae580b003605b297590/.travis.yml#L146
+  # - if [[ "${COMPILER}" == "default" ]]; then COMPILER=clang++-7; fi
+  # - if [[ "${COMPILER}" == "clang++" ]]; then COMPILER=clang++-7; fi
+
   - # exiting before_install
 
 install:
@@ -461,17 +472,6 @@ install:
 before_script:
 
   - # entering before_script
-
-  # We need a few backs and forths between the variables, in the following order:
-  #  1. For default builds, COMPILER is not set, so we use CXX instead.
-  #  2. We also need to set CXX, as travis is so nice as to override this otherwise.
-  - if [[ "${COMPILER}" == "" ]]; then COMPILER=${CXX}; fi
-  - export CXX=${COMPILER}
-
-  # Tests from when clang 3.7 did not work. Might also have other benefits, see
-  # https://github.com/ldionne/hana/blob/a5923b48456e47174cf62ae580b003605b297590/.travis.yml#L146
-  # - if [[ "${COMPILER}" == "default" ]]; then COMPILER=clang++-7; fi
-  # - if [[ "${COMPILER}" == "clang++" ]]; then COMPILER=clang++-7; fi
 
   - # travis environment
   - echo "PATH = $PATH"
