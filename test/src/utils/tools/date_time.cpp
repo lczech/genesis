@@ -87,6 +87,7 @@ TEST( DateTime, ConversionTM )
             LOG_DBG1 << "tm.tm_year  " << tm.tm_year;
             LOG_DBG1 << "tm.tm_wday  " << tm.tm_wday;
             LOG_DBG1 << "tm.tm_yday  " << tm.tm_yday;
+            LOG_DBG1 << "tm.tm_isdst " << tm.tm_isdst;
         }
     }
     EXPECT_ANY_THROW( convert_to_tm( invalids.begin(), invalids.end() ));
@@ -114,6 +115,7 @@ TEST( DateTime, ConversionTime )
         LOG_DBG1 << "tm1.tm_year  " << tm1.tm_year;
         LOG_DBG1 << "tm1.tm_wday  " << tm1.tm_wday;
         LOG_DBG1 << "tm1.tm_yday  " << tm1.tm_yday;
+        LOG_DBG1 << "tm1.tm_isdst " << tm1.tm_isdst;
 
         EXPECT_NO_THROW( tm_to_time( tm1 )) << times[i];
         EXPECT_NO_THROW( time_to_tm( tm_to_time( tm1 ))) << times[i];
@@ -172,6 +174,7 @@ TEST( DateTime, ClangMktimeBug )
     LOG_DBG1 << "tm.tm_year  " << tm.tm_year;
     LOG_DBG1 << "tm.tm_wday  " << tm.tm_wday;
     LOG_DBG1 << "tm.tm_yday  " << tm.tm_yday;
+    LOG_DBG1 << "tm.tm_isdst " << tm.tm_isdst;
 
     // Set time zone.
     char* tz;

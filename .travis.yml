@@ -421,7 +421,6 @@ script:
   # - echo -e "\ntravis_fold:end:available compilers\r"
 
   # travis environment
-  - echo -e "travis_fold:start:travis_environment\033[33;1mtravis environment\033[0m"
   - echo "PATH = $PATH"
   - echo "HOME = $HOME"
   - echo ${CC}
@@ -430,7 +429,6 @@ script:
   - ${CXX} --version
   - ${COMPILER} --version
   - cmake --version
-  - echo -e "\ntravis_fold:end:travis_environment\r"
 
   - export GENESIS_DEBUG=1
   - mkdir build
