@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -144,18 +144,28 @@ TEST( InputStream, LargeFile )
     while( it ) {
         LOG_DBG << "at " << cnt;
 
+        LOG_DBG1 << "a";
         EXPECT_EQ( cnt + 1, it.line() );
+        LOG_DBG1 << "b";
         EXPECT_EQ( 1, it.column() );
 
+        LOG_DBG1 << "c";
         auto const line = it.get_line();
 
+        LOG_DBG1 << "d";
         EXPECT_EQ( cnt * text.size(), line.size() );
+        LOG_DBG1 << "e";
         EXPECT_EQ( cnt + 2, it.line() );
+        LOG_DBG1 << "f";
         EXPECT_EQ( 1, it.column() );
 
+        LOG_DBG1 << "g";
         ++cnt;
     }
 
+    LOG_DBG << "finished with " << cnt;
+
     // Make sure the file is deleted.
     ASSERT_EQ( 0, std::remove(tmpfile.c_str()) );
+    LOG_DBG << "removed file";
 }

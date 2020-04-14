@@ -4,21 +4,20 @@
 
 # General settings
 language: cpp
-sudo: required
 cache: apt
 
 # Jobs are on linux/bionic unless specified otherwise
 os: linux
 dist: bionic
 
-# We do not want to run all feature branches
+# We only want to run specific branches
 branches:
   only:
     - master
     - misc
 
 # ==================================================================================================
-#     Matrix
+#     Job Matrix
 # ==================================================================================================
 
 jobs:
@@ -28,10 +27,10 @@ jobs:
     #     trusty
     # ==========================================================================
 
-    # default
-    - os: linux
-      dist: trusty
-      name: "trusty"
+    # # default
+    # - os: linux
+    #   dist: trusty
+    #   name: "trusty / default"
 
     # # --------------------------------------------------------------------------
     # #     trusty / gcc
@@ -120,58 +119,58 @@ jobs:
             - clang-3.5
       env: COMPILER=clang++-3.5 OPENMP=OFF
 
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - clang-3.6
-      env: COMPILER=clang++-3.6 OPENMP=OFF
-
-    # TODO somehow, this just does not work...
     # - os: linux
     #   dist: trusty
     #   addons:
     #     apt:
     #       sources:
     #         - ubuntu-toolchain-r-test
-    #         - llvm-toolchain-trusty-3.7
     #       packages:
-    #         - clang-3.7
-    #   env: COMPILER=clang++-3.7 OPENMP=OFF
-
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - clang-3.8
-            - libiomp-dev
-      env: COMPILER=clang++-3.8
-
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - clang-3.9
-            - libiomp-dev
-      env: COMPILER=clang++-3.9
+    #         - clang-3.6
+    #   env: COMPILER=clang++-3.6 OPENMP=OFF
+    #
+    # # TODO somehow, this just does not work...
+    # # - os: linux
+    # #   dist: trusty
+    # #   addons:
+    # #     apt:
+    # #       sources:
+    # #         - ubuntu-toolchain-r-test
+    # #         - llvm-toolchain-trusty-3.7
+    # #       packages:
+    # #         - clang-3.7
+    # #   env: COMPILER=clang++-3.7 OPENMP=OFF
+    #
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #         - clang-3.8
+    #         - libiomp-dev
+    #   env: COMPILER=clang++-3.8
+    #
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #         - clang-3.9
+    #         - libiomp-dev
+    #   env: COMPILER=clang++-3.9
 
     # ==========================================================================
     #     xenial
     # ==========================================================================
 
-    # default
-    - os: linux
-      dist: xenial
-      name: "xenial"
+    # # default
+    # - os: linux
+    #   dist: xenial
+    #   name: "xenial / default"
 
     # # --------------------------------------------------------------------------
     # #     xenial / gcc
@@ -339,47 +338,128 @@ jobs:
     #     bionic
     # ==========================================================================
 
-    # default
-    - os: linux
-      dist: bionic
-      name: "bionic"
-
-    # # --------------------------------------------------------------------------
-    # #     bionic / gcc
-    # # --------------------------------------------------------------------------
-    #
+    # # default
     # - os: linux
     #   dist: bionic
+    #   name: "bionic / default"
+
+    # --------------------------------------------------------------------------
+    #     bionic / gcc
+    # --------------------------------------------------------------------------
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-4.8"] } }
+      env: COMPILER=g++-4.8
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-5"] } }
+      env: COMPILER=g++-5
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-6"] } }
+      env: COMPILER=g++-6
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-7"] } }
+      env: COMPILER=g++-7
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-8"] } }
+      env: COMPILER=g++-8
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-9"] } }
+      env: COMPILER=g++-9
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-10"] } }
+      env: COMPILER=g++-10
+
+    # --------------------------------------------------------------------------
+    #     bionic / clang
+    # --------------------------------------------------------------------------
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-3.9"], packages: ["clang-3.9"] } }
+      env: COMPILER=clang-3.9
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-4.0"], packages: ["clang-4.0"] } }
+      env: COMPILER=clang-4.0
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-5.0"], packages: ["clang-5.0"] } }
+      env: COMPILER=clang-5.0
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-6.0"], packages: ["clang-6.0"] } }
+      env: COMPILER=clang-6.0
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-7"], packages: ["clang-7"] } }
+      env: COMPILER=clang-7
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-8"], packages: ["clang-8"] } }
+      env: COMPILER=clang-8
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-8"], packages: ["clang-8"] } }
+      env: COMPILER=clang-8
 
     # # ==========================================================================
     # #     osx
     # # ==========================================================================
     #
     # - os: osx
+    #   env: OPENMP=OFF
+    #   name: "osx / default"
+    #
+    # - os: osx
     #   osx_image: xcode8.3
     #   env: OPENMP=OFF
+    #   name: "osx / xcode8.3"
     #
     # - os: osx
     #   osx_image: xcode9.2
     #   env: OPENMP=OFF
+    #   name: "osx / xcode9.2"
     #
     # - os: osx
     #   osx_image: xcode10
     #   env: OPENMP=OFF
+    #   name: "osx / xcode10"
     #
     # - os: osx
     #   osx_image: xcode11
     #   env: OPENMP=OFF
+    #   name: "osx / xcode11"
     #
     # - os: osx
     #   osx_image: xcode11.3
     #   env: OPENMP=OFF
+    #   name: "osx / xcode11.3"
 
-  # The default trusty gcc version is 4.8, which does not properly support regex.
-  # As of now, it still compiles, but some tests that need functions with regexes fail.
-  # This is okay, as we do not need that level of compatibility.
   allow_failures:
-    - name: trusty
+
+    # The default trusty gcc version is 4.8, which does not properly support regex.
+    # As of now, it still compiles, but some tests that need functions with regexes fail.
+    # This is okay, as we do not need that level of backwards compatibility.
+    - name: "trusty / default"
 
 # ==================================================================================================
 #     Install
@@ -387,13 +467,15 @@ jobs:
 
 before_install:
 
-  - # entering before_install
+  # --------------------------------------------------------------------------
+  #     Toolchain
+  # --------------------------------------------------------------------------
 
   # List available gcc and clang versions
   # - apt-cache pkgnames g++ | sort
   # - apt-cache pkgnames clang | sort
 
-  - # install ubuntu toolchain
+  # install ubuntu toolchain
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
       echo "adding toolchain"
@@ -402,9 +484,13 @@ before_install:
       sudo apt-get update -qq
     fi
 
+  # --------------------------------------------------------------------------
+  #     Paths and Environment
+  # --------------------------------------------------------------------------
+
   # The following homebrew packages are not on the path by default. We need to prepend them to the
   # path explicitly, so that clang can find OpenMP.
-  - # set llvm path
+  # set llvm path
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       echo "exporting llvm path"
@@ -419,24 +505,33 @@ before_install:
 
   # Tests from when clang 3.7 did not work. Might also have other benefits, see
   # https://github.com/ldionne/hana/blob/a5923b48456e47174cf62ae580b003605b297590/.travis.yml#L146
+  # https://github.com/acgetchell/CDT-test/blob/master/.travis.yml#L42
   # - if [[ "${COMPILER}" == "default" ]]; then COMPILER=clang++-7; fi
   # - if [[ "${COMPILER}" == "clang++" ]]; then COMPILER=clang++-7; fi
-
-  - # exiting before_install
+  # - if [[ "$CXX" == "g++" ]]; then export CXX="g++-9" CC="gcc-9"; fi
+  # - if [[ "$CXX" == "clang++" ]]; then export CXX="clang++-10" CC="clang-10"; fi
 
 install:
 
-  - # entering install
+  # --------------------------------------------------------------------------
+  #     Directories
+  # --------------------------------------------------------------------------
 
   # Dependencies required by the CI are installed in ${TRAVIS_BUILD_DIR}/deps/
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
   - mkdir -p "${DEPS_DIR}"
   - cd "${DEPS_DIR}"
 
-  - # clang install libc++
+  # --------------------------------------------------------------------------
+  #     Clang libc++
+  # --------------------------------------------------------------------------
+
+  # clang install libc++
+  # based on https://github.com/ldionne/hana/blob/master/.travis.yml
+  # TODO maybe add `&& ! -d ${LLVM_INSTALL}` to the next line, and add llvm dir to cache -->
+  # but then make each of them install into their own sub directory!
   - |
     LLVM_INSTALL=${DEPS_DIR}/llvm/install
-    # if in linux and compiler clang and llvm not installed
     if [[ "${TRAVIS_OS_NAME}" == "linux" && "${CXX%%+*}" == "clang" ]]; then
       if   [[ "${CXX}" == "clang++-3.5" ]]; then LLVM_VERSION="3.5.1";
       elif [[ "${CXX}" == "clang++-3.6" ]]; then LLVM_VERSION="3.6.2";
@@ -447,6 +542,11 @@ install:
       elif [[ "${CXX}" == "clang++-5.0" ]]; then LLVM_VERSION="5.0.2";
       elif [[ "${CXX}" == "clang++-6.0" ]]; then LLVM_VERSION="6.0.1";
       elif [[ "${CXX}" == "clang++-7" ]];   then LLVM_VERSION="7.0.1";
+      elif [[ "${CXX}" == "clang++-8" ]];   then LLVM_VERSION="8.0.1";
+      elif [[ "${CXX}" == "clang++-9" ]];   then LLVM_VERSION="9.0.1";
+      else
+        echo "Unknown clang version ${CXX}"
+        exit 1
       fi
 
       LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
@@ -466,17 +566,17 @@ install:
       export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
     fi
 
-  - # exiting install
-
 # ==================================================================================================
 #     Script
 # ==================================================================================================
 
 before_script:
 
-  - # entering before_script
+  # --------------------------------------------------------------------------
+  #     Info Output
+  # --------------------------------------------------------------------------
 
-  - # travis environment
+  # travis environment
   - echo "PATH = $PATH"
   - echo "HOME = $HOME"
   - echo ${CXX}
@@ -485,27 +585,27 @@ before_script:
   - ${COMPILER} --version
   - cmake --version
 
-  - # exiting before_script
-
 script:
-  - # entering script
+
+  # --------------------------------------------------------------------------
+  #     Build Script
+  # --------------------------------------------------------------------------
+
   - cd "${TRAVIS_BUILD_DIR}"
 
-  - # set up directories
+  # set up directories
   - mkdir build
   - cd build
 
-  - # export cmake variables
+  # export cmake variables
   - export GENESIS_DEBUG=1
   - export GENESIS_USE_OPENMP=ON
   - if [[ "${OPENMP}" == "OFF" ]]; then export GENESIS_USE_OPENMP=OFF; fi
 
-  - # build
+  # build
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DGENESIS_USE_OPENMP=$GENESIS_USE_OPENMP ..
   - make -j 4
   - cd ..
 
-  - # run tests
+  # run tests
   - ./bin/test/genesis_tests
-
-  - # exiting script
