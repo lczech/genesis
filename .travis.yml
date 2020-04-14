@@ -347,10 +347,10 @@ jobs:
     #     bionic / gcc
     # --------------------------------------------------------------------------
 
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-4.8"] } }
-      env: COMPILER=g++-4.8
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-4.8"] } }
+    #   env: COMPILER=g++-4.8
 
     - os: linux
       dist: bionic
@@ -388,38 +388,38 @@ jobs:
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-3.9"], packages: ["clang-3.9"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-3.9"], packages: ["clang-3.9", "libiomp-dev"] } }
       env: COMPILER=clang-3.9
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-4.0"], packages: ["clang-4.0"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-4.0"], packages: ["clang-4.0", "libiomp-dev"] } }
       env: COMPILER=clang-4.0
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-5.0"], packages: ["clang-5.0"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-5.0"], packages: ["clang-5.0", "libiomp-dev"] } }
       env: COMPILER=clang-5.0
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-6.0"], packages: ["clang-6.0"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-6.0"], packages: ["clang-6.0", "libiomp-dev"] } }
       env: COMPILER=clang-6.0
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-7"], packages: ["clang-7"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-7"], packages: ["clang-7", "libiomp-dev"] } }
       env: COMPILER=clang-7
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-8"], packages: ["clang-8"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-8"], packages: ["clang-8", "libiomp-dev"] } }
       env: COMPILER=clang-8
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-8"], packages: ["clang-8"] } }
-      env: COMPILER=clang-8
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-9"], packages: ["clang-9", "libiomp-dev"] } }
+      env: COMPILER=clang-9
 
     # # ==========================================================================
     # #     osx
@@ -604,7 +604,7 @@ script:
 
   # build
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DGENESIS_USE_OPENMP=$GENESIS_USE_OPENMP ..
-  - make -j 4
+  - make
   - cd ..
 
   # run tests
