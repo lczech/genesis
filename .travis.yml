@@ -412,6 +412,7 @@ jobs:
       env: COMPILER=clang++-6.0
 
 
+
     - os: linux
       dist: bionic
       addons:
@@ -437,9 +438,26 @@ jobs:
           packages:
             - clang-6.0
             - libiomp-dev
-            - libomp-6-dev
+            # - libomp-6-dev
       env: COMPILER=clang++-6.0
       name: goodboi6
+
+      # Unable to locate package libomp-6-dev
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
+            - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-7 main'
+          packages:
+            - clang-7.0
+            - libiomp-dev
+            - libomp-7-dev
+      env: COMPILER=clang++-7.0
+      name: goodboi7
 
 
 
