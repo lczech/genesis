@@ -277,13 +277,16 @@ IF(GENESIS_USE_OPENMP)
     # In order to still enable OpenMP, we use our own patch of the find module.
     # See ./tools/cmake/FindOpenMP_patch.cmake for the modifications we made to support Clang.
     if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
-        find_package( OpenMP_patch )
 
-        # If our patch does not work, try the standard one, just in case.
-        if( NOT OPENMP_FOUND )
-            unset(OpenMP_CXX_FLAGS)
-            find_package( OpenMP )
-        endif()
+        find_package( OpenMP )
+
+        # find_package( OpenMP_patch )
+        #
+        # # If our patch does not work, try the standard one, just in case.
+        # if( NOT OPENMP_FOUND )
+        #     unset(OpenMP_CXX_FLAGS)
+        #     find_package( OpenMP )
+        # endif()
 
     else()
         # In all other cases, use the normal find module.
