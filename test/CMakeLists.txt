@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2017 Lucas Czech
+# Copyright (C) 2014-2020 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -80,6 +80,15 @@ if(NOT GTEST_FOUND)
     # target_link_libraries command.
     SET( GTEST_BOTH_LIBRARIES gtest_main gtest )
     SET( GTEST_LIBRARIES gtest )
+
+    # New gcc versions spam a lot of warnings in googletest about implicitly-declared types being
+    # deprecated. Let's silence them, as we are not interested in warnings about googletest.
+    # That's something they have to fix!
+    if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9)
+        target_compile_options(googletest PRIVATE "-Wno-deprecated-copy")
+        target_compile_options(gtest_main PRIVATE "-Wno-deprecated-copy")
+        target_compile_options(gtest PRIVATE "-Wno-deprecated-copy")
+    endif()
 
     message (STATUS "Finished downloading GTest")
 endif()

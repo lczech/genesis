@@ -27,6 +27,7 @@ jobs:
     #     trusty
     # ==========================================================================
 
+    # # Cannot use gcc 4.8 because of missing regex implementation.
     # # default
     # - os: linux
     #   dist: trusty
@@ -109,15 +110,16 @@ jobs:
     #     trusty / clang
     # --------------------------------------------------------------------------
 
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - clang-3.5
-      env: COMPILER=clang++-3.5 OPENMP=OFF
+    # TODO fails: exception_ptr not yet implemented
+    # - os: linux
+    #   dist: trusty
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #         - clang-3.5
+    #   env: COMPILER=clang++-3.5 OPENMP=OFF
 
     # - os: linux
     #   dist: trusty
@@ -561,7 +563,7 @@ install:
       (cd llvm/build/projects/libcxx && make install -j2)
       (cd llvm/build/projects/libcxxabi && make install -j2)
 
-      export CXXFLAGS="-isystem ${LLVM_INSTALL}/include/c++/v1"
+      export CXXFLAGS="-stdlib=libc++ -isystem ${LLVM_INSTALL}/include/c++/v1"
       export LDFLAGS="-L ${LLVM_INSTALL}/lib -l c++ -l c++abi"
       export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
     fi
