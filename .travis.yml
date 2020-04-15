@@ -403,7 +403,7 @@ jobs:
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-5.0"], packages: ["clang-5.0", "libomp-dev"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-5.0", "llvm-toolchain-5.0"], packages: ["clang-5.0", "libomp-dev", "libomp5"] } }
       env: COMPILER=clang++-5.0
 
     - os: linux
@@ -418,12 +418,13 @@ jobs:
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-8"], packages: ["clang-8", "libomp-8-dev"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-8"], packages: ["clang-8", "libomp-8-dev", "libomp-dev"] } }
       env: COMPILER=clang++-8
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-9"], packages: ["clang-9", "libomp-9-dev", "libomp5"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-9"], packages: ["clang-9"] } }
+      # addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-9"], packages: ["clang-9", "libomp-9-dev", "libomp5"] } }
       env: COMPILER=clang++-9
 
     # # ==========================================================================
@@ -600,6 +601,11 @@ script:
   #     Build Script
   # --------------------------------------------------------------------------
 
+  - cd "${TRAVIS_BUILD_DIR}"
+
+  - cd tools/cmake
+  - ${CXX} -fopenmp clangomp.cpp -o clangomp
+  - ./clangomp
   - cd "${TRAVIS_BUILD_DIR}"
 
   # set up directories
