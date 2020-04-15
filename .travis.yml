@@ -543,8 +543,8 @@ install:
       elif [[ "${CXX}" == "clang++-5.0" ]]; then LLVM_VERSION="5.0.2";
       elif [[ "${CXX}" == "clang++-6.0" ]]; then LLVM_VERSION="6.0.1";
       elif [[ "${CXX}" == "clang++-7" ]];   then LLVM_VERSION="7.0.1";
-      elif [[ "${CXX}" == "clang++-8" ]];   then LLVM_VERSION="8.0.1";
-      elif [[ "${CXX}" == "clang++-9" ]];   then LLVM_VERSION="9.0.1";
+      elif [[ "${CXX}" == "clang++-8" ]];   then LLVM_VERSION="8.0.0";
+      elif [[ "${CXX}" == "clang++-9" ]];   then LLVM_VERSION="9.0.0";
       else
         echo "Unknown clang version ${CXX}"
         exit 1
@@ -568,10 +568,12 @@ install:
 
       # bionic clang fails linking. possible bug fixes:
       # use -stdlib=libc++ https://stackoverflow.com/a/26356481
-      # use -lsupc++ https://stackoverflow.com/a/32469563 :
-      if [[ "${TRAVIS_DIST}" == "bionic" ]]; then
-        export CXXFLAGS="${CXXFLAGS} -stdlib=libc++ -lsupc++"
-        export LDFLAGS="${LDFLAGS} -stdlib=libc++ -lsupc++"
+      # use -lsupc++ https://stackoverflow.com/a/32469563
+      # https://github.com/carla-simulator/carla/issues/503#issuecomment-397658790
+      if [[ "${TRAVIS_DIST}" == "bionic" && [[ "${CXX}" == "clang++-3.9" || "${CXX}" == "clang++-4.0" ]] ]]; then
+        ln -s /usr/include/locale.h /usr/include/xlocale.h
+        # export CXXFLAGS="${CXXFLAGS} -stdlib=libc++ -lsupc++"
+        # export LDFLAGS="${LDFLAGS} -stdlib=libc++ -lsupc++"
       fi
     fi
 
