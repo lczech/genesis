@@ -406,11 +406,22 @@ IF( GENESIS_HAS_PARENT_DIR )
     endif()
 ELSE()
 
+    set( CXXFLAGS                  ${CXXFLAGS} "-stdlib=libc++ -lsupc++" )
+    set( CMAKE_CXX_FLAGS           ${CMAKE_CXX_FLAGS} "-stdlib=libc++ -lsupc++" )
+    set( LDFLAGS                   ${LDFLAGS} "-lsupc++" )
+    set( CMAKE_EXE_LINKER_FLAGS    ${CMAKE_EXE_LINKER_FLAGS} "-lsupc++" )
+    set( CMAKE_MODULE_LINKER_FLAGS ${CMAKE_MODULE_LINKER_FLAGS} "-lsupc++" )
+    set( CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} "-lsupc++" )
+    set( CMAKE_STATIC_LINKER_FLAGS ${CMAKE_STATIC_LINKER_FLAGS} "-lsupc++" )
+
     # Some more debug output when building as a standalone tool.
-    message (STATUS "CXXFLAGS               : ${CXXFLAGS}")
-    message (STATUS "CMAKE_CXX_FLAGS        : ${CMAKE_CXX_FLAGS}")
-    message (STATUS "LDFLAGS                : ${LDFLAGS}")
-    message (STATUS "CMAKE_EXE_LINKER_FLAGS : ${CMAKE_EXE_LINKER_FLAGS}")
+    message (STATUS "CXXFLAGS                  : ${CXXFLAGS}")
+    message (STATUS "CMAKE_CXX_FLAGS           : ${CMAKE_CXX_FLAGS}")
+    message (STATUS "LDFLAGS                   : ${LDFLAGS}")
+    message (STATUS "CMAKE_EXE_LINKER_FLAGS    : ${CMAKE_EXE_LINKER_FLAGS}")
+    message (STATUS "CMAKE_MODULE_LINKER_FLAGS : ${CMAKE_MODULE_LINKER_FLAGS}")
+    message (STATUS "CMAKE_SHARED_LINKER_FLAGS : ${CMAKE_SHARED_LINKER_FLAGS}")
+    message (STATUS "CMAKE_STATIC_LINKER_FLAGS : ${CMAKE_STATIC_LINKER_FLAGS}")
 
 ENDIF()
 

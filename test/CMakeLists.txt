@@ -85,8 +85,10 @@ if(NOT GTEST_FOUND)
     # deprecated. Let's silence them, as we are not interested in warnings about googletest.
     # That's something they have to fix!
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9)
+        target_compile_options(gtest      PRIVATE "-Wno-deprecated-copy")
         target_compile_options(gtest_main PRIVATE "-Wno-deprecated-copy")
-        target_compile_options(gtest PRIVATE "-Wno-deprecated-copy")
+        target_compile_options(gmock      PRIVATE "-Wno-deprecated-copy")
+        target_compile_options(gmock_main PRIVATE "-Wno-deprecated-copy")
     endif()
 
     message (STATUS "Finished downloading GTest")
