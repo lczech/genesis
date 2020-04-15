@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+# Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -404,6 +404,13 @@ IF( GENESIS_HAS_PARENT_DIR )
     if(OPENMP_FOUND)
         set( OPENMP_FOUND ${OPENMP_FOUND} PARENT_SCOPE )
     endif()
+ELSE()
+
+    # Some more debug output when building as a standalone tool.
+    message (STATUS "CXXFLAGS               : ${CXXFLAGS}")
+    message (STATUS "CMAKE_CXX_FLAGS        : ${CMAKE_CXX_FLAGS}")
+    message (STATUS "LDFLAGS                : ${LDFLAGS}")
+    message (STATUS "CMAKE_EXE_LINKER_FLAGS : ${CMAKE_EXE_LINKER_FLAGS}")
 
 ENDIF()
 

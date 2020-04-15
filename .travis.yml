@@ -563,9 +563,17 @@ install:
       (cd llvm/build/projects/libcxx && make install -j2)
       (cd llvm/build/projects/libcxxabi && make install -j2)
 
-      export CXXFLAGS="-stdlib=libc++ -isystem ${LLVM_INSTALL}/include/c++/v1"
+      export CXXFLAGS="-isystem ${LLVM_INSTALL}/include/c++/v1"
       export LDFLAGS="-L ${LLVM_INSTALL}/lib -l c++ -l c++abi"
       export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
+
+      # bionic clang fails linking. possible bug fixes:
+      # use -stdlib=libc++ https://stackoverflow.com/a/26356481 --> not working
+      # use -lsupc++ https://stackoverflow.com/a/32469563 :
+      if [[ "${TRAVIS_DIST}" == "bionic" ]]; then
+        export CXXFLAGS="${CXXFLAGS} -lsupc++"
+        export LDFLAGS="${LDFLAGS} -lsupc++"
+      fi
     fi
 
 # ==================================================================================================
