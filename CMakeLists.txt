@@ -281,6 +281,7 @@ IF(GENESIS_USE_OPENMP)
 
         # If our patch does not work, try the standard one, just in case.
         if( NOT OPENMP_FOUND )
+            unset(OpenMP_CXX_FLAGS)
             find_package( OpenMP )
         endif()
 
