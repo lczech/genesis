@@ -398,7 +398,7 @@ jobs:
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-4.0"], packages: ["clang-4.0", "libiomp-dev"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-4.0"], packages: ["clang-4.0", "libiomp-dev", "libomp5"] } }
       env: COMPILER=clang++-4.0
 
     - os: linux
@@ -423,7 +423,7 @@ jobs:
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-9"], packages: ["clang-9", "libomp-9-dev"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-9"], packages: ["clang-9", "libomp-9-dev", "libomp5"] } }
       env: COMPILER=clang++-9
 
     # # ==========================================================================
@@ -555,7 +555,7 @@ install:
       # bionic clang 3.9 and 4.0 miss a file in their libc++, hence linking fails
       # solution from https://github.com/carla-simulator/carla/issues/503#issuecomment-397658790
       if [[ "${TRAVIS_DIST}" == "bionic" ]] && [[ "${CXX}" == "clang++-3.9" ||  "${CXX}" == "clang++-4.0" ]]; then
-        ln -s /usr/include/locale.h /usr/include/xlocale.h
+        sudo ln -s /usr/include/locale.h /usr/include/xlocale.h
       fi
 
       LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
