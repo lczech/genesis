@@ -570,7 +570,7 @@ install:
       # use -stdlib=libc++ https://stackoverflow.com/a/26356481
       # use -lsupc++ https://stackoverflow.com/a/32469563
       # https://github.com/carla-simulator/carla/issues/503#issuecomment-397658790
-      if [[ "${TRAVIS_DIST}" == "bionic" && [[ "${CXX}" == "clang++-3.9" || "${CXX}" == "clang++-4.0" ]] ]]; then
+      if [[ "${TRAVIS_DIST}" == "bionic" ]] && [[ "${CXX}" == "clang++-3.9" ||  "${CXX}" == "clang++-4.0" ]]; then
         ln -s /usr/include/locale.h /usr/include/xlocale.h
         # export CXXFLAGS="${CXXFLAGS} -stdlib=libc++ -lsupc++"
         # export LDFLAGS="${LDFLAGS} -stdlib=libc++ -lsupc++"
