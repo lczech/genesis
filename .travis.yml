@@ -391,37 +391,37 @@ jobs:
     - os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-3.9"], packages: ["clang-3.9", "libiomp-dev"] } }
-      env: COMPILER=clang-3.9
+      env: COMPILER=clang++-3.9
 
     - os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-4.0"], packages: ["clang-4.0", "libiomp-dev"] } }
-      env: COMPILER=clang-4.0
+      env: COMPILER=clang++-4.0
 
     - os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-5.0"], packages: ["clang-5.0", "libiomp-dev"] } }
-      env: COMPILER=clang-5.0
+      env: COMPILER=clang++-5.0
 
     - os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-6.0"], packages: ["clang-6.0", "libiomp-dev"] } }
-      env: COMPILER=clang-6.0
+      env: COMPILER=clang++-6.0
 
     - os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-7"], packages: ["clang-7", "libiomp-dev"] } }
-      env: COMPILER=clang-7
+      env: COMPILER=clang++-7
 
     - os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-8"], packages: ["clang-8", "libiomp-dev"] } }
-      env: COMPILER=clang-8
+      env: COMPILER=clang++-8
 
     - os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-9"], packages: ["clang-9", "libiomp-dev"] } }
-      env: COMPILER=clang-9
+      env: COMPILER=clang++-9
 
     # # ==========================================================================
     # #     osx
@@ -530,8 +530,6 @@ install:
 
   # clang install libc++
   # based on https://github.com/ldionne/hana/blob/master/.travis.yml
-  # TODO maybe add `&& ! -d ${LLVM_INSTALL}` to the next line, and add llvm dir to cache -->
-  # but then make each of them install into their own sub directory!
   - |
     LLVM_INSTALL=${DEPS_DIR}/llvm/install
     if [[ "${TRAVIS_OS_NAME}" == "linux" && "${CXX%%+*}" == "clang" ]]; then
@@ -566,14 +564,6 @@ install:
       export CXXFLAGS="-isystem ${LLVM_INSTALL}/include/c++/v1"
       export LDFLAGS="-L ${LLVM_INSTALL}/lib -l c++ -l c++abi"
       export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
-
-      # bionic clang fails linking. possible bug fixes:
-      # use -stdlib=libc++ https://stackoverflow.com/a/26356481 --> not working
-      # use -lsupc++ https://stackoverflow.com/a/32469563 :
-      if [[ "${TRAVIS_DIST}" == "bionic" ]]; then
-        export CXXFLAGS="${CXXFLAGS} -lsupc++"
-        export LDFLAGS="${LDFLAGS} -lsupc++"
-      fi
     fi
 
 # ==================================================================================================
