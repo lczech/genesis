@@ -418,7 +418,7 @@ jobs:
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-8"], packages: ["clang-8", "libomp-8-dev", "libomp-dev"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-8"], packages: ["clang-8", "libomp-8-dev", "libomp-dev"] } }
       env: COMPILER=clang++-8
 
     - os: linux
