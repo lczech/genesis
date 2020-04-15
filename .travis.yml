@@ -411,6 +411,38 @@ jobs:
       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-6.0"], packages: ["clang-6.0", "libomp-dev"] } }
       env: COMPILER=clang++-6.0
 
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
+          packages:
+            - clang-6.0
+            - libiomp-dev
+      env: COMPILER=clang++-6.0
+      name: goodboi
+
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
+            - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-6 main'
+          packages:
+            - clang-6.0
+            - libiomp-dev
+            - libomp-6-dev
+      env: COMPILER=clang++-6.0
+      name: goodboi6
+
+
+
     - os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-7"], packages: ["clang-7", "libomp-7-dev"] } }
