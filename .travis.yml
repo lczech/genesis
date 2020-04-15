@@ -389,6 +389,8 @@ jobs:
     #     bionic / clang
     # --------------------------------------------------------------------------
 
+    # NB: from clang 5.0 on, we need different (individual) openmp packages for each version
+
     - os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-3.9"], packages: ["clang-3.9", "libiomp-dev"] } }
@@ -401,27 +403,27 @@ jobs:
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-5.0"], packages: ["clang-5.0", "libiomp-dev"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-5.0"], packages: ["clang-5.0", "libomp-dev"] } }
       env: COMPILER=clang++-5.0
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-6.0"], packages: ["clang-6.0", "libiomp-dev"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-6.0"], packages: ["clang-6.0", "libomp-dev"] } }
       env: COMPILER=clang++-6.0
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-7"], packages: ["clang-7", "libiomp-dev"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-7"], packages: ["clang-7", "libomp-7-dev"] } }
       env: COMPILER=clang++-7
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-8"], packages: ["clang-8", "libiomp-dev"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-8"], packages: ["clang-8", "libomp-8-dev"] } }
       env: COMPILER=clang++-8
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-9"], packages: ["clang-9", "libiomp-dev"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-9"], packages: ["clang-9", "libomp-9-dev"] } }
       env: COMPILER=clang++-9
 
     # # ==========================================================================
@@ -550,6 +552,12 @@ install:
         exit 1
       fi
 
+      # bionic clang 3.9 and 4.0 miss a file in their libc++, hence linking fails
+      # solution from https://github.com/carla-simulator/carla/issues/503#issuecomment-397658790
+      if [[ "${TRAVIS_DIST}" == "bionic" ]] && [[ "${CXX}" == "clang++-3.9" ||  "${CXX}" == "clang++-4.0" ]]; then
+        ln -s /usr/include/locale.h /usr/include/xlocale.h
+      fi
+
       LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
       LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
       LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
@@ -565,16 +573,6 @@ install:
       export CXXFLAGS="-isystem ${LLVM_INSTALL}/include/c++/v1"
       export LDFLAGS="-L ${LLVM_INSTALL}/lib -l c++ -l c++abi"
       export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
-
-      # bionic clang fails linking. possible bug fixes:
-      # use -stdlib=libc++ https://stackoverflow.com/a/26356481
-      # use -lsupc++ https://stackoverflow.com/a/32469563
-      # https://github.com/carla-simulator/carla/issues/503#issuecomment-397658790
-      if [[ "${TRAVIS_DIST}" == "bionic" ]] && [[ "${CXX}" == "clang++-3.9" ||  "${CXX}" == "clang++-4.0" ]]; then
-        ln -s /usr/include/locale.h /usr/include/xlocale.h
-        # export CXXFLAGS="${CXXFLAGS} -stdlib=libc++ -lsupc++"
-        # export LDFLAGS="${LDFLAGS} -stdlib=libc++ -lsupc++"
-      fi
     fi
 
 # ==================================================================================================
