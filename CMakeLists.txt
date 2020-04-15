@@ -407,6 +407,8 @@ IF( GENESIS_HAS_PARENT_DIR )
 
 ENDIF()
 
+message( STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}" )
+
 # Some very last output, so that CMake projects which use us as a dependency cleary see where
 # the Genesis configuration ends.
 message (STATUS "${ColorBlue}Finished configuring Genesis${ColorEnd}")

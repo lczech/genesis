@@ -110,7 +110,7 @@ jobs:
     #     trusty / clang
     # --------------------------------------------------------------------------
 
-    # TODO fails: exception_ptr not yet implemented
+    # Cannot use clang++ 3.5 because exception_ptr is not yet implemented.
     # - os: linux
     #   dist: trusty
     #   addons:
@@ -349,40 +349,41 @@ jobs:
     #     bionic / gcc
     # --------------------------------------------------------------------------
 
+    # Cannot use gcc 4.8 because of missing regex implementation.
     # - os: linux
     #   dist: bionic
     #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-4.8"] } }
     #   env: COMPILER=g++-4.8
 
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-5"] } }
-      env: COMPILER=g++-5
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-6"] } }
-      env: COMPILER=g++-6
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-7"] } }
-      env: COMPILER=g++-7
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-8"] } }
-      env: COMPILER=g++-8
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-9"] } }
-      env: COMPILER=g++-9
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-10"] } }
-      env: COMPILER=g++-10
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-5"] } }
+    #   env: COMPILER=g++-5
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-6"] } }
+    #   env: COMPILER=g++-6
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-7"] } }
+    #   env: COMPILER=g++-7
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-8"] } }
+    #   env: COMPILER=g++-8
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-9"] } }
+    #   env: COMPILER=g++-9
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-10"] } }
+    #   env: COMPILER=g++-10
 
     # --------------------------------------------------------------------------
     #     bionic / clang
@@ -564,6 +565,14 @@ install:
       export CXXFLAGS="-isystem ${LLVM_INSTALL}/include/c++/v1"
       export LDFLAGS="-L ${LLVM_INSTALL}/lib -l c++ -l c++abi"
       export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
+
+      # bionic clang fails linking. possible bug fixes:
+      # use -stdlib=libc++ https://stackoverflow.com/a/26356481
+      # use -lsupc++ https://stackoverflow.com/a/32469563 :
+      if [[ "${TRAVIS_DIST}" == "bionic" ]]; then
+        export CXXFLAGS="${CXXFLAGS} -stdlib=libc++ -lsupc++"
+        export LDFLAGS="${LDFLAGS} -stdlib=libc++ -lsupc++"
+      fi
     fi
 
 # ==================================================================================================
