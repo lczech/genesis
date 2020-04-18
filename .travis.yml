@@ -667,8 +667,22 @@ script:
   - cd "${TRAVIS_BUILD_DIR}"
 
   - cd tools/cmake
+
+  - ${CXX} -fopenmp clangomp.cpp -o clangomp1
+  - ./clangomp1
+
+  - ${CXX} -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp2
+  - ./clangomp2
+
+  - ${CXX} -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp3
+  - ./clangomp3
+
+  - ${CXX} -std=c++11 -fopenmp clangomp.cpp -o clangomp4
+  - ./clangomp4
+
   - ${CXX} -isystem /home/travis/build/lczech/genesis/deps/llvm/install/include/c++/v1 -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp
   - ./clangomp
+
   - cd "${TRAVIS_BUILD_DIR}"
 
   # set up directories
