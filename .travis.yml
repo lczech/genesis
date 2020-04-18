@@ -392,7 +392,7 @@ jobs:
     - os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5"] } }
-      env: COMPILER=clang++-5.0
+      env: COMPILER=clang++-5.0 OPENMP=OFF
 
 
     # NB: from clang 5.0 on, we need different (individual) openmp packages for each version
@@ -622,7 +622,7 @@ install:
         sudo ln -s /usr/include/locale.h /usr/include/xlocale.h
       fi
 
-      if [[ "${TRAVIS_DIST}" != "bionic" ]] ; then
+      # if [[ "${TRAVIS_DIST}" != "bionic" ]] ; then
         LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
         LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
         LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
@@ -638,7 +638,7 @@ install:
         export CXXFLAGS="-isystem ${LLVM_INSTALL}/include/c++/v1"
         export LDFLAGS="-L ${LLVM_INSTALL}/lib -l c++ -l c++abi"
         export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
-      fi
+      # fi
     fi
 
 # ==================================================================================================
