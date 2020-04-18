@@ -673,7 +673,10 @@ script:
 
   # TODO
 
-  - ${CXX} -fopenmp clangomp.cpp -o clangomp1
+  - gcc --version
+  - g++ --version
+
+  - ${CXX} -l c++ -l c++abi -fopenmp clangomp.cpp -o clangomp1
   - ./clangomp1
 
   - ${CXX} -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp2
