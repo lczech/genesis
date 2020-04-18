@@ -416,6 +416,7 @@ IF( GENESIS_HAS_PARENT_DIR )
 
 ENDIF()
 
+#TODO
 message( STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}" )
 
 # Some very last output, so that CMake projects which use us as a dependency cleary see where

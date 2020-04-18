@@ -632,7 +632,9 @@ install:
         sudo ln -s /usr/include/locale.h /usr/include/xlocale.h
       fi
 
-      if [[ "${TRAVIS_DIST}" != "bionic" ]] ; then
+      if [[ "${TRAVIS_DIST}" == "bionic" ]] ; then
+        export CXXFLAGS="-stdlib=libc++ -nostdinc++"
+      else
         LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
         LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
         LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
@@ -686,10 +688,10 @@ script:
   - gcc --version
   - g++ --version
 
-  - ${CXX} -stdlib=libc++ -fopenmp clangomp.cpp -o clangomp0
+  - ${CXX} -stdlib=libc++ -nostdinc++ -fopenmp clangomp.cpp -o clangomp0
   - ./clangomp0
 
-  - ${CXX} -l c++ -l c++abi -fopenmp clangomp.cpp -o clangomp1
+  - ${CXX} -l c++ -l c++abi -nostdinc++ -fopenmp clangomp.cpp -o clangomp1
   - ./clangomp1
 
   - ${CXX} -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp2
