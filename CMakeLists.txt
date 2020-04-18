@@ -278,19 +278,13 @@ IF(GENESIS_USE_OPENMP)
     # See ./tools/cmake/FindOpenMP_patch.cmake for the modifications we made to support Clang.
     if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
 
-        # find_package( OpenMP )
-
-        message (STATUS "${ColorYellow}Starting OpenMP_patch...${ColorEnd}")
         find_package( OpenMP_patch )
-        message (STATUS "${ColorYellow}...finished OpenMP_patch${ColorEnd}")
 
         # If our patch does not work, try the standard one, just in case.
         if( NOT OPENMP_FOUND )
-            message (STATUS "${ColorYellow}Starting OpenMP...${ColorEnd}")
             unset(OpenMP_CXX_FLAGS)
             unset(OpenMP_CXX_FLAGS CACHE)
             find_package( OpenMP )
-            message (STATUS "${ColorYellow}...finished OpenMP${ColorEnd}")
         endif()
 
     else()
@@ -415,9 +409,6 @@ IF( GENESIS_HAS_PARENT_DIR )
     endif()
 
 ENDIF()
-
-#TODO
-message( STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}" )
 
 # Some very last output, so that CMake projects which use us as a dependency cleary see where
 # the Genesis configuration ends.

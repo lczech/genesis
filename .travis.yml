@@ -404,20 +404,11 @@ jobs:
     #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev", "libiomp5"] } }
     #   env: COMPILER=clang++-7
 
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev"] } }
-      env: COMPILER=clang++-7
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp5"] } }
-      env: COMPILER=clang++-7
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev", "libiomp5"] } }
-      env: COMPILER=clang++-7
+    # !!
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev"] } }
+    #   env: COMPILER=clang++-7
 
     # - os: linux
     #   dist: bionic
@@ -445,7 +436,6 @@ jobs:
     #   env: COMPILER=clang++-5.0
 
 
-    # NB: from clang 5.0 on, we need different (individual) openmp packages for each version
 
 #     - os: linux
 #       dist: bionic
@@ -539,6 +529,43 @@ jobs:
 #       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-9"], packages: ["clang-9"] } }
 #       # addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-9"], packages: ["clang-9", "libomp-9-dev", "libomp5"] } }
 #       env: COMPILER=clang++-9
+
+
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.9", "libiomp-dev"] } }
+      env: COMPILER=clang++-3.9
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-4.0", "libiomp-dev"] } }
+      env: COMPILER=clang++-4.0
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
+      env: COMPILER=clang++-5.0
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-6.0", "libiomp-dev"] } }
+      env: COMPILER=clang++-6.0
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev"] } }
+      env: COMPILER=clang++-7
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-8", "libiomp-dev"] } }
+      env: COMPILER=clang++-8
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-9", "libiomp-dev"] } }
+      env: COMPILER=clang++-9
 
     # # ==========================================================================
     # #     osx
@@ -729,9 +756,9 @@ script:
   #     Build Script
   # --------------------------------------------------------------------------
 
-  - cd "${TRAVIS_BUILD_DIR}"
-
-  - cd tools/cmake
+  # - cd "${TRAVIS_BUILD_DIR}"
+  #
+  # - cd tools/cmake
 
 
   # TODO
@@ -741,36 +768,36 @@ script:
     # export LDFLAGS="-L /usr/local/lib -L /usr/local/lib/c++/v1 -l c++ -l c++abi"
     # export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib:/usr/local/lib/c++/v1"
 
-  - gcc --version
-  - g++ --version
-
-  - ${CXX} -isystem /usr/local/include/c++/v1 -L /usr/local/lib -L /usr/local/lib/c++/v1 -std=c++11 -stdlib=libc++ -nostdinc++ -fopenmp clangomp.cpp -o clangomp0f
-  - ./clangomp0f
-
-  - ${CXX} -isystem /usr/local/include/c++/v1 -L /usr/local/lib -L /usr/local/lib/c++/v1 -std=c++11 -stdlib=libc++ -nostdinc++ -l c++abi -fopenmp clangomp.cpp -o clangomp1f
-  - ./clangomp1f
-
-  - ${CXX} -isystem /usr/local/include/c++/v1 -std=c++11 -l c++ -l c++abi -nostdinc++ -fopenmp clangomp.cpp -o clangomp1g
-  - ./clangomp1g
-
-
-  - ${CXX} -std=c++11 -stdlib=libc++ -nostdinc++ -fopenmp clangomp.cpp -o clangomp0
-  - ./clangomp0
-
-  - ${CXX} -std=c++11 -stdlib=libc++ -nostdinc++ -l c++abi -fopenmp clangomp.cpp -o clangomp1a
-  - ./clangomp1a
-
-  - ${CXX} -std=c++11 -l c++ -l c++abi -nostdinc++ -fopenmp clangomp.cpp -o clangomp1
-  - ./clangomp1
-
-  - ${CXX} -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp2
-  - ./clangomp2
-
-  - ${CXX} -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp3
-  - ./clangomp3
-
-  - ${CXX} -std=c++11 -fopenmp clangomp.cpp -o clangomp4
-  - ./clangomp4
+  # - gcc --version
+  # - g++ --version
+  #
+  # - ${CXX} -isystem /usr/local/include/c++/v1 -L /usr/local/lib -L /usr/local/lib/c++/v1 -std=c++11 -stdlib=libc++ -nostdinc++ -fopenmp clangomp.cpp -o clangomp0f
+  # - ./clangomp0f
+  #
+  # - ${CXX} -isystem /usr/local/include/c++/v1 -L /usr/local/lib -L /usr/local/lib/c++/v1 -std=c++11 -stdlib=libc++ -nostdinc++ -l c++abi -fopenmp clangomp.cpp -o clangomp1f
+  # - ./clangomp1f
+  #
+  # - ${CXX} -isystem /usr/local/include/c++/v1 -std=c++11 -l c++ -l c++abi -nostdinc++ -fopenmp clangomp.cpp -o clangomp1g
+  # - ./clangomp1g
+  #
+  #
+  # - ${CXX} -std=c++11 -stdlib=libc++ -nostdinc++ -fopenmp clangomp.cpp -o clangomp0
+  # - ./clangomp0
+  #
+  # - ${CXX} -std=c++11 -stdlib=libc++ -nostdinc++ -l c++abi -fopenmp clangomp.cpp -o clangomp1a
+  # - ./clangomp1a
+  #
+  # - ${CXX} -std=c++11 -l c++ -l c++abi -nostdinc++ -fopenmp clangomp.cpp -o clangomp1
+  # - ./clangomp1
+  #
+  # - ${CXX} -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp2
+  # - ./clangomp2
+  #
+  # - ${CXX} -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp3
+  # - ./clangomp3
+  #
+  # - ${CXX} -std=c++11 -fopenmp clangomp.cpp -o clangomp4
+  # - ./clangomp4
 
   # - ${CXX} -isystem ${LLVM_INSTALL}/include/c++/v1 -isystem /home/travis/build/lczech/genesis/deps/llvm/install/lib/c++/v1 -isystem /home/travis/build/lczech/genesis/deps/llvm/install/include/c++/v1 -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp -L ${LLVM_INSTALL}/lib -l c++ -l c++abi clangomp.cpp -o clangomp5
   # - ./clangomp5
