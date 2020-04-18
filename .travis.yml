@@ -16,6 +16,12 @@ branches:
     - master
     - misc
 
+# We split the jobs into stages to get a better overview
+stages:
+  - "Default"
+  - "Latest"
+  - "Legacy"
+
 # ==================================================================================================
 #     Job Matrix
 # ==================================================================================================
@@ -28,397 +34,396 @@ jobs:
     # ==========================================================================
 
     # # Cannot use gcc 4.8 because of missing regex implementation.
-    # # default
-    # - os: linux
+    # - name: "trusty / default"
+    #   stage: "Default"
+    #   os: linux
     #   dist: trusty
-    #   name: "trusty / default"
 
-    # # --------------------------------------------------------------------------
-    # #     trusty / gcc
-    # # --------------------------------------------------------------------------
-    #
+    # --------------------------------------------------------------------------
+    #     trusty / gcc
+    # --------------------------------------------------------------------------
+
     # # Cannot use gcc 4.8 because of missing regex implementation.
-    # # - os: linux
-    # #   dist: trusty
-    # #   addons:
-    # #     apt:
-    # #       packages:
-    # #         - g++-4.8
-    # #   env: COMPILER=g++-4.8
-    #
-    # - os: linux
+    # - name: "trusty / g++-4.8"
+    #   stage: "Legacy"
+    #   os: linux
     #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-4.9
-    #   env: COMPILER=g++-4.9
-    #
-    # - os: linux
-    #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-5
-    #   env: COMPILER=g++-5
-    #
-    # - os: linux
-    #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-6
-    #   env: COMPILER=g++-6
-    #
-    # - os: linux
-    #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-7
-    #   env: COMPILER=g++-7
-    #
-    # - os: linux
-    #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #        - g++-8
-    #   env: COMPILER=g++-8
-    #
-    # - os: linux
-    #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-9
-    #   env: COMPILER=g++-9
+    #   addons: { apt: { packages: ["g++-4.8"] } }
+    #   env: COMPILER=g++-4.8
+
+    - name: "trusty / g++-4.9"
+      stage: "Legacy"
+      os: linux
+      dist: trusty
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-4.9"] } }
+      env: COMPILER=g++-4.9
+
+    - name: "trusty / g++-5"
+      stage: "Legacy"
+      os: linux
+      dist: trusty
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-5"] } }
+      env: COMPILER=g++-5
+
+    - name: "trusty / g++-6"
+      stage: "Legacy"
+      os: linux
+      dist: trusty
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-6"] } }
+      env: COMPILER=g++-6
+
+    - name: "trusty / g++-7"
+      stage: "Legacy"
+      os: linux
+      dist: trusty
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-7"] } }
+      env: COMPILER=g++-7
+
+    - name: "trusty / g++-8"
+      stage: "Legacy"
+      os: linux
+      dist: trusty
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-8"] } }
+      env: COMPILER=g++-8
+
+    - name: "trusty / g++-9"
+      stage: "Latest"
+      os: linux
+      dist: trusty
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-9"] } }
+      env: COMPILER=g++-9
 
     # --------------------------------------------------------------------------
     #     trusty / clang
     # --------------------------------------------------------------------------
 
-    # Cannot use clang++ 3.5 because exception_ptr is not yet implemented.
-    # - os: linux
+    # # Cannot use clang++ 3.5 because exception_ptr is not yet implemented.
+    # - name: "trusty / clang++-3.5"
+    #   stage: "Legacy"
+    #   os: linux
     #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - clang-3.5
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.5"] } }
     #   env: COMPILER=clang++-3.5 OPENMP=OFF
 
-    # - os: linux
+    - name: "trusty / clang++-3.6"
+      stage: "Legacy"
+      os: linux
+      dist: trusty
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.6"] } }
+      env: COMPILER=clang++-3.6 OPENMP=OFF
+
+    # # Somehow, this just does not work... leave it for now.
+    # - name: "trusty / clang++-3.7"
+    #   stage: "Legacy"
+    #   os: linux
     #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - clang-3.6
-    #   env: COMPILER=clang++-3.6 OPENMP=OFF
-    #
-    # # TODO somehow, this just does not work...
-    # # - os: linux
-    # #   dist: trusty
-    # #   addons:
-    # #     apt:
-    # #       sources:
-    # #         - ubuntu-toolchain-r-test
-    # #         - llvm-toolchain-trusty-3.7
-    # #       packages:
-    # #         - clang-3.7
-    # #   env: COMPILER=clang++-3.7 OPENMP=OFF
-    #
-    # - os: linux
-    #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - clang-3.8
-    #         - libiomp-dev
-    #   env: COMPILER=clang++-3.8
-    #
-    # - os: linux
-    #   dist: trusty
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - clang-3.9
-    #         - libiomp-dev
-    #   env: COMPILER=clang++-3.9
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.7", "libiomp-dev"] } }
+    #   env: COMPILER=clang++-3.7
+
+    - name: "trusty / clang++-3.8"
+      stage: "Legacy"
+      os: linux
+      dist: trusty
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.8", "libiomp-dev"] } }
+      env: COMPILER=clang++-3.8
+
+    - name: "trusty / clang++-3.9"
+      stage: "Latest"
+      os: linux
+      dist: trusty
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.9", "libiomp-dev"] } }
+      env: COMPILER=clang++-3.9
 
     # ==========================================================================
     #     xenial
     # ==========================================================================
 
-    # # default
-    # - os: linux
-    #   dist: xenial
-    #   name: "xenial / default"
+    - name: "xenial / default"
+      stage: "Default"
+      os: linux
+      dist: xenial
 
     # --------------------------------------------------------------------------
     #     xenial / gcc
     # --------------------------------------------------------------------------
 
-    # Cannot use gcc 4.8 because of missing regex implementation.
-    # - os: linux
+    # # Cannot use gcc 4.8 because of missing regex implementation.
+    # - name: "xenial / g++-4.8"
+    #   stage: "Legacy"
+    #   os: linux
     #   dist: xenial
-    #   addons:
-    #     apt:
-    #       packages:
-    #         - g++-4.8
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-4.8"] } }
     #   env: COMPILER=g++-4.8
 
-    # - os: linux
-    #   dist: xenial
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-4.9
-    #   env: COMPILER=g++-4.9
-    #
-    # - os: linux
-    #   dist: xenial
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-5
-    #   env: COMPILER=g++-5
-    #
-    # - os: linux
-    #   dist: xenial
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-6
-    #   env: COMPILER=g++-6
-    #
-    # - os: linux
-    #   dist: xenial
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-7
-    #   env: COMPILER=g++-7
-    #
-    # - os: linux
-    #   dist: xenial
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-8
-    #   env: COMPILER=g++-8
-    #
-    # - os: linux
-    #   dist: xenial
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-9
-    #   env: COMPILER=g++-9
+    - name: "xenial / g++-4.9"
+      stage: "Legacy"
+      os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-4.9"] } }
+      env: COMPILER=g++-4.9
+
+    - name: "xenial / g++-5"
+      stage: "Legacy"
+      os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-5"] } }
+      env: COMPILER=g++-5
+
+    - name: "xenial / g++-6"
+      stage: "Legacy"
+      os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-6"] } }
+      env: COMPILER=g++-6
+
+    - name: "xenial / g++-7"
+      stage: "Legacy"
+      os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-7"] } }
+      env: COMPILER=g++-7
+
+    - name: "xenial / g++-8"
+      stage: "Legacy"
+      os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-8"] } }
+      env: COMPILER=g++-8
+
+    - name: "xenial / g++-9"
+      stage: "Latest"
+      os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-9"] } }
+      env: COMPILER=g++-9
 
     # --------------------------------------------------------------------------
     #     xenial / clang
     # --------------------------------------------------------------------------
 
-    - os: linux
+    - name: "xenial / clang++-3.5"
+      stage: "Legacy"
+      os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.5"] } }
       env: COMPILER=clang++-3.5 OPENMP=OFF
 
-    - os: linux
+    - name: "xenial / clang++-3.6"
+      stage: "Legacy"
+      os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.6"] } }
       env: COMPILER=clang++-3.6 OPENMP=OFF
 
-    - os: linux
+    - name: "xenial / clang++-3.7"
+      stage: "Legacy"
+      os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.7", "libiomp-dev"] } }
       env: COMPILER=clang++-3.7
 
-    # - os: linux
-    #   dist: xenial
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.8", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-3.8
-    #
-    # - os: linux
-    #   dist: xenial
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.9", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-3.9
-    #
-    # - os: linux
-    #   dist: xenial
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-4.0", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-4.0
-    #
-    # - os: linux
-    #   dist: xenial
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-5.0
-    #
-    # - os: linux
-    #   dist: xenial
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-6.0", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-6.0
+    - name: "xenial / clang++-3.8"
+      stage: "Legacy"
+      os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.8", "libiomp-dev"] } }
+      env: COMPILER=clang++-3.8
 
+    - name: "xenial / clang++-3.9"
+      stage: "Legacy"
+      os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.9", "libiomp-dev"] } }
+      env: COMPILER=clang++-3.9
+
+    - name: "xenial / clang++-4.0"
+      stage: "Legacy"
+      os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-4.0", "libiomp-dev"] } }
+      env: COMPILER=clang++-4.0
+
+    - name: "xenial / clang++-5.0"
+      stage: "Legacy"
+      os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
+      env: COMPILER=clang++-5.0
+
+    - name: "xenial / clang++-6.0"
+      stage: "Latest"
+      os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-6.0", "libiomp-dev"] } }
+      env: COMPILER=clang++-6.0
 
     # ==========================================================================
     #     bionic
     # ==========================================================================
 
-    # # default
-    # - os: linux
-    #   dist: bionic
-    #   name: "bionic / default"
+    - name: "bionic / default"
+      stage: "Default"
+      os: linux
+      dist: bionic
 
     # --------------------------------------------------------------------------
     #     bionic / gcc
     # --------------------------------------------------------------------------
 
-    # Cannot use gcc 4.8 because of missing regex implementation.
-    # - os: linux
+    # # Cannot use gcc 4.8 because of missing regex implementation.
+    # - name: "bionic / g++-4.8"
+    #   stage: "Legacy"
+    #   os: linux
     #   dist: bionic
     #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-4.8"] } }
     #   env: COMPILER=g++-4.8
 
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-5"] } }
-    #   env: COMPILER=g++-5
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-6"] } }
-    #   env: COMPILER=g++-6
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-7"] } }
-    #   env: COMPILER=g++-7
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-8"] } }
-    #   env: COMPILER=g++-8
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-9"] } }
-    #   env: COMPILER=g++-9
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-10"] } }
-    #   env: COMPILER=g++-10
+    - name: "bionic / g++-5"
+      stage: "Legacy"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-5"] } }
+      env: COMPILER=g++-5
+
+    - name: "bionic / g++-6"
+      stage: "Legacy"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-6"] } }
+      env: COMPILER=g++-6
+
+    - name: "bionic / g++-7"
+      stage: "Legacy"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-7"] } }
+      env: COMPILER=g++-7
+
+    - name: "bionic / g++-8"
+      stage: "Legacy"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-8"] } }
+      env: COMPILER=g++-8
+
+    - name: "bionic / g++-9"
+      stage: "Legacy"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-9"] } }
+      env: COMPILER=g++-9
+
+    - name: "bionic / g++-10"
+      stage: "Latest"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-10"] } }
+      env: COMPILER=g++-10
 
     # --------------------------------------------------------------------------
     #     bionic / clang
     # --------------------------------------------------------------------------
 
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.9", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-3.9
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-4.0", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-4.0
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-5.0
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-6.0", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-6.0
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-7
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-8", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-8
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-9", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-9
+    - name: "bionic / clang++-3.9"
+      stage: "Legacy"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.9", "libiomp-dev"] } }
+      env: COMPILER=clang++-3.9
 
-    # # ==========================================================================
-    # #     osx
-    # # ==========================================================================
-    #
-    # - os: osx
-    #   env: OPENMP=OFF
-    #   name: "osx / default"
-    #
-    # - os: osx
-    #   osx_image: xcode8.3
-    #   env: OPENMP=OFF
-    #   name: "osx / xcode8.3"
-    #
-    # - os: osx
-    #   osx_image: xcode9.2
-    #   env: OPENMP=OFF
-    #   name: "osx / xcode9.2"
-    #
-    # - os: osx
-    #   osx_image: xcode10
-    #   env: OPENMP=OFF
-    #   name: "osx / xcode10"
-    #
-    # - os: osx
-    #   osx_image: xcode11
-    #   env: OPENMP=OFF
-    #   name: "osx / xcode11"
-    #
-    # - os: osx
-    #   osx_image: xcode11.3
-    #   env: OPENMP=OFF
-    #   name: "osx / xcode11.3"
+    - name: "bionic / clang++-4.0"
+      stage: "Legacy"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-4.0", "libiomp-dev"] } }
+      env: COMPILER=clang++-4.0
 
-  allow_failures:
+    - name: "bionic / clang++-5.0"
+      stage: "Legacy"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
+      env: COMPILER=clang++-5.0
 
-    # The default trusty gcc version is 4.8, which does not properly support regex.
-    # As of now, it still compiles, but some tests that need functions with regexes fail.
-    # This is okay, as we do not need that level of backwards compatibility.
-    - name: "trusty / default"
+    - name: "bionic / clang++-6.0"
+      stage: "Legacy"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-6.0", "libiomp-dev"] } }
+      env: COMPILER=clang++-6.0
+
+    - name: "bionic / clang++-7"
+      stage: "Legacy"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev"] } }
+      env: COMPILER=clang++-7
+
+    - name: "bionic / clang++-8"
+      stage: "Legacy"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-8", "libiomp-dev"] } }
+      env: COMPILER=clang++-8
+
+    - name: "bionic / clang++-9"
+      stage: "Latest"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-9", "libiomp-dev"] } }
+      env: COMPILER=clang++-9
+
+    # ==========================================================================
+    #     osx
+    # ==========================================================================
+
+    - name: "osx / default"
+      stage: "Default"
+      os: osx
+      env: OPENMP=OFF
+
+    - name: "osx / xcode8.3"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode8.3
+      env: OPENMP=OFF
+
+    - name: "osx / xcode9.2"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode9.2
+      env: OPENMP=OFF
+
+    - name: "osx / xcode10"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode10
+      env: OPENMP=OFF
+
+    - name: "osx / xcode11"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode11
+      env: OPENMP=OFF
+
+    - name: "osx / xcode11.3"
+      stage: "Latest"
+      os: osx
+      osx_image: xcode11.3
+      env: OPENMP=OFF
+
+    # ==========================================================================
+    #     Exclude
+    # ==========================================================================
+
+  exclude:
+
+    # Shortcuts to not have to comment out the whole matrix above for travis debugging.
+    # - os: osx
+    # - os: linux
+    # - dist: trusty
+    # - dist: xenial
+    # - dist: bionic
 
 # ==================================================================================================
 #     Install
