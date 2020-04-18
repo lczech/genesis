@@ -174,19 +174,19 @@ jobs:
     #   dist: xenial
     #   name: "xenial / default"
 
-    # # --------------------------------------------------------------------------
-    # #     xenial / gcc
-    # # --------------------------------------------------------------------------
-    #
-    # # Cannot use gcc 4.8 because of missing regex implementation.
-    # # - os: linux
-    # #   dist: xenial
-    # #   addons:
-    # #     apt:
-    # #       packages:
-    # #         - g++-4.8
-    # #   env: COMPILER=g++-4.8
-    #
+    # --------------------------------------------------------------------------
+    #     xenial / gcc
+    # --------------------------------------------------------------------------
+
+    # Cannot use gcc 4.8 because of missing regex implementation.
+    # - os: linux
+    #   dist: xenial
+    #   addons:
+    #     apt:
+    #       packages:
+    #         - g++-4.8
+    #   env: COMPILER=g++-4.8
+
     # - os: linux
     #   dist: xenial
     #   addons:
@@ -246,96 +246,52 @@ jobs:
     #       packages:
     #         - g++-9
     #   env: COMPILER=g++-9
-    #
-    # # --------------------------------------------------------------------------
-    # #     xenial / clang
-    # # --------------------------------------------------------------------------
-    #
+
+    # --------------------------------------------------------------------------
+    #     xenial / clang
+    # --------------------------------------------------------------------------
+
+    - os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.5"] } }
+      env: COMPILER=clang++-3.5 OPENMP=OFF
+
+    - os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.6"] } }
+      env: COMPILER=clang++-3.6 OPENMP=OFF
+
+    - os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.7", "libiomp-dev"] } }
+      env: COMPILER=clang++-3.7
+
     # - os: linux
     #   dist: xenial
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - clang-3.5
-    #   env: COMPILER=clang++-3.5 OPENMP=OFF
-    #
-    # - os: linux
-    #   dist: xenial
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - clang-3.6
-    #   env: COMPILER=clang++-3.6 OPENMP=OFF
-    #
-    # - os: linux
-    #   dist: xenial
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - clang-3.7
-    #   env: COMPILER=clang++-3.7 OPENMP=OFF
-    #
-    # - os: linux
-    #   dist: xenial
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - clang-3.8
-    #         - libiomp-dev
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.8", "libiomp-dev"] } }
     #   env: COMPILER=clang++-3.8
     #
     # - os: linux
     #   dist: xenial
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - clang-3.9
-    #         - libiomp-dev
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.9", "libiomp-dev"] } }
     #   env: COMPILER=clang++-3.9
     #
     # - os: linux
     #   dist: xenial
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - clang-4.0
-    #         - libiomp-dev
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-4.0", "libiomp-dev"] } }
     #   env: COMPILER=clang++-4.0
     #
     # - os: linux
     #   dist: xenial
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - clang-5.0
-    #         - libiomp-dev
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
     #   env: COMPILER=clang++-5.0
     #
     # - os: linux
     #   dist: xenial
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - clang-6.0
-    #         - libiomp-dev
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-6.0", "libiomp-dev"] } }
     #   env: COMPILER=clang++-6.0
-    #
+
+
     # ==========================================================================
     #     bionic
     # ==========================================================================
@@ -389,40 +345,40 @@ jobs:
     #     bionic / clang
     # --------------------------------------------------------------------------
 
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.9", "libiomp-dev"] } }
-      env: COMPILER=clang++-3.9
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-4.0", "libiomp-dev"] } }
-      env: COMPILER=clang++-4.0
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
-      env: COMPILER=clang++-5.0
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-6.0", "libiomp-dev"] } }
-      env: COMPILER=clang++-6.0
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev"] } }
-      env: COMPILER=clang++-7
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-8", "libiomp-dev"] } }
-      env: COMPILER=clang++-8
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-9", "libiomp-dev"] } }
-      env: COMPILER=clang++-9
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.9", "libiomp-dev"] } }
+    #   env: COMPILER=clang++-3.9
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-4.0", "libiomp-dev"] } }
+    #   env: COMPILER=clang++-4.0
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
+    #   env: COMPILER=clang++-5.0
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-6.0", "libiomp-dev"] } }
+    #   env: COMPILER=clang++-6.0
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev"] } }
+    #   env: COMPILER=clang++-7
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-8", "libiomp-dev"] } }
+    #   env: COMPILER=clang++-8
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-9", "libiomp-dev"] } }
+    #   env: COMPILER=clang++-9
 
     # # ==========================================================================
     # #     osx
