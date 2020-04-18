@@ -389,149 +389,6 @@ jobs:
     #     bionic / clang
     # --------------------------------------------------------------------------
 
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-7
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp5"] } }
-    #   env: COMPILER=clang++-7
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev", "libiomp5"] } }
-    #   env: COMPILER=clang++-7
-
-    # !!
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-7
-
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
-    #   env: COMPILER=clang++-5.0
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp5"] } }
-    #   env: COMPILER=clang++-5.0
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5"] } }
-    #   env: COMPILER=clang++-5.0
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5", "libc++abi1", "libc++1"] } }
-    #   env: COMPILER=clang++-5.0
-    #
-    # - os: linux
-    #   dist: bionic
-    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5", "libc++abi-dev", "libc++-dev"] } }
-    #   env: COMPILER=clang++-5.0
-
-
-
-#     - os: linux
-#       dist: bionic
-#       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-3.9"], packages: ["clang-3.9", "libiomp-dev"] } }
-#       env: COMPILER=clang++-3.9
-#
-#     - os: linux
-#       dist: bionic
-#       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-4.0"], packages: ["clang-4.0", "libiomp-dev", "libomp5"] } }
-#       env: COMPILER=clang++-4.0
-#
-#     - os: linux
-#       dist: bionic
-#       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-5.0", "llvm-toolchain-5.0"], packages: ["clang-5.0", "libomp-dev", "libomp5"] } }
-#       env: COMPILER=clang++-5.0
-#
-#     - os: linux
-#       dist: bionic
-#       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-6.0"], packages: ["clang-6.0", "libomp-dev"] } }
-#       env: COMPILER=clang++-6.0
-#
-#
-#  try https://stackoverflow.com/questions/37969440/clang-openmp-and-cmake
-#  https://cmake.org/pipermail/cmake/2018-May/067474.html
-#  https://github.com/UCL/STIR/issues/117#issuecomment-337970257
-#
-# https://cmake.org/cmake/help/v3.9/module/FindOpenMP.html
-#
-# maybe different compile and link flags necessary: https://stackoverflow.com/a/42887226
-#
-#     - os: linux
-#       dist: bionic
-#       addons:
-#         apt:
-#           sources:
-#             - ubuntu-toolchain-r-test
-#             - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
-#           packages:
-#             - clang-6.0
-#             - libiomp-dev
-#       env: COMPILER=clang++-6.0
-#       name: goodboi
-#
-#
-#     - os: linux
-#       dist: bionic
-#       addons:
-#         apt:
-#           sources:
-#             - ubuntu-toolchain-r-test
-#             - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
-#             - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-6 main'
-#           packages:
-#             - clang-6.0
-#             - libiomp-dev
-#             # - libomp-6-dev
-#       env: COMPILER=clang++-6.0
-#       name: goodboi6
-#
-#       # Unable to locate package libomp-6-dev
-#
-#     - os: linux
-#       dist: bionic
-#       addons:
-#         apt:
-#           sources:
-#             - ubuntu-toolchain-r-test
-#             - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
-#             - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-7 main'
-#           packages:
-#             - clang-7.0
-#             - libiomp-dev
-#             - libomp-7-dev
-#       env: COMPILER=clang++-7.0
-#       name: goodboi7
-#
-#
-#
-#     - os: linux
-#       dist: bionic
-#       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-7"], packages: ["clang-7", "libomp-7-dev"] } }
-#       env: COMPILER=clang++-7
-#
-#     - os: linux
-#       dist: bionic
-#       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-8"], packages: ["clang-8", "libomp-8-dev", "libomp-dev"] } }
-#       env: COMPILER=clang++-8
-#
-#     - os: linux
-#       dist: bionic
-#       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-9"], packages: ["clang-9"] } }
-#       # addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-9"], packages: ["clang-9", "libomp-9-dev", "libomp5"] } }
-#       env: COMPILER=clang++-9
-
-
-
     - os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.9", "libiomp-dev"] } }
@@ -649,22 +506,14 @@ before_install:
   - if [[ "${COMPILER}" == "" ]]; then COMPILER=${CXX}; fi
   - export CXX=${COMPILER}
 
-  # Tests from when clang 3.7 did not work. Might also have other benefits, see
-  # https://github.com/ldionne/hana/blob/a5923b48456e47174cf62ae580b003605b297590/.travis.yml#L146
-  # https://github.com/acgetchell/CDT-test/blob/master/.travis.yml#L42
-  # - if [[ "${COMPILER}" == "default" ]]; then COMPILER=clang++-7; fi
-  # - if [[ "${COMPILER}" == "clang++" ]]; then COMPILER=clang++-7; fi
-  # - if [[ "$CXX" == "g++" ]]; then export CXX="g++-9" CC="gcc-9"; fi
-  # - if [[ "$CXX" == "clang++" ]]; then export CXX="clang++-10" CC="clang-10"; fi
-
 install:
 
   # --------------------------------------------------------------------------
   #     Directories
   # --------------------------------------------------------------------------
 
-  # Dependencies required by the CI are installed in ${TRAVIS_BUILD_DIR}/deps/
-  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  # Dependencies required by the CI are installed in ${TRAVIS_BUILD_DIR}/ci/
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/ci"
   - mkdir -p "${DEPS_DIR}"
   - cd "${DEPS_DIR}"
 
@@ -693,7 +542,7 @@ install:
         exit 1
       fi
 
-      # bionic clang 3.9 and 4.0 miss a file in their libc++, hence linking fails
+      # bionic clang 3.9 and 4.0 miss a file in their libstdc++, hence linking fails
       # solution from https://github.com/carla-simulator/carla/issues/503#issuecomment-397658790
       if [[ "${TRAVIS_DIST}" == "bionic" ]] && [[ "${CXX}" == "clang++-3.9" ||  "${CXX}" == "clang++-4.0" ]]; then
         sudo ln -s /usr/include/locale.h /usr/include/xlocale.h
@@ -750,77 +599,24 @@ before_script:
   - ${COMPILER} --version
   - cmake --version
 
+  # export cmake variables
+  - export GENESIS_DEBUG=1
+  - export GENESIS_USE_OPENMP=ON
+  - if [[ "${OPENMP}" == "OFF" ]]; then export GENESIS_USE_OPENMP=OFF; fi
+
 script:
 
   # --------------------------------------------------------------------------
   #     Build Script
   # --------------------------------------------------------------------------
 
-  # - cd "${TRAVIS_BUILD_DIR}"
-  #
-  # - cd tools/cmake
-
-
-  # TODO
-  #
-  #
-    # export CXXFLAGS="-isystem /usr/local/include/c++/v1 -stdlib=libc++ -nostdinc++"
-    # export LDFLAGS="-L /usr/local/lib -L /usr/local/lib/c++/v1 -l c++ -l c++abi"
-    # export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib:/usr/local/lib/c++/v1"
-
-  # - gcc --version
-  # - g++ --version
-  #
-  # - ${CXX} -isystem /usr/local/include/c++/v1 -L /usr/local/lib -L /usr/local/lib/c++/v1 -std=c++11 -stdlib=libc++ -nostdinc++ -fopenmp clangomp.cpp -o clangomp0f
-  # - ./clangomp0f
-  #
-  # - ${CXX} -isystem /usr/local/include/c++/v1 -L /usr/local/lib -L /usr/local/lib/c++/v1 -std=c++11 -stdlib=libc++ -nostdinc++ -l c++abi -fopenmp clangomp.cpp -o clangomp1f
-  # - ./clangomp1f
-  #
-  # - ${CXX} -isystem /usr/local/include/c++/v1 -std=c++11 -l c++ -l c++abi -nostdinc++ -fopenmp clangomp.cpp -o clangomp1g
-  # - ./clangomp1g
-  #
-  #
-  # - ${CXX} -std=c++11 -stdlib=libc++ -nostdinc++ -fopenmp clangomp.cpp -o clangomp0
-  # - ./clangomp0
-  #
-  # - ${CXX} -std=c++11 -stdlib=libc++ -nostdinc++ -l c++abi -fopenmp clangomp.cpp -o clangomp1a
-  # - ./clangomp1a
-  #
-  # - ${CXX} -std=c++11 -l c++ -l c++abi -nostdinc++ -fopenmp clangomp.cpp -o clangomp1
-  # - ./clangomp1
-  #
-  # - ${CXX} -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp2
-  # - ./clangomp2
-  #
-  # - ${CXX} -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp3
-  # - ./clangomp3
-  #
-  # - ${CXX} -std=c++11 -fopenmp clangomp.cpp -o clangomp4
-  # - ./clangomp4
-
-  # - ${CXX} -isystem ${LLVM_INSTALL}/include/c++/v1 -isystem /home/travis/build/lczech/genesis/deps/llvm/install/lib/c++/v1 -isystem /home/travis/build/lczech/genesis/deps/llvm/install/include/c++/v1 -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp -L ${LLVM_INSTALL}/lib -l c++ -l c++abi clangomp.cpp -o clangomp5
-  # - ./clangomp5
-  #
-  # - ${CXX} -isystem /home/travis/build/lczech/genesis/deps/llvm/install/include/c++/v1 -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp6
-  # - ./clangomp6
-
-  - cd "${TRAVIS_BUILD_DIR}"
-
   # set up directories
+  - cd "${TRAVIS_BUILD_DIR}"
   - mkdir build
   - cd build
 
-  # export cmake variables
-  - export GENESIS_DEBUG=1
-  - export GENESIS_USE_OPENMP=ON
-  - if [[ "${OPENMP}" == "OFF" ]]; then export GENESIS_USE_OPENMP=OFF; fi
-
   # build
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DGENESIS_USE_OPENMP=$GENESIS_USE_OPENMP ..
-
-  - cat CMakeFiles/CMakeError.log
-
   - make
   - cd ..
 
