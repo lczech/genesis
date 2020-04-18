@@ -406,17 +406,17 @@ jobs:
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev", "libiomp5", "libc++abi1", "libc++1"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev"] } }
       env: COMPILER=clang++-7
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev", "libiomp5", "libc++abi-dev", "libc++-dev"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp5"] } }
       env: COMPILER=clang++-7
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev", "libiomp5", "libc++abi-7-dev", "libc++-7-dev"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev", "libiomp5"] } }
       env: COMPILER=clang++-7
 
     # - os: linux
@@ -673,9 +673,18 @@ install:
       fi
 
       if [[ "${TRAVIS_DIST}" == "bionic" ]] ; then
-        export CXXFLAGS="-isystem /usr/local/include/c++/v1 -stdlib=libc++ -nostdinc++"
-        export LDFLAGS="-L /usr/local/lib -L /usr/local/lib/c++/v1 -l c++ -l c++abi"
-        export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib:/usr/local/lib/c++/v1"
+        # Tests to get clang to compile with libc++ instead of libstdc++ on bionic.
+        # Did not work after several tries, so for now, we just compile with the given standard
+        # library. After all, we are interested in whether our code compiles - the standard library
+        # implementation should not change that.
+        :
+
+        # export CXXFLAGS="-isystem /usr/local/include/c++/v1 -stdlib=libc++ -nostdinc++"
+        # export LDFLAGS="-L /usr/local/lib -L /usr/local/lib/c++/v1 -l c++ -l c++abi"
+        # export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib:/usr/local/lib/c++/v1"
+
+        # export CXXFLAGS="-stdlib=libc++ -nostdinc++"
+        # export LDFLAGS="-l c++ -l c++abi"
       else
         LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
         LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
