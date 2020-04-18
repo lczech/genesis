@@ -1,5 +1,6 @@
-#include <omp.h>
 #include <stdio.h>
+#include <iostream>
+#include <omp.h>
 
 int main() {
 
@@ -10,6 +11,7 @@ int main() {
     #endif
 
     #pragma omp parallel
-    printf("Hello from thread %d, nthreads %d\n", omp_get_thread_num(), omp_get_num_threads());
+    std::cout << "Hello from thread " << omp_get_thread_num() << "/" << omp_get_num_threads() << "\n";
+    // printf("Hello from thread %d, with threads %d\n", omp_get_thread_num(), omp_get_num_threads());
     return 0;
 }
