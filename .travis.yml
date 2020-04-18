@@ -622,21 +622,29 @@ install:
         sudo ln -s /usr/include/locale.h /usr/include/xlocale.h
       fi
 
-      LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
-      LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
-      LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
+      if [[ "${TRAVIS_DIST}" == "bionic" ]] ; then
 
-      mkdir -p llvm llvm/build llvm/projects/libcxx llvm/projects/libcxxabi
-      travis_retry wget -O - ${LLVM_URL} | tar --strip-components=1 -xJ -C llvm
-      travis_retry wget -O - ${LIBCXX_URL} | tar --strip-components=1 -xJ -C llvm/projects/libcxx
-      travis_retry wget -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C llvm/projects/libcxxabi
-      (cd llvm/build && cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL})
-      (cd llvm/build/projects/libcxx && make install -j2)
-      (cd llvm/build/projects/libcxxabi && make install -j2)
+        # export LDFLAGS=" -l c++"
 
-      export CXXFLAGS="-isystem ${LLVM_INSTALL}/include/c++/v1"
-      export LDFLAGS="-L ${LLVM_INSTALL}/lib -l c++ -l c++abi"
-      export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
+      else
+
+        LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
+        LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
+        LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
+
+        mkdir -p llvm llvm/build llvm/projects/libcxx llvm/projects/libcxxabi
+        travis_retry wget -O - ${LLVM_URL} | tar --strip-components=1 -xJ -C llvm
+        travis_retry wget -O - ${LIBCXX_URL} | tar --strip-components=1 -xJ -C llvm/projects/libcxx
+        travis_retry wget -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C llvm/projects/libcxxabi
+        (cd llvm/build && cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL})
+        (cd llvm/build/projects/libcxx && make install -j2)
+        (cd llvm/build/projects/libcxxabi && make install -j2)
+
+        export CXXFLAGS="-isystem ${LLVM_INSTALL}/include/c++/v1"
+        export LDFLAGS="-L ${LLVM_INSTALL}/lib -l c++ -l c++abi"
+        export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
+
+      fi
     fi
 
 # ==================================================================================================
@@ -668,6 +676,9 @@ script:
 
   - cd tools/cmake
 
+
+  # TODO
+
   - ${CXX} -fopenmp clangomp.cpp -o clangomp1
   - ./clangomp1
 
@@ -680,11 +691,11 @@ script:
   - ${CXX} -std=c++11 -fopenmp clangomp.cpp -o clangomp4
   - ./clangomp4
 
-  - ${CXX} -isystem ${LLVM_INSTALL}/include/c++/v1 -isystem /home/travis/build/lczech/genesis/deps/llvm/install/lib/c++/v1 -isystem /home/travis/build/lczech/genesis/deps/llvm/install/include/c++/v1 -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp -L ${LLVM_INSTALL}/lib -l c++ -l c++abi clangomp.cpp -o clangomp5
-  - ./clangomp5
-
-  - ${CXX} -isystem /home/travis/build/lczech/genesis/deps/llvm/install/include/c++/v1 -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp6
-  - ./clangomp6
+  # - ${CXX} -isystem ${LLVM_INSTALL}/include/c++/v1 -isystem /home/travis/build/lczech/genesis/deps/llvm/install/lib/c++/v1 -isystem /home/travis/build/lczech/genesis/deps/llvm/install/include/c++/v1 -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp -L ${LLVM_INSTALL}/lib -l c++ -l c++abi clangomp.cpp -o clangomp5
+  # - ./clangomp5
+  #
+  # - ${CXX} -isystem /home/travis/build/lczech/genesis/deps/llvm/install/include/c++/v1 -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp6
+  # - ./clangomp6
 
   - cd "${TRAVIS_BUILD_DIR}"
 
