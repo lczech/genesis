@@ -391,18 +391,28 @@ jobs:
 
     - os: linux
       dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
+      env: COMPILER=clang++-5.0
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp5"] } }
+      env: COMPILER=clang++-5.0
+
+    - os: linux
+      dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5"] } }
-      env: COMPILER=clang++-5.0 OPENMP=OFF
+      env: COMPILER=clang++-5.0
 
     - os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5", "libc++abi1", "libc++1"] } }
-      env: COMPILER=clang++-5.0 OPENMP=OFF
+      env: COMPILER=clang++-5.0
 
     - os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5", "libc++abi-dev", "libc++-dev"] } }
-      env: COMPILER=clang++-5.0 OPENMP=OFF
+      env: COMPILER=clang++-5.0
 
 
     # NB: from clang 5.0 on, we need different (individual) openmp packages for each version
@@ -634,6 +644,7 @@ install:
 
       if [[ "${TRAVIS_DIST}" == "bionic" ]] ; then
         export CXXFLAGS="-stdlib=libc++ -nostdinc++"
+        export LDFLAGS="-l c++ -l c++abi"
       else
         LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
         LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
@@ -688,16 +699,16 @@ script:
   - gcc --version
   - g++ --version
 
-  - ${CXX} -stdlib=libc++ -nostdinc++ -fopenmp clangomp.cpp -o clangomp0
+  - ${CXX} -std=c++11 -stdlib=libc++ -nostdinc++ -fopenmp clangomp.cpp -o clangomp0
   - ./clangomp0
 
-  - ${CXX} -l c++ -l c++abi -nostdinc++ -fopenmp clangomp.cpp -o clangomp1
+  - ${CXX} -std=c++11 -l c++ -l c++abi -nostdinc++ -fopenmp clangomp.cpp -o clangomp1
   - ./clangomp1
 
   - ${CXX} -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp2
   - ./clangomp2
 
-  - ${CXX} -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp3
+  - ${CXX} -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp3
   - ./clangomp3
 
   - ${CXX} -std=c++11 -fopenmp clangomp.cpp -o clangomp4
