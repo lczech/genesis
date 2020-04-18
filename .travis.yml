@@ -673,8 +673,9 @@ install:
       fi
 
       if [[ "${TRAVIS_DIST}" == "bionic" ]] ; then
-        export CXXFLAGS="-stdlib=libc++ -nostdinc++"
-        export LDFLAGS="-l c++ -l c++abi"
+        export CXXFLAGS="-isystem /usr/local/include/c++/v1 -stdlib=libc++ -nostdinc++"
+        export LDFLAGS="-L /usr/local/lib -L /usr/local/lib/c++/v1 -l c++ -l c++abi"
+        export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib:/usr/local/lib/c++/v1"
       else
         LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
         LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
@@ -725,12 +726,30 @@ script:
 
 
   # TODO
+  #
+  #
+    # export CXXFLAGS="-isystem /usr/local/include/c++/v1 -stdlib=libc++ -nostdinc++"
+    # export LDFLAGS="-L /usr/local/lib -L /usr/local/lib/c++/v1 -l c++ -l c++abi"
+    # export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib:/usr/local/lib/c++/v1"
 
   - gcc --version
   - g++ --version
 
+  - ${CXX} -isystem /usr/local/include/c++/v1 -L /usr/local/lib -L /usr/local/lib/c++/v1 -std=c++11 -stdlib=libc++ -nostdinc++ -fopenmp clangomp.cpp -o clangomp0f
+  - ./clangomp0f
+
+  - ${CXX} -isystem /usr/local/include/c++/v1 -L /usr/local/lib -L /usr/local/lib/c++/v1 -std=c++11 -stdlib=libc++ -nostdinc++ -l c++abi -fopenmp clangomp.cpp -o clangomp1f
+  - ./clangomp1f
+
+  - ${CXX} -isystem /usr/local/include/c++/v1 -std=c++11 -l c++ -l c++abi -nostdinc++ -fopenmp clangomp.cpp -o clangomp1g
+  - ./clangomp1g
+
+
   - ${CXX} -std=c++11 -stdlib=libc++ -nostdinc++ -fopenmp clangomp.cpp -o clangomp0
   - ./clangomp0
+
+  - ${CXX} -std=c++11 -stdlib=libc++ -nostdinc++ -l c++abi -fopenmp clangomp.cpp -o clangomp1a
+  - ./clangomp1a
 
   - ${CXX} -std=c++11 -l c++ -l c++abi -nostdinc++ -fopenmp clangomp.cpp -o clangomp1
   - ./clangomp1
