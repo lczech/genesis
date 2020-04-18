@@ -389,93 +389,106 @@ jobs:
     #     bionic / clang
     # --------------------------------------------------------------------------
 
-    # NB: from clang 5.0 on, we need different (individual) openmp packages for each version
-
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-3.9"], packages: ["clang-3.9", "libiomp-dev"] } }
-      env: COMPILER=clang++-3.9
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-4.0"], packages: ["clang-4.0", "libiomp-dev", "libomp5"] } }
-      env: COMPILER=clang++-4.0
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-5.0", "llvm-toolchain-5.0"], packages: ["clang-5.0", "libomp-dev", "libomp5"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
       env: COMPILER=clang++-5.0
 
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-6.0"], packages: ["clang-6.0", "libomp-dev"] } }
-      env: COMPILER=clang++-6.0
 
+    # NB: from clang 5.0 on, we need different (individual) openmp packages for each version
 
-
-    - os: linux
-      dist: bionic
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
-          packages:
-            - clang-6.0
-            - libiomp-dev
-      env: COMPILER=clang++-6.0
-      name: goodboi
-
-
-    - os: linux
-      dist: bionic
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
-            - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-6 main'
-          packages:
-            - clang-6.0
-            - libiomp-dev
-            # - libomp-6-dev
-      env: COMPILER=clang++-6.0
-      name: goodboi6
-
-      # Unable to locate package libomp-6-dev
-
-    - os: linux
-      dist: bionic
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
-            - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-7 main'
-          packages:
-            - clang-7.0
-            - libiomp-dev
-            - libomp-7-dev
-      env: COMPILER=clang++-7.0
-      name: goodboi7
-
-
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-7"], packages: ["clang-7", "libomp-7-dev"] } }
-      env: COMPILER=clang++-7
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-8"], packages: ["clang-8", "libomp-8-dev", "libomp-dev"] } }
-      env: COMPILER=clang++-8
-
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-9"], packages: ["clang-9"] } }
-      # addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-9"], packages: ["clang-9", "libomp-9-dev", "libomp5"] } }
-      env: COMPILER=clang++-9
+#     - os: linux
+#       dist: bionic
+#       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-3.9"], packages: ["clang-3.9", "libiomp-dev"] } }
+#       env: COMPILER=clang++-3.9
+#
+#     - os: linux
+#       dist: bionic
+#       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-4.0"], packages: ["clang-4.0", "libiomp-dev", "libomp5"] } }
+#       env: COMPILER=clang++-4.0
+#
+#     - os: linux
+#       dist: bionic
+#       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-5.0", "llvm-toolchain-5.0"], packages: ["clang-5.0", "libomp-dev", "libomp5"] } }
+#       env: COMPILER=clang++-5.0
+#
+#     - os: linux
+#       dist: bionic
+#       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-6.0"], packages: ["clang-6.0", "libomp-dev"] } }
+#       env: COMPILER=clang++-6.0
+#
+#
+#  try https://stackoverflow.com/questions/37969440/clang-openmp-and-cmake
+#  https://cmake.org/pipermail/cmake/2018-May/067474.html
+#  https://github.com/UCL/STIR/issues/117#issuecomment-337970257
+#
+# https://cmake.org/cmake/help/v3.9/module/FindOpenMP.html
+#
+# maybe different compile and link flags necessary: https://stackoverflow.com/a/42887226
+#
+#     - os: linux
+#       dist: bionic
+#       addons:
+#         apt:
+#           sources:
+#             - ubuntu-toolchain-r-test
+#             - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
+#           packages:
+#             - clang-6.0
+#             - libiomp-dev
+#       env: COMPILER=clang++-6.0
+#       name: goodboi
+#
+#
+#     - os: linux
+#       dist: bionic
+#       addons:
+#         apt:
+#           sources:
+#             - ubuntu-toolchain-r-test
+#             - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
+#             - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-6 main'
+#           packages:
+#             - clang-6.0
+#             - libiomp-dev
+#             # - libomp-6-dev
+#       env: COMPILER=clang++-6.0
+#       name: goodboi6
+#
+#       # Unable to locate package libomp-6-dev
+#
+#     - os: linux
+#       dist: bionic
+#       addons:
+#         apt:
+#           sources:
+#             - ubuntu-toolchain-r-test
+#             - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
+#             - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-7 main'
+#           packages:
+#             - clang-7.0
+#             - libiomp-dev
+#             - libomp-7-dev
+#       env: COMPILER=clang++-7.0
+#       name: goodboi7
+#
+#
+#
+#     - os: linux
+#       dist: bionic
+#       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-7"], packages: ["clang-7", "libomp-7-dev"] } }
+#       env: COMPILER=clang++-7
+#
+#     - os: linux
+#       dist: bionic
+#       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-8"], packages: ["clang-8", "libomp-8-dev", "libomp-dev"] } }
+#       env: COMPILER=clang++-8
+#
+#     - os: linux
+#       dist: bionic
+#       addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-9"], packages: ["clang-9"] } }
+#       # addons: { apt: { sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-9"], packages: ["clang-9", "libomp-9-dev", "libomp5"] } }
+#       env: COMPILER=clang++-9
 
     # # ==========================================================================
     # #     osx
