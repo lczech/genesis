@@ -680,8 +680,11 @@ script:
   - ${CXX} -std=c++11 -fopenmp clangomp.cpp -o clangomp4
   - ./clangomp4
 
-  - ${CXX} -isystem /home/travis/build/lczech/genesis/deps/llvm/install/include/c++/v1 -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp
-  - ./clangomp
+  - ${CXX} -isystem ${LLVM_INSTALL}/include/c++/v1 -isystem /home/travis/build/lczech/genesis/deps/llvm/install/lib/c++/v1 -isystem /home/travis/build/lczech/genesis/deps/llvm/install/include/c++/v1 -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp -L ${LLVM_INSTALL}/lib -l c++ -l c++abi clangomp.cpp -o clangomp5
+  - ./clangomp5
+
+  - ${CXX} -isystem /home/travis/build/lczech/genesis/deps/llvm/install/include/c++/v1 -std=c++11 -Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors -fopenmp clangomp.cpp -o clangomp6
+  - ./clangomp6
 
   - cd "${TRAVIS_BUILD_DIR}"
 
