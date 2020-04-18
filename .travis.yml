@@ -394,6 +394,16 @@ jobs:
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5"] } }
       env: COMPILER=clang++-5.0 OPENMP=OFF
 
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5", "libc++abi1", "libc++1"] } }
+      env: COMPILER=clang++-5.0 OPENMP=OFF
+
+    - os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5", "libc++abi-dev", "libc++-dev"] } }
+      env: COMPILER=clang++-5.0 OPENMP=OFF
+
 
     # NB: from clang 5.0 on, we need different (individual) openmp packages for each version
 
@@ -675,6 +685,9 @@ script:
 
   - gcc --version
   - g++ --version
+
+  - ${CXX} -stdlib=libc++ -fopenmp clangomp.cpp -o clangomp0
+  - ./clangomp0
 
   - ${CXX} -l c++ -l c++abi -fopenmp clangomp.cpp -o clangomp1
   - ./clangomp1
