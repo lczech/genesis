@@ -391,7 +391,7 @@ jobs:
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5"] } }
       env: COMPILER=clang++-5.0
 
 
@@ -682,6 +682,9 @@ script:
 
   # build
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DGENESIS_USE_OPENMP=$GENESIS_USE_OPENMP ..
+
+  - cat CMakeFiles/CMakeError.log
+
   - make
   - cd ..
 
