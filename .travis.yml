@@ -389,30 +389,60 @@ jobs:
     #     bionic / clang
     # --------------------------------------------------------------------------
 
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
-      env: COMPILER=clang++-5.0
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev"] } }
+    #   env: COMPILER=clang++-7
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp5"] } }
+    #   env: COMPILER=clang++-7
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev", "libiomp5"] } }
+    #   env: COMPILER=clang++-7
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp5"] } }
-      env: COMPILER=clang++-5.0
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev", "libiomp5", "libc++abi1", "libc++1"] } }
+      env: COMPILER=clang++-7
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5"] } }
-      env: COMPILER=clang++-5.0
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev", "libiomp5", "libc++abi-dev", "libc++-dev"] } }
+      env: COMPILER=clang++-7
 
     - os: linux
       dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5", "libc++abi1", "libc++1"] } }
-      env: COMPILER=clang++-5.0
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev", "libiomp5", "libc++abi-7-dev", "libc++-7-dev"] } }
+      env: COMPILER=clang++-7
 
-    - os: linux
-      dist: bionic
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5", "libc++abi-dev", "libc++-dev"] } }
-      env: COMPILER=clang++-5.0
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
+    #   env: COMPILER=clang++-5.0
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp5"] } }
+    #   env: COMPILER=clang++-5.0
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5"] } }
+    #   env: COMPILER=clang++-5.0
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5", "libc++abi1", "libc++1"] } }
+    #   env: COMPILER=clang++-5.0
+    #
+    # - os: linux
+    #   dist: bionic
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev", "libiomp5", "libc++abi-dev", "libc++-dev"] } }
+    #   env: COMPILER=clang++-5.0
 
 
     # NB: from clang 5.0 on, we need different (individual) openmp packages for each version
