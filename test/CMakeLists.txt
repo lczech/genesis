@@ -81,13 +81,15 @@ if(NOT GTEST_FOUND)
     SET( GTEST_BOTH_LIBRARIES gtest_main gtest )
     SET( GTEST_LIBRARIES gtest )
 
-    # New gcc versions spam a lot of warnings in googletest about implicitly-declared types being
-    # deprecated. Let's silence them, as we are not interested in warnings about googletest.
-    # That's something they have to fix!
-    if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (
+    # Apple osc clang, as well as new gcc versions >= 9 spam a lot of warnings in googletest about
+    # implicitly-declared types being deprecated. Let's silence them, as we are not interested in
+    # warnings about googletest. That's something they have to fix!
+    # Also, we have to use the double cmake version comparison here, as old osx cmake versions
+    # do not yet have VERSION_GREATER_EQUAL...
+    if(APPLE OR ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (
         (CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 9) OR
         (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9)
-    ))
+    )))
         target_compile_options(gtest      PRIVATE "-Wno-deprecated-copy")
         target_compile_options(gtest_main PRIVATE "-Wno-deprecated-copy")
         target_compile_options(gmock      PRIVATE "-Wno-deprecated-copy")
