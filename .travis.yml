@@ -509,7 +509,7 @@ jobs:
     - name: "windows / default"
       stage: "Default"
       os: windows
-      env: ZLIB=OFF
+      env: ZLIB=OFF OPENMP=OFF
 
     # ==========================================================================
     #     Exclude
