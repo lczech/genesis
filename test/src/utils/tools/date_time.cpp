@@ -197,6 +197,7 @@ TEST( DateTime, ClangMktimeBug )
 
     // Make the conversion.
     std::time_t time = std::mktime(&tm);
+    (void) time;
 
     // Return to previous time zone.
     if( tz ) {
