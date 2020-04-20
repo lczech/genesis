@@ -459,12 +459,12 @@ jobs:
 
     # Shortcuts to not have to comment out the whole matrix above for travis debugging.
     # - os: osx
-    # - os: linux
-    - dist: trusty
+    - os: linux
+    # - dist: trusty
     # - dist: xenial
-    - dist: bionic
-    - stage: "Default"
-    - stage: "Latest"
+    # - dist: bionic
+    # - stage: "Default"
+    # - stage: "Latest"
     # - stage: "Legacy"
 
 # ==================================================================================================
