@@ -509,6 +509,7 @@ before_install:
       # To use OpenMP on Mac, we need custom clang versions. So, we need to set custom paths here.
       if [ "${OPENMP}" != "OFF" ]; then
         export COMPILER=/usr/local/opt/llvm/bin/clang++
+        export CFLAGS="-I /usr/local/include -I/usr/local/opt/llvm/include"
         export CXXFLAGS="-I /usr/local/include -I/usr/local/opt/llvm/include"
         export LDFLAGS="-L /usr/local/lib -L/usr/local/opt/llvm/lib"
       fi
