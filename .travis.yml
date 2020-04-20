@@ -715,7 +715,8 @@ script:
 
   # build
   - cmake -DCMAKE_CXX_COMPILER=${COMPILER} -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} -DGENESIS_USE_ZLIB=${GENESIS_USE_ZLIB} ..
-  - make
+  - cmake --build .
+  # - make
   - cd ..
 
   # run tests
