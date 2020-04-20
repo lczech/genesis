@@ -380,10 +380,10 @@ jobs:
     #     osx
     # ==========================================================================
 
-    - name: "osx / default"
-      stage: "Default"
-      os: osx
-      env: OPENMP=OFF
+    # - name: "osx / default"
+    #   stage: "Default"
+    #   os: osx
+    #   env: OPENMP=OFF
 
     # - name: "osx / xcode6.4"
     #   stage: "Legacy"
@@ -445,13 +445,15 @@ jobs:
       stage: "Legacy"
       os: osx
       osx_image: xcode11
+      addons: { homebrew: { packages: ["llvm", "libomp"] } }
       # env: OPENMP=OFF
 
-    - name: "osx / xcode11.3"
-      stage: "Latest"
-      os: osx
-      osx_image: xcode11.3
-      # env: OPENMP=OFF
+    # - name: "osx / xcode11.3"
+    #   stage: "Latest"
+    #   os: osx
+    #   osx_image: xcode11.3
+    #   addons: { homebrew: { packages: ["llvm", "libomp"] } }
+    #   # env: OPENMP=OFF
 
     # ==========================================================================
     #     Exclude
