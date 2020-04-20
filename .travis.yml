@@ -201,12 +201,13 @@ jobs:
     #     xenial / clang
     # --------------------------------------------------------------------------
 
-    - name: "xenial / clang++-3.5"
-      stage: "Legacy"
-      os: linux
-      dist: xenial
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.5"] } }
-      env: COMPILER=clang++-3.5 OPENMP=OFF
+    # # Cannot use clang++ 3.5 because exception_ptr is not yet implemented.
+    # - name: "xenial / clang++-3.5"
+    #   stage: "Legacy"
+    #   os: linux
+    #   dist: xenial
+    #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.5"] } }
+    #   env: COMPILER=clang++-3.5 OPENMP=OFF
 
     - name: "xenial / clang++-3.6"
       stage: "Legacy"
@@ -215,12 +216,14 @@ jobs:
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.6"] } }
       env: COMPILER=clang++-3.6 OPENMP=OFF
 
+    # In theory, clang++-3.7 is the first version that supports OpenMP. But there are still issues,
+    # so we have to deactivate OpenMP here.
     - name: "xenial / clang++-3.7"
       stage: "Legacy"
       os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.7", "libiomp-dev"] } }
-      env: COMPILER=clang++-3.7
+      env: COMPILER=clang++-3.7 OPENMP=OFF
 
     - name: "xenial / clang++-3.8"
       stage: "Legacy"
@@ -382,10 +385,34 @@ jobs:
       os: osx
       env: OPENMP=OFF
 
+    - name: "osx / xcode6.4"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode6.4
+      env: OPENMP=OFF
+
+    - name: "osx / xcode7.3"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode7.3
+      env: OPENMP=OFF
+
+    - name: "osx / xcode8"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode8
+      env: OPENMP=OFF
+
     - name: "osx / xcode8.3"
       stage: "Legacy"
       os: osx
       osx_image: xcode8.3
+      env: OPENMP=OFF
+
+    - name: "osx / xcode9"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode9
       env: OPENMP=OFF
 
     - name: "osx / xcode9.2"
@@ -394,10 +421,22 @@ jobs:
       osx_image: xcode9.2
       env: OPENMP=OFF
 
+    - name: "osx / xcode9.4"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode9.4
+      env: OPENMP=OFF
+
     - name: "osx / xcode10"
       stage: "Legacy"
       os: osx
       osx_image: xcode10
+      env: OPENMP=OFF
+
+    - name: "osx / xcode10.3"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode10.3
       env: OPENMP=OFF
 
     - name: "osx / xcode11"
@@ -421,9 +460,12 @@ jobs:
     # Shortcuts to not have to comment out the whole matrix above for travis debugging.
     # - os: osx
     # - os: linux
-    # - dist: trusty
+    - dist: trusty
     # - dist: xenial
-    # - dist: bionic
+    - dist: bionic
+    - stage: "Default"
+    - stage: "Latest"
+    # - stage: "Legacy"
 
 # ==================================================================================================
 #     Install
