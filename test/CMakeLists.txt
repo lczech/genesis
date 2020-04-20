@@ -84,7 +84,7 @@ if(NOT GTEST_FOUND)
     # New gcc versions spam a lot of warnings in googletest about implicitly-declared types being
     # deprecated. Let's silence them, as we are not interested in warnings about googletest.
     # That's something they have to fix!
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9)
+    if (NOT APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9)
         target_compile_options(gtest      PRIVATE "-Wno-deprecated-copy")
         target_compile_options(gtest_main PRIVATE "-Wno-deprecated-copy")
         target_compile_options(gmock      PRIVATE "-Wno-deprecated-copy")

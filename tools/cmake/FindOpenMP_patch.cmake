@@ -179,6 +179,8 @@ function(_OPENMP_FLAG_CANDIDATES LANG)
     "-fopenmp=libiomp5"
     "-fopenmp=libomp"
 
+    "-Xpreprocessor -fopenmp"
+
     #Microsoft Visual Studio
     "/openmp"
     #Intel windows
