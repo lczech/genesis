@@ -383,107 +383,124 @@ jobs:
     # In the following, we need to set `update: true` due to recent homebrew bundle errors, see
     # https://travis-ci.community/t/macos-build-fails-because-of-homebrew-bundle-unknown-command/7296/10
 
-    # Need to deactivate OpenMP for default build, as standard osx clang does not support it.
-    - name: "osx / default"
-      stage: "Default"
-      os: osx
-      env: OPENMP=OFF
+    # # Need to deactivate OpenMP for default build, as standard osx clang does not support it.
+    # - name: "osx / default"
+    #   stage: "Default"
+    #   os: osx
+    #   env: OPENMP=OFF
+    #
+    # - name: "osx / xcode6.4"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode6.4
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode7.3"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode7.3
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode8"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode8
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode8.3"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode8.3
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode9"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode9
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode9.2"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode9.2
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode6.4"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode6.4
-      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode7.3"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode7.3
-      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-
-    - name: "osx / xcode8"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode8
-      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-
-    - name: "osx / xcode8.3"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode8.3
-      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
     - name: "osx / xcode9"
       stage: "Legacy"
       os: osx
       osx_image: xcode9
-      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
     - name: "osx / xcode9.2"
       stage: "Legacy"
       os: osx
       osx_image: xcode9.2
-      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode9.3"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode9.3
-      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode9.4"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode9.4
-      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode10"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode10
-      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode10.1"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode10.1
-      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-
-    - name: "osx / xcode10.2"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode10.2
-      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-
-    - name: "osx / xcode10.3"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode10.3
-      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-
-    - name: "osx / xcode11"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode11
-      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-
-    - name: "osx / xcode11.1"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode11.1
-      addons: { homebrew: { packages: ["llvm", "libomp"] } }
-
-    - name: "osx / xcode11.2"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode11.2
-      addons: { homebrew: { packages: ["llvm", "libomp"] } }
-
-    - name: "osx / xcode11.3"
-      stage: "Latest"
-      os: osx
-      osx_image: xcode11.3
-      addons: { homebrew: { packages: ["llvm", "libomp"] } }
+    # - name: "osx / xcode9.3"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode9.3
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode9.4"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode9.4
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode10"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode10
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode10.1"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode10.1
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode10.2"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode10.2
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode10.3"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode10.3
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode11"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode11
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode11.1"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode11.1
+    #   addons: { homebrew: { packages: ["llvm", "libomp"] } }
+    #
+    # - name: "osx / xcode11.2"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode11.2
+    #   addons: { homebrew: { packages: ["llvm", "libomp"] } }
+    #
+    # - name: "osx / xcode11.3"
+    #   stage: "Latest"
+    #   os: osx
+    #   osx_image: xcode11.3
+    #   addons: { homebrew: { packages: ["llvm", "libomp"] } }
 
     # ==========================================================================
     #     Exclude
@@ -567,6 +584,22 @@ install:
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/ci"
   - mkdir -p "${DEPS_DIR}"
   - cd "${DEPS_DIR}"
+
+  # --------------------------------------------------------------------------
+  #     llvm and libomp for osx
+  # --------------------------------------------------------------------------
+
+  # As of now (April 2020), travis homebrew is broken and needs to run `update` before it is able
+  # to install anything. However, on some builds that takes too long, so that the job runs out of
+  # time. Hence, we instead do the installation manually here. See
+  # https://travis-ci.community/t/macos-build-fails-because-of-homebrew-bundle-unknown-command/7296/10
+  - |
+    if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      echo "installing llvm and libomp"
+
+      brew install llvm
+      brew install libomp
+    fi
 
   # --------------------------------------------------------------------------
   #     Clang libc++
