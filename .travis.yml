@@ -509,6 +509,7 @@ jobs:
     - name: "windows / default"
       stage: "Default"
       os: windows
+      env: ZLIB=OFF
 
     # ==========================================================================
     #     Exclude
@@ -694,8 +695,12 @@ before_script:
 
   # export cmake variables
   - export GENESIS_DEBUG=1
+
   - export GENESIS_USE_OPENMP=ON
   - if [[ "${OPENMP}" == "OFF" ]]; then export GENESIS_USE_OPENMP=OFF; fi
+
+  - export GENESIS_USE_ZLIB=ON
+  - if [[ "${ZLIB}" == "OFF" ]]; then export GENESIS_USE_ZLIB=OFF; fi
 
 script:
 
@@ -709,7 +714,7 @@ script:
   - cd build
 
   # build
-  - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DGENESIS_USE_OPENMP=$GENESIS_USE_OPENMP ..
+  - cmake -DCMAKE_CXX_COMPILER=${COMPILER} -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} -DGENESIS_USE_ZLIB=${GENESIS_USE_ZLIB} ..
   - make
   - cd ..
 
