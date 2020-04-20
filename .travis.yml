@@ -426,18 +426,18 @@ jobs:
     #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
 
-
-    - name: "osx / xcode9"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode9
-      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-
-    - name: "osx / xcode9.2"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode9.2
-      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    # # tests with addons deactivated, and then loaded later below
+    # - name: "osx / xcode9"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode9
+    #   # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode9.2"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode9.2
+    #   # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
 
 
@@ -503,6 +503,14 @@ jobs:
     #   addons: { homebrew: { packages: ["llvm", "libomp"] } }
 
     # ==========================================================================
+    #     windows
+    # ==========================================================================
+
+    - name: "windows / default"
+      stage: "Default"
+      os: windows
+
+    # ==========================================================================
     #     Exclude
     # ==========================================================================
 
@@ -562,6 +570,7 @@ before_install:
       fi
 
       # Bugfix for https://github.com/Homebrew/homebrew-core/issues/52461-mlinker-version=450
+      # Otherwise, we get "ld: unknown option: -platform_version"
       if [[ "${TRAVIS_OSX_IMAGE}" == "xcode10.2" || "${TRAVIS_OSX_IMAGE}" == "xcode10.3" ]]; then
         export CXXFLAGS="${CXXFLAGS} -mlinker-version=450"
         export LDFLAGS="${LDFLAGS} -mlinker-version=450"
