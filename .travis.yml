@@ -385,71 +385,73 @@ jobs:
       os: osx
       env: OPENMP=OFF
 
-    - name: "osx / xcode6.4"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode6.4
-      env: OPENMP=OFF
-
-    - name: "osx / xcode7.3"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode7.3
-      env: OPENMP=OFF
-
-    - name: "osx / xcode8"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode8
-      env: OPENMP=OFF
-
-    - name: "osx / xcode8.3"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode8.3
-      env: OPENMP=OFF
-
-    - name: "osx / xcode9"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode9
-      env: OPENMP=OFF
-
-    - name: "osx / xcode9.2"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode9.2
-      env: OPENMP=OFF
-
-    - name: "osx / xcode9.4"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode9.4
-      env: OPENMP=OFF
+    # - name: "osx / xcode6.4"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode6.4
+    #   env: OPENMP=OFF
+    #
+    # - name: "osx / xcode7.3"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode7.3
+    #   env: OPENMP=OFF
+    #
+    # - name: "osx / xcode8"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode8
+    #   env: OPENMP=OFF
+    #
+    # - name: "osx / xcode8.3"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode8.3
+    #   env: OPENMP=OFF
+    #
+    # - name: "osx / xcode9"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode9
+    #   env: OPENMP=OFF
+    #
+    # - name: "osx / xcode9.2"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode9.2
+    #   env: OPENMP=OFF
+    #
+    # - name: "osx / xcode9.4"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode9.4
+    #   env: OPENMP=OFF
 
     - name: "osx / xcode10"
       stage: "Legacy"
       os: osx
       osx_image: xcode10
-      env: OPENMP=OFF
+      addons: { homebrew: { packages: ["llvm", "libomp"] } }
+      # env: OPENMP=OFF
 
     - name: "osx / xcode10.3"
       stage: "Legacy"
       os: osx
       osx_image: xcode10.3
-      env: OPENMP=OFF
+      addons: { homebrew: { packages: ["llvm", "libomp"] } }
+      # env: OPENMP=OFF
 
     - name: "osx / xcode11"
       stage: "Legacy"
       os: osx
       osx_image: xcode11
-      env: OPENMP=OFF
+      # env: OPENMP=OFF
 
     - name: "osx / xcode11.3"
       stage: "Latest"
       os: osx
       osx_image: xcode11.3
-      env: OPENMP=OFF
+      # env: OPENMP=OFF
 
     # ==========================================================================
     #     Exclude
@@ -501,6 +503,10 @@ before_install:
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       echo "exporting llvm path"
       export PATH="$(brew --prefix llvm)/bin:$PATH";
+
+      export COMPILER=/usr/local/opt/llvm/bin/clang++
+      export CXXFLAGS="-I /usr/local/include -I/usr/local/opt/llvm/include"
+      export LDFLAGS="-L /usr/local/lib -L/usr/local/opt/llvm/lib"
     fi
 
   # We need a few backs and forths between the variables, in the following order:
