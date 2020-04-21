@@ -20,6 +20,27 @@
 # Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 
 # ------------------------------------------------------------------------------
+#   Extra Warnings
+# ------------------------------------------------------------------------------
+
+# Apple osx clang >= 9.3, as well as new gcc versions >= 9 spam a lot of warnings in googletest
+# about implicitly-declared types being deprecated. Let's silence them, as we are not interested
+# in warnings about googletest. That's something they have to fix!
+# Also, we have to use the double cmake version comparison here, as old osx cmake versions
+# do not yet have VERSION_GREATER_EQUAL, and crash otherwise...
+SET( GTEST_NO_WARN_DEPRECATED_COPY
+    ((APPLE AND
+    ((CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") OR
+    (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")) AND
+    ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9.3") OR
+    (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9.3")))
+    OR
+    ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
+    ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
+    (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9"))))
+)
+
+# ------------------------------------------------------------------------------
 #   Setup GTest
 # ------------------------------------------------------------------------------
 
@@ -81,22 +102,7 @@ if(NOT GTEST_FOUND)
     SET( GTEST_BOTH_LIBRARIES gtest_main gtest )
     SET( GTEST_LIBRARIES gtest )
 
-    # Apple osx clang >= 9.3, as well as new gcc versions >= 9 spam a lot of warnings in googletest
-    # about implicitly-declared types being deprecated. Let's silence them, as we are not interested
-    # in warnings about googletest. That's something they have to fix!
-    # Also, we have to use the double cmake version comparison here, as old osx cmake versions
-    # do not yet have VERSION_GREATER_EQUAL...
-    if(
-        (APPLE AND
-        ((CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") OR
-        (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")) AND
-        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9.3") OR
-        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9.3")))
-        OR
-        ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
-        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
-        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9")))
-    )
+    if(GTEST_NO_WARN_DEPRECATED_COPY)
         message (STATUS "Deactivate -Wdeprecated-copy for gtest code.")
         target_compile_options(gtest      PRIVATE "-Wno-deprecated-copy")
         target_compile_options(gtest_main PRIVATE "-Wno-deprecated-copy")
@@ -140,6 +146,11 @@ include_directories (${PROJECT_SOURCE_DIR}/test)
 
 add_executable        (genesis_tests ${genesis_test_sources})
 set_target_properties (genesis_tests PROPERTIES OUTPUT_NAME genesis_tests)
+
+if(GTEST_NO_WARN_DEPRECATED_COPY)
+    message (STATUS "Deactivate -Wdeprecated-copy for test binary.")
+    target_compile_options(genesis_tests PRIVATE "-Wno-deprecated-copy")
+endif()
 
 target_link_libraries (genesis_tests genesis_lib_shared)
 target_link_libraries (genesis_tests ${GTEST_BOTH_LIBRARIES})
