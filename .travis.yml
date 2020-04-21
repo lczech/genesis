@@ -776,4 +776,7 @@ script:
   - cd ..
 
   # run tests
-  - ./bin/test/genesis_tests
+  - |
+    if [[ "${BUILD_TYPE}" != "RELEASE" ]]; then
+      ./bin/test/genesis_tests
+    fi

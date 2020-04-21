@@ -38,6 +38,7 @@ SET( GTEST_NO_WARN_DEPRECATED_COPY
     ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
     (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9"))))
 )
+message (STATUS "GTEST_NO_WARN_DEPRECATED_COPY: '${GTEST_NO_WARN_DEPRECATED_COPY}'")
 
 # ------------------------------------------------------------------------------
 #   Setup GTest
