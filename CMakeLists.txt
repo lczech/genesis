@@ -423,6 +423,17 @@ IF( GENESIS_HAS_PARENT_DIR )
 
 ENDIF()
 
+# Cmake debug output, useful for user support as well
+message (STATUS "CMAKE_CXX_FLAGS:          ${CMAKE_CXX_FLAGS}")
+IF(CMAKE_BUILD_TYPE EQUAL "DEBUG")
+    message (STATUS "CMAKE_CXX_FLAGS_DEBUG:    ${CMAKE_CXX_FLAGS_DEBUG}")
+ELSE()
+    message (STATUS "CMAKE_CXX_FLAGS_RELEASE:  ${CMAKE_CXX_FLAGS_RELEASE}")
+ENDIF()
+message (STATUS "GENESIS_CXX_FLAGS:        ${GENESIS_CXX_FLAGS}")
+message (STATUS "GENESIS_EXE_LINKER_FLAGS: ${GENESIS_EXE_LINKER_FLAGS}")
+message (STATUS "GENESIS_LINK_LIBRARIES:   ${GENESIS_LINK_LIBRARIES}")
+
 # Some very last output, so that CMake projects which use us as a dependency cleary see where
 # the Genesis configuration ends.
 message (STATUS "${ColorBlue}Finished configuring Genesis${ColorEnd}")

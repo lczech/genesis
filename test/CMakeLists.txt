@@ -28,17 +28,20 @@
 # in warnings about googletest. That's something they have to fix!
 # Also, we have to use the double cmake version comparison here, as old osx cmake versions
 # do not yet have VERSION_GREATER_EQUAL, and crash otherwise...
-SET( GTEST_NO_WARN_DEPRECATED_COPY
-    ((APPLE AND
+SET( GTEST_NO_WARN_DEPRECATED_COPY OFF )
+IF(
+    (APPLE AND
     (CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND
     ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9.3") OR
     (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9.3")))
     OR
     ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
     ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
-    (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9"))))
+    (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9")))
 )
-message (STATUS "GTEST_NO_WARN_DEPRECATED_COPY: '${GTEST_NO_WARN_DEPRECATED_COPY}'")
+    SET( GTEST_NO_WARN_DEPRECATED_COPY ON )
+ENDIF()
+message (STATUS "GTEST_NO_WARN_DEPRECATED_COPY: ${GTEST_NO_WARN_DEPRECATED_COPY}")
 
 # ------------------------------------------------------------------------------
 #   Setup GTest
