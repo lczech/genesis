@@ -434,65 +434,65 @@ jobs:
       # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
       env: OPENMP=OFF
 
-    # - name: "osx / xcode9.3"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode9.3
-    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-    #
-    # - name: "osx / xcode9.4"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode9.4
-    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-    #
-    # - name: "osx / xcode10"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode10
-    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-    #
-    # - name: "osx / xcode10.1"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode10.1
-    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-    #
-    # - name: "osx / xcode10.2"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode10.2
-    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-    #
-    # - name: "osx / xcode10.3"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode10.3
-    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-    #
-    # - name: "osx / xcode11"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode11
-    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-    #
-    # - name: "osx / xcode11.1"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode11.1
-    #   addons: { homebrew: { packages: ["llvm", "libomp"] } }
-    #
-    # - name: "osx / xcode11.2"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode11.2
-    #   addons: { homebrew: { packages: ["llvm", "libomp"] } }
-    #
-    # - name: "osx / xcode11.3"
-    #   stage: "Latest"
-    #   os: osx
-    #   osx_image: xcode11.3
-    #   addons: { homebrew: { packages: ["llvm", "libomp"] } }
+    - name: "osx / xcode9.3"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode9.3
+      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+
+    - name: "osx / xcode9.4"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode9.4
+      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+
+    - name: "osx / xcode10"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode10
+      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+
+    - name: "osx / xcode10.1"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode10.1
+      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+
+    - name: "osx / xcode10.2"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode10.2
+      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+
+    - name: "osx / xcode10.3"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode10.3
+      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+
+    - name: "osx / xcode11"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode11
+      addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+
+    - name: "osx / xcode11.1"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode11.1
+      addons: { homebrew: { packages: ["llvm", "libomp"] } }
+
+    - name: "osx / xcode11.2"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode11.2
+      addons: { homebrew: { packages: ["llvm", "libomp"] } }
+
+    - name: "osx / xcode11.3"
+      stage: "Latest"
+      os: osx
+      osx_image: xcode11.3
+      addons: { homebrew: { packages: ["llvm", "libomp"] } }
 
     # ==========================================================================
     #     windows
@@ -511,8 +511,9 @@ jobs:
   exclude:
 
     # Shortcuts to not have to comment out the whole matrix above for travis debugging.
+    # - os: windows
     # - os: osx
-    - os: linux
+    # - os: linux
     # - dist: trusty
     # - dist: xenial
     # - dist: bionic
