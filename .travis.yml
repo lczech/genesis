@@ -33,79 +33,93 @@ jobs:
     #     trusty
     # ==========================================================================
 
-    # # Cannot use gcc 4.8 because of missing regex implementation.
-    # - name: "trusty / default"
+    # Cannot use gcc 4.8 because of missing regex implementation.
+
+    # - name: "trusty / default / debug"
     #   stage: "Default"
     #   os: linux
     #   dist: trusty
+
+    # - name: "trusty / default / release"
+    #   stage: "Default"
+    #   os: linux
+    #   dist: trusty
+    #   env: BUILD_TYPE=RELEASE
 
     # --------------------------------------------------------------------------
     #     trusty / gcc
     # --------------------------------------------------------------------------
 
     # # Cannot use gcc 4.8 because of missing regex implementation.
-    # - name: "trusty / g++-4.8"
+    # - name: "trusty / g++-4.8 / debug"
     #   stage: "Legacy"
     #   os: linux
     #   dist: trusty
     #   addons: { apt: { packages: ["g++-4.8"] } }
     #   env: COMPILER=g++-4.8
 
-    - name: "trusty / g++-4.9"
+    - name: "trusty / g++-4.9 / debug"
       stage: "Legacy"
       os: linux
       dist: trusty
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-4.9"] } }
       env: COMPILER=g++-4.9
 
-    - name: "trusty / g++-5"
+    - name: "trusty / g++-5 / debug"
       stage: "Legacy"
       os: linux
       dist: trusty
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-5"] } }
       env: COMPILER=g++-5
 
-    - name: "trusty / g++-6"
+    - name: "trusty / g++-6 / debug"
       stage: "Legacy"
       os: linux
       dist: trusty
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-6"] } }
       env: COMPILER=g++-6
 
-    - name: "trusty / g++-7"
+    - name: "trusty / g++-7 / debug"
       stage: "Legacy"
       os: linux
       dist: trusty
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-7"] } }
       env: COMPILER=g++-7
 
-    - name: "trusty / g++-8"
+    - name: "trusty / g++-8 / debug"
       stage: "Legacy"
       os: linux
       dist: trusty
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-8"] } }
       env: COMPILER=g++-8
 
-    - name: "trusty / g++-9"
+    - name: "trusty / g++-9 / debug"
       stage: "Latest"
       os: linux
       dist: trusty
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-9"] } }
       env: COMPILER=g++-9
 
+    - name: "trusty / g++-9 / release"
+      stage: "Latest"
+      os: linux
+      dist: trusty
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-9"] } }
+      env: COMPILER=g++-9 BUILD_TYPE=RELEASE
+
     # --------------------------------------------------------------------------
     #     trusty / clang
     # --------------------------------------------------------------------------
 
     # # Cannot use clang++ 3.5 because exception_ptr is not yet implemented.
-    # - name: "trusty / clang++-3.5"
+    # - name: "trusty / clang++-3.5 / debug"
     #   stage: "Legacy"
     #   os: linux
     #   dist: trusty
     #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.5"] } }
     #   env: COMPILER=clang++-3.5 OPENMP=OFF
 
-    - name: "trusty / clang++-3.6"
+    - name: "trusty / clang++-3.6 / debug"
       stage: "Legacy"
       os: linux
       dist: trusty
@@ -113,103 +127,123 @@ jobs:
       env: COMPILER=clang++-3.6 OPENMP=OFF
 
     # # Somehow, this just does not work... leave it for now.
-    # - name: "trusty / clang++-3.7"
+    # - name: "trusty / clang++-3.7 / debug"
     #   stage: "Legacy"
     #   os: linux
     #   dist: trusty
     #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.7", "libiomp-dev"] } }
     #   env: COMPILER=clang++-3.7
 
-    - name: "trusty / clang++-3.8"
+    - name: "trusty / clang++-3.8 / debug"
       stage: "Legacy"
       os: linux
       dist: trusty
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.8", "libiomp-dev"] } }
       env: COMPILER=clang++-3.8
 
-    - name: "trusty / clang++-3.9"
+    - name: "trusty / clang++-3.9 / debug"
       stage: "Latest"
       os: linux
       dist: trusty
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.9", "libiomp-dev"] } }
       env: COMPILER=clang++-3.9
 
+    - name: "trusty / clang++-3.9 / release"
+      stage: "Latest"
+      os: linux
+      dist: trusty
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.9", "libiomp-dev"] } }
+      env: COMPILER=clang++-3.9 BUILD_TYPE=RELEASE
+
     # ==========================================================================
     #     xenial
     # ==========================================================================
 
-    - name: "xenial / default"
+    - name: "xenial / default / debug"
       stage: "Default"
       os: linux
       dist: xenial
+
+    - name: "xenial / default / release"
+      stage: "Default"
+      os: linux
+      dist: xenial
+      env: BUILD_TYPE=RELEASE
 
     # --------------------------------------------------------------------------
     #     xenial / gcc
     # --------------------------------------------------------------------------
 
     # # Cannot use gcc 4.8 because of missing regex implementation.
-    # - name: "xenial / g++-4.8"
+    # - name: "xenial / g++-4.8 / debug"
     #   stage: "Legacy"
     #   os: linux
     #   dist: xenial
     #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-4.8"] } }
     #   env: COMPILER=g++-4.8
 
-    - name: "xenial / g++-4.9"
+    - name: "xenial / g++-4.9 / debug"
       stage: "Legacy"
       os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-4.9"] } }
       env: COMPILER=g++-4.9
 
-    - name: "xenial / g++-5"
+    - name: "xenial / g++-5 / debug"
       stage: "Legacy"
       os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-5"] } }
       env: COMPILER=g++-5
 
-    - name: "xenial / g++-6"
+    - name: "xenial / g++-6 / debug"
       stage: "Legacy"
       os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-6"] } }
       env: COMPILER=g++-6
 
-    - name: "xenial / g++-7"
+    - name: "xenial / g++-7 / debug"
       stage: "Legacy"
       os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-7"] } }
       env: COMPILER=g++-7
 
-    - name: "xenial / g++-8"
+    - name: "xenial / g++-8 / debug"
       stage: "Legacy"
       os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-8"] } }
       env: COMPILER=g++-8
 
-    - name: "xenial / g++-9"
+    - name: "xenial / g++-9 / debug"
       stage: "Latest"
       os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-9"] } }
       env: COMPILER=g++-9
 
+    - name: "xenial / g++-9 / release"
+      stage: "Latest"
+      os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-9"] } }
+      env: COMPILER=g++-9 BUILD_TYPE=RELEASE
+
     # --------------------------------------------------------------------------
     #     xenial / clang
     # --------------------------------------------------------------------------
 
     # # Cannot use clang++ 3.5 because exception_ptr is not yet implemented.
-    # - name: "xenial / clang++-3.5"
+    # - name: "xenial / clang++-3.5 / debug"
     #   stage: "Legacy"
     #   os: linux
     #   dist: xenial
     #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.5"] } }
     #   env: COMPILER=clang++-3.5 OPENMP=OFF
 
-    - name: "xenial / clang++-3.6"
+    - name: "xenial / clang++-3.6 / debug"
       stage: "Legacy"
       os: linux
       dist: xenial
@@ -218,167 +252,210 @@ jobs:
 
     # In theory, clang++-3.7 is the first version that supports OpenMP. But there are still issues,
     # so we have to deactivate OpenMP here.
-    - name: "xenial / clang++-3.7"
+    - name: "xenial / clang++-3.7 / debug"
       stage: "Legacy"
       os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.7", "libiomp-dev"] } }
       env: COMPILER=clang++-3.7 OPENMP=OFF
 
-    - name: "xenial / clang++-3.8"
+    - name: "xenial / clang++-3.8 / debug"
       stage: "Legacy"
       os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.8", "libiomp-dev"] } }
       env: COMPILER=clang++-3.8
 
-    - name: "xenial / clang++-3.9"
+    - name: "xenial / clang++-3.9 / debug"
       stage: "Legacy"
       os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.9", "libiomp-dev"] } }
       env: COMPILER=clang++-3.9
 
-    - name: "xenial / clang++-4.0"
+    - name: "xenial / clang++-4.0 / debug"
       stage: "Legacy"
       os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-4.0", "libiomp-dev"] } }
       env: COMPILER=clang++-4.0
 
-    - name: "xenial / clang++-5.0"
+    - name: "xenial / clang++-5.0 / debug"
       stage: "Legacy"
       os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
       env: COMPILER=clang++-5.0
 
-    - name: "xenial / clang++-6.0"
+    - name: "xenial / clang++-6.0 / debug"
       stage: "Latest"
       os: linux
       dist: xenial
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-6.0", "libiomp-dev"] } }
       env: COMPILER=clang++-6.0
 
+    - name: "xenial / clang++-6.0 / release"
+      stage: "Latest"
+      os: linux
+      dist: xenial
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-6.0", "libiomp-dev"] } }
+      env: COMPILER=clang++-6.0 BUILD_TYPE=RELEASE
+
     # ==========================================================================
     #     bionic
     # ==========================================================================
 
-    - name: "bionic / default"
+    - name: "bionic / default / debug"
       stage: "Default"
       os: linux
       dist: bionic
+
+    - name: "bionic / default / release"
+      stage: "Default"
+      os: linux
+      dist: bionic
+      env: BUILD_TYPE=RELEASE
 
     # --------------------------------------------------------------------------
     #     bionic / gcc
     # --------------------------------------------------------------------------
 
     # # Cannot use gcc 4.8 because of missing regex implementation.
-    # - name: "bionic / g++-4.8"
+    # - name: "bionic / g++-4.8 / debug"
     #   stage: "Legacy"
     #   os: linux
     #   dist: bionic
     #   addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-4.8"] } }
     #   env: COMPILER=g++-4.8
 
-    - name: "bionic / g++-5"
+    - name: "bionic / g++-5 / debug"
       stage: "Legacy"
       os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-5"] } }
       env: COMPILER=g++-5
 
-    - name: "bionic / g++-6"
+    - name: "bionic / g++-6 / debug"
       stage: "Legacy"
       os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-6"] } }
       env: COMPILER=g++-6
 
-    - name: "bionic / g++-7"
+    - name: "bionic / g++-7 / debug"
       stage: "Legacy"
       os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-7"] } }
       env: COMPILER=g++-7
 
-    - name: "bionic / g++-8"
+    - name: "bionic / g++-8 / debug"
       stage: "Legacy"
       os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-8"] } }
       env: COMPILER=g++-8
 
-    - name: "bionic / g++-9"
+    - name: "bionic / g++-9 / debug"
       stage: "Legacy"
       os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-9"] } }
       env: COMPILER=g++-9
 
-    - name: "bionic / g++-10"
+    - name: "bionic / g++-10 / debug"
       stage: "Latest"
       os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-10"] } }
       env: COMPILER=g++-10
 
+    - name: "bionic / g++-10 / release"
+      stage: "Latest"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["g++-10"] } }
+      env: COMPILER=g++-10 BUILD_TYPE=RELEASE
+
     # --------------------------------------------------------------------------
     #     bionic / clang
     # --------------------------------------------------------------------------
 
-    - name: "bionic / clang++-3.9"
+    - name: "bionic / clang++-3.9 / debug"
       stage: "Legacy"
       os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-3.9", "libiomp-dev"] } }
       env: COMPILER=clang++-3.9
 
-    - name: "bionic / clang++-4.0"
+    - name: "bionic / clang++-4.0 / debug"
       stage: "Legacy"
       os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-4.0", "libiomp-dev"] } }
       env: COMPILER=clang++-4.0
 
-    - name: "bionic / clang++-5.0"
+    - name: "bionic / clang++-5.0 / debug"
       stage: "Legacy"
       os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-5.0", "libiomp-dev"] } }
       env: COMPILER=clang++-5.0
 
-    - name: "bionic / clang++-6.0"
+    - name: "bionic / clang++-6.0 / debug"
       stage: "Legacy"
       os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-6.0", "libiomp-dev"] } }
       env: COMPILER=clang++-6.0
 
-    - name: "bionic / clang++-7"
+    - name: "bionic / clang++-7 / debug"
       stage: "Legacy"
       os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-7", "libiomp-dev"] } }
       env: COMPILER=clang++-7
 
-    - name: "bionic / clang++-8"
+    - name: "bionic / clang++-8 / debug"
       stage: "Legacy"
       os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-8", "libiomp-dev"] } }
       env: COMPILER=clang++-8
 
-    - name: "bionic / clang++-9"
+    - name: "bionic / clang++-9 / debug"
       stage: "Latest"
       os: linux
       dist: bionic
       addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-9", "libiomp-dev"] } }
       env: COMPILER=clang++-9
 
+    - name: "bionic / clang++-9 / release"
+      stage: "Latest"
+      os: linux
+      dist: bionic
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"], packages: ["clang-9", "libiomp-dev"] } }
+      env: COMPILER=clang++-9 BUILD_TYPE=RELEASE
+
     # ==========================================================================
     #     osx
     # ==========================================================================
+
+    # Need to deactivate OpenMP for default build, as standard osx clang does not support it.
+
+    - name: "osx / default / debug"
+      stage: "Default"
+      os: osx
+      env: OPENMP=OFF
+
+    - name: "osx / default / release"
+      stage: "Default"
+      os: osx
+      env: OPENMP=OFF BUILD_TYPE=RELEASE
+
+    # --------------------------------------------------------------------------
+    #     osx versions
+    # --------------------------------------------------------------------------
 
     # As of now (April 2020), travis homebrew is broken and needs to run `update` before it is able
     # to install anything. However, for the older versions of osx, the update takes longer than
@@ -386,113 +463,114 @@ jobs:
     # get OpenMP support, and hence, for now, deactivate OpenMP for those builds. See
     # https://travis-ci.community/t/macos-build-fails-because-of-homebrew-bundle-unknown-command/7296/10
 
-    # Need to deactivate OpenMP for default build, as standard osx clang does not support it.
-    - name: "osx / default"
-      stage: "Default"
-      os: osx
-      env: OPENMP=OFF
-
-    - name: "osx / xcode6.4"
+    - name: "osx / xcode6.4 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode6.4
       # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
       env: OPENMP=OFF
 
-    - name: "osx / xcode7.3"
+    - name: "osx / xcode7.3 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode7.3
       # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
       env: OPENMP=OFF
 
-    - name: "osx / xcode8"
+    - name: "osx / xcode8 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode8
       # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
       env: OPENMP=OFF
 
-    - name: "osx / xcode8.3"
+    - name: "osx / xcode8.3 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode8.3
       # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
       env: OPENMP=OFF
 
-    - name: "osx / xcode9"
+    - name: "osx / xcode9 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode9
       # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
       env: OPENMP=OFF
 
-    - name: "osx / xcode9.2"
+    - name: "osx / xcode9.2 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode9.2
       # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
       env: OPENMP=OFF
 
-    - name: "osx / xcode9.3"
+    - name: "osx / xcode9.3 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode9.3
       addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode9.4"
+    - name: "osx / xcode9.4 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode9.4
       addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode10"
+    - name: "osx / xcode10 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode10
       addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode10.1"
+    - name: "osx / xcode10.1 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode10.1
       addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode10.2"
+    - name: "osx / xcode10.2 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode10.2
       addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode10.3"
+    - name: "osx / xcode10.3 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode10.3
       addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode11"
+    - name: "osx / xcode11 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode11
       addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode11.1"
+    - name: "osx / xcode11.1 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode11.1
       addons: { homebrew: { packages: ["llvm", "libomp"] } }
 
-    - name: "osx / xcode11.2"
+    - name: "osx / xcode11.2 / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode11.2
       addons: { homebrew: { packages: ["llvm", "libomp"] } }
 
-    - name: "osx / xcode11.3"
+    - name: "osx / xcode11.3 / debug"
       stage: "Latest"
       os: osx
       osx_image: xcode11.3
       addons: { homebrew: { packages: ["llvm", "libomp"] } }
+
+    - name: "osx / xcode11.3 / release"
+      stage: "Latest"
+      os: osx
+      osx_image: xcode11.3
+      addons: { homebrew: { packages: ["llvm", "libomp"] } }
+      env: BUILD_TYPE=RELEASE
 
     # ==========================================================================
     #     windows
@@ -672,12 +750,13 @@ before_script:
   - cmake --version
 
   # export cmake variables
-  - export GENESIS_DEBUG=1
-
+  # in this CI environment, we default to building debug, so that we do not have to set that
+  # for the majority of the jobs in the build matrix, and only set to release if the env is set.
+  - export GENESIS_DEBUG=ON
   - export GENESIS_USE_OPENMP=ON
-  - if [[ "${OPENMP}" == "OFF" ]]; then export GENESIS_USE_OPENMP=OFF; fi
-
   - export GENESIS_USE_ZLIB=ON
+  - if [[ "${BUILD_TYPE}" == "RELEASE" ]]; then export GENESIS_DEBUG=OFF; fi
+  - if [[ "${OPENMP}" == "OFF" ]]; then export GENESIS_USE_OPENMP=OFF; fi
   - if [[ "${ZLIB}" == "OFF" ]]; then export GENESIS_USE_ZLIB=OFF; fi
 
 script:
