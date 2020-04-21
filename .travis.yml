@@ -513,11 +513,11 @@ jobs:
     # Shortcuts to not have to comment out the whole matrix above for travis debugging.
     # - os: windows
     # - os: osx
-    - os: linux
+    # - os: linux
     # - dist: trusty
     # - dist: xenial
     # - dist: bionic
-    - stage: "Default"
+    # - stage: "Default"
     # - stage: "Latest"
     # - stage: "Legacy"
 
@@ -693,7 +693,7 @@ script:
 
   # build
   - cmake -DCMAKE_CXX_COMPILER=${COMPILER} -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} -DGENESIS_USE_ZLIB=${GENESIS_USE_ZLIB} ..
-  - make
+  - make -j 2
   - cd ..
 
   # run tests
