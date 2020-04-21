@@ -90,13 +90,14 @@ if(NOT GTEST_FOUND)
         (APPLE AND
         ((CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") OR
         (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")) AND
-        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 9.3) OR
-        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.3)))
+        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9.3") OR
+        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9.3")))
         OR
         ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
-        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 9) OR
-        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9)))
+        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
+        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9")))
     )
+        message (STATUS "Deactivate -Wdeprecated-copy for gtest code.")
         target_compile_options(gtest      PRIVATE "-Wno-deprecated-copy")
         target_compile_options(gtest_main PRIVATE "-Wno-deprecated-copy")
         target_compile_options(gmock      PRIVATE "-Wno-deprecated-copy")
