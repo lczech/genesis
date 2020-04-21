@@ -380,67 +380,59 @@ jobs:
     #     osx
     # ==========================================================================
 
-    # In the following, we need to set `update: true` due to recent homebrew bundle errors, see
+    # As of now (April 2020), travis homebrew is broken and needs to run `update` before it is able
+    # to install anything. However, for the older versions of osx, the update takes longer than
+    # travis max job time, so we cannot do this. That means, we cannot install llvm and libomp to
+    # get OpenMP support, and hence, for now, deactivate OpenMP for those builds. See
     # https://travis-ci.community/t/macos-build-fails-because-of-homebrew-bundle-unknown-command/7296/10
 
-    # # Need to deactivate OpenMP for default build, as standard osx clang does not support it.
-    # - name: "osx / default"
-    #   stage: "Default"
-    #   os: osx
-    #   env: OPENMP=OFF
-    #
-    # - name: "osx / xcode6.4"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode6.4
-    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-    #
-    # - name: "osx / xcode7.3"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode7.3
-    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-    #
-    # - name: "osx / xcode8"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode8
-    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-    #
-    # - name: "osx / xcode8.3"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode8.3
-    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-    #
-    # - name: "osx / xcode9"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode9
-    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-    #
-    # - name: "osx / xcode9.2"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode9.2
-    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    # Need to deactivate OpenMP for default build, as standard osx clang does not support it.
+    - name: "osx / default"
+      stage: "Default"
+      os: osx
+      env: OPENMP=OFF
 
+    - name: "osx / xcode6.4"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode6.4
+      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+      env: OPENMP=OFF
 
-    # # tests with addons deactivated, and then loaded later below
-    # - name: "osx / xcode9"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode9
-    #   # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-    #
-    # - name: "osx / xcode9.2"
-    #   stage: "Legacy"
-    #   os: osx
-    #   osx_image: xcode9.2
-    #   # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    - name: "osx / xcode7.3"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode7.3
+      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+      env: OPENMP=OFF
 
+    - name: "osx / xcode8"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode8
+      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+      env: OPENMP=OFF
 
+    - name: "osx / xcode8.3"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode8.3
+      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+      env: OPENMP=OFF
 
+    - name: "osx / xcode9"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode9
+      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+      env: OPENMP=OFF
+
+    - name: "osx / xcode9.2"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode9.2
+      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+      env: OPENMP=OFF
 
     # - name: "osx / xcode9.3"
     #   stage: "Legacy"
@@ -506,10 +498,11 @@ jobs:
     #     windows
     # ==========================================================================
 
-    - name: "windows / default"
-      stage: "Default"
-      os: windows
-      env: ZLIB=OFF OPENMP=OFF
+    # Too many errors for now. Maybe later.
+    # - name: "windows / default"
+    #   stage: "Default"
+    #   os: windows
+    #   env: ZLIB=OFF OPENMP=OFF
 
     # ==========================================================================
     #     Exclude
@@ -594,22 +587,6 @@ install:
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/ci"
   - mkdir -p "${DEPS_DIR}"
   - cd "${DEPS_DIR}"
-
-  # --------------------------------------------------------------------------
-  #     llvm and libomp for osx
-  # --------------------------------------------------------------------------
-
-  # As of now (April 2020), travis homebrew is broken and needs to run `update` before it is able
-  # to install anything. However, on some builds that takes too long, so that the job runs out of
-  # time. Hence, we instead do the installation manually here. See
-  # https://travis-ci.community/t/macos-build-fails-because-of-homebrew-bundle-unknown-command/7296/10
-  - |
-    if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-      echo "installing llvm and libomp"
-
-      brew install llvm
-      brew install libomp
-    fi
 
   # --------------------------------------------------------------------------
   #     Clang libc++
@@ -715,8 +692,7 @@ script:
 
   # build
   - cmake -DCMAKE_CXX_COMPILER=${COMPILER} -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} -DGENESIS_USE_ZLIB=${GENESIS_USE_ZLIB} ..
-  - cmake --build .
-  # - make
+  - make
   - cd ..
 
   # run tests
