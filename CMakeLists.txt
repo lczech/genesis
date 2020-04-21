@@ -188,8 +188,10 @@ message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION
 # warnings with OpenMP and other pragma-based techniques.
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set (WARN_FLAGS "-Wall -Wno-unknown-pragmas -pedantic -pedantic-errors")
+    message( STATUS "have '${CMAKE_CXX_COMPILER_ID}'" )
 else ()
     set (WARN_FLAGS "-Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors")
+    message( STATUS "got '${CMAKE_CXX_COMPILER_ID}'" )
 endif ()
 
 set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
