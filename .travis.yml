@@ -454,118 +454,223 @@ jobs:
       env: OPENMP=OFF BUILD_TYPE=RELEASE
 
     # --------------------------------------------------------------------------
-    #     osx versions
+    #     osx versions / apple
     # --------------------------------------------------------------------------
+
+    # Default apple clang does not support openmp, so deactivate it here.
+
+    - name: "osx / xcode6.4 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode6.4
+      env: OPENMP=OFF
+
+    - name: "osx / xcode7.3 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode7.3
+      env: OPENMP=OFF
+
+    - name: "osx / xcode8 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode8
+      env: OPENMP=OFF
+
+    - name: "osx / xcode8.3 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode8.3
+      env: OPENMP=OFF
+
+    - name: "osx / xcode9 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode9
+      env: OPENMP=OFF
+
+    - name: "osx / xcode9.2 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode9.2
+      env: OPENMP=OFF
+
+    - name: "osx / xcode9.3 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode9.3
+      env: OPENMP=OFF
+
+    - name: "osx / xcode9.4 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode9.4
+      env: OPENMP=OFF
+
+    - name: "osx / xcode10 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode10
+      env: OPENMP=OFF
+
+    - name: "osx / xcode10.1 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode10.1
+      env: OPENMP=OFF
+
+    - name: "osx / xcode10.2 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode10.2
+      env: OPENMP=OFF
+
+    - name: "osx / xcode10.3 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode10.3
+      env: OPENMP=OFF
+
+    - name: "osx / xcode11 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode11
+      env: OPENMP=OFF
+
+    - name: "osx / xcode11.1 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode11.1
+      env: OPENMP=OFF
+
+    - name: "osx / xcode11.2 / apple / debug"
+      stage: "Legacy"
+      os: osx
+      osx_image: xcode11.2
+      env: OPENMP=OFF
+
+    - name: "osx / xcode11.3 / apple / debug"
+      stage: "Latest"
+      os: osx
+      osx_image: xcode11.3
+      env: OPENMP=OFF
+
+    - name: "osx / xcode11.3 / apple / release"
+      stage: "Latest"
+      os: osx
+      osx_image: xcode11.3
+      env: OPENMP=OFF BUILD_TYPE=RELEASE
+
+    # --------------------------------------------------------------------------
+    #     osx versions / clang
+    # --------------------------------------------------------------------------
+
+    # Here, we install llvm and openmp explicityly, to test that as well.
 
     # As of now (April 2020), travis homebrew is broken and needs to run `update` before it is able
     # to install anything. However, for the older versions of osx, the update takes longer than
     # travis max job time, so we cannot do this. That means, we cannot install llvm and libomp to
-    # get OpenMP support, and hence, for now, deactivate OpenMP for those builds. See
+    # get OpenMP support. Without llvm, these runs are the same as the above apple clang runs,
+    # and hence, for now, we can deactivate all of them. See
     # https://travis-ci.community/t/macos-build-fails-because-of-homebrew-bundle-unknown-command/7296/10
 
-    - name: "osx / xcode6.4 / debug"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode6.4
-      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-      env: OPENMP=OFF
+    # - name: "osx / xcode6.4 / clang / debug"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode6.4
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode7.3 / clang / debug"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode7.3
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode8 / clang / debug"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode8
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode8.3 / clang / debug"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode8.3
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode9 / clang / debug"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode9
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
+    #
+    # - name: "osx / xcode9.2 / clang / debug"
+    #   stage: "Legacy"
+    #   os: osx
+    #   osx_image: xcode9.2
+    #   addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode7.3 / debug"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode7.3
-      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-      env: OPENMP=OFF
-
-    - name: "osx / xcode8 / debug"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode8
-      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-      env: OPENMP=OFF
-
-    - name: "osx / xcode8.3 / debug"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode8.3
-      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-      env: OPENMP=OFF
-
-    - name: "osx / xcode9 / debug"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode9
-      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-      env: OPENMP=OFF
-
-    - name: "osx / xcode9.2 / debug"
-      stage: "Legacy"
-      os: osx
-      osx_image: xcode9.2
-      # addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
-      env: OPENMP=OFF
-
-    - name: "osx / xcode9.3 / debug"
+    - name: "osx / xcode9.3 / clang / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode9.3
       addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode9.4 / debug"
+    - name: "osx / xcode9.4 / clang / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode9.4
       addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode10 / debug"
+    - name: "osx / xcode10 / clang / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode10
       addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode10.1 / debug"
+    - name: "osx / xcode10.1 / clang / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode10.1
       addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode10.2 / debug"
+    - name: "osx / xcode10.2 / clang / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode10.2
       addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode10.3 / debug"
+    - name: "osx / xcode10.3 / clang / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode10.3
       addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode11 / debug"
+    - name: "osx / xcode11 / clang / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode11
       addons: { homebrew: { packages: ["llvm", "libomp"], update: true } }
 
-    - name: "osx / xcode11.1 / debug"
+    - name: "osx / xcode11.1 / clang / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode11.1
       addons: { homebrew: { packages: ["llvm", "libomp"] } }
 
-    - name: "osx / xcode11.2 / debug"
+    - name: "osx / xcode11.2 / clang / debug"
       stage: "Legacy"
       os: osx
       osx_image: xcode11.2
       addons: { homebrew: { packages: ["llvm", "libomp"] } }
 
-    - name: "osx / xcode11.3 / debug"
+    - name: "osx / xcode11.3 / clang / debug"
       stage: "Latest"
       os: osx
       osx_image: xcode11.3
       addons: { homebrew: { packages: ["llvm", "libomp"] } }
 
-    - name: "osx / xcode11.3 / release"
+    - name: "osx / xcode11.3 / clang / release"
       stage: "Latest"
       os: osx
       osx_image: xcode11.3
