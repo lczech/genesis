@@ -196,6 +196,8 @@ set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
 set (CMAKE_CXX_FLAGS_DEBUG   "-O2 -g -ggdb3 -DDEBUG -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC")
 set (CMAKE_CXX_FLAGS_RELEASE "-O2           -DNDEBUG")
 
+message( STATUS "CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}" )
+
 # Misc options
 # STDCC   = clang++
 # MPICC   = mpic++
