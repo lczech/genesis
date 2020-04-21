@@ -184,11 +184,13 @@ message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION
 #   Compiler and Linker Options
 # --------------------------------------------------------------------------------------------------
 
-# Set the warn flags to a very high level - except unknown pragmas, as this causes needless
-# warnings with OpenMP and other pragma-based techniques.
 if (MSVC OR (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
-    set (WARN_FLAGS "-Wall -pedantic -pedantic-errors")
+    # MinGW/MSVC do not support much. Also, the above string comparison in the condition does
+    # not work there, hence the extra `MSVC` check...
+    set (WARN_FLAGS "-Wall")
 else ()
+    # For other operating systems, set the warn flags to a very high level - except unknown pragmas,
+    # as this causes needless warnings with OpenMP and other pragma-based techniques.
     set (WARN_FLAGS "-Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors")
 endif ()
 
