@@ -196,7 +196,7 @@ else ()
     # Furthermore, in debug mode, we also want all warnings to be errors, so that we do not miss them
     # In release, this might hinder users to successfully build genesis if any warnings remain
     # or occur only on their compiler, so let's avoid trouble for them.
-    IF(CMAKE_BUILD_TYPE == DEBUG)
+    IF(CMAKE_BUILD_TYPE EQUAL "DEBUG")
         set (WARN_FLAGS "${WARN_FLAGS} -Werror")
     ENDIF()
 endif ()
