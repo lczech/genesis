@@ -51,6 +51,12 @@ set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/tools/cmake" )
 include( "${CMAKE_CURRENT_LIST_DIR}/tools/cmake/AssembleMonolith.cmake" )
 
+# Need to make sure that AppleClang is actually recognized and not mistakingly identifyed
+# as normal Clang. See https://cmake.org/cmake/help/v3.0/policy/CMP0025.html
+# This is important for the test cmake script, where we need to set some warnings for clang,
+# but not for apple clang.
+cmake_policy(SET CMP0025 NEW)
+
 # --------------------------------------------------------------------------------------------------
 #   Project Definitions and Variables
 # --------------------------------------------------------------------------------------------------
@@ -196,7 +202,7 @@ else ()
     # Furthermore, in debug mode, we also want all warnings to be errors, so that we do not miss them
     # In release, this might hinder users to successfully build genesis if any warnings remain
     # or occur only on their compiler, so let's avoid trouble for them.
-    IF(CMAKE_BUILD_TYPE EQUAL "DEBUG")
+    IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
         set (WARN_FLAGS "${WARN_FLAGS} -Werror")
     ENDIF()
 endif ()

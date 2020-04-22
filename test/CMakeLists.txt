@@ -40,8 +40,9 @@ IF(
     (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9")))
 )
     SET( GTEST_NO_WARN_DEPRECATED_COPY ON )
+    message (STATUS "Deactivate -Wdeprecated-copy for test binary.")
 ENDIF()
-message (STATUS "GTEST_NO_WARN_DEPRECATED_COPY: ${GTEST_NO_WARN_DEPRECATED_COPY}")
+# message (STATUS "GTEST_NO_WARN_DEPRECATED_COPY: ${GTEST_NO_WARN_DEPRECATED_COPY}")
 
 # ------------------------------------------------------------------------------
 #   Setup GTest
@@ -106,7 +107,6 @@ if(NOT GTEST_FOUND)
     SET( GTEST_LIBRARIES gtest )
 
     if(GTEST_NO_WARN_DEPRECATED_COPY)
-        message (STATUS "Deactivate -Wdeprecated-copy for gtest code.")
         target_compile_options(gtest      PRIVATE "-Wno-deprecated-copy")
         target_compile_options(gtest_main PRIVATE "-Wno-deprecated-copy")
         target_compile_options(gmock      PRIVATE "-Wno-deprecated-copy")
@@ -151,7 +151,6 @@ add_executable        (genesis_tests ${genesis_test_sources})
 set_target_properties (genesis_tests PROPERTIES OUTPUT_NAME genesis_tests)
 
 if(GTEST_NO_WARN_DEPRECATED_COPY)
-    message (STATUS "Deactivate -Wdeprecated-copy for test binary.")
     target_compile_options(genesis_tests PRIVATE "-Wno-deprecated-copy")
 endif()
 
