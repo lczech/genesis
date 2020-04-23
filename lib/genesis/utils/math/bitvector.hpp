@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,8 +31,10 @@
  * @ingroup utils
  */
 
+#include <array>
 #include <cassert>
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -51,7 +53,7 @@ public:
     //     Typedefs, Enums, Constants
     // ---------------------------------------------------------
 
-    typedef uint64_t    IntType;
+    using IntType = uint64_t;
     static const size_t IntSize = sizeof(IntType) * 8;
 
     // ---------------------------------------------------------
@@ -67,7 +69,7 @@ public:
      * @brief Constructor that takes a size and an optional bool value to initialize the Bitvector,
      * false by default.
      */
-    Bitvector (const size_t size, const bool initial_value = false)
+    Bitvector( size_t size, bool initial_value = false)
         : size_(size)
     {
         // reserve enough bits, and init them.
@@ -78,30 +80,28 @@ public:
     /**
      * @brief Constructor that takes a size and a list of values (positions) to be set to true.
      */
-    Bitvector (const size_t size, const std::initializer_list<int> list)
+    Bitvector( size_t size, std::initializer_list<size_t> list)
         : Bitvector(size, false)
     {
-        for (int e : list) {
+        for (size_t e : list) {
             set(e);
         }
     }
 
     /**
-     * @brief Create a Bitvector by copying the first @p bits of another Bitvector.
+     * @brief Constructor that takes a `std::string` of `0`s and `1`s to build the Bitvector.
      *
-     * If `bits > other.size()`, all bits are used.
+     * This is for cases where some fixed Bitvector needs to be constructed (e.g., for testing
+     * purposes). The constructor throws if any character in the string is not `0` or `1`.
      */
-    Bitvector( Bitvector const& other, size_t bits )
-    {
-        if( bits > other.size() ) {
-            bits = other.size();
-        }
-        size_ = bits;
-        auto const ds = (size_ / IntSize) + (size_ % IntSize == 0 ? 0 : 1);
-        assert( ds <= other.data_.size() );
-        data_ = std::vector<IntType>( other.data_.begin(), other.data_.begin() + ds );
-        unset_padding_();
-    }
+    Bitvector( std::string const& values );
+
+    /**
+     * @brief Create a Bitvector by copying the first @p max_size of another Bitvector.
+     *
+     * If `max_size > other.size()`, all max_size are used.
+     */
+    Bitvector( Bitvector const& other, size_t max_size );
 
     ~Bitvector() = default;
 
@@ -119,6 +119,8 @@ public:
      * @brief Return the value of a single bit, without boundary check.
      */
     inline bool operator [] (size_t index) const {
+        assert( index / IntSize < data_.size() );
+        assert( index % IntSize < bit_mask_.size() );
         return static_cast<bool> (data_[index / IntSize] & bit_mask_[index % IntSize]);
     }
 
@@ -128,8 +130,14 @@ public:
     inline bool get (size_t index) const
     {
         if (index >= size_) {
-            return false;
+            throw std::out_of_range(
+                "Cannot access element " + std::to_string(index) + " in Bitvector of size " +
+                std::to_string(size())
+            );
         }
+
+        assert( index / IntSize < data_.size() );
+        assert( index % IntSize < bit_mask_.size() );
         return static_cast<bool> (data_[index / IntSize] & bit_mask_[index % IntSize]);
     }
 
@@ -139,8 +147,14 @@ public:
     inline void set (size_t index)
     {
         if (index >= size_) {
-            return;
+            throw std::out_of_range(
+                "Cannot access element " + std::to_string(index) + " in Bitvector of size " +
+                std::to_string(size())
+            );
         }
+
+        assert( index / IntSize < data_.size() );
+        assert( index % IntSize < bit_mask_.size() );
         data_[index / IntSize] |= bit_mask_[index % IntSize];
     }
 
@@ -150,8 +164,14 @@ public:
     inline void unset (size_t index)
     {
         if (index >= size_) {
-            return;
+            throw std::out_of_range(
+                "Cannot access element " + std::to_string(index) + " in Bitvector of size " +
+                std::to_string(size())
+            );
         }
+
+        assert( index / IntSize < data_.size() );
+        assert( index % IntSize < bit_mask_.size() );
         data_[index / IntSize] &= ~(bit_mask_[index % IntSize]);
     }
 
@@ -173,8 +193,14 @@ public:
     inline void flip (size_t index)
     {
         if (index >= size_) {
-            return;
+            throw std::out_of_range(
+                "Cannot access element " + std::to_string(index) + " in Bitvector of size " +
+                std::to_string(size())
+            );
         }
+
+        assert( index / IntSize < data_.size() );
+        assert( index % IntSize < bit_mask_.size() );
         data_[index / IntSize] ^= bit_mask_[index % IntSize];
     }
 
@@ -186,6 +212,10 @@ public:
     Bitvector& operator |= (Bitvector const& rhs);
     Bitvector& operator ^= (Bitvector const& rhs);
     Bitvector  operator ~  () const;
+
+    friend Bitvector operator & (Bitvector const& lhs, Bitvector const& rhs);
+    friend Bitvector operator | (Bitvector const& lhs, Bitvector const& rhs);
+    friend Bitvector operator ^ (Bitvector const& lhs, Bitvector const& rhs);
 
     bool operator == (const Bitvector &other) const;
     bool operator != (const Bitvector &other) const;
@@ -203,7 +233,8 @@ public:
     }
 
     /**
-     * @brief Count the number of set bits in the Bitvector, that is, its Hamming weight.
+     * @brief Count the number of set bits in the Bitvector, that is, its Hamming weight,
+     * or population count (popcnt).
      */
     size_t count() const;
 
@@ -252,18 +283,42 @@ private:
      * @brief Internal function that sets all bits to zero that are not actively used.
      *
      * The data_ buffer always contains a multiple of IntSize many bits, thus there might be surplus
-     * bits at its end for padding. In case we do operations with Bitvectors of different size, these
-     * might be affected, so we need to reset them to zero sometimes.
+     * bits at its end for padding. In case we do operations with Bitvectors of different size, or
+     * when negating bits, these might be affected, so we need to reset them to zero in these cases.
      */
     void unset_padding_();
 
     static const IntType all_0_;
     static const IntType all_1_;
 
-    static const IntType bit_mask_[IntSize];
-    static const IntType ones_mask_[IntSize];
+    /**
+     * @brief Bitmask that contains a single bit at each of the 64 positions.
+     */
+    static const std::array<IntType, IntSize> bit_mask_;
 
-    static const IntType count_mask_[4];
+    /**
+     * @brief Bitmask that contains as many ones as the position in the array tells.
+     *
+     * The element at position `i` contains `i` many ones, starting from the right, with the
+     * exception of the first entry, which is just ones (to avoid branching in the function
+     * where this is used). This is because we compute `mod 64`, so that entry is equivalent
+     * to "64 ones".
+     *
+     *     ones_mask_[ 0] -->  n ones: 1111...1111
+     *     ones_mask_[ 1] -->  1 one:  0000...0001
+     *     ones_mask_[ 2] -->  2 ones: 0000...0011
+     *     ones_mask_[ 3] -->  2 ones: 0000...0111
+     *     ...
+     *     ones_mask_[63] --> 63 ones: 0111...1111
+     *
+     * This mask is used for unsetting the padding bits in unset_padding_().
+     */
+    static const std::array<IntType, IntSize> ones_mask_;
+
+    /**
+     * @brief Special mask used for quickly counting the number of set bits, see count().
+     */
+    static const std::array<IntType, 4> count_mask_;
 
     // ---------------------------------------------------------
     //     Data Members
@@ -288,7 +343,7 @@ private:
  * Hence, this class here is slightly redundant, as it gives the same result as just using
  * the `std::hash` specialization. Still, it might be useful to have.
  *
- * See also BitvectorXhash for an alternative version that uses Bitvector::xhash() instead.
+ * See also BitvectorXhash for an alternative version that uses Bitvector::x_hash() instead.
  */
 struct BitvectorHash
 {
@@ -299,15 +354,15 @@ struct BitvectorHash
 };
 
 /**
- * @brief Helper structer that yields the xhash of a given Bitvector.
+ * @brief Helper structer that yields the x_hash of a given Bitvector.
  *
  * It is meant to be used in containers such as `unordered_set` or `unordered_map`
  * that can make use of custom hash functions for the key objects. Using this class instead
- * of the standard `std::hash` specialization, the Bitvector::xhash() function is used instead
+ * of the standard `std::hash` specialization, the Bitvector::x_hash() function is used instead
  * of the standard hash() function. It is hence faster to compute, but without avalanche effect.
  *
  * In some use cases, this might be preferrable - we however recommend to test this, in order to
- * make sure that colliding hashes to not slow down the performance in the end.
+ * make sure that colliding hashes do not slow down the performance in the end.
  *
  * Note that the function needs to cast from Bitvector::IntType to std::size_t.
  * On most modern systems, these are expecte to be the same, i.e., 64 bit unsigned integers.
@@ -335,7 +390,7 @@ namespace std {
  *
  * It uses Bitvector::hash() for the hashing. See also BitvectorHash for an alternative class
  * that does the same, but resides in the same namespace as Bitvector, and see BitvectorXhash
- * for a variant that uses Bitvector::xhash() instead as the hashing function.
+ * for a variant that uses Bitvector::x_hash() instead as the hashing function.
  */
 template<>
 struct hash<genesis::utils::Bitvector>
