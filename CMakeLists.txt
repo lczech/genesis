@@ -208,8 +208,8 @@ else ()
 endif ()
 
 set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
-set (CMAKE_CXX_FLAGS_DEBUG   "-O2 -g -ggdb3 -DDEBUG -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC")
-set (CMAKE_CXX_FLAGS_RELEASE "-O2           -DNDEBUG")
+set (CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O2 -DDEBUG -g -ggdb3 -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC")
+set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -DNDEBUG")
 
 # Misc options
 # STDCC   = clang++
@@ -256,6 +256,7 @@ IF(GENESIS_USE_ZLIB)
 
     else()
         message( STATUS "${ColorRed}zlib not found${ColorEnd}" )
+        message( STATUS "Try installing 'zlib1g-dev' first, or the equivalent for your system." )
         message( STATUS "To build without zlib support, call CMake with -DGENESIS_USE_ZLIB=OFF" )
         message( FATAL_ERROR "Required package zlib not found.")
     endif()
@@ -429,16 +430,28 @@ IF( GENESIS_HAS_PARENT_DIR )
 
 ENDIF()
 
-# Cmake debug output, useful for user support as well
-message (STATUS "CMAKE_CXX_FLAGS:          ${CMAKE_CXX_FLAGS}")
-IF(CMAKE_BUILD_TYPE EQUAL "DEBUG")
-    message (STATUS "CMAKE_CXX_FLAGS_DEBUG:    ${CMAKE_CXX_FLAGS_DEBUG}")
+# --------------------------------------------------------------------------------------------------
+#   Final user output
+# --------------------------------------------------------------------------------------------------
+
+# Cmake debug output, useful for user support as well. First, strip/trim extra spaces for nicer output
+string(REGEX REPLACE " +" " " CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} " )
+string(REGEX REPLACE " +" " " CMAKE_CXX_FLAGS_DEBUG " ${CMAKE_CXX_FLAGS_DEBUG} " )
+string(REGEX REPLACE " +" " " CMAKE_CXX_FLAGS_RELEASE " ${CMAKE_CXX_FLAGS_RELEASE} " )
+string(REGEX REPLACE " +" " " GENESIS_CXX_FLAGS " ${GENESIS_CXX_FLAGS} " )
+string(REGEX REPLACE " +" " " GENESIS_EXE_LINKER_FLAGS " ${GENESIS_EXE_LINKER_FLAGS} " )
+string(REGEX REPLACE " +" " " GENESIS_LINK_LIBRARIES " ${GENESIS_LINK_LIBRARIES} " )
+
+message (STATUS "Final build flags:")
+message (STATUS "CMAKE_CXX_FLAGS         : ${CMAKE_CXX_FLAGS}")
+IF(CMAKE_BUILD_TYPE MATCHES "DEBUG")
+    message (STATUS "CMAKE_CXX_FLAGS_DEBUG   : ${CMAKE_CXX_FLAGS_DEBUG}")
 ELSE()
-    message (STATUS "CMAKE_CXX_FLAGS_RELEASE:  ${CMAKE_CXX_FLAGS_RELEASE}")
+    message (STATUS "CMAKE_CXX_FLAGS_RELEASE : ${CMAKE_CXX_FLAGS_RELEASE}")
 ENDIF()
-message (STATUS "GENESIS_CXX_FLAGS:        ${GENESIS_CXX_FLAGS}")
+message (STATUS "GENESIS_CXX_FLAGS       : ${GENESIS_CXX_FLAGS}")
 message (STATUS "GENESIS_EXE_LINKER_FLAGS: ${GENESIS_EXE_LINKER_FLAGS}")
-message (STATUS "GENESIS_LINK_LIBRARIES:   ${GENESIS_LINK_LIBRARIES}")
+message (STATUS "GENESIS_LINK_LIBRARIES  : ${GENESIS_LINK_LIBRARIES}")
 
 # Some very last output, so that CMake projects which use us as a dependency cleary see where
 # the Genesis configuration ends.
