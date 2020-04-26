@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/tools/gzip.hpp"
+#include "genesis/utils/io/gzip.hpp"
 
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/logging.hpp"
@@ -81,6 +81,9 @@ bool is_gzip_compressed_file( std::string const& file_name )
     } else if( ! ext_gz && magic ) {
         LOG_WARN << "File name '" << file_name << "' does not end in '.gz', but the file seems "
                  << "to contain gzip content.";
+    } else {
+        // We have checked every compbination already.
+        assert( false );
     }
     return magic;
 }
