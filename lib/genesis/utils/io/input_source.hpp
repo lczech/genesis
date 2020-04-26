@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,11 +34,11 @@
 #include "genesis/utils/io/base_input_source.hpp"
 #include "genesis/utils/io/file_input_source.hpp"
 #include "genesis/utils/io/gzip_input_source.hpp"
+#include "genesis/utils/io/gzip.hpp"
 #include "genesis/utils/io/stream_input_source.hpp"
 #include "genesis/utils/io/string_input_source.hpp"
 
 #include "genesis/utils/core/std.hpp"
-#include "genesis/utils/tools/gzip.hpp"
 
 #include <memory>
 #include <stdexcept>
@@ -100,6 +100,29 @@ inline std::vector<std::shared_ptr<BaseInputSource>> from_files(
 }
 
 /**
+ * @brief Obtain a set of input sources for reading from files.
+ *
+ * See from_file() for details. This version returnes multiple input sources from an interator over
+ * file names, which can be used for parallely reading from multiple files for speedup.
+ *
+ * @see from_file(), from_string(), from_strings(), and from_stream() for similar
+ * helper functions for other types of input sources.
+ */
+template<typename InputIterator>
+inline std::vector<std::shared_ptr<BaseInputSource>> from_files(
+    InputIterator first,
+    InputIterator last,
+    bool detect_compression = true
+) {
+    std::vector<std::shared_ptr<BaseInputSource>> ret;
+    while( first != last ) {
+        ret.emplace_back( from_file( *first, detect_compression ));
+        ++first;
+    }
+    return ret;
+}
+
+/**
  * @brief Obtain an input sources for reading from a string.
  *
  * The input source returned from this function can be used in the reader classes, e.g.,
@@ -128,6 +151,27 @@ inline std::vector<std::shared_ptr<BaseInputSource>> from_strings(
     std::vector<std::shared_ptr<BaseInputSource>> ret;
     for( size_t i = 0; i < input_strings.size(); ++i ) {
         ret.emplace_back( from_string( input_strings[i] ));
+    }
+    return ret;
+}
+
+/**
+ * @brief Obtain a set of input sources for reading from strings.
+ *
+ * See from_string() and from_files() for details.
+ *
+ * @see from_file(), from_files(), from_string(), and from_stream() for similar
+ * helper functions for other types of input sources.
+ */
+ template<typename InputIterator>
+inline std::vector<std::shared_ptr<BaseInputSource>> from_strings(
+    InputIterator first,
+    InputIterator last
+) {
+    std::vector<std::shared_ptr<BaseInputSource>> ret;
+    while( first != last ) {
+        ret.emplace_back( from_string( *first ));
+        ++first;
     }
     return ret;
 }
