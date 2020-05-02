@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ enum class SkipWhitespace : unsigned char
  *
  * See ::SkipWhitespace for more information.
  */
-inline bool operator & ( SkipWhitespace lhs, SkipWhitespace rhs )
+inline constexpr bool operator & ( SkipWhitespace lhs, SkipWhitespace rhs )
 {
     using T = std::underlying_type< SkipWhitespace >::type;
     return static_cast< T >( lhs ) & static_cast< T >( rhs );

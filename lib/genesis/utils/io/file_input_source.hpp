@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ namespace utils {
  * It is also possible to provide a `FILE` pointer directly. In this case, the ownership of the file
  * pointer is taken by this class. Thus, closing the file is done when destructing this class.
  */
-class FileInputSource : public BaseInputSource
+class FileInputSource final : public BaseInputSource
 {
 public:
 
@@ -136,7 +136,7 @@ private:
         }
 
         // Similarly, we need to close again once we are done, so that the file is not kept
-        // open unnecesasrily long after reading.
+        // open unnecessarily long after reading.
         if( ret < size ) {
             std::fclose( file_ );
             file_ = nullptr;

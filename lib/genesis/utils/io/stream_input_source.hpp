@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ namespace utils {
  * the owner must keep it alive as long as reading from it is required, and is responsbile for
  * destroying it. This class merely keeps a reference to it.
  */
-class StreamInputSource : public BaseInputSource
+class StreamInputSource final : public BaseInputSource
 {
 public:
 
