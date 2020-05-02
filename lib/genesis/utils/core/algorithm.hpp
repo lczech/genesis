@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -74,6 +74,19 @@ template<class C, class T>
 inline bool contains(const C& v, const T& x)
 {
     return std::end(v) != std::find(std::begin(v), std::end(v), x);
+}
+
+/**
+ * @brief Returns whether a container object has an element for which a predicate is true.
+ *
+ * The usage of std::find_if just to check for presence of a certain item is a bit cumbersome.
+ * This template simply takes any container and a predicate and returns true iff the predicate is
+ * true for any element in the container.
+ */
+template<class C, class UnaryPredicate>
+inline bool contains_if( C const& v, UnaryPredicate pred )
+{
+    return std::end(v) != std::find_if( std::begin(v), std::end(v), pred );
 }
 
 /**

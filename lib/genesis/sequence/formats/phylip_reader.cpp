@@ -173,6 +173,7 @@ std::string PhylipReader::parse_phylip_label( utils::InputStream& it ) const
             label += *it;
             ++it;
         }
+        label = utils::trim( label );
     }
 
     label = utils::trim( label );
