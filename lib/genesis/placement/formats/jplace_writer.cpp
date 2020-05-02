@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -60,11 +60,11 @@ namespace placement {
 //     Printing
 // =================================================================================================
 
-/**
- * @brief Write a Sample to a stream, using the Jplace format.
- */
-void JplaceWriter::to_stream( Sample const& sample, std::ostream& os ) const
+void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutputTarget> target )
 {
+    // Shorthand.
+    auto& os = target->ostream();
+
     // Indent. Might be replaced by some setting for the class in the future.
     std::string in = "    ";
 
@@ -86,7 +86,8 @@ void JplaceWriter::to_stream( Sample const& sample, std::ostream& os ) const
     newick_writer.enable_branch_lengths(true);
     newick_writer.branch_length_precision( branch_length_precision_ );
     os << in << "\"tree\": \"";
-    newick_writer.to_stream( sample.tree(), os );
+    // newick_writer.to_stream( sample.tree(), os );
+    newick_writer.to_stream( sample.tree(), target->ostream() );
     os << "\",\n";
 
     // Write field names.
@@ -171,52 +172,10 @@ void JplaceWriter::to_stream( Sample const& sample, std::ostream& os ) const
     os << "}\n";
 }
 
-/**
- * @brief Write the data of a Sample to a file in `Jplace` format.
- *
- * If the file cannot be written to, the function throws an exception. Also, by default, if the file
- * already exists, an exception is thrown.
- * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
- * change this behaviour.
- */
-void JplaceWriter::to_file( Sample const& sample, std::string const& filename ) const
-{
-    std::ofstream ofs;
-    utils::file_output_stream( filename, ofs );
-    to_stream( sample, ofs );
-}
-
-/**
- * @brief Store the data of a Sample in a string in `Jplace` format.
- */
-void JplaceWriter::to_string( Sample const& sample, std::string& output ) const
-{
-    std::ostringstream oss;
-    to_stream( sample, oss );
-    output = oss.str();
-}
-
-/**
- * @brief Return the data of a Sample as a string in `Jplace` format.
- */
-std::string JplaceWriter::to_string( Sample const& sample ) const
-{
-    std::ostringstream oss;
-    to_stream( sample, oss );
-    return oss.str();
-}
-
-/**
- * @brief Store the data of a Sample in a JsonDocument object.
- *
- * This method is not really useful anymore, as we can now directly write to files, strings and
- * streams. It is however kept here for reference and in case someone wants to work with Json files
- * directly.
- */
-void JplaceWriter::to_document( Sample const& smp, utils::JsonDocument& doc ) const
+utils::JsonDocument JplaceWriter::to_document( Sample const& smp ) const
 {
     using namespace utils;
-    doc = JsonDocument::object();
+    JsonDocument doc = JsonDocument::object();
 
     // set tree
     auto nwp = PlacementTreeNewickWriter();
@@ -294,6 +253,8 @@ void JplaceWriter::to_document( Sample const& smp, utils::JsonDocument& doc ) co
     jmetadata[ "program" ] = "genesis " + genesis_version();
     jmetadata[ "invocation" ] = utils::Options::get().command_line_string();
     doc[ "metadata" ] = jmetadata;
+
+    return doc;
 }
 
 } // namespace placement

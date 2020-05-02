@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,8 @@
  * @file
  * @ingroup placement
  */
+
+#include "genesis/utils/io/output_target.hpp"
 
 #include <iosfwd>
 #include <string>
@@ -59,20 +61,18 @@ namespace placement {
 /**
  * @brief Write Jplace data.
  *
- * This class provides facilities for writing Jplace data. It supports to write
- *
- *   * to_stream()
- *   * to_file()
- *   * to_string()
- *   * to_document()
+ * This class provides facilities for writing Jplace data to different output targets.
  *
  * Exemplary usage:
  *
  *     std::string outfile = "path/to/file.jplace";
  *     Sample sample;
  *
- *     JplaceWriter()
- *         .to_file( sample, outfile );
+ *     JplaceWriter().write( sample, utils::to_file( outfile ));
+ *
+ * Furthermore, using to_document(), the Sample can also be transformed into our internal
+ * Json representaion in form of a utils::JsonDocument that adheres to the Jplace standard.
+ * This is probably rarely needed, but might be useful nonetheless.
  *
  * See JplaceReader for more information on the data format. See Sample for more information
  * on the data structure.
@@ -85,13 +85,22 @@ public:
     //     Printing
     // ---------------------------------------------------------------------
 
-    void        to_stream   ( Sample const& smp, std::ostream& os ) const;
-    void        to_file     ( Sample const& smp, std::string const& filename) const;
+    /**
+     * @brief Write a Sample to an output target, using the Jplace format.
+     *
+     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
+     * utils::to_string() for examples of how to obtain a suitable output target.
+     */
+    void write( Sample const& sample, std::shared_ptr<utils::BaseOutputTarget> target );
 
-    void        to_string   ( Sample const& smp, std::string&       output) const;
-    std::string to_string   ( Sample const& smp) const;
-
-    void        to_document ( Sample const& smp, utils::JsonDocument& doc) const;
+    /**
+     * @brief Store the data of a Sample in a JsonDocument object.
+     *
+     * This method is not really useful anymore, as we can now directly write to files, strings and
+     * streams. It is however kept here for reference and in case someone wants to work with Json files
+     * directly.
+     */
+    utils::JsonDocument to_document( Sample const& sample ) const;
 
     // -------------------------------------------------------------------------
     //     Data Members
