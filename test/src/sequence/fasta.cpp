@@ -32,10 +32,12 @@
 
 #include "genesis/sequence/formats/fasta_input_iterator.hpp"
 #include "genesis/sequence/formats/fasta_reader.hpp"
+#include "genesis/sequence/formats/fasta_writer.hpp"
 #include "genesis/sequence/functions/codes.hpp"
 #include "genesis/sequence/functions/functions.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 
+#include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/gzip_input_source.hpp"
@@ -210,4 +212,27 @@ TEST( Sequence, FastaGzip )
     EXPECT_EQ( 460,                    sset[0].length() );
     EXPECT_EQ( "Di106BGTue",           sset[0].label() );
     EXPECT_EQ( "TCGAAACCTGC------CTA", sset[0].sites().substr( 0, 20 ) );
+}
+
+TEST( Sequence, FastaWriter )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Load sequence file.
+    std::string infile = environment->data_dir + "sequence/dna_10.fasta";
+    SequenceSet sset;
+    FastaReader()
+        .valid_chars( nucleic_acid_codes_all() )
+        .read( utils::from_file(infile), sset);
+
+    // Check data.
+    EXPECT_EQ( 10, sset.size() );
+
+    std::string target;
+    FastaWriter().line_length(50).write( sset, utils::to_string( target ));
+
+    auto const read_again = utils::file_read( infile );
+    EXPECT_FALSE( target.empty() );
+    EXPECT_EQ( read_again, target );
 }

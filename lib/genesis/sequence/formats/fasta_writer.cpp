@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -47,6 +47,19 @@ namespace sequence {
 //     Writing
 // =================================================================================================
 
+void FastaWriter::write( Sequence const& sequence, std::shared_ptr<utils::BaseOutputTarget> target ) const
+{
+    write_sequence( sequence, target->ostream() );
+}
+
+void FastaWriter::write( SequenceSet const& sequence_set, std::shared_ptr<utils::BaseOutputTarget> target ) const
+{
+    auto& os = target->ostream();
+    for( Sequence const& sequence : sequence_set ) {
+        write_sequence( sequence, os );
+    }
+}
+
 void FastaWriter::write_sequence( Sequence const& seq, std::ostream& os ) const
 {
     // Write label.
@@ -80,27 +93,6 @@ void FastaWriter::write_sequence( Sequence const& seq, std::ostream& os ) const
     } else {
         os << seq.sites() << "\n";
     }
-}
-
-void FastaWriter::to_stream( SequenceSet const& sset, std::ostream& os ) const
-{
-    for( Sequence const& seq : sset ) {
-        write_sequence( seq, os );
-    }
-}
-
-void FastaWriter::to_file( SequenceSet const& sset, std::string const& filename ) const
-{
-    std::ofstream ofs;
-    utils::file_output_stream( filename, ofs );
-    to_stream( sset, ofs );
-}
-
-std::string FastaWriter::to_string ( SequenceSet const& sset ) const
-{
-    std::ostringstream oss;
-    to_stream( sset, oss );
-    return oss.str();
 }
 
 // =================================================================================================
