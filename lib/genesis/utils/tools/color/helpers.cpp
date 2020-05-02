@@ -184,7 +184,7 @@ std::map<double, std::string> color_tickmarks( ColorNormalizationLinear const& n
     auto tm = Tickmarks();
     auto const tm_labels = tm.linear_labels( norm.min_value(), norm.max_value(), num_ticks );
     for( auto const& tm_label : tm_labels ) {
-        result[ tm_label.relative_position ] = utils::to_string( tm_label.label );
+        result[ tm_label.relative_position ] = to_string_nice( tm_label.label );
     }
     return result;
 }
@@ -200,10 +200,10 @@ std::map<double, std::string> color_tickmarks( ColorNormalizationLogarithmic con
     auto const tm_labels_u = tm.logarithmic_labels( norm.min_value(), norm.max_value(), norm.base() );
     for( auto const& tm_label : tm_labels_u ) {
         auto label = ( norm.exponential_labels()
-            ? utils::to_string( norm.base() ) + "^" + utils::to_string(
+            ? to_string_nice( norm.base() ) + "^" + to_string_nice(
                 std::log( tm_label.label ) / std::log( norm.base() )
             )
-            : utils::to_string( tm_label.label )
+            : to_string_nice( tm_label.label )
         );
         result[ tm_label.relative_position ] = label;
     }
@@ -233,7 +233,7 @@ std::map<double, std::string> color_tickmarks( ColorNormalizationDiverging const
     );
     for( auto const& tm_label : tm_labels_l ) {
         auto const pos =  frac_lower * tm_label.relative_position;
-        result[ pos ] = utils::to_string( tm_label.label );
+        result[ pos ] = to_string_nice( tm_label.label );
     }
 
     // In cases where the mid value is a nice tickmark number (0 for example),
@@ -252,7 +252,7 @@ std::map<double, std::string> color_tickmarks( ColorNormalizationDiverging const
     );
     for( auto const& tm_label : tm_labels_u ) {
         auto const pos =  frac_lower + frac_upper * tm_label.relative_position;
-        result[ pos ] = utils::to_string( tm_label.label );
+        result[ pos ] = to_string_nice( tm_label.label );
     }
 
     return result;
@@ -270,7 +270,7 @@ std::map<double, std::string> color_tickmarks( ColorNormalizationBoundary const&
 
     std::map<double, std::string> result;
     for( auto const& bound : norm.boundaries() ) {
-        result[ ( bound - min ) / len ] = utils::to_string( bound );
+        result[ ( bound - min ) / len ] = to_string_nice( bound );
     }
     return result;
 }

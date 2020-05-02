@@ -153,8 +153,8 @@ TEST( Text, ToString )
     double pi    = 3.14159267535;
     double zeros = 42.4200000000;
 
-    EXPECT_EQ( "3.14159", to_string( pi ) );
-    EXPECT_EQ( "42.42",   to_string( zeros ) );
+    EXPECT_EQ( "3.14159", to_string_nice( pi ) );
+    EXPECT_EQ( "42.42",   to_string_nice( zeros ) );
 
     EXPECT_EQ( "3",       to_string_precise( pi, 0 ) );
     EXPECT_EQ( "3.1",     to_string_precise( pi, 1 ) );
