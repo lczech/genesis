@@ -82,6 +82,19 @@ class JplaceWriter
 public:
 
     // ---------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // ---------------------------------------------------------------------
+
+    JplaceWriter();
+    ~JplaceWriter() = default;
+
+    JplaceWriter( JplaceWriter const& ) = default;
+    JplaceWriter( JplaceWriter&& )      = default;
+
+    JplaceWriter& operator= ( JplaceWriter const& ) = default;
+    JplaceWriter& operator= ( JplaceWriter&& )      = default;
+
+    // ---------------------------------------------------------------------
     //     Printing
     // ---------------------------------------------------------------------
 
@@ -91,7 +104,7 @@ public:
      * See the output target convenience functions utils::to_file(), utils::to_stream(), and
      * utils::to_string() for examples of how to obtain a suitable output target.
      */
-    void write( Sample const& sample, std::shared_ptr<utils::BaseOutputTarget> target );
+    void write( Sample const& sample, std::shared_ptr<utils::BaseOutputTarget> target ) const;
 
     /**
      * @brief Store the data of a Sample in a JsonDocument object.
@@ -103,7 +116,7 @@ public:
     utils::JsonDocument to_document( Sample const& sample ) const;
 
     // -------------------------------------------------------------------------
-    //     Data Members
+    //     Settings
     // -------------------------------------------------------------------------
 
 public:
@@ -127,9 +140,55 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Get the currently set "program" string to be written to the jplace file.
+     *
+     * This is jplace meta-data that can be set to later identify settings used when creating
+     * the jplace file.
+     */
+    std::string const& program() const
+    {
+        return program_;
+    }
+
+    /**
+     * @brief Set the "program" string to be written to the jplace file.
+     *
+     * @copydoc program()
+     */
+    JplaceWriter& program( std::string const& program )
+    {
+        program_ = program;
+        return *this;
+    }
+
+    /**
+     * @brief Get the currently set "invocation" string to be written to the jplace file.
+     *
+     * This is jplace meta-data that can be set to later identify settings used when creating
+     * the jplace file.
+     */
+    std::string const& invocation() const
+    {
+        return invocation_;
+    }
+
+    /**
+     * @brief Set the "invocation" string to be written to the jplace file.
+     *
+     * @copydoc invocation()
+     */
+    JplaceWriter& invocation( std::string const& invocation )
+    {
+        invocation_ = invocation;
+        return *this;
+    }
+
 private:
 
     size_t branch_length_precision_ = 6;
+    std::string program_;
+    std::string invocation_;
 };
 
 } // namespace placement

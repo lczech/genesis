@@ -52,15 +52,27 @@
 #include "genesis/utils/formats/json/document.hpp"
 #include "genesis/utils/formats/json/writer.hpp"
 #include "genesis/utils/io/output_stream.hpp"
+#include "genesis/utils/text/string.hpp"
+#include "genesis/utils/tools/date_time.hpp"
 
 namespace genesis {
 namespace placement {
 
 // =================================================================================================
+//     Constructor and Rule of Five
+// =================================================================================================
+
+JplaceWriter::JplaceWriter()
+{
+    program_ = "genesis " + genesis_version();
+    invocation_ = utils::Options::get().command_line_string();
+}
+
+// =================================================================================================
 //     Printing
 // =================================================================================================
 
-void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutputTarget> target )
+void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutputTarget> target ) const
 {
     // Shorthand.
     auto& os = target->ostream();
@@ -76,8 +88,9 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutpu
 
     // Write metadata.
     os << in << "\"metadata\": {\n";
-    os << in << in << "\"program\": \"" << "genesis " << genesis_version() << "\",\n";
-    os << in << in << "\"invocation\": \"" << utils::Options::get().command_line_string() << "\"\n";
+    os << in << in << "\"program\": \"" << program_ << "\",\n";
+    os << in << in << "\"invocation\": \"" << invocation_ << "\",\n";
+    os << in << in << "\"created\": \"" << utils::current_date() << " " << utils::current_time() << "\"\n";
     os << in << "},\n";
 
     // Write tree.
@@ -86,8 +99,8 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutpu
     newick_writer.enable_branch_lengths(true);
     newick_writer.branch_length_precision( branch_length_precision_ );
     os << in << "\"tree\": \"";
-    // newick_writer.to_stream( sample.tree(), os );
-    newick_writer.to_stream( sample.tree(), target->ostream() );
+    auto const tree = newick_writer.to_string( sample.tree() );
+    os << utils::escape( tree );
     os << "\",\n";
 
     // Write field names.
@@ -250,8 +263,9 @@ utils::JsonDocument JplaceWriter::to_document( Sample const& smp ) const
 
     // set metadata
     auto jmetadata = JsonDocument::object();
-    jmetadata[ "program" ] = "genesis " + genesis_version();
-    jmetadata[ "invocation" ] = utils::Options::get().command_line_string();
+    jmetadata[ "program" ] = program_;
+    jmetadata[ "invocation" ] = invocation_;
+    jmetadata[ "created" ] = utils::current_date() + " " + utils::current_time();
     doc[ "metadata" ] = jmetadata;
 
     return doc;
