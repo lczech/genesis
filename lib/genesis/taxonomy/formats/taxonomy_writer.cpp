@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,17 +33,10 @@
 #include "genesis/taxonomy/iterator/preorder.hpp"
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
+#include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/taxonomy/taxopath.hpp"
 
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/output_stream.hpp"
-#include "genesis/utils/text/string.hpp"
-
-#include <cassert>
-#include <fstream>
-#include <sstream>
-#include <stdexcept>
+#include <iostream>
 
 namespace genesis {
 namespace taxonomy {
@@ -52,8 +45,9 @@ namespace taxonomy {
 //     Writing
 // =================================================================================================
 
-void TaxonomyWriter::to_stream( Taxonomy const& tax, std::ostream& os ) const
+void TaxonomyWriter::write( Taxonomy const& tax, std::shared_ptr<utils::BaseOutputTarget> target ) const
 {
+    auto& os = target->ostream();
     for( auto const& tit : preorder( tax )) {
         os << tax_gen_.to_string( tit.taxon() );
 
@@ -66,20 +60,6 @@ void TaxonomyWriter::to_stream( Taxonomy const& tax, std::ostream& os ) const
 
         os << "\n";
     }
-}
-
-void TaxonomyWriter::to_file( Taxonomy const& tax, std::string const& filename ) const
-{
-    std::ofstream ofs;
-    utils::file_output_stream( filename, ofs );
-    to_stream( tax, ofs );
-}
-
-std::string TaxonomyWriter::to_string( Taxonomy const& tax ) const
-{
-    std::ostringstream oss;
-    to_stream( tax, oss );
-    return oss.str();
 }
 
 } // namespace taxonomy
