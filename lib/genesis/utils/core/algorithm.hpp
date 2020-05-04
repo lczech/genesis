@@ -77,19 +77,6 @@ inline bool contains(const C& v, const T& x)
 }
 
 /**
- * @brief Returns whether a container object has an element for which a predicate is true.
- *
- * The usage of std::find_if just to check for presence of a certain item is a bit cumbersome.
- * This template simply takes any container and a predicate and returns true iff the predicate is
- * true for any element in the container.
- */
-template<class C, class UnaryPredicate>
-inline bool contains_if( C const& v, UnaryPredicate pred )
-{
-    return std::end(v) != std::find_if( std::begin(v), std::end(v), pred );
-}
-
-/**
  * @brief Return whether a container contains duplicates.
  *
  * The container does not need to be sorted.
