@@ -69,7 +69,7 @@ void write_tree_to_newick_file(
     CommonTree const&  tree,
     std::string const& newick_filename
 ) {
-    CommonTreeNewickWriter().to_file( tree, newick_filename );
+    CommonTreeNewickWriter().write( tree, utils::to_file( newick_filename ));
 }
 
 // =================================================================================================

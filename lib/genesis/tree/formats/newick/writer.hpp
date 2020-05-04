@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,8 @@
  * @ingroup tree
  */
 
+#include "genesis/utils/io/output_target.hpp"
+
 #include <iosfwd>
 #include <functional>
 #include <string>
@@ -40,7 +42,7 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Forward declarations
+//     Forward Declarations
 // =================================================================================================
 
 class  Tree;
@@ -165,27 +167,15 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Write a Tree to a stream, in Newick format.
-     */
-    void to_stream( Tree const& tree, std::ostream& os ) const;
-
-    /**
-     * @brief Writes the tree to a file in Newick format.
+     * @brief Write a Tree to an output target, using the Newick format.
      *
-     * If the file cannot be written to, the function throws an exception. Also, by default, if the file
-     * already exists, an exception is thrown.
-     * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
-     * change this behaviour.
+     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
+     * utils::to_string() for examples of how to obtain a suitable output target.
      */
-    void to_file( Tree const& tree, std::string const& filename) const;
+    void write( Tree const& tree, std::shared_ptr<utils::BaseOutputTarget> target ) const;
 
     /**
-     * @brief Gives a Newick string representation of the tree.
-     */
-    void to_string( Tree const& tree, std::string& ts ) const;
-
-    /**
-     * @brief Returns a Newick string representation of the tree.
+     * @brief Shorthand to write a Tree to Newick format and return it is a string.
      */
     std::string to_string( Tree const& tree ) const;
 
@@ -251,20 +241,20 @@ public:
      * Lastly, if write_tags() is `true`, names with curly braces in them ('{}') are also wrapped
      * in quotation marks, as those are used for tags.
      */
-    NewickWriter& quotation_marks( char value )
+    NewickWriter& quotation_mark( char value )
     {
-        quotation_marks_ = value;
+        quotation_mark_ = value;
         return *this;
     }
 
     /**
      * @brief Get the currently set type of quotation marks used for node names.
      *
-     * See quotation_marks( char ) for details.
+     * See quotation_mark( char ) for details.
      */
-    char quotation_marks() const
+    char quotation_mark() const
     {
-        return quotation_marks_;
+        return quotation_mark_;
     }
 
     /**
@@ -272,7 +262,7 @@ public:
      * the name contains any characters that need to be wrapped
      *
      * Default is `false`. This setting can be used to ensure that all names have quotation marks,
-     * which is a requirement for certain other parser. See also quotation_marks( char ) to set
+     * which is a requirement for certain other parsers. See also quotation_mark( char ) to set
      * the type of quotation mark.
      */
     NewickWriter& force_quotation_marks( bool value )
@@ -390,24 +380,9 @@ public:
     NewickBroker tree_to_broker( Tree const& tree ) const;
 
     /**
-    * @brief Write a NewickBroker to a stream, in Newick format.
-    */
-    void broker_to_stream( NewickBroker const& broker, std::ostream& os ) const;
-
-    /**
-     * @brief Writes a NewickBroker to a file in Newick format.
+     * @brief Write a NewickBroker to an output target, in Newick format.
      */
-    void broker_to_file( NewickBroker const& broker, std::string const& filename) const;
-
-    /**
-     * @brief Gives a Newick string representation of the tree.
-     */
-    void broker_to_string( NewickBroker const& broker, std::string& ts ) const;
-
-    /**
-     * @brief Returns a Newick string representation of the tree.
-     */
-    std::string broker_to_string( NewickBroker const& broker ) const;
+    void write( NewickBroker const& broker, std::shared_ptr<utils::BaseOutputTarget> target ) const;
 
     // -------------------------------------------------------------------------
     //     Internal Functions
@@ -416,21 +391,21 @@ public:
 private:
 
     /**
-     * @brief Return the Newick text string representation of a NewickBrokerElement.
+     * @brief Write the Newick text string representation of a NewickBrokerElement to an output target.
      */
-    std::string element_to_string_( NewickBrokerElement const& bn ) const;
+    void write_( NewickBrokerElement const& bn, std::ostream& os ) const;
 
     /**
      * @brief Recursive function that returns the string representation of a clade of a tree.
      */
-    std::string to_string_rec_( NewickBroker const& broker, size_t pos ) const;
+    // std::string to_string_rec_( NewickBroker const& broker, size_t pos ) const;
 
     // -------------------------------------------------------------------------
     //     Member Data
     // -------------------------------------------------------------------------
 
     bool force_quot_marks_ = false;
-    char quotation_marks_  = '\"';
+    char quotation_mark_  = '\"';
 
     bool write_names_    = true;
     bool write_values_   = true;

@@ -99,8 +99,7 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutpu
     newick_writer.enable_branch_lengths(true);
     newick_writer.branch_length_precision( branch_length_precision_ );
     os << in << "\"tree\": \"";
-    auto const tree = newick_writer.to_string( sample.tree() );
-    os << utils::escape( tree );
+    os << utils::escape( newick_writer.to_string( sample.tree() ));
     os << "\",\n";
 
     // Write field names.

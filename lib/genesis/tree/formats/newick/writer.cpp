@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -56,31 +56,15 @@ namespace tree {
 //     Writing
 // =================================================================================================
 
-void NewickWriter::to_stream( Tree const& tree, std::ostream& os ) const
+void NewickWriter::write( Tree const& tree, std::shared_ptr<utils::BaseOutputTarget> target ) const
 {
-    broker_to_stream( tree_to_broker( tree ), os );
-}
-
-void NewickWriter::to_file(
-    Tree const& tree, std::string const& filename
-) const {
-    std::ofstream ofs;
-    utils::file_output_stream( filename, ofs );
-    to_stream( tree, ofs );
-}
-
-void NewickWriter::to_string (
-    Tree const& tree, std::string& ts
-) const {
-    std::ostringstream oss;
-    to_stream( tree, oss );
-    ts = oss.str();
+    write( tree_to_broker( tree ), target );
 }
 
 std::string NewickWriter::to_string( Tree const& tree ) const
 {
     std::ostringstream oss;
-    to_stream( tree, oss );
+    write( tree, utils::to_stream( oss ));
     return oss.str();
 }
 
@@ -127,8 +111,11 @@ NewickBroker NewickWriter::tree_to_broker( Tree const& tree ) const
     return broker;
 }
 
-void NewickWriter::broker_to_stream( NewickBroker const& broker, std::ostream& os ) const
+void NewickWriter::write( NewickBroker const& broker, std::shared_ptr<utils::BaseOutputTarget> target ) const
 {
+
+    auto& os = target->ostream();
+
     // Assertion helpers: how many parenthesis were written?
     size_t op = 0;
     size_t cp = 0;
@@ -149,7 +136,9 @@ void NewickWriter::broker_to_stream( NewickBroker const& broker, std::ostream& o
             os << "(";
             ++op;
         }
-        os << element_to_string_( broker[pos] );
+
+        // Write the NewickBrokerElement to the stream.
+        write_( broker[pos], os );
 
         // Stop if it is the root. Don't have to write parenthesis or commas after the root element.
         if( pos == 0 ) {
@@ -177,36 +166,12 @@ void NewickWriter::broker_to_stream( NewickBroker const& broker, std::ostream& o
     os << ";";
 }
 
-void NewickWriter::broker_to_file( NewickBroker const& broker, std::string const& filename) const
-{
-    std::ofstream ofs;
-    utils::file_output_stream( filename, ofs );
-    broker_to_stream( broker, ofs );
-}
-
-void NewickWriter::broker_to_string( NewickBroker const& broker, std::string& ts ) const
-{
-    std::ostringstream oss;
-    broker_to_stream( broker, oss );
-    ts = oss.str();
-}
-
-std::string NewickWriter::broker_to_string( NewickBroker const& broker ) const
-{
-    std::ostringstream oss;
-    broker_to_stream( broker, oss );
-    return oss.str();
-}
-
 // =================================================================================================
 //     Internal Functions
 // =================================================================================================
 
-std::string NewickWriter::element_to_string_( NewickBrokerElement const& bn ) const
+void NewickWriter::write_( NewickBrokerElement const& bn, std::ostream& os ) const
 {
-    // Prepare result
-    std::string res;
-
     // Write name.
     if( write_names_ ) {
         // Find out whether we need to put this name in quotation marks.
@@ -220,71 +185,69 @@ std::string NewickWriter::element_to_string_( NewickBrokerElement const& bn ) co
         need_qmarks |= ( write_tags_ && std::string::npos != bn.name.find_first_of( "{}" ));
 
         if( need_qmarks ) {
-            res += quotation_marks_ + bn.name + quotation_marks_;
+            os << quotation_mark_ << bn.name << quotation_mark_;
         } else {
-            res += bn.name;
+            os << bn.name;
         }
     }
 
     // Write values (":...")
     if( write_values_ ) {
         for( std::string const& v : bn.values ) {
-            res += ":" + v;
+            os << ":" << v;
         }
     }
 
     // Write comments ("[...]")
     if( write_comments_ ) {
         for( std::string const& c : bn.comments ) {
-            res += "[" + c + "]";
+            os << "[" << c << "]";
         }
     }
 
     // Write tags ("{...}")
     if( write_tags_ ) {
         for( std::string const& t : bn.tags ) {
-            res += "{" + t + "}";
+            os << "{" << t << "}";
         }
     }
-
-    return res;
 }
 
-std::string NewickWriter::to_string_rec_( NewickBroker const& broker, size_t pos ) const
-{
-    // Old, recursive, slow version. Not used any more.
-
-    // check if it is a leaf, stop recursion if so.
-    if (broker[pos].rank() == 0) {
-        return element_to_string_(broker[pos]);
-    }
-
-    // recurse over all children of the current node. while doing so, build a stack of the resulting
-    // substrings in reverse order. this is because newick stores the nodes kind of "backwards",
-    // by starting at a leaf node instead of the root.
-    std::deque<std::string> children;
-    for (size_t i = pos + 1; i < broker.size() && broker[i].depth > broker[pos].depth; ++i) {
-        // skip if not immediate children (those will be called in later recursion steps)
-        if (broker[i].depth > broker[pos].depth + 1) {
-            continue;
-        }
-
-        // do the recursion step for this child, add the result to a stack
-        children.push_front(to_string_rec_(broker, i));
-    }
-
-    // build the string by iterating the stack
-    std::ostringstream out;
-    out << "(";
-    for( size_t i = 0; i < children.size(); ++i ) {
-        if (i>0) {
-            out << ",";
-        }
-        out << children[i];
-    }
-    out << ")" << element_to_string_(broker[pos]);
-    return out.str();
-}
+// std::string NewickWriter::to_string_rec_( NewickBroker const& broker, size_t pos ) const
+// {
+//     // Old, recursive, slow version. Not used any more.
+//
+//     // check if it is a leaf, stop recursion if so.
+//     if (broker[pos].rank() == 0) {
+//         return element_to_string_(broker[pos]);
+//     }
+//
+//     // recurse over all children of the current node. while doing so, build a stack of the resulting
+//     // substrings in reverse order. this is because newick stores the nodes kind of "backwards",
+//     // by starting at a leaf node instead of the root.
+//     std::deque<std::string> children;
+//     for (size_t i = pos + 1; i < broker.size() && broker[i].depth > broker[pos].depth; ++i) {
+//         // skip if not immediate children (those will be called in later recursion steps)
+//         if (broker[i].depth > broker[pos].depth + 1) {
+//             continue;
+//         }
+//
+//         // do the recursion step for this child, add the result to a stack
+//         children.push_front(to_string_rec_(broker, i));
+//     }
+//
+//     // build the string by iterating the stack
+//     std::ostringstream out;
+//     out << "(";
+//     for( size_t i = 0; i < children.size(); ++i ) {
+//         if (i>0) {
+//             out << ",";
+//         }
+//         out << children[i];
+//     }
+//     out << ")" << element_to_string_(broker[pos]);
+//     return out.str();
+// }
 
 } // namespace tree
 } // namespace genesis
