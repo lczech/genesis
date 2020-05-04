@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -65,7 +65,8 @@ TEST( PlacementTreeEdgeColor, CountGradientPhyloxml )
     color_plugin.register_with( writer );
 
     color_plugin.edge_colors( placement_color_count_gradient( map ));
-    std::string out = writer.to_string(map.tree());
+    std::string out;
+    writer.write( map.tree(), utils::to_string( out ));
 
     // At least one element in the output should have the color for the edge with most placements.
     EXPECT_TRUE( out.find("<red>255</red>")  != std::string::npos );

@@ -100,7 +100,7 @@ void write_color_tree_to_phyloxml_file(
         color_plugin.edge_colors( color_per_branch );
     }
 
-    writer.to_file( tree, phyloxml_filename );
+    writer.write( tree, utils::to_file( phyloxml_filename ));
 }
 
 void write_color_tree_to_phyloxml_file(
