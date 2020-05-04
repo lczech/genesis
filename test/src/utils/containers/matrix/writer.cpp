@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,65 +45,66 @@ using namespace utils;
 
 TEST( Matrix, Writer )
 {
-    // NEEDS_TEST_DATA;
-    //
-    // // Read simple matrix.
-    // auto reader = MatrixReader<double>( ' ' );
-    // auto const simple = reader.read( from_file( environment->data_dir + "utils/matrix/simple.mat" ));
-    //
-    // auto writer = MatrixWriter<double>();
-    //
-    // writer.format( MatrixWriter<double>::Format::kMatrix );
-    // writer.to_file( simple, "/home/lucas/test/blank.mat" );
-    // writer.to_file( simple, "/home/lucas/test/rows.mat",
-    //     { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" }
-    // );
-    // writer.to_file( simple, "/home/lucas/test/both.mat",
-    //     { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
-    //     { "A", "B", "C" }
-    // );
-    // writer.to_file( simple, "/home/lucas/test/full.mat",
-    //     { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
-    //     { "A", "B", "C" },
-    //     "x"
-    // );
-    //
-    // writer.format( MatrixWriter<double>::Format::kList );
-    // writer.to_file( simple, "/home/lucas/test/blank.lst" );
-    // writer.to_file( simple, "/home/lucas/test/rows.lst",
-    //     { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" }
-    // );
-    // writer.to_file( simple, "/home/lucas/test/both.lst",
-    //     { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
-    //     { "A", "B", "C" }
-    // );
-    // writer.to_file( simple, "/home/lucas/test/full.lst",
-    //     { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
-    //     { "A", "B", "C" },
-    //     "x"
-    // );
-    //
-    // auto mat = Matrix<double>(
-    //     4, 4, {
-    //         1, 2, 3, 4,
-    //         5, 6, 7, 8,
-    //         9, 10, 11, 12,
-    //         13, 14, 15, 16
-    //     }
-    // );
-    //
-    // writer.format( MatrixWriter<double>::Format::kTriangular );
-    // writer.to_file( mat, "/home/lucas/test/blank.tri" );
-    // writer.to_file( mat, "/home/lucas/test/rows.tri",
-    //     { "a", "b", "c", "d" }
-    // );
-    // writer.to_file( mat, "/home/lucas/test/both.tri",
-    //     { "a", "b", "c", "d" },
-    //     { "A", "B", "C", "D" }
-    // );
-    // writer.to_file( mat, "/home/lucas/test/full.tri",
-    //     { "a", "b", "c", "d" },
-    //     { "A", "B", "C", "D" },
-    //     "x"
-    // );
+    NEEDS_TEST_DATA;
+
+    // Read simple matrix.
+    auto reader = MatrixReader<double>( ' ' );
+    auto const simple = reader.read( from_file( environment->data_dir + "utils/matrix/simple.mat" ));
+
+    auto writer = MatrixWriter<double>();
+    std::string target;
+
+    writer.format( MatrixWriter<double>::Format::kMatrix );
+    writer.write( simple, utils::to_string( target ) );
+    writer.write( simple, utils::to_string( target ),
+        { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" }
+    );
+    writer.write( simple, utils::to_string( target ),
+        { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
+        { "A", "B", "C" }
+    );
+    writer.write( simple, utils::to_string( target ),
+        { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
+        { "A", "B", "C" },
+        "x"
+    );
+
+    writer.format( MatrixWriter<double>::Format::kList );
+    writer.write( simple, utils::to_string( target ));
+    writer.write( simple, utils::to_string( target ),
+        { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" }
+    );
+    writer.write( simple, utils::to_string( target ),
+        { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
+        { "A", "B", "C" }
+    );
+    writer.write( simple, utils::to_string( target ),
+        { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
+        { "A", "B", "C" },
+        "x"
+    );
+
+    auto mat = Matrix<double>(
+        4, 4, {
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16
+        }
+    );
+
+    writer.format( MatrixWriter<double>::Format::kTriangular );
+    writer.write( mat, utils::to_string( target ) );
+    writer.write( mat, utils::to_string( target ),
+        { "a", "b", "c", "d" }
+    );
+    writer.write( mat, utils::to_string( target ),
+        { "a", "b", "c", "d" },
+        { "A", "B", "C", "D" }
+    );
+    writer.write( mat, utils::to_string( target ),
+        { "a", "b", "c", "d" },
+        { "A", "B", "C", "D" },
+        "x"
+    );
 }

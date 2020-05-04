@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,9 +31,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/core/std.hpp"
+#include "genesis/utils/io/output_target.hpp"
 
 #include <cassert>
 #include <functional>
@@ -69,7 +69,11 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    MatrixWriter() = default;
+    explicit MatrixWriter( std::string const& separator = "\t", Format format = Format::kMatrix )
+        : separator_(separator)
+        , format_(format)
+    {}
+
     ~MatrixWriter() = default;
 
     MatrixWriter(MatrixWriter const&) = default;
@@ -82,37 +86,41 @@ public:
     //     Reading
     // -------------------------------------------------------------
 
-    void to_stream(
-        Matrix<T> const& mat,
-        std::ostream& os,
-        std::vector<std::string> const& row_names = {},
-        std::vector<std::string> const& col_names = {},
-        std::string const& corner = ""
+    /**
+     * @brief Write a Matrix to an output target, using a specific ::Format and separator string.
+     *
+     * The format and separator string can either be set in the constructor, or using the methods
+     * format( Format ) and separator_string( std::string const& ).
+     *
+     * The write() function takes optional row and column names, and a corner element that is used
+     * if both row and column names are givenm, as the upper left entry of the written output.
+     * Alternatively, either the @p row_names or the @p col_names can contain an additional
+     * element in the beginning, which is then used as the "corner" top left element when writing.
+     * This allows maximum flexibility in the setup when using this writer class.
+     */
+    void write(
+        Matrix<T> const& matrix,
+        std::shared_ptr<utils::BaseOutputTarget> target,
+        std::vector<std::string> row_names = {},
+        std::vector<std::string> col_names = {},
+        std::string corner = ""
     ) const {
-        to_stream_( mat, os, row_names, col_names, corner );
-    }
-
-    void to_file(
-        Matrix<T> const& mat,
-        std::string const& fn,
-        std::vector<std::string> const& row_names = {},
-        std::vector<std::string> const& col_names = {},
-        std::string const& corner = ""
-    ) const {
-        std::ofstream ofs;
-        utils::file_output_stream( fn, ofs );
-        to_stream_( mat, ofs, row_names, col_names, corner );
-    }
-
-    std::string to_string(
-        Matrix<T> const& mat,
-        std::vector<std::string> const& row_names = {},
-        std::vector<std::string> const& col_names = {},
-        std::string const& corner = ""
-    ) const {
-        std::ostringstream oss;
-        to_stream_( mat, oss, row_names, col_names, corner );
-        return oss.str();
+        if( row_names.size() == matrix.rows() + 1 ) {
+            if( corner.empty() ) {
+                corner = row_names[0];
+                row_names.erase( row_names.begin() );
+            } else {
+                throw std::runtime_error( "Number of row names is different from Matrix row size." );
+            }
+        } else if( col_names.size() == matrix.cols() + 1 ) {
+            if( corner.empty() ) {
+                corner = col_names[0];
+                col_names.erase( col_names.begin() );
+            } else {
+                throw std::runtime_error( "Number of col names is different from Matrix col size." );
+            }
+        }
+        to_stream_( matrix, target->ostream(), row_names, col_names, corner );
     }
 
     // -------------------------------------------------------------
