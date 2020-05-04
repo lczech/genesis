@@ -61,6 +61,32 @@ void NewickWriter::write( Tree const& tree, std::shared_ptr<utils::BaseOutputTar
     write( tree_to_broker( tree ), target );
 }
 
+void NewickWriter::write( TreeSet const& tree_set, std::shared_ptr<utils::BaseOutputTarget> target, bool with_names ) const
+{
+    auto& os = target->ostream();
+    for( size_t i = 0; i < tree_set.size(); ++i ) {
+
+        // Write the name if wanted. We here ignore that this makes the line longer,
+        // and so the first line might exceed line_length a bit more. This is just a convenience
+        // anyway.
+        if( with_names ) {
+            auto const& name = tree_set.name_at(i);
+            bool need_qmarks = force_quot_marks_;
+            need_qmarks |= ( std::string::npos != name.find_first_of( " :;()[],=" ));
+            need_qmarks |= ( write_tags_ && std::string::npos != name.find_first_of( "{}" ));
+
+            if( need_qmarks ) {
+                os << quotation_mark_ << name << quotation_mark_;
+            } else {
+                os << name;
+            }
+            os << " = ";
+        }
+
+        write( tree_to_broker( tree_set.at(i) ), target );
+    }
+}
+
 std::string NewickWriter::to_string( Tree const& tree ) const
 {
     std::ostringstream oss;
@@ -122,6 +148,7 @@ void NewickWriter::write( NewickBroker const& broker, std::shared_ptr<utils::Bas
 
     // Iterate broker in reverse order, because Newick...
     size_t prev_depth = 0;
+    size_t cur_length = 0;
     for( long pos = broker.size() - 1; pos >= 0; --pos ) {
         auto const& elem = broker[pos];
         if( elem.depth < 0 ) {
@@ -134,11 +161,12 @@ void NewickWriter::write( NewickBroker const& broker, std::shared_ptr<utils::Bas
         assert( elem.depth >= 0 );
         for( size_t i = prev_depth; i < static_cast<size_t>( elem.depth ); ++i ) {
             os << "(";
+            cur_length += 1;
             ++op;
         }
 
         // Write the NewickBrokerElement to the stream.
-        write_( broker[pos], os );
+        cur_length += write_( broker[pos], os );
 
         // Stop if it is the root. Don't have to write parenthesis or commas after the root element.
         if( pos == 0 ) {
@@ -150,11 +178,19 @@ void NewickWriter::write( NewickBroker const& broker, std::shared_ptr<utils::Bas
         // which ensures correct nesting.
         if( broker[ pos - 1 ].depth == elem.depth - 1 ) {
             os << ")";
+            cur_length += 1;
             ++cp;
         } else {
             os << ",";
+            cur_length += 1;
         }
         prev_depth = elem.depth;
+
+        // Line length check.
+        if( line_length_ > 0 && cur_length >= line_length_ ) {
+            os << "\n";
+            cur_length = 0;
+        }
     }
 
     // Have to have written as many opening as closing parenthesis.
@@ -170,8 +206,10 @@ void NewickWriter::write( NewickBroker const& broker, std::shared_ptr<utils::Bas
 //     Internal Functions
 // =================================================================================================
 
-void NewickWriter::write_( NewickBrokerElement const& bn, std::ostream& os ) const
+size_t NewickWriter::write_( NewickBrokerElement const& bn, std::ostream& os ) const
 {
+    size_t length = 0;
+
     // Write name.
     if( write_names_ ) {
         // Find out whether we need to put this name in quotation marks.
@@ -186,8 +224,10 @@ void NewickWriter::write_( NewickBrokerElement const& bn, std::ostream& os ) con
 
         if( need_qmarks ) {
             os << quotation_mark_ << bn.name << quotation_mark_;
+            length += 2 + bn.name.size();
         } else {
             os << bn.name;
+            length += bn.name.size();
         }
     }
 
@@ -195,6 +235,7 @@ void NewickWriter::write_( NewickBrokerElement const& bn, std::ostream& os ) con
     if( write_values_ ) {
         for( std::string const& v : bn.values ) {
             os << ":" << v;
+            length += 1 + v.size();
         }
     }
 
@@ -202,6 +243,7 @@ void NewickWriter::write_( NewickBrokerElement const& bn, std::ostream& os ) con
     if( write_comments_ ) {
         for( std::string const& c : bn.comments ) {
             os << "[" << c << "]";
+            length += 1 + c.size();
         }
     }
 
@@ -209,8 +251,11 @@ void NewickWriter::write_( NewickBrokerElement const& bn, std::ostream& os ) con
     if( write_tags_ ) {
         for( std::string const& t : bn.tags ) {
             os << "{" << t << "}";
+            length += 1 + t.size();
         }
     }
+
+    return length;
 }
 
 // std::string NewickWriter::to_string_rec_( NewickBroker const& broker, size_t pos ) const

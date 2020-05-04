@@ -60,11 +60,10 @@ struct NewickBrokerElement;
 /**
  * @brief Write a Tree to Newick format.
  *
- * This class supports to write a Tree into a Newick format representation, using
+ * This class supports to write a Tree into a Newick format representation, for example
  *
- *   * to_file()
- *   * to_string()
- *   * to_stream()
+ *     Tree tree;
+ *     CommonTreeNewickWriter().write( tree, utils::to_file( "path/to/file.newick" ));
  *
  * It understands the Newick format, but is agnostic of the actual data representation of
  * TreeNode and TreeEdge data. This approach allows to store data in any wanted format.
@@ -175,6 +174,19 @@ public:
     void write( Tree const& tree, std::shared_ptr<utils::BaseOutputTarget> target ) const;
 
     /**
+     * @brief Write all Tree%s in a TreeSet to an output target, using the Newick format.
+     *
+     * Trees are separated from each other by semicolons and new line characters. If @p with_names
+     * is set to `true`, each tree is preprended by its name as stored in the TreeSet, in the format
+     *
+     *     name = (<newick tree>);
+     *
+     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
+     * utils::to_string() for examples of how to obtain a suitable output target.
+     */
+    void write( TreeSet const& tree_set, std::shared_ptr<utils::BaseOutputTarget> target, bool with_names = false ) const;
+
+    /**
      * @brief Shorthand to write a Tree to Newick format and return it is a string.
      */
     std::string to_string( Tree const& tree ) const;
@@ -279,6 +291,35 @@ public:
     bool force_quotation_marks() const
     {
         return force_quot_marks_;
+    }
+
+    /**
+     * @brief Set the approximate maximal line length to use when writing Newick trees.
+     *
+     * Some large trees become hard to inspect in the resulting Newick file if the whole tree is
+     * written in just one long line. Also, some tools might not be able to handle such long lines
+     * properly. Hence, setting this option to a value other than 0 (default, which means, all
+     * is written in one line) leads to the writer inserting line breaks at the next possible
+     * character after the @p value line length has been reached. Hence, lines can be longer than
+     * the given value. Also, be aware that some other tools might not be able to read trees
+     * that are spread across several lines. Newick is messy.
+     */
+    NewickWriter& line_length( size_t value )
+    {
+        line_length_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get the currently set approximate maximal line length.
+     *
+     * Default is 0, which means, all is written in one long line.
+     *
+     * @see line_length( size_t )
+     */
+    size_t line_length() const
+    {
+        return line_length_;
     }
 
     /**
@@ -392,8 +433,10 @@ private:
 
     /**
      * @brief Write the Newick text string representation of a NewickBrokerElement to an output target.
+     *
+     * Returns the number of characters that have been written.
      */
-    void write_( NewickBrokerElement const& bn, std::ostream& os ) const;
+    size_t write_( NewickBrokerElement const& bn, std::ostream& os ) const;
 
     /**
      * @brief Recursive function that returns the string representation of a clade of a tree.
@@ -406,6 +449,7 @@ private:
 
     bool force_quot_marks_ = false;
     char quotation_mark_  = '\"';
+    size_t line_length_ = 0;
 
     bool write_names_    = true;
     bool write_values_   = true;
