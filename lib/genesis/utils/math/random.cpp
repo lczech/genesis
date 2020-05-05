@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 
 #include "genesis/utils/core/options.hpp"
 
+#include <cassert>
 #include <random>
 #include <stdexcept>
 #include <string>
@@ -46,9 +47,10 @@ namespace utils {
 std::vector<size_t> select_without_replacement( size_t const k, size_t const n )
 {
     // Following http://stackoverflow.com/a/311716/4184258
-    // Knuth's variable names: n=N, k=n
+    // Knuth's variable names: k=n, n=N
 
     std::vector<size_t> result;
+    result.reserve( k );
 
     if( k > n ) {
         throw std::invalid_argument(
@@ -70,11 +72,14 @@ std::vector<size_t> select_without_replacement( size_t const k, size_t const n )
         if( (n - t) * u >= k - m ) {
             t++;
         } else {
+            assert( t < n );
             result.push_back( t );
             t++;
             m++;
         }
     }
+    assert( m == k );
+    assert( result.size() == k );
 
     return result;
 }
