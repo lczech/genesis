@@ -80,7 +80,7 @@ namespace utils {
 // ================================================================================================
 
 /**
- * @brief List of possible compression levels used for GzipOstream.
+ * @brief List of possible compression levels used for GzipOStream.
  *
  * The compression levels are handed over to zlib for compression, which currently allows all values
  * between 1 (best speed) and 9 (best compression), with the special case 0 (no compression), as
@@ -90,7 +90,7 @@ namespace utils {
  *
  * The enum only lists those four special levels. However, we use a fixed enum here (with the
  * underlying type `int`), meaning that all values in between 1 and 9 are also allowed to be used.
- * Values outside of the range [-1, 9] will lead to an exception being thrown when used in GzipOstream.
+ * Values outside of the range [-1, 9] will lead to an exception being thrown when used in GzipOStream.
  */
 enum class GzipCompressionLevel : int
 {
@@ -126,24 +126,24 @@ enum class GzipCompressionLevel : int
  * If genesis is compiled without zlib support, constructing an instance of this class will
  * throw an exception.
  */
-class GzipIstream
+class GzipIStream
     : public std::istream
 {
 public:
 
-    GzipIstream(
+    GzipIStream(
         std::istream& is,
         bool auto_detect = true,
         std::size_t buffer_size = (std::size_t) 1 << 20
     );
 
-    explicit GzipIstream(
+    explicit GzipIStream(
         std::streambuf * sbuf_p,
         bool auto_detect = true,
         std::size_t buffer_size = (std::size_t) 1 << 20
     );
 
-    virtual ~GzipIstream();
+    virtual ~GzipIStream();
 };
 
 // ================================================================================================
@@ -156,9 +156,9 @@ public:
  * The class accesses an external std::streambuf. It can be constructed from an existing
  * std::ostream (such as std::cout) or std::streambuf.
  *
- * The GzipOstream destructor flushes all reamining data to the target ostream. However, if the
- * ostream needs to be accessed before the GzipOstream is destroyed (e.g., goes out of scope),
- * the GzipOstream::flush() function can be called manually.
+ * The GzipOStream destructor flushes all reamining data to the target ostream. However, if the
+ * ostream needs to be accessed before the GzipOStream is destroyed (e.g., goes out of scope),
+ * the GzipOStream::flush() function can be called manually.
  *
  * The class is based on the zstr::ostream class of the excellent
  * [zstr library](https://github.com/mateidavid/zstr) by Matei David; see also our
@@ -167,24 +167,24 @@ public:
  * If genesis is compiled without zlib support, constructing an instance of this class will
  * throw an exception.
  */
-class GzipOstream
+class GzipOStream
     : public std::ostream
 {
 public:
 
-    GzipOstream(
+    GzipOStream(
         std::ostream& os,
         GzipCompressionLevel level = GzipCompressionLevel::kDefaultCompression,
         std::size_t buffer_size = (std::size_t) 1 << 20
     );
 
-    explicit GzipOstream(
+    explicit GzipOStream(
         std::streambuf* sbuf_p,
         GzipCompressionLevel level = GzipCompressionLevel::kDefaultCompression,
         std::size_t buffer_size = (std::size_t) 1 << 20
     );
 
-    virtual ~GzipOstream();
+    virtual ~GzipOStream();
 };
 
 } // namespace utils

@@ -69,8 +69,8 @@ TEST( GzipStream, CompressDecompress )
         std::ostringstream oss;
 
         // Use both gzip streams here. The input should detect that it is not compressed.
-        GzipIstream gistr( iss );
-        GzipOstream gostr( oss );
+        GzipIStream gistr( iss );
+        GzipOStream gostr( oss );
 
         // We here manually flush, because gostr does not go out of scope, so the sync
         // is not called within this scope.
@@ -93,7 +93,7 @@ TEST( GzipStream, CompressDecompress )
     {
         std::istringstream iss( compr );
         std::ostringstream oss;
-        GzipIstream gistr( iss );
+        GzipIStream gistr( iss );
 
         // Here, we only want the decompressing input stream, but not compress again.
         cat_stream( gistr, oss );
