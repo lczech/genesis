@@ -31,6 +31,8 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/exception.hpp"
+
 #include <stdexcept>
 #include <string>
 
@@ -59,24 +61,16 @@ bool is_gzip_compressed_file( std::string const& file_name );
  *
  * If compiled without zlib support, the exepction has no use and contains a dummy message.
  */
-class GzipException
-    : public std::exception
+class GzipError
+    : public except::Exception
 {
 public:
 
-    GzipException( std::string const& z_stream_message, int error_code );
+    GzipError( std::string const& z_stream_message, int error_code );
 
-    GzipException( std::string const msg)
-        : message_(msg)
+    GzipError( std::string const msg )
+        : except::Exception(msg)
     {}
-
-    char const* what() const noexcept {
-        return message_.c_str();
-    }
-
-private:
-
-    std::string message_;
 
 };
 

@@ -105,7 +105,8 @@ bool is_gzip_compressed_file( std::string const& file_name )
 
 #ifdef GENESIS_ZLIB
 
-GzipException::GzipException( std::string const& z_stream_message, int error_code )
+GzipError::GzipError( std::string const& z_stream_message, int error_code )
+    : except::Exception("")
 {
     // Need to have this method in the cpp file, so that we do not expose the zlib header
     // to the header file, which would include all its symbols to whichever class uses our headers...
@@ -140,7 +141,7 @@ GzipException::GzipException( std::string const& z_stream_message, int error_cod
 
 #else // GENESIS_ZLIB
 
-GzipException::GzipException( std::string const& z_stream_message, int error_code )
+GzipError::GzipError( std::string const& z_stream_message, int error_code )
     : message_("zlib: Genesis was not compiled with zlib support.")
 {}
 

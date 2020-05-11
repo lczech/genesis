@@ -113,7 +113,7 @@ GzipInputSource::GzipInputSource(
     // Init zlib
     auto ret = inflateInit2( &z_stream_, get_format_( format ));
     if( ret != Z_OK ) {
-        throw GzipException( z_stream_.msg, ret );
+        throw GzipError( z_stream_.msg, ret );
     }
 }
 
@@ -172,7 +172,7 @@ size_t GzipInputSource::read_( char* buffer, size_t size )
         switch( ret ) {
             case Z_DATA_ERROR:
             case Z_MEM_ERROR:
-                throw GzipException( z_stream_.msg, ret );
+                throw GzipError( z_stream_.msg, ret );
         }
 
         // Update current positions.
