@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,35 +46,22 @@ namespace utils {
 //     Nexus Writer
 // =================================================================================================
 
-void NexusWriter::to_stream( NexusDocument const& doc, std::ostream& out ) const
+void NexusWriter::write( NexusDocument const& document, std::shared_ptr<utils::BaseOutputTarget> target ) const
 {
-    out << "#NEXUS\n";
+    auto& os = target->ostream();
+    os << "#NEXUS\n";
 
-    for(auto& block : doc) {
-        out << "\nBEGIN " << block->block_name() << ";\n";
-        out << *block;
-        out << "END;\n";
+    for(auto& block : document) {
+        os << "\nBEGIN " << block->block_name() << ";\n";
+        os << *block;
+        os << "END;\n";
     }
 }
 
-void NexusWriter::to_file( NexusDocument const& doc, std::string const& filename) const
-{
-    std::ofstream ofs;
-    utils::file_output_stream( filename, ofs );
-    to_stream( doc, ofs );
-}
-
-void NexusWriter::to_string( NexusDocument const& doc, std::string& output) const
+std::string NexusWriter::to_string( NexusDocument const& document ) const
 {
     std::stringstream sstr;
-    to_stream( doc, sstr );
-    output = sstr.str();
-}
-
-std::string NexusWriter::to_string( NexusDocument const& doc) const
-{
-    std::stringstream sstr;
-    to_stream( doc, sstr );
+    write( document, utils::to_stream( sstr ));
     return sstr.str();
 }
 

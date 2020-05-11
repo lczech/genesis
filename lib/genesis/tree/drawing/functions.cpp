@@ -158,7 +158,7 @@ void write_color_tree_to_nexus_file(
 
     // Write the document to a Nexus file.
     auto nexus_writer = utils::NexusWriter();
-    nexus_writer.to_file( nexus_doc, nexus_filename );
+    nexus_writer.write( nexus_doc, utils::to_file( nexus_filename ));
 }
 
 void write_color_tree_to_nexus_file(

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,8 @@
  * @file
  * @ingroup utils
  */
+
+#include "genesis/utils/io/output_target.hpp"
 
 #include <iosfwd>
 #include <string>
@@ -71,10 +73,20 @@ public:
     //     Write Functions
     // ---------------------------------------------------------------------
 
-    void        to_stream   ( NexusDocument const& doc, std::ostream& out ) const;
-    void        to_file     ( NexusDocument const& doc, std::string const& filename) const;
-    void        to_string   ( NexusDocument const& doc, std::string& output) const;
-    std::string to_string   ( NexusDocument const& doc) const;
+    /**
+     * @brief Write a NexusDocument to an output target, using the Nexus format.
+     *
+     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
+     * utils::to_string() for examples of how to obtain a suitable output target.
+     */
+    void write( NexusDocument const& document, std::shared_ptr<utils::BaseOutputTarget> target ) const;
+
+    /**
+     * @brief Directly return a NexusDocument as a string in Nexus format.
+     *
+     * This might be useful in some cases.
+     */
+    std::string to_string( NexusDocument const& document ) const;
 };
 
 } // namespace utils

@@ -128,7 +128,7 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
     std::ostringstream buffer;
 
     auto nexus_writer = NexusWriter();
-    nexus_writer.to_stream( doc, buffer );
+    nexus_writer.write( doc, utils::to_stream( buffer ));
     auto nexus_out = buffer.str();
 
     EXPECT_TRUE( nexus_out.find("color=#ff0000") != std::string::npos );
