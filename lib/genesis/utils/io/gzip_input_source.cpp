@@ -277,7 +277,7 @@ GzipInputSource::GzipInputSource(
     , zlib_data_( nullptr, []( ZlibData* ){} )
 {
     // Just avoid doing anything really.
-    throw std::runtime_error( "zlib: Library was not compiled with zlib support." );
+    throw std::runtime_error( "zlib: Genesis was not compiled with zlib support." );
 }
 
 size_t GzipInputSource::read_( char*, size_t )
