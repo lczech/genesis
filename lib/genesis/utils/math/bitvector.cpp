@@ -47,7 +47,7 @@ const Bitvector::IntType Bitvector::all_0_ = 0ul;
 const Bitvector::IntType Bitvector::all_1_ = (((1ul << 32) - 1) << 32)  +  ((1ul << 32) - 1);
 
 const std::array<Bitvector::IntType, Bitvector::IntSize> Bitvector::bit_mask_ =
-{
+{{
     1ul << 0,   1ul << 1,   1ul << 2,   1ul << 3,   1ul << 4,   1ul << 5,   1ul << 6,   1ul << 7,
     1ul << 8,   1ul << 9,   1ul << 10,  1ul << 11,  1ul << 12,  1ul << 13,  1ul << 14,  1ul << 15,
     1ul << 16,  1ul << 17,  1ul << 18,  1ul << 19,  1ul << 20,  1ul << 21,  1ul << 22,  1ul << 23,
@@ -56,10 +56,10 @@ const std::array<Bitvector::IntType, Bitvector::IntSize> Bitvector::bit_mask_ =
     1ul << 40,  1ul << 41,  1ul << 42,  1ul << 43,  1ul << 44,  1ul << 45,  1ul << 46,  1ul << 47,
     1ul << 48,  1ul << 49,  1ul << 50,  1ul << 51,  1ul << 52,  1ul << 53,  1ul << 54,  1ul << 55,
     1ul << 56,  1ul << 57,  1ul << 58,  1ul << 59,  1ul << 60,  1ul << 61,  1ul << 62,  1ul << 63
-};
+}};
 
 const std::array<Bitvector::IntType, Bitvector::IntSize> Bitvector::ones_mask_ =
-{
+{{
     Bitvector::all_1_,       Bitvector::all_1_ >> 63, Bitvector::all_1_ >> 62, Bitvector::all_1_ >> 61,
     Bitvector::all_1_ >> 60, Bitvector::all_1_ >> 59, Bitvector::all_1_ >> 58, Bitvector::all_1_ >> 57,
     Bitvector::all_1_ >> 56, Bitvector::all_1_ >> 55, Bitvector::all_1_ >> 54, Bitvector::all_1_ >> 53,
@@ -76,15 +76,15 @@ const std::array<Bitvector::IntType, Bitvector::IntSize> Bitvector::ones_mask_ =
     Bitvector::all_1_ >> 12, Bitvector::all_1_ >> 11, Bitvector::all_1_ >> 10, Bitvector::all_1_ >> 9,
     Bitvector::all_1_ >> 8,  Bitvector::all_1_ >> 7,  Bitvector::all_1_ >> 6,  Bitvector::all_1_ >> 5,
     Bitvector::all_1_ >> 4,  Bitvector::all_1_ >> 3,  Bitvector::all_1_ >> 2,  Bitvector::all_1_ >> 1
-};
+}};
 
 const std::array<Bitvector::IntType, 4> Bitvector::count_mask_ =
-{
+{{
     0x5555555555555555,  //binary: 0101...
     0x3333333333333333,  //binary: 00110011...
     0x0f0f0f0f0f0f0f0f,  //binary: 4 zeros, 4 ones...
     0x0101010101010101   //the sum of 256 to the power of 0,1,2,3...
-};
+}};
 
 // =============================================================================
 //     Constructor and Rule of Five
