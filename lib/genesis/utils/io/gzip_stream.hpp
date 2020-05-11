@@ -78,7 +78,7 @@ namespace genesis {
 namespace utils {
 
 // ================================================================================================
-//     Gzip Compression Levels
+//     Gzip Settings
 // ================================================================================================
 
 /**
@@ -93,6 +93,9 @@ namespace utils {
  * The enum only lists those four special levels. However, we use a fixed enum here (with the
  * underlying type `int`), meaning that all values in between 1 and 9 are also allowed to be used.
  * Values outside of the range [-1, 9] will lead to an exception being thrown when used in GzipOStream.
+ *
+ * @see GzipOStream
+ * @see GzipOFStream
  */
 enum class GzipCompressionLevel : int
 {
@@ -101,6 +104,16 @@ enum class GzipCompressionLevel : int
     kBestSpeed          =  1,
     kBestCompression    =  9
 };
+
+/**
+ * @brief Default buffer size for all gzip (de)compression buffers.
+ *
+ * @see GzipIStream
+ * @see GzipOStream
+ * @see GzipIFStream
+ * @see GzipOFStream
+ */
+static const std::size_t GZIP_DEFAULT_BUFFER_SIZE = (std::size_t) 1 << 20;
 
 // ================================================================================================
 //     Gzip Input Stream
@@ -140,13 +153,13 @@ public:
     GzipIStream(
         std::istream& is,
         bool auto_detect = true,
-        std::size_t buffer_size = (std::size_t) 1 << 20
+        std::size_t buffer_size = GZIP_DEFAULT_BUFFER_SIZE
     );
 
     explicit GzipIStream(
         std::streambuf * sbuf_p,
         bool auto_detect = true,
-        std::size_t buffer_size = (std::size_t) 1 << 20
+        std::size_t buffer_size = GZIP_DEFAULT_BUFFER_SIZE
     );
 
     virtual ~GzipIStream();
@@ -185,13 +198,13 @@ public:
     GzipOStream(
         std::ostream& os,
         GzipCompressionLevel level = GzipCompressionLevel::kDefaultCompression,
-        std::size_t buffer_size = (std::size_t) 1 << 20
+        std::size_t buffer_size = GZIP_DEFAULT_BUFFER_SIZE
     );
 
     explicit GzipOStream(
         std::streambuf* sbuf_p,
         GzipCompressionLevel level = GzipCompressionLevel::kDefaultCompression,
-        std::size_t buffer_size = (std::size_t) 1 << 20
+        std::size_t buffer_size = GZIP_DEFAULT_BUFFER_SIZE
     );
 
     virtual ~GzipOStream();
@@ -243,7 +256,11 @@ struct StrictFStreamHolder
  *   * ZLib header, when stream starts with `78 01`, `78 9C`, or `78 DA`. See [answer here](http://stackoverflow.com/a/17176881).
  *
  * If none of these formats are detected, the class assumes the input is not compressed,
- * and it produces a plain copy of the source stream.
+ * and it produces a plain copy of the source stream. In order to fully work for compressed files
+ * however, we always use `std::ios_base::binary` for opening. This means that on Windows,
+ * end-of-line chars are not properly converted for uncompressed files.
+ * See https://github.com/mateidavid/zstr/issues/15 for a workaround for this, for example by
+ * using our is_gzip_compressed_file() function before opening the file.
  *
  * The class is based on the zstr::ifstream class of the excellent
  * [zstr library](https://github.com/mateidavid/zstr) by Matei David; see also our
@@ -266,15 +283,10 @@ public:
         std::string const& filename,
         std::ios_base::openmode mode = std::ios_base::in,
         bool auto_detect = true,
-        std::size_t buffer_size = (std::size_t) 1 << 20
+        std::size_t buffer_size = GZIP_DEFAULT_BUFFER_SIZE
     );
 
-    virtual ~GzipIFStream()
-    {
-        if (rdbuf()) {
-            delete rdbuf();
-        }
-    }
+    virtual ~GzipIFStream();
 };
 
 // ================================================================================================
@@ -308,15 +320,15 @@ public:
         std::string const& filename,
         std::ios_base::openmode mode = std::ios_base::out,
         GzipCompressionLevel level = GzipCompressionLevel::kDefaultCompression,
-        std::size_t buffer_size = (std::size_t) 1 << 20
+        std::size_t buffer_size = GZIP_DEFAULT_BUFFER_SIZE
     );
 
-    virtual ~GzipOFStream()
-    {
-        if (rdbuf()) {
-            delete rdbuf();
-        }
-    }
+    virtual ~GzipOFStream();
+
+    /**
+     * @brief Flush, so one can save in the middle of writing a file for synchronization purposes.
+     */
+    GzipOFStream& flush();
 };
 
 } // namespace utils

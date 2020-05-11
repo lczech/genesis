@@ -93,7 +93,7 @@ static std::string strerror_()
             buff = "Unknown error";
         }
 
-    #elif ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE) || __APPLE__
+    #elif ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE) || defined(__APPLE__)
 
         // XSI-compliant strerror_r()
         if( strerror_r( errno, &buff[0], buff.size() ) != 0 ) {
@@ -191,7 +191,7 @@ static void check_peek_(std::istream * is_p,  std::string const& filename, std::
     try {
         is_p->peek();
         peek_failed = is_p->fail();
-    } catch( std::ios_base::failure& e ) {
+    } catch( std::ios_base::failure const& e ) {
         // Nothing to do.
     }
     if( peek_failed ) {

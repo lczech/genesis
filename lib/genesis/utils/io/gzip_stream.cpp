@@ -118,6 +118,15 @@ public:
             this->next_in = Z_NULL;
             ret = inflateInit2( this, 15+32 );
         } else {
+            if(
+                level < static_cast<int>( GzipCompressionLevel::kDefaultCompression ) ||
+                level > static_cast<int>( GzipCompressionLevel::kBestCompression )
+            ) {
+                throw std::invalid_argument(
+                    "Compression level " + std::to_string( static_cast<int>(level )) +
+                    " is invalid for usage in gzip output stream. Valid range is [ -1, 9 ]."
+                );
+            }
             ret = deflateInit2( this, level, Z_DEFLATED, 15+16, 8, Z_DEFAULT_STRATEGY );
         }
 
@@ -174,7 +183,7 @@ public:
     GzipIStreambuf(
         std::streambuf * sbuf_p,
         bool auto_detect = true,
-        std::size_t buff_size = default_buff_size_
+        std::size_t buff_size = GZIP_DEFAULT_BUFFER_SIZE
     )
         : sbuf_p_(sbuf_p)
         , zstrm_ptr_(nullptr)
@@ -192,9 +201,9 @@ public:
     }
 
     GzipIStreambuf( GzipIStreambuf const& ) = delete;
-    GzipIStreambuf( GzipIStreambuf && ) = default;
+    GzipIStreambuf( GzipIStreambuf && ) = delete;
     GzipIStreambuf& operator = ( GzipIStreambuf const& ) = delete;
-    GzipIStreambuf& operator = ( GzipIStreambuf && ) = default;
+    GzipIStreambuf& operator = ( GzipIStreambuf && ) = delete;
 
     virtual ~GzipIStreambuf()
     {
@@ -309,8 +318,6 @@ private:
     std::size_t buff_size_;
     bool auto_detect_run_;
     bool is_text_;
-
-    static const std::size_t default_buff_size_ = (std::size_t)1 << 20;
 };
 
 // ================================================================================================
@@ -347,13 +354,13 @@ public:
     GzipOStreambuf(
         std::streambuf * sbuf_p
     )
-        : GzipOStreambuf( sbuf_p, Z_DEFAULT_COMPRESSION, default_buff_size_ )
+        : GzipOStreambuf( sbuf_p, Z_DEFAULT_COMPRESSION, GZIP_DEFAULT_BUFFER_SIZE )
     {}
 
     GzipOStreambuf(
         std::streambuf * sbuf_p,
         int level,
-        std::size_t buff_size = default_buff_size_
+        std::size_t buff_size = GZIP_DEFAULT_BUFFER_SIZE
     )
         : sbuf_p_(sbuf_p)
         , zstrm_ptr_(new GzipStreamWrapper(false, level))
@@ -366,9 +373,9 @@ public:
     }
 
     GzipOStreambuf( GzipOStreambuf const& ) = delete;
-    GzipOStreambuf(GzipOStreambuf &&) = default;
+    GzipOStreambuf( GzipOStreambuf &&) = delete;
     GzipOStreambuf& operator = ( GzipOStreambuf const& ) = delete;
-    GzipOStreambuf& operator = (GzipOStreambuf &&) = default;
+    GzipOStreambuf& operator = ( GzipOStreambuf &&) = delete;
 
     virtual ~GzipOStreambuf()
     {
@@ -463,8 +470,6 @@ private:
     char * out_buff_;
     GzipStreamWrapper * zstrm_ptr_;
     std::size_t buff_size_;
-
-    static const std::size_t default_buff_size_ = (std::size_t)1 << 20;
 };
 
 // ================================================================================================
@@ -511,30 +516,12 @@ static_assert(
 GzipOStream::GzipOStream( std::ostream& os, GzipCompressionLevel level, std::size_t buffer_size )
     : std::ostream( new GzipOStreambuf( os.rdbuf(), static_cast<int>(level), buffer_size ))
 {
-    if(
-        level < GzipCompressionLevel::kDefaultCompression ||
-        level > GzipCompressionLevel::kBestCompression
-    ) {
-        throw std::invalid_argument(
-            "Compression level " + std::to_string( static_cast<int>(level )) +
-            " is invalid for usage in GzipOStream."
-        );
-    }
     exceptions(std::ios_base::badbit);
 }
 
 GzipOStream::GzipOStream( std::streambuf* sbuf_p, GzipCompressionLevel level, std::size_t buffer_size )
     : std::ostream( new GzipOStreambuf( sbuf_p, static_cast<int>(level), buffer_size ))
 {
-    if(
-        level < GzipCompressionLevel::kDefaultCompression ||
-        level > GzipCompressionLevel::kBestCompression
-    ) {
-        throw std::invalid_argument(
-            "Compression level " + std::to_string( static_cast<int>(level)) +
-            " is invalid for usage in GzipOStream."
-        );
-    }
     exceptions(std::ios_base::badbit);
 }
 
@@ -553,10 +540,20 @@ GzipIFStream::GzipIFStream(
     bool auto_detect,
     std::size_t buffer_size
 )
-    : StrictFStreamHolder<StrictIFStream>( filename, mode )
+    // Open in binary mode, which should also work for uncompressed files on Unix,
+    // but might break on Windowas, as it then does not do the line ending conversions.
+    // See https://github.com/mateidavid/zstr/issues/15
+    : StrictFStreamHolder<StrictIFStream>( filename, mode | std::ios_base::binary )
     , std::istream( new GzipIStreambuf( file_stream_.rdbuf(), auto_detect, buffer_size ))
 {
     exceptions(std::ios_base::badbit);
+}
+
+GzipIFStream::~GzipIFStream()
+{
+    if (rdbuf()) {
+        delete rdbuf();
+    }
 }
 
 // ================================================================================================
@@ -573,6 +570,20 @@ GzipOFStream::GzipOFStream(
     , std::ostream( new GzipOStreambuf( file_stream_.rdbuf(), static_cast<int>(level), buffer_size ))
 {
     exceptions(std::ios_base::badbit);
+}
+
+GzipOFStream::~GzipOFStream()
+{
+    if (rdbuf()) {
+        delete rdbuf();
+    }
+}
+
+GzipOFStream& GzipOFStream::flush()
+{
+    std::ostream::flush();
+    file_stream_.flush();
+    return *this;
 }
 
 // Up until here, we defined all classes needed for gzip streaming.
@@ -623,11 +634,26 @@ GzipIFStream::GzipIFStream( std::string const&, std::ios_base::openmode, bool, s
     throw std::runtime_error( "zlib: Genesis was not compiled with zlib support." );
 }
 
+GzipIFStream::~GzipIFStream()
+{
+    // Nothing to do;
+}
+
 // ================================================================================================
 //     Gzip Output File Stream
 // ================================================================================================
 
 GzipOFStream::GzipOFStream( std::string const&, std::ios_base::openmode, GzipCompressionLevel, std::size_t )
+{
+    throw std::runtime_error( "zlib: Genesis was not compiled with zlib support." );
+}
+
+GzipOFStream::~GzipOFStream()
+{
+    // Nothing to do;
+}
+
+GzipOFStream& GzipOFStream::flush()
 {
     throw std::runtime_error( "zlib: Genesis was not compiled with zlib support." );
 }
