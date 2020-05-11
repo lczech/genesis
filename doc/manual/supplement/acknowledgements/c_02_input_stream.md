@@ -1,13 +1,14 @@
 ## Input Stream @anchor supplement_acknowledgements_code_reuse_input_stream
 
-Genesis contains a set of classes that deal with input streams, i.e.,
-@link genesis::utils::InputStream InputStream@endlink,
-@link genesis::utils::SynchronousReader SynchronousReader@endlink,
-@link genesis::utils::BaseInputSource BaseInputSource@endlink,
-@link genesis::utils::StringInputSource StringInputSource@endlink,
-@link genesis::utils::StreamInputSource StreamInputSource@endlink and
-@link genesis::utils::FileInputSource FileInputSource@endlink.
-<!-- @link genesis::utils::AsynchronousReader AsynchronousReader@endlink, -->
+Genesis contains a set of classes that deal with input streams:
+
+  * @link genesis::utils::InputStream InputStream@endlink
+  * @link genesis::utils::SynchronousReader SynchronousReader@endlink
+  * @link genesis::utils::BaseInputSource BaseInputSource@endlink
+  * @link genesis::utils::StringInputSource StringInputSource@endlink
+  * @link genesis::utils::StreamInputSource StreamInputSource@endlink
+  * @link genesis::utils::FileInputSource FileInputSource@endlink
+  * @link genesis::utils::AsynchronousReader AsynchronousReader@endlink
 
 The design and implementation of those classes is inspired by
 [fast-cpp-csv-parser](https://github.com/ben-strasser/fast-cpp-csv-parser) by Ben Strasser,

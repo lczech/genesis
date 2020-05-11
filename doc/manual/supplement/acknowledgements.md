@@ -106,16 +106,50 @@ on 2017-03-09.
 In the following, we list all sources that were adapted and incorporated in Genesis in modified
 form.
 
+## Json Document @anchor supplement_acknowledgements_code_reuse_json_document
+
+Our @link genesis::utils::JsonDocument JsonDocument@endlink data structure as well as the accompanying @link genesis::utils::JsonIterator JsonIterator@endlink are based on the excellent
+[JSON for Modern C++](https://github.com/nlohmann/json) library by Niels Lohmann.
+
+@htmlonly <details><summary>License</summary> @endhtmlonly
+>    MIT License
+>
+>    Copyright (c) 2013-2017 Niels Lohmann
+>
+>    Permission is hereby granted, free of charge, to any person obtaining a copy
+>    of this software and associated documentation files (the "Software"), to deal
+>    in the Software without restriction, including without limitation the rights
+>    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+>    copies of the Software, and to permit persons to whom the Software is
+>    furnished to do so, subject to the following conditions:
+>
+>    The above copyright notice and this permission notice shall be included in all
+>    copies or substantial portions of the Software.
+>
+>    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+>    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+>    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+>    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+>    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+>    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+>    SOFTWARE.
+@htmlonly </details> @endhtmlonly
+
+The license information above was copied from
+https://github.com/nlohmann/json/blob/develop/LICENSE.MIT
+on 2017-03-09.
+
 ## Input Stream @anchor supplement_acknowledgements_code_reuse_input_stream
 
-Genesis contains a set of classes that deal with input streams, i.e.,
-@link genesis::utils::InputStream InputStream@endlink,
-@link genesis::utils::SynchronousReader SynchronousReader@endlink,
-@link genesis::utils::BaseInputSource BaseInputSource@endlink,
-@link genesis::utils::StringInputSource StringInputSource@endlink,
-@link genesis::utils::StreamInputSource StreamInputSource@endlink and
-@link genesis::utils::FileInputSource FileInputSource@endlink.
-<!-- @link genesis::utils::AsynchronousReader AsynchronousReader@endlink, -->
+Genesis contains a set of classes that deal with input streams:
+
+  * @link genesis::utils::InputStream InputStream@endlink
+  * @link genesis::utils::SynchronousReader SynchronousReader@endlink
+  * @link genesis::utils::BaseInputSource BaseInputSource@endlink
+  * @link genesis::utils::StringInputSource StringInputSource@endlink
+  * @link genesis::utils::StreamInputSource StreamInputSource@endlink
+  * @link genesis::utils::FileInputSource FileInputSource@endlink
+  * @link genesis::utils::AsynchronousReader AsynchronousReader@endlink
 
 The design and implementation of those classes is inspired by
 [fast-cpp-csv-parser](https://github.com/ben-strasser/fast-cpp-csv-parser) by Ben Strasser,
@@ -155,26 +189,43 @@ The license information above was copied from
 https://github.com/ben-strasser/fast-cpp-csv-parser/blob/master/LICENSE
 on 2017-03-09.
 
-## Json Document @anchor supplement_acknowledgements_code_reuse_json_document
+## Gzip Streams @anchor supplement_acknowledgements_code_reuse_gzip_streams
 
-Our @link genesis::utils::JsonDocument JsonDocument@endlink data structure as well as the accompanying @link genesis::utils::JsonIterator JsonIterator@endlink are based on the excellent
-[JSON for Modern C++](https://github.com/nlohmann/json) library by Niels Lohmann.
+Genesis contains a set of classes that deal with gzip/zlib compressed/decompressed input streams:
+
+  * @link genesis::utils::GzipIstream GzipIstream@endlink
+  * @link genesis::utils::GzipOstream GzipOstream@endlink
+
+as well as the internal classes
+
+  * @link genesis::utils::GzipStreamWrapper GzipStreamWrapper@endlink
+  * @link genesis::utils::GzipIstreambuf GzipIstreambuf@endlink
+  * @link genesis::utils::GzipOstreambuf GzipOstreambuf@endlink
+
+The code of these classes is adapted from the excellent
+[zstr library](https://github.com/mateidavid/zstr) by Matei David.
+We adapted the original code by renaming all classes and variables to our standards,
+moving much of the implementation into a source file (so that the header does not clutter
+its callers with zlib-internal symbols), and refining some functionality.
+
+The repository at https://github.com/mateidavid/zstr is published under the
+[MIT license](https://opensource.org/licenses/MIT):
 
 @htmlonly <details><summary>License</summary> @endhtmlonly
->    MIT License
->
->    Copyright (c) 2013-2017 Niels Lohmann
->
+>    The MIT License (MIT)
+>    
+>    Copyright (c) 2015 Matei David, Ontario Institute for Cancer Research
+>    
 >    Permission is hereby granted, free of charge, to any person obtaining a copy
 >    of this software and associated documentation files (the "Software"), to deal
 >    in the Software without restriction, including without limitation the rights
 >    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 >    copies of the Software, and to permit persons to whom the Software is
 >    furnished to do so, subject to the following conditions:
->
+>    
 >    The above copyright notice and this permission notice shall be included in all
 >    copies or substantial portions of the Software.
->
+>    
 >    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 >    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 >    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -185,8 +236,8 @@ Our @link genesis::utils::JsonDocument JsonDocument@endlink data structure as we
 @htmlonly </details> @endhtmlonly
 
 The license information above was copied from
-https://github.com/nlohmann/json/blob/develop/LICENSE.MIT
-on 2017-03-09.
+https://github.com/mateidavid/zstr/blob/master/LICENSE
+on 2020-05-10.
 
 ## Succinct Range Minimum Query @anchor supplement_acknowledgements_code_reuse_succinct_rmq
 
