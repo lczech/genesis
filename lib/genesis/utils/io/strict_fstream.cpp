@@ -191,8 +191,10 @@ static void check_peek_(std::istream * is_p,  std::string const& filename, std::
     try {
         is_p->peek();
         peek_failed = is_p->fail();
-    } catch (std::ios_base::failure e) {}
-    if (peek_failed) {
+    } catch( std::ios_base::failure& e ) {
+        // Nothing to do.
+    }
+    if( peek_failed ) {
         throw except::IOError(
             std::string("Strict IO File Stream: open('") + filename + "'," + mode_to_string_(mode) +
             "): peek failed: " + strerror_(),
