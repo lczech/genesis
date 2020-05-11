@@ -99,6 +99,7 @@
 #include "genesis/utils/io/serializer.hpp"
 #include "genesis/utils/io/stream_input_source.hpp"
 #include "genesis/utils/io/stream_output_target.hpp"
+#include "genesis/utils/io/strict_fstream.hpp"
 #include "genesis/utils/io/string_input_source.hpp"
 #include "genesis/utils/io/string_output_target.hpp"
 #include "genesis/utils/math/bitvector.hpp"

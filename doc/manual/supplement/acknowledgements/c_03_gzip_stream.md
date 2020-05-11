@@ -1,15 +1,22 @@
 ## Gzip Streams @anchor supplement_acknowledgements_code_reuse_gzip_streams
 
-Genesis contains a set of classes that deal with gzip/zlib compressed/decompressed input streams:
+Genesis contains a set of classes that deal with gzip/zlib compressed/decompressed input streams,
+and some other stream-related functionality:
 
   * @link genesis::utils::GzipIstream GzipIstream@endlink
   * @link genesis::utils::GzipOstream GzipOstream@endlink
+  * @link genesis::utils::GzipIFStream GzipIFStream@endlink
+  * @link genesis::utils::GzipOFStream GzipOFStream@endlink
+  * @link genesis::utils::StrictIFStream StrictIFStream@endlink
+  * @link genesis::utils::StrictOFStream StrictOFStream@endlink
+  * @link genesis::utils::StrictFStream StrictFStream@endlink
 
-as well as the internal classes
+as well as the helper and internal classes:
 
   * @link genesis::utils::GzipStreamWrapper GzipStreamWrapper@endlink
   * @link genesis::utils::GzipIstreambuf GzipIstreambuf@endlink
   * @link genesis::utils::GzipOstreambuf GzipOstreambuf@endlink
+  * @link genesis::utils::StrictFStreamHolder StrictFStreamHolder@endlink
 
 The code of these classes is adapted from the excellent
 [zstr library](https://github.com/mateidavid/zstr) by Matei David.

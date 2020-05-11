@@ -33,6 +33,7 @@
 #include "genesis/utils/io/gzip_stream.hpp"
 #include "genesis/utils/core/fs.hpp"
 
+#include <cstdio>
 #include <sstream>
 
 using namespace genesis;
@@ -54,12 +55,13 @@ void cat_stream(std::istream& is, std::ostream& os)
     delete [] buff;
 }
 
-TEST( GzipStream, CompressDecompress )
+TEST( GzipStream, StringCompressDecompress )
 {
     NEEDS_TEST_DATA;
 
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
     auto const data = file_read( infile );
+
     std::string compr;
     std::string decompr;
 
@@ -102,4 +104,55 @@ TEST( GzipStream, CompressDecompress )
 
     // Test that we end up with the same that we started with
     EXPECT_EQ( data, decompr );
+}
+
+TEST( GzipStream, FileDecompress )
+{
+    NEEDS_TEST_DATA;
+
+    std::string infile = environment->data_dir + "sequence/dna_10.fasta";
+    auto const data = file_read( infile );
+
+    // First, read compressed file and see if we get the same result as the uncompressed original
+    {
+        std::string infilegz = environment->data_dir + "sequence/dna_10.fasta.gz";
+        GzipIFStream stream( infilegz );
+        std::string decomp( std::istreambuf_iterator<char>(stream), {} );
+        EXPECT_EQ( data, decomp );
+    }
+
+    // Then, also read the uncompressed again, and see if that also gives the same.
+    // The gzip input file stream should be able to auto-detect that the file is not compressed.
+    {
+        GzipIFStream stream( infile );
+        std::string decomp( std::istreambuf_iterator<char>(stream), {} );
+        EXPECT_EQ( data, decomp );
+    }
+}
+
+TEST( GzipStream, FileCompressDecompress )
+{
+    NEEDS_TEST_DATA;
+    std::string infile = environment->data_dir + "sequence/dna_10.fasta";
+    std::string compfile = infile + ".tmp.gz";
+    auto const data = file_read( infile );
+
+    {
+        // Compress the file
+        GzipIFStream cis( infile );
+        GzipOFStream cos( compfile );
+        cat_stream( cis, cos );
+    }
+
+    std::string decompr;
+    {
+        // Decompress again
+        std::ostringstream dos;
+        GzipIFStream dis( compfile );
+        cat_stream( dis, dos );
+        decompr = dos.str();
+    }
+
+    EXPECT_EQ( data, decompr );
+    EXPECT_EQ( 0, std::remove( compfile.c_str() ));
 }

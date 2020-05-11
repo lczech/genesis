@@ -67,6 +67,8 @@
 
 #include "genesis/utils/io/gzip.hpp"
 
+#include "genesis/utils/io/strict_fstream.hpp"
+
 #include <cassert>
 #include <fstream>
 #include <sstream>
@@ -125,6 +127,10 @@ enum class GzipCompressionLevel : int
  *
  * If genesis is compiled without zlib support, constructing an instance of this class will
  * throw an exception.
+ *
+ * @see GzipOStream
+ * @see GzipIFStream
+ * @see GzipOFStream
  */
 class GzipIStream
     : public std::istream
@@ -166,6 +172,10 @@ public:
  *
  * If genesis is compiled without zlib support, constructing an instance of this class will
  * throw an exception.
+ *
+ * @see GzipIStream
+ * @see GzipIFStream
+ * @see GzipOFStream
  */
 class GzipOStream
     : public std::ostream
@@ -185,6 +195,128 @@ public:
     );
 
     virtual ~GzipOStream();
+};
+
+// ================================================================================================
+//     Strict File Stream Holder
+// ================================================================================================
+
+/**
+ * @brief Helper class template for managing the construction order between stream classes.
+ *
+ * This class template is needed because the GzipIFStream and GzipOFStream classes need to combine
+ * some other classes in the correct order, so that they can be properly constructed.
+ *
+ * The class template is based on the zstr::detail::strict_fstream_holder class template of the
+ * excellent [zstr library](https://github.com/mateidavid/zstr) by Matei David; see also our
+ * @link supplement_acknowledgements_code_reuse_gzip_streams Acknowledgements@endlink.
+ *
+ * @see GzipIStream
+ * @see GzipOStream
+ * @see GzipIFStream
+ * @see GzipOFStream
+ */
+template < typename FStreamType >
+struct StrictFStreamHolder
+{
+    StrictFStreamHolder( std::string const& filename, std::ios_base::openmode mode = std::ios_base::in )
+        : file_stream_(filename, mode)
+    {}
+
+    FStreamType file_stream_;
+};
+
+// ================================================================================================
+//     Gzip Input File Stream
+// ================================================================================================
+
+/**
+ * @brief Input file stream that offers on-the-fly gzip-decompression if needed.
+ *
+ * The class accesses an internal std::ifstream. This can be used to open a file and read
+ * decompressed data from it.
+ *
+ * If @p auto_detect is `true` (default), the class seamlessly auto-detects whether the source
+ * stream is compressed or not. The following compressed streams are detected:
+ *
+ *   * GZip header, when stream starts with `1F 8B`. See [GZip format](http://en.wikipedia.org/wiki/Gzip).
+ *   * ZLib header, when stream starts with `78 01`, `78 9C`, or `78 DA`. See [answer here](http://stackoverflow.com/a/17176881).
+ *
+ * If none of these formats are detected, the class assumes the input is not compressed,
+ * and it produces a plain copy of the source stream.
+ *
+ * The class is based on the zstr::ifstream class of the excellent
+ * [zstr library](https://github.com/mateidavid/zstr) by Matei David; see also our
+ * @link supplement_acknowledgements_code_reuse_gzip_streams Acknowledgements@endlink.
+ *
+ * If genesis is compiled without zlib support, constructing an instance of this class will
+ * throw an exception.
+ *
+ * @see GzipIStream
+ * @see GzipOStream
+ * @see GzipOFStream
+ */
+class GzipIFStream
+    : private StrictFStreamHolder<StrictIFStream>
+    , public std::istream
+{
+public:
+
+    explicit GzipIFStream(
+        std::string const& filename,
+        std::ios_base::openmode mode = std::ios_base::in,
+        bool auto_detect = true,
+        std::size_t buffer_size = (std::size_t) 1 << 20
+    );
+
+    virtual ~GzipIFStream()
+    {
+        if (rdbuf()) {
+            delete rdbuf();
+        }
+    }
+};
+
+// ================================================================================================
+//     Gzip Output File Stream
+// ================================================================================================
+
+/**
+ * @brief Out file stream that offers on-the-fly gzip-compression.
+ *
+ * The class accesses an internal std::ofstream. This can be used to open a file and write
+ * compressed data to it.
+ * *
+ * The class is based on the zstr::ofstream class of the excellent
+ * [zstr library](https://github.com/mateidavid/zstr) by Matei David; see also our
+ * @link supplement_acknowledgements_code_reuse_gzip_streams Acknowledgements@endlink.
+ *
+ * If genesis is compiled without zlib support, constructing an instance of this class will
+ * throw an exception.
+ *
+ * @see GzipIStream
+ * @see GzipOStream
+ * @see GzipIFStream
+ */
+class GzipOFStream
+    : private StrictFStreamHolder<StrictOFStream>
+    , public std::ostream
+{
+public:
+
+    explicit GzipOFStream(
+        std::string const& filename,
+        std::ios_base::openmode mode = std::ios_base::out,
+        GzipCompressionLevel level = GzipCompressionLevel::kDefaultCompression,
+        std::size_t buffer_size = (std::size_t) 1 << 20
+    );
+
+    virtual ~GzipOFStream()
+    {
+        if (rdbuf()) {
+            delete rdbuf();
+        }
+    }
 };
 
 } // namespace utils

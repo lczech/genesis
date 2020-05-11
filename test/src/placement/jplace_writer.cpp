@@ -30,6 +30,7 @@
 
 #include "src/common.hpp"
 
+#include <cstdio>
 #include <string>
 
 #include "genesis/placement/formats/jplace_reader.hpp"
