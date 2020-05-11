@@ -196,6 +196,54 @@ structure is based on the
 Fischer, with his
 explicit permission to use his code in Genesis.
 
+## Multi-Dimensional Scaling (MDS) @anchor supplement_acknowledgements_code_reuse_mds
+
+The implementation of our
+@link genesis::utils::multi_dimensional_scaling() multi_dimensional_scaling()@endlink function
+is based on the [SimpleMatrix library](https://sites.google.com/site/simpmatrix/)
+by [Quan Wang](https://github.com/wq2012), with his explicit permission to use this code in Genesis.
+The copyright (C) of the implementation is held by Quan Wang, 2013.
+We adapted the implementation to our @link genesis::utils::Matrix Matrix@endlink class and
+changed the error reporting mechanism to exceptions.
+
+The implementation by Quan Wang (and our adaptation) offers two variants of MDS. The code of these
+variants is based on two Matlab implementations, and re-implements those in C++.
+The original sources are:
+
+ * The @link genesis::utils::MdsAlgorithm::kUcf UCF@endlink variant re-implements
+   Laurens van der Maaten's MDS in his
+   [Matlab Toolbox for Dimensionality Reduction](http://crcv.ucf.edu/source/dimension).
+   It is free to use, change, or redistribute this code for non-commercial purposes.
+ * The @link genesis::utils::MdsAlgorithm::kSmacof SMACOF@endlink variant re-implements
+   Michael Bronstein's SMACOF in his
+   [Matlab Toolbox for Surface Comparison and Analysis](http://tosca.cs.technion.ac.il/).
+   It may be used for academic purposes, which we consider Genesis to be.
+
+See there for further details. Note however that none of the original code of these two
+implementations is used in Genesis, as we solely rely on the ported and re-implemented code
+by Quan Wang.
+
+## Generalized Linear Model (GLM) @anchor supplement_acknowledgements_code_reuse_glm
+
+The implementation of our Generalized Linear Model, in particular
+@link genesis::utils::glm_fit() glm_fit()@endlink, but also some related helper functions,
+is based on the snp.matrix and X.snp.matrix classes by
+David Clayton <david.clayton@cimr.cam.ac.uk> and Hin-Tak Leung <htl10@users.sourceforge.net>.
+The source is in C, but is originally intended for usage in R.
+
+The package does not seem to be maintained any more, and does not seem to
+have a proper repository. For more information, try these sites:
+- https://bioconductor.org/packages/release/bioc/html/snpStats.html
+- https://www.rdocumentation.org/packages/snpStats/
+- http://www-gene.cimr.cam.ac.uk/clayton/software/
+
+The original code is published under the GNU General Public Licence version 3 (GPLv3).
+
+> The snp.matrix and X.snp.matrix classes.
+> Copyright (C) 2008 David Clayton and Hin-Tak Leung
+
+As we use the same license, see @ref supplement_license for the complete license.
+
 ## MD5 @anchor supplement_acknowledgements_code_reuse_md
 
 Our implementation of the @link genesis::utils::MD5 MD5 hashing function@endlink is based on
@@ -546,54 +594,6 @@ The license information above was copied from
 https://github.com/axismaps/colorbrewer/blob/master/LICENCE.txt
 on 2018-01-08.
 
-## Multi-Dimensional Scaling (MDS) @anchor supplement_acknowledgements_code_reuse_mds
-
-The implementation of our
-@link genesis::utils::multi_dimensional_scaling() multi_dimensional_scaling()@endlink function
-is based on the [SimpleMatrix library](https://sites.google.com/site/simpmatrix/)
-by [Quan Wang](https://github.com/wq2012), with his explicit permission to use this code in Genesis.
-The copyright (C) of the implementation is held by Quan Wang, 2013.
-We adapted the implementation to our @link genesis::utils::Matrix Matrix@endlink class and
-changed the error reporting mechanism to exceptions.
-
-The implementation by Quan Wang (and our adaptation) offers two variants of MDS. The code of these
-variants is based on two Matlab implementations, and re-implements those in C++.
-The original sources are:
-
- * The @link genesis::utils::MdsAlgorithm::kUcf UCF@endlink variant re-implements
-   Laurens van der Maaten's MDS in his
-   [Matlab Toolbox for Dimensionality Reduction](http://crcv.ucf.edu/source/dimension).
-   It is free to use, change, or redistribute this code for non-commercial purposes.
- * The @link genesis::utils::MdsAlgorithm::kSmacof SMACOF@endlink variant re-implements
-   Michael Bronstein's SMACOF in his
-   [Matlab Toolbox for Surface Comparison and Analysis](http://tosca.cs.technion.ac.il/).
-   It may be used for academic purposes, which we consider Genesis to be.
-
-See there for further details. Note however that none of the original code of these two
-implementations is used in Genesis, as we solely rely on the ported and re-implemented code
-by Quan Wang.
-
-## Generalized Linear Model (GLM) @anchor supplement_acknowledgements_code_reuse_glm
-
-The implementation of our Generalized Linear Model, in particular
-@link genesis::utils::glm_fit() glm_fit()@endlink, but also some related helper functions,
-is based on the snp.matrix and X.snp.matrix classes by
-David Clayton <david.clayton@cimr.cam.ac.uk> and Hin-Tak Leung <htl10@users.sourceforge.net>.
-The source is in C, but is originally intended for usage in R.
-
-The package does not seem to be maintained any more, and does not seem to
-have a proper repository. For more information, try these sites:
-- https://bioconductor.org/packages/release/bioc/html/snpStats.html
-- https://www.rdocumentation.org/packages/snpStats/
-- http://www-gene.cimr.cam.ac.uk/clayton/software/
-
-The original code is published under the GNU General Public Licence version 3 (GPLv3).
-
-> The snp.matrix and X.snp.matrix classes.
-> Copyright (C) 2008 David Clayton and Hin-Tak Leung
-
-As we use the same license, see @ref supplement_license for the complete license.
-
 ## Nextstrain @anchor supplement_acknowledgements_code_reuse_nextstrain
 
 The color list @link genesis::utils::color_list_nextstrain() color_list_nextstrain()@endlink
@@ -631,3 +631,4 @@ The repository at https://github.com/nextstrain/ncov is published under the
 The license information above was copied from
 https://github.com/nextstrain/ncov/blob/master/LICENSE
 on 2020-04-05.
+
