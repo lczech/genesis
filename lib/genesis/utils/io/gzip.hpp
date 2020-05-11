@@ -31,16 +31,54 @@
  * @ingroup utils
  */
 
+#include <stdexcept>
 #include <string>
 
 namespace genesis {
 namespace utils {
 
 // ================================================================================================
-//     GZIP/ZLIB Functions
+//     General gzip/zlib Functions
 // ================================================================================================
 
+/**
+ * @brief Return whether a given file is gzip-compressed.
+ *
+ * Returns true only iff the file exists and is gzip-compressed.
+ * If there is a mismatch between the gzip magic bytes and the file ending, a warning is issued
+ * via LOG_WARN.
+ */
 bool is_gzip_compressed_file( std::string const& file_name );
+
+// ================================================================================================
+//     Gzip Exception Class
+// ================================================================================================
+
+/**
+ * @brief Exception class thrown by failed gzip/zlib operations.
+ *
+ * If compiled without zlib support, the exepction has no use and contains a dummy message.
+ */
+class GzipException
+    : public std::exception
+{
+public:
+
+    GzipException( std::string const& z_stream_message, int error_code );
+
+    GzipException( std::string const msg)
+        : message_(msg)
+    {}
+
+    char const* what() const noexcept {
+        return message_.c_str();
+    }
+
+private:
+
+    std::string message_;
+
+};
 
 } // namespace utils
 } // namespace genesis

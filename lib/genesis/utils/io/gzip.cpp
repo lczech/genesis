@@ -37,11 +37,22 @@
 #include <fstream>
 #include <stdexcept>
 
+#ifdef GENESIS_ZLIB
+
+#    include "zlib.h"
+
+#    if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
+#       include <fcntl.h>
+#       include <io.h>
+#   endif
+
+#endif // GENESIS_ZLIB
+
 namespace genesis {
 namespace utils {
 
 // ================================================================================================
-//     GZIP/ZLIB Functions
+//     General gzip/zlib Functions
 // ================================================================================================
 
 bool is_gzip_compressed_file( std::string const& file_name )
@@ -87,6 +98,52 @@ bool is_gzip_compressed_file( std::string const& file_name )
     }
     return magic;
 }
+
+// ================================================================================================
+//     Gzip Exception Class
+// ================================================================================================
+
+#ifdef GENESIS_ZLIB
+
+GzipException::GzipException( std::string const& z_stream_message, int error_code )
+    : message_("zlib: ")
+{
+    // Need to have this method in the cpp file, so that we do not expose the zlib header
+    // to the header file, which would include all its symbols to whichever class uses our headers...
+    switch( error_code )
+    {
+    case Z_STREAM_ERROR:
+        message_ += "Invalid compression level. [Z_STREAM_ERROR: ";
+        break;
+    case Z_DATA_ERROR:
+        message_ += "Invalid or incomplete deflate data. [Z_DATA_ERROR: ";
+        break;
+    case Z_MEM_ERROR:
+        message_ += "Out of memory. [Z_MEM_ERROR: ";
+        break;
+    case Z_VERSION_ERROR:
+        message_ += "Version mismatch! [Z_VERSION_ERROR: ";
+        break;
+    case Z_BUF_ERROR:
+        message_ += "Buffer error. [Z_BUF_ERROR: ";
+        break;
+    case Z_ERRNO:
+        message_ += "Error while reading zlib/gzip input. [Z_ERRNO: ";
+        break;
+    default:
+        message_ += "Unknown error. [" + std::to_string(error_code) + ": ";
+        break;
+    }
+    message_ += z_stream_message + "]";
+}
+
+#else // GENESIS_ZLIB
+
+GzipException::GzipException( std::string const& z_stream_message, int error_code )
+    : message_("zlib: Library was not compiled with zlib support.")
+{}
+
+#endif // GENESIS_ZLIB
 
 } // namespace utils
 } // namespace genesis

@@ -140,11 +140,6 @@ private:
     std::string source_string_() const override;
 
     /**
-     * @brief Throw an exception for zlib related errors.
-     */
-    void report_zlib_error_( int error_code ) const;
-
-    /**
     * @brief Get the zlib internal int form of the format enum.
     */
     int get_format_( Format format ) const;
