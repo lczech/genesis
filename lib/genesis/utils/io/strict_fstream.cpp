@@ -89,14 +89,14 @@ static std::string strerror_()
 
     #ifdef _WIN32
 
-        if (strerror_s(&buff[0], buff.size(), errno) != 0) {
+        if( strerror_s( &buff[0], buff.size(), errno ) != 0 ) {
             buff = "Unknown error";
         }
 
-    #elif (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE
+    #elif ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE) || __APPLE__
 
         // XSI-compliant strerror_r()
-        if (strerror_r(errno, &buff[0], buff.size()) != 0) {
+        if( strerror_r( errno, &buff[0], buff.size() ) != 0 ) {
             buff = "Unknown error";
         }
 
@@ -104,7 +104,7 @@ static std::string strerror_()
 
         // GNU-specific strerror_r()
         auto p = strerror_r(errno, &buff[0], buff.size());
-        std::string tmp(p, std::strlen( reinterpret_cast<const char *>( p )));
+        std::string tmp(p, std::strlen( p ));
         std::swap(buff, tmp);
 
     #endif
