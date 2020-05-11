@@ -73,12 +73,15 @@ protected:
 //     File Related Errors
 // =================================================================================================
 
-class ExistingFileError
+/**
+ * @brief Exception class for general input/output errors.
+ */
+class IOError
     : public Exception
 {
 public:
 
-    ExistingFileError( std::string const& message, std::string const& filename )
+    IOError( std::string const& message, std::string const& filename )
         : Exception( message )
         , filename_( filename )
     {}
@@ -91,6 +94,22 @@ public:
 protected:
 
     std::string filename_;
+};
+
+/**
+ * @brief Exception class that is thrown if trying to write to an existing file.
+ *
+ * See for example file_output_stream(). This exception is not thrown if
+ * Options::get().allow_file_overwriting() is set to true.
+ */
+class ExistingFileError
+    : public IOError
+{
+public:
+
+    ExistingFileError( std::string const& message, std::string const& filename )
+        : IOError( message, filename )
+    {}
 };
 
 } // namespace except
