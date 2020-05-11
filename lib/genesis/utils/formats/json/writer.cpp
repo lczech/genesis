@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,21 +48,10 @@ namespace utils {
 //     Writing
 // =================================================================================================
 
-void JsonWriter::to_stream( JsonDocument const& document, std::ostream& out ) const
+void JsonWriter::write( JsonDocument const& document, std::shared_ptr<utils::BaseOutputTarget> target ) const
 {
-    print_value( document, out );
-}
-
-void JsonWriter::to_file( JsonDocument const& document, std::string const& filename ) const
-{
-    std::ofstream ofs;
-    utils::file_output_stream( filename, ofs );
-    print_value( document, ofs );
-}
-
-void JsonWriter::to_string( JsonDocument const& document, std::string& output ) const
-{
-    output = to_string(document);
+    auto& os = target->ostream();
+    print_value( document, os );
 }
 
 std::string JsonWriter::to_string( JsonDocument const& document ) const
