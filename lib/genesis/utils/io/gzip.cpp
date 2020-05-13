@@ -103,6 +103,9 @@ bool is_gzip_compressed_file( std::string const& file_name )
 //     Gzip Exception Class
 // ================================================================================================
 
+} // namespace utils
+namespace except {
+
 #ifdef GENESIS_ZLIB
 
 GzipError::GzipError( std::string const& z_stream_message, int error_code )
@@ -147,5 +150,5 @@ GzipError::GzipError( std::string const& z_stream_message, int error_code )
 
 #endif // GENESIS_ZLIB
 
-} // namespace utils
+} // namespace except
 } // namespace genesis

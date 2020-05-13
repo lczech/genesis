@@ -131,7 +131,7 @@ public:
         }
 
         if( ret != Z_OK ) {
-            throw GzipError( this->msg, ret );
+            throw except::GzipError( this->msg, ret );
         }
     }
 
@@ -273,7 +273,7 @@ public:
 
                     // process return code
                     if (ret != Z_OK && ret != Z_STREAM_END) {
-                        throw GzipError(zstrm_ptr_->msg, ret);
+                        throw except::GzipError(zstrm_ptr_->msg, ret);
                     }
 
                     // update in&out pointers following inflate()
@@ -440,7 +440,7 @@ private:
             zstrm_ptr_->avail_out = buff_size_;
             int ret = deflate(zstrm_ptr_, flush);
             if (ret != Z_OK && ret != Z_STREAM_END && ret != Z_BUF_ERROR) {
-                throw GzipError( zstrm_ptr_->msg, ret );
+                throw except::GzipError( zstrm_ptr_->msg, ret );
             }
 
             std::streamsize sz = sbuf_p_->sputn(

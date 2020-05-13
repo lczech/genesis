@@ -56,13 +56,16 @@ bool is_gzip_compressed_file( std::string const& file_name );
 //     Gzip Exception Class
 // ================================================================================================
 
+} // namespace utils
+namespace except {
+
 /**
  * @brief Exception class thrown by failed gzip/zlib operations.
  *
  * If compiled without zlib support, the exepction has no use and contains a dummy message.
  */
 class GzipError
-    : public except::Exception
+    : public Exception
 {
 public:
 
@@ -74,7 +77,7 @@ public:
 
 };
 
-} // namespace utils
+} // namespace except
 } // namespace genesis
 
 #endif // include guard
