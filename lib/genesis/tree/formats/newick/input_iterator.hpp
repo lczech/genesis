@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,6 +53,12 @@ namespace tree {
  * having to keep them fully in memory.
  *
  * Example:
+ *
+ *     for( auto const& t : NewickInputIterator( from_file( "/path/to/trees.newick" ))) {
+ *         std::cout << t.node_count() << "\n";
+ *     }
+ *
+ * Alternatively, the following also works:
  *
  *     auto it = NewickInputIterator( from_file( "/path/to/trees.newick" ));
  *     while( it ) {
@@ -174,6 +180,27 @@ public:
     // -------------------------------------------------------------------------
     //     Iteration
     // -------------------------------------------------------------------------
+
+    /**
+     * @brief Beginning of the iterator.
+     *
+     * This is a bit uncommon, as the iterator provides its own begin() and end() functions.
+     * We do this to allow the easy use case that is explained above.
+     */
+    self_type& begin()
+    {
+        return *this;
+    }
+
+    /**
+     * @brief End of the iterator.
+     *
+     * @copydoc begin()
+     */
+    self_type end()
+    {
+        return self_type();
+    }
 
     self_type& operator ++ ()
     {

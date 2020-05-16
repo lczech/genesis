@@ -206,7 +206,7 @@ public:
      */
     self_type end()
     {
-        return FastaInputIterator();
+        return self_type();
     }
 
     self_type& operator ++ ()

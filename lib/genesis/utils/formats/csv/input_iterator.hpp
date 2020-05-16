@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -149,6 +149,27 @@ public:
     // -------------------------------------------------------------------------
     //     Iteration
     // -------------------------------------------------------------------------
+
+    /**
+     * @brief Beginning of the iterator.
+     *
+     * This is a bit uncommon, as the iterator provides its own begin() and end() functions.
+     * We do this to allow the easy use case of range-based for loops.
+     */
+    self_type& begin()
+    {
+        return *this;
+    }
+
+    /**
+     * @brief End of the iterator.
+     *
+     * @copydoc begin()
+     */
+    self_type end()
+    {
+        return self_type();
+    }
 
     self_type& operator ++ ()
     {

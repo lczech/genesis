@@ -86,7 +86,7 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
-    self_type& operator = ( Sequence const& seq )
+    self_type& operator<< ( Sequence const& seq )
     {
         writer_.write_sequence( seq, output_stream_ );
         return *this;
