@@ -41,7 +41,6 @@
 #include "genesis/utils/core/std.hpp"
 
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -123,7 +122,7 @@ inline std::vector<std::shared_ptr<BaseInputSource>> from_files(
 }
 
 /**
- * @brief Obtain an input sources for reading from a string.
+ * @brief Obtain an input source for reading from a string.
  *
  * The input source returned from this function can be used in the reader classes, e.g.,
  * placement::JplaceReader or sequence::FastaReader.
@@ -163,7 +162,7 @@ inline std::vector<std::shared_ptr<BaseInputSource>> from_strings(
  * @see from_file(), from_files(), from_string(), and from_stream() for similar
  * helper functions for other types of input sources.
  */
- template<typename InputIterator>
+template<typename InputIterator>
 inline std::vector<std::shared_ptr<BaseInputSource>> from_strings(
     InputIterator first,
     InputIterator last

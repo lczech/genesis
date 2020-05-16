@@ -87,6 +87,7 @@
 #include "genesis/utils/io/file_output_target.hpp"
 #include "genesis/utils/io/gzip.hpp"
 #include "genesis/utils/io/gzip_input_source.hpp"
+#include "genesis/utils/io/gzip_output_target.hpp"
 #include "genesis/utils/io/gzip_stream.hpp"
 #include "genesis/utils/io/input_buffer.hpp"
 #include "genesis/utils/io/input_reader.hpp"
