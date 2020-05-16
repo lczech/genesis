@@ -58,14 +58,6 @@ inline bool char_is_sign (const char c)
 }
 
 /**
- * @brief Return whether a char is valid in a number, i.e., a digit, a dot, plus, minus, or 'e'/'E'.
- */
-inline bool char_is_number_part( char const c )
-{
-    return char_is_digit( c ) || char_is_sign( c ) || c == '.' || c == 'e' || c == 'E';
-}
-
-/**
  * @brief Return whether two chars are the same, case insensitive.
  */
 inline bool char_match_ci(const char c1, const char c2)
