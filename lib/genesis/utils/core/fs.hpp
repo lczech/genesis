@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -63,16 +63,22 @@ bool file_exists( std::string const& filename );
 /**
  * @brief Return the contents of a file as a string.
  *
+ * If the parameter @p detect_compression is `true` (default), it is first determined whether the
+ * file is gzip compressed, and if so, the file is decompressed when reading.
+ *
  * If the file is not readable, the function throws `std::runtime_error`.
  */
-std::string file_read( std::string const& filename );
+std::string file_read( std::string const& filename, bool detect_compression = true );
 
 /**
  * @brief Return the contents of a file as a vector of strings, one entry for each line.
  *
+ * If the parameter @p detect_compression is `true` (default), it is first determined whether the
+ * file is gzip compressed, and if so, the file is decompressed when reading.
+ *
  * If the file is not readable, the function throws `std::runtime_error`.
  */
-std::vector<std::string> file_read_lines( std::string const& filename );
+std::vector<std::string> file_read_lines( std::string const& filename, bool detect_compression = true );
 
 /**
  * @brief Write the content of a string to a file.
