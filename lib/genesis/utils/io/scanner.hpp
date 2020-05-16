@@ -307,6 +307,7 @@ inline char read_char_or_throw(
     // Check char and move to next.
     if( !source || *source != criterion ) {
         throw std::runtime_error(
+            std::string("In ") + source.source_name() + ": " +
             std::string("Expecting '") + criterion + "' at " + source.at() + "."
         );
     }
@@ -346,6 +347,7 @@ inline char read_char_or_throw(
     // Check char and move to next.
     if( !source || ! criterion( *source )) {
         throw std::runtime_error(
+            std::string("In ") + source.source_name() + ": " +
             "Unexpected char at " + source.at() + "."
         );
     }
@@ -390,6 +392,7 @@ inline void affirm_char_or_throw(
     // Check char.
     if( !source || *source != criterion ) {
         throw std::runtime_error(
+            std::string("In ") + source.source_name() + ": " +
             std::string("Expecting '") + criterion + "' at " + source.at() + "."
         );
     }
@@ -425,6 +428,7 @@ inline void affirm_char_or_throw(
     // Check char.
     if( !source || ! criterion( *source )) {
         throw std::runtime_error(
+            std::string("In ") + source.source_name() + ": " +
             "Unexpected char at " + source.at() + "."
         );
     }
