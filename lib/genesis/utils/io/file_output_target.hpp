@@ -61,8 +61,12 @@ public:
     /**
      * @brief Construct the output target from a file with the given file name.
      */
-    explicit FileOutputTarget( std::string const& file_name )
+    explicit FileOutputTarget(
+        std::string const& file_name,
+        std::ios_base::openmode mode = std::ios_base::out
+    )
         : file_name_( file_name )
+        , mode_( mode )
     {}
 
     FileOutputTarget( FileOutputTarget const& ) = delete;
@@ -86,7 +90,7 @@ private:
     {
         // Lazy loading.
         if( !stream_.is_open() ) {
-            file_output_stream( file_name_, stream_ );
+            file_output_stream( file_name_, stream_, mode_ );
         }
         return stream_;
     }
@@ -113,6 +117,8 @@ private:
 
     std::string file_name_;
     std::ofstream stream_;
+
+    std::ios_base::openmode mode_ = std::ios_base::out;
 };
 
 } // namespace utils

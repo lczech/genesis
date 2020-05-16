@@ -61,14 +61,14 @@ public:
      * @brief Construct the output target to a string that is modified.
      */
     explicit StreamOutputTarget( std::ostream& target )
-        : target_( target )
+        : target_( &target )
     {}
 
-    StreamOutputTarget( StreamOutputTarget const& ) = delete;
-    StreamOutputTarget( StreamOutputTarget&& )      = delete;
+    StreamOutputTarget( StreamOutputTarget const& ) = default;
+    StreamOutputTarget( StreamOutputTarget&& )      = default;
 
-    StreamOutputTarget& operator= ( StreamOutputTarget const& ) = delete;
-    StreamOutputTarget& operator= ( StreamOutputTarget&& )      = delete;
+    StreamOutputTarget& operator= ( StreamOutputTarget const& ) = default;
+    StreamOutputTarget& operator= ( StreamOutputTarget&& )      = default;
 
     ~StreamOutputTarget() override = default;
 
@@ -83,7 +83,7 @@ private:
      */
     std::ostream& out_stream_() override
     {
-        return target_;
+        return *target_;
     }
 
     /**
@@ -106,7 +106,7 @@ private:
     //     Member Variables
     // -------------------------------------------------------------
 
-    std::ostream& target_;
+    std::ostream* target_;
 };
 
 } // namespace utils

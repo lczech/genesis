@@ -65,7 +65,7 @@ public:
      * @brief Construct the input source from an `std::istream`.
      */
     explicit StreamInputSource( std::istream& in )
-        : in_( &in )
+        : source_( &in )
     {}
 
     StreamInputSource( StreamInputSource const& ) = default;
@@ -88,8 +88,8 @@ private:
      */
     size_t read_( char* buffer, size_t size ) override
     {
-        in_->read( buffer, size );
-        return in_->gcount();
+        source_->read( buffer, size );
+        return source_->gcount();
     }
 
     /**
@@ -112,7 +112,7 @@ private:
     //     Member Variables
     // -------------------------------------------------------------
 
-    std::istream* in_;
+    std::istream* source_;
 };
 
 } // namespace utils
