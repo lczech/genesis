@@ -30,9 +30,10 @@
 
 #include "src/common.hpp"
 
+#include "genesis/sequence/formats/fastq_input_iterator.hpp"
+#include "genesis/sequence/formats/fastq_output_iterator.hpp"
 #include "genesis/sequence/formats/fastq_reader.hpp"
 #include "genesis/sequence/formats/fastq_writer.hpp"
-#include "genesis/sequence/formats/fastq_input_iterator.hpp"
 #include "genesis/sequence/functions/quality.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 
@@ -141,4 +142,27 @@ TEST( Sequence, FastqWriter )
     // Compare to raw file data.
     auto const data = utils::file_read( infile );
     EXPECT_EQ( data, written );
+}
+
+TEST( Sequence, FastqOutputIterator )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Load sequence file.
+    std::string infile = environment->data_dir + "sequence/SP1.fq";
+    auto const sset = FastqReader().read( utils::from_file( infile ));
+
+    // Write to string. Need scope to actually do the writing.
+    std::string target;
+    {
+        auto out_it = FastqOutputIterator( utils::to_string( target ));
+        for( auto const& seq : sset ) {
+            out_it << seq;
+        }
+    }
+
+    // Compare to raw file.
+    auto const data = utils::file_read( infile );
+    EXPECT_EQ( data, target );
 }
