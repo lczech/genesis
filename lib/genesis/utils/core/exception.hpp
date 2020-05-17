@@ -81,6 +81,10 @@ class IOError
 {
 public:
 
+    IOError( std::string const& message )
+        : Exception( message )
+    {}
+
     IOError( std::string const& message, std::string const& filename )
         : Exception( message )
         , filename_( filename )

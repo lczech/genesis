@@ -65,14 +65,14 @@ namespace except {
  * If compiled without zlib support, the exepction has no use and contains a dummy message.
  */
 class GzipError
-    : public Exception
+    : public IOError
 {
 public:
 
     GzipError( std::string const& z_stream_message, int error_code );
 
     GzipError( std::string const msg )
-        : except::Exception(msg)
+        : except::IOError(msg)
     {}
 
 };
