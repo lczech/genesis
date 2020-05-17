@@ -529,6 +529,12 @@ table.memberdecls {
 
 /* Styles for detailed member documentation */
 
+/* Custom addition by Lucas Czech: Hide the ugly title of each box */
+h2.memtitle {
+    display: none;
+    visibility: hidden;
+}
+
 .memtemplate {
 	font-size: 80%;
 	color: #4656A2;

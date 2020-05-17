@@ -13,7 +13,7 @@ and the API Reference with more details about classes and functions:
     and thus human-readable. They are stored in the subdirectory `manual`.
  *  The API Reference is generated from the doc-blocks in the C++ source code.
 
-In order to generate the full documentation, [doxygen](http://www.doxygen.org/) 1.8.6 and
+In order to generate the full documentation, [doxygen](http://www.doxygen.org/) 1.8.13 and
 [graphviz](http://www.graphviz.org/) need to be installed.
 The files can then be generated into the subdirectory `html` by calling `make` in this directory.
 A symlink to the index page is also created for convenience.
