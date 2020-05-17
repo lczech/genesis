@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/sequence/formats/fasta_input_iterator.hpp"
+#include "genesis/sequence/formats/fasta_output_iterator.hpp"
 #include "genesis/sequence/formats/fasta_reader.hpp"
 #include "genesis/sequence/formats/fasta_writer.hpp"
 #include "genesis/sequence/functions/codes.hpp"
@@ -235,4 +236,28 @@ TEST( Sequence, FastaWriter )
     auto const read_again = utils::file_read( infile );
     EXPECT_FALSE( target.empty() );
     EXPECT_EQ( read_again, target );
+}
+
+TEST( Sequence, FastaOutputIterator )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Load sequence file.
+    std::string infile = environment->data_dir + "sequence/dna_10.fasta";
+    auto const sset = FastaReader().read( utils::from_file( infile ));
+
+    // Write to string. Need scope to actually do the writing.
+    std::string target;
+    {
+        auto out_it = FastaOutputIterator( utils::to_string( target ));
+        out_it.writer().line_length( 50 );
+        for( auto const& seq : sset ) {
+            out_it << seq;
+        }
+    }
+
+    // Compare to raw file.
+    auto const data = utils::file_read( infile );
+    EXPECT_EQ( data, target );
 }
