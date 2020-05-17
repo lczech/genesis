@@ -86,9 +86,8 @@ void FastqReader::parse_document(
     utils::InputStream& input_stream,
     SequenceSet&        sequence_set
 ) const {
-    std::string buffer;
     Sequence tmp_seq;
-    while( parse_sequence_( input_stream, buffer, tmp_seq )) {
+    while( parse_sequence_( input_stream, tmp_seq )) {
         sequence_set.add( tmp_seq );
     }
 }
@@ -97,15 +96,14 @@ bool FastqReader::parse_sequence(
     utils::InputStream& input_stream,
     Sequence&           sequence
 ) const {
-    static std::string buffer;
-    return parse_sequence_( input_stream, buffer, sequence );
+    return parse_sequence_( input_stream, sequence );
 }
 
 // =================================================================================================
 //     Parsing Internals
 // =================================================================================================
 
-bool FastqReader::parse_sequence_( utils::InputStream& input_stream, std::string& buffer, Sequence& sequence ) const
+bool FastqReader::parse_sequence_( utils::InputStream& input_stream, Sequence& sequence ) const
 {
     // Init. Call clear() in order to avoid not setting properties that might be added to
     // Sequence in the future. Should not noticeable affect speed, as the sequence string capacities
@@ -123,22 +121,19 @@ bool FastqReader::parse_sequence_( utils::InputStream& input_stream, std::string
     // stream. This has the following reasoning: Sequence files can be quite big, and appending to
     // a string can cause its size to double whenver the capacity is reached (depending on the STL
     // implementation). We want to avoid that, which can usually be done by making a fresh copy of
-    // the sting. However, reading into a string first, and then making a copy of it, necessitates
+    // the string. However, reading into a string first, and then making a copy of it, necessitates
     // two memory allocations. We can circumvent the first by using this buffer, which is re-used.
     // Hence, we here rely on the fact that string::clear() does not change the capacity of the buffer.
-    parse_label1_(  input_stream, buffer, sequence );
-    parse_sites_(   input_stream, buffer, sequence );
-    parse_label2_(  input_stream, buffer, sequence );
-    parse_quality_( input_stream, buffer, sequence );
+    parse_label1_(  input_stream, sequence );
+    parse_sites_(   input_stream, sequence );
+    parse_label2_(  input_stream, sequence );
+    parse_quality_( input_stream, sequence );
 
     return true;
 }
 
-void FastqReader::parse_label1_( utils::InputStream& input_stream, std::string& buffer, Sequence& sequence ) const
+void FastqReader::parse_label1_( utils::InputStream& input_stream, Sequence& sequence ) const
 {
-    // Not using the buffer here, as the reading function in here overwrites the whole string,
-    // hence, the capacity of the buffer would shring, which destroys its whole purpose.
-    (void) buffer;
     auto& it = input_stream;
 
     // Check beginning of sequence.
@@ -180,11 +175,11 @@ void FastqReader::parse_label1_( utils::InputStream& input_stream, std::string& 
     sequence.label( label1 );
 }
 
-void FastqReader::parse_sites_( utils::InputStream& input_stream, std::string& buffer, Sequence& sequence ) const
+void FastqReader::parse_sites_( utils::InputStream& input_stream, Sequence& sequence ) const
 {
     // Some prep shorthand.
     auto& it = input_stream;
-    buffer.clear();
+    buffer_.clear();
 
     // Check for unexpected end of file.
     if( !it ) {
@@ -206,11 +201,11 @@ void FastqReader::parse_sites_( utils::InputStream& input_stream, std::string& b
         assert( it.column() == 1 );
 
         // The get_line function appends to the buffer.
-        it.get_line( buffer );
+        it.get_line( buffer_ );
     }
     assert( !it || *it == '+' );
 
-    if( buffer.length() == 0 ) {
+    if( buffer_.length() == 0 ) {
         throw std::runtime_error(
             "Malformed Fastq " + it.source_name() + ": Empty sequence at line "
             + std::to_string( it.line() - 1 ) + "."
@@ -219,14 +214,14 @@ void FastqReader::parse_sites_( utils::InputStream& input_stream, std::string& b
 
     // Apply site casing, if needed.
     if( site_casing_ == SiteCasing::kToUpper ) {
-        utils::to_upper_ascii_inplace( buffer );
+        utils::to_upper_ascii_inplace( buffer_ );
     } else if( site_casing_ == SiteCasing::kToLower ) {
-        utils::to_lower_ascii_inplace( buffer );
+        utils::to_lower_ascii_inplace( buffer_ );
     }
 
     // Validate, if needed.
     if( use_validation_ ) {
-        for( auto const& c : buffer ) {
+        for( auto const& c : buffer_ ) {
             if( !lookup_[c] ) {
                 throw std::runtime_error(
                     "Malformed Fastq " + it.source_name() + ": Invalid sequence symbol "
@@ -238,13 +233,13 @@ void FastqReader::parse_sites_( utils::InputStream& input_stream, std::string& b
     }
 
     // Copy the buffer to the sequence sites, which removes surplus capacity.
-    sequence.sites( buffer );
+    sequence.sites( buffer_ );
 }
 
-void FastqReader::parse_label2_( utils::InputStream& input_stream, std::string& buffer, Sequence& sequence ) const
+void FastqReader::parse_label2_( utils::InputStream& input_stream, Sequence& sequence ) const
 {
     auto& it = input_stream;
-    buffer.clear();
+    buffer_.clear();
 
     // Check beginning of sequence.
     if( !it || *it != '+' ) {
@@ -260,9 +255,9 @@ void FastqReader::parse_label2_( utils::InputStream& input_stream, std::string& 
     // Parse label. No need to run the vailidty check here again, as we can simply compare
     // against line1 that was read before. So, we can use the buffer.
     // The get_line function appends to the buffer.
-    it.get_line( buffer );
+    it.get_line( buffer_ );
 
-    if( ! buffer.empty() && buffer != sequence.label() ) {
+    if( ! buffer_.empty() && buffer_ != sequence.label() ) {
         throw std::runtime_error(
             "Malformed Fastq " + it.source_name() + ": Expecting the second label line to either " +
             "be empty or equal to the first label line at line " + std::to_string( it.line() ) + "."
@@ -270,10 +265,10 @@ void FastqReader::parse_label2_( utils::InputStream& input_stream, std::string& 
     }
 }
 
-void FastqReader::parse_quality_( utils::InputStream& input_stream, std::string& buffer, Sequence& sequence ) const
+void FastqReader::parse_quality_( utils::InputStream& input_stream, Sequence& sequence ) const
 {
     auto& it = input_stream;
-    buffer.clear();
+    buffer_.clear();
 
     // Check for unexpected end of file.
     if( !it ) {
@@ -287,18 +282,18 @@ void FastqReader::parse_quality_( utils::InputStream& input_stream, std::string&
 
     // Parse qualities. At every beginning of the loop, we are at a line start.
     // Continue until we have read as much characters as the sequence is long.
-    while( it && buffer.size() < sequence.sites().size() ) {
+    while( it && buffer_.size() < sequence.sites().size() ) {
 
         // Again, this function is only called internally, and only ever when we are at the
         // beginning of a new line. Assert this.
         assert( it.column() == 1 );
 
         // The get_line function appends to the buffer.
-        it.get_line( buffer );
+        it.get_line( buffer_ );
     }
-    assert( !it || buffer.size() >= sequence.sites().size() );
+    assert( !it || buffer_.size() >= sequence.sites().size() );
 
-    if( buffer.size() != sequence.sites().size() ) {
+    if( buffer_.size() != sequence.sites().size() ) {
         throw std::runtime_error(
             "Malformed Fastq " + it.source_name()
             + ": Expecting the quality scores to be of the same length as the sequence at line "
@@ -308,7 +303,7 @@ void FastqReader::parse_quality_( utils::InputStream& input_stream, std::string&
 
     // Run the plugin, if availabe.
     if( quality_string_plugin_ ) {
-        quality_string_plugin_( buffer, sequence );
+        quality_string_plugin_( buffer_, sequence );
     }
 }
 
