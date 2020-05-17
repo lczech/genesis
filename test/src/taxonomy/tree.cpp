@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -61,6 +61,7 @@ TEST( Taxonomy, Tree )
     // auto const tree = taxonomy_to_tree( tax );
     auto nw = CommonTreeNewickWriter();
     nw.enable_branch_lengths( false );
+    nw.trailing_new_line( false );
 
     // LOG_DBG << "default";
     auto const t1 = taxonomy_to_tree( tax );
