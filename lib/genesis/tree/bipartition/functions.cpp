@@ -46,6 +46,7 @@
 #include <cassert>
 #include <limits>
 #include <stdexcept>
+#include <string>
 
 namespace genesis {
 namespace tree {
@@ -180,7 +181,7 @@ utils::Bitvector leaf_node_bitvector( Tree const& tree, std::vector<TreeNode con
         auto const leaf_idx = node_to_leafs[ n->index() ];
         if( leaf_idx == std::numeric_limits<std::size_t>::max() ) {
             throw std::runtime_error(
-                "Node at index " + utils::to_string( n->index() ) + " is not a leaf."
+                "Node at index " + std::to_string( n->index() ) + " is not a leaf."
             );
         }
         result.set( leaf_idx );

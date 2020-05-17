@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,49 +39,6 @@ namespace utils {
 // =================================================================================================
 //     Bitvector Operators
 // =================================================================================================
-
-Bitvector operator & (Bitvector const& lhs, Bitvector const& rhs)
-{
-    // make a copy.
-    Bitvector result = Bitvector(lhs);
-
-    // check for self-and.
-    if (&lhs == &rhs) {
-        return result;
-    }
-
-    // if not, return and with right hand side.
-    result &= rhs;
-    return result;
-}
-
-Bitvector operator | (Bitvector const& lhs, Bitvector const& rhs)
-{
-    // make a copy.
-    Bitvector result = Bitvector(lhs);
-
-    // check for self-or.
-    if (&lhs == &rhs) {
-        return result;
-    }
-
-    // if not, return or with right hand side.
-    result |= rhs;
-    return result;
-}
-
-Bitvector operator ^ (Bitvector const& lhs, Bitvector const& rhs)
-{
-    // check for self-xor. if so, return zero vector of same size.
-    if (&lhs == &rhs) {
-        return Bitvector(lhs.size(), false);
-    }
-
-    // otherwise, make a copy and xor it.
-    Bitvector result = Bitvector(lhs);
-    result ^= rhs;
-    return result;
-}
 
 Bitvector bitwise_and (Bitvector const& lhs, Bitvector const& rhs)
 {

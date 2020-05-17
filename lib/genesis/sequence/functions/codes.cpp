@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 
 #include "genesis/sequence/functions/codes.hpp"
 
+#include "genesis/utils/io/char.hpp"
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/tools/color.hpp"
 
@@ -346,7 +347,7 @@ std::string amino_acid_codes_all()
 std::string normalize_code_alphabet( std::string const& alphabet )
 {
     // Uppercase, sort, uniq the alphabet.
-    auto normalized = utils::to_upper_ascii( alphabet );
+    auto normalized = utils::to_upper( alphabet );
     std::sort( normalized.begin(), normalized.end() );
     normalized.erase( std::unique( normalized.begin(), normalized.end() ), normalized.end() );
     return normalized;
@@ -390,7 +391,7 @@ char normalize_nucleic_acid_code( char code, bool accept_degenerated )
         case 'v':
         case 'V':
             if( accept_degenerated ) {
-                return utils::to_upper_ascii( code );
+                return utils::to_upper( code );
             } else {
                 throw std::invalid_argument(
                     "Degenerated nucleic acid code not accepted: " + std::string( 1, code )
@@ -459,7 +460,7 @@ char normalize_amino_acid_code( char code, bool accept_degenerated )
         case 'v':
         case 'w':
         case 'y':
-            return utils::to_upper_ascii( code );
+            return utils::to_upper( code );
         case 'B':
         case 'J':
         case 'Z':
@@ -467,7 +468,7 @@ char normalize_amino_acid_code( char code, bool accept_degenerated )
         case 'j':
         case 'z':
             if( accept_degenerated ) {
-                return utils::to_upper_ascii( code );
+                return utils::to_upper( code );
             } else {
                 throw std::invalid_argument(
                     "Degenerated amino acid code not accepted: " + std::string( 1, code )
@@ -675,7 +676,7 @@ std::string nucleic_acid_ambiguities( char code )
 char nucleic_acid_ambiguity_code( std::string codes )
 {
     // Uppercase, sort, uniq the codes.
-    auto tmp = utils::to_upper_ascii( codes );
+    auto tmp = utils::to_upper( codes );
     std::sort( tmp.begin(), tmp.end() );
     tmp.erase( std::unique( tmp.begin(), tmp.end() ), tmp.end() );
 

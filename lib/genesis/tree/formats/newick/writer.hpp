@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,8 @@
  * @ingroup tree
  */
 
+#include "genesis/utils/io/output_target.hpp"
+
 #include <iosfwd>
 #include <functional>
 #include <string>
@@ -40,7 +42,7 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Forward declarations
+//     Forward Declarations
 // =================================================================================================
 
 class  Tree;
@@ -58,11 +60,10 @@ struct NewickBrokerElement;
 /**
  * @brief Write a Tree to Newick format.
  *
- * This class supports to write a Tree into a Newick format representation, using
+ * This class supports to write a Tree into a Newick format representation, for example
  *
- *   * to_file()
- *   * to_string()
- *   * to_stream()
+ *     Tree tree;
+ *     CommonTreeNewickWriter().write( tree, utils::to_file( "path/to/file.newick" ));
  *
  * It understands the Newick format, but is agnostic of the actual data representation of
  * TreeNode and TreeEdge data. This approach allows to store data in any wanted format.
@@ -165,27 +166,28 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Write a Tree to a stream, in Newick format.
-     */
-    void to_stream( Tree const& tree, std::ostream& os ) const;
-
-    /**
-     * @brief Writes the tree to a file in Newick format.
+     * @brief Write a Tree to an output target, using the Newick format.
      *
-     * If the file cannot be written to, the function throws an exception. Also, by default, if the file
-     * already exists, an exception is thrown.
-     * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
-     * change this behaviour.
+     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
+     * utils::to_string() for examples of how to obtain a suitable output target.
      */
-    void to_file( Tree const& tree, std::string const& filename) const;
+    void write( Tree const& tree, std::shared_ptr<utils::BaseOutputTarget> target ) const;
 
     /**
-     * @brief Gives a Newick string representation of the tree.
+     * @brief Write all Tree%s in a TreeSet to an output target, using the Newick format.
+     *
+     * Trees are separated from each other by semicolons and new line characters. If @p with_names
+     * is set to `true`, each tree is preprended by its name as stored in the TreeSet, in the format
+     *
+     *     name = (<newick tree>);
+     *
+     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
+     * utils::to_string() for examples of how to obtain a suitable output target.
      */
-    void to_string( Tree const& tree, std::string& ts ) const;
+    void write( TreeSet const& tree_set, std::shared_ptr<utils::BaseOutputTarget> target, bool with_names = false ) const;
 
     /**
-     * @brief Returns a Newick string representation of the tree.
+     * @brief Shorthand to write a Tree to Newick format and return it is a string.
      */
     std::string to_string( Tree const& tree ) const;
 
@@ -251,20 +253,20 @@ public:
      * Lastly, if write_tags() is `true`, names with curly braces in them ('{}') are also wrapped
      * in quotation marks, as those are used for tags.
      */
-    NewickWriter& quotation_marks( char value )
+    NewickWriter& quotation_mark( char value )
     {
-        quotation_marks_ = value;
+        quotation_mark_ = value;
         return *this;
     }
 
     /**
      * @brief Get the currently set type of quotation marks used for node names.
      *
-     * See quotation_marks( char ) for details.
+     * See quotation_mark( char ) for details.
      */
-    char quotation_marks() const
+    char quotation_mark() const
     {
-        return quotation_marks_;
+        return quotation_mark_;
     }
 
     /**
@@ -272,7 +274,7 @@ public:
      * the name contains any characters that need to be wrapped
      *
      * Default is `false`. This setting can be used to ensure that all names have quotation marks,
-     * which is a requirement for certain other parser. See also quotation_marks( char ) to set
+     * which is a requirement for certain other parsers. See also quotation_mark( char ) to set
      * the type of quotation mark.
      */
     NewickWriter& force_quotation_marks( bool value )
@@ -289,6 +291,60 @@ public:
     bool force_quotation_marks() const
     {
         return force_quot_marks_;
+    }
+
+    /**
+     * @brief Set the approximate maximal line length to use when writing Newick trees.
+     *
+     * Some large trees become hard to inspect in the resulting Newick file if the whole tree is
+     * written in just one long line. Also, some tools might not be able to handle such long lines
+     * properly. Hence, setting this option to a value other than 0 (default, which means, all
+     * is written in one line) leads to the writer inserting line breaks at the next possible
+     * character after the @p value line length has been reached. Hence, lines can be longer than
+     * the given value. Also, be aware that some other tools might not be able to read trees
+     * that are spread across several lines. Newick is messy.
+     */
+    NewickWriter& line_length( size_t value )
+    {
+        line_length_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get the currently set approximate maximal line length.
+     *
+     * Default is 0, which means, all is written in one long line.
+     *
+     * @see line_length( size_t )
+     */
+    size_t line_length() const
+    {
+        return line_length_;
+    }
+
+    /**
+     * @brief Set whether to write a new line char `\n` at the end of each tree.
+     *
+     * By default, this is set to `true`, meaning that each tree is finished with a `\n` char,
+     * which is usually desirable when writing to Newick files or the like. However, in cases
+     * where the Newick string itself is used in some other format (e.g., jplace or nexus), this
+     * might not be wanted. Hence, we allow to disable the new line.
+     */
+    NewickWriter& trailing_new_line( bool value )
+    {
+        trailing_new_line_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get the current setting for whether a new line char `\n` is written to the end
+     * of each tree.
+     *
+     * @see trailing_new_line( bool )
+     */
+    bool trailing_new_line() const
+    {
+        return trailing_new_line_;
     }
 
     /**
@@ -390,24 +446,9 @@ public:
     NewickBroker tree_to_broker( Tree const& tree ) const;
 
     /**
-    * @brief Write a NewickBroker to a stream, in Newick format.
-    */
-    void broker_to_stream( NewickBroker const& broker, std::ostream& os ) const;
-
-    /**
-     * @brief Writes a NewickBroker to a file in Newick format.
+     * @brief Write a NewickBroker to an output target, in Newick format.
      */
-    void broker_to_file( NewickBroker const& broker, std::string const& filename) const;
-
-    /**
-     * @brief Gives a Newick string representation of the tree.
-     */
-    void broker_to_string( NewickBroker const& broker, std::string& ts ) const;
-
-    /**
-     * @brief Returns a Newick string representation of the tree.
-     */
-    std::string broker_to_string( NewickBroker const& broker ) const;
+    void write( NewickBroker const& broker, std::shared_ptr<utils::BaseOutputTarget> target ) const;
 
     // -------------------------------------------------------------------------
     //     Internal Functions
@@ -416,21 +457,25 @@ public:
 private:
 
     /**
-     * @brief Return the Newick text string representation of a NewickBrokerElement.
+     * @brief Write the Newick text string representation of a NewickBrokerElement to an output target.
+     *
+     * Returns the number of characters that have been written.
      */
-    std::string element_to_string_( NewickBrokerElement const& bn ) const;
+    size_t write_( NewickBrokerElement const& bn, std::ostream& os ) const;
 
     /**
      * @brief Recursive function that returns the string representation of a clade of a tree.
      */
-    std::string to_string_rec_( NewickBroker const& broker, size_t pos ) const;
+    // std::string to_string_rec_( NewickBroker const& broker, size_t pos ) const;
 
     // -------------------------------------------------------------------------
     //     Member Data
     // -------------------------------------------------------------------------
 
     bool force_quot_marks_ = false;
-    char quotation_marks_  = '\"';
+    char quotation_mark_  = '\"';
+    size_t line_length_ = 0;
+    bool trailing_new_line_ = true;
 
     bool write_names_    = true;
     bool write_values_   = true;

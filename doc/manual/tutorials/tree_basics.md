@@ -112,8 +112,8 @@ Writing a Tree to Newick and PhyloXML works similarly, using
 
 ~~~{.cpp}
 // Write a Tree to a Newick file and a PhyloXML file.
-CommonTreeNewickWriter().to_file( tree, "path/to/tree.nw" );
-CommonTreePhyloxmlWriter().to_file( tree, "path/to/tree.phyloxml" );
+CommonTreeNewickWriter().write( tree, to_file( "path/to/tree.nw" ));
+CommonTreePhyloxmlWriter().write( tree, to_file( "path/to/tree.phyloxml" ));
 ~~~
 
 For more details, particularly on how to read different data for the nodes and edges, see

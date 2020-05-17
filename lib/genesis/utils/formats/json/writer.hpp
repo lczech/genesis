@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,8 @@
  * @file
  * @ingroup utils
  */
+
+#include "genesis/utils/io/output_target.hpp"
 
 #include <iosfwd>
 #include <string>
@@ -74,24 +76,12 @@ public:
 public:
 
     /**
-     * @brief Write a JsonDocument to a stream.
-     */
-    void        to_stream ( JsonDocument const& document, std::ostream& out ) const;
-
-    /**
-     * @brief Write a JsonDocument to a file.
+     * @brief Write a JsonDocument to an output target, using the JSON format.
      *
-     * If the file cannot be written to, the function throws an exception. Also, by default, if the
-     * file already exists, an exception is thrown.
-     * See @link Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink
-     * to change this behaviour.
+     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
+     * utils::to_string() for examples of how to obtain a suitable output target.
      */
-    void        to_file   ( JsonDocument const& document, std::string const& filename) const;
-
-    /**
-     * @brief Give the Json string representation of a JsonDocument.
-     */
-    void        to_string ( JsonDocument const& document, std::string& output) const;
+    void write( JsonDocument const& document, std::shared_ptr<utils::BaseOutputTarget> target ) const;
 
     /**
      * @brief Return the Json representation of a JsonDocument.

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,9 @@
 #include "genesis/sequence/functions/functions.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 #include "genesis/sequence/formats/phylip_reader.hpp"
+#include "genesis/sequence/formats/phylip_writer.hpp"
+
+#include "genesis/utils/text/string.hpp"
 
 #include <string>
 
@@ -229,3 +232,24 @@ TEST( Sequence, PhylipReaderDnaSequentialAuto )
 }
 
  */
+
+TEST( Sequence, PhylipWriter )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Load sequence file.
+    std::string infile = environment->data_dir + "sequence/dna_5_42_s.phylip";
+    SequenceSet sset;
+    PhylipReader()
+        .label_length( 10 )
+        .valid_chars( nucleic_acid_codes_all() )
+        .read( from_file(infile), sset);
+
+    // Check data.
+    EXPECT_EQ( 5, sset.size() );
+
+    std::string target;
+    PhylipWriter().label_length(10).write( sset, genesis::utils::to_string( target ) );
+    EXPECT_EQ( 6, count_substring_occurrences( target, "\n" ));
+}

@@ -6,7 +6,7 @@ troubleshooting and for developers who want to contribute to the Genesis code ba
 
 # Overview @anchor supplement_build_process_overview
 
-We use CMake as build system. The `CMakeLists.txt` in the main directory contains basic
+We use CMake as build system generator. The `CMakeLists.txt` in the main directory contains basic
 information about the whole project. It further calls the following sub-build-scripts:
 
  *  `lib/genesis/CMakeLists.txt`: main build script for the library.
@@ -18,7 +18,7 @@ information about the whole project. It further calls the following sub-build-sc
 
 For ease of development, the source files that need to be compiled are included using CMake's
 glob file search. This however means that added or removed source files (such as a newly created
-class) are not found once CMake is run. In order to still support incremental builds (that is,
+class) are not found once CMake has run once. In order to still support incremental builds (that is,
 compile only new or changed files), there is also a `Makefile`. It has a target `update`, which
 prompts CMake to update its file list.
 
@@ -53,7 +53,9 @@ cmake .. [options]
 make
 ~~~
 
-This is for example necessary when you want to customize the CMake options.
+This is for example necessary when you want to customize the CMake options, such as deactivating
+features. We however do not recommend to do this (e.g., deactivate OpenMP or zlib), as this reduces
+the functionality and speed of genesis.
 
 # Build Output @anchor supplement_build_process_build_output
 
@@ -78,9 +80,9 @@ we build the static lib (`.a`) by default.
 
 The reasoning behind this is as follows: As stand-alone, Genesis is most likely to be used with
 its @ref setup_apps setup, where the apps are probably staying in one place, so linking against a
-shared object makes sense to share resources. However, as a dependency/library, Genesis is just one
-among many tools that the master program wants to use, and in order to make it possible to move the
-final binary around, it makes sense to link statically.
+shared object makes sense to share resources. However, when used a dependency/library, Genesis is
+just one among many tools that the master program wants to use, and in order to make it possible
+to move the final binary around, it makes sense to link statically.
 
 In order to explicitly change those defaults, use the CMake options `GENESIS_BUILD_SHARED_LIB` and
 `GENESIS_BUILD_STATIC_LIB`. For example, in your `CMakeLists.txt`, you can force these options via:
@@ -125,7 +127,8 @@ So, for development, adding the line
     export GENESIS_DEBUG=1
 
 to the terminal startup script (e.g., `.bash_rc` in the users home directory) will compile Genesis
-in debug mode.
+in debug mode (with incremental builds, and with tests) automatically all the time. This is what
+we do for development. It is a hack, but it is convenient!
 
 # Unity Build @anchor supplement_build_unity_build
 
@@ -146,7 +149,7 @@ There are three modes:
      optimization.
   3. `OFF`: Every `cpp` file is compiled on its own. This takes longest for a fresh build but needs
      the least memory. It is also used for the debug build, because when working on files, it is
-     still faster to just compile them, instead of fully compiling everything.
+     still faster to just compile them incrementally, instead of fully compiling everything.
 
 You can change those modes via the CMake option `GENESIS_UNITY_BUILD`.
 See the @ref supplement_build_process_overview "Overview" for how to explicitly build Genesis using
@@ -163,28 +166,92 @@ where, instead of `MODULE`, you can also use `OFF`.
 Genesis uses C++11, thus we need a compiler that supports all its features.
 We recommend gcc >= 5 or clang >= 3.9.
 
+## GCC @anchor supplement_build_process_supported_compilers_gcc
+
 The first gcc version with all necessary features is gcc 5.
-Before that, gcc 4.8 and gcc 4.9 promised to be feature-complete for C++11, see
+Before that, gcc 4.8 and gcc 4.9 were feature-complete for C++11, see
 [here](https://gcc.gnu.org/projects/cxx-status.html#cxx11) and
 [here](https://gcc.gnu.org/ml/gcc/2014-04/msg00195.html).
-Unfortunately, some functionality is still not available in these versions, in particular,
+Unfortunately, the STL was not feature-complete in these versions, in particular,
 `std::regex`, `std::get_time`, and `std::put_time`, which are used in some functions of genesis.
 Hence, we recommend at least gcc 5.
 Compiling with gcc 4.8 and 4.9 should still work, and most features of Genesis can be used, too.
 However, this throws an exception when trying to call any function that uses `std::regex`,
 `std::get_time`, and `std::put_time` (which are just a few).
 
+## Clang @anchor supplement_build_process_supported_compilers_clang
+
 Clang supports C++11 since version 3.3, see [here](https://clang.llvm.org/cxx_status.html).
 We currently only test it with later versions though. You are welcome to report any issues
 with other Clang versions to the [GitHub Issues Page](https://github.com/lczech/genesis/issues).
-Also, older versions of clang have issues with finding OpenMP. If this causes issues,
-you can either deactivate OpenMP via the CMake options (not recommended), or install `libomp5` and
-`libiomp-dev` before compiling.
+
+**Clang and OpenMP**. Many (older) versions of clang have issues with finding OpenMP. If this causes issues,
+you can either deactivate OpenMP via the CMake options (not recommended), or install `libiomp-dev`
+(and potentially `libomp5`) before compiling. See below for more on OpenMP,
+and also see the `.travis.yml` CI file in the main genesis directory for some more hints.
+
+<!-- ## Remarks on the STL
 
 Make sure that your `libstdc++` is also up to date. This is the standard library for C++, which is
 heavily used in Genesis. It is usually installed with `g++`. However, some versions of `clang++` seem
 to use the `g++` version of `libstdc++`, so if you have a new `clang++`, but old `g++` version,
-this might cause trouble. Best to update both of them.
+this might cause trouble. Best to update both of them. -->
+
+# Dependencies @anchor supplement_build_process_dependencies
+
+Genesis does not have any external library dependencies, with the exception of a few basics:
+OpenMP and zlib. We recommend to get both working, for full functionality of genesis.
+If you want/need to deactivate any of them nonetheless, use the above manual CMake setup
+as explained in @ref supplement_build_process_overview, and provide the following flags:
+
+```
+- cmake -DGENESIS_USE_OPENMP=OFF -DGENESIS_USE_ZLIB=OFF ..
+```
+
+to deactivate both. Adapt to your needs if only one needs to be deactivated.
+
+## OpenMP @anchor supplement_build_process_openmp
+
+To enable genesis to deal with large amounts of data, we need thread parallelization. To this end,
+we use [OpenMP](https://en.wikipedia.org/wiki/OpenMP), and highly recommend to get this running
+if you compile genesis.
+
+Mostly, this should work out of the box with gcc on Linux systems.
+With clang, as mentioned above, you might first need to install `libiomp-dev`
+(and potentially `libomp5`) before CMake can find the OpenMP libraries.
+
+On maOS (osx), this is more complicated, as the built-in AppleClang compiler does not support OpenMP.
+Hence, we need custom Clang versions and the OpenMP libraries:
+
+```
+brew install llvm libomp
+```
+
+Furthermore, we then need to set the path to the compiler, so that it can be found by CMake
+when compiling genesis:
+
+```
+export PATH="$(brew --prefix llvm)/bin:$PATH"
+export CC="/usr/local/opt/llvm/bin/clang"
+export CXX="$(CC)++"
+export CFLAGS="-I /usr/local/include -I/usr/local/opt/llvm/include -I/usr/local/opt/llvm/include/c++/v1/"
+export CXXFLAGS=${CFLAGS}
+export CPPFLAGS=${CFLAGS}
+export LDFLAGS="-L /usr/local/lib -L/usr/local/opt/llvm/lib"
+```
+
+For further information, try these resources:
+
+ * https://iscinumpy.gitlab.io/post/omp-on-high-sierra/
+ * https://embeddedartistry.com/blog/2017/02/24/installing-llvm-clang-on-osx/
+
+Good luck, and please let us know if you have any trouble with this!
+
+## zlib @anchor supplement_build_process_zlib
+
+Genesis uses zlib to support working with gz-compressed files. This should mainly work out of the
+box on both Linux and macOS systems. However, occasionally, you might need to install `zlib1g-dev`
+first.
 
 # Testing Genesis with GTest @anchor supplement_build_process_testing_with_gtest
 
@@ -208,7 +275,7 @@ When building Genesis tests, we try a couple of ways to find GTest:
  * If it is not found there, we check for a global installation.
  * If this fails too, we try to download it and build it from scratch.
    This is particularly useful for running the tests in continuous integration.
-   It has the big advantage that it compiles GTest with the same flags used for Genesis.
+   It has the additional advantage that it compiles GTest with the same flags used for Genesis.
 
 See `genesis/test/CMakeLists.txt` for details of this process.
 

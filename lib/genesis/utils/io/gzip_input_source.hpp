@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ namespace utils {
  * The class can be moved, but not copied, because of the internal state that is kept for
  * decompression, and which would mess up the input source if copied.
  */
-class GzipInputSource : public BaseInputSource
+class GzipInputSource final : public BaseInputSource
 {
 public:
 
@@ -138,11 +138,6 @@ private:
      * source, potentially removing a trailing ".gz" (for convenience when reading files).
      */
     std::string source_string_() const override;
-
-    /**
-     * @brief Throw an exception for zlib related errors.
-     */
-    void report_zlib_error_( int error_code ) const;
 
     /**
     * @brief Get the zlib internal int form of the format enum.

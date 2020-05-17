@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/text/char.hpp"
+#include "genesis/utils/io/char.hpp"
 
 #include <cctype>
 #include <functional>
@@ -371,7 +371,7 @@ std::string to_string_rounded( double value, int precision = 6 );
  * string where otherwise some stream operations would have been necessary.
  */
 template <typename T>
-std::string to_string( T const& v )
+std::string to_string_nice( T const& v )
 {
     std::ostringstream s;
     s << v;

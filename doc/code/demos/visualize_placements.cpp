@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -162,11 +162,11 @@ std::vector<utils::Color> counts_to_colors(
         pow_v = log( pow( 10, pow_i )) / log( mass_max );
         if( pow_v <= 1.0 ) {
             labels += "    " + utils::to_string_precise( pow_v, 6 ) + " -> ";
-            labels += utils::to_string( pow( 10, pow_i )) + "\n";
+            labels += std::to_string( pow( 10, pow_i )) + "\n";
         }
         ++pow_i;
     } while( pow_v <= 1.0 );
-    labels += "    1.000000 -> " + utils::to_string( mass_max ) + "\n";
+    labels += "    1.000000 -> " + utils::to_string_precise( mass_max ) + "\n";
     LOG_INFO << labels;
 
     // Calculate the resulting colors.
@@ -223,7 +223,7 @@ void write_color_tree_to_nexus(
 
     // Write the document to a Nexus file.
     auto nexus_writer = utils::NexusWriter();
-    nexus_writer.to_file( nexus_doc, nexus_filename );
+    nexus_writer.write( nexus_doc, utils::to_file( nexus_filename ));
 }
 
 // =================================================================================================

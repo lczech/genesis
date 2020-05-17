@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,14 +31,20 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/taxonomy/formats/taxopath_generator.hpp"
+#include "genesis/utils/io/output_target.hpp"
 
 #include <iosfwd>
 #include <string>
 
 namespace genesis {
 namespace taxonomy {
+
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class Taxonomy;
 
 // =================================================================================================
 //     Taxonomy Writer
@@ -68,9 +74,7 @@ public:
     //     Writing
     // ---------------------------------------------------------------------
 
-    void        to_stream ( Taxonomy const& tax, std::ostream&      os ) const;
-    void        to_file   ( Taxonomy const& tax, std::string const& fn ) const;
-    std::string to_string ( Taxonomy const& tax ) const;
+    void write( Taxonomy const& tax, std::shared_ptr<utils::BaseOutputTarget> target ) const;
 
     // ---------------------------------------------------------------------
     //     Properties

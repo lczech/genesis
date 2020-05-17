@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -246,7 +246,9 @@ utils::SvgDocument heat_tree(
     SvgMatrixSettings svg_mat_set;
     svg_mat_set.pixel_height = layout.height() / static_cast<double>( matrix.rows() - 1 );
     svg_mat_set.pixel_width = svg_mat_set.pixel_height;
-    auto svg_matrix = make_svg_matrix( matrix, svg_mat_set, {}, params.column_labels );
+    auto svg_matrix = make_svg_matrix(
+        matrix, svg_mat_set, std::vector<std::string>{}, params.column_labels
+    );
     svg_matrix.transform.append( SvgTransform::Translate(
         svg_doc.bounding_box().width() + 20.0, - svg_mat_set.pixel_width / 2.0
     ));

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -220,24 +220,32 @@ char cycle_substitution( char original, size_t count )
                 case 0: return 'C';
                 case 1: return 'G';
                 case 2: return 'T';
+                default:
+                    throw std::runtime_error( "Got to AA" );
             }
         case 'C':
             switch( count ) {
                 case 0: return 'A';
                 case 1: return 'T';
                 case 2: return 'G';
+                default:
+                    throw std::runtime_error( "Got to CC" );
             }
         case 'G':
             switch( count ) {
                 case 0: return 'T';
                 case 1: return 'A';
                 case 2: return 'C';
+                default:
+                    throw std::runtime_error( "Got to GG" );
             }
         case 'T':
             switch( count ) {
                 case 0: return 'G';
                 case 1: return 'C';
                 case 2: return 'A';
+                default:
+                    throw std::runtime_error( "Got to TT" );
             }
     }
     throw std::runtime_error( "Invalid char in test. Weird." );

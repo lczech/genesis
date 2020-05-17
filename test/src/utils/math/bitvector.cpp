@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,54 @@
 #include <iostream>
 
 using namespace genesis::utils;
+
+TEST( Bitvector, Arithmetics )
+{
+    Bitvector const bv0( "010101010101" );
+    Bitvector const bv1( "111000111000" );
+    Bitvector const bv2( "111100001111" );
+
+    Bitvector const bvz( 12, false );
+    Bitvector const bvo( 12, true );
+
+    // Self-and is a fixpoint
+    EXPECT_EQ( bv0, bv0 & bv0 );
+    EXPECT_EQ( bv1, bv1 & bv1 );
+    EXPECT_EQ( bv2, bv2 & bv2 );
+
+    // Self-or is a fixpoint
+    EXPECT_EQ( bv0, bv0 | bv0 );
+    EXPECT_EQ( bv1, bv1 | bv1 );
+    EXPECT_EQ( bv2, bv2 | bv2 );
+
+    // Self-xor gives 0s
+    EXPECT_EQ( bvz, bv0 ^ bv0 );
+    EXPECT_EQ( bvz, bv1 ^ bv1 );
+    EXPECT_EQ( bvz, bv2 ^ bv2 );
+
+    // Test inverse
+    EXPECT_EQ( Bitvector( "101010101010" ), ~bv0 );
+    EXPECT_EQ( Bitvector( "000111000111" ), ~bv1 );
+    EXPECT_EQ( Bitvector( "000011110000" ), ~bv2 );
+
+    // Test pop counting
+    EXPECT_EQ( 6, bv0.count() );
+    EXPECT_EQ( 6, bv1.count() );
+    EXPECT_EQ( 8, bv2.count() );
+
+    // Test inverse as well, which also tests that the padding is 0
+    EXPECT_EQ( 6, (~bv0).count() );
+    EXPECT_EQ( 6, (~bv1).count() );
+    EXPECT_EQ( 4, (~bv2).count() );
+
+    // Test some inequality as well
+    EXPECT_FALSE( bv0 == bv1 );
+    EXPECT_FALSE( bv0 == bv2 );
+    EXPECT_FALSE( bv1 == bv2 );
+    EXPECT_TRUE(  bv0 != bv1 );
+    EXPECT_TRUE(  bv0 != bv2 );
+    EXPECT_TRUE(  bv1 != bv2 );
+}
 
 TEST( Bitvector, CopyRange )
 {

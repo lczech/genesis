@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,40 +28,61 @@
  * @brief
  *
  * @file
- * @ingroup utils
+ * @ingroup except
  */
 
 #include <stdexcept>
 #include <string>
 
 namespace genesis {
+namespace except {
 
 // =================================================================================================
-//     Error Base Class
+//     Exception Base Class
 // =================================================================================================
 
 /**
- * @brief Base class for special genesis exceptions.
+ * @brief Base class for genesis exceptions.
+ *
+ * This class serves as the base from which all exceptions that are thrown from genesis shall
+ * be derived. We are far from having done this yet (unfortunately, we had this idea too late...),
+ * so for now, there are only a few exceptions that use this class as their base.
+ * But in the long term, we want to change that, so that developers using genesis can easily
+ * catch all genesis-related exceptions.
  */
-class Error : public std::runtime_error
+class Exception
+    : public std::exception
 {
 public:
 
-    Error( std::string const& message )
-        : std::runtime_error( message )
+    Exception( std::string const& message )
+        : message_( message )
     {}
+
+    char const* what() const noexcept override {
+        return message_.c_str();
+    }
+
+protected:
+
+    std::string message_;
+
 };
 
 // =================================================================================================
 //     File Related Errors
 // =================================================================================================
 
-class ExistingFileError : public Error
+/**
+ * @brief Exception class for general input/output errors.
+ */
+class IOError
+    : public Exception
 {
 public:
 
-    ExistingFileError( std::string const& message, std::string const& filename )
-        : Error( message )
+    IOError( std::string const& message, std::string const& filename )
+        : Exception( message )
         , filename_( filename )
     {}
 
@@ -70,11 +91,28 @@ public:
         return filename_;
     }
 
-private:
+protected:
 
     std::string filename_;
 };
 
+/**
+ * @brief Exception class that is thrown if trying to write to an existing file.
+ *
+ * See for example file_output_stream(). This exception is not thrown if
+ * Options::get().allow_file_overwriting() is set to true.
+ */
+class ExistingFileError
+    : public IOError
+{
+public:
+
+    ExistingFileError( std::string const& message, std::string const& filename )
+        : IOError( message, filename )
+    {}
+};
+
+} // namespace except
 } // namespace genesis
 
 #endif // include guard

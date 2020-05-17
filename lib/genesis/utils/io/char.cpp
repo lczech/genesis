@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/text/char.hpp"
+#include "genesis/utils/io/char.hpp"
 
 #include <array>
 #include <cassert>

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,10 +41,6 @@ namespace utils {
 // =================================================================================================
 //     Bitvector Operators
 // =================================================================================================
-
-Bitvector operator & (Bitvector const& lhs, Bitvector const& rhs);
-Bitvector operator | (Bitvector const& lhs, Bitvector const& rhs);
-Bitvector operator ^ (Bitvector const& lhs, Bitvector const& rhs);
 
 /**
  * @brief Take the bitwise `and` of two Bitvector%s of potentially different size.

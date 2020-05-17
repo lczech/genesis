@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2017 Lucas Czech
+# Copyright (C) 2014-2020 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,6 +18,31 @@
 # Lucas Czech <lucas.czech@h-its.org>
 # Exelixis Lab, Heidelberg Institute for Theoretical Studies
 # Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+
+# ------------------------------------------------------------------------------
+#   Extra Warnings
+# ------------------------------------------------------------------------------
+
+# Apple osx clang >= 9.3, as well as new gcc versions >= 9 spam a lot of warnings in googletest
+# about implicitly-declared types being deprecated. Let's silence them, as we are not interested
+# in warnings about googletest. That's something they have to fix!
+# Also, we have to use the double cmake version comparison here, as old osx cmake versions
+# do not yet have VERSION_GREATER_EQUAL, and crash otherwise...
+SET( GTEST_NO_WARN_DEPRECATED_COPY OFF )
+IF(
+    (APPLE AND
+    (CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND
+    ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9.3") OR
+    (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9.3")))
+    OR
+    ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
+    ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
+    (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9")))
+)
+    SET( GTEST_NO_WARN_DEPRECATED_COPY ON )
+    message (STATUS "Deactivate -Wdeprecated-copy for test binary.")
+ENDIF()
+# message (STATUS "GTEST_NO_WARN_DEPRECATED_COPY: ${GTEST_NO_WARN_DEPRECATED_COPY}")
 
 # ------------------------------------------------------------------------------
 #   Setup GTest
@@ -81,6 +106,13 @@ if(NOT GTEST_FOUND)
     SET( GTEST_BOTH_LIBRARIES gtest_main gtest )
     SET( GTEST_LIBRARIES gtest )
 
+    if(GTEST_NO_WARN_DEPRECATED_COPY)
+        target_compile_options(gtest      PRIVATE "-Wno-deprecated-copy")
+        target_compile_options(gtest_main PRIVATE "-Wno-deprecated-copy")
+        target_compile_options(gmock      PRIVATE "-Wno-deprecated-copy")
+        target_compile_options(gmock_main PRIVATE "-Wno-deprecated-copy")
+    endif()
+
     message (STATUS "Finished downloading GTest")
 endif()
 
@@ -117,6 +149,10 @@ include_directories (${PROJECT_SOURCE_DIR}/test)
 
 add_executable        (genesis_tests ${genesis_test_sources})
 set_target_properties (genesis_tests PROPERTIES OUTPUT_NAME genesis_tests)
+
+if(GTEST_NO_WARN_DEPRECATED_COPY)
+    target_compile_options(genesis_tests PRIVATE "-Wno-deprecated-copy")
+endif()
 
 target_link_libraries (genesis_tests genesis_lib_shared)
 target_link_libraries (genesis_tests ${GTEST_BOTH_LIBRARIES})

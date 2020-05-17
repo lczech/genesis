@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -82,7 +82,9 @@ void SampleSerializer::save( Sample const& map, std::string const& file_name )
     auto nw = PlacementTreeNewickWriter();
     nw.enable_names(true);
     nw.enable_branch_lengths(true);
-    ser.put_string(nw.to_string(map.tree()));
+    std::string tree;
+    nw.write( map.tree(), utils::to_string( tree ));
+    ser.put_string( std::move( tree ));
 
     // Write pqueries.
     ser.put_int(map.size());

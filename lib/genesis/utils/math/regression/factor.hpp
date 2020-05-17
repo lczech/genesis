@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -88,8 +88,8 @@ template <class ForwardIterator>
 GlmFactor<typename ForwardIterator::value_type> glm_factor(
     ForwardIterator first,
     ForwardIterator last,
-    std::vector<typename ForwardIterator::value_type> const& levels = {},
-    std::vector<typename ForwardIterator::value_type> const& exclude = {}
+    std::vector<typename ForwardIterator::value_type> const& levels,
+    std::vector<typename ForwardIterator::value_type> const& exclude
 ) {
     // Prepare result.
     using T = typename ForwardIterator::value_type;
@@ -148,6 +148,33 @@ GlmFactor<typename ForwardIterator::value_type> glm_factor(
     return result;
 }
 
+template <class ForwardIterator>
+GlmFactor<typename ForwardIterator::value_type> glm_factor(
+    ForwardIterator first,
+    ForwardIterator last,
+    std::vector<typename ForwardIterator::value_type> const& levels
+) {
+    return glm_factor(
+        first,
+        last,
+        levels,
+        std::vector<typename ForwardIterator::value_type>()
+    );
+}
+
+template <class ForwardIterator>
+GlmFactor<typename ForwardIterator::value_type> glm_factor(
+    ForwardIterator first,
+    ForwardIterator last
+) {
+    return glm_factor(
+        first,
+        last,
+        std::vector<typename ForwardIterator::value_type>(),
+        std::vector<typename ForwardIterator::value_type>()
+    );
+}
+
 /**
  * @brief Get the number of occurrences of each level in a GlmFactor.
  *
@@ -187,7 +214,7 @@ template<class T>
 Dataframe glm_indicator_variables(
     GlmFactor<T> const& factor,
     T const& reference_level,
-    std::vector<std::string> const& row_names = {}
+    std::vector<std::string> const& row_names = std::vector<std::string>{}
 ) {
     // Error checks.
     if( factor.levels.empty() ) {
@@ -274,7 +301,7 @@ Dataframe glm_indicator_variables(
 template<class T>
 Dataframe glm_indicator_variables(
     GlmFactor<T> const& factor,
-    std::vector<std::string> const& row_names = {}
+    std::vector<std::string> const& row_names = std::vector<std::string>{}
 ) {
     if( factor.levels.empty() ) {
         throw std::runtime_error( "Cannot create indicator variable from empty factor." );

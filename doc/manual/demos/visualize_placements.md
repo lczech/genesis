@@ -1,7 +1,7 @@
 Visualize Placements {#demos_visualize_placements}
 ===========
 
-@section Summary
+# Summary
 
 Takes one or more `jplace` file(s) and visualizes the distribution of
 @ref genesis::placement::Pquery "Pqueries" on the reference tree (that is, the number of
@@ -11,7 +11,7 @@ This demo is located at
 
     genesis/doc/code/demos/visualize_placements.cpp
 
-@section Details
+# Details
 
 The program takes a path to either a `jplace` file, or a directory containing `jplace` files, reads
 all of them and counts the placement mass (according to the `like_weight_ratio` of each placement)

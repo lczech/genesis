@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -86,7 +86,17 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Color that indicates values equal to mask_value() or non-finite values.
+     * @brief Color that indicates values equal to ColorNormalization::mask_value()
+     * or non-finite values.
+     *
+     * This color is used whenever an invalid (i.e., non-finite) value is requested. This happens
+     * for example for the ColorNormalization::mask_value(), which is a simple "invalid value"
+     * filter that can be used if a dataset contains a specific value to indicate N/A or NAN values.
+     * For example, some sensor data might use `99999` as this value. If this appears, and the
+     * ColorNormalization::mask_value() is set to that value, it will be mapped to a quited NAN
+     * by the ColorNormalization, and so end up getting the mask color here.
+     * Another instance where this happens is if negative values are used with the
+     * ColorNormalizationLogarithmic.
      */
     Color mask_color() const
     {

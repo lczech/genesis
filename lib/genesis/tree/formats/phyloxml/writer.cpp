@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,26 +53,14 @@ namespace tree {
 //     Printing
 // =================================================================================================
 
-void PhyloxmlWriter::to_file( Tree const& tree, std::string const& filename) const
-{
-    std::string ts;
-    to_string(tree, ts);
-    utils::file_write(ts, filename);
-}
-
-void PhyloxmlWriter::to_string( Tree const& tree, std::string& ts ) const
-{
-    ts = to_string(tree);
-}
-
-std::string PhyloxmlWriter::to_string( Tree const& tree ) const
+void PhyloxmlWriter::write( Tree const& tree, std::shared_ptr<utils::BaseOutputTarget> target ) const
 {
     utils::XmlDocument xml;
-    to_document(tree, xml);
-    return utils::XmlWriter().to_string(xml);
+    to_document( tree, xml );
+    utils::XmlWriter().write( xml, target );
 }
 
-void PhyloxmlWriter::to_document( Tree const& tree, utils::XmlDocument& xml ) const
+void PhyloxmlWriter::to_document ( Tree const& tree, utils::XmlDocument& xml ) const
 {
     xml.clear();
 

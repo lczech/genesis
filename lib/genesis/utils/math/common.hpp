@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -171,7 +171,7 @@ inline size_t int_pow( size_t base, size_t exp )
  */
 inline bool is_valid_int_pow( size_t base, size_t exp )
 {
-    return std::pow( base, exp ) < std::numeric_limits<size_t>::max();
+    return std::pow( base, exp ) < static_cast<double>( std::numeric_limits<size_t>::max() );
 }
 
 // =================================================================================================

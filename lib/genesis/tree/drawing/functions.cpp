@@ -69,7 +69,7 @@ void write_tree_to_newick_file(
     CommonTree const&  tree,
     std::string const& newick_filename
 ) {
-    CommonTreeNewickWriter().to_file( tree, newick_filename );
+    CommonTreeNewickWriter().write( tree, utils::to_file( newick_filename ));
 }
 
 // =================================================================================================
@@ -81,7 +81,7 @@ void write_tree_to_phyloxml_file(
     std::string const& phyloxml_filename
 ) {
     write_color_tree_to_phyloxml_file(
-        tree, {}, phyloxml_filename
+        tree, std::vector<utils::Color>{}, phyloxml_filename
     );
 }
 
@@ -100,7 +100,7 @@ void write_color_tree_to_phyloxml_file(
         color_plugin.edge_colors( color_per_branch );
     }
 
-    writer.to_file( tree, phyloxml_filename );
+    writer.write( tree, utils::to_file( phyloxml_filename ));
 }
 
 void write_color_tree_to_phyloxml_file(
@@ -124,7 +124,7 @@ void write_tree_to_nexus_file(
     std::string const& nexus_filename
 ) {
     write_color_tree_to_nexus_file(
-        tree, {}, nexus_filename
+        tree, std::vector<utils::Color>{}, nexus_filename
     );
 }
 
@@ -135,6 +135,7 @@ void write_color_tree_to_nexus_file(
 ) {
     // We use a normal Newick writer...
     auto newick_writer = CommonTreeNewickWriter();
+    newick_writer.trailing_new_line( false );
 
     // ... but also wrap it in a Color Mixin in order to allow for color branches if needed.
     auto color_plugin = tree::NewickColorWriterPlugin();
@@ -158,7 +159,7 @@ void write_color_tree_to_nexus_file(
 
     // Write the document to a Nexus file.
     auto nexus_writer = utils::NexusWriter();
-    nexus_writer.to_file( nexus_doc, nexus_filename );
+    nexus_writer.write( nexus_doc, utils::to_file( nexus_filename ));
 }
 
 void write_color_tree_to_nexus_file(

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,8 @@
  * @file
  * @ingroup utils
  */
+
+#include "genesis/utils/io/output_target.hpp"
 
 #include <string>
 #include <unordered_map>
@@ -62,20 +64,20 @@ class XmlWriter
     // ---------------------------------------------------------------------
 
 public:
-    void        to_file   ( const XmlDocument& document, const std::string& filename);
-    void        to_string ( const XmlDocument& document,       std::string& output);
-    std::string to_string ( const XmlDocument& document);
+
+    void write( XmlDocument const& document, std::shared_ptr<utils::BaseOutputTarget> target ) const;
 
     // -----------------------------------------------------
     //     Internal
     // -----------------------------------------------------
 
 protected:
-    void print_comment (std::string& xml, const XmlComment* value);
-    void print_markup  (std::string& xml, const XmlMarkup*  value);
-    void print_element (std::string& xml, const XmlElement* value, const int indent_level);
 
-    std::string print_attributes_list (StringMapType attr);
+    void print_comment_ ( XmlComment const* value, std::ostream& os ) const;
+    void print_markup_  ( XmlMarkup const*  value, std::ostream& os ) const;
+    void print_element_ ( XmlElement const* value, const int indent_level, std::ostream& os ) const;
+
+    std::string print_attributes_list_( StringMapType attr ) const;
 
     // -----------------------------------------------------
     //     Members

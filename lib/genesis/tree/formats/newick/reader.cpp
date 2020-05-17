@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/std.hpp"
 
+#include "genesis/utils/io/char.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
@@ -153,8 +154,8 @@ std::pair< std::string, Tree > NewickReader::parse_named_tree( utils::InputStrea
 {
     // Helper function for valid tree name chars.
     auto is_valid_tree_name_char = [&]( char c ){
-        return   ::isprint(c)
-            && ! ::isspace(c)
+        return   utils::is_print(c)
+            && ! utils::is_space(c)
             && c != ';'
             && c != '('
             && c != ')'
@@ -166,7 +167,7 @@ std::pair< std::string, Tree > NewickReader::parse_named_tree( utils::InputStrea
     while( input_stream ) {
 
         // Whitespaces.
-        utils::skip_while( input_stream, ::isspace );
+        utils::skip_while( input_stream, utils::is_space );
 
         // No input, return empty tree.
         // We can never read an empty tree from an input, so this is useful to distungish
@@ -209,7 +210,7 @@ std::pair< std::string, Tree > NewickReader::parse_named_tree( utils::InputStrea
         }
 
         // Always allow white spaces...
-        utils::skip_while( input_stream, ::isspace );
+        utils::skip_while( input_stream, utils::is_space );
 
         // After a name, we expect an equals sign.
         if( *input_stream != '=' ) {
@@ -272,8 +273,8 @@ NewickReader::Token NewickReader::get_next_token_( utils::InputStream& input_str
     // But we knew before that Newick is not a good format anyway...
     // Also, if enable_tags_ is true, we do not allow {}, as those are used for tags.
     auto is_valid_name_char = [&]( char c ){
-        return   ::isprint(c)
-            && ! ::isspace(c)
+        return   utils::is_print(c)
+            && ! utils::is_space(c)
             && c != ':'
             && c != ';'
             && c != '('
@@ -287,7 +288,7 @@ NewickReader::Token NewickReader::get_next_token_( utils::InputStream& input_str
 
     // Skip initial whitespace, then set the current position in the stream.
     // This is where the token begins.
-    utils::skip_while( is, ::isspace );
+    utils::skip_while( is, utils::is_space );
     result.line = is.line();
     result.column = is.column();
 

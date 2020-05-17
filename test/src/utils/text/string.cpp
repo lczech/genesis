@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/text/char.hpp"
+#include "genesis/utils/io/char.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <cstdlib>
@@ -153,8 +153,8 @@ TEST( Text, ToString )
     double pi    = 3.14159267535;
     double zeros = 42.4200000000;
 
-    EXPECT_EQ( "3.14159", to_string( pi ) );
-    EXPECT_EQ( "42.42",   to_string( zeros ) );
+    EXPECT_EQ( "3.14159", to_string_nice( pi ) );
+    EXPECT_EQ( "42.42",   to_string_nice( zeros ) );
 
     EXPECT_EQ( "3",       to_string_precise( pi, 0 ) );
     EXPECT_EQ( "3.1",     to_string_precise( pi, 1 ) );
@@ -203,7 +203,7 @@ TEST( Text, ToLower )
 
         // Convert manually, using the char based function.
         for( auto& c : text ){
-            c = to_lower_ascii(c);
+            c = to_lower(c);
         }
 
         EXPECT_EQ( text, test );
@@ -230,7 +230,7 @@ TEST( Text, ToUpper )
 
         // Convert manually, using the char based function.
         for( auto& c : text ){
-            c = to_upper_ascii(c);
+            c = to_upper(c);
         }
 
         EXPECT_EQ( text, test );

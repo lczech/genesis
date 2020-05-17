@@ -29,9 +29,10 @@ In addition to C++, the classes and functions are (mostly) exported to Python. T
 can be imported and used as any other Python module. See section @ref setup_python.
 -->
 
-Currently, we only test and use Genesis on Linux systems. It is tested with Ubuntu 12.04 and 14.04,
-as well as CentOS 6.3. If you are using a different operating system, you can either try yourself,
-or use a virtual machine. In the future, we hope to support more systems out of the box.
+Currently, we test and use Genesis on Linux and macOS systems. It is currently tested with
+Ubuntu 14.04, 16.04, and 18.04, as well as all macOS (OS X) versions starting from 10.10 (Yosemite)
+up to 10.14 (Mojave). If you are using a different operating system, you can either try yourself,
+or use a virtual machine.
 Please report any issues, questions or solutions to our
 [Google Group](https://groups.google.com/forum/#!forum/phylogenetic-placement).
 
@@ -155,7 +156,7 @@ other C++ library by including its headers and linking against its binaries.
 
 If you include Genesis in bigger projects which are separately compiled, you need to make sure to
 use compatible options for compiling the Genesis binaries. For example, if you want to link against
-the shared library, the settings for threads (e.g., Pthreads) need to be the same for every
+the shared library, the settings for threads (e.g., Pthreads, OpenMP) should to be the same for every
 compilation unit. See the main Cmake script for the available compiler options.
 
 The easiest way to use Genesis as a library is via the CMake `add_subdirectory` command. In your

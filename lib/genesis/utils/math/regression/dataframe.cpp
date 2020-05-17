@@ -133,15 +133,20 @@ Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
 
                 // No conversion possible. Make it a factor. We exclude empty entries,
                 // as they do not contain any valid information, and hence would add random signal.
-                auto const fact = glm_factor( df_col.begin(), df_col.end(), {}, {""} );
+                auto const fact = glm_factor(
+                    df_col.begin(),
+                    df_col.end(),
+                    std::vector<std::string>{},
+                    std::vector<std::string>{""}
+                );
                 auto const fact_df = glm_indicator_variables( fact, df.row_names() );
 
                 // Add factor cols to result. They are named using the format:
                 // <original column name>.<reference level>.<factor level>,
                 // where the level names come from the glm_indicator_variables() function.
                 for( size_t j = 0; j < fact_df.cols(); ++j ) {
-                    assert( fact_df[j].is<double>() );
-                    auto const& fact_col = fact_df[j].as<double>();
+                    assert( fact_df[j].Dataframe::ColumnBase::is<double>() );
+                    auto const& fact_col = fact_df[j].Dataframe::ColumnBase::as<double>();
                     result.add_col<double>( df_col.name() + "." + fact_col.name(), fact_col );
                 }
 
@@ -196,10 +201,10 @@ Matrix<double> glm_convert_dataframe(
 
     // Iterate columns of the dataframe.
     for( size_t c = 0; c < df.cols(); ++c ) {
-        if( ! df[c].is<double>() ) {
+        if( ! df[c].Dataframe::ColumnBase::is<double>() ) {
             throw std::runtime_error( "GLM Dataframe conversion expects Columns of type double." );
         }
-        auto const& col = df[c].as<double>();
+        auto const& col = df[c].Dataframe::ColumnBase::as<double>();
 
         // Add row content in the provided order.
         for( size_t r = 0; r < row_names.size(); ++r ) {
@@ -213,6 +218,12 @@ Matrix<double> glm_convert_dataframe(
     }
 
     return result;
+}
+
+Matrix<double> glm_convert_dataframe(
+    Dataframe const& df
+) {
+    return glm_convert_dataframe( df, std::vector<std::string>() );
 }
 
 } // namespace utils

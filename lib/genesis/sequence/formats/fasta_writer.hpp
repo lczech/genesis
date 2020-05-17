@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,8 @@
  * @ingroup sequence
  */
 
+#include "genesis/utils/io/output_target.hpp"
+
 #include <iosfwd>
 #include <string>
 
@@ -51,20 +53,14 @@ class SequenceSet;
 /**
  * @brief Write Fasta data.
  *
- * This class provides simple facilities for writing Fasta data. It supports to write
- *
- *   * to_stream()
- *   * to_file()
- *   * to_string()
+ * This class provides simple facilities for writing Fasta data.
  *
  * Exemplary usage:
  *
  *     std::string outfile = "path/to/file.fasta";
- *     SequenceSet sset;
+ *     SequenceSet sequence_set;
  *
- *     FastaWriter()
- *         .line_length( 100 )
- *         .to_file( sset, outfile );
+ *     FastaWriter().line_length( 100 ).write( sequence_set, utils::to_file( outfile ));
  *
  * See FastaReader for a description of the Fasta format.
  */
@@ -115,32 +111,25 @@ public:
     // ---------------------------------------------------------------------
 
     /**
+     * @brief Write a single Sequence to an output target, using the Fasta format.
+     *
+     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
+     * utils::to_string() for examples of how to obtain a suitable output target.
+     */
+    void write( Sequence const& sequence, std::shared_ptr<utils::BaseOutputTarget> target ) const;
+
+    /**
+     * @brief Write a SequenceSet to an output target, using the Fasta format.
+     *
+     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
+     * utils::to_string() for examples of how to obtain a suitable output target.
+     */
+    void write( SequenceSet const& sequence_set, std::shared_ptr<utils::BaseOutputTarget> target ) const;
+
+    /**
      * @brief Write a single Sequence to an output stream in Fasta format.
      */
-    void write_sequence( Sequence const& seq, std::ostream& os ) const;
-
-    /**
-     * @brief Write Sequences of a SequenceSet to a stream, using the Fasta format.
-     */
-    void        to_stream ( SequenceSet const& sset, std::ostream&      os ) const;
-
-    /**
-     * @brief Write Sequences of a SequenceSet to a file, using the Fasta format.
-     *
-     * If the file cannot be written to, the function throws an exception. Also, by default, if the file
-     * already exists, an exception is thrown.
-     * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
-     * change this behaviour.
-     */
-    void        to_file   ( SequenceSet const& sset, std::string const& fn ) const;
-
-    /**
-     * @brief Return Sequences of a SequenceSet in form of a Fasta formatted string.
-     *
-     * Caveat: This might be a long string! If you simply want to examine a Sequence or SequenceSet,
-     * have a look at the print() and print_color() functions.
-     */
-    std::string to_string ( SequenceSet const& sset ) const;
+    void write_sequence( Sequence const& sequence, std::ostream& os ) const;
 
     // ---------------------------------------------------------------------
     //     Properties

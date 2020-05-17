@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,6 +49,8 @@
 #include <utility>
 
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/io/gzip.hpp"
+#include "genesis/utils/io/gzip_stream.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/output_stream.hpp"
@@ -80,33 +82,55 @@ bool file_exists( std::string const& filename )
     // None of them worked for me, meaning that they also returned true for directories.
     // Thus, we use a simple approach that does a basic check, and then also tests for dir...
 
-    std::ifstream infile(filename);
-    infile.seekg( 0, std::ios::end);
-    return infile.good() && ! is_dir( filename );
+    std::ifstream instream(filename);
+    instream.seekg( 0, std::ios::end);
+    return instream.good() && ! is_dir( filename );
 }
 
-std::string file_read( std::string const& filename )
+std::string file_read( std::string const& filename, bool detect_compression )
 {
-    std::ifstream infile(filename);
-    std::string   str;
+    // Create string beforehand to enable copy elision.
+    std::string str;
 
-    if (!infile.good()) {
+    if( detect_compression && is_gzip_compressed_file( filename )) {
+
+        // Open decompressing stream
+        GzipIFStream instream( filename );
+        if( !instream.good() ) {
+            throw std::runtime_error( "Cannot read from file '" + filename + "'." );
+        }
+
+        // Can't assess file size for compressed files, so just read.
+        str.assign(
+            std::istreambuf_iterator<char>(instream),
+            std::istreambuf_iterator<char>()
+        );
+        return str;
+    }
+
+    // Open normal stream
+    std::ifstream instream(filename);
+    if( !instream.good() ) {
         throw std::runtime_error( "Cannot read from file '" + filename + "'." );
     }
 
-    infile.seekg(0, std::ios::end);
-    str.reserve(infile.tellg());
-    infile.seekg(0, std::ios::beg);
+    // Get file size, so that we do not waste time and space for string concats.
+    instream.seekg(0, std::ios::end);
+    str.reserve(instream.tellg());
+    instream.seekg(0, std::ios::beg);
 
-    str.assign((std::istreambuf_iterator<char>(infile)),
-                std::istreambuf_iterator<char>());
+    // Read content
+    str.assign(
+        std::istreambuf_iterator<char>(instream),
+        std::istreambuf_iterator<char>()
+    );
     return str;
 }
 
-std::vector<std::string> file_read_lines( std::string const& filename )
+std::vector<std::string> file_read_lines( std::string const& filename, bool detect_compression )
 {
     std::vector<std::string> result;
-    utils::InputStream it( from_file( filename ));
+    utils::InputStream it( from_file( filename, detect_compression ));
     while( it ) {
         result.push_back( read_to_end_of_line( it ));
         assert( !it || *it == '\n'  );

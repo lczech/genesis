@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,8 @@
  * @file
  * @ingroup tree
  */
+
+#include "genesis/utils/io/output_target.hpp"
 
 #include <functional>
 #include <string>
@@ -62,9 +64,7 @@ class  TreeSet;
  *
  * This class supports to write a Tree into a Phyloxml format representation, using
  *
- *   * to_file()
- *   * to_string()
- *   * to_document()
+ *     PhyloxmlWriter().write( tree, utils::to_file( "path/to/tree.phyloxml" ));
  *
  * It understands the Phyloxml format, but is agnostic of the actual data representation of
  * TreeNode and TreeEdge data. This approach allows to store data in any wanted format.
@@ -167,29 +167,17 @@ public:
     // ---------------------------------------------------------------------
 
     /**
-     * @brief Writes the tree to a file in Phyloxml format.
+     * @brief Write a Tree to an output target, using the Phyloxml format.
      *
-     * If the file cannot be written to, the function throws an exception. Also, by default,
-     * if the file already exists, an exception is thrown.
-     * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink
-     * to change this behaviour.
+     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
+     * utils::to_string() for examples of how to obtain a suitable output target.
      */
-    void        to_file     ( Tree const& tree, std::string const& filename) const;
-
-    /**
-     * @brief Gives a Phyloxml string representation of the tree.
-     */
-    void        to_string   ( Tree const& tree, std::string& ts) const;
-
-    /**
-     * @brief Return a Phyloxml string representation of the tree.
-     */
-    std::string to_string   ( Tree const& tree) const;
+    void write( Tree const& tree, std::shared_ptr<utils::BaseOutputTarget> target ) const;
 
     /**
      * @brief Store the information of the tree into an Phyloxml-formatted XmlDocument.
      */
-    void        to_document ( Tree const& tree, utils::XmlDocument& xml) const;
+    void to_document ( Tree const& tree, utils::XmlDocument& xml) const;
 
     // -------------------------------------------------------------------------
     //     Plugin Functions

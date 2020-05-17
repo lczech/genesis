@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,8 @@
  * @file
  * @ingroup utils
  */
+
+#include "genesis/utils/io/char.hpp"
 
 #include <cassert>
 #include <cctype>
@@ -92,7 +94,7 @@ enum class SkipWhitespace : unsigned char
  *
  * See ::SkipWhitespace for more information.
  */
-inline bool operator & ( SkipWhitespace lhs, SkipWhitespace rhs )
+inline constexpr bool operator & ( SkipWhitespace lhs, SkipWhitespace rhs ) noexcept
 {
     using T = std::underlying_type< SkipWhitespace >::type;
     return static_cast< T >( lhs ) & static_cast< T >( rhs );
@@ -307,7 +309,9 @@ inline char read_char_or_throw(
     // Check char and move to next.
     if( !source || *source != criterion ) {
         throw std::runtime_error(
-            std::string("Expecting '") + criterion + "' at " + source.at() + "."
+            std::string("In ") + source.source_name() + ": " +
+            "Expecting " + char_to_hex( criterion ) + " at " + source.at() + ", " +
+            "but received " + char_to_hex( *source ) + " instead."
         );
     }
     assert( source && *source == criterion );
@@ -346,7 +350,8 @@ inline char read_char_or_throw(
     // Check char and move to next.
     if( !source || ! criterion( *source )) {
         throw std::runtime_error(
-            "Unexpected char at " + source.at() + "."
+            std::string("In ") + source.source_name() + ": " +
+            "Unexpected char " + char_to_hex( *source ) + " at " + source.at() + "."
         );
     }
     assert( source );
@@ -390,7 +395,9 @@ inline void affirm_char_or_throw(
     // Check char.
     if( !source || *source != criterion ) {
         throw std::runtime_error(
-            std::string("Expecting '") + criterion + "' at " + source.at() + "."
+            std::string("In ") + source.source_name() + ": " +
+            "Expecting " + char_to_hex( criterion ) + " at " + source.at() + ", " +
+            "but received " + char_to_hex( *source ) + " instead."
         );
     }
 
@@ -425,7 +432,8 @@ inline void affirm_char_or_throw(
     // Check char.
     if( !source || ! criterion( *source )) {
         throw std::runtime_error(
-            "Unexpected char at " + source.at() + "."
+            std::string("In ") + source.source_name() + ": " +
+            "Unexpected char " + char_to_hex( *source ) + " at " + source.at() + "."
         );
     }
 

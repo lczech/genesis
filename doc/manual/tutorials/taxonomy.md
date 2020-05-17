@@ -66,7 +66,7 @@ Writing can be done with the @ref genesis::taxonomy::TaxonomyWriter "TaxonomyWri
 // Write to a file
 TaxonomyWriter tax_writer;
 tax_writer.write_ranks( true );
-tax_writer.to_file( taxonomy, "path/to/file.txt" );
+tax_writer.write( taxonomy, to_file( "path/to/file.txt" ));
 ~~~
 
 It is possible to set the delimiter between taxonomic path elements (`;` by default), and other details.

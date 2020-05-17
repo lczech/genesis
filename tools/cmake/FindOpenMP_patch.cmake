@@ -179,6 +179,15 @@ function(_OPENMP_FLAG_CANDIDATES LANG)
     "-fopenmp=libiomp5"
     "-fopenmp=libomp"
 
+    # 2020-04-19 Lucas Czech: Added `-Xpreprocessor -fopenmp` flag for Clang on Mac OS (osx).
+    # This might be needed for certain OpenMP installations, see https://stackoverflow.com/a/60564952
+    "-Xpreprocessor -fopenmp"
+
+    # 2020-04-20 Lucas Czech: Added `-Xclang -fopenmp` flag for Clang on Mac OS (osx).
+    # This might be needed for certain OpenMP installations, see
+    # https://github.com/oneapi-src/oneDNN/issues/591#issuecomment-552281627
+    "-Xclang -fopenmp"
+
     #Microsoft Visual Studio
     "/openmp"
     #Intel windows

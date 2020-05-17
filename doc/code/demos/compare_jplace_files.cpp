@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -304,9 +304,9 @@ int main( int argc, const char* argv[] )
             }
 
             details_table
-                << utils::to_string( i+1 )
-                << utils::to_string( place_l.edge_num() )
-                << utils::to_string( place_r.edge_num() )
+                << std::to_string( i+1 )
+                << std::to_string( place_l.edge_num() )
+                << std::to_string( place_r.edge_num() )
                 << utils::to_string_precise( place_l.like_weight_ratio, 6 )
                 << utils::to_string_precise( place_r.like_weight_ratio, 6 );
             details_table.append(

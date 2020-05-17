@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -47,40 +47,15 @@ namespace utils {
 //     Printing
 // =================================================================================================
 
-/**
- * @brief Write an XML file from an XmlDocument. Return true iff successful.
- *
- * If the file cannot be written to, the function throws an exception. Also, by default, if the file
- * already exists, an exception is thrown.
- * See @link Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
- * change this behaviour.
- */
-void XmlWriter::to_file( const XmlDocument& document, const std::string& filename )
+void XmlWriter::write( XmlDocument const& document, std::shared_ptr<utils::BaseOutputTarget> target ) const
 {
-    std::string xml;
-    to_string( document, xml );
-    utils::file_write(xml, filename);
-}
+    auto& os = target->ostream();
 
-/**
- * @brief Give the XML string representation of a XmlDocument.
- */
-void XmlWriter::to_string( const XmlDocument& document, std::string& output )
-{
-    output = to_string(document);
-}
-
-/**
- * @brief Return the XML representation of a XmlDocument.
- */
-std::string XmlWriter::to_string( const XmlDocument& document )
-{
-    std::string res = "";
-    if (!document.xml_tag.empty() || !document.declarations.empty()) {
-        res = "<?" + document.xml_tag + print_attributes_list(document.declarations) + "?>\n";
+    if( !document.xml_tag.empty() || !document.declarations.empty() ) {
+        os << "<?" << document.xml_tag << print_attributes_list_(document.declarations) << "?>\n";
     }
-    print_element(res, &document, 0);
-    return res + "\n";
+    print_element_( &document, 0, os );
+    os << "\n";
 }
 
 // =================================================================================================
@@ -90,68 +65,68 @@ std::string XmlWriter::to_string( const XmlDocument& document )
 /**
  * @brief Print an XML comment.
  */
-void XmlWriter::print_comment (std::string& xml, const XmlComment* value)
+void XmlWriter::print_comment_( XmlComment const* value, std::ostream& os ) const
 {
-    xml += xml_comment( value->content );
+    os << xml_comment( value->content );
 }
 
 /**
  * @brief Print an XML markup (simple text).
  */
-void XmlWriter::print_markup  (std::string& xml, const XmlMarkup*  value)
+void XmlWriter::print_markup_( XmlMarkup const* value, std::ostream& os ) const
 {
-    xml += xml_escape(value->content);
+    os << xml_escape(value->content);
 }
 
 /**
  * @brief Print an XML element.
  */
-void XmlWriter::print_element (std::string& xml, const XmlElement* value, const int indent_level)
+void XmlWriter::print_element_( XmlElement const* value, const int indent_level, std::ostream& os ) const
 {
     // Prepare indention and opening tag.
     std::string in0 (indent_level * indent, ' ');
-    xml += in0 + "<" + value->tag + print_attributes_list(value->attributes);
+    os << in0 << "<" << value->tag << print_attributes_list_(value->attributes);
 
     // If it's an empty element, close it, and we are done.
     if (value->content.size() == 0) {
-        xml += " />";
+        os << " />";
         return;
     }
 
     // If the element only contains a single markup, don't add new lines. However, if it contains
     // more data, put each element in a new line.
-    xml += ">";
+    os << ">";
     if (value->content.size() == 1 && value->content[0]->is_markup()) {
-        print_markup(xml, xml_value_to_markup(value->content[0].get()));
+        print_markup_( xml_value_to_markup(value->content[0].get()), os );
     } else {
         std::string in1 ((indent_level + 1) * indent, ' ');
-        xml += "\n";
+        os << "\n";
 
         for (auto& v : value->content) {
             if (v->is_comment()) {
-                xml += in1;
-                print_comment(xml, xml_value_to_comment(v.get()));
+                os << in1;
+                print_comment_( xml_value_to_comment(v.get()), os );
             } else if (v->is_markup()) {
-                xml += in1;
-                print_markup(xml, xml_value_to_markup(v.get()));
+                os << in1;
+                print_markup_( xml_value_to_markup(v.get()), os );
             } else if (v->is_element()) {
-                print_element(xml, xml_value_to_element(v.get()), indent_level + 1);
+                print_element_( xml_value_to_element(v.get()), indent_level + 1, os );
             } else {
                 // there are no other cases
                 assert(0);
             }
-            xml += "\n";
+            os << "\n";
         }
-        xml += in0;
+        os << in0;
     }
 
-    xml += "</" + value->tag + ">";
+    os << "</" << value->tag << ">";
 }
 
 /**
  * @brief Print a list of XML attributes.
  */
-std::string XmlWriter::print_attributes_list (StringMapType attr)
+std::string XmlWriter::print_attributes_list_ (StringMapType attr) const
 {
     std::string xml;
     for (auto pair : attr) {

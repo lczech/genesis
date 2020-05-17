@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,10 +39,10 @@ int main()
     PhylipReader().read( from_file( "path/to/file_d.phylip" ), sequences_a );
 
     // Write data from a SequenceSet object to a fasta file.
-    FastaWriter().to_file( sequences_b, "path/to/file_e.fasta" );
+    FastaWriter().write( sequences_b, to_file( "path/to/file_e.fasta" ));
 
     // Write data from a SequenceSet object to a phylip file.
-    PhylipWriter().to_file( sequences_a, "path/to/file_f.phylip" );
+    PhylipWriter().write( sequences_a, to_file( "path/to/file_f.phylip" ));
 
     // Instantiate objects and change some exemplary settings.
     auto fasta_reader = FastaReader();

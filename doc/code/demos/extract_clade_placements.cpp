@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -249,7 +249,7 @@ void write_sample_set( placement::SampleSet const& sample_set, std::string outpu
 
     auto writer = JplaceWriter();
     for( size_t i = 0; i < sample_set.size(); ++i ) {
-        writer.to_file( sample_set[i], output_dir + sample_set.name_at(i) + ".jplace" );
+        writer.write( sample_set[i], utils::to_file( output_dir + sample_set.name_at(i) + ".jplace" ));
     }
 }
 

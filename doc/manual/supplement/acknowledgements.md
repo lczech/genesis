@@ -106,16 +106,50 @@ on 2017-03-09.
 In the following, we list all sources that were adapted and incorporated in Genesis in modified
 form.
 
+## Json Document @anchor supplement_acknowledgements_code_reuse_json_document
+
+Our @link genesis::utils::JsonDocument JsonDocument@endlink data structure as well as the accompanying @link genesis::utils::JsonIterator JsonIterator@endlink are based on the excellent
+[JSON for Modern C++](https://github.com/nlohmann/json) library by Niels Lohmann.
+
+@htmlonly <details><summary>License</summary> @endhtmlonly
+>    MIT License
+>
+>    Copyright (c) 2013-2017 Niels Lohmann
+>
+>    Permission is hereby granted, free of charge, to any person obtaining a copy
+>    of this software and associated documentation files (the "Software"), to deal
+>    in the Software without restriction, including without limitation the rights
+>    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+>    copies of the Software, and to permit persons to whom the Software is
+>    furnished to do so, subject to the following conditions:
+>
+>    The above copyright notice and this permission notice shall be included in all
+>    copies or substantial portions of the Software.
+>
+>    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+>    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+>    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+>    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+>    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+>    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+>    SOFTWARE.
+@htmlonly </details> @endhtmlonly
+
+The license information above was copied from
+https://github.com/nlohmann/json/blob/develop/LICENSE.MIT
+on 2017-03-09.
+
 ## Input Stream @anchor supplement_acknowledgements_code_reuse_input_stream
 
-Genesis contains a set of classes that deal with input streams, i.e.,
-@link genesis::utils::InputStream InputStream@endlink,
-@link genesis::utils::SynchronousReader SynchronousReader@endlink,
-@link genesis::utils::BaseInputSource BaseInputSource@endlink,
-@link genesis::utils::StringInputSource StringInputSource@endlink,
-@link genesis::utils::StreamInputSource StreamInputSource@endlink and
-@link genesis::utils::FileInputSource FileInputSource@endlink.
-<!-- @link genesis::utils::AsynchronousReader AsynchronousReader@endlink, -->
+Genesis contains a set of classes that deal with input streams:
+
+  * @link genesis::utils::InputStream InputStream@endlink
+  * @link genesis::utils::SynchronousReader SynchronousReader@endlink
+  * @link genesis::utils::BaseInputSource BaseInputSource@endlink
+  * @link genesis::utils::StringInputSource StringInputSource@endlink
+  * @link genesis::utils::StreamInputSource StreamInputSource@endlink
+  * @link genesis::utils::FileInputSource FileInputSource@endlink
+  * @link genesis::utils::AsynchronousReader AsynchronousReader@endlink
 
 The design and implementation of those classes is inspired by
 [fast-cpp-csv-parser](https://github.com/ben-strasser/fast-cpp-csv-parser) by Ben Strasser,
@@ -155,15 +189,39 @@ The license information above was copied from
 https://github.com/ben-strasser/fast-cpp-csv-parser/blob/master/LICENSE
 on 2017-03-09.
 
-## Json Document @anchor supplement_acknowledgements_code_reuse_json_document
+## Gzip Streams @anchor supplement_acknowledgements_code_reuse_gzip_streams
 
-Our @link genesis::utils::JsonDocument JsonDocument@endlink data structure as well as the accompanying @link genesis::utils::JsonIterator JsonIterator@endlink are based on the excellent
-[JSON for Modern C++](https://github.com/nlohmann/json) library by Niels Lohmann.
+Genesis contains a set of classes that deal with gzip/zlib compressed/decompressed input streams,
+and some other stream-related functionality:
+
+  * @link genesis::utils::GzipIStream GzipIStream@endlink
+  * @link genesis::utils::GzipOStream GzipOStream@endlink
+  * @link genesis::utils::GzipIFStream GzipIFStream@endlink
+  * @link genesis::utils::GzipOFStream GzipOFStream@endlink
+  * @link genesis::utils::StrictIFStream StrictIFStream@endlink
+  * @link genesis::utils::StrictOFStream StrictOFStream@endlink
+  * @link genesis::utils::StrictFStream StrictFStream@endlink
+
+as well as the helper and internal classes:
+
+  * @link genesis::utils::GzipStreamWrapper GzipStreamWrapper@endlink
+  * @link genesis::utils::GzipIStreambuf GzipIStreambuf@endlink
+  * @link genesis::utils::GzipOStreambuf GzipOStreambuf@endlink
+  * @link genesis::utils::StrictFStreamHolder StrictFStreamHolder@endlink
+
+The code of these classes is adapted from the excellent
+[zstr library](https://github.com/mateidavid/zstr) by Matei David.
+We adapted the original code by renaming all classes and variables to our standards,
+moving much of the implementation into a source file (so that the header does not clutter
+its callers with zlib-internal symbols), and refining some functionality.
+
+The repository at https://github.com/mateidavid/zstr is published under the
+[MIT license](https://opensource.org/licenses/MIT):
 
 @htmlonly <details><summary>License</summary> @endhtmlonly
->    MIT License
+>    The MIT License (MIT)
 >
->    Copyright (c) 2013-2017 Niels Lohmann
+>    Copyright (c) 2015 Matei David, Ontario Institute for Cancer Research
 >
 >    Permission is hereby granted, free of charge, to any person obtaining a copy
 >    of this software and associated documentation files (the "Software"), to deal
@@ -185,8 +243,8 @@ Our @link genesis::utils::JsonDocument JsonDocument@endlink data structure as we
 @htmlonly </details> @endhtmlonly
 
 The license information above was copied from
-https://github.com/nlohmann/json/blob/develop/LICENSE.MIT
-on 2017-03-09.
+https://github.com/mateidavid/zstr/blob/master/LICENSE
+on 2020-05-10.
 
 ## Succinct Range Minimum Query @anchor supplement_acknowledgements_code_reuse_succinct_rmq
 
@@ -195,6 +253,54 @@ structure is based on the
 [Succinct RMQ implementation](https://www.bio.ifi.lmu.de/forschung/succinct/#software) by Johannes
 Fischer, with his
 explicit permission to use his code in Genesis.
+
+## Multi-Dimensional Scaling (MDS) @anchor supplement_acknowledgements_code_reuse_mds
+
+The implementation of our
+@link genesis::utils::multi_dimensional_scaling() multi_dimensional_scaling()@endlink function
+is based on the [SimpleMatrix library](https://sites.google.com/site/simpmatrix/)
+by [Quan Wang](https://github.com/wq2012), with his explicit permission to use this code in Genesis.
+The copyright (C) of the implementation is held by Quan Wang, 2013.
+We adapted the implementation to our @link genesis::utils::Matrix Matrix@endlink class and
+changed the error reporting mechanism to exceptions.
+
+The implementation by Quan Wang (and our adaptation) offers two variants of MDS. The code of these
+variants is based on two Matlab implementations, and re-implements those in C++.
+The original sources are:
+
+ * The @link genesis::utils::MdsAlgorithm::kUcf UCF@endlink variant re-implements
+   Laurens van der Maaten's MDS in his
+   [Matlab Toolbox for Dimensionality Reduction](http://crcv.ucf.edu/source/dimension).
+   It is free to use, change, or redistribute this code for non-commercial purposes.
+ * The @link genesis::utils::MdsAlgorithm::kSmacof SMACOF@endlink variant re-implements
+   Michael Bronstein's SMACOF in his
+   [Matlab Toolbox for Surface Comparison and Analysis](http://tosca.cs.technion.ac.il/).
+   It may be used for academic purposes, which we consider Genesis to be.
+
+See there for further details. Note however that none of the original code of these two
+implementations is used in Genesis, as we solely rely on the ported and re-implemented code
+by Quan Wang.
+
+## Generalized Linear Model (GLM) @anchor supplement_acknowledgements_code_reuse_glm
+
+The implementation of our Generalized Linear Model, in particular
+@link genesis::utils::glm_fit() glm_fit()@endlink, but also some related helper functions,
+is based on the snp.matrix and X.snp.matrix classes by
+David Clayton <david.clayton@cimr.cam.ac.uk> and Hin-Tak Leung <htl10@users.sourceforge.net>.
+The source is in C, but is originally intended for usage in R.
+
+The package does not seem to be maintained any more, and does not seem to
+have a proper repository. For more information, try these sites:
+- https://bioconductor.org/packages/release/bioc/html/snpStats.html
+- https://www.rdocumentation.org/packages/snpStats/
+- http://www-gene.cimr.cam.ac.uk/clayton/software/
+
+The original code is published under the GNU General Public Licence version 3 (GPLv3).
+
+> The snp.matrix and X.snp.matrix classes.
+> Copyright (C) 2008 David Clayton and Hin-Tak Leung
+
+As we use the same license, see @ref supplement_license for the complete license.
 
 ## MD5 @anchor supplement_acknowledgements_code_reuse_md
 
@@ -546,54 +652,6 @@ The license information above was copied from
 https://github.com/axismaps/colorbrewer/blob/master/LICENCE.txt
 on 2018-01-08.
 
-## Multi-Dimensional Scaling (MDS) @anchor supplement_acknowledgements_code_reuse_mds
-
-The implementation of our
-@link genesis::utils::multi_dimensional_scaling() multi_dimensional_scaling()@endlink function
-is based on the [SimpleMatrix library](https://sites.google.com/site/simpmatrix/)
-by [Quan Wang](https://github.com/wq2012), with his explicit permission to use this code in Genesis.
-The copyright (C) of the implementation is held by Quan Wang, 2013.
-We adapted the implementation to our @link genesis::utils::Matrix Matrix@endlink class and
-changed the error reporting mechanism to exceptions.
-
-The implementation by Quan Wang (and our adaptation) offers two variants of MDS. The code of these
-variants is based on two Matlab implementations, and re-implements those in C++.
-The original sources are:
-
- * The @link genesis::utils::MdsAlgorithm::kUcf UCF@endlink variant re-implements
-   Laurens van der Maaten's MDS in his
-   [Matlab Toolbox for Dimensionality Reduction](http://crcv.ucf.edu/source/dimension).
-   It is free to use, change, or redistribute this code for non-commercial purposes.
- * The @link genesis::utils::MdsAlgorithm::kSmacof SMACOF@endlink variant re-implements
-   Michael Bronstein's SMACOF in his
-   [Matlab Toolbox for Surface Comparison and Analysis](http://tosca.cs.technion.ac.il/).
-   It may be used for academic purposes, which we consider Genesis to be.
-
-See there for further details. Note however that none of the original code of these two
-implementations is used in Genesis, as we solely rely on the ported and re-implemented code
-by Quan Wang.
-
-## Generalized Linear Model (GLM) @anchor supplement_acknowledgements_code_reuse_glm
-
-The implementation of our Generalized Linear Model, in particular
-@link genesis::utils::glm_fit() glm_fit()@endlink, but also some related helper functions,
-is based on the snp.matrix and X.snp.matrix classes by
-David Clayton <david.clayton@cimr.cam.ac.uk> and Hin-Tak Leung <htl10@users.sourceforge.net>.
-The source is in C, but is originally intended for usage in R.
-
-The package does not seem to be maintained any more, and does not seem to
-have a proper repository. For more information, try these sites:
-- https://bioconductor.org/packages/release/bioc/html/snpStats.html
-- https://www.rdocumentation.org/packages/snpStats/
-- http://www-gene.cimr.cam.ac.uk/clayton/software/
-
-The original code is published under the GNU General Public Licence version 3 (GPLv3).
-
-> The snp.matrix and X.snp.matrix classes.
-> Copyright (C) 2008 David Clayton and Hin-Tak Leung
-
-As we use the same license, see @ref supplement_license for the complete license.
-
 ## Nextstrain @anchor supplement_acknowledgements_code_reuse_nextstrain
 
 The color list @link genesis::utils::color_list_nextstrain() color_list_nextstrain()@endlink
@@ -631,3 +689,4 @@ The repository at https://github.com/nextstrain/ncov is published under the
 The license information above was copied from
 https://github.com/nextstrain/ncov/blob/master/LICENSE
 on 2020-04-05.
+

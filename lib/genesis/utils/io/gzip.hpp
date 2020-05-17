@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_TOOLS_GZIP_H_
-#define GENESIS_UTILS_TOOLS_GZIP_H_
+#ifndef GENESIS_UTILS_IO_GZIP_H_
+#define GENESIS_UTILS_IO_GZIP_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,18 +31,53 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/exception.hpp"
+
+#include <stdexcept>
 #include <string>
 
 namespace genesis {
 namespace utils {
 
 // ================================================================================================
-//     GZIP/ZLIB Functions
+//     General gzip/zlib Functions
 // ================================================================================================
 
+/**
+ * @brief Return whether a given file is gzip-compressed.
+ *
+ * Returns true only iff the file exists and is gzip-compressed.
+ * If there is a mismatch between the gzip magic bytes and the file ending, a warning is issued
+ * via LOG_WARN.
+ */
 bool is_gzip_compressed_file( std::string const& file_name );
 
+// ================================================================================================
+//     Gzip Exception Class
+// ================================================================================================
+
 } // namespace utils
+namespace except {
+
+/**
+ * @brief Exception class thrown by failed gzip/zlib operations.
+ *
+ * If compiled without zlib support, the exepction has no use and contains a dummy message.
+ */
+class GzipError
+    : public Exception
+{
+public:
+
+    GzipError( std::string const& z_stream_message, int error_code );
+
+    GzipError( std::string const msg )
+        : except::Exception(msg)
+    {}
+
+};
+
+} // namespace except
 } // namespace genesis
 
 #endif // include guard

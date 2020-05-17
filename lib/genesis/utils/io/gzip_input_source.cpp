@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 #include "genesis/utils/io/gzip_input_source.hpp"
 
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/io/gzip.hpp"
 
 #include <cassert>
 #include <cstdio>
@@ -112,7 +113,7 @@ GzipInputSource::GzipInputSource(
     // Init zlib
     auto ret = inflateInit2( &z_stream_, get_format_( format ));
     if( ret != Z_OK ) {
-        report_zlib_error_( ret );
+        throw except::GzipError( z_stream_.msg, ret );
     }
 }
 
@@ -171,7 +172,7 @@ size_t GzipInputSource::read_( char* buffer, size_t size )
         switch( ret ) {
             case Z_DATA_ERROR:
             case Z_MEM_ERROR:
-                report_zlib_error_( ret );
+                throw except::GzipError( z_stream_.msg, ret );
         }
 
         // Update current positions.
@@ -208,29 +209,6 @@ std::string GzipInputSource::source_string_() const
         return file_filename( input_source_->source_string() );
     }
     return input_source_->source_string();
-}
-
-void GzipInputSource::report_zlib_error_( int error_code ) const
-{
-    // Nothing happens if there is no error.
-    if( error_code == Z_OK ) {
-        return;
-    }
-
-    switch( error_code ) {
-        case Z_ERRNO:
-            throw std::runtime_error( "zlib: Error while reading zlib/gzip input." );
-        case Z_STREAM_ERROR:
-            throw std::runtime_error( "zlib: Invalid compression level." );
-        case Z_DATA_ERROR:
-            throw std::runtime_error( "zlib: Invalid or incomplete deflate data." );
-        case Z_MEM_ERROR:
-            throw std::runtime_error( "zlib: Out of memory." );
-        case Z_VERSION_ERROR:
-            throw std::runtime_error( "zlib: Version mismatch!" );
-        default:
-            throw std::runtime_error( "zlib: Unknown error." );
-    }
 }
 
 int GzipInputSource::get_format_( GzipInputSource::Format format ) const
@@ -299,7 +277,7 @@ GzipInputSource::GzipInputSource(
     , zlib_data_( nullptr, []( ZlibData* ){} )
 {
     // Just avoid doing anything really.
-    throw std::runtime_error( "zlib: Library was not compiled with zlib support." );
+    throw std::runtime_error( "zlib: Genesis was not compiled with zlib support." );
 }
 
 size_t GzipInputSource::read_( char*, size_t )
@@ -310,11 +288,6 @@ size_t GzipInputSource::read_( char*, size_t )
 std::string GzipInputSource::source_string_() const
 {
     return "";
-}
-
-void GzipInputSource::report_zlib_error_( int ) const
-{
-    // Empty on purpose.
 }
 
 int GzipInputSource::get_format_( GzipInputSource::Format ) const

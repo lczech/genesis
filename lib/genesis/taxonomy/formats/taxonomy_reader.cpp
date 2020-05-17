@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace genesis {
@@ -126,9 +127,9 @@ TaxonomyReader::Line TaxonomyReader::parse_line(
         if( pos >= fields.size() ) {
             throw std::out_of_range(
                 "Invalid position for taxonomy " + field_name + " field while reading. Expect "
-                + field_name + " at position " + utils::to_string( pos ) + " (zero-based), "
-                + "but the line only contains " + utils::to_string( fields.size() )
-                + " fields at line " + utils::to_string( it.line() - 1 ) + "."
+                + field_name + " at position " + std::to_string( pos ) + " (zero-based), "
+                + "but the line only contains " + std::to_string( fields.size() )
+                + " fields at line " + std::to_string( it.line() - 1 ) + "."
             );
         }
 

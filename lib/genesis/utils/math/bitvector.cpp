@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,13 +44,10 @@ namespace utils {
 // =============================================================================
 
 const Bitvector::IntType Bitvector::all_0_ = 0ul;
-    const Bitvector::IntType Bitvector::all_1_ = (((1ul << 32) - 1) << 32)  +  ((1ul << 32) - 1);
+const Bitvector::IntType Bitvector::all_1_ = (((1ul << 32) - 1) << 32)  +  ((1ul << 32) - 1);
 
-/**
- * @brief Contains a single bit at each of the 64 positions.
- */
-const Bitvector::IntType Bitvector::bit_mask_[Bitvector::IntSize] =
-{
+const std::array<Bitvector::IntType, Bitvector::IntSize> Bitvector::bit_mask_ =
+{{
     1ul << 0,   1ul << 1,   1ul << 2,   1ul << 3,   1ul << 4,   1ul << 5,   1ul << 6,   1ul << 7,
     1ul << 8,   1ul << 9,   1ul << 10,  1ul << 11,  1ul << 12,  1ul << 13,  1ul << 14,  1ul << 15,
     1ul << 16,  1ul << 17,  1ul << 18,  1ul << 19,  1ul << 20,  1ul << 21,  1ul << 22,  1ul << 23,
@@ -59,23 +56,11 @@ const Bitvector::IntType Bitvector::bit_mask_[Bitvector::IntSize] =
     1ul << 40,  1ul << 41,  1ul << 42,  1ul << 43,  1ul << 44,  1ul << 45,  1ul << 46,  1ul << 47,
     1ul << 48,  1ul << 49,  1ul << 50,  1ul << 51,  1ul << 52,  1ul << 53,  1ul << 54,  1ul << 55,
     1ul << 56,  1ul << 57,  1ul << 58,  1ul << 59,  1ul << 60,  1ul << 61,  1ul << 62,  1ul << 63
-};
+}};
 
-/**
- * @brief Contains as many ones as the position in the array tells.
- *
- * The element at position `i` contains `i` many ones, starting from the right:
- *
- *     ones_mask_[0] --> 0 ones: 0000...0000
- *     ones_mask_[1] --> 1 one:  0000...0001
- *     ones_mask_[2] --> 2 ones: 0000...0011
- *     ...
- *
- * This mask is used for unsetting the padding bits in unset_padding_().
- */
-const Bitvector::IntType Bitvector::ones_mask_[Bitvector::IntSize] =
-{
-    Bitvector::all_0_,       Bitvector::all_1_ >> 63, Bitvector::all_1_ >> 62, Bitvector::all_1_ >> 61,
+const std::array<Bitvector::IntType, Bitvector::IntSize> Bitvector::ones_mask_ =
+{{
+    Bitvector::all_1_,       Bitvector::all_1_ >> 63, Bitvector::all_1_ >> 62, Bitvector::all_1_ >> 61,
     Bitvector::all_1_ >> 60, Bitvector::all_1_ >> 59, Bitvector::all_1_ >> 58, Bitvector::all_1_ >> 57,
     Bitvector::all_1_ >> 56, Bitvector::all_1_ >> 55, Bitvector::all_1_ >> 54, Bitvector::all_1_ >> 53,
     Bitvector::all_1_ >> 52, Bitvector::all_1_ >> 51, Bitvector::all_1_ >> 50, Bitvector::all_1_ >> 49,
@@ -91,18 +76,50 @@ const Bitvector::IntType Bitvector::ones_mask_[Bitvector::IntSize] =
     Bitvector::all_1_ >> 12, Bitvector::all_1_ >> 11, Bitvector::all_1_ >> 10, Bitvector::all_1_ >> 9,
     Bitvector::all_1_ >> 8,  Bitvector::all_1_ >> 7,  Bitvector::all_1_ >> 6,  Bitvector::all_1_ >> 5,
     Bitvector::all_1_ >> 4,  Bitvector::all_1_ >> 3,  Bitvector::all_1_ >> 2,  Bitvector::all_1_ >> 1
-};
+}};
 
-/**
- * @brief Mask used for quickly counting the number of set bits, see count().
- */
-const Bitvector::IntType Bitvector::count_mask_[4] =
-{
+const std::array<Bitvector::IntType, 4> Bitvector::count_mask_ =
+{{
     0x5555555555555555,  //binary: 0101...
     0x3333333333333333,  //binary: 00110011...
     0x0f0f0f0f0f0f0f0f,  //binary: 4 zeros, 4 ones...
     0x0101010101010101   //the sum of 256 to the power of 0,1,2,3...
-};
+}};
+
+// =============================================================================
+//     Constructor and Rule of Five
+// =============================================================================
+
+Bitvector::Bitvector( std::string const& values )
+    : Bitvector::Bitvector( values.size(), false )
+{
+    for( size_t i = 0; i < values.size(); ++i ) {
+        switch( values[i] ) {
+            case '0':
+                break;
+            case '1':
+                set(i);
+                break;
+            default:
+                throw std::invalid_argument(
+                    "Cannot construct Bitvector from std::string that contains characters "
+                    "other than 0 and 1."
+                );
+        }
+    }
+}
+
+Bitvector::Bitvector( Bitvector const& other, size_t max_size )
+{
+    if( max_size > other.size() ) {
+        max_size = other.size();
+    }
+    size_ = max_size;
+    auto const ds = (size_ / IntSize) + (size_ % IntSize == 0 ? 0 : 1);
+    assert( ds <= other.data_.size() );
+    data_ = std::vector<IntType>( other.data_.begin(), other.data_.begin() + ds );
+    unset_padding_();
+}
 
 // =============================================================================
 //     Operators
@@ -111,7 +128,10 @@ const Bitvector::IntType Bitvector::count_mask_[4] =
 Bitvector& Bitvector::operator &= (Bitvector const& rhs)
 {
     if( size_ != rhs.size_ ) {
-        throw std::runtime_error( "Cannot use operator on Bitvectors of different size." );
+        throw std::runtime_error(
+            "Cannot use operator `&` or `&=` on Bitvectors of different size. "
+            "Use bitwise_and() instead."
+        );
     }
 
     for (size_t i = 0; i < data_.size(); ++i) {
@@ -123,7 +143,10 @@ Bitvector& Bitvector::operator &= (Bitvector const& rhs)
 Bitvector& Bitvector::operator |= (Bitvector const& rhs)
 {
     if( size_ != rhs.size_ ) {
-        throw std::runtime_error( "Cannot use operator on Bitvectors of different size." );
+        throw std::runtime_error(
+            "Cannot use operator `|` or `|=` on Bitvectors of different size. "
+            "Use bitwise_or() instead."
+        );
     }
 
     for (size_t i = 0; i < data_.size(); ++i) {
@@ -135,7 +158,10 @@ Bitvector& Bitvector::operator |= (Bitvector const& rhs)
 Bitvector& Bitvector::operator ^= (Bitvector const& rhs)
 {
     if( size_ != rhs.size_ ) {
-        throw std::runtime_error( "Cannot use operator on Bitvectors of different size." );
+        throw std::runtime_error(
+            "Cannot use operator `^` or `^=` on Bitvectors of different size. "
+            "Use bitwise_xor() instead."
+        );
     }
 
     for (size_t i = 0; i < data_.size(); ++i) {
@@ -149,6 +175,27 @@ Bitvector Bitvector::operator ~ () const
     Bitvector cpy = Bitvector(*this);
     cpy.negate();
     return cpy;
+}
+
+Bitvector operator & (Bitvector const& lhs, Bitvector const& rhs)
+{
+    Bitvector result = Bitvector(lhs);
+    result &= rhs;
+    return result;
+}
+
+Bitvector operator | (Bitvector const& lhs, Bitvector const& rhs)
+{
+    Bitvector result = Bitvector(lhs);
+    result |= rhs;
+    return result;
+}
+
+Bitvector operator ^ (Bitvector const& lhs, Bitvector const& rhs)
+{
+    Bitvector result = Bitvector(lhs);
+    result ^= rhs;
+    return result;
 }
 
 bool Bitvector::operator == (const Bitvector &other) const
@@ -255,10 +302,13 @@ void Bitvector::set_all( const bool value )
 void Bitvector::unset_padding_()
 {
     // Only apply if there are actual padding bits.
-    if(( size_ % IntSize ) == 0 ) {
-        return;
-    }
+    // if(( size_ % IntSize ) == 0 ) {
+    //     return;
+    // }
+    // --> Nope, we have changed the mask to be all-one for its first entry, so that we
+    // can avoid the branching here!
 
+    assert( size_ % IntSize < ones_mask_.size() );
     data_.back() &= ones_mask_[ size_ % IntSize ];
 
     // other versions that might be helpful if i messed up with this little/big endian stuff...

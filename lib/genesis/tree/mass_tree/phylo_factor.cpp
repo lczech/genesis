@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -268,7 +268,7 @@ std::vector<PhyloFactor> phylogenetic_factorization(
 ) {
     // Basic checks.
     if( data.tree.empty() ) {
-        return {};
+        return std::vector<PhyloFactor>{};
     }
 
     // Start with all edges except for leaves as potential candidates for factors.

@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+# Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -50,6 +50,12 @@ set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
 # Add our own extra CMake functionality.
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/tools/cmake" )
 include( "${CMAKE_CURRENT_LIST_DIR}/tools/cmake/AssembleMonolith.cmake" )
+
+# Need to make sure that AppleClang is actually recognized and not mistakingly identifyed
+# as normal Clang. See https://cmake.org/cmake/help/v3.0/policy/CMP0025.html
+# This is important for the test cmake script, where we need to set some warnings for clang,
+# but not for apple clang.
+cmake_policy(SET CMP0025 NEW)
 
 # --------------------------------------------------------------------------------------------------
 #   Project Definitions and Variables
@@ -184,13 +190,26 @@ message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION
 #   Compiler and Linker Options
 # --------------------------------------------------------------------------------------------------
 
-# Set the warn flags to a very high level - except unknown pragmas, as this causes needless
-# warnings with OpenMP and other pragma-based techniques.
-set (WARN_FLAGS              "-Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors")
-set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
+if (MSVC OR (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
+    # MinGW/MSVC do not support much. Also, the above string comparison in the condition does
+    # not work there, hence the extra `MSVC` check...
+    set (WARN_FLAGS "-Wall")
+else ()
+    # For other operating systems, set the warn flags to a very high level - except unknown pragmas,
+    # as this causes needless warnings with OpenMP and other pragma-based techniques.
+    set (WARN_FLAGS "-Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors")
 
-set (CMAKE_CXX_FLAGS_DEBUG   "-O2 -g -ggdb3 -DDEBUG -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC")
-set (CMAKE_CXX_FLAGS_RELEASE "-O2           -DNDEBUG")
+    # Furthermore, in debug mode, we also want all warnings to be errors, so that we do not miss them
+    # In release, this might hinder users to successfully build genesis if any warnings remain
+    # or occur only on their compiler, so let's avoid trouble for them.
+    IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+        set (WARN_FLAGS "${WARN_FLAGS} -Werror")
+    ENDIF()
+endif ()
+
+set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
+set (CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O2 -DDEBUG -g -ggdb3 -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC")
+set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -DNDEBUG")
 
 # Misc options
 # STDCC   = clang++
@@ -237,6 +256,7 @@ IF(GENESIS_USE_ZLIB)
 
     else()
         message( STATUS "${ColorRed}zlib not found${ColorEnd}" )
+        message( STATUS "Try installing 'zlib1g-dev' first, or the equivalent for your system." )
         message( STATUS "To build without zlib support, call CMake with -DGENESIS_USE_ZLIB=OFF" )
         message( FATAL_ERROR "Required package zlib not found.")
     endif()
@@ -277,10 +297,13 @@ IF(GENESIS_USE_OPENMP)
     # In order to still enable OpenMP, we use our own patch of the find module.
     # See ./tools/cmake/FindOpenMP_patch.cmake for the modifications we made to support Clang.
     if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
+
         find_package( OpenMP_patch )
 
         # If our patch does not work, try the standard one, just in case.
         if( NOT OPENMP_FOUND )
+            unset(OpenMP_CXX_FLAGS)
+            unset(OpenMP_CXX_FLAGS CACHE)
             find_package( OpenMP )
         endif()
 
@@ -406,6 +429,29 @@ IF( GENESIS_HAS_PARENT_DIR )
     endif()
 
 ENDIF()
+
+# --------------------------------------------------------------------------------------------------
+#   Final user output
+# --------------------------------------------------------------------------------------------------
+
+# Cmake debug output, useful for user support as well. First, strip/trim extra spaces for nicer output
+string(REGEX REPLACE " +" " " CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} " )
+string(REGEX REPLACE " +" " " CMAKE_CXX_FLAGS_DEBUG " ${CMAKE_CXX_FLAGS_DEBUG} " )
+string(REGEX REPLACE " +" " " CMAKE_CXX_FLAGS_RELEASE " ${CMAKE_CXX_FLAGS_RELEASE} " )
+string(REGEX REPLACE " +" " " GENESIS_CXX_FLAGS " ${GENESIS_CXX_FLAGS} " )
+string(REGEX REPLACE " +" " " GENESIS_EXE_LINKER_FLAGS " ${GENESIS_EXE_LINKER_FLAGS} " )
+string(REGEX REPLACE " +" " " GENESIS_LINK_LIBRARIES " ${GENESIS_LINK_LIBRARIES} " )
+
+message (STATUS "Final build flags:")
+message (STATUS "CMAKE_CXX_FLAGS         : ${CMAKE_CXX_FLAGS}")
+IF(CMAKE_BUILD_TYPE MATCHES "DEBUG")
+    message (STATUS "CMAKE_CXX_FLAGS_DEBUG   : ${CMAKE_CXX_FLAGS_DEBUG}")
+ELSE()
+    message (STATUS "CMAKE_CXX_FLAGS_RELEASE : ${CMAKE_CXX_FLAGS_RELEASE}")
+ENDIF()
+message (STATUS "GENESIS_CXX_FLAGS       : ${GENESIS_CXX_FLAGS}")
+message (STATUS "GENESIS_EXE_LINKER_FLAGS: ${GENESIS_EXE_LINKER_FLAGS}")
+message (STATUS "GENESIS_LINK_LIBRARIES  : ${GENESIS_LINK_LIBRARIES}")
 
 # Some very last output, so that CMake projects which use us as a dependency cleary see where
 # the Genesis configuration ends.

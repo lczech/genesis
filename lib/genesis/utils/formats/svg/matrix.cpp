@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -132,6 +132,25 @@ SvgGroup make_svg_matrix(
     }
 
     return group;
+}
+
+SvgGroup make_svg_matrix(
+    Matrix<Color> const& mat,
+    SvgMatrixSettings settings,
+    std::vector<std::string> const& row_labels
+) {
+    return make_svg_matrix(
+        mat, settings, row_labels, std::vector<std::string>()
+    );
+}
+
+SvgGroup make_svg_matrix(
+    Matrix<Color> const& mat,
+    SvgMatrixSettings settings
+) {
+    return make_svg_matrix(
+        mat, settings, std::vector<std::string>(), std::vector<std::string>()
+    );
 }
 
 } // namespace utils
