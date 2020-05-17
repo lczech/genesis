@@ -1,7 +1,7 @@
 Compare Jplace Files {#demos_compare_jplace_files}
 ===========
 
-@section Summary
+# Summary
 
 Takes two `jplace` files with the same reference tree and compares the placement of each
 @ref genesis::placement::Pquery "Pquery". It outputs tables that show which and how Pqueries
@@ -11,7 +11,7 @@ This demo is located at
 
     genesis/doc/code/demos/compare_jplace_files.cpp
 
-@section Details
+# Details
 
 This program is useful to compare two `jplace` files that were computed with different settings
 or even different programs (EPA or pplacer). It is not meant for evaluating differences in the
@@ -39,7 +39,7 @@ to compensate for differences in branch lengths, both Trees are normalized in th
 that their length (sum of branch lengths) is 1.0. This also means that the Earth Movers Distance
 yields comparable values in the range `[ 0.0, 1.0 ]`.
 
-@section  Example
+#  Example
 
 Example files to test the demo are located at
 

@@ -1,7 +1,7 @@
 Labelled Tree {#demos_labelled_tree}
 ===========
 
-@section Summary
+# Summary
 
 Takes a `jplace` file and optionally a `Newick` tree (for example, with additional bootstrap
 support values) and produces a `Newick` tree where each
@@ -12,7 +12,7 @@ This demo is located at
 
     genesis/doc/code/demos/labelled_tree.cpp
 
-@section Details
+# Details
 
 The program takes either two or three arguments:
 

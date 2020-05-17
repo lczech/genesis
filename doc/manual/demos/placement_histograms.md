@@ -1,7 +1,7 @@
 Placement Histograms {#demos_placement_histograms}
 ===========
 
-@section Summary
+# Summary
 
 Takes a path to either a `jplace` file, or a directory containing `jplace` files,
 and builds histograms of the the placement mass (according to the
@@ -12,7 +12,7 @@ This demo is located at
 
     genesis/doc/code/demos/placement_histograms.cpp
 
-@section Details
+# Details
 
 The program takes two arguments:
 

@@ -87,7 +87,8 @@ public:
     // -------------------------------------------------------------
 
     /**
-     * @brief Write a Matrix to an output target, using a specific ::Format and separator string.
+     * @brief Write a Matrix to an output target, using a specific MatrixWriter::Format and
+     * separator string.
      *
      * The format and separator string can either be set in the constructor, or using the methods
      * format( Format ) and separator_string( std::string const& ).

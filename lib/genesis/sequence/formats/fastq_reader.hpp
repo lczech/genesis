@@ -137,10 +137,10 @@ namespace sequence {
  *
  * More information on the format can be found at:
  *
- * > [1] P. Cock, C. Fields, N. Goto, M. Heuer, P. Rice.</br>
+ * > [1] P. Cock, C. Fields, N. Goto, M. Heuer, P. Rice.<br>
  * > <b>"The Sanger FASTQ file format for sequences with quality scores,
- * > and the Solexa/Illumina FASTQ variants."</b></br>
- * > <i>Nucleic Acids Research</i>, 38(6), 1767–1771, 2009.</br>
+ * > and the Solexa/Illumina FASTQ variants."</b><br>
+ * > <i>Nucleic Acids Research</i>, 38(6), 1767–1771, 2009.<br>
  * > https://doi.org/10.1093/nar/gkp1137
  *
  * Using site_casing(), the sequences can automatically be turned into upper or lower case letter.

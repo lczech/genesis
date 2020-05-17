@@ -73,7 +73,7 @@ constexpr bool is_ascii(char c) noexcept
 }
 
 /**
- * @brief Return whether a char is a control character, according to ::iscntrl of the <cctype> header
+ * @brief Return whether a char is a control character, according to `iscntrl` of the cctype> `heade`
  * but ASCII-only.
  */
 constexpr bool is_cntrl(char c) noexcept
@@ -143,7 +143,7 @@ constexpr bool is_alnum(char c) noexcept
 }
 
 /**
- * @brief Return whether a char is a punctuation mark, according to ::ispunct of the <cctype>
+ * @brief Return whether a char is a punctuation mark, according to `ispunct` of the `cctype`
  * header, but ASCII-only.
  */
 constexpr bool is_punct(char c) noexcept
@@ -157,7 +157,7 @@ constexpr bool is_punct(char c) noexcept
 }
 
 /**
- * @brief Return whether a char is a punctuation mark, according to ::isgraph of the <cctype>
+ * @brief Return whether a char is a punctuation mark, according to `isgraph` of the `cctype`
  * header, but ASCII-only.
  */
 constexpr bool is_graph(char c) noexcept
@@ -200,7 +200,7 @@ constexpr bool is_space(char c) noexcept
 }
 
 /**
- * @brief Return whether a char is a printable character, according to ::isprint of the <cctype>
+ * @brief Return whether a char is a printable character, according to `isprint` of the `cctype`
  * header, but ASCII-only.
  */
 constexpr bool is_print(char c) noexcept

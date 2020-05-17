@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -164,7 +164,7 @@ public:
      *
      * we can read the color values (`!color`) like this:
      *
-     *  ~~~{.cpp}
+     * ~~~{.cpp}
      * KeyedAttributeTreeNewickReader reader;
      * reader.add_attribute( "!color", KeyedAttributeTreeNewickReader::Target::kEdge, "color" );
      * auto tree = reader.read( from_file( "path/to/tree.newick" ));
@@ -226,7 +226,7 @@ public:
      *
      * we can store all data at the tree Edges using
      *
-     *  ~~~{.cpp}
+     * ~~~{.cpp}
      * KeyedAttributeTreeNewickReader reader;
      * reader.add_catch_all( KeyedAttributeTreeNewickReader::Target::kEdge );
      * auto tree = reader.read( from_file( "path/to/tree.newick" ));

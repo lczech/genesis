@@ -143,7 +143,7 @@ inline char quality_encode_from_phred_score( unsigned char phred_score, bool cla
 /**
  * @brief Encode phred scores into quality chars, using the Sanger convention.
  *
- * @copydoc quality_encode_from_phred_score( unsigned char phred_score )
+ * @copydoc quality_encode_from_phred_score( unsigned char, bool )
  */
 inline std::string quality_encode_from_phred_score(
     std::vector<unsigned char> const& phred_scores,

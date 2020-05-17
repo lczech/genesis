@@ -191,16 +191,23 @@ on 2017-03-09.
 
 ## Gzip Streams @anchor supplement_acknowledgements_code_reuse_gzip_streams
 
-Genesis contains a set of classes that deal with gzip/zlib compressed/decompressed input streams:
+Genesis contains a set of classes that deal with gzip/zlib compressed/decompressed input streams,
+and some other stream-related functionality:
 
-  * @link genesis::utils::GzipIstream GzipIstream@endlink
-  * @link genesis::utils::GzipOstream GzipOstream@endlink
+  * @link genesis::utils::GzipIStream GzipIStream@endlink
+  * @link genesis::utils::GzipOStream GzipOStream@endlink
+  * @link genesis::utils::GzipIFStream GzipIFStream@endlink
+  * @link genesis::utils::GzipOFStream GzipOFStream@endlink
+  * @link genesis::utils::StrictIFStream StrictIFStream@endlink
+  * @link genesis::utils::StrictOFStream StrictOFStream@endlink
+  * @link genesis::utils::StrictFStream StrictFStream@endlink
 
-as well as the internal classes
+as well as the helper and internal classes:
 
   * @link genesis::utils::GzipStreamWrapper GzipStreamWrapper@endlink
-  * @link genesis::utils::GzipIstreambuf GzipIstreambuf@endlink
-  * @link genesis::utils::GzipOstreambuf GzipOstreambuf@endlink
+  * @link genesis::utils::GzipIStreambuf GzipIStreambuf@endlink
+  * @link genesis::utils::GzipOStreambuf GzipOStreambuf@endlink
+  * @link genesis::utils::StrictFStreamHolder StrictFStreamHolder@endlink
 
 The code of these classes is adapted from the excellent
 [zstr library](https://github.com/mateidavid/zstr) by Matei David.
@@ -213,19 +220,19 @@ The repository at https://github.com/mateidavid/zstr is published under the
 
 @htmlonly <details><summary>License</summary> @endhtmlonly
 >    The MIT License (MIT)
->    
+>
 >    Copyright (c) 2015 Matei David, Ontario Institute for Cancer Research
->    
+>
 >    Permission is hereby granted, free of charge, to any person obtaining a copy
 >    of this software and associated documentation files (the "Software"), to deal
 >    in the Software without restriction, including without limitation the rights
 >    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 >    copies of the Software, and to permit persons to whom the Software is
 >    furnished to do so, subject to the following conditions:
->    
+>
 >    The above copyright notice and this permission notice shall be included in all
 >    copies or substantial portions of the Software.
->    
+>
 >    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 >    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 >    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
