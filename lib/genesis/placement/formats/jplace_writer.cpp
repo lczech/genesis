@@ -88,9 +88,10 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutpu
 
     // Write metadata.
     os << in << "\"metadata\": {\n";
-    os << in << in << "\"program\": \"" << program_ << "\",\n";
-    os << in << in << "\"invocation\": \"" << invocation_ << "\",\n";
-    os << in << in << "\"created\": \"" << utils::current_date() << " " << utils::current_time() << "\"\n";
+    os << in << in << "\"program\": \"" << utils::escape( program_ ) << "\",\n";
+    os << in << in << "\"invocation\": \"" << utils::escape( invocation_ ) << "\",\n";
+    os << in << in << "\"created\": \"" << utils::escape( utils::current_date() );
+    os << " " << utils::escape( utils::current_time() ) << "\"\n";
     os << in << "},\n";
 
     // Write tree.
@@ -146,7 +147,8 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutpu
             // With multiplicity.
             os << in << in << in << "\"nm\": [\n";
             for( size_t j = 0; j < pquery.name_size(); ++j ) {
-                os << in << in << in << in << "[ \"" << pquery.name_at(j).name << "\", ";
+                os << in << in << in << in << "[ \"";
+                os << utils::escape( pquery.name_at(j).name ) << "\", ";
                 os << pquery.name_at(j).multiplicity << " ]";
 
                 if( j < pquery.name_size() - 1 ) {
@@ -161,7 +163,7 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutpu
             // Without multiplicity.
             os << in << in << in << "\"n\": [ ";
             for( size_t j = 0; j < pquery.name_size(); ++j ) {
-                os << "\"" << pquery.name_at(j).name << "\"";
+                os << "\"" << utils::escape( pquery.name_at(j).name ) << "\"";
 
                 if( j < pquery.name_size() - 1 ) {
                     os << ", ";
