@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ int main()
     // Write to a file
     TaxonomyWriter tax_writer;
     tax_writer.write_ranks( true );
-    tax_writer.to_file( taxonomy, "path/to/file.txt" );
+    tax_writer.write( taxonomy, to_file( "path/to/file.txt" ));
 
     // Traverse in preorder and print content
     for( auto const& tax_it : preorder( taxonomy )) {

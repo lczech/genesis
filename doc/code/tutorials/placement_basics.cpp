@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -72,5 +72,5 @@ int main()
     filter_min_accumulated_weight( sample, 0.98 );
 
     // Write the results back to a file.
-    JplaceWriter().to_file( sample, "path/to/new_file.jplace" );
+    JplaceWriter().write( sample, to_file( "path/to/new_file.jplace" ));
 }

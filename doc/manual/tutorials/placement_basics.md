@@ -123,7 +123,7 @@ Writing back your results to a new `jplace` file is done using a
 
 ~~~{.cpp}
 // Write the results back to a file.
-JplaceWriter().to_file( sample, "path/to/new_file.jplace" );
+JplaceWriter().write( sample, to_file( "path/to/new_file.jplace" ));
 ~~~
 
 See the API reference for details and for more functions and classes related to this topic.

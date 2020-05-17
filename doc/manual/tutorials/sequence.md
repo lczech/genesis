@@ -47,10 +47,10 @@ or @ref genesis::sequence::PhylipWriter "PhylipWriter":
 
 ~~~{.cpp}
 // Write data from a SequenceSet object to a fasta file.
-FastaWriter().to_file( sequences_b, "path/to/file_e.fasta" );
+FastaWriter().write( sequences_b, to_file( "path/to/file_e.fasta" ));
 
 // Write data from a SequenceSet object to a phylip file.
-PhylipWriter().to_file( sequences_a, "path/to/file_f.phylip" );
+PhylipWriter().write( sequences_a, to_file( "path/to/file_f.phylip" ));
 ~~~
 
 All the readers and writers can also be normally stored in a variable, for example

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,18 +28,29 @@ int main()
     using namespace genesis::tree;
     using namespace genesis::utils;
 
-    // Get an object, so that the rest compiles.
-    Tree tree;
+    {
+        // Get an object, so that the rest compiles.
+        Tree tree;
 
-    // -------------------------------------------------------------------------
-    //     Iterating Nodes and Edges
-    // -------------------------------------------------------------------------
+        // -------------------------------------------------------------------------
+        //     Iterating Nodes and Edges
+        // -------------------------------------------------------------------------
 
-    // Prepare a vector of all node names.
-    auto names = std::vector<std::string>( tree.node_count() );
+        // Prepare a vector of all node names.
+        auto names = std::vector<std::string>( tree.node_count() );
 
-    // Traverse the Nodes of a Tree, and fill the vector.
-    for( auto const& node : tree.nodes() ) {
-        names[ node.index() ] = node.data<CommonNodeData>().name;
+        // Traverse the Nodes of a Tree, and fill the vector.
+        for( auto const& node : tree.nodes() ) {
+            names[ node.index() ] = node.data<CommonNodeData>().name;
+        }
+    }
+
+    {
+        // -------------------------------------------------------------------------
+        //     Iterating Nodes and Edges
+        // -------------------------------------------------------------------------
+
+        // Read a Newick file into a Tree object.
+        Tree tree = CommonTreeNewickReader().read( from_file( "path/to/tree.newick" ));
     }
 }
