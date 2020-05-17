@@ -121,9 +121,9 @@ std::vector<unsigned char> quality_decode_to_phred_score(
  * and Illumina 1.8+, and hence the most common format as of today.
  *
  * If the flag @p clam is set (default), values outside of the valid range 0 to 93 are clamped,
- * that is, set to be inside the valid range. As the phred score is unsigned, this means, values
- * above 93 are simply encoded as if they were exactly 93. If @p clamp is set to false,
- * an exception is thrown instead.
+ * that is, set to be inside the valid range. As the phred score is unsigned, this leads to values
+ * above 93 simply being encoded as if they were exactly 93. If @p clamp is set to false,
+ * an exception is thrown instead if a value above 93 is encountered.
  */
 inline char quality_encode_from_phred_score( unsigned char phred_score, bool clamp = true )
 {
