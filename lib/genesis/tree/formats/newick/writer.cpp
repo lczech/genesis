@@ -200,6 +200,9 @@ void NewickWriter::write( NewickBroker const& broker, std::shared_ptr<utils::Bas
     (void) cp;
 
     os << ";";
+    if( trailing_new_line_ ) {
+        os << "\n";
+    }
 }
 
 // =================================================================================================

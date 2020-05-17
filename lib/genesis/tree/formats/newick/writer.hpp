@@ -323,6 +323,31 @@ public:
     }
 
     /**
+     * @brief Set whether to write a new line char `\n` at the end of each tree.
+     *
+     * By default, this is set to `true`, meaning that each tree is finished with a `\n` char,
+     * which is usually desirable when writing to Newick files or the like. However, in cases
+     * where the Newick string itself is used in some other format (e.g., jplace or nexus), this
+     * might not be wanted. Hence, we allow to disable the new line.
+     */
+    NewickWriter& trailing_new_line( bool value )
+    {
+        trailing_new_line_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get the current setting for whether a new line char `\n` is written to the end
+     * of each tree.
+     *
+     * @see trailing_new_line( bool )
+     */
+    bool trailing_new_line() const
+    {
+        return trailing_new_line_;
+    }
+
+    /**
      * @brief Set whether to write Newick node names.
      *
      * Default is `true`. This setting can be used to override any names that might be set by a
@@ -450,6 +475,7 @@ private:
     bool force_quot_marks_ = false;
     char quotation_mark_  = '\"';
     size_t line_length_ = 0;
+    bool trailing_new_line_ = true;
 
     bool write_names_    = true;
     bool write_values_   = true;

@@ -135,6 +135,7 @@ void write_color_tree_to_nexus_file(
 ) {
     // We use a normal Newick writer...
     auto newick_writer = CommonTreeNewickWriter();
+    newick_writer.trailing_new_line( false );
 
     // ... but also wrap it in a Color Mixin in order to allow for color branches if needed.
     auto color_plugin = tree::NewickColorWriterPlugin();

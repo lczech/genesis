@@ -99,6 +99,7 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutpu
     newick_writer.enable_names(true);
     newick_writer.enable_branch_lengths(true);
     newick_writer.branch_length_precision( branch_length_precision_ );
+    newick_writer.trailing_new_line( false );
     os << in << "\"tree\": \"";
     os << utils::escape( newick_writer.to_string( sample.tree() ));
     os << "\",\n";
@@ -192,11 +193,12 @@ utils::JsonDocument JplaceWriter::to_document( Sample const& smp ) const
     JsonDocument doc = JsonDocument::object();
 
     // set tree
-    auto nwp = PlacementTreeNewickWriter();
-    nwp.enable_names(true);
-    nwp.enable_branch_lengths(true);
-    nwp.branch_length_precision( branch_length_precision_ );
-    doc[ "tree" ] = nwp.to_string( smp.tree() );
+    auto newick_writer = PlacementTreeNewickWriter();
+    newick_writer.enable_names(true);
+    newick_writer.enable_branch_lengths(true);
+    newick_writer.branch_length_precision( branch_length_precision_ );
+    newick_writer.trailing_new_line( false );
+    doc[ "tree" ] = newick_writer.to_string( smp.tree() );
 
     // set placements
     auto& placements_arr = doc[ "placements" ];
