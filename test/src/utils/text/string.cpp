@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/text/char.hpp"
+#include "genesis/utils/io/char.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <cstdlib>
@@ -203,7 +203,7 @@ TEST( Text, ToLower )
 
         // Convert manually, using the char based function.
         for( auto& c : text ){
-            c = to_lower_ascii(c);
+            c = to_lower(c);
         }
 
         EXPECT_EQ( text, test );
@@ -230,7 +230,7 @@ TEST( Text, ToUpper )
 
         // Convert manually, using the char based function.
         for( auto& c : text ){
-            c = to_upper_ascii(c);
+            c = to_upper(c);
         }
 
         EXPECT_EQ( text, test );

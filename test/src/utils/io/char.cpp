@@ -30,9 +30,20 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/text/char.hpp"
+#include "genesis/utils/io/char.hpp"
 
 using namespace genesis::utils;
+
+TEST(Char, Ascii)
+{
+    EXPECT_TRUE( is_ascii('a') );
+    EXPECT_TRUE( is_lower('a') );
+    EXPECT_FALSE( is_upper('a') );
+
+    EXPECT_TRUE( is_punct('.') );
+    EXPECT_FALSE( is_punct('x') );
+
+}
 
 TEST( Text, CharToHex )
 {

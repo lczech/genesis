@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/text/char.hpp"
+#include "genesis/utils/io/char.hpp"
 
 #include <cctype>
 #include <functional>

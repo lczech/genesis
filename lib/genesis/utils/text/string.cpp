@@ -451,7 +451,7 @@ void to_lower_ascii_inplace( std::string& str )
 
     // Naive implementation that might use compiler-generated vector intrinsics.
     for( auto& c : str ){
-        c = to_lower_ascii(c);
+        c = to_lower(c);
     }
 
     #endif // GENESIS_AVX
@@ -475,7 +475,7 @@ void to_upper_ascii_inplace( std::string& str )
 
     // Naive implementation that might use compiler-generated vector intrinsics.
     for( auto& c : str ){
-        c = to_upper_ascii(c);
+        c = to_upper(c);
     }
 
     #endif // GENESIS_AVX
