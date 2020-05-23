@@ -32,20 +32,36 @@
 
 #include "genesis/utils/io/char.hpp"
 
+#include <cctype>
+
 using namespace genesis::utils;
 
-TEST(Char, Ascii)
+TEST( Char, AsciiFunctions )
 {
-    EXPECT_TRUE( is_ascii('a') );
-    EXPECT_TRUE( is_lower('a') );
-    EXPECT_FALSE( is_upper('a') );
+    // Compare our custom ascii char functions to the build-in versions
+    // See http://www.cplusplus.com/reference/cctype/
+    for( int c = 0; c < 128; ++c ) {
+        EXPECT_TRUE( is_ascii(c) );
 
-    EXPECT_TRUE( is_punct('.') );
-    EXPECT_FALSE( is_punct('x') );
+        EXPECT_EQ( static_cast<bool>( ::iscntrl( c )), is_cntrl( c ));
+        EXPECT_EQ( static_cast<bool>( ::isblank( c )), is_blank( c ));
+        EXPECT_EQ( static_cast<bool>( ::isspace( c )), is_space( c ));
+        EXPECT_EQ( static_cast<bool>( ::isupper( c )), is_upper( c ));
+        EXPECT_EQ( static_cast<bool>( ::islower( c )), is_lower( c ));
+        EXPECT_EQ( static_cast<bool>( ::isalpha( c )), is_alpha( c ));
+        EXPECT_EQ( static_cast<bool>( ::isdigit( c )), is_digit( c ));
+        EXPECT_EQ( static_cast<bool>( ::isxdigit( c )), is_xdigit( c ));
+        EXPECT_EQ( static_cast<bool>( ::isalnum( c )), is_alnum( c ));
+        EXPECT_EQ( static_cast<bool>( ::ispunct( c )), is_punct( c ));
+        EXPECT_EQ( static_cast<bool>( ::isgraph( c )), is_graph( c ));
+        EXPECT_EQ( static_cast<bool>( ::isprint( c )), is_print( c ));
 
+        EXPECT_EQ( ::tolower( c ), static_cast<int>( to_lower( c )));
+        EXPECT_EQ( ::toupper( c ), static_cast<int>( to_upper( c )));
+    }
 }
 
-TEST( Text, CharToHex )
+TEST( Char, CharToHex )
 {
     EXPECT_EQ( "LF (0x0A)", char_to_hex( '\n', true ));
     EXPECT_EQ( "'N' (0x4E)", char_to_hex( 'N', true ));
