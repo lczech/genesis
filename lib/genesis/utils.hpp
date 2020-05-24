@@ -51,6 +51,7 @@
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/range.hpp"
 #include "genesis/utils/core/std.hpp"
+#include "genesis/utils/core/thread_pool.hpp"
 #include "genesis/utils/core/version.hpp"
 #include "genesis/utils/formats/bmp/writer.hpp"
 #include "genesis/utils/formats/csv/input_iterator.hpp"
