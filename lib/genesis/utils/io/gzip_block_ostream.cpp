@@ -187,9 +187,9 @@ public:
             return;
         }
 
+        // Check that we are not asked to compress more data than the input buffer can hold.
         // This is an assertion, because we only use that class and function ourselves locally,
-        // so we know what we are doing. If ever moved to the outside, make this an exception,
-        // as we cannot compress more data than the input buffer can hold.
+        // so we know what we are doing. If ever moved to the outside, make this an exception.
         assert( avail_in <= in_len_ );
 
         // Set zstream input buffer pointers. We only process as many bytes as given.
@@ -287,10 +287,12 @@ private:
      * @brief Helper struct that stores one unit of compression, and its status in form of a future.
      *
      * If the future is valid(), the block was previously assigned to one of the thread pool workers
-     * to be compressed. Then, we can call future.get() to obtain the compression result.
+     * to be compressed. Then, we can call future.get() to wait for the compression to finish,
+     * and after that, write the compressed data to our wrapped stream.
      *
      * If the future is not valid, then the block is usable as a buffer, or is currently used as
-     * a buffer for our streamed input. Once the block buffer is full, we can then call the compression.
+     * a buffer for our streamed input. Once the block buffer is full, we can then call the
+     * compression on it.
      */
     struct BlockTask
     {
@@ -401,16 +403,19 @@ public:
         // Assert this. If this assertion fails, our assumption is wrong that the overflow() is
         // only called from std::streambuf when there is an actual overflow. In that case, we need
         // to investigate what other std::streambuf functions call overflow, and why.
-        // The assertion checks that the differents between the current write pointer of the stream
+        // The assertion checks that the difference between the current write pointer of the stream
         // buffer and the beginning of the buffer is the same as the total length of the buffer.
         assert( pptr() >= pbase() );
         assert(
             static_cast<size_t>( pptr() - pbase() ) ==
             block_queue_[ current_block_ % block_queue_.size() ].block.get_input_buffer().second
         );
-        assert( pptr() == epptr() );
 
-        // Also, assert that the buffer pointer is correct.
+        // Also, assert that the buffer pointers are correct. In particular, the current
+        // write pointer pptr needs to be at the same position as the buffer end pointer epptr.
+        // This is a variation of the check above.
+        // At the same time, the buffer start pointer pbase shoudl still be at the start of the block.
+        assert( pptr() == epptr() );
         assert(
             pbase() ==
             block_queue_[ current_block_ % block_queue_.size() ].block.get_input_buffer().first
@@ -534,19 +539,23 @@ private:
             avail_in
         );
 
-        // Move to next block in the ring
+        // Move to next block in the ring buffer queue
         ++current_block_;
         auto& next_block = block_queue_[ current_block_ % block_queue_.size() ];
 
-        // If the block has a future, that means that we sent it to compression before,
-        // and that the ring is currently full of blocks that are either already compressed
-        // or under compression by some worker thread, or waiting to be compressed
-        // (in other words: they all have a valid future).
-        // Then, we have to wait for it to finish and write it to our underlying sink stream,
-        // before we can re-use the block as our new target buffer for the incoming data.
+        // If the block has a future, that means that we sent it to compression before.
+        // Because we use a ring buffer, that hence means that the ring is full. There are
+        // currently only full blocks that are either already compressed or under compression
+        // by some worker thread, or waiting to be compressed, but no block that we can use
+        // as our next input buffer for writing data to.
+        // Hence, we have to wait for the block to finish being compressed and then write it to our
+        // underlying sink stream, before we can finally re-use the block as our new target buffer
+        // for  the incoming data.
         int ret = 0;
         if( next_block.future.valid() ) {
 
+            // If we are here, the ring buffer queue is full. In that case, all blocks have been
+            // added to the thread pool for being compressed.
             // Assert that indeed all bocks contain valid futures, that is, they all have been
             // send to be compressed at some point before. We use a lambda that executes itself.
             assert(
@@ -571,6 +580,7 @@ private:
 
         // Assert that all pointers are where they should be
         assert( pbase() == block_in.first );
+        assert( pptr()  == block_in.first );
         assert( epptr() == block_in.first + block_in.second );
 
         // Return value: was the writing of the previously compressed blocks successful.
