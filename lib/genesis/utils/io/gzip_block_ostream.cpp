@@ -226,8 +226,9 @@ private:
         while( true ) {
             // Set zstream output buffer. It has twice the size, so should fit, but we later still
             // check and throw if not. Ugly, but everything else is just too complicated for now.
+            assert( out_len_ >= out_pos_ );
             zstream_->next_out = reinterpret_cast<decltype( zstream_->next_out )>( out_buff_ + out_pos_ );
-            zstream_->avail_out = out_len_;
+            zstream_->avail_out = out_len_ - out_pos_;
 
             // Run the deflate algorithm, and check the result
             int ret = deflate( zstream_, flush );
