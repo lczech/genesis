@@ -95,7 +95,7 @@ inline std::shared_ptr<BaseOutputTarget> to_file(
 
     // Without compression. Not in the `else` branch, to not confuse old compilers.
     if( auto_adjust_filename && ext == "gz" ) {
-        fn.erase( fn.size() - 2 );
+        fn.erase( fn.size() - 3 );
     }
     return std::make_shared< FileOutputTarget >( fn );
 }
