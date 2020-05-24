@@ -224,6 +224,10 @@ private:
     void deflate_loop_( int flush )
     {
         while( true ) {
+            // When we get here, out_pos_ is already set from the caller to either be 0 for the
+            // start of the compression, or left at the current output postion from some earlier
+            // deflate loop. So, no need to change it.
+
             // Set zstream output buffer. It has twice the size, so should fit, but we later still
             // check and throw if not. Ugly, but everything else is just too complicated for now.
             assert( out_len_ >= out_pos_ );
@@ -236,7 +240,10 @@ private:
                 throw except::GzipError( zstream_->msg, ret );
             }
 
-            // Store the resulting length of the deflation. If this was too much, throw.
+            // Store the resulting end position in the output buffer after the deflation.
+            // If this was too much, throw. Also, we check if nothing was written to the buffer;
+            // in that case, we are done.
+            auto const old_pos = out_pos_;
             out_pos_ = reinterpret_cast<decltype( out_buff_ )>( zstream_->next_out ) - out_buff_;
             if( out_pos_ >= out_len_ ) {
                 throw except::GzipError( "Block compression ran out of buffer.", Z_MEM_ERROR );
@@ -244,7 +251,7 @@ private:
 
             // If we are done with the input, get out of here. The Z_BUF_ERROR error is not fatal,
             // but indicates that we are done with the input, and can continue.
-            if( ret == Z_STREAM_END || ret == Z_BUF_ERROR ) {
+            if( ret == Z_STREAM_END || ret == Z_BUF_ERROR || old_pos == out_pos_ ) {
                 break;
             }
         }
@@ -273,6 +280,27 @@ private:
 /**
  * @brief Output stream buffer that writes gzip-compressed data in individual blocks to a given
  * wrapped/underlying other output stream buffer.
+ *
+ * We use a ring buffer queue for the input, where each element represents one block to be compressed.
+ * The size of each block in the queue corresponds to the desired  block size for compression.
+ * We start by using the input buffer of the first block of the queue as our target buffer to write
+ * the incoming stream data to. Once the input buffer is full, we send that block to a compression
+ * worker thread, and move on, using the next block in the queue as our new input buffer for
+ * incoming data, and so on.
+ *
+ * Eventually, we loop around the ring buffer, coming back to a block that has been send to be
+ * compressed before. We can now write the compressed data to our underlying wrapped output sink
+ * stream. If the compression is not yet done at that point, we wait, because our buffer is full
+ * anyway. Once that data is written, the block is re-used again as our input buffer.
+ *
+ * Hence, while operating the stream, there is a delay of blocks: we buffer incoming data, send
+ * it to compression once an individual block buffer is full, but only write it to the output stream
+ * once we return to that block in the next round of the ring. This allows us to keep all worker
+ * threads for compression busy all the time. On destruction (or flush/sync), all remaining
+ * blocks are of course finished and written. Using that strategy, all blocks are also written in
+ * the correct order without any need for special synchronization between compression threads.
+ * Also, as the whole main operation of the stream itself is single threaded, we do not have to deal
+ * with synchronization for things like access to the ring buffer.
  */
 class GzipBlockOStreambuf
     : public std::streambuf
@@ -285,7 +313,7 @@ class GzipBlockOStreambuf
 private:
 
     /**
-     * @brief Helper struct that stores one unit of compression, and its status in form of a future.
+     * @brief Helper struct that stores one block of compression, and its status in form of a future.
      *
      * If the future is valid(), the block was previously assigned to one of the thread pool workers
      * to be compressed. Then, we can call future.get() to wait for the compression to finish,
@@ -453,12 +481,13 @@ public:
         }
 
         // Then, write all blocks that are still in the queue. We need to do a full round, because
-        // if we keep more blocks than we actually use (for very short files), we will not yet have
-        // filled the queue completely.
+        // otherwise we have no way of knowing which blocks were used so far - for very short files,
+        // we will not even yet have filled the queue completely.
         size_t cur = current_block_ % block_queue_.size();
         do {
 
-            // Write the block, if it has data
+            // Write the compressed block, if it has data, potentially waiting for its compression
+            // to be finished by some worker thread first.
             if( block_queue_[ cur ].future.valid() ) {
                 ret = write_compressed_block_( cur );
 
@@ -678,10 +707,9 @@ GzipBlockOStream::GzipBlockOStream(
     std::ostream& os,
     std::size_t block_size,
     GzipCompressionLevel compression_level,
-    std::size_t num_threads,
-    std::size_t num_blocks
+    std::size_t num_threads
 )
-    : GzipBlockOStream( os.rdbuf(), block_size, compression_level, num_threads, num_blocks )
+    : GzipBlockOStream( os.rdbuf(), block_size, compression_level, num_threads )
 {
     // Nothing to do
 }
@@ -690,8 +718,7 @@ GzipBlockOStream::GzipBlockOStream(
     std::streambuf* sbuf_p,
     std::size_t block_size,
     GzipCompressionLevel compression_level,
-    std::size_t num_threads,
-    std::size_t num_blocks
+    std::size_t num_threads
 )
     : std::ostream( new GzipBlockOStreambuf(
         sbuf_p,
@@ -703,8 +730,6 @@ GzipBlockOStream::GzipBlockOStream(
         num_threads == 0
             ? gzip_block_get_num_threads_()
             : num_threads
-        ,
-        num_blocks
     ))
 {
     exceptions(std::ios_base::badbit);
@@ -725,13 +750,13 @@ GzipBlockOStream::~GzipBlockOStream()
 // ================================================================================================
 
 GzipBlockOStream::GzipBlockOStream(
-    std::ostream&, std::size_t, GzipCompressionLevel, std::size_t, std::size_t
+    std::ostream&, std::size_t, GzipCompressionLevel, std::size_t
 ) {
     throw std::runtime_error( "zlib: Genesis was not compiled with zlib support." );
 }
 
 GzipBlockOStream::GzipBlockOStream(
-    std::streambuf*, std::size_t, GzipCompressionLevel, std::size_t, std::size_t
+    std::streambuf*, std::size_t, GzipCompressionLevel, std::size_t
 ) {
     throw std::runtime_error( "zlib: Genesis was not compiled with zlib support." );
 }

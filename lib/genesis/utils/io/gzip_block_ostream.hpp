@@ -56,9 +56,9 @@ namespace utils {
  * of individual compressed blocks.
  *
  * We here use a similar technique to achieve a compression speedup by using parallel threads
- * on different gzip blocks. This gives almost linear speedup, at the cost of ~3% increase in resulting
- * file size due to the additional gzip headers of each block. This downside can be alleivated by
- * using larger blocks though. By default, we use 64kB blocks.
+ * on different gzip blocks. This gives almost linear speedup, at the cost of ~3% increase in
+ * resulting file size due to the additional gzip headers of each block. This downside can be
+ * alleivated by using larger blocks though. By default, we use 64kB blocks.
  *
  * Exemplary usage:
  *
@@ -73,9 +73,15 @@ namespace utils {
  *     ostr << "some data\n";
  *
  * By default, the number of threads is determined using the number of available threads in an
- * OpenMP parallel region. If set manually, we recommend to use not more than the hardware
- * concurrency, or fewer, if at the same time compressed data is read in some other part of the
- * program.
+ * OpenMP parallel region. If set manually via @p num_threads to a value other than 0, we recommend
+ * to use not more than the hardware concurrency, or fewer, if at the same time compressed data is
+ * read in some other part of the program, or other computation-heavy work is done.
+ *
+ * Furthermore, note that some file manages might not display the original (uncompressed) file size
+ * correctly when viewing the resulting gz file, as they might use only the size of one block
+ * instead of the full resulting uncompressed file size. This should not affect decompression or any
+ * other downstream processes thogh. As this class is a stream, we usually do not know beforehand
+ * how lare the resulting file will be, so there is not much we can do about this.
  *
  * The class could also be extended in the future to achieve indexing similar to compressed vcf.
  * NB: We have not yet tested compatibility with the vcf format, as they might employ additional
@@ -90,16 +96,14 @@ public:
         std::ostream& os,
         std::size_t block_size = GZIP_DEFAULT_BLOCK_SIZE,
         GzipCompressionLevel compression_level = GzipCompressionLevel::kDefaultCompression,
-        std::size_t num_threads = 0,
-        std::size_t num_blocks = 0
+        std::size_t num_threads = 0
     );
 
     explicit GzipBlockOStream(
         std::streambuf* sbuf_p,
         std::size_t block_size = GZIP_DEFAULT_BLOCK_SIZE,
         GzipCompressionLevel compression_level = GzipCompressionLevel::kDefaultCompression,
-        std::size_t num_threads = 0,
-        std::size_t num_blocks = 0
+        std::size_t num_threads = 0
     );
 
     virtual ~GzipBlockOStream();
