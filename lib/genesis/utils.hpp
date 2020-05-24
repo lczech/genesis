@@ -87,6 +87,7 @@
 #include "genesis/utils/io/deserializer.hpp"
 #include "genesis/utils/io/file_input_source.hpp"
 #include "genesis/utils/io/file_output_target.hpp"
+#include "genesis/utils/io/gzip_block_ostream.hpp"
 #include "genesis/utils/io/gzip.hpp"
 #include "genesis/utils/io/gzip_input_source.hpp"
 #include "genesis/utils/io/gzip_output_target.hpp"
