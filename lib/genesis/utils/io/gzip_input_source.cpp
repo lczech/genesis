@@ -126,7 +126,7 @@ void GzipInputSource::create_zstream_()
     auto& zstream = zlib_data_->zstream;
 
     // Init zlib inflate state
-    zstream = z_stream{};
+    zstream = z_stream();
     zstream.zalloc = Z_NULL;
     zstream.zfree = Z_NULL;
     zstream.opaque = Z_NULL;
