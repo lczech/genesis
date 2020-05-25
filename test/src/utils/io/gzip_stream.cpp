@@ -33,6 +33,7 @@
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/io/gzip_block_ostream.hpp"
 #include "genesis/utils/io/gzip_stream.hpp"
+#include "genesis/utils/io/output_target.hpp"
 
 #include <cstdio>
 #include <sstream>
@@ -187,5 +188,41 @@ TEST( GzipStream, BlockStream )
         auto const data = file_read( outfile );
         EXPECT_EQ( groundtruth.str(), data );
         EXPECT_EQ( 0, std::remove( outfile.c_str() ));
+    }
+}
+
+TEST( GzipStream, ToFile )
+{
+    NEEDS_TEST_DATA;
+    std::string infile = environment->data_dir + "sequence/dna_10.fasta";
+    std::string compfile = infile + ".to-file.gz";
+    auto const data = file_read( infile );
+
+    // Using normal gzip compression
+    {
+        // Compress the file
+        auto target = to_file( compfile, GzipCompressionLevel::kDefaultCompression );
+        *target << data;
+    }
+    {
+        // Decompress again
+        auto const decompr = file_read( compfile );
+
+        EXPECT_EQ( data, decompr );
+        EXPECT_EQ( 0, std::remove( compfile.c_str() ));
+    }
+
+    // Using block gzip compression
+    {
+        // Compress the file
+        auto target = to_gzip_block_file( compfile);
+        *target << data;
+    }
+    {
+        // Decompress again
+        auto const decompr = file_read( compfile );
+
+        EXPECT_EQ( data, decompr );
+        EXPECT_EQ( 0, std::remove( compfile.c_str() ));
     }
 }
