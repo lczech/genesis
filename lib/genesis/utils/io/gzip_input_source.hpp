@@ -121,6 +121,20 @@ private:
     static const size_t BlockLength = 1 << 20;
 
     /**
+     * @brief Create the internal zlib data structure.
+     *
+     * C-style, because ZLIB...
+     */
+    void create_zstream_();
+
+    /**
+     * @brief Destroy the internal zlib data structure.
+     *
+     * C-style, because ZLIB...
+     */
+    void destroy_zstream_();
+
+    /**
      * @brief Override of the read function.
      */
     size_t read_( char* buffer, size_t size ) override;
@@ -154,6 +168,8 @@ private:
     // -------------------------------------------------------------
 
     std::shared_ptr<BaseInputSource> input_source_;
+
+    Format format_;
     std::string format_name_;
 
     // We want to avoid including the zlib header in this header,

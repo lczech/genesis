@@ -109,7 +109,7 @@ namespace except {
 #ifdef GENESIS_ZLIB
 
 GzipError::GzipError( std::string const& z_stream_message, int error_code )
-    : except::Exception("")
+    : except::IOError("")
 {
     // Need to have this method in the cpp file, so that we do not expose the zlib header
     // to the header file, which would include all its symbols to whichever class uses our headers...

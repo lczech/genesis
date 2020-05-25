@@ -73,6 +73,9 @@ namespace utils {
  * Also, by default, if the file already exists, an exception is thrown. See
  * @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink
  * to change this behaviour.
+ *
+ * See also to_gzip_block_file() for a version that offers multithreaded gzip compression
+ * using blocks of compressed data.
  */
 inline std::shared_ptr<BaseOutputTarget> to_file(
     std::string const& file_name,
@@ -95,9 +98,51 @@ inline std::shared_ptr<BaseOutputTarget> to_file(
 
     // Without compression. Not in the `else` branch, to not confuse old compilers.
     if( auto_adjust_filename && ext == "gz" ) {
-        fn.erase( fn.size() - 2 );
+        fn.erase( fn.size() - 3 );
     }
     return std::make_shared< FileOutputTarget >( fn );
+}
+
+/**
+ * @brief Obtain an output target for writing gzip block compressed data to a file.
+ *
+ * This output target uses multithreaded gzip compression by block-compressing chunks of data.
+ * See GzipBlockOStream for an explanation and more details on this technique and the parameters
+ * offered here.
+ *
+ * For general details on using this output target for writing data, see to_file().
+ *
+ * @see GzipBlockOStream
+ * @see GzipBlockOutputTarget
+ * @see to_file()
+ */
+inline std::shared_ptr<BaseOutputTarget> to_gzip_block_file(
+    std::string const& file_name,
+    std::size_t block_size = GzipBlockOStream::GZIP_DEFAULT_BLOCK_SIZE,
+    GzipCompressionLevel compression_level = GzipCompressionLevel::kDefaultCompression,
+    std::size_t num_threads = 0,
+    bool auto_adjust_filename = true
+) {
+    if( compression_level == GzipCompressionLevel::kNoCompression ) {
+        throw std::invalid_argument(
+            "Cannot use compression level kNoCompression with a gzip block output."
+        );
+    }
+
+    // Adjust filename if needed and wanted
+    auto fn = file_name;
+    auto const ext = file_extension( fn );
+    if( auto_adjust_filename && ext != "gz" ) {
+        fn += ".gz";
+    }
+
+    // Return the wrapped streams
+    return std::make_shared<GzipBlockOutputTarget>(
+        std::make_shared< FileOutputTarget >( fn, std::ios_base::out | std::ios_base::binary ),
+        block_size,
+        compression_level,
+        num_threads
+    );
 }
 
 /**

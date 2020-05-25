@@ -30,11 +30,15 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/io/gzip_stream.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/io/gzip_block_ostream.hpp"
+#include "genesis/utils/io/gzip_stream.hpp"
+#include "genesis/utils/io/output_target.hpp"
 
 #include <cstdio>
 #include <sstream>
+#include <string>
+#include <vector>
 
 using namespace genesis;
 using namespace genesis::utils;
@@ -155,4 +159,70 @@ TEST( GzipStream, FileCompressDecompress )
 
     EXPECT_EQ( data, decompr );
     EXPECT_EQ( 0, std::remove( compfile.c_str() ));
+}
+
+TEST( GzipStream, BlockStream )
+{
+    NEEDS_TEST_DATA;
+
+    // Test a variety of file sizes, so that we get all kinds of buffer load
+    std::vector<size_t> sizes = { 0, 1, 100, 10000, 1000000 };
+    for( auto const size : sizes ) {
+        auto const outfile = environment->data_dir + "gzip-block-" + std::to_string( size ) + ".gz";
+        std::stringstream groundtruth;
+
+        // Scope, so that data is written
+        {
+            std::ofstream ofs;
+            ofs.open( outfile, std::ios_base::binary );
+            GzipBlockOStream ogzs( ofs );
+
+            // Write dummy numbers to the file
+            for( size_t i = 0; i < size; ++i ) {
+                ogzs << i << "\n";
+                groundtruth << i << "\n";
+            }
+        }
+
+        // Read the file again, and see what we got
+        auto const data = file_read( outfile );
+        EXPECT_EQ( groundtruth.str(), data );
+        EXPECT_EQ( 0, std::remove( outfile.c_str() ));
+    }
+}
+
+TEST( GzipStream, ToFile )
+{
+    NEEDS_TEST_DATA;
+    std::string infile = environment->data_dir + "sequence/dna_10.fasta";
+    std::string compfile = infile + ".to-file.gz";
+    auto const data = file_read( infile );
+
+    // Using normal gzip compression
+    {
+        // Compress the file
+        auto target = to_file( compfile, GzipCompressionLevel::kDefaultCompression );
+        *target << data;
+    }
+    {
+        // Decompress again
+        auto const decompr = file_read( compfile );
+
+        EXPECT_EQ( data, decompr );
+        EXPECT_EQ( 0, std::remove( compfile.c_str() ));
+    }
+
+    // Using block gzip compression
+    {
+        // Compress the file
+        auto target = to_gzip_block_file( compfile);
+        *target << data;
+    }
+    {
+        // Decompress again
+        auto const decompr = file_read( compfile );
+
+        EXPECT_EQ( data, decompr );
+        EXPECT_EQ( 0, std::remove( compfile.c_str() ));
+    }
 }

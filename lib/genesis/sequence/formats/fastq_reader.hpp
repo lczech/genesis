@@ -277,27 +277,27 @@ protected:
     /**
      * @brief Parse a fastq sequence into the given @p sequence object.
      */
-    bool parse_sequence_( utils::InputStream& input_stream, std::string& buffer, Sequence& sequence ) const;
+    bool parse_sequence_( utils::InputStream& input_stream, Sequence& sequence ) const;
 
     /**
      * @brief Parse the first label line (starting with an @).
      */
-    void parse_label1_(   utils::InputStream& input_stream, std::string& buffer, Sequence& sequence ) const;
+    void parse_label1_(   utils::InputStream& input_stream, Sequence& sequence ) const;
 
     /**
      * @brief Parse the sequence line(s).
      */
-    void parse_sites_(    utils::InputStream& input_stream, std::string& buffer, Sequence& sequence ) const;
+    void parse_sites_(    utils::InputStream& input_stream, Sequence& sequence ) const;
 
     /**
      * @brief Parse the second label line (starting with a +, and either empty or equal to the first).
      */
-    void parse_label2_(   utils::InputStream& input_stream, std::string& buffer, Sequence& sequence ) const;
+    void parse_label2_(   utils::InputStream& input_stream, Sequence& sequence ) const;
 
     /**
      * @brief Parse the quality score line(s), which also runs the plugin, if available.
      */
-    void parse_quality_(  utils::InputStream& input_stream, std::string& buffer, Sequence& sequence ) const;
+    void parse_quality_(  utils::InputStream& input_stream, Sequence& sequence ) const;
 
     // ---------------------------------------------------------------------
     //     Properties
@@ -391,6 +391,9 @@ private:
     ){
         sequence.phred_scores( quality_decode_to_phred_score( quality_string, quality_encoding_ ));
     };
+
+    // Internal reading buffer
+    mutable std::string buffer_;
 
 };
 
