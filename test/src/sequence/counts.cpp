@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -65,7 +65,7 @@ TEST( Sequence, Entropy )
     EXPECT_FLOAT_EQ( 0.0,       site_information( counts, 3 ));
 
     EXPECT_FLOAT_EQ( 4.3112783, absolute_entropy( counts ));
-    EXPECT_FLOAT_EQ( 1.0778196, averaged_entropy( counts ));
+    EXPECT_FLOAT_EQ( 1.0778196, average_entropy( counts ));
 
     EXPECT_EQ( "AAAA", consensus_sequence_with_majorities( counts ));
 }
