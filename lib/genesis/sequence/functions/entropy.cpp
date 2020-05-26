@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ namespace genesis {
 namespace sequence {
 
 // =================================================================================================
-//     Site Entropy
+//     Per Site Entropy and Information
 // =================================================================================================
 
 double site_entropy(
@@ -107,10 +107,6 @@ double site_entropy(
     }
 }
 
-// =================================================================================================
-//     Site Information
-// =================================================================================================
-
 double site_information(
     SiteCounts const&     counts,
     size_t                site_index,
@@ -134,7 +130,7 @@ double site_information(
 }
 
 // =================================================================================================
-//     Absolute Entropy
+//     Total Entropy and Information
 // =================================================================================================
 
 double absolute_entropy(
@@ -148,11 +144,7 @@ double absolute_entropy(
     return sum;
 }
 
-// =================================================================================================
-//     Averaged Entropy
-// =================================================================================================
-
-double averaged_entropy(
+double average_entropy(
     SiteCounts const&     counts,
     bool                  only_determined_sites,
     SiteEntropyOptions    per_site_options
@@ -166,6 +158,53 @@ double averaged_entropy(
 
     for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
         sum += site_entropy( counts, site_idx, per_site_options );
+
+        // Count determined sites.
+        if( only_determined_sites ) {
+            bool det = false;
+            for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
+                det |= ( counts.count_at( char_idx, site_idx ) > 0 );
+            }
+            if( det ) {
+                ++determined_sites;
+            }
+        }
+    }
+
+    if( only_determined_sites ) {
+        return sum / static_cast<double>( determined_sites );
+    } else {
+        return sum / static_cast<double>( counts.length() );
+    }
+}
+
+double absolute_information(
+    SiteCounts const&     counts,
+    bool                  use_small_sample_correction,
+    SiteEntropyOptions    per_site_options
+) {
+    double sum = 0.0;
+    for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
+        sum += site_information( counts, site_idx, use_small_sample_correction, per_site_options );
+    }
+    return sum;
+}
+
+double average_information(
+    SiteCounts const&     counts,
+    bool                  only_determined_sites,
+    bool                  use_small_sample_correction,
+    SiteEntropyOptions    per_site_options
+) {
+    // Counters.
+    double sum = 0.0;
+    size_t determined_sites = 0;
+
+    // Consts for speedup.
+    auto const num_chars = counts.characters().size();
+
+    for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
+        sum += site_information( counts, site_idx, use_small_sample_correction, per_site_options );
 
         // Count determined sites.
         if( only_determined_sites ) {

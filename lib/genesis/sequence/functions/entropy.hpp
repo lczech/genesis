@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ class SiteCounts;
 class SequenceSet;
 
 // =================================================================================================
-//     Entropy
+//     Entropy Options
 // =================================================================================================
 
 /**
@@ -193,6 +193,10 @@ inline bool operator & ( SiteEntropyOptions lhs, SiteEntropyOptions rhs )
     return static_cast< T >( lhs ) & static_cast< T >( rhs );
 }
 
+// =================================================================================================
+//     Per Site Entropy and Information
+// =================================================================================================
+
 /**
  * @brief Calculate the entropy at one site of a SiteCounts object.
  *
@@ -213,7 +217,7 @@ double site_entropy(
 /**
  * @brief Calculate the information content at one site of a SiteCounts object.
  *
- * The information content \f$ R \f$ at site \f$ i \f$ (= `site_index`) is calculated as
+ * The information content \f$ R \f$ at site \f$ i \f$ (= @p site_index) is calculated as
  * \f$ R_{i} = \log_{2}( s ) - (H_{i}+e_{n}) \f$.
  *
  * Here, \f$ s \f$ is the number of possible characters in the sequences
@@ -236,6 +240,10 @@ double site_information(
     SiteEntropyOptions    options = SiteEntropyOptions::kDefault
 );
 
+// =================================================================================================
+//     Total Entropy and Information
+// =================================================================================================
+
 /**
  * @brief Return the sum of all site entropies.
  *
@@ -249,7 +257,7 @@ double absolute_entropy(
 );
 
 /**
- * @brief Return the averaged sum of all site entropies.
+ * @brief Return the average sum of all site entropies.
  *
  * This function sums up up the site_entropy() for all sites of the SiteCounts object and
  * returns the average result per site.
@@ -265,9 +273,48 @@ double absolute_entropy(
  * The function additionally takes optional flags to refine the site entropy calculation,
  * see ::SiteEntropyOptions for their explanation.
  */
-double averaged_entropy(
+double average_entropy(
     SiteCounts const&     counts,
     bool                  only_determined_sites = false,
+    SiteEntropyOptions    per_site_options = SiteEntropyOptions::kDefault
+);
+
+/**
+ * @brief Calculate the information content across all sites of a SiteCounts object.
+ *
+ * See site_information() for details. This function builds the sum of all per-site information
+ * content values.
+ *
+ * The function additionally takes optional flags to refine the site entropy calculation,
+ * see ::SiteEntropyOptions for their explanation.
+ */
+double absolute_information(
+    SiteCounts const&     counts,
+    bool                  use_small_sample_correction = false,
+    SiteEntropyOptions    per_site_options = SiteEntropyOptions::kDefault
+);
+
+/**
+ * @brief Calculate the information content across all sites of a SiteCounts object.
+ *
+ * See site_information() for details. This function builds the sum of all per-site information
+ * content values.
+ *
+ * If `only_determined_sites` is `false` (default), the average is calculated using the total
+ * number of sites, that is, it simply calculates the average entropy per site.
+ *
+ * If `only_determined_sites` is `true`, the average is calculated using the number of determined
+ * sites only; that is, sites that only contain zeroes in all counts are skipped.
+ * Those sites do not contribute entropy anyway. Thus, it calcuates the average entropy per
+ * determiend site.
+ *
+ * The function additionally takes optional flags to refine the site entropy calculation,
+ * see ::SiteEntropyOptions for their explanation.
+ */
+double average_information(
+    SiteCounts const&     counts,
+    bool                  only_determined_sites = false,
+    bool                  use_small_sample_correction = false,
     SiteEntropyOptions    per_site_options = SiteEntropyOptions::kDefault
 );
 
