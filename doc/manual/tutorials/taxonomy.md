@@ -104,10 +104,13 @@ Similar to the @ref tutorials_tree_advanced_data_model "Data Model" that we use 
 Currently, we only use this to store additional data in our [PhAT](https://github.com/lczech/gappa/wiki/Subcommand:-phat) method. The method stores information about all the @ref genesis::sequence::Sequence "Sequences" that belong to each Taxon, as well as the entropy of these sequences. Hence, we use this as an example here:
 
 ~~~{.cpp}
+// Function that adds some data to a given Taxon instance (using a lambda here)
 auto add_entropy_data = [&]( Taxon& taxon ){
     taxon.reset_data( EntropyTaxonData::create() );
     // ... do initialization and further processing of the taxon data as needed
 };
+
+// Apply the function to the whole Taxonomy
 preorder_for_each( taxonomy, add_entropy_data );
 ~~~
 
