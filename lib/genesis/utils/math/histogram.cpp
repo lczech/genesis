@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -266,10 +266,13 @@ long Histogram::find_bin( double x ) const
     const auto r_min = ranges_.front();
     const auto r_max = ranges_.back();
 
-    if (x < r_min) {
+    // Check boundary cases. Inf is handled correctly by this.
+    // NaN is either considered to be out of bounds, our in case of OutOfRangeBehaviour::kSqueeze,
+    // it is taken to be 0.
+    if( x < r_min || std::isnan( x )) {
         return -1;
     }
-    if (x >= r_max) {
+    if( x >= r_max ) {
         return bins_.size();
     }
 

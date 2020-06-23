@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -58,22 +58,22 @@ namespace sequence {
 // ---------------------------------------------------------------------
 
 /**
- * @brief Return all plain nucleic acid codes. Those are "ACGTU".
+ * @brief Return all plain nucleic acid codes. Those are `ACGTU`.
  */
 std::string nucleic_acid_codes_plain();
 
 /**
- * @brief Return all degenerated nucleic acid codes. Those are "WSMKRYBDHV".
+ * @brief Return all degenerated nucleic acid codes. Those are `WSMKRYBDHV`.
  */
 std::string nucleic_acid_codes_degenerated();
 
 /**
- * @brief Return all undetermined nucleic acid codes. Those are "NOX.-?".
+ * @brief Return all undetermined nucleic acid codes. Those are `NOX.-?`.
  */
 std::string nucleic_acid_codes_undetermined();
 
 /**
- * @brief Return all valid nucleic acid codes. Those are "ACGTUWSMKRYBDHVNOX.-?".
+ * @brief Return all valid nucleic acid codes. Those are `ACGTUWSMKRYBDHVNOX.-?`.
  */
 std::string nucleic_acid_codes_all();
 
@@ -82,22 +82,29 @@ std::string nucleic_acid_codes_all();
 // ---------------------------------------------------------------------
 
 /**
- * @brief Return all plain amino acid codes. Those are "ACDEFGHIKLMNOPQRSTUVWY".
+ * @brief Return all plain amino acid codes. Those are `ACDEFGHIKLMNOPQRSTUVWY`.
  */
 std::string amino_acid_codes_plain();
 
 /**
- * @brief Return all degenerated amino acid codes. Those are "BJZ".
+ * @brief Return all degenerated amino acid codes. Those are `BJZ`.
  */
 std::string amino_acid_codes_degenerated();
 
 /**
- * @brief Return all undetermined amino acid codes. Those are "X*-?".
+ * @brief Return all undetermined amino acid codes, and `.`. Those are `X*-?.`.
+ *
+ * The typical undetermined codes for amino acids are `X*-?`, but some programs (e.g., hmmalign)
+ * also use the `.`, borrowed from nucleotide codes, as an undetermined character. Hence, we also
+ * support this here.
  */
 std::string amino_acid_codes_undetermined();
 
 /**
- * @brief Return all valid amino acid codes. Those are "ACDEFGHIKLMNOPQRSTUVWYBJZX*-?".
+ * @brief Return all valid amino acid codes, and `.`. Those are `ACDEFGHIKLMNOPQRSTUVWYBJZX*-?.`.
+ *
+ * See amino_acid_codes_undetermined() for the reason that `.` is included here. Basically,
+ * bioinformatics standards are a mess.
  */
 std::string amino_acid_codes_all();
 
@@ -109,7 +116,7 @@ std::string amino_acid_codes_all();
  * @brief Normalize an alphabet set of Sequence codes, i.e., make them upper case, sort them,
  * and remove duplicates.
  *
- * For example, when given a set of nucleic acid codes like "aGtc", the function returns "ACGT".
+ * For example, when given a set of nucleic acid codes like `aGtc`, the function returns `ACGT`.
  * This is useful to get consistent codes in functions that accept a user defined code alphabet.
  */
 std::string normalize_code_alphabet( std::string const& alphabet );

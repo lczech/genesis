@@ -330,7 +330,7 @@ std::string amino_acid_codes_degenerated()
 
 std::string amino_acid_codes_undetermined()
 {
-    return "X*-?";
+    return "X*-?.";
 }
 
 std::string amino_acid_codes_all()
@@ -479,6 +479,7 @@ char normalize_amino_acid_code( char code, bool accept_degenerated )
         case '*':
         case '-':
         case '?':
+        case '.':
             return '-';
         default:
             throw std::invalid_argument( "Not an amino acid code: " + std::string( 1, code ) );

@@ -77,10 +77,10 @@ namespace utils {
  * to use not more than the hardware concurrency, or fewer, if at the same time compressed data is
  * read in some other part of the program, or other computation-heavy work is done.
  *
- * Furthermore, note that some file manages might not display the original (uncompressed) file size
+ * Furthermore, note that some file managers might not display the original (uncompressed) file size
  * correctly when viewing the resulting gz file, as they might use only the size of one block
  * instead of the full resulting uncompressed file size. This should not affect decompression or any
- * other downstream processes thogh. As this class is a stream, we usually do not know beforehand
+ * other downstream processes though. As this class is a stream, we usually do not know beforehand
  * how lare the resulting file will be, so there is not much we can do about this.
  *
  * The class could also be extended in the future to achieve indexing similar to compressed vcf.
