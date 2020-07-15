@@ -1,5 +1,5 @@
-#ifndef GENESIS_H_
-#define GENESIS_H_
+#ifndef GENESIS_POPULATION_H_
+#define GENESIS_POPULATION_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -25,7 +25,7 @@
 */
 
 /**
- * @brief This header includes all other genesis headers (*.hpp).
+ * @brief This header includes all headers in 'population'.
  * This makes it easy to integrate the code as a library, as all
  * symbols of these headers are available after including this header.
  *
@@ -33,11 +33,7 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
-#include "genesis/placement.hpp"
-#include "genesis/population.hpp"
-#include "genesis/sequence.hpp"
-#include "genesis/taxonomy.hpp"
-#include "genesis/tree.hpp"
-#include "genesis/utils.hpp"
+#include "genesis/population/formats/hts_file.hpp"
+#include "genesis/population/formats/vcf_header.hpp"
 
 #endif // include guard
