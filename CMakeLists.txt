@@ -143,6 +143,10 @@ option (GENESIS_USE_ZLIB            "Use zlib."                                 
 option (GENESIS_USE_THREADS         "Use a threading library (mainly, pthreads)."  ON)
 option (GENESIS_USE_OPENMP          "Use OpenMP."                                  ON)
 
+# Additional dependencies
+option (GENESIS_USE_HTSLIB          "Use htslib."                                  ON)
+set(HTSLIB_DIR "" CACHE STRING      "Path to htslib")
+
 # Define unity build option with list of valid values. Default is full unity build.
 set( GENESIS_UNITY_BUILD FULL CACHE STRING
     "Build modules monolithically - trading memory for speed. This also enables poor-mans LTO."
@@ -351,6 +355,39 @@ IF(GENESIS_USE_OPENMP)
     endif()
 
 ENDIF()
+
+if(GENESIS_USE_HTSLIB)
+    message (STATUS "Looking for htslib")
+
+    find_path(HTSLIB_INCLUDE_DIR NAMES htslib/hts.h HINTS "${HTSLIB_DIR}/include")
+    find_library(HTSLIB_LIBRARY NAMES libhts.a hts HINTS "${HTSLIB_DIR}/lib")
+    find_library(HTSLIB_LZMA NAMES lzma)
+    find_library(HTSLIB_BZ2 NAMES bz2)
+
+    IF(
+        ${HTSLIB_INCLUDE_DIR} EQUAL "NOTFOUND" OR
+        ${HTSLIB_LIBRARY} EQUAL "NOTFOUND" OR
+        ${HTSLIB_LZMA} EQUAL "NOTFOUND" OR
+        ${HTSLIB_BZ2} EQUAL "NOTFOUND"
+    )
+        message( FATAL_ERROR "Required package htslib (or some of its dependencies) not found.")
+    ELSE()
+
+        message( STATUS "Found htslib: ${HTSLIB_INCLUDE_DIR}; ${HTSLIB_LIBRARY}; ${HTSLIB_LZMA}; ${HTSLIB_BZ2}" )
+        message (STATUS "${ColorGreen}Using htslib${ColorEnd}")
+
+        # Include the headers, so that they are found by our source.
+        include_directories(${HTSLIB_INCLUDE_DIR})
+
+        # Set needed definitions and linker flags for Genesis and for the parent scope.
+        add_definitions( "-DGENESIS_HTSLIB" )
+        set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_HTSLIB" )
+        set(
+            GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}
+            -lhts -Lhtslib ${HTSLIB_LIBRARY} z ${HTSLIB_LZMA} ${HTSLIB_BZ2}
+        )
+    ENDIF()
+endif()
 
 # --------------------------------------------------------------------------------------------------
 #   Sub-Scripts

@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2017 Lucas Czech
+# Copyright (C) 2014-2020 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ if (GENESIS_BUILD_SHARED_LIB)
     set_target_properties (genesis_lib_shared PROPERTIES OUTPUT_NAME genesis)
 
     # Link against any external libraries, e.g. Pthreads.
-    target_link_libraries (genesis_lib_shared ${GENESIS_INTERNAL_LINK_LIBRARIES})
+    target_link_libraries (genesis_lib_shared PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
 
     # Add this shared library to our exported libraries, which can then be used by the parent scope.
     set( GENESIS_SHARED_LIBRARY genesis_lib_shared PARENT_SCOPE )
@@ -71,7 +71,7 @@ if (GENESIS_BUILD_STATIC_LIB)
     set_target_properties (genesis_lib_static PROPERTIES OUTPUT_NAME genesis)
 
     # Link against any external libraries, e.g. Pthreads.
-    target_link_libraries (genesis_lib_static ${GENESIS_INTERNAL_LINK_LIBRARIES})
+    target_link_libraries (genesis_lib_static PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
 
     # Add this static library to our exported libraries, which can then be used by the parent scope.
     # In case that we also build the shared lib, GENESIS_LIBRARY is overwritten, which is on
