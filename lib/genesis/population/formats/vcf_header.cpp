@@ -30,6 +30,8 @@
 
 #include "genesis/population/formats/vcf_header.hpp"
 
+#include "genesis/utils/text/string.hpp"
+
 extern "C" {
     #include <htslib/hts.h>
     #include <htslib/vcf.h>
@@ -41,6 +43,48 @@ extern "C" {
 
 namespace genesis {
 namespace population {
+
+// =================================================================================================
+//     Typedefs and Enums
+// =================================================================================================
+
+static_assert(
+    static_cast<int>( VcfHeader::ValueType::kFlag ) == BCF_HT_FLAG,
+    "genesis and htslib differ in their definition of VCF header type 'Flag'"
+);
+static_assert(
+    static_cast<int>( VcfHeader::ValueType::kInteger ) == BCF_HT_INT,
+    "genesis and htslib differ in their definition of VCF header type 'Integer'"
+);
+static_assert(
+    static_cast<int>( VcfHeader::ValueType::kFloat ) == BCF_HT_REAL,
+    "genesis and htslib differ in their definition of VCF header type 'Float'"
+);
+static_assert(
+    static_cast<int>( VcfHeader::ValueType::kString ) == BCF_HT_STR,
+    "genesis and htslib differ in their definition of VCF header type 'String'"
+);
+
+static_assert(
+    static_cast<int>( VcfHeader::ValueSpecial::kFixed ) == BCF_VL_FIXED,
+    "genesis and htslib differ in their definition of VCF number 'fixed' (n)"
+);
+static_assert(
+    static_cast<int>( VcfHeader::ValueSpecial::kVariable ) == BCF_VL_VAR,
+    "genesis and htslib differ in their definition of VCF number 'variable' (.)"
+);
+static_assert(
+    static_cast<int>( VcfHeader::ValueSpecial::kAllele ) == BCF_VL_A,
+    "genesis and htslib differ in their definition of VCF number 'allele' (A)"
+);
+static_assert(
+    static_cast<int>( VcfHeader::ValueSpecial::kGenotype ) == BCF_VL_G,
+    "genesis and htslib differ in their definition of VCF number 'genotype' (G)"
+);
+static_assert(
+    static_cast<int>( VcfHeader::ValueSpecial::kReference ) == BCF_VL_R,
+    "genesis and htslib differ in their definition of VCF number 'reference' (R)"
+);
 
 // =================================================================================================
 //     Constructors and Rule of Five
@@ -67,17 +111,28 @@ namespace population {
 VcfHeader::VcfHeader( std::string const& mode )
 {
     header_ = ::bcf_hdr_init( mode.c_str() );
+    if( ! header_ ) {
+        throw std::runtime_error( "Cannot initialize VcfHeader bcf_hdr_t data structure." );
+    }
 }
 
 VcfHeader::VcfHeader( HtsFile& hts_file )
 {
     // Read header.
     header_ = ::bcf_hdr_read( hts_file.data() );
+    if( ! header_ ) {
+        throw std::runtime_error(
+            "Cannot initialize VcfHeader bcf_hdr_t data structure for file " + hts_file.file_name()
+        );
+    }
 }
 
 VcfHeader::VcfHeader( ::bcf_hdr_t* bcf_hdr )
 {
     header_ = ::bcf_hdr_dup( bcf_hdr );
+    if( ! header_ ) {
+        throw std::runtime_error( "Cannot copy-initialize VcfHeader bcf_hdr_t data structure." );
+    }
 }
 
 VcfHeader::~VcfHeader()
@@ -107,7 +162,7 @@ std::vector<std::string> VcfHeader::get_chroms() const
     // of sequences is stored in the int pointer passed in as the second argument.
     // The id in each record can be used to index into the array to obtain the sequence name.
     int nseq = 0;
-    const char **seqnames = ::bcf_hdr_seqnames( header_, &nseq );
+    const char** seqnames = ::bcf_hdr_seqnames( header_, &nseq );
     assert( nseq >= 0 );
 
     // If there are supposed to be names, but the array still is empty, we have an error.
@@ -134,26 +189,9 @@ std::vector<std::string> VcfHeader::get_chroms() const
     return res;
 }
 
-size_t VcfHeader::get_chrom_id( std::string const& chrom_name ) const
-{
-    return ::bcf_hdr_name2id( header_, chrom_name.c_str() );
-}
-
-std::string VcfHeader::get_chrom_name( size_t chrom_id ) const
-{
-    // For now, we simply cast to int. That can technically overflow, but if it does,
-    // the whole htslib breaks anyway.
-    return ::bcf_hdr_id2name( header_, static_cast<int>( chrom_id ));
-}
-
 size_t VcfHeader::get_chrom_length( std::string const& chrom_name ) const
 {
-    return header_->id[BCF_DT_CTG][ get_chrom_id( chrom_name )].val->info[0];
-}
-
-size_t VcfHeader::get_chrom_length( size_t chrom_id ) const
-{
-    auto const id = static_cast<int>( chrom_id );
+    auto const id = ::bcf_hdr_name2id( header_, chrom_name.c_str() );
     return header_->id[BCF_DT_CTG][id].val->info[0];
 }
 
@@ -176,6 +214,16 @@ std::unordered_map<std::string, std::string> VcfHeader::get_filter_values( std::
     return get_hrec_values_( BCF_HL_FLT, id );
 }
 
+void VcfHeader::assert_filter( std::string const& id ) const
+{
+    test_hl_entry_( true, BCF_HL_FLT, id, false, {}, false, {}, false, 0 );
+}
+
+bool VcfHeader::has_filter( std::string const& id ) const
+{
+    return test_hl_entry_( false, BCF_HL_FLT, id, false, {}, false, {}, false, 0 );
+}
+
 // =================================================================================================
 //     Info
 // =================================================================================================
@@ -185,9 +233,54 @@ std::vector<std::string> VcfHeader::get_info_ids() const
     return get_hrec_ids_( BCF_HL_INFO );
 }
 
+VcfHeader::Specification VcfHeader::get_info_specification( std::string const& id ) const
+{
+    return get_specification_( BCF_HL_INFO, id );
+}
+
 std::unordered_map<std::string, std::string> VcfHeader::get_info_values( std::string const& id ) const
 {
     return get_hrec_values_( BCF_HL_INFO, id );
+}
+
+void VcfHeader::assert_info( std::string const& id ) const
+{
+    test_hl_entry_( true, BCF_HL_INFO, id, false, {}, false, {}, false, 0 );
+}
+
+void VcfHeader::assert_info( std::string const& id, ValueType type ) const
+{
+    test_hl_entry_( true, BCF_HL_INFO, id, true, type, false, {}, false, 0 );
+}
+
+void VcfHeader::assert_info( std::string const& id, ValueType type, ValueSpecial num ) const
+{
+    test_hl_entry_( true, BCF_HL_INFO, id, true, type, true, num, false, 0 );
+}
+
+void VcfHeader::assert_info( std::string const& id, ValueType type, size_t number ) const
+{
+    test_hl_entry_( true, BCF_HL_INFO, id, true, type, true, ValueSpecial::kFixed, true, number );
+}
+
+bool VcfHeader::has_info( std::string const& id ) const
+{
+    return test_hl_entry_( false, BCF_HL_INFO, id, false, {}, false, {}, false, 0 );
+}
+
+bool VcfHeader::has_info( std::string const& id, ValueType type ) const
+{
+    return test_hl_entry_( false, BCF_HL_INFO, id, true, type, false, {}, false, 0 );
+}
+
+bool VcfHeader::has_info( std::string const& id, ValueType type, ValueSpecial num ) const
+{
+    return test_hl_entry_( false, BCF_HL_INFO, id, true, type, true, num, false, 0 );
+}
+
+bool VcfHeader::has_info( std::string const& id, ValueType type, size_t number ) const
+{
+    return test_hl_entry_( false, BCF_HL_INFO, id, true, type, true, ValueSpecial::kFixed, true, number );
 }
 
 // =================================================================================================
@@ -199,9 +292,54 @@ std::vector<std::string> VcfHeader::get_format_ids() const
     return get_hrec_ids_( BCF_HL_FMT );
 }
 
+VcfHeader::Specification VcfHeader::get_format_specification( std::string const& id ) const
+{
+    return get_specification_( BCF_HL_FMT, id );
+}
+
 std::unordered_map<std::string, std::string> VcfHeader::get_format_values( std::string const& id ) const
 {
     return get_hrec_values_( BCF_HL_FMT, id );
+}
+
+void VcfHeader::assert_format( std::string const& id ) const
+{
+    test_hl_entry_( true, BCF_HL_FMT, id, false, {}, false, {}, false, 0 );
+}
+
+void VcfHeader::assert_format( std::string const& id, ValueType type ) const
+{
+    test_hl_entry_( true, BCF_HL_FMT, id, true, type, false, {}, false, 0 );
+}
+
+void VcfHeader::assert_format( std::string const& id, ValueType type, ValueSpecial num ) const
+{
+    test_hl_entry_( true, BCF_HL_FMT, id, true, type, true, num, false, 0 );
+}
+
+void VcfHeader::assert_format( std::string const& id, ValueType type, size_t number ) const
+{
+    test_hl_entry_( true, BCF_HL_FMT, id, true, type, true, ValueSpecial::kFixed, true, number );
+}
+
+bool VcfHeader::has_format( std::string const& id ) const
+{
+    return test_hl_entry_( false, BCF_HL_FMT, id, false, {}, false, {}, false, 0 );
+}
+
+bool VcfHeader::has_format( std::string const& id, ValueType type ) const
+{
+    return test_hl_entry_( false, BCF_HL_FMT, id, true, type, false, {}, false, 0 );
+}
+
+bool VcfHeader::has_format( std::string const& id, ValueType type, ValueSpecial num ) const
+{
+    return test_hl_entry_( false, BCF_HL_FMT, id, true, type, true, num, false, 0 );
+}
+
+bool VcfHeader::has_format( std::string const& id, ValueType type, size_t number ) const
+{
+    return test_hl_entry_( false, BCF_HL_FMT, id, true, type, true, ValueSpecial::kFixed, true, number );
 }
 
 // =================================================================================================
@@ -279,15 +417,95 @@ void VcfHeader::set_samples(
 }
 
 // =================================================================================================
+//     Typedef and Enum Helpers
+// =================================================================================================
+
+std::string VcfHeader::value_type_to_string( ValueType type )
+{
+    return value_type_to_string( static_cast<int>( type ));
+}
+
+std::string VcfHeader::value_type_to_string( int type )
+{
+    switch( type ) {
+        case BCF_HT_INT: {
+            return "Integer";
+        }
+        case BCF_HT_REAL: {
+            return "Float";
+        }
+        case BCF_HT_STR: {
+            return "String";
+        }
+        case BCF_HT_FLAG: {
+            return "Flag";
+        }
+        default: {
+            throw std::domain_error( "Invalid value type provided: " + std::to_string( type ));
+        }
+    }
+
+    // Cannot happen, but let's satisfy eager compilers.
+    assert( false );
+    return "Unknown";
+}
+
+std::string VcfHeader::value_special_to_string( ValueSpecial num )
+{
+    return value_special_to_string( static_cast<int>( num ));
+}
+
+std::string VcfHeader::value_special_to_string( int num )
+{
+    switch( num ) {
+        case BCF_VL_FIXED: {
+            return "fixed (n)";
+        }
+        case BCF_VL_VAR: {
+            return "variable (.)";
+        }
+        case BCF_VL_A: {
+            return "allele (A)";
+        }
+        case BCF_VL_G: {
+            return "genotype (G)";
+        }
+        case BCF_VL_R: {
+            return "reference (R)";
+        }
+        default: {
+            throw std::domain_error( "Invalid value number provided: " + std::to_string( num ));
+        }
+    }
+
+    // Cannot happen, but let's satisfy eager compilers.
+    assert( false );
+    return "Unknown";
+}
+
+// =================================================================================================
 //     Internal Helpers
 // =================================================================================================
 
-std::vector<std::string> VcfHeader::get_hrec_ids_( int type ) const
+std::string VcfHeader::hl_to_string_( int hl_type ) const
+{
+    switch( hl_type ) {
+        case BCF_HL_FLT:  return "FILTER";
+        case BCF_HL_INFO: return "INFO";
+        case BCF_HL_FMT:  return "FORMAT";
+        case BCF_HL_CTG:  return "CONTIG";
+        case BCF_HL_STR:  return "Structured header line";
+        case BCF_HL_GEN:  return "Generic header line";
+    }
+    throw std::invalid_argument( "Invalid header line type: " + std::to_string( hl_type ));
+}
+
+std::vector<std::string> VcfHeader::get_hrec_ids_( int hl_type ) const
 {
     std::vector<std::string> res;
     for( int i = 0; i < header_->nhrec; ++i ) {
         // We need to scan all hrec entries, and only process the ones we are interested in...
-        if( header_->hrec[i]->type != type ) {
+        if( header_->hrec[i]->type != hl_type ) {
             continue;
         }
         for( int j = 0; j < header_->hrec[i]->nkeys; ++j ) {
@@ -300,14 +518,154 @@ std::vector<std::string> VcfHeader::get_hrec_ids_( int type ) const
     return res;
 }
 
-std::unordered_map<std::string, std::string> VcfHeader::get_hrec_values_( int type, std::string const& id ) const
+std::unordered_map<std::string, std::string> VcfHeader::get_hrec_values_( int hl_type, std::string const& id ) const
 {
     std::unordered_map<std::string, std::string> res;
-    bcf_hrec_t* hrec = ::bcf_hdr_get_hrec( header_, type, "ID", id.c_str(), nullptr );
+    bcf_hrec_t* hrec = ::bcf_hdr_get_hrec( header_, hl_type, "ID", id.c_str(), nullptr );
+
+    if( !hrec ) {
+        throw std::runtime_error(
+            hl_to_string_(hl_type) + " tag " + id + " not defined in the VCF/BCF header."
+         );
+    }
     for( int i = 0; i < hrec->nkeys; ++i ) {
         res[ std::string( hrec->keys[i] )] = std::string( hrec->vals[i] );
     }
     return res;
+}
+
+VcfHeader::Specification VcfHeader::get_specification_( int hl_type, std::string const& id) const
+{
+    auto const int_id = ::bcf_hdr_id2int( header_, BCF_DT_ID, id.c_str() );
+    if( ! bcf_hdr_idinfo_exists( header_, hl_type, int_id )) {
+        throw std::runtime_error(
+            hl_to_string_(hl_type) + " tag " + id + " not defined in the VCF/BCF header."
+         );
+    }
+
+    Specification res;
+    res.id = id;
+
+    // We use the same values in our Number and Type enums than the htslib-defined macro values,
+    // which is statically asserted. So here, we can simply cast to our enum values.
+    res.type    = static_cast<VcfHeader::ValueType>( bcf_hdr_id2type( header_, hl_type, int_id ));
+    res.special  = static_cast<VcfHeader::ValueSpecial>( bcf_hdr_id2length( header_, hl_type, int_id ));
+    res.number   = bcf_hdr_id2number( header_, hl_type, int_id );
+
+    // Description is a required entry, but there seems to be no macro in htslib for this.
+    // We can (hopefully?!) here simply assert that the hrec exists, because we above already
+    // tested that the int_id exists. Let's hope that htslib is conistent with this.
+    bcf_hrec_t* hrec = ::bcf_hdr_get_hrec( header_, hl_type, "ID", id.c_str(), nullptr );
+    assert( hrec );
+    auto const descr_key = ::bcf_hrec_find_key( hrec, "Description" );
+    if( descr_key >= 0 ) {
+        // It seems that htslib leaves the quotes around the description.
+        // That is ugly, let's remove!
+        res.description = utils::trim( std::string( hrec->vals[descr_key] ), "\"");
+    }
+    return res;
+}
+
+bool VcfHeader::test_hl_entry_(
+    bool throwing,
+    int hl_type, std::string const& id,
+    bool with_type, ValueType type,
+    bool with_special, ValueSpecial special,
+    bool with_number, size_t number
+) const {
+    // We always want to test whether the given ID is defined in the header line type (hl_type,
+    // which can be BCF_HL_INFO, BCF_HL_FORMAT, etc).
+    // Let's use two ways of testing this. Because why not. This assertion function is typically
+    // called once per VCF file, so that doesn't cost us much, but gives more certainty that
+    // we are using htslib correctly.
+    bcf_hrec_t* hrec = ::bcf_hdr_get_hrec( header_, hl_type, "ID", id.c_str(), nullptr );
+    if( !hrec ) {
+        if( throwing ) {
+            throw std::runtime_error(
+                "Required " + hl_to_string_(hl_type) + " tag " + id +
+                " is not defined in the VCF/BCF header."
+            );
+        } else {
+            return false;
+        }
+    }
+    auto const int_id = ::bcf_hdr_id2int( header_, BCF_DT_ID, id.c_str() );
+    if( ! bcf_hdr_idinfo_exists( header_, hl_type, int_id )) {
+        if( throwing ) {
+            throw std::runtime_error(
+                "Required " + hl_to_string_(hl_type) + " tag " + id +
+                " is not defined in the VCF/BCF header."
+            );
+        } else {
+            return false;
+        }
+    }
+
+    // If requested, test that the header line sets the correct data type (Integer, String, etc;
+    // this is one of the many circumstances where the word type is used over and over again in htslib).
+    if( with_type ) {
+        auto const def_type = bcf_hdr_id2type( header_, hl_type, int_id );
+        if( static_cast<int>( def_type ) != static_cast<int>( type ) ) {
+            if( throwing ) {
+                throw std::runtime_error(
+                    hl_to_string_(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
+                    "to be of value data type '" + value_type_to_string( def_type ) + "', but data type '" +
+                    value_type_to_string( type ) + "' is required instead."
+                );
+            } else {
+                return false;
+            }
+        }
+    }
+
+    // Same for the number of values. Here, we test both the kind of number values (fixed or something
+    // else), and the actual number, if needed. If an actual number is given, make sure
+    // that the special is set to fixed.
+    auto const def_special = bcf_hdr_id2length( header_, hl_type, int_id );
+    if( with_special && ( static_cast<int>( def_special ) != static_cast<int>( special ))) {
+        if( throwing ) {
+            throw std::runtime_error(
+                hl_to_string_(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
+                "to have '" + value_special_to_string( def_special ) + "' number of values, but '" +
+                value_special_to_string( special ) + "' is required instead."
+            );
+        } else {
+            return false;
+        }
+    }
+    if( with_number ) {
+        if( special != ValueSpecial::kFixed ) {
+            if( throwing ) {
+                throw std::runtime_error(
+                    hl_to_string_(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
+                    "to have '" + value_special_to_string( def_special ) + "' number of values, but '" +
+                    value_special_to_string( special ) + "' with n=" + std::to_string( number ) +
+                    " is required instead."
+                );
+            } else {
+                return false;
+            }
+        }
+        auto const def_number = bcf_hdr_id2number( header_, hl_type, int_id );
+        assert( with_special );
+        assert( special == ValueSpecial::kFixed );
+        assert( def_special == BCF_VL_FIXED );
+        assert( def_number >= 0 );
+        if( number != static_cast<size_t>( def_number )) {
+            if( throwing ) {
+                throw std::runtime_error(
+                    hl_to_string_(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
+                    "to have '" + value_special_to_string( def_special ) + "' number of values with n=" +
+                    std::to_string( def_number ) + ", but n=" + std::to_string( number ) +
+                    " is required instead."
+                );
+            } else {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 } // namespace population
