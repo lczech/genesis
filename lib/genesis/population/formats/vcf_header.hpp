@@ -95,8 +95,11 @@ public:
 
     /**
      * @brief Specification for the data type of the values expected in key-value-pairs.
+     *
+     * Corresponds to the `BCF_HT_*` macro constants defined by htslib. We statically assert
+     * that these have the same values.
      */
-    enum class ValueType
+    enum class ValueType : int
     {
         kFlag    = 0,
         kInteger = 1,
@@ -106,8 +109,11 @@ public:
 
     /**
      * @brief Specification for special markers for the number of values expected for key-value-pairs.
+     *
+     * Corresponds to the `BCF_VL_*` macro constants defined by htslib. We statically assert
+     * that these have the same values.
      */
-    enum class ValueSpecial
+    enum class ValueSpecial : int
     {
         /**
          * @brief Fixed number of values expected. In VCF, this is denoted simply by an integer
