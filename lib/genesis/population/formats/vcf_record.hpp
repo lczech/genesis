@@ -140,6 +140,9 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Return the internal htslib `::bcf1_t` data struct pointer.
+     */
     ::bcf1_t* data()
     {
         return record_;
@@ -152,7 +155,7 @@ public:
     /**
      * @brief Get the name of a chromosome/contig/sequence (`CHROM`, first column of the line).
      */
-    std::string get_chrom() const;
+    std::string get_chromosome() const;
 
     /**
      * @brief Get the position within the chromosome/contig (`POS`, second column of the line).
@@ -168,6 +171,15 @@ public:
      * it stands for the identifier list of the line for SNP databases.
      */
     std::string get_id() const;
+
+    /**
+     * @brief Return a textual representation of the current record chromosome position.
+     *
+     * This is either `CHROM:POS` or `CHROM:POS (ID)`, depending on whether the ID of the record
+     * is set (that is, not equal to `'.'`).
+     * See get_chromosome(), get_position(), and get_id() for details on the individual parts.
+     */
+    std::string at() const;
 
     /**
      * @brief Get the reference allele/sequence of the variant (`REF`, fourth column of the line).
@@ -291,22 +303,78 @@ public:
     std::vector<std::string> get_info_ids() const;
 
     /**
-     * @brief Return whether the record has a given @p info key.
+     * @brief Return whether the record has a given INFO @p id present.
      */
     bool has_info( std::string const& id ) const;
 
+    /**
+     * @brief Assert that an INFO entry with a given @p id is present in the record.
+     *
+     * This is the same as has_info(), but throws an exception in case that the INFO ID is not
+     * present.
+     */
+    void assert_info( std::string const& id ) const;
+
+    /**
+     * @brief Return the info value for the given key @p id as a string.
+     *
+     * The function throws an exception if the requested @p id is not present (in the header or
+     * the record) or if the value behind that @p id is of a different type.
+     */
     std::string get_info_string( std::string const& id ) const;
 
+    /**
+     * @brief Write the info value for the given key @p id to a given @p destination string.
+     *
+     * If the @p destination string is re-used between calles for different records,
+     * this is the faster variant that saves on memory allocations.
+     *
+     * @copydetails get_info_string( std::string const& )
+     */
     void get_info_string( std::string const& id, std::string& destination ) const;
 
+    /**
+     * @brief Return the info value for the given key @p id as a vector of float/double.
+     *
+     * While htslib uses `float`, we use `double` throughout genesis, and hence return this here.
+     *
+     * @copydetails get_info_string( std::string const& )
+     */
     std::vector<double> get_info_float( std::string const& id ) const;
 
+    /**
+     * @brief Write the info value for the given key @p id to a given
+     * @p destination vector of float/double.
+     *
+     * If the @p destination vector is re-used between calles for different records,
+     * this is the faster variant that saves on memory allocations.
+     *
+     * @copydetails get_info_float( std::string const& )
+     */
     void get_info_float( std::string const& id, std::vector<double>& destination ) const;
 
+    /**
+     * @brief Return the info value for the given key @p id as a vector of int.
+     *
+     * @copydetails get_info_string( std::string const& )
+     */
     std::vector<int32_t> get_info_int( std::string const& id ) const;
 
+    /**
+     * @brief Write the info value for the given key @p id to a given @p destination vector of int.
+     *
+     * If the @p destination vector is re-used between calles for different records,
+     * this is the faster variant that saves on memory allocations.
+     *
+     * @copydetails get_info_string( std::string const& )
+     */
     void get_info_int( std::string const& id, std::vector<int32_t>& destination ) const;
 
+    /**
+     * @brief REturn whehter the info valid for a given key @p id is set for flag INFO fields.
+     *
+     * This is meant for flags and returns whether the flag has been set or not in the record.
+     */
     bool get_info_flag( std::string const& id ) const;
 
     // -------------------------------------------------------------------------

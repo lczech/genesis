@@ -155,7 +155,7 @@ std::string VcfHeader::version() const
 //     Chromosomes / Contigs / Sequences
 // =================================================================================================
 
-std::vector<std::string> VcfHeader::get_chroms() const
+std::vector<std::string> VcfHeader::get_chromosomes() const
 {
     // bcf_hdr_seqnames returns a newly allocated array of pointers to the seq names.
     // We have to deallocate the array, but not the seqnames themselves; the number
@@ -189,13 +189,13 @@ std::vector<std::string> VcfHeader::get_chroms() const
     return res;
 }
 
-size_t VcfHeader::get_chrom_length( std::string const& chrom_name ) const
+size_t VcfHeader::get_chromosome_length( std::string const& chrom_name ) const
 {
     auto const id = ::bcf_hdr_name2id( header_, chrom_name.c_str() );
     return header_->id[BCF_DT_CTG][id].val->info[0];
 }
 
-std::unordered_map<std::string, std::string> VcfHeader::get_chrom_values( std::string const& chrom_name ) const
+std::unordered_map<std::string, std::string> VcfHeader::get_chromosome_values( std::string const& chrom_name ) const
 {
     return get_hrec_values_( BCF_HL_CTG, chrom_name );
 }
@@ -348,11 +348,13 @@ bool VcfHeader::has_format( std::string const& id, ValueType type, size_t number
 
 size_t VcfHeader::get_sample_count() const
 {
+    assert( bcf_hdr_nsamples(header_) == header_->n[BCF_DT_SAMPLE] );
     return header_->n[BCF_DT_SAMPLE];
 }
 
 std::vector<std::string> VcfHeader::get_samples() const
 {
+    assert( bcf_hdr_nsamples(header_) == header_->n[BCF_DT_SAMPLE] );
     size_t sample_count = header_->n[BCF_DT_SAMPLE];
     auto result = std::vector<std::string>( sample_count );
     for( size_t i = 0; i < sample_count; ++i ) {

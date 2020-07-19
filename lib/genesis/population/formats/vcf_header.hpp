@@ -220,7 +220,7 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Return the internal htslib `::bcf_hdr_t` data struct.
+     * @brief Return the internal htslib `::bcf_hdr_t` data struct pointer.
      */
     ::bcf_hdr_t* data()
     {
@@ -241,14 +241,14 @@ public:
      *
      * These correspond to the field entries in the `CHROM` column of the records.
      */
-    std::vector<std::string> get_chroms() const;
+    std::vector<std::string> get_chromosomes() const;
 
     /**
      * @brief Get the length of a chromosome/contig/sequence, given its name.
      *
      * This information is potentially stored auto-magically in the htslib struct.
      */
-    size_t get_chrom_length( std::string const& chrom_name ) const;
+    size_t get_chromosome_length( std::string const& chrom_name ) const;
 
     /**
      * @brief Get all key-value-pairs describing a particular chromosome/contig/sequence, given its name.
@@ -260,7 +260,7 @@ public:
      * then the result will contain entries that map from "ID" to "20", from "length" to "62435964",
      * and so forth. (Note that ID is also included in the result, for simplicity.)
      */
-    std::unordered_map<std::string, std::string> get_chrom_values( std::string const& chrom_name ) const;
+    std::unordered_map<std::string, std::string> get_chromosome_values( std::string const& chrom_name ) const;
 
     // -------------------------------------------------------------------------
     //     Filter

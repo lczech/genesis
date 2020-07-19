@@ -125,7 +125,7 @@ VcfRecord::~VcfRecord()
 //     Simple Fixed Columns
 // =================================================================================================
 
-std::string VcfRecord::get_chrom() const
+std::string VcfRecord::get_chromosome() const
 {
     return ::bcf_hdr_id2name( header_, record_->rid );
 }
@@ -142,6 +142,11 @@ std::string VcfRecord::get_id() const
 {
     ::bcf_unpack( record_, BCF_UN_STR );
     return std::string( record_->d.id );
+}
+
+std::string VcfRecord::at() const
+{
+    return get_chromosome() + ":" + std::to_string( get_position() ) + ( get_id() != "." ? " " + get_id() : "" );
 }
 
 std::string VcfRecord::get_reference() const
@@ -279,6 +284,15 @@ bool VcfRecord::has_info( std::string const& id ) const
     // The below code seems to return whether the fild exists at all in the header... not what we want.
     // int const id = bcf_hdr_id2int( header_, BCF_DT_ID, id.c_str() );
     // return bcf_hdr_idinfo_exists( header_, BCF_HL_INFO, id );
+}
+
+void VcfRecord::assert_info( std::string const& id ) const
+{
+    if( ! ::bcf_get_info( header_, record_, id.c_str() )) {
+        throw std::runtime_error(
+            "Required INFO tag " + id + " is not present in the record at " + at()
+        );
+    }
 }
 
 std::string VcfRecord::get_info_string( std::string const& id ) const
