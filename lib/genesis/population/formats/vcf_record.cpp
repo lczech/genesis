@@ -49,6 +49,39 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
+//     Typedefs and Enums
+// =================================================================================================
+
+static_assert(
+    static_cast<int>( VcfRecord::VariantType::kRef ) == VCF_REF,
+    "genesis and htslib differ in their definition of VCF variant type 'REF'"
+);
+static_assert(
+    static_cast<int>( VcfRecord::VariantType::kSnp ) == VCF_SNP,
+    "genesis and htslib differ in their definition of VCF variant type 'SNP'"
+);
+static_assert(
+    static_cast<int>( VcfRecord::VariantType::kMnp ) == VCF_MNP,
+    "genesis and htslib differ in their definition of VCF variant type 'MNP'"
+);
+static_assert(
+    static_cast<int>( VcfRecord::VariantType::kIndel ) == VCF_INDEL,
+    "genesis and htslib differ in their definition of VCF variant type 'INDEL'"
+);
+static_assert(
+    static_cast<int>( VcfRecord::VariantType::kOther ) == VCF_OTHER,
+    "genesis and htslib differ in their definition of VCF variant type 'OTHER'"
+);
+static_assert(
+    static_cast<int>( VcfRecord::VariantType::kBreakend ) == VCF_BND,
+    "genesis and htslib differ in their definition of VCF variant type 'BND'"
+);
+static_assert(
+    static_cast<int>( VcfRecord::VariantType::kOverlap ) == VCF_OVERLAP,
+    "genesis and htslib differ in their definition of VCF variant type 'OVERLAP'"
+);
+
+// =================================================================================================
 //     Constructors and Rule of Five
 // =================================================================================================
 
@@ -124,7 +157,6 @@ std::string VcfRecord::get_reference() const
 std::vector<std::string> VcfRecord::get_alternatives() const
 {
     // The ALT alleles are stored in allele[1..n], so we need to re-index into our result vector.
-    // There needs to be at least one REF and one ALT allele.
     ::bcf_unpack( record_, BCF_UN_STR );
     assert( record_->n_allele > 0 );
     auto ret = std::vector<std::string>( record_->n_allele - 1 );
@@ -132,6 +164,14 @@ std::vector<std::string> VcfRecord::get_alternatives() const
         ret[ i - 1 ] = std::string( record_->d.allele[i] );
     }
     return ret;
+}
+
+size_t VcfRecord::get_alternatives_count() const
+{
+    // Even if there are no alternatives (that is, set to "."), there has to be at least the REF
+    // allele, which we assert here, so that the re-indexing is ensured to work.
+    assert( record_->n_allele > 0 );
+    return record_->n_allele - 1;
 }
 
 std::vector<std::string> VcfRecord::get_variants() const
@@ -144,6 +184,33 @@ std::vector<std::string> VcfRecord::get_variants() const
         ret[i] = std::string( record_->d.allele[i] );
     }
     return ret;
+}
+
+VcfRecord::VariantType VcfRecord::get_variant_types() const
+{
+    return static_cast<VariantType>( ::bcf_get_variant_types( record_ ));
+}
+
+VcfRecord::VariantType VcfRecord::get_variant_type( size_t alt_index ) const
+{
+    // Nope, `bcf_dec_t.n_var` is NOT the number of variants that this record has. It is the
+    // allocated size, which might be bigger if the `bcf1_t` is re-used between records.
+    // So, we have to use `bcf1_t.n_allele` to get to the number of actual valid entries...
+    // Furthermore, `bcf_dec_t.var_type` is not necessarily one type, but the or'ed value
+    // of all types of the variant alleles. Of course. Well documented, htslib!
+    if( alt_index >= record_->n_allele ) {
+        throw std::runtime_error(
+            "Alternative allele index " + std::to_string( alt_index ) +
+            " out of bounds of the number of alleles " + std::to_string( record_->n_allele ) +
+            " of the record."
+        );
+    }
+    return static_cast<VariantType>( ::bcf_get_variant_type( record_, static_cast<int>( alt_index )));
+}
+
+bool VcfRecord::is_snp() const
+{
+    return ::bcf_is_snp( record_ );
 }
 
 double VcfRecord::get_quality() const

@@ -63,6 +63,47 @@ class VcfRecord
 public:
 
     // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Types of variants of alleles that can occur in a record.
+     *
+     * Corresponds to the `VCF_*` macro constants defined by htslib. We statically assert
+     * that these have the same values.
+     */
+    enum class VariantType : int {
+        kRef      =  0,
+        kSnp      =  1,
+        kMnp      =  2,
+        kIndel    =  4,
+        kOther    =  8,
+        kBreakend = 16, // Breakend
+        kOverlap  = 32, // Overlapping deletion, ALT=*
+    };
+
+    /**
+     * @brief And-operator for VariantType%s.
+     *
+     * The function get_variant_types() returns the or'ed (union) values of all variant types that
+     * appear in the alternative alleles of the record. Hence, this and-operator can be used
+     * to disentangle them and test whether a particular variant occurs in the record:
+     *
+     *     if( record.get_variant_types() & Record::VariantType::kSnp ) {
+     *         ...
+     *     }
+     *
+     * See get_variant_types() for details.
+     *
+     * It's a bit ugly to return a bool from such a comparison, but for now, it works.
+     * Should more complex use cases arise in the future, this might change.
+     */
+    friend bool operator& ( VcfRecord::VariantType a, VcfRecord::VariantType b )
+    {
+        return ( static_cast<int>(a) & static_cast<int>(b) );
+    }
+
+    // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
@@ -139,12 +180,61 @@ public:
     std::vector<std::string> get_alternatives() const;
 
     /**
+     * @brief Get the number of alternative alleles/sequences of the variant
+     * (`ALT`, fifth column of the line).
+     *
+     * This simply gives their count, which is identical to `get_alternatives().size()`.
+     */
+    size_t get_alternatives_count() const;
+
+    /**
      * @brief Shortcut to get both the reference (`REF`, fourth column of the line) and the alternative
      * (`ALT`, fifth column of the line) alleles/sequences of the line.
      *
-     * This simply combines get_reference() and get_alternatives().
+     * This simply combines get_reference() and get_alternatives(). Note that hence the indices
+     * of the alternatives are shifted as compared to get_alternatives().
      */
     std::vector<std::string> get_variants() const;
+
+    /**
+     * @brief Get the or'ed (union) value of all variant types of the alternative alleles/sequences
+     * of the record.
+     *
+     * This can be used to simply test whether a particular type of variant appears at all in
+     * a given record:
+     *
+     *     if( record.get_variant_types() & VcfRecord::VariantType::kSnp ) {
+     *         ...
+     *     }
+     *
+     * See operator& ( VariantType a, VariantType b ) for details.
+     *
+     * This is a simple wrapper for ::bcf_get_variant_types() from htslib, which however is not
+     * ideally named, as "variants" seems to mean REF+ALT in VCF terminology, but the flag for REF
+     * has value 0 and hence is (in a sense) always set in the result. Of course, this makes sense,
+     * as we always have a reference variant. But technically, we cannot test for this, so this
+     * function only is useful for alternative alleles, and not all variants. Still, we follow their
+     * terminology here.
+     */
+    VariantType get_variant_types() const;
+
+    /**
+     * @brief Get the variant type of a particular alternative allele/sequence.
+     *
+     * The @p alt_index is the 0-based index of the alternative allele/sequence for which we want
+     * the variant type. This corresponds to the indices in the get_alternatives() result vector,
+     * which are hence in the range `[ 0, get_alternatives_count() )`.
+     */
+    VariantType get_variant_type( size_t alt_index ) const;
+
+    /**
+     * @brief Return whether this variant is a SNP.
+     *
+     * This is simply a wrapper for the htslib function ::bcf_is_snp(). It returns `true` iff
+     * the reference and all alternative alleles/sequence are single characters
+     * (and none of them is a `'*'` missing allele).
+     */
+    bool is_snp() const;
 
     /**
      * @brief Get the quality score (`QUAL`, sixth column of the line).
