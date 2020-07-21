@@ -85,7 +85,7 @@ namespace utils {
  */
 static std::string strerror_()
 {
-    std::string buff(80, '\0');
+    std::string buff(512, '\0');
 
     #ifdef _WIN32
 
@@ -109,8 +109,7 @@ static std::string strerror_()
 
     #endif
 
-    buff.resize(buff.find('\0'));
-    return buff;
+    return std::string( buff.c_str() );
 }
 
 // ================================================================================================
