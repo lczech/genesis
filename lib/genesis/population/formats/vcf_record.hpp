@@ -381,6 +381,31 @@ public:
     //     Format Column
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Get the list of all format IDs (`FORMAT` column) that the record contains.
+     *
+     * For example, the line
+     *
+     *     #CHROM POS      ID        REF ALT  QUAL FILTER INFO       FORMAT      [...]
+     *     20     14370    rs6054257 G   A,CG 29   PASS   NS=3;DP=14 GT:GQ:DP:HQ
+     *
+     * would return a list containing `{"GT", "GQ", "DP", "HQ"}`.
+     */
+    std::vector<std::string> get_format_ids() const;
+
+    /**
+     * @brief Return whether the record has a given FORMAT @p id present.
+     */
+    bool has_format( std::string const& id ) const;
+
+    /**
+     * @brief Assert that an FORMAT entry with a given @p id is present in the record.
+     *
+     * This is the same as has_format(), but throws an exception in case that the FORMAT ID is not
+     * present.
+     */
+    void assert_format( std::string const& id ) const;
+
     // -------------------------------------------------------------------------
     //     Sample Columns
     // -------------------------------------------------------------------------

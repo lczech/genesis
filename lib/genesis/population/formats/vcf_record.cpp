@@ -281,7 +281,7 @@ bool VcfRecord::has_info( std::string const& id ) const
 {
     return ::bcf_get_info( header_, record_, id.c_str() ) != nullptr;
 
-    // The below code seems to return whether the fild exists at all in the header... not what we want.
+    // The below code seems to return whether the field exists at all in the header... not what we want.
     // int const id = bcf_hdr_id2int( header_, BCF_DT_ID, id.c_str() );
     // return bcf_hdr_idinfo_exists( header_, BCF_HL_INFO, id );
 }
@@ -383,6 +383,31 @@ bool VcfRecord::get_info_flag( std::string const& id ) const
 //     Format  Column
 // =================================================================================================
 
+std::vector<std::string> VcfRecord::get_format_ids() const
+{
+    ::bcf_unpack( record_, BCF_UN_FMT );
+    auto ret = std::vector<std::string>( record_->n_fmt );
+    for( size_t i = 0; i < static_cast<size_t>( record_->n_fmt ); ++i ) {
+        ret[i] = std::string( bcf_hdr_int2id( header_, BCF_DT_ID, record_->d.fmt[i].id ));
+    }
+    return ret;
+}
+
+bool VcfRecord::has_format( std::string const& id ) const
+{
+    return ::bcf_get_fmt( header_, record_, id.c_str() ) != nullptr;
+
+}
+
+void VcfRecord::assert_format( std::string const& id ) const
+{
+    if( ! ::bcf_get_fmt( header_, record_, id.c_str() )) {
+        throw std::runtime_error(
+            "Required FORMAT tag " + id + " is not present in the record at " + at()
+        );
+    }
+}
+
 // =================================================================================================
 //     Sample Columns
 // =================================================================================================
@@ -427,7 +452,7 @@ int VcfRecord::get_info_ptr_( std::string const& id, int ht_type, void** dest, i
             throw std::runtime_error(
                 "Clash between types defined in the header and encountered in the VCF/BCF record for "
                 "INFO tag " + id + ": Header defines type '" + defined_type + "', but '" +
-                VcfHeader::value_type_to_string( ht_type ) + "' was requested instead."
+                vcf_value_type_to_string( ht_type ) + "' was requested instead."
             );
             break;
         }
