@@ -45,48 +45,6 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Typedefs and Enums
-// =================================================================================================
-
-static_assert(
-    static_cast<int>( VcfHeader::ValueType::kFlag ) == BCF_HT_FLAG,
-    "genesis and htslib differ in their definition of VCF header type 'Flag'"
-);
-static_assert(
-    static_cast<int>( VcfHeader::ValueType::kInteger ) == BCF_HT_INT,
-    "genesis and htslib differ in their definition of VCF header type 'Integer'"
-);
-static_assert(
-    static_cast<int>( VcfHeader::ValueType::kFloat ) == BCF_HT_REAL,
-    "genesis and htslib differ in their definition of VCF header type 'Float'"
-);
-static_assert(
-    static_cast<int>( VcfHeader::ValueType::kString ) == BCF_HT_STR,
-    "genesis and htslib differ in their definition of VCF header type 'String'"
-);
-
-static_assert(
-    static_cast<int>( VcfHeader::ValueSpecial::kFixed ) == BCF_VL_FIXED,
-    "genesis and htslib differ in their definition of VCF number 'fixed' (n)"
-);
-static_assert(
-    static_cast<int>( VcfHeader::ValueSpecial::kVariable ) == BCF_VL_VAR,
-    "genesis and htslib differ in their definition of VCF number 'variable' (.)"
-);
-static_assert(
-    static_cast<int>( VcfHeader::ValueSpecial::kAllele ) == BCF_VL_A,
-    "genesis and htslib differ in their definition of VCF number 'allele' (A)"
-);
-static_assert(
-    static_cast<int>( VcfHeader::ValueSpecial::kGenotype ) == BCF_VL_G,
-    "genesis and htslib differ in their definition of VCF number 'genotype' (G)"
-);
-static_assert(
-    static_cast<int>( VcfHeader::ValueSpecial::kReference ) == BCF_VL_R,
-    "genesis and htslib differ in their definition of VCF number 'reference' (R)"
-);
-
-// =================================================================================================
 //     Constructors and Rule of Five
 // =================================================================================================
 
@@ -233,7 +191,7 @@ std::vector<std::string> VcfHeader::get_info_ids() const
     return get_hrec_ids_( BCF_HL_INFO );
 }
 
-VcfHeader::Specification VcfHeader::get_info_specification( std::string const& id ) const
+VcfSpecification VcfHeader::get_info_specification( std::string const& id ) const
 {
     return get_specification_( BCF_HL_INFO, id );
 }
@@ -248,19 +206,19 @@ void VcfHeader::assert_info( std::string const& id ) const
     test_hl_entry_( true, BCF_HL_INFO, id, false, {}, false, {}, false, 0 );
 }
 
-void VcfHeader::assert_info( std::string const& id, ValueType type ) const
+void VcfHeader::assert_info( std::string const& id, VcfValueType type ) const
 {
     test_hl_entry_( true, BCF_HL_INFO, id, true, type, false, {}, false, 0 );
 }
 
-void VcfHeader::assert_info( std::string const& id, ValueType type, ValueSpecial num ) const
+void VcfHeader::assert_info( std::string const& id, VcfValueType type, VcfValueSpecial num ) const
 {
     test_hl_entry_( true, BCF_HL_INFO, id, true, type, true, num, false, 0 );
 }
 
-void VcfHeader::assert_info( std::string const& id, ValueType type, size_t number ) const
+void VcfHeader::assert_info( std::string const& id, VcfValueType type, size_t number ) const
 {
-    test_hl_entry_( true, BCF_HL_INFO, id, true, type, true, ValueSpecial::kFixed, true, number );
+    test_hl_entry_( true, BCF_HL_INFO, id, true, type, true, VcfValueSpecial::kFixed, true, number );
 }
 
 bool VcfHeader::has_info( std::string const& id ) const
@@ -268,19 +226,19 @@ bool VcfHeader::has_info( std::string const& id ) const
     return test_hl_entry_( false, BCF_HL_INFO, id, false, {}, false, {}, false, 0 );
 }
 
-bool VcfHeader::has_info( std::string const& id, ValueType type ) const
+bool VcfHeader::has_info( std::string const& id, VcfValueType type ) const
 {
     return test_hl_entry_( false, BCF_HL_INFO, id, true, type, false, {}, false, 0 );
 }
 
-bool VcfHeader::has_info( std::string const& id, ValueType type, ValueSpecial num ) const
+bool VcfHeader::has_info( std::string const& id, VcfValueType type, VcfValueSpecial num ) const
 {
     return test_hl_entry_( false, BCF_HL_INFO, id, true, type, true, num, false, 0 );
 }
 
-bool VcfHeader::has_info( std::string const& id, ValueType type, size_t number ) const
+bool VcfHeader::has_info( std::string const& id, VcfValueType type, size_t number ) const
 {
-    return test_hl_entry_( false, BCF_HL_INFO, id, true, type, true, ValueSpecial::kFixed, true, number );
+    return test_hl_entry_( false, BCF_HL_INFO, id, true, type, true, VcfValueSpecial::kFixed, true, number );
 }
 
 // =================================================================================================
@@ -292,7 +250,7 @@ std::vector<std::string> VcfHeader::get_format_ids() const
     return get_hrec_ids_( BCF_HL_FMT );
 }
 
-VcfHeader::Specification VcfHeader::get_format_specification( std::string const& id ) const
+VcfSpecification VcfHeader::get_format_specification( std::string const& id ) const
 {
     return get_specification_( BCF_HL_FMT, id );
 }
@@ -307,19 +265,19 @@ void VcfHeader::assert_format( std::string const& id ) const
     test_hl_entry_( true, BCF_HL_FMT, id, false, {}, false, {}, false, 0 );
 }
 
-void VcfHeader::assert_format( std::string const& id, ValueType type ) const
+void VcfHeader::assert_format( std::string const& id, VcfValueType type ) const
 {
     test_hl_entry_( true, BCF_HL_FMT, id, true, type, false, {}, false, 0 );
 }
 
-void VcfHeader::assert_format( std::string const& id, ValueType type, ValueSpecial num ) const
+void VcfHeader::assert_format( std::string const& id, VcfValueType type, VcfValueSpecial num ) const
 {
     test_hl_entry_( true, BCF_HL_FMT, id, true, type, true, num, false, 0 );
 }
 
-void VcfHeader::assert_format( std::string const& id, ValueType type, size_t number ) const
+void VcfHeader::assert_format( std::string const& id, VcfValueType type, size_t number ) const
 {
-    test_hl_entry_( true, BCF_HL_FMT, id, true, type, true, ValueSpecial::kFixed, true, number );
+    test_hl_entry_( true, BCF_HL_FMT, id, true, type, true, VcfValueSpecial::kFixed, true, number );
 }
 
 bool VcfHeader::has_format( std::string const& id ) const
@@ -327,19 +285,19 @@ bool VcfHeader::has_format( std::string const& id ) const
     return test_hl_entry_( false, BCF_HL_FMT, id, false, {}, false, {}, false, 0 );
 }
 
-bool VcfHeader::has_format( std::string const& id, ValueType type ) const
+bool VcfHeader::has_format( std::string const& id, VcfValueType type ) const
 {
     return test_hl_entry_( false, BCF_HL_FMT, id, true, type, false, {}, false, 0 );
 }
 
-bool VcfHeader::has_format( std::string const& id, ValueType type, ValueSpecial num ) const
+bool VcfHeader::has_format( std::string const& id, VcfValueType type, VcfValueSpecial num ) const
 {
     return test_hl_entry_( false, BCF_HL_FMT, id, true, type, true, num, false, 0 );
 }
 
-bool VcfHeader::has_format( std::string const& id, ValueType type, size_t number ) const
+bool VcfHeader::has_format( std::string const& id, VcfValueType type, size_t number ) const
 {
-    return test_hl_entry_( false, BCF_HL_FMT, id, true, type, true, ValueSpecial::kFixed, true, number );
+    return test_hl_entry_( false, BCF_HL_FMT, id, true, type, true, VcfValueSpecial::kFixed, true, number );
 }
 
 // =================================================================================================
@@ -419,88 +377,8 @@ void VcfHeader::set_samples(
 }
 
 // =================================================================================================
-//     Typedef and Enum Helpers
-// =================================================================================================
-
-std::string VcfHeader::value_type_to_string( ValueType type )
-{
-    return value_type_to_string( static_cast<int>( type ));
-}
-
-std::string VcfHeader::value_type_to_string( int type )
-{
-    switch( type ) {
-        case BCF_HT_INT: {
-            return "Integer";
-        }
-        case BCF_HT_REAL: {
-            return "Float";
-        }
-        case BCF_HT_STR: {
-            return "String";
-        }
-        case BCF_HT_FLAG: {
-            return "Flag";
-        }
-        default: {
-            throw std::domain_error( "Invalid value type provided: " + std::to_string( type ));
-        }
-    }
-
-    // Cannot happen, but let's satisfy eager compilers.
-    assert( false );
-    return "Unknown";
-}
-
-std::string VcfHeader::value_special_to_string( ValueSpecial num )
-{
-    return value_special_to_string( static_cast<int>( num ));
-}
-
-std::string VcfHeader::value_special_to_string( int num )
-{
-    switch( num ) {
-        case BCF_VL_FIXED: {
-            return "fixed (n)";
-        }
-        case BCF_VL_VAR: {
-            return "variable (.)";
-        }
-        case BCF_VL_A: {
-            return "allele (A)";
-        }
-        case BCF_VL_G: {
-            return "genotype (G)";
-        }
-        case BCF_VL_R: {
-            return "reference (R)";
-        }
-        default: {
-            throw std::domain_error( "Invalid value number provided: " + std::to_string( num ));
-        }
-    }
-
-    // Cannot happen, but let's satisfy eager compilers.
-    assert( false );
-    return "Unknown";
-}
-
-// =================================================================================================
 //     Internal Helpers
 // =================================================================================================
-
-std::string VcfHeader::hl_to_string_( int hl_type ) const
-{
-    switch( hl_type ) {
-        case BCF_HL_FLT:  return "FILTER";
-        case BCF_HL_INFO: return "INFO";
-        case BCF_HL_FMT:  return "FORMAT";
-        case BCF_HL_CTG:  return "CONTIG";
-        case BCF_HL_STR:  return "Structured header line";
-        case BCF_HL_GEN:  return "Generic header line";
-    }
-    throw std::invalid_argument( "Invalid header line type: " + std::to_string( hl_type ));
-}
 
 std::vector<std::string> VcfHeader::get_hrec_ids_( int hl_type ) const
 {
@@ -527,7 +405,7 @@ std::unordered_map<std::string, std::string> VcfHeader::get_hrec_values_( int hl
 
     if( !hrec ) {
         throw std::runtime_error(
-            hl_to_string_(hl_type) + " tag " + id + " not defined in the VCF/BCF header."
+            vcf_hl_to_string(hl_type) + " tag " + id + " not defined in the VCF/BCF header."
          );
     }
     for( int i = 0; i < hrec->nkeys; ++i ) {
@@ -536,22 +414,22 @@ std::unordered_map<std::string, std::string> VcfHeader::get_hrec_values_( int hl
     return res;
 }
 
-VcfHeader::Specification VcfHeader::get_specification_( int hl_type, std::string const& id) const
+VcfSpecification VcfHeader::get_specification_( int hl_type, std::string const& id) const
 {
     auto const int_id = ::bcf_hdr_id2int( header_, BCF_DT_ID, id.c_str() );
     if( ! bcf_hdr_idinfo_exists( header_, hl_type, int_id )) {
         throw std::runtime_error(
-            hl_to_string_(hl_type) + " tag " + id + " not defined in the VCF/BCF header."
+            vcf_hl_to_string(hl_type) + " tag " + id + " not defined in the VCF/BCF header."
          );
     }
 
-    Specification res;
+    VcfSpecification res;
     res.id = id;
 
     // We use the same values in our Number and Type enums than the htslib-defined macro values,
     // which is statically asserted. So here, we can simply cast to our enum values.
-    res.type    = static_cast<VcfHeader::ValueType>( bcf_hdr_id2type( header_, hl_type, int_id ));
-    res.special  = static_cast<VcfHeader::ValueSpecial>( bcf_hdr_id2length( header_, hl_type, int_id ));
+    res.type    = static_cast<VcfValueType>( bcf_hdr_id2type( header_, hl_type, int_id ));
+    res.special  = static_cast<VcfValueSpecial>( bcf_hdr_id2length( header_, hl_type, int_id ));
     res.number   = bcf_hdr_id2number( header_, hl_type, int_id );
 
     // Description is a required entry, but there seems to be no macro in htslib for this.
@@ -571,8 +449,8 @@ VcfHeader::Specification VcfHeader::get_specification_( int hl_type, std::string
 bool VcfHeader::test_hl_entry_(
     bool throwing,
     int hl_type, std::string const& id,
-    bool with_type, ValueType type,
-    bool with_special, ValueSpecial special,
+    bool with_type, VcfValueType type,
+    bool with_special, VcfValueSpecial special,
     bool with_number, size_t number
 ) const {
     // We always want to test whether the given ID is defined in the header line type (hl_type,
@@ -584,7 +462,7 @@ bool VcfHeader::test_hl_entry_(
     if( !hrec ) {
         if( throwing ) {
             throw std::runtime_error(
-                "Required " + hl_to_string_(hl_type) + " tag " + id +
+                "Required " + vcf_hl_to_string(hl_type) + " tag " + id +
                 " is not defined in the VCF/BCF header."
             );
         } else {
@@ -595,7 +473,7 @@ bool VcfHeader::test_hl_entry_(
     if( ! bcf_hdr_idinfo_exists( header_, hl_type, int_id )) {
         if( throwing ) {
             throw std::runtime_error(
-                "Required " + hl_to_string_(hl_type) + " tag " + id +
+                "Required " + vcf_hl_to_string(hl_type) + " tag " + id +
                 " is not defined in the VCF/BCF header."
             );
         } else {
@@ -610,9 +488,9 @@ bool VcfHeader::test_hl_entry_(
         if( static_cast<int>( def_type ) != static_cast<int>( type ) ) {
             if( throwing ) {
                 throw std::runtime_error(
-                    hl_to_string_(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
-                    "to be of value data type '" + value_type_to_string( def_type ) + "', but data type '" +
-                    value_type_to_string( type ) + "' is required instead."
+                    vcf_hl_to_string(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
+                    "to be of value data type '" + vcf_value_type_to_string( def_type ) +
+                    "', but data type '" + vcf_value_type_to_string( type ) + "' is required instead."
                 );
             } else {
                 return false;
@@ -627,21 +505,21 @@ bool VcfHeader::test_hl_entry_(
     if( with_special && ( static_cast<int>( def_special ) != static_cast<int>( special ))) {
         if( throwing ) {
             throw std::runtime_error(
-                hl_to_string_(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
-                "to have '" + value_special_to_string( def_special ) + "' number of values, but '" +
-                value_special_to_string( special ) + "' is required instead."
+                vcf_hl_to_string(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
+                "to have '" + vcf_value_special_to_string( def_special ) + "' number of values, but '" +
+                vcf_value_special_to_string( special ) + "' is required instead."
             );
         } else {
             return false;
         }
     }
     if( with_number ) {
-        if( special != ValueSpecial::kFixed ) {
+        if( special != VcfValueSpecial::kFixed ) {
             if( throwing ) {
                 throw std::runtime_error(
-                    hl_to_string_(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
-                    "to have '" + value_special_to_string( def_special ) + "' number of values, but '" +
-                    value_special_to_string( special ) + "' with n=" + std::to_string( number ) +
+                    vcf_hl_to_string(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
+                    "to have '" + vcf_value_special_to_string( def_special ) + "' number of values, but '" +
+                    vcf_value_special_to_string( special ) + "' with n=" + std::to_string( number ) +
                     " is required instead."
                 );
             } else {
@@ -650,14 +528,14 @@ bool VcfHeader::test_hl_entry_(
         }
         auto const def_number = bcf_hdr_id2number( header_, hl_type, int_id );
         assert( with_special );
-        assert( special == ValueSpecial::kFixed );
+        assert( special == VcfValueSpecial::kFixed );
         assert( def_special == BCF_VL_FIXED );
         assert( def_number >= 0 );
         if( number != static_cast<size_t>( def_number )) {
             if( throwing ) {
                 throw std::runtime_error(
-                    hl_to_string_(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
-                    "to have '" + value_special_to_string( def_special ) + "' number of values with n=" +
+                    vcf_hl_to_string(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
+                    "to have '" + vcf_value_special_to_string( def_special ) + "' number of values with n=" +
                     std::to_string( def_number ) + ", but n=" + std::to_string( number ) +
                     " is required instead."
                 );

@@ -32,6 +32,7 @@
  */
 
 #include "genesis/population/formats/hts_file.hpp"
+#include "genesis/population/formats/vcf_common.hpp"
 
 #include <string>
 #include <unordered_map>
@@ -88,83 +89,6 @@ namespace population {
 class VcfHeader
 {
 public:
-
-    // -------------------------------------------------------------------------
-    //     Typedefs and Enums
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Specification for the data type of the values expected in key-value-pairs.
-     *
-     * Corresponds to the `BCF_HT_*` macro constants defined by htslib. We statically assert
-     * that these have the same values.
-     */
-    enum class ValueType : int
-    {
-        kFlag    = 0,
-        kInteger = 1,
-        kFloat   = 2,
-        kString  = 3
-    };
-
-    /**
-     * @brief Specification for special markers for the number of values expected for key-value-pairs.
-     *
-     * Corresponds to the `BCF_VL_*` macro constants defined by htslib. We statically assert
-     * that these have the same values.
-     */
-    enum class ValueSpecial : int
-    {
-        /**
-         * @brief Fixed number of values expected. In VCF, this is denoted simply by an integer
-         * number.
-         *
-         * This simply specifies that there is a fixed number of values to be expected;
-         * we do not further define how many exaclty are expected here (the integer value).
-         * This is taken care of in a separate variable that is provided whenever a fixed-size
-         * value is needed, see for example VcfHeader::Specification.
-         */
-        kFixed = 0,
-
-        /**
-        * @brief Variable number of possible values, or unknown or unbounded.
-        * In VCF, this is denoted by '.'.
-        */
-        kVariable = 1,
-
-        /**
-         * One value per alternate allele. In VCF, this is denoted as 'A'.
-         */
-        kAllele = 2,
-
-        /**
-        * One value for each possible genotype (more relevant to the FORMAT tags).
-        * In VCF, this is denoated as 'G'.
-        */
-        kGenotype = 3,
-
-        /**
-         * One value for each possible allele (including the reference).
-         * In VCF, this is denoted as 'R'.
-         */
-        kReference = 4,
-    };
-
-    /**
-     * @brief Collect the four required keys that describe an INFO or FORMAT sub-field.
-     *
-     * We follow the htslib usage of Number, which is stored as two variables: One for the
-     * specification of the number of values (is it variable or fixed, etc), and, if fixed,
-     * the actual value for the number of expected entries, which we here call the `number`.
-     */
-    struct Specification
-    {
-        std::string  id;
-        ValueType    type;
-        ValueSpecial special;
-        int          number;
-        std::string  description;
-    };
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -321,7 +245,7 @@ public:
      * See also get_info_values() for a function that returns all given key-value-paris
      * of the INFO entry.
      */
-    Specification get_info_specification( std::string const& id ) const;
+    VcfSpecification get_info_specification( std::string const& id ) const;
 
     /**
      * @brief Get all key-value pairs describing a particular info header line, given its ID.
@@ -348,7 +272,7 @@ public:
      * @brief Assert that an INFO entry with a given ID is defined in the header of the VCF/BCF file,
      * and that its value(s) has/have a specified data type.
      */
-    void assert_info( std::string const& id, ValueType type ) const;
+    void assert_info( std::string const& id, VcfValueType type ) const;
 
     /**
      * @brief Assert that an INFO entry with a given ID is defined in the header of the VCF/BCF file,
@@ -357,7 +281,7 @@ public:
      * The last check for the kind of number of values is typically used to require one of the special
      * cases (number of values depending on number of alleles, etc).
      */
-    void assert_info( std::string const& id, ValueType type, ValueSpecial special ) const;
+    void assert_info( std::string const& id, VcfValueType type, VcfValueSpecial special ) const;
 
     /**
      * @brief Assert that an INFO entry with a given ID is defined in the header of the VCF/BCF file,
@@ -367,7 +291,7 @@ public:
      * That is, here, we do not use any of the special cases (number of values depending on number
      * of alleles, etc), but require a fixed given number instead.
      */
-    void assert_info( std::string const& id, ValueType type, size_t number ) const;
+    void assert_info( std::string const& id, VcfValueType type, size_t number ) const;
 
     /**
      * @brief Return whether an INFO entry with a given ID is defined in the header of the VCF/BCF file.
@@ -378,7 +302,7 @@ public:
      * @brief Return whether an INFO entry with a given ID is defined in the header of the VCF/BCF file,
      * and whether its value(s) has/have a specified data type.
      */
-    bool has_info( std::string const& id, ValueType type ) const;
+    bool has_info( std::string const& id, VcfValueType type ) const;
 
     /**
      * @brief Return whether an INFO entry with a given ID is defined in the header of the VCF/BCF file,
@@ -387,7 +311,7 @@ public:
      * The last check for the kind of number of values is typically used to require one of the special
      * cases (number of values depending on number of alleles, etc).
      */
-    bool has_info( std::string const& id, ValueType type, ValueSpecial special ) const;
+    bool has_info( std::string const& id, VcfValueType type, VcfValueSpecial special ) const;
 
     /**
      * @brief Return whether an INFO entry with a given ID is defined in the header of the VCF/BCF file,
@@ -397,7 +321,7 @@ public:
      * That is, here, we do not use any of the special cases (number of values depending on number
      * of alleles, etc), but require a fixed given number instead.
      */
-    bool has_info( std::string const& id, ValueType type, size_t number ) const;
+    bool has_info( std::string const& id, VcfValueType type, size_t number ) const;
 
     // -------------------------------------------------------------------------
     //     Format
@@ -420,7 +344,7 @@ public:
      * See also get_format_values() for a function that returns all given key-value-paris
      * of the FORMAT entry.
      */
-    Specification get_format_specification( std::string const& id ) const;
+    VcfSpecification get_format_specification( std::string const& id ) const;
 
     /**
      * @brief Get all key-value pairs describing a particular format field, given its ID.
@@ -447,7 +371,7 @@ public:
      * @brief Assert that an FORMAT entry with a given ID is defined in the header of the VCF/BCF file,
      * and that its value(s) has/have a specified data type.
      */
-    void assert_format( std::string const& id, ValueType type ) const;
+    void assert_format( std::string const& id, VcfValueType type ) const;
 
     /**
      * @brief Assert that an FORMAT entry with a given ID is defined in the header of the VCF/BCF file,
@@ -456,7 +380,7 @@ public:
      * The last check for the kind of number of values is typically used to require one of the special
      * cases (number of values depending on number of alleles, etc).
      */
-    void assert_format( std::string const& id, ValueType type, ValueSpecial special ) const;
+    void assert_format( std::string const& id, VcfValueType type, VcfValueSpecial special ) const;
 
     /**
      * @brief Assert that an FORMAT entry with a given ID is defined in the header of the VCF/BCF file,
@@ -466,7 +390,7 @@ public:
      * That is, here, we do not use any of the special cases (number of values depending on number
      * of alleles, etc), but require a fixed given number instead.
      */
-    void assert_format( std::string const& id, ValueType type, size_t number ) const;
+    void assert_format( std::string const& id, VcfValueType type, size_t number ) const;
 
     /**
      * @brief Return whether a FORMAT entry with a given ID is defined in the header of the VCF/BCF file.
@@ -477,7 +401,7 @@ public:
      * @brief Return whether a FORMAT entry with a given ID is defined in the header of the VCF/BCF file,
      * and whether its value(s) has/have a specified data type.
      */
-    bool has_format( std::string const& id, ValueType type ) const;
+    bool has_format( std::string const& id, VcfValueType type ) const;
 
     /**
      * @brief Return whether a FORMAT entry with a given ID is defined in the header of the VCF/BCF file,
@@ -486,7 +410,7 @@ public:
      * The last check for the kind of number of values is typically used to require one of the special
      * cases (number of values depending on number of alleles, etc).
      */
-    bool has_format( std::string const& id, ValueType type, ValueSpecial special ) const;
+    bool has_format( std::string const& id, VcfValueType type, VcfValueSpecial special ) const;
 
     /**
      * @brief Return whether a FORMAT entry with a given ID is defined in the header of the VCF/BCF file,
@@ -496,7 +420,7 @@ public:
      * That is, here, we do not use any of the special cases (number of values depending on number
      * of alleles, etc), but require a fixed given number instead.
      */
-    bool has_format( std::string const& id, ValueType type, size_t number ) const;
+    bool has_format( std::string const& id, VcfValueType type, size_t number ) const;
 
     // -------------------------------------------------------------------------
     //     Samples
@@ -527,25 +451,10 @@ public:
     );
 
     // -------------------------------------------------------------------------
-    //     Typedef and Enum Helpers
-    // -------------------------------------------------------------------------
-
-    static std::string value_type_to_string( ValueType type );
-    static std::string value_type_to_string( int type );
-    static std::string value_special_to_string( ValueSpecial num );
-    static std::string value_special_to_string( int num );
-
-    // -------------------------------------------------------------------------
     //     Internal Helpers
     // -------------------------------------------------------------------------
 
 private:
-
-    /**
-     * @brief Convert htslib-internal BCF_HL_* header line type values to their string representation
-     * as used in the VCF header ("FILTER", "INFO", "FORMAT", etc).
-     */
-    std::string hl_to_string_( int hl_type ) const;
 
     /**
      * @brief Get the ID names for a given hrec header line type
@@ -563,7 +472,7 @@ private:
      * @brief Get the required key-value-pairs for a given header line type
      * (one of BCF_HL_*, e.g., INFO, FORMAT, or FILTER) and ID name.
      */
-    Specification get_specification_( int hl_type, std::string const& id) const;
+    VcfSpecification get_specification_( int hl_type, std::string const& id) const;
 
     /**
      * @brief Test whether a particualar header line entry exists and follows the specifications given.
@@ -581,8 +490,8 @@ private:
     bool test_hl_entry_(
         bool throwing,
         int hl_type, std::string const& id,
-        bool with_type, ValueType type,
-        bool with_special, ValueSpecial special,
+        bool with_type, VcfValueType type,
+        bool with_special, VcfValueSpecial special,
         bool with_number, size_t number
     ) const;
 
