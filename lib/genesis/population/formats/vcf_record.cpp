@@ -435,36 +435,50 @@ bool VcfRecord::read( HtsFile& source )
  */
 int VcfRecord::get_info_ptr_( std::string const& id, int ht_type, void** dest, int* ndest) const
 {
+    // Call the htslib function, and call our function to check the return value, which encodes
+    // for errors as well (if negative). If there was an error, that function call throws
+    // an exception.
     int const len = ::bcf_get_info_values( header_, record_, id.c_str(), dest, ndest, ht_type );
-    switch( len ) {
+    check_values_( header_, id, ht_type, BCF_HL_INFO, len );
+
+    // Assert that if ndest is used (for all but flags), it has a valid value.
+    assert( !ndest || ( *ndest >= 0 && *ndest >= len ));
+    return len;
+}
+
+void VcfRecord::check_values_(
+    ::bcf_hdr_t* header, std::string const& id, int ht_type, int hl_type, int return_value
+) {
+    switch( return_value ) {
         case -1: {
             throw std::runtime_error(
-                "INFO tag " + id + " not defined in the VCF/BCF header."
+                vcf_hl_to_string( hl_type ) + " tag " + id + " not defined in the VCF/BCF header."
             );
             break;
         }
         case -2: {
-            bcf_hrec_t* hrec = ::bcf_hdr_get_hrec( header_, BCF_HL_INFO, "ID", id.c_str(), nullptr );
+            bcf_hrec_t* hrec = ::bcf_hdr_get_hrec( header, hl_type, "ID", id.c_str(), nullptr );
             int const hrec_key = ::bcf_hrec_find_key( hrec, "Type" );
             std::string defined_type = ( hrec_key >= 0 ? std::string( hrec->vals[hrec_key] ) : "Unknown" );
-            // int const tag_id = bcf_hdr_id2int( header_, BCF_DT_ID, id.c_str() );
+            // int const tag_id = bcf_hdr_id2int( header, BCF_DT_ID, id.c_str() );
 
             throw std::runtime_error(
-                "Clash between types defined in the header and encountered in the VCF/BCF record for "
-                "INFO tag " + id + ": Header defines type '" + defined_type + "', but '" +
-                vcf_value_type_to_string( ht_type ) + "' was requested instead."
+                "Clash between types defined in the header and encountered in the VCF/BCF record for " +
+                vcf_hl_to_string( hl_type ) + " tag " + id + ": Header defines type '" + defined_type +
+                "', but '" + vcf_value_type_to_string( ht_type ) + "' was requested instead."
             );
             break;
         }
         case -3: {
             throw std::runtime_error(
-                "INFO tag " + id + " not present in the VCF/BCF record."
+                vcf_hl_to_string( hl_type ) + " tag " + id + " not present in the VCF/BCF record."
             );
             break;
         }
         case -4: {
             throw std::runtime_error(
-                "INFO tag " + id + " retrieval could not be completed (e.g., out of memory)."
+                vcf_hl_to_string( hl_type ) + " tag " + id + " retrieval could not be completed " +
+                "(e.g., out of memory)."
             );
             break;
         }
@@ -475,17 +489,14 @@ int VcfRecord::get_info_ptr_( std::string const& id, int ht_type, void** dest, i
     // If we are here, the above part succeeded, which means, our return type could correctly be
     // retrieved. Let's assert that this is also the type that was specified in the header,
     // just to be sure that htslib does its job.
-    auto const int_id = ::bcf_hdr_id2int( header_, BCF_DT_ID, id.c_str() );
-    assert( bcf_hdr_idinfo_exists( header_, BCF_HL_INFO, int_id ) );
-    assert( bcf_hdr_id2type( header_, BCF_HL_INFO, int_id ) == static_cast<uint32_t>( ht_type ));
+    auto const int_id = ::bcf_hdr_id2int( header, BCF_DT_ID, id.c_str() );
+    assert( bcf_hdr_idinfo_exists( header, hl_type, int_id ) );
+    assert( bcf_hdr_id2type( header, hl_type, int_id ) == static_cast<uint32_t>( ht_type ));
     (void) int_id;
 
     // Assert that we are only left with valid, non-negative return codes.
     // All negative ones, which signify errors, are caught above.
-    // Also, assert that if ndest is used (for all but flags), it has a valid value.
-    assert( len >= 0 );
-    assert( !ndest || ( *ndest >= 0 && *ndest >= len ));
-    return len;
+    assert( return_value >= 0 );
 }
 
 } // namespace population

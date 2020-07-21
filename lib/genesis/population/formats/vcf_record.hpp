@@ -31,6 +31,7 @@
  * @ingroup population
  */
 
+#include "genesis/population/formats/vcf_common.hpp"
 #include "genesis/population/formats/vcf_header.hpp"
 
 #include <string>
@@ -423,6 +424,27 @@ public:
 private:
 
     int get_info_ptr_( std::string const& id, int ht_type, void** dest, int* ndest ) const;
+
+    /**
+     * @brief Internal helper function to check the result of bcf_get_info_values() and
+     * bcf_get_format_values(), and report errors if necessary.
+     *
+     * Both these functions have a @p return_value where negative values encode for errors,
+     * and positive numbers correspond to the actual number of entries returned, that is, the number
+     * of values of the INFO or FORMAT fields of the record. Here, we check this @p return_value,
+     * and throw an exception with a meaningful error message if negative.
+     *
+     * For this, we need the @p id (the two-letter combination of the key-value pair of the INFO or
+     * FORMAT field), as well as the @p ht_type (one of BCF_HT_*: FLAG, INT, REAL, STR - don't ask why
+     * it's called READ and not FLOAT... we don't know either), and the @p hl_type (one of BCF_HL_*:
+     * here, INFO or FMT). The latter are needed to create fitting error messages.
+     *
+     * The function is static, as we also use it from the VcfSampleIterator to check the return
+     * codes when obtaining the format data of the samples.
+     */
+    static void check_values_(
+        ::bcf_hdr_t* header, std::string const& id, int ht_type, int hl_type, int return_value
+    );
 
     // -------------------------------------------------------------------------
     //     Data Members

@@ -140,8 +140,8 @@ std::string vcf_value_special_to_string( VcfValueSpecial num );
 std::string vcf_value_special_to_string( int num );
 
 /**
- * @brief Convert htslib-internal BCF_HL_* header line type values to their string representation
- * as used in the VCF header ("FILTER", "INFO", "FORMAT", etc).
+ * @brief Internal helper function to convert htslib-internal BCF_HL_* header line type values
+ * to their string representation as used in the VCF header ("FILTER", "INFO", "FORMAT", etc).
  */
 std::string vcf_hl_to_string( int hl_type );
 
