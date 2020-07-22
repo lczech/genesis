@@ -432,9 +432,20 @@ public:
     size_t get_sample_count() const;
 
     /**
-     * @brief Return a list of the sample names (column headers) of the VCF/BCF file.
+     * @brief Get the name of a sample given its index.
+     *
+     * This corresponds to the name given in the `#CHROM` line of the VCF file, using indices
+     * in the range `[ 0, get_sample_count() )`.
      */
-    std::vector<std::string> get_samples() const;
+    std::string get_sample_name( size_t index ) const;
+
+    /**
+     * @brief Return a list of the sample names (column headers) of the VCF/BCF file.
+     *
+     * These are the names that correspond to the column headers for samples in the `#CHROM`
+     * line of a VCF file.
+     */
+    std::vector<std::string> get_sample_names() const;
 
     /**
      * @brief Speficy a subset of samples to be parsed.

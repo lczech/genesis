@@ -88,14 +88,14 @@ static_assert(
 //     Typedef and Enum Helpers
 // =================================================================================================
 
-std::string vcf_value_type_to_string( VcfValueType type )
+std::string vcf_value_type_to_string( VcfValueType ht_type )
 {
-    return vcf_value_type_to_string( static_cast<int>( type ));
+    return vcf_value_type_to_string( static_cast<int>( ht_type ));
 }
 
-std::string vcf_value_type_to_string( int type )
+std::string vcf_value_type_to_string( int ht_type )
 {
-    switch( type ) {
+    switch( ht_type ) {
         case BCF_HT_INT: {
             return "Integer";
         }
@@ -109,7 +109,7 @@ std::string vcf_value_type_to_string( int type )
             return "Flag";
         }
         default: {
-            throw std::domain_error( "Invalid value type provided: " + std::to_string( type ));
+            throw std::domain_error( "Invalid value type provided: " + std::to_string( ht_type ));
         }
     }
 
@@ -118,14 +118,14 @@ std::string vcf_value_type_to_string( int type )
     return "Unknown";
 }
 
-std::string vcf_value_special_to_string( VcfValueSpecial num )
+std::string vcf_value_special_to_string( VcfValueSpecial vl_type_num )
 {
-    return vcf_value_special_to_string( static_cast<int>( num ));
+    return vcf_value_special_to_string( static_cast<int>( vl_type_num ));
 }
 
-std::string vcf_value_special_to_string( int num )
+std::string vcf_value_special_to_string( int vl_type_num )
 {
-    switch( num ) {
+    switch( vl_type_num ) {
         case BCF_VL_FIXED: {
             return "fixed (n)";
         }
@@ -142,7 +142,7 @@ std::string vcf_value_special_to_string( int num )
             return "reference (R)";
         }
         default: {
-            throw std::domain_error( "Invalid value number provided: " + std::to_string( num ));
+            throw std::domain_error( "Invalid value number provided: " + std::to_string( vl_type_num ));
         }
     }
 
@@ -151,7 +151,7 @@ std::string vcf_value_special_to_string( int num )
     return "Unknown";
 }
 
-std::string vcf_hl_to_string( int hl_type )
+std::string vcf_hl_type_to_string( int hl_type )
 {
     switch( hl_type ) {
         case BCF_HL_FLT:  return "FILTER";

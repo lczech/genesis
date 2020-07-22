@@ -134,16 +134,16 @@ struct VcfSpecification
 //     Typedef and Enum Helpers
 // -------------------------------------------------------------------------
 
-std::string vcf_value_type_to_string( VcfValueType type );
-std::string vcf_value_type_to_string( int type );
-std::string vcf_value_special_to_string( VcfValueSpecial num );
-std::string vcf_value_special_to_string( int num );
+std::string vcf_value_type_to_string( VcfValueType ht_type );
+std::string vcf_value_type_to_string( int ht_type );
+std::string vcf_value_special_to_string( VcfValueSpecial vl_type_num );
+std::string vcf_value_special_to_string( int vl_type_num );
 
 /**
  * @brief Internal helper function to convert htslib-internal BCF_HL_* header line type values
  * to their string representation as used in the VCF header ("FILTER", "INFO", "FORMAT", etc).
  */
-std::string vcf_hl_to_string( int hl_type );
+std::string vcf_hl_type_to_string( int hl_type );
 
 } // namespace population
 } // namespace genesis

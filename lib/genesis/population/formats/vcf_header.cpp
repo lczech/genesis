@@ -310,12 +310,25 @@ size_t VcfHeader::get_sample_count() const
     return header_->n[BCF_DT_SAMPLE];
 }
 
-std::vector<std::string> VcfHeader::get_samples() const
+std::string VcfHeader::get_sample_name( size_t index ) const
+{
+    if( index >= get_sample_count() ) {
+        throw std::invalid_argument(
+            "Cannot get sample name for sample at index " + std::to_string(index) +
+            ", as the VCF/BCF file only uses " + std::to_string( get_sample_count() ) + " samples."
+        );
+    }
+    assert( std::strcmp( ::bcf_hdr_id2name( header_, index ), header_->samples[index] ) == 0 );
+    return ::bcf_hdr_id2name( header_, index );
+}
+
+std::vector<std::string> VcfHeader::get_sample_names() const
 {
     assert( bcf_hdr_nsamples(header_) == header_->n[BCF_DT_SAMPLE] );
     size_t sample_count = header_->n[BCF_DT_SAMPLE];
     auto result = std::vector<std::string>( sample_count );
     for( size_t i = 0; i < sample_count; ++i ) {
+        assert( std::strcmp( ::bcf_hdr_id2name( header_, i ), header_->samples[i] ) == 0 );
         result[i] = std::string( header_->samples[i] );
     }
     return result;
@@ -405,7 +418,7 @@ std::unordered_map<std::string, std::string> VcfHeader::get_hrec_values_( int hl
 
     if( !hrec ) {
         throw std::runtime_error(
-            vcf_hl_to_string(hl_type) + " tag " + id + " not defined in the VCF/BCF header."
+            vcf_hl_type_to_string(hl_type) + " tag " + id + " not defined in the VCF/BCF header."
          );
     }
     for( int i = 0; i < hrec->nkeys; ++i ) {
@@ -419,7 +432,7 @@ VcfSpecification VcfHeader::get_specification_( int hl_type, std::string const& 
     auto const int_id = ::bcf_hdr_id2int( header_, BCF_DT_ID, id.c_str() );
     if( ! bcf_hdr_idinfo_exists( header_, hl_type, int_id )) {
         throw std::runtime_error(
-            vcf_hl_to_string(hl_type) + " tag " + id + " not defined in the VCF/BCF header."
+            vcf_hl_type_to_string(hl_type) + " tag " + id + " not defined in the VCF/BCF header."
          );
     }
 
@@ -462,7 +475,7 @@ bool VcfHeader::test_hl_entry_(
     if( !hrec ) {
         if( throwing ) {
             throw std::runtime_error(
-                "Required " + vcf_hl_to_string(hl_type) + " tag " + id +
+                "Required " + vcf_hl_type_to_string(hl_type) + " tag " + id +
                 " is not defined in the VCF/BCF header."
             );
         } else {
@@ -473,7 +486,7 @@ bool VcfHeader::test_hl_entry_(
     if( ! bcf_hdr_idinfo_exists( header_, hl_type, int_id )) {
         if( throwing ) {
             throw std::runtime_error(
-                "Required " + vcf_hl_to_string(hl_type) + " tag " + id +
+                "Required " + vcf_hl_type_to_string(hl_type) + " tag " + id +
                 " is not defined in the VCF/BCF header."
             );
         } else {
@@ -488,7 +501,7 @@ bool VcfHeader::test_hl_entry_(
         if( static_cast<int>( def_type ) != static_cast<int>( type ) ) {
             if( throwing ) {
                 throw std::runtime_error(
-                    vcf_hl_to_string(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
+                    vcf_hl_type_to_string(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
                     "to be of value data type '" + vcf_value_type_to_string( def_type ) +
                     "', but data type '" + vcf_value_type_to_string( type ) + "' is required instead."
                 );
@@ -505,7 +518,7 @@ bool VcfHeader::test_hl_entry_(
     if( with_special && ( static_cast<int>( def_special ) != static_cast<int>( special ))) {
         if( throwing ) {
             throw std::runtime_error(
-                vcf_hl_to_string(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
+                vcf_hl_type_to_string(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
                 "to have '" + vcf_value_special_to_string( def_special ) + "' number of values, but '" +
                 vcf_value_special_to_string( special ) + "' is required instead."
             );
@@ -517,7 +530,7 @@ bool VcfHeader::test_hl_entry_(
         if( special != VcfValueSpecial::kFixed ) {
             if( throwing ) {
                 throw std::runtime_error(
-                    vcf_hl_to_string(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
+                    vcf_hl_type_to_string(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
                     "to have '" + vcf_value_special_to_string( def_special ) + "' number of values, but '" +
                     vcf_value_special_to_string( special ) + "' with n=" + std::to_string( number ) +
                     " is required instead."
@@ -534,7 +547,7 @@ bool VcfHeader::test_hl_entry_(
         if( number != static_cast<size_t>( def_number )) {
             if( throwing ) {
                 throw std::runtime_error(
-                    vcf_hl_to_string(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
+                    vcf_hl_type_to_string(hl_type) + " tag " + id + " is defined in the VCF/BCF header "
                     "to have '" + vcf_value_special_to_string( def_special ) + "' number of values with n=" +
                     std::to_string( def_number ) + ", but n=" + std::to_string( number ) +
                     " is required instead."
