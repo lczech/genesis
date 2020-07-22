@@ -250,15 +250,17 @@ Bipartition find_smallest_subtree(
         auto const inverted = ~(bip.leaf_nodes());
         if( utils::is_subset( comp, bip.leaf_nodes() )) {
             if( min_count == 0 || bip.leaf_nodes().count() < min_count ) {
-                best_bip   = bip;
-                min_count = bip.leaf_nodes().count();
+                best_bip = bip;
+                min_count = best_bip.leaf_nodes().count();
             }
         }
         if( utils::is_subset( comp, inverted ) ) {
-            if (min_count == 0 || inverted.count() < min_count)  {
-                best_bip   = bip;
+            if( min_count == 0 || inverted.count() < min_count ) {
+                best_bip = bip;
                 best_bip.invert();
-                min_count = bip.leaf_nodes().count();
+
+                assert( best_bip.leaf_nodes().count() == inverted.count() );
+                min_count = best_bip.leaf_nodes().count();
             }
         }
     }
