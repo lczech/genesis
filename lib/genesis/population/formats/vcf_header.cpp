@@ -318,8 +318,7 @@ std::string VcfHeader::get_sample_name( size_t index ) const
             ", as the VCF/BCF file only uses " + std::to_string( get_sample_count() ) + " samples."
         );
     }
-    assert( std::strcmp( ::bcf_hdr_id2name( header_, index ), header_->samples[index] ) == 0 );
-    return ::bcf_hdr_id2name( header_, index );
+    return header_->samples[index];
 }
 
 std::vector<std::string> VcfHeader::get_sample_names() const
@@ -328,7 +327,6 @@ std::vector<std::string> VcfHeader::get_sample_names() const
     size_t sample_count = header_->n[BCF_DT_SAMPLE];
     auto result = std::vector<std::string>( sample_count );
     for( size_t i = 0; i < sample_count; ++i ) {
-        assert( std::strcmp( ::bcf_hdr_id2name( header_, i ), header_->samples[i] ) == 0 );
         result[i] = std::string( header_->samples[i] );
     }
     return result;
@@ -559,6 +557,60 @@ bool VcfHeader::test_hl_entry_(
     }
 
     return true;
+}
+
+void VcfHeader::check_value_return_code_(
+    ::bcf_hdr_t* header, std::string const& id, int ht_type, int hl_type, int return_value
+) {
+    assert( hl_type == BCF_HL_INFO || hl_type == BCF_HL_FMT );
+    switch( return_value ) {
+        case -1: {
+            throw std::runtime_error(
+                vcf_hl_type_to_string( hl_type ) + " tag " + id + " not defined in the VCF/BCF header."
+            );
+            break;
+        }
+        case -2: {
+            bcf_hrec_t* hrec = ::bcf_hdr_get_hrec( header, hl_type, "ID", id.c_str(), nullptr );
+            int const hrec_key = ::bcf_hrec_find_key( hrec, "Type" );
+            std::string defined_type = ( hrec_key >= 0 ? std::string( hrec->vals[hrec_key] ) : "Unknown" );
+            // int const tag_id = bcf_hdr_id2int( header, BCF_DT_ID, id.c_str() );
+
+            throw std::runtime_error(
+                "Clash between types defined in the header and encountered in the VCF/BCF record for " +
+                vcf_hl_type_to_string( hl_type ) + " tag " + id + ": Header defines type '" + defined_type +
+                "', but '" + vcf_value_type_to_string( ht_type ) + "' was requested instead."
+            );
+            break;
+        }
+        case -3: {
+            throw std::runtime_error(
+                vcf_hl_type_to_string( hl_type ) + " tag " + id + " not present in the VCF/BCF record."
+            );
+            break;
+        }
+        case -4: {
+            throw std::runtime_error(
+                vcf_hl_type_to_string( hl_type ) + " tag " + id + " retrieval could not be completed " +
+                "(e.g., out of memory)."
+            );
+            break;
+        }
+        // default:
+        //     (void);
+    }
+
+    // If we are here, the above part succeeded, which means, our return type could correctly be
+    // retrieved. Let's assert that this is also the type that was specified in the header,
+    // just to be sure that htslib does its job.
+    auto const int_id = ::bcf_hdr_id2int( header, BCF_DT_ID, id.c_str() );
+    assert( bcf_hdr_idinfo_exists( header, hl_type, int_id ) );
+    assert( bcf_hdr_id2type( header, hl_type, int_id ) == static_cast<uint32_t>( ht_type ));
+    (void) int_id;
+
+    // Assert that we are only left with valid, non-negative return codes.
+    // All negative ones, which signify errors, are caught above.
+    assert( return_value >= 0 );
 }
 
 } // namespace population

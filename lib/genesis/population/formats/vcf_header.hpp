@@ -43,12 +43,21 @@ extern "C" {
     #include <htslib/vcf.h>
 }
 
+namespace genesis {
+namespace population {
+
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class VcfRecord;
+
+template< typename S, typename T >
+class VcfFormatIterator;
+
 // =================================================================================================
 //     VCF/BCF Header
 // =================================================================================================
-
-namespace genesis {
-namespace population {
 
 /**
  * @brief Capture the information from a header of a VCF/BCF file.
@@ -89,6 +98,19 @@ namespace population {
 class VcfHeader
 {
 public:
+
+    // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    // VcfRecord and VcfFormatIterator both need access to the check_value_return_code_() function.
+    // We could make that a free function, but it seems too specialzied for general usage,
+    // so let's keep it in private scope for now, and make the classes friends instead.
+
+    friend class VcfRecord;
+
+    template< typename S, typename T >
+    friend class VcfFormatIterator;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -505,6 +527,29 @@ private:
         bool with_special, VcfValueSpecial special,
         bool with_number, size_t number
     ) const;
+
+    /**
+     * @brief Internal helper function to check the result of the htslib function
+     * bcf_get_info_values() and bcf_get_format_values(), and report errors if necessary.
+     *
+     * Both these functions yield a @p return_value where negative values encode for errors,
+     * and positive numbers correspond to the actual number of entries returned, that is, the number
+     * of values of the INFO or FORMAT fields of the record. Here, we check this @p return_value,
+     * and throw an exception with a meaningful error message if negative.
+     *
+     * For this, we need the @p id (the two-letter combination of the key-value pair of the INFO or
+     * FORMAT field), as well as the @p ht_type (one of BCF_HT_*: FLAG, INT, REAL, STR - don't ask
+     * why here it's suddently called REAL and not FLOAT in htslib... we don't know either),
+     * and the @p hl_type (one of BCF_HL_*: here, INFO or FMT). The latter are needed to create
+     * fitting error messages.
+     *
+     * The function is actually not needed for the header itself, but only used by VcfRecord and
+     * VcfFormatIterator. It however seems too specialized to our purpose to make it a free function.
+     * So we keep it here and make both classes friends, so that they have access to it.
+     */
+    static void check_value_return_code_(
+        ::bcf_hdr_t* header, std::string const& id, int ht_type, int hl_type, int return_value
+    );
 
     // -------------------------------------------------------------------------
     //     Data Members

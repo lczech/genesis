@@ -32,8 +32,11 @@
  */
 
 #include "genesis/population/formats/vcf_common.hpp"
+#include "genesis/population/formats/vcf_format_iterator.hpp"
 #include "genesis/population/formats/vcf_header.hpp"
+#include "genesis/utils/core/range.hpp"
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -58,6 +61,44 @@ class VcfHeader;
 
 /**
  * @brief Capture the information of a single SNP/variant line in a VCF/BCF file.
+ *
+ * The basic usage to iterate the records/lines of a VCF/BCF file is:
+ *
+ *     // Prepare and read all input data and instanticate our classes.
+ *     auto file = HtsFile( infile );
+ *     auto header = VcfHeader( file );
+ *     auto record = VcfRecord( header );
+ *
+ *     // Iterate the file line by line.
+ *     while( record.read_next( file )) {
+ *         // Work with the record by calling record.*() functions.
+ *     }
+ *
+ * Within the loop, the respective values of the record can be accessed, for example the simple
+ * first columns via get_chromosome(), get_position(), etc.
+ * For the reference and alternative alleles, as well as their combination (which we here call the
+ * "variants"), we offer access functions. Filters can be tested via has_filter(), or their absence
+ * (that is: `PASS`) via has_pass().
+ *
+ * Testing whether certain INFO fileds are set can be done via has_info() or assert_info().
+ * Accessing the values of the INFO column is a bit more involved, as one needs to know the data
+ * type in advance, and call the respective `get_info_*()` for the data type (string, float, int,
+ * flag). This is a bit unfortunate, and we here simply mimic the behaviour of htslib.
+ * A more complex `any` wrapper migth be possible, but as one would need to cast in the end anyway,
+ * we leave it at that solution for now.
+ *
+ * The most involved part is the per-sample access to the values as indicated by the FORMAT column.
+ * Testing that a particular FORMAT key/id/field is present in the record can be done via has_format()
+ * and assert_format(). Accessing the values per sample is then done with an iterator that has
+ * to be obtained for each FORMAT id separately via the `begin_format_*()` / `end_format_*()`
+ * function pair, or for range-based for loops via the `get_format_*()` function.
+ * See there, and in particular, see the VcfFormatIterator class documentation for details
+ * on usage.
+ *
+ * Note that VCF for some reason does not seem to support flags in the FORMAT/sample data (the VCF
+ * 4.2 Specification does not state this explicitly, but seems to implicitly assume it; they
+ * probably do not allow flags because that would lead to variable length per-sample columns).
+ * Hence, we also cannot support per-sample flags.
  */
 class VcfRecord
 {
@@ -193,10 +234,24 @@ public:
     std::vector<std::string> get_alternatives() const;
 
     /**
+     * @brief Get a particular alternative allele (`ALT`, fifth column of the line).
+     *
+     * This is equivalent to calling get_alternatives() to obtain a particular alternative at an
+     * @p index, but faster if only a particular entry is needed or when iterating them.
+     * Valid indices are in the range `[ 0, get_alternatives_count() )`.
+     */
+    std::string get_alternative( size_t index ) const;
+
+    /**
      * @brief Get the number of alternative alleles/sequences of the variant
      * (`ALT`, fifth column of the line).
      *
      * This simply gives their count, which is identical to `get_alternatives().size()`.
+     * See also get_variant_count(), which gives the number of total variants (reference and
+     * alternative alleles), and which hence is `get_alternatives_count() + 1`. Although these
+     * functions only differ in the extra counting of the reference allele, we offer both
+     * so that using them reflects the intention (are we interested in just the alternative,
+     * or all variants?).
      */
     size_t get_alternatives_count() const;
 
@@ -205,9 +260,30 @@ public:
      * (`ALT`, fifth column of the line) alleles/sequences of the line.
      *
      * This simply combines get_reference() and get_alternatives(). Note that hence the indices
-     * of the alternatives are shifted as compared to get_alternatives().
+     * of the alternatives are shifted as compared to get_alternatives(), as the reference allele
+     * is at index `0`.
      */
     std::vector<std::string> get_variants() const;
+
+    /**
+     * @brief Get a particular variant (`REF` or `ALT` allele).
+     *
+     * This is equivalent to calling get_variants() to obtain a particular alternative at an
+     * @p index, but faster if only a particular entry is needed or when iterating them.
+     * Valid indices are in the range `[ 0, get_variant_count() )`.
+     *
+     * Note that compared to get_alternative() and get_alternatives(), the indices of the alternative
+     * alleles are shifted, as the reference allele is at index `0`.
+     */
+    std::string get_variant( size_t index ) const;
+
+    /**
+     * @brief Get the total number of variants (`REF` and `ALT` alleles) in the record/line.
+     *
+     * This is equivalent to `get_variants().size()`, and to `get_alternatives_count() + 1`
+     * (taking the `REF` into account).
+     */
+    size_t get_variant_count() const;
 
     /**
      * @brief Get the or'ed (union) value of all variant types of the alternative alleles/sequences
@@ -245,7 +321,7 @@ public:
      *
      * This is simply a wrapper for the htslib function ::bcf_is_snp(). It returns `true` iff
      * the reference and all alternative alleles/sequence are single characters
-     * (and none of them is a `'*'` missing allele).
+     * (and none of them is a `'*'` missing allele character).
      */
     bool is_snp() const;
 
@@ -283,7 +359,9 @@ public:
     /**
      * @brief Return whether the record passes the filters, that is, whether `PASS` is set.
      *
-     * This is identical to calling has_filter() with the argument `"PASS"`.
+     * This is identical to calling has_filter() with the argument `"PASS"`, and is the preferred
+     * method to test whether a record line has passed all filters (return value `true`), or not
+     * (return value `false`).
      */
     bool pass_filter() const;
 
@@ -372,7 +450,8 @@ public:
     void get_info_int( std::string const& id, std::vector<int32_t>& destination ) const;
 
     /**
-     * @brief REturn whehter the info valid for a given key @p id is set for flag INFO fields.
+     * @brief Return whehter an INFO flag is set, that is, whether the info value for a given
+     * key @p id is present in the INFO fields.
      *
      * This is meant for flags and returns whether the flag has been set or not in the record.
      */
@@ -411,11 +490,105 @@ public:
     //     Sample Columns
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Get the begin iterator over the samples that accesses a certain FORMAT @p id as a
+     * string value.
+     *
+     * This can be used in a for loop over the samples, using the `end_format_*()` iterator
+     * for the end condition.
+     * See the VcfRecord and the VcfFormatIterator class descriptions for details on usage.
+     * Also, see `get_format_*()` for a combined range iterator pair to be used in range-based for
+     * loops, and see the other `begin_format_*()`, `end_format_*()`, and `get_format_*()`
+     * functions for the equivalents for other FORMAT data types.
+     */
+    VcfFormatIteratorString begin_format_string( std::string const& id ) const;
+
+    /**
+     * @brief Get the end iterator over the samples that accesses a certain FORMAT @p id as a
+     * string value.
+     *
+     * See begin_format_string() for details.
+     */
+    VcfFormatIteratorString end_format_string() const;
+
+    /**
+     * @brief Get an iterator pair over the samples that accesses a certain FORMAT @p id as a
+     * string value.
+     *
+     * This can directly be used in a range-based for loop over the samples.
+     * See the VcfRecord and the VcfFormatIterator class descriptions for details on usage.
+     * Also, see `begin_format_*()` and `end_format_*()` for the respective begin and end iterators,
+     * and see the other `begin_format_*()`, `end_format_*()`, and `get_format_*()`
+     * functions for the equivalents for other FORMAT data types.
+     */
+    genesis::utils::Range<VcfFormatIteratorString> get_format_string( std::string const& id ) const;
+
+    /**
+     * @brief Get the begin iterator over the samples that accesses a certain FORMAT @p id as an
+     * int value.
+     *
+     * @copydetails begin_format_string()
+     */
+    VcfFormatIteratorInt begin_format_int( std::string const& id ) const;
+
+    /**
+     * @brief Get the end iterator over the samples that accesses a certain FORMAT @p id as an
+     * int value.
+     *
+     * See begin_format_int() for details.
+     */
+    VcfFormatIteratorInt end_format_int() const;
+
+    /**
+     * @brief Get an iterator pair over the samples that accesses a certain FORMAT @p id as an
+     * int value.
+     *
+     * @copydetails get_format_string()
+     */
+    genesis::utils::Range<VcfFormatIteratorInt> get_format_int( std::string const& id ) const;
+
+    /**
+     * @brief Get the begin iterator over the samples that accesses a certain FORMAT @p id as a
+     * float value.
+     *
+     * @copydetails begin_format_string()
+     */
+    VcfFormatIteratorFloat begin_format_float( std::string const& id ) const;
+
+    /**
+     * @brief Get the end iterator over the samples that accesses a certain FORMAT @p id as a
+     * float value.
+     *
+     * See begin_format_float() for details.
+     */
+    VcfFormatIteratorFloat end_format_float() const;
+
+    /**
+     * @brief Get an iterator pair over the samples that accesses a certain FORMAT @p id as an
+     * float value.
+     *
+     * @copydetails get_format_string()
+     */
+    genesis::utils::Range<VcfFormatIteratorFloat> get_format_float( std::string const& id ) const;
+
     // -------------------------------------------------------------------------
     //     Modifiers
     // -------------------------------------------------------------------------
 
-    bool read( HtsFile& source );
+    /**
+     * @brief Read the next record/line from the given @p source, and replace the content
+     * of this VcfRecord instance.
+     *
+     * This is the function used to iterate a VCF/BCF file. It returns `true` on success, and
+     * can hence be used as follows:
+     *
+     *     while( record.read_next( file )) {
+     *         // work with the current record line
+     *     }
+     *
+     * Within that loop, all functions of the record instance can be used.
+     */
+    bool read_next( HtsFile& source );
 
     // -------------------------------------------------------------------------
     //     Internal Members
@@ -423,28 +596,11 @@ public:
 
 private:
 
-    int get_info_ptr_( std::string const& id, int ht_type, void** dest, int* ndest ) const;
-
     /**
-     * @brief Internal helper function to check the result of bcf_get_info_values() and
-     * bcf_get_format_values(), and report errors if necessary.
-     *
-     * Both these functions have a @p return_value where negative values encode for errors,
-     * and positive numbers correspond to the actual number of entries returned, that is, the number
-     * of values of the INFO or FORMAT fields of the record. Here, we check this @p return_value,
-     * and throw an exception with a meaningful error message if negative.
-     *
-     * For this, we need the @p id (the two-letter combination of the key-value pair of the INFO or
-     * FORMAT field), as well as the @p ht_type (one of BCF_HT_*: FLAG, INT, REAL, STR - don't ask why
-     * it's called READ and not FLOAT... we don't know either), and the @p hl_type (one of BCF_HL_*:
-     * here, INFO or FMT). The latter are needed to create fitting error messages.
-     *
-     * The function is static, as we also use it from the VcfSampleIterator to check the return
-     * codes when obtaining the format data of the samples.
+     * @brief Local helper function that does the repetetive part of the work of loading the info
+     * data from a record.
      */
-    static void check_values_(
-        ::bcf_hdr_t* header, std::string const& id, int ht_type, int hl_type, int return_value
-    );
+    int get_info_ptr_( std::string const& id, int ht_type, void** dest, int* ndest ) const;
 
     // -------------------------------------------------------------------------
     //     Data Members
