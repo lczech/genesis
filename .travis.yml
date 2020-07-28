@@ -912,8 +912,8 @@ script:
   - |
     if [[ "${BUILD_TYPE}" != "RELEASE" ]]; then
       pwd
-      ll
-      ll bin
-      ll bin/test
+      ls
+      ls bin
+      ls bin/test
       ./bin/test/genesis_tests
     fi
