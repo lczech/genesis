@@ -734,9 +734,10 @@ before_install:
       sudo apt-get install zlib1g zlib1g-dev libbz2 libbz2-dev liblzma liblzma-dev
     fi
     if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-      brew install autoconf automake libtool
-      brew install autoconf zlib-devel libbz2-devel liblzma-dev
+      brew install autoconf automake
+      brew install libbz2-devel liblzma-dev
       xcode-select --install
+      # not needed: libtool zlib-devel
     fi
 
   # --------------------------------------------------------------------------
