@@ -734,9 +734,9 @@ before_install:
       sudo apt-get install zlib1g zlib1g-dev libbz2 libbz2-dev liblzma liblzma-dev
     fi
     if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-      brew install autoconf automake
+      brew install autoconf
       # xcode-select --install
-      # brew install libtool zlib-devel libbz2-devel liblzma-dev
+      # brew install automake libtool zlib-devel libbz2-devel liblzma-dev
     fi
 
   # --------------------------------------------------------------------------
@@ -912,5 +912,8 @@ script:
   - |
     if [[ "${BUILD_TYPE}" != "RELEASE" ]]; then
       pwd
+      ll
+      ll bin
+      ll bin/test
       ./bin/test/genesis_tests
     fi
