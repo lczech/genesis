@@ -735,7 +735,7 @@ before_install:
     fi
     if [ "$TRAVIS_OS_NAME" == "osx" ]; then
       brew install autoconf automake
-      xcode-select --install
+      # xcode-select --install
       # brew install libtool zlib-devel libbz2-devel liblzma-dev
     fi
 
@@ -847,6 +847,10 @@ install:
       fi
     fi
 
+  # --------------------------------------------------------------------------
+  #     htslib
+  # --------------------------------------------------------------------------
+
   # install htslib
   - |
     HTSLIB_INSTALL=${DEPS_DIR}/htslib
@@ -907,5 +911,6 @@ script:
   # run tests
   - |
     if [[ "${BUILD_TYPE}" != "RELEASE" ]]; then
+      pwd
       ./bin/test/genesis_tests
     fi
