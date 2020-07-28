@@ -862,9 +862,11 @@ install:
     ./configure
     make
     sudo make install
-    sudo ldconfig
-    # cd /usr/local/lib/
-    # sudo ln -s libhts.so libhts.so.3
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      sudo ldconfig
+      # cd /usr/local/lib/
+      # sudo ln -s libhts.so libhts.so.3
+    fi
 
 # ==================================================================================================
 #     Script
