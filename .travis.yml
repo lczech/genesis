@@ -857,7 +857,7 @@ install:
     autoconf
     ./configure
     make
-    make install
+    sudo make install
 
 # ==================================================================================================
 #     Script
