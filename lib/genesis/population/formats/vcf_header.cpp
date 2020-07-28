@@ -38,6 +38,7 @@ extern "C" {
 }
 
 #include <cassert>
+#include <cstdlib>
 #include <cstring>
 #include <stdexcept>
 

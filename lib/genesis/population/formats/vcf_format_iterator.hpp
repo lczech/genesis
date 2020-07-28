@@ -682,7 +682,8 @@ private:
         // Assert that the values per sample is a non-negative number, so that the omission
         // of the second param of this function for cases where we just want to check the sample
         // index still works.
-        assert( values_per_sample_ >= 0 );
+        // ... always true due to unsigned int...
+        // assert( values_per_sample_ >= 0 );
 
         if( sample_index >= num_samples_ ) {
             if( throwing ) {
@@ -883,6 +884,7 @@ inline int VcfFormatIterator<char*, std::string>::construct_values_(
     // For char*/string we however need to call a different bcf_get_format_*()
     // function, and need two deletion steps to free the char* as well as the char** memory,
     // so we use a custom deleter here that does both.
+    (void) ht_type;
     assert( static_cast<int>( ht_type ) == BCF_HT_STR );
     char** tmp_ptr = nullptr;
     int const res = bcf_get_format_string(
