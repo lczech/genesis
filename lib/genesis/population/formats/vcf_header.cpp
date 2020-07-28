@@ -541,7 +541,6 @@ bool VcfHeader::test_hl_entry_(
         assert( with_special );
         assert( special == VcfValueSpecial::kFixed );
         assert( def_special == BCF_VL_FIXED );
-        assert( def_number >= 0 );
         if( number != static_cast<size_t>( def_number )) {
             if( throwing ) {
                 throw std::runtime_error(
