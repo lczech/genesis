@@ -727,6 +727,18 @@ before_install:
       sudo apt-get update -qq
     fi
 
+  # install htslib required build tools
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      sudo apt-get install autoheader autoconf
+      sudo apt-get install zlib1g zlib1g-dev libbz2 libbz2-dev liblzma liblzma-dev
+    fi
+    if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      brew install autoconf automake libtool
+      brew install autoconf zlib-devel libbz2-devel liblzma-dev
+      xcode-select --install
+    fi
+
   # --------------------------------------------------------------------------
   #     Paths and Environment
   # --------------------------------------------------------------------------
@@ -834,6 +846,18 @@ install:
         export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
       fi
     fi
+
+  # install htslib
+  - |
+    HTSLIB_INSTALL=${DEPS_DIR}/htslib
+    git clone --recursive https://github.com/samtools/htslib.git ${HTSLIB_INSTALL}
+    cd ${HTSLIB_INSTALL}
+    git checkout fd0f89554459b78c07303e2c8a42acacd6851b46
+    autoheader
+    autoconf
+    ./configure
+    make
+    make install
 
 # ==================================================================================================
 #     Script
