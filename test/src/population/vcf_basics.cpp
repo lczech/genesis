@@ -36,6 +36,7 @@
 #include "genesis/population/formats/vcf_record.hpp"
 #include "genesis/utils/text/string.hpp"
 
+#include <bitset>
 #include <numeric>
 #include <stdexcept>
 
@@ -580,7 +581,11 @@ TEST( Vcf, FormatIterator )
     // }
 
     // We simply test the properties of all functions by concatenating/adding them for the records.
-    std::string gt;
+    size_t      gt_ref = 0;
+    size_t      gt_alt = 0;
+    size_t      gt_idx = 0;
+    size_t      gt_phased = 0;
+    size_t      gt_missing = 0;
     int         gq = 0;
     double      gl = 0.0;
     int         dp = 0;
@@ -590,6 +595,36 @@ TEST( Vcf, FormatIterator )
     // Iterate all records, iterate all samples and values, and concat everything.
     // We use different iteration types, just to also test them all.
     while( record.read_next( file )) {
+
+        ASSERT_TRUE( record.has_format("GT") );
+        // LOG_DBG << "at " << record.at();
+        // for( auto& sample : record.get_format_int("GT") ) {
+        //     LOG_DBG1 << "at " << sample.sample_index();
+        //     while( sample.has_value() ) {
+        //         LOG_DBG2 << "at " << sample.sample_index() << " " << sample.value_index();
+        //
+        //         auto const val = sample.get_value();
+        //         LOG_DBG2 << "gt " << val << " --> " << std::bitset<4>(val) << " "
+        //                  << "mi " << (bcf_gt_is_missing(val) ? "y " : "n ")
+        //                  << "ph " << (bcf_gt_is_phased(val) ? "y " : "n ")
+        //                  << "al " << bcf_gt_allele(val);
+        //
+        //         sample.next_value();
+        //     }
+        // }
+
+        for( auto& sample : record.get_format_genotype() ) {
+            while( sample.has_value() ) {
+                auto const gt = sample.get_value();
+                gt_ref += gt.is_reference();
+                gt_alt += gt.is_alternative();
+                gt_idx += gt.variant_index();
+                gt_phased += gt.is_phased();
+                gt_missing += gt.is_missing();
+                sample.next_value();
+            }
+            EXPECT_EQ( sample.get_values().size(), sample.valid_value_count() );
+        }
 
         if( record.has_format("GQ") ) {
             for( auto sample = record.begin_format_int("GQ"); sample != record.end_format_int(); ++sample ) {
@@ -607,6 +642,7 @@ TEST( Vcf, FormatIterator )
                         gq += sample.get_value_at(i);
                     }
                 }
+                EXPECT_EQ( sample.get_values().size(), sample.valid_value_count() );
             }
         }
 
@@ -616,6 +652,7 @@ TEST( Vcf, FormatIterator )
                     gl += sample.get_value();
                     sample.next_value();
                 }
+                EXPECT_EQ( sample.get_values().size(), sample.valid_value_count() );
             }
         }
 
@@ -625,6 +662,7 @@ TEST( Vcf, FormatIterator )
                     dp += sample.get_value();
                     sample.next_value();
                 }
+                EXPECT_EQ( sample.get_values().size(), sample.valid_value_count() );
             }
         }
 
@@ -634,6 +672,7 @@ TEST( Vcf, FormatIterator )
                 for( auto const& hqv : all_hq ) {
                     hq += hqv;
                 }
+                EXPECT_EQ( sample.get_values().size(), sample.valid_value_count() );
             }
         }
 
@@ -643,11 +682,29 @@ TEST( Vcf, FormatIterator )
                     str += sample.get_value() + " ";
                     sample.next_value();
                 }
+                EXPECT_EQ( sample.get_values().size(), sample.valid_value_count() );
             }
         }
     }
 
-    EXPECT_EQ( gt, "" );
+    // Genotype data in our example file:
+    //     0|.    1|0    1/1
+    //     0|0    0|1    0/0
+    //     1|2    2|1    2/2
+    //     0|0    0|0    0/0
+    //     ./1    0/2    1/1
+    // Hence: 14 times ref (0), 14 times alt (>0, but not .). The sum of all entries is 19,
+    // but missing is encoded as -1, and above, we simply add this on top. So, two missing (.)
+    // lead to a total index sum of 17. Furthermore, only the second genotype is counted as phased
+    // in htslib (and in our wrapper VcfGenotype as well), so only 8 calls are phased, which hence
+    // corresponds to the number of | in the data. Last, 2 times missing (.).
+
+    EXPECT_EQ( 14, gt_ref );
+    EXPECT_EQ( 14, gt_alt );
+    EXPECT_EQ( 17, gt_idx );
+    EXPECT_EQ( 8, gt_phased );
+    EXPECT_EQ( 2, gt_missing );
+
     EXPECT_EQ( gq, 545 );
     EXPECT_FLOAT_EQ( gl, -87.3 );
     EXPECT_EQ( dp, 57 );

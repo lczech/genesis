@@ -31,6 +31,7 @@
  * @ingroup population
  */
 
+#include "genesis/population/formats/vcf_common.hpp"
 #include "genesis/population/formats/vcf_header.hpp"
 
 #include <cassert>
@@ -56,9 +57,10 @@ template< typename S, typename T >
 class VcfFormatIterator;
 
 // Declare the specializations of the iterator that are used by VcfRecord, for ease of use.
-using VcfFormatIteratorString = VcfFormatIterator<char*, std::string>;
-using VcfFormatIteratorInt    = VcfFormatIterator<int32_t, int32_t>;
-using VcfFormatIteratorFloat  = VcfFormatIterator<float, double>;
+using VcfFormatIteratorString   = VcfFormatIterator<char*, std::string>;
+using VcfFormatIteratorInt      = VcfFormatIterator<int32_t, int32_t>;
+using VcfFormatIteratorFloat    = VcfFormatIterator<float, double>;
+using VcfFormatIteratorGenotype = VcfFormatIterator<int32_t, VcfGenotype>;
 
 // =================================================================================================
 //     VCF/BCF Format/Sample Iterator
@@ -82,6 +84,8 @@ using VcfFormatIteratorFloat  = VcfFormatIterator<float, double>;
  *    if necessary.
  *  - For the other data types (int and float/double), there can be missing data as well, so that
  *    not all samples might have the same number of values.
+ *  - The genotype field (`GT`) is yet another special case that is handled by htslib as either
+ *    string or int, depending on the context. We here hence wrap this as VcfGenotype for simplicity.
  *
  * Basically, what that means is that we need an iterator for the values of each sample within
  * this iterator over samples, which again usually is within an iterator over the records/lines
@@ -159,7 +163,7 @@ using VcfFormatIteratorFloat  = VcfFormatIterator<float, double>;
  *
  * Further implementation details:
  * The class is a template for the source type `S` as used by htslib (char*, int32_t, float),
- * and for the target type `T` as used by us (std::string, int32_t, double).
+ * and for the target type `T` as used by us (std::string, int32_t, double, VcfGenotype).
  * Most of the implementation is shared, but some htslib-related functions (check for their
  * hard-coded special values, memory management of allocated arrays, ...) need to be specialized
  * for the different data types. See the very end of this file for the respective implementations.
@@ -465,6 +469,17 @@ public:
         go_to_next_value_();
     }
 
+    /**
+     * @brief Return the number of valid values for the current sample.
+     *
+     * That corresponds to how often next_value() will be called when looping over values before
+     * has_value() returns `false`.
+     */
+    size_t valid_value_count() const
+    {
+        return valid_value_count_at( sample_idx_ );
+    }
+
     // -------------------------------------------------------------------------
     //     Arbitrary element data access within the sample or at arbitrary sample
     // -------------------------------------------------------------------------
@@ -563,27 +578,39 @@ public:
 
         std::vector<T> result;
         if( include_missing ) {
-            result.resize( values_per_sample_ );
+            result.reserve( values_per_sample_ );
             for( size_t i = 0; i < values_per_sample_; ++i ) {
                 S* ptr = get_value_ptr_( sample_index, i );
-                result[i] = *ptr;
+                result.emplace_back( *ptr );
             }
         } else {
-            size_t cnt = 0;
-            for( size_t i = 0; i < values_per_sample_; ++i ) {
-                if( test_valid_value_( sample_index, i, false )) {
-                    ++cnt;
-                }
-            }
+            auto const cnt = valid_value_count_at( sample_index );
             result.reserve( cnt );
             for( size_t i = 0; i < values_per_sample_; ++i ) {
                 if( test_valid_value_( sample_index, i, false )) {
                     S* ptr = get_value_ptr_( sample_index, i );
-                    result.push_back( *ptr );
+                    result.emplace_back( *ptr );
                 }
             }
         }
         return result;
+    }
+
+    /**
+     * @brief Return the number of valid values for a given @p sample_index.
+     *
+     * This corresponds to the resulting vector size when calling get_values() or get_values_at()
+     * with `include_missing == false`.
+     */
+    size_t valid_value_count_at( size_t sample_index ) const
+    {
+        size_t cnt = 0;
+        for( size_t i = 0; i < values_per_sample_; ++i ) {
+            if( test_valid_value_( sample_index, i, false )) {
+                ++cnt;
+            }
+        }
+        return cnt;
     }
 
     // -------------------------------------------------------------------------
@@ -823,6 +850,7 @@ inline int VcfFormatIterator<int32_t, int32_t>::construct_values_(
     // we do this in two steps, transferring ownership to the shared_ptr after the htslib call.
     // We need a custom deleter for the shared_ptr, as C++11 does not support delete[] for this
     // out of the box (see https://stackoverflow.com/a/13062069/4184258).
+    assert( static_cast<int>( ht_type ) == BCF_HT_INT );
     int32_t* tmp_ptr = nullptr;
     values_total_ = bcf_get_format_values(
         header, record, id.c_str(), reinterpret_cast<void**>( &tmp_ptr ),
@@ -837,6 +865,7 @@ inline int VcfFormatIterator<float, double>::construct_values_(
     ::bcf_hdr_t* header, ::bcf1_t* record, std::string const& id, VcfValueType ht_type
 ) {
     // See above <int32_t, int32_t> for an explanation. Here, it's the same, just for float.
+    assert( static_cast<int>( ht_type ) == BCF_HT_REAL );
     float* tmp_ptr = nullptr;
     values_total_ = bcf_get_format_values(
         header, record, id.c_str(), reinterpret_cast<void**>( &tmp_ptr ),
@@ -877,6 +906,40 @@ inline int VcfFormatIterator<char*, std::string>::construct_values_(
     return res;
 }
 
+template<>
+inline int VcfFormatIterator<int32_t, VcfGenotype>::construct_values_(
+    ::bcf_hdr_t* header, ::bcf1_t* record, std::string const& id, VcfValueType ht_type
+) {
+    // This class is supposed to be only instanciated from the VcfRecord iterator begin/end functions.
+    // Hence, we here simply assert that the provided values are correct.
+    // if( id != "GT" ) {
+    //     throw std::invalid_argument(
+    //         "Can only create an instance of VcfFormatIterator that is using VcfGenotype " +
+    //         "for the FORMAT key/id \"GT\", but \"" + id + "\" was provided instead."
+    //     );
+    // }
+    // if( ht_type != VcfValueType.kInt ) {
+    //     throw std::invalid_argument(
+    //         "Can only create an instance of VcfFormatIterator for value type " +
+    //         vcf_value_type_to_string( VcfValueType.kInt ) ", but " +
+    //         vcf_value_type_to_string( ht_type ) + " was provided instead."
+    //     );
+    // }
+    (void) id;
+    (void) ht_type;
+    assert( id == "GT" );
+    assert( static_cast<int>( ht_type ) == BCF_HT_INT );
+
+    // See above <int32_t, int32_t> for an explanation. Here, it's the same, but we later convert
+    // to our VcfGenotype instance instead (implicitly, when returning a value).
+    int32_t* tmp_ptr = nullptr;
+    values_total_ = bcf_get_genotypes(
+        header, record, reinterpret_cast<void**>( &tmp_ptr ), &values_reserved_
+    );
+    value_buffer_ = std::shared_ptr<int32_t>( tmp_ptr, std::default_delete<int32_t[]>());
+    return values_total_;
+}
+
 // -------------------------------------------------------------------------
 //     is_vector_end_
 // -------------------------------------------------------------------------
@@ -900,6 +963,12 @@ inline bool VcfFormatIterator<char*, std::string>::is_vector_end_( char* val ) c
     return *val == bcf_str_vector_end;
 }
 
+template<>
+inline bool VcfFormatIterator<int32_t, VcfGenotype>::is_vector_end_( int32_t val ) const
+{
+    return val == bcf_int32_vector_end;
+}
+
 // -------------------------------------------------------------------------
 //     is_missing_value_
 // -------------------------------------------------------------------------
@@ -921,6 +990,12 @@ inline bool VcfFormatIterator<char*, std::string>::is_missing_value_( char* val 
 {
     assert( val );
     return *val == bcf_str_missing;
+}
+
+template<>
+inline bool VcfFormatIterator<int32_t, VcfGenotype>::is_missing_value_( int32_t val ) const
+{
+    return val == bcf_int32_missing;
 }
 
 } // namespace population

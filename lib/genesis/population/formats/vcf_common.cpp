@@ -164,5 +164,39 @@ std::string vcf_hl_type_to_string( int hl_type )
     throw std::invalid_argument( "Invalid header line type: " + std::to_string( hl_type ));
 }
 
+// =================================================================================================
+//     VCF Genotype
+// =================================================================================================
+
+int32_t VcfGenotype::variant_index() const
+{
+    return bcf_gt_allele( genotype_ );
+}
+
+bool VcfGenotype::is_reference() const
+{
+    return bcf_gt_allele( genotype_ ) == 0;
+}
+
+bool VcfGenotype::is_alternative() const
+{
+    return bcf_gt_allele( genotype_ ) > 0;
+}
+
+bool VcfGenotype::is_missing() const
+{
+    return bcf_gt_is_missing( genotype_ );
+}
+
+bool VcfGenotype::is_phased() const
+{
+    return bcf_gt_is_phased( genotype_ );
+}
+
+int32_t VcfGenotype::data() const
+{
+    return genotype_;
+}
+
 } // namespace population
 } // namespace genesis

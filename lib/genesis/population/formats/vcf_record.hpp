@@ -491,6 +491,36 @@ public:
     // -------------------------------------------------------------------------
 
     /**
+     * @brief Get the begin iterator over the samples that accesses the FORMAT genotype
+     * (`GT` field/key/id) as a set of VcfGenotype values.
+     *
+     * The `GT` genotypoe field is a special case of htslib, that we hence also have to treat
+     * specially here. Instead of strings or ints, we model each call as a VcfGenotype instance;
+     * see there for details.
+     *
+     * @copydetails begin_format_string()
+     */
+    VcfFormatIteratorGenotype begin_format_genotype() const;
+
+    /**
+     * @brief Get the end iterator over the samples that accesses the FORMAT genotype
+     * (`GT` field/key/id) as a set of VcfGenotype values.
+     *
+     * See begin_format_genotype() for details.
+     */
+    VcfFormatIteratorGenotype end_format_genotype() const;
+
+    /**
+     * @brief Get an iterator pair over the samples that accesses the FORMAT genotype
+     * (`GT` field/key/id) as a set of VcfGenotype values.
+     *
+     * See begin_format_genotype() for details.
+     *
+     * @copydetails get_format_string()
+     */
+    genesis::utils::Range<VcfFormatIteratorGenotype> get_format_genotype() const;
+
+    /**
      * @brief Get the begin iterator over the samples that accesses a certain FORMAT @p id as a
      * string value.
      *

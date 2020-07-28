@@ -602,10 +602,12 @@ void VcfHeader::check_value_return_code_(
 
     // If we are here, the above part succeeded, which means, our return type could correctly be
     // retrieved. Let's assert that this is also the type that was specified in the header,
-    // just to be sure that htslib does its job.
+    // just to be sure that htslib does its job. Except for the genotype `GT` FORMAT field,
+    // because htslib treats that as a special case that is a string that gets converted to an
+    // int representation...
     auto const int_id = ::bcf_hdr_id2int( header, BCF_DT_ID, id.c_str() );
     assert( bcf_hdr_idinfo_exists( header, hl_type, int_id ) );
-    assert( bcf_hdr_id2type( header, hl_type, int_id ) == static_cast<uint32_t>( ht_type ));
+    assert( id == "GT" || bcf_hdr_id2type( header, hl_type, int_id ) == static_cast<uint32_t>( ht_type ));
     (void) int_id;
 
     // Assert that we are only left with valid, non-negative return codes.

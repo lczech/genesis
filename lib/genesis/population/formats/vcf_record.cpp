@@ -449,6 +449,23 @@ void VcfRecord::assert_format( std::string const& id ) const
 //     Sample Columns
 // =================================================================================================
 
+VcfFormatIteratorGenotype VcfRecord::begin_format_genotype() const
+{
+    return VcfFormatIteratorGenotype( header_, record_, "GT", VcfValueType::kInteger );
+}
+
+VcfFormatIteratorGenotype VcfRecord::end_format_genotype() const
+{
+    return VcfFormatIteratorGenotype();
+}
+
+genesis::utils::Range<VcfFormatIteratorGenotype> VcfRecord::get_format_genotype() const {
+    return {
+        VcfFormatIteratorGenotype( header_, record_, "GT", VcfValueType::kInteger ),
+        VcfFormatIteratorGenotype()
+    };
+}
+
 VcfFormatIteratorString VcfRecord::begin_format_string( std::string const& id ) const
 {
     return VcfFormatIteratorString( header_, record_, id, VcfValueType::kString );

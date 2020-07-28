@@ -31,6 +31,7 @@
  * @ingroup population
  */
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -39,16 +40,12 @@
 //     #include <htslib/vcf.h>
 // }
 
-// =================================================================================================
-//     VCF/BCF Common
-// =================================================================================================
-
 namespace genesis {
 namespace population {
 
-// -------------------------------------------------------------------------
+// =================================================================================================
 //     Typedefs and Enums
-// -------------------------------------------------------------------------
+// =================================================================================================
 
 /**
  * @brief Specification for the data type of the values expected in key-value-pairs of VCF/BCF files.
@@ -129,10 +126,9 @@ struct VcfSpecification
     std::string     description;
 };
 
-
-// -------------------------------------------------------------------------
+// =================================================================================================
 //     Typedef and Enum Helpers
-// -------------------------------------------------------------------------
+// =================================================================================================
 
 std::string vcf_value_type_to_string( VcfValueType ht_type );
 std::string vcf_value_type_to_string( int ht_type );
@@ -144,6 +140,109 @@ std::string vcf_value_special_to_string( int vl_type_num );
  * to their string representation as used in the VCF header ("FILTER", "INFO", "FORMAT", etc).
  */
 std::string vcf_hl_type_to_string( int hl_type );
+
+// =================================================================================================
+//     VCF Genotype
+// =================================================================================================
+
+/**
+ * @brief Simple wrapper class for one genotype field for a sample.
+ *
+ * The FORMAT `GT` genotype field in VCF contains entries such as
+ *
+ *   * `0/1` to mark an unphased diploid genotype call, where one allele is the reference (index `0`),
+ *     and on alelle is the first alternative (index `1`) in the `ALT` column of the record line.
+ *   * `2|1` to mark a phased diploid genotype call, where the first phased allele is the second
+ *     (index `2`) alternative allele of the `ALT` column, and the second phased allele is the first
+ *     (index `1`) alternative allele.
+ *
+ * Here, we model exactly one such entry, that is, one such index. For diploid calls, a sample hence
+ * needs to such values (two instances of this class); for triploic calls, three instances, and so
+ * forth.
+ *
+ * The function variant_index(), returns the index of the referenec (`0`) or alternative allele (`>0`)
+ * as exemplified above. The corresponding allele can be obtained via VcfRecord::get_variant()
+ * and VcfRecord::get_variants().
+ */
+class VcfGenotype
+{
+public:
+
+    // -------------------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------------------
+
+    explicit VcfGenotype( int32_t genotype )
+        : genotype_(genotype)
+    {}
+
+    ~VcfGenotype() = default;
+
+    VcfGenotype( VcfGenotype const& ) = default;
+    VcfGenotype( VcfGenotype&& )      = default;
+
+    VcfGenotype& operator= ( VcfGenotype const& ) = default;
+    VcfGenotype& operator= ( VcfGenotype&& )      = default;
+
+    // -------------------------------------------------------------------------
+    //     Access Functions
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return the index of the variant set for this genotype call.
+     *
+     * This corresponds to the indices of the result of VcfRecord::get_variants(). If the call
+     * is missing (`.` in VCF), `-1` is returned instead.
+     */
+    int32_t variant_index() const;
+
+    /**
+     * @brief True iff the called variant of this genotype is the `REF` allele.
+     *
+     * In VCF, this corresponds to an entry of `0`.
+     */
+    bool is_reference() const;
+
+    /**
+     * @brief True iff the called variant of this genotype is not the `REF`, but one of the `ALT`
+     * alleles.
+     *
+     * In VCF, this corresponds to any integer entry `> 0`.
+     */
+    bool is_alternative() const;
+
+    /**
+     * @brief True iff the variant call is missing for this genotype.
+     *
+     * In VCF, this corresponds to an entry of `.`.
+     */
+    bool is_missing() const;
+
+    /**
+     * @brief True iff the called variant is phased.
+     *
+     * Note that in the VCF specification 4.2 and htslib this seems to be handled differently:
+     * While the former required every genotype call to be marked as phased/unphased, the htslib
+     * implementation does not set the phased information for the first genotype call.
+     * Hence, if the `GT` field of a sample is `0|1|1`, only the second and the third genotype call
+     * will return `true` in htslib using their `bcf_gt_is_phased()` macro. We here currently do
+     * not fix this, and hence propagate the htslib behaviour.
+     */
+    bool is_phased() const;
+
+    /**
+     * @brief Return the raw genotype value as used by htslib.
+     */
+    int32_t data() const;
+
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    int32_t genotype_;
+};
 
 } // namespace population
 } // namespace genesis
