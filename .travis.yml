@@ -735,9 +735,8 @@ before_install:
     fi
     if [ "$TRAVIS_OS_NAME" == "osx" ]; then
       brew install autoconf automake
-      brew install libbz2-devel liblzma-dev
       xcode-select --install
-      # not needed: libtool zlib-devel
+      # brew install libtool zlib-devel libbz2-devel liblzma-dev
     fi
 
   # --------------------------------------------------------------------------
