@@ -731,8 +731,8 @@ before_install:
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
       sudo apt-get install autoheader autoconf
-      sudo apt-get install zlib1g zlib1g-dev bzip2 liblzma liblzma-dev
-      # sudo apt-get install zlib1g zlib1g-dev libbz2 libbz2-dev liblzma liblzma-dev
+      sudo apt-get install zlib1g zlib1g-dev libbz2 libbz2-dev liblzma liblzma-dev
+      # sudo apt-get install zlib1g zlib1g-dev bzip2 liblzma liblzma-dev
     fi
   - |
     if [ "$TRAVIS_OS_NAME" == "osx" ]; then
