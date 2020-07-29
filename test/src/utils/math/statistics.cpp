@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -133,6 +133,50 @@ TEST( Math, WeightedGeometricMean )
     EXPECT_ANY_THROW( weighted_geometric_mean({ -1.0 }, { 1.0 }) );
     EXPECT_ANY_THROW( weighted_geometric_mean({ 5.0 }, { 1.0, 2.0 }) );
     EXPECT_ANY_THROW( weighted_geometric_mean({ 5.0, 2.0 }, { 1.0 }) );
+}
+
+TEST( Math, HarmonicMean )
+{
+    // Empty.
+    EXPECT_DOUBLE_EQ( 0.0,  harmonic_mean({ }) );
+
+    // One value.
+    EXPECT_DOUBLE_EQ(  1.0,  harmonic_mean({ 1.0 }) );
+    EXPECT_DOUBLE_EQ(  5.0,  harmonic_mean({ 5.0 }) );
+
+    // Two values.
+    EXPECT_DOUBLE_EQ( 3.2,  harmonic_mean({ 2.0, 8.0 }) );
+    EXPECT_DOUBLE_EQ( 6.0,  harmonic_mean({ 6.0, 6.0 }) );
+
+    // Three values.
+    EXPECT_DOUBLE_EQ( 2.0,  harmonic_mean({ 1.0, 4.0, 4.0 }) );
+
+    // Edge cases.
+    EXPECT_ANY_THROW( harmonic_mean({  0.0 }) );
+    EXPECT_ANY_THROW( harmonic_mean({ -1.0 }) );
+}
+
+TEST( Math, WeightedHarmonicMean )
+{
+    // Empty.
+    EXPECT_DOUBLE_EQ( 0.0,  weighted_harmonic_mean({}, {}) );
+
+    // One value.
+    EXPECT_DOUBLE_EQ(  1.0,  weighted_harmonic_mean({ 1.0 }, { 1.0 }) );
+    EXPECT_DOUBLE_EQ(  5.0,  weighted_harmonic_mean({ 5.0 }, { 3.0 }) );
+
+    // Two values.
+    EXPECT_DOUBLE_EQ( 3.2,  weighted_harmonic_mean({ 2.0, 8.0 }, { 1.0, 1.0 }) );
+    EXPECT_DOUBLE_EQ( 6.0,  weighted_harmonic_mean({ 6.0, 6.0 }, { 3.0, 8.0 }) );
+
+    // Three values.
+    EXPECT_DOUBLE_EQ( 2.0,  weighted_harmonic_mean({ 1.0, 4.0, 4.0 }, { 1.0, 1.0, 1.0 }) );
+
+    // Edge cases.
+    EXPECT_ANY_THROW( weighted_harmonic_mean({  0.0 }, { 1.0 }) );
+    EXPECT_ANY_THROW( weighted_harmonic_mean({ -1.0 }, { 1.0 }) );
+    EXPECT_ANY_THROW( weighted_harmonic_mean({ 5.0 }, { 1.0, 2.0 }) );
+    EXPECT_ANY_THROW( weighted_harmonic_mean({ 5.0, 2.0 }, { 1.0 }) );
 }
 
 TEST( Math, PNorm )
