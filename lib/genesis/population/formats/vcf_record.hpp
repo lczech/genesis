@@ -494,9 +494,12 @@ public:
      * @brief Get the begin iterator over the samples that accesses the FORMAT genotype
      * (`GT` field/key/id) as a set of VcfGenotype values.
      *
-     * The `GT` genotypoe field is a special case of htslib, that we hence also have to treat
+     * The `GT` genotype field is a special case of htslib, that we hence also have to treat
      * specially here. Instead of strings or ints, we model each call as a VcfGenotype instance;
      * see there for details.
+     *
+     * The simplest use case is via the get_format_genotype() function; see there for some
+     * convenience examples as well.
      *
      * @copydetails begin_format_string()
      */
@@ -514,7 +517,14 @@ public:
      * @brief Get an iterator pair over the samples that accesses the FORMAT genotype
      * (`GT` field/key/id) as a set of VcfGenotype values.
      *
-     * See begin_format_genotype() for details.
+     * See begin_format_genotype() for why we offer a special function to get the genotype field.
+     *
+     * In order to simply print the VCF-like genotype information for the samples of a record,
+     * the vcf_genotype_string() convenience function can be used:
+     *
+     *     for( auto gt_iterator : record_iterator->get_format_genotype() ) {
+     *         std::cout << vcf_genotype_string( gt_iterator.get_values() ) << "\n";
+     *     }
      *
      * @copydetails get_format_string()
      */

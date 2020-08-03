@@ -763,6 +763,10 @@ TEST( Vcf, FormatIteratorDoc )
         for( auto sample_dp = record.begin_format_int("DP"); sample_dp != record.end_format_int(); ++sample_dp ) {
             // ...
         }
+
+        for( auto sample_gt : record.get_format_genotype() ) {
+            std::string gtstr = vcf_genotype_string( sample_gt.get_values() );
+        }
     }
 }
 

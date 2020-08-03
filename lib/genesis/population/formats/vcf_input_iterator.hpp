@@ -57,8 +57,14 @@ namespace population {
  *
  *     auto it = VcfInputIterator( infile );
  *     while( it ) {
- *         // work with it.record()
+ *         // work with it.record() or it->...
  *         ++it;
+ *     }
+ *
+ * or
+ *
+ *     for( auto it = VcfInputIterator( infile );  it; ++it ) {
+ *         // work with it
  *     }
  *
  * For details on working with the records/lines, see VcfRecord and VcfFormatIterator.
@@ -184,6 +190,16 @@ public:
     VcfRecord& record()
     {
         return record_;
+    }
+
+    VcfRecord const* operator ->() const
+    {
+        return &record_;
+    }
+
+    VcfRecord* operator ->()
+    {
+        return &record_;
     }
 
     // -------------------------------------------------------------------------
