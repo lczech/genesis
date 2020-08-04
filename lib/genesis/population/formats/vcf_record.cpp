@@ -33,8 +33,6 @@
 #include "genesis/population/formats/hts_file.hpp"
 #include "genesis/population/formats/vcf_header.hpp"
 
-#include "genesis/utils/core/logging.hpp"
-
 extern "C" {
     #include <htslib/hts.h>
     #include <htslib/vcf.h>
@@ -42,6 +40,7 @@ extern "C" {
 
 #include <cassert>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <stdexcept>
 
@@ -146,7 +145,8 @@ std::string VcfRecord::get_id() const
 
 std::string VcfRecord::at() const
 {
-    return get_chromosome() + ":" + std::to_string( get_position() ) + ( get_id() != "." ? " " + get_id() : "" );
+    auto const pos_id = std::string( get_id() != "." ? " (" + get_id() + ")" : "" );
+    return get_chromosome() + ":" + std::to_string( get_position() ) + pos_id;
 }
 
 std::string VcfRecord::get_reference() const
@@ -171,10 +171,26 @@ std::vector<std::string> VcfRecord::get_alternatives() const
     return ret;
 }
 
+std::string VcfRecord::get_alternative( size_t index ) const
+{
+    // The ALT alleles are stored in allele[1..n], so we need to re-index into our result vector.
+    ::bcf_unpack( record_, BCF_UN_STR );
+    assert( record_->n_allele > 0 );
+    if( index + 1 >= record_->n_allele ) {
+        throw std::invalid_argument(
+            "Cannot retrieve alternative at index " + std::to_string(index) + ", as the record " +
+            "line only has " + std::to_string( record_->n_allele - 1 ) + " alternative alleles."
+        );
+    }
+    assert( index + 1 < record_->n_allele );
+    return record_->d.allele[ index + 1 ];
+}
+
 size_t VcfRecord::get_alternatives_count() const
 {
     // Even if there are no alternatives (that is, set to "."), there has to be at least the REF
     // allele, which we assert here, so that the re-indexing is ensured to work.
+    ::bcf_unpack( record_, BCF_UN_STR );
     assert( record_->n_allele > 0 );
     return record_->n_allele - 1;
 }
@@ -189,6 +205,28 @@ std::vector<std::string> VcfRecord::get_variants() const
         ret[i] = std::string( record_->d.allele[i] );
     }
     return ret;
+}
+
+std::string VcfRecord::get_variant( size_t index ) const
+{
+    ::bcf_unpack( record_, BCF_UN_STR );
+    assert( record_->n_allele > 0 );
+    if( index >= record_->n_allele ) {
+        throw std::invalid_argument(
+            "Cannot retrieve variant at index " + std::to_string(index) + ", as the record " +
+            "line only has " + std::to_string( record_->n_allele ) + " variants (reference + " +
+            "alternative alleles)."
+        );
+    }
+    assert( index < record_->n_allele );
+    return record_->d.allele[ index ];
+}
+
+size_t VcfRecord::get_variant_count() const
+{
+    ::bcf_unpack( record_, BCF_UN_STR );
+    assert( record_->n_allele > 0 );
+    return record_->n_allele;
 }
 
 VcfRecord::VariantType VcfRecord::get_variant_types() const
@@ -412,11 +450,85 @@ void VcfRecord::assert_format( std::string const& id ) const
 //     Sample Columns
 // =================================================================================================
 
+VcfFormatIteratorGenotype VcfRecord::begin_format_genotype() const
+{
+    return VcfFormatIteratorGenotype( header_, record_, "GT", VcfValueType::kInteger );
+}
+
+VcfFormatIteratorGenotype VcfRecord::end_format_genotype() const
+{
+    return VcfFormatIteratorGenotype();
+}
+
+genesis::utils::Range<VcfFormatIteratorGenotype> VcfRecord::get_format_genotype() const {
+    return {
+        VcfFormatIteratorGenotype( header_, record_, "GT", VcfValueType::kInteger ),
+        VcfFormatIteratorGenotype()
+    };
+}
+
+VcfFormatIteratorString VcfRecord::begin_format_string( std::string const& id ) const
+{
+    return VcfFormatIteratorString( header_, record_, id, VcfValueType::kString );
+}
+
+VcfFormatIteratorString VcfRecord::end_format_string() const
+{
+    return VcfFormatIteratorString();
+}
+
+genesis::utils::Range<VcfFormatIteratorString> VcfRecord::get_format_string(
+    std::string const& id
+) const {
+    return {
+        VcfFormatIteratorString( header_, record_, id, VcfValueType::kString ),
+        VcfFormatIteratorString()
+    };
+}
+
+VcfFormatIteratorInt VcfRecord::begin_format_int( std::string const& id ) const
+{
+    return VcfFormatIteratorInt( header_, record_, id, VcfValueType::kInteger );
+}
+
+VcfFormatIteratorInt VcfRecord::end_format_int() const
+{
+    return VcfFormatIteratorInt();
+}
+
+genesis::utils::Range<VcfFormatIteratorInt> VcfRecord::get_format_int(
+    std::string const& id
+) const {
+    return {
+        VcfFormatIteratorInt( header_, record_, id, VcfValueType::kInteger ),
+        VcfFormatIteratorInt()
+    };
+}
+
+VcfFormatIteratorFloat VcfRecord::begin_format_float( std::string const& id ) const
+{
+    return VcfFormatIteratorFloat( header_, record_, id, VcfValueType::kFloat );
+}
+
+VcfFormatIteratorFloat VcfRecord::end_format_float() const
+{
+    return VcfFormatIteratorFloat();
+}
+
+genesis::utils::Range<VcfFormatIteratorFloat> VcfRecord::get_format_float(
+    std::string const& id
+) const {
+    return {
+        VcfFormatIteratorFloat( header_, record_, id, VcfValueType::kFloat ),
+        VcfFormatIteratorFloat()
+    };
+}
+
 // =================================================================================================
 //     Modifiers
 // =================================================================================================
 
-bool VcfRecord::read( HtsFile& source )
+bool VcfRecord::read_next( HtsFile& source )
 {
     bool const good = ( ::bcf_read1( source.data(), header_, record_ ) == 0 );
     // if( good ) {
@@ -429,74 +541,17 @@ bool VcfRecord::read( HtsFile& source )
 //     Internal Members
 // =================================================================================================
 
-/**
- * @brief Local helper function that does the repetetive part of the work of loading the info
- * data from a record.
- */
 int VcfRecord::get_info_ptr_( std::string const& id, int ht_type, void** dest, int* ndest) const
 {
     // Call the htslib function, and call our function to check the return value, which encodes
     // for errors as well (if negative). If there was an error, that function call throws
     // an exception.
     int const len = ::bcf_get_info_values( header_, record_, id.c_str(), dest, ndest, ht_type );
-    check_values_( header_, id, ht_type, BCF_HL_INFO, len );
+    VcfHeader::check_value_return_code_( header_, id, ht_type, BCF_HL_INFO, len );
 
     // Assert that if ndest is used (for all but flags), it has a valid value.
     assert( !ndest || ( *ndest >= 0 && *ndest >= len ));
     return len;
-}
-
-void VcfRecord::check_values_(
-    ::bcf_hdr_t* header, std::string const& id, int ht_type, int hl_type, int return_value
-) {
-    switch( return_value ) {
-        case -1: {
-            throw std::runtime_error(
-                vcf_hl_to_string( hl_type ) + " tag " + id + " not defined in the VCF/BCF header."
-            );
-            break;
-        }
-        case -2: {
-            bcf_hrec_t* hrec = ::bcf_hdr_get_hrec( header, hl_type, "ID", id.c_str(), nullptr );
-            int const hrec_key = ::bcf_hrec_find_key( hrec, "Type" );
-            std::string defined_type = ( hrec_key >= 0 ? std::string( hrec->vals[hrec_key] ) : "Unknown" );
-            // int const tag_id = bcf_hdr_id2int( header, BCF_DT_ID, id.c_str() );
-
-            throw std::runtime_error(
-                "Clash between types defined in the header and encountered in the VCF/BCF record for " +
-                vcf_hl_to_string( hl_type ) + " tag " + id + ": Header defines type '" + defined_type +
-                "', but '" + vcf_value_type_to_string( ht_type ) + "' was requested instead."
-            );
-            break;
-        }
-        case -3: {
-            throw std::runtime_error(
-                vcf_hl_to_string( hl_type ) + " tag " + id + " not present in the VCF/BCF record."
-            );
-            break;
-        }
-        case -4: {
-            throw std::runtime_error(
-                vcf_hl_to_string( hl_type ) + " tag " + id + " retrieval could not be completed " +
-                "(e.g., out of memory)."
-            );
-            break;
-        }
-        // default:
-        //     (void);
-    }
-
-    // If we are here, the above part succeeded, which means, our return type could correctly be
-    // retrieved. Let's assert that this is also the type that was specified in the header,
-    // just to be sure that htslib does its job.
-    auto const int_id = ::bcf_hdr_id2int( header, BCF_DT_ID, id.c_str() );
-    assert( bcf_hdr_idinfo_exists( header, hl_type, int_id ) );
-    assert( bcf_hdr_id2type( header, hl_type, int_id ) == static_cast<uint32_t>( ht_type ));
-    (void) int_id;
-
-    // Assert that we are only left with valid, non-negative return codes.
-    // All negative ones, which signify errors, are caught above.
-    assert( return_value >= 0 );
 }
 
 } // namespace population

@@ -360,16 +360,20 @@ if(GENESIS_USE_HTSLIB)
     message (STATUS "Looking for htslib")
 
     find_path(HTSLIB_INCLUDE_DIR NAMES htslib/hts.h HINTS "${HTSLIB_DIR}/include")
-    find_library(HTSLIB_LIBRARY NAMES libhts.a hts HINTS "${HTSLIB_DIR}/lib")
-    find_library(HTSLIB_LZMA NAMES lzma)
-    find_library(HTSLIB_BZ2 NAMES bz2)
+    find_library(HTSLIB_LIBRARY  NAMES libhts.a hts HINTS "${HTSLIB_DIR}/lib")
+    find_library(HTSLIB_LZMA     NAMES lzma)
+    find_library(HTSLIB_BZ2      NAMES bz2)
 
     IF(
         ${HTSLIB_INCLUDE_DIR} EQUAL "NOTFOUND" OR
-        ${HTSLIB_LIBRARY} EQUAL "NOTFOUND" OR
-        ${HTSLIB_LZMA} EQUAL "NOTFOUND" OR
-        ${HTSLIB_BZ2} EQUAL "NOTFOUND"
+        ${HTSLIB_LIBRARY}     EQUAL "NOTFOUND" OR
+        ${HTSLIB_LZMA}        EQUAL "NOTFOUND" OR
+        ${HTSLIB_BZ2}         EQUAL "NOTFOUND"
     )
+        message( STATUS "HTSLIB_INCLUDE_DIR: ${HTSLIB_INCLUDE_DIR}" )
+        message( STATUS "HTSLIB_LIBRARY:     ${HTSLIB_LIBRARY}" )
+        message( STATUS "HTSLIB_LZMA:        ${HTSLIB_LZMA}" )
+        message( STATUS "HTSLIB_BZ2:         ${HTSLIB_BZ2}" )
         message( FATAL_ERROR "Required package htslib (or some of its dependencies) not found.")
     ELSE()
 
@@ -384,7 +388,7 @@ if(GENESIS_USE_HTSLIB)
         set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_HTSLIB" )
         set(
             GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}
-            -lhts -Lhtslib ${HTSLIB_LIBRARY} z ${HTSLIB_LZMA} ${HTSLIB_BZ2}
+            -L/usr/local/lib -lhts ${HTSLIB_LIBRARY} z ${HTSLIB_LZMA} ${HTSLIB_BZ2}
         )
     ENDIF()
 endif()

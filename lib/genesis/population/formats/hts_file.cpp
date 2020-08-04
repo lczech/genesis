@@ -34,6 +34,7 @@ extern "C" {
     #include <htslib/hts.h>
 }
 
+#include <cstdlib>
 #include <stdexcept>
 
 namespace genesis {
