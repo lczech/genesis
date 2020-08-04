@@ -37,6 +37,7 @@
 #include "genesis/population/formats/vcf_common.hpp"
 #include "genesis/population/formats/vcf_format_iterator.hpp"
 #include "genesis/population/formats/vcf_header.hpp"
+#include "genesis/population/formats/vcf_input_iterator.hpp"
 #include "genesis/population/formats/vcf_record.hpp"
 
 #endif // include guard

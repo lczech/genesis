@@ -165,6 +165,24 @@ std::string vcf_hl_type_to_string( int hl_type )
 }
 
 // =================================================================================================
+//     VCF Genotype Functions
+// =================================================================================================
+
+std::string vcf_genotype_string( std::vector<VcfGenotype> const& genotypes )
+{
+    std::string result;
+    for( size_t i = 0; i < genotypes.size(); ++i ) {
+        auto const& g = genotypes[i];
+
+        if( i > 0 ) {
+            result += ( g.is_phased() ? "|" : "/" );
+        }
+        result += ( g.is_missing() ? "." : std::to_string( g.variant_index() ));
+    }
+    return result;
+}
+
+// =================================================================================================
 //     VCF Genotype
 // =================================================================================================
 

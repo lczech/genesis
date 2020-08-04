@@ -95,7 +95,7 @@ using VcfFormatIteratorGenotype = VcfFormatIterator<int32_t, VcfGenotype>;
  * To accomodate for this, and to make iterating values as easy as possible (given the complexity),
  * we offer functions to automatically skip such missing values.
  *
- * The simplest use case for this iterator is hence as follows:
+ * A simple use case for this iterator is hence as follows:
  *
  *     // Load a file and init the data structures.
  *     auto file = HtsFile( "path/to/file.vcf" );
@@ -120,6 +120,8 @@ using VcfFormatIteratorGenotype = VcfFormatIterator<int32_t, VcfGenotype>;
  *             }
  *         }
  *     }
+ *
+ * See also VcfInputIterator for a wrapper around the basic loop over records/lines.
  *
  * The above example relies on the implicit notion of a "current" value per sample,
  * as we move between values via the next_value() function. Note that the next_value() function
@@ -158,8 +160,18 @@ using VcfFormatIteratorGenotype = VcfFormatIterator<int32_t, VcfGenotype>;
  *
  * Note that we also provide `*_at()` functions that take the sample index as input. These are hence
  * fully independent of the current iterator position (sample and value position), and can be used
- * to access values at arbitrary sample and value indices. Not sure when this is useful,
- * but does not hurt to have them.
+ * to access values at arbitrary sample and value indices.
+ *
+ * Furthermore, a vector with all values can be obtaind, which is for example useful for the genotype
+ * `GT` field, which can be used like this:
+ *
+ *     // (replacement for the range-based for loop of the first example)
+ *     for( auto sample_gt : record.get_format_genotype() ) {
+ *         LOG_INFO << vcf_genotype_string( sample_gt.get_values() );
+ *     }
+ *
+ * This yields a print-out of the genotypes of each sample in VCF style, see vcf_genotype_string()
+ * for details.
  *
  * Further implementation details:
  * The class is a template for the source type `S` as used by htslib (char*, int32_t, float),

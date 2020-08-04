@@ -142,6 +142,22 @@ std::string vcf_value_special_to_string( int vl_type_num );
 std::string vcf_hl_type_to_string( int hl_type );
 
 // =================================================================================================
+//     VCF Genotype Functions
+// =================================================================================================
+
+// Forward declare.
+class VcfGenotype;
+
+/**
+ * @brief Return the VCF-like string representation of a set of VcfGenotype entries.
+ *
+ * The VcfFormatIterator::get_values() function returns all genotype entries for a
+ * given sample of a record/line. Here, we return a string representation similar to VCF of these
+ * genotypes, for example `0|0` or `./1`.
+ */
+std::string vcf_genotype_string( std::vector<VcfGenotype> const& genotypes );
+
+// =================================================================================================
 //     VCF Genotype
 // =================================================================================================
 
@@ -157,10 +173,14 @@ std::string vcf_hl_type_to_string( int hl_type );
  *     (index `1`) alternative allele.
  *
  * Here, we model exactly one such entry, that is, one such index. For diploid calls, a sample hence
- * needs to such values (two instances of this class); for triploic calls, three instances, and so
+ * needs two such values (two instances of this class); for triploic calls, three instances, and so
  * forth.
  *
- * The function variant_index(), returns the index of the referenec (`0`) or alternative allele (`>0`)
+ * For simplicity, the VcfFormatIterator::get_values() function returns all genotype entries for a
+ * given sample of a record/line. This can for example be used with vcf_genotype_string() to get
+ * a similar string representation of all called genotypes of a record than VCF uses.
+ *
+ * The function variant_index() returns the index of the referenec (`0`) or alternative allele (`>0`)
  * as exemplified above. The corresponding allele can be obtained via VcfRecord::get_variant()
  * and VcfRecord::get_variants().
  */
