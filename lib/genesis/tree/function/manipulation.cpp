@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 #include "genesis/tree/tree/subtree.hpp"
 
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/std.hpp"
 
 #include <algorithm>
@@ -593,13 +594,151 @@ void delete_subtree( Tree& tree, Subtree const& subtree )
     tree.root_link().node().reset_primary_link( root_link );
 }
 
-// void delete_edge(
-//     Tree& tree,
-//     TreeEdge& target_edge,
-//     std::function<void( TreeEdge& remaining_node, TreeEdge& deleted_node )> adjust_nodes
-// ) {
-//
-// }
+void delete_edge(
+    Tree& tree,
+    TreeEdge& target_edge,
+    std::function<void( TreeNode& remaining_node, TreeNode& deleted_node )> adjust_nodes
+) {
+    // Basic checks.
+    if( ! belongs_to( target_edge, tree ) ) {
+        throw std::runtime_error(
+            "Cannot delete edge from a tree that is not part of the tree."
+        );
+    }
+    if( tree.node_count() == 2 ) {
+        assert( is_leaf( target_edge.primary_node() ));
+        assert( is_leaf( target_edge.secondary_node() ));
+        assert( tree.link_count() == 2 && tree.edge_count() == 1 );
+        throw std::runtime_error(
+            "Cannot delete edge from minimal tree that only consists of two nodes."
+        );
+    }
+    assert( !( is_leaf( target_edge.primary_node() ) && is_leaf( target_edge.secondary_node() ) ));
+
+    // Special cases where one of the nodes at the end of the edge is a leaf. In these cases, we can
+    // simply delete the node instead. We treat them here this way, as their implementation with
+    // the below algorithm is just too complex...
+    if( is_leaf( target_edge.primary_node() )) {
+        // If the primary node is a leaf, that means (as it is primary) it also is the root.
+        // In that case, we need to reverse the node adjustment function.
+        assert( is_root( target_edge.primary_node() ));
+        assert( degree( target_edge.primary_node() ) == 1 );
+
+        if( adjust_nodes ) {
+            adjust_nodes( target_edge.secondary_node(), target_edge.primary_node() );
+        }
+        delete_leaf_node( tree, target_edge.primary_node() );
+        return;
+    }
+    if( is_leaf( target_edge.secondary_node() )) {
+        assert( degree( target_edge.secondary_node() ) == 1 );
+        if( adjust_nodes ) {
+            adjust_nodes( target_edge.primary_node(), target_edge.secondary_node() );
+        }
+        delete_leaf_node( tree, target_edge.secondary_node() );
+        return;
+    }
+
+    // Now we are done with special cases. Both nodes have neighbors, that is, they are not leaves.
+    assert( ! is_leaf( target_edge.primary_node() ));
+    assert( ! is_leaf( target_edge.secondary_node() ));
+    assert( degree( target_edge.primary_node() ) > 1 );
+    assert( degree( target_edge.secondary_node() ) > 1 );
+
+    // Before we do anything, call the adjust function.
+    if( adjust_nodes ) {
+        adjust_nodes( target_edge.primary_node(), target_edge.secondary_node() );
+    }
+
+    // Adjust the distal links of the secondary node of the deleted edge.
+    auto sec_lnk = &target_edge.secondary_link().next();
+    while( sec_lnk != &target_edge.secondary_link() ) {
+        sec_lnk->reset_node( &target_edge.primary_node() );
+
+        // If we are at the last distal link, we need to adjust its next pointer to the new nodes
+        // next pointer. We then need to break out of the loop (hence, actually never triggering its
+        // normal exit condition... - we could have just used `true` as the loop  condition instead,
+        // but the current one is more meaningful to read), as we just reset the next link, so we
+        // cannot follow it any more to get around in the current node. We are done then.
+        if( &sec_lnk->next() == &target_edge.secondary_link() ) {
+            sec_lnk->reset_next( &target_edge.primary_link().next() );
+            break;
+        }
+
+        // In all other cases (while working through all links of the node), we go to the next.
+        sec_lnk = &sec_lnk->next();
+    }
+    assert( &sec_lnk->next() == &target_edge.primary_link().next() );
+
+    // Now find the link of the primary node whose next() link is the primary link of the edge.
+    // We need to reset this link to point to our newly moved link instead, as its current next()
+    // link is going to be deleted.
+    auto prm_lnk = &target_edge.primary_link();
+    while( &prm_lnk->next() != &target_edge.primary_link() ) {
+        prm_lnk = &prm_lnk->next();
+    }
+    assert( &prm_lnk->next() == &target_edge.primary_link() );
+    prm_lnk->reset_next( &target_edge.secondary_link().next() );
+
+    // In the special case that our to-be-deleted primary link is set as the tree's root link,
+    // we need to reset properly. We have just reset the prm_lnk next pointer, so we can use
+    // that as our new root link. We also need to reset the link of that node, as in that special
+    // case, the primary link of the node is also the one that we are about to delete.
+    if( &tree.root_link() == &target_edge.primary_link() ) {
+        assert( &target_edge.primary_node().link() == &target_edge.primary_link() );
+        assert( &target_edge.primary_node().link() == &tree.root_link() );
+        tree.reset_root_link( &prm_lnk->next() );
+        prm_lnk->node().reset_primary_link( &prm_lnk->next() );
+    }
+
+    // Delete the elements at the given indices.
+    std::vector<size_t> del_nodes = { target_edge.secondary_node().index() };
+    std::vector<size_t> del_edges = { target_edge.index() };
+    std::vector<size_t> del_links = {
+        target_edge.primary_link().index(),
+        target_edge.secondary_link().index()
+    };
+    delete_from_tree_container_( tree.expose_node_container(), del_nodes );
+    delete_from_tree_container_( tree.expose_edge_container(), del_edges );
+    delete_from_tree_container_( tree.expose_link_container(), del_links );
+}
+
+void delete_zero_branch_length_edges( Tree& tree, bool include_leaf_edges )
+{
+    size_t del_idx;
+    do {
+        // Find the next edge that has a branch length of zero.
+        del_idx = tree.edge_count();
+        for( auto const& edge : tree.edges() ) {
+            if( is_leaf(edge) && ! include_leaf_edges ) {
+                continue;
+            }
+            if(
+                edge.data_is_derived_from<CommonEdgeData>() &&
+                edge.data<CommonEdgeData>().branch_length == 0.0
+            ) {
+                del_idx = edge.index();
+                break;
+            }
+        }
+
+        // If we found one, delete it. If the remaining inner node does not have a name, use
+        // the one from the one that is about to be deleted. For all inner nodes that usually do
+        // not have a name anyway, that does not change that. But if a leaf node is deleted,
+        // we transfer its name. Not sure if that is good, but it sounds reasonable.
+        if( del_idx < tree.edge_count() ) {
+            delete_edge( tree, tree.edge_at( del_idx ), []( TreeNode& rem_node, TreeNode& del_node ){
+                if(
+                    del_node.data_is_derived_from<CommonNodeData>() &&
+                    rem_node.data_is_derived_from<CommonNodeData>() &&
+                    rem_node.data<CommonNodeData>().name.empty()
+                ) {
+                    rem_node.data<CommonNodeData>().name = del_node.data<CommonNodeData>().name;
+                }
+            });
+        }
+    } while( del_idx < tree.edge_count() );
+}
 
 // =================================================================================================
 //     Rerooting

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -275,11 +275,38 @@ void delete_linear_node(
  */
 void delete_subtree( Tree& tree, Subtree const& subtree );
 
-// void delete_edge(
-//     Tree& tree,
-//     TreeEdge& target_edge,
-//     std::function<void( TreeEdge& remaining_node, TreeEdge& deleted_node )> adjust_nodes = {}
-// );
+/**
+ * @brief Delete a TreeEdge from a Tree, that is, contract the two TreeNode%s at its ends into one TreeNode.
+ *
+ * This can be understood as contracting the tree at an edge, pulling both nodes at the ends of the
+ * edge together and merging them into one node with all subtrees of the original nodes combined.
+ * The TreeNode that remains is the one closer to the root. The other TreeNode is deleted, and all
+ * its outgoing branches are re-attached to the reamining node. If that other (to-be-deleted) TreeNode
+ * is a leaf, it is simply fully removed.
+ *
+ * Using the @p adjust_nodes function, the properties of these two TreeNode%s can be adjusted before
+ * deletion, for example transferring some data from the deleted node to the remaining node.
+ */
+void delete_edge(
+    Tree& tree,
+    TreeEdge& target_edge,
+    std::function<void( TreeNode& remaining_node, TreeNode& deleted_node )> adjust_nodes = {}
+);
+
+/**
+ * @brief Delete (contract) all branches of a CommonTree that have branch length zero.
+ *
+ * See delete_edge() for details on the underlying function. We here additonally adjust node names
+ * so that leaf node names are transferred to remaining inner nodes as far as possible.
+ *
+ * By default, the function does not delete edges that lead to leaf nodes, even if those edges
+ * have a branch length of 0. If @p include_leaf_edges is set to `true` however, these edges
+ * are deleted as well, and their leaf node names (if present) are transferred to their parent
+ * node if possible. As a node can only have one name, that means that nodes that have multiple
+ * attached leaf nodes will only get one of the leaf node names (depending on the ordering of edge
+ * indices), while the other leaf node names will be deleted with their respetive nodes.
+ */
+void delete_zero_branch_length_edges( Tree& tree, bool include_leaf_edges = false );
 
 // =================================================================================================
 //     Rooting, Rerooting, Unrooting

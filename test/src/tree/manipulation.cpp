@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,6 +43,8 @@
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/iterator/levelorder.hpp"
+#include "genesis/tree/printer/compact.hpp"
+#include "genesis/tree/printer/detailed.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -465,6 +467,87 @@ TEST( TreeManipulation, DeleteNodes )
             }
 
             delete_node( copy, copy.node_at(i) );
+            EXPECT_TRUE( validate_topology( copy ));
+        }
+    }
+}
+
+TEST( TreeManipulation, DeleteEdges )
+{
+    // Get a tree
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+    Tree const tree = CommonTreeNewickReader().read( from_string( input ));
+
+    // Run every possible rooting.
+    for( size_t r = 0; r < tree.node_count(); ++r ) {
+        // LOG_DBG << "rooting " << r;
+
+        // Full test: takes too long (3min or so, don't want that every time we run tests).
+        // We ran it once, it worked. Reactivate when needed.
+
+        // // Generate every order of deletion.
+        // std::vector<size_t> edge_idx_perms( tree.edge_count() );
+        // std::iota( edge_idx_perms.begin(), edge_idx_perms.end(), 0 );
+        //
+        // // Iterate all permuations, and delete edges in that order.
+        // size_t p = 0;
+        // do {
+        //     auto copy = tree;
+        //     change_rooting( copy, copy.node_at(r) );
+        //
+        //     // Delete all edges in the order given by the permutation.
+        //     for( size_t i = 0; i < copy.edge_count(); ++i ) {
+        //         // LOG_DBG2 << "edge " << i << " is " << edge_idx_perms[i] << " with tree " << copy.edge_count();
+        //
+        //         // Need to skip if the edge was already deleted from a previous subtree deletion.
+        //         if( edge_idx_perms[i] >= copy.edge_count() ) {
+        //             continue;
+        //         }
+        //
+        //         // LOG_DBG2 << PrinterCompact().print( copy, []( TreeNode const& node, TreeEdge const& edge ){
+        //         //     std::string result;
+        //         //     result += "[" + std::to_string( edge.index() ) + "] ";
+        //         //     // if( edge.has_data() ) {
+        //         //     //     result += utils::to_string_nice( edge.data<CommonEdgeData>().branch_length );
+        //         //     // }
+        //         //     // if( edge.has_data() && node.has_data() && ! node.data<CommonNodeData>().name.empty() ) {
+        //         //     //     result += ": ";
+        //         //     // }
+        //         //     // result += "[" + std::to_string( node.index() ) + "] ";
+        //         //     if( node.has_data() ) {
+        //         //         result += node.data<CommonNodeData>().name;
+        //         //     }
+        //         //     return result;
+        //         // });
+        //
+        //         // LOG_DBG2 << PrinterDetailed().print(copy);
+        //         // PrinterDetailed().print(std::cout, copy);
+        //
+        //         // LOG_DBG << "r " << r << " p " << p << " i " << i << " s " << copy.edge_count() << " n " << node_idx;
+        //
+        //         delete_edge( copy, copy.edge_at(edge_idx_perms[i]) );
+        //         EXPECT_TRUE( validate_topology( copy ));
+        //
+        //         // PrinterDetailed().print(std::cout, copy);
+        //         // ASSERT_TRUE( validate_topology( copy ));
+        //     }
+        //
+        //     ++p;
+        // } while ( std::next_permutation( edge_idx_perms.begin(), edge_idx_perms.end() ));
+        // (void) p;
+
+        // Delete every edge once, starting with a fresh copy of the tree each time.
+        for( size_t i = 0; i < tree.edge_count(); ++i ) {
+            auto copy = tree;
+            change_rooting( copy, copy.node_at(r) );
+
+            // We cannot delete all but one edge.
+            if( tree.node_count() == 2 ) {
+                EXPECT_ANY_THROW( delete_edge( copy, copy.edge_at(i) ));
+                continue;
+            }
+
+            delete_edge( copy, copy.edge_at(i) );
             EXPECT_TRUE( validate_topology( copy ));
         }
     }
