@@ -215,8 +215,6 @@ public:
         : is_end_(false)
         , header_(header)
         , record_(record)
-        , id_(id)
-        , ht_type_(ht_type)
     {
         // TODO Remove all htslib function calls from this headers and put them in a cpp file instead.
 
@@ -338,7 +336,6 @@ public:
         return ( is_end_ && other.is_end_ ) || (
             !is_end_ && !other.is_end_ &&
             header_ == other.header_ && record_ == other.record_ &&
-            id_ == other.id_ && ht_type_ == other.ht_type_ &&
             values_total_ == other.values_total_ && num_samples_ == other.num_samples_ &&
             values_per_sample_ == other.values_per_sample_ &&
             sample_idx_ == other.sample_idx_ && value_idx_ == other.value_idx_
@@ -802,10 +799,6 @@ private:
     // We keep pointers to the header and the record here, but do not manage them.
     ::bcf_hdr_t* header_ = nullptr;
     ::bcf1_t* record_ = nullptr;
-
-    // For reference, keep the FORMAT id tag/key and its value type (char*, int, float) here as well.
-    std::string id_;
-    VcfValueType ht_type_;
 
     // Data members needed for htslib functions: value_buffer_ and values_reserved_ are where
     // the data from the record gets copied to. We use a shared_ptr to manage the lifetime,
