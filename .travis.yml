@@ -708,6 +708,15 @@ jobs:
 #     Install
 # ==================================================================================================
 
+# htslib needs autotools for compiling. Unfortunately, travis and homebrew don't work well together
+# when using a normal `brew` command (see commented lines below; homebrew tries to update itself
+# before running the brew command first, and fails...), but luckily travis provides a mechanism
+# to still install autotools on osx.
+addons:
+  homebrew:
+    packages:
+    - autoconf
+
 before_install:
 
   # --------------------------------------------------------------------------
@@ -735,6 +744,7 @@ before_install:
       sudo apt-get install autoconf
       sudo apt-get install zlib1g zlib1g-dev bzip2 liblzma-dev
     fi
+  # Tests for autotools on osx. Doesn't work, because of travis...
   # - |
   #   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
   #     # sudo brew update-reset
@@ -779,11 +789,6 @@ before_install:
   #  2. We also need to set CXX, as travis is so nice as to override this otherwise.
   - if [[ "${COMPILER}" == "" ]]; then COMPILER=${CXX}; fi
   - export CXX=${COMPILER}
-
-addons:
-  homebrew:
-    packages:
-    - autoconf
 
 install:
 
