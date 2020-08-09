@@ -741,7 +741,7 @@ before_install:
       # sudo brew update
       # brew update-reset
       # brew update
-      brew install autoconf
+      # brew install autoconf
       # xcode-select --install
       # brew install automake libtool zlib-devel libbz2-devel liblzma-dev
     fi
