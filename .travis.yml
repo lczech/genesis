@@ -730,15 +730,17 @@ before_install:
   # install htslib required build tools
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-    # sudo apt-get install autoheader autoconf
-    # sudo apt-get install zlib1g zlib1g-dev libbz2 libbz2-dev liblzma liblzma-dev
+      # sudo apt-get install autoheader autoconf
+      # sudo apt-get install zlib1g zlib1g-dev libbz2 libbz2-dev liblzma liblzma-dev
       sudo apt-get install autoconf
       sudo apt-get install zlib1g zlib1g-dev bzip2 liblzma-dev
     fi
   - |
     if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-      sudo brew update-reset
-      sudo brew update
+      # sudo brew update-reset
+      # sudo brew update
+      # brew update-reset
+      # brew update
       brew install autoconf
       # xcode-select --install
       # brew install automake libtool zlib-devel libbz2-devel liblzma-dev
