@@ -735,16 +735,16 @@ before_install:
       sudo apt-get install autoconf
       sudo apt-get install zlib1g zlib1g-dev bzip2 liblzma-dev
     fi
-  - |
-    if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-      # sudo brew update-reset
-      # sudo brew update
-      # brew update-reset
-      # brew update
-      # brew install autoconf
-      # xcode-select --install
-      # brew install automake libtool zlib-devel libbz2-devel liblzma-dev
-    fi
+  # - |
+  #   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+  #     # sudo brew update-reset
+  #     # sudo brew update
+  #     # brew update-reset
+  #     brew update
+  #     brew install autoconf
+  #     # xcode-select --install
+  #     # brew install automake libtool zlib-devel libbz2-devel liblzma-dev
+  #   fi
 
   # --------------------------------------------------------------------------
   #     Paths and Environment
@@ -780,10 +780,10 @@ before_install:
   - if [[ "${COMPILER}" == "" ]]; then COMPILER=${CXX}; fi
   - export CXX=${COMPILER}
 
-addons:
-  homebrew:
-    packages:
-    - autoconf
+# addons:
+#   homebrew:
+#     packages:
+#     - autoconf
 
 install:
 
