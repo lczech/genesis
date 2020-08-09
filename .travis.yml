@@ -780,10 +780,10 @@ before_install:
   - if [[ "${COMPILER}" == "" ]]; then COMPILER=${CXX}; fi
   - export CXX=${COMPILER}
 
-# addons:
-#   homebrew:
-#     packages:
-#     - autoconf
+addons:
+  homebrew:
+    packages:
+    - autoconf
 
 install:
 
