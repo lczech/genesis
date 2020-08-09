@@ -31,6 +31,8 @@
  * @ingroup population
  */
 
+#ifdef GENESIS_HTSLIB
+
 #include "genesis/population/formats/vcf_common.hpp"
 #include "genesis/population/formats/vcf_format_iterator.hpp"
 #include "genesis/population/formats/vcf_header.hpp"
@@ -665,4 +667,5 @@ private:
 } // namespace population
 } // namespace genesis
 
+#endif // htslib guard
 #endif // include guard

@@ -28,6 +28,8 @@
  * @ingroup population
  */
 
+#ifdef GENESIS_HTSLIB
+
 #include "genesis/population/formats/vcf_record.hpp"
 
 #include "genesis/population/formats/hts_file.hpp"
@@ -556,3 +558,5 @@ int VcfRecord::get_info_ptr_( std::string const& id, int ht_type, void** dest, i
 
 } // namespace population
 } // namespace genesis
+
+#endif // htslib guard

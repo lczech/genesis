@@ -31,6 +31,8 @@
  * @ingroup population
  */
 
+#ifdef GENESIS_HTSLIB
+
 #include "genesis/population/formats/hts_file.hpp"
 #include "genesis/population/formats/vcf_header.hpp"
 #include "genesis/population/formats/vcf_record.hpp"
@@ -241,4 +243,5 @@ private:
 } // namespace population
 } // namespace genesis
 
+#endif // htslib guard
 #endif // include guard

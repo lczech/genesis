@@ -28,6 +28,8 @@
  * @ingroup test
  */
 
+#ifdef GENESIS_HTSLIB
+
 #include "src/common.hpp"
 
 #include "genesis/population/formats/hts_file.hpp"
@@ -792,3 +794,5 @@ TEST( Vcf, InputIterator )
     );
     EXPECT_EQ( 5, cnt );
 }
+
+#endif // htslib guard

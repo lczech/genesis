@@ -28,6 +28,8 @@
  * @ingroup population
  */
 
+#ifdef GENESIS_HTSLIB
+
 #include "genesis/population/formats/vcf_header.hpp"
 
 #include "genesis/utils/text/string.hpp"
@@ -617,3 +619,5 @@ void VcfHeader::check_value_return_code_(
 
 } // namespace population
 } // namespace genesis
+
+#endif // htslib guard

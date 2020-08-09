@@ -31,6 +31,8 @@
  * @ingroup population
  */
 
+#ifdef GENESIS_HTSLIB
+
 #include "genesis/population/formats/vcf_common.hpp"
 #include "genesis/population/formats/vcf_header.hpp"
 
@@ -1008,4 +1010,5 @@ inline bool VcfFormatIterator<int32_t, VcfGenotype>::is_missing_value_( int32_t 
 } // namespace population
 } // namespace genesis
 
+#endif // htslib guard
 #endif // include guard

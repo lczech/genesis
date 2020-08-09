@@ -28,6 +28,8 @@
  * @ingroup population
  */
 
+#ifdef GENESIS_HTSLIB
+
 #include "genesis/population/formats/vcf_common.hpp"
 
 extern "C" {
@@ -218,3 +220,5 @@ int32_t VcfGenotype::data() const
 
 } // namespace population
 } // namespace genesis
+
+#endif // htslib guard

@@ -28,6 +28,8 @@
  * @ingroup population
  */
 
+#ifdef GENESIS_HTSLIB
+
 #include "genesis/population/formats/hts_file.hpp"
 
 extern "C" {
@@ -85,3 +87,5 @@ std::string HtsFile::format_extension() const
 
 } // namespace population
 } // namespace genesis
+
+#endif // htslib guard
