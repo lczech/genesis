@@ -59,8 +59,8 @@ namespace utils {
  * The output target returned from this function can be used in the writer classes, e.g.,
  * placement::JplaceWriter or sequence::FastaWriter.
  *
- * If @p compression_level is set to a compression level other than ::GzipCompressionLevel::kNoCompression
- * (which is the default, which means, no compression by default), the output is compressed using
+ * If @p compression_level is set to a compression level other than
+ * ::GzipCompressionLevel::kNoCompression, the output is compressed using
  * gzip. We recommend to use ::GzipCompressionLevel::kDefaultCompression%.
  *
  * Furthermore, if @p auto_adjust_filename is set to `true` (default), the file name is
@@ -79,7 +79,8 @@ namespace utils {
  */
 inline std::shared_ptr<BaseOutputTarget> to_file(
     std::string const& file_name,
-    GzipCompressionLevel compression_level = GzipCompressionLevel::kNoCompression,
+    GzipCompressionLevel compression_level,
+    // GzipCompressionLevel compression_level = GzipCompressionLevel::kNoCompression,
     bool auto_adjust_filename = true
 ) {
     auto fn = file_name;
@@ -101,6 +102,22 @@ inline std::shared_ptr<BaseOutputTarget> to_file(
         fn.erase( fn.size() - 3 );
     }
     return std::make_shared< FileOutputTarget >( fn );
+}
+
+/**
+ * @brief Obtain an output target for writing to a file, using a specific output mode.
+ *
+ * The output target returned from this function can be used in the writer classes, e.g.,
+ * placement::JplaceWriter or sequence::FastaWriter.
+ *
+ * This version of the function allows to explicitly set the `openmode`, which is for example useful
+ * to append to an existing file, or to open it in binary mode.
+ */
+inline std::shared_ptr<BaseOutputTarget> to_file(
+    std::string const& file_name,
+    std::ios_base::openmode mode = std::ios_base::out
+) {
+    return std::make_shared< FileOutputTarget >( file_name, mode );
 }
 
 /**
