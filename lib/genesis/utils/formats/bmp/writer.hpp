@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,6 +35,8 @@
 #include <iosfwd>
 #include <string>
 #include <vector>
+
+#include "genesis/utils/io/output_target.hpp"
 
 namespace genesis {
 namespace utils {
@@ -195,51 +197,47 @@ public:
     // ---------------------------------------------------------------------
 
     /**
-     * @brief Write a full 24bit RGB Color image to a stream.
-     */
-    void to_stream( Matrix<Color> const& image, std::ostream& outstream ) const;
-
-    /**
-     * @brief Write a full 24bit RGB Color image to a file.
-     */
-    void to_file( Matrix<Color> const& image, std::string const& filename ) const;
-
-    /**
-     * @brief Write an 8 bit grayscale image to a stream.
+     * @brief Write a full 24bit RGB Color image to an output target.
      *
-     * The entries of the given Matrix are simply translated into a grayscale image, where
-     * `0` gives black and `255` gives white pixels.
+     * The target needs to have been opened in binary mode (`std::ios_base::openmode`);
+     * unfortunately, we cannot assert this once the stream is opened, so this is up to the user
+     * to ensure.
      */
-    void to_stream( Matrix<unsigned char> const& image, std::ostream& outstream ) const;
-
-    /**
-     * @brief Write an 8 bit grayscale image to a file.
-     *
-     * The entries of the given Matrix are simply translated into a grayscale image, where
-     * `0` gives black and `255` gives white pixels.
-     */
-    void to_file( Matrix<unsigned char> const& image, std::string const& filename ) const;
-
-    /**
-     * @brief Write an 8 bit image with a Color palette to a stream.
-     *
-     * The given `palette` needs to contain exaclty 256 Color entries. The values of the given
-     * `image` Matrix are then mapped to the palette entries, e.g., the value at `image( 2, 3 ) == 5`
-     * maps to the Color `palette[ 5 ]`.
-     */
-    void to_stream(
-        Matrix<unsigned char> const& image, std::vector<Color> const& palette, std::ostream& outstream
+    void write(
+        Matrix<Color> const& image,
+        std::shared_ptr<utils::BaseOutputTarget> target
     ) const;
 
     /**
-     * @brief Write an 8 bit image with a Color palette to a file.
+     * @brief Write an 8 bit grayscale image to an output target.
+     *
+     * The entries of the given Matrix are simply translated into a grayscale image, where
+     * `0` gives black and `255` gives white pixels.
+     *
+     * The target needs to have been opened in binary mode (`std::ios_base::openmode`);
+     * unfortunately, we cannot assert this once the stream is opened, so this is up to the user
+     * to ensure.
+     */
+    void write(
+        Matrix<unsigned char> const& image,
+        std::shared_ptr<utils::BaseOutputTarget> target
+    ) const;
+
+    /**
+     * @brief Write an 8 bit image with a Color palette to an output target.
      *
      * The given `palette` needs to contain exaclty 256 Color entries. The values of the given
      * `image` Matrix are then mapped to the palette entries, e.g., the value at `image( 2, 3 ) == 5`
      * maps to the Color `palette[ 5 ]`.
+     *
+     * The target needs to have been opened in binary mode (`std::ios_base::openmode`);
+     * unfortunately, we cannot assert this once the stream is opened, so this is up to the user
+     * to ensure.
      */
-    void to_file(
-        Matrix<unsigned char> const& image, std::vector<Color> const& palette, std::string const& filename
+    void write(
+        Matrix<unsigned char> const& image,
+        std::vector<Color> const& palette,
+        std::shared_ptr<utils::BaseOutputTarget> target
     ) const;
 
     // ---------------------------------------------------------------------

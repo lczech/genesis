@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -57,5 +57,5 @@ TEST( Bmp, Writer )
     std::ostringstream ost;
     auto writer = BmpWriter();
     // writer.to_file( bunt, "/home/lucas/bunt.bmp" );
-    writer.to_stream( bunt, ost );
+    writer.write( bunt, to_stream( ost ));
 }

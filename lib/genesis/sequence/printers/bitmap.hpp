@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
  * @ingroup sequence
  */
 
+#include "genesis/utils/io/output_target.hpp"
 #include "genesis/utils/tools/color.hpp"
 
 #include <iosfwd>
@@ -92,8 +93,7 @@ public:
     //     Print
     // -------------------------------------------------------------------------
 
-    void to_stream( SequenceSet const& set, std::ostream& outstream ) const;
-    void to_file( SequenceSet const& set, std::string const& filename ) const;
+    void write( SequenceSet const& set, std::shared_ptr<utils::BaseOutputTarget> target ) const;
 
     // -------------------------------------------------------------------------
     //     Properties

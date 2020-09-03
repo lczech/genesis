@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,8 +50,12 @@ namespace utils {
 //     Writing Matrix of Color
 // =================================================================================================
 
-void BmpWriter::to_stream( Matrix<Color> const& image, std::ostream& outstream ) const
-{
+void BmpWriter::write(
+    Matrix<Color> const& image,
+    std::shared_ptr<utils::BaseOutputTarget> target
+) const {
+    auto& outstream = target->ostream();
+
     // Use some nicer names.
     auto const width  = image.cols();
     auto const height = image.rows();
@@ -118,19 +122,14 @@ void BmpWriter::to_stream( Matrix<Color> const& image, std::ostream& outstream )
     }
 }
 
-void BmpWriter::to_file( Matrix<Color> const& image, std::string const& filename ) const
-{
-    std::ofstream ofs;
-    utils::file_output_stream( filename, ofs );
-    to_stream( image, ofs );
-}
-
 // =================================================================================================
 //     Writing Matrix of unsigned char
 // =================================================================================================
 
-void BmpWriter::to_stream( Matrix<unsigned char> const& image, std::ostream& outstream ) const
-{
+void BmpWriter::write(
+    Matrix<unsigned char> const& image,
+    std::shared_ptr<utils::BaseOutputTarget> target
+) const {
     // Build a simple grayscale palette.
     auto palette = std::vector<Color>( 256 );
     for( size_t i = 0; i < 256; ++i ) {
@@ -138,23 +137,20 @@ void BmpWriter::to_stream( Matrix<unsigned char> const& image, std::ostream& out
         palette[i].g_byte( i );
         palette[i].b_byte( i );
     }
-    to_stream( image, palette, outstream );
-}
-
-void BmpWriter::to_file( Matrix<unsigned char> const& image, std::string const& filename ) const
-{
-    std::ofstream ofs;
-    utils::file_output_stream( filename, ofs );
-    to_stream( image, ofs );
+    write( image, palette, target );
 }
 
 // =================================================================================================
 //     Writing Matrix of unsigned char with Color palette
 // =================================================================================================
 
-void BmpWriter::to_stream(
-    Matrix<unsigned char> const& image, std::vector<Color> const& palette, std::ostream& outstream
+void BmpWriter::write(
+    Matrix<unsigned char> const& image,
+    std::vector<Color> const& palette,
+    std::shared_ptr<utils::BaseOutputTarget> target
 ) const {
+    auto& outstream = target->ostream();
+
     // Use some nicer names.
     auto const width  = image.cols();
     auto const height = image.rows();
@@ -227,14 +223,6 @@ void BmpWriter::to_stream(
             outstream.put( 0 );
         }
     }
-}
-
-void BmpWriter::to_file(
-    Matrix<unsigned char> const& image, std::vector<Color> const& palette, std::string const& filename
-) const {
-    std::ofstream ofs;
-    utils::file_output_stream( filename, ofs );
-    to_stream( image, palette, ofs );
 }
 
 // =================================================================================================

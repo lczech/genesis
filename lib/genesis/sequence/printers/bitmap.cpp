@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,18 +49,12 @@ namespace sequence {
 //     Print
 // =================================================================================================
 
-void PrinterBitmap::to_stream( SequenceSet const& set, std::ostream& outstream ) const
-{
+void PrinterBitmap::write(
+    SequenceSet const& set, std::shared_ptr<utils::BaseOutputTarget> target
+) const {
     auto image = make_image_( set );
     auto writer = utils::BmpWriter();
-    writer.to_stream( image, outstream );
-}
-
-void PrinterBitmap::to_file( SequenceSet const& set, std::string const& filename ) const
-{
-    auto image = make_image_( set );
-    auto writer = utils::BmpWriter();
-    writer.to_file( image, filename );
+    writer.write( image, target );
 }
 
 // =================================================================================================
