@@ -55,7 +55,9 @@ include( "${CMAKE_CURRENT_LIST_DIR}/tools/cmake/AssembleMonolith.cmake" )
 # as normal Clang. See https://cmake.org/cmake/help/v3.0/policy/CMP0025.html
 # This is important for the test cmake script, where we need to set some warnings for clang,
 # but not for apple clang.
-cmake_policy(SET CMP0025 NEW)
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.0.0")
+    cmake_policy(SET CMP0025 NEW)
+endif()
 
 # --------------------------------------------------------------------------------------------------
 #   Project Definitions and Variables
