@@ -204,6 +204,16 @@ public:
         return &record_;
     }
 
+    VcfRecord const& operator*() const
+    {
+        return record_;
+    }
+
+    VcfRecord& operator*()
+    {
+        return record_;
+    }
+
     // -------------------------------------------------------------------------
     //     Iteration
     // -------------------------------------------------------------------------
