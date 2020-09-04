@@ -424,13 +424,19 @@ public:
             }
         }
 
-        // Boundary check.
-        if( ! entries_.empty() && position <= entries_.back().position ) {
-            assert( ! entries_.empty() );
+        // Boundary check. We make sure that the given position is neither in front of the current
+        // window, or, if there are entries in the list, also not in front of those.
+        // (There might be cases were we are already in the middle of the chromosome, but the
+        // entries list is empty. Not entirely sure when this can occurr, but it feels like it can,
+        // and just checking this doesn't cost us much. If anyone wants to think this through,
+        // feel free.)
+        size_t cur_end = entries_.empty() ? 0 : entries_.back().position;
+        cur_end = current_start_ > cur_end ? current_start_ - 1 : cur_end;
+        if( position <= cur_end ) {
             throw std::invalid_argument(
                 "Cannot enqueue at position " + std::to_string( position ) +
-                ", as the current window/chromosome is already filled up to position " +
-                std::to_string( entries_.back().position ) +
+                ", as the current window/chromosome is already advanced up to position " +
+                std::to_string( cur_end ) +
                 ". Either start a new window or a new chromosome within the window."
             );
         }
@@ -481,19 +487,22 @@ public:
             return;
         }
 
-        // Argument check.
-        if( ! entries_.empty() && last_position <= entries_.back().position ) {
-            assert( ! entries_.empty() );
-            throw std::runtime_error(
-                "Cannot call finish_chromosome() with position " + std::to_string(last_position) +
-                ", as the current window/chromosome is already filled up to position " +
-                std::to_string( entries_.back().position ) + "."
-            );
-        }
-
-        // If we did not get a useful last position, we just finish the whole interval.
+        // If we did not get a specific last position, we just finish the whole interval.
         if( last_position == 0 ) {
             last_position = current_start_ + width_;
+        }
+
+        // Boundary check. We make sure that the given position is neither in front of the current
+        // window, or, if there are entries in the list, also not in front of those.
+        // See above enqueue() for details. Same here.
+        size_t cur_end = entries_.empty() ? 0 : entries_.back().position;
+        cur_end = current_start_ > cur_end ? current_start_ - 1 : cur_end;
+        if( last_position <= cur_end ) {
+            throw std::runtime_error(
+                "Cannot call finish_chromosome() with position " + std::to_string(last_position) +
+                ", as the current window/chromosome is already advanced up to position " +
+                std::to_string( cur_end ) + "."
+            );
         }
 
         // Emit the remaining data entries.
