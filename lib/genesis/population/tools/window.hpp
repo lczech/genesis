@@ -38,8 +38,6 @@
 #include <string>
 #include <vector>
 
-#include "genesis/utils/core/logging.hpp"
-
 namespace genesis {
 namespace population {
 
@@ -62,7 +60,63 @@ struct EmptyAccumulator
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Sliding window over the chromosomes of a genome.
+ *
+ * The class allows to accumulate and compute arbitrary data within a sliding window over
+ * a genome. The basic setup is to provide a set of plugin functions that do the actual computation,
+ * and then feed the data in via the enqueue() functions. The Window class then takes care of
+ * calling the respective plugin functions to compute values and emit results once a window is
+ * finished.
+ *
+ * To this end, the Window takes care of collecting the data (whose type is given via
+ * the template parameter `D`/`Data`) in a list of Entry instances per window. For each finished
+ * window, the on_emission() plugin function is called, which typically is set by the user code
+ * to compute and store/print/visualize a per-window summary of the `Data`.
+ *
+ * A typical use case for this class is a window over the variants that are present in a set
+ * of (pooled) individuals, for example, the records/lines of a VCF file. Each record would then
+ * form a Data Entry, and some summary of a window along the positions in the VCF file would be
+ * computed per window. As those files can potentially contain multiple chromosomes, we also support
+ * that. In this case, the window is "restarted" at the beginning of a new chromosome.
+ *
+ * In some cases (in particular, if a stride is chosen that is less than the window size), it might
+ * be advantageous to not compute the summary per window from scratch each time, but instead
+ * hold a rolling record while sliding - that is, to add in values when they are enqueued, and
+ * to remove them once the window moves past their position in the genome.
+ * To this end, the second template parameter `A`/`Accumulator` can be used, which can store
+ * the necessary intermediate date. For example, to compute some average of values over a window,
+ * the Accumulator would need to store a sum of the values and a count of the number of values.
+ * In order to update the Accumulator for each Data Entry that is added or removed from the window
+ * while sliding, the plugin functions on_enqueue() and on_dequeue() need to be set accordingly.
+ *
+ * There are two Type%s of sliding window that this class can be used for:
+ *
+ *  1. For windows of a fixed size along the genome, that is, an interval of a certain number of
+ *     basepairs/nucleotides. There may be a varying number of variants (Data Entries) in each such
+ *     fixed interval (or none at all).
+ *  2. For a fixed number of variants/polymorphisms. Some statistics are not computed over a fixed
+ *     size window, but instead for n consecutive variants that can span an interval of varying
+ *     size along the genome.
+ *
+ * Both types are possible here, and have to be determined at construction, along with the width
+ * of the window (either in number of basepairs or in number of variants).
+ *
+ * Once all data has been processed, finish_chromosome() should be called to emit the last remaining
+ * window(s). See the following note for details.
+ *
+ * Note:
+ * The plugin functions are typically lambdas that might make use of other data from the calling code.
+ * However, as this Window class works conceptually similar to a stream, where new data is enqueued
+ * in some form of loop or iterative process, the class cannot know when the process is finished,
+ * that is, when the end of the genome is reached.
+ * Hence, either finish_chromosome() has to be called once all data has been processed, or it has
+ * to be otherwise ensured that the Window instance is destructed before the other data that the
+ * plugin lambda funtions depend on. This is because the destructor also calls finish_chromosome(),
+ * in order to ensure that the last interval is processed properly. Hence, if any of the functions
+ * called from within the plugin functions use data outside of the Window instance, that data has
+ * still to be alive (unless finish_chromosome() was called explicitly before, in which case the
+ * destructor does not call it again) - in other words, the Window has to be destroyed after these
+ * data.
  */
 template<class D, class A = EmptyAccumulator>
 class Window
@@ -76,12 +130,28 @@ public:
     using Data = D;
     using Accumulator = A;
 
+    /**
+     * @brief Type of Window, that is, whether we slide along a fixed size interval along the genome,
+     * or along a fixed number of variants.
+     */
     enum class Type
     {
         kInterval,
         kVariants
     };
 
+    /**
+     * @brief Position in the genome that is used for reporting when emitting a window.
+     *
+     * When a window is finished, the on_emission() plugin function is called, which reports the
+     * position in the genome at which the window is. There are several ways that this position
+     * is computed. Typically, just the first position of the window is used (that is, for an
+     * interval, the beginning of the interval, and for variants, the position of the first variant).
+     *
+     * However, it might be desirable to report a different position, for example when plotting the
+     * results. When using Type::kVariants for example, one might want to plot the values
+     * computed per window at the midpoint genome position of the variants in that window.
+     */
     enum class ReportedPosition
     {
         kBegin,
@@ -91,6 +161,14 @@ public:
         kMean
     };
 
+    /**
+     * @brief Data that is stored per entry that was enqueued in a window.
+     *
+     * This is the data that the per-window computation is based on. We store the actual user-provided
+     * `D`/`Data` type, as well as its position in the genome (as for example given by the `POS`
+     * column in a VCF file), and the index within the current chromosome - that is, the how many'th
+     * Entry this data point is in the list of enqueued data (starting from zero for each chromosome).
+     */
     struct Entry
     {
         Entry( size_t index, size_t position, Data const& data )
@@ -125,9 +203,17 @@ public:
 
     /**
      * @brief Create a default (empty) instance.
+     *
+     * Not really important for usage, as this cannot do much.
      */
     Window() = default;
 
+    /**
+     * @brief Construct a Window, given the Type and width, and potentially stride.
+     *
+     * If stride is not given (or set to `0`), it is set automatically to the window size,
+     * so that windows do not overlap.
+     */
     Window( Type type, size_t width, size_t stride = 0 )
         : type_(type)
         , width_(width)
@@ -141,6 +227,12 @@ public:
         }
     }
 
+    /**
+     * @brief Destruct the instance.
+     *
+     * This typically has to be called before other data storage instances on the user side
+     * go out of scope. See the Window class description note for details on why that is the case.
+     */
     ~Window()
     {
         finish_chromosome();
@@ -178,8 +270,48 @@ public:
      */
     std::function<void( std::string const& chromosome, Accumulator& accu )> on_chromosome_end;
 
+    /**
+     * @brief Plugin function to update the Accumulator when new Data is enqueued.
+     *
+     * The purpose of this plugin function is to avoid re-computation of values in a window if
+     * that computation can be done partially instead. This is of course mostly helpful if the stride
+     * is smaller than the window width. Otherwise (if the stride is greater/equal to the window
+     * width), each window will contain completely new/different data, so there is nothing
+     * to re-use between windows.
+     *
+     * If used, this function is meant to update the Accumulator in a way that adds the new data
+     * Entry.
+     */
     std::function<void( Entry const& entry, Accumulator& accu )> on_enqueue;
+
+    /**
+     * @brief Plugin function to update the Accumulator when Data is removed due to the window
+     * moving away from it.
+     *
+     * This is the counterpart for on_enqueue to remove data from the Accumulator once it is no longer
+     * part of the current window. See on_enqueue for details.
+     */
     std::function<void( Entry const& entry, Accumulator& accu )> on_dequeue;
+
+    /**
+     * @brief Main plugin function that is called for every window.
+     *
+     * This is the plugin that typically is the most important to set for the user.
+     * This is where the data from the window is processed, that is, where the summary of the window
+     * is computed and stored/visualized/plotted. This can either be done by using the Accumulator,
+     * or by computing the value based on all the Data Entry values in the window (using @p begin
+     * and @p end to iterate them).
+     *
+     * The plugin function also allows to access the first and last position of the window;
+     * for interval windows, these are the interval boundarys, and for variant windows, these
+     * are simply the positions of the first and last variant (that is, `begin->position`, and
+     * `end->position`).
+     *
+     * Lastly, the plugin also sets the @p reported_position according to the setting of
+     * reported_position( ReportedPosition ). This is the position in the genome that should be used
+     * by the user to store the value or as the axis value at which the resulting values of the
+     * window should be plotted.
+     */
     std::function<void(
         size_t first_position, size_t last_position, size_t reported_position,
         const_iterator begin, const_iterator end, Accumulator& accu
@@ -226,6 +358,7 @@ public:
 
     void clear()
     {
+        chromosome_ = "";
         current_start_ = 0;
         next_index_ = 0;
         accumulator_ = Accumulator{};
@@ -236,6 +369,12 @@ public:
     //     Enqueue
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Signal the start of a new chromosome, given its name.
+     *
+     * This function is typically not needed to be called manyally, but mostly here for symmetry
+     * reasons. See finish_chromosome() for details.
+     */
     void start_chromosome( std::string const& chromosome )
     {
         if( chromosome != chromosome_ ) {
@@ -244,12 +383,37 @@ public:
         }
     }
 
+    /**
+     * @brief Enqueue a new Data value.
+     *
+     * This is the main function to be called when processing data. It takes care of filling
+     * the window, calling all necessary plugin functions, and in particular, calling the
+     * on_emission() plugin once a window is finished.
+     *
+     * The function also takes the @p chromosome that this Data entry belongs to. This allows
+     * to automatically determine when a new chromosome starts, so that the positions and all
+     * other data (and potentially accumulators) can be reset accordingly.
+     *
+     * However, we cannot determine when the last chromosome ends automatically.
+     * Hence, see also finish_chromosome() for details.
+     */
     void enqueue( std::string const& chromosome, size_t position, Data const& data )
     {
         start_chromosome( chromosome );
         enqueue( position, data );
     }
 
+    /**
+     * @brief Enqueue a new Data value, without considering its chromosome.
+     *
+     * This alternative version does not use the chromosome, and hence should only be used if
+     * we are sure that we are always on the same chromosome, and hence, that @p position always
+     * increases between calls of this function.
+     *
+     * This is mostly meant as a simplification in cases where the data does not come with chromsome
+     * information. Typically however, when using VCF data, the `CHROM` column is present and
+     * should be used; that is, typically, the other version of this function should be used.
+     */
     void enqueue( size_t position, Data const& data )
     {
         // If this is the first enqueuing of the window or the chromosome,
@@ -283,7 +447,32 @@ public:
         }
     }
 
-    void finish_chromosome()
+    /**
+     * @brief Explicitly finish a chromosome, and emit all remaining windows.
+     *
+     * When sliding along a genome, we can typically use the `CHROM` information of a VCF file to
+     * determine the chromosome we are currently on, and switch to a new chromosome if needed.
+     * In that case, all remaining data in the last window needs to be emitted, so that it is not
+     * forgotten. Only after that, we can start a new window for the new chromosome.
+     *
+     * However, we cannot automatically tell when the last chromosome of the genome is finished
+     * from within this window class (as there will simply be no more enqueue() calls, but how
+     * would we know that?!). Hence, there might be windows with data at the end that are not yet
+     * emitted. In order to also process their data, we need to explicitly call this function here.
+     *
+     * It makes sure that the remaining data is processed. If provided with a genome position,
+     * all windows up to that position are emitted (which is only relevant for interval windows) -
+     * that is, if the full genome length is known, there might be (potentially empty) windows at
+     * the end that do not contain any data, but which still need to be emitted for a thorough
+     * and complete output. In that case, call this function with the respective genome length,
+     * and it will take care of emitting all the windows.
+     *
+     * NB: This function is also called from the destructor, to ensure that all data is processed
+     * properly. This also means that any calling code needs to make sure that all data that is
+     * needed for emitting window data is still available when the window is destructed without
+     * having called this function first. See the Window class description for details.
+     */
+    void finish_chromosome( size_t last_position = 0 )
     {
         // If nothing was enqueued yet, there is nothing to finish.
         // This also makes sure that calling this function multiple times in a row does not
@@ -292,9 +481,24 @@ public:
             return;
         }
 
+        // Argument check.
+        if( ! entries_.empty() && last_position <= entries_.back().position ) {
+            assert( ! entries_.empty() );
+            throw std::runtime_error(
+                "Cannot call finish_chromosome() with position " + std::to_string(last_position) +
+                ", as the current window/chromosome is already filled up to position " +
+                std::to_string( entries_.back().position ) + "."
+            );
+        }
+
+        // If we did not get a useful last position, we just finish the whole interval.
+        if( last_position == 0 ) {
+            last_position = current_start_ + width_;
+        }
+
         // Emit the remaining data entries.
         if( type_ == Type::kInterval ) {
-            synchronize_interval_( current_start_ + width_ );
+            synchronize_interval_( last_position );
         } else if( type_ == Type::kVariants ) {
             throw std::runtime_error( "Not yet implemented." );
         } else {
@@ -314,6 +518,9 @@ public:
 
 private:
 
+    /**
+     * @brief Enqueue new data in an inveral, and call the respective plugin function.
+     */
     void enqueue_interval_( size_t position, Data const& data )
     {
         assert( type_ == Type::kInterval );
@@ -359,9 +566,17 @@ private:
         // }
     }
 
+    /**
+     * @brief Move the window up to a given position, potentially emitting all windows in between.
+     */
     void synchronize_interval_( size_t position )
     {
         assert( type_ == Type::kInterval );
+
+        // This function is only called internally, and only if we are sure that the position is
+        // valid. Let's assert this.
+        assert( position >= current_start_ );
+        assert( entries_.empty() || entries_.back().position < position );
 
         // Either there are no entries, or they are all within the current interval.
         // That has to be the case, because we emit if we finish an interval, and remove the data.
@@ -425,6 +640,9 @@ private:
         assert( position < current_start_ + width_ );
     }
 
+    /**
+     * @brief Get the reported position for an interval window.
+     */
     size_t get_reported_position_interval_( size_t start_position ) const
     {
         assert( type_ == Type::kInterval );
@@ -469,6 +687,9 @@ private:
 
 private:
 
+    /**
+     * @brief Get the reported position for a variants window.
+     */
     size_t get_reported_position_variants_() const
     {
         // Calculate the SNP position that we want to output when emitting a window.

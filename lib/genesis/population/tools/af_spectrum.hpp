@@ -142,7 +142,7 @@ private:
     void on_chromosome_end_( std::string const& chromosome, AFWindow::Accumulator& );
 
     void on_emission_(
-        size_t, size_t, size_t,
+        size_t first_position, size_t last_position, size_t reported_position,
         AFWindow::const_iterator begin, AFWindow::const_iterator end, AFWindow::Accumulator&
     );
 
