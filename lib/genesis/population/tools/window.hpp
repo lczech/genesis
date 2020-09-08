@@ -31,6 +31,8 @@
  * @ingroup population
  */
 
+#ifdef GENESIS_HTSLIB
+
 #include <cassert>
 #include <deque>
 #include <functional>
@@ -81,6 +83,14 @@ struct EmptyAccumulator
  * form a Data Entry, and some summary of a window along the positions in the VCF file would be
  * computed per window. As those files can potentially contain multiple chromosomes, we also support
  * that. In this case, the window is "restarted" at the beginning of a new chromosome.
+ *
+ * This however necessitates to finish each chromosome properly when sliding over intervals.
+ * This is because the Window cannot know how long a chromosome is from just the variants in the VCF
+ * file (there might just not be any variants at the end of a chromosome, but we still want our
+ * interval to cover these positions). Instead, we need the total chromosome length from somewhere
+ * else - typically this is provided in the VCF header. Use the convenience function run_vcf()
+ * to automatically take care of this - or see there for an example of how to do this in your
+ * own code. See also below in this description for some further details.
  *
  * In some cases (in particular, if a stride is chosen that is less than the window size), it might
  * be advantageous to not compute the summary per window from scratch each time, but instead
@@ -227,6 +237,9 @@ public:
         }
         if( stride == 0 ) {
             stride_ = width;
+        }
+        if( stride_ > width_ ) {
+            throw std::runtime_error( "Cannot use Window with stride > width." );
         }
     }
 
@@ -377,7 +390,11 @@ public:
      *
      * This function is convenience, and takes care of iterating a VCF file record by record
      * (that is, line by line), using a provided @p conversion function to extract the `D`/`Data`
-     * from the VcfRecord.
+     * from the VcfRecord. It furthermore takes care of finishing all chromosomes properly,
+     * using their lengths as provided in the VCF header.
+     *
+     * Before calling the function, of course, all necessary plugin functions have to be set,
+     * so that the data is processed as intended.
      *
      * Furthermore, the function offers a @p condition function that can be used to skip records
      * that do not fullfil a given condition. That is, if @p condition is used, it needs to return
@@ -388,6 +405,7 @@ public:
         std::function<Data( VcfRecord const& )> conversion,
         std::function<bool( VcfRecord const& )> condition = {}
     ) {
+        size_t current_chr_len = 0;
         for( auto record = VcfInputIterator( vcf_file ); record; ++record ) {
 
             // Check if we want to process this record at all.
@@ -395,22 +413,65 @@ public:
                 continue;
             }
 
-            // If the record changes the chromosome (and there has been data enqueued before, so
-            // this is not the first data point of the chromosome), we need to finish the previous
-            // chromosome first, and do so using its length to get the full interval covered.
-            if( next_index_ > 0 && record->get_chromosome() != chromosome_ ) {
+            // Get the chromosome that this record belongs to.
+            auto const cur_chromosome = record->get_chromosome();
 
-                // We use the length, and also make sure that we get the same value via two
+            // We need to take care of changes of the chromosome, that is, either at the very
+            // beginning of the VCF file, or at actual changes within the file.
+            if( cur_chromosome != chromosome_ ) {
+
+                // We want to start a new chromosome here. We cannot simply call start_chromosome()
+                // here, as that would already call finish_chromosome() on the previous one as well.
+                // This is not what we want, as we instead want to finish the chromosome using
+                // its proper length from the VCF header. So here, we simply store the chromosome
+                // name, which is what start_chromosome() does internally.
+                // This is not actually needed, as enqueue() also does that. But it seems to be the
+                // cleaner and more expressive way.
+                chromosome_ = cur_chromosome;
+
+                // We store the length, and also make sure that we get the same value via two
                 // different methods. Safe is safe.
-                auto const len = record->header().get_chromosome_length( chromosome_ );
+                current_chr_len = record->header().get_chromosome_length( cur_chromosome );
                 assert(
-                    record->header().get_chromosome_values( chromosome_ ).count("length") == 0 ||
-                    std::stoul( record->header().get_chromosome_values( chromosome_ ).at("length") ) == len
+                    record->header().get_chromosome_values( cur_chromosome ).count("length") == 0 ||
+                    std::stoul(
+                        record->header().get_chromosome_values( cur_chromosome ).at("length")
+                    ) == current_chr_len
                 );
-                finish_chromosome( len );
+
+                // If there has been data enqueued before, this is not the first data point of the
+                // chromosome. In that case, we need to finish the previous chromosome first,
+                // and do so using its length to get the full interval covered and closed.
+                if( next_index_ > 0 ) {
+
+                    // We might not have usable chromosome length information in the header.
+                    // In that case, simply finish the current chromosome where it is.
+                    // (As of now, finish_chromosome uses 0 as default value anyway, so we could just
+                    // call it directly without the extra condition here. But this way seems a bit
+                    // more future proof, if we need to change this and use overloads of
+                    // finish_chromosome instead.)
+                    if( current_chr_len == 0 ) {
+                        finish_chromosome();
+                    } else {
+                        finish_chromosome( current_chr_len );
+                    }
+                }
+
+            } else {
+                // If we did not change chromosomes, we expect their length not to change.
+                assert( record->header().get_chromosome_length( cur_chromosome ) == current_chr_len );
             }
 
-            enqueue( record->get_chromosome(), record->get_position(), conversion( *record ));
+            // Finally, enqueue the new data.
+            enqueue( cur_chromosome, record->get_position(), conversion( *record ));
+        }
+
+        // Now that we are done with the whole file, we also need to finish and close the
+        // last remaining chromosome interval properly. Same as above.
+        if( current_chr_len == 0 ) {
+            finish_chromosome();
+        } else {
+            finish_chromosome( current_chr_len );
         }
     }
 
@@ -799,4 +860,5 @@ private:
 } // namespace population
 } // namespace genesis
 
+#endif // htslib guard
 #endif // include guard

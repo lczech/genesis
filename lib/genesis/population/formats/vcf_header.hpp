@@ -176,6 +176,14 @@ public:
     }
 
     /**
+     * @brief Return the internal htslib `::bcf_hdr_t` data struct pointer.
+     */
+    ::bcf_hdr_t const* data() const
+    {
+        return header_;
+    }
+
+    /**
      * @brief Return the VCF/BCF version string, e.g. "VCFv4.2".
      */
     std::string version() const;

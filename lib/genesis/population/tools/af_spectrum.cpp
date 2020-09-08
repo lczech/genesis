@@ -28,6 +28,8 @@
  * @ingroup population
  */
 
+#ifdef GENESIS_HTSLIB
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -323,3 +325,5 @@ size_t AlleleFrequencySpectrumHeatmap::spectrum_to_bmp_file(
 
 } // namespace population
 } // namespace genesis
+
+#endif // htslib guard

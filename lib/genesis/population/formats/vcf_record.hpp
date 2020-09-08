@@ -193,9 +193,31 @@ public:
     }
 
     /**
-     * @brief Return the internal htslib `bcf_hdr_t` header data struct pointer.
+     * @brief Return the internal htslib `bcf1_t` record data struct pointer.
+     */
+    ::bcf1_t const* data() const
+    {
+        return record_;
+    }
+
+    /**
+     * @brief Return the VcfHeader instance associated with this record.
+     *
+     * This can also be used to obtain internal htslib `bcf_hdr_t` header data struct pointer,
+     * if needed for any functionality that is not offered by our wrapper.
      */
     VcfHeader& header()
+    {
+        return *header_;
+    }
+
+    /**
+     * @brief Return the VcfHeader instance associated with this record.
+     *
+     * This can also be used to obtain internal htslib `bcf_hdr_t` header data struct pointer,
+     * if needed for any functionality that is not offered by our wrapper.
+     */
+    VcfHeader const& header() const
     {
         return *header_;
     }

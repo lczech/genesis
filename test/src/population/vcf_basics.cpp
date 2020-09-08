@@ -70,7 +70,7 @@ TEST( Vcf, Header )
     // --------------------------------
 
     EXPECT_EQ( 1, header.get_chromosomes().size() );
-    EXPECT_EQ( 62435964, header.get_chromosome_length( "20" ));
+    EXPECT_EQ( 1435964, header.get_chromosome_length( "20" ));
 
     // LOG_DBG << "VcfHeader get_chroms";
     // for( auto const& e : header.get_chroms() ) {

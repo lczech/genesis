@@ -31,6 +31,8 @@
  * @ingroup population
  */
 
+#ifdef GENESIS_HTSLIB
+
 #include <functional>
 #include <string>
 #include <utility>
@@ -287,4 +289,5 @@ private:
 } // namespace population
 } // namespace genesis
 
+#endif // htslib guard
 #endif // include guard
