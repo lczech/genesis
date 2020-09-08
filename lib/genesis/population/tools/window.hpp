@@ -373,6 +373,48 @@ public:
     // -------------------------------------------------------------------------
 
     /**
+     * @brief Convenience function to iterate over a whole VCF file.
+     *
+     * This function is convenience, and takes care of iterating a VCF file record by record
+     * (that is, line by line), using a provided @p conversion function to extract the `D`/`Data`
+     * from the VcfRecord.
+     *
+     * Furthermore, the function offers a @p condition function that can be used to skip records
+     * that do not fullfil a given condition. That is, if @p condition is used, it needs to return
+     * `true` for records that shall be processed, and `false` for those that shall be skipped.
+     */
+    void run_vcf(
+        std::string const& vcf_file,
+        std::function<Data( VcfRecord const& )> conversion,
+        std::function<bool( VcfRecord const& )> condition = {}
+    ) {
+        for( auto record = VcfInputIterator( vcf_file ); record; ++record ) {
+
+            // Check if we want to process this record at all.
+            if( condition && ! condition( *record )) {
+                continue;
+            }
+
+            // If the record changes the chromosome (and there has been data enqueued before, so
+            // this is not the first data point of the chromosome), we need to finish the previous
+            // chromosome first, and do so using its length to get the full interval covered.
+            if( next_index_ > 0 && record->get_chromosome() != chromosome_ ) {
+
+                // We use the length, and also make sure that we get the same value via two
+                // different methods. Safe is safe.
+                auto const len = record->header().get_chromosome_length( chromosome_ );
+                assert(
+                    record->header().get_chromosome_values( chromosome_ ).count("length") == 0 ||
+                    std::stoul( record->header().get_chromosome_values( chromosome_ ).at("length") ) == len
+                );
+                finish_chromosome( len );
+            }
+
+            enqueue( record->get_chromosome(), record->get_position(), conversion( *record ));
+        }
+    }
+
+    /**
      * @brief Signal the start of a new chromosome, given its name.
      *
      * This function is typically not needed to be called manyally, but mostly here for symmetry

@@ -36,6 +36,7 @@
 #include <stdexcept>
 
 #include "genesis/population/tools/af_spectrum.hpp"
+#include "genesis/population/formats/vcf_input_iterator.hpp"
 
 #include "genesis/utils/formats/bmp/writer.hpp"
 
@@ -71,8 +72,15 @@ AlleleFrequencyWindow::~AlleleFrequencyWindow()
 }
 
 // =================================================================================================
-//     Modifiers
+//     Window Processing
 // =================================================================================================
+
+void AlleleFrequencyWindow::run_vcf( std::string const& vcf_file )
+{
+    for( auto record = VcfInputIterator( vcf_file ); record; ++record ) {
+        enqueue( *record );
+    }
+}
 
 void AlleleFrequencyWindow::enqueue(
     std::string const& chromosome, size_t position, double frequency

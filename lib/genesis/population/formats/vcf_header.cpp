@@ -153,7 +153,12 @@ std::vector<std::string> VcfHeader::get_chromosomes() const
 size_t VcfHeader::get_chromosome_length( std::string const& chrom_name ) const
 {
     auto const id = ::bcf_hdr_name2id( header_, chrom_name.c_str() );
-    return header_->id[BCF_DT_CTG][id].val->info[0];
+    size_t result = header_->id[BCF_DT_CTG][id].val->info[0];
+    assert(
+        get_chromosome_values( chrom_name ).count("length") == 0 ||
+        std::stoul( get_chromosome_values( chrom_name ).at("length") ) == result
+    );
+    return result;
 }
 
 std::unordered_map<std::string, std::string> VcfHeader::get_chromosome_values( std::string const& chrom_name ) const

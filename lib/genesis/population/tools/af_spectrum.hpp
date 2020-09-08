@@ -121,6 +121,8 @@ public:
     //     Window Processing
     // -------------------------------------------------------------------------
 
+    void run_vcf( std::string const& vcf_file );
+
     void enqueue( std::string const& chromosome, size_t position, double frequency );
     void enqueue( VcfRecord const& record );
 
