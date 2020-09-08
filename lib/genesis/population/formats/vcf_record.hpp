@@ -185,11 +185,19 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Return the internal htslib `::bcf1_t` data struct pointer.
+     * @brief Return the internal htslib `bcf1_t` record data struct pointer.
      */
     ::bcf1_t* data()
     {
         return record_;
+    }
+
+    /**
+     * @brief Return the internal htslib `bcf_hdr_t` header data struct pointer.
+     */
+    VcfHeader& header()
+    {
+        return *header_;
     }
 
     // -------------------------------------------------------------------------
@@ -650,9 +658,9 @@ private:
 
 private:
 
-    // We keep a pointer to the header here, but do not free it, because that is managed
-    // by the VcfHeader class. Here, we only manage the record_ instance.
-    ::bcf_hdr_t* header_ = nullptr;
+    // Here, we only manage the record_ pointer instance. The header takes care of itself,
+    // and is only pointed to from here, but not managed.
+    VcfHeader* header_ = nullptr;
     ::bcf1_t* record_ = nullptr;
 
     // htslib wants to copy values all the time, so we reserve buffers to avoid reallocations.

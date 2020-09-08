@@ -96,7 +96,7 @@ VcfRecord::VcfRecord()
 
 VcfRecord::VcfRecord( VcfHeader& header )
 {
-    header_ = header.data();
+    header_ = &header;
     record_ = ::bcf_init();
     if( ! record_ ) {
         throw std::runtime_error( "Cannot initialize VcfRecord bcf1_t data structure." );
@@ -105,7 +105,7 @@ VcfRecord::VcfRecord( VcfHeader& header )
 
 VcfRecord::VcfRecord( VcfHeader& header, ::bcf1_t* bcf1 )
 {
-    header_ = header.data();
+    header_ = &header;
     record_ = ::bcf_dup( bcf1 );
     if( ! record_ ) {
         throw std::runtime_error( "Cannot copy-initialize VcfRecord bcf1_t data structure." );
@@ -128,7 +128,7 @@ VcfRecord::~VcfRecord()
 
 std::string VcfRecord::get_chromosome() const
 {
-    return ::bcf_hdr_id2name( header_, record_->rid );
+    return ::bcf_hdr_id2name( header_->data(), record_->rid );
 }
 
 size_t VcfRecord::get_position() const
@@ -272,7 +272,7 @@ std::vector<std::string> VcfRecord::get_filter_ids() const
     ::bcf_unpack( record_, BCF_UN_FLT );
     auto ret = std::vector<std::string>();
     for( size_t i = 0; i < static_cast<size_t>( record_->d.n_flt ); ++i ) {
-        ret.push_back( std::string( bcf_hdr_int2id( header_, BCF_DT_ID, record_->d.flt[i] )));
+        ret.push_back( std::string( bcf_hdr_int2id( header_->data(), BCF_DT_ID, record_->d.flt[i] )));
     }
     return ret;
 }
@@ -284,7 +284,7 @@ bool VcfRecord::has_filter( std::string const& filter ) const
 	std::strcpy( cstr, filter.c_str() );
 
     // Make the call.
-    int const res = ::bcf_has_filter( header_, record_, cstr );
+    int const res = ::bcf_has_filter( header_->data(), record_, cstr );
 
     // Clean up and check result. Free the string before the potential exception!
     delete [] cstr;
@@ -300,7 +300,7 @@ bool VcfRecord::pass_filter() const
     // However, we still have to explicitly create the char array, as the htslib function
     // expects a non-const char*, which does not work by simply passing "PASS" as a string literal.
     char pass[] = "PASS";
-    return ::bcf_has_filter( header_, record_, pass );
+    return ::bcf_has_filter( header_->data(), record_, pass );
 }
 
 // =================================================================================================
@@ -312,23 +312,23 @@ std::vector<std::string> VcfRecord::get_info_ids() const
     ::bcf_unpack( record_, BCF_UN_INFO );
     auto ret = std::vector<std::string>( record_->n_info );
     for( size_t i = 0; i < static_cast<size_t>( record_->n_info ); ++i ) {
-        ret[i] = std::string( bcf_hdr_int2id( header_, BCF_DT_ID, record_->d.info[i].key ));
+        ret[i] = std::string( bcf_hdr_int2id( header_->data(), BCF_DT_ID, record_->d.info[i].key ));
     }
     return ret;
 }
 
 bool VcfRecord::has_info( std::string const& id ) const
 {
-    return ::bcf_get_info( header_, record_, id.c_str() ) != nullptr;
+    return ::bcf_get_info( header_->data(), record_, id.c_str() ) != nullptr;
 
     // The below code seems to return whether the field exists at all in the header... not what we want.
-    // int const id = bcf_hdr_id2int( header_, BCF_DT_ID, id.c_str() );
-    // return bcf_hdr_idinfo_exists( header_, BCF_HL_INFO, id );
+    // int const id = bcf_hdr_id2int( header_->data(), BCF_DT_ID, id.c_str() );
+    // return bcf_hdr_idinfo_exists( header_->data(), BCF_HL_INFO, id );
 }
 
 void VcfRecord::assert_info( std::string const& id ) const
 {
-    if( ! ::bcf_get_info( header_, record_, id.c_str() )) {
+    if( ! ::bcf_get_info( header_->data(), record_, id.c_str() )) {
         throw std::runtime_error(
             "Required INFO tag " + id + " is not present in the record at " + at()
         );
@@ -428,20 +428,20 @@ std::vector<std::string> VcfRecord::get_format_ids() const
     ::bcf_unpack( record_, BCF_UN_FMT );
     auto ret = std::vector<std::string>( record_->n_fmt );
     for( size_t i = 0; i < static_cast<size_t>( record_->n_fmt ); ++i ) {
-        ret[i] = std::string( bcf_hdr_int2id( header_, BCF_DT_ID, record_->d.fmt[i].id ));
+        ret[i] = std::string( bcf_hdr_int2id( header_->data(), BCF_DT_ID, record_->d.fmt[i].id ));
     }
     return ret;
 }
 
 bool VcfRecord::has_format( std::string const& id ) const
 {
-    return ::bcf_get_fmt( header_, record_, id.c_str() ) != nullptr;
+    return ::bcf_get_fmt( header_->data(), record_, id.c_str() ) != nullptr;
 
 }
 
 void VcfRecord::assert_format( std::string const& id ) const
 {
-    if( ! ::bcf_get_fmt( header_, record_, id.c_str() )) {
+    if( ! ::bcf_get_fmt( header_->data(), record_, id.c_str() )) {
         throw std::runtime_error(
             "Required FORMAT tag " + id + " is not present in the record at " + at()
         );
@@ -454,7 +454,7 @@ void VcfRecord::assert_format( std::string const& id ) const
 
 VcfFormatIteratorGenotype VcfRecord::begin_format_genotype() const
 {
-    return VcfFormatIteratorGenotype( header_, record_, "GT", VcfValueType::kInteger );
+    return VcfFormatIteratorGenotype( header_->data(), record_, "GT", VcfValueType::kInteger );
 }
 
 VcfFormatIteratorGenotype VcfRecord::end_format_genotype() const
@@ -464,14 +464,14 @@ VcfFormatIteratorGenotype VcfRecord::end_format_genotype() const
 
 genesis::utils::Range<VcfFormatIteratorGenotype> VcfRecord::get_format_genotype() const {
     return {
-        VcfFormatIteratorGenotype( header_, record_, "GT", VcfValueType::kInteger ),
+        VcfFormatIteratorGenotype( header_->data(), record_, "GT", VcfValueType::kInteger ),
         VcfFormatIteratorGenotype()
     };
 }
 
 VcfFormatIteratorString VcfRecord::begin_format_string( std::string const& id ) const
 {
-    return VcfFormatIteratorString( header_, record_, id, VcfValueType::kString );
+    return VcfFormatIteratorString( header_->data(), record_, id, VcfValueType::kString );
 }
 
 VcfFormatIteratorString VcfRecord::end_format_string() const
@@ -483,14 +483,14 @@ genesis::utils::Range<VcfFormatIteratorString> VcfRecord::get_format_string(
     std::string const& id
 ) const {
     return {
-        VcfFormatIteratorString( header_, record_, id, VcfValueType::kString ),
+        VcfFormatIteratorString( header_->data(), record_, id, VcfValueType::kString ),
         VcfFormatIteratorString()
     };
 }
 
 VcfFormatIteratorInt VcfRecord::begin_format_int( std::string const& id ) const
 {
-    return VcfFormatIteratorInt( header_, record_, id, VcfValueType::kInteger );
+    return VcfFormatIteratorInt( header_->data(), record_, id, VcfValueType::kInteger );
 }
 
 VcfFormatIteratorInt VcfRecord::end_format_int() const
@@ -502,14 +502,14 @@ genesis::utils::Range<VcfFormatIteratorInt> VcfRecord::get_format_int(
     std::string const& id
 ) const {
     return {
-        VcfFormatIteratorInt( header_, record_, id, VcfValueType::kInteger ),
+        VcfFormatIteratorInt( header_->data(), record_, id, VcfValueType::kInteger ),
         VcfFormatIteratorInt()
     };
 }
 
 VcfFormatIteratorFloat VcfRecord::begin_format_float( std::string const& id ) const
 {
-    return VcfFormatIteratorFloat( header_, record_, id, VcfValueType::kFloat );
+    return VcfFormatIteratorFloat( header_->data(), record_, id, VcfValueType::kFloat );
 }
 
 VcfFormatIteratorFloat VcfRecord::end_format_float() const
@@ -521,7 +521,7 @@ genesis::utils::Range<VcfFormatIteratorFloat> VcfRecord::get_format_float(
     std::string const& id
 ) const {
     return {
-        VcfFormatIteratorFloat( header_, record_, id, VcfValueType::kFloat ),
+        VcfFormatIteratorFloat( header_->data(), record_, id, VcfValueType::kFloat ),
         VcfFormatIteratorFloat()
     };
 }
@@ -532,7 +532,7 @@ genesis::utils::Range<VcfFormatIteratorFloat> VcfRecord::get_format_float(
 
 bool VcfRecord::read_next( HtsFile& source )
 {
-    bool const good = ( ::bcf_read1( source.data(), header_, record_ ) == 0 );
+    bool const good = ( ::bcf_read1( source.data(), header_->data(), record_ ) == 0 );
     // if( good ) {
     //     ::bcf_unpack( record_ , BCF_UN_ALL );
     // }
@@ -548,8 +548,8 @@ int VcfRecord::get_info_ptr_( std::string const& id, int ht_type, void** dest, i
     // Call the htslib function, and call our function to check the return value, which encodes
     // for errors as well (if negative). If there was an error, that function call throws
     // an exception.
-    int const len = ::bcf_get_info_values( header_, record_, id.c_str(), dest, ndest, ht_type );
-    VcfHeader::check_value_return_code_( header_, id, ht_type, BCF_HL_INFO, len );
+    int const len = ::bcf_get_info_values( header_->data(), record_, id.c_str(), dest, ndest, ht_type );
+    VcfHeader::check_value_return_code_( header_->data(), id, ht_type, BCF_HL_INFO, len );
 
     // Assert that if ndest is used (for all but flags), it has a valid value.
     assert( !ndest || ( *ndest >= 0 && *ndest >= len ));
