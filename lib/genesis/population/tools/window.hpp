@@ -38,6 +38,9 @@
 #include <string>
 #include <vector>
 
+#include "genesis/population/formats/vcf_input_iterator.hpp"
+#include "genesis/population/formats/vcf_record.hpp"
+
 namespace genesis {
 namespace population {
 
@@ -268,7 +271,7 @@ public:
      * The function is called when enqueue() is called with a new chromosome name, or when calling
      * finish_chromosome() explictly, or on destruction of the whole class.
      */
-    std::function<void( std::string const& chromosome, Accumulator& accu )> on_chromosome_end;
+    std::function<void( std::string const& chromosome, Accumulator& accu )> on_chromosome_finish;
 
     /**
      * @brief Plugin function to update the Accumulator when new Data is enqueued.
@@ -515,8 +518,8 @@ public:
         }
 
         // Wrap up the chromosome, and clear, so that we can start a new chromosome cleanly.
-        if( on_chromosome_end ) {
-            on_chromosome_end( chromosome_, accumulator_ );
+        if( on_chromosome_finish ) {
+            on_chromosome_finish( chromosome_, accumulator_ );
         }
         clear();
     }
@@ -533,8 +536,6 @@ private:
     void enqueue_interval_( size_t position, Data const& data )
     {
         assert( type_ == Type::kInterval );
-
-        // LOG_DBG << "enter " << position;
 
         // Make sure that we move to the interval where our position needs to be added to.
         synchronize_interval_( position );
@@ -568,11 +569,6 @@ private:
             }
             return true;
         }() );
-
-        // LOG_DBG << "test " << position << " in " << current_start_ << " - " << (current_start_+width_);
-        // for( auto it : entries_ ) {
-        //     LOG_DBG1 << "e " << it.position;
-        // }
     }
 
     /**

@@ -98,7 +98,7 @@ public:
      * Another instance where this happens is if negative values are used with the
      * ColorNormalizationLogarithmic.
      */
-    Color mask_color() const
+    Color const& mask_color() const
     {
         return mask_color_;
     }
@@ -108,7 +108,7 @@ public:
      *
      * Only used if `clip_over() == false`.
      */
-    Color over_color() const
+    Color const& over_color() const
     {
         return over_color_;
     }
@@ -118,7 +118,7 @@ public:
      *
      * Only used if `clip_under() == false`.
      */
-    Color under_color() const
+    Color const& under_color() const
     {
         return under_color_;
     }

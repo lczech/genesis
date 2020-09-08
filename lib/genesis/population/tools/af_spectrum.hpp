@@ -33,38 +33,30 @@
 
 #include <functional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "genesis/population/formats/vcf_record.hpp"
 #include "genesis/population/tools/window.hpp"
+
+#include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/formats/svg/group.hpp"
+#include "genesis/utils/formats/svg/matrix.hpp"
 #include "genesis/utils/io/output_target.hpp"
-
-// =================================================================================================
-//     Forward Declarations
-// =================================================================================================
-
-namespace genesis {
-namespace utils {
-
-class Color;
-
-template<typename T>
-class Matrix;
-
-} // namespace utils
-} // namespace genesis
+#include "genesis/utils/tools/color.hpp"
+#include "genesis/utils/tools/color/map.hpp"
 
 namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Allele Frequency Spectrum
+//     Allele Frequency Window
 // =================================================================================================
 
 /**
  * @brief
  */
-class AlleleFrequencySpectrum
+class AlleleFrequencyWindow
 {
 public:
 
@@ -73,6 +65,7 @@ public:
     // -------------------------------------------------------------------------
 
     using AFWindow = Window<double>;
+    using self_type = AlleleFrequencyWindow;
 
     struct Spectrum
     {
@@ -88,48 +81,48 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    AlleleFrequencySpectrum( size_t width, size_t bins = 100 );
-    ~AlleleFrequencySpectrum();
+    AlleleFrequencyWindow( size_t width, size_t number_of_bins = 100 );
+    ~AlleleFrequencyWindow();
 
-    AlleleFrequencySpectrum( AlleleFrequencySpectrum const& ) = default;
-    AlleleFrequencySpectrum( AlleleFrequencySpectrum&& )      = default;
+    AlleleFrequencyWindow( AlleleFrequencyWindow const& ) = default;
+    AlleleFrequencyWindow( AlleleFrequencyWindow&& )      = default;
 
-    AlleleFrequencySpectrum& operator= ( AlleleFrequencySpectrum const& ) = default;
-    AlleleFrequencySpectrum& operator= ( AlleleFrequencySpectrum&& )      = default;
+    AlleleFrequencyWindow& operator= ( AlleleFrequencyWindow const& ) = default;
+    AlleleFrequencyWindow& operator= ( AlleleFrequencyWindow&& )      = default;
 
     // -------------------------------------------------------------------------
     //     Event Plugin Functionals
     // -------------------------------------------------------------------------
 
+    std::function<void( Spectrum const& )> on_chromosome_start;
     std::function<void( Spectrum const& )> on_chromosome_finish;
 
     // -------------------------------------------------------------------------
-    //     Accessors
+    //     Settings
     // -------------------------------------------------------------------------
 
+    size_t number_of_bins() const
+    {
+        return number_of_bins_;
+    }
+
+    bool skip_invalid_records() const
+    {
+        return skip_invalid_records_;
+    }
+
+    self_type& skip_invalid_records( bool value )
+    {
+        skip_invalid_records_ = value;
+        return *this;
+    }
+
     // -------------------------------------------------------------------------
-    //     Modifiers
+    //     Window Processing
     // -------------------------------------------------------------------------
 
     void enqueue( std::string const& chromosome, size_t position, double frequency );
     void enqueue( VcfRecord const& record );
-
-    // -------------------------------------------------------------------------
-    //     Helper Functions
-    // -------------------------------------------------------------------------
-
-    static size_t spectrum_to_bmp(
-        Spectrum const& spectrum,
-        std::shared_ptr<utils::BaseOutputTarget> target,
-        bool log_scale = false
-    );
-
-    static size_t spectrum_to_bmp(
-        Spectrum const& spectrum,
-        std::vector<utils::Color> const& palette,
-        std::shared_ptr<utils::BaseOutputTarget> target,
-        bool log_scale = false
-    );
 
     // -------------------------------------------------------------------------
     //     Internal Members
@@ -139,7 +132,7 @@ private:
 
     void on_chromosome_start_( std::string const& chromosome, AFWindow::Accumulator& );
 
-    void on_chromosome_end_( std::string const& chromosome, AFWindow::Accumulator& );
+    void on_chromosome_finish_( std::string const& chromosome, AFWindow::Accumulator& );
 
     void on_emission_(
         size_t first_position, size_t last_position, size_t reported_position,
@@ -152,9 +145,140 @@ private:
 
 private:
 
-    size_t bins_;
+    size_t number_of_bins_;
+    bool skip_invalid_records_ = true;
+
     Window<double> window_;
     std::vector<Spectrum> spectra_;
+
+};
+
+// =================================================================================================
+//     Allele Frequency Heatmap
+// =================================================================================================
+
+/**
+ * @brief
+ */
+class AlleleFrequencySpectrumHeatmap
+{
+public:
+
+    // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    using Spectrum  = AlleleFrequencyWindow::Spectrum;
+    using self_type = AlleleFrequencySpectrumHeatmap;
+
+    // -------------------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------------------
+
+    AlleleFrequencySpectrumHeatmap()  = default;
+    ~AlleleFrequencySpectrumHeatmap() = default;
+
+    AlleleFrequencySpectrumHeatmap( AlleleFrequencySpectrumHeatmap const& ) = default;
+    AlleleFrequencySpectrumHeatmap( AlleleFrequencySpectrumHeatmap&& )      = default;
+
+    AlleleFrequencySpectrumHeatmap& operator= ( AlleleFrequencySpectrumHeatmap const& ) = default;
+    AlleleFrequencySpectrumHeatmap& operator= ( AlleleFrequencySpectrumHeatmap&& )      = default;
+
+    // -------------------------------------------------------------------------
+    //     Heatmap Functions
+    // -------------------------------------------------------------------------
+
+    std::pair<utils::Matrix<utils::Color>, size_t> spectrum_to_image(
+        Spectrum const& spectrum
+    ) const;
+
+    std::pair<utils::SvgGroup, size_t> spectrum_to_svg(
+        Spectrum const& spectrum,
+        utils::SvgMatrixSettings settings = {}
+    ) const;
+
+    size_t spectrum_to_bmp_file(
+        Spectrum const& spectrum,
+        std::shared_ptr<utils::BaseOutputTarget> target
+    ) const;
+
+    // -------------------------------------------------------------------------
+    //     Settings
+    // -------------------------------------------------------------------------
+
+    bool log_scale() const
+    {
+        return log_scale_;
+    }
+
+    self_type& log_scale( bool value )
+    {
+        log_scale_ = value;
+        return *this;
+    }
+
+    bool invert_vertically() const
+    {
+        return invert_vertically_;
+    }
+
+    self_type& invert_vertically( bool value )
+    {
+        invert_vertically_ = value;
+        return *this;
+    }
+
+    bool normalize_per_column() const
+    {
+        return normalize_per_column_;
+    }
+
+    self_type& normalize_per_column( bool value )
+    {
+        normalize_per_column_ = value;
+        return *this;
+    }
+
+    utils::Color const& empty_window_color() const
+    {
+        return color_map_.mask_color();
+    }
+
+    self_type& empty_window_color( utils::Color const& value )
+    {
+        color_map_.mask_color( value );
+        return *this;
+    }
+
+    bool use_empty_window_color() const
+    {
+        return use_empty_window_color_;
+    }
+
+    self_type& use_empty_window_color( bool value )
+    {
+        use_empty_window_color_ = value;
+        return *this;
+    }
+
+    self_type& palette( std::vector<utils::Color> const& value )
+    {
+        color_map_.palette( value );
+        return *this;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    bool log_scale_ = false;
+    bool invert_vertically_ = true;
+    bool normalize_per_column_ = false;
+
+    bool use_empty_window_color_ = true;
+    utils::ColorMap color_map_;
 
 };
 
