@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_TOOLS_AF_SPECTRUM_H_
-#define GENESIS_POPULATION_TOOLS_AF_SPECTRUM_H_
+#ifndef GENESIS_POPULATION_WINDOW_AF_SPECTRUM_H_
+#define GENESIS_POPULATION_WINDOW_AF_SPECTRUM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -39,7 +39,8 @@
 #include <vector>
 
 #include "genesis/population/formats/vcf_record.hpp"
-#include "genesis/population/tools/window.hpp"
+#include "genesis/population/window/window.hpp"
+#include "genesis/population/window/window_generator.hpp"
 
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/formats/svg/group.hpp"
@@ -138,10 +139,7 @@ private:
 
     void on_chromosome_finish_( std::string const& chromosome, AFWindow::Accumulator& );
 
-    void on_emission_(
-        size_t first_position, size_t last_position, size_t reported_position,
-        AFWindow::const_iterator begin, AFWindow::const_iterator end, AFWindow::Accumulator&
-    );
+    void on_emission_( AFWindow const& window );
 
     // -------------------------------------------------------------------------
     //     Data Members
@@ -152,7 +150,7 @@ private:
     size_t number_of_bins_;
     bool skip_invalid_records_ = true;
 
-    Window<double> window_;
+    WindowGenerator<double> window_generator_;
     std::vector<Spectrum> spectra_;
 
 };

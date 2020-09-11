@@ -34,8 +34,10 @@
 
 #include "genesis/population/formats/vcf_input_iterator.hpp"
 #include "genesis/population/formats/vcf_record.hpp"
-#include "genesis/population/tools/af_spectrum.hpp"
-#include "genesis/population/tools/window.hpp"
+#include "genesis/population/window/af_spectrum.hpp"
+#include "genesis/population/window/window.hpp"
+#include "genesis/population/window/window_generator.hpp"
+#include "genesis/population/window/vcf_window.hpp"
 
 #include <bitset>
 #include <numeric>
@@ -71,22 +73,23 @@ VcfWindowResultsDP test_run_vcf_window_dp( std::string const& infile, size_t wid
     VcfWindowResultsDP result;
 
     // Make a window that counts both DP values from the info and the format fields.
-    using DPWindow = Window<std::pair<size_t, size_t>>;
-    DPWindow window( DPWindow::Type::kInterval, width, stride );
+    using DPData = std::pair<size_t, size_t>;
+    using DPWindowGen = WindowGenerator<DPData>;
+    DPWindowGen window_gen( WindowType::kInterval, width, stride );
 
-    window.on_chromosome_start = [&]( std::string const& chromosome, DPWindow::Accumulator& accu )
+    window_gen.add_chromosome_start_plugin( [&]( std::string const& chromosome, DPWindowGen::Accumulator& accu )
     {
         (void) chromosome;
         (void) accu;
         ++result.chrom_start_count;
-    };
-    window.on_chromosome_finish = [&]( std::string const& chromosome, DPWindow::Accumulator& accu )
+    });
+    window_gen.add_chromosome_finish_plugin( [&]( std::string const& chromosome, DPWindowGen::Accumulator& accu )
     {
         (void) chromosome;
         (void) accu;
         ++result.chrom_finish_count;
-    };
-    window.on_enqueue = [&]( DPWindow::Entry const& entry, DPWindow::Accumulator& accu )
+    });
+    window_gen.add_enqueue_plugin( [&]( DPWindowGen::Entry const& entry, DPWindowGen::Accumulator& accu )
     {
         (void) entry;
         (void) accu;
@@ -94,8 +97,8 @@ VcfWindowResultsDP test_run_vcf_window_dp( std::string const& infile, size_t wid
 
         result.enqueue_dp_info += entry.data.first;
         result.enqueue_dp_format += entry.data.second;
-    };
-    window.on_dequeue = [&]( DPWindow::Entry const& entry, DPWindow::Accumulator& accu )
+    });
+    window_gen.add_dequeue_plugin( [&]( DPWindowGen::Entry const& entry, DPWindowGen::Accumulator& accu )
     {
         (void) entry;
         (void) accu;
@@ -103,26 +106,17 @@ VcfWindowResultsDP test_run_vcf_window_dp( std::string const& infile, size_t wid
 
         result.dequeue_dp_info += entry.data.first;
         result.dequeue_dp_format += entry.data.second;
-    };
-    window.on_emission = [&](
-        size_t first_position, size_t last_position, size_t reported_position,
-        DPWindow::const_iterator begin, DPWindow::const_iterator end, DPWindow::Accumulator& accu
-    ) {
-        (void) first_position;
-        (void) last_position;
-        (void) reported_position;
-        (void) begin;
-        (void) end;
-        (void) accu;
+    });
+    window_gen.add_emission_plugin( [&]( DPWindowGen::Window const& window ) {
         ++result.emission_count;
 
-        for( auto it = begin; it != end; ++it ) {
-            result.emission_dp_info += it->data.first;
-            result.emission_dp_format += it->data.second;
+        for( auto const& entry : window ) {
+            result.emission_dp_info += entry.data.first;
+            result.emission_dp_format += entry.data.second;
         }
-    };
+    });
 
-    window.run_vcf( infile, [&]( VcfRecord const& record ){
+    run_vcf_window<DPData>( window_gen, infile, [&]( VcfRecord const& record ){
         // ASSERT_TRUE( record.has_info( "DP" ) );
         // ASSERT_TRUE( record.has_format( "DP" ) );
 

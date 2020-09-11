@@ -37,7 +37,7 @@
 #include <limits>
 #include <stdexcept>
 
-#include "genesis/population/tools/af_spectrum.hpp"
+#include "genesis/population/window/af_spectrum.hpp"
 #include "genesis/population/formats/vcf_input_iterator.hpp"
 
 #include "genesis/utils/formats/bmp/writer.hpp"
@@ -51,26 +51,25 @@ namespace population {
 
 AlleleFrequencyWindow::AlleleFrequencyWindow( size_t width, size_t number_of_bins )
     : number_of_bins_( number_of_bins )
-    , window_( AFWindow::Type::kInterval, width )
+    , window_generator_( WindowType::kInterval, width )
 {
     // Set the plugin functions.
-    window_.on_chromosome_start = [&]( std::string const& chromosome, AFWindow::Accumulator& accu ){
+    window_generator_.add_chromosome_start_plugin( [&]( std::string const& chromosome, AFWindow::Accumulator& accu ){
         on_chromosome_start_( chromosome, accu );
-    };
-    window_.on_chromosome_finish = [&]( std::string const& chromosome, AFWindow::Accumulator& accu ){
+    });
+    window_generator_.add_chromosome_finish_plugin( [&]( std::string const& chromosome, AFWindow::Accumulator& accu ){
         on_chromosome_finish_( chromosome, accu );
-    };
-    window_.on_emission = [&](
-        size_t first_position, size_t last_position, size_t reported_position,
-        AFWindow::const_iterator begin, AFWindow::const_iterator end, AFWindow::Accumulator& accu
+    });
+    window_generator_.add_emission_plugin( [&](
+        AFWindow const& window
     ){
-        on_emission_( first_position, last_position, reported_position, begin, end, accu);
-    };
+        on_emission_( window );
+    });
 }
 
 AlleleFrequencyWindow::~AlleleFrequencyWindow()
 {
-    window_.finish_chromosome();
+    window_generator_.finish_chromosome();
 }
 
 // =================================================================================================
@@ -93,7 +92,7 @@ void AlleleFrequencyWindow::enqueue(
             chromosome + ":" + std::to_string( position )
         );
     }
-    window_.enqueue( chromosome, position, frequency );
+    window_generator_.enqueue( chromosome, position, frequency );
 }
 
 void AlleleFrequencyWindow::enqueue( VcfRecord const& record )
@@ -132,7 +131,7 @@ void AlleleFrequencyWindow::enqueue( VcfRecord const& record )
     if( ! std::isfinite(freq) ) {
         return;
     }
-    window_.enqueue( record.get_chromosome(), record.get_position(), freq );
+    window_generator_.enqueue( record.get_chromosome(), record.get_position(), freq );
 
     // The AF field just counts frequencies based on the called genotype data (e.g. `0|1`),
     // but does not take the actual frequencies / allelic depths into account.
@@ -145,7 +144,7 @@ void AlleleFrequencyWindow::enqueue( VcfRecord const& record )
     //         std::to_string( af.size() ) + " instead of expected size 1."
     //     );
     // }
-    // window_.enqueue( record.get_chromosome(), record.get_position(), af[0] );
+    // window_generator_.enqueue( record.get_chromosome(), record.get_position(), af[0] );
 }
 
 // =================================================================================================
@@ -172,6 +171,7 @@ void AlleleFrequencyWindow::on_chromosome_finish_(
 ) {
     assert( ! spectra_.empty() );
     assert( spectra_.back().chromosome == chromosome );
+    (void) chromosome;
 
     // Make bitmap or whatever the user wants.
     if( on_chromosome_finish ) {
@@ -180,8 +180,7 @@ void AlleleFrequencyWindow::on_chromosome_finish_(
 }
 
 void AlleleFrequencyWindow::on_emission_(
-    size_t, size_t, size_t,
-    AFWindow::const_iterator begin, AFWindow::const_iterator end, AFWindow::Accumulator&
+    AFWindow const& window
 ) {
     assert( ! spectra_.empty() );
     auto& values = spectra_.back().values;
@@ -189,17 +188,17 @@ void AlleleFrequencyWindow::on_emission_(
     auto& bins = values.back();
 
     // Collect all data from the window and fill the frequency bins.
-    for( auto it = begin; it != end; ++it ) {
-        if( ! std::isfinite(it->data) || it->data < 0.0 || it->data > 1.0 ) {
+    for( auto const& entry : window ) {
+        if( ! std::isfinite(entry.data) || entry.data < 0.0 || entry.data > 1.0 ) {
             throw std::invalid_argument(
-                "Invalid allele frequency " + std::to_string(it->data) + " at " +
-                spectra_.back().chromosome + ":" + std::to_string( it->position )
+                "Invalid allele frequency " + std::to_string(entry.data) + " at " +
+                spectra_.back().chromosome + ":" + std::to_string( entry.position )
             );
         }
 
         // Bring the value into the bins and store it. We need a special case for the exact value
         // of 1.0 here, so that we don't get an overflow of the bin index.
-        size_t index = std::floor( it->data * static_cast<double>( number_of_bins_ ));
+        size_t index = std::floor( entry.data * static_cast<double>( number_of_bins_ ));
         index = std::min( index, number_of_bins_ - 1 );
         ++bins[ index ];
     }
