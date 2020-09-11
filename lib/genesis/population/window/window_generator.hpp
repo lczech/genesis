@@ -484,61 +484,44 @@ public:
     void enqueue( std::string const& chromosome, size_t position, Data const& data )
     {
         start_chromosome( chromosome );
-        enqueue( position, data );
+        enqueue( position, Data{ data });
+    }
+
+    /**
+     * @brief Enqueue a new Data value, by moving it.
+     *
+     * See the non-move overload of this function for details.
+     */
+    void enqueue( std::string const& chromosome, size_t position, Data&& data )
+    {
+        start_chromosome( chromosome );
+        enqueue( position, std::move( data ));
     }
 
     /**
      * @brief Enqueue a new Data value, without considering its chromosome.
      *
-     * This alternative version does not use the chromosome, and hence should only be used if
+     * This alternative overload does not use the chromosome, and hence should only be used if
      * we are sure that we are always on the same chromosome (or are not using chromosome information
      * at all), and hence, that @p position always increases between calls of this function.
      *
      * This is mostly meant as a simplification in cases where the data does not come with chromsome
      * information. Typically however, when using VCF data, the `CHROM` column is present and
-     * should be used; that is, typically, the other version of this function should be used.
+     * should be used; that is, typically, the other overload of this function should be used.
      */
     void enqueue( size_t position, Data const& data )
     {
-        // If this is the first enqueuing of the window or the chromosome,
-        // we need to call the start plugin.
-        if( next_index_ == 0 ) {
-            for( auto const& chromosome_start_plugin : chromosome_start_plugins_ ) {
-                if( chromosome_start_plugin ) {
-                    chromosome_start_plugin( window_.chromosome(), window_.accumulator() );
-                }
-            }
-        }
+        enqueue_( position, Data{ data });
+    }
 
-        // Boundary check. We make sure that the given position is neither in front of the current
-        // window, or, if there are entries in the list, also not in front of those.
-        // (There might be cases were we are already in the middle of the chromosome, but the
-        // entries list is empty. Not entirely sure when this can occurr, but it feels like it can,
-        // and just checking this doesn't cost us much. If anyone wants to think this through,
-        // feel free.)
-        size_t cur_end = window_.entries().empty() ? 0 : window_.entries().back().position;
-        cur_end = current_start_ > cur_end ? current_start_ - 1 : cur_end;
-        if( position <= cur_end ) {
-            throw std::invalid_argument(
-                "Cannot enqueue at position " + std::to_string( position ) +
-                ", as the current window/chromosome is already advanced up to position " +
-                std::to_string( cur_end ) +
-                ". Either start a new window or a new chromosome within the window. "
-                "Note that this error might be caused by a VCF file that is not sorted by "
-                "chromosome and position."
-            );
-        }
-        assert( position >= current_start_ );
-        assert( window_.entries().empty() || position > window_.entries().back().position );
-
-        // Do the correct type of enqueuing.
-        if( window_type_ == WindowType::kInterval ) {
-            enqueue_interval_( position, data );
-        } else if( window_type_ == WindowType::kVariants ) {
-            throw std::runtime_error( "Not yet implemented." );
-        } else {
-            assert( false );
-        }
+    /**
+     * @brief Enqueue a new Data value by moving it, without considering its chromosome.
+     *
+     * See the non-moving overload of this function for details.
+     */
+    void enqueue( size_t position, Data&& data )
+    {
+        enqueue_( position, std::move( data ));
     }
 
     /**
@@ -628,6 +611,55 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     General Internal Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    void enqueue_( size_t position, Data&& data )
+    {
+        // If this is the first enqueuing of the window or the chromosome,
+        // we need to call the start plugin.
+        if( next_index_ == 0 ) {
+            for( auto const& chromosome_start_plugin : chromosome_start_plugins_ ) {
+                if( chromosome_start_plugin ) {
+                    chromosome_start_plugin( window_.chromosome(), window_.accumulator() );
+                }
+            }
+        }
+
+        // Boundary check. We make sure that the given position is neither in front of the current
+        // window, or, if there are entries in the list, also not in front of those.
+        // (There might be cases were we are already in the middle of the chromosome, but the
+        // entries list is empty. Not entirely sure when this can occurr, but it feels like it can,
+        // and just checking this doesn't cost us much. If anyone wants to think this through,
+        // feel free.)
+        size_t cur_end = window_.entries().empty() ? 0 : window_.entries().back().position;
+        cur_end = current_start_ > cur_end ? current_start_ - 1 : cur_end;
+        if( position <= cur_end ) {
+            throw std::invalid_argument(
+                "Cannot enqueue at position " + std::to_string( position ) +
+                ", as the current window/chromosome is already advanced up to position " +
+                std::to_string( cur_end ) +
+                ". Either start a new window or a new chromosome within the window. "
+                "Note that this error might be caused by a VCF file that is not sorted by "
+                "chromosome and position."
+            );
+        }
+        assert( position >= current_start_ );
+        assert( window_.entries().empty() || position > window_.entries().back().position );
+
+        // Do the correct type of enqueuing.
+        if( window_type_ == WindowType::kInterval ) {
+            enqueue_interval_( position, std::move( data ));
+        } else if( window_type_ == WindowType::kVariants ) {
+            throw std::runtime_error( "Not yet implemented." );
+        } else {
+            assert( false );
+        }
+    }
+
+    // -------------------------------------------------------------------------
     //     Interval Internal Members
     // -------------------------------------------------------------------------
 
@@ -636,7 +668,7 @@ private:
     /**
      * @brief Enqueue new data in an inveral, and call the respective plugin function.
      */
-    void enqueue_interval_( size_t position, Data const& data )
+    void enqueue_interval_( size_t position, Data&& data )
     {
         assert( window_type_ == WindowType::kInterval );
 
@@ -646,7 +678,7 @@ private:
         assert( position < current_start_ + width_ );
 
         // Add the new data to our entry queue.
-        window_.entries().emplace_back( next_index_, position, data );
+        window_.entries().emplace_back( next_index_, position, std::move( data ));
         ++next_index_;
 
         // Run the enqueue event plugins. We do not emit anything here. That will be done once

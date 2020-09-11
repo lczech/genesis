@@ -137,6 +137,12 @@ public:
             , data(data)
         {}
 
+        Entry( size_t index, size_t position, Data&& data )
+            : index(index)
+            , position(position)
+            , data(std::move( data ))
+        {}
+
         size_t index;
         size_t position;
         Data   data;
