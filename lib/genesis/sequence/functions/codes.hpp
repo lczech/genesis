@@ -73,9 +73,21 @@ std::string nucleic_acid_codes_degenerated();
 std::string nucleic_acid_codes_undetermined();
 
 /**
+ * @brief Return all undetermined nucleic acid codes that are letters. Those are `NOX`, that is,
+ * excluding `.-?` as compared to nucleic_acid_codes_undetermined().
+ */
+std::string nucleic_acid_codes_undetermined_letters();
+
+/**
  * @brief Return all valid nucleic acid codes. Those are `ACGTUWSMKRYBDHVNOX.-?`.
  */
 std::string nucleic_acid_codes_all();
+
+/**
+ * @brief Return all valid nucleic acid codes. Those are `ACGTUWSMKRYBDHVNOX`, that is,
+ * excluding `.-?` as compared to nucleic_acid_codes_all().
+ */
+std::string nucleic_acid_codes_all_letters();
 
 // ---------------------------------------------------------------------
 //     Amino Acids

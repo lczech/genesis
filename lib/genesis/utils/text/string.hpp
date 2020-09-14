@@ -401,6 +401,26 @@ std::string join( T const& v, std::string const& delimiter = ", " )
     return s.str();
 }
 
+/**
+ * @brief Template specialization of join() for vector of unsigned char.
+ *
+ * We need this specialization, as the unsigned chars are otherwise turned into their char (ASCII)
+ * equivalent, which we do not want. Instead, we want to output them here as plain numbers.
+ */
+template <>
+inline std::string join<std::vector<unsigned char>>(
+    std::vector<unsigned char> const& v, std::string const& delimiter
+) {
+    std::ostringstream s;
+    for( auto const& i : v ) {
+        if( &i != &(*v.begin()) ) {
+            s << delimiter;
+        }
+        s << static_cast<int>( i );
+    }
+    return s.str();
+}
+
 } // namespace utils
 } // namespace genesis
 

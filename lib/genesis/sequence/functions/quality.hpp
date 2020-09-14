@@ -59,11 +59,11 @@ namespace sequence {
  *
  * We offer the following quality score encodings:
  *
- *  *  Sanger
- *  *  Illumina 1.3+
- *  *  Illumina 1.5+
- *  *  Illumina 1.8+
- *  *  Solexa
+ *  *  Sanger, with offset 33.
+ *  *  Illumina 1.3+, with offset 64.
+ *  *  Illumina 1.5+, with offset 64.
+ *  *  Illumina 1.8+, with offset 33.
+ *  *  Solexa, with offset 64, and a special encoding equation.
  *
  * These are the types of encodings used in fastq files over the years. It seems that Sanger
  * is the most commonly used one today, so this is also what we use as a default.
