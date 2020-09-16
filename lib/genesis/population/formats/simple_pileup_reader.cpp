@@ -175,6 +175,7 @@ void SimplePileupReader::process_sample_(
     // Fill its basic fields from input data, and compute the tallies.
     parse_sample_fields_( input_stream, record, sample );
     tally_sample_counts_( input_stream, sample );
+    compute_sample_consensus_( sample );
 }
 
 // -------------------------------------------------------------------------
@@ -301,6 +302,10 @@ void SimplePileupReader::tally_sample_counts_(
     utils::InputStream& input_stream,
     Sample&             sample
 ) const {
+    // We expect default values.
+    assert( sample.a_count + sample.c_count + sample.g_count + sample.t_count == 0 );
+    assert( sample.n_count + sample.d_count == 0 );
+
     // Shorthand.
     auto& it = input_stream;
 
@@ -395,6 +400,7 @@ void SimplePileupReader::tally_sample_counts_(
 
     // Set the min/max coverage related values.
     if(
+        sample.nucleotide_count > 0 &&
         sample.nucleotide_count >= min_coverage_ &&
         ( max_coverage_ == 0 || sample.nucleotide_count <= max_coverage_ )
     ) {
@@ -426,6 +432,50 @@ void SimplePileupReader::tally_sample_counts_(
             sample.is_ignored   = true;
         }
     }
+}
+
+// -------------------------------------------------------------------------
+//     Compute Sample Consensus
+// -------------------------------------------------------------------------
+
+void SimplePileupReader::compute_sample_consensus_(
+    Sample&             sample
+) const {
+    // We expect the default values.
+    assert( sample.consensus_character == 'N' );
+    assert( sample.consensus_confidence == 0.0 );
+
+    // Only compute consensus if we have enough coverage. This can only be if we have
+    // at least some counts. Assert that.
+    if( ! sample.is_covered ) {
+        return;
+    }
+    assert( sample.nucleotide_count > 0 );
+    assert( sample.a_count > 0 || sample.c_count > 0 || sample.g_count > 0 || sample.t_count > 0 );
+
+    // Fast way of comparing four variables and finding the name of the max one.
+    // We don't want any expensive sorting on dynamic memory (vecors or the like),
+    // but just do pairwise comparisons with indices instead. Let's not even use a loop
+    // (loop unrolling), to be even faster.
+    size_t const counts[] = { sample.a_count, sample.c_count, sample.g_count, sample.t_count };
+    size_t max_idx = 0;
+    if( counts[1] > counts[max_idx] ) {
+        max_idx = 1;
+    }
+    if( counts[2] > counts[max_idx] ) {
+        max_idx = 2;
+    }
+    if( counts[3] > counts[max_idx] ) {
+        max_idx = 3;
+    }
+
+    // Now use the index to get the consensus character, and the confidence.
+    static const char nts[] = {'A', 'C', 'G', 'T'};
+    sample.consensus_character = nts[max_idx];
+    sample.consensus_confidence
+        = static_cast<double>( counts[max_idx] )
+        / static_cast<double>( sample.nucleotide_count )
+    ;
 }
 
 // -------------------------------------------------------------------------

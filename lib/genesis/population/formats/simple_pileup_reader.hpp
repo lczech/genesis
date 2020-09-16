@@ -214,6 +214,23 @@ public:
          * not to tolerate them).
          */
         bool is_ignored = false;
+
+        /**
+         * @brief Consensus character for the sample, if it is well covered.
+         *
+         * This is simply the character (out of `ACGT`) that appears most often (or, for ties,
+         * the lexicographically smallest character). If th Sample is not well covered
+         * (that is, if Sample::is_covered is `false`), the consensus character is `N`.
+         */
+        char consensus_character = 'N';
+
+        /**
+         * @brief Confidence of the consensus character.
+         *
+         * The confidence is the count of the consensus character, divided by the total count
+         * of all four nucleotides.
+         */
+        double consensus_confidence = 0.0;
     };
 
     /**
@@ -455,6 +472,10 @@ private:
 
     void tally_sample_counts_(
         utils::InputStream& input_stream,
+        Sample&             sample
+    ) const;
+
+    void compute_sample_consensus_(
         Sample&             sample
     ) const;
 
