@@ -74,6 +74,10 @@ bool SimplePileupReader::parse_line(
 //     Internal Members
 // =================================================================================================
 
+// -------------------------------------------------------------------------
+//     Parse Line
+// -------------------------------------------------------------------------
+
 bool SimplePileupReader::parse_line_(
     utils::InputStream& input_stream,
     Record&             record
@@ -126,7 +130,7 @@ bool SimplePileupReader::parse_line_(
     if( record.samples.empty() ) {
         while( it && *it != '\n' ) {
             record.samples.emplace_back();
-            parse_sample_( it, record, record.samples.size() - 1 );
+            process_sample_( it, record, record.samples.size() - 1 );
         }
     } else {
         size_t index = 0;
@@ -137,7 +141,7 @@ bool SimplePileupReader::parse_line_(
                     ": Line with different number of samples."
                 );
             }
-            parse_sample_( it, record, index );
+            process_sample_( it, record, index );
             ++index;
         }
         if( index != record.samples.size() ) {
@@ -153,18 +157,37 @@ bool SimplePileupReader::parse_line_(
     return true;
 }
 
-void SimplePileupReader::parse_sample_(
+// -------------------------------------------------------------------------
+//     Process Sample
+// -------------------------------------------------------------------------
+
+void SimplePileupReader::process_sample_(
     utils::InputStream& input_stream,
     Record&             record,
     size_t              index
 ) const {
-    // Shorthand.
-    auto& it = input_stream;
 
     // Get the sample to which to write to, and reset it.
     assert( index < record.samples.size() );
     auto& sample = record.samples[index];
     sample = Sample();
+
+    // Fill its basic fields from input data, and compute the tallies.
+    parse_sample_fields_( input_stream, record, sample );
+    tally_sample_counts_( input_stream, sample );
+}
+
+// -------------------------------------------------------------------------
+//     Parse Sample Fields
+// -------------------------------------------------------------------------
+
+void SimplePileupReader::parse_sample_fields_(
+    utils::InputStream& input_stream,
+    Record&             record,
+    Sample&             sample
+) const {
+    // Shorthand.
+    auto& it = input_stream;
 
     // Read the total read count / coverage.
     next_field_( it );
@@ -261,6 +284,26 @@ void SimplePileupReader::parse_sample_(
     assert( sample.phred_scores.empty() || sample.read_bases.size() == sample.phred_scores.size() );
     assert( !it || !utils::is_graph( *it ) );
 
+    // Final file sanity checks.
+    if( it && !( utils::is_blank( *it ) || utils::is_newline( *it ))) {
+        throw std::runtime_error(
+            "Malformed pileup " + it.source_name() + " at " + it.at() +
+            ": Invalid characters."
+        );
+    }
+}
+
+// -------------------------------------------------------------------------
+//     Tally Sample Counts
+// -------------------------------------------------------------------------
+
+void SimplePileupReader::tally_sample_counts_(
+    utils::InputStream& input_stream,
+    Sample&             sample
+) const {
+    // Shorthand.
+    auto& it = input_stream;
+
     // Finally, tally up the bases.
     size_t total_count = 0;
     size_t rna_count = 0;
@@ -323,19 +366,13 @@ void SimplePileupReader::parse_sample_(
     assert( total_count == sample.nucleotide_count + sample.n_count + sample.d_count + rna_count );
     assert( total_count == sample.read_bases.size() );
 
-    // Final file sanity checks.
+    // Sum sanity checks.
     if( total_count != sample.read_coverage ) {
         throw std::runtime_error(
             "Malformed pileup " + it.source_name() + " at " + it.at() +
             ": Given read count (" + std::to_string( sample.read_coverage ) +
             ") does not match the number of bases found in the sample (" +
             std::to_string( total_count ) + ")"
-        );
-    }
-    if( it && !( utils::is_blank( *it ) || utils::is_newline( *it ))) {
-        throw std::runtime_error(
-            "Malformed pileup " + it.source_name() + " at " + it.at() +
-            ": Invalid characters."
         );
     }
 
@@ -390,6 +427,10 @@ void SimplePileupReader::parse_sample_(
         }
     }
 }
+
+// -------------------------------------------------------------------------
+//     Next Field
+// -------------------------------------------------------------------------
 
 void SimplePileupReader::next_field_( utils::InputStream& input_stream ) const
 {

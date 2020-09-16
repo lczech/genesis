@@ -441,10 +441,21 @@ private:
         Record&             record
     ) const;
 
-    void parse_sample_(
+    void process_sample_(
         utils::InputStream& input_stream,
         Record&             record,
         size_t              index
+    ) const;
+
+    void parse_sample_fields_(
+        utils::InputStream& input_stream,
+        Record&             record,
+        Sample&             sample
+    ) const;
+
+    void tally_sample_counts_(
+        utils::InputStream& input_stream,
+        Sample&             sample
     ) const;
 
     void next_field_(
