@@ -93,6 +93,12 @@ bool SimplePileupReader::parse_line_(
         record = Record();
         return false;
     }
+    assert( it );
+    if( *it == '\n' ) {
+        throw std::runtime_error(
+            "Malformed pileup " + it.source_name() + " at " + it.at() + ": Invalid empty line"
+        );
+    }
 
     // Read chromosome.
     record.chromosome = utils::read_while( it, utils::is_graph );
@@ -162,13 +168,13 @@ void SimplePileupReader::parse_sample_(
 
     // Read the total read count / coverage.
     next_field_( it );
-    sample.read_count = utils::parse_unsigned_integer<size_t>( it );
+    sample.read_coverage = utils::parse_unsigned_integer<size_t>( it );
     assert( !it || !utils::is_digit( *it ));
 
     // Read the nucleotides, skipping everything that we don't want. We need to store these
     // in a string first, as we want to do quality checks.
     next_field_( it );
-    sample.read_bases.reserve( sample.read_count );
+    sample.read_bases.reserve( sample.read_coverage );
     while( it && utils::is_graph( *it )) {
         auto const c = *it;
         switch( c ) {
@@ -235,7 +241,7 @@ void SimplePileupReader::parse_sample_(
     // Now read the quality codes, if present.
     if( with_quality_string_ ) {
         next_field_( it );
-        sample.phred_scores.reserve( sample.read_count );
+        sample.phred_scores.reserve( sample.read_coverage );
         while( it && utils::is_graph( *it )) {
             sample.phred_scores.push_back( sequence::quality_decode_to_phred_score(
                 *it, quality_encoding_
@@ -257,6 +263,7 @@ void SimplePileupReader::parse_sample_(
 
     // Finally, tally up the bases.
     size_t total_count = 0;
+    size_t rna_count = 0;
     for( size_t i = 0; i < sample.read_bases.size(); ++i ) {
 
         // Quality control if available. Skip bases that are below the threshold.
@@ -268,36 +275,38 @@ void SimplePileupReader::parse_sample_(
         switch( sample.read_bases[i] ) {
             case 'a':
             case 'A': {
-                ++sample.A;
+                ++sample.a_count;
                 break;
             }
             case 'c':
             case 'C': {
-                ++sample.C;
+                ++sample.c_count;
                 break;
             }
             case 'g':
             case 'G': {
-                ++sample.G;
+                ++sample.g_count;
                 break;
             }
             case 't':
             case 'T': {
-                ++sample.T;
+                ++sample.t_count;
                 break;
             }
             case 'n':
             case 'N': {
-                ++sample.N;
+                ++sample.n_count;
                 break;
             }
             case '*': {
-                ++sample.del;
+                ++sample.d_count;
                 break;
             }
             case '<':
             case '>': {
-                // Skipping RNA symbols.
+                // Skipping RNA symbols. But count them, for sanity check.
+                (void) rna_count;
+                ++rna_count;
                 break;
             }
             default: {
@@ -308,12 +317,34 @@ void SimplePileupReader::parse_sample_(
             }
         }
     }
-    sample.nucleotide_count = sample.A + sample.C + sample.G + sample.T;
 
-    if( total_count != sample.read_count ) {
+    // Preliminary sum for sanity check and assertions.
+    sample.nucleotide_count = sample.a_count + sample.c_count + sample.g_count + sample.t_count;
+    assert( total_count == sample.nucleotide_count + sample.n_count + sample.d_count + rna_count );
+    assert( total_count == sample.read_bases.size() );
+
+    // Reset counts if needed, according to min count setting.
+    if( sample.a_count < min_count_ ) {
+        sample.a_count = 0;
+    }
+    if( sample.c_count < min_count_ ) {
+        sample.c_count = 0;
+    }
+    if( sample.g_count < min_count_ ) {
+        sample.g_count = 0;
+    }
+    if( sample.t_count < min_count_ ) {
+        sample.t_count = 0;
+    }
+
+    // Recompute the total count.
+    sample.nucleotide_count = sample.a_count + sample.c_count + sample.g_count + sample.t_count;
+
+    // Final file sanity checks.
+    if( total_count != sample.read_coverage ) {
         throw std::runtime_error(
             "Malformed pileup " + it.source_name() + " at " + it.at() +
-            ": Given read count (" + std::to_string( sample.read_count ) +
+            ": Given read count (" + std::to_string( sample.read_coverage ) +
             ") does not match the number of bases found in the sample (" +
             std::to_string( total_count ) + ")"
         );
