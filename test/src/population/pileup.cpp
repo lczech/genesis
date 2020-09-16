@@ -126,6 +126,10 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0, records[0].samples[0].d_count );
     EXPECT_EQ( 24, records[0].samples[0].read_coverage );
     EXPECT_EQ( 24, records[0].samples[0].nucleotide_count );
+    EXPECT_TRUE(   records[0].samples[0].is_covered );
+    EXPECT_FALSE(  records[0].samples[0].is_snp );
+    EXPECT_FALSE(  records[0].samples[0].is_biallelic );
+    EXPECT_FALSE(  records[0].samples[0].is_ignored );
 
     EXPECT_EQ(  1, records[1].samples[0].a_count );
     EXPECT_EQ(  0, records[1].samples[0].c_count );
@@ -135,6 +139,10 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0, records[1].samples[0].d_count );
     EXPECT_EQ( 23, records[1].samples[0].read_coverage );
     EXPECT_EQ( 21, records[1].samples[0].nucleotide_count );
+    EXPECT_TRUE(   records[1].samples[0].is_covered );
+    EXPECT_TRUE(   records[1].samples[0].is_snp );
+    EXPECT_TRUE(   records[1].samples[0].is_biallelic );
+    EXPECT_FALSE(  records[1].samples[0].is_ignored );
 
     EXPECT_EQ(  0, records[2].samples[0].a_count );
     EXPECT_EQ(  0, records[2].samples[0].c_count );
@@ -144,6 +152,10 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  2, records[2].samples[0].d_count );
     EXPECT_EQ( 23, records[2].samples[0].read_coverage );
     EXPECT_EQ( 21, records[2].samples[0].nucleotide_count );
+    EXPECT_FALSE(  records[2].samples[0].is_covered );
+    EXPECT_FALSE(  records[2].samples[0].is_snp );
+    EXPECT_FALSE(  records[2].samples[0].is_biallelic );
+    EXPECT_TRUE(   records[2].samples[0].is_ignored );
 
     EXPECT_EQ( 23, records[3].samples[0].a_count );
     EXPECT_EQ(  0, records[3].samples[0].c_count );
@@ -153,6 +165,10 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0, records[3].samples[0].d_count );
     EXPECT_EQ( 23, records[3].samples[0].read_coverage );
     EXPECT_EQ( 23, records[3].samples[0].nucleotide_count );
+    EXPECT_TRUE(   records[3].samples[0].is_covered );
+    EXPECT_FALSE(  records[3].samples[0].is_snp );
+    EXPECT_FALSE(  records[3].samples[0].is_biallelic );
+    EXPECT_FALSE(  records[3].samples[0].is_ignored );
 
     EXPECT_EQ(  0, records[4].samples[0].a_count );
     EXPECT_EQ(  0, records[4].samples[0].c_count );
@@ -162,6 +178,10 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0, records[4].samples[0].d_count );
     EXPECT_EQ( 22, records[4].samples[0].read_coverage );
     EXPECT_EQ( 22, records[4].samples[0].nucleotide_count );
+    EXPECT_TRUE(   records[4].samples[0].is_covered );
+    EXPECT_TRUE(   records[4].samples[0].is_snp );
+    EXPECT_TRUE(   records[4].samples[0].is_biallelic );
+    EXPECT_FALSE(  records[4].samples[0].is_ignored );
 
     EXPECT_EQ(  0, records[5].samples[0].a_count );
     EXPECT_EQ(  1, records[5].samples[0].c_count );
@@ -171,6 +191,10 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0, records[5].samples[0].d_count );
     EXPECT_EQ( 22, records[5].samples[0].read_coverage );
     EXPECT_EQ( 22, records[5].samples[0].nucleotide_count );
+    EXPECT_TRUE(   records[5].samples[0].is_covered );
+    EXPECT_TRUE(   records[5].samples[0].is_snp );
+    EXPECT_FALSE(  records[5].samples[0].is_biallelic );
+    EXPECT_FALSE(  records[5].samples[0].is_ignored );
 
     EXPECT_EQ(  0, records[6].samples[0].a_count );
     EXPECT_EQ(  0, records[6].samples[0].c_count );
@@ -180,6 +204,10 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0, records[6].samples[0].d_count );
     EXPECT_EQ( 23, records[6].samples[0].read_coverage );
     EXPECT_EQ( 23, records[6].samples[0].nucleotide_count );
+    EXPECT_TRUE(   records[6].samples[0].is_covered );
+    EXPECT_FALSE(  records[6].samples[0].is_snp );
+    EXPECT_FALSE(  records[6].samples[0].is_biallelic );
+    EXPECT_FALSE(  records[6].samples[0].is_ignored );
 
     EXPECT_EQ(  1, records[7].samples[0].a_count );
     EXPECT_EQ( 17, records[7].samples[0].c_count );
@@ -189,4 +217,8 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0, records[7].samples[0].d_count );
     EXPECT_EQ( 23, records[7].samples[0].read_coverage );
     EXPECT_EQ( 19, records[7].samples[0].nucleotide_count );
+    EXPECT_TRUE(   records[7].samples[0].is_covered );
+    EXPECT_TRUE(   records[7].samples[0].is_snp );
+    EXPECT_FALSE(  records[7].samples[0].is_biallelic );
+    EXPECT_FALSE(  records[7].samples[0].is_ignored );
 }

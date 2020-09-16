@@ -323,23 +323,6 @@ void SimplePileupReader::parse_sample_(
     assert( total_count == sample.nucleotide_count + sample.n_count + sample.d_count + rna_count );
     assert( total_count == sample.read_bases.size() );
 
-    // Reset counts if needed, according to min count setting.
-    if( sample.a_count < min_count_ ) {
-        sample.a_count = 0;
-    }
-    if( sample.c_count < min_count_ ) {
-        sample.c_count = 0;
-    }
-    if( sample.g_count < min_count_ ) {
-        sample.g_count = 0;
-    }
-    if( sample.t_count < min_count_ ) {
-        sample.t_count = 0;
-    }
-
-    // Recompute the total count.
-    sample.nucleotide_count = sample.a_count + sample.c_count + sample.g_count + sample.t_count;
-
     // Final file sanity checks.
     if( total_count != sample.read_coverage ) {
         throw std::runtime_error(
@@ -354,6 +337,57 @@ void SimplePileupReader::parse_sample_(
             "Malformed pileup " + it.source_name() + " at " + it.at() +
             ": Invalid characters."
         );
+    }
+
+    // Reset counts if needed, according to min count setting.
+    if( sample.a_count < min_count_ ) {
+        sample.a_count = 0;
+    }
+    if( sample.c_count < min_count_ ) {
+        sample.c_count = 0;
+    }
+    if( sample.g_count < min_count_ ) {
+        sample.g_count = 0;
+    }
+    if( sample.t_count < min_count_ ) {
+        sample.t_count = 0;
+    }
+
+    // Recompute the total count, now that we have used the min count filter.
+    sample.nucleotide_count = sample.a_count + sample.c_count + sample.g_count + sample.t_count;
+
+    // Set the min/max coverage related values.
+    if(
+        sample.nucleotide_count >= min_coverage_ &&
+        ( max_coverage_ == 0 || sample.nucleotide_count <= max_coverage_ )
+    ) {
+        sample.is_covered = true;
+
+        // Sum up the number of different ACGT counts that are present, to determine whether
+        // this is a SNP, and whether it's biallelic. We use bool to int conversion for simplicity.
+        // We have a special case here for min_count_ == 0, in which case we do
+        // not want to count a 0 as being "above" the min count. That would be riddiculous.
+        size_t al_count = 0;
+        al_count += static_cast<int>( sample.a_count > 0 && sample.a_count >= min_count_ );
+        al_count += static_cast<int>( sample.c_count > 0 && sample.c_count >= min_count_ );
+        al_count += static_cast<int>( sample.g_count > 0 && sample.g_count >= min_count_ );
+        al_count += static_cast<int>( sample.t_count > 0 && sample.t_count >= min_count_ );
+
+        // Determine type of SNP.
+        if( al_count >= 2 ) {
+            sample.is_snp = true;
+        }
+        if( al_count == 2 ) {
+            sample.is_biallelic = true;
+        }
+
+        // Check deletions. We have the same special case as above here.
+        if( sample.d_count > 0 && sample.d_count >= min_count_ && !tolerate_deletions_ ) {
+            sample.is_covered   = false;
+            sample.is_snp       = false;
+            sample.is_biallelic = false;
+            sample.is_ignored   = true;
+        }
     }
 }
 
