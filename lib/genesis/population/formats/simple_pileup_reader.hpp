@@ -126,32 +126,32 @@ public:
         std::vector<unsigned char> phred_scores;
 
         /**
-         * @brief Count of all `A` nucleotides that are present in the sample line.
+         * @brief Count of all `A` nucleotides that are present in the sample.
          */
         size_t a_count = 0;
 
         /**
-         * @brief Count of all `C` nucleotides that are present in the sample line.
+         * @brief Count of all `C` nucleotides that are present in the sample.
          */
         size_t c_count = 0;
 
         /**
-         * @brief Count of all `G` nucleotides that are present in the sample line.
+         * @brief Count of all `G` nucleotides that are present in the sample.
          */
         size_t g_count = 0;
 
         /**
-         * @brief Count of all `T` nucleotides that are present in the sample line.
+         * @brief Count of all `T` nucleotides that are present in the sample.
          */
         size_t t_count = 0;
 
         /**
-         * @brief Count of all `N` (undetermined/any) nucleotides that are present in the sample line.
+         * @brief Count of all `N` (undetermined/any) nucleotides that are present in the sample.
          */
         size_t n_count = 0;
 
         /**
-         * @brief Count of all deleted (`*`) nucleotides that are present in the sample line.
+         * @brief Count of all deleted (`*`) nucleotides that are present in the sample.
          */
         size_t d_count = 0;
 

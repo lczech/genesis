@@ -407,9 +407,12 @@ void SimplePileupReader::tally_sample_counts_(
         sample.is_covered = true;
 
         // Sum up the number of different ACGT counts that are present, to determine whether
-        // this is a SNP, and whether it's biallelic. We use bool to int conversion for simplicity.
+        // this is a SNP, and whether it's biallelic. We use bool to int conversion for simplicity,
+        // and to avoid branching. For this, we use the fact that bool converts to 1/0 int.
         // We have a special case here for min_count_ == 0, in which case we do
         // not want to count a 0 as being "above" the min count. That would be riddiculous.
+        static_assert( static_cast<int>( true )  == 1, "Invalid bool(true) to int(1) conversion." );
+        static_assert( static_cast<int>( false ) == 0, "Invalid bool(false) to int(0) conversion." );
         size_t al_count = 0;
         al_count += static_cast<int>( sample.a_count > 0 && sample.a_count >= min_count_ );
         al_count += static_cast<int>( sample.c_count > 0 && sample.c_count >= min_count_ );
@@ -459,7 +462,7 @@ void SimplePileupReader::compute_sample_consensus_(
     // Fast way of comparing four variables and finding the name of the max one.
     // We don't want any expensive sorting on dynamic memory (vecors or the like),
     // but just do pairwise comparisons with indices instead. Let's not even use a loop
-    // (loop unrolling), to be even faster.
+    // (loop unrolling), to be even faster. So smart.
     size_t const counts[] = { sample.a_count, sample.c_count, sample.g_count, sample.t_count };
     size_t max_idx = 0;
     if( counts[1] > counts[max_idx] ) {
@@ -472,7 +475,7 @@ void SimplePileupReader::compute_sample_consensus_(
         max_idx = 3;
     }
 
-    // Now use the index to get the consensus character, and the confidence.
+    // Now use the index to get the consensus character from a static lookup, and the confidence.
     static const char nts[] = {'A', 'C', 'G', 'T'};
     sample.consensus_character = nts[max_idx];
     sample.consensus_confidence
@@ -487,6 +490,8 @@ void SimplePileupReader::compute_sample_consensus_(
 
 void SimplePileupReader::next_field_( utils::InputStream& input_stream ) const
 {
+    // There needs to be at last some whitespace that separates the field. Affirm that,
+    // then skip it until we are at the content of the next field.
     utils::affirm_char_or_throw( input_stream, utils::is_blank );
     utils::skip_while( input_stream, utils::is_blank );
     assert( !input_stream || !utils::is_blank( *input_stream ));
