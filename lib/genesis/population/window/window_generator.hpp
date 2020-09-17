@@ -133,7 +133,7 @@ public:
 
     using Data = D;
     using Accumulator = A;
-    using Window = Window<D, A>;
+    using Window = ::genesis::population::Window<D, A>;
     using Entry = typename Window::Entry;
 
     using self_type = WindowGenerator<Data, Accumulator>;
