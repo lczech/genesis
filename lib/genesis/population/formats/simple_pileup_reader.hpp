@@ -58,8 +58,9 @@ namespace population {
  *
  * This simple reader processes pileup files line by line. That is, it does not take into
  * consideration which read starts at which position, but instead gives a quick and simple
- * tally of the bases of all reads that cover a given position.
- * This makes it fast in cases where no per-read information is needed.
+ * tally of the bases of all reads that cover a given position, as well as some other useful
+ * information on read coverage, consensus character, and more.
+ * This makes it fast in cases where only per-position, but no per-read information is needed.
  *
  * For each processed line, a SimplePileupReader::Record is produced, which captures the basic
  * information of the line, as well as a tally for each sample in the line, collected in
@@ -78,7 +79,7 @@ public:
      * @brief One sample in a pileup line/record.
      *
      * Each sample in a pileup file corresponds to the reads of one sample that cover a certain
-     * position on a chromosome, and consists of two or three entries:
+     * position on a chromosome, and consists of two or three entries/columns in the file:
      *
      *  1. A read count.
      *  2. A list of bases (and some other information on read start and end etc) from the reads
@@ -219,7 +220,7 @@ public:
          * @brief Consensus character for the sample, if it is well covered.
          *
          * This is simply the character (out of `ACGT`) that appears most often (or, for ties,
-         * the lexicographically smallest character). If th Sample is not well covered
+         * the lexicographically smallest character). If the Sample is not well covered by reads
          * (that is, if Sample::is_covered is `false`), the consensus character is `N`.
          */
         char consensus_character = 'N';

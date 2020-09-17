@@ -452,6 +452,9 @@ void SimplePileupReader::compute_sample_consensus_(
     }
     assert( sample.nucleotide_count > 0 );
     assert( sample.a_count > 0 || sample.c_count > 0 || sample.g_count > 0 || sample.t_count > 0 );
+    assert(
+        sample.a_count + sample.c_count + sample.g_count + sample.t_count == sample.nucleotide_count
+    );
 
     // Fast way of comparing four variables and finding the name of the max one.
     // We don't want any expensive sorting on dynamic memory (vecors or the like),
