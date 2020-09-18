@@ -482,7 +482,7 @@ public:
     void enqueue( std::string const& chromosome, size_t position, Data const& data )
     {
         start_chromosome( chromosome );
-        enqueue( position, Data{ data });
+        enqueue_( position, Data{ data });
     }
 
     /**
@@ -493,7 +493,7 @@ public:
     void enqueue( std::string const& chromosome, size_t position, Data&& data )
     {
         start_chromosome( chromosome );
-        enqueue( position, std::move( data ));
+        enqueue_( position, std::move( data ));
     }
 
     /**
@@ -525,10 +525,11 @@ public:
     /**
      * @brief Explicitly finish a chromosome, and emit all remaining Window%s.
      *
-     * When sliding along a genome, we can typically use the `CHROM` information of a VCF file to
-     * determine the chromosome we are currently on, and switch to a new chromosome if needed.
-     * In that case, all remaining data in the last window needs to be emitted, so that it is not
-     * forgotten. Only after that, we can start a new window for the new chromosome.
+     * When sliding along a genome, we can typically use the provided chromosome name in enqueue()
+     * to determine the chromosome we are currently on (typically, the input for this is the `CHROM`
+     * information of a VCF file, or the first column of a pileup file), and switch to a new
+     * chromosome if needed. In that case, all remaining data in the last window needs to be emitted,
+     * so that it is not forgotten. Only after that, we can start a new window for the new chromosome.
      *
      * However, we cannot automatically tell when the last chromosome of the genome is finished
      * from within this class here (as there will simply be no more enqueue() calls, but how would
@@ -562,14 +563,14 @@ public:
             return;
         }
 
-        // If we did not get a specific last position, we just finish the whole interval.
+        // If we did not get a specific last position, we just finish the current interval.
         if( last_position == 0 ) {
             last_position = current_start_ + width_;
         }
 
         // Boundary check. We make sure that the given position is neither in front of the current
         // window, or, if there are entries in the list, also not in front of those.
-        // See above enqueue() for details. Same here.
+        // See enqueue_() for details. Same here.
         size_t cur_end = window_.entries().empty() ? 0 : window_.entries().back().position;
         cur_end = current_start_ > cur_end ? current_start_ - 1 : cur_end;
         if( last_position <= cur_end ) {
