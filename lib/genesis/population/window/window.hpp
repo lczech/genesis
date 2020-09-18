@@ -31,16 +31,11 @@
  * @ingroup population
  */
 
-#ifdef GENESIS_HTSLIB
-
 #include <cassert>
 #include <deque>
 #include <stdexcept>
 #include <string>
 #include <vector>
-
-#include "genesis/population/formats/vcf_input_iterator.hpp"
-#include "genesis/population/formats/vcf_record.hpp"
 
 namespace genesis {
 namespace population {
@@ -234,7 +229,7 @@ public:
     }
 
     /**
-     * @brief Get the fraction entries to window width.
+     * @brief Get the fraction of entries to window width.
      */
     double saturation() const
     {
@@ -310,7 +305,7 @@ public:
         auto check_entries = [&](){
             if( entries_.empty() ) {
                 throw std::runtime_error(
-                    "Cannot use empty Window with no variants/entries for variant-based anchor "
+                    "Cannot use empty Window (with no variants/entries) for variant-based anchor "
                     "positions. Typically these anchor positions are used with WindowType::kVariants."
                 );
             }
@@ -492,5 +487,4 @@ private:
 } // namespace population
 } // namespace genesis
 
-#endif // htslib guard
 #endif // include guard

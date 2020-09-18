@@ -31,8 +31,6 @@
  * @ingroup population
  */
 
-#ifdef GENESIS_HTSLIB
-
 #include <cassert>
 #include <deque>
 #include <functional>
@@ -823,5 +821,4 @@ private:
 } // namespace population
 } // namespace genesis
 
-#endif // htslib guard
 #endif // include guard
