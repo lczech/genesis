@@ -105,6 +105,7 @@ bool SimplePileupReader::parse_line_(
     }
 
     // Read chromosome.
+    utils::affirm_char_or_throw( it, utils::is_graph );
     record.chromosome = utils::read_while( it, utils::is_graph );
     assert( !it || !utils::is_graph( *it ));
 
