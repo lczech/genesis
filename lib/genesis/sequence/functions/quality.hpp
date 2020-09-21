@@ -130,7 +130,8 @@ inline char quality_encode_from_phred_score( unsigned char phred_score, bool cla
     // Only do one branch here, as this should be rare case, and then test and branch again inside.
     if( phred_score > 93 ) {
         if( clamp ) {
-            phred_score = std::min( phred_score, static_cast<unsigned char>(93) );
+            phred_score = 93;
+            // phred_score = std::min( phred_score, static_cast<unsigned char>(93) );
         } else {
             throw std::invalid_argument(
                 "Cannot encode phred score outside of [0, 93] to Sanger format."
