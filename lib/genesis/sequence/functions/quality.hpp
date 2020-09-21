@@ -166,12 +166,12 @@ inline std::string quality_encode_from_phred_score(
  * in the quality string (of a fastq file for example).
  *
  * The @p char_counts needs to be filled with counts of how often each quality code char appeared
- * in the fastq quality strings. If any values outside of the printable character range (ASCII 33
+ * in the (fastq) quality strings. If any values outside of the printable character range (ASCII 33
  * to 127) are non-zero in the @p char_counts, the function throws, as these are invaliv qualiy
- * encodings. Otherwise, it guesses which QualityEncoding was used for the fastq file, based on
- * which chars appear.
+ * encodings. Otherwise, it guesses which QualityEncoding was used for the data, based on
+ * which chars appear in it.
  */
-QualityEncoding guess_fastq_quality_encoding( std::array<size_t, 128> const& char_counts );
+QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_counts );
 
 /**
  * @brief Guess the quality score encoding for a fastq input, based on counts of how often each

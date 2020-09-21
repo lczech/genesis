@@ -72,7 +72,7 @@ namespace sequence {
 //     }
 //     std::cout << "\n";
 //
-// See phred_score_to_error_probability() for usage. We probably never ever need the values aove 93,
+// See phred_score_to_error_probability() for usage. We probably never ever need the values above 93,
 // as those cannot even be encoded in normal ASCII-based phred score codes, and also probably
 // don't even need values above 60, which is usually taken as an upper bound. But let's be through
 // here, and include the whole range of possible values for our data type.
@@ -370,7 +370,7 @@ std::vector<unsigned char> quality_decode_to_phred_score(
 //     Guess Quality Encoding Type
 // =================================================================================================
 
-QualityEncoding guess_fastq_quality_encoding( std::array<size_t, 128> const& char_counts )
+QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_counts )
 {
     // Find the first entry that is not 0
     size_t min = 0;
@@ -467,7 +467,7 @@ QualityEncoding guess_fastq_quality_encoding( std::shared_ptr< utils::BaseInputS
     }
 
     // Return our guess based on the quality characters that were found in the sequences.
-    return guess_fastq_quality_encoding( char_counts );
+    return guess_quality_encoding( char_counts );
 }
 
 // =================================================================================================
