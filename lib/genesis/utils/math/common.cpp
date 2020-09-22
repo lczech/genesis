@@ -258,10 +258,52 @@ static const std::array<double, 1024> log_factorial_lookup_ = {
     6050.4918635895783, 6057.4204014077432, 6064.3499181785064, 6071.2804129444585
 };
 
+// constexpr version to generate the above table. Does only work in C++ >14, but we use C++11 here.
+// We could probably rewrite this to use some template loop unrolling at compile time via
+// variadic template argument lists. But just not worth the effort for now. Also, we might run into
+// issues with the maximum template instantiation depth...
+
+// template<size_t n>
+// struct LogFactorial{
+//     std::array<double, n> data;
+//
+//     constexpr LogFactorial()
+//         : data( 0.0 )
+//     {
+//         // That loop needs C++14 or above...
+//         for( size_t i = 1; i < n; ++i ) {
+//             data[i] = data[i-1] + constexpr_log(i);
+//         }
+//     }
+//
+//     constexpr double constexpr_log( double x ) const
+//     {
+//         // We need to wrap this, as std::log is not marked constexpr, but is.
+//         return std::log(x);
+//     }
+//
+//     double operator[]( size_t i ) const
+//     {
+//         // Only called locally from within this source file, so we assume that the range is valid.
+//         // Adapt to proper boundary check if this is also exposed to the outside at some point.
+//         assert( i < n );
+//         return data[i];
+//     }
+//
+//     size_t size() const
+//     {
+//         return n;
+//     }
+// };
+//
+// Create a lookup table that behaves the same as the static std::array, but is filled at compile time.
+// constexpr auto const log_factorial_lookup_ = LogFactorial<1024>();
+
 /**
- * @brief Local (unused) helper function to generate above lookup table.
+ * @brief Helper function to generate above lookup table.
  *
- * Kept here for reference. Computes log(x!), which we do neatly in an iterative way:
+ * The function is not called from anywhere, but kept here for reference, in case we want to
+ * modify the above lookup table. Computes log(x!), which we do neatly in an iterative way:
  * x! = (x-1)! * x ==> log(x!) = log((x-1)!) + log(x)
  * See https://stackoverflow.com/a/37715980/4184258
  */
@@ -333,6 +375,7 @@ size_t binomial_coefficient( size_t n, size_t k )
     if( k > n - k ) {
         k = n - k;
     }
+    assert( k <= n/2 );
 
     // We follow http://csharphelper.com/blog/2014/08/calculate-the-binomial-coefficient-n-choose-k-efficiently-in-c/
     // In short, C(n, k) = n/k * C(n-1, k-1), which we can continue until C(n-(k-1), 1) to get
@@ -348,7 +391,8 @@ size_t binomial_coefficient( size_t n, size_t k )
         if( result >= std::numeric_limits<size_t>::max() / (n - (k - i)) ) {
             throw std::runtime_error(
                 "Cannot compute binomial coefficient with n == " + std::to_string(n) +
-                " and k == " + std::to_string(k) + " due to numerical overflow."
+                " and k == " + std::to_string(k) + " due to numerical overflow. " +
+                "Use binomial_coefficient_approx() instead for large values."
             );
         }
         result *= n - (k - i);
@@ -378,9 +422,13 @@ double binomial_coefficient_approx( size_t n, size_t k )
     }
     if( n >= logf.size() ) {
         throw std::invalid_argument(
-            "Cannot compute binomial coefficient with n >= " + std::to_string( logf.size() )
+            "Cannot compute binomial coefficient with n >= " + std::to_string( logf.size() ) +
+            " due to numerical overflow"
         );
     }
+    assert( n < logf.size() );
+    assert( k < logf.size() );
+    assert( k <= n );
 
     // We use a log factorial lookup table, see https://stackoverflow.com/a/37715980/4184258
     // Basically, what we are computing is C(n, k) = n!/((n-k)! * k!), which in log form is

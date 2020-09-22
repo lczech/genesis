@@ -82,7 +82,7 @@ size_t binomial_coefficient( size_t n, size_t k );
  * for large numbers.
  *
  * The precise integer function binomial_coefficient() can only handle values up to `n == 62`
- * (for non-small `k` at least). That is, at `n == 63, n == 29`, we have exhausted the range
+ * (for non-small `k` at least). That is, at `n == 63, k == 29`, we have exhausted the range
  * of 64bit numbers.
  *
  * To also be able to work with larger @p n and @p k, we here offer an approximation that returns
