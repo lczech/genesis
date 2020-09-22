@@ -56,8 +56,18 @@ constexpr double PI = 3.141592653589793238463;
 
 inline double circumference( double radius )
 {
-    return 2 * PI * radius;
+    return 2.0 * PI * radius;
 }
+
+/**
+ * @brief Return the logarithm (base e) of the factorial of @p n, that is `log(n!)`.
+ *
+ * This is implemented via a precise lookup table for `n < 1024`, and uses Stirling's approximation
+ * for larger values, with a slight error in the order of less than 1/(360 * n^3), that is,
+ * less than 2.59e-12 for all `n >= 1024`.
+ * See https://www.johndcook.com/blog/2010/08/16/how-to-compute-log-factorial/ for details.
+ */
+double log_factorial( size_t n );
 
 /**
  * @brief Compute the binomial coefficient, that is @p n choose @p k, for two integer numbers.
@@ -66,6 +76,27 @@ inline double circumference( double radius )
  * or on overflow. For all `n < 63`, this does not overflow with 64 bit numbers.
  */
 size_t binomial_coefficient( size_t n, size_t k );
+
+/**
+ * @brief Compute the binomial coefficient, that is @p n choose @p k, for two integer numbers,
+ * for large numbers.
+ *
+ * The precise integer function binomial_coefficient() can only handle values up to `n == 62`
+ * (for non-small `k` at least). That is, at `n == 63, n == 29`, we have exhausted the range
+ * of 64bit numbers.
+ *
+ * To also be able to work with larger @p n and @p k, we here offer an approximation that returns
+ * a `double` value instead, and hence can compute binomial coefficients of up to `n == 1024`
+ * (exclusive), which for `k == n/2` is about as large as double precision allows.
+ *
+ * The returned values for all @p n and @p k that are also valid with the integer version
+ * binomial_coefficient() yield identical results (up to double precision). That is, in particular
+ * for all `n < 63`, as well as for larger `n` with small `k`.
+ *
+ * Note furthermore that we use a lookup table for the bulk of the computation here.
+ * Hence, for larger numbers, this function is also faster than explicity computing the values.
+ */
+double binomial_coefficient_approx( size_t n, size_t k );
 
 // =================================================================================================
 //     Number Handling

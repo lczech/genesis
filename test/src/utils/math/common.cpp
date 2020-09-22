@@ -33,8 +33,6 @@
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/math/common.hpp"
 
-#include<limits>
-
 using namespace genesis::utils;
 
 TEST(Std, RoundTo)
@@ -66,7 +64,7 @@ TEST( Math, BinomialCoefficient )
     EXPECT_ANY_THROW( binomial_coefficient( 5, 7 ));
 
     // Overflow
-    EXPECT_ANY_THROW( binomial_coefficient( 5000, 50 ));
+    EXPECT_ANY_THROW( binomial_coefficient( 1024, 512 ));
 
     // Good cases
     EXPECT_EQ( 1, binomial_coefficient( 1, 1 ));
@@ -78,14 +76,56 @@ TEST( Math, BinomialCoefficient )
 
     static_assert( sizeof(size_t) == 8, "Expecting 64bit words." );
 
-    // Overflow test
-    for( size_t n = 1; n < 63; ++n ) {
-        for( size_t k = 1; k < n; ++k ) {
-            EXPECT_NO_THROW( binomial_coefficient(n,k) );
-        }
-    }
-
     // First case that overflows
     EXPECT_NO_THROW( binomial_coefficient( 63, 28 ));
     EXPECT_ANY_THROW( binomial_coefficient( 63, 29 ));
+
+    // Overflow test, and test that the approximation works as well.
+    for( size_t n = 1; n < 63; ++n ) {
+        for( size_t k = 1; k < n; ++k ) {
+            EXPECT_NO_THROW( binomial_coefficient(n,k) );
+            EXPECT_FLOAT_EQ( binomial_coefficient(n,k), binomial_coefficient_approx(n,k) );
+        }
+    }
+
+    // Also test that all values that can be computed precisely also give the same results.
+    for( size_t n = 0; n < 1024; ++n ) {
+        for( size_t k = 1; k < n; ++k ) {
+            size_t b = 0;
+            try {
+                b = binomial_coefficient(n,k);
+            } catch(...) {
+                // From here on, we reached the point where precise does not work any more for
+                // this value of n. Skip the whole rest.
+                break;
+            }
+            // LOG_DBG << n << " " << k;
+            EXPECT_FLOAT_EQ( b, binomial_coefficient_approx(n,k) );
+        }
+    }
+
+    // Some explicit test cases for large numbers.
+    EXPECT_FLOAT_EQ( 6.3850511926305e139, binomial_coefficient_approx( 1000, 100 ));
+    EXPECT_FLOAT_EQ( 2.7028824094544e299, binomial_coefficient_approx( 1000, 500 ));
+
+    // Error cases
+    EXPECT_ANY_THROW( binomial_coefficient_approx( 0, 0 ));
+    EXPECT_ANY_THROW( binomial_coefficient_approx( 0, 5 ));
+    EXPECT_ANY_THROW( binomial_coefficient_approx( 5, 0 ));
+    EXPECT_ANY_THROW( binomial_coefficient_approx( 5, 7 ));
+
+    // Overflow
+    EXPECT_ANY_THROW( binomial_coefficient_approx( 1024, 512 ));
+}
+
+TEST( Math, LogFactorial )
+{
+    // Test all values. The first ~1000 are the same as the lookup table, and after that,
+    // we test the Stirling approximation.
+    double prev = 0.0;
+    for( size_t i = 1; i < 1000000; ++i) {
+        double cur = prev + std::log(i);
+        EXPECT_FLOAT_EQ( cur, log_factorial( i ));
+        prev = cur;
+    }
 }
