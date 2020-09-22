@@ -54,9 +54,9 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief Reader for line-by-line assessment of pileup files.
+ * @brief Reader for line-by-line assessment of (m)pileup files.
  *
- * This simple reader processes pileup files line by line. That is, it does not take into
+ * This simple reader processes (m)pileup files line by line. That is, it does not take into
  * consideration which read starts at which position, but instead gives a quick and simple
  * tally of the bases of all reads that cover a given position, as well as some other useful
  * information on read coverage, consensus character, and more.
