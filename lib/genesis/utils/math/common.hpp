@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <cstdint>
 #include <functional>
 #include <limits>
 #include <stdexcept>
@@ -45,7 +46,7 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Constants
+//     Constants and General Functions
 // =================================================================================================
 
 /**
@@ -57,6 +58,14 @@ inline double circumference( double radius )
 {
     return 2 * PI * radius;
 }
+
+/**
+ * @brief Compute the binomial coefficient, that is @p n choose @p k, for two integer numbers.
+ *
+ * The function throws for invalid arguments (n or k equal to 0, or k larger than n),
+ * or on overflow. For all `n < 63`, this does not overflow with 64 bit numbers.
+ */
+size_t binomial_coefficient( size_t n, size_t k );
 
 // =================================================================================================
 //     Number Handling
