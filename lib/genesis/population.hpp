@@ -34,10 +34,18 @@
  */
 
 #include "genesis/population/formats/hts_file.hpp"
+#include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/formats/vcf_common.hpp"
 #include "genesis/population/formats/vcf_format_iterator.hpp"
 #include "genesis/population/formats/vcf_header.hpp"
 #include "genesis/population/formats/vcf_input_iterator.hpp"
 #include "genesis/population/formats/vcf_record.hpp"
+#include "genesis/population/functions/pool_sample.hpp"
+#include "genesis/population/functions/statistics.hpp"
+#include "genesis/population/pool_sample.hpp"
+#include "genesis/population/window/af_spectrum.hpp"
+#include "genesis/population/window/vcf_window.hpp"
+#include "genesis/population/window/window_generator.hpp"
+#include "genesis/population/window/window.hpp"
 
 #endif // include guard
