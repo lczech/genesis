@@ -50,9 +50,14 @@ namespace utils {
 /**
  * @brief Simple cache, for example for function return values.
  *
+ * General usage: Provide the pure function that needs to be cached to the constructor, for example
+ * via a lambda. Then use operator() to request elements by their function parameters (which are
+ * combined into a key, see below). If the cache already contains the result for these parameters,
+ * it is returned; if not, it is first computed using the provided pure function.
+ *
  * The template parameters of this class template are:
  *
- *  - `R`, the return type (value) that is stored.
+ *  - `R`, the return type (value) of the function that is stored/cached.
  *  - `A`, the list of arguments of the function that produces the return value. These arguments
  *    are combined into a key at which a return value is stored.
  *
@@ -118,6 +123,9 @@ public:
         return cache_.empty();
     }
 
+    /**
+     * @brief Clear the cache.
+     */
     void clear()
     {
         // Lock access to everything. Released automatically once we return.
@@ -128,20 +136,59 @@ public:
 
 #ifdef DEBUG
 
+    /**
+     * @brief Return whether the cache is currently enabled or not.
+     */
+    bool enabled() const
+    {
+        return enabled_;
+    }
+
+    /**
+     * @brief Enable or disable the caching.
+     *
+     * This is useful for speed testing to see how much speedup the cache actually yields.
+     */
+    void enabled( bool value )
+    {
+        enabled_ = value;
+    }
+
+    /**
+     * @brief Return how often a particular result for a given set of function arguments was
+     * requested in total.
+     */
     size_t count( A const&... arguments )
     {
         std::tuple<A...> key( arguments... );
         return count( key );
     }
 
+    /**
+     * @brief Return how often a particular result for a given set of function arguments was
+     * requested in total, given its key.
+     *
+     * This can be used to look up counts while iterating the elements via begin() and end().
+     */
     size_t count( std::tuple<A...> const& key )
     {
         std::lock_guard<std::mutex> lock( mutex_ );
-        if( count_.count( key )) {
-            return count_[key];
+        if( counts_.count( key )) {
+            return counts_[key];
         } else {
             return 0;
         }
+    }
+
+    /**
+     * @brief Clear the counts of how often each element was requested.
+     */
+    void clear_counts()
+    {
+        // Lock access to everything. Released automatically once we return.
+        std::lock_guard<std::mutex> lock( mutex_ );
+
+        counts_.clear();
     }
 
 #endif
@@ -160,10 +207,18 @@ public:
         // Lock access to everything. Released automatically once we return.
         std::lock_guard<std::mutex> lock( mutex_ );
 
-        // Build the key. If we are in debug, we also count how often that key has been called.
+        // Build the key.
         std::tuple<A...> key( arguments... );
+
         #ifdef DEBUG
-            ++count_[key];
+            // In debug, count how often the element was requested.
+            ++counts_[key];
+
+            // And allow to disable the caching completely, for speed testing.
+            // We still need to store it, in order to be able to return a reference...
+            if( ! enabled_ ) {
+                return cache_[key] = load_function_( arguments... );
+            }
         #endif
 
         // Now try to find it in the cache.
@@ -208,7 +263,15 @@ private:
     container_type cache_;
 
 #ifdef DEBUG
-    std::unordered_map<key_type, size_t, genesis::utils::hash<key_type>> count_;
+
+    // In debug, we offer a count of how often each element was requested.
+    // We again need a special hash function here that takes care of tuples.
+    // See genesis/utils/containers/hash_tuple.hpp for details.
+    std::unordered_map<key_type, size_t, genesis::utils::hash<key_type>> counts_;
+
+    // Furthermore, for speed testing, we offer to deactivate the cache completely.
+    bool enabled_ = true;
+
 #endif
 
 };
