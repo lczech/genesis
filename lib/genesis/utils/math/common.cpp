@@ -50,7 +50,7 @@ namespace utils {
  * See binomial_coefficient_approx() for usage, and see log_factorial_lookup_generator_()
  * for the generator function.
  */
-static const std::array<double, 1024> log_factorial_lookup_ = {
+static const std::array<double, 1024> log_factorial_lookup_ = {{
     0.0000000000000000, 0.0000000000000000, 0.6931471805599452, 1.7917594692280550, 3.1780538303479453,
     4.7874917427820458, 6.5792512120101012, 8.5251613610654147, 10.604602902745251, 12.801827480081471,
     15.104412573075518, 17.502307845873887, 19.987214495661888, 22.552163853123425, 25.191221182738683,
@@ -256,7 +256,7 @@ static const std::array<double, 1024> log_factorial_lookup_ = {
     5981.2605397800362, 5988.1792349990565, 5995.0989188489038, 6002.0195903531521, 6008.9412485373032,
     6015.8638924287789, 6022.7875210569173, 6029.7121334529656, 6036.6377286500765, 6043.5643056832996,
     6050.4918635895783, 6057.4204014077432, 6064.3499181785064, 6071.2804129444585
-};
+}};
 
 // constexpr version to generate the above table. Does only work in C++ >14, but we use C++11 here.
 // We could probably rewrite this to use some template loop unrolling at compile time via

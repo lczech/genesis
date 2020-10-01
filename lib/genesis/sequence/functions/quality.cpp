@@ -76,8 +76,8 @@ namespace sequence {
 // as those cannot even be encoded in normal ASCII-based phred score codes, and also probably
 // don't even need values above 60, which is usually taken as an upper bound. But let's be through
 // here, and include the whole range of possible values for our data type.
-static const std::array<double, 256> phred_score_to_error_probability_lookup_ = {
-    /* 0 */ 1, 0.794328234724281, 0.630957344480193, 0.501187233627272,
+static const std::array<double, 256> phred_score_to_error_probability_lookup_ = {{
+    /* 0 */ 1.0, 0.794328234724281, 0.630957344480193, 0.501187233627272,
     0.398107170553497, 0.316227766016838, 0.251188643150958, 0.199526231496888,
     0.158489319246111, 0.125892541179417,
     /* 10 */ 0.1, 0.0794328234724281, 0.0630957344480193, 0.0501187233627272,
@@ -154,7 +154,7 @@ static const std::array<double, 256> phred_score_to_error_probability_lookup_ = 
     1.58489319246111e-25, 1.25892541179417e-25,
     /* 250 */ 1e-25, 7.94328234724279e-26, 6.30957344480194e-26, 5.01187233627271e-26,
     3.98107170553499e-26, 3.16227766016838e-26
-};
+}};
 
 // =================================================================================================
 //     Quality Encoding and Decoding
