@@ -115,10 +115,10 @@ bool SimplePileupReader::parse_line_(
     // Read reference base.
     next_field_( it );
     auto const rb = utils::to_upper( *it );
-    if( rb != 'A' && rb != 'C' && rb != 'G' && rb != 'T' ) {
+    if( rb != 'A' && rb != 'C' && rb != 'G' && rb != 'T' && rb != 'N' ) {
         throw std::runtime_error(
             "Malformed pileup " + it.source_name() + " at " + it.at() +
-            ": Invalid reference base that is not in [ACGT]"
+            ": Invalid reference base that is not in [ACGTN]"
         );
     }
     record.reference_base = rb;
@@ -213,10 +213,10 @@ void SimplePileupReader::parse_sample_fields_(
 
                 // Then, we skip that many chars, making sure that all is in order.
                 for( size_t i = 0; i < indel_cnt; ++i ) {
-                    if( !it || !std::strchr( allowed_codes.c_str(), *it )) {
+                    if( !it || !std::strchr( allowed_codes.c_str(), utils::to_upper( *it ))) {
                         throw std::runtime_error(
                             "Malformed pileup " + it.source_name() + " at " + it.at() +
-                            ": Line with invalid indel characters."
+                            ": Line with invalid indel character " + utils::char_to_hex( *it )
                         );
                     }
                     ++it;
@@ -230,7 +230,7 @@ void SimplePileupReader::parse_sample_fields_(
                 if( !it ) {
                     throw std::runtime_error(
                         "Malformed pileup " + it.source_name() + " at " + it.at() +
-                        ": Line with invalid start of read segment marker."
+                        ": Line with invalid start of read segment marker"
                     );
                 }
                 ++it;
@@ -357,8 +357,8 @@ void SimplePileupReader::tally_sample_counts_(
             }
             default: {
                 throw std::runtime_error(
-                    "Malformed pileup " + it.source_name() + " at " + it.at() +
-                    ": Invalid allele '" + std::string( 1, sample.read_bases[i] ) + "'"
+                    "Malformed pileup " + it.source_name() + " near " + it.at() +
+                    ": Invalid allele character " + utils::char_to_hex( sample.read_bases[i] )
                 );
             }
         }
@@ -375,7 +375,7 @@ void SimplePileupReader::tally_sample_counts_(
     // Sum sanity checks.
     if( total_count != sample.read_coverage ) {
         throw std::runtime_error(
-            "Malformed pileup " + it.source_name() + " at " + it.at() +
+            "Malformed pileup " + it.source_name() + " near " + it.at() +
             ": Given read count (" + std::to_string( sample.read_coverage ) +
             ") does not match the number of bases found in the sample (" +
             std::to_string( total_count ) + ")"
