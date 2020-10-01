@@ -98,6 +98,23 @@ size_t binomial_coefficient( size_t n, size_t k );
  */
 double binomial_coefficient_approx( size_t n, size_t k );
 
+/**
+ * @brief Compute the probability mass function for a binomial distribution.
+ *
+ * Note that we reverse the order of @p k and @p n here compared to binomial_coefficient() here,
+ * in order to comply with common notation.
+ */
+inline double binomial_distribution( size_t k, size_t n, double p )
+{
+    if( ! std::isfinite(p) || p < 0.0 || p > 1.0 ) {
+        throw std::invalid_argument(
+            "Cannot compute binomial distribution with p outside of [ 0, 1 ]"
+        );
+    }
+    double const coeff = binomial_coefficient_approx( n, k );
+    return coeff * std::pow( p, k ) * std::pow( 1.0 - p, n - k );
+}
+
 // =================================================================================================
 //     Number Handling
 // =================================================================================================
