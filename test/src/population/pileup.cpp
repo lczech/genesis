@@ -31,6 +31,8 @@
 #include "src/common.hpp"
 
 #include "genesis/population/formats/simple_pileup_reader.hpp"
+#include "genesis/population/functions/pool_sample.hpp"
+#include "genesis/population/pool_sample.hpp"
 #include "genesis/utils/text/string.hpp"
 
 using namespace genesis::population;
@@ -125,13 +127,14 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0,  records[0].samples[0].n_count );
     EXPECT_EQ(  0,  records[0].samples[0].d_count );
     EXPECT_EQ( 24,  records[0].samples[0].read_coverage );
-    EXPECT_EQ( 24,  records[0].samples[0].nucleotide_count );
-    EXPECT_TRUE(    records[0].samples[0].is_covered );
-    EXPECT_FALSE(   records[0].samples[0].is_snp );
-    EXPECT_FALSE(   records[0].samples[0].is_biallelic );
-    EXPECT_FALSE(   records[0].samples[0].is_ignored );
-    EXPECT_EQ( 'T', records[0].samples[0].consensus_character);
-    EXPECT_FLOAT_EQ( 1.0, records[0].samples[0].consensus_confidence);
+    auto const pool_0 = convert_to_pool_sample( records[0].samples[0] );
+    EXPECT_EQ( 24,  nucleotide_sum( pool_0 ));
+    EXPECT_TRUE(    status( pool_0 ).is_covered );
+    EXPECT_FALSE(   status( pool_0 ).is_snp );
+    EXPECT_FALSE(   status( pool_0 ).is_biallelic );
+    EXPECT_FALSE(   status( pool_0 ).is_ignored );
+    EXPECT_EQ( 'T', consensus( pool_0, status( pool_0 )).first );
+    EXPECT_FLOAT_EQ( 1.0, consensus( pool_0, status( pool_0 )).second );
 
     EXPECT_EQ(  1,  records[1].samples[0].a_count );
     EXPECT_EQ(  0,  records[1].samples[0].c_count );
@@ -140,13 +143,14 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  2,  records[1].samples[0].n_count );
     EXPECT_EQ(  0,  records[1].samples[0].d_count );
     EXPECT_EQ( 23,  records[1].samples[0].read_coverage );
-    EXPECT_EQ( 21,  records[1].samples[0].nucleotide_count );
-    EXPECT_TRUE(    records[1].samples[0].is_covered );
-    EXPECT_TRUE(    records[1].samples[0].is_snp );
-    EXPECT_TRUE(    records[1].samples[0].is_biallelic );
-    EXPECT_FALSE(   records[1].samples[0].is_ignored );
-    EXPECT_EQ( 'T', records[1].samples[0].consensus_character);
-    EXPECT_FLOAT_EQ( 0.952380952, records[1].samples[0].consensus_confidence);
+    auto const pool_1 = convert_to_pool_sample( records[1].samples[0] );
+    EXPECT_EQ( 21,  nucleotide_sum( pool_1 ));
+    EXPECT_TRUE(    status( pool_1 ).is_covered );
+    EXPECT_TRUE(    status( pool_1 ).is_snp );
+    EXPECT_TRUE(    status( pool_1 ).is_biallelic );
+    EXPECT_FALSE(   status( pool_1 ).is_ignored );
+    EXPECT_EQ( 'T', consensus( pool_1, status( pool_1 )).first );
+    EXPECT_FLOAT_EQ( 0.952380952, consensus( pool_1, status( pool_1 )).second );
 
     EXPECT_EQ(  0,  records[2].samples[0].a_count );
     EXPECT_EQ(  0,  records[2].samples[0].c_count );
@@ -155,13 +159,14 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0,  records[2].samples[0].n_count );
     EXPECT_EQ(  2,  records[2].samples[0].d_count );
     EXPECT_EQ( 23,  records[2].samples[0].read_coverage );
-    EXPECT_EQ( 21,  records[2].samples[0].nucleotide_count );
-    EXPECT_FALSE(   records[2].samples[0].is_covered );
-    EXPECT_FALSE(   records[2].samples[0].is_snp );
-    EXPECT_FALSE(   records[2].samples[0].is_biallelic );
-    EXPECT_TRUE(    records[2].samples[0].is_ignored );
-    EXPECT_EQ( 'N', records[2].samples[0].consensus_character);
-    EXPECT_FLOAT_EQ( 0.0, records[2].samples[0].consensus_confidence);
+    auto const pool_2 = convert_to_pool_sample( records[2].samples[0] );
+    EXPECT_EQ( 21,  nucleotide_sum( pool_2 ));
+    EXPECT_FALSE(   status( pool_2 ).is_covered );
+    EXPECT_FALSE(   status( pool_2 ).is_snp );
+    EXPECT_FALSE(   status( pool_2 ).is_biallelic );
+    EXPECT_TRUE(    status( pool_2 ).is_ignored );
+    EXPECT_EQ( 'N', consensus( pool_2, status( pool_2 )).first );
+    EXPECT_FLOAT_EQ( 0.0, consensus( pool_2, status( pool_2 )).second );
 
     EXPECT_EQ( 23,  records[3].samples[0].a_count );
     EXPECT_EQ(  0,  records[3].samples[0].c_count );
@@ -170,13 +175,14 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0,  records[3].samples[0].n_count );
     EXPECT_EQ(  0,  records[3].samples[0].d_count );
     EXPECT_EQ( 23,  records[3].samples[0].read_coverage );
-    EXPECT_EQ( 23,  records[3].samples[0].nucleotide_count );
-    EXPECT_TRUE(    records[3].samples[0].is_covered );
-    EXPECT_FALSE(   records[3].samples[0].is_snp );
-    EXPECT_FALSE(   records[3].samples[0].is_biallelic );
-    EXPECT_FALSE(   records[3].samples[0].is_ignored );
-    EXPECT_EQ( 'A', records[3].samples[0].consensus_character);
-    EXPECT_FLOAT_EQ( 1.0, records[3].samples[0].consensus_confidence);
+    auto const pool_3 = convert_to_pool_sample( records[3].samples[0] );
+    EXPECT_EQ( 23,  nucleotide_sum( pool_3 ));
+    EXPECT_TRUE(    status( pool_3 ).is_covered );
+    EXPECT_FALSE(   status( pool_3 ).is_snp );
+    EXPECT_FALSE(   status( pool_3 ).is_biallelic );
+    EXPECT_FALSE(   status( pool_3 ).is_ignored );
+    EXPECT_EQ( 'A', consensus( pool_3, status( pool_3 )).first );
+    EXPECT_FLOAT_EQ( 1.0, consensus( pool_3, status( pool_3 )).second );
 
     EXPECT_EQ(  0,  records[4].samples[0].a_count );
     EXPECT_EQ(  0,  records[4].samples[0].c_count );
@@ -185,13 +191,14 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0,  records[4].samples[0].n_count );
     EXPECT_EQ(  0,  records[4].samples[0].d_count );
     EXPECT_EQ( 22,  records[4].samples[0].read_coverage );
-    EXPECT_EQ( 22,  records[4].samples[0].nucleotide_count );
-    EXPECT_TRUE(    records[4].samples[0].is_covered );
-    EXPECT_TRUE(    records[4].samples[0].is_snp );
-    EXPECT_TRUE(    records[4].samples[0].is_biallelic );
-    EXPECT_FALSE(   records[4].samples[0].is_ignored );
-    EXPECT_EQ( 'G', records[4].samples[0].consensus_character);
-    EXPECT_FLOAT_EQ( 0.954545455, records[4].samples[0].consensus_confidence);
+    auto const pool_4 = convert_to_pool_sample( records[4].samples[0] );
+    EXPECT_EQ( 22,  nucleotide_sum( pool_4 ));
+    EXPECT_TRUE(    status( pool_4 ).is_covered );
+    EXPECT_TRUE(    status( pool_4 ).is_snp );
+    EXPECT_TRUE(    status( pool_4 ).is_biallelic );
+    EXPECT_FALSE(   status( pool_4 ).is_ignored );
+    EXPECT_EQ( 'G', consensus( pool_4, status( pool_4 )).first );
+    EXPECT_FLOAT_EQ( 0.954545455, consensus( pool_4, status( pool_4 )).second );
 
     EXPECT_EQ(  0,  records[5].samples[0].a_count );
     EXPECT_EQ(  1,  records[5].samples[0].c_count );
@@ -200,13 +207,14 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0,  records[5].samples[0].n_count );
     EXPECT_EQ(  0,  records[5].samples[0].d_count );
     EXPECT_EQ( 22,  records[5].samples[0].read_coverage );
-    EXPECT_EQ( 22,  records[5].samples[0].nucleotide_count );
-    EXPECT_TRUE(    records[5].samples[0].is_covered );
-    EXPECT_TRUE(    records[5].samples[0].is_snp );
-    EXPECT_FALSE(   records[5].samples[0].is_biallelic );
-    EXPECT_FALSE(   records[5].samples[0].is_ignored );
-    EXPECT_EQ( 'T', records[5].samples[0].consensus_character);
-    EXPECT_FLOAT_EQ( 0.909090909, records[5].samples[0].consensus_confidence);
+    auto const pool_5 = convert_to_pool_sample( records[5].samples[0] );
+    EXPECT_EQ( 22,  nucleotide_sum( pool_5 ));
+    EXPECT_TRUE(    status( pool_5 ).is_covered );
+    EXPECT_TRUE(    status( pool_5 ).is_snp );
+    EXPECT_FALSE(   status( pool_5 ).is_biallelic );
+    EXPECT_FALSE(   status( pool_5 ).is_ignored );
+    EXPECT_EQ( 'T', consensus( pool_5, status( pool_5 )).first );
+    EXPECT_FLOAT_EQ( 0.909090909, consensus( pool_5, status( pool_5 )).second );
 
     EXPECT_EQ(  0,  records[6].samples[0].a_count );
     EXPECT_EQ(  0,  records[6].samples[0].c_count );
@@ -215,13 +223,14 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0,  records[6].samples[0].n_count );
     EXPECT_EQ(  0,  records[6].samples[0].d_count );
     EXPECT_EQ( 23,  records[6].samples[0].read_coverage );
-    EXPECT_EQ( 23,  records[6].samples[0].nucleotide_count );
-    EXPECT_TRUE(    records[6].samples[0].is_covered );
-    EXPECT_FALSE(   records[6].samples[0].is_snp );
-    EXPECT_FALSE(   records[6].samples[0].is_biallelic );
-    EXPECT_FALSE(   records[6].samples[0].is_ignored );
-    EXPECT_EQ( 'G', records[6].samples[0].consensus_character);
-    EXPECT_FLOAT_EQ( 1.0, records[6].samples[0].consensus_confidence);
+    auto const pool_6 = convert_to_pool_sample( records[6].samples[0] );
+    EXPECT_EQ( 23,  nucleotide_sum( pool_6 ));
+    EXPECT_TRUE(    status( pool_6 ).is_covered );
+    EXPECT_FALSE(   status( pool_6 ).is_snp );
+    EXPECT_FALSE(   status( pool_6 ).is_biallelic );
+    EXPECT_FALSE(   status( pool_6 ).is_ignored );
+    EXPECT_EQ( 'G', consensus( pool_6, status( pool_6 )).first );
+    EXPECT_FLOAT_EQ( 1.0, consensus( pool_6, status( pool_6 )).second );
 
     EXPECT_EQ(  1,  records[7].samples[0].a_count );
     EXPECT_EQ( 17,  records[7].samples[0].c_count );
@@ -230,11 +239,12 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0,  records[7].samples[0].n_count );
     EXPECT_EQ(  0,  records[7].samples[0].d_count );
     EXPECT_EQ( 23,  records[7].samples[0].read_coverage );
-    EXPECT_EQ( 19,  records[7].samples[0].nucleotide_count );
-    EXPECT_TRUE(    records[7].samples[0].is_covered );
-    EXPECT_TRUE(    records[7].samples[0].is_snp );
-    EXPECT_FALSE(   records[7].samples[0].is_biallelic );
-    EXPECT_FALSE(   records[7].samples[0].is_ignored );
-    EXPECT_EQ( 'C', records[7].samples[0].consensus_character);
-    EXPECT_FLOAT_EQ( 0.894736842, records[7].samples[0].consensus_confidence);
+    auto const pool_7 = convert_to_pool_sample( records[7].samples[0] );
+    EXPECT_EQ( 19,  nucleotide_sum( pool_7 ));
+    EXPECT_TRUE(    status( pool_7 ).is_covered );
+    EXPECT_TRUE(    status( pool_7 ).is_snp );
+    EXPECT_FALSE(   status( pool_7 ).is_biallelic );
+    EXPECT_FALSE(   status( pool_7 ).is_ignored );
+    EXPECT_EQ( 'C', consensus( pool_7, status( pool_7 )).first );
+    EXPECT_FLOAT_EQ( 0.894736842, consensus( pool_7, status( pool_7 )).second );
 }

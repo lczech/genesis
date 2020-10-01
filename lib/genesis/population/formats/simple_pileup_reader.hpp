@@ -58,8 +58,7 @@ namespace population {
  *
  * This simple reader processes (m)pileup files line by line. That is, it does not take into
  * consideration which read starts at which position, but instead gives a quick and simple
- * tally of the bases of all reads that cover a given position, as well as some other useful
- * information on read coverage, consensus character, and more.
+ * tally of the bases of all reads that cover a given position.
  * This makes it fast in cases where only per-position, but no per-read information is needed.
  *
  * For each processed line, a SimplePileupReader::Record is produced, which captures the basic
@@ -154,84 +153,6 @@ public:
          * @brief Count of all deleted (`*`) nucleotides that are present in the sample.
          */
         size_t d_count = 0;
-
-        /**
-         * @brief Count of the pure nucleotide bases at this position, that is,
-         * the sum of all `A`, `C`, `G`, and `T`.
-         *
-         * This is simply the sum of `a_count + c_count + g_count + t_count`.
-         *
-         * NB: In PoPoolation, this variable is called `eucov`.
-         */
-        size_t nucleotide_count = 0;
-
-        /**
-         * @brief Is the Sample covered by enough reads/nucleotides?
-         *
-         * This value is set to `true` iff the total Sample::nucleotide_count (sum of Sample::a_count,
-         * Sample::c_count, Sample::g_count, and Sample::t_count after testing that they are at least
-         * min_count()) is in between the min_coverage() and max_coverage() values (inclusive),
-         * and iff the amount of deletions (Sample::d_count) is not higher than min_count() as well
-         * (unless, tolerate_deletions() is also set to `true`).
-         *
-         * That was a mouthful. Basically, a Sample is covered, if the sum of `A`, `C`, `G`, `T`
-         * is in between min_coverage() and max_coverage(), and (unless we tolerate that) the amount
-         * of deletions is not too high.
-         */
-        bool is_covered = false;
-
-        /**
-         * @brief Does the Sample have two or more alleles?
-         *
-         * That is the case if at least two of the `A`, `C`, `G`, `T` counts (Sample::a_count,
-         * Sample::c_count, Sample::g_count, and Sample::t_count ) are above zero, after testing
-         * that they are at least min_count().
-         *
-         * This value is also `false` if the amount of deletions (Sample::d_count) is too high
-         * (using min_count() as the inclusive threshold), unless tolerate_deletions() is `true`.
-         */
-        bool is_snp = false;
-
-        /**
-         * @brief Is the Sample biallelic?
-         *
-         * This is closely related to Sample::is_snp, but only `true` iff the number of nucleotide
-         * counts above zero is exactly two - that is, if there are only reads of two of `A`, `C`,
-         * `G`, `T` in the sample.
-         *
-         * This value is also `false` if the amount of deletions (Sample::d_count) is too high
-         * (using min_count() as the inclusive threshold), unless tolerate_deletions() is `true`.
-         */
-        bool is_biallelic = false;
-
-        /**
-         * @brief Is the Sample ignored due to high deletions count?
-         *
-         * This value is only set to `true` iff the Sample is well covered (as determined by
-         * Sample::is_covered), but also has a high amount of deletions (at least min_count() many),
-         * and if not also tolerate_deletions() is `true`.
-         *
-         * It is hence an indicator that there are too many deletions in the sample (if we decide
-         * not to tolerate them).
-         */
-        bool is_ignored = false;
-
-        /**
-         * @brief Consensus character for the sample, if it is well covered.
-         *
-         * This is simply the character (out of `ACGT`) that appears most often (or, for ties,
-         * the lexicographically smallest character). If the Sample is not well covered by reads
-         * (that is, if Sample::is_covered is `false`), the consensus character is `N`.
-         */
-        char consensus_character = 'N';
-
-        /**
-         * @brief Confidence of the consensus character.
-         *
-         * The confidence is the count of the consensus character, divided by the total count
-         * of all four nucleotides.
-         */
-        double consensus_confidence = 0.0;
     };
 
     /**
@@ -350,104 +271,6 @@ public:
         return *this;
     }
 
-    size_t min_count() const
-    {
-        return min_count_;
-    }
-
-    /**
-     * @brief Minimum count that we need for a type of nucleotide (`A`, `C`, `G`, `T`)
-     * to be considered in the tally.
-     *
-     * After tallying up all nucleotides for a given sample, this value is used as a type
-     * of quality control filter. All nucleotide counts (that is, Sample::a_count, Sample::c_count,
-     * Sample::g_count, and Sample::t_count) that are below this value are set to zero.
-     * Only after this step is then the value for their total sum (Sample::nucleotide_count)
-     * computed.
-     *
-     * Furthermore, this value is used to determine whether a Sample has too many deletions,
-     * and unless tolerate_deletions() is set to `true`, the Samole::is_ignored will be set to `true`
-     * in that case (too many deletions, as given by Sample::d_count), while the values for
-     * Sample::is_covered, Sample::is_snp, and Sample::is_biallelic will be set to `false`.
-     */
-    self_type& min_count( size_t value )
-    {
-        min_count_ = value;
-        return *this;
-    }
-
-    size_t min_coverage() const
-    {
-        return min_coverage_;
-    }
-
-    /**
-     * @brief Minimum coverage expected for a Sample to be considered "covered".
-     *
-     * The number of nucleotides (`A`, `C`, `G`, `T`) in the reads of a sample is stored in
-     * Sample::nucleotide_count. If that value is less then the here provided min_coverage,
-     * then the Sample is not considered sufficiently covered, and the Sample::is_covered flag
-     * will be set to `false`.
-     *
-     * See also max_coverage() for the upper bound on coverage. Only if the nucleotide count is
-     * in between (or equal to either) these two counds, it is considered to be covered, and
-     * Sample::is_covered will be set to `true`.
-     */
-    self_type& min_coverage( size_t value )
-    {
-        min_coverage_ = value;
-        return *this;
-    }
-
-    size_t max_coverage() const
-    {
-        return max_coverage_;
-    }
-
-    /**
-     * @brief Minimum coverage expected for a Sample to be considered "covered".
-     *
-     * The number of nucleotides (`A`, `C`, `G`, `T`) in the reads of a sample is stored in
-     * Sample::nucleotide_count. If that value is greater then the here provided max_coverage,
-     * then the Sample is not considered sufficiently covered, and the Sample::is_covered flag
-     * will be set to `false`.
-     *
-     * If provided with a value of `0` (default), max_coverage is not used.
-     *
-     * See also min_coverage() for the lower bound on coverage. Only if the nucleotide count is
-     * in between (or equal to either) these two counds, it is considered to be covered, and
-     * Sample::is_covered will be set to `true`.
-     */
-    self_type& max_coverage( size_t value )
-    {
-        max_coverage_ = value;
-        return *this;
-    }
-
-    bool tolerate_deletions() const
-    {
-        return tolerate_deletions_;
-    }
-
-    /**
-     * @brief Set whether we tolerate Sample%s with a high amount of deletions.
-     *
-     * If set to `false` (default), we do not tolerate deletions. In that case, if the number of
-     * deletions in a Sample (given by Sample::d_count) is higher than or equal to min_count(),
-     * the Sample will be considered ignored (Sample::is_ignored set to `true`), and considered
-     * not covered (Sample::is_covered, Sample::is_snp, and Sample::is_biallelic will all be set
-     * to `false`).
-     *
-     * If however set to `true`, we tolerate high amounts of deletions, and the values for the above
-     * properties will be set as usual by considering the nucleotide counts (Sample::a_count,
-     * Sample::c_count, Sample::g_count, and Sample::t_count) instead.
-     */
-    self_type& tolerate_deletions( bool value )
-    {
-        tolerate_deletions_ = value;
-        return *this;
-    }
-
     // -------------------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------------------
@@ -476,10 +299,6 @@ private:
         Sample&             sample
     ) const;
 
-    void compute_sample_consensus_(
-        Sample&             sample
-    ) const;
-
     void next_field_(
         utils::InputStream& input_stream
     ) const;
@@ -495,12 +314,6 @@ private:
     bool with_quality_string_ = true;
     sequence::QualityEncoding quality_encoding_ = sequence::QualityEncoding::kSanger;
     unsigned char min_phred_score_ = 0;
-
-    // Other quality control settings.
-    size_t min_count_ = 0;
-    size_t min_coverage_ = 0;
-    size_t max_coverage_ = 0;
-    bool tolerate_deletions_ = false;
 
 };
 

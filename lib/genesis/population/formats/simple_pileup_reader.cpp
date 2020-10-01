@@ -28,8 +28,6 @@
  * @ingroup population
  */
 
-#ifdef GENESIS_HTSLIB
-
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 
 #include "genesis/sequence/functions/codes.hpp"
@@ -176,7 +174,6 @@ void SimplePileupReader::process_sample_(
     // Fill its basic fields from input data, and compute the tallies.
     parse_sample_fields_( input_stream, record, sample );
     tally_sample_counts_( input_stream, sample );
-    compute_sample_consensus_( sample );
 }
 
 // -------------------------------------------------------------------------
@@ -367,9 +364,12 @@ void SimplePileupReader::tally_sample_counts_(
         }
     }
 
-    // Preliminary sum for sanity check and assertions.
-    sample.nucleotide_count = sample.a_count + sample.c_count + sample.g_count + sample.t_count;
-    assert( total_count == sample.nucleotide_count + sample.n_count + sample.d_count + rna_count );
+    // Sanity checks and assertions.
+    assert(
+        total_count ==
+        sample.a_count + sample.c_count + sample.g_count + sample.t_count +
+        sample.n_count + sample.d_count + rna_count
+    );
     assert( total_count == sample.read_bases.size() );
 
     // Sum sanity checks.
@@ -381,108 +381,6 @@ void SimplePileupReader::tally_sample_counts_(
             std::to_string( total_count ) + ")"
         );
     }
-
-    // Reset counts if needed, according to min count setting.
-    if( sample.a_count < min_count_ ) {
-        sample.a_count = 0;
-    }
-    if( sample.c_count < min_count_ ) {
-        sample.c_count = 0;
-    }
-    if( sample.g_count < min_count_ ) {
-        sample.g_count = 0;
-    }
-    if( sample.t_count < min_count_ ) {
-        sample.t_count = 0;
-    }
-
-    // Recompute the total count, now that we have used the min count filter.
-    sample.nucleotide_count = sample.a_count + sample.c_count + sample.g_count + sample.t_count;
-
-    // Set the min/max coverage related values.
-    if(
-        sample.nucleotide_count > 0 &&
-        sample.nucleotide_count >= min_coverage_ &&
-        ( max_coverage_ == 0 || sample.nucleotide_count <= max_coverage_ )
-    ) {
-        sample.is_covered = true;
-
-        // Sum up the number of different ACGT counts that are present, to determine whether
-        // this is a SNP, and whether it's biallelic. We use bool to int conversion for simplicity,
-        // and to avoid branching. For this, we use the fact that bool converts to 1/0 int.
-        // We have a special case here for min_count_ == 0, in which case we do
-        // not want to count a 0 as being "above" the min count. That would be riddiculous.
-        static_assert( static_cast<int>( true )  == 1, "Invalid bool(true) to int(1) conversion." );
-        static_assert( static_cast<int>( false ) == 0, "Invalid bool(false) to int(0) conversion." );
-        size_t al_count = 0;
-        al_count += static_cast<int>( sample.a_count > 0 && sample.a_count >= min_count_ );
-        al_count += static_cast<int>( sample.c_count > 0 && sample.c_count >= min_count_ );
-        al_count += static_cast<int>( sample.g_count > 0 && sample.g_count >= min_count_ );
-        al_count += static_cast<int>( sample.t_count > 0 && sample.t_count >= min_count_ );
-
-        // Determine type of SNP.
-        if( al_count >= 2 ) {
-            sample.is_snp = true;
-        }
-        if( al_count == 2 ) {
-            sample.is_biallelic = true;
-        }
-
-        // Check deletions. We have the same special case as above here.
-        if( sample.d_count > 0 && sample.d_count >= min_count_ && !tolerate_deletions_ ) {
-            sample.is_covered   = false;
-            sample.is_snp       = false;
-            sample.is_biallelic = false;
-            sample.is_ignored   = true;
-        }
-    }
-}
-
-// -------------------------------------------------------------------------
-//     Compute Sample Consensus
-// -------------------------------------------------------------------------
-
-void SimplePileupReader::compute_sample_consensus_(
-    Sample&             sample
-) const {
-    // We expect the default values.
-    assert( sample.consensus_character == 'N' );
-    assert( sample.consensus_confidence == 0.0 );
-
-    // Only compute consensus if we have enough coverage. This can only be if we have
-    // at least some counts. Assert that.
-    if( ! sample.is_covered ) {
-        return;
-    }
-    assert( sample.nucleotide_count > 0 );
-    assert( sample.a_count > 0 || sample.c_count > 0 || sample.g_count > 0 || sample.t_count > 0 );
-    assert(
-        sample.a_count + sample.c_count + sample.g_count + sample.t_count == sample.nucleotide_count
-    );
-
-    // Fast way of comparing four variables and finding the name of the max one.
-    // We don't want any expensive sorting on dynamic memory (vecors or the like),
-    // but just do pairwise comparisons with indices instead. Let's not even use a loop
-    // (loop unrolling), to be even faster. So smart.
-    size_t const counts[] = { sample.a_count, sample.c_count, sample.g_count, sample.t_count };
-    size_t max_idx = 0;
-    if( counts[1] > counts[max_idx] ) {
-        max_idx = 1;
-    }
-    if( counts[2] > counts[max_idx] ) {
-        max_idx = 2;
-    }
-    if( counts[3] > counts[max_idx] ) {
-        max_idx = 3;
-    }
-
-    // Now use the index to get the consensus character from a static lookup, and the confidence.
-    static const char nts[] = {'A', 'C', 'G', 'T'};
-    sample.consensus_character = nts[max_idx];
-    sample.consensus_confidence
-        = static_cast<double>( counts[max_idx] )
-        / static_cast<double>( sample.nucleotide_count )
-    ;
 }
 
 // -------------------------------------------------------------------------
@@ -500,5 +398,3 @@ void SimplePileupReader::next_field_( utils::InputStream& input_stream ) const
 
 } // namespace population
 } // namespace genesis
-
-#endif // htslib guard
