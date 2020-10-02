@@ -130,7 +130,7 @@ public:
     //     Basic Iterator Operators
     // -------------------------------------------------------------------------
 
-    reference operator*() const
+    reference const& operator*() const
     {
         if( ! cache_valid_ ) {
             cache_ = functor_( *current_ );

@@ -63,7 +63,7 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using iterator_category = typename std::input_iterator_tag;
+    using iterator_category = std::input_iterator_tag;
 
     using value_type        = typename std::iterator_traits<BaseIterator>::value_type;
     using reference         = typename std::iterator_traits<BaseIterator>::reference;
