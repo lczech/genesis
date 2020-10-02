@@ -47,6 +47,7 @@
 #include "genesis/utils/containers/mru_cache.hpp"
 #include "genesis/utils/containers/range.hpp"
 #include "genesis/utils/containers/simple_cache.hpp"
+#include "genesis/utils/containers/transform_iterator.hpp"
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/core/exception.hpp"
 #include "genesis/utils/core/fs.hpp"
