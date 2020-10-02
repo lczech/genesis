@@ -30,6 +30,7 @@
 
 #include "src/common.hpp"
 
+#include "genesis/utils/containers/filter_iterator.hpp"
 #include "genesis/utils/containers/transform_iterator.hpp"
 
 #include <algorithm>
@@ -40,16 +41,18 @@ using namespace genesis::utils;
 
 TEST( Containers, TransformIterator )
 {
-
+    // Prepare a list of consequtive numbers.
     size_t size = 10;
     std::vector<size_t> list( size );
     std::iota( list.begin(), list.end(), 0 );
 
+    // We double each of them.
     auto twice = []( size_t x ){
         return 2*x;
     };
     std::vector<size_t> result{ 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 };
 
+    // Version 1: Two independent iterators to begin and end.
     std::vector<size_t> res_it;
     auto begin = make_transform_iterator( list.begin(), twice );
     auto end   = make_transform_iterator( list.end(), twice );
@@ -58,16 +61,54 @@ TEST( Containers, TransformIterator )
     }
     EXPECT_EQ( result, res_it );
 
+    // Version 2: A range with specified begin end end.
     std::vector<size_t> res_range_be;
     for( auto e : make_transform_range( list.begin(), list.end(), twice )) {
         res_range_be.push_back( e );
     }
     EXPECT_EQ( result, res_range_be );
 
+    // Version 3: A range based on a container.
     std::vector<size_t> res_range_cont;
     for( auto e : make_transform_range( list, twice )) {
         res_range_cont.push_back( e );
     }
     EXPECT_EQ( result, res_range_cont );
+}
 
+TEST( Containers, FilterIterator )
+{
+    // Prepare a list of consequtive numbers.
+    size_t size = 20;
+    std::vector<size_t> list( size );
+    std::iota( list.begin(), list.end(), 0 );
+
+    // We only filter even numbers. Incidentally. the result is the same as above.
+    auto even = []( size_t x ){
+        return x % 2 == 0;
+    };
+    std::vector<size_t> result{ 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 };
+
+    // Version 1: Two independent iterators to begin and end.
+    std::vector<size_t> res_it;
+    auto begin = make_filter_iterator( even, list.begin(), list.end() );
+    auto end   = make_filter_iterator( even, list.end(), list.end() );
+    for( auto it = begin; it != end; ++it ) {
+        res_it.push_back( *it );
+    }
+    EXPECT_EQ( result, res_it );
+
+    // Version 2: A range with specified begin end end.
+    std::vector<size_t> res_range_be;
+    for( auto e : make_filter_range( even, list.begin(), list.end() )) {
+        res_range_be.push_back( e );
+    }
+    EXPECT_EQ( result, res_range_be );
+
+    // Version 3: A range based on a container.
+    std::vector<size_t> res_range_cont;
+    for( auto e : make_filter_range( even, list )) {
+        res_range_cont.push_back( e );
+    }
+    EXPECT_EQ( result, res_range_cont );
 }
