@@ -132,7 +132,11 @@ public:
 
     reference operator*() const
     {
-        return functor_( *current_ );
+        if( ! cache_valid_ ) {
+            cache_ = functor_( *current_ );
+            cache_valid_ = true;
+        }
+        return cache_;
     }
 
     reference operator[]( difference_type i ) const
@@ -152,12 +156,14 @@ public:
     TransformIterator& operator++()
     {
         ++current_;
+        cache_valid_ = false;
         return *this;
     }
 
     TransformIterator& operator--()
     {
         --current_;
+        cache_valid_ = false;
         return *this;
     }
 
@@ -188,12 +194,14 @@ public:
     TransformIterator& operator+=( difference_type n )
     {
         current_ += n;
+        cache_valid_ = false;
         return *this;
     }
 
     TransformIterator& operator-=( difference_type n )
     {
         current_ -= n;
+        cache_valid_ = false;
         return *this;
     }
 
@@ -253,6 +261,9 @@ private:
 
     BaseIterator current_;
     TransformFunctor functor_;
+
+    mutable reference cache_;
+    mutable bool cache_valid_ = false;
 
 };
 
