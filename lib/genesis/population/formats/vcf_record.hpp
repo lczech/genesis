@@ -36,7 +36,7 @@
 #include "genesis/population/formats/vcf_common.hpp"
 #include "genesis/population/formats/vcf_format_iterator.hpp"
 #include "genesis/population/formats/vcf_header.hpp"
-#include "genesis/utils/core/range.hpp"
+#include "genesis/utils/containers/range.hpp"
 
 #include <cstdint>
 #include <string>
