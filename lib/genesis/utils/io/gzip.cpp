@@ -144,9 +144,11 @@ GzipError::GzipError( std::string const& z_stream_message, int error_code )
 
 #else // GENESIS_ZLIB
 
-GzipError::GzipError( std::string const& z_stream_message, int error_code )
-    : message_("zlib: Genesis was not compiled with zlib support.")
-{}
+GzipError::GzipError( std::string const&, int )
+    : except::IOError("")
+{
+    message_ = "zlib: Genesis was not compiled with zlib support.";
+}
 
 #endif // GENESIS_ZLIB
 

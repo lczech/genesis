@@ -629,7 +629,13 @@ GzipOStream::~GzipOStream()
 //     Gzip Input File Stream
 // ================================================================================================
 
-GzipIFStream::GzipIFStream( std::string const&, std::ios_base::openmode, bool, std::size_t )
+GzipIFStream::GzipIFStream(
+    std::string const&,
+    std::ios_base::openmode,
+    bool,
+    std::size_t
+)
+    : StrictFStreamHolder<StrictIFStream>( "", std::ios_base::binary )
 {
     throw std::runtime_error( "zlib: Genesis was not compiled with zlib support." );
 }
@@ -643,7 +649,13 @@ GzipIFStream::~GzipIFStream()
 //     Gzip Output File Stream
 // ================================================================================================
 
-GzipOFStream::GzipOFStream( std::string const&, std::ios_base::openmode, GzipCompressionLevel, std::size_t )
+GzipOFStream::GzipOFStream(
+    std::string const&,
+    std::ios_base::openmode,
+    GzipCompressionLevel,
+    std::size_t
+)
+    : StrictFStreamHolder<StrictOFStream>( "", std::ios_base::binary )
 {
     throw std::runtime_error( "zlib: Genesis was not compiled with zlib support." );
 }
