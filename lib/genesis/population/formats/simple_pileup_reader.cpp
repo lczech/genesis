@@ -365,20 +365,21 @@ void SimplePileupReader::tally_sample_counts_(
     }
 
     // Sanity checks and assertions.
+    (void) total_count;
     assert(
         total_count ==
         sample.a_count + sample.c_count + sample.g_count + sample.t_count +
         sample.n_count + sample.d_count + rna_count
     );
-    assert( total_count == sample.read_bases.size() );
+    // assert( total_count == sample.read_bases.size() );
 
     // Sum sanity checks.
-    if( total_count != sample.read_coverage ) {
+    if( sample.read_bases.size() != sample.read_coverage ) {
         throw std::runtime_error(
             "Malformed pileup " + it.source_name() + " near " + it.at() +
             ": Given read count (" + std::to_string( sample.read_coverage ) +
             ") does not match the number of bases found in the sample (" +
-            std::to_string( total_count ) + ")"
+            std::to_string( sample.read_bases.size() ) + ")"
         );
     }
 }
