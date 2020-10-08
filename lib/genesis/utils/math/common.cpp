@@ -354,7 +354,7 @@ double log_factorial( size_t n )
 
     // Stirling's approximation for larger values. Highly accurate, although it doesn't look like it.
     // See https://www.johndcook.com/blog/2010/08/16/how-to-compute-log-factorial/
-    double const x = n + 1;
+    double const x = static_cast<double>( n + 1 );
     return (x - 0.5) * std::log(x) - x + 0.5 * std::log(2 * PI) + 1.0 / (12.0 * x);
 }
 

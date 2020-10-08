@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -275,6 +275,8 @@ std::vector<double> ranking_fractional( RandomAccessIterator first, RandomAccess
     // Calculate the average of the sum of numbers in the given inclusive range.
     auto sum_avg = []( size_t l, size_t r )
     {
+        assert( l > 0 );
+        assert( r > 0 );
         assert( l <= r );
 
         // Example:  l == 7, r == 9

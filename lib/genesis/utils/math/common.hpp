@@ -231,6 +231,30 @@ inline bool is_valid_int_pow( size_t base, size_t exp )
     return std::pow( base, exp ) < static_cast<double>( std::numeric_limits<size_t>::max() );
 }
 
+/**
+ * @brief Square of a number.
+ *
+ * Simply \f$ x^2 \f$, but faster than `std::pow` for the low exponent. Meant as an abbreviation
+ * where the argument is not already a variable, e.g., `squared( x - 1.0 )`,
+ * without the need to store the intermediate argument term.
+ */
+inline constexpr double squared( double x )
+{
+    return x * x;
+}
+
+/**
+ * @brief Cube of a number.
+ *
+ * Simply \f$ x^3 \f$, but faster than `std::pow` for the low exponent. Meant as an abbreviation
+ * where the argument is not already a variable, e.g., `cubed( x - 1.0 )`,
+ * without the need to store the intermediate argument term.
+ */
+inline constexpr double cubed( double x )
+{
+    return x * x * x;
+}
+
 // =================================================================================================
 //     Helper Functions
 // =================================================================================================
