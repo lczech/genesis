@@ -146,7 +146,7 @@ of Sequences. The entropy is a measure of information contained in the sites of 
 We offer two modes of calculating the Sequence entropy:
 
   * @ref genesis::sequence::absolute_entropy() "absolute_entropy()"
-  * @ref genesis::sequence::averaged_entropy() "averaged_entropy()"
+  * @ref genesis::sequence::average_entropy() "average_entropy()"
 
 as well as the single-site functions @ref genesis::sequence::site_entropy() "site_entropy()"
 and @ref genesis::sequence::site_information() "site_information()".
