@@ -119,14 +119,14 @@ inline size_t nucleotide_sum( PoolSample const& sample )
 /**
  * @brief Compute a simple status with useful properties from the counts of a PoolSample.
  *
- * # @p min_coverage
+ * # <code>min_coverage</code>
  *
  * Minimum coverage expected for a PoolSample to be considered "covered".
  * If the number of nucleotides (`A`, `C`, `G`, `T`) in the reads of a sample is less then the
  * here provided @p min_coverage, then the PoolSample is not considered sufficiently covered,
  * and the PoolSampleStatus::is_covered flag will be set to `false`.
  *
- * # @p max_coverage
+ * # <code>max_coverage</code>
  *
  * Same as @p min_coverage, but the upper bound on coverage; maximum coverage
  * expected for a PoolSample to be considered "covered".
@@ -138,7 +138,7 @@ inline size_t nucleotide_sum( PoolSample const& sample )
  * and @p max_coverage), it is considered to be covered, and PoolSampleStatus::is_covered
  * will be set to `true`.
  *
- * # @p min_count
+ * # <code>min_count</code>
  *
  * This value is used to determine whether a PoolSample has too many deletions,
  * and unless tolerate_deletions() is set to `true`, the PoolSampleStatus::is_ignored will be set
@@ -149,7 +149,7 @@ inline size_t nucleotide_sum( PoolSample const& sample )
  * Typically, if this function is used after calling filter_min_count() on the PoolSample, the
  * @p min_count is set to the same value for consistency.
  *
- * # @p tolerate_deletions
+ * # <code>tolerate_deletions</code>
  *
  * Set whether we tolerate PoolSample%s with a high amount of deletions.
  *

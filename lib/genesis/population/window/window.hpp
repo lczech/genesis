@@ -246,7 +246,7 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brieft Get the first position of the Window, that is, where the Window starts.
+     * @brief Get the first position of the Window, that is, where the Window starts.
      *
      * We use half-open intervals; the first position is part of the Window, the last is not.
      */
@@ -256,7 +256,7 @@ public:
     }
 
     /**
-     * @brieft Set the first position of the Window, that is, where the Window starts.
+     * @brief Set the first position of the Window, that is, where the Window starts.
      *
      * We use half-open intervals; the first position is part of the Window, the last is not.
      */
@@ -266,7 +266,7 @@ public:
     }
 
     /**
-     * @brieft Get the last (past-the-end) position of the Window, that is, where the Window ends.
+     * @brief Get the last (past-the-end) position of the Window, that is, where the Window ends.
      *
      * We use half-open intervals; the first position is part of the Window, the last is not.
      */
@@ -276,7 +276,7 @@ public:
     }
 
     /**
-     * @brieft Set the last (past-the-end) position of the Window, that is, where the Window ends.
+     * @brief Set the last (past-the-end) position of the Window, that is, where the Window ends.
      *
      * We use half-open intervals; the first position is part of the Window, the last is not.
      */
