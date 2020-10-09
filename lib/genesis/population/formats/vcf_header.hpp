@@ -123,7 +123,7 @@ public:
      */
     VcfHeader() = default;
 
-    // /**
+    // /* *
     //  * @brief Create an instance that reads from an input file name.
     //  *
     //  * The header is read from the file, which is subsequently closed again. Hence, this
