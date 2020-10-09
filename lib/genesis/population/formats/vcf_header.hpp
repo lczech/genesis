@@ -135,7 +135,7 @@ public:
     /**
      * @brief Create an instance with a specific mode.
      *
-     * For the @p mode param, see the ::hts_open() documentation of htslib.
+     * For the @p mode param, see the <code>\::hts_open()</code> documentation of htslib.
      */
     explicit VcfHeader( std::string const& mode );
 
@@ -150,8 +150,8 @@ public:
     /**
      * @brief Create an instance given a pointer to the htslib-internal header struct.
      *
-     * This copies the header using ::bcf_hdr_dup() from htslib, and then manages the livetime
-     * of the newly created `::bcf_hdr_t` instance only.
+     * This copies the header using <code>:\:bcf_hdr_dup()</code> from htslib, and then manages the
+     * livetime of the newly created <code>\::bcf_hdr_t</code> instance only.
      */
     explicit VcfHeader( ::bcf_hdr_t* bcf_hdr );
 
@@ -168,7 +168,7 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Return the internal htslib `::bcf_hdr_t` data struct pointer.
+     * @brief Return the internal htslib <code>\::bcf_hdr_t</code> data struct pointer.
      */
     ::bcf_hdr_t* data()
     {
@@ -176,7 +176,7 @@ public:
     }
 
     /**
-     * @brief Return the internal htslib `::bcf_hdr_t` data struct pointer.
+     * @brief Return the internal htslib <code>\::bcf_hdr_t</code> data struct pointer.
      */
     ::bcf_hdr_t const* data() const
     {
@@ -466,16 +466,16 @@ public:
     /**
      * @brief Get the name of a sample given its index.
      *
-     * This corresponds to the name given in the `#CHROM` line of the VCF file, using indices
-     * in the range `[ 0, get_sample_count() )`.
+     * This corresponds to the name given in the <code>\#CHROM</code> line of the VCF file,
+     * using indices in the range `[ 0, get_sample_count() )`.
      */
     std::string get_sample_name( size_t index ) const;
 
     /**
      * @brief Return a list of the sample names (column headers) of the VCF/BCF file.
      *
-     * These are the names that correspond to the column headers for samples in the `#CHROM`
-     * line of a VCF file.
+     * These are the names that correspond to the column headers for samples in the
+     * <code>\#CHROM</code> line of a VCF file.
      */
     std::vector<std::string> get_sample_names() const;
 
@@ -486,7 +486,8 @@ public:
      * when reading the VCF/BCF file (or, if @p inverse_sample_names is `true`, only the specified
      * samples are excluded). This can yield drastical speedups in parsing large files.
      *
-     * This function wraps the bcf_hdr_set_samples() function of htslib, see there for details.
+     * This function wraps the <code>bcf_hdr_set_samples()</code> function of htslib,
+     * see there for details.
      */
     void set_samples(
         std::vector<std::string> const& sample_names,

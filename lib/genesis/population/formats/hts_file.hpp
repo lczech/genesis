@@ -47,7 +47,7 @@ namespace genesis {
 namespace population {
 
 /**
- * @brief Wrap an ::htsFile struct.
+ * @brief Wrap an <code>\::htsFile</code> struct.
  *
  * This thin wrapper simply applies RAII to the htslib struct.
  */
@@ -67,7 +67,7 @@ public:
     /**
      * @brief Create an instance that opens a file.
      *
-     * For the @p mode param, see the ::hts_open() documentation of htslib.
+     * For the @p mode param, see the <code>\::hts_open()</code> documentation of htslib.
      * By default, we open for read-only access.
      */
     explicit HtsFile(
@@ -100,14 +100,14 @@ public:
     /**
      * @brief Return a human-readable description of the file format.
      *
-     * See the ::hts_format_description() documentation of htslib for details.
+     * See the <code>\::hts_format_description()</code> documentation of htslib for details.
      */
     std::string format_description() const;
 
     /**
      * @brief Return the file format extension.
      *
-     * See the ::hts_format_file_extension() documentation of htslib for details.
+     * See the <code>\::hts_format_file_extension()</code> documentation of htslib for details.
      */
     std::string format_extension() const;
 

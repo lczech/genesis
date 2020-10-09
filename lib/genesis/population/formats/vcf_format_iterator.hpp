@@ -206,7 +206,7 @@ public:
     VcfFormatIterator() = default;
 
     /**
-     * @brief Create an instance, given the htslib @P header, @p record line, and the FORMAT @p id
+     * @brief Create an instance, given the htslib @p header, @p record line, and the FORMAT @p id
      * tag/key (as well as its data type @p ht_type) that we want to iterate over.
      *
      * Usually, this class does not need to be constructed by the user. Instead, it is obtained
@@ -414,8 +414,8 @@ public:
     }
 
     /**
-     * @brief Return the name of the current sample, as given in the `#CHROM ...` header line
-     * of the VCF file.
+     * @brief Return the name of the current sample, as given in the <code>\#CHROM ...</code>
+     * header line of the VCF file.
      */
     std::string sample_name() const
     {

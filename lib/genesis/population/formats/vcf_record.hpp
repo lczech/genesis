@@ -167,7 +167,7 @@ public:
     /**
      * @brief Create an instance by copy.
      *
-     * This calls ::bcf_dup() from htslib to create a copy of the given record.
+     * This calls <code>\::bcf_dup()</code> from htslib to create a copy of the given record.
      * The provided @p bcf1 record hence has to be freed elsewhere.
      */
     VcfRecord( VcfHeader& header, ::bcf1_t* bcf1 );
@@ -330,12 +330,12 @@ public:
      *
      * See operator& ( VariantType a, VariantType b ) for details.
      *
-     * This is a simple wrapper for ::bcf_get_variant_types() from htslib, which however is not
-     * ideally named, as "variants" seems to mean REF+ALT in VCF terminology, but the flag for REF
-     * has value 0 and hence is (in a sense) always set in the result. Of course, this makes sense,
-     * as we always have a reference variant. But technically, we cannot test for this, so this
-     * function only is useful for alternative alleles, and not all variants. Still, we follow their
-     * terminology here.
+     * This is a simple wrapper for <code>\::bcf_get_variant_types()</code> from htslib,
+     * which however is not ideally named, as "variants" seems to mean REF+ALT in VCF terminology,
+     * but the flag for REF has value 0 and hence is (in a sense) always set in the result.
+     * Of course, this makes sense, as we always have a reference variant. But technically,
+     * we cannot test for this, so this function only is useful for alternative alleles,
+     * and not all variants. Still, we follow their terminology here.
      */
     VariantType get_variant_types() const;
 
@@ -351,9 +351,9 @@ public:
     /**
      * @brief Return whether this variant is a SNP.
      *
-     * This is simply a wrapper for the htslib function ::bcf_is_snp(). It returns `true` iff
-     * the reference and all alternative alleles/sequence are single characters
-     * (and none of them is a `'*'` missing allele character).
+     * This is simply a wrapper for the htslib function <code>\::bcf_is_snp()</code>.
+     * It returns `true` iff the reference and all alternative alleles/sequence are single
+     * characters (and none of them is a `'*'` missing allele character).
      */
     bool is_snp() const;
 
@@ -440,7 +440,7 @@ public:
      * If the @p destination string is re-used between calles for different records,
      * this is the faster variant that saves on memory allocations.
      *
-     * @copydetails get_info_string( std::string const& )
+     * @copydetails VcfRecord::get_info_string( std::string const& ) const
      */
     void get_info_string( std::string const& id, std::string& destination ) const;
 
@@ -449,7 +449,7 @@ public:
      *
      * While htslib uses `float`, we use `double` throughout genesis, and hence return this here.
      *
-     * @copydetails get_info_string( std::string const& )
+     * @copydetails VcfRecord::get_info_string( std::string const& ) const
      */
     std::vector<double> get_info_float( std::string const& id ) const;
 
@@ -460,14 +460,14 @@ public:
      * If the @p destination vector is re-used between calles for different records,
      * this is the faster variant that saves on memory allocations.
      *
-     * @copydetails get_info_float( std::string const& )
+     * @copydetails VcfRecord::get_info_float( std::string const& ) const
      */
     void get_info_float( std::string const& id, std::vector<double>& destination ) const;
 
     /**
      * @brief Return the info value for the given key @p id as a vector of int.
      *
-     * @copydetails get_info_string( std::string const& )
+     * @copydetails VcfRecord::get_info_string( std::string const& ) const
      */
     std::vector<int32_t> get_info_int( std::string const& id ) const;
 
@@ -477,7 +477,7 @@ public:
      * If the @p destination vector is re-used between calles for different records,
      * this is the faster variant that saves on memory allocations.
      *
-     * @copydetails get_info_string( std::string const& )
+     * @copydetails VcfRecord::get_info_string( std::string const& ) const
      */
     void get_info_int( std::string const& id, std::vector<int32_t>& destination ) const;
 
