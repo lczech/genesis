@@ -126,21 +126,62 @@ public:
      */
     struct Entry
     {
+        /**
+         * @brief Contructor that takes @p data by reference.
+         */
         Entry( size_t index, size_t position, Data const& data )
             : index(index)
             , position(position)
             , data(data)
         {}
 
+        /**
+         * @brief Contructor that takes @p data by r-value reference; preferred if possible to use.
+         */
         Entry( size_t index, size_t position, Data&& data )
             : index(index)
             , position(position)
             , data(std::move( data ))
         {}
 
+        /**
+         * @brief Implicit conversion to `Data&` type.
+         *
+         * Useful to plug in a Window into some function expecting a range of Data objects.
+         */
+        operator Data&()
+        {
+            return data;
+        }
+
+
+        /**
+         * @brief Implicit conversion to `Data const&` type.
+         *
+         * Useful to plug in a Window into some function expecting a range of Data objects.
+         */
+        operator Data const&() const
+        {
+            return data;
+        }
+
+        /**
+         * @brief Index of the entry, that is, how many other entries have there been in total.
+         */
         size_t index;
+
+        /**
+         * @brief Genomic position of the entry along a chromosome.
+         *
+         * For the actual chromosome, we need to call Window::chromsome(), because for storage and
+         * speed reasons, we do not store the chromosome name with every entry.
+         */
         size_t position;
-        Data   data;
+
+        /**
+         * @brief Data stored in the Window for this entry.
+         */
+        Data data;
     };
 
     using self_type       = Window<Data, Accumulator>;
