@@ -165,7 +165,7 @@ public:
     FilterIterator& operator+=( difference_type n )
     {
         // Call advance for n many times, but check for premature ending.
-        for( size_t i = 0; i < n; ++i ) {
+        for( difference_type i = 0; i < n; ++i ) {
             advance_();
             if( current_ == end_ ) {
                 break;
