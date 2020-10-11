@@ -85,6 +85,7 @@
 #include "genesis/utils/formats/xml/document.hpp"
 #include "genesis/utils/formats/xml/helper.hpp"
 #include "genesis/utils/formats/xml/writer.hpp"
+#include "genesis/utils/io/base64.hpp"
 #include "genesis/utils/io/base_input_source.hpp"
 #include "genesis/utils/io/base_output_target.hpp"
 #include "genesis/utils/io/char.hpp"
