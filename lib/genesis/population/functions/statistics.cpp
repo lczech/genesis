@@ -30,10 +30,15 @@
 
 #include "genesis/population/functions/statistics.hpp"
 
+#include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/simple_cache.hpp"
 #include "genesis/utils/math/common.hpp"
+#include "genesis/utils/core/logging.hpp"
 
+#include <cassert>
+#include <cmath>
 #include <stdexcept>
+#include <unordered_map>
 
 namespace genesis {
 namespace population {
@@ -45,7 +50,7 @@ namespace population {
 /**
  * @brief Local helper function to compute values for the denominator.
  */
-static double amnm_( // get_aMnm_buffer
+double amnm_( // get_aMnm_buffer
     size_t poolsize,         // n
     size_t nucleotide_count, // M (coverage)
     size_t allele_frequency  // m, m_it (running variable for b .. M-b)
@@ -60,20 +65,20 @@ static double amnm_( // get_aMnm_buffer
     // using the r from the below loop (which confusingly is also called k in PoPoolation).
     // What a mess.
 
-    double result = 0.0;
-    for( size_t r = 1; r <= poolsize - 1; ++r ) {
-        double const p = static_cast<double>( r ) / static_cast<double>( poolsize );
-        double const binom = utils::binomial_distribution( allele_frequency, nucleotide_count, p );
-        result += binom / static_cast<double>( r );
-    }
-    return result;
-}
+    static genesis::utils::SimpleCache<double, size_t, size_t, size_t> amnm_cache_{ [](
+        size_t poolsize, size_t nucleotide_count, size_t allele_frequency
+    ) {
+        double result = 0.0;
+        for( size_t r = 1; r <= poolsize - 1; ++r ) {
+            double const p = static_cast<double>( r ) / static_cast<double>( poolsize );
+            double const binom = utils::binomial_distribution( allele_frequency, nucleotide_count, p );
+            result += binom / static_cast<double>( r );
+        }
+        return result;
+    }};
 
-/**
- * @brief Cache for the above function. Can be called as if it was the function itself.
- */
-static genesis::utils::SimpleCache<double, size_t, size_t, size_t>
-amnm_cache_{ amnm_ };
+    return amnm_cache_( poolsize, nucleotide_count, allele_frequency );
+}
 
 // =================================================================================================
 //     Diversity Estimates
@@ -95,72 +100,313 @@ double heterozygosity( PoolSample const& sample )
 //     Theta Pi
 // =================================================================================================
 
-/**
- * @brief Local function for computing the theta pi denominator.
- *
- * We relay the computation to this local function, so that we can use a cache, see below.
- */
-static double theta_pi_pool_denominator_( // get_pidiv_buffer
-    size_t poolsize,         // n
-    size_t min_allele_count, // b
-    size_t nucleotide_count  // M
-) {
-    // Boundary: if not held, we return zero, and that would not be a useful denominator.
-    if( 2 * min_allele_count > nucleotide_count ) {
-        throw std::invalid_argument(
-            "Cannot compute theta_pi_pool_denominator with min_allele_count = " +
-            std::to_string( min_allele_count ) + " and nucleotide_count = " +
-            std::to_string( nucleotide_count )
-        );
-    }
-
-    // Iterate all allele frequencies in between the min and max-min boundaries.
-    double div = 0.0;
-    for( size_t m_it = min_allele_count; m_it <= ( nucleotide_count - min_allele_count ); ++m_it ) {
-        // We iterate from b to M-b (in PoPoolation terminology), inclusively.
-        // Use double values however for the computations.
-        double const m = static_cast<double>( m_it );
-        double const M = static_cast<double>( nucleotide_count );
-
-        // Compute the term. We here use the cache, which also computes results if not yet cached.
-        double term = ( 2.0 * m * ( M - m )) / ( M * ( M - 1.0 ));
-        div += term * amnm_cache_( poolsize, nucleotide_count, m_it );
-    }
-    return div;
-}
-
-/**
- * @brief Cache for the above function. Can be called as if it was the function itself.
- */
-static genesis::utils::SimpleCache<double, size_t, size_t, size_t>
-theta_pi_pool_denominator_cache_{ theta_pi_pool_denominator_ };
-
 double theta_pi_pool_denominator(
     size_t poolsize,         // n
     size_t min_allele_count, // b
     size_t nucleotide_count  // M
 ) {
+    // Local cache for speed.
+    static genesis::utils::SimpleCache<double, size_t, size_t, size_t> denom_cache_{ [](
+        size_t poolsize, size_t min_allele_count, size_t nucleotide_count
+    ){
+        // Boundary: if not held, we'd return zero, and that would not be a useful denominator.
+        if( 2 * min_allele_count > nucleotide_count ) {
+            throw std::invalid_argument(
+                "Cannot compute theta_pi_pool_denominator with min_allele_count = " +
+                std::to_string( min_allele_count ) + " and nucleotide_count = " +
+                std::to_string( nucleotide_count )
+            );
+        }
+
+        // Iterate all allele frequencies in between the min and max-min boundaries.
+        double div = 0.0;
+        for( size_t m_it = min_allele_count; m_it <= ( nucleotide_count - min_allele_count ); ++m_it ) {
+            // We iterate from b to M-b (in PoPoolation terminology), inclusively.
+            // Use double values however for the computations.
+            double const m = static_cast<double>( m_it );
+            double const M = static_cast<double>( nucleotide_count );
+
+            // Compute the term. We here use the cache, which also computes results if not yet cached.
+            double term = ( 2.0 * m * ( M - m )) / ( M * ( M - 1.0 ));
+            div += term * amnm_( poolsize, nucleotide_count, m_it );
+        }
+        return div;
+    }};
+
     // Simply return the cached value (which computes them first if not yet cached).
-    return theta_pi_pool_denominator_cache_( poolsize, min_allele_count, nucleotide_count );
+    return denom_cache_( poolsize, min_allele_count, nucleotide_count );
 }
 
 // =================================================================================================
-//     Cache Access
+//     Theta Watterson
 // =================================================================================================
 
-#ifdef DEBUG
+double theta_watterson_pool_denominator(
+    size_t poolsize,         // n
+    size_t min_allele_count, // b
+    size_t nucleotide_count  // M
+) {
+    // Local cache for speed.
+    static genesis::utils::SimpleCache<double, size_t, size_t, size_t> denom_cache_{ [](
+        size_t poolsize, size_t min_allele_count, size_t nucleotide_count
+    ){
+        // Boundary: if not held, we'd return zero, and that would not be a useful denominator.
+        if( 2 * min_allele_count > nucleotide_count ) {
+            throw std::invalid_argument(
+                "Cannot compute theta_watterson_pool_denominator_ with min_allele_count = " +
+                std::to_string( min_allele_count ) + " and nucleotide_count = " +
+                std::to_string( nucleotide_count )
+            );
+        }
 
-genesis::utils::SimpleCache<double, size_t, size_t, size_t>& amnm_cache()
-{
-    return amnm_cache_;
+        // Iterate all allele frequencies in between the min and max-min boundaries.
+        double div = 0.0;
+        for( size_t m_it = min_allele_count; m_it <= ( nucleotide_count - min_allele_count ); ++m_it ) {
+
+            // Compute the term. We here use the cache, which also computes results if not yet cached.
+            div += amnm_( poolsize, nucleotide_count, m_it );
+        }
+        return div;
+    }};
+
+    // Simply return the cached value (which computes them first if not yet cached).
+    return denom_cache_( poolsize, min_allele_count, nucleotide_count );
 }
 
-genesis::utils::SimpleCache<double, size_t, size_t, size_t>& theta_pi_pool_denominator_cache()
+// =================================================================================================
+//     Tajima's D Local Helpers
+// =================================================================================================
+
+double a_n( size_t n ) // get_an_buffer
 {
-    return theta_pi_pool_denominator_cache_;
+    // Local cache for speed.
+    static genesis::utils::SimpleCache<double, size_t> a_n_cache_{ []( size_t n ){
+        double sum = 0.0;
+        for( size_t i = 1; i < n; ++i ) {
+            sum += 1.0 / static_cast<double>( i );
+        }
+        return sum;
+    }};
+    return a_n_cache_( n );
 }
 
-#endif // DEBUG
+double b_n( size_t n ) // get_bn_buffer
+{
+    // Local cache for speed.
+    static genesis::utils::SimpleCache<double, size_t> b_n_cache_{ []( size_t n ){
+        double sum = 0.0;
+        for( size_t i = 1; i < n; ++i ) {
+            sum += 1.0 / ( static_cast<double>( i ) * static_cast<double>( i ));
+        }
+        return sum;
+    }};
+    return b_n_cache_( n );
+}
+
+double f_star( double a_n, double n ) // calculate_fstar
+{
+    double const nd = static_cast<double>( n );
+    return ( nd - 3.0 ) / ( a_n * ( nd - 1.0 ) - nd );
+}
+
+double alpha_star( double n ) // get_alphastar_calculator
+{
+    if( n <= 1 ) {
+        throw std::invalid_argument( "Cannot compute alpha star with effective coverage n <= 1" );
+    }
+
+    // Local cache for speed.
+    static genesis::utils::SimpleCache<double, double> alpha_star_cache_{ []( double n ){
+        using namespace genesis::utils;
+
+        // Prepare some constants: n as double, a_n, and f_star.
+        double const nd = static_cast<double>( n );
+        double const an = a_n( n );
+        double const fs = f_star( an, n );
+
+        // Calculate individual terms (t) and subterms (ts).
+        auto const t1 = squared( fs ) * ( an - ( nd / ( nd - 1.0 )));
+        auto const t2s1 = an * (( 4.0 * ( nd + 1.0 )) / squared( nd - 1.0 ));
+        auto const t2s2 = 2.0 * (( nd + 3.0 ) / ( nd - 1.0 ));
+        auto const t2 = fs * ( t2s1 - t2s2 );
+        auto const t3 = an * (( 8.0 * ( nd + 1.0 )) / ( nd * squared( nd - 1.0 )));
+        auto const t4 = ( squared( nd ) + nd + 60.0 ) / ( 3.0 * nd * ( nd - 1.0 ));
+        return t1 + t2 - t3 + t4;
+    }};
+
+    return alpha_star_cache_( n );
+}
+
+double beta_star( double n ) // get_betastar_calculator
+{
+    if( n <= 1 ) {
+        throw std::invalid_argument( "Cannot compute beta star with effective coverage n <= 1" );
+    }
+
+    // Local cache for speed.
+    static genesis::utils::SimpleCache<double, double> beta_star_cache_{ []( double n ){
+        using namespace genesis::utils;
+
+        // Prepare some constants: n as double, a_n, b_n, and f_star.
+        double const nd = static_cast<double>( n );
+        double const an = a_n( n );
+        double const bn = b_n( n );
+        double const fs = f_star( an, n );
+
+        // Calculate individual terms (t) and subterms (ts).
+        auto const t1 = squared( fs ) * ( bn - (( 2.0 * ( nd - 1.0 )) / squared( nd - 1.0 )));
+        auto const t2s1 = bn * ( 8.0 / ( nd - 1.0 ));
+        auto const t2s2 = an * ( 4.0 / ( nd * ( nd - 1.0 )));
+        auto const t2s3n = cubed( nd ) + 12.0 * squared( nd ) - 35.0 * nd + 18.0;
+        auto const t2s3d = nd * squared( nd - 1.0 );
+        auto const t2s3 = t2s3n / t2s3d;
+        auto const t2 = fs * ( t2s1 - t2s2 - t2s3 );
+        auto const t3 = bn * ( 16.0 / ( nd * ( nd - 1.0 )));
+        auto const t4 = an * ( 8.0 / ( squared( nd ) * ( nd - 1.0 )));
+        auto const t5s1 = 2.0 * ( std::pow( nd, 4 ) + 110.0 * squared( nd ) - 255.0 * nd + 126.0 );
+        auto const t5s2 = 9.0 * ( squared( nd ) * squared( nd - 1.0 ));
+        auto const t5 = t5s1 / t5s2;
+        return t1 + t2 - t3 + t4 + t5;
+    }};
+
+    return beta_star_cache_( n );
+}
+
+genesis::utils::Matrix<double> pij_matrix_( // _get_pij_matrix
+    size_t max_coverage, size_t poolsize
+) {
+    // Prepare a matrix with the needed dimensions. PoPoolation only computes this matrix
+    // for min( max_coverage, poolsize ) many columns, but we go all the way and compute
+    // all that is needed. Just seems cleaner. Also it avoids a bug that PoPoolation might have there.
+    // auto const max_width = max_coverage < poolsize ? max_coverage : poolsize;
+    auto const max_width = poolsize;
+    auto result = genesis::utils::Matrix<double>( max_coverage + 1, max_width + 1 );
+
+    // Prepare double conversion constants.
+    double const poold = static_cast<double>( poolsize );
+
+    // Init first row and column, and top left element.
+    result( 0, 0 ) = 1.0;
+    for( size_t i = 1; i < max_coverage + 1; ++i ) {
+        result( i, 0 ) = 0.0;
+    }
+    for( size_t j = 1; j < max_width + 1; ++j ) {
+        result( 0, j ) = 0.0;
+    }
+
+    // Compute the remaining entries.
+    for( size_t i = 1; i < max_coverage + 1; ++i ) {
+        for( size_t j = 1; j < max_width + 1; ++j ) {
+            auto const t1s1 = (( 1.0 + poold - static_cast<double>( j )) / poold );
+            auto const t1s2 = result( i - 1, j - 1 );
+            auto const t2 = ( static_cast<double>( j ) / poold ) * result( i-1, j );
+            result( i, j ) = t1s1 * t1s2 + t2;
+        }
+    }
+    return result;
+}
+
+genesis::utils::Matrix<double> const& pij_matrix_resolver_( // get_nbase_matrix_resolver
+    size_t max_coverage, size_t poolsize
+) {
+    // Here, we need to cache only by poolsize, but additionally make sure that fore a given
+    // poolsize, the matrix is large enough for max_coverage/
+    // If it already is, we can just return it. If not, we compute a large enough matrix first.
+    // We could re-use data from the smaller matrix for the computation here, but that would
+    // be more complex. In terms of runtime, this amortizes pretty quickly, so probably no
+    // need to do this optimization as of now.
+    // We could modify SimpleCache to allow overwriting cached values from the outside,
+    // but that somehow seems unclean for all other standard use cases. Hence, simple map here.
+
+    using PijMatrix = genesis::utils::Matrix<double>;
+    static std::unordered_map<size_t, PijMatrix> pij_matrix_cache_;
+
+    if(
+        pij_matrix_cache_.count( poolsize ) == 0 ||
+        max_coverage >= pij_matrix_cache_.at( poolsize ).rows() ||
+        poolsize + 1 != pij_matrix_cache_.at( poolsize ).cols()
+    ) {
+        // Get a bit of leeway to reduce recomputation.
+        pij_matrix_cache_[ poolsize ] = pij_matrix_( 3 * max_coverage, poolsize );
+    }
+
+    assert( pij_matrix_cache_.count( poolsize ) > 0 );
+    assert( max_coverage <= pij_matrix_cache_.at( poolsize ).rows() );
+    assert( poolsize     <= pij_matrix_cache_.at( poolsize ).cols() );
+    return pij_matrix_cache_[ poolsize ];
+}
+
+double n_base_matrix( size_t coverage, size_t poolsize ) // get_nbase_buffer
+{
+    // Shortcut? Boundary check? PoPoolation is not clear on this...
+    // Also, might not be needed at all. Who knows. Not me.
+    // News: apparently, not needed, as we cover that case below by flipping roles of the variables.
+    // Not sure why. But let's do as PoPoolation does!
+    // if( poolsize <= coverage ) {
+    //     throw std::invalid_argument(
+    //         "Cannot compute nbase with poolsize == " + std::to_string( poolsize ) +
+    //         " <= coverage == " + std::to_string( coverage )
+    //     );
+    // }
+
+    // Local cache for speed.
+    static genesis::utils::SimpleCache<double, size_t, size_t> nbase_cache_{ [](
+        size_t coverage, size_t poolsize
+    ) {
+
+        // Get the matrix, cached and by reference, to optimize the access.
+        auto const& pij_matrix = pij_matrix_resolver_( coverage, poolsize );
+
+        double nbase = 0.0;
+        auto const minj = ( coverage < poolsize ) ? coverage : poolsize;
+        for( size_t k = 1; k <= minj; ++k ) {
+            assert( coverage < pij_matrix.rows() );
+            assert( k < pij_matrix.cols() );
+            nbase += static_cast<double>( k ) * pij_matrix( coverage, k );
+        }
+        return nbase;
+    }};
+
+    return nbase_cache_( coverage, poolsize );
+}
+
+double n_base( size_t coverage, size_t poolsize ) // get_nbase_buffer, but better
+{
+    // TODO need to show that this is equivalent to the above
+    double const p = static_cast<double>( coverage );
+    double const n = static_cast<double>( poolsize );
+    return n * ( 1.0 - std::pow(( n - 1.0 ) / n, p ));
+}
+
+// =================================================================================================
+//     Tajima's D
+// =================================================================================================
+
+double tajima_d_pool_denominator( // get_ddivisor
+    size_t poolsize,         // n
+    size_t min_coverage,     // mincoverage = min_allele_count? b? TODO
+    size_t snp_count,
+    double theta
+) {
+    using namespace genesis::utils;
+
+    // TODO The average of n seems to be calcualted as the expected value of picking distinct
+    // individuals from a pool. This values is however not an integer. But the aplpha star and
+    // beta star computations assume integers. Not sure what to make of this...
+
+    // auto const avg_n = n_base( min_coverage, poolsize );
+    auto const avg_n = n_base( poolsize, poolsize );
+    // auto const avg_n = n_base_matrix( poolsize, poolsize );
+    (void) min_coverage;
+
+    // auto const alphastar = static_cast<double>( alpha_star( avg_n ));
+    auto const alphastar = static_cast<double>( beta_star( avg_n ));
+    auto const betastar  = static_cast<double>( beta_star(  avg_n ));
+
+    return std::sqrt(
+        ( alphastar / static_cast<double>( snp_count )) * theta + betastar * squared( theta )
+    );
+}
 
 } // namespace population
 } // namespace genesis
