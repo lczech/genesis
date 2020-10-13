@@ -184,10 +184,10 @@ public:
     SimplePileupReader() = default;
     ~SimplePileupReader() = default;
 
-    SimplePileupReader( self_type const& ) = delete;
+    SimplePileupReader( self_type const& ) = default;
     SimplePileupReader( self_type&& )      = default;
 
-    self_type& operator= ( self_type const& ) = delete;
+    self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
 
     // ---------------------------------------------------------------------
