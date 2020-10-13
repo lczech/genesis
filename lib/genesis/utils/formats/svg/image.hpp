@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,6 +53,26 @@ public:
     // -------------------------------------------------------------
 
     using self_type = SvgImage;
+
+    /**
+     * @brief Rendering modes for SVG embedded images.
+     *
+     * Note that not all are supported by all viewers. Experimentation for the desired output
+     * format/medium/viewer/editor is needed here, unfortunately.
+     */
+    enum class ImageRendering
+    {
+        kNone,
+        kAuto,
+        kOptimizeSpeed,
+        kOptimizeQuality,
+        kSmooth,
+        kCrispEdges,
+        kPixelated,
+        kInherit,
+        kInitial,
+        kUnset
+    };
 
     // -------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -110,7 +130,8 @@ public:
     SvgPoint     position;
     SvgSize      size;
 
-    SvgTransform transform;
+    SvgTransform   transform;
+    ImageRendering rendering = ImageRendering::kNone;
 
 };
 
