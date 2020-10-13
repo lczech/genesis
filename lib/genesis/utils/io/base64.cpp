@@ -30,6 +30,8 @@
 
 #include "genesis/utils/io/base64.hpp"
 
+#include "genesis/utils/io/char.hpp"
+
 #include <cassert>
 #include <stdexcept>
 
@@ -47,11 +49,29 @@ static const char base64_encode_lookup_[] =
 static const char base64_pad_char_ = '=';
 
 template<class T>
-std::string base64_encode_( T const& input )
+std::string base64_encode_( T const& input, size_t line_length )
 {
     // Init and reserve space for result
     std::string encoded;
-    encoded.reserve((( input.size() / 3 ) + ( input.size() % 3 > 0 )) * 4 );
+    size_t char_res = (( input.size() / 3 ) + ( input.size() % 3 > 0 )) * 4;
+    if( line_length > 0 ) {
+        char_res += char_res / line_length;
+    }
+    encoded.reserve( char_res );
+
+    // We use a lambda to simplify putting chars, counting them, and wrapping lines as neccessary.
+    size_t out_cnt = 0;
+    auto put_char = [&]( char c ){
+        // Put the char
+        assert( encoded.size() + 1 <= encoded.capacity() );
+        encoded.append( 1, c );
+
+        // Line wrapping as needed
+        ++out_cnt;
+        if( line_length > 0 && out_cnt % line_length == 0 ) {
+            encoded.append( 1, '\n' );
+        }
+    };
 
     // Process main part of the input
     std::uint32_t temp = 0;
@@ -63,65 +83,79 @@ std::string base64_encode_( T const& input )
         temp += ( *it++ );
 
         // Add to output
-        encoded.append( 1, base64_encode_lookup_[( temp & 0x00FC0000 ) >> 18 ]);
-        encoded.append( 1, base64_encode_lookup_[( temp & 0x0003F000 ) >> 12 ]);
-        encoded.append( 1, base64_encode_lookup_[( temp & 0x00000FC0 ) >> 6  ]);
-        encoded.append( 1, base64_encode_lookup_[( temp & 0x0000003F )       ]);
+        put_char( base64_encode_lookup_[( temp & 0x00FC0000 ) >> 18 ]);
+        put_char( base64_encode_lookup_[( temp & 0x0003F000 ) >> 12 ]);
+        put_char( base64_encode_lookup_[( temp & 0x00000FC0 ) >> 6  ]);
+        put_char( base64_encode_lookup_[( temp & 0x0000003F )       ]);
     }
 
     // Process remaining part and add padding
     switch( input.size() % 3 ) {
-        case 1: {
-            // Convert to big endian
-            temp = (*it++) << 16;
-
-            // Add to output
-            encoded.append( 1, base64_encode_lookup_[( temp & 0x00FC0000 ) >> 18 ]);
-            encoded.append( 1, base64_encode_lookup_[( temp & 0x0003F000 ) >> 12 ]);
-            encoded.append( 2, base64_pad_char_);
-            break;
-        }
         case 2: {
             // Convert to big endian
             temp  = ( *it++ ) << 16;
             temp += ( *it++ ) << 8;
 
             // Add to output
-            encoded.append( 1, base64_encode_lookup_[( temp & 0x00FC0000 ) >> 18 ]);
-            encoded.append( 1, base64_encode_lookup_[( temp & 0x0003F000 ) >> 12 ]);
-            encoded.append( 1, base64_encode_lookup_[( temp & 0x00000FC0 ) >> 6  ]);
-            encoded.append( 1, base64_pad_char_);
+            put_char( base64_encode_lookup_[( temp & 0x00FC0000 ) >> 18 ]);
+            put_char( base64_encode_lookup_[( temp & 0x0003F000 ) >> 12 ]);
+            put_char( base64_encode_lookup_[( temp & 0x00000FC0 ) >> 6  ]);
+            put_char( base64_pad_char_);
+            break;
+        }
+        case 1: {
+            // Convert to big endian
+            temp = (*it++) << 16;
+
+            // Add to output
+            put_char( base64_encode_lookup_[( temp & 0x00FC0000 ) >> 18 ]);
+            put_char( base64_encode_lookup_[( temp & 0x0003F000 ) >> 12 ]);
+            put_char( base64_pad_char_);
+            put_char( base64_pad_char_);
             break;
         }
     }
 
+    // If our initial reservation was correct, we have reached exactly capacity.
+    assert( encoded.size() == encoded.capacity() );
     return encoded;
 }
 
 template<class T>
 T base64_decode_( std::string const& input )
 {
-    // Edge and error cases.
+    // Edge case.
     if( input.size() == 0 ) {
         return T{};
     }
-    if( input.size() % 4 ) {
+
+    // Here, we are lazy (for now) and count the number of actual (non-new-line) chars directly.
+    // This is fast enough for now. If this ever becomes a bottleneck, we shoudl refactor and
+    // only loop once instead. On the other hand, that would prohibit properly reserving the
+    // needed output space... Tradeoffs. But does not matter too much now. We just count first.
+    size_t char_cnt = 0;
+    for( auto c : input ) {
+        // Use a non-branching counter to be as fast as possible.
+        static_assert( (int)true == 1 && (int)false == 0, "Boolean counting does not work." );
+        char_cnt += ! utils::is_space( c );
+    }
+    if( char_cnt % 4 ) {
         throw std::runtime_error( "Invalid base64 length that is not a multiple of 4");
     }
 
     // Get padding
     std::size_t padding = 0;
-    assert( input.size() >= 4 );
-    if( input[ input.size() - 1 ] == base64_pad_char_ ) {
+    assert( char_cnt >= 4 );
+    if( input[ char_cnt - 1 ] == base64_pad_char_ ) {
         ++padding;
     }
-    if( input[ input.size() - 2 ] == base64_pad_char_ ) {
+    if( input[ char_cnt - 2 ] == base64_pad_char_ ) {
         ++padding;
     }
 
     // Init and reserve space for result
     T decoded;
-    decoded.reserve( (( input.size() / 4 ) * 3 ) - padding );
+    decoded.reserve( (( char_cnt / 4 ) * 3 ) - padding );
 
     // Hold decoded quanta
     std::uint32_t temp = 0;
@@ -135,7 +169,16 @@ T base64_decode_( std::string const& input )
     // Process the input
     auto it = input.begin();
     while( it < input.end() ) {
+
+        // Each set of 4 (non-new-line) chars makes up 3 bytes of data.
         for( std::size_t i = 0; i < 4; ++i ) {
+
+            // Skip new lines.
+            while( utils::is_space( *it )) {
+                ++it;
+            }
+
+            // Process the current char
             temp <<= 6;
             if ( *it >= 0x41 && *it <= 0x5A ) {
                 temp |= *it - 0x41;
@@ -151,12 +194,14 @@ T base64_decode_( std::string const& input )
                 switch( input.end() - it ) {
                     case 1: {
                         //One pad character
+                        assert( decoded.size() + 2 <= decoded.capacity() );
                         decoded.push_back(( temp >> 16 ) & 0x000000FF );
                         decoded.push_back(( temp >> 8  ) & 0x000000FF );
                         return decoded;
                     }
                     case 2: {
                         //Two pad characters
+                        assert( decoded.size() + 1 <= decoded.capacity() );
                         decoded.push_back(( temp >> 10 ) & 0x000000FF );
                         return decoded;
                     }
@@ -171,11 +216,14 @@ T base64_decode_( std::string const& input )
             ++it;
         }
 
+        assert( decoded.size() + 3 <= decoded.capacity() );
         decoded.push_back(( temp >> 16 ) & 0x000000FF );
         decoded.push_back(( temp >> 8  ) & 0x000000FF );
         decoded.push_back(( temp       ) & 0x000000FF );
     }
 
+    // If our initial reservation was correct, we have reached exactly capacity.
+    assert( decoded.size() == decoded.capacity() );
     return decoded;
 }
 
@@ -183,14 +231,14 @@ T base64_decode_( std::string const& input )
 //     Base 64 Container Conversion
 // =================================================================================================
 
-std::string base64_encode( std::vector<std::uint8_t> const& input )
+std::string base64_encode( std::vector<std::uint8_t> const& input, size_t line_length )
 {
-    return base64_encode_( input );
+    return base64_encode_( input, line_length );
 }
 
-std::string base64_encode( std::string const& input )
+std::string base64_encode( std::string const& input, size_t line_length )
 {
-    return base64_encode_( input );
+    return base64_encode_( input, line_length );
 }
 
 std::vector<std::uint8_t> base64_decode_uint8( std::string const& input )
