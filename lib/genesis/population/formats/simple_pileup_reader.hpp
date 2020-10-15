@@ -31,22 +31,14 @@
  * @ingroup population
  */
 
-#include "genesis/utils/io/input_source.hpp"
 #include "genesis/sequence/functions/quality.hpp"
+#include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/io/input_stream.hpp"
 
 #include <string>
 #include <vector>
 
 namespace genesis {
-
-// =================================================================================================
-//     Forward Declarations
-// =================================================================================================
-
-namespace utils {
-    class InputStream;
-}
-
 namespace population {
 
 // =================================================================================================

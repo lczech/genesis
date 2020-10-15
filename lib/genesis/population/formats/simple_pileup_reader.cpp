@@ -32,7 +32,6 @@
 
 #include "genesis/sequence/functions/codes.hpp"
 #include "genesis/utils/io/char.hpp"
-#include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
 
