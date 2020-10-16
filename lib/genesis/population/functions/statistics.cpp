@@ -101,10 +101,14 @@ double heterozygosity( PoolSample const& sample )
 // =================================================================================================
 
 double theta_pi_pool_denominator(
-    size_t poolsize,         // n
-    size_t min_allele_count, // b
+    PoolDiversitySettings const& settings,
     size_t nucleotide_count  // M
 ) {
+    // PoPoolation variable names:
+    // poolsize:         n
+    // min_allele_count: b
+    // nucleotide_count: M
+
     // Local cache for speed.
     static genesis::utils::SimpleCache<double, size_t, size_t, size_t> denom_cache_{ [](
         size_t poolsize, size_t min_allele_count, size_t nucleotide_count
@@ -134,7 +138,7 @@ double theta_pi_pool_denominator(
     }};
 
     // Simply return the cached value (which computes them first if not yet cached).
-    return denom_cache_( poolsize, min_allele_count, nucleotide_count );
+    return denom_cache_( settings.poolsize, settings.min_allele_count, nucleotide_count );
 }
 
 // =================================================================================================
@@ -142,10 +146,14 @@ double theta_pi_pool_denominator(
 // =================================================================================================
 
 double theta_watterson_pool_denominator(
-    size_t poolsize,         // n
-    size_t min_allele_count, // b
+    PoolDiversitySettings const& settings,
     size_t nucleotide_count  // M
 ) {
+    // PoPoolation variable names:
+    // poolsize:         n
+    // min_allele_count: b
+    // nucleotide_count: M
+
     // Local cache for speed.
     static genesis::utils::SimpleCache<double, size_t, size_t, size_t> denom_cache_{ [](
         size_t poolsize, size_t min_allele_count, size_t nucleotide_count
@@ -170,7 +178,7 @@ double theta_watterson_pool_denominator(
     }};
 
     // Simply return the cached value (which computes them first if not yet cached).
-    return denom_cache_( poolsize, min_allele_count, nucleotide_count );
+    return denom_cache_( settings.poolsize, settings.min_allele_count, nucleotide_count );
 }
 
 // =================================================================================================
@@ -326,7 +334,8 @@ genesis::utils::Matrix<double> const& pij_matrix_resolver_( // get_nbase_matrix_
         max_coverage >= pij_matrix_cache_.at( poolsize ).rows() ||
         poolsize + 1 != pij_matrix_cache_.at( poolsize ).cols()
     ) {
-        // Get a bit of leeway to reduce recomputation.
+        // Get a bit of leeway to reduce recomputation. Or maybe this is about the approximation
+        // that PoPollation does. Not sure. We just copied their approach here...
         pij_matrix_cache_[ poolsize ] = pij_matrix_( 3 * max_coverage, poolsize );
     }
 
@@ -372,7 +381,14 @@ double n_base_matrix( size_t coverage, size_t poolsize ) // get_nbase_buffer
 
 double n_base( size_t coverage, size_t poolsize ) // get_nbase_buffer, but better
 {
-    // TODO need to show that this is equivalent to the above
+    // The following simple closed form is equivalent to the way more complicated equation given
+    // in that hidden PoPoolation auxiliary equations document. See
+    // https://math.stackexchange.com/questions/72223/finding-expected-number-of-distinct-values-selected-from-a-set-of-integers
+    // for the proof. At the time of writing this, we are however still lacking the proof that
+    // the PoPoolation equation and the PoPoolation implementation are equivalent - thei never
+    // show that, and instead just use their recursive dynamic programming approach (which we
+    // re-implemented above) without ever showing (to the best of our knowledge) that this is
+    // the same as the given equation.
     double const p = static_cast<double>( coverage );
     double const n = static_cast<double>( poolsize );
     return n * ( 1.0 - std::pow(( n - 1.0 ) / n, p ));
@@ -383,25 +399,51 @@ double n_base( size_t coverage, size_t poolsize ) // get_nbase_buffer, but bette
 // =================================================================================================
 
 double tajima_d_pool_denominator( // get_ddivisor
-    size_t poolsize,         // n
-    size_t min_coverage,     // mincoverage = min_allele_count? b? TODO
+    PoolDiversitySettings const& settings,
     size_t snp_count,
     double theta
 ) {
+    // PoPoolation variable names:
+    // poolsize:         n
+    // min_allele_count: b
+    // nucleotide_count: M
+
     using namespace genesis::utils;
 
+    // Edge cases.
+    if( settings.min_allele_count != 2 ) {
+        throw std::invalid_argument(
+            "Minimum allele count needs to be set to 2 for calculating pool-corrected Tajima's D "
+            "with tajima_d_pool(). In case 2 is insufficient, we recommend to subsample the reads "
+            "to a smaller coverage."
+        );
+    }
+    if( 3 * settings.min_coverage >= settings.poolsize ) {
+        throw std::invalid_argument(
+            "Invalid mincoverage >> poolsize (as internal aproximation we use: "
+            "3 * minimumcoverage < poolsize) in tajima_d_pool()"
+        );
+    }
+
     // TODO The average of n seems to be calcualted as the expected value of picking distinct
-    // individuals from a pool. This values is however not an integer. But the aplpha star and
+    // individuals from a pool. This value is however not an integer. But the alpha star and
     // beta star computations assume integers. Not sure what to make of this...
 
-    // auto const avg_n = n_base( min_coverage, poolsize );
-    auto const avg_n = n_base( poolsize, poolsize );
-    // auto const avg_n = n_base_matrix( poolsize, poolsize );
-    (void) min_coverage;
-
-    // auto const alphastar = static_cast<double>( alpha_star( avg_n ));
-    auto const alphastar = static_cast<double>( beta_star( avg_n ));
-    auto const betastar  = static_cast<double>( beta_star(  avg_n ));
+    // We here re-implement two bugs from PoPoolation that massively change the results.
+    // We do this in order to be able to ensure that these are the only differences between
+    // our code and PoPoolation. It is weird and freaky though to conciously implement bugs...
+    double avg_n;
+    double alphastar;
+    double betastar;
+    if( settings.with_popoolation_bugs ) {
+        avg_n = n_base( settings.poolsize, settings.poolsize );
+        alphastar = static_cast<double>( beta_star( avg_n ));
+        betastar  = alphastar;
+    } else {
+        avg_n = n_base( settings.min_coverage, settings.poolsize );
+        alphastar = static_cast<double>( alpha_star( avg_n ));
+        betastar  = static_cast<double>( beta_star( avg_n ));;
+    }
 
     return std::sqrt(
         ( alphastar / static_cast<double>( snp_count )) * theta + betastar * squared( theta )
