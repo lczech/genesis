@@ -45,8 +45,8 @@
 #include "genesis/population/functions/pool_sample.hpp"
 #include "genesis/population/pool_sample.hpp"
 #include "genesis/population/window/af_spectrum.hpp"
+#include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/vcf_window.hpp"
-#include "genesis/population/window/window_generator.hpp"
 #include "genesis/population/window/window.hpp"
 
 #endif // include guard

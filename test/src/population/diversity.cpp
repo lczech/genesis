@@ -33,7 +33,7 @@
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/functions/diversity.hpp"
-#include "genesis/population/window/window_generator.hpp"
+#include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"
 
 using namespace genesis::population;
@@ -127,7 +127,7 @@ TEST( Population, DiversityMeasures )
     // Prepare the window.
     size_t iteration_count = 0;
     size_t value_count = 0;
-    using WindowGen = WindowGenerator<PoolSample>;
+    using WindowGen = SlidingWindowGenerator<PoolSample>;
     WindowGen window_gen( WindowType::kInterval, settings.window_width, settings.window_stride );
     window_gen.anchor_type( WindowAnchorType::kIntervalMidpoint );
     window_gen.add_emission_plugin( [&]( WindowGen::Window const& window ) {

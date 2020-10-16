@@ -40,7 +40,7 @@
 
 #include "genesis/population/formats/vcf_input_iterator.hpp"
 #include "genesis/population/formats/vcf_record.hpp"
-#include "genesis/population/window/window_generator.hpp"
+#include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"
 
 namespace genesis {
@@ -59,8 +59,8 @@ namespace population {
  * using their lengths as provided in the VCF header.
  *
  * Before calling the function, of course, all necessary plugin functions have to be set in the
- * WindowGenerator instance, so that the data is processed as intended. In particular, take
- * care of setting WindowGenerator::emit_incomplete_windows() to the desired value.
+ * SlidingWindowGenerator instance, so that the data is processed as intended. In particular, take
+ * care of setting SlidingWindowGenerator::emit_incomplete_windows() to the desired value.
  *
  * Furthermore, the function offers a @p condition function that can be used to skip records
  * that do not fullfil a given condition. That is, if @p condition is used, it needs to return
@@ -68,7 +68,7 @@ namespace population {
  */
 template<class Data, class Accumulator = EmptyAccumulator>
 void run_vcf_window(
-    WindowGenerator<Data, Accumulator>& generator,
+    SlidingWindowGenerator<Data, Accumulator>& generator,
     std::string const& vcf_file,
     std::function<Data( VcfRecord const& )> conversion,
     std::function<bool( VcfRecord const& )> condition = {}

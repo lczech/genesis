@@ -36,7 +36,7 @@
 #include "genesis/population/formats/vcf_record.hpp"
 #include "genesis/population/window/af_spectrum.hpp"
 #include "genesis/population/window/window.hpp"
-#include "genesis/population/window/window_generator.hpp"
+#include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/vcf_window.hpp"
 
 #include <bitset>
@@ -74,7 +74,7 @@ VcfWindowResultsDP test_run_vcf_window_dp( std::string const& infile, size_t wid
 
     // Make a window that counts both DP values from the info and the format fields.
     using DPData = std::pair<size_t, size_t>;
-    using DPWindowGen = WindowGenerator<DPData>;
+    using DPWindowGen = SlidingWindowGenerator<DPData>;
     DPWindowGen window_gen( WindowType::kInterval, width, stride );
 
     window_gen.add_chromosome_start_plugin( [&]( std::string const& chromosome, DPWindowGen::Accumulator& accu )

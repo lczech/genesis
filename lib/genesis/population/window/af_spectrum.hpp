@@ -39,8 +39,8 @@
 #include <vector>
 
 #include "genesis/population/formats/vcf_record.hpp"
+#include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"
-#include "genesis/population/window/window_generator.hpp"
 
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/formats/svg/group.hpp"
@@ -150,7 +150,7 @@ private:
     size_t number_of_bins_;
     bool skip_invalid_records_ = true;
 
-    WindowGenerator<double> window_generator_;
+    SlidingWindowGenerator<double> window_generator_;
     std::vector<Spectrum> spectra_;
 
 };

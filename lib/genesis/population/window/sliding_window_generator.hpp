@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_WINDOW_WINDOW_GENERATOR_H_
-#define GENESIS_POPULATION_WINDOW_WINDOW_GENERATOR_H_
+#ifndef GENESIS_POPULATION_WINDOW_SLIDING_WINDOW_GENERATOR_H_
+#define GENESIS_POPULATION_WINDOW_SLIDING_WINDOW_GENERATOR_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -44,7 +44,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Genomic Window Generator
+//     Genomic Sliding Window Generator
 // =================================================================================================
 
 /**
@@ -52,11 +52,11 @@ namespace population {
  *
  * The class allows to accumulate and compute arbitrary data within a sliding window over
  * a genome. The basic setup is to provide a set of plugin functions that do the actual computation,
- * and then feed the data in via the enqueue() functions. The WindowGenerator class then takes care
+ * and then feed the data in via the enqueue() functions. The SlidingWindowGenerator class then takes care
  * of calling the respective plugin functions to compute values and emit results once a Window is
  * finished.
  *
- * To this end, the WindowGenerator takes care of collecting the data (whose type is given via
+ * To this end, the SlidingWindowGenerator takes care of collecting the data (whose type is given via
  * the template parameter `D`/`Data`) in a list of @link Window::Entry Entry@endlink instances per
  * Window. For each finished window, the on_emission plugin functions are called, which typically
  * are set by the user code to compute and store/print/visualize a per-window summary of the `Data`.
@@ -108,7 +108,7 @@ namespace population {
  *
  * Note:
  * The plugin functions are typically lambdas that might make use of other data from the calling code.
- * However, as this WindowGenerator class works conceptually similar to a stream, where new data is
+ * However, as this SlidingWindowGenerator class works conceptually similar to a stream, where new data is
  * enqueued in some form of loop or iterative process from the outside by the user, the class cannot
  * know when the process is finished, that is, when the end of the genome is reached.
  * Hence, either finish_chromosome() has to be called once all data has been processed, or it has
@@ -121,7 +121,7 @@ namespace population {
  * data.
  */
 template<class D, class A = EmptyAccumulator>
-class WindowGenerator
+class SlidingWindowGenerator
 {
 public:
 
@@ -134,7 +134,7 @@ public:
     using Window = ::genesis::population::Window<D, A>;
     using Entry = typename Window::Entry;
 
-    using self_type = WindowGenerator<Data, Accumulator>;
+    using self_type = SlidingWindowGenerator<Data, Accumulator>;
 
     /**
      * @brief Plugin functions that are called on the first enqueue() of a newly started chromosome.
@@ -227,28 +227,28 @@ public:
     //  * Not really important for usage, as this cannot do much. Typically, one nees a window width
     //  * and stride for doing any work. But having a default constructor comes in handy at times.
     //  */
-    // WindowGenerator() = default;
+    // SlidingWindowGenerator() = default;
 
     /**
-     * @brief Construct a WindowGenerator, given the WindowType and width, and potentially stride.
+     * @brief Construct a SlidingWindowGenerator, given the WindowType and width, and potentially stride.
      *
      * The @p width has to be `> 0`, and the @p stride has to be `<= width`.
      * If stride is not given (or set to `0`), it is set automatically to the width,
      * which means, we create windows that do not overlap.
      */
-    WindowGenerator( WindowType type, size_t width, size_t stride = 0 )
+    SlidingWindowGenerator( WindowType type, size_t width, size_t stride = 0 )
         : window_type_(type)
         , width_(width)
         , stride_(stride)
     {
         if( width == 0 ) {
-            throw std::runtime_error( "Cannot use WindowGenerator of width 0." );
+            throw std::runtime_error( "Cannot use SlidingWindowGenerator of width 0." );
         }
         if( stride == 0 ) {
             stride_ = width;
         }
         if( stride_ > width_ ) {
-            throw std::runtime_error( "Cannot use WindowGenerator with stride > width." );
+            throw std::runtime_error( "Cannot use SlidingWindowGenerator with stride > width." );
         }
     }
 
@@ -256,25 +256,25 @@ public:
      * @brief Destruct the instance.
      *
      * This typically has to be called before other data storage instances on the user side go out
-     * of scope. See the WindowGenerator class description note for details on why that is the case.
+     * of scope. See the SlidingWindowGenerator class description note for details on why that is the case.
      */
-    ~WindowGenerator()
+    ~SlidingWindowGenerator()
     {
         finish_chromosome();
     }
 
-    WindowGenerator( WindowGenerator const& ) = default;
-    WindowGenerator( WindowGenerator&& )      = default;
+    SlidingWindowGenerator( SlidingWindowGenerator const& ) = default;
+    SlidingWindowGenerator( SlidingWindowGenerator&& )      = default;
 
-    WindowGenerator& operator= ( WindowGenerator const& ) = default;
-    WindowGenerator& operator= ( WindowGenerator&& )      = default;
+    SlidingWindowGenerator& operator= ( SlidingWindowGenerator const& ) = default;
+    SlidingWindowGenerator& operator= ( SlidingWindowGenerator&& )      = default;
 
     // -------------------------------------------------------------------------
     //     Settings
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Get the non-mutable WindowType of this WindowGenerator.
+     * @brief Get the non-mutable WindowType of this SlidingWindowGenerator.
      */
     WindowType window_type() const
     {
@@ -282,7 +282,7 @@ public:
     }
 
     /**
-     * @brief Get the non-mutable width of this WindowGenerator.
+     * @brief Get the non-mutable width of this SlidingWindowGenerator.
      *
      * With WindowType::kInterval, this is the length of the interval, determining the first and
      * last position in each Window. With WindowType::kVariants instead, this is the number of
@@ -294,7 +294,7 @@ public:
     }
 
     /**
-     * @brief Get the non-mutable stride of this WindowGenerator.
+     * @brief Get the non-mutable stride of this SlidingWindowGenerator.
      *
      * With WindowType::kInterval, this is the shift towards the next interval, determining how the
      * first and last position in each Window change. With WindowType::kVariants instead, this is
@@ -363,7 +363,7 @@ public:
     /**
      * @brief Return whether the instance is empty.
      *
-     * The Window and WindowGenerator are empty if no Data has been enqueued for the current
+     * The Window and SlidingWindowGenerator are empty if no Data has been enqueued for the current
      * chromosome yet.
      */
     bool empty() const
@@ -552,7 +552,7 @@ public:
      * NB: This function is also called from the destructor, to ensure that all data is processed
      * properly. This also means that any calling code needs to make sure that all data that is
      * needed for emitting window data is still available when the window is destructed without
-     * having called this function first. See the WindowGenerator class description for details.
+     * having called this function first. See the SlidingWindowGenerator class description for details.
      */
     void finish_chromosome( size_t last_position = 0 )
     {
