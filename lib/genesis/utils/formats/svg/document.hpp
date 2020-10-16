@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #include "genesis/utils/formats/svg/definitions.hpp"
 #include "genesis/utils/formats/svg/gradient.hpp"
 #include "genesis/utils/formats/svg/object.hpp"
+#include "genesis/utils/tools/color.hpp"
 
 #include <iosfwd>
 #include <vector>
@@ -120,6 +121,7 @@ public:
     Overflow overflow = Overflow::kNone;
 
     std::vector< SvgDefinitions > defs;
+    Color background_color = Color( 1.0, 1.0, 1.0, 1.0 );
 
 private:
 
