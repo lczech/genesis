@@ -32,7 +32,7 @@
 
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
-#include "genesis/population/functions/statistics.hpp"
+#include "genesis/population/functions/diversity.hpp"
 #include "genesis/population/window/window_generator.hpp"
 #include "genesis/population/window/window.hpp"
 

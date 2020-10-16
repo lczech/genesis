@@ -28,7 +28,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/functions/statistics.hpp"
+#include "genesis/population/functions/diversity.hpp"
 
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/simple_cache.hpp"
