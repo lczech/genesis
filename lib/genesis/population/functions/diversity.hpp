@@ -187,6 +187,17 @@ double theta_pi_pool( // get_pi_calculator
     return pi_sum;
 }
 
+/**
+ * @brief Compute theta pi with pool-sequencing correction according to Kofler et al,
+ * for a single PoolSample, that is, its heterozygosity() divided by the correction denominator.
+ */
+inline double theta_pi_pool(
+    PoolDiversitySettings const& settings,
+    PoolSample const& sample
+) {
+    return heterozygosity( sample ) / theta_pi_pool_denominator( settings, nucleotide_sum( sample ));
+}
+
 // =================================================================================================
 //     Theta Watterson
 // =================================================================================================
