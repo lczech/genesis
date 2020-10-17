@@ -33,6 +33,7 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
+#include "genesis/population/formats/gff_reader.hpp"
 #include "genesis/population/formats/hts_file.hpp"
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
