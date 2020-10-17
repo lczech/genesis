@@ -31,6 +31,7 @@
 #include "genesis/utils/io/base64.hpp"
 
 #include "genesis/utils/io/char.hpp"
+#include "genesis/utils/core/logging.hpp"
 
 #include <cassert>
 #include <stdexcept>
@@ -115,6 +116,8 @@ std::string base64_encode_( T const& input, size_t line_length )
             break;
         }
     }
+
+    LOG_DBG << "input.size() " << input.size() << " char_res " << char_res << " encoded.size() " << encoded.size() << " encoded.capacity() " << encoded.capacity();
 
     // If our initial reservation was correct, we have reached exactly capacity.
     assert( encoded.size() == encoded.capacity() );
