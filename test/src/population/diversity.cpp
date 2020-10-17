@@ -169,4 +169,4 @@ TEST( Population, DiversityMeasures )
         window_gen.enqueue( record.chromosome, record.position, sample );
     }
     window_gen.finish_chromosome();
-};
+}
