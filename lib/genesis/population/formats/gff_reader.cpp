@@ -68,6 +68,12 @@ bool GffReader::parse_line(
         return false;
     }
 
+    // In the following, whenever we use one of the utils stream reading functions, those
+    // also check for end of stream and throw whenever their expected format is not found
+    // (e.g., when parsing a number, there has to be a number - empty/end of stream will throw).
+    // So, in all these cases, we do not need additional checks here; we hence only add checks
+    // for end of stream etc when we read the chars ourselves here (e.g., for the strand).
+
     // Read seqname, source, and feature.
     // We use \n as stopping criterion here as well, so that in case of an error,
     // we at least report the error in the correct line.
@@ -119,9 +125,11 @@ bool GffReader::parse_line(
     }
     utils::read_char_or_throw( it, '\t' );
 
-    // Read attributes. GFF and GTF are slightly different, it seems.
-    // GFF: hid=trf; hstart=1; hend=21
-    // GTF: gene_id "ENSG00000223972"; gene_name "DDX11L1";
+    // Read attributes. GFF and GTF are slightly different, it seems, one with `=` between
+    // key and value, the other with space, and with a semicolon at the end. We here allow
+    // for all these variants.
+    // GFF: `hid=trf; hstart=1; hend=21`
+    // GTF: `gene_id "ENSG00000223972"; gene_name "DDX11L1";`
     while( it && *it != '\n' ) {
         // Read key
         utils::skip_while( it, ' ' );
@@ -129,9 +137,10 @@ bool GffReader::parse_line(
             return c != '=' && c != ' ' && c != '\n';
         });
         utils::read_char_or_throw( it, []( char c ){ return c == '=' || c == ' '; });
-        if( !it ) {
+        if( !it || *it == '\n' ) {
             throw std::runtime_error(
-                std::string("In ") + it.source_name() + ": Unexpected end of input at " + it.at()
+                std::string("In ") + it.source_name() +
+                ": Unexpected end of line after attribute key at " + it.at()
             );
         }
 
@@ -151,6 +160,7 @@ bool GffReader::parse_line(
         if( it && *it == ';' ) {
             ++it;
         }
+        utils::skip_while( it, ' ' );
     }
 
     assert( !it || *it == '\n' );
