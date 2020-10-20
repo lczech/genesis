@@ -139,6 +139,15 @@ public:
         return cache_;
     }
 
+    reference const* operator->() const
+    {
+        if( ! cache_valid_ ) {
+            cache_ = functor_( *current_ );
+            cache_valid_ = true;
+        }
+        return &cache_;
+    }
+
     reference operator[]( difference_type i ) const
     {
         return *(*this + i);
