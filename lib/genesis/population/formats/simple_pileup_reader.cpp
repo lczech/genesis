@@ -202,9 +202,15 @@ void SimplePileupReader::parse_sample_fields_(
             case '+':
             case '-': {
                 // A sequence matching `[+-][0-9]+[ACGTNacgtn]+` is an insertion or deletion.
-                // We skip/ignore those. We also allow degenerated chars, so make a buffer
-                // for the codes that are allowed in indels.
-                static const std::string allowed_codes = sequence::nucleic_acid_codes_all_letters();
+                // We skip/ignore those.
+
+                // We first here allowed degenerated chars, and made a buffer for the codes
+                // that are allowed in indels - like this:
+                // static const std::string allowed_codes = sequence::nucleic_acid_codes_all_letters();
+
+                // But later, we changed this to use the the proper pileup definition here,
+                // see http://www.htslib.org/doc/samtools-mpileup.html
+                static const std::string allowed_codes = "ACGTNacgtn*#";
 
                 // First, we need to get how many chars there are in this indel.
                 ++it;
@@ -308,11 +314,13 @@ void SimplePileupReader::tally_sample_counts_(
 
     // Finally, tally up the bases.
     size_t total_count = 0;
-    size_t rna_count = 0;
+    size_t skip_count  = 0;
+    size_t rna_count   = 0;
     for( size_t i = 0; i < sample.read_bases.size(); ++i ) {
 
         // Quality control if available. Skip bases that are below the threshold.
         if( !sample.phred_scores.empty() && sample.phred_scores[i] < min_phred_score_ ) {
+            ++skip_count;
             continue;
         }
 
@@ -343,7 +351,8 @@ void SimplePileupReader::tally_sample_counts_(
                 ++sample.n_count;
                 break;
             }
-            case '*': {
+            case '*':
+            case '#': {
                 ++sample.d_count;
                 break;
             }
@@ -370,10 +379,23 @@ void SimplePileupReader::tally_sample_counts_(
         sample.a_count + sample.c_count + sample.g_count + sample.t_count +
         sample.n_count + sample.d_count + rna_count
     );
-    // assert( total_count == sample.read_bases.size() );
+    assert( skip_count + total_count == sample.read_bases.size() );
 
-    // Sum sanity checks.
-    if( sample.read_bases.size() != sample.read_coverage ) {
+    // Sum sanity checks. There seems to be a very weird special case (found in the PoPoolation2
+    // test dataset) where a line contains a deletion with a low phred score (`*`) that is not
+    // counted in the "Number of reads covering this position" counter:
+    // `  89795 2R      113608  N       1       T$      A       0       *       *`
+    // We account for this here by allowing exactly one such base that is either a deletion
+    // or a skip due to low phred score. There is no information that we know of about how
+    // "empty" lines should be treated in pileip, so we have to guess, and that here seems to work.
+    auto const base_count =
+        sample.a_count + sample.c_count + sample.g_count + sample.t_count + sample.n_count
+    ;
+    if(
+        sample.read_bases.size() != sample.read_coverage &&
+        !( base_count == 0 && sample.d_count + skip_count == 1 )
+    ) {
+
         throw std::runtime_error(
             "Malformed pileup " + it.source_name() + " near " + it.at() +
             ": Given read count (" + std::to_string( sample.read_coverage ) +
