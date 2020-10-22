@@ -45,6 +45,7 @@
 #include "genesis/population/formats/vcf_record.hpp"
 #include "genesis/population/functions/diversity.hpp"
 #include "genesis/population/functions/pool_sample.hpp"
+#include "genesis/population/genome_region.hpp"
 #include "genesis/population/pool_sample.hpp"
 #include "genesis/population/window/af_spectrum.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"

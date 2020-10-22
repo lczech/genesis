@@ -118,10 +118,10 @@ public:
 
     ~SimplePileupInputIterator() = default;
 
-    SimplePileupInputIterator( self_type const& ) = delete;
+    SimplePileupInputIterator( self_type const& ) = default;
     SimplePileupInputIterator( self_type&& )      = default;
 
-    self_type& operator= ( self_type const& ) = delete;
+    self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
 
     // -------------------------------------------------------------------------
@@ -196,13 +196,23 @@ public:
         good_ = reader_.parse_line( *input_stream_, record_ );
     }
 
+    bool operator==( self_type const& it ) const
+    {
+        return good_ == it.good_;
+    }
+
+    bool operator!=( self_type const& it ) const
+    {
+        return !(*this == it);
+    }
+
     // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
 private:
 
-    bool good_ = true;
+    bool good_ = false;
     std::shared_ptr<utils::InputStream> input_stream_;
 
     SimplePileupReader::Record record_;
