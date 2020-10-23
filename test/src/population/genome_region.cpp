@@ -35,21 +35,30 @@
 using namespace genesis::population;
 using namespace genesis::utils;
 
+GenomeRegion make_genome_region( std::string const& chr, size_t s, size_t e )
+{
+    GenomeRegion result;
+    result.chromosome = chr;
+    result.start = s;
+    result.end = e;
+    return result;
+}
+
 TEST( GenomeRegion, Basics )
 {
     GenomeRegionList list;
 
     // Add some regions, in different orders.
-    list.add({ "X", 15, 20 });
-    list.add({ "X", 1, 5 });
-    list.add({ "X", 10, 15 });
-    list.add({ "X", 25, 35 });
+    list.add(make_genome_region( "X", 15, 20 ));
+    list.add(make_genome_region( "X", 1, 5 ));
+    list.add(make_genome_region( "X", 10, 15 ));
+    list.add(make_genome_region( "X", 25, 35 ));
 
     // Add some overlapping and invalid regions.
-    EXPECT_ANY_THROW( list.add({ "X", 1, 5 }); );
-    EXPECT_ANY_THROW( list.add({ "X", 3, 18 }); );
-    EXPECT_ANY_THROW( list.add({ "X", 45, 40 }); );
-    EXPECT_ANY_THROW( list.add({ "X", 50, 50 }); );
+    EXPECT_ANY_THROW( list.add(make_genome_region( "X", 1, 5 )); );
+    EXPECT_ANY_THROW( list.add(make_genome_region( "X", 3, 18 )); );
+    EXPECT_ANY_THROW( list.add(make_genome_region( "X", 45, 40 )); );
+    EXPECT_ANY_THROW( list.add(make_genome_region( "X", 50, 50 )); );
 
     // Test all existing regions.
     EXPECT_FALSE( list.is_covered( "X", 0 ));

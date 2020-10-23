@@ -51,8 +51,8 @@ namespace population {
 struct GenomeRegion
 {
     std::string chromosome;
-    size_t start;
-    size_t end;
+    size_t start = 0;
+    size_t end   = 0;
 };
 
 std::ostream& operator<<( std::ostream& os, GenomeRegion const& region );
