@@ -36,7 +36,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     General Functions
+//     Status and Information
 // =================================================================================================
 
 PoolSampleStatus status(
@@ -86,6 +86,42 @@ PoolSampleStatus status(
         }
     }
 
+    return result;
+}
+
+// =================================================================================================
+//     Accumulation, Filtering, etc
+// =================================================================================================
+
+PoolSample merge( PoolSample const& p1, PoolSample const& p2 )
+{
+    // Make sure that we do not forget any fields in case of later refactoring of the struct.
+    static_assert(
+        sizeof( PoolSample ) == 6 * sizeof( size_t ),
+        "Unexpected number of member variables in PoolSample class"
+    );
+
+    PoolSample result = p1;
+    result.a_count += p2.a_count;
+    result.c_count += p2.c_count;
+    result.g_count += p2.g_count;
+    result.t_count += p2.t_count;
+    result.n_count += p2.n_count;
+    result.d_count += p2.d_count;
+    return result;
+}
+
+PoolSample merge( std::vector<PoolSample> const& p )
+{
+    PoolSample result;
+    for( auto const& ps : p ) {
+        result.a_count += ps.a_count;
+        result.c_count += ps.c_count;
+        result.g_count += ps.g_count;
+        result.t_count += ps.t_count;
+        result.n_count += ps.n_count;
+        result.d_count += ps.d_count;
+    }
     return result;
 }
 

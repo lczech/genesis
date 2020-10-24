@@ -42,7 +42,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Helper Structs
+//     Status and Information
 // =================================================================================================
 
 struct PoolSampleStatus
@@ -99,23 +99,6 @@ struct PoolSampleStatus
     bool is_ignored = false;
 };
 
-// =================================================================================================
-//     General Functions
-// =================================================================================================
-
-/**
- * @brief Count of the pure nucleotide bases at this position, that is,
- * the sum of all `A`, `C`, `G`, and `T`.
- *
- * This is simply the sum of `a_count + c_count + g_count + t_count`.
- *
- * NB: In PoPoolation, this variable is called `eucov`.
- */
-inline size_t nucleotide_sum( PoolSample const& sample )
-{
-    return sample.a_count + sample.c_count + sample.g_count + sample.t_count;
-}
-
 /**
  * @brief Compute a simple status with useful properties from the counts of a PoolSample.
  *
@@ -170,6 +153,33 @@ PoolSampleStatus status(
     size_t min_count = 0,
     bool tolerate_deletions = false
 );
+
+// =================================================================================================
+//     Accumulation, Filtering, etc
+// =================================================================================================
+
+/**
+ * @brief Count of the pure nucleotide bases at this position, that is,
+ * the sum of all `A`, `C`, `G`, and `T`.
+ *
+ * This is simply the sum of `a_count + c_count + g_count + t_count`.
+ *
+ * NB: In PoPoolation, this variable is called `eucov`.
+ */
+inline size_t nucleotide_sum( PoolSample const& sample )
+{
+    return sample.a_count + sample.c_count + sample.g_count + sample.t_count;
+}
+
+/**
+ * @brief Merge the counts of two PoolSample%s.
+ */
+PoolSample merge( PoolSample const& p1, PoolSample const& p2 );
+
+/**
+ * @brief Merge the counts of a vector PoolSample%s.
+ */
+PoolSample merge( std::vector<PoolSample> const& p );
 
 /**
  * @brief Filter by minimum count that we need for a type of nucleotide (`A`, `C`, `G`, `T`)
