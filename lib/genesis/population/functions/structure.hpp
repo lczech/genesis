@@ -33,7 +33,6 @@
 
 #include "genesis/population/functions/pool_sample.hpp"
 #include "genesis/population/pool_sample.hpp"
-#include "genesis/utils/math/common.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -51,9 +50,11 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief Compute the SNP-based pi values used in f_st_conventional_pool()
+ * @brief Compute the SNP-based Theta Pi values used in f_st_conventional_pool()
  *
- * See there for details.
+ * See there for details. The tuple returns Theta Pi for an individual position, which is simply
+ * the heterozygosity() at this position, for both samples @p p1 and @p p2, as well as their
+ * combined (average frequency) heterozygosity, in that order.
  */
 std::tuple<double, double, double> f_st_conventional_pool_pi_snp(
     PoolSample const& p1, PoolSample const& p2
@@ -109,6 +110,86 @@ double f_st_conventional_pool( // get_conventional_fstcalculator
     // _calculateFstValues
     double const pp_avg = ( p1_pi_sum + p2_pi_sum ) / 2.0;
     return ( pp_pi_sum - pp_avg ) / pp_pi_sum;
+}
+
+// =================================================================================================
+//     F_ST Asymptotically Unbiased (Karlsson)
+// =================================================================================================
+
+/**
+ * @brief Helper struct for the `a_1`, `a_2`, `n_1`, and `n_2` values needed for
+ * f_st_asymptotically_unbiased().
+ */
+struct FstAN
+{
+    double a_1 = 0;
+    double n_1 = 0;
+    double a_2 = 0;
+    double n_2 = 0;
+};
+
+/**
+ * @brief Comparison operator equals for FstAN structs.
+ */
+inline bool operator ==( FstAN const& f1, FstAN const& f2 )
+{
+    return f1.a_1 == f2.a_1 && f1.n_1 == f2.n_1 && f1.a_2 == f2.a_2 && f1.n_2 == f2.n_2;
+}
+
+/**
+ * @brief Compute the `a` and `n` values needed for the asymptotically unbiased F_ST estimator
+ * of Karlsson et al.
+ *
+ * See f_st_asymptotically_unbiased() for details.
+ */
+FstAN f_st_asymptotically_unbiased_a1n1a2n2( PoolSample const& p1, PoolSample const& p2 );
+
+/**
+ * @brief Compute the `N_k` and `D_k` values needed for the asymptotically unbiased F_ST estimator
+ * of Karlsson et al.
+ *
+ * See f_st_asymptotically_unbiased() for details.
+ */
+std::pair<double, double> f_st_asymptotically_unbiased_nkdk( FstAN const& fstan );
+
+/**
+ * @brief Compute the asymptotically unbiased F_ST estimator of Karlsson et al.
+ *
+ * This follows the implementation in PoPoolation2 by Kofler et al.
+ */
+template<class ForwardIterator1, class ForwardIterator2>
+double f_st_asymptotically_unbiased( // get_asymptunbiased_fstcalculator
+    ForwardIterator1 p1_begin, ForwardIterator1 p1_end,
+    ForwardIterator2 p2_begin, ForwardIterator2 p2_end
+) {
+    using namespace genesis::utils;
+
+    // Result value.
+    double sum_nk = 0.0;
+    double sum_dk = 0.0;
+
+    // Iterate both ranges, summing up N_k and D_k for all their entries.
+    auto p1_it = p1_begin;
+    auto p2_it = p2_begin;
+    while( p1_it != p1_end && p2_it != p2_end ) {
+
+        // Get intermediate values and add them up.
+        auto const anan = f_st_asymptotically_unbiased_a1n1a2n2( *p1_it, *p2_it );
+        auto const nkdk = f_st_asymptotically_unbiased_nkdk( anan );
+        sum_nk += nkdk.first;
+        sum_dk += nkdk.second;
+
+        // Next pair of entries
+        ++p1_it;
+        ++p2_it;
+    }
+    if( p1_it != p1_end || p2_it != p2_end ) {
+        throw std::invalid_argument(
+            "In f_st_asymptotically_unbiased(): Provided ranges have different length."
+        );
+    }
+
+    return sum_nk / sum_dk;
 }
 
 } // namespace population
