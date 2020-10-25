@@ -52,15 +52,15 @@ namespace population {
  *
  * The class allows to accumulate and compute arbitrary data within a sliding window over
  * a genome. The basic setup is to provide a set of plugin functions that do the actual computation,
- * and then feed the data in via the enqueue() functions. The SlidingWindowGenerator class then takes care
- * of calling the respective plugin functions to compute values and emit results once a Window is
- * finished.
+ * and then feed the data in via the enqueue() functions. The SlidingWindowGenerator class then
+ * takes care of calling the respective plugin functions to compute values and emit results once a
+ * Window is finished.
  *
- * To this end, the SlidingWindowGenerator takes care of collecting the data (whose type is given via
- * the template parameter `D`/`Data`) in a list of @link Window::Entry Entry@endlink instances per
- * Window. For each finished window, the on_emission plugin functions are called, which typically
- * are set by the user code to compute and store/print/visualize a per-window summary of the `Data`.
- * Use the add_emission_plugin() function to add such plugin functions.
+ * To this end, the SlidingWindowGenerator takes care of collecting the data (whose type is given
+ * via the template parameter `D`/`Data`) in a list of @link Window::Entry Entry@endlink instances
+ * per Window. For each finished window, the on_emission plugin functions are called, which
+ * typically are set by the user code to compute and store/print/visualize a per-window summary of
+ * the `Data`. Use the add_emission_plugin() function to add such plugin functions.
  *
  * A typical use case for this class is a window over the variants that are present in a set
  * of (pooled) individuals, for example, the records/lines of a VCF file. Each record would then
@@ -108,9 +108,9 @@ namespace population {
  *
  * Note:
  * The plugin functions are typically lambdas that might make use of other data from the calling code.
- * However, as this SlidingWindowGenerator class works conceptually similar to a stream, where new data is
- * enqueued in some form of loop or iterative process from the outside by the user, the class cannot
- * know when the process is finished, that is, when the end of the genome is reached.
+ * However, as this SlidingWindowGenerator class works conceptually similar to a stream, where new
+ * data is enqueued in some form of loop or iterative process from the outside by the user, the
+ * class cannot know when the process is finished, that is, when the end of the genome is reached.
  * Hence, either finish_chromosome() has to be called once all data has been processed, or it has
  * to be otherwise ensured that the class instance is destructed before the other data that the
  * plugin lambda funtions depend on. This is because the destructor also calls finish_chromosome(),
@@ -175,8 +175,8 @@ public:
      *
      * The purpose of this plugin function is to avoid re-computation of values in a Window if
      * that computation can be done incrementally instead. This is of course mostly helpful if the
-     * stride is significantly smaller than the window width. Otherwise (if the stride is equal to the
-     * window width, or only a bit smaller), each window will contain more new/different data
+     * stride is significantly smaller than the window width. Otherwise (if the stride is equal to
+     * the window width, or only a bit smaller), each window will contain more new/different data
      * than re-used data, so incrementally prossing data when it is enqueued AND dequeued again
      * might actually be more computationally expensive.
      *
@@ -194,8 +194,8 @@ public:
      *
      * Use add_dequeue_plugin() to add plugin functions.
      *
-     * This is the counterpart for on_enqueue to remove data from the Accumulator once it is no longer
-     * part of the current window. See on_enqueue for details.
+     * This is the counterpart for on_enqueue to remove data from the Accumulator once it is no
+     * longer part of the current window. See on_enqueue for details.
      */
     using on_dequeue = std::function<void(
         typename Window::Entry const& entry,
@@ -230,7 +230,8 @@ public:
     // SlidingWindowGenerator() = default;
 
     /**
-     * @brief Construct a SlidingWindowGenerator, given the WindowType and width, and potentially stride.
+     * @brief Construct a SlidingWindowGenerator, given the WindowType and width, and potentially
+     * stride.
      *
      * The @p width has to be `> 0`, and the @p stride has to be `<= width`.
      * If stride is not given (or set to `0`), it is set automatically to the width,
@@ -256,7 +257,8 @@ public:
      * @brief Destruct the instance.
      *
      * This typically has to be called before other data storage instances on the user side go out
-     * of scope. See the SlidingWindowGenerator class description note for details on why that is the case.
+     * of scope. See the SlidingWindowGenerator class description note for details on why that is
+     * the case.
      */
     ~SlidingWindowGenerator()
     {
@@ -528,8 +530,9 @@ public:
      * When sliding along a genome, we can typically use the provided chromosome name in enqueue()
      * to determine the chromosome we are currently on (typically, the input for this is the `CHROM`
      * information of a VCF file, or the first column of a pileup file), and switch to a new
-     * chromosome if needed. In that case, all remaining data in the last window needs to be emitted,
-     * so that it is not forgotten. Only after that, we can start a new window for the new chromosome.
+     * chromosome if needed. In that case, all remaining data in the last window needs to be
+     * emitted, so that it is not forgotten. Only after that, we can start a new window for the new
+     * chromosome.
      *
      * However, we cannot automatically tell when the last chromosome of the genome is finished
      * from within this class here (as there will simply be no more enqueue() calls, but how would
@@ -552,7 +555,8 @@ public:
      * NB: This function is also called from the destructor, to ensure that all data is processed
      * properly. This also means that any calling code needs to make sure that all data that is
      * needed for emitting window data is still available when the window is destructed without
-     * having called this function first. See the SlidingWindowGenerator class description for details.
+     * having called this function first. See the SlidingWindowGenerator class description for
+     * details.
      */
     void finish_chromosome( size_t last_position = 0 )
     {
@@ -722,10 +726,18 @@ private:
         // Either there are no entries, or they are all within the current interval.
         // That has to be the case, because we emit if we finish an interval, and remove the data.
         // So, there should never be data that is from an old interval at this point here.
-        assert( window_.entries().empty() || window_.entries().front().position >= current_start_ );
-        assert( window_.entries().empty() || window_.entries().front().position < current_start_ + width_ );
-        assert( window_.entries().empty() || window_.entries().back().position >= current_start_ );
-        assert( window_.entries().empty() || window_.entries().back().position < current_start_ + width_ );
+        assert(
+            window_.entries().empty() || window_.entries().front().position >= current_start_
+        );
+        assert(
+            window_.entries().empty() || window_.entries().front().position < current_start_ + width_
+        );
+        assert(
+            window_.entries().empty() || window_.entries().back().position >= current_start_
+        );
+        assert(
+            window_.entries().empty() || window_.entries().back().position < current_start_ + width_
+        );
 
         // Emit the windows up to the position where we want to enqueue the new data entry.
         // As we slide over intervals of fixed size along the genome, this can mean that we
