@@ -34,6 +34,12 @@
 #include "genesis/population/pool_sample.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 
+#ifdef GENESIS_HTSLIB
+
+#include "genesis/population/formats/vcf_record.hpp"
+
+#endif // htslib guard
+
 #include <string>
 #include <utility>
 #include <vector>
@@ -219,6 +225,12 @@ std::pair<char, double> consensus( PoolSample const& sample, PoolSampleStatus co
 
 PoolSample convert_to_pool_sample( SimplePileupReader::Sample const& sample );
 PoolSampleSet convert_to_pool_samples( SimplePileupReader::Record const& record );
+
+#ifdef GENESIS_HTSLIB
+
+PoolSampleSet convert_to_pool_samples( VcfRecord const& record );
+
+#endif // htslib guard
 
 } // namespace population
 } // namespace genesis

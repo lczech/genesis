@@ -31,6 +31,7 @@
 #include "genesis/population/functions/pool_sample.hpp"
 
 #include <cassert>
+#include <stdexcept>
 
 namespace genesis {
 namespace population {
@@ -217,11 +218,134 @@ PoolSampleSet convert_to_pool_samples( SimplePileupReader::Record const& record 
 
     result.samples.reserve( record.samples.size() );
     for( size_t i = 0; i < record.samples.size(); ++i ) {
-        result.samples[i] = convert_to_pool_sample( record.samples[i] );
+        result.samples.push_back( convert_to_pool_sample( record.samples[i] ));
     }
 
     return result;
 }
+
+#ifdef GENESIS_HTSLIB
+
+PoolSampleSet convert_to_pool_samples( VcfRecord const& record )
+{
+    // Error check.
+    if( ! record.has_format( "AD" )) {
+        throw std::runtime_error(
+            "Cannot convert VcfRecord to PoolSampleSet, as the VcfRecord does not have "
+            "the required FORMAT field 'AD'"
+        );
+    }
+
+    // Get all variants (REF and ALT), and check them. We manually add deletion here if ALT == ".",
+    // as this is not part of the variants provided from htslib.
+    auto vars = record.get_variants();
+    if( vars.size() == 1 ) {
+        assert( record.get_alternatives().empty() );
+        vars.push_back( "." );
+    }
+    for( auto const& var : vars ) {
+        if( var.size() != 1 ) {
+            throw std::runtime_error(
+                "Cannot convert VcfRecord to PoolSampleSet, as one of the VcfRecord REF or ALT "
+                "sequences/alleles is not a single nucleotide"
+            );
+        }
+    }
+    assert( vars.size() > 1 );
+    assert( vars[0].size() == 1 );
+
+    // Prepare common fields of the result.
+    // For the reference base, we use the first nucleotide of the first variant (REF);
+    // above, we have ensured that this exists and is in fact a single nucleotide only.
+    PoolSampleSet result;
+    result.chromosome     = record.get_chromosome();
+    result.position       = record.get_position();
+    result.reference_base = vars[0][0];
+
+    // Process the samples that are present in the VCF record line.
+    result.samples.reserve( record.header().get_sample_count() );
+    for( auto const& sample_ad : record.get_format_int("AD") ) {
+        if( sample_ad.valid_value_count() != vars.size() ) {
+            throw std::runtime_error(
+                "Invalid VCF Record that contains " + std::to_string( vars.size() ) +
+                " REF and ALT sequences/alleles, but its FORMAT field 'AD' only contains " +
+                std::to_string( sample_ad.valid_value_count() ) + " entries"
+            );
+        }
+
+        // Go through all REF and ALT entries and their respective FORMAT 'AD' counts,
+        // and sum them up.
+        PoolSample sample;
+        for( size_t i = 0; i < vars.size(); ++i ) {
+
+            // Get the nucleitide and its count.
+            assert( vars[i].size() == 1 );
+            char const nt = vars[i][0];
+            auto const cnt = sample_ad.get_value_at(i);
+            if( cnt < 0 ) {
+                throw std::runtime_error(
+                    "Invalid VCF Record with FORMAT field 'AD' value < 0 for a sample"
+                );
+            }
+
+            // Add it to the respective count variable of the sample.
+            switch( nt ) {
+                case 'a':
+                case 'A': {
+                    sample.a_count = cnt;
+                    break;
+                }
+                case 'c':
+                case 'C': {
+                    sample.c_count = cnt;
+                    break;
+                }
+                case 'g':
+                case 'G': {
+                    sample.g_count = cnt;
+                    break;
+                }
+                case 't':
+                case 'T': {
+                    sample.t_count = cnt;
+                    break;
+                }
+                case 'n':
+                case 'N': {
+                    sample.n_count = cnt;
+                    break;
+                }
+                case '.': {
+                    sample.d_count = cnt;
+                    break;
+                }
+                default: {
+                    throw std::runtime_error(
+                        "Invalid VCF Record that contains a REF or ALT sequence/allele with "
+                        "invalid nucleitide `" + std::string( 1, nt ) + "` where only `[ACGTN]` "
+                        "are allowed"
+                    );
+                }
+            }
+        }
+
+        // Done with the sample. Add it to the result.
+        result.samples.push_back( sample );
+    }
+
+    // Last proof check.
+    if( result.samples.size() != record.header().get_sample_count() ) {
+        throw std::runtime_error(
+            "Invalid VCF Record with number of samples in the record (" +
+            std::to_string( result.samples.size() ) + ") not equal to the number of samples given "
+            "in the VCF header (" + std::to_string( record.header().get_sample_count() ) + ")"
+        );
+    }
+
+    return result;
+}
+
+#endif // htslib guard
 
 } // namespace population
 } // namespace genesis
