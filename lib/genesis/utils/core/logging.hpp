@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 
 #include <cmath>
 #include <iosfwd>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -601,9 +602,12 @@ protected:
     static clock_t last_clock_;
 
     // Arrays of streams that are used for output.
-    // We separate normal output streams from file streams, so that the latter can be closes properly.
+    // We separate normal output streams from file streams, so that the latter can be closed
+    // properly. That is, we take normal ostream by reference, and hence do not manage them here,
+    // but open/close/manage the lifetimes of file streams ourselves. Users can of course also
+    // provide their own file streams and add them via log_to_stream, but we don't manage those then.
     static std::vector<std::ostream*> ostreams_;
-    static std::vector<std::ofstream*> fstreams_;
+    static std::vector<std::unique_ptr<std::ofstream>> fstreams_;
 };
 
 // =============================================================================

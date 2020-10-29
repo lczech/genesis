@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,10 +36,11 @@
 #include <stdexcept>
 #include <string>
 
-#ifdef GENESIS_PTHREADS
+#if defined(GENESIS_PTHREADS) || defined(GENESIS_OPENMP)
 #    include <mutex>
 #endif
 
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/tools/date_time.hpp"
@@ -51,7 +52,7 @@ namespace utils {
 //     Settings
 // =============================================================================
 
-#ifdef GENESIS_PTHREADS
+#if defined(GENESIS_PTHREADS) || defined(GENESIS_OPENMP)
     static std::mutex log_mutex;
 #endif
 
@@ -69,13 +70,13 @@ LoggingDetails Logging::details = {
     false, // function
     true   // level
 };
-Logging::LoggingLevel       Logging::max_level_  = kDebug4;
-long                        Logging::count_      = 0;
-clock_t                     Logging::last_clock_ = 0;
-std::vector<std::ostream*>  Logging::ostreams_;
-std::vector<std::ofstream*> Logging::fstreams_;
-int                         Logging::report_percentage_ = 5;
-std::string                 Logging::debug_indent       = "    ";
+Logging::LoggingLevel                       Logging::max_level_  = kDebug4;
+long                                        Logging::count_      = 0;
+clock_t                                     Logging::last_clock_ = 0;
+std::vector<std::ostream*>                  Logging::ostreams_;
+std::vector<std::unique_ptr<std::ofstream>> Logging::fstreams_;
+int                                         Logging::report_percentage_ = 5;
+std::string                                 Logging::debug_indent       = "    ";
 
 /**
  * @brief Set the highest log level that is reported.
@@ -153,9 +154,12 @@ void Logging::log_to_stream (std::ostream& os)
  */
 void Logging::log_to_file( std::string const& filename )
 {
-    std::ofstream* file_stream = new std::ofstream();
-    utils::file_output_stream( filename, *file_stream );
-    fstreams_.push_back( file_stream );
+    // std::ofstream* file_stream = new std::ofstream();
+    // utils::file_output_stream( filename, *file_stream );
+    // fstreams_.push_back( file_stream );
+
+    fstreams_.push_back( make_unique<std::ofstream>());
+    utils::file_output_stream( filename, *fstreams_.back() );
 }
 
 /**
@@ -164,11 +168,6 @@ void Logging::log_to_file( std::string const& filename )
 void Logging::clear()
 {
     ostreams_.clear();
-
-    for( auto ofs : fstreams_ ) {
-        ofs->close();
-        delete ofs;
-    }
     fstreams_.clear();
 }
 
@@ -247,18 +246,18 @@ Logging::~Logging()
     msg = utils::trim_right(msg);
 
     // output the message to every stream, thread safe!
-#   ifdef GENESIS_PTHREADS
+#   if defined(GENESIS_PTHREADS) || defined(GENESIS_OPENMP)
     log_mutex.lock();
 #   endif
 
-    for (std::ostream* out : ostreams_) {
+    for( auto& out : ostreams_ ) {
         (*out) << msg << std::endl << std::flush;
     }
-    for (std::ostream* out : fstreams_) {
+    for( auto& out : fstreams_ ) {
         (*out) << msg << std::endl << std::flush;
     }
 
-#   ifdef GENESIS_PTHREADS
+#   if defined(GENESIS_PTHREADS) || defined(GENESIS_OPENMP)
     log_mutex.unlock();
 #   endif
 
