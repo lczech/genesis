@@ -112,7 +112,7 @@ void AlleleFrequencyWindow::enqueue( VcfRecord const& record )
     // Sum up all allelic depth values for all samples of the record line.
     size_t ref = 0;
     size_t alt = 0;
-    for( auto& ad_field : record.get_format_int("AD") ) {
+    for( auto const& ad_field : record.get_format_int("AD") ) {
         if( ad_field.values_per_sample() != 2 ) {
             throw std::runtime_error(
                 "Invalid VCF Record that claims to be biallelic, but in fact contains more than "
