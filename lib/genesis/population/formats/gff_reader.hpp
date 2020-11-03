@@ -49,6 +49,8 @@ namespace population {
  * @brief Reader for GFF (General Feature Format) and GTF (General Transfer Format) files.
  *
  * See https://uswest.ensembl.org/info/website/upload/gff.html for the format description.
+ *
+ * See also http://gmod.org/wiki/GFF2 and http://gmod.org/wiki/GFF3 for additional information.
  */
 class GffReader
 {
