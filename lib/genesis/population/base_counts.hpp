@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_POOL_SAMPLE_H_
-#define GENESIS_POPULATION_POOL_SAMPLE_H_
+#ifndef GENESIS_POPULATION_BASE_COUNTS_H_
+#define GENESIS_POPULATION_BASE_COUNTS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -38,18 +38,19 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Pool Sample
+//     Base Counts
 // =================================================================================================
 
 /**
- * @brief One sample that represents a pool of sequenced individuals.
+ * @brief One set of nucleotide base counts, for example for a given sample that represents a pool
+ * of sequenced individuals.
  *
  * This class is a general representation of the read counts (frequencies) contained in the
- * variants/SNPs of a pool of individuals at a certain chromosome position.
+ * variants/SNPs of (a pool of) individuals at a certain chromosome position.
  * The class only stores theses counts; for the additional container that also captures the
- * chromosome and position, see PoolSampleSet.
+ * chromosome and position, see Variant and VariantMatrix.
  */
-struct PoolSample
+struct BaseCounts
 {
     /**
      * @brief Count of all `A` nucleotides that are present in the sample.
@@ -80,29 +81,6 @@ struct PoolSample
      * @brief Count of all deleted (`*`) nucleotides that are present in the sample.
      */
     size_t d_count = 0;
-};
-
-// =================================================================================================
-//     Pool Sample Set
-// =================================================================================================
-
-/**
- * @brief Set of PoolSample%s, typically constituting a specific position in on a chromosome.
- *
- * Typically, this class is used as a general representation of the variants/SNPs at a given
- * chromosome position, for example coming from a line in a VCF file or (m)pileup file.
- *
- * The class consists of a chromosome and position, the reference base at that position,
- * as well as one or more PoolSample%s, that is, information on the variants/SNPs at that position.
- * See PoolSample for details on the latter.
- */
-struct PoolSampleSet
-{
-    std::string chromosome;
-    size_t      position = 0;
-    char        reference_base = 'N';
-
-    std::vector<PoolSample> samples;
 };
 
 } // namespace population

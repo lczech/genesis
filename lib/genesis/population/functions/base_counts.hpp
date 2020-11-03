@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_FUNCTIONS_POOL_SAMPLE_H_
-#define GENESIS_POPULATION_FUNCTIONS_POOL_SAMPLE_H_
+#ifndef GENESIS_POPULATION_FUNCTIONS_BASE_COUNTS_H_
+#define GENESIS_POPULATION_FUNCTIONS_BASE_COUNTS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,14 +31,8 @@
  * @ingroup population
  */
 
-#include "genesis/population/pool_sample.hpp"
+#include "genesis/population/base_counts.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
-
-#ifdef GENESIS_HTSLIB
-
-#include "genesis/population/formats/vcf_record.hpp"
-
-#endif // htslib guard
 
 #include <string>
 #include <utility>
@@ -51,7 +45,7 @@ namespace population {
 //     Status and Information
 // =================================================================================================
 
-struct PoolSampleStatus
+struct BaseCountsStatus
 {
     /**
      * @brief Is the Sample covered by enough reads/nucleotides?
@@ -106,41 +100,41 @@ struct PoolSampleStatus
 };
 
 /**
- * @brief Compute a simple status with useful properties from the counts of a PoolSample.
+ * @brief Compute a simple status with useful properties from the counts of a BaseCounts.
  *
  * ### <code>min_coverage</code>
  *
- * Minimum coverage expected for a PoolSample to be considered "covered".
+ * Minimum coverage expected for a BaseCounts to be considered "covered".
  * If the number of nucleotides (`A`, `C`, `G`, `T`) in the reads of a sample is less then the
- * here provided @p min_coverage, then the PoolSample is not considered sufficiently covered,
- * and the PoolSampleStatus::is_covered flag will be set to `false`.
+ * here provided @p min_coverage, then the BaseCounts is not considered sufficiently covered,
+ * and the BaseCountsStatus::is_covered flag will be set to `false`.
  *
  * ### <code>max_coverage</code>
  *
  * Same as @p min_coverage, but the upper bound on coverage; maximum coverage
- * expected for a PoolSample to be considered "covered".
- * If the number of nucleotides exceeds this bound, the PoolSampleStatus::is_covered flag will
+ * expected for a BaseCounts to be considered "covered".
+ * If the number of nucleotides exceeds this bound, the BaseCountsStatus::is_covered flag will
  * be set to `false`.
  * If provided with a value of `0` (default), max_coverage is not used.
  *
  * Only if the nucleotide count is in between (or equal to either) these two bounds (@p min_coverage
- * and @p max_coverage), it is considered to be covered, and PoolSampleStatus::is_covered
+ * and @p max_coverage), it is considered to be covered, and BaseCountsStatus::is_covered
  * will be set to `true`.
  *
  * ### <code>min_count</code>
  *
- * This value is used to determine whether a PoolSample has too many deletions,
- * and unless tolerate_deletions() is set to `true`, the PoolSampleStatus::is_ignored will be set
- * to `true` in that case (too many deletions, as given by PoolSample::d_count), while the values for
- * PoolSampleStatus::is_covered, PoolSampleStatus::is_snp, and PoolSampleStatus::is_biallelic
+ * This value is used to determine whether a BaseCounts has too many deletions,
+ * and unless tolerate_deletions() is set to `true`, the BaseCountsStatus::is_ignored will be set
+ * to `true` in that case (too many deletions, as given by BaseCounts::d_count), while the values for
+ * BaseCountsStatus::is_covered, BaseCountsStatus::is_snp, and BaseCountsStatus::is_biallelic
  * will be set to `false`.
  *
- * Typically, if this function is used after calling filter_min_count() on the PoolSample, the
+ * Typically, if this function is used after calling filter_min_count() on the BaseCounts, the
  * @p min_count is set to the same value for consistency.
  *
  * ### <code>tolerate_deletions</code>
  *
- * Set whether we tolerate PoolSample%s with a high amount of deletions.
+ * Set whether we tolerate BaseCounts%s with a high amount of deletions.
  *
  * If set to `false` (default), we do not tolerate deletions. In that case, if the number of
  * deletions in a Sample (given by Sample::d_count) is higher than or equal to min_count(),
@@ -152,8 +146,8 @@ struct PoolSampleStatus
  * properties will be set as usual by considering the nucleotide counts (Sample::a_count,
  * Sample::c_count, Sample::g_count, and Sample::t_count) instead.
  */
-PoolSampleStatus status(
-    PoolSample const& sample,
+BaseCountsStatus status(
+    BaseCounts const& sample,
     size_t min_coverage = 0,
     size_t max_coverage = 0,
     size_t min_count = 0,
@@ -172,33 +166,33 @@ PoolSampleStatus status(
  *
  * NB: In PoPoolation, this variable is called `eucov`.
  */
-inline size_t nucleotide_sum( PoolSample const& sample )
+inline size_t nucleotide_sum( BaseCounts const& sample )
 {
     return sample.a_count + sample.c_count + sample.g_count + sample.t_count;
 }
 
 /**
- * @brief Merge the counts of two PoolSample%s.
+ * @brief Merge the counts of two BaseCounts%s.
  */
-PoolSample merge( PoolSample const& p1, PoolSample const& p2 );
+BaseCounts merge( BaseCounts const& p1, BaseCounts const& p2 );
 
 /**
- * @brief Merge the counts of a vector PoolSample%s.
+ * @brief Merge the counts of a vector BaseCounts%s.
  */
-PoolSample merge( std::vector<PoolSample> const& p );
+BaseCounts merge( std::vector<BaseCounts> const& p );
 
 /**
  * @brief Filter by minimum count that we need for a type of nucleotide (`A`, `C`, `G`, `T`)
  * to be considered; set to zero if @p min_count is not reached.
  *
  * This filter is used as a type of quality control filter. All nucleotide counts (that is,
- * PoolSample::a_count, PoolSample::c_count, PoolSample::g_count, and PoolSample::t_count) that are
+ * BaseCounts::a_count, BaseCounts::c_count, BaseCounts::g_count, and BaseCounts::t_count) that are
  * below the given @p min_count are set to zero.
  */
-void filter_min_count( PoolSample& sample, size_t min_count );
+void filter_min_count( BaseCounts& sample, size_t min_count );
 
 /**
- * @brief Consensus character for a PoolSample, and its confidence.
+ * @brief Consensus character for a BaseCounts, and its confidence.
  *
  * This is simply the character (out of `ACGT`) that appears most often (or, for ties,
  * the lexicographically smallest character), unless all of (`A`, `C`, `G`, `T`) are zero,
@@ -206,31 +200,24 @@ void filter_min_count( PoolSample& sample, size_t min_count );
  * The confidence is the count of the consensus character, divided by the total count
  * of all four nucleotides.
  */
-std::pair<char, double> consensus( PoolSample const& sample );
+std::pair<char, double> consensus( BaseCounts const& sample );
 
 /**
-* @brief Consensus character for a PoolSample, and its confidence.
+* @brief Consensus character for a BaseCounts, and its confidence.
 *
 * This is simply the character (out of `ACGT`) that appears most often (or, for ties,
-* the lexicographically smallest character). If the PoolSample is not well covered by reads
-* (that is, if its PoolSampleStatus::is_covered is `false`), the consensus character is `N`.
+* the lexicographically smallest character). If the BaseCounts is not well covered by reads
+* (that is, if its BaseCountsStatus::is_covered is `false`), the consensus character is `N`.
 * The confidence is the count of the consensus character, divided by the total count
 * of all four nucleotides.
 */
-std::pair<char, double> consensus( PoolSample const& sample, PoolSampleStatus const& status );
+std::pair<char, double> consensus( BaseCounts const& sample, BaseCountsStatus const& status );
 
 // =================================================================================================
 //     Conversion Functions
 // =================================================================================================
 
-PoolSample convert_to_pool_sample( SimplePileupReader::Sample const& sample );
-PoolSampleSet convert_to_pool_samples( SimplePileupReader::Record const& record );
-
-#ifdef GENESIS_HTSLIB
-
-PoolSampleSet convert_to_pool_samples( VcfRecord const& record );
-
-#endif // htslib guard
+BaseCounts convert_to_base_counts( SimplePileupReader::Sample const& sample );
 
 } // namespace population
 } // namespace genesis

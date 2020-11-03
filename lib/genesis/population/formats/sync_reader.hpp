@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/pool_sample.hpp"
+#include "genesis/population/variant.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 
@@ -72,7 +72,7 @@ public:
     //     Reading
     // ---------------------------------------------------------------------
 
-    std::vector<PoolSampleSet> read( std::shared_ptr< utils::BaseInputSource > source ) const;
+    std::vector<Variant> read( std::shared_ptr< utils::BaseInputSource > source ) const;
 
     // -------------------------------------------------------------------------
     //     Parsing
@@ -80,7 +80,7 @@ public:
 
     bool parse_line(
         utils::InputStream& input_stream,
-        PoolSampleSet&      sample_set
+        Variant&            sample_set
     ) const;
 
     // -------------------------------------------------------------------------
@@ -89,7 +89,7 @@ public:
 
     void parse_sample_(
         utils::InputStream& input_stream,
-        PoolSample&         sample
+        BaseCounts&         sample
     ) const;
 
 };

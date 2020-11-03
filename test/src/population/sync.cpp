@@ -31,7 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/population/formats/sync_reader.hpp"
-#include "genesis/population/pool_sample.hpp"
+#include "genesis/population/variant.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;

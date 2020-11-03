@@ -31,8 +31,9 @@
  * @ingroup population
  */
 
-#include "genesis/population/functions/pool_sample.hpp"
-#include "genesis/population/pool_sample.hpp"
+#include "genesis/population/functions/base_counts.hpp"
+#include "genesis/population/functions/variant.hpp"
+#include "genesis/population/variant.hpp"
 #include "genesis/utils/containers/filter_iterator.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/simple_cache.hpp"
@@ -114,7 +115,7 @@ struct PoolDiversityResults
  *
  * for details.
  */
-double heterozygosity( PoolSample const& sample );
+double heterozygosity( BaseCounts const& sample );
 
 // =================================================================================================
 //     Theta Pi
@@ -189,11 +190,11 @@ double theta_pi_pool( // get_pi_calculator
 
 /**
  * @brief Compute theta pi with pool-sequencing correction according to Kofler et al,
- * for a single PoolSample, that is, its heterozygosity() divided by the correction denominator.
+ * for a single BaseCounts, that is, its heterozygosity() divided by the correction denominator.
  */
 inline double theta_pi_pool(
     PoolDiversitySettings const& settings,
-    PoolSample const& sample
+    BaseCounts const& sample
 ) {
     return heterozygosity( sample ) / theta_pi_pool_denominator( settings, nucleotide_sum( sample ));
 }
@@ -436,7 +437,7 @@ PoolDiversityResults pool_diversity_measures(
     // here is meant as a high level variant, and we have to live with that.
     // Better solution is to run filter_min_count() already when adding the samples
     // to the range that we loop over here.
-    auto min_filtered_range = utils::make_transform_range( begin, end, [&]( PoolSample const& sample ){
+    auto min_filtered_range = utils::make_transform_range( begin, end, [&]( BaseCounts const& sample ){
         auto copy = sample;
         filter_min_count( copy, settings.min_allele_count );
         return copy;
@@ -452,11 +453,11 @@ PoolDiversityResults pool_diversity_measures(
         // (Just in case we ever refactor the class where these values are stored.)
         static_assert(
             std::is_same<decltype(stat.is_snp), bool>::value,
-            "Expect bool type for PoolSampleStatus::is_snp"
+            "Expect bool type for BaseCountsStatus::is_snp"
         );
         static_assert(
             std::is_same<decltype(stat.is_covered), bool>::value,
-            "Expect bool type for PoolSampleStatus::is_covered"
+            "Expect bool type for BaseCountsStatus::is_covered"
         );
         static_assert( static_cast<int>( true )  == 1, "Expect true == 1" );
         static_assert( static_cast<int>( false ) == 0, "Expect false == 0" );
@@ -471,7 +472,7 @@ PoolDiversityResults pool_diversity_measures(
     results.coverage_fraction = coverage / static_cast<double>( settings.window_width );
 
     // Make a filter that only allows samples that are SNPs and have the needed coverage.
-    auto covered_snps_range = utils::make_filter_range( [&]( PoolSample const& sample ){
+    auto covered_snps_range = utils::make_filter_range( [&]( BaseCounts const& sample ){
         auto stat = status(
             sample, settings.min_coverage, settings.max_coverage, settings.min_allele_count
         );

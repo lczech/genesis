@@ -44,13 +44,13 @@ namespace population {
 //     Reading & Parsing
 // =================================================================================================
 
-std::vector<PoolSampleSet> SyncReader::read(
+std::vector<Variant> SyncReader::read(
     std::shared_ptr< utils::BaseInputSource > source
 ) const {
-    std::vector<PoolSampleSet> result;
+    std::vector<Variant> result;
     utils::InputStream it( source );
 
-    PoolSampleSet sample_set;
+    Variant sample_set;
     while( parse_line( it, sample_set ) ) {
         result.push_back( std::move( sample_set ));
     }
@@ -59,7 +59,7 @@ std::vector<PoolSampleSet> SyncReader::read(
 
 bool SyncReader::parse_line(
     utils::InputStream& input_stream,
-    PoolSampleSet& sample_set
+    Variant& sample_set
 ) const {
     // Shorthand.
     auto& it = input_stream;
@@ -114,7 +114,7 @@ bool SyncReader::parse_line(
 
 void SyncReader::parse_sample_(
     utils::InputStream& input_stream,
-    PoolSample&         sample
+    BaseCounts&         sample
 ) const {
     using namespace genesis::utils;
     read_char_or_throw( input_stream, '\t' );

@@ -33,6 +33,7 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
+#include "genesis/population/base_counts.hpp"
 #include "genesis/population/formats/gff_reader.hpp"
 #include "genesis/population/formats/hts_file.hpp"
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
@@ -43,13 +44,15 @@
 #include "genesis/population/formats/vcf_header.hpp"
 #include "genesis/population/formats/vcf_input_iterator.hpp"
 #include "genesis/population/formats/vcf_record.hpp"
+#include "genesis/population/functions/base_counts.hpp"
 #include "genesis/population/functions/diversity.hpp"
-#include "genesis/population/functions/pool_sample.hpp"
 #include "genesis/population/functions/structure.hpp"
+#include "genesis/population/functions/variant.hpp"
 #include "genesis/population/genome_region.hpp"
-#include "genesis/population/pool_sample.hpp"
+#include "genesis/population/variant.hpp"
 #include "genesis/population/window/af_spectrum.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
+#include "genesis/population/window/sliding_window_iterator.hpp"
 #include "genesis/population/window/vcf_window.hpp"
 #include "genesis/population/window/window.hpp"
 

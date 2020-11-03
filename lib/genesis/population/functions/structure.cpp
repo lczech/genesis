@@ -30,6 +30,7 @@
 
 #include "genesis/population/functions/structure.hpp"
 
+#include "genesis/population/functions/base_counts.hpp"
 #include "genesis/utils/math/common.hpp"
 
 #include <cassert>
@@ -44,7 +45,7 @@ namespace population {
 // =================================================================================================
 
 std::tuple<double, double, double> f_st_conventional_pool_pi_snp(
-    PoolSample const& p1, PoolSample const& p2
+    BaseCounts const& p1, BaseCounts const& p2
 ) {
     using namespace genesis::utils;
 
@@ -98,7 +99,7 @@ std::tuple<double, double, double> f_st_conventional_pool_pi_snp(
 //     F_ST Asymptotically Unbiased (Karlsson) Helper Functions
 // =================================================================================================
 
-FstAN f_st_asymptotically_unbiased_a1n1a2n2( PoolSample const& p1, PoolSample const& p2 )
+FstAN f_st_asymptotically_unbiased_a1n1a2n2( BaseCounts const& p1, BaseCounts const& p2 )
 {
     // get_a1a2n1n2
     // We do not want expensive sorting and looking for nucleotide characters here,

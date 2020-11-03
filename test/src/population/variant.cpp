@@ -32,13 +32,13 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/pool_sample.hpp"
-#include "genesis/population/functions/pool_sample.hpp"
+#include "genesis/population/variant.hpp"
+#include "genesis/population/functions/variant.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;
 
-TEST( PoolSample, ConvertFromVcfRecord )
+TEST( Variant, ConvertFromVcfRecord )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -50,7 +50,7 @@ TEST( PoolSample, ConvertFromVcfRecord )
     auto record = VcfRecord( header );
 
     // Read all lines/records
-    std::vector<PoolSampleSet> samples;
+    std::vector<Variant> samples;
     while( record.read_next( file )) {
         // Typically, we want to ensure record.is_snp() as well (see commented condition below).
         // Here however, we also do a test that allows for "." deletions in the VCF file.
@@ -62,7 +62,7 @@ TEST( PoolSample, ConvertFromVcfRecord )
         // if( ! record.is_snp() || ! record.has_format( "AD" )) {
         //     continue;
         // }
-        samples.push_back( convert_to_pool_samples( record ));
+        samples.push_back( convert_to_variant( record ));
     }
     ASSERT_EQ( 4, samples.size() );
 

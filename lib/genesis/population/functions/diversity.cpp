@@ -84,7 +84,7 @@ double amnm_( // get_aMnm_buffer
 //     Diversity Estimates
 // =================================================================================================
 
-double heterozygosity( PoolSample const& sample )
+double heterozygosity( BaseCounts const& sample )
 {
     double h = 1.0;
     double const nt_cnt = static_cast<double>( nucleotide_sum( sample ));

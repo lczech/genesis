@@ -30,9 +30,10 @@
 
 #include "src/common.hpp"
 
+#include "genesis/population/base_counts.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
-#include "genesis/population/functions/pool_sample.hpp"
-#include "genesis/population/pool_sample.hpp"
+#include "genesis/population/functions/base_counts.hpp"
+#include "genesis/population/functions/variant.hpp"
 #include "genesis/utils/text/string.hpp"
 
 using namespace genesis::population;
@@ -127,7 +128,7 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0,  records[0].samples[0].n_count );
     EXPECT_EQ(  0,  records[0].samples[0].d_count );
     EXPECT_EQ( 24,  records[0].samples[0].read_coverage );
-    auto const pool_0 = convert_to_pool_sample( records[0].samples[0] );
+    auto const pool_0 = convert_to_base_counts( records[0].samples[0] );
     EXPECT_EQ( 24,  nucleotide_sum( pool_0 ));
     EXPECT_TRUE(    status( pool_0 ).is_covered );
     EXPECT_FALSE(   status( pool_0 ).is_snp );
@@ -143,7 +144,7 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  2,  records[1].samples[0].n_count );
     EXPECT_EQ(  0,  records[1].samples[0].d_count );
     EXPECT_EQ( 23,  records[1].samples[0].read_coverage );
-    auto const pool_1 = convert_to_pool_sample( records[1].samples[0] );
+    auto const pool_1 = convert_to_base_counts( records[1].samples[0] );
     EXPECT_EQ( 21,  nucleotide_sum( pool_1 ));
     EXPECT_TRUE(    status( pool_1 ).is_covered );
     EXPECT_TRUE(    status( pool_1 ).is_snp );
@@ -159,7 +160,7 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0,  records[2].samples[0].n_count );
     EXPECT_EQ(  2,  records[2].samples[0].d_count );
     EXPECT_EQ( 23,  records[2].samples[0].read_coverage );
-    auto const pool_2 = convert_to_pool_sample( records[2].samples[0] );
+    auto const pool_2 = convert_to_base_counts( records[2].samples[0] );
     EXPECT_EQ( 21,  nucleotide_sum( pool_2 ));
     EXPECT_FALSE(   status( pool_2 ).is_covered );
     EXPECT_FALSE(   status( pool_2 ).is_snp );
@@ -175,7 +176,7 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0,  records[3].samples[0].n_count );
     EXPECT_EQ(  0,  records[3].samples[0].d_count );
     EXPECT_EQ( 23,  records[3].samples[0].read_coverage );
-    auto const pool_3 = convert_to_pool_sample( records[3].samples[0] );
+    auto const pool_3 = convert_to_base_counts( records[3].samples[0] );
     EXPECT_EQ( 23,  nucleotide_sum( pool_3 ));
     EXPECT_TRUE(    status( pool_3 ).is_covered );
     EXPECT_FALSE(   status( pool_3 ).is_snp );
@@ -191,7 +192,7 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0,  records[4].samples[0].n_count );
     EXPECT_EQ(  0,  records[4].samples[0].d_count );
     EXPECT_EQ( 22,  records[4].samples[0].read_coverage );
-    auto const pool_4 = convert_to_pool_sample( records[4].samples[0] );
+    auto const pool_4 = convert_to_base_counts( records[4].samples[0] );
     EXPECT_EQ( 22,  nucleotide_sum( pool_4 ));
     EXPECT_TRUE(    status( pool_4 ).is_covered );
     EXPECT_TRUE(    status( pool_4 ).is_snp );
@@ -207,7 +208,7 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0,  records[5].samples[0].n_count );
     EXPECT_EQ(  0,  records[5].samples[0].d_count );
     EXPECT_EQ( 22,  records[5].samples[0].read_coverage );
-    auto const pool_5 = convert_to_pool_sample( records[5].samples[0] );
+    auto const pool_5 = convert_to_base_counts( records[5].samples[0] );
     EXPECT_EQ( 22,  nucleotide_sum( pool_5 ));
     EXPECT_TRUE(    status( pool_5 ).is_covered );
     EXPECT_TRUE(    status( pool_5 ).is_snp );
@@ -223,7 +224,7 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0,  records[6].samples[0].n_count );
     EXPECT_EQ(  0,  records[6].samples[0].d_count );
     EXPECT_EQ( 23,  records[6].samples[0].read_coverage );
-    auto const pool_6 = convert_to_pool_sample( records[6].samples[0] );
+    auto const pool_6 = convert_to_base_counts( records[6].samples[0] );
     EXPECT_EQ( 23,  nucleotide_sum( pool_6 ));
     EXPECT_TRUE(    status( pool_6 ).is_covered );
     EXPECT_FALSE(   status( pool_6 ).is_snp );
@@ -239,7 +240,7 @@ TEST( Pileup, SimpleReader )
     EXPECT_EQ(  0,  records[7].samples[0].n_count );
     EXPECT_EQ(  0,  records[7].samples[0].d_count );
     EXPECT_EQ( 23,  records[7].samples[0].read_coverage );
-    auto const pool_7 = convert_to_pool_sample( records[7].samples[0] );
+    auto const pool_7 = convert_to_base_counts( records[7].samples[0] );
     EXPECT_EQ( 19,  nucleotide_sum( pool_7 ));
     EXPECT_TRUE(    status( pool_7 ).is_covered );
     EXPECT_TRUE(    status( pool_7 ).is_snp );

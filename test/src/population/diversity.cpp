@@ -127,7 +127,7 @@ TEST( Population, DiversityMeasures )
     // Prepare the window.
     size_t iteration_count = 0;
     size_t value_count = 0;
-    using WindowGen = SlidingWindowGenerator<PoolSample>;
+    using WindowGen = SlidingWindowGenerator<BaseCounts>;
     WindowGen window_gen( WindowType::kInterval, settings.window_width, settings.window_stride );
     window_gen.anchor_type( WindowAnchorType::kIntervalMidpoint );
     window_gen.add_emission_plugin( [&]( WindowGen::Window const& window ) {
@@ -165,7 +165,7 @@ TEST( Population, DiversityMeasures )
         auto const& record = *it;
         ASSERT_EQ( 1, record.samples.size() );
 
-        auto sample = convert_to_pool_sample( record.samples[0] );
+        auto sample = convert_to_base_counts( record.samples[0] );
         window_gen.enqueue( record.chromosome, record.position, sample );
     }
     window_gen.finish_chromosome();
