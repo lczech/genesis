@@ -386,7 +386,9 @@ public:
         // std::basic_filebuf::~basic_filebuf(). To see an exception on error,
         // close the ofstream with an explicit call to close(), and do not rely
         // on the implicit call in the destructor.
-        sync();
+        try {
+            sync();
+        } catch (...) {}
 
         delete [] in_buff_;
         delete [] out_buff_;
