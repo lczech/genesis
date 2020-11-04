@@ -51,11 +51,14 @@ static const char base64_pad_char_ = '=';
 template<class T>
 std::string base64_encode_( T const& input, size_t line_length )
 {
-    // Init and reserve space for result
+    // Init and reserve space for result. We need both the actual length of the content,
+    // as well as the size for reserving, which might include room for new line chars.
     std::string encoded;
-    size_t char_res = (( input.size() / 3 ) + ( input.size() % 3 > 0 )) * 4;
+    size_t char_len = (( input.size() / 3 ) + ( input.size() % 3 > 0 )) * 4;
+    size_t char_res = char_len;
     if( line_length > 0 ) {
-        char_res += char_res / line_length;
+        // Reserve extra for new line chars, minus the trailing one if the division is exact.
+        char_res += char_res / line_length - ( char_res % line_length == 0 );
     }
     encoded.reserve( char_res );
 
@@ -66,9 +69,10 @@ std::string base64_encode_( T const& input, size_t line_length )
         assert( encoded.size() + 1 <= encoded.capacity() );
         encoded.append( 1, c );
 
-        // Line wrapping as needed
+        // Line wrapping as needed: Every time the modulo fires, expect for the beginning, and
+        // if the total length is an exact multiple, in which case we do not add a trailing new line.
         ++out_cnt;
-        if( line_length > 0 && out_cnt % line_length == 0 ) {
+        if( out_cnt % line_length == 0 && line_length > 0 && out_cnt < char_len ) {
             encoded.append( 1, '\n' );
         }
     };
@@ -77,10 +81,14 @@ std::string base64_encode_( T const& input, size_t line_length )
     std::uint32_t temp = 0;
     auto it = input.begin();
     for( std::size_t i = 0; i < input.size() / 3; ++i ) {
-        // Convert to big endian
-        temp  = ( *it++ ) << 16;
-        temp += ( *it++ ) << 8;
-        temp += ( *it++ );
+        // Convert to big endian. We here also need to cast from whatever class T we have here
+        // (might be std::string, that is, char) to an unsigned char first, so that the actual
+        // byte value works, and then to the temp type, so that we can do the shifting properly.
+        // We cannot immediately cast to uint32_t here, as that has different module/casting
+        // behaviour that char to unsigned char casting. Hope that I got this right...
+        temp  = static_cast<std::uint32_t>( static_cast<unsigned char>( *it++ )) << 16;
+        temp += static_cast<std::uint32_t>( static_cast<unsigned char>( *it++ )) << 8;
+        temp += static_cast<std::uint32_t>( static_cast<unsigned char>( *it++ ));
 
         // Add to output
         put_char( base64_encode_lookup_[( temp & 0x00FC0000 ) >> 18 ]);
@@ -92,9 +100,9 @@ std::string base64_encode_( T const& input, size_t line_length )
     // Process remaining part and add padding
     switch( input.size() % 3 ) {
         case 2: {
-            // Convert to big endian
-            temp  = ( *it++ ) << 16;
-            temp += ( *it++ ) << 8;
+            // Convert to big endian. See above for an explanation of the double cast.
+            temp  = static_cast<std::uint32_t>( static_cast<unsigned char>( *it++ )) << 16;
+            temp += static_cast<std::uint32_t>( static_cast<unsigned char>( *it++ )) << 8;
 
             // Add to output
             put_char( base64_encode_lookup_[( temp & 0x00FC0000 ) >> 18 ]);
