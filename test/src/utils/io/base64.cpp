@@ -33,6 +33,9 @@
 #include "genesis/utils/io/base64.hpp"
 
 #include <cctype>
+#include <ctime>
+#include <string>
+#include <unistd.h>
 
 using namespace genesis::utils;
 
@@ -68,4 +71,35 @@ TEST( Base64, EncodeDecode )
     auto const from_string2 = base64_encode( to_string );
     EXPECT_EQ( base64_reference_, from_uint8 );
     EXPECT_EQ( base64_reference_, from_string2 );
+}
+
+std::string base64_generate_random_string_( size_t len )
+{
+    static const char alphanum[] =
+        "`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?"
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+    ;
+
+    std::string tmp_s;
+    for( size_t i = 0; i < len; ++i ) {
+        tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+    return tmp_s;
+}
+
+TEST( Base64, RandomStrings )
+{
+    // Random init
+    srand( (unsigned) time(NULL) * getpid());
+
+
+    // Some random trials
+    for( size_t i = 0; i < 1000; ++i ) {
+        std::string const truth = base64_generate_random_string_( i );
+        auto const converted = base64_encode( truth );
+        auto const back = base64_decode_string( converted );
+        EXPECT_EQ( truth, back );
+    }
 }

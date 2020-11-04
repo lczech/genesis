@@ -51,6 +51,10 @@ static const char base64_pad_char_ = '=';
 template<class T>
 std::string base64_encode_( T const& input, size_t line_length )
 {
+    if( input.empty() ) {
+        return {};
+    }
+
     // Init and reserve space for result. We need both the actual length of the content,
     // as well as the size for reserving, which might include room for new line chars.
     std::string encoded;
@@ -66,6 +70,7 @@ std::string base64_encode_( T const& input, size_t line_length )
     size_t out_cnt = 0;
     auto put_char = [&]( char c ){
         // Put the char
+        assert( encoded.size() + 1 <= char_res );
         assert( encoded.size() + 1 <= encoded.capacity() );
         encoded.append( 1, c );
 
@@ -73,6 +78,8 @@ std::string base64_encode_( T const& input, size_t line_length )
         // if the total length is an exact multiple, in which case we do not add a trailing new line.
         ++out_cnt;
         if( out_cnt % line_length == 0 && line_length > 0 && out_cnt < char_len ) {
+            assert( encoded.size() + 1 <= char_res );
+            assert( encoded.size() + 1 <= encoded.capacity() );
             encoded.append( 1, '\n' );
         }
     };
@@ -164,9 +171,12 @@ T base64_decode_( std::string const& input )
         ++padding;
     }
 
-    // Init and reserve space for result
+    // Init and reserve space for result. We store the reserved size here, so that we can assert
+    // to not go beyond that (and cause unplanned reallocation). We cannot use decoded.capacity()
+    // for that, as this might allocate slightly differently (always more though).
     T decoded;
-    decoded.reserve( (( char_cnt / 4 ) * 3 ) - padding );
+    size_t const char_res = (( char_cnt / 4 ) * 3 ) - padding;
+    decoded.reserve( char_res );
 
     // Hold decoded quanta
     std::uint32_t temp = 0;
@@ -205,6 +215,7 @@ T base64_decode_( std::string const& input )
                 switch( input.end() - it ) {
                     case 1: {
                         //One pad character
+                        assert( decoded.size() + 2 <= char_res );
                         assert( decoded.size() + 2 <= decoded.capacity() );
                         decoded.push_back(( temp >> 16 ) & 0x000000FF );
                         decoded.push_back(( temp >> 8  ) & 0x000000FF );
@@ -212,6 +223,7 @@ T base64_decode_( std::string const& input )
                     }
                     case 2: {
                         //Two pad characters
+                        assert( decoded.size() + 1 <= char_res );
                         assert( decoded.size() + 1 <= decoded.capacity() );
                         decoded.push_back(( temp >> 10 ) & 0x000000FF );
                         return decoded;
@@ -227,6 +239,7 @@ T base64_decode_( std::string const& input )
             ++it;
         }
 
+        assert( decoded.size() + 3 <= char_res );
         assert( decoded.size() + 3 <= decoded.capacity() );
         decoded.push_back(( temp >> 16 ) & 0x000000FF );
         decoded.push_back(( temp >> 8  ) & 0x000000FF );
@@ -234,7 +247,7 @@ T base64_decode_( std::string const& input )
     }
 
     // If our initial reservation was correct, we have reached exactly capacity.
-    assert( decoded.size() == decoded.capacity() );
+    assert( decoded.size() == char_res );
     return decoded;
 }
 
