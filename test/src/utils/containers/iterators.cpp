@@ -54,8 +54,8 @@ TEST( Containers, TransformIterator )
 
     // Version 1: Two independent iterators to begin and end.
     std::vector<size_t> res_it;
-    auto begin = make_transform_iterator( list.begin(), twice );
-    auto end   = make_transform_iterator( list.end(), twice );
+    auto begin = make_transform_iterator( twice, list.begin() );
+    auto end   = make_transform_iterator( twice, list.end() );
     for( auto it = begin; it != end; ++it ) {
         res_it.push_back( *it );
     }
@@ -63,14 +63,14 @@ TEST( Containers, TransformIterator )
 
     // Version 2: A range with specified begin end end.
     std::vector<size_t> res_range_be;
-    for( auto e : make_transform_range( list.begin(), list.end(), twice )) {
+    for( auto e : make_transform_range( twice, list.begin(), list.end() )) {
         res_range_be.push_back( e );
     }
     EXPECT_EQ( result, res_range_be );
 
     // Version 3: A range based on a container.
     std::vector<size_t> res_range_cont;
-    for( auto e : make_transform_range( list, twice )) {
+    for( auto e : make_transform_range( twice, list )) {
         res_range_cont.push_back( e );
     }
     EXPECT_EQ( result, res_range_cont );

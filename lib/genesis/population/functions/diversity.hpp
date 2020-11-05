@@ -437,11 +437,14 @@ PoolDiversityResults pool_diversity_measures(
     // here is meant as a high level variant, and we have to live with that.
     // Better solution is to run filter_min_count() already when adding the samples
     // to the range that we loop over here.
-    auto min_filtered_range = utils::make_transform_range( begin, end, [&]( BaseCounts const& sample ){
-        auto copy = sample;
-        filter_min_count( copy, settings.min_allele_count );
-        return copy;
-    });
+    auto min_filtered_range = utils::make_transform_range(
+        [&]( BaseCounts const& sample ){
+            auto copy = sample;
+            filter_min_count( copy, settings.min_allele_count );
+            return copy;
+        },
+        begin, end
+    );
 
     // Count how many SNPs there are in total, and how many sites have the needed coverage.
     for( auto it = min_filtered_range.begin(); it != min_filtered_range.end(); ++it ) {

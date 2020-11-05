@@ -59,7 +59,7 @@ namespace utils {
  * for a discussuion on the issue of calling the transform functor multiple times. Might need to
  * add caching later.
  */
-template< typename BaseIterator, typename TransformFunctor >
+template< typename TransformFunctor, typename BaseIterator >
 class TransformIterator
 {
 public:
@@ -90,9 +90,9 @@ public:
      * to iterate, using the same transformation function both times. See also make_transform_iterator()
      * and make_transform_range() for helper functions to easily create an instance.
      */
-    TransformIterator( BaseIterator iterator, TransformFunctor unary_func )
-        : current_( iterator )
-        , functor_( unary_func )
+    TransformIterator( TransformFunctor unary_func, BaseIterator iterator )
+        : functor_( unary_func )
+        , current_( iterator )
     {
         // We allow also non-random-access-iterators! No need for the following assertion.
         // static_assert(
@@ -116,8 +116,8 @@ public:
 
     // Explicit copy constructor and assignment. Not needed.
     // TransformIterator( TransformIterator const& input )
-    //     : current_( input.current_ )
-    //     , functor_( input.functor_ )
+    //     : functor_( input.functor_ )
+    //     , current_( input.current_ )
     // {}
     //
     // TransformIterator& operator=( TransformIterator const& input )
@@ -268,8 +268,8 @@ public:
 
 private:
 
-    BaseIterator current_;
     TransformFunctor functor_;
+    BaseIterator current_;
 
     mutable reference cache_;
     mutable bool cache_valid_ = false;
@@ -288,27 +288,27 @@ private:
  * to iterate, using the same transformation function both times. See also make_transform_iterator()
  * and make_transform_range() for helper functions to easily create an instance.
  */
-template<typename BaseIterator, typename TransformFunctor>
-TransformIterator<BaseIterator, TransformFunctor> make_transform_iterator(
-    BaseIterator     iterator,
-    TransformFunctor unary_func
+template<typename TransformFunctor, typename BaseIterator>
+TransformIterator<TransformFunctor, BaseIterator> make_transform_iterator(
+    TransformFunctor unary_func,
+    BaseIterator     iterator
 ) {
-    return TransformIterator<BaseIterator, TransformFunctor>( iterator, unary_func );
+    return TransformIterator<TransformFunctor, BaseIterator>( unary_func, iterator );
 }
 
 /**
  * @brief Construct a transforming range, given the transformation function as well as
  * the underlying base iterator begin and end.
  */
-template<typename BaseIterator, typename TransformFunctor>
-Range<TransformIterator<BaseIterator, TransformFunctor>> make_transform_range(
+template<typename TransformFunctor, typename BaseIterator>
+Range<TransformIterator<TransformFunctor, BaseIterator>> make_transform_range(
+    TransformFunctor unary_func,
     BaseIterator     begin,
-    BaseIterator     end,
-    TransformFunctor unary_func
+    BaseIterator     end
 ) {
-    return Range<TransformIterator<BaseIterator, TransformFunctor>>(
-        TransformIterator<BaseIterator, TransformFunctor>( begin, unary_func ),
-        TransformIterator<BaseIterator, TransformFunctor>( end,   unary_func )
+    return Range<TransformIterator<TransformFunctor, BaseIterator>>(
+        TransformIterator<TransformFunctor, BaseIterator>( unary_func, begin ),
+        TransformIterator<TransformFunctor, BaseIterator>( unary_func, end   )
     );
 }
 
@@ -316,17 +316,17 @@ Range<TransformIterator<BaseIterator, TransformFunctor>> make_transform_range(
  * @brief Construct a transforming range, given the transformation function as well as
  * a container, whose begin() and end() iterators are used, respectively.
  */
-template<typename Container, typename TransformFunctor>
-Range<TransformIterator<typename Container::iterator, TransformFunctor>> make_transform_range(
-    Container& container,
-    TransformFunctor unary_func
+template<typename TransformFunctor, typename Container>
+Range<TransformIterator<TransformFunctor, typename Container::iterator>> make_transform_range(
+    TransformFunctor unary_func,
+    Container& container
 ) {
-    return Range<TransformIterator<typename Container::iterator, TransformFunctor>>(
-        TransformIterator<typename Container::iterator, TransformFunctor>(
-            container.begin(), unary_func
+    return Range<TransformIterator<TransformFunctor, typename Container::iterator>>(
+        TransformIterator<TransformFunctor, typename Container::iterator>(
+            unary_func, container.begin()
         ),
-        TransformIterator<typename Container::iterator, TransformFunctor>(
-            container.end(), unary_func
+        TransformIterator<TransformFunctor, typename Container::iterator>(
+            unary_func, container.end()
         )
     );
 }
@@ -335,17 +335,17 @@ Range<TransformIterator<typename Container::iterator, TransformFunctor>> make_tr
  * @brief Construct a transforming range, given the transformation function as well as
  * a const container, whose begin() and end() iterators are used, respectively.
  */
-template<typename Container, typename TransformFunctor>
-Range<TransformIterator<typename Container::const_iterator, TransformFunctor>> make_transform_range(
-    Container const& container,
-    TransformFunctor unary_func
+template<typename TransformFunctor, typename Container>
+Range<TransformIterator<TransformFunctor, typename Container::const_iterator>> make_transform_range(
+    TransformFunctor unary_func,
+    Container const& container
 ) {
-    return Range<TransformIterator<typename Container::const_iterator, TransformFunctor>>(
-        TransformIterator<typename Container::const_iterator, TransformFunctor>(
-            container.begin(), unary_func
+    return Range<TransformIterator<TransformFunctor, typename Container::const_iterator>>(
+        TransformIterator<TransformFunctor, typename Container::const_iterator>(
+            unary_func, container.begin()
         ),
-        TransformIterator<typename Container::const_iterator, TransformFunctor>(
-            container.end(), unary_func
+        TransformIterator<TransformFunctor, typename Container::const_iterator>(
+            unary_func, container.end()
         )
     );
 }
