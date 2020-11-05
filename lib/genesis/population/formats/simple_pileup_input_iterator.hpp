@@ -75,8 +75,8 @@ public:
 
     using self_type         = SimplePileupInputIterator;
     using value_type        = SimplePileupReader::Record;
-    using pointer           = value_type&;
-    using reference         = value_type*;
+    using pointer           = value_type*;
+    using reference         = value_type&;
     using difference_type   = std::ptrdiff_t;
     using iterator_category = std::input_iterator_tag;
 

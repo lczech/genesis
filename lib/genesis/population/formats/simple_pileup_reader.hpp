@@ -163,11 +163,6 @@ public:
     };
 
     using self_type         = SimplePileupReader;
-    using value_type        = Record;
-    using pointer           = value_type&;
-    using reference         = value_type*;
-    using difference_type   = std::ptrdiff_t;
-    using iterator_category = std::input_iterator_tag;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
