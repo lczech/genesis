@@ -51,13 +51,30 @@ namespace utils {
  * The constructor is used to set the transformation function. See also make_transform_iterator()
  * and make_transform_range() for helper functions to easily create an instance.
  *
+ * This iterator takes the argument and return types of the TransformFunctor into account:
+ *
+ *  * If the TransformFunctor returns by value, we copy that value into an internal cache. This way,
+ *    in cases where the iterator is dereferenced multiple times at the same iteration position,
+ *    we do not need to apply the TransformFunctor each time.
+ *  * However, if the TransformFunctor returns by reference (const or non-const, but see also below),
+ *    making a copy would be wasteful.
+ *    Hence, in that case, we simply forward that reference here as well. This kind of transforming
+ *    iterator is for example useful to efficiently select an entry from the underlying BaseIterator,
+ *    e.g., an iterator over a `std::pair<>` could be transformed for selecting the first entry,
+ *    without the need to copy that. If the TransformIterator is used that way, the underlying
+ *    type does not even need to be copyable.
+ *  * Lastly, if the TransformFunctor returns by non-const reference, the underlying element
+ *    can also be modified!
+ *
+ * The iterator is hence useable in many situations, while also being as efficient as possible.
+ *
  * Inspired by the Boost Transform Iterator
  * (https://www.boost.org/doc/libs/1_66_0/libs/iterator/doc/html/iterator/specialized/transform.html)
  * and the Intel TBB Transform Iterator
  * (https://software.intel.com/content/www/us/en/develop/documentation/onetbb-documentation/top/intel-174-oneapi-threading-building-blocks-onetbb-developer-reference/iterators/transform-iterator.html).
  * See also https://www.fluentcpp.com/2019/02/12/the-terrible-problem-of-incrementing-a-smart-iterator/
- * for a discussuion on the issue of calling the transform functor multiple times. Might need to
- * add caching later.
+ * for a discussuion on the issue of calling the transform functor multiple times with caching.
+ * We went a bit above and beyond that, as explained above.
  */
 template< typename TransformFunctor, typename BaseIterator >
 class TransformIterator
@@ -68,14 +85,45 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    // using iterator_category = typename std::random_access_iterator_tag;
-    using iterator_category = typename std::iterator_traits<BaseIterator>::iterator_category;
-
-    using value_type        = typename std::iterator_traits<BaseIterator>::value_type;
-    using reference         = typename std::result_of<
+    // Get the type that the TransformFunctor returns
+    using result_type = typename std::result_of<
         TransformFunctor( typename std::iterator_traits<BaseIterator>::reference )
     >::type;
-    using pointer           = typename std::iterator_traits<BaseIterator>::pointer;
+
+    // We want to cache the transformed values if the transform functor returns a copy (that is
+    // for example, the result of some computation that is simply returned by the functor).
+    // However, wehn the functor returns a reference instead (for example, it just selects a certain
+    // element from the underlying base iterator), we do not want to cache, as that would make
+    // an unnecessary copy of the element (and would require that the element type is copyable).
+    // So in that case, we deactivate caching. We could use SFINAE and some class derivation
+    // to disable the cache member variable (see https://stackoverflow.com/a/25497790 for example),
+    // but we keep it simple here and instead just use a dummy bool variable in that case.
+    using cache_type = typename std::conditional<
+        std::is_reference<result_type>::value, bool, result_type
+    >::type;
+
+    // Furthermore, the operator*(), operator->(), and operator[]() need to return the proper type.
+    // If the TransformFunctor returns a reference, we return a reference as well. If not, that is,
+    // if the functor returns a value by copy, we still return a reference here, but this time,
+    // referencing the cache! So, we need to remove the reference type trait first in case that it
+    // is present, and then can have these operators add the correct reference trait again.
+    using return_type = typename std::remove_reference<result_type>::type;
+
+    // For the standard iterator types, we also want to use the types of the TransformFunctor,
+    // so that whatever that one does is the basis for our types here. We could almost use the
+    // (commented out) types based on the BaseIterator here as well, but by not doing so, we allow
+    // that the TransformFunctor can perform implicit type conversions from the BaseIterator
+    // type to its input argument! Bit more flexibility this way, and helpful at times.
+    using value_type        = return_type;
+    using pointer           = return_type*;
+    using reference         = return_type&;
+    // using value_type        = typename std::iterator_traits<BaseIterator>::value_type;
+    // using pointer           = typename std::iterator_traits<BaseIterator>::pointer;
+    // using reference         = typename std::iterator_traits<BaseIterator>::reference;
+
+    // using reference         = result_type;
+    // using iterator_category = typename std::random_access_iterator_tag;
+    using iterator_category = typename std::iterator_traits<BaseIterator>::iterator_category;
     using difference_type   = typename std::iterator_traits<BaseIterator>::difference_type;
 
     // -------------------------------------------------------------------------
@@ -130,25 +178,17 @@ public:
     //     Basic Iterator Operators
     // -------------------------------------------------------------------------
 
-    reference const& operator*() const
+    return_type& operator*() const
     {
-        if( ! cache_valid_ ) {
-            cache_ = functor_( *current_ );
-            cache_valid_ = true;
-        }
-        return cache_;
+        return get_value_<result_type>();
     }
 
-    reference const* operator->() const
+    return_type* operator->() const
     {
-        if( ! cache_valid_ ) {
-            cache_ = functor_( *current_ );
-            cache_valid_ = true;
-        }
-        return &cache_;
+        return &get_value_<result_type>();
     }
 
-    reference operator[]( difference_type i ) const
+    return_type& operator[]( difference_type i ) const
     {
         return *(*this + i);
     }
@@ -263,6 +303,68 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Internal Functions
+    // -------------------------------------------------------------------------
+
+private:
+
+    /**
+     * @brief Implementation for reference types: Simply return the transformed value by reference.
+     */
+    template<typename T, typename std::enable_if< std::is_reference<T>::value >::type* = nullptr>
+    return_type& get_value_() const
+    {
+        // Internal check: This function needs type T only for the SFINAE of std::enable_if to work.
+        // But we only want this for the result_type that we are actually using here!
+        static_assert(
+            std::is_same<T, result_type>::value, "Function has to be called using T=result_type"
+        );
+
+        // More internal checks, just to make sure that the SFINAE works correctly.
+        static_assert(
+            std::is_reference<result_type>::value,
+            "Function SFINAE is activated although result_type is not a reference type"
+        );
+        static_assert(
+            std::is_same<cache_type, bool>::value,
+            "cache_type is not bool although result_type is a reference type"
+        );
+
+        // Return the result immediately. This returns by reference, so that no copy is made.
+        return functor_( *current_ );
+    }
+
+    /**
+     * @brief Impelmentation for non-reference types: Use the cache, then return a reference to that.
+     */
+    template<typename T, typename std::enable_if< !std::is_reference<T>::value >::type* = nullptr>
+    return_type& get_value_() const
+    {
+        // Internal check: This function needs type T only for the SFINAE of std::enable_if to work.
+        // But we only want this for the result_type that we are actually using here!
+        static_assert(
+            std::is_same<T, result_type>::value, "Function has to be called using T=result_type"
+        );
+
+        // Another internal check, just to make sure that the SFINAE works correctly.
+        static_assert(
+            ! std::is_reference<result_type>::value,
+            "Function SFINAE is activated although result_type is a reference type"
+        );
+        static_assert(
+            std::is_same<cache_type, result_type>::value,
+            "cache_type is not the same as result_type although result_type is a not reference type"
+        );
+
+        // Fill the cache as needed, and return a reference to the cached object.
+        if( ! cache_valid_ ) {
+            cache_ = functor_( *current_ );
+            cache_valid_ = true;
+        }
+        return cache_;
+    }
+
+    // -------------------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------------------
 
@@ -271,7 +373,13 @@ private:
     TransformFunctor functor_;
     BaseIterator current_;
 
-    mutable reference cache_;
+    // Store the cached value, if needed. In cases where the TransformFunctor returns by reference,
+    // we do not want to use a cache, to avoid unnecessary copies. In that case, cache_type is
+    // simply set to bool as a dummy type, and never used.
+    // Furthermore, the cache_valid_ check is used by some of the iteration functions even if
+    // we do not have a valid cache (that is, for references). That is okay, as this is simply
+    // an overhead of setting one bool value that is not used. We can live with that.
+    mutable cache_type cache_;
     mutable bool cache_valid_ = false;
 
 };
