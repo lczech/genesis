@@ -38,6 +38,7 @@
 #include "genesis/population/formats/vcf_record.hpp"
 
 #include <cassert>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -70,6 +71,11 @@ namespace population {
  *     }
  *
  * For details on working with the records/lines, see VcfRecord and VcfFormatIterator.
+ *
+ * Caveat: The iterator is an input iterator that traverses a single VCF file in one go.
+ * That means, any copy of this iterator will also advance if another copy is incremented -
+ * the will all point to the same VcfRecord. This is also true for the post-increment operator,
+ * which returns a copy that also points to the same VcfRecord, and not to the previous one.
  */
 class VcfInputIterator
 {
@@ -81,8 +87,8 @@ public:
 
     using self_type         = VcfInputIterator;
     using value_type        = VcfRecord;
-    using pointer           = value_type&;
-    using reference         = value_type*;
+    using pointer           = value_type const*;
+    using reference         = value_type const&;
     using difference_type   = std::ptrdiff_t;
     using iterator_category = std::input_iterator_tag;
 
@@ -102,9 +108,9 @@ public:
         std::string const& filename
     )
         : filename_( filename )
-        , file_( filename )
-        , header_( file_ )
-        , record_( header_ )
+        , file_( std::make_shared<HtsFile>( filename ))
+        , header_( std::make_shared<VcfHeader>( *file_ ))
+        , record_( std::make_shared<VcfRecord>( *header_ ))
     {
         // Read the first record of the file.
         increment();
@@ -112,6 +118,10 @@ public:
 
     /**
      * @brief Create an instance that reads from an input file name.
+     *
+     * Additionally, this constructor takes a list of @p sample_names which are used as filter so
+     * that only those samples (columns of the VCF records) are evaluated and accessible - or,
+     * if @p inverse_sample_names is set to `true`, instead all <i>but</i> those samples.
      */
     VcfInputIterator(
         std::string const& filename,
@@ -119,12 +129,12 @@ public:
         bool inverse_sample_names = false
     )
         : filename_( filename )
-        , file_( filename )
-        , header_( file_ )
-        , record_( header_ )
+        , file_( std::make_shared<HtsFile>( filename ))
+        , header_( std::make_shared<VcfHeader>( *file_ ))
+        , record_( std::make_shared<VcfRecord>( *header_ ))
     {
         // Filter sample columns by their name
-        header_.set_samples( sample_names, inverse_sample_names );
+        header_->set_samples( sample_names, inverse_sample_names );
 
         // Read the first record of the file.
         increment();
@@ -132,10 +142,10 @@ public:
 
     ~VcfInputIterator() = default;
 
-    VcfInputIterator( self_type const& ) = delete;
+    VcfInputIterator( self_type const& ) = default;
     VcfInputIterator( self_type&& )      = default;
 
-    self_type& operator= ( self_type const& ) = delete;
+    self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
 
     // -------------------------------------------------------------------------
@@ -166,52 +176,67 @@ public:
 
     HtsFile const& hts_file() const
     {
-        return file_;
+        // Here and below we assert the existence of a pointed-to object in the shared pointer,
+        // which does not hold true if the default constructor of this class was used, in which
+        // case any of these dereferencing functions here are supposed to be invalid - so, by
+        // using assertions here, we can fail a bit more gracefully in such cases, instead of
+        // getting seg faults due to nullptrs.
+        assert( file_ );
+        return *file_;
     }
 
     HtsFile& hts_file()
     {
-        return file_;
+        assert( file_ );
+        return *file_;
     }
 
     VcfHeader const& header() const
     {
-        return header_;
+        assert( header_ );
+        return *header_;
     }
 
     VcfHeader& header()
     {
-        return header_;
+        assert( header_ );
+        return *header_;
     }
 
     VcfRecord const& record() const
     {
-        return record_;
+        assert( record_ );
+        return *record_;
     }
 
     VcfRecord& record()
     {
-        return record_;
+        assert( record_ );
+        return *record_;
     }
 
     VcfRecord const* operator ->() const
     {
-        return &record_;
+        assert( record_ );
+        return &*record_;
     }
 
     VcfRecord* operator ->()
     {
-        return &record_;
+        assert( record_ );
+        return &*record_;
     }
 
     VcfRecord const& operator*() const
     {
-        return record_;
+        assert( record_ );
+        return *record_;
     }
 
     VcfRecord& operator*()
     {
-        return record_;
+        assert( record_ );
+        return *record_;
     }
 
     // -------------------------------------------------------------------------
@@ -232,7 +257,19 @@ public:
 
     void increment()
     {
-        good_ = record_.read_next( file_ );
+        assert( file_ );
+        assert( record_ );
+        good_ = record_->read_next( *file_ );
+    }
+
+    bool operator==( self_type const& it ) const
+    {
+        return good_ == it.good_;
+    }
+
+    bool operator!=( self_type const& it ) const
+    {
+        return !(*this == it);
     }
 
     // -------------------------------------------------------------------------
@@ -241,13 +278,13 @@ public:
 
 private:
 
-    bool good_ = true;
+    bool good_ = false;
     std::string filename_;
 
-    // htslib structs
-    HtsFile   file_;
-    VcfHeader header_;
-    VcfRecord record_;
+    // htslib structs. We use shared pointers here to allow copying this iterator.
+    std::shared_ptr<HtsFile>   file_;
+    std::shared_ptr<VcfHeader> header_;
+    std::shared_ptr<VcfRecord> record_;
 };
 
 } // namespace population
