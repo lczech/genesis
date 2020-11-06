@@ -92,7 +92,7 @@ std::tuple<double, double, double> f_st_conventional_pool_pi_snp(
     auto const p2_pi = pi_snp_( p2_freq_a, p2_freq_c, p2_freq_g, p2_freq_t, p2_nt_cnt );
     auto const pp_pi = pi_snp_( avg_a, avg_c, avg_g, avg_t, min_cnt );
 
-    return { p1_pi, p2_pi, pp_pi };
+    return std::tuple<double, double, double>{ p1_pi, p2_pi, pp_pi };
 }
 
 // =================================================================================================
