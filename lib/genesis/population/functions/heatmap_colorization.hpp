@@ -62,6 +62,7 @@ public:
 
     struct Spectrum
     {
+        Spectrum() = default;
         Spectrum( std::string const& chromosome )
             : chromosome(chromosome)
         {}
@@ -74,7 +75,13 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    HeatmapColorization()  = default;
+    HeatmapColorization() = default;
+
+    explicit HeatmapColorization( std::vector<utils::Color> const& value )
+    {
+        color_map_.palette( value );
+    }
+
     ~HeatmapColorization() = default;
 
     HeatmapColorization( HeatmapColorization const& ) = default;
