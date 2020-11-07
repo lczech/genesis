@@ -172,6 +172,12 @@ inline size_t nucleotide_sum( BaseCounts const& sample )
 }
 
 /**
+ * @brief Merge the counts of two BaseCounts%s, by adding the counts of the second (@p p2)
+ * to the first (@p p1).
+ */
+void merge_inplace( BaseCounts& p1, BaseCounts const& p2 );
+
+/**
  * @brief Merge the counts of two BaseCounts%s.
  */
 BaseCounts merge( BaseCounts const& p1, BaseCounts const& p2 );

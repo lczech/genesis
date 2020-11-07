@@ -94,7 +94,7 @@ BaseCountsStatus status(
 //     Accumulation, Filtering, etc
 // =================================================================================================
 
-BaseCounts merge( BaseCounts const& p1, BaseCounts const& p2 )
+void merge_inplace( BaseCounts& p1, BaseCounts const& p2 )
 {
     // Make sure that we do not forget any fields in case of later refactoring of the struct.
     static_assert(
@@ -102,13 +102,18 @@ BaseCounts merge( BaseCounts const& p1, BaseCounts const& p2 )
         "Unexpected number of member variables in BaseCounts class"
     );
 
+    p1.a_count += p2.a_count;
+    p1.c_count += p2.c_count;
+    p1.g_count += p2.g_count;
+    p1.t_count += p2.t_count;
+    p1.n_count += p2.n_count;
+    p1.d_count += p2.d_count;
+}
+
+BaseCounts merge( BaseCounts const& p1, BaseCounts const& p2 )
+{
     BaseCounts result = p1;
-    result.a_count += p2.a_count;
-    result.c_count += p2.c_count;
-    result.g_count += p2.g_count;
-    result.t_count += p2.t_count;
-    result.n_count += p2.n_count;
-    result.d_count += p2.d_count;
+    merge_inplace( result, p2 );
     return result;
 }
 
