@@ -36,7 +36,6 @@
 #include "genesis/population/variant.hpp"
 #include "genesis/utils/containers/filter_iterator.hpp"
 #include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/simple_cache.hpp"
 #include "genesis/utils/containers/transform_iterator.hpp"
 
 #include <cassert>

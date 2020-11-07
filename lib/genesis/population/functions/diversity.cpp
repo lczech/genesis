@@ -31,14 +31,18 @@
 #include "genesis/population/functions/diversity.hpp"
 
 #include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/simple_cache.hpp"
+#include "genesis/utils/containers/function_cache.hpp"
 #include "genesis/utils/math/common.hpp"
-#include "genesis/utils/core/logging.hpp"
 
 #include <cassert>
 #include <cmath>
+#include <mutex>
 #include <stdexcept>
 #include <unordered_map>
+
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
 
 namespace genesis {
 namespace population {
@@ -65,14 +69,19 @@ double amnm_( // get_aMnm_buffer
     // using the r from the below loop (which confusingly is also called k in PoPoolation).
     // What a mess.
 
-    static genesis::utils::SimpleCache<double, size_t, size_t, size_t> amnm_cache_{ [](
+    static genesis::utils::FunctionCache<double, size_t, size_t, size_t> amnm_cache_{ [](
         size_t poolsize, size_t nucleotide_count, size_t allele_frequency
     ) {
         double result = 0.0;
+
+        #pragma omp parallel for
         for( size_t r = 1; r <= poolsize - 1; ++r ) {
             double const p = static_cast<double>( r ) / static_cast<double>( poolsize );
             double const binom = utils::binomial_distribution( allele_frequency, nucleotide_count, p );
-            result += binom / static_cast<double>( r );
+            double const partial = binom / static_cast<double>( r );
+
+            #pragma omp atomic
+            result += partial;
         }
         return result;
     }};
@@ -110,7 +119,7 @@ double theta_pi_pool_denominator(
     // nucleotide_count: M
 
     // Local cache for speed.
-    static genesis::utils::SimpleCache<double, size_t, size_t, size_t> denom_cache_{ [](
+    static genesis::utils::FunctionCache<double, size_t, size_t, size_t> denom_cache_{ [](
         size_t poolsize, size_t min_allele_count, size_t nucleotide_count
     ){
         // Boundary: if not held, we'd return zero, and that would not be a useful denominator.
@@ -124,6 +133,8 @@ double theta_pi_pool_denominator(
 
         // Iterate all allele frequencies in between the min and max-min boundaries.
         double div = 0.0;
+
+        #pragma omp parallel for
         for( size_t m_it = min_allele_count; m_it <= ( nucleotide_count - min_allele_count ); ++m_it ) {
             // We iterate from b to M-b (in PoPoolation terminology), inclusively.
             // Use double values however for the computations.
@@ -131,8 +142,11 @@ double theta_pi_pool_denominator(
             double const M = static_cast<double>( nucleotide_count );
 
             // Compute the term. We here use the cache, which also computes results if not yet cached.
-            double term = ( 2.0 * m * ( M - m )) / ( M * ( M - 1.0 ));
-            div += term * amnm_( poolsize, nucleotide_count, m_it );
+            double const term = ( 2.0 * m * ( M - m )) / ( M * ( M - 1.0 ));
+            double const partial = term * amnm_( poolsize, nucleotide_count, m_it );
+
+            #pragma omp atomic
+            div += partial;
         }
         return div;
     }};
@@ -155,7 +169,7 @@ double theta_watterson_pool_denominator(
     // nucleotide_count: M
 
     // Local cache for speed.
-    static genesis::utils::SimpleCache<double, size_t, size_t, size_t> denom_cache_{ [](
+    static genesis::utils::FunctionCache<double, size_t, size_t, size_t> denom_cache_{ [](
         size_t poolsize, size_t min_allele_count, size_t nucleotide_count
     ){
         // Boundary: if not held, we'd return zero, and that would not be a useful denominator.
@@ -169,10 +183,15 @@ double theta_watterson_pool_denominator(
 
         // Iterate all allele frequencies in between the min and max-min boundaries.
         double div = 0.0;
+
+        #pragma omp parallel for
         for( size_t m_it = min_allele_count; m_it <= ( nucleotide_count - min_allele_count ); ++m_it ) {
 
             // Compute the term. We here use the cache, which also computes results if not yet cached.
-            div += amnm_( poolsize, nucleotide_count, m_it );
+            auto const anmn = amnm_( poolsize, nucleotide_count, m_it );
+
+            #pragma omp atomic
+            div += anmn;
         }
         return div;
     }};
@@ -188,7 +207,7 @@ double theta_watterson_pool_denominator(
 double a_n( size_t n ) // get_an_buffer
 {
     // Local cache for speed.
-    static genesis::utils::SimpleCache<double, size_t> a_n_cache_{ []( size_t n ){
+    static genesis::utils::FunctionCache<double, size_t> a_n_cache_{ []( size_t n ){
         double sum = 0.0;
         for( size_t i = 1; i < n; ++i ) {
             sum += 1.0 / static_cast<double>( i );
@@ -201,7 +220,7 @@ double a_n( size_t n ) // get_an_buffer
 double b_n( size_t n ) // get_bn_buffer
 {
     // Local cache for speed.
-    static genesis::utils::SimpleCache<double, size_t> b_n_cache_{ []( size_t n ){
+    static genesis::utils::FunctionCache<double, size_t> b_n_cache_{ []( size_t n ){
         double sum = 0.0;
         for( size_t i = 1; i < n; ++i ) {
             sum += 1.0 / ( static_cast<double>( i ) * static_cast<double>( i ));
@@ -224,7 +243,7 @@ double alpha_star( double n ) // get_alphastar_calculator
     }
 
     // Local cache for speed.
-    static genesis::utils::SimpleCache<double, double> alpha_star_cache_{ []( double n ){
+    static genesis::utils::FunctionCache<double, double> alpha_star_cache_{ []( double n ){
         using namespace genesis::utils;
 
         // Prepare some constants: n as double, a_n, and f_star.
@@ -252,7 +271,7 @@ double beta_star( double n ) // get_betastar_calculator
     }
 
     // Local cache for speed.
-    static genesis::utils::SimpleCache<double, double> beta_star_cache_{ []( double n ){
+    static genesis::utils::FunctionCache<double, double> beta_star_cache_{ []( double n ){
         using namespace genesis::utils;
 
         // Prepare some constants: n as double, a_n, b_n, and f_star.
@@ -317,18 +336,25 @@ genesis::utils::Matrix<double> pij_matrix_( // _get_pij_matrix
 genesis::utils::Matrix<double> const& pij_matrix_resolver_( // get_nbase_matrix_resolver
     size_t max_coverage, size_t poolsize
 ) {
-    // Here, we need to cache only by poolsize, but additionally make sure that fore a given
-    // poolsize, the matrix is large enough for max_coverage/
+    // Here, we need to cache only by poolsize, but additionally make sure that for a given
+    // poolsize, the matrix is large enough for max_coverage.
     // If it already is, we can just return it. If not, we compute a large enough matrix first.
     // We could re-use data from the smaller matrix for the computation here, but that would
     // be more complex. In terms of runtime, this amortizes pretty quickly, so probably no
     // need to do this optimization as of now.
-    // We could modify SimpleCache to allow overwriting cached values from the outside,
-    // but that somehow seems unclean for all other standard use cases. Hence, simple map here.
+    // We could modify FunctionCache to allow overwriting cached values from the outside,
+    // but that somehow seems unclean for all other standard use cases of that class.
+    // Hence, simple map here, so that we can do our own caching with overwriting.
 
+    // Map from poolsizes to the matrix for that poolsize.
     using PijMatrix = genesis::utils::Matrix<double>;
     static std::unordered_map<size_t, PijMatrix> pij_matrix_cache_;
 
+    // Make sure this function is called thread savely, for concurrent access to the cache.
+    static std::mutex guard_;
+    std::lock_guard<std::mutex> lock( guard_ );
+
+    // Check if we already have the correct size, and re-compute if not.
     if(
         pij_matrix_cache_.count( poolsize ) == 0 ||
         max_coverage >= pij_matrix_cache_.at( poolsize ).rows() ||
@@ -359,7 +385,7 @@ double n_base_matrix( size_t coverage, size_t poolsize ) // get_nbase_buffer
     // }
 
     // Local cache for speed.
-    static genesis::utils::SimpleCache<double, size_t, size_t> nbase_cache_{ [](
+    static genesis::utils::FunctionCache<double, size_t, size_t> nbase_cache_{ [](
         size_t coverage, size_t poolsize
     ) {
 
