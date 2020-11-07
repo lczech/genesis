@@ -46,6 +46,7 @@
 #include "genesis/population/formats/vcf_record.hpp"
 #include "genesis/population/functions/base_counts.hpp"
 #include "genesis/population/functions/diversity.hpp"
+#include "genesis/population/functions/genome_heatmap.hpp"
 #include "genesis/population/functions/heatmap_colorization.hpp"
 #include "genesis/population/functions/structure.hpp"
 #include "genesis/population/functions/variant.hpp"
