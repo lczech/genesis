@@ -62,6 +62,7 @@ namespace utils {
  *     auto result = thread_pool.enqueue(
  *         []( int some_param ) {
  *             // do computations
+ *             int some_result = 42;
  *             return some_result;
  *         },
  *         0 // value for `some_param`
@@ -83,8 +84,11 @@ public:
 
     /**
      * @brief Construct a thread pool with a given number of workers.
+     *
+     * We allow for 0 tasks on construction, so that default construction is possible.
+     * However, the enqueue() throws if used with such an instance.
      */
-    ThreadPool( size_t num_threads )
+    explicit ThreadPool( size_t num_threads = 0 )
     {
         // Create the desired number of workers
         for( size_t i = 0; i < num_threads; ++i ) {
@@ -179,6 +183,11 @@ public:
     -> std::future<typename std::result_of<F(Args...)>::type>
     {
         using result_type = typename std::result_of<F(Args...)>::type;
+
+        // Some dead end checking
+        if( worker_pool_.empty() ) {
+            throw std::runtime_error( "Cannot enqueue task into empty ThreadPool." );
+        }
 
         // Prepare the task by binding the function to its arguments
         auto task = std::make_shared< std::packaged_task<result_type()> >(
