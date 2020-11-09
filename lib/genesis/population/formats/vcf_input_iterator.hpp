@@ -353,9 +353,6 @@ private:
 
     void increment_()
     {
-        assert( future_ );
-        assert( future_->valid() );
-
         // Finish the reading (potentially waiting if not yet finished in the worker thread).
         // The future returns how much data there was to be read, which we use as our status.
         // After that, swap the buffer and start a new reading operation in the worker thread.
@@ -364,6 +361,8 @@ private:
         // and if that vector was full (complete block size), there is more data, so start reading.
         ++current_pos_;
         if( current_pos_ == end_pos_ && end_pos_ == block_size_ ) {
+            assert( future_ );
+            assert( future_->valid() );
 
             // Get how many records were read into the buffer, which also waits for the reading
             // if necessary. After that, we can swao the buffer, start reading again, and set
