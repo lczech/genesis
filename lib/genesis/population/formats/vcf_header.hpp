@@ -158,10 +158,10 @@ public:
     ~VcfHeader();
 
     VcfHeader( VcfHeader const& ) = delete;
-    VcfHeader( VcfHeader&& )      = default;
+    VcfHeader( VcfHeader&& other );
 
     VcfHeader& operator= ( VcfHeader const& ) = delete;
-    VcfHeader& operator= ( VcfHeader&& )      = default;
+    VcfHeader& operator= ( VcfHeader&& other );
 
     // -------------------------------------------------------------------------
     //     General Accessors

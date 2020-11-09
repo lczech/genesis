@@ -78,10 +78,10 @@ public:
     ~HtsFile();
 
     HtsFile( HtsFile const& ) = delete;
-    HtsFile( HtsFile&& )      = default;
+    HtsFile( HtsFile&& other );
 
     HtsFile& operator= ( HtsFile const& ) = delete;
-    HtsFile& operator= ( HtsFile&& )      = default;
+    HtsFile& operator= ( HtsFile&& other );
 
     // -------------------------------------------------------------------------
     //     Accessors

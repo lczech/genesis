@@ -399,7 +399,7 @@ private:
         assert( thread_pool_->load() == 0 );
         assert( ! future_->valid() );
 
-        // The lambda returns the result of theread_block_ call, that is, the number of records
+        // The lambda returns the result of read_block_ call, that is, the number of records
         // that have been read, and which we later (in the future_) use to see how much data we got.
         *future_ = thread_pool_->enqueue(
             [this](){

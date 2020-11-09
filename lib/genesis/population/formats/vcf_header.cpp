@@ -59,7 +59,7 @@ namespace population {
 //     // Open the file.
 //     auto file_  = ::hts_open( file_name.c_str(), "r" );
 //     if( ! file_ ) {
-//         throw std::runtime_error( "Cannot open VCF/BCF file " + file_name );
+//         throw std::runtime_error( "Failed to open VCF/BCF file " + file_name );
 //     }
 //
 //     // Read header.
@@ -73,7 +73,7 @@ VcfHeader::VcfHeader( std::string const& mode )
 {
     header_ = ::bcf_hdr_init( mode.c_str() );
     if( ! header_ ) {
-        throw std::runtime_error( "Cannot initialize VcfHeader bcf_hdr_t data structure." );
+        throw std::runtime_error( "Failed to initialize VcfHeader bcf_hdr_t data structure." );
     }
 }
 
@@ -83,7 +83,8 @@ VcfHeader::VcfHeader( HtsFile& hts_file )
     header_ = ::bcf_hdr_read( hts_file.data() );
     if( ! header_ ) {
         throw std::runtime_error(
-            "Cannot initialize VcfHeader bcf_hdr_t data structure for file " + hts_file.file_name()
+            "Failed to initialize VcfHeader bcf_hdr_t data structure for file " +
+            hts_file.file_name()
         );
     }
 }
@@ -92,7 +93,7 @@ VcfHeader::VcfHeader( ::bcf_hdr_t* bcf_hdr )
 {
     header_ = ::bcf_hdr_dup( bcf_hdr );
     if( ! header_ ) {
-        throw std::runtime_error( "Cannot copy-initialize VcfHeader bcf_hdr_t data structure." );
+        throw std::runtime_error( "Failed to copy-initialize VcfHeader bcf_hdr_t data structure." );
     }
 }
 
@@ -101,6 +102,22 @@ VcfHeader::~VcfHeader()
     if( header_ ) {
         ::bcf_hdr_destroy( header_ );
     }
+}
+
+VcfHeader::VcfHeader( VcfHeader&& other )
+{
+    // We need a custom move, as the explicitly defaulted one "moves" the header_ pointer, which
+    // effectively copies it, and then upon destruction of the moved-from object frees the header_.
+    // So, instead we swap, so that once `other` gets destroyed (as it is moved from, it will go
+    // out of scope soon), our current data of `this` gets also destroyed with it.
+    std::swap( header_, other.header_ );
+}
+
+VcfHeader& VcfHeader::operator= ( VcfHeader&& other )
+{
+    // Same reasoning as above.
+    std::swap( header_, other.header_ );
+    return *this;
 }
 
 // =================================================================================================

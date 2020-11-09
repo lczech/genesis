@@ -55,7 +55,7 @@ HtsFile::HtsFile(
 {
     // Check if file opening worked.
     if( ! hts_file_ ) {
-        throw std::runtime_error( "Cannot open htslib file " + file_name );
+        throw std::runtime_error( "Failed to open htslib file " + file_name );
     }
 }
 
@@ -64,6 +64,24 @@ HtsFile::~HtsFile()
     if( hts_file_ ) {
         ::hts_close( hts_file_ );
     }
+}
+
+HtsFile::HtsFile( HtsFile&& other )
+{
+    // We need a custom move, as the explicitly defaulted one "moves" the hts_file_ pointer, which
+    // effectively copies it, and then upon destruction of the moved-from object frees the hts_file_.
+    // So, instead we swap, so that once `other` gets destroyed (as it is moved from, it will go
+    // out of scope soon), our current data of `this` gets also destroyed with it.
+    std::swap( file_name_, other.file_name_ );
+    std::swap( hts_file_, other.hts_file_ );
+}
+
+HtsFile& HtsFile::operator= ( HtsFile&& other )
+{
+    // Same reasoning as above.
+    std::swap( file_name_, other.file_name_ );
+    std::swap( hts_file_, other.hts_file_ );
+    return *this;
 }
 
 // =================================================================================================

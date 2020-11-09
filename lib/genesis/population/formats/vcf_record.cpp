@@ -90,7 +90,7 @@ VcfRecord::VcfRecord()
 {
     record_ = ::bcf_init();
     if( ! record_ ) {
-        throw std::runtime_error( "Cannot default-initialize VcfRecord bcf1_t data structure." );
+        throw std::runtime_error( "Failed to default-initialize VcfRecord bcf1_t data structure." );
     }
 }
 
@@ -99,7 +99,7 @@ VcfRecord::VcfRecord( VcfHeader& header )
     header_ = &header;
     record_ = ::bcf_init();
     if( ! record_ ) {
-        throw std::runtime_error( "Cannot initialize VcfRecord bcf1_t data structure." );
+        throw std::runtime_error( "Failed to initialize VcfRecord bcf1_t data structure." );
     }
 }
 
@@ -108,7 +108,7 @@ VcfRecord::VcfRecord( VcfHeader& header, ::bcf1_t* bcf1 )
     header_ = &header;
     record_ = ::bcf_dup( bcf1 );
     if( ! record_ ) {
-        throw std::runtime_error( "Cannot copy-initialize VcfRecord bcf1_t data structure." );
+        throw std::runtime_error( "Failed to copy-initialize VcfRecord bcf1_t data structure." );
     }
 }
 
