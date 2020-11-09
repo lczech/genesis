@@ -122,6 +122,34 @@ VcfRecord::~VcfRecord()
     free( info_dest_int_ );
 }
 
+VcfRecord::VcfRecord( VcfRecord&& other )
+{
+    // We swap everything, so that once `other` gets destroyed, our current data of `this` gets
+    // also destroyed with it.
+    this->swap( other );
+}
+
+VcfRecord& VcfRecord::operator= ( VcfRecord&& other )
+{
+    if( this == &other ) {
+        return *this;
+    }
+    this->swap( other );
+    return *this;
+}
+
+void VcfRecord::swap( VcfRecord& other )
+{
+    std::swap( header_,            other.header_ );
+    std::swap( record_,            other.record_ );
+    std::swap( info_dest_string_,  other.info_dest_string_ );
+    std::swap( info_dest_float_,   other.info_dest_float_ );
+    std::swap( info_dest_int_,     other.info_dest_int_ );
+    std::swap( info_ndest_string_, other.info_ndest_string_ );
+    std::swap( info_ndest_float_,  other.info_ndest_float_ );
+    std::swap( info_ndest_int_,    other.info_ndest_int_ );
+}
+
 // =================================================================================================
 //     Simple Fixed Columns
 // =================================================================================================

@@ -175,10 +175,12 @@ public:
     ~VcfRecord();
 
     VcfRecord( VcfRecord const& ) = delete;
-    VcfRecord( VcfRecord&& )      = default;
+    VcfRecord( VcfRecord&& );
 
     VcfRecord& operator= ( VcfRecord const& ) = delete;
-    VcfRecord& operator= ( VcfRecord&& )      = default;
+    VcfRecord& operator= ( VcfRecord&& );
+
+    void swap( VcfRecord& other );
 
     // -------------------------------------------------------------------------
     //     Accessors
