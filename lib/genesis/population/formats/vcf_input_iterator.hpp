@@ -37,10 +37,13 @@
 #include "genesis/population/formats/vcf_header.hpp"
 #include "genesis/population/formats/vcf_record.hpp"
 
+#include "genesis/utils/core/thread_pool.hpp"
+
 #include <cassert>
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace genesis {
@@ -76,6 +79,13 @@ namespace population {
  * That means, any copy of this iterator will also advance if another copy is incremented -
  * the will all point to the same VcfRecord. This is also true for the post-increment operator,
  * which returns a copy that also points to the same VcfRecord, and not to the previous one.
+ *
+ * This also means that the iterator is not thread safe: Accessing an iterator or any copy of it
+ * from multiple tasks leads to undefined behaviour.
+ *
+ * All this is typically not an issue, as an iterator is traversed in a single loop over a file.
+ * Any copies are usually mere coincidental while preparing the input etc, but normally they are
+ * not concurrently accessed in a typical use case.
  */
 class VcfInputIterator
 {
@@ -97,7 +107,7 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Create a default instance, with no input.
+     * @brief Create a default instance, with no input. This is also the past-the-end iterator.
      */
     VcfInputIterator() = default;
 
@@ -107,14 +117,9 @@ public:
     explicit VcfInputIterator(
         std::string const& filename
     )
-        : filename_( filename )
-        , file_( std::make_shared<HtsFile>( filename ))
-        , header_( std::make_shared<VcfHeader>( *file_ ))
-        , record_( std::make_shared<VcfRecord>( *header_ ))
-    {
-        // Read the first record of the file.
-        increment();
-    }
+        // Call the other constuctor, to avoid code duplication.
+        : VcfInputIterator( filename, std::vector<std::string>{} )
+    {}
 
     /**
      * @brief Create an instance that reads from an input file name.
@@ -129,15 +134,25 @@ public:
         bool inverse_sample_names = false
     )
         : filename_( filename )
-        , file_( std::make_shared<HtsFile>( filename ))
-        , header_( std::make_shared<VcfHeader>( *file_ ))
-        , record_( std::make_shared<VcfRecord>( *header_ ))
+        , file_(          std::make_shared<HtsFile>( filename ))
+        , header_(        std::make_shared<VcfHeader>( *file_ ))
+        , current_block_( std::make_shared<std::vector<VcfRecord>>() )
+        , buffer_block_(  std::make_shared<std::vector<VcfRecord>>() )
+        , thread_pool_(   std::make_shared<utils::ThreadPool>( 1 ))
+        , future_(        std::make_shared<std::future<size_t>>() )
     {
-        // Filter sample columns by their name
-        header_->set_samples( sample_names, inverse_sample_names );
+        // Above, we initialized part of the htslib-related data (file_, header_) to point to their
+        // objects, as well as empty vectors for current_block_ and end_pos_, which will be filled in the
+        // init_() call below. Furthermore, we started a thread_pool_ with exactly 1 thread,
+        // and prepared the future that stores how many records were read in the prefetching.
 
-        // Read the first record of the file.
-        increment();
+        // Filter sample columns by their name.
+        if( ! sample_names.empty() ) {
+            header_->set_samples( sample_names, inverse_sample_names );
+        }
+
+        // Initialize the current_block_ and buffer_block_, and read the first block of the file.
+        init_();
     }
 
     ~VcfInputIterator() = default;
@@ -157,12 +172,14 @@ public:
     */
     explicit operator bool() const
     {
-        return good_;
+        assert( current_pos_ <= end_pos_ );
+        return current_pos_ < end_pos_;
     }
 
     bool good() const
     {
-        return good_;
+        assert( current_pos_ <= end_pos_ );
+        return current_pos_ < end_pos_;
     }
 
     // -------------------------------------------------------------------------
@@ -205,38 +222,44 @@ public:
 
     VcfRecord const& record() const
     {
-        assert( record_ );
-        return *record_;
+        assert( current_block_ );
+        assert( current_pos_ < end_pos_ );
+        return (*current_block_)[current_pos_];
     }
 
     VcfRecord& record()
     {
-        assert( record_ );
-        return *record_;
+        assert( current_block_ );
+        assert( current_pos_ < end_pos_ );
+        return (*current_block_)[current_pos_];
     }
 
     VcfRecord const* operator ->() const
     {
-        assert( record_ );
-        return &*record_;
+        assert( current_block_ );
+        assert( current_pos_ < end_pos_ );
+        return &(*current_block_)[current_pos_];
     }
 
     VcfRecord* operator ->()
     {
-        assert( record_ );
-        return &*record_;
+        assert( current_block_ );
+        assert( current_pos_ < end_pos_ );
+        return &(*current_block_)[current_pos_];
     }
 
     VcfRecord const& operator*() const
     {
-        assert( record_ );
-        return *record_;
+        assert( current_block_ );
+        assert( current_pos_ < end_pos_ );
+        return (*current_block_)[current_pos_];
     }
 
     VcfRecord& operator*()
     {
-        assert( record_ );
-        return *record_;
+        assert( current_block_ );
+        assert( current_pos_ < end_pos_ );
+        return (*current_block_)[current_pos_];
     }
 
     // -------------------------------------------------------------------------
@@ -245,26 +268,44 @@ public:
 
     self_type& operator ++ ()
     {
-        increment();
+        increment_();
         return *this;
     }
 
     self_type& operator ++(int)
     {
-        increment();
+        increment_();
         return *this;
-    }
-
-    void increment()
-    {
-        assert( file_ );
-        assert( record_ );
-        good_ = record_->read_next( *file_ );
     }
 
     bool operator==( self_type const& it ) const
     {
-        return good_ == it.good_;
+        // We want equality between iterators that are copies of each other, and inequality
+        // for non copies that were not default constructed. For the default constructed iterator,
+        // which serves as the past-the-end marker, we need a special case.
+
+        // Test if either of the two was default constructed. If so, we want a non-default
+        // constructed iterator also compare equal to a default constructed one only if it is done
+        // reading data, in which case good() == false (whose code we copy here)
+        if( ! file_ || ! it.file_ ) {
+            return ( current_pos_ < end_pos_ ) == ( it.current_pos_ < it.end_pos_ );
+        }
+
+        // In all other cases, we have two normal iterators that we want to compare.
+        // We only need to compare one of the pointers to make sure that the iterators point to the
+        // same hts data (that is, one was created as a copy of the other), and assert the others.
+        // We assert the rest (if file_ equals, then the others have to equal as well).
+        assert(
+            file_ != it.file_ ||
+            (
+                header_        == it.header_ &&
+                current_block_ == it.current_block_ &&
+                buffer_block_  == it.buffer_block_ &&
+                thread_pool_   == it.thread_pool_ &&
+                future_        == it.future_
+            )
+        );
+        return file_ == it.file_;
     }
 
     bool operator!=( self_type const& it ) const
@@ -273,18 +314,127 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Private Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    void init_()
+    {
+        assert( file_ );
+        assert( header_ );
+        assert( current_block_ );
+        assert( buffer_block_ );
+
+        // Init the records and create empty VcfRecord to read into.
+        current_block_->reserve( block_size_ );
+        buffer_block_->reserve( block_size_ );
+        for( size_t i = 0; i < block_size_; ++i ) {
+            current_block_->emplace_back( *header_ );
+            buffer_block_->emplace_back( *header_ );
+        }
+        assert( current_block_->size() == block_size_ );
+        assert( buffer_block_->size() == block_size_ );
+
+        // Read the first block synchronously, so that there is data initialized to be dereferenced.
+        end_pos_ = read_block_( *current_block_ );
+        assert( current_pos_ == 0 );
+
+        // If there is less data than the block size, the file is already done.
+        // No need to start the async buffering.
+        if( end_pos_ < block_size_ ) {
+            return;
+        }
+
+        // Now start the worker thread to fill the buffer.
+        fill_buffer_block_();
+    }
+
+    void increment_()
+    {
+        assert( future_ );
+        assert( future_->valid() );
+
+        // Finish the reading (potentially waiting if not yet finished in the worker thread).
+        // The future returns how much data there was to be read, which we use as our status.
+        // After that, swap the buffer and start a new reading operation in the worker thread.
+
+        // Move to the next element in the vector. If we are at the end of the record vector,
+        // and if that vector was full (complete block size), there is more data, so start reading.
+        ++current_pos_;
+        if( current_pos_ == end_pos_ && end_pos_ == block_size_ ) {
+
+            // Get how many records were read into the buffer, which also waits for the reading
+            // if necessary. After that, we can swao the buffer, start reading again, and set
+            // or internal current location to the first element of the vector again.
+            end_pos_ = future_->get();
+            std::swap( buffer_block_, current_block_ );
+            fill_buffer_block_();
+            current_pos_ = 0;
+        }
+    }
+
+    size_t read_block_( std::vector<VcfRecord>& target )
+    {
+        assert( file_ );
+        assert( target.size() == block_size_ );
+
+        // Read as long as there is data. Return number of read records.
+        size_t i = 0;
+        for( ; i < block_size_; ++i ) {
+            if( ! target[i].read_next( *file_ ) ) {
+                break;
+            }
+        }
+        return i;
+    }
+
+    void fill_buffer_block_()
+    {;
+        assert( thread_pool_ );
+        assert( future_ );
+
+        // This function is only every called after we finished any previous operations,
+        // so let's assert that the thread pool and future are in the states that we expect.
+        assert( thread_pool_->load() == 0 );
+        assert( ! future_->valid() );
+
+        // The lambda returns the result of theread_block_ call, that is, the number of records
+        // that have been read, and which we later (in the future_) use to see how much data we got.
+        *future_ = thread_pool_->enqueue(
+            [this](){
+                return read_block_( *this->buffer_block_ );
+            }
+        );
+    }
+
+    // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
 private:
 
-    bool good_ = false;
     std::string filename_;
 
+    // We buffer in block sizes many vcf records, and within each block, iterator via current_pos_
+    // from 0 (first element of the block) to end_pos_ (past the end counter).
+    size_t block_size_ = 1024;
+    size_t current_pos_ = 0;
+    size_t end_pos_ = 0;
+
     // htslib structs. We use shared pointers here to allow copying this iterator.
+    // Also, use a buffer into which we read asynchronously, and then swap with the current_block_
     std::shared_ptr<HtsFile>   file_;
     std::shared_ptr<VcfHeader> header_;
-    std::shared_ptr<VcfRecord> record_;
+    std::shared_ptr<std::vector<VcfRecord>> current_block_;
+    std::shared_ptr<std::vector<VcfRecord>> buffer_block_;
+
+    // Thread pool to run the buffering in the background.
+    // Also, store the future used to keep track of the background task. It returns the number of
+    // record lines that have been read into the buffer (block_size_ or less at the end of the file).
+    std::shared_ptr<utils::ThreadPool> thread_pool_;
+    std::shared_ptr<std::future<size_t>> future_;
+
 };
 
 } // namespace population
