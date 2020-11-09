@@ -252,7 +252,7 @@ public:
     /**
      * @brief Get the number of `D`/Data @link Entry Entries@endlink that are stored in the Window.
      *
-     * @see variant_count() for an alias.
+     * @see size() for an alias.
      */
     size_t entry_count() const
     {
@@ -264,9 +264,18 @@ public:
      *
      * @see entry_count() for an alias.
      */
-    size_t variant_count() const
+    size_t size() const
     {
         return entries_.size();
+    }
+
+    /**
+     * @brief Return whether the Window is empty, that is, if it does not contain any
+     * @link Entry Entries@endlink.
+     */
+    bool empty() const
+    {
+        return entries_.empty();
     }
 
     /**
@@ -287,7 +296,7 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Get the first position of the Window, that is, where the Window starts.
+     * @brief Get the first position in the chromosome of the Window, that is, where the Window starts.
      *
      * We use half-open intervals; the first position is part of the Window, the last is not.
      */
@@ -297,7 +306,7 @@ public:
     }
 
     /**
-     * @brief Set the first position of the Window, that is, where the Window starts.
+     * @brief Set the first position in the chromosome of the Window, that is, where the Window starts.
      *
      * We use half-open intervals; the first position is part of the Window, the last is not.
      */
@@ -307,7 +316,8 @@ public:
     }
 
     /**
-     * @brief Get the last (past-the-end) position of the Window, that is, where the Window ends.
+     * @brief Get the last (past-the-end) position in the chromosome of the Window, that is,
+     * where the Window ends.
      *
      * We use half-open intervals; the first position is part of the Window, the last is not.
      */
@@ -317,7 +327,8 @@ public:
     }
 
     /**
-     * @brief Set the last (past-the-end) position of the Window, that is, where the Window ends.
+     * @brief Set the last (past-the-end) position in the chromosome of the Window, that is,
+     * where the Window ends.
      *
      * We use half-open intervals; the first position is part of the Window, the last is not.
      */
@@ -327,7 +338,8 @@ public:
     }
 
     /**
-     * @brief Get the position reported according to the currently set WindowAnchorType.
+     * @brief Get the position in the chromosome reported according to the currently set
+     * WindowAnchorType.
      *
      * See anchor_type( WindowAnchorType ) to change the type of position that is reported here,
      * and see anchor_position( WindowAnchorType ) for an alternative that allows to freely pick
@@ -339,7 +351,7 @@ public:
     }
 
     /**
-     * @brief Get the position reported according to a specific WindowAnchorType.
+     * @brief Get the position in the chromosome reported according to a specific WindowAnchorType.
      */
     size_t anchor_position( WindowAnchorType anchor_type ) const
     {
@@ -426,6 +438,44 @@ public:
     // -------------------------------------------------------------------------
     //     Data Accessors
     // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return a reference to the element at specified location @p index.
+     *
+     * No bounds checking is performed.
+     */
+    reference operator[]( size_t index )
+    {
+        assert( index < entries_.size() );
+        return entries_[ index ];
+    }
+
+    /**
+     * @brief Return a reference to the element at specified location @p index.
+     *
+     * No bounds checking is performed.
+     */
+    const_reference operator[]( size_t index ) const
+    {
+        assert( index < entries_.size() );
+        return entries_[ index ];
+    }
+
+    /**
+     * @brief Return a reference to the element at specified location pos, with bounds checking.
+     */
+    reference at( size_t index )
+    {
+        return entries_.at( index );
+    }
+
+    /**
+     * @brief Return a reference to the element at specified location pos, with bounds checking.
+     */
+    const_reference at( size_t index ) const
+    {
+        return entries_.at( index );
+    }
 
     /**
      * @brief Iterator to the begin of the Data @link Entry Entries@endlink.
