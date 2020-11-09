@@ -76,16 +76,17 @@ namespace population {
  * For details on working with the records/lines, see VcfRecord and VcfFormatIterator.
  *
  * Caveat: The iterator is an input iterator that traverses a single VCF file in one go.
- * That means, any copy of this iterator will also advance if another copy is incremented -
- * the will all point to the same VcfRecord. This is also true for the post-increment operator,
- * which returns a copy that also points to the same VcfRecord, and not to the previous one.
+ * We internally use a buffer to speed up the reading asynchronously in the background.
+ * However, as we do not copy the buffer when copying this iterator (for speed reasons, because
+ * in typical iterator use cases that is just not necessary), any copy of this iterator might point
+ * to old or invalid data. Hence, once an iterator is incremented, all copies of it are invalidated.
  *
- * This also means that the iterator is not thread safe: Accessing an iterator or any copy of it
- * from multiple tasks leads to undefined behaviour.
+ * This also means that the iterator is not thread safe: Incrementing an iterator or any copy of it
+ * from multiple tasks leads to undefined behaviour, and hence needs to be synchronized externally.
  *
  * All this is typically not an issue, as an iterator is traversed in a single loop over a file.
  * Any copies are usually mere coincidental while preparing the input etc, but normally they are
- * not concurrently accessed in a typical use case.
+ * not concurrently accessed in the actual loop over VcfRecord%s.
  */
 class VcfInputIterator
 {
@@ -151,7 +152,7 @@ public:
             header_->set_samples( sample_names, inverse_sample_names );
         }
 
-        // Initialize the current_block_ and buffer_block_, and read the first block of the file.
+        // Initialize the current_block_ and buffer_block_, and read the first block(s) of the file.
         init_();
     }
 
@@ -416,7 +417,7 @@ private:
 
     std::string filename_;
 
-    // We buffer in block sizes many vcf records, and within each block, iterator via current_pos_
+    // We buffer block_size_ many vcf records, and within each block, iterate via current_pos_
     // from 0 (first element of the block) to end_pos_ (past the end counter).
     size_t block_size_ = 1024;
     size_t current_pos_ = 0;
@@ -430,8 +431,8 @@ private:
     std::shared_ptr<std::vector<VcfRecord>> buffer_block_;
 
     // Thread pool to run the buffering in the background.
-    // Also, store the future used to keep track of the background task. It returns the number of
-    // record lines that have been read into the buffer (block_size_ or less at the end of the file).
+    // Also, store the future_ used to keep track of the background task. It returns the number of
+    // record lines that have been read into the buffer (block_size_, or less at the end of the file).
     std::shared_ptr<utils::ThreadPool> thread_pool_;
     std::shared_ptr<std::future<size_t>> future_;
 
