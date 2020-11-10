@@ -148,7 +148,7 @@ utils::Matrix<double> f_st_conventional_pool(
         // in a vector, but some other container.
         // using T = typename ForwardIterator::value_type;
         return utils::make_transform_range(
-            [pss, index]( std::vector<BaseCounts> const& pools ){
+            [pss, index]( std::vector<BaseCounts> const& pools ) -> BaseCounts const& {
                 if( pools.size() != pss ) {
                     throw std::runtime_error(
                         "In f_st_conventional_pool(): Provided number of poolsizes (" +
@@ -322,7 +322,7 @@ utils::Matrix<double> f_st_asymptotically_unbiased(
     // in the set of BaseCounts at the current iterator position.
     auto select_entry = [ps]( ForwardIterator begin, ForwardIterator end, size_t index ){
         return utils::make_transform_range(
-            [ps, index]( std::vector<BaseCounts> const& pools ){
+            [ps, index]( std::vector<BaseCounts> const& pools ) -> BaseCounts const& {
                 if( pools.size() != ps ) {
                     throw std::runtime_error(
                         "In f_st_asymptotically_unbiased(): The number of BaseCounts in the "
