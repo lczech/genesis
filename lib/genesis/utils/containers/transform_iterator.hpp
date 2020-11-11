@@ -66,7 +66,31 @@ namespace utils {
  *  * Lastly, if the TransformFunctor returns by non-const reference, the underlying element
  *    can also be modified!
  *
- * The iterator is hence useable in many situations, while also being as efficient as possible.
+ * When using lambda functions for the `TransformFunctor`, a bit of extra care is necessary to
+ * handle references correctly. In these cases, the return type has to be specified explicitly.
+ * For example, to select a particular entry, the following can be used:
+ *
+ *     // Some vector of vectors, e.g, a table of sorts.
+ *     std::vector<std::vector<LargeClass>> data;
+ *
+ *     // Fixed index of the element (i.e., the column when `data` is interpreted as a table)
+ *     // that we want to get from each of the rows of the above data.
+ *     size_t index = 2;
+ *
+ *     // Iterate the rows of data, and select a particular column index in each step.
+ *     // Have the lambda return those values per reference in order to avoid copies.
+ *     auto column_range = make_transform_range(
+ *         [index]( std::vector<LargeClass> const& values ) -> LargeClass const& {
+ *             assert( index < values.size() )
+ *             return values[index];
+ *         },
+ *         data
+ *     );
+ *
+ *     // Print the resulting values.
+ *     for( auto const& value : column_range ) {
+ *         std::cout << value << "\n";
+ *     }
  *
  * Inspired by the Boost Transform Iterator
  * (https://www.boost.org/doc/libs/1_66_0/libs/iterator/doc/html/iterator/specialized/transform.html)
@@ -90,19 +114,19 @@ public:
         TransformFunctor( typename std::iterator_traits<BaseIterator>::reference )
     >::type;
 
-    // We want to cache the transformed values if the transform functor returns a copy (that is
-    // for example, the result of some computation that is simply returned by the functor).
-    // However, wehn the functor returns a reference instead (for example, it just selects a certain
-    // element from the underlying base iterator), we do not want to cache, as that would make
-    // an unnecessary copy of the element (and would require that the element type is copyable).
-    // So in that case, we deactivate caching. We could use SFINAE and some class derivation
-    // to disable the cache member variable (see https://stackoverflow.com/a/25497790 for example),
-    // but we keep it simple here and instead just use a dummy bool variable in that case.
+    // We want to cache the transformed values if the transform functor returns a valy by copy
+    // (that is, for example, the result of some computation that is simply returned by the functor).
+    // However, when the functor returns a reference instead (for example, it just selects a certain
+    // element from an underlying base iterator over vectors of elements), we do not want to cache,
+    // as that would make an unnecessary copy of the element (and would require that the element
+    // type is copyable). So in that case, we deactivate caching. We could use SFINAE and some class
+    // derivation to disable the cache member variable (see https://stackoverflow.com/a/25497790 for
+    // example), but we keep it simple here and instead just use a dummy bool variable in that case.
     using cache_type = typename std::conditional<
         std::is_reference<result_type>::value, bool, result_type
     >::type;
 
-    // Furthermore, the operator*(), operator->(), and operator[]() need to return the proper type.
+    // Furthermore, the operator*(), operator->(), and operator[]() need to return the proper type:
     // If the TransformFunctor returns a reference, we return a reference as well. If not, that is,
     // if the functor returns a value by copy, we still return a reference here, but this time,
     // referencing the cache! So, we need to remove the reference type trait first in case that it
@@ -110,10 +134,12 @@ public:
     using return_type = typename std::remove_reference<result_type>::type;
 
     // For the standard iterator types, we also want to use the types of the TransformFunctor,
-    // so that whatever that one does is the basis for our types here. We could almost use the
-    // (commented out) types based on the BaseIterator here as well, but by not doing so, we allow
-    // that the TransformFunctor can perform implicit type conversions from the BaseIterator
-    // type to its input argument! Bit more flexibility this way, and helpful at times.
+    // so that whatever that one does is the basis for our types here. We could instead also use the
+    // (commented out) types based on the BaseIterator here as well, which in many cases will be
+    // identical to what the transform functor returns. But by not doing so, and using a return
+    // type based on the transform functor, we allow that the TransformFunctor can perform implicit
+    // type conversions from the BaseIterator type to its input argument!
+    // Bit more flexibility this way, and helpful at times.
     using value_type        = return_type;
     using pointer           = return_type*;
     using reference         = return_type&;
