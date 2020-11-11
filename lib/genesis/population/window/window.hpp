@@ -235,7 +235,13 @@ public:
     /**
      * @brief Get the width of the Window.
      *
-     * This is the distance between first_position() and last_position().
+     * This is the distance between first_position() and last_position(). That is, for Window%s
+     * of type WindowType::kInterval, this is the distance between the start of the Window
+     * and its end. For WindowType::kVariants however, this is the distance between the positions of
+     * the first and the last variant (entry) in the Window.
+     *
+     * See span() for a function that computes that latter distance for WindowType::kInterval
+     * windows as well.
      */
     size_t width() const
     {
@@ -289,6 +295,22 @@ public:
         assert( frac >= 0.0 );
         assert( frac <= 1.0 );
         return frac;
+    }
+
+    /**
+     * @brief Get the distance between the first and the last variant (entry) in the Window.
+     *
+     * The width() function returns a different distance depending on the WindowType used for the
+     * Window. However, sometimes it is useful to know the distance between the first and the last
+     * variant (entry) in a window, independently from whether that Window runs across intervals
+     * or variatns. This is what we here compute and call the span of the window.
+     */
+    size_t span() const
+    {
+        if( entries_.empty() ) {
+            return 0;
+        }
+        return entries_.back().position - entries_.front().position;
     }
 
     // -------------------------------------------------------------------------
