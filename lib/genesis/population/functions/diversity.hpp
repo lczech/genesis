@@ -95,6 +95,7 @@ struct PoolDiversityResults
     double theta_watterson_relative = 0;
     double tajima_d = 0;
 
+    size_t variant_count = 0;
     size_t snp_count = 0;
     size_t coverage_count = 0;
     double coverage_fraction = 0.0;
@@ -465,6 +466,7 @@ PoolDiversityResults pool_diversity_measures(
         static_assert( static_cast<int>( false ) == 0, "Expect false == 0" );
 
         // Add them up.
+        ++results.variant_count;
         results.snp_count      += stat.is_snp;
         results.coverage_count += stat.is_covered;
     }

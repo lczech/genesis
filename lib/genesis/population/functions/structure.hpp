@@ -96,9 +96,21 @@ double f_st_conventional_pool( // get_conventional_fstcalculator
             std::isfinite( std::get<1>( pi_snps )) &&
             std::isfinite( std::get<2>( pi_snps ))
         ) {
+            // If we are here, both p1 and p2 have counts. Let's assert.
+            assert( p1_it->a_count + p1_it->c_count + p1_it->g_count + p1_it->t_count > 0 );
+            assert( p2_it->a_count + p2_it->c_count + p2_it->g_count + p2_it->t_count > 0 );
+
+            // Now add them to the tally.
             p1_pi_sum += std::get<0>( pi_snps );
             p2_pi_sum += std::get<1>( pi_snps );
             pp_pi_sum += std::get<2>( pi_snps );
+        } else {
+            // If we are here, at least one of the two inputs has no counts at all in [ACGT],
+            // otherwise, the results would have been finite. Let's assert this.
+            assert(
+                ( p1_it->a_count + p1_it->c_count + p1_it->g_count + p1_it->t_count == 0 ) ||
+                ( p2_it->a_count + p2_it->c_count + p2_it->g_count + p2_it->t_count == 0 )
+            );
         }
 
         // Next pair of entries
