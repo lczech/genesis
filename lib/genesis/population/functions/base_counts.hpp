@@ -34,6 +34,7 @@
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 
+#include <iosfwd>
 #include <string>
 #include <utility>
 #include <vector>
@@ -224,6 +225,11 @@ std::pair<char, double> consensus( BaseCounts const& sample, BaseCountsStatus co
 // =================================================================================================
 
 BaseCounts convert_to_base_counts( SimplePileupReader::Sample const& sample );
+
+/**
+ * @brief Output stream operator for BaseCounts instances.
+ */
+std::ostream& operator<<( std::ostream& os, BaseCounts const& bs );
 
 } // namespace population
 } // namespace genesis

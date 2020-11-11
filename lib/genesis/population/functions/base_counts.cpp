@@ -31,6 +31,7 @@
 #include "genesis/population/functions/base_counts.hpp"
 
 #include <cassert>
+#include <iostream>
 #include <stdexcept>
 
 namespace genesis {
@@ -212,6 +213,13 @@ BaseCounts convert_to_base_counts( SimplePileupReader::Sample const& sample )
     result.n_count = sample.n_count;
     result.d_count = sample.d_count;
     return result;
+}
+
+std::ostream& operator<<( std::ostream& os, BaseCounts const& bs )
+{
+    os << "A=" << bs.a_count << ", C=" << bs.c_count << ", G=" << bs.g_count;
+    os << ", T=" << bs.t_count << ", N=" << bs.n_count << ", D=" << bs.d_count;
+    return os;
 }
 
 } // namespace population
