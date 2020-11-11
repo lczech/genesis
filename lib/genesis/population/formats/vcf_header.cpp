@@ -115,7 +115,11 @@ VcfHeader::VcfHeader( VcfHeader&& other )
 
 VcfHeader& VcfHeader::operator= ( VcfHeader&& other )
 {
-    // Same reasoning as above.
+    // Same reasoning as above. Need additional check for self assignment,
+    // as otherwise we'd destroy the header as well.
+    if( this == &other ) {
+        return *this;
+    }
     std::swap( header_, other.header_ );
     return *this;
 }

@@ -78,7 +78,11 @@ HtsFile::HtsFile( HtsFile&& other )
 
 HtsFile& HtsFile::operator= ( HtsFile&& other )
 {
-    // Same reasoning as above.
+    // Same reasoning as above. Need additional check for self assignment,
+    // as otherwise we'd destroy the header as well.
+    if( this == &other ) {
+        return *this;
+    }
     std::swap( file_name_, other.file_name_ );
     std::swap( hts_file_, other.hts_file_ );
     return *this;
