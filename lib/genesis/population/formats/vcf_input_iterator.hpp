@@ -114,12 +114,23 @@ public:
 
     /**
      * @brief Create an instance that reads from an input file name.
+     *
+     * The optional parameter @p block_size sets the number of VcfRecord%s that are read
+     * asynchronously into a buffer for speed improvements. This is mostly interesting for
+     * window- or region-based analyses, where a certain number of records are needed to fill the
+     * window, on which afterwards some (potentially time-consuming) operations and computations
+     * are performed. In that time, an asynchronous thread can already read the next block of
+     * VCF records. In these scenarios, it is best to chose a @p block_size that is larger than
+     * the typical number of records per window/region that is being processed. E.g., if most
+     * windows contain between 1200 and 1500 VcfRecord%s, a good @p block_size is 3000 or 5000,
+     * so that subsequent windows can be filled quickly without having to wait for the reading.
      */
     explicit VcfInputIterator(
-        std::string const& filename
+        std::string const& filename,
+        size_t block_size = 1024
     )
         // Call the other constuctor, to avoid code duplication.
-        : VcfInputIterator( filename, std::vector<std::string>{} )
+        : VcfInputIterator( filename, std::vector<std::string>{}, false, block_size )
     {}
 
     /**
@@ -128,13 +139,17 @@ public:
      * Additionally, this constructor takes a list of @p sample_names which are used as filter so
      * that only those samples (columns of the VCF records) are evaluated and accessible - or,
      * if @p inverse_sample_names is set to `true`, instead all <i>but</i> those samples.
+     *
+     * @copydetails VcfInputIterator( std::string const&, size_t )
      */
     VcfInputIterator(
         std::string const& filename,
         std::vector<std::string> const& sample_names,
-        bool inverse_sample_names = false
+        bool inverse_sample_names = false,
+        size_t block_size = 1024
     )
         : filename_( filename )
+        , block_size_( block_size )
         , file_(          std::make_shared<HtsFile>( filename ))
         , header_(        std::make_shared<VcfHeader>( *file_ ))
         , current_block_( std::make_shared<std::vector<VcfRecord>>() )
@@ -142,6 +157,10 @@ public:
         , thread_pool_(   std::make_shared<utils::ThreadPool>( 1 ))
         , future_(        std::make_shared<std::future<size_t>>() )
     {
+        if( block_size_ == 0 ) {
+            throw std::invalid_argument( "Invalid block_size == 0 for VcfInputIterator" );
+        }
+
         // Above, we initialized part of the htslib-related data (file_, header_) to point to their
         // objects, as well as empty vectors for current_block_ and end_pos_, which will be filled in the
         // init_() call below. Furthermore, we started a thread_pool_ with exactly 1 thread,
