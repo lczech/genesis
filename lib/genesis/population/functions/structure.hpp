@@ -88,9 +88,18 @@ double f_st_conventional_pool( // get_conventional_fstcalculator
 
         // Compute frequency based pi snps. The tuple returns p1, p2, pp, in that order.
         auto const pi_snps = f_st_conventional_pool_pi_snp( *p1_it, *p2_it );
-        p1_pi_sum += std::get<0>( pi_snps );
-        p2_pi_sum += std::get<1>( pi_snps );
-        pp_pi_sum += std::get<2>( pi_snps );
+
+        // Skip invalid entries than can happen when less than two of [ACGT] have counts > 0
+        // in one of the BaseCounts samples.
+        if(
+            std::isfinite( std::get<0>( pi_snps )) &&
+            std::isfinite( std::get<1>( pi_snps )) &&
+            std::isfinite( std::get<2>( pi_snps ))
+        ) {
+            p1_pi_sum += std::get<0>( pi_snps );
+            p2_pi_sum += std::get<1>( pi_snps );
+            pp_pi_sum += std::get<2>( pi_snps );
+        }
 
         // Next pair of entries
         ++p1_it;
