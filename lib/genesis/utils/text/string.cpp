@@ -183,9 +183,7 @@ int compare_natural( std::string const& lhs, std::string const& rhs )
             // to iterate the digits twice, but save the effort of actually building the numbers!
             // (see above parse_unsigned_number_() for the parsing function that we first had)
 
-            // Parse the strings as long as they contain digit, advancing helper indices here.
-            // We need ints here. Theoretically, this is a smaller range than std::string can
-            // handle, but we just assume that no one has strings that long.
+            // Parse the strings as long as they contain digits, advancing helper indices here.
             size_t ld = l;
             size_t rd = r;
             while( ld < lhs.size() && is_digit( lhs[ld] )) {
@@ -199,12 +197,6 @@ int compare_natural( std::string const& lhs, std::string const& rhs )
             // In that case, we have a result.
             if( ld != rd ) {
                 return static_cast<int>( ld ) - static_cast<int>( rd );
-
-                // Return the signum of the difference.
-                // int const val = ( 0 < ld - rd ) - ( ld - rd < 0 );
-                // assert( val == -1 || val == +1 );
-                // assert(( ld - rd < 0 && val == -1 ) || ( ld - rd > 0 && val == +1 ));
-                // return val;
             }
 
             // If those numbers are the same length, we need to iterate again,
