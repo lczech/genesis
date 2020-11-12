@@ -33,10 +33,12 @@
 #include "genesis/utils/math/common.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cctype>
 #include <cstdio>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 
@@ -90,6 +92,164 @@ bool ends_with( std::string const & text, std::string const & ending )
         return false;
     }
     return std::equal( ending.rbegin(), ending.rend(), text.rbegin() );
+}
+
+int compare_natural( std::string const& lhs, std::string const& rhs )
+{
+    // Implementation inspired by http://www.davekoelle.com/files/alphanum.hpp
+    // Released under the MIT License - https://opensource.org/licenses/MIT
+    // We however heavily modified it, in particular to work with arbitrary runs of digits.
+
+    // Edge cases of empty strings.
+    if( lhs.empty() || rhs.empty() ) {
+        // Smart! Let's avoid to do all three cases, and instead convert to int (0 or 1):
+        //  * lhs empty, but rhs not:  0 - 1 = -1
+        //  * rhs empty, but lhs not:  1 - 0 = +1
+        //  * both empty:              1 - 1 =  0
+        return static_cast<int>( rhs.empty() ) - static_cast<int>( lhs.empty() );
+    }
+
+    // We need to switch between modes. Clear semantics instead of just a bool.
+    enum class ParseMode
+    {
+        kString,
+        kNumber
+    };
+    auto mode = ParseMode::kString;
+
+    // Helper function to parse a string into an unsigned number, quickly.
+    // Advances the given pos while parsing, until either the end of the string or no more digits.
+    // --> not used, as it can only handle numbers up to the size of unsigned long...
+    // auto parse_unsigned_number_ = []( std::string const& str, size_t& pos ){
+    //     unsigned long num = 0;
+    //     while( pos < str.size() && is_digit( str[pos] )) {
+    //         auto dig = str[pos] - '0';
+    //         if( num > ( std::numeric_limits<T>::max() - dig ) / 10 ) {
+    //             // This is ugly, and a proper solution would be to take string lengths into
+    //             // account, but that would probably require to fully load them, and then compare...
+    //             throw std::overflow_error( "Numerical overflow in compare_natural()" );
+    //         }
+    //         num = 10 * num + dig;
+    //         ++pos;
+    //     }
+    //     return num;
+    // };
+
+    // Iterate positions in the strings.
+    size_t l = 0;
+    size_t r = 0;
+    while( l < lhs.size() && r < rhs.size() ) {
+        if( mode == ParseMode::kString ) {
+
+            // Iterate as long as there are strings/chars in both.
+            while( l < lhs.size() && r < rhs.size() ) {
+
+                // Check if these are digits.
+                bool const l_digit = is_digit( lhs[l] );
+                bool const r_digit = is_digit( rhs[r] );
+
+                // If both are digits, we continue in number mode.
+                if( l_digit && r_digit ) {
+                    mode = ParseMode::kNumber;
+                    break;
+                }
+
+                // If only one of them is a digit, we have a result.
+                if( l_digit ) {
+                    return -1;
+                }
+                if( r_digit ) {
+                    return +1;
+                }
+
+                // Neither is a digit, so compare as ASCII chars; if they differ, we have a result.
+                assert( ! l_digit && ! r_digit );
+                int const diff = static_cast<int>( lhs[l] ) - static_cast<int>( rhs[r] );
+                if( diff != 0 ) {
+                    return diff;
+                }
+
+                // Otherwise, process the next character.
+                ++l;
+                ++r;
+            }
+
+        } else {
+            assert( mode == ParseMode::kNumber );
+
+            // Here, a first idea was to parse both strings as numbers for as long as they contain
+            // digits, and then compare the resulting numbers. However, this overflows for larger
+            // numbers, and we can easily avoid that by an equally simple solution. We might need
+            // to iterate the digits twice, but save the effort of actually building the numbers!
+            // (see above parse_unsigned_number_() for the parsing function that we first had)
+
+            // Parse the strings as long as they contain digit, advancing helper indices here.
+            // We need ints here. Theoretically, this is a smaller range than std::string can
+            // handle, but we just assume that no one has strings that long.
+            size_t ld = l;
+            size_t rd = r;
+            while( ld < lhs.size() && is_digit( lhs[ld] )) {
+                ++ld;
+            }
+            while( rd < rhs.size() && is_digit( rhs[rd] )) {
+                ++rd;
+            }
+
+            // If the lengths of digit runs differ, one of them is a larger number than the other.
+            // In that case, we have a result.
+            if( ld != rd ) {
+                return static_cast<int>( ld ) - static_cast<int>( rd );
+
+                // Return the signum of the difference.
+                // int const val = ( 0 < ld - rd ) - ( ld - rd < 0 );
+                // assert( val == -1 || val == +1 );
+                // assert(( ld - rd < 0 && val == -1 ) || ( ld - rd > 0 && val == +1 ));
+                // return val;
+            }
+
+            // If those numbers are the same length, we need to iterate again,
+            // and check digit by digit. Iterate as long as there are digits in both.
+            while( l < lhs.size() && r < rhs.size() ) {
+
+                // Check if these are digits.
+                bool const l_digit = is_digit( lhs[l] );
+                bool const r_digit = is_digit( rhs[r] );
+
+                // If there are no more digits, we continue in string mode.
+                if( ! l_digit || ! r_digit ) {
+                    // In that case, both have to be not digits, as we just checked same length
+                    // of the digit run.
+                    assert( ! l_digit && ! r_digit );
+                    mode = ParseMode::kString;
+                    break;
+                }
+
+                // Compare the digits as ASCII chars; if they differ, we have a result.
+                assert( l_digit && r_digit );
+                int const diff = static_cast<int>( lhs[l] ) - static_cast<int>( rhs[r] );
+                if( diff != 0 ) {
+                    return diff;
+                }
+
+                // Otherwise, process the next character.
+                ++l;
+                ++r;
+            }
+        }
+    }
+
+    // Lastly, if we are here, both strings are identical up to the point to which the were compared.
+    // So now, remaining lenghts checks. Only if everything is identical, return 0.
+    if( l < lhs.size() ) {
+        assert( r == rhs.size() );
+        return +1;
+    }
+    if( r < rhs.size() ) {
+        assert( l == lhs.size() );
+        return -1;
+    }
+    assert( l == lhs.size() && r == rhs.size() );
+    return 0;
 }
 
 // =================================================================================================
