@@ -210,8 +210,9 @@ int compare_natural( std::string const& lhs, std::string const& rhs )
                 // If there are no more digits, we continue in string mode.
                 if( ! l_digit || ! r_digit ) {
                     // In that case, both have to be not digits, as we just checked same length
-                    // of the digit run.
+                    // of the digit run, and both have to be the same as our previous iteration.
                     assert( ! l_digit && ! r_digit );
+                    assert( ld == rd && l == ld && r == rd );
                     mode = ParseMode::kString;
                     break;
                 }
