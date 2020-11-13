@@ -79,7 +79,7 @@ int compare_natural( std::string const& lhs, std::string const& rhs );
 /**
  * @brief Functor class to compare to strings with natural "human" sorting, see compare_natural().
  */
-template <class T>
+template <class T = std::string>
 struct NaturalLess : public std::binary_function<T, T, bool> {
     bool operator()( T const& lhs, T const& rhs ) const {
         return compare_natural( lhs, rhs ) < 0;
