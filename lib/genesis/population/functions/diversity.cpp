@@ -175,7 +175,7 @@ double theta_watterson_pool_denominator(
         // Boundary: if not held, we'd return zero, and that would not be a useful denominator.
         if( 2 * min_allele_count > nucleotide_count ) {
             throw std::invalid_argument(
-                "Cannot compute theta_watterson_pool_denominator_ with min_allele_count = " +
+                "Cannot compute theta_watterson_pool_denominator with min_allele_count = " +
                 std::to_string( min_allele_count ) + " and nucleotide_count = " +
                 std::to_string( nucleotide_count )
             );
