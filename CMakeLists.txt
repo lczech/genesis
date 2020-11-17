@@ -159,7 +159,7 @@ option (GENESIS_USE_OPENMP          "Use OpenMP."                               
 # Also, by setting `GENESIS_USE_HTSLIB OFF`, all htslib-related functionality can also be deactivated,
 # but those functions then won't be available in the library.
 option (GENESIS_USE_HTSLIB          "Use htslib. See also GENESIS_SYSTEM_HTSLIB"         ON)
-option (GENESIS_SYSTEM_HTSLIB       "If set, use the system-wide installation of htslib" ON)
+option (GENESIS_SYSTEM_HTSLIB       "If set, use the system-wide installation of htslib" OFF)
 set(HTSLIB_HINT "" CACHE STRING     "Path to htslib if GENESIS_SYSTEM_HTSLIB=ON")
 
 # Define unity build option with list of valid values. Default is full unity build.
@@ -463,11 +463,11 @@ if(GENESIS_USE_HTSLIB)
     find_library(HTSLIB_BZ2      NAMES bz2)
 
     IF(
-        ${HTSLIB_INCLUDE_DIR} EQUAL "NOTFOUND" OR
-        ${HTSLIB_LINK_DIR}    EQUAL "NOTFOUND" OR
-        ${HTSLIB_LIBRARY}     EQUAL "NOTFOUND" OR
-        ${HTSLIB_LZMA}        EQUAL "NOTFOUND" OR
-        ${HTSLIB_BZ2}         EQUAL "NOTFOUND"
+        ${HTSLIB_INCLUDE_DIR} MATCHES "NOTFOUND" OR
+        ${HTSLIB_LINK_DIR}    MATCHES "NOTFOUND" OR
+        ${HTSLIB_LIBRARY}     MATCHES "NOTFOUND" OR
+        ${HTSLIB_LZMA}        MATCHES "NOTFOUND" OR
+        ${HTSLIB_BZ2}         MATCHES "NOTFOUND"
     )
         message( STATUS "HTSLIB_INCLUDE_DIR: ${HTSLIB_INCLUDE_DIR}" )
         message( STATUS "HTSLIB_LINK_DIR:    ${HTSLIB_LINK_DIR}" )
