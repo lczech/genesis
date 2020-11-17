@@ -59,6 +59,11 @@ if (GENESIS_BUILD_SHARED_LIB)
     # Link against any external libraries, e.g. Pthreads.
     target_link_libraries (genesis_lib_shared PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
 
+    # Add htslib as a dependency, so that CMake realizes that it has to be built.
+    IF(GENESIS_USE_HTSLIB AND NOT GENESIS_SYSTEM_HTSLIB)
+        add_dependencies( genesis_lib_shared htslib )
+    ENDIF()
+
     # Add this shared library to our exported libraries, which can then be used by the parent scope.
     set( GENESIS_SHARED_LIBRARY genesis_lib_shared PARENT_SCOPE )
     set( GENESIS_LIBRARY genesis_lib_shared PARENT_SCOPE )
@@ -72,6 +77,11 @@ if (GENESIS_BUILD_STATIC_LIB)
 
     # Link against any external libraries, e.g. Pthreads.
     target_link_libraries (genesis_lib_static PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
+
+    # Add htslib as a dependency, so that CMake realizes that it has to be built.
+    IF(GENESIS_USE_HTSLIB AND NOT GENESIS_SYSTEM_HTSLIB)
+        add_dependencies( genesis_lib_static htslib )
+    ENDIF()
 
     # Add this static library to our exported libraries, which can then be used by the parent scope.
     # In case that we also build the shared lib, GENESIS_LIBRARY is overwritten, which is on
