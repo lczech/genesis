@@ -77,7 +77,7 @@ std::string base64_encode_( T const& input, size_t line_length )
         // Line wrapping as needed: Every time the modulo fires, expect for the beginning, and
         // if the total length is an exact multiple, in which case we do not add a trailing new line.
         ++out_cnt;
-        if( out_cnt % line_length == 0 && line_length > 0 && out_cnt < char_len ) {
+        if( line_length > 0 && out_cnt % line_length == 0 && out_cnt < char_len ) {
             assert( encoded.size() + 1 <= char_res );
             assert( encoded.size() + 1 <= encoded.capacity() );
             encoded.append( 1, '\n' );
