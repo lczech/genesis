@@ -98,10 +98,11 @@ BaseCountsStatus status(
 void merge_inplace( BaseCounts& p1, BaseCounts const& p2 )
 {
     // Make sure that we do not forget any fields in case of later refactoring of the struct.
-    static_assert(
-        sizeof( BaseCounts ) == 6 * sizeof( size_t ),
-        "Unexpected number of member variables in BaseCounts class"
-    );
+    // Nope, can't do, as the compiler might allocate more to get proper memory alignment...
+    // static_assert(
+    //     sizeof( BaseCounts ) == 6 * sizeof( size_t ),
+    //     "Unexpected number of member variables in BaseCounts class"
+    // );
 
     p1.a_count += p2.a_count;
     p1.c_count += p2.c_count;
