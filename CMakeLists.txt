@@ -424,16 +424,16 @@ if(GENESIS_USE_HTSLIB)
             UPDATE_COMMAND    ""
 
             # Configure Step. See htslib/INSTALL
-            SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/build/htslib-source
+            SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-source
             CONFIGURE_COMMAND
                 autoheader
                 COMMAND
                 autoconf
                 COMMAND
-                ./configure --prefix=${CMAKE_CURRENT_SOURCE_DIR}/build/htslib
+                ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
 
             # Build Step
-            # BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/htslib
+            # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
             BUILD_IN_SOURCE true
             BUILD_COMMAND
                 $(MAKE)
@@ -444,7 +444,7 @@ if(GENESIS_USE_HTSLIB)
 
         # Set the paths so that those can be included by the targets.
         # We explicitly set the static library here, so that we link against that one.
-        set( HTSLIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/build/htslib )
+        set( HTSLIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib )
         set( HTSLIB_INCLUDE_DIR "${HTSLIB_DIR}/include" )
         set( HTSLIB_LINK_DIR    "${HTSLIB_DIR}/lib" )
         set( HTSLIB_LIBRARY     "${HTSLIB_DIR}/lib/libhts.a" )
