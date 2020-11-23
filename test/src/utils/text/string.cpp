@@ -38,6 +38,48 @@
 
 using namespace genesis::utils;
 
+TEST( Text, MatchWildcards )
+{
+    EXPECT_TRUE( match_wildcards( "", "" ));
+
+    EXPECT_TRUE( match_wildcards( "abc", "abc" ));
+    EXPECT_TRUE( match_wildcards( "abc", "?bc" ));
+    EXPECT_TRUE( match_wildcards( "abc", "a?c" ));
+    EXPECT_TRUE( match_wildcards( "abc", "ab?" ));
+    EXPECT_TRUE( match_wildcards( "abc", "??c" ));
+    EXPECT_TRUE( match_wildcards( "abc", "?b?" ));
+    EXPECT_TRUE( match_wildcards( "abc", "a??" ));
+    EXPECT_TRUE( match_wildcards( "abc", "???" ));
+
+    EXPECT_TRUE( match_wildcards( "abc", "*" ));
+    EXPECT_TRUE( match_wildcards( "abc", "a*" ));
+    EXPECT_TRUE( match_wildcards( "abc", "*c" ));
+    EXPECT_TRUE( match_wildcards( "abc", "*a*b*c" ));
+    EXPECT_TRUE( match_wildcards( "abc", "a*b*c*" ));
+    EXPECT_TRUE( match_wildcards( "abc", "a*b*c" ));
+    EXPECT_TRUE( match_wildcards( "abc", "*a*b*c*" ));
+    EXPECT_TRUE( match_wildcards( "abc", "*a*?*c*" ));
+    EXPECT_TRUE( match_wildcards( "abc", "*?*?*?*" ));
+
+    EXPECT_TRUE( match_wildcards( "abc", "***" ));
+    EXPECT_TRUE( match_wildcards( "abc", "*?*" ));
+    EXPECT_TRUE( match_wildcards( "abc", "?*?" ));
+
+    EXPECT_FALSE( match_wildcards( "abc", "" ));
+    EXPECT_FALSE( match_wildcards( "abc", "a?" ));
+    EXPECT_FALSE( match_wildcards( "abc", "?c" ));
+
+    EXPECT_FALSE( match_wildcards( "abc", "x*y" ));
+    EXPECT_FALSE( match_wildcards( "abc", "x**y" ));
+    EXPECT_FALSE( match_wildcards( "abc", "xxx" ));
+    EXPECT_FALSE( match_wildcards( "abc", "*x" ));
+    EXPECT_FALSE( match_wildcards( "abc", "x*" ));
+    EXPECT_FALSE( match_wildcards( "abc", "x?y" ));
+    EXPECT_FALSE( match_wildcards( "abc", "x??y" ));
+    EXPECT_FALSE( match_wildcards( "abc", "?x" ));
+    EXPECT_FALSE( match_wildcards( "abc", "x?" ));
+}
+
 TEST( Text, HeadTail )
 {
     std::string large = "hello\nworld.\nthis\nis\na\ntest\nwith\nsome\ntext.";

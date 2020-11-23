@@ -69,6 +69,12 @@ bool starts_with( std::string const & text, std::string const & start );
 bool ends_with(   std::string const & text, std::string const & ending );
 
 /**
+ * @brief Return whether a string is matched by a wildcard pattern containing `?` and `*`
+ * for single and mutliple (0 or more) wildcard characters, respectively.
+ */
+bool match_wildcards( std::string const& str, std::string const& pattern );
+
+/**
  * @brief Compare two strings with natural human sorting, that is "A1", "A2", "A100", instead of the
  * standard sort by ASCII value "A1", "A100", "A2".
  *

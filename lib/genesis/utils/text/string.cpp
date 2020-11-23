@@ -94,6 +94,61 @@ bool ends_with( std::string const & text, std::string const & ending )
     return std::equal( ending.rbegin(), ending.rend(), text.rbegin() );
 }
 
+bool match_wildcards( std::string const& str, std::string const& pattern )
+{
+    // Code adapted from https://www.geeksforgeeks.org/wildcard-pattern-matching/
+
+    // The empty pattern can only match with the empty string
+    if( pattern.empty() ) {
+        return str.empty();
+    }
+
+    // Lookup table for dynamic programming approach of subproblem solutions, and init to zero.
+    // We use a vec of bool, and a lambda for access as if it was a matrix.
+    auto lookup_ = std::vector<bool>(( str.size() + 1 ) * ( pattern.size() + 1 ), false);
+    auto lookup = [&]( size_t i, size_t j ) -> std::vector<bool>::reference {
+        return lookup_[ i * ( pattern.size() + 1 ) + j ];
+    };
+
+    // The empty pattern can match with empty string
+    lookup( 0, 0 ) = true;
+
+    // Only '*' can match with empty string
+    for( size_t j = 1; j <= pattern.size(); j++ ) {
+        if( pattern[j - 1] == '*' ) {
+            lookup( 0, j ) = lookup( 0, j - 1 );
+        }
+    }
+
+    // Fill the table in bottom-up fashion
+    for( size_t i = 1; i <= str.size(); i++ ) {
+        for( size_t j = 1; j <= pattern.size(); j++ ) {
+            if( pattern[j - 1] == '*' ) {
+
+                // Two cases if we see a '*':
+                // a) We ignore ‘*’ character and move to next  character in the pattern,
+                //    i.e., ‘*’ indicates an empty sequence.
+                // b) '*' character matches with ith character in input
+                lookup( i, j ) = lookup( i, j - 1 ) || lookup( i - 1, j );
+
+            } else if( pattern[j - 1] == '?' || str[i - 1] == pattern[j - 1] )
+
+                // Current characters are considered as matching in two cases:
+                // (a) current character of pattern is '?'
+                // (b) characters actually match
+                lookup( i, j ) = lookup( i - 1, j - 1 );
+
+            else {
+
+                // If characters don't match
+                lookup( i, j ) = false;
+            }
+        }
+    }
+
+    return lookup( str.size(), pattern.size() );
+}
+
 int compare_natural( std::string const& lhs, std::string const& rhs )
 {
     // Implementation inspired by http://www.davekoelle.com/files/alphanum.hpp
