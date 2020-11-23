@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -154,7 +154,18 @@ protected:
 
     virtual double normalize_( double value ) const override
     {
-        // Already checked by base class.
+        // Make sure that the norm is set up correctly.
+        is_valid_or_throw_();
+
+        // Extreme cases.
+        if( value < min_value() ) {
+            return -1.0;
+        }
+        if( value > max_value() ) {
+            return 2.0;
+        }
+
+        // Let's check these cases again.
         assert( min_value() <= value && value <= max_value() );
         assert( is_valid_() );
 
