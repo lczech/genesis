@@ -187,16 +187,22 @@ QualityEncoding guess_fastq_quality_encoding( std::shared_ptr< utils::BaseInputS
 // =================================================================================================
 
 unsigned char error_probability_to_phred_score( double error_probability );
+std::vector<unsigned char> error_probability_to_phred_score( std::vector<double> error_probability );
 
 double phred_score_to_error_probability( unsigned char phred_score );
+std::vector<double> phred_score_to_error_probability( std::vector<unsigned char> phred_score );
 
 signed char error_probability_to_solexa_score( double error_probability );
+std::vector<signed char> error_probability_to_solexa_score( std::vector<double> error_probability );
 
 double solexa_score_to_error_probability( signed char solexa_score );
+std::vector<double> solexa_score_to_error_probability( std::vector<signed char> solexa_score );
 
 signed char phred_score_to_solexa_score( unsigned char phred_score );
+std::vector<signed char> phred_score_to_solexa_score( std::vector<unsigned char> phred_score );
 
 unsigned char solexa_score_to_phred_score( signed char solexa_score );
+std::vector<unsigned char> solexa_score_to_phred_score( std::vector<signed char> solexa_score );
 
 } // namespace sequence
 } // namespace genesis

@@ -553,5 +553,59 @@ unsigned char solexa_score_to_phred_score( signed char solexa_score )
     ));
 }
 
+std::vector<unsigned char> error_probability_to_phred_score( std::vector<double> error_probability )
+{
+    auto res = std::vector<unsigned char>( error_probability.size(), 0 );
+    for( size_t i = 0; i < error_probability.size(); ++i ) {
+        res[i] = error_probability_to_phred_score( error_probability[i] );
+    }
+    return res;
+}
+
+std::vector<double> phred_score_to_error_probability( std::vector<unsigned char> phred_score )
+{
+    auto res = std::vector<double>( phred_score.size(), 0 );
+    for( size_t i = 0; i < phred_score.size(); ++i ) {
+        res[i] = phred_score_to_error_probability( phred_score[i] );
+    }
+    return res;
+}
+
+std::vector<signed char> error_probability_to_solexa_score( std::vector<double> error_probability )
+{
+    auto res = std::vector<signed char>( error_probability.size(), 0 );
+    for( size_t i = 0; i < error_probability.size(); ++i ) {
+        res[i] = error_probability_to_solexa_score( error_probability[i] );
+    }
+    return res;
+}
+
+std::vector<double> solexa_score_to_error_probability( std::vector<signed char> solexa_score )
+{
+    auto res = std::vector<double>( solexa_score.size(), 0 );
+    for( size_t i = 0; i < solexa_score.size(); ++i ) {
+        res[i] = solexa_score_to_error_probability( solexa_score[i] );
+    }
+    return res;
+}
+
+std::vector<signed char> phred_score_to_solexa_score( std::vector<unsigned char> phred_score )
+{
+    auto res = std::vector<signed char>( phred_score.size(), 0 );
+    for( size_t i = 0; i < phred_score.size(); ++i ) {
+        res[i] = phred_score_to_solexa_score( phred_score[i] );
+    }
+    return res;
+}
+
+std::vector<unsigned char> solexa_score_to_phred_score( std::vector<signed char> solexa_score )
+{
+    auto res = std::vector<unsigned char>( solexa_score.size(), 0 );
+    for( size_t i = 0; i < solexa_score.size(); ++i ) {
+        res[i] = solexa_score_to_phred_score( solexa_score[i] );
+    }
+    return res;
+}
+
 } // namespace sequence
 } // namespace genesis
