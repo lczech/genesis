@@ -115,6 +115,13 @@ public:
          * to be present in the file.
          */
         std::vector<unsigned char> phred_scores;
+
+        /**
+         * @brief Base of the ancestral allele.
+         *
+         * Only read if with_ancestral_base() is set to `true`. See there for details.
+         */
+        char ancestral_base = '\0';
     };
 
     /**
@@ -207,6 +214,25 @@ public:
         return *this;
     }
 
+    bool with_ancestral_base() const
+    {
+        return with_ancestral_base_;
+    }
+
+    /**
+     * @brief Set whether to expect the base of the ancestral allele as the last part of each
+     * sample in a record line.
+     *
+     * This is a pipeup extension used by Pool-HMM (Boitard et al 2013) to denote the ancestral
+     * allele of each position directly within the pipleup file. Set to true when this is present
+     * in the input.
+     */
+    self_type& with_ancestral_base( bool value )
+    {
+        with_ancestral_base_ = value;
+        return *this;
+    }
+
     // -------------------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------------------
@@ -245,6 +271,8 @@ private:
     bool with_quality_string_ = true;
     sequence::QualityEncoding quality_encoding_ = sequence::QualityEncoding::kSanger;
 
+    // Set whether the last part of the sample line contains the base of the ancestral allele.
+    bool with_ancestral_base_ = false;
 };
 
 } // namespace population

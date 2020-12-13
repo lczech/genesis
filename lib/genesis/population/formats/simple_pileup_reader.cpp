@@ -297,6 +297,22 @@ void SimplePileupReader::parse_sample_fields_(
     assert( sample.phred_scores.empty() || sample.read_bases.size() == sample.phred_scores.size() );
     assert( !it || !utils::is_graph( *it ) );
 
+    // Also check if we want to read the ancestral base, if present.
+    if( with_ancestral_base_ ) {
+        next_field_( it );
+        // We can simply read in the char here. Even if the iterator is at its end, it will
+        // simply return a null char, which will trigger the subsequent error check.
+        char const c = utils::to_upper( *it );
+        if( !it || ( c != 'A' && c != 'C' && c != 'G' && c != 'T' && c != 'N' )) {
+            throw std::runtime_error(
+                "Malformed pileup " + it.source_name() + " at " + it.at() +
+                ": Expecting ancestral base character in [ACGTN]."
+            );
+        }
+        sample.ancestral_base = c;
+        ++it;
+    }
+
     // Final file sanity checks.
     if( it && !( utils::is_blank( *it ) || utils::is_newline( *it ))) {
         throw std::runtime_error(
