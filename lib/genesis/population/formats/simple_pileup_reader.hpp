@@ -115,36 +115,6 @@ public:
          * to be present in the file.
          */
         std::vector<unsigned char> phred_scores;
-
-        /**
-         * @brief Count of all `A` nucleotides that are present in the sample.
-         */
-        size_t a_count = 0;
-
-        /**
-         * @brief Count of all `C` nucleotides that are present in the sample.
-         */
-        size_t c_count = 0;
-
-        /**
-         * @brief Count of all `G` nucleotides that are present in the sample.
-         */
-        size_t g_count = 0;
-
-        /**
-         * @brief Count of all `T` nucleotides that are present in the sample.
-         */
-        size_t t_count = 0;
-
-        /**
-         * @brief Count of all `N` (undetermined/any) nucleotides that are present in the sample.
-         */
-        size_t n_count = 0;
-
-        /**
-         * @brief Count of all deleted (`*`) nucleotides that are present in the sample.
-         */
-        size_t d_count = 0;
     };
 
     /**
@@ -237,27 +207,6 @@ public:
         return *this;
     }
 
-    unsigned char min_phred_score() const
-    {
-        return min_phred_score_;
-    }
-
-    /**
-     * @brief Set the minimum phred-scaled quality score for taking a base into the tally.
-     *
-     * For each pileup sample in a given record, we compute a tally, that is, we sum up the number
-     * of occurences of each nucleotide at the given line, and store these as counts in Sample;
-     * see there for details.
-     *
-     * Using this setting, only bases that have at least the given phred-scaled quality score
-     * are taken into account when summing up that tally.
-     */
-    self_type& min_phred_score( unsigned char value )
-    {
-        min_phred_score_ = value;
-        return *this;
-    }
-
     // -------------------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------------------
@@ -281,11 +230,6 @@ private:
         Sample&             sample
     ) const;
 
-    void tally_sample_counts_(
-        utils::InputStream& input_stream,
-        Sample&             sample
-    ) const;
-
     void next_field_(
         utils::InputStream& input_stream
     ) const;
@@ -300,7 +244,6 @@ private:
     // (we default to Sanger with offset 33), and if we want to skip low quality bases.
     bool with_quality_string_ = true;
     sequence::QualityEncoding quality_encoding_ = sequence::QualityEncoding::kSanger;
-    unsigned char min_phred_score_ = 0;
 
 };
 

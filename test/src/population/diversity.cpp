@@ -157,7 +157,6 @@ TEST( Population, DiversityMeasures )
 
     // Prepare the reader.
     auto reader = SimplePileupReader();
-    reader.min_phred_score( settings.min_phred_score );
     reader.quality_encoding( genesis::sequence::QualityEncoding::kIllumina13 );
 
     // Iterate the data!
@@ -165,7 +164,7 @@ TEST( Population, DiversityMeasures )
         auto const& record = *it;
         ASSERT_EQ( 1, record.samples.size() );
 
-        auto sample = convert_to_base_counts( record.samples[0] );
+        auto sample = convert_to_base_counts( record.samples[0], settings.min_phred_score );
         window_gen.enqueue( record.chromosome, record.position, sample );
     }
     window_gen.finish_chromosome();

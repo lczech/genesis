@@ -224,7 +224,10 @@ std::pair<char, double> consensus( BaseCounts const& sample, BaseCountsStatus co
 //     Conversion Functions
 // =================================================================================================
 
-BaseCounts convert_to_base_counts( SimplePileupReader::Sample const& sample );
+BaseCounts convert_to_base_counts(
+    SimplePileupReader::Sample const& sample,
+    unsigned char min_phred_score = 0
+);
 
 /**
  * @brief Output stream operator for BaseCounts instances.
