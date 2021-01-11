@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+# Copyright (C) 2014-2021 Lucas Czech and HITS gGmbH
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -279,8 +279,11 @@ IF(GENESIS_USE_ZLIB)
 
     else()
         message( STATUS "${ColorRed}zlib not found${ColorEnd}" )
-        message( STATUS "Try installing 'zlib1g-dev' first, or the equivalent for your system." )
-        message( STATUS "To build without zlib support, call CMake with -DGENESIS_USE_ZLIB=OFF" )
+        message(
+            STATUS
+            "${ColorYellow}Try installing `zlib1g-dev` first, or the equivalent for your system."
+            "To build without zlib support, call CMake with `-DGENESIS_USE_ZLIB=OFF`.${ColorEnd}"
+        )
         message( FATAL_ERROR "Required package zlib not found.")
     endif()
 ENDIF()
@@ -373,8 +376,12 @@ IF(GENESIS_USE_OPENMP)
             "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
             AND NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.8
         )
-            message (STATUS "${ColorYellow}You are trying to compile with Clang and OpenMp. "
-            "This does not seem to work right now. Try installing 'libiomp-dev' first.${ColorEnd}")
+            message (
+                STATUS
+                "${ColorYellow}You are trying to compile with Clang and OpenMp. "
+                "This does not seem to work right now. Try installing `libiomp-dev` first, "
+                "or the equivalent for your system.${ColorEnd}"
+            )
         endif()
 
         message( STATUS "To build without OpenMP support, call CMake with -DGENESIS_USE_OPENMP=OFF" )
@@ -458,9 +465,44 @@ if(GENESIS_USE_HTSLIB)
         # ENDIF()
     ENDIF()
 
-    # Find additional libraries needed by htslib
-    find_library(HTSLIB_LZMA     NAMES lzma)
-    find_library(HTSLIB_BZ2      NAMES bz2)
+    # Find additional libraries needed by htslib.
+    # If that works and the libraries were found, we do not need to do anything,
+    # as the htslib compilation will look for them again and link to them correctly.
+    # We here merely make sure that all needed libraries are available.
+
+    # find_library(HTSLIB_LZMA     NAMES lzma)
+    message( STATUS "Looking for LibLZMA" )
+    find_package(LibLZMA)
+    IF(LIBLZMA_FOUND)
+        message( STATUS "Found LibLZMA: ${LIBLZMA_LIBRARIES}" )
+        set( HTSLIB_LZMA ${LIBLZMA_LIBRARIES} )
+    ELSE()
+        message( STATUS "${ColorRed}LibLZMA not found${ColorEnd}" )
+        message (
+            STATUS "${ColorYellow}You are trying to compile with htslib, which needs LibLZMA. "
+            "This does not seem to work right now. Try installing `liblzma-dev` first, "
+            "or the equivalent for your system. To instead build without htslib support, "
+            "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
+        )
+        set( HTSLIB_LZMA "NOTFOUND" )
+    ENDIF()
+
+    # find_library(HTSLIB_BZ2      NAMES bz2)
+    message( STATUS "Looking for BZip2" )
+    find_package(BZip2)
+    IF(BZIP2_FOUND)
+        message( STATUS "Found BZip2: ${BZIP2_LIBRARIES}" )
+        set( HTSLIB_BZ2 ${BZIP2_LIBRARIES} )
+    ELSE()
+        message( STATUS "${ColorRed}BZip2 not found${ColorEnd}" )
+        message (
+            STATUS "${ColorYellow}You are trying to compile with htslib, which needs BZip2. "
+            "This does not seem to work right now. Try installing `libbz2-dev` first, "
+            "or the equivalent for your system. To instead build without htslib support, "
+            "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
+        )
+        set( HTSLIB_BZ2 "NOTFOUND" )
+    ENDIF()
 
     IF(
         ${HTSLIB_INCLUDE_DIR} MATCHES "NOTFOUND" OR
