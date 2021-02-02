@@ -85,11 +85,14 @@ void PhylipWriter::write( SequenceSet const& sequence_set, std::shared_ptr<utils
     for (Sequence const& s : sequence_set) {
         // Write label.
         if( label_length_ == 0 ) {
-            auto const f = std::find_if( std::begin(s.label()), std::end(s.label()), ::isgraph );
+            auto const f = std::find_if( std::begin(s.label()), std::end(s.label()), [](char c){
+                return ! ::isgraph(c);
+            });
             if( std::end(s.label()) != f ) {
                 throw std::runtime_error(
-                    "Cannot write Sequence to Philip: Sequence label contains non-printable or "
-                    "whitespace characters, which cannot be used in the relaxed Phylip format."
+                    "Cannot write Sequence to Philip: Sequence label \"" + s.label() +
+                    "\" contains non-printable or whitespace characters, "
+                    "which cannot be used in the relaxed Phylip format."
                 );
             }
             os << s.label() << " ";

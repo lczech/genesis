@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,9 +31,11 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/io/base64.hpp"
 #include "genesis/utils/math/common.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <ostream>
 #include <sstream>
 #include <string>
@@ -245,16 +247,28 @@ inline std::string svg_arc(
         large_arc = ( end_angle - start_angle <= utils::PI ? "0" : "1" );
     }
 
-    double start_x = center_x + ( radius * cos( end_angle ));
-    double start_y = center_y + ( radius * sin( end_angle ));
-    double end_x   = center_x + ( radius * cos( start_angle ));
-    double end_y   = center_y + ( radius * sin( start_angle ));
+    double start_x = center_x + ( radius * std::cos( end_angle ));
+    double start_y = center_y + ( radius * std::sin( end_angle ));
+    double end_x   = center_x + ( radius * std::cos( start_angle ));
+    double end_y   = center_y + ( radius * std::sin( start_angle ));
 
     std::ostringstream os;
     os << "M " << start_x << " " << start_y << " ";
     os << "A " << radius << " " << radius << " " << 0 << " " << large_arc << " " << 0 << " ";
     os << end_x << " " << end_y;
     return os.str();
+}
+
+inline std::string svg_data_uri(
+    std::string const& media_type,
+    std::string const& content,
+    bool encode_base64 = false
+) {
+    return "data:" + media_type + (
+        encode_base64
+        ? ( ";base64," + base64_encode( content ))
+        : ( "," + content )
+    );
 }
 
 // template< typename T >

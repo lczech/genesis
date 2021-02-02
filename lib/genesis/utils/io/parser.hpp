@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/io/char.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 
 #include <cassert>
@@ -57,13 +58,13 @@ T parse_unsigned_integer( utils::InputStream& source )
 {
     T x = 0;
 
-    if( ! source || ! isdigit( *source ) ) {
+    if( ! source || ! utils::is_digit( *source ) ) {
         throw std::runtime_error(
             "Expecting digit in " + source.source_name() + " at " + source.at() + "."
         );
     }
 
-    while( source && isdigit( *source )) {
+    while( source && utils::is_digit( *source )) {
         T y = *source - '0';
 
         if( x > ( std::numeric_limits<T>::max() - y ) / 10 ) {
@@ -99,14 +100,14 @@ T parse_signed_integer( utils::InputStream& source )
     if( *source == '-' ) {
         ++source;
 
-        if( ! source || ! isdigit( *source ) ) {
+        if( ! source || ! utils::is_digit( *source ) ) {
             throw std::runtime_error(
                 "Expecting digit in " + source.source_name() + " at " + source.at() + "."
             );
         }
 
         T x = 0;
-        while( source && isdigit( *source )) {
+        while( source && utils::is_digit( *source )) {
             T y = *source - '0';
 
             if( x < ( std::numeric_limits<T>::min() + y ) / 10 ) {
@@ -173,7 +174,7 @@ T parse_float( utils::InputStream& source )
 
     // Integer Part
     bool found_mantisse = false;
-    while( source && isdigit( *source )) {
+    while( source && utils::is_digit( *source )) {
         int y = *source - '0';
         x *= 10;
         x += y;
@@ -185,14 +186,14 @@ T parse_float( utils::InputStream& source )
     if( source && *source == '.' ) {
         ++source;
 
-        if( ! source || ! isdigit( *source ) ) {
+        if( ! source || ! utils::is_digit( *source ) ) {
             throw std::runtime_error(
                 "Invalid float number in " + source.source_name() + " at " + source.at() + "."
             );
         }
 
         T pos = 1.0;
-        while( source && isdigit( *source )) {
+        while( source && utils::is_digit( *source )) {
             pos /= 10.0;
             int y = *source - '0';
             x += y * pos;
@@ -209,7 +210,7 @@ T parse_float( utils::InputStream& source )
     }
 
     // Exponential part
-    if( source && tolower(*source) == 'e' ) {
+    if( source && utils::to_lower(*source) == 'e' ) {
         ++source;
 
         // Read the exp. If there are no digits, this throws.

@@ -708,6 +708,15 @@ jobs:
 #     Install
 # ==================================================================================================
 
+# htslib needs autotools for compiling. Unfortunately, travis and homebrew don't work well together
+# when using a normal `brew` command (see commented lines below; homebrew tries to update itself
+# before running the brew command first, and fails...), but luckily travis provides a mechanism
+# to still install autotools on osx.
+addons:
+  homebrew:
+    packages:
+    - autoconf
+
 before_install:
 
   # --------------------------------------------------------------------------
@@ -726,6 +735,26 @@ before_install:
       sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
       sudo apt-get update -qq
     fi
+
+  # install htslib required build tools
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      # sudo apt-get install autoheader autoconf
+      # sudo apt-get install zlib1g zlib1g-dev libbz2 libbz2-dev liblzma liblzma-dev
+      sudo apt-get install autoconf
+      sudo apt-get install zlib1g zlib1g-dev bzip2 liblzma-dev
+    fi
+  # Tests for autotools on osx. Doesn't work, because of travis...
+  # - |
+  #   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+  #     # sudo brew update-reset
+  #     # sudo brew update
+  #     # brew update-reset
+  #     brew update
+  #     brew install autoconf
+  #     # xcode-select --install
+  #     # brew install automake libtool zlib-devel libbz2-devel liblzma-dev
+  #   fi
 
   # --------------------------------------------------------------------------
   #     Paths and Environment
@@ -834,6 +863,27 @@ install:
         export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
       fi
     fi
+
+  # --------------------------------------------------------------------------
+  #     htslib
+  # --------------------------------------------------------------------------
+
+  # install htslib --> not needed any more, as we use a locally installed htslib now, see CMakeLists.txt
+  # - |
+  #   HTSLIB_INSTALL=${DEPS_DIR}/htslib
+  #   git clone --recursive https://github.com/samtools/htslib.git ${HTSLIB_INSTALL}
+  #   cd ${HTSLIB_INSTALL}
+  #   git checkout fd0f89554459b78c07303e2c8a42acacd6851b46
+  #   autoheader
+  #   autoconf
+  #   ./configure
+  #   make
+  #   sudo make install
+  #   if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+  #     sudo ldconfig
+  #     # cd /usr/local/lib/
+  #     # sudo ln -s libhts.so libhts.so.3
+  #   fi
 
 # ==================================================================================================
 #     Script

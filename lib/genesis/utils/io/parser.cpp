@@ -61,7 +61,7 @@ std::string parse_number_string(
     }
 
     // Integer part. Read while char is digit.
-    while( source && is_digit( *source )) {
+    while( source && utils::is_digit( *source )) {
         result += *source;
         ++source;
         found_digits = true;
@@ -74,7 +74,7 @@ std::string parse_number_string(
     }
 
     // Decimal part. Read while char is digit.
-    while( source && is_digit( *source )) {
+    while( source && utils::is_digit( *source )) {
         result += *source;
         ++source;
         found_digits = true;
@@ -101,7 +101,7 @@ std::string parse_number_string(
     }
 
     // Exponent. Read while char is digit.
-    while( source && is_digit( *source )) {
+    while( source && utils::is_digit( *source )) {
         result += *source;
         ++source;
     }

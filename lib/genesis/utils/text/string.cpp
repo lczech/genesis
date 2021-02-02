@@ -33,10 +33,12 @@
 #include "genesis/utils/math/common.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cctype>
 #include <cstdio>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 
@@ -90,6 +92,212 @@ bool ends_with( std::string const & text, std::string const & ending )
         return false;
     }
     return std::equal( ending.rbegin(), ending.rend(), text.rbegin() );
+}
+
+bool match_wildcards( std::string const& str, std::string const& pattern )
+{
+    // Code adapted from https://www.geeksforgeeks.org/wildcard-pattern-matching/
+
+    // The empty pattern can only match with the empty string
+    if( pattern.empty() ) {
+        return str.empty();
+    }
+
+    // Lookup table for dynamic programming approach of subproblem solutions, and init to zero.
+    // We use a vec of bool, and a lambda for access as if it was a matrix.
+    auto lookup_ = std::vector<bool>(( str.size() + 1 ) * ( pattern.size() + 1 ), false);
+    auto lookup = [&]( size_t i, size_t j ) -> std::vector<bool>::reference {
+        return lookup_[ i * ( pattern.size() + 1 ) + j ];
+    };
+
+    // The empty pattern can match with empty string
+    lookup( 0, 0 ) = true;
+
+    // Only '*' can match with empty string
+    for( size_t j = 1; j <= pattern.size(); j++ ) {
+        if( pattern[j - 1] == '*' ) {
+            lookup( 0, j ) = lookup( 0, j - 1 );
+        }
+    }
+
+    // Fill the table in bottom-up fashion
+    for( size_t i = 1; i <= str.size(); i++ ) {
+        for( size_t j = 1; j <= pattern.size(); j++ ) {
+            if( pattern[j - 1] == '*' ) {
+
+                // Two cases if we see a '*':
+                // a) We ignore ‘*’ character and move to next  character in the pattern,
+                //    i.e., ‘*’ indicates an empty sequence.
+                // b) '*' character matches with ith character in input
+                lookup( i, j ) = lookup( i, j - 1 ) || lookup( i - 1, j );
+
+            } else if( pattern[j - 1] == '?' || str[i - 1] == pattern[j - 1] )
+
+                // Current characters are considered as matching in two cases:
+                // (a) current character of pattern is '?'
+                // (b) characters actually match
+                lookup( i, j ) = lookup( i - 1, j - 1 );
+
+            else {
+
+                // If characters don't match
+                lookup( i, j ) = false;
+            }
+        }
+    }
+
+    return lookup( str.size(), pattern.size() );
+}
+
+int compare_natural( std::string const& lhs, std::string const& rhs )
+{
+    // Implementation inspired by http://www.davekoelle.com/files/alphanum.hpp
+    // Released under the MIT License - https://opensource.org/licenses/MIT
+    // We however heavily modified it, in particular to work with arbitrary runs of digits.
+
+    // Edge cases of empty strings.
+    if( lhs.empty() || rhs.empty() ) {
+        // Smart! Let's avoid to do all three cases, and instead convert to int (0 or 1):
+        //  * lhs empty, but rhs not:  0 - 1 = -1
+        //  * rhs empty, but lhs not:  1 - 0 = +1
+        //  * both empty:              1 - 1 =  0
+        return static_cast<int>( rhs.empty() ) - static_cast<int>( lhs.empty() );
+    }
+
+    // We need to switch between modes. Clear semantics instead of just a bool.
+    enum class ParseMode
+    {
+        kString,
+        kNumber
+    };
+    auto mode = ParseMode::kString;
+
+    // Helper function to parse a string into an unsigned number, quickly.
+    // Advances the given pos while parsing, until either the end of the string or no more digits.
+    // --> not used, as it can only handle numbers up to the size of unsigned long...
+    // auto parse_unsigned_number_ = []( std::string const& str, size_t& pos ){
+    //     unsigned long num = 0;
+    //     while( pos < str.size() && is_digit( str[pos] )) {
+    //         auto dig = str[pos] - '0';
+    //         if( num > ( std::numeric_limits<T>::max() - dig ) / 10 ) {
+    //             // This is ugly, and a proper solution would be to take string lengths into
+    //             // account, but that would probably require to fully load them, and then compare...
+    //             throw std::overflow_error( "Numerical overflow in compare_natural()" );
+    //         }
+    //         num = 10 * num + dig;
+    //         ++pos;
+    //     }
+    //     return num;
+    // };
+
+    // Iterate positions in the strings.
+    size_t l = 0;
+    size_t r = 0;
+    while( l < lhs.size() && r < rhs.size() ) {
+        if( mode == ParseMode::kString ) {
+
+            // Iterate as long as there are strings/chars in both.
+            while( l < lhs.size() && r < rhs.size() ) {
+
+                // Check if these are digits.
+                bool const l_digit = is_digit( lhs[l] );
+                bool const r_digit = is_digit( rhs[r] );
+
+                // If both are digits, we continue in number mode.
+                if( l_digit && r_digit ) {
+                    mode = ParseMode::kNumber;
+                    break;
+                }
+
+                // If only one of them is a digit, we have a result.
+                if( l_digit ) {
+                    return -1;
+                }
+                if( r_digit ) {
+                    return +1;
+                }
+
+                // Neither is a digit, so compare as ASCII chars; if they differ, we have a result.
+                assert( ! l_digit && ! r_digit );
+                int const diff = static_cast<int>( lhs[l] ) - static_cast<int>( rhs[r] );
+                if( diff != 0 ) {
+                    return diff;
+                }
+
+                // Otherwise, process the next character.
+                ++l;
+                ++r;
+            }
+
+        } else {
+            assert( mode == ParseMode::kNumber );
+
+            // Here, a first idea was to parse both strings as numbers for as long as they contain
+            // digits, and then compare the resulting numbers. However, this overflows for larger
+            // numbers, and we can easily avoid that by an equally simple solution. We might need
+            // to iterate the digits twice, but save the effort of actually building the numbers!
+            // (see above parse_unsigned_number_() for the parsing function that we first had)
+
+            // Parse the strings as long as they contain digits, advancing helper indices here.
+            size_t ld = l;
+            size_t rd = r;
+            while( ld < lhs.size() && is_digit( lhs[ld] )) {
+                ++ld;
+            }
+            while( rd < rhs.size() && is_digit( rhs[rd] )) {
+                ++rd;
+            }
+
+            // If the lengths of digit runs differ, one of them is a larger number than the other.
+            // In that case, we have a result.
+            if( ld != rd ) {
+                return static_cast<int>( ld ) - static_cast<int>( rd );
+            }
+
+            // If those numbers are the same length, we need to iterate again,
+            // and check digit by digit. Iterate as long as there are digits in both.
+            while( l < lhs.size() && r < rhs.size() ) {
+
+                // Check if these are digits.
+                bool const l_digit = is_digit( lhs[l] );
+                bool const r_digit = is_digit( rhs[r] );
+
+                // If there are no more digits, we continue in string mode.
+                if( ! l_digit || ! r_digit ) {
+                    // In that case, both have to be not digits, as we just checked same length
+                    // of the digit run, and both have to be the same as our previous iteration.
+                    assert( ! l_digit && ! r_digit );
+                    assert( ld == rd && l == ld && r == rd );
+                    mode = ParseMode::kString;
+                    break;
+                }
+
+                // Compare the digits as ASCII chars; if they differ, we have a result.
+                assert( l_digit && r_digit );
+                int const diff = static_cast<int>( lhs[l] ) - static_cast<int>( rhs[r] );
+                if( diff != 0 ) {
+                    return diff;
+                }
+
+                // Otherwise, process the next character.
+                ++l;
+                ++r;
+            }
+        }
+    }
+
+    // Lastly, if we are here, both strings are identical up to the point to which the were compared.
+    // So now, remaining lenghts checks. Only if everything is identical, return 0.
+    if( l < lhs.size() ) {
+        assert( r == rhs.size() );
+        return +1;
+    }
+    if( r < rhs.size() ) {
+        assert( l == lhs.size() );
+        return -1;
+    }
+    assert( l == lhs.size() && r == rhs.size() );
+    return 0;
 }
 
 // =================================================================================================

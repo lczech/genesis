@@ -347,6 +347,8 @@ std::string GzipInputSource::source_string_() const
 
 int GzipInputSource::get_format_( GzipInputSource::Format ) const
 {
+    // Avoid compiler warnings: have to use format_ somewhere!
+    (void) format_;
     return 0;
 }
 

@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+# Copyright (C) 2014-2021 Lucas Czech and HITS gGmbH
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,7 +47,10 @@ message (STATUS "CMake version ${CMAKE_VERSION}")
 set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
 
-# Add our own extra CMake functionality.
+# Include extra functionality.
+include(ExternalProject)
+
+# Include our own extra CMake functionality.
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/tools/cmake" )
 include( "${CMAKE_CURRENT_LIST_DIR}/tools/cmake/AssembleMonolith.cmake" )
 
@@ -55,7 +58,12 @@ include( "${CMAKE_CURRENT_LIST_DIR}/tools/cmake/AssembleMonolith.cmake" )
 # as normal Clang. See https://cmake.org/cmake/help/v3.0/policy/CMP0025.html
 # This is important for the test cmake script, where we need to set some warnings for clang,
 # but not for apple clang.
-cmake_policy(SET CMP0025 NEW)
+# But, this policy was only introduced in CMake 3.0, which we hence need to test first;
+# this test however is cumbersome, becuase VERSION_GREATER_EQUAL was only introduced in CMake 3.7,
+# so we need to test the negated version...
+if (NOT CMAKE_VERSION VERSION_LESS 3.0)
+    cmake_policy(SET CMP0025 NEW)
+endif()
 
 # --------------------------------------------------------------------------------------------------
 #   Project Definitions and Variables
@@ -130,18 +138,29 @@ option (GENESIS_BUILD_SHARED_LIB    "Build the shared library version of Genesis
 option (GENESIS_BUILD_STATIC_LIB    "Build the static library version of Genesis." ${GENESIS_HAS_PARENT_DIR})
 
 # If we are the master project, we want to build the apps by default.
-option (GENESIS_BUILD_APPLICATIONS  "Build Genesis applications."        ${GENESIS_IS_MASTER_PROJECT})
+option (GENESIS_BUILD_APPLICATIONS  "Build Genesis applications." ${GENESIS_IS_MASTER_PROJECT})
 
 # Currently, the Python module and tests are deactivated by default.
-option (GENESIS_BUILD_PYTHON_MODULE "Build the Genesis python module."   OFF)
-option (GENESIS_BUILD_TESTS         "Build the Genesis test suites."     OFF)
+option (GENESIS_BUILD_PYTHON_MODULE "Build the Genesis python module."                   OFF)
+option (GENESIS_BUILD_TESTS         "Build the Genesis test suites."                     OFF)
 
 # If available, use external dependencies.
-option (GENESIS_USE_ZLIB            "Use zlib."                                    ON)
+option (GENESIS_USE_ZLIB            "Use zlib."                                          ON)
 
 # We default to using threads (if available, which will be checked later).
-option (GENESIS_USE_THREADS         "Use a threading library (mainly, pthreads)."  ON)
-option (GENESIS_USE_OPENMP          "Use OpenMP."                                  ON)
+option (GENESIS_USE_THREADS         "Use a threading library (mainly, pthreads)."        ON)
+option (GENESIS_USE_OPENMP          "Use OpenMP."                                        ON)
+
+# Additional dependencies: htslib
+# By default, we use a locally installed (in the build directory) version of htslib,
+# so that we can check out the exact commit that we want. We also allow to use the system-wide
+# installation by setting `GENESIS_SYSTEM_HTSLIB ON`(if set, we assume that htslib is present and
+# in a compatible version - we do not check this, but the compilation will just fail if it is not).
+# Also, by setting `GENESIS_USE_HTSLIB OFF`, all htslib-related functionality can also be deactivated,
+# but those functions then won't be available in the library.
+option (GENESIS_USE_HTSLIB          "Use htslib. See also GENESIS_SYSTEM_HTSLIB"         ON)
+option (GENESIS_SYSTEM_HTSLIB       "If set, use the system-wide installation of htslib" OFF)
+set(HTSLIB_HINT "" CACHE STRING     "Path to htslib if GENESIS_SYSTEM_HTSLIB=ON")
 
 # Define unity build option with list of valid values. Default is full unity build.
 set( GENESIS_UNITY_BUILD FULL CACHE STRING
@@ -237,6 +256,10 @@ endif (APPLE)
 #   External Dependencies
 # --------------------------------------------------------------------------------------------------
 
+# ----------------------------------------------------------
+#     zlib
+# ----------------------------------------------------------
+
 IF(GENESIS_USE_ZLIB)
     message (STATUS "Looking for zlib")
     find_package(ZLIB)
@@ -256,11 +279,18 @@ IF(GENESIS_USE_ZLIB)
 
     else()
         message( STATUS "${ColorRed}zlib not found${ColorEnd}" )
-        message( STATUS "Try installing 'zlib1g-dev' first, or the equivalent for your system." )
-        message( STATUS "To build without zlib support, call CMake with -DGENESIS_USE_ZLIB=OFF" )
+        message(
+            STATUS
+            "${ColorYellow}Try installing `zlib1g-dev` first, or the equivalent for your system."
+            "To build without zlib support, call CMake with `-DGENESIS_USE_ZLIB=OFF`.${ColorEnd}"
+        )
         message( FATAL_ERROR "Required package zlib not found.")
     endif()
 ENDIF()
+
+# ----------------------------------------------------------
+#     (p)threads
+# ----------------------------------------------------------
 
 # We check whether to use threads and OpenMP here,
 # so that all binaries are compiled with the same settings.
@@ -288,6 +318,10 @@ IF(GENESIS_USE_THREADS)
     endif()
 
 ENDIF()
+
+# ----------------------------------------------------------
+#     OpenMP
+# ----------------------------------------------------------
 
 IF(GENESIS_USE_OPENMP)
     message (STATUS "Looking for OpenMP")
@@ -342,8 +376,12 @@ IF(GENESIS_USE_OPENMP)
             "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
             AND NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.8
         )
-            message (STATUS "${ColorYellow}You are trying to compile with Clang and OpenMp. "
-            "This does not seem to work right now. Try installing 'libiomp-dev' first.${ColorEnd}")
+            message (
+                STATUS
+                "${ColorYellow}You are trying to compile with Clang and OpenMp. "
+                "This does not seem to work right now. Try installing `libiomp-dev` first, "
+                "or the equivalent for your system.${ColorEnd}"
+            )
         endif()
 
         message( STATUS "To build without OpenMP support, call CMake with -DGENESIS_USE_OPENMP=OFF" )
@@ -351,6 +389,165 @@ IF(GENESIS_USE_OPENMP)
     endif()
 
 ENDIF()
+
+# ----------------------------------------------------------
+#     htslib
+# ----------------------------------------------------------
+
+# Store the commit hash that we want to check out for htslib.
+SET( htslib_COMMIT_HASH "fd0f89554459b78c07303e2c8a42acacd6851b46" ) #htslib_COMMIT_HASH#
+
+if(GENESIS_USE_HTSLIB)
+    message (STATUS "Looking for htslib")
+
+    IF(GENESIS_SYSTEM_HTSLIB)
+        message( STATUS "Looking for system-wide htslib installation" )
+        IF(HTSLIB_HINT)
+            message( STATUS "Using hint path: ${HTSLIB_HINT}" )
+        ENDIF()
+
+        # Find system-wide installation of htslib
+        find_path(HTSLIB_INCLUDE_DIR NAMES htslib/hts.h HINTS "${HTSLIB_HINT}/include")
+        find_library(HTSLIB_LIBRARY  NAMES libhts.a hts HINTS "${HTSLIB_HINT}/lib")
+        set( HTSLIB_LINK_DIR ${HTSLIB_LIBRARY} )
+
+        IF(HTSLIB_FOUND)
+            message( STATUS "Using system htslib" )
+        ENDIF()
+
+    ELSE()
+        message( STATUS "Using local htslib" )
+
+        # We download and built on our own, using the correct commit hash to get our exact desired
+        # version, and install locally to the build directory.
+        ExternalProject_Add(
+            htslib
+            PREFIX ""
+
+            # Download and Update Steps
+            # DOWNLOAD_COMMAND  ""
+            GIT_REPOSITORY https://github.com/samtools/htslib.git
+            GIT_TAG ${htslib_COMMIT_HASH}
+            UPDATE_COMMAND    ""
+
+            # Configure Step. See htslib/INSTALL
+            SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-source
+            CONFIGURE_COMMAND
+                autoheader
+                COMMAND
+                autoconf
+                COMMAND
+                ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
+
+            # Build Step
+            # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
+            BUILD_IN_SOURCE true
+            BUILD_COMMAND
+                $(MAKE)
+
+            # Install Step
+            INSTALL_COMMAND $(MAKE) install
+        )
+
+        # Set the paths so that those can be included by the targets.
+        # We explicitly set the static library here, so that we link against that one.
+        set( HTSLIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib )
+        set( HTSLIB_INCLUDE_DIR "${HTSLIB_DIR}/include" )
+        set( HTSLIB_LINK_DIR    "${HTSLIB_DIR}/lib" )
+        set( HTSLIB_LIBRARY     "${HTSLIB_DIR}/lib/libhts.a" )
+
+        # Cannot test here for existing files, as those are not yet built when this is called...
+        # IF(
+        #     NOT EXISTS ${HTSLIB_INCLUDE_DIR}/htslib/hts.h OR
+        #     NOT EXISTS ${HTSLIB_LIBRARY}/libhts.a
+        # )
+        #     message( FATAL_ERROR "Building htslib failed.")
+        # ENDIF()
+    ENDIF()
+
+    # Find additional libraries needed by htslib.
+    # If that works and the libraries were found, we do not need to do anything,
+    # as the htslib compilation will look for them again and link to them correctly.
+    # We here merely make sure that all needed libraries are available.
+
+    # find_library(HTSLIB_LZMA     NAMES lzma)
+    message( STATUS "Looking for LibLZMA" )
+    find_package(LibLZMA)
+    IF(LIBLZMA_FOUND)
+        message( STATUS "Found LibLZMA: ${LIBLZMA_LIBRARIES}" )
+        set( HTSLIB_LZMA ${LIBLZMA_LIBRARIES} )
+    ELSE()
+        message( STATUS "${ColorRed}LibLZMA not found${ColorEnd}" )
+        message (
+            STATUS "${ColorYellow}You are trying to compile with htslib, which needs LibLZMA. "
+            "This does not seem to work right now. Try installing `liblzma-dev` first, "
+            "or the equivalent for your system. To instead build without htslib support, "
+            "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
+        )
+        set( HTSLIB_LZMA "NOTFOUND" )
+    ENDIF()
+
+    # find_library(HTSLIB_BZ2      NAMES bz2)
+    message( STATUS "Looking for BZip2" )
+    find_package(BZip2)
+    IF(BZIP2_FOUND)
+        message( STATUS "Found BZip2: ${BZIP2_LIBRARIES}" )
+        set( HTSLIB_BZ2 ${BZIP2_LIBRARIES} )
+    ELSE()
+        message( STATUS "${ColorRed}BZip2 not found${ColorEnd}" )
+        message (
+            STATUS "${ColorYellow}You are trying to compile with htslib, which needs BZip2. "
+            "This does not seem to work right now. Try installing `libbz2-dev` first, "
+            "or the equivalent for your system. To instead build without htslib support, "
+            "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
+        )
+        set( HTSLIB_BZ2 "NOTFOUND" )
+    ENDIF()
+
+    IF(
+        ${HTSLIB_INCLUDE_DIR} MATCHES "NOTFOUND" OR
+        ${HTSLIB_LINK_DIR}    MATCHES "NOTFOUND" OR
+        ${HTSLIB_LIBRARY}     MATCHES "NOTFOUND" OR
+        ${HTSLIB_LZMA}        MATCHES "NOTFOUND" OR
+        ${HTSLIB_BZ2}         MATCHES "NOTFOUND"
+    )
+        message( STATUS "HTSLIB_INCLUDE_DIR: ${HTSLIB_INCLUDE_DIR}" )
+        message( STATUS "HTSLIB_LINK_DIR:    ${HTSLIB_LINK_DIR}" )
+        message( STATUS "HTSLIB_LIBRARY:     ${HTSLIB_LIBRARY}" )
+        message( STATUS "HTSLIB_LZMA:        ${HTSLIB_LZMA}" )
+        message( STATUS "HTSLIB_BZ2:         ${HTSLIB_BZ2}" )
+        message( FATAL_ERROR "Required package htslib (or some of its dependencies) not found.")
+    ELSE()
+
+        # Technically, we can only claim to have "found" the library when using the system-wide
+        # installation here, as in the local (default) case it won't yet be compiled...
+        # But let's stick to the user output that we used for the other dependencies,
+        # and assume that once we are here, the build process will work.
+        message( STATUS
+            "Found htslib: ${HTSLIB_INCLUDE_DIR}; ${HTSLIB_LINK_DIR}; ${HTSLIB_LIBRARY}; "
+            "${HTSLIB_LZMA}; ${HTSLIB_BZ2}"
+        )
+        message (STATUS "${ColorGreen}Using htslib${ColorEnd}")
+
+        # Include the headers and directories, so that they are found by our source.
+        include_directories(${HTSLIB_INCLUDE_DIR})
+        link_directories(${HTSLIB_LINK_DIR})
+
+        # Set needed definitions and linker flags for genesis and for the parent scope.
+        # The targets (our shared and static lib) will use these to link against.
+        add_definitions( "-DGENESIS_HTSLIB" )
+        set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_HTSLIB" )
+        set(
+            GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}
+            -lhts ${HTSLIB_LIBRARY} z ${HTSLIB_LZMA} ${HTSLIB_BZ2}
+        )
+        # set(
+        #     GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}
+        #     -L/usr/local/lib -lhts ${HTSLIB_LIBRARY} z ${HTSLIB_LZMA} ${HTSLIB_BZ2}
+        # )
+    ENDIF()
+
+endif()
 
 # --------------------------------------------------------------------------------------------------
 #   Sub-Scripts

@@ -315,7 +315,7 @@ std::tm convert_to_tm( std::string const& str, std::string const& format, std::s
     std::tm t;
     if( !convert_to_tm_( str, format, locale, t )) {
         throw std::invalid_argument(
-            "Cannot convert string to tm date/time object."
+            "Cannot convert string '" + str + "' to tm date/time object."
         );
     }
     return t;
@@ -331,7 +331,7 @@ std::tm convert_to_tm( std::string const& str, std::string const& format )
     }
 
     throw std::invalid_argument(
-        "Cannot convert string to tm date/time object with given format."
+        "Cannot convert string '" + str + "' to tm date/time object with given format."
     );
 }
 
@@ -349,7 +349,7 @@ std::tm convert_to_tm( std::string const& str )
     }
 
     throw std::invalid_argument(
-        "Cannot convert string to tm date/time object with guessed formats."
+        "Cannot convert string '" + str + "' to tm date/time object with guessed formats."
     );
 }
 

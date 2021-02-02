@@ -37,6 +37,7 @@
 #include "genesis/utils/io/input_stream.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <cstdint>
@@ -48,6 +49,112 @@
 
 namespace genesis {
 namespace sequence {
+
+// =================================================================================================
+//     Phred Score To Error Probability
+// =================================================================================================
+
+// Local array for faster lookup of phred score error probabilities.
+// Code to generate the array:
+//
+//     #include <iostream>
+//     std::cout.precision( 15 );
+//     size_t c = 0;
+//     for( size_t i = 0; i < 256; ++i ) {
+//         if( ++c == 4 || i % 10 == 0 ) {
+//             c = 0;
+//             std::cout << "\n    ";
+//         }
+//         if( i % 10 == 0 ) {
+//             std::cout << "/* " << i << " */ ";
+//         }
+//         std::cout << std::pow( 10.0, static_cast<double>( i ) / -10.0 ) << ", ";
+//     }
+//     std::cout << "\n";
+//
+// See phred_score_to_error_probability() for usage. We probably never ever need the values above 93,
+// as those cannot even be encoded in normal ASCII-based phred score codes, and also probably
+// don't even need values above 60, which is usually taken as an upper bound. But let's be through
+// here, and include the whole range of possible values for our data type.
+static const std::array<double, 256> phred_score_to_error_probability_lookup_ = {{
+    /* 0 */ 1.0, 0.794328234724281, 0.630957344480193, 0.501187233627272,
+    0.398107170553497, 0.316227766016838, 0.251188643150958, 0.199526231496888,
+    0.158489319246111, 0.125892541179417,
+    /* 10 */ 0.1, 0.0794328234724281, 0.0630957344480193, 0.0501187233627272,
+    0.0398107170553497, 0.0316227766016838, 0.0251188643150958, 0.0199526231496888,
+    0.0158489319246111, 0.0125892541179417,
+    /* 20 */ 0.01, 0.00794328234724281, 0.00630957344480193, 0.00501187233627272,
+    0.00398107170553497, 0.00316227766016838, 0.00251188643150958, 0.00199526231496888,
+    0.00158489319246111, 0.00125892541179417,
+    /* 30 */ 0.001, 0.000794328234724281, 0.000630957344480193, 0.000501187233627273,
+    0.000398107170553497, 0.000316227766016838, 0.000251188643150958, 0.000199526231496888,
+    0.000158489319246111, 0.000125892541179417,
+    /* 40 */ 0.0001, 7.94328234724282e-05, 6.30957344480193e-05, 5.01187233627273e-05,
+    3.98107170553497e-05, 3.16227766016838e-05, 2.51188643150958e-05, 1.99526231496888e-05,
+    1.58489319246111e-05, 1.25892541179417e-05,
+    /* 50 */ 1e-05, 7.94328234724282e-06, 6.30957344480193e-06, 5.01187233627272e-06,
+    3.98107170553497e-06, 3.16227766016838e-06, 2.51188643150958e-06, 1.99526231496888e-06,
+    1.58489319246111e-06, 1.25892541179417e-06,
+    /* 60 */ 1e-06, 7.94328234724282e-07, 6.30957344480193e-07, 5.01187233627272e-07,
+    3.98107170553497e-07, 3.16227766016838e-07, 2.51188643150958e-07, 1.99526231496888e-07,
+    1.58489319246111e-07, 1.25892541179417e-07,
+    /* 70 */ 1e-07, 7.94328234724282e-08, 6.30957344480193e-08, 5.01187233627272e-08,
+    3.98107170553497e-08, 3.16227766016838e-08, 2.51188643150958e-08, 1.99526231496888e-08,
+    1.58489319246111e-08, 1.25892541179417e-08,
+    /* 80 */ 1e-08, 7.94328234724282e-09, 6.30957344480194e-09, 5.01187233627271e-09,
+    3.98107170553497e-09, 3.16227766016838e-09, 2.51188643150958e-09, 1.99526231496888e-09,
+    1.58489319246111e-09, 1.25892541179417e-09,
+    /* 90 */ 1e-09, 7.94328234724282e-10, 6.30957344480194e-10, 5.01187233627271e-10,
+    3.98107170553497e-10, 3.16227766016838e-10, 2.51188643150958e-10, 1.99526231496888e-10,
+    1.58489319246111e-10, 1.25892541179417e-10,
+    /* 100 */ 1e-10, 7.94328234724282e-11, 6.30957344480194e-11, 5.01187233627271e-11,
+    3.98107170553497e-11, 3.16227766016838e-11, 2.51188643150958e-11, 1.99526231496888e-11,
+    1.58489319246111e-11, 1.25892541179417e-11,
+    /* 110 */ 1e-11, 7.94328234724282e-12, 6.30957344480194e-12, 5.01187233627271e-12,
+    3.98107170553497e-12, 3.16227766016838e-12, 2.51188643150958e-12, 1.99526231496888e-12,
+    1.58489319246111e-12, 1.25892541179417e-12,
+    /* 120 */ 1e-12, 7.94328234724282e-13, 6.30957344480194e-13, 5.01187233627271e-13,
+    3.98107170553497e-13, 3.16227766016838e-13, 2.51188643150958e-13, 1.99526231496888e-13,
+    1.58489319246111e-13, 1.25892541179417e-13,
+    /* 130 */ 1e-13, 7.94328234724282e-14, 6.30957344480194e-14, 5.01187233627271e-14,
+    3.98107170553497e-14, 3.16227766016838e-14, 2.51188643150958e-14, 1.99526231496888e-14,
+    1.58489319246111e-14, 1.25892541179417e-14,
+    /* 140 */ 1e-14, 7.94328234724282e-15, 6.30957344480194e-15, 5.01187233627271e-15,
+    3.98107170553497e-15, 3.16227766016838e-15, 2.51188643150958e-15, 1.99526231496888e-15,
+    1.58489319246111e-15, 1.25892541179417e-15,
+    /* 150 */ 1e-15, 7.94328234724282e-16, 6.30957344480194e-16, 5.01187233627271e-16,
+    3.98107170553497e-16, 3.16227766016838e-16, 2.51188643150958e-16, 1.99526231496888e-16,
+    1.58489319246111e-16, 1.25892541179417e-16,
+    /* 160 */ 1e-16, 7.94328234724279e-17, 6.30957344480194e-17, 5.01187233627271e-17,
+    3.98107170553499e-17, 3.16227766016838e-17, 2.51188643150957e-17, 1.99526231496888e-17,
+    1.58489319246111e-17, 1.25892541179417e-17,
+    /* 170 */ 1e-17, 7.94328234724279e-18, 6.30957344480194e-18, 5.01187233627271e-18,
+    3.98107170553499e-18, 3.16227766016838e-18, 2.51188643150957e-18, 1.99526231496888e-18,
+    1.58489319246111e-18, 1.25892541179417e-18,
+    /* 180 */ 1e-18, 7.94328234724279e-19, 6.30957344480194e-19, 5.01187233627271e-19,
+    3.98107170553499e-19, 3.16227766016838e-19, 2.51188643150957e-19, 1.99526231496888e-19,
+    1.58489319246111e-19, 1.25892541179417e-19,
+    /* 190 */ 1e-19, 7.94328234724279e-20, 6.30957344480194e-20, 5.01187233627271e-20,
+    3.98107170553499e-20, 3.16227766016838e-20, 2.51188643150957e-20, 1.99526231496888e-20,
+    1.58489319246111e-20, 1.25892541179417e-20,
+    /* 200 */ 1e-20, 7.94328234724279e-21, 6.30957344480194e-21, 5.01187233627271e-21,
+    3.98107170553499e-21, 3.16227766016838e-21, 2.51188643150957e-21, 1.99526231496888e-21,
+    1.58489319246111e-21, 1.25892541179417e-21,
+    /* 210 */ 1e-21, 7.94328234724279e-22, 6.30957344480194e-22, 5.01187233627272e-22,
+    3.98107170553499e-22, 3.16227766016838e-22, 2.51188643150957e-22, 1.99526231496888e-22,
+    1.58489319246111e-22, 1.25892541179417e-22,
+    /* 220 */ 1e-22, 7.94328234724279e-23, 6.30957344480194e-23, 5.01187233627271e-23,
+    3.98107170553499e-23, 3.16227766016838e-23, 2.51188643150957e-23, 1.99526231496888e-23,
+    1.58489319246111e-23, 1.25892541179417e-23,
+    /* 230 */ 1e-23, 7.94328234724279e-24, 6.30957344480194e-24, 5.01187233627271e-24,
+    3.98107170553499e-24, 3.16227766016838e-24, 2.51188643150957e-24, 1.99526231496888e-24,
+    1.58489319246111e-24, 1.25892541179417e-24,
+    /* 240 */ 1e-24, 7.94328234724279e-25, 6.30957344480194e-25, 5.01187233627272e-25,
+    3.98107170553499e-25, 3.16227766016838e-25, 2.51188643150957e-25, 1.99526231496888e-25,
+    1.58489319246111e-25, 1.25892541179417e-25,
+    /* 250 */ 1e-25, 7.94328234724279e-26, 6.30957344480194e-26, 5.01187233627271e-26,
+    3.98107170553499e-26, 3.16227766016838e-26
+}};
 
 // =================================================================================================
 //     Quality Encoding and Decoding
@@ -263,7 +370,7 @@ std::vector<unsigned char> quality_decode_to_phred_score(
 //     Guess Quality Encoding Type
 // =================================================================================================
 
-QualityEncoding guess_fastq_quality_encoding( std::array<size_t, 128> const& char_counts )
+QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_counts )
 {
     // Find the first entry that is not 0
     size_t min = 0;
@@ -360,7 +467,7 @@ QualityEncoding guess_fastq_quality_encoding( std::shared_ptr< utils::BaseInputS
     }
 
     // Return our guess based on the quality characters that were found in the sequences.
-    return guess_fastq_quality_encoding( char_counts );
+    return guess_quality_encoding( char_counts );
 }
 
 // =================================================================================================
@@ -385,7 +492,8 @@ unsigned char error_probability_to_phred_score( double error_probability )
 
 double phred_score_to_error_probability( unsigned char phred_score )
 {
-    return std::pow( 10.0, static_cast<double>( phred_score ) / -10.0 );
+    return phred_score_to_error_probability_lookup_[ phred_score ];
+    // return std::pow( 10.0, static_cast<double>( phred_score ) / -10.0 );
 }
 
 signed char error_probability_to_solexa_score( double error_probability )
@@ -443,6 +551,60 @@ unsigned char solexa_score_to_phred_score( signed char solexa_score )
     return static_cast<unsigned char>( std::round(
         10.0 * std::log10( std::pow( 10.0, static_cast<double>( solexa_score ) / 10.0 ) + 1.0 )
     ));
+}
+
+std::vector<unsigned char> error_probability_to_phred_score( std::vector<double> error_probability )
+{
+    auto res = std::vector<unsigned char>( error_probability.size(), 0 );
+    for( size_t i = 0; i < error_probability.size(); ++i ) {
+        res[i] = error_probability_to_phred_score( error_probability[i] );
+    }
+    return res;
+}
+
+std::vector<double> phred_score_to_error_probability( std::vector<unsigned char> phred_score )
+{
+    auto res = std::vector<double>( phred_score.size(), 0 );
+    for( size_t i = 0; i < phred_score.size(); ++i ) {
+        res[i] = phred_score_to_error_probability( phred_score[i] );
+    }
+    return res;
+}
+
+std::vector<signed char> error_probability_to_solexa_score( std::vector<double> error_probability )
+{
+    auto res = std::vector<signed char>( error_probability.size(), 0 );
+    for( size_t i = 0; i < error_probability.size(); ++i ) {
+        res[i] = error_probability_to_solexa_score( error_probability[i] );
+    }
+    return res;
+}
+
+std::vector<double> solexa_score_to_error_probability( std::vector<signed char> solexa_score )
+{
+    auto res = std::vector<double>( solexa_score.size(), 0 );
+    for( size_t i = 0; i < solexa_score.size(); ++i ) {
+        res[i] = solexa_score_to_error_probability( solexa_score[i] );
+    }
+    return res;
+}
+
+std::vector<signed char> phred_score_to_solexa_score( std::vector<unsigned char> phred_score )
+{
+    auto res = std::vector<signed char>( phred_score.size(), 0 );
+    for( size_t i = 0; i < phred_score.size(); ++i ) {
+        res[i] = phred_score_to_solexa_score( phred_score[i] );
+    }
+    return res;
+}
+
+std::vector<unsigned char> solexa_score_to_phred_score( std::vector<signed char> solexa_score )
+{
+    auto res = std::vector<unsigned char>( solexa_score.size(), 0 );
+    for( size_t i = 0; i < solexa_score.size(); ++i ) {
+        res[i] = solexa_score_to_phred_score( solexa_score[i] );
+    }
+    return res;
 }
 
 } // namespace sequence

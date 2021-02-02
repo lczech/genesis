@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,9 @@
 #include "genesis/utils/containers/dataframe/operators.hpp"
 #include "genesis/utils/containers/dataframe/reader.hpp"
 #include "genesis/utils/containers/deref_iterator.hpp"
+#include "genesis/utils/containers/filter_iterator.hpp"
+#include "genesis/utils/containers/function_cache.hpp"
+#include "genesis/utils/containers/hash_tuple.hpp"
 #include "genesis/utils/containers/matrix/col.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/matrix/operators.hpp"
@@ -44,12 +47,13 @@
 #include "genesis/utils/containers/matrix/row.hpp"
 #include "genesis/utils/containers/matrix/writer.hpp"
 #include "genesis/utils/containers/mru_cache.hpp"
+#include "genesis/utils/containers/range.hpp"
+#include "genesis/utils/containers/transform_iterator.hpp"
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/core/exception.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/options.hpp"
-#include "genesis/utils/core/range.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/core/thread_pool.hpp"
 #include "genesis/utils/core/version.hpp"
@@ -81,6 +85,7 @@
 #include "genesis/utils/formats/xml/document.hpp"
 #include "genesis/utils/formats/xml/helper.hpp"
 #include "genesis/utils/formats/xml/writer.hpp"
+#include "genesis/utils/io/base64.hpp"
 #include "genesis/utils/io/base_input_source.hpp"
 #include "genesis/utils/io/base_output_target.hpp"
 #include "genesis/utils/io/char.hpp"

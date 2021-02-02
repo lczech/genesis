@@ -94,8 +94,8 @@ public:
 
     using self_type         = FastqInputIterator;
     using value_type        = Sequence;
-    using pointer           = value_type&;
-    using reference         = value_type*;
+    using pointer           = value_type*;
+    using reference         = value_type&;
     using difference_type   = std::ptrdiff_t;
     using iterator_category = std::input_iterator_tag;
 

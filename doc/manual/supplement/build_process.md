@@ -205,7 +205,7 @@ If you want/need to deactivate any of them nonetheless, use the above manual CMa
 as explained in @ref supplement_build_process_overview, and provide the following flags:
 
 ```
-- cmake -DGENESIS_USE_OPENMP=OFF -DGENESIS_USE_ZLIB=OFF ..
+cmake -DGENESIS_USE_OPENMP=OFF -DGENESIS_USE_ZLIB=OFF ..
 ```
 
 to deactivate both. Adapt to your needs if only one needs to be deactivated.

@@ -57,8 +57,8 @@ public:
 
     using self_type         = CsvInputIterator;
     using value_type        = CsvReader::Line;
-    using pointer           = value_type&;
-    using reference         = value_type*;
+    using pointer           = value_type*;
+    using reference         = value_type&;
     using iterator_category = std::input_iterator_tag;
 
     // ---------------------------------------------------------------------

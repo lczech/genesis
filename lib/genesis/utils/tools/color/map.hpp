@@ -98,7 +98,7 @@ public:
      * Another instance where this happens is if negative values are used with the
      * ColorNormalizationLogarithmic.
      */
-    Color mask_color() const
+    Color const& mask_color() const
     {
         return mask_color_;
     }
@@ -108,7 +108,7 @@ public:
      *
      * Only used if `clip_over() == false`.
      */
-    Color over_color() const
+    Color const& over_color() const
     {
         return over_color_;
     }
@@ -118,7 +118,7 @@ public:
      *
      * Only used if `clip_under() == false`.
      */
-    Color under_color() const
+    Color const& under_color() const
     {
         return under_color_;
     }
@@ -269,7 +269,7 @@ public:
      * distance across the palette.
      *
      * This is for example useful for creating a palette to write a bitmap file, see
-     * @link BmpWriter::to_file( Matrix<unsigned char> const&, std::vector<Color> const&, std::string const& ) const BmpWriter::to_file()@endlink.
+     * @link BmpWriter::write( Matrix<unsigned char> const&, std::vector<Color> const&, std::shared_ptr<utils::BaseOutputTarget> ) const BmpWriter::to_file()@endlink.
      *
      * If `n == 0`, the original palette is returned, making it equal to palette().
      * If `n == 1`, the mid point color is returned.

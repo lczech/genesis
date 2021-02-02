@@ -307,11 +307,23 @@ std::string nucleic_acid_codes_undetermined()
     return "NOX.-?";
 }
 
+std::string nucleic_acid_codes_undetermined_letters()
+{
+    return "NOX";
+}
+
 std::string nucleic_acid_codes_all()
 {
     return nucleic_acid_codes_plain()
          + nucleic_acid_codes_degenerated()
          + nucleic_acid_codes_undetermined();
+}
+
+std::string nucleic_acid_codes_all_letters()
+{
+    return nucleic_acid_codes_plain()
+         + nucleic_acid_codes_degenerated()
+         + nucleic_acid_codes_undetermined_letters();
 }
 
 // ---------------------------------------------------------------------

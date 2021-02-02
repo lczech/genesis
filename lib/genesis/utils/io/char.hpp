@@ -157,8 +157,8 @@ constexpr bool is_punct(char c) noexcept
 }
 
 /**
- * @brief Return whether a char is a punctuation mark, according to `isgraph` of the `cctype`
- * header, but ASCII-only.
+ * @brief Return whether a char is a character with graphical representation, according to `isgraph`
+ * of the `cctype` header, but ASCII-only.
  */
 constexpr bool is_graph(char c) noexcept
 {

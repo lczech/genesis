@@ -33,6 +33,7 @@
 
 #include "genesis/utils/io/char.hpp"
 
+#include <algorithm>
 #include <cctype>
 #include <functional>
 #include <iostream>
@@ -66,6 +67,43 @@ bool starts_with( std::string const & text, std::string const & start );
  * @brief Return whether a string ends with another string.
  */
 bool ends_with(   std::string const & text, std::string const & ending );
+
+/**
+ * @brief Return whether a string is matched by a wildcard pattern containing `?` and `*`
+ * for single and mutliple (0 or more) wildcard characters, respectively.
+ */
+bool match_wildcards( std::string const& str, std::string const& pattern );
+
+/**
+ * @brief Compare two strings with natural human sorting, that is "A1", "A2", "A100", instead of the
+ * standard sort by ASCII value "A1", "A100", "A2".
+ *
+ * Returns negavie if @p lhs < @p rhs, `0` if they are equal, and positive if @p lhs > @p rhs.
+ */
+int compare_natural( std::string const& lhs, std::string const& rhs );
+
+/**
+ * @brief Functor class to compare to strings with natural "human" sorting, see compare_natural().
+ */
+template <class T = std::string>
+struct NaturalLess : public std::binary_function<T, T, bool> {
+    bool operator()( T const& lhs, T const& rhs ) const {
+        return compare_natural( lhs, rhs ) < 0;
+    }
+};
+
+/**
+ * @brief Sort a range of std::string (or convertible to std::string) elements, using natural
+ * sorting; see compare_natural().
+ */
+template <typename RandomAccessIterator>
+inline void sort_natural(
+    RandomAccessIterator first,
+    RandomAccessIterator last
+) {
+    using T = typename RandomAccessIterator::value_type;
+    std::sort( first, last, NaturalLess<T>() );
+}
 
 // =================================================================================================
 //     Substrings
@@ -397,6 +435,26 @@ std::string join( T const& v, std::string const& delimiter = ", " )
             s << delimiter;
         }
         s << i;
+    }
+    return s.str();
+}
+
+/**
+ * @brief Template specialization of join() for vector of unsigned char.
+ *
+ * We need this specialization, as the unsigned chars are otherwise turned into their char (ASCII)
+ * equivalent, which we do not want. Instead, we want to output them here as plain numbers.
+ */
+template <>
+inline std::string join<std::vector<unsigned char>>(
+    std::vector<unsigned char> const& v, std::string const& delimiter
+) {
+    std::ostringstream s;
+    for( auto const& i : v ) {
+        if( &i != &(*v.begin()) ) {
+            s << delimiter;
+        }
+        s << static_cast<int>( i );
     }
     return s.str();
 }

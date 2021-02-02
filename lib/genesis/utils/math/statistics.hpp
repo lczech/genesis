@@ -430,7 +430,8 @@ inline MeanStddevPair mean_stddev( std::vector<double> const& vec, double epsilo
  *
  * @see arithmetic_mean( std::vector<double> const& ) for a version for `std::vector`.
  * @see mean_stddev() for a function that also calculates the standard deviation.
- * @see geometric_mean() for a function that calculates the geometric mean.
+ * @see geometric_mean() for a function that calculates the geometric mean, and
+ * @see harmonic_mean() for a function that calculates the harmonic mean.
  * @see weighted_arithmetic_mean() for a function that calculates the weighted arithmetic mean.
  */
 template <class ForwardIterator>
@@ -466,7 +467,8 @@ double arithmetic_mean( ForwardIterator first, ForwardIterator last )
  *
  * @see arithmetic_mean( ForwardIterator first, ForwardIterator last ) for details.
  * @see mean_stddev() for a function that simultaneously calculates the standard deviation.
- * @see geometric_mean() for a function that calculates the geometric mean.
+ * @see geometric_mean() for a function that calculates the geometric mean, and
+ * @see harmonic_mean() for a function that calculates the harmonic mean.
  */
 inline double arithmetic_mean( std::vector<double> const& vec )
 {
@@ -485,8 +487,10 @@ inline double arithmetic_mean( std::vector<double> const& vec )
  *
  * @see weighted_arithmetic_mean( std::vector<double> const& ) for a version for `std::vector`.
  * @see arithmetic_mean() for the unweighted version.
- * @see geometric_mean() for a function that calculates the geometric mean.
- * @see weighted_geometric_mean() for a function that calculates the weighted geometric mean.
+ * @see geometric_mean() for a function that calculates the geometric mean, and
+ * @see harmonic_mean() for a function that calculates the harmonic mean.
+ * @see weighted_geometric_mean() for a function that calculates the weighted geometric mean, and
+ * @see weighted_harmonic_mean() for a function that calculates the weighted harmonic mean.
  */
 template <class ForwardIterator>
 double weighted_arithmetic_mean(
@@ -531,8 +535,10 @@ double weighted_arithmetic_mean(
  *
  * @see weighted_arithmetic_mean( ForwardIterator first, ForwardIterator last ) for details.
  * @see arithmetic_mean() for the unweighted version.
- * @see geometric_mean() for a function that calculates the geometric mean.
- * @see weighted_geometric_mean() for a function that calculates the weighted geometric mean.
+ * @see geometric_mean() for a function that calculates the geometric mean, and
+ * @see harmonic_mean() for a function that calculates the harmonic mean.
+ * @see weighted_geometric_mean() for a function that calculates the weighted geometric mean, and
+ * @see weighted_harmonic_mean() for a function that calculates the weighted harmonic mean.
  */
 inline double weighted_arithmetic_mean(
     std::vector<double> const& values,
@@ -557,7 +563,8 @@ inline double weighted_arithmetic_mean(
  *
  * @see geometric_mean( std::vector<double> const& ) for a version for `std::vector`.
  * @see weighted_geometric_mean() for a weighted version.
- * @see arithmetic_mean() for a function that calculates the arithmetic mean.
+ * @see arithmetic_mean() for a function that calculates the arithmetic mean, and
+ * @see harmonic_mean() for a function that calculates the harmonic mean.
  */
 template <class ForwardIterator>
 double geometric_mean( ForwardIterator first, ForwardIterator last )
@@ -596,7 +603,8 @@ double geometric_mean( ForwardIterator first, ForwardIterator last )
  * @brief Calculate the geometric mean of a `std::vector` of `double` elements.
  *
  * @see geometric_mean( ForwardIterator first, ForwardIterator last ) for details.
- * @see arithmetic_mean() for a function that calculates the arithmetic mean.
+ * @see arithmetic_mean() for a function that calculates the arithmetic mean, and
+ * @see harmonic_mean() for a function that calculates the harmonic mean.
  */
 inline double geometric_mean( std::vector<double> const& vec )
 {
@@ -628,8 +636,10 @@ inline double geometric_mean( std::vector<double> const& vec )
  *
  * @see weighted_geometric_mean( std::vector<double> const&, std::vector<double> const& ) for a version for `std::vector`.
  * @see geometric_mean() for the unweighted version.
- * @see arithmetic_mean() for a function that calculates the arithmetic mean.
- * @see weighted_arithmetic_mean() for a function that calculates the weighted arithmetic mean.
+ * @see arithmetic_mean() for a function that calculates the arithmetic mean, and
+ * @see harmonic_mean() for a function that calculates the harmonic mean.
+ * @see weighted_arithmetic_mean() for a function that calculates the weighted arithmetic mean, and
+ * @see weighted_harmonic_mean() for a function that calculates the weighted harmonic mean.
  */
 template <class ForwardIterator>
 double weighted_geometric_mean(
@@ -680,14 +690,166 @@ double weighted_geometric_mean(
  *
  * @see weighted_geometric_mean( ForwardIterator first, ForwardIterator last ) for details.
  * @see geometric_mean() for the unweighted version.
- * @see arithmetic_mean() for a function that calculates the arithmetic mean.
- * @see weighted_arithmetic_mean() for a function that calculates the weighted arithmetic mean.
+ * @see arithmetic_mean() for a function that calculates the arithmetic mean, and
+ * @see harmonic_mean() for a function that calculates the harmonic mean.
+ * @see weighted_arithmetic_mean() for a function that calculates the weighted arithmetic mean, and
+ * @see weighted_harmonic_mean() for a function that calculates the weighted harmonic mean.
  */
 inline double weighted_geometric_mean(
     std::vector<double> const& values,
     std::vector<double> const& weights
 ) {
     return weighted_geometric_mean( values.begin(), values.end(), weights.begin(), weights.end() );
+}
+
+// =================================================================================================
+//     Harmoic Mean
+// =================================================================================================
+
+/**
+ * @brief Calculate the harmonic mean of a range of positive numbers.
+ *
+ * The iterators @p first and @p last need to point to a range of `double` values,
+ * with @p last being the past-the-end element.
+ * The function then calculates the harmonic mean of all positive finite elements in the range.
+ * If no elements are finite, or if the range is empty, the returned value is `0.0`.
+ * Non-finite numbers are ignored. If finite non-positive numbers (zero or negative) are found,
+ * an exception is thrown.
+ *
+ * @see harmonic_mean( std::vector<double> const& ) for a version for `std::vector`.
+ * @see weighted_harmonic_mean() for a weighted version.
+ * @see arithmetic_mean() for a function that calculates the arithmetic mean, and
+ * @see geometric_mean() for a function that calculates the geometric mean.
+ */
+template <class ForwardIterator>
+double harmonic_mean( ForwardIterator first, ForwardIterator last )
+{
+    double sum   = 0.0;
+    size_t count = 0;
+
+    // Iterate elements. For numeric stability, we use sum of logs instead of products;
+    // otherwise, we run into overflows too quickly!
+    auto it = first;
+    while( it != last ) {
+        if( std::isfinite( *it ) ) {
+            if( *it <= 0.0 ) {
+                throw std::invalid_argument(
+                    "Cannot calculate harmonic mean of non-positive numbers."
+                );
+            }
+            sum += 1.0 / static_cast<double>( *it );
+            ++count;
+        }
+        ++it;
+    }
+
+    // If there are no valid elements, return an all-zero result.
+    if( count == 0 ) {
+        return 0.0;
+    }
+
+    // Return the result.
+    assert( count > 0 );
+    assert( std::isfinite( sum ));
+    return static_cast<double>( count ) / sum;
+}
+
+/**
+ * @brief Calculate the harmonic mean of a `std::vector` of `double` elements.
+ *
+ * @see harmonic_mean( ForwardIterator first, ForwardIterator last ) for details.
+ * @see arithmetic_mean() for a function that calculates the arithmetic mean, and
+ * @see geometric_mean() for a function that calculates the geometric mean.
+ */
+inline double harmonic_mean( std::vector<double> const& vec )
+{
+    return harmonic_mean( vec.begin(), vec.end() );
+}
+
+/**
+ * @brief Calculate the weighted harmonic mean of a range of positive numbers.
+ *
+ * The iterators @p first_value and @p last_value, as well as @p first_weight and @p last_weight,
+ * need to point to ranges of `double` values, with @p last_value and @p last_weight being the
+ * past-the-end elements. Both ranges need to have the same size.
+ * The function then calculates the weighted harmonic mean of all positive finite elements
+ * in the range. If no elements are finite, or if the range is empty, the returned value is `0.0`.
+ * Non-finite numbers are ignored. If finite non-positive numbers (zero or negative) are found,
+ * an exception is thrown. The weights have to be non-negative.
+ *
+ * For a set of values \f$ v \f$ and a set of weights \f$ w \f$,
+ * the weighted harmonic mean \f$ g \f$ is calculated following [1]:
+ *
+ * \f$ h = \frac{ \sum w }{ \sum \frac{ w }{ v } } \f$
+ *
+ * That is, if all weights are `1.0`, the formula yields the standard harmonic mean.
+ *
+ * @see weighted_harmonic_mean( std::vector<double> const&, std::vector<double> const& ) for a version for `std::vector`.
+ * @see harmonic_mean() for the unweighted version.
+ * @see arithmetic_mean() for a function that calculates the arithmetic mean, and
+ * @see geometric_mean() for a function that calculates the geometric mean.
+ * @see weighted_arithmetic_mean() for a function that calculates the weighted arithmetic mean, and
+ * @see weighted_geometric_mean() for a function that calculates the weighted geometric mean.
+ */
+template <class ForwardIterator>
+double weighted_harmonic_mean(
+    ForwardIterator first_value,  ForwardIterator last_value,
+    ForwardIterator first_weight, ForwardIterator last_weight
+) {
+    double num = 0.0;
+    double den = 0.0;
+    size_t cnt = 0;
+
+    // Multiply elements.
+    for_each_finite_pair( first_value, last_value, first_weight, last_weight, [&]( double value, double weight ){
+        if( value <= 0.0 ) {
+            throw std::invalid_argument(
+                "Cannot calculate weighted harmonic mean of non-positive values."
+            );
+        }
+        if( weight < 0.0 ) {
+            throw std::invalid_argument(
+                "Cannot calculate weighted harmonic mean with negative weights."
+            );
+        }
+
+        num += weight;
+        den += weight / static_cast<double>( value );
+        ++cnt;
+    });
+
+    // If there are no valid elements, return an all-zero result.
+    if( cnt == 0 ) {
+        return 0.0;
+    }
+    if( num == 0.0 || den == 0.0 ) {
+        throw std::invalid_argument(
+            "Cannot calculate weighted harmonic mean with all weights being 0."
+        );
+    }
+
+    // Return the result.
+    assert( cnt > 0 );
+    assert( std::isfinite( num ) && ( num > 0.0 ));
+    assert( std::isfinite( den ) && ( den > 0.0 ));
+    return num / den;
+}
+
+/**
+ * @brief Calculate the weighted harmonic mean of a `std::vector` of `double` elements.
+ *
+ * @see weighted_harmonic_mean( ForwardIterator first, ForwardIterator last ) for details.
+ * @see harmonic_mean() for the unweighted version.
+ * @see arithmetic_mean() for a function that calculates the arithmetic mean, and
+ * @see geometric_mean() for a function that calculates the geometric mean.
+ * @see weighted_arithmetic_mean() for a function that calculates the weighted arithmetic mean, and
+ * @see weighted_geometric_mean() for a function that calculates the weighted geometric mean.
+ */
+inline double weighted_harmonic_mean(
+    std::vector<double> const& values,
+    std::vector<double> const& weights
+) {
+    return weighted_harmonic_mean( values.begin(), values.end(), weights.begin(), weights.end() );
 }
 
 // =================================================================================================

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2020 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #include "genesis/utils/text/string.hpp"
 
 #include <ostream>
+#include <stdexcept>
 
 namespace genesis {
 namespace utils {
@@ -111,6 +112,59 @@ void SvgImage::write( std::ostream& out, size_t indent, SvgDrawingOptions const&
     out << svg_attribute( "xlink:href", href );
 
     transform.write( out );
+
+    switch( rendering ) {
+        case ImageRendering::kNone: {
+            // Nothing to do.
+            break;
+        }
+        case ImageRendering::kAuto: {
+            out << svg_attribute( "style", "image-rendering:auto" );
+            // out << svg_attribute( "image-rendering", "auto" );
+            break;
+        }
+        case ImageRendering::kOptimizeSpeed: {
+            out << svg_attribute( "style", "image-rendering:optimizeSpeed" );
+            // out << svg_attribute( "image-rendering", "optimizeSpeed" );
+            break;
+        }
+        case ImageRendering::kOptimizeQuality: {
+            out << svg_attribute( "style", "image-rendering:optimizeQuality" );
+            // out << svg_attribute( "image-rendering", "optimizeQuality" );
+            break;
+        }
+        case ImageRendering::kSmooth: {
+            out << svg_attribute( "style", "image-rendering:smooth" );
+            // out << svg_attribute( "image-rendering", "smooth" );
+            break;
+        }
+        case ImageRendering::kCrispEdges: {
+            out << svg_attribute( "style", "image-rendering:crisp-edges" );
+            // out << svg_attribute( "image-rendering", "crisp-edges" );
+            break;
+        }
+        case ImageRendering::kPixelated: {
+            out << svg_attribute( "style", "image-rendering:pixelated" );
+            // out << svg_attribute( "image-rendering", "pixelated" );
+            break;
+        }
+        case ImageRendering::kInherit: {
+            out << svg_attribute( "style", "image-rendering:inherit" );
+            // out << svg_attribute( "image-rendering", "inherit" );
+            break;
+        }
+        case ImageRendering::kInitial: {
+            out << svg_attribute( "style", "image-rendering:initial" );
+            // out << svg_attribute( "image-rendering", "initial" );
+            break;
+        }
+        case ImageRendering::kUnset: {
+            out << svg_attribute( "style", "image-rendering:unset" );
+            // out << svg_attribute( "image-rendering", "unset" );
+            break;
+        }
+    }
+
     out << " />\n";
 }
 

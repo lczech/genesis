@@ -38,6 +38,48 @@
 
 using namespace genesis::utils;
 
+TEST( Text, MatchWildcards )
+{
+    EXPECT_TRUE( match_wildcards( "", "" ));
+
+    EXPECT_TRUE( match_wildcards( "abc", "abc" ));
+    EXPECT_TRUE( match_wildcards( "abc", "?bc" ));
+    EXPECT_TRUE( match_wildcards( "abc", "a?c" ));
+    EXPECT_TRUE( match_wildcards( "abc", "ab?" ));
+    EXPECT_TRUE( match_wildcards( "abc", "??c" ));
+    EXPECT_TRUE( match_wildcards( "abc", "?b?" ));
+    EXPECT_TRUE( match_wildcards( "abc", "a??" ));
+    EXPECT_TRUE( match_wildcards( "abc", "???" ));
+
+    EXPECT_TRUE( match_wildcards( "abc", "*" ));
+    EXPECT_TRUE( match_wildcards( "abc", "a*" ));
+    EXPECT_TRUE( match_wildcards( "abc", "*c" ));
+    EXPECT_TRUE( match_wildcards( "abc", "*a*b*c" ));
+    EXPECT_TRUE( match_wildcards( "abc", "a*b*c*" ));
+    EXPECT_TRUE( match_wildcards( "abc", "a*b*c" ));
+    EXPECT_TRUE( match_wildcards( "abc", "*a*b*c*" ));
+    EXPECT_TRUE( match_wildcards( "abc", "*a*?*c*" ));
+    EXPECT_TRUE( match_wildcards( "abc", "*?*?*?*" ));
+
+    EXPECT_TRUE( match_wildcards( "abc", "***" ));
+    EXPECT_TRUE( match_wildcards( "abc", "*?*" ));
+    EXPECT_TRUE( match_wildcards( "abc", "?*?" ));
+
+    EXPECT_FALSE( match_wildcards( "abc", "" ));
+    EXPECT_FALSE( match_wildcards( "abc", "a?" ));
+    EXPECT_FALSE( match_wildcards( "abc", "?c" ));
+
+    EXPECT_FALSE( match_wildcards( "abc", "x*y" ));
+    EXPECT_FALSE( match_wildcards( "abc", "x**y" ));
+    EXPECT_FALSE( match_wildcards( "abc", "xxx" ));
+    EXPECT_FALSE( match_wildcards( "abc", "*x" ));
+    EXPECT_FALSE( match_wildcards( "abc", "x*" ));
+    EXPECT_FALSE( match_wildcards( "abc", "x?y" ));
+    EXPECT_FALSE( match_wildcards( "abc", "x??y" ));
+    EXPECT_FALSE( match_wildcards( "abc", "?x" ));
+    EXPECT_FALSE( match_wildcards( "abc", "x?" ));
+}
+
 TEST( Text, HeadTail )
 {
     std::string large = "hello\nworld.\nthis\nis\na\ntest\nwith\nsome\ntext.";
@@ -235,4 +277,97 @@ TEST( Text, ToUpper )
 
         EXPECT_EQ( text, test );
     }
+}
+
+TEST( Text, SortNaturalBasics )
+{
+    // Examples from  http://www.davekoelle.com/files/alphanum.hpp
+    // Released under the MIT License - https://opensource.org/licenses/MIT
+    EXPECT_TRUE( compare_natural( "", "") == 0 );
+    EXPECT_TRUE( compare_natural( "", "a") < 0 );
+    EXPECT_TRUE( compare_natural( "a", "") > 0 );
+    EXPECT_TRUE( compare_natural( "a", "a") == 0 );
+    EXPECT_TRUE( compare_natural( "", "9") < 0 );
+    EXPECT_TRUE( compare_natural( "9", "") > 0 );
+    EXPECT_TRUE( compare_natural( "1", "1") == 0 );
+    EXPECT_TRUE( compare_natural( "1", "2") < 0 );
+    EXPECT_TRUE( compare_natural( "3", "2") > 0 );
+    EXPECT_TRUE( compare_natural( "a1", "a1") == 0 );
+    EXPECT_TRUE( compare_natural( "a1", "a2") < 0 );
+    EXPECT_TRUE( compare_natural( "a2", "a1") > 0 );
+    EXPECT_TRUE( compare_natural( "a1a2", "a1a3") < 0 );
+    EXPECT_TRUE( compare_natural( "a1a2", "a1a0") > 0 );
+    EXPECT_TRUE( compare_natural( "134", "122") > 0 );
+    EXPECT_TRUE( compare_natural( "12a3", "12a3") == 0 );
+    EXPECT_TRUE( compare_natural( "12a1", "12a0") > 0 );
+    EXPECT_TRUE( compare_natural( "12a1", "12a2") < 0 );
+    EXPECT_TRUE( compare_natural( "a", "aa") < 0 );
+    EXPECT_TRUE( compare_natural( "aaa", "aa") > 0 );
+    EXPECT_TRUE( compare_natural( "Alpha 2", "Alpha 2") == 0 );
+    EXPECT_TRUE( compare_natural( "Alpha 2", "Alpha 2A") < 0 );
+    EXPECT_TRUE( compare_natural( "Alpha 2 B", "Alpha 2") > 0 );
+
+    // Now trigger branches that do not seem to be covered above.
+    EXPECT_TRUE( compare_natural( "abc1", "abc") > 0 );
+    EXPECT_TRUE( compare_natural( "xyz", "xyz1") < 0 );
+    EXPECT_TRUE( compare_natural( "ab1", "abc") < 0 );
+    EXPECT_TRUE( compare_natural( "xyz", "xy1") > 0 );
+    EXPECT_TRUE( compare_natural( "abc", "abd") < 0 );
+    EXPECT_TRUE( compare_natural( "xyz", "xya") > 0 );
+    EXPECT_TRUE( compare_natural( "a111", "a11111") < 0 );
+    EXPECT_TRUE( compare_natural( "b9999x", "b99x") > 0 );
+    EXPECT_TRUE( compare_natural( "x1234", "x1235") < 0 );
+    EXPECT_TRUE( compare_natural( "a9876", "a9871") > 0 );
+    EXPECT_TRUE( compare_natural( "a", "b") < 0 );
+    EXPECT_TRUE( compare_natural( "a", " ") > 0 );
+
+    // Lastly, a test case for a fail that we had in the first try with the below list sorting.
+    // Nope... The "error" was in `sort -V`, which does not handle these cases to our liking...
+    // (one might say: incorrectly)
+    EXPECT_TRUE( compare_natural( "QRS-60 Intrinsia Machine", "QRS-60F Intrinsia Machine") < 0 );
+}
+
+TEST( Text, SortNaturalList )
+{
+// Examples from  http://www.davekoelle.com/files/alphanum.hpp
+// Released under the MIT License - https://opensource.org/licenses/MIT
+
+    // Reverse sorted, so that we have work to do.
+    auto lst = std::vector<std::string>{{
+        "Xiph Xlater 58", "Xiph Xlater 5000", "Xiph Xlater 500", "Xiph Xlater 50", "Xiph Xlater 5",
+        "Xiph Xlater 40", "Xiph Xlater 300", "Xiph Xlater 2000", "Xiph Xlater 10000",
+        "QRS-62F Intrinsia Machine", "QRS-62 Intrinsia Machine", "QRS-60F Intrinsia Machine",
+        "QRS-60 Intrinsia Machine", "Callisto Morphamax 7000 SE2", "Callisto Morphamax 7000 SE",
+        "Callisto Morphamax 7000", "Callisto Morphamax 700", "Callisto Morphamax 600",
+        "Callisto Morphamax 5000", "Callisto Morphamax 500", "Callisto Morphamax", "Alpha 2A-900",
+        "Alpha 2A-8000", "Alpha 2A", "Alpha 200", "Alpha 2", "Alpha 100", "Allegia 60 Clasteron",
+        "Allegia 52 Clasteron", "Allegia 51B Clasteron", "Allegia 51 Clasteron",
+        "Allegia 500 Clasteron", "Allegia 50 Clasteron", "40X Radonius", "30X Radonius",
+        "20X Radonius Prime", "20X Radonius", "200X Radonius", "10X Radonius",
+        "1000X Radonius Maximus"
+    }};
+
+    sort_natural( lst.begin(), lst.end() );
+
+    // Expected list, created with `sort -V` - because `sort -n` does not what one would expect...
+    // And then reordered two cases where "10x" was put before "10 ", which does not seem right.
+    auto exp = std::vector<std::string>{{
+        "10X Radonius", "20X Radonius", "20X Radonius Prime", "30X Radonius", "40X Radonius",
+        "200X Radonius", "1000X Radonius Maximus", "Allegia 50 Clasteron", "Allegia 51 Clasteron",
+        "Allegia 51B Clasteron", "Allegia 52 Clasteron", "Allegia 60 Clasteron",
+        "Allegia 500 Clasteron", "Alpha 2", "Alpha 2A", "Alpha 2A-900", "Alpha 2A-8000", "Alpha 100",
+        "Alpha 200", "Callisto Morphamax", "Callisto Morphamax 500", "Callisto Morphamax 600",
+        "Callisto Morphamax 700", "Callisto Morphamax 5000", "Callisto Morphamax 7000",
+        "Callisto Morphamax 7000 SE", "Callisto Morphamax 7000 SE2", "QRS-60 Intrinsia Machine",
+        "QRS-60F Intrinsia Machine", "QRS-62 Intrinsia Machine", "QRS-62F Intrinsia Machine",
+        "Xiph Xlater 5", "Xiph Xlater 40", "Xiph Xlater 50", "Xiph Xlater 58", "Xiph Xlater 300",
+        "Xiph Xlater 500", "Xiph Xlater 2000", "Xiph Xlater 5000", "Xiph Xlater 10000"
+    }};
+
+    // LOG_BOLD << "lst\n" << join( lst, "\n" );
+    // LOG_BOLD << "exp\n" << join( exp, "\n" );
+    EXPECT_EQ( exp, lst );
+    // for( size_t i = 0; i < lst.size(); ++i ) {
+    //     EXPECT_EQ( exp[i], lst[i] );
+    // }
 }
