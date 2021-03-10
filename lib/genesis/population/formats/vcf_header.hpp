@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -470,6 +470,13 @@ public:
      * using indices in the range `[ 0, get_sample_count() )`.
      */
     std::string get_sample_name( size_t index ) const;
+
+    /**
+     * @brief Get the index of a sample, given its name.
+     *
+     * If the sample @p name does not exist in the VCF file, an exception is thrown.
+     */
+    size_t get_sample_index( std::string const& name ) const;
 
     /**
      * @brief Return a list of the sample names (column headers) of the VCF/BCF file.
