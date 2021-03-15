@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -73,5 +73,5 @@ int main()
     // Print a SequenceSet as pixels to a bitmap file.
     PrinterBitmap()
         .color_map( nucleic_acid_colors() )
-        .to_file( sequences_a, "path/to/sits.bmp");
+        .write( sequences_a, to_file( "path/to/sits.bmp"));
 }
