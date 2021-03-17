@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2021 Lucas Czech and HITS gGmbH
+# Copyright (C) 2014-2021 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,9 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Contact:
-# Lucas Czech <lucas.czech@h-its.org>
-# Exelixis Lab, Heidelberg Institute for Theoretical Studies
-# Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+# Lucas Czech <lczech@carnegiescience.edu>
+# Department of Plant Biology, Carnegie Institution For Science
+# 260 Panama Street, Stanford, CA 94305, USA
 
 # --------------------------------------------------------------------------------------------------
 #   CMake Init
@@ -111,6 +111,7 @@ file(
 if( ${GENESIS_VERSION_LINE} MATCHES ".*\"(v.*)\".*" )
     set( GENESIS_VERSION "${CMAKE_MATCH_1}")
 endif()
+message (STATUS "OS: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION}")
 message (STATUS "${ColorBlue}Genesis version: ${GENESIS_VERSION}${ColorEnd}")
 
 # Figure out whether Genesis is compiled stand-alone or as a library/dependency.

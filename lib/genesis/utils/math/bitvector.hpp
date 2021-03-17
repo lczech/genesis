@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -272,6 +272,11 @@ public:
 
     std::string dump() const;
     std::string dump_int(IntType x) const;
+
+    std::vector<IntType> const& data() const
+    {
+        return data_;
+    }
 
     // ---------------------------------------------------------
     //     Internal Members

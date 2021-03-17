@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -86,6 +86,25 @@ TEST( Bitvector, Arithmetics )
     EXPECT_TRUE(  bv0 != bv2 );
     EXPECT_TRUE(  bv1 != bv2 );
 }
+
+// TEST( Bitvector, LexCompare )
+// {
+//     Bitvector const bv0( "000000000001" );
+//     Bitvector const bv1( "100000000000" );
+//     // Bitvector const bv0( "010101010101" );
+//     // Bitvector const bv1( "111000111000" );
+//
+//     LOG_DBG << bv0 << ": " << bv0.data()[0];
+//     LOG_DBG << bv1 << ": " << bv1.data()[0];
+//
+//     EXPECT_FALSE( is_lexicographically_less( bv0, bv0 ));
+//     EXPECT_FALSE( is_lexicographically_greater( bv0, bv1 ));
+//     EXPECT_FALSE( is_lexicographically_greater( bv1, bv1 ));
+//
+//     EXPECT_TRUE( is_lexicographically_less( bv0, bv1 ));
+//     EXPECT_TRUE( is_lexicographically_less_or_equal( bv0, bv1 ));
+//     EXPECT_TRUE( is_lexicographically_less_or_equal( bv0, bv0 ));
+// }
 
 TEST( Bitvector, CopyRange )
 {

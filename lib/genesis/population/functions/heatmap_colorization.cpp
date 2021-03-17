@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,10 +30,15 @@
 
 #include "genesis/population/functions/heatmap_colorization.hpp"
 
+#include "genesis/utils/tools/color/normalization.hpp"
+#include "genesis/utils/tools/color/norm_diverging.hpp"
+#include "genesis/utils/tools/color/norm_linear.hpp"
+#include "genesis/utils/tools/color/norm_logarithmic.hpp"
+
 #include "genesis/utils/formats/bmp/writer.hpp"
+#include "genesis/utils/core/logging.hpp"
 
 #include <algorithm>
-#include <cassert>
 #include <cassert>
 #include <cmath>
 #include <functional>
@@ -47,7 +52,7 @@ namespace population {
 //     Allele Frequency Heatmap
 // =================================================================================================
 
-std::pair<utils::Matrix<utils::Color>, size_t> HeatmapColorization::spectrum_to_image(
+std::pair<utils::Matrix<utils::Color>, double> HeatmapColorization::spectrum_to_image(
     Spectrum const& spectrum
 ) const {
     using namespace utils;
@@ -56,6 +61,11 @@ std::pair<utils::Matrix<utils::Color>, size_t> HeatmapColorization::spectrum_to_
     if( color_map_.empty() ) {
         throw std::runtime_error(
             "ColorMap has to be assigned a palette before using HeatmapColorization."
+        );
+    }
+    if( log_scale_ && diverging_scale_ ) {
+        throw std::runtime_error(
+            "Cannot use log and divergnig scale with HeatmapColorization."
         );
     }
 
@@ -69,19 +79,32 @@ std::pair<utils::Matrix<utils::Color>, size_t> HeatmapColorization::spectrum_to_
     assert( ! spectrum.values.empty() );
     size_t rows = spectrum.values[0].size();
 
-    // We need two passes through the data: first, find the max entry, then convert to scale.
-    // While doing the first pass, make sure that the data is actually a matrix.
-    size_t abs_max = 0;
-    for( auto const& col : spectrum.values ) {
+    // We need two passes through the data: first, find the max entry and the sum per column, then
+    // convert to scale. While doing the first pass, make sure that the data is actually a matrix.
+    double abs_max = 0.0;
+    for( size_t c = 0; c < spectrum.values.size(); ++c ) {
+        auto& col = spectrum.values[c];
         if( col.size() != rows ) {
             throw std::runtime_error(
                 "Invalid allele frequency spectrum with inconsistent number of rows."
             );
         }
-        for( auto const& val : col ) {
+        // double col_sum = 0.0;
+        // for( auto const& val : col ) {
+        //     // assert( std::isfinite(val) );
+        //     col_sum += val;
+        // }
+        // if( std::isfinite( col_sum ) && col_sum > 0.0 ) {
+        //     for( auto& val : col ) {
+        //         val /= col_sum;
+        //         abs_max = std::max( abs_max, val );
+        //     }
+        // }
+        for( auto& val : col ) {
             abs_max = std::max( abs_max, val );
         }
     }
+    // LOG_DBG << "abs_max " << abs_max;
 
     // Now convert to color values.
     auto image = Matrix<Color>( rows, spectrum.values.size() );
@@ -90,13 +113,15 @@ std::pair<utils::Matrix<utils::Color>, size_t> HeatmapColorization::spectrum_to_
         assert( col.size() == rows );
 
         // Get the max value of the current column.
-        size_t col_max = 0;
+        double col_max = 0.0;
         for( auto const& val : col ) {
             col_max = std::max( col_max, val );
         }
 
         // Get the max value that we want to use for normalization.
-        double const used_max = static_cast<double>( normalize_per_column_ ? col_max : abs_max );
+        double const used_max = static_cast<double>( max_per_column_ ? col_max : abs_max );
+
+        // LOG_DBG << "used_max " << used_max;
 
         // Do the actual per-bin convertion to color.
         for( size_t r = 0; r < col.size(); ++r ) {
@@ -120,13 +145,44 @@ std::pair<utils::Matrix<utils::Color>, size_t> HeatmapColorization::spectrum_to_
                 // Special case for log scaling: If either the pixel value or the total max
                 // for the colum is 1 or below, we cannot use log scaling for them (as we are working
                 // with integer number counts here), so we simply use the min value instead.
-                if( col[r] <= 1 || used_max <= 1 ) {
-                    image( row_idx, c ) = color_map_( 0.0 );
-                } else {
-                    double frac = std::log( static_cast<double>( col[r] )) / std::log( used_max );
-                    image( row_idx, c ) = color_map_( frac );
+
+                // TODO deactivated for log of low normalized numbers
+                // if( col[r] <= 1 || used_max <= 1 ) {
+                //     image( row_idx, c ) = color_map_( 0.0 );
+                // } else {
+                //     double frac = std::log( static_cast<double>( col[r] )) / std::log( used_max );
+                //     image( row_idx, c ) = color_map_( frac );
+                // }
+
+                assert( std::isfinite(col[r]) );
+                // assert( col[r] >= 0 );
+                // double frac = std::log( static_cast<double>( col[r] )) / std::log( used_max );
+                // image( row_idx, c ) = color_map_( frac );
+
+                // TODO 1.0 is not a good min
+                // if( 1.0 > col[r] || col[r] > used_max )
+                // {
+                //     LOG_DBG << "fucked " << col[r];
+                // }
+                // assert( 1.0 <= col[r] );
+                // assert( col[r] <= used_max );
+
+                if( used_max <= 1.0 ) {
+                    image( row_idx, c ) = color_map_( std::numeric_limits<double>::quiet_NaN() );
+                    continue;
                 }
+
+                auto norm = ColorNormalizationLogarithmic( 1.0, used_max );
+                image( row_idx, c ) = color_map_( norm(col[r]) );
+
+            } else if( diverging_scale_ ) {
+
+                auto norm = ColorNormalizationDiverging( -used_max, used_max );
+                image( row_idx, c ) = color_map_( norm(col[r]) );
+
             } else {
+                // double frac = static_cast<double>( col[r] ) / used_max;
+                // image( row_idx, c ) = color_map_( frac );
                 double frac = static_cast<double>( col[r] ) / used_max;
                 image( row_idx, c ) = color_map_( frac );
             }
@@ -134,10 +190,10 @@ std::pair<utils::Matrix<utils::Color>, size_t> HeatmapColorization::spectrum_to_
     }
 
     // Return the image and the appropriate max value used for the color scaling.
-    return { image, normalize_per_column_ ? 1 : abs_max };
+    return { image, max_per_column_ ? 1 : abs_max };
 }
 
-std::pair<utils::SvgGroup, size_t> HeatmapColorization::spectrum_to_svg(
+std::pair<utils::SvgGroup, double> HeatmapColorization::spectrum_to_svg(
     Spectrum const& spectrum,
     utils::SvgMatrixSettings settings
 ) const {
@@ -148,7 +204,7 @@ std::pair<utils::SvgGroup, size_t> HeatmapColorization::spectrum_to_svg(
     return { make_svg_matrix( spec_img_and_max.first, settings ), spec_img_and_max.second };
 }
 
-size_t HeatmapColorization::spectrum_to_bmp_file(
+double HeatmapColorization::spectrum_to_bmp_file(
     HeatmapColorization::Spectrum const& spectrum,
     std::shared_ptr<utils::BaseOutputTarget> target
 ) const {

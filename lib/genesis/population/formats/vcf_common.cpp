@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -181,6 +181,16 @@ std::string vcf_genotype_string( std::vector<VcfGenotype> const& genotypes )
         }
         result += ( g.is_missing() ? "." : std::to_string( g.variant_index() ));
     }
+    return result;
+}
+
+size_t vcf_genotype_sum( std::vector<VcfGenotype> const& genotypes )
+{
+    size_t result = 0;
+    for( auto const& gt : genotypes ) {
+        result += static_cast<size_t>( gt.is_alternative() );
+    }
+    assert( result <= genotypes.size() );
     return result;
 }
 

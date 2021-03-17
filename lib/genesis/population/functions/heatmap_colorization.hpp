@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 #include "genesis/utils/tools/color/map.hpp"
 
 #include <string>
+#include <vector>
 
 namespace genesis {
 namespace population {
@@ -68,7 +69,7 @@ public:
         {}
 
         std::string chromosome;
-        std::vector<std::vector<size_t>> values;
+        std::vector<std::vector<double>> values;
     };
 
     // -------------------------------------------------------------------------
@@ -94,16 +95,16 @@ public:
     //     Heatmap Functions
     // -------------------------------------------------------------------------
 
-    std::pair<utils::Matrix<utils::Color>, size_t> spectrum_to_image(
+    std::pair<utils::Matrix<utils::Color>, double> spectrum_to_image(
         Spectrum const& spectrum
     ) const;
 
-    std::pair<utils::SvgGroup, size_t> spectrum_to_svg(
+    std::pair<utils::SvgGroup, double> spectrum_to_svg(
         Spectrum const& spectrum,
         utils::SvgMatrixSettings settings = {}
     ) const;
 
-    size_t spectrum_to_bmp_file(
+    double spectrum_to_bmp_file(
         Spectrum const& spectrum,
         std::shared_ptr<utils::BaseOutputTarget> target
     ) const;
@@ -123,6 +124,17 @@ public:
         return *this;
     }
 
+    bool diverging_scale() const
+    {
+        return diverging_scale_;
+    }
+
+    self_type& diverging_scale( bool value )
+    {
+        diverging_scale_ = value;
+        return *this;
+    }
+
     bool invert_vertically() const
     {
         return invert_vertically_;
@@ -134,14 +146,14 @@ public:
         return *this;
     }
 
-    bool normalize_per_column() const
+    bool max_per_column() const
     {
-        return normalize_per_column_;
+        return max_per_column_;
     }
 
-    self_type& normalize_per_column( bool value )
+    self_type& max_per_column( bool value )
     {
-        normalize_per_column_ = value;
+        max_per_column_ = value;
         return *this;
     }
 
@@ -173,6 +185,11 @@ public:
         return *this;
     }
 
+    utils::ColorMap& color_map()
+    {
+        return color_map_;
+    }
+
     // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
@@ -180,8 +197,9 @@ public:
 private:
 
     bool log_scale_ = false;
+    bool diverging_scale_ = false;
     bool invert_vertically_ = true;
-    bool normalize_per_column_ = false;
+    bool max_per_column_ = false;
 
     bool use_empty_window_color_ = true;
     utils::ColorMap color_map_;

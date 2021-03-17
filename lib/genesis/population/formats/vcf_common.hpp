@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -158,6 +158,17 @@ class VcfGenotype;
  * genotypes, for example `0|0` or `./1`.
  */
 std::string vcf_genotype_string( std::vector<VcfGenotype> const& genotypes );
+
+/**
+ * @brief Return the sum of genotypes for a set of VcfGenotype entries, typically used to
+ * construct a genotype matrix with entries 0,1,2.
+ *
+ * The function takes the given @p genotypes, encodes the reference as 0 and any alternative as 1,
+ * and then sums this over the values. For diploid organisms, this yields possible results in
+ * the range of 0 (homozygote for the reference), 1 (heterzygote), or 2 (homozygote for the
+ * alternative), which is typically used in genotype matrices.
+ */
+size_t vcf_genotype_sum( std::vector<VcfGenotype> const& genotypes );
 
 // =================================================================================================
 //     VCF Genotype
