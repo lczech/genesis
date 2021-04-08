@@ -537,6 +537,7 @@ if(GENESIS_USE_HTSLIB)
 
         # Set needed definitions and linker flags for genesis and for the parent scope.
         # The targets (our shared and static lib) will use these to link against.
+        set( GENESIS_INCLUDE_DIR ${GENESIS_INCLUDE_DIR} ${HTSLIB_INCLUDE_DIR} )
         add_definitions( "-DGENESIS_HTSLIB" )
         set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_HTSLIB" )
         set(
