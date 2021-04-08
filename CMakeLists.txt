@@ -432,13 +432,15 @@ if(GENESIS_USE_HTSLIB)
             UPDATE_COMMAND    ""
 
             # Configure Step. See htslib/INSTALL
+            # We need to manually add -fPIC here, as somehow otherwise the local installation
+            # won't link properly. Linking will always remain a mystery to me...
             SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-source
             CONFIGURE_COMMAND
                 autoheader
                 COMMAND
                 autoconf
                 COMMAND
-                ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
+                ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
 
             # Build Step
             # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
@@ -505,6 +507,13 @@ if(GENESIS_USE_HTSLIB)
         set( HTSLIB_BZ2 "NOTFOUND" )
     ENDIF()
 
+    # Useful output for debugging
+    message( STATUS "HTSLIB_INCLUDE_DIR: ${HTSLIB_INCLUDE_DIR}" )
+    message( STATUS "HTSLIB_LINK_DIR:    ${HTSLIB_LINK_DIR}" )
+    message( STATUS "HTSLIB_LIBRARY:     ${HTSLIB_LIBRARY}" )
+    message( STATUS "HTSLIB_LZMA:        ${HTSLIB_LZMA}" )
+    message( STATUS "HTSLIB_BZ2:         ${HTSLIB_BZ2}" )
+
     IF(
         ${HTSLIB_INCLUDE_DIR} MATCHES "NOTFOUND" OR
         ${HTSLIB_LINK_DIR}    MATCHES "NOTFOUND" OR
@@ -512,11 +521,6 @@ if(GENESIS_USE_HTSLIB)
         ${HTSLIB_LZMA}        MATCHES "NOTFOUND" OR
         ${HTSLIB_BZ2}         MATCHES "NOTFOUND"
     )
-        message( STATUS "HTSLIB_INCLUDE_DIR: ${HTSLIB_INCLUDE_DIR}" )
-        message( STATUS "HTSLIB_LINK_DIR:    ${HTSLIB_LINK_DIR}" )
-        message( STATUS "HTSLIB_LIBRARY:     ${HTSLIB_LIBRARY}" )
-        message( STATUS "HTSLIB_LZMA:        ${HTSLIB_LZMA}" )
-        message( STATUS "HTSLIB_BZ2:         ${HTSLIB_BZ2}" )
         message( FATAL_ERROR "Required package htslib (or some of its dependencies) not found.")
     ELSE()
 
@@ -524,10 +528,7 @@ if(GENESIS_USE_HTSLIB)
         # installation here, as in the local (default) case it won't yet be compiled...
         # But let's stick to the user output that we used for the other dependencies,
         # and assume that once we are here, the build process will work.
-        message( STATUS
-            "Found htslib: ${HTSLIB_INCLUDE_DIR}; ${HTSLIB_LINK_DIR}; ${HTSLIB_LIBRARY}; "
-            "${HTSLIB_LZMA}; ${HTSLIB_BZ2}"
-        )
+        message( STATUS "Found htslib: ${HTSLIB_LIBRARY}" )
         message (STATUS "${ColorGreen}Using htslib${ColorEnd}")
 
         # Include the headers and directories, so that they are found by our source.
@@ -536,11 +537,12 @@ if(GENESIS_USE_HTSLIB)
 
         # Set needed definitions and linker flags for genesis and for the parent scope.
         # The targets (our shared and static lib) will use these to link against.
+        set( GENESIS_INCLUDE_DIR ${GENESIS_INCLUDE_DIR} ${HTSLIB_INCLUDE_DIR} )
         add_definitions( "-DGENESIS_HTSLIB" )
         set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_HTSLIB" )
         set(
             GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}
-            -lhts ${HTSLIB_LIBRARY} z ${HTSLIB_LZMA} ${HTSLIB_BZ2}
+            ${HTSLIB_LIBRARY} z ${HTSLIB_LZMA} ${HTSLIB_BZ2}
         )
         # set(
         #     GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}

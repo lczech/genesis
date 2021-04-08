@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -95,12 +95,20 @@ double amnm_( // get_aMnm_buffer
 
 double heterozygosity( BaseCounts const& sample )
 {
+    using namespace genesis::utils;
+
     double h = 1.0;
     double const nt_cnt = static_cast<double>( nucleotide_sum( sample ));
-    h -= std::pow( static_cast<double>( sample.a_count ) / nt_cnt, 2 );
-    h -= std::pow( static_cast<double>( sample.c_count ) / nt_cnt, 2 );
-    h -= std::pow( static_cast<double>( sample.g_count ) / nt_cnt, 2 );
-    h -= std::pow( static_cast<double>( sample.t_count ) / nt_cnt, 2 );
+    h -= squared( static_cast<double>( sample.a_count ) / nt_cnt );
+    h -= squared( static_cast<double>( sample.c_count ) / nt_cnt );
+    h -= squared( static_cast<double>( sample.g_count ) / nt_cnt );
+    h -= squared( static_cast<double>( sample.t_count ) / nt_cnt );
+
+    // Slighly slower version with powers.
+    // h -= std::pow( static_cast<double>( sample.a_count ) / nt_cnt, 2 );
+    // h -= std::pow( static_cast<double>( sample.c_count ) / nt_cnt, 2 );
+    // h -= std::pow( static_cast<double>( sample.g_count ) / nt_cnt, 2 );
+    // h -= std::pow( static_cast<double>( sample.t_count ) / nt_cnt, 2 );
     h *= nt_cnt / ( nt_cnt - 1.0 );
     return h;
 }
