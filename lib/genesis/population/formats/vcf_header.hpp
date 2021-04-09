@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -41,8 +41,10 @@
 #include <vector>
 
 extern "C" {
-    #include <htslib/hts.h>
-    #include <htslib/vcf.h>
+    // #include <htslib/hts.h>
+    // #include <htslib/vcf.h>
+
+    struct bcf_hdr_t;
 }
 
 namespace genesis {
@@ -105,8 +107,10 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    // VcfRecord and VcfFormatIterator both need access to the check_value_return_code_() function.
-    // We could make that a free function, but it seems too specialzied for general usage,
+    // VcfRecord and VcfFormatIterator both need access to some htslib functions/definitions
+    // for which we'd have to include htslib headers in our headers, which we want to avoid.
+    // So instead, we wrap htslib internal functions here.
+    // We could make those free functions, but it seems too specialzied for general usage,
     // so let's keep it in private scope for now, and make the classes friends instead.
 
     friend class VcfRecord;
@@ -517,7 +521,9 @@ private:
      * @brief Get all key-value-pairs for a given header line type
      * (one of BCF_HL_*, e.g., INFO, FORMAT, or FILTER) and ID name.
      */
-    std::unordered_map<std::string, std::string> get_hrec_values_( int hl_type, std::string const& id ) const;
+    std::unordered_map<std::string, std::string> get_hrec_values_(
+        int hl_type, std::string const& id
+    ) const;
 
     /**
      * @brief Get the required key-value-pairs for a given header line type
