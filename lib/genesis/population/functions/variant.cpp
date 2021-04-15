@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -98,7 +98,7 @@ Variant convert_to_variant( VcfRecord const& record )
     // Process the samples that are present in the VCF record line.
     result.samples.reserve( record.header().get_sample_count() );
     for( auto const& sample_ad : record.get_format_int("AD") ) {
-        if( sample_ad.valid_value_count() != vars.size() ) {
+        if( sample_ad.valid_value_count() > 0 && sample_ad.valid_value_count() != vars.size() ) {
             throw std::runtime_error(
                 "Invalid VCF Record that contains " + std::to_string( vars.size() ) +
                 " REF and ALT sequences/alleles, but its FORMAT field 'AD' only contains " +
@@ -110,7 +110,7 @@ Variant convert_to_variant( VcfRecord const& record )
         // and sum them up, storing them in a new BaseCounts instance at the end of the vector.
         result.samples.emplace_back();
         auto& sample = result.samples.back();
-        for( size_t i = 0; i < vars.size(); ++i ) {
+        for( size_t i = 0; i < sample_ad.valid_value_count(); ++i ) {
 
             // Get the nucleitide and its count.
             assert( vars[i].size() == 1 );

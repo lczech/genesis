@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -105,11 +105,11 @@ double f_st_conventional_pool( // get_conventional_fstcalculator
             p2_pi_sum += std::get<1>( pi_snps );
             pp_pi_sum += std::get<2>( pi_snps );
         } else {
-            // If we are here, at least one of the two inputs has no counts at all in [ACGT],
+            // If we are here, at least one of the two inputs has one or fewer counts in [ACGT],
             // otherwise, the results would have been finite. Let's assert this.
             assert(
-                ( p1_it->a_count + p1_it->c_count + p1_it->g_count + p1_it->t_count == 0 ) ||
-                ( p2_it->a_count + p2_it->c_count + p2_it->g_count + p2_it->t_count == 0 )
+                ( p1_it->a_count + p1_it->c_count + p1_it->g_count + p1_it->t_count <= 1 ) ||
+                ( p2_it->a_count + p2_it->c_count + p2_it->g_count + p2_it->t_count <= 1 )
             );
         }
 
