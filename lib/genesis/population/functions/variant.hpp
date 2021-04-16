@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -40,8 +40,21 @@
 
 #endif // htslib guard
 
+#include <array>
+#include <utility>
+
 namespace genesis {
 namespace population {
+
+// =================================================================================================
+//     Helper Functions
+// =================================================================================================
+
+BaseCounts total_base_counts( Variant const& variant );
+
+std::array<std::pair<char, size_t>, 4> sorted_variant_counts(
+    Variant const& variant, bool reference_first
+);
 
 // =================================================================================================
 //     Conversion Functions

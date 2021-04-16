@@ -31,6 +31,7 @@
 #include "genesis/population/functions/variant.hpp"
 
 #include "genesis/population/functions/base_counts.hpp"
+#include "genesis/utils/io/char.hpp"
 
 #include <cassert>
 #include <stdexcept>
@@ -39,20 +40,120 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
+//     Helper Functions
+// =================================================================================================
+
+BaseCounts total_base_counts( Variant const& variant )
+{
+    return merge( variant.samples );
+}
+
+std::array<std::pair<char, size_t>, 4> sorted_variant_counts(
+    Variant const& variant, bool reference_first
+) {
+    // We use sorting networks for speed here. See f_st_asymptotically_unbiased_a1n1a2n2()
+    // for details on the technique.
+
+    auto const total = total_base_counts( variant );
+    if( reference_first ) {
+        std::array<std::pair<char, size_t>, 4> result;
+        switch( variant.reference_base ) {
+            case 'a':
+            case 'A': {
+                result[0] = { 'A', total.a_count };
+                result[1] = { 'C', total.c_count };
+                result[2] = { 'G', total.g_count };
+                result[3] = { 'T', total.t_count };
+                break;
+            }
+            case 'c':
+            case 'C': {
+                result[0] = { 'C', total.c_count };
+                result[1] = { 'A', total.a_count };
+                result[2] = { 'G', total.g_count };
+                result[3] = { 'T', total.t_count };
+                break;
+            }
+            case 'g':
+            case 'G': {
+                result[0] = { 'G', total.g_count };
+                result[1] = { 'A', total.a_count };
+                result[2] = { 'C', total.c_count };
+                result[3] = { 'T', total.t_count };
+                break;
+            }
+            case 't':
+            case 'T': {
+                result[0] = { 'T', total.t_count };
+                result[1] = { 'A', total.a_count };
+                result[2] = { 'C', total.c_count };
+                result[3] = { 'G', total.g_count };
+                break;
+            }
+            default: {
+                throw std::runtime_error(
+                    "Invalid reference base character " + utils::char_to_hex( variant.reference_base )
+                );
+            }
+        }
+        if( result[1].second < result[2].second ) {
+            std::swap( result[1], result[2] );
+        }
+        if( result[1].second < result[3].second ) {
+            std::swap( result[1], result[3] );
+        }
+        if( result[2].second < result[3].second ) {
+            std::swap( result[2], result[3] );
+        }
+        return result;
+    } else {
+        std::array<std::pair<char, size_t>, 4> result = {
+            std::pair<char, size_t>{ 'A', total.a_count },
+            std::pair<char, size_t>{ 'C', total.c_count },
+            std::pair<char, size_t>{ 'G', total.g_count },
+            std::pair<char, size_t>{ 'T', total.t_count }
+        };
+        if( result[0].second < result[1].second ) {
+            std::swap( result[0], result[1] );
+        }
+        if( result[2].second < result[3].second ) {
+            std::swap( result[2], result[3] );
+        }
+        if( result[0].second < result[2].second ) {
+            std::swap( result[0], result[2] );
+        }
+        if( result[1].second < result[3].second ) {
+            std::swap( result[1], result[3] );
+        }
+        if( result[1].second < result[2].second ) {
+            std::swap( result[1], result[2] );
+        }
+        return result;
+    }
+}
+
+// =================================================================================================
 //     Conversion Functions
 // =================================================================================================
 
 Variant convert_to_variant( SimplePileupReader::Record const& record )
 {
+    // Set basic data
     Variant result;
     result.chromosome     = record.chromosome;
     result.position       = record.position;
     result.reference_base = record.reference_base;
 
+    // Convert the individual samples
     result.samples.reserve( record.samples.size() );
     for( size_t i = 0; i < record.samples.size(); ++i ) {
         result.samples.push_back( convert_to_base_counts( record.samples[i] ));
     }
+
+    // Pileup does not contain ALT bases, so infer them from counts,
+    // using the base with the most counts that is not the reference base.
+    auto const sorted = sorted_variant_counts( result, true );
+    result.alternative_base = sorted[1].first;
 
     return result;
 }
@@ -90,10 +191,12 @@ Variant convert_to_variant( VcfRecord const& record )
     // Prepare common fields of the result.
     // For the reference base, we use the first nucleotide of the first variant (REF);
     // above, we have ensured that this exists and is in fact a single nucleotide only.
+    // Same for the alternative base, where we use the first ALT in the record.
     Variant result;
-    result.chromosome     = record.get_chromosome();
-    result.position       = record.get_position();
-    result.reference_base = vars[0][0];
+    result.chromosome       = record.get_chromosome();
+    result.position         = record.get_position();
+    result.reference_base   = vars[0][0];
+    result.alternative_base = vars[1][0]; // TODO this is only reasonable for biallelic SNPs
 
     // Process the samples that are present in the VCF record line.
     result.samples.reserve( record.header().get_sample_count() );

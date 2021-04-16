@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -91,6 +91,42 @@ BaseCountsStatus status(
     }
 
     return result;
+}
+
+size_t get_base_count( BaseCounts const& bc, char base )
+{
+    switch( base ) {
+        case 'a':
+        case 'A': {
+            return bc.a_count;
+        }
+        case 'c':
+        case 'C': {
+            return bc.c_count;
+        }
+        case 'g':
+        case 'G': {
+            return bc.g_count;
+        }
+        case 't':
+        case 'T': {
+            return bc.t_count;
+        }
+        case 'n':
+        case 'N': {
+            return bc.n_count;
+        }
+        case 'd':
+        case 'D':
+        case '*':
+        case '.':
+        case '#': {
+            return bc.d_count;
+        }
+    }
+    throw std::runtime_error(
+        "Invalid base character " + utils::char_to_hex( base )
+    );
 }
 
 // =================================================================================================
