@@ -27,6 +27,9 @@
 #include <functional>
 #include <memory>
 
+namespace genesis {
+namespace utils {
+
 // =================================================================================================
 //      Lambda Iterator
 // =================================================================================================
@@ -227,5 +230,8 @@ private:
 
 template<class T>
 using LambdaIterator = typename LambdaIteratorGenerator<T>::LambdaIterator;
+
+} // namespace utils
+} // namespace genesis
 
 #endif // include guard
