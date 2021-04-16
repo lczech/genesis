@@ -218,6 +218,15 @@ public:
         return LambdaIterator( this, nullptr );
     }
 
+    /**
+     * @brief Return whether a function was assigend to this generator, that is, whether it is
+     * default constructed (`false`) or not (`true`).
+     */
+    operator bool() const
+    {
+        return static_cast<bool>( get_element_ );
+    }
+
     // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
