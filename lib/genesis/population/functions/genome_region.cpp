@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -126,6 +126,18 @@ GenomeRegion parse_genome_region( std::string const& region )
         // Multiple ":" found.
         throw_invalid_arg_();
     }
+    return result;
+}
+
+GenomeRegionList parse_genome_regions( std::string const& regions )
+{
+    GenomeRegionList result;
+
+    auto const region_list = utils::split( regions, ",", false );
+    for( auto const& region : region_list ) {
+        result.add( parse_genome_region( utils::trim( region )));
+    }
+
     return result;
 }
 
