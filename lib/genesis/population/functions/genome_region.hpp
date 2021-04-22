@@ -33,9 +33,13 @@
 
 #include "genesis/population/genome_region.hpp"
 
-#include <cassert>
+#ifdef GENESIS_HTSLIB
+
+#include "genesis/population/formats/vcf_record.hpp"
+
+#endif // htslib guard
+
 #include <iosfwd>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -68,6 +72,11 @@ GenomeRegion parse_genome_region( std::string const& region );
 GenomeRegionList parse_genome_regions( std::string const& regions );
 
 /**
+ * @brief Test whether the chromosome/position is within a given genomic @p region.
+ */
+bool is_covered( GenomeRegion const& region, std::string const& chromosome, size_t position );
+
+/**
  * @brief Test whether the chromosome/position of a @p variant is within a given genomic @p region.
  *
  * This is a function template, so that it can accept any data structure that contains public
@@ -76,22 +85,14 @@ GenomeRegionList parse_genome_regions( std::string const& regions );
 template<class T>
 bool is_covered( GenomeRegion const& region, T const& variant )
 {
-    if( region.start > region.end ) {
-        throw std::runtime_error( "Invalid GenomeRegion with start > end" );
-    }
-
-    if( region.start > 0 || region.end > 0 ) {
-        // With proper start and/or end, all has to match.
-        auto const chr = variant.chromosome == region.chromosome;
-        auto const beg = variant.position >= region.start;
-        auto const end = variant.position <= region.end;
-        return chr && beg && end;
-    } else {
-        // If both start and end are zero, we are just matching the chromosome.
-        assert( region.start == 0 && region.end == 0 );
-        return variant.chromosome == region.chromosome;
-    }
+    return is_covered( region, variant.chromosome, variant.position );
 }
+
+#ifdef GENESIS_HTSLIB
+
+bool is_covered( GenomeRegion const& region, VcfRecord const& variant );
+
+#endif // htslib guard
 
 } // namespace population
 } // namespace genesis
