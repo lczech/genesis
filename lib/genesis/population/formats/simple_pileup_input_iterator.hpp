@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -64,6 +64,12 @@ namespace population {
  *     }
  *
  * both allow to iterate each line in the file.
+ *
+ * Additionally, filtering of which samples (by index) to include can be provided, either as a vector
+ * of indices to consider, or as a bool vector that is `true` at the indices to consider. The latter
+ * filter does not need to contain the same number of values as the record has samples.
+ * If it is shorter, all samples after its last index will be ignored. If it is longer,
+ * the remaining entries are not used as a filter.
  */
 class SimplePileupInputIterator
 {
@@ -90,27 +96,55 @@ public:
     SimplePileupInputIterator() = default;
 
     /**
-     * @brief Create an instance that reads from an input source.
+     * @brief Create an instance that reads from an input source, and optionally take
+     * a SimplePileupReader with settings to be used.
      */
     explicit SimplePileupInputIterator(
-        std::shared_ptr< utils::BaseInputSource > source
+        std::shared_ptr< utils::BaseInputSource > source,
+        SimplePileupReader const&                 reader = {}
     )
         : input_stream_( std::make_shared<utils::InputStream>( source ))
+        , reader_( reader )
     {
         // Read the first record of the file.
         increment();
     }
 
     /**
-     * @brief Create an instance that reads from an input source, and takes a SimplePileupReader
-     * with settings to be used.
+     * @brief Create an instance that reads from an input source, using only the samples at the
+     * indices given in the @p sample_indices, and optionally take a SimplePileupReader with
+     * settings to be used.
      */
     SimplePileupInputIterator(
         std::shared_ptr< utils::BaseInputSource > source,
-        SimplePileupReader const& reader
+        std::vector<size_t> const&                sample_indices,
+        SimplePileupReader const&                 reader = {}
     )
         : input_stream_( std::make_shared<utils::InputStream>( source ))
         , reader_( reader )
+        , use_sample_filter_( true )
+    {
+        // Prepare the sample filter from the indices.
+        sample_filter_ = SimplePileupReader::make_sample_filter( sample_indices );
+
+        // Read the first record of the file.
+        increment();
+    }
+
+    /**
+     * @brief Create an instance that reads from an input source, using only the samples at the
+     * indices where the @p sample_filter is true, and optionally take a SimplePileupReader with
+     * settings to be used.
+     */
+    SimplePileupInputIterator(
+        std::shared_ptr< utils::BaseInputSource > source,
+        std::vector<bool> const&                  sample_filter,
+        SimplePileupReader const&                 reader = {}
+    )
+        : input_stream_( std::make_shared<utils::InputStream>( source ))
+        , reader_( reader )
+        , sample_filter_( sample_filter )
+        , use_sample_filter_( true )
     {
         // Read the first record of the file.
         increment();
@@ -193,7 +227,11 @@ public:
 
     void increment()
     {
-        good_ = reader_.parse_line( *input_stream_, record_ );
+        if( use_sample_filter_ ) {
+            good_ = reader_.parse_line( *input_stream_, record_, sample_filter_ );
+        } else {
+            good_ = reader_.parse_line( *input_stream_, record_ );
+        }
     }
 
     bool operator==( self_type const& it ) const
@@ -212,11 +250,17 @@ public:
 
 private:
 
+    // Basic iterator setup and input.
     bool good_ = false;
     std::shared_ptr<utils::InputStream> input_stream_;
 
+    // Reading into records
     SimplePileupReader::Record record_;
     SimplePileupReader reader_;
+
+    // Sample filtering
+    std::vector<bool> sample_filter_;
+    bool              use_sample_filter_ = false;
 };
 
 } // namespace population

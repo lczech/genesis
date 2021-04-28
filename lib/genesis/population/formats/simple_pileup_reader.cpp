@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -35,6 +35,7 @@
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
@@ -54,7 +55,38 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read(
     utils::InputStream it( source );
 
     Record rec;
-    while( parse_line_( it, rec ) ) {
+    while( parse_line_( it, rec, {}, false )) {
+        result.push_back( rec );
+    }
+    return result;
+}
+
+std::vector<SimplePileupReader::Record> SimplePileupReader::read(
+    std::shared_ptr< utils::BaseInputSource > source,
+    std::vector<size_t> const& sample_indices
+) const {
+    std::vector<SimplePileupReader::Record> result;
+    utils::InputStream it( source );
+
+    // Convert the list of indices to a bool vec that tells which samples we want to process.
+    auto const sample_filter = make_sample_filter( sample_indices );
+
+    Record rec;
+    while( parse_line_( it, rec, sample_filter, true )) {
+        result.push_back( rec );
+    }
+    return result;
+}
+
+std::vector<SimplePileupReader::Record> SimplePileupReader::read(
+    std::shared_ptr< utils::BaseInputSource > source,
+    std::vector<bool> const& sample_filter
+) const {
+    std::vector<SimplePileupReader::Record> result;
+    utils::InputStream it( source );
+
+    Record rec;
+    while( parse_line_( it, rec, sample_filter, true )) {
         result.push_back( rec );
     }
     return result;
@@ -64,7 +96,38 @@ bool SimplePileupReader::parse_line(
     utils::InputStream& input_stream,
     SimplePileupReader::Record& record
 ) const {
-    return parse_line_( input_stream, record );
+    return parse_line_( input_stream, record, {}, false );
+}
+
+bool SimplePileupReader::parse_line(
+    utils::InputStream& input_stream,
+    SimplePileupReader::Record& record,
+    std::vector<bool> const& sample_filter
+) const {
+    return parse_line_( input_stream, record, sample_filter, true );
+}
+
+// =================================================================================================
+//     Helper Functions
+// =================================================================================================
+
+std::vector<bool> SimplePileupReader::make_sample_filter( std::vector<size_t> const& indices )
+{
+    // Get the largest element of the vector. If it's empty, we return an empty vector as well.
+    auto max_it = std::max_element( indices.begin(), indices.end() );
+    if( max_it == indices.end() ) {
+        return {};
+    }
+    size_t max_index = *max_it;
+
+    // Fill a bool vector, setting all positions to true
+    // that are indicated by the indices, pun intended.
+    auto result = std::vector<bool>( max_index, false );
+    for( auto const& idx : indices ) {
+        assert( idx < result.size() );
+        result[idx] = true;
+    }
+    return result;
 }
 
 // =================================================================================================
@@ -76,8 +139,10 @@ bool SimplePileupReader::parse_line(
 // -------------------------------------------------------------------------
 
 bool SimplePileupReader::parse_line_(
-    utils::InputStream& input_stream,
-    Record&             record
+    utils::InputStream&      input_stream,
+    Record&                  record,
+    std::vector<bool> const& sample_filter,
+    bool                     use_sample_filter
 ) const {
     // Shorthand.
     auto& it = input_stream;
@@ -126,23 +191,38 @@ bool SimplePileupReader::parse_line_(
     // Read the samples. We switch once for the first line, and thereafter check that we read the
     // same number of samples each time.
     if( record.samples.empty() ) {
+        size_t src_index = 0;
         while( it && *it != '\n' ) {
-            record.samples.emplace_back();
-            process_sample_( it, record, record.samples.size() - 1 );
+            if( !use_sample_filter || ( src_index < sample_filter.size() && sample_filter[src_index] )) {
+                record.samples.emplace_back();
+                process_sample_( it, record, record.samples.back() );
+            } else {
+                skip_sample_( it );
+            }
+            ++src_index;
         }
     } else {
-        size_t index = 0;
+        // Here we need two indices, one over the samples in the file (source),
+        // and one for the samples that we are writing in our Record (destination).
+        size_t src_index = 0;
+        size_t dst_index = 0;
         while( it && *it != '\n' ) {
-            if( index >= record.samples.size() ) {
+            if( dst_index >= record.samples.size() ) {
                 throw std::runtime_error(
                     "Malformed pileup " + it.source_name() + " at " + it.at() +
                     ": Line with different number of samples."
                 );
             }
-            process_sample_( it, record, index );
-            ++index;
+            if( !use_sample_filter || ( src_index < sample_filter.size() && sample_filter[src_index] )) {
+                assert( dst_index < record.samples.size() );
+                process_sample_( it, record, record.samples[dst_index] );
+                ++dst_index;
+            } else {
+                skip_sample_( it );
+            }
+            ++src_index;
         }
-        if( index != record.samples.size() ) {
+        if( dst_index != record.samples.size() ) {
             throw std::runtime_error(
                 "Malformed pileup " + it.source_name() + " at " + it.at() +
                 ": Line with different number of samples."
@@ -162,29 +242,13 @@ bool SimplePileupReader::parse_line_(
 void SimplePileupReader::process_sample_(
     utils::InputStream& input_stream,
     Record&             record,
-    size_t              index
-) const {
-
-    // Get the sample to which to write to, and reset it.
-    assert( index < record.samples.size() );
-    auto& sample = record.samples[index];
-    sample = Sample();
-
-    // Fill its basic fields from input data, and compute the tallies.
-    parse_sample_fields_( input_stream, record, sample );
-}
-
-// -------------------------------------------------------------------------
-//     Parse Sample Fields
-// -------------------------------------------------------------------------
-
-void SimplePileupReader::parse_sample_fields_(
-    utils::InputStream& input_stream,
-    Record&             record,
     Sample&             sample
 ) const {
     // Shorthand.
     auto& it = input_stream;
+
+    // Reset the sample.
+    sample = Sample();
 
     // Read the total read count / coverage.
     next_field_( it );
@@ -312,6 +376,49 @@ void SimplePileupReader::parse_sample_fields_(
         sample.ancestral_base = c;
         ++it;
     }
+
+    // Final file sanity checks.
+    if( it && !( utils::is_blank( *it ) || utils::is_newline( *it ))) {
+        throw std::runtime_error(
+            "Malformed pileup " + it.source_name() + " at " + it.at() +
+            ": Invalid characters."
+        );
+    }
+}
+
+// -------------------------------------------------------------------------
+//     Skip Sample
+// -------------------------------------------------------------------------
+
+void SimplePileupReader::skip_sample_(
+    utils::InputStream& input_stream
+) const {
+    // Shorthand.
+    auto& it = input_stream;
+
+    // Read the total read count / coverage.
+    next_field_( it );
+    utils::skip_while( it, utils::is_digit );
+    assert( !it || !utils::is_digit( *it ));
+
+    // Read the nucleotides.
+    next_field_( it );
+    utils::skip_while( it, utils::is_graph );
+    assert( !it || !utils::is_graph( *it ) );
+
+    // Read the quality codes, if present.
+    if( with_quality_string_ ) {
+        next_field_( it );
+        utils::skip_while( it, utils::is_graph );
+    }
+    assert( !it || !utils::is_graph( *it ) );
+
+    // Read the ancestral base, if present.
+    if( with_ancestral_base_ ) {
+        next_field_( it );
+        utils::skip_while( it, utils::is_graph );
+    }
+    assert( !it || !utils::is_graph( *it ) );
 
     // Final file sanity checks.
     if( it && !( utils::is_blank( *it ) || utils::is_newline( *it ))) {
