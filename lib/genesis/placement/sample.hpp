@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -120,6 +120,11 @@ public:
      * @brief Swap the contents of this Sample with the contents of another Sample.
      */
     void swap( Sample& other );
+
+    /**
+     * @brief Swap the contents of two Sample%s with each other.
+     */
+    friend void swap( Sample& lhs, Sample& rhs );
 
     // -------------------------------------------------------------------------
     //     Modifiers
