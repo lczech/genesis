@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -92,17 +92,20 @@ TEST( SampleFunctions, FilterPqueryNameRegex )
 
     // Check before filtering.
     EXPECT_EQ( 10, total_placement_count(smp) );
+    EXPECT_EQ( 11, total_name_count(smp) );
 
     // Keep list.
     filter_pqueries_keeping_names( smp, "[ac]" );
     EXPECT_EQ( 6, total_placement_count(smp) );
+    EXPECT_EQ( 4, total_name_count(smp) );
 
     // Re-read the file.
     smp = JplaceReader().read( from_file(infile));
 
     // Remove list.
     filter_pqueries_removing_names( smp, "[ac]" );
-    EXPECT_EQ( 4, total_placement_count(smp) );
+    EXPECT_EQ( 9, total_placement_count(smp) );
+    EXPECT_EQ( 7, total_name_count(smp) );
 }
 
 TEST( SampleFunctions, FilterPqueryNameLists )
@@ -116,11 +119,13 @@ TEST( SampleFunctions, FilterPqueryNameLists )
 
     // Check before filtering.
     EXPECT_EQ( 10, total_placement_count(smp) );
+    EXPECT_EQ( 11, total_name_count(smp) );
 
     // Keep list.
     std::unordered_set<std::string> keep_list = { "a", "c" };
     filter_pqueries_keeping_names( smp, keep_list );
     EXPECT_EQ( 6, total_placement_count(smp) );
+    EXPECT_EQ( 4, total_name_count(smp) );
 
     // Re-read the file.
     smp = JplaceReader().read( from_file(infile));
@@ -128,7 +133,8 @@ TEST( SampleFunctions, FilterPqueryNameLists )
     // Remove list.
     std::unordered_set<std::string> remove_list = { "a", "c" };
     filter_pqueries_removing_names( smp, remove_list );
-    EXPECT_EQ( 4, total_placement_count(smp) );
+    EXPECT_EQ( 9, total_placement_count(smp) );
+    EXPECT_EQ( 7, total_name_count(smp) );
 }
 
 TEST( SampleFunctions, FilterPqueryNameSets )
@@ -145,11 +151,15 @@ TEST( SampleFunctions, FilterPqueryNameSets )
     // Checks before filtering.
     EXPECT_EQ(  8, total_placement_count( sample_1 ));
     EXPECT_EQ( 10, total_placement_count( sample_2 ));
+    EXPECT_EQ(  7, total_name_count( sample_1 ));
+    EXPECT_EQ( 11, total_name_count( sample_2 ));
 
     // Intersection.
     filter_pqueries_intersecting_names( sample_1, sample_2 );
     EXPECT_EQ(  8, total_placement_count( sample_1 ));
     EXPECT_EQ(  8, total_placement_count( sample_2 ));
+    EXPECT_EQ(  7, total_name_count( sample_1 ));
+    EXPECT_EQ(  8, total_name_count( sample_2 ));
 
     // Re-read the files.
     auto sample_3 = JplaceReader().read( from_file( infile_1 ));
@@ -158,7 +168,9 @@ TEST( SampleFunctions, FilterPqueryNameSets )
     // Symmetric difference.
     filter_pqueries_differing_names( sample_3, sample_4 );
     EXPECT_EQ(  0, total_placement_count( sample_3 ));
-    EXPECT_EQ(  2, total_placement_count( sample_4 ));
+    EXPECT_EQ(  4, total_placement_count( sample_4 ));
+    EXPECT_EQ(  0, total_name_count( sample_3 ));
+    EXPECT_EQ(  3, total_name_count( sample_4 ));
 }
 
 TEST( SampleFunctions, ConvertFromCommonTree )

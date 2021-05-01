@@ -135,7 +135,7 @@ void scale_all_branch_lengths( Sample& smp, double factor = 1.0 );
 void adjust_branch_lengths( Sample& sample, tree::Tree const& source );
 
 // =================================================================================================
-//     Filtering
+//     Filtering Placements
 // =================================================================================================
 
 /**
@@ -192,69 +192,6 @@ void filter_min_weight_threshold( Pquery& pquery, double threshold = 0.01 );
 void filter_min_weight_threshold( Sample& smp,    double threshold = 0.01 );
 
 /**
- * @brief Remove all @link Pquery Pqueries@endlink which do not have at least one name that matches
- * the given regex.
- *
- * If the Pquery has a PqueryName whose PqueryName::name value matches the regex, the Pquery is
- * kept. If none of its names matches, the Pquery is removed.
- */
-void filter_pqueries_keeping_names( Sample& smp, std::string const& regex );
-
-/**
- * @brief Remove all @link Pquery Pqueries@endlink which do not have at least one name that is in
- * the given keep list.
- *
- * If the Pquery has a PqueryName whose PqueryName::name value is in the `keep_list`, the Pquery is
- * kept. If none of its names is in the `keep_list`, the Pquery is removed.
- *
- * This is similar to filter_pqueries_removing_names(), but not quite the opposite, as Pqueries can
- * have multiple names.
- */
-void filter_pqueries_keeping_names(  Sample& smp, std::unordered_set<std::string> keep_list );
-
-/**
- * @brief Remove all @link Pquery Pqueries@endlink which have at least one name that matches the given
- * regex.
- *
- * If the Pquery has a PqueryName whose PqueryName::name value matches the reges,
- * the Pquery is removed. If none of its names matches, the Pquery is kept.
- */
-void filter_pqueries_removing_names( Sample& smp, std::string const& regex );
-
-/**
- * @brief Remove all @link Pquery Pqueries@endlink which have at least one name that is in
- * the given remove list.
- *
- * If the Pquery has a PqueryName whose PqueryName::name value is in the `remove_list`,
- * the Pquery is removed. If none of its names is in the `remove_list`, the Pquery is kept.
- *
- * This is similar to filter_pqueries_keeping_names(), but not quite the opposite, as Pqueries can
- * have multiple names.
- */
-void filter_pqueries_removing_names( Sample& smp, std::unordered_set<std::string> remove_list );
-
-/**
- * @brief Remove all @link Pquery Pqueries@endlink from the two Sample%s except the ones that
- * have names in common.
- *
- * This function builds the intersection of the set of names of both Samples and only keeps those
- * Pqueries that have a PqueryName with one of those names.
- */
-void filter_pqueries_intersecting_names( Sample& sample_1, Sample& sample_2 );
-
-/**
- * @brief Remove all @link Pquery Pqueries@endlink from the two Sample%s that have a name in common.
- *
- * This function builds the intersection of the set of names of both Samples and removes all those
- * Pqueries that have a PqueryName with one of those names.
- *
- * This is not quite the same as building the symmetric difference and keeping those elements, and,
- * although similar, it not the opposite of filter_pqueries_intersecting_names(), because Pqueries
- * can have multiple names.
- */
-void filter_pqueries_differing_names(    Sample& sample_1, Sample& sample_2 );
-
-/**
  * @brief Remove all @link Pquery Pqueries@endlink from the Sample that have no PqueryPlacement%s.
  *
  * This is useful for example after filtering, as this can result in removing all PqueryPlacement%s
@@ -262,7 +199,99 @@ void filter_pqueries_differing_names(    Sample& sample_1, Sample& sample_2 );
  *
  * The function returns the number of removed Pqueries.
  */
-size_t remove_empty_pqueries( Sample& sample );
+size_t remove_empty_placement_pqueries( Sample& sample );
+
+// =================================================================================================
+//     Filtering Names
+// =================================================================================================
+
+/**
+ * @brief Remove all PqueryName%s which do not match the given @p regex.
+ *
+ * If all names from a given Pquery are removed that way, and if the @p remove_empty_name_pqueries
+ * flag is `true` (default), the whole Pquery is removed from the Sample as well.
+ */
+void filter_pqueries_keeping_names(
+    Sample& smp,
+    std::string const& regex,
+    bool remove_empty_name_pqueries = true
+);
+
+/**
+ * @brief Remove all PqueryName%s which do not occur in the given @p keep_list.
+ *
+ * If all names from a given Pquery are removed that way, and if the @p remove_empty_name_pqueries
+ * flag is `true` (default), the whole Pquery is removed from the Sample as well.
+ */
+void filter_pqueries_keeping_names(
+    Sample& smp,
+    std::unordered_set<std::string> const& keep_list,
+    bool remove_empty_name_pqueries = true
+);
+
+/**
+ * @brief Remove all PqueryName%s which match the given @p regex.
+ *
+ * If all names from a given Pquery are removed that way, and if the @p remove_empty_name_pqueries
+ * flag is `true` (default), the whole Pquery is removed from the Sample as well.
+ */
+void filter_pqueries_removing_names(
+    Sample& smp,
+    std::string const& regex,
+    bool remove_empty_name_pqueries = true
+);
+
+/**
+ * @brief Remove all PqueryName%s which occur in the given @p remove_list.
+ *
+ * If all names from a given Pquery are removed that way, and if the @p remove_empty_name_pqueries
+ * flag is `true` (default), the whole Pquery is removed from the Sample as well.
+ */
+void filter_pqueries_removing_names(
+    Sample& smp,
+    std::unordered_set<std::string> const& remove_list,
+    bool remove_empty_name_pqueries = true
+);
+
+/**
+ * @brief Remove all PqueryName%s from the two Sample%s that are unique to each of them.
+ *
+ * This function builds the intersection of the set of names of both Samples and only keeps those
+ * PqueryName%s that occur in both sets.
+ *
+ * If all names from a given Pquery are removed that way, and if the @p remove_empty_name_pqueries
+ * flag is `true` (default), the whole Pquery is removed from the Sample as well.
+ */
+void filter_pqueries_intersecting_names(
+    Sample& sample_1,
+    Sample& sample_2,
+    bool remove_empty_name_pqueries = true
+);
+
+/**
+ * @brief Remove all PqueryName%s from the two Sample%s that occur in both of them.
+ *
+ * This function builds the intersection of the set of names of both Samples and removes all those
+ * PqueryName%s that occur in both sets.
+ *
+ * If all names from a given Pquery are removed that way, and if the @p remove_empty_name_pqueries
+ * flag is `true` (default), the whole Pquery is removed from the Sample as well.
+ */
+void filter_pqueries_differing_names(
+    Sample& sample_1,
+    Sample& sample_2,
+    bool remove_empty_name_pqueries = true
+);
+
+/**
+ * @brief Remove all @link Pquery Pqueries@endlink from the Sample that have no PqueryName%s.
+ *
+ * This is useful for example after filtering, as this can result in removing all PqueryName%s
+ * from a Pquery.
+ *
+ * The function returns the number of removed Pqueries.
+ */
+size_t remove_empty_name_pqueries( Sample& sample );
 
 // =================================================================================================
 //     Joining and Merging
