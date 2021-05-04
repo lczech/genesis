@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -462,13 +462,13 @@ PoolDiversityResults pool_diversity_measures(
             std::is_same<decltype(stat.is_covered), bool>::value,
             "Expect bool type for BaseCountsStatus::is_covered"
         );
-        static_assert( static_cast<int>( true )  == 1, "Expect true == 1" );
-        static_assert( static_cast<int>( false ) == 0, "Expect false == 0" );
+        static_assert( static_cast<size_t>( true )  == 1, "Expect true == 1" );
+        static_assert( static_cast<size_t>( false ) == 0, "Expect false == 0" );
 
         // Add them up.
         ++results.variant_count;
-        results.snp_count      += stat.is_snp;
-        results.coverage_count += stat.is_covered;
+        results.snp_count      += static_cast<size_t>( stat.is_snp );
+        results.coverage_count += static_cast<size_t>( stat.is_covered );
     }
 
     // Compute coverage over the given range.
