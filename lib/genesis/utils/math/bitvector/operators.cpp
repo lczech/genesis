@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,9 @@
 
 #include "genesis/utils/math/bitvector/operators.hpp"
 
+#include <cassert>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 
 namespace genesis {
@@ -91,6 +93,9 @@ Bitvector symmetric_difference (Bitvector const& lhs, Bitvector const& rhs)
 
 bool is_strict_subset( Bitvector const& sub, Bitvector const& super )
 {
+    // Not really efficient. We could stop early in the comparison instead.
+    // But as of now, we do not need the speed, so let's keep it simple instead.
+    // Same for the other variants of this function below.
     return ((sub & super) == sub) && (sub.count() < super.count());
 }
 
@@ -108,6 +113,50 @@ bool is_superset( Bitvector const& super, Bitvector const& sub )
 {
     return (super == sub) || is_strict_superset(super, sub);
 }
+
+// bool lexicographically_compare_helper_( Bitvector const& lhs, Bitvector const& rhs, bool on_equal )
+// {
+//     // Deactivated at the moment, as this does not take care of the typical little endian-ness
+//     // of modern computers, and hence yields wrong results...
+//
+//     // Local helper function to avoid code duplication.
+//     if( lhs.size() != rhs.size() ) {
+//         throw std::runtime_error(
+//             "Cannot use lexicographical comparison functions on Bitvectors of different size."
+//         );
+//     }
+//     for( size_t i = 0; i < lhs.data().size(); ++i ) {
+//         if( lhs.data()[i] < rhs.data()[i] ) {
+//             return true;
+//         } else if( lhs.data()[i] > rhs.data()[i] ) {
+//             return false;
+//         }
+//     }
+//
+//     // If we are here, all of the above comparisons shows that lhs == rhs.
+//     assert( lhs == rhs );
+//     return on_equal;
+// }
+//
+// bool is_lexicographically_less( Bitvector const& lhs, Bitvector const& rhs )
+// {
+//     return lexicographically_compare_helper_( lhs, rhs, false );
+// }
+//
+// bool is_lexicographically_less_or_equal( Bitvector const& lhs, Bitvector const& rhs )
+// {
+//     return lexicographically_compare_helper_( lhs, rhs, true );
+// }
+//
+// bool is_lexicographically_greater( Bitvector const& lhs, Bitvector const& rhs )
+// {
+//     return lexicographically_compare_helper_( rhs, lhs, false );
+// }
+//
+// bool is_lexicographically_greater_or_equal( Bitvector const& lhs, Bitvector const& rhs )
+// {
+//     return lexicographically_compare_helper_( rhs, lhs, true );
+// }
 
 std::ostream& operator << (std::ostream& s, Bitvector const& bv)
 {

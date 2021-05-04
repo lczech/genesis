@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -111,6 +111,14 @@ struct SlidingWindowIteratorSettings
      */
     bool emit_leading_empty_windows = false;
 
+
+    // bool emit_unfinished_trailing_window = false;
+    //
+    // bool start_from_one = false
+    //
+    // bool emit empty_windows = true;
+
+
     /**
      * @brief Functor to convert from the underlying input iterator that provides the data
      * for the sliding window to the data that is stored per window.
@@ -182,10 +190,58 @@ public:
         }
         window_.anchor_type( settings_.anchor_type );
 
+        // Error checking.
+        if( ! settings_.entry_input_function ) {
+            throw std::runtime_error(
+                "Need to set SlidingWindowIteratorSettings::entry_input_function before using it "
+                "to construct a SlidingWindowIterator"
+            );
+        }
+        if( ! settings_.chromosome_function ) {
+            throw std::runtime_error(
+                "Need to set SlidingWindowIteratorSettings::chromosome_function before using it "
+                "to construct a SlidingWindowIterator"
+            );
+        }
+        if( ! settings_.position_function ) {
+            throw std::runtime_error(
+                "Need to set SlidingWindowIteratorSettings::position_function before using it "
+                "to construct a SlidingWindowIterator"
+            );
+        }
+
         // Let's get going.
         init_chromosome_();
         update_();
     }
+
+    // SlidingWindowIterator(
+    //     settings_type const& settings,
+    //     ForwardIterator begin, ForwardIterator end,
+    //     std::string const& chromosome,
+    //     size_t start_position, size_t end_position
+    // )
+    //     : settings_(settings)
+    //     , begin_(begin)
+    //     , current_(begin)
+    //     , end_(end)
+    // {
+    //     // Some boundary checks.
+    //     if( settings_.width == 0 ) {
+    //         throw std::runtime_error( "Cannot use SlidingWindowIterator of width 0." );
+    //     }
+    //     if( settings_.stride == 0 ) {
+    //         settings_.stride = settings_.width;
+    //     }
+    //     if( settings_.stride > settings_.width ) {
+    //         throw std::runtime_error( "Cannot use SlidingWindowIterator with stride > width." );
+    //     }
+    //     window_.anchor_type( settings_.anchor_type );
+    //
+    //     // Let's get going.
+    //     init_chromosome_();
+    //     update_();
+    // }
 
     ~SlidingWindowIterator() = default;
 
@@ -199,11 +255,31 @@ public:
     //     Accessors & Modifiers
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Return whether the current iteration is the first of the current chromosome.
+     *
+     * When iterating over (e.g.) a VCF file with multiple chromosomes, this function is useful
+     * to run some initialization per chromosome, such as preparing some output.
+     *
+     * See is_last_window() for the respective end-of-chromosome indicator, that can be used
+     * to wrap up after a chromosome, such as writing the output that was producing during the
+     * iterator.
+     */
     bool is_first_window() const
     {
         return is_first_window_;
     }
 
+    /**
+     * @brief Return whether the current iteration is the last of the current chromosome.
+     *
+     * When iterating over (e.g.) a VCF file with multiple chromosomes, this function is useful
+     * to wrap up after a chromosome, such as writing the output that was producing during the
+     * iterator.
+     *
+     * See is_first_window() for the respective beginning-of-chromsome indicator, that can be used
+     * to run some initialization per chromosome, such as preparing some output.
+     */
     bool is_last_window() const
     {
         return is_last_window_;
@@ -365,7 +441,6 @@ private:
                 settings_.chromosome_function( *current_ ) != window_.chromosome() ||
                 settings_.position_function( *current_ ) >= current_start_ + settings_.width
             ) {
-                is_last_window_ = true;
                 break;
             }
 
@@ -379,8 +454,9 @@ private:
             ++current_;
         }
 
-        // Another case in which we are at the last window.
-        if( current_ == end_ ) {
+        // Cases in which we are at the last window: Either we reached the end of the input,
+        // or the end of the current chromosome.
+        if( current_ == end_ || settings_.chromosome_function( *current_ ) != window_.chromosome() ) {
             is_last_window_ = true;
         }
 

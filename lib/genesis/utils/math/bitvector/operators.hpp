@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -91,6 +91,36 @@ bool is_subset( Bitvector const& sub, Bitvector const& super );
  * @brief Superset or equal.
  */
 bool is_superset( Bitvector const& super, Bitvector const& sub );
+
+// /**
+//  * @brief Return whether @p lhs is lexicographically less than @p rhs.
+//  *
+//  * This function consideres the bits ordered with most significant bits towards the left, so that
+//  * `0001 < 1000` for example. Both Bitvector%s have to have the same length (this could be
+//  * implemented for Bitvectors of different size, but that is not needed as of now, so it isn't).
+//  */
+// bool is_lexicographically_less( Bitvector const& lhs, Bitvector const& rhs );
+//
+// /**
+//  * @brief Return whether @p lhs is lexicographically less than @p rhs, or equal to it.
+//  *
+//  * @copydetails is_lexicographically_less()
+//  */
+// bool is_lexicographically_less_or_equal( Bitvector const& lhs, Bitvector const& rhs );
+//
+// /**
+//  * @brief Return whether @p lhs is lexicographically greater than @p rhs.
+//  *
+//  * @copydetails is_lexicographically_less()
+//  */
+// bool is_lexicographically_greater( Bitvector const& lhs, Bitvector const& rhs );
+//
+// /**
+//  * @brief Return whether @p lhs is lexicographically greater than @p rhs, or equal to it.
+//  *
+//  * @copydetails is_lexicographically_less()
+//  */
+// bool is_lexicographically_greater_or_equal( Bitvector const& lhs, Bitvector const& rhs );
 
 /**
  * @brief Insertion operator that outputs a Bitvector as a string of '0's and '1's.

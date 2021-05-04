@@ -119,7 +119,7 @@ representation of the data:
 // Print a SequenceSet as pixels to a bitmap file.
 PrinterBitmap()
     .color_map( nucleic_acid_colors() )
-    .to_file( sequences_a, "path/to/sits.bmp");
+    .write( sequences_a, to_file( "path/to/sits.bmp"));
 ~~~
 
 # Consensus Sequences {#tutorials_sequence_consensus_sequences}

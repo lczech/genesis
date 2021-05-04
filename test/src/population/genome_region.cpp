@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/population/genome_region.hpp"
+#include "genesis/population/functions/genome_region.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;
@@ -79,4 +80,40 @@ TEST( GenomeRegion, Basics )
     // Test some other stuff.
     EXPECT_FALSE( list.is_covered( "Y", 5 ));
     EXPECT_EQ( 4, list.size() );
+}
+
+TEST( GenomeRegion, Parse )
+{
+    // The Good.
+    EXPECT_EQ( GenomeRegion( "A", 0, 0 ),   parse_genome_region( "A" ));
+    EXPECT_EQ( GenomeRegion( "A", 10, 10 ), parse_genome_region( "A:10" ));
+    EXPECT_EQ( GenomeRegion( "A", 5, 10 ),  parse_genome_region( "A:5-10" ));
+    EXPECT_EQ( GenomeRegion( "A", 5, 10 ),  parse_genome_region( "A:5..10" ));
+
+    // The Bad.
+    EXPECT_ANY_THROW( parse_genome_region( "A:B" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:1:2" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:B:C" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:B-C" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:B..C" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:2..0" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:0--2" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:-1-2" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:0-1-" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:0-1-2" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:0-1..2" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:0..1-2" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:0..1..2" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:0.." ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:..1" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:0-" ));
+    EXPECT_ANY_THROW( parse_genome_region( "A:-1" ));
+
+    // The Ugly.
+    EXPECT_ANY_THROW( parse_genome_region( "" ));
+    EXPECT_ANY_THROW( parse_genome_region( ":" ));
+    EXPECT_ANY_THROW( parse_genome_region( "-" ));
+    EXPECT_ANY_THROW( parse_genome_region( ".." ));
+    EXPECT_ANY_THROW( parse_genome_region( ":-" ));
+    EXPECT_ANY_THROW( parse_genome_region( ":.." ));
 }

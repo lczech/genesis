@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,8 +55,15 @@ namespace population {
  *
  * For each processed line, a SimplePileupReader::Record is produced, which captures the basic
  * information of the line, as well as a tally for each sample in the line, collected in
- * SimplePileupReader::Sample. One such sample consists of two or three columns in the file
- * (depending on whether the file uses quality scores or not).
+ * SimplePileupReader::Sample. One such sample consists of two or more columns in the file.
+ * The number of columns per sample depends on the additional information contained in the file.
+ * As we have no way of deciding this automatically, these columns have to be activated beforehand:
+ *
+ *   - Quality scores, set with_quality_string()
+ *   - Ancestral alles, set with_ancestral_base()
+ *
+ * More columns might be needed in the future, and potentially their ordering might need to be
+ * adapted. But for now, we only have these use cases.
  */
 class SimplePileupReader
 {
@@ -117,34 +124,11 @@ public:
         std::vector<unsigned char> phred_scores;
 
         /**
-         * @brief Count of all `A` nucleotides that are present in the sample.
+         * @brief Base of the ancestral allele.
+         *
+         * Only read if with_ancestral_base() is set to `true`. See there for details.
          */
-        size_t a_count = 0;
-
-        /**
-         * @brief Count of all `C` nucleotides that are present in the sample.
-         */
-        size_t c_count = 0;
-
-        /**
-         * @brief Count of all `G` nucleotides that are present in the sample.
-         */
-        size_t g_count = 0;
-
-        /**
-         * @brief Count of all `T` nucleotides that are present in the sample.
-         */
-        size_t t_count = 0;
-
-        /**
-         * @brief Count of all `N` (undetermined/any) nucleotides that are present in the sample.
-         */
-        size_t n_count = 0;
-
-        /**
-         * @brief Count of all deleted (`*`) nucleotides that are present in the sample.
-         */
-        size_t d_count = 0;
+        char ancestral_base = '\0';
     };
 
     /**
@@ -212,6 +196,9 @@ public:
      * with the last field being quality codes. However, this last field is optional, and hence
      * we offer this option. If `true` (default), the field is expected to be there; if `false`,
      * it is expected not to be there. That is, at the moment, we have no automatic setting for this.
+     *
+     * See quality_encoding() for changing the encoding that is used in this column. Default
+     * is Sanger encoding. See ::genesis::sequence::QualityEncoding for details.
      */
     self_type& with_quality_string( bool value )
     {
@@ -237,24 +224,29 @@ public:
         return *this;
     }
 
-    unsigned char min_phred_score() const
+    bool with_ancestral_base() const
     {
-        return min_phred_score_;
+        return with_ancestral_base_;
     }
 
     /**
-     * @brief Set the minimum phred-scaled quality score for taking a base into the tally.
+     * @brief Set whether to expect the base of the ancestral allele as the last part of each
+     * sample in a record line.
      *
-     * For each pileup sample in a given record, we compute a tally, that is, we sum up the number
-     * of occurences of each nucleotide at the given line, and store these as counts in Sample;
-     * see there for details.
+     * This is a pipeup extension used by Pool-HMM (Boitard et al 2013) to denote the ancestral
+     * allele of each position directly within the pipleup file. Set to true when this is present
+     * in the input.
      *
-     * Using this setting, only bases that have at least the given phred-scaled quality score
-     * are taken into account when summing up that tally.
+     * A typical line from a pileup file looks like
+     *
+     *     2L	30	A	15	aaaAaaaAaAAaaAa	PY\aVO^`ZaaV[_S	A
+     *
+     * which contains the three fixed columns, and then four columns for the sample, with the
+     * last one `A` being the ancestral allele for that sample.
      */
-    self_type& min_phred_score( unsigned char value )
+    self_type& with_ancestral_base( bool value )
     {
-        min_phred_score_ = value;
+        with_ancestral_base_ = value;
         return *this;
     }
 
@@ -281,11 +273,6 @@ private:
         Sample&             sample
     ) const;
 
-    void tally_sample_counts_(
-        utils::InputStream& input_stream,
-        Sample&             sample
-    ) const;
-
     void next_field_(
         utils::InputStream& input_stream
     ) const;
@@ -300,8 +287,9 @@ private:
     // (we default to Sanger with offset 33), and if we want to skip low quality bases.
     bool with_quality_string_ = true;
     sequence::QualityEncoding quality_encoding_ = sequence::QualityEncoding::kSanger;
-    unsigned char min_phred_score_ = 0;
 
+    // Set whether the last part of the sample line contains the base of the ancestral allele.
+    bool with_ancestral_base_ = false;
 };
 
 } // namespace population

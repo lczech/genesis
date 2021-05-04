@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -358,10 +358,22 @@ std::string VcfHeader::get_sample_name( size_t index ) const
     return header_->samples[index];
 }
 
+size_t VcfHeader::get_sample_index( std::string const& name ) const
+{
+    assert( bcf_hdr_nsamples(header_) == header_->n[BCF_DT_SAMPLE] );
+    size_t const sample_count = header_->n[BCF_DT_SAMPLE];
+    for( size_t i = 0; i < sample_count; ++i ) {
+        if( strcmp( name.c_str(), header_->samples[i] ) == 0 ) {
+            return i;
+        }
+    }
+    throw std::runtime_error( "Sample name '" + name + "' not found in VCF file." );
+}
+
 std::vector<std::string> VcfHeader::get_sample_names() const
 {
     assert( bcf_hdr_nsamples(header_) == header_->n[BCF_DT_SAMPLE] );
-    size_t sample_count = header_->n[BCF_DT_SAMPLE];
+    size_t const sample_count = header_->n[BCF_DT_SAMPLE];
     auto result = std::vector<std::string>( sample_count );
     for( size_t i = 0; i < sample_count; ++i ) {
         result[i] = std::string( header_->samples[i] );

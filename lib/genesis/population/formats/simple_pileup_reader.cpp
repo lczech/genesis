@@ -172,7 +172,6 @@ void SimplePileupReader::process_sample_(
 
     // Fill its basic fields from input data, and compute the tallies.
     parse_sample_fields_( input_stream, record, sample );
-    tally_sample_counts_( input_stream, sample );
 }
 
 // -------------------------------------------------------------------------
@@ -210,7 +209,7 @@ void SimplePileupReader::parse_sample_fields_(
 
                 // But later, we changed this to use the the proper pileup definition here,
                 // see http://www.htslib.org/doc/samtools-mpileup.html
-                static const std::string allowed_codes = "ACGTNacgtn*#";
+                static const std::string allowed_codes = "ACGTN*#";
 
                 // First, we need to get how many chars there are in this indel.
                 ++it;
@@ -277,6 +276,16 @@ void SimplePileupReader::parse_sample_fields_(
         }
         assert( !it || !utils::is_graph( *it ) );
 
+        // Version that processes the whole string at once. Not much time saved, as we need
+        // to allocate the string first. Maybe refine later for speed.
+        // std::string qual;
+        // qual.reserve( sample.read_coverage );
+        // while( it && utils::is_graph( *it )) {
+        //     qual += *it;
+        //     ++it;
+        // }
+        // sample.phred_scores = sequence::quality_decode_to_phred_score( qual, quality_encoding_ );
+
         if( sample.read_bases.size() != sample.phred_scores.size() ) {
             throw std::runtime_error(
                 "Malformed pileup " + it.source_name() + " at " + it.at() +
@@ -288,119 +297,27 @@ void SimplePileupReader::parse_sample_fields_(
     assert( sample.phred_scores.empty() || sample.read_bases.size() == sample.phred_scores.size() );
     assert( !it || !utils::is_graph( *it ) );
 
+    // Also check if we want to read the ancestral base, if present.
+    if( with_ancestral_base_ ) {
+        next_field_( it );
+        // We can simply read in the char here. Even if the iterator is at its end, it will
+        // simply return a null char, which will trigger the subsequent error check.
+        char const c = utils::to_upper( *it );
+        if( !it || ( c != 'A' && c != 'C' && c != 'G' && c != 'T' && c != 'N' )) {
+            throw std::runtime_error(
+                "Malformed pileup " + it.source_name() + " at " + it.at() +
+                ": Expecting ancestral base character in [ACGTN]."
+            );
+        }
+        sample.ancestral_base = c;
+        ++it;
+    }
+
     // Final file sanity checks.
     if( it && !( utils::is_blank( *it ) || utils::is_newline( *it ))) {
         throw std::runtime_error(
             "Malformed pileup " + it.source_name() + " at " + it.at() +
             ": Invalid characters."
-        );
-    }
-}
-
-// -------------------------------------------------------------------------
-//     Tally Sample Counts
-// -------------------------------------------------------------------------
-
-void SimplePileupReader::tally_sample_counts_(
-    utils::InputStream& input_stream,
-    Sample&             sample
-) const {
-    // We expect default values.
-    assert( sample.a_count + sample.c_count + sample.g_count + sample.t_count == 0 );
-    assert( sample.n_count + sample.d_count == 0 );
-
-    // Shorthand.
-    auto& it = input_stream;
-
-    // Finally, tally up the bases.
-    size_t total_count = 0;
-    size_t skip_count  = 0;
-    size_t rna_count   = 0;
-    for( size_t i = 0; i < sample.read_bases.size(); ++i ) {
-
-        // Quality control if available. Skip bases that are below the threshold.
-        if( !sample.phred_scores.empty() && sample.phred_scores[i] < min_phred_score_ ) {
-            ++skip_count;
-            continue;
-        }
-
-        ++total_count;
-        switch( sample.read_bases[i] ) {
-            case 'a':
-            case 'A': {
-                ++sample.a_count;
-                break;
-            }
-            case 'c':
-            case 'C': {
-                ++sample.c_count;
-                break;
-            }
-            case 'g':
-            case 'G': {
-                ++sample.g_count;
-                break;
-            }
-            case 't':
-            case 'T': {
-                ++sample.t_count;
-                break;
-            }
-            case 'n':
-            case 'N': {
-                ++sample.n_count;
-                break;
-            }
-            case '*':
-            case '#': {
-                ++sample.d_count;
-                break;
-            }
-            case '<':
-            case '>': {
-                // Skipping RNA symbols. But count them, for sanity check.
-                (void) rna_count;
-                ++rna_count;
-                break;
-            }
-            default: {
-                throw std::runtime_error(
-                    "Malformed pileup " + it.source_name() + " near " + it.at() +
-                    ": Invalid allele character " + utils::char_to_hex( sample.read_bases[i] )
-                );
-            }
-        }
-    }
-
-    // Sanity checks and assertions.
-    (void) total_count;
-    assert(
-        total_count ==
-        sample.a_count + sample.c_count + sample.g_count + sample.t_count +
-        sample.n_count + sample.d_count + rna_count
-    );
-    assert( skip_count + total_count == sample.read_bases.size() );
-
-    // Sum sanity checks. There seems to be a very weird special case (found in the PoPoolation2
-    // test dataset) where a line contains a deletion with a low phred score (`*`) that is not
-    // counted in the "Number of reads covering this position" counter:
-    // `  89795 2R      113608  N       1       T$      A       0       *       *`
-    // We account for this here by allowing exactly one such base that is either a deletion
-    // or a skip due to low phred score. There is no information that we know of about how
-    // "empty" lines should be treated in pileip, so we have to guess, and that here seems to work.
-    auto const base_count =
-        sample.a_count + sample.c_count + sample.g_count + sample.t_count + sample.n_count
-    ;
-    if(
-        sample.read_bases.size() != sample.read_coverage &&
-        !( base_count == 0 && sample.d_count + skip_count == 1 )
-    ) {
-
-        throw std::runtime_error(
-            "Malformed pileup " + it.source_name() + " near " + it.at() +
-            ": Given read count (" + std::to_string( sample.read_coverage ) +
-            ") does not match the number of bases found in the sample (" +
-            std::to_string( sample.read_bases.size() ) + ")"
         );
     }
 }
