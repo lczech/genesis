@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -206,7 +206,7 @@ void adjust_branch_lengths( Sample& sample, tree::Tree const& source )
 }
 
 // =================================================================================================
-//     Filtering
+//     Filtering Placements
 // =================================================================================================
 
 void filter_min_accumulated_weight( Pquery& pquery, double threshold )
@@ -300,89 +300,152 @@ void filter_min_weight_threshold( Sample& smp,    double threshold )
     }
 }
 
-void filter_pqueries_keeping_names( Sample& smp, std::string const& regex )
+size_t remove_empty_placement_pqueries( Sample& sample )
 {
+    size_t cnt = 0;
+    auto new_end_pqueries = std::remove_if(
+        sample.begin(),
+        sample.end(),
+        [&]( Pquery& pqry ){
+            cnt += static_cast<int>( pqry.placement_size() == 0 );
+            return pqry.placement_size() == 0;
+        }
+    );
+    assert( cnt == static_cast<size_t>( sample.end() - new_end_pqueries ));
+    sample.remove( new_end_pqueries, sample.end() );
+    return cnt;
+
+    // Slow version.
+    // size_t i = 0;
+    // size_t r = 0;
+    // while( i < sample.size() ) {
+    //     if( sample.at(i).placement_size() == 0 ) {
+    //         sample.remove( i );
+    //         ++r;
+    //     } else {
+    //         ++i;
+    //     }
+    // }
+    // return r;
+}
+
+// =================================================================================================
+//     Filtering Names
+// =================================================================================================
+
+// template<typename F>
+// void filter_pqueries_by_name( Sample& smp, F predicate )
+// {
+//     // We do a neat trick here: Iterate all pqueries of the sample via a std::remove if,
+//     // and for each of them, remove all names that we don't want to keep via another std::remove_if.
+//     // Then, if no names remain, and the remove_empty_name_pqueries flag is set, we let the outer
+//     // remove_if also remove the whole pquery.
+//     auto new_end_pqueries = std::remove_if(
+//         smp.begin(),
+//         smp.end(),
+//         [&]( Pquery& pqry ){
+//             // Remove names all where the name does not match.
+//             auto& name_container = pqry.expose_names();
+//             auto new_end_names = std::remove_if(
+//                 name_container.begin(),
+//                 name_container.end(),
+//                 [&]( PqueryName const& nm ){
+//                     return ! predicate( nm.name );
+//                 }
+//             );
+//             name_container.erase( new_end_names, name_container.end() );
+//
+//             // If there are no names left, the whole pquery can be removed.
+//             return name_container.empty();
+//         }
+//     );
+//     smp.remove( new_end_pqueries, smp.end() );
+// }
+
+template<typename F>
+void filter_pqueries_by_name_(
+    Sample& smp,
+    F predicate,
+    bool remove_empty_pqueries
+) {
+    for( auto& pquery : smp ) {
+        // Remove names all where the name does not match.
+        auto& name_container = pquery.expose_names();
+        auto new_end_names = std::remove_if(
+            name_container.begin(),
+            name_container.end(),
+            [&]( PqueryName const& nm ){
+                return ! predicate( nm.name );
+            }
+        );
+        name_container.erase( new_end_names, name_container.end() );
+    }
+    if( remove_empty_pqueries ) {
+        remove_empty_name_pqueries( smp );
+    }
+}
+
+void filter_pqueries_keeping_names(
+    Sample& smp,
+    std::string const& regex,
+    bool remove_empty_pqueries
+) {
     std::regex pattern( regex );
-    auto new_past_the_end = std::remove_if(
-        smp.begin(),
-        smp.end(),
-        [&] ( Pquery const& pqry ) {
-            for( auto const& nm : pqry.names() ) {
-                if( regex_match( nm.name, pattern ) ) {
-                    return false;
-                }
-            }
-            return true;
-        }
-    );
-    smp.remove( new_past_the_end, smp.end() );
+    filter_pqueries_by_name_( smp, [&]( std::string const& name ){
+        return regex_match( name, pattern );
+    }, remove_empty_pqueries );
 }
 
-void filter_pqueries_keeping_names( Sample& smp, std::unordered_set<std::string> keep_list )
-{
-    auto new_past_the_end = std::remove_if(
-        smp.begin(),
-        smp.end(),
-        [&] ( Pquery const& pqry ) {
-            for( auto const& nm : pqry.names() ) {
-                if( keep_list.count( nm.name ) > 0 ) {
-                    return false;
-                }
-            }
-            return true;
-        }
-    );
-    smp.remove( new_past_the_end, smp.end() );
+void filter_pqueries_keeping_names(
+    Sample& smp,
+    std::unordered_set<std::string> const& keep_list,
+    bool remove_empty_pqueries
+) {
+    filter_pqueries_by_name_( smp, [&]( std::string const& name ){
+        return keep_list.count( name ) > 0;
+    }, remove_empty_pqueries );
 }
 
-void filter_pqueries_removing_names( Sample& smp, std::string const& regex )
-{
+void filter_pqueries_removing_names(
+    Sample& smp,
+    std::string const& regex,
+    bool remove_empty_pqueries
+) {
     std::regex pattern( regex );
-    auto new_past_the_end = std::remove_if(
-        smp.begin(),
-        smp.end(),
-        [&] ( Pquery const& pqry ) {
-            for( auto const& nm : pqry.names() ) {
-                if( regex_match( nm.name, pattern ) ) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    );
-    smp.remove( new_past_the_end, smp.end() );
+    filter_pqueries_by_name_( smp, [&]( std::string const& name ){
+        return ! regex_match( name, pattern );
+    }, remove_empty_pqueries );
 }
 
-void filter_pqueries_removing_names( Sample& smp, std::unordered_set<std::string> remove_list )
-{
-    auto new_past_the_end = std::remove_if(
-        smp.begin(),
-        smp.end(),
-        [&] ( Pquery const& pqry ) {
-            for( auto const& nm : pqry.names() ) {
-                if( remove_list.count( nm.name ) > 0 ) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    );
-    smp.remove( new_past_the_end, smp.end() );
+void filter_pqueries_removing_names(
+    Sample& smp,
+    std::unordered_set<std::string> const& remove_list,
+    bool remove_empty_pqueries
+) {
+    filter_pqueries_by_name_( smp, [&]( std::string const& name ){
+        return remove_list.count( name ) == 0;
+    }, remove_empty_pqueries );
 }
 
-void filter_pqueries_intersecting_names( Sample& sample_1, Sample& sample_2 )
-{
+void filter_pqueries_intersecting_names(
+    Sample& sample_1,
+    Sample& sample_2,
+    bool remove_empty_pqueries
+) {
     // Remove those pqueries from sample_2 which do not occur in sample_1.
     auto names = all_pquery_names( sample_1 );
-    filter_pqueries_keeping_names( sample_2, names );
+    filter_pqueries_keeping_names( sample_2, names, remove_empty_pqueries );
 
     // And vice versa (using the names of the already smaller sample_2).
     names = all_pquery_names( sample_2 );
-    filter_pqueries_keeping_names( sample_1, names );
+    filter_pqueries_keeping_names( sample_1, names, remove_empty_pqueries );
 }
 
-void filter_pqueries_differing_names( Sample& sample_1, Sample& sample_2 )
-{
+void filter_pqueries_differing_names(
+    Sample& sample_1,
+    Sample& sample_2,
+    bool remove_empty_pqueries
+) {
     // Yep, yep, this is wasteful. But it works for now.
 
     // Get all sorted names in sample 1 ...
@@ -406,23 +469,37 @@ void filter_pqueries_differing_names( Sample& sample_1, Sample& sample_2 )
     );
 
     // Remove all intersecting elements from the sampels.
-    filter_pqueries_removing_names( sample_1, symdiff );
-    filter_pqueries_removing_names( sample_2, symdiff );
+    filter_pqueries_removing_names( sample_1, symdiff, remove_empty_pqueries );
+    filter_pqueries_removing_names( sample_2, symdiff, remove_empty_pqueries );
 }
 
-size_t remove_empty_pqueries( Sample& sample )
+size_t remove_empty_name_pqueries( Sample& sample )
 {
-    size_t i = 0;
-    size_t r = 0;
-    while( i < sample.size() ) {
-        if( sample.at(i).placement_size() == 0 ) {
-            sample.remove( i );
-            ++r;
-        } else {
-            ++i;
+    size_t cnt = 0;
+    auto new_end_pqueries = std::remove_if(
+        sample.begin(),
+        sample.end(),
+        [&]( Pquery& pqry ){
+            cnt += static_cast<int>( pqry.name_size() == 0 );
+            return pqry.name_size() == 0;
         }
-    }
-    return r;
+    );
+    assert( cnt == static_cast<size_t>( sample.end() - new_end_pqueries ));
+    sample.remove( new_end_pqueries, sample.end() );
+    return cnt;
+
+    // Slow version.
+    // size_t i = 0;
+    // size_t r = 0;
+    // while( i < sample.size() ) {
+    //     if( sample.at(i).name_size() == 0 ) {
+    //         sample.remove( i );
+    //         ++r;
+    //     } else {
+    //         ++i;
+    //     }
+    // }
+    // return r;
 }
 
 // =================================================================================================
