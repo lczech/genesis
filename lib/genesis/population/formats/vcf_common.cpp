@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -48,42 +48,85 @@ namespace population {
 //     Typedefs and Enums
 // =================================================================================================
 
+// VcfHeaderLine
+static_assert(
+    static_cast<int>( VcfHeaderLine::kFilter ) == BCF_HL_FLT,
+    "Definitions of BCF_HL_FLT in htslib and of VcfHeaderLine::kFilter in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( VcfHeaderLine::kInfo ) == BCF_HL_INFO,
+    "Definitions of BCF_HL_INFO in htslib and of VcfHeaderLine::kInfo in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( VcfHeaderLine::kFormat ) == BCF_HL_FMT,
+    "Definitions of BCF_HL_FMT in htslib and of VcfHeaderLine::kFormat in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( VcfHeaderLine::kContig ) == BCF_HL_CTG,
+    "Definitions of BCF_HL_CTG in htslib and of VcfHeaderLine::kContig in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( VcfHeaderLine::kStructured ) == BCF_HL_STR,
+    "Definitions of BCF_HL_STR in htslib and of VcfHeaderLine::kStructured in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( VcfHeaderLine::kGeneric ) == BCF_HL_GEN,
+    "Definitions of BCF_HL_GEN in htslib and of VcfHeaderLine::kGeneric in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+
+// VcfValueType
 static_assert(
     static_cast<int>( VcfValueType::kFlag ) == BCF_HT_FLAG,
-    "genesis and htslib differ in their definition of VCF header type 'Flag'"
+    "Definitions of BCF_HT_FLAG in htslib and of VcfValueType::kFlag in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 static_assert(
     static_cast<int>( VcfValueType::kInteger ) == BCF_HT_INT,
-    "genesis and htslib differ in their definition of VCF header type 'Integer'"
+    "Definitions of BCF_HT_INT in htslib and of VcfValueType::kInteger in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 static_assert(
     static_cast<int>( VcfValueType::kFloat ) == BCF_HT_REAL,
-    "genesis and htslib differ in their definition of VCF header type 'Float'"
+    "Definitions of BCF_HT_REAL in htslib and of VcfValueType::kFloat in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 static_assert(
     static_cast<int>( VcfValueType::kString ) == BCF_HT_STR,
-    "genesis and htslib differ in their definition of VCF header type 'String'"
+    "Definitions of BCF_HT_STR in htslib and of VcfValueType::kString in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 
+// VcfValueSpecial
 static_assert(
     static_cast<int>( VcfValueSpecial::kFixed ) == BCF_VL_FIXED,
-    "genesis and htslib differ in their definition of VCF number 'fixed' (n)"
+    "Definitions of BCF_VL_FIXED in htslib and of VcfValueSpecial::kFixed in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 static_assert(
     static_cast<int>( VcfValueSpecial::kVariable ) == BCF_VL_VAR,
-    "genesis and htslib differ in their definition of VCF number 'variable' (.)"
+    "Definitions of BCF_VL_VAR in htslib and of VcfValueSpecial::kVariable in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 static_assert(
     static_cast<int>( VcfValueSpecial::kAllele ) == BCF_VL_A,
-    "genesis and htslib differ in their definition of VCF number 'allele' (A)"
+    "Definitions of BCF_VL_A in htslib and of VcfValueSpecial::kAllele in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 static_assert(
     static_cast<int>( VcfValueSpecial::kGenotype ) == BCF_VL_G,
-    "genesis and htslib differ in their definition of VCF number 'genotype' (G)"
+    "Definitions of BCF_VL_G in htslib and of VcfValueSpecial::kGenotype in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 static_assert(
     static_cast<int>( VcfValueSpecial::kReference ) == BCF_VL_R,
-    "genesis and htslib differ in their definition of VCF number 'reference' (R)"
+    "Definitions of BCF_VL_R in htslib and of VcfValueSpecial::kReference in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 
 // =================================================================================================

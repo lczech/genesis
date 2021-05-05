@@ -873,7 +873,7 @@ install:
   #   HTSLIB_INSTALL=${DEPS_DIR}/htslib
   #   git clone --recursive https://github.com/samtools/htslib.git ${HTSLIB_INSTALL}
   #   cd ${HTSLIB_INSTALL}
-  #   git checkout fd0f89554459b78c07303e2c8a42acacd6851b46
+  #   git checkout bd133acf51498431a5c7dfd8aa06ce17ec6d3b96
   #   autoheader
   #   autoconf
   #   ./configure

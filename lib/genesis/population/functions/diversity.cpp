@@ -419,7 +419,7 @@ double n_base( size_t coverage, size_t poolsize ) // get_nbase_buffer, but bette
     // in that hidden PoPoolation auxiliary equations document. See
     // https://math.stackexchange.com/questions/72223/finding-expected-number-of-distinct-values-selected-from-a-set-of-integers
     // for the proof. At the time of writing this, we are however still lacking the proof that
-    // the PoPoolation equation and the PoPoolation implementation are equivalent - thei never
+    // the PoPoolation equation and the PoPoolation implementation are equivalent - they never
     // show that, and instead just use their recursive dynamic programming approach (which we
     // re-implemented above) without ever showing (to the best of our knowledge) that this is
     // the same as the given equation.

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -99,6 +99,11 @@ void Sample::swap( Sample& other )
     swap( pqueries_, other.pqueries_ );
     swap( tree_,     other.tree_ );
     swap( metadata,  other.metadata );
+}
+
+void swap( Sample& lhs, Sample& rhs )
+{
+    lhs.swap( rhs );
 }
 
 // =================================================================================================

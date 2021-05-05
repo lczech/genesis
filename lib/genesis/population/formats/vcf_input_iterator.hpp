@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -357,7 +357,7 @@ private:
         assert( buffer_block_->size() == block_size_ );
 
         // Read the first block synchronously, so that there is data initialized to be dereferenced.
-        end_pos_ = read_block_( *current_block_ );
+        end_pos_ = VcfInputIterator::read_block_( file_, current_block_, block_size_ );
         assert( current_pos_ == 0 );
 
         // If there is less data than the block size, the file is already done.
@@ -393,21 +393,6 @@ private:
         }
     }
 
-    size_t read_block_( std::vector<VcfRecord>& target )
-    {
-        assert( file_ );
-        assert( target.size() == block_size_ );
-
-        // Read as long as there is data. Return number of read records.
-        size_t i = 0;
-        for( ; i < block_size_; ++i ) {
-            if( ! target[i].read_next( *file_ ) ) {
-                break;
-            }
-        }
-        return i;
-    }
-
     void fill_buffer_block_()
     {;
         assert( thread_pool_ );
@@ -418,13 +403,48 @@ private:
         assert( thread_pool_->load() == 0 );
         assert( ! future_->valid() );
 
+        // In order to use lambda captures by copy for class member variables in C++11, we first
+        // have to make local copies, and then capture those. Capturing the class members direclty
+        // was only introduced later. Bit cumbersome, but gets the work done.
+        auto file         = file_;
+        auto buffer_block = buffer_block_;
+        auto block_size   = block_size_;
+
         // The lambda returns the result of read_block_ call, that is, the number of records
         // that have been read, and which we later (in the future_) use to see how much data we got.
         *future_ = thread_pool_->enqueue(
-            [this](){
-                return read_block_( *this->buffer_block_ );
+            [ file, buffer_block, block_size ](){
+                return VcfInputIterator::read_block_( file, buffer_block, block_size );
             }
         );
+    }
+
+    static size_t read_block_(
+        std::shared_ptr<HtsFile> file,
+        std::shared_ptr<std::vector<VcfRecord>> target,
+        size_t block_size
+    ) {
+        // This is a static function that does not depend on the class member data, so that
+        // we can use it from the future lambda in the thread pool above without having to worry
+        // about lambda captures of `this` going extinct... which was an absolutely nasty bug to
+        // find! Such a rookie mistake! For that reason, we also take all arguments as shared
+        // pointers, so that they are kept alive while the thread pool is working.
+        // However, once its done with its work, the function (the one that we give to the thread
+        // pool with a lambda) is popped from the thread queue, so that the shared pointer can
+        // be freed again - that is, we do not need to worry about the lambda keeping the shared
+        // pointer from freeing its memory indefinitely.
+
+        assert( file );
+        assert( target->size() == block_size );
+
+        // Read as long as there is data. Return number of read records.
+        size_t i = 0;
+        for( ; i < block_size; ++i ) {
+            if( ! (*target)[i].read_next( *file ) ) {
+                break;
+            }
+        }
+        return i;
     }
 
     // -------------------------------------------------------------------------

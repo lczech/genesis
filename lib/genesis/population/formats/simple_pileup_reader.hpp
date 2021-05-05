@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -165,15 +165,55 @@ public:
     //     Reading
     // ---------------------------------------------------------------------
 
+    /**
+     * @brief Read an (m)pileup file line by line.
+     */
     std::vector<Record> read( std::shared_ptr< utils::BaseInputSource > source ) const;
+
+    /**
+     * @brief Read an (m)pileup file line by line, but only the samples at the given indices.
+     */
+    std::vector<Record> read(
+        std::shared_ptr< utils::BaseInputSource > source,
+        std::vector<size_t> const&                sample_indices
+    ) const;
+
+    /**
+     * @brief Read an (m)pileup file line by line, but only the samples at which the
+     * @p sample_filter is `true`.
+     *
+     * This filter does not need to contain the same number of values as the record has samples.
+     * If it is shorter, all samples after its last index will be ignored. If it is longer,
+     * the remaining entries are not used as a filter.
+     */
+    std::vector<Record> read(
+        std::shared_ptr< utils::BaseInputSource > source,
+        std::vector<bool> const&                  sample_filter
+    ) const;
 
     // -------------------------------------------------------------------------
     //     Parsing
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Read an (m)pileup line.
+     */
     bool parse_line(
         utils::InputStream& input_stream,
         Record&             record
+    ) const;
+
+    /**
+     * @brief Read an (m)pileup line, but only the samples at which the @p sample_filter is `true`.
+     *
+     * This filter does not need to contain the same number of values as the record has samples.
+     * If it is shorter, all samples after its last index will be ignored. If it is longer,
+     * the remaining entries are not used as a filter.
+     */
+    bool parse_line(
+        utils::InputStream&      input_stream,
+        Record&                  record,
+        std::vector<bool> const& sample_filter
     ) const;
 
     // -------------------------------------------------------------------------
@@ -251,26 +291,35 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Helper Functions
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Helper function to create a sample filter from a list of sample indices.
+     */
+    static std::vector<bool> make_sample_filter( std::vector<size_t> const& indices );
+
+    // -------------------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------------------
 
 private:
 
     bool parse_line_(
-        utils::InputStream& input_stream,
-        Record&             record
+        utils::InputStream&      input_stream,
+        Record&                  record,
+        std::vector<bool> const& sample_filter,
+        bool                     use_sample_filter
     ) const;
 
     void process_sample_(
         utils::InputStream& input_stream,
         Record&             record,
-        size_t              index
+        Sample&             sample
     ) const;
 
-    void parse_sample_fields_(
-        utils::InputStream& input_stream,
-        Record&             record,
-        Sample&             sample
+    void skip_sample_(
+        utils::InputStream& input_stream
     ) const;
 
     void next_field_(

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -296,17 +296,23 @@ double p_norm_distance(
     assert( p >= 1.0 );
     assert( std::isfinite( p ) || std::isinf( p ));
 
+    // For "normal" p norms, just add up. For maximum norm (p=inf), we need a special case,
+    // as double-precision arithmetics does not work the same as actual math :-)
     double sum = 0.0;
     size_t cnt = 0;
-
-    for_each_finite_pair( first_a, last_a, first_b, last_b, [&]( double val_a, double val_b ){
-        if( std::isfinite( p )) {
+    if( std::isfinite( p )) {
+        assert( p >= 1.0 );
+        for_each_finite_pair( first_a, last_a, first_b, last_b, [&]( double val_a, double val_b ){
             sum += std::pow( std::abs( val_a - val_b ), p );
-        } else {
+            ++cnt;
+        });
+    } else {
+        assert( std::isinf( p ));
+        for_each_finite_pair( first_a, last_a, first_b, last_b, [&]( double val_a, double val_b ){
             sum = std::max( sum, std::abs( val_a - val_b ) );
-        }
-        ++cnt;
-    });
+            ++cnt;
+        });
+    }
 
     // If there are no valid elements, return an all-zero result.
     if( cnt == 0 ) {

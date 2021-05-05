@@ -396,7 +396,7 @@ ENDIF()
 # ----------------------------------------------------------
 
 # Store the commit hash that we want to check out for htslib.
-SET( htslib_COMMIT_HASH "fd0f89554459b78c07303e2c8a42acacd6851b46" ) #htslib_COMMIT_HASH#
+SET( htslib_COMMIT_HASH "bd133acf51498431a5c7dfd8aa06ce17ec6d3b96" ) #htslib_COMMIT_HASH#
 
 if(GENESIS_USE_HTSLIB)
     message (STATUS "Looking for htslib")

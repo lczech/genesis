@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -53,33 +53,41 @@ namespace population {
 //     Typedefs and Enums
 // =================================================================================================
 
+// VariantType
 static_assert(
     static_cast<int>( VcfRecord::VariantType::kRef ) == VCF_REF,
-    "genesis and htslib differ in their definition of VCF variant type 'REF'"
+    "Definitions of VCF_REF in htslib and of VariantType::kRef in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 static_assert(
     static_cast<int>( VcfRecord::VariantType::kSnp ) == VCF_SNP,
-    "genesis and htslib differ in their definition of VCF variant type 'SNP'"
+    "Definitions of VCF_SNP in htslib and of VariantType::kSnp in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 static_assert(
     static_cast<int>( VcfRecord::VariantType::kMnp ) == VCF_MNP,
-    "genesis and htslib differ in their definition of VCF variant type 'MNP'"
+    "Definitions of VCF_MNP in htslib and of VariantType::kMnp in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 static_assert(
     static_cast<int>( VcfRecord::VariantType::kIndel ) == VCF_INDEL,
-    "genesis and htslib differ in their definition of VCF variant type 'INDEL'"
+    "Definitions of VCF_INDEL in htslib and of VariantType::kIndel in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 static_assert(
     static_cast<int>( VcfRecord::VariantType::kOther ) == VCF_OTHER,
-    "genesis and htslib differ in their definition of VCF variant type 'OTHER'"
+    "Definitions of VCF_OTHER in htslib and of VariantType::kOther in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 static_assert(
     static_cast<int>( VcfRecord::VariantType::kBreakend ) == VCF_BND,
-    "genesis and htslib differ in their definition of VCF variant type 'BND'"
+    "Definitions of VCF_BND in htslib and of VariantType::kBreakend in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 static_assert(
     static_cast<int>( VcfRecord::VariantType::kOverlap ) == VCF_OVERLAP,
-    "genesis and htslib differ in their definition of VCF variant type 'OVERLAP'"
+    "Definitions of VCF_OVERLAP in htslib and of VariantType::kOverlap in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
 );
 
 // =================================================================================================

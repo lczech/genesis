@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -44,8 +44,11 @@
 #include <vector>
 
 extern "C" {
-    #include <htslib/hts.h>
-    #include <htslib/vcf.h>
+    // #include <htslib/hts.h>
+    // #include <htslib/vcf.h>
+
+    struct bcf_hdr_t;
+    struct bcf1_t;
 }
 
 namespace genesis {
@@ -63,6 +66,94 @@ using VcfFormatIteratorString   = VcfFormatIterator<char*, std::string>;
 using VcfFormatIteratorInt      = VcfFormatIterator<int32_t, int32_t>;
 using VcfFormatIteratorFloat    = VcfFormatIterator<float, double>;
 using VcfFormatIteratorGenotype = VcfFormatIterator<int32_t, VcfGenotype>;
+
+// =================================================================================================
+//     VCF/BCF Format Helper
+// =================================================================================================
+
+/**
+ * @brief Provide htslib helper functions.
+ *
+ * This class only exists so that we do not need to include the htslib headers in our headers.
+ * By doing so, we avoid polluting our user's global namespace with htslib symbols, and also do
+ * not have them to link against htlib. The downside is that we need to replicate code from htslib
+ * here, and then statically assert that constants etc are identical... Ugly, but the price we pay.
+ *
+ * This class here serves as a non-templated class that can have a compilation unit, which we cannot
+ * have for the below class template.
+ */
+class VcfFormatHelper
+{
+private:
+
+    // Need constructor only to have static asserts have access to class members
+    VcfFormatHelper();
+
+    template< typename S, typename T >
+    friend class VcfFormatIterator;
+
+    // Need these in VcfFormatIterator to not include the htslib headers... not sure if this is
+    // a good idea after all... maybe we should have just rolled with it and included them...
+    static const int8_t  bcf_int8_vector_end_  = (-127);         /* INT8_MIN  + 1 */
+    static const int16_t bcf_int16_vector_end_ = (-32767);       /* INT16_MIN + 1 */
+    static const int32_t bcf_int32_vector_end_ = (-2147483647);  /* INT32_MIN + 1 */
+    static const int64_t bcf_int64_vector_end_ = (-9223372036854775807LL);  /* INT64_MIN + 1 */
+    static const char    bcf_str_vector_end_   = 0;
+    static const int8_t  bcf_int8_missing_     = (-128);          /* INT8_MIN  */
+    static const int16_t bcf_int16_missing_    = (-32767-1);      /* INT16_MIN */
+    static const int32_t bcf_int32_missing_    = (-2147483647-1); /* INT32_MIN */
+    static const int64_t bcf_int64_missing_    = (-9223372036854775807LL - 1LL);  /* INT64_MIN */
+    static const char    bcf_str_missing_      = 0x07;
+
+    /**
+     * @brief Wrapper for htslib bcf_hdr_nsamples to be able to use this in our templated header
+     * functions and classes, such as VcfFormatIterator, without having to include htslib there.
+     * It is a macro there, so we cannot forward declare it...
+     */
+    static int32_t bcf_hdr_nsamples_( ::bcf_hdr_t const* header );
+
+    /**
+     * @brief Wrapper for htslib header->samples[index] to be able to use this in our templated header
+     * functions and classes, such as VcfFormatIterator, without having to include htslib there.
+     * It is part of a struct, so we cannot forward declare it...
+     */
+    static std::string hdr_sample_name_( ::bcf_hdr_t const* header, size_t index );
+
+    /**
+     * @brief Wrap htslib bcf_get_format_string() so that we can use it in VcfFormatIterator
+     * without having to include the htslib header there.
+     */
+    static int bcf_get_format_string_(
+        const bcf_hdr_t *hdr, bcf1_t *line, const char *tag, char ***dst, int *ndst
+    );
+
+    /**
+     * @brief Wrap htslib bcf_get_format_values() so that we can use it in VcfFormatIterator
+     * without having to include the htslib header there.
+     */
+    static int bcf_get_format_values_(
+        const bcf_hdr_t *hdr, bcf1_t *line, const char *tag, void **dst, int *ndst, int type
+    );
+
+    /**
+     * @brief Wrap htslib bcf_get_genotypes() so that we can use it in VcfFormatIterator
+     * without having to include the htslib header there.
+     */
+    static int bcf_get_genotypes_( const bcf_hdr_t *hdr, bcf1_t *line, void **dst, int *ndst );
+
+    /**
+     * @brief Wrap htslib bcf_float_is_vector_end() so that we can use it in VcfFormatIterator
+     * without having to include the htslib header there.
+     */
+    static int bcf_float_is_vector_end_(float f);
+
+    /**
+     * @brief Wrap htslib bcf_float_is_missing() so that we can use it in VcfFormatIterator
+     * without having to include the htslib header there.
+     */
+    static int bcf_float_is_missing_(float f);
+
+};
 
 // =================================================================================================
 //     VCF/BCF Format/Sample Iterator
@@ -235,7 +326,10 @@ public:
         // In that case, we have res >= 0 indicating the number of total values, so these
         // are the same then.
         VcfHeader::check_value_return_code_(
-            header_, id, static_cast<int>( ht_type ), BCF_HL_FMT, res
+            // In order to not include the htslib headers here, we have to use a fixed value
+            // that we define ourselves, instead of their definition BCF_HL_FMT = 2.
+            // We statically assert that they are identical in vcf_common.cpp
+            header_, id, static_cast<int>( ht_type ), static_cast<int>( VcfHeaderLine::kFormat ), res
         );
         assert( value_buffer_ );
         assert( res >= 0 );
@@ -254,7 +348,9 @@ public:
         // corresponds to something like the longest string (plus some extra), instead of the number
         // of values. That means that strings can never have more than one value, and that we need
         // to set their values_total_ differently (which we do in construct_values_)...
-        num_samples_ = bcf_hdr_nsamples(header);
+        // We use our wrapper VcfFormatHelper::bcf_hdr_nsamples_ here, which wraps bcf_hdr_nsamples()
+        // so that we do not have to include htslib here.
+        num_samples_ = VcfFormatHelper::bcf_hdr_nsamples_(header);
         assert( static_cast<size_t>( values_total_ ) % num_samples_ == 0 );
         values_per_sample_ = static_cast<size_t>( values_total_ ) / num_samples_;
         assert( values_per_sample_ * num_samples_ == static_cast<size_t>( values_total_ ));
@@ -419,9 +515,15 @@ public:
      */
     std::string sample_name() const
     {
-        assert( static_cast<int32_t>( num_samples_ ) == bcf_hdr_nsamples( header_ ));
+        // We use our wrapper VcfFormatHelper::bcf_hdr_nsamples_ here, which wraps bcf_hdr_nsamples()
+        // so that we do not have to include htslib here.
+        assert( static_cast<int32_t>( num_samples_ ) == VcfFormatHelper::bcf_hdr_nsamples_( header_ ));
         assert( sample_idx_ < num_samples_ );
-        return header_->samples[sample_idx_];
+
+        // We use our wrapper VcfFormatHelper::hdr_sample_name_ here, which wraps
+        // header->samples[index]() so that we do not have to include htslib here.
+        return VcfFormatHelper::hdr_sample_name_( header_, sample_idx_ );
+        // return header_->samples[sample_idx_];
     }
 
     /**
@@ -501,9 +603,15 @@ public:
     std::string sample_name_at( size_t sample_index ) const
     {
         test_index_boundaries_( sample_index, 0, true );
-        assert( static_cast<int32_t>( num_samples_ ) == bcf_hdr_nsamples( header_ ));
+        // We use our wrapper VcfFormatHelper::bcf_hdr_nsamples_ here, which wraps bcf_hdr_nsamples()
+        // so that we do not have to include htslib here.
+        assert( static_cast<int32_t>( num_samples_ ) == VcfFormatHelper::bcf_hdr_nsamples_( header_ ));
         assert( sample_index < num_samples_ );
-        return header_->samples[sample_index];
+
+        // We use our wrapper VcfFormatHelper::hdr_sample_name_ here,
+        // which wraps header->samples[index]() so that we do not have to include htslib here.
+        return VcfFormatHelper::hdr_sample_name_( header_, sample_index );
+        // return header_->samples[sample_index];
     }
 
     /**
@@ -584,7 +692,9 @@ public:
     std::vector<T> get_values_at( size_t sample_index, bool include_missing = false ) const
     {
         test_index_boundaries_( sample_index, 0, true );
-        assert( static_cast<int32_t>( num_samples_ ) == bcf_hdr_nsamples( header_ ));
+        // We use our wrapper VcfFormatHelper::bcf_hdr_nsamples_ here, which
+        // wraps bcf_hdr_nsamples() so that we do not have to include htslib here.
+        assert( static_cast<int32_t>( num_samples_ ) == VcfFormatHelper::bcf_hdr_nsamples_( header_ ));
         assert( sample_index < num_samples_ );
 
         std::vector<T> result;
@@ -776,7 +886,9 @@ private:
      * number indicating some error, or the non-negative number that indicates the number of valid
      * values that have been allocated (in which case it is the same as values_total_).
      */
-    int construct_values_( ::bcf_hdr_t* header, ::bcf1_t* record, std::string const& id, VcfValueType ht_type );
+    int construct_values_(
+        ::bcf_hdr_t* header, ::bcf1_t* record, std::string const& id, VcfValueType ht_type
+    );
 
     /**
      * @brief Test whether a value is marked as the end-of-vector by htslib.
@@ -858,9 +970,9 @@ inline int VcfFormatIterator<int32_t, int32_t>::construct_values_(
     // we do this in two steps, transferring ownership to the shared_ptr after the htslib call.
     // We need a custom deleter for the shared_ptr, as C++11 does not support delete[] for this
     // out of the box (see https://stackoverflow.com/a/13062069/4184258).
-    assert( static_cast<int>( ht_type ) == BCF_HT_INT );
+    assert( static_cast<int>( ht_type ) == static_cast<int>( VcfValueType::kInteger ));
     int32_t* tmp_ptr = nullptr;
-    values_total_ = bcf_get_format_values(
+    values_total_ = VcfFormatHelper::bcf_get_format_values_(
         header, record, id.c_str(), reinterpret_cast<void**>( &tmp_ptr ),
         &values_reserved_, static_cast<int>( ht_type )
     );
@@ -873,9 +985,9 @@ inline int VcfFormatIterator<float, double>::construct_values_(
     ::bcf_hdr_t* header, ::bcf1_t* record, std::string const& id, VcfValueType ht_type
 ) {
     // See above <int32_t, int32_t> for an explanation. Here, it's the same, just for float.
-    assert( static_cast<int>( ht_type ) == BCF_HT_REAL );
+    assert( static_cast<int>( ht_type ) == static_cast<int>( VcfValueType::kFloat ));
     float* tmp_ptr = nullptr;
-    values_total_ = bcf_get_format_values(
+    values_total_ = VcfFormatHelper::bcf_get_format_values_(
         header, record, id.c_str(), reinterpret_cast<void**>( &tmp_ptr ),
         &values_reserved_, static_cast<int>( ht_type )
     );
@@ -892,9 +1004,9 @@ inline int VcfFormatIterator<char*, std::string>::construct_values_(
     // function, and need two deletion steps to free the char* as well as the char** memory,
     // so we use a custom deleter here that does both.
     (void) ht_type;
-    assert( static_cast<int>( ht_type ) == BCF_HT_STR );
+    assert( static_cast<int>( ht_type ) == static_cast<int>( VcfValueType::kString ));
     char** tmp_ptr = nullptr;
-    int const res = bcf_get_format_string(
+    int const res = VcfFormatHelper::bcf_get_format_string_(
         header, record, id.c_str(), &tmp_ptr, &values_reserved_
     );
     value_buffer_ = std::shared_ptr<char*>( tmp_ptr, [](char** ptr){
@@ -908,7 +1020,10 @@ inline int VcfFormatIterator<char*, std::string>::construct_values_(
     // but seems to be just assumed). Also, that means that we have to manually set the value total
     // to a useful value, which for our purposes has to be the number of samples, so that
     // our division to get values_per_sample_ works out properly.
-    values_total_ = bcf_hdr_nsamples(header);
+
+    // We use our wrapper VcfFormatHelper::bcf_hdr_nsamples_ here, which wraps bcf_hdr_nsamples()
+    // so that we do not have to include htslib here.
+    values_total_ = VcfFormatHelper::bcf_hdr_nsamples_(header);
 
     // Now let's return our htslib function call result, which is only used to test that it is
     // not negative (which would indicate an error).
@@ -919,7 +1034,7 @@ template<>
 inline int VcfFormatIterator<int32_t, VcfGenotype>::construct_values_(
     ::bcf_hdr_t* header, ::bcf1_t* record, std::string const& id, VcfValueType ht_type
 ) {
-    // This class is supposed to be only instanciated from the VcfRecord iterator begin/end functions.
+    // This class is supposed to be only instanciated from the VcfFormatHelper iterator begin/end functions.
     // Hence, we here simply assert that the provided values are correct.
     // if( id != "GT" ) {
     //     throw std::invalid_argument(
@@ -937,12 +1052,12 @@ inline int VcfFormatIterator<int32_t, VcfGenotype>::construct_values_(
     (void) id;
     (void) ht_type;
     assert( id == "GT" );
-    assert( static_cast<int>( ht_type ) == BCF_HT_INT );
+    assert( static_cast<int>( ht_type ) == static_cast<int>( VcfValueType::kInteger ));
 
     // See above <int32_t, int32_t> for an explanation. Here, it's the same, but we later convert
     // to our VcfGenotype instance instead (implicitly, when returning a value).
     int32_t* tmp_ptr = nullptr;
-    values_total_ = bcf_get_genotypes(
+    values_total_ = VcfFormatHelper::bcf_get_genotypes_(
         header, record, reinterpret_cast<void**>( &tmp_ptr ), &values_reserved_
     );
     value_buffer_ = std::shared_ptr<int32_t>( tmp_ptr, std::default_delete<int32_t[]>());
@@ -956,26 +1071,26 @@ inline int VcfFormatIterator<int32_t, VcfGenotype>::construct_values_(
 template<>
 inline bool VcfFormatIterator<int32_t, int32_t>::is_vector_end_( int32_t val ) const
 {
-    return val == bcf_int32_vector_end;
+    return val == VcfFormatHelper::bcf_int32_vector_end_;
 }
 
 template<>
 inline bool VcfFormatIterator<float, double>::is_vector_end_( float val ) const
 {
-    return bcf_float_is_vector_end( val );
+    return VcfFormatHelper::bcf_float_is_vector_end_( val );
 }
 
 template<>
 inline bool VcfFormatIterator<char*, std::string>::is_vector_end_( char* val ) const
 {
     assert( val );
-    return *val == bcf_str_vector_end;
+    return *val == VcfFormatHelper::bcf_str_vector_end_;
 }
 
 template<>
 inline bool VcfFormatIterator<int32_t, VcfGenotype>::is_vector_end_( int32_t val ) const
 {
-    return val == bcf_int32_vector_end;
+    return val == VcfFormatHelper::bcf_int32_vector_end_;
 }
 
 // -------------------------------------------------------------------------
@@ -985,26 +1100,26 @@ inline bool VcfFormatIterator<int32_t, VcfGenotype>::is_vector_end_( int32_t val
 template<>
 inline bool VcfFormatIterator<int32_t, int32_t>::is_missing_value_( int32_t val ) const
 {
-    return val == bcf_int32_missing;
+    return val == VcfFormatHelper::bcf_int32_missing_;
 }
 
 template<>
 inline bool VcfFormatIterator<float, double>::is_missing_value_( float val ) const
 {
-    return bcf_float_is_missing( val );
+    return VcfFormatHelper::bcf_float_is_missing_( val );
 }
 
 template<>
 inline bool VcfFormatIterator<char*, std::string>::is_missing_value_( char* val ) const
 {
     assert( val );
-    return *val == bcf_str_missing;
+    return *val == VcfFormatHelper::bcf_str_missing_;
 }
 
 template<>
 inline bool VcfFormatIterator<int32_t, VcfGenotype>::is_missing_value_( int32_t val ) const
 {
-    return val == bcf_int32_missing;
+    return val == VcfFormatHelper::bcf_int32_missing_;
 }
 
 } // namespace population

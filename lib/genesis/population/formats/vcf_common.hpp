@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -37,10 +37,10 @@
 #include <string>
 #include <vector>
 
-// extern "C" {
-//     #include <htslib/hts.h>
-//     #include <htslib/vcf.h>
-// }
+extern "C" {
+    // #include <htslib/vcf.h>
+    // #include <htslib/hts.h>
+}
 
 namespace genesis {
 namespace population {
@@ -48,6 +48,24 @@ namespace population {
 // =================================================================================================
 //     Typedefs and Enums
 // =================================================================================================
+
+/**
+ * @brief Specification for the values determining header line types of VCF/BCF files.
+ *
+ * This list contains the types of header lines that htslib uses for identification,
+ * as specified in the VCF header.
+ * Corresponds to the `BCF_HL_*` macro constants defined by htslib. We statically assert
+ * that these have the same values.
+ */
+enum class VcfHeaderLine : int
+{
+    kFilter     = 0,
+    kInfo       = 1,
+    kFormat     = 2,
+    kContig     = 3,
+    kStructured = 4, // structured header line TAG=<A=..,B=..>
+    kGeneric    = 5  // generic header line
+};
 
 /**
  * @brief Specification for the data type of the values expected in key-value-pairs of VCF/BCF files.
@@ -88,9 +106,9 @@ enum class VcfValueSpecial : int
     kFixed = 0,
 
     /**
-    * @brief Variable number of possible values, or unknown, or unbounded.
-    * In VCF, this is denoted by '.'.
-    */
+     * @brief Variable number of possible values, or unknown, or unbounded.
+     * In VCF, this is denoted by '.'.
+     */
     kVariable = 1,
 
     /**
@@ -99,9 +117,9 @@ enum class VcfValueSpecial : int
     kAllele = 2,
 
     /**
-    * One value for each possible genotype (more relevant to the FORMAT tags).
-    * In VCF, this is denoated as 'G'.
-    */
+     * One value for each possible genotype (more relevant to the FORMAT tags).
+     * In VCF, this is denoated as 'G'.
+     */
     kGenotype = 3,
 
     /**
