@@ -137,16 +137,15 @@ public:
         //     Accessors
         // -------------------------------------------------------------------------
 
-        // Does this have to be west const, so that if value_type is a ref, it still works?!
-        const T operator*() const
+        T const& operator*() const
         {
             return *current_element_;
         }
 
-        T operator*()
-        {
-            return *current_element_;
-        }
+        // T operator*()
+        // {
+        //     return *current_element_;
+        // }
 
         // -------------------------------------------------------------------------
         //     Iteration
@@ -237,6 +236,9 @@ private:
 
 };
 
+/**
+ * @brief Alias for the internal iterator of a LambdaIteratorGenerator for easier usage.
+ */
 template<class T>
 using LambdaIterator = typename LambdaIteratorGenerator<T>::LambdaIterator;
 
