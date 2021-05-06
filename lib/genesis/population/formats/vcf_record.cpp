@@ -162,6 +162,11 @@ void VcfRecord::swap( VcfRecord& other )
 //     Simple Fixed Columns
 // =================================================================================================
 
+void VcfRecord::unpack() const
+{
+    ::bcf_unpack( record_, BCF_UN_STR );
+}
+
 std::string VcfRecord::get_chromosome() const
 {
     return ::bcf_hdr_id2name( header_->data(), record_->rid );
@@ -355,7 +360,12 @@ std::vector<std::string> VcfRecord::get_info_ids() const
 
 bool VcfRecord::has_info( std::string const& id ) const
 {
-    return ::bcf_get_info( header_->data(), record_, id.c_str() ) != nullptr;
+    return has_info( id.c_str() );
+}
+
+bool VcfRecord::has_info( char const* id ) const
+{
+    return ::bcf_get_info( header_->data(), record_, id ) != nullptr;
 
     // The below code seems to return whether the field exists at all in the header... not what we want.
     // int const id = bcf_hdr_id2int( header_->data(), BCF_DT_ID, id.c_str() );
@@ -364,9 +374,14 @@ bool VcfRecord::has_info( std::string const& id ) const
 
 void VcfRecord::assert_info( std::string const& id ) const
 {
-    if( ! ::bcf_get_info( header_->data(), record_, id.c_str() )) {
+    assert_info( id.c_str() );
+}
+
+void VcfRecord::assert_info( char const* id ) const
+{
+    if( ! ::bcf_get_info( header_->data(), record_, id )) {
         throw std::runtime_error(
-            "Required INFO tag " + id + " is not present in the record at " + at()
+            "Required INFO tag " + std::string( id ) + " is not present in the record at " + at()
         );
     }
 }
@@ -471,15 +486,26 @@ std::vector<std::string> VcfRecord::get_format_ids() const
 
 bool VcfRecord::has_format( std::string const& id ) const
 {
-    return ::bcf_get_fmt( header_->data(), record_, id.c_str() ) != nullptr;
+    return has_format( id.c_str() );
+
+}
+
+bool VcfRecord::has_format( char const* id ) const
+{
+    return ::bcf_get_fmt( header_->data(), record_, id ) != nullptr;
 
 }
 
 void VcfRecord::assert_format( std::string const& id ) const
 {
-    if( ! ::bcf_get_fmt( header_->data(), record_, id.c_str() )) {
+    assert_format( id.c_str() );
+}
+
+void VcfRecord::assert_format( char const* id ) const
+{
+    if( ! ::bcf_get_fmt( header_->data(), record_, id )) {
         throw std::runtime_error(
-            "Required FORMAT tag " + id + " is not present in the record at " + at()
+            "Required FORMAT tag " + std::string( id ) + " is not present in the record at " + at()
         );
     }
 }

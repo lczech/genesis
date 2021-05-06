@@ -33,7 +33,14 @@
 #include "genesis/population/functions/base_counts.hpp"
 #include "genesis/utils/io/char.hpp"
 
+extern "C" {
+    #include <htslib/hts.h>
+    #include <htslib/vcf.h>
+}
+
+#include <array>
 #include <cassert>
+#include <cstring>
 #include <stdexcept>
 
 namespace genesis {
@@ -172,21 +179,39 @@ Variant convert_to_variant( VcfRecord const& record )
 
     // Get all variants (REF and ALT), and check them. We manually add deletion here if ALT == ".",
     // as this is not part of the variants provided from htslib.
-    auto vars = record.get_variants();
-    if( vars.size() == 1 ) {
-        assert( record.get_alternatives().empty() );
-        vars.push_back( "." );
+    // There are only 6 possible single nucleotide variants (ACGTN.), so we save the effort of
+    // creating an intermediate vector, and use a fixed size array and a counter instead.
+    // Also, we use htslib functions directly on the vcf record to not have to go through
+    // string allocations for each alternative.
+    record.unpack();
+    auto rec_data = record.data();
+
+    // The n_allele count does not include deletions ('.'), meaning that if there is inly a single
+    // variant, we manually adjust this to also include the deletion.
+    // To avoid too much branching, we init the array so that we have all deletions initially,
+    // and hence do not need to overwrite in the case that we added that deletion manually
+    // to the counter.
+    size_t const var_cnt = rec_data->n_allele == 1 ? rec_data->n_allele + 1 : rec_data->n_allele;
+    auto vars = std::array<char, 6>{ '.', '.', '.', '.', '.', '.' };
+    if( var_cnt > 6 ) {
+        throw std::runtime_error(
+            "Invalid VCF Record that contains a REF or ALT sequence/allele with "
+            "invalid nucleitides where only `[ACGTN.]` are allowed."
+        );
     }
-    for( auto const& var : vars ) {
-        if( var.size() != 1 ) {
+
+    // Now store all single nucleotide alleles that are in the record
+    // (we only count up to the actual number that is there, so that the missing deletion [in case
+    // that this record has a deletion] is not touched).
+    for( size_t i = 0; i < rec_data->n_allele; ++i ) {
+        if( std::strlen( rec_data->d.allele[i] ) != 1 ) {
             throw std::runtime_error(
                 "Cannot convert VcfRecord to Variant, as one of the VcfRecord REF or ALT "
-                "sequences/alleles is not a single nucleotide"
+                "sequences/alleles is not a single nucleotide."
             );
         }
+        vars[i] = *rec_data->d.allele[i];
     }
-    assert( vars.size() > 1 );
-    assert( vars[0].size() == 1 );
 
     // Prepare common fields of the result.
     // For the reference base, we use the first nucleotide of the first variant (REF);
@@ -195,15 +220,15 @@ Variant convert_to_variant( VcfRecord const& record )
     Variant result;
     result.chromosome       = record.get_chromosome();
     result.position         = record.get_position();
-    result.reference_base   = vars[0][0];
-    result.alternative_base = vars[1][0]; // TODO this is only reasonable for biallelic SNPs
+    result.reference_base   = vars[0];
+    result.alternative_base = vars[1]; // TODO this is only reasonable for biallelic SNPs
 
     // Process the samples that are present in the VCF record line.
     result.samples.reserve( record.header().get_sample_count() );
     for( auto const& sample_ad : record.get_format_int("AD") ) {
-        if( sample_ad.valid_value_count() > 0 && sample_ad.valid_value_count() != vars.size() ) {
+        if( sample_ad.valid_value_count() > 0 && sample_ad.valid_value_count() != var_cnt ) {
             throw std::runtime_error(
-                "Invalid VCF Record that contains " + std::to_string( vars.size() ) +
+                "Invalid VCF Record that contains " + std::to_string( var_cnt ) +
                 " REF and ALT sequences/alleles, but its FORMAT field 'AD' only contains " +
                 std::to_string( sample_ad.valid_value_count() ) + " entries"
             );
@@ -216,8 +241,6 @@ Variant convert_to_variant( VcfRecord const& record )
         for( size_t i = 0; i < sample_ad.valid_value_count(); ++i ) {
 
             // Get the nucleitide and its count.
-            assert( vars[i].size() == 1 );
-            char const nt = vars[i][0];
             auto const cnt = sample_ad.get_value_at(i);
             if( cnt < 0 ) {
                 throw std::runtime_error(
@@ -226,7 +249,7 @@ Variant convert_to_variant( VcfRecord const& record )
             }
 
             // Add it to the respective count variable of the sample.
-            switch( nt ) {
+            switch( vars[i] ) {
                 case 'a':
                 case 'A': {
                     sample.a_count = cnt;
@@ -259,8 +282,8 @@ Variant convert_to_variant( VcfRecord const& record )
                 default: {
                     throw std::runtime_error(
                         "Invalid VCF Record that contains a REF or ALT sequence/allele with "
-                        "invalid nucleitide `" + std::string( 1, nt ) + "` where only `[ACGTN]` "
-                        "are allowed"
+                        "invalid nucleitide `" + std::string( 1, vars[i] ) + "` where only `[ACGTN.]` "
+                        "are allowed."
                     );
                 }
             }

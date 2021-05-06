@@ -226,6 +226,16 @@ public:
         return *header_;
     }
 
+    /**
+     * @brief Unpack the htslib `bcf1_t` record data.
+     *
+     * Some external functions might want to work with the `bcf1_t` record data struct pointer
+     * directly, but need to unpack the data first. This is not possible when the VcfRecord is
+     * passed by const reference for example, so we offer this function that unpacks a const
+     * VcfRecord, so that its internal htslib data is available.
+     */
+    void unpack() const;
+
     // -------------------------------------------------------------------------
     //     Simple Fixed Columns
     // -------------------------------------------------------------------------
@@ -423,12 +433,22 @@ public:
     bool has_info( std::string const& id ) const;
 
     /**
+     * @copydoc VcfRecord::has_info( std::string const& )
+     */
+    bool has_info( char const* id ) const;
+
+    /**
      * @brief Assert that an INFO entry with a given @p id is present in the record.
      *
      * This is the same as has_info(), but throws an exception in case that the INFO ID is not
      * present.
      */
     void assert_info( std::string const& id ) const;
+
+    /**
+     * @copydoc VcfRecord::assert_info( std::string const& )
+     */
+    void assert_info( char const* ) const;
 
     /**
      * @brief Return the info value for the given key @p id as a string.
@@ -515,12 +535,22 @@ public:
     bool has_format( std::string const& id ) const;
 
     /**
+     * @copydoc VcfRecord::has_format( std::string const& )
+     */
+    bool has_format( char const* id ) const;
+
+    /**
      * @brief Assert that an FORMAT entry with a given @p id is present in the record.
      *
      * This is the same as has_format(), but throws an exception in case that the FORMAT ID is not
      * present.
      */
     void assert_format( std::string const& id ) const;
+
+    /**
+     * @copydoc VcfRecord::assert_format( std::string const& )
+     */
+    void assert_format( char const* id ) const;
 
     // -------------------------------------------------------------------------
     //     Sample Columns
@@ -687,7 +717,7 @@ private:
     // Here, we only manage the record_ pointer instance. The header takes care of itself,
     // and is only pointed to from here, but not managed.
     VcfHeader* header_ = nullptr;
-    ::bcf1_t* record_ = nullptr;
+    mutable ::bcf1_t* record_ = nullptr;
 
     // htslib wants to copy values all the time, so we reserve buffers to avoid reallocations.
     mutable char*    info_dest_string_  = nullptr;
