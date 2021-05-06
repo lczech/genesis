@@ -408,7 +408,10 @@ private:
         if( settings_.emit_leading_empty_windows ) {
             current_start_ = 0;
         } else {
-            current_start_ = settings_.position_function( *current_ );
+            // Set the start to the window position that we would get after going through all
+            // the previous windows if they were emitted.
+            auto const pos = settings_.position_function( *current_ );
+            current_start_ = pos - pos % settings_.stride;
         }
     }
 
@@ -507,26 +510,6 @@ make_sliding_window_iterator(
         settings, begin, end
     );
 }
-
-// template<class ForwardIterator, typename EntryInputFunctor, typename PositionFunctor>
-// utils::Range<SlidingWindowIterator<ForwardIterator, EntryInputFunctor, PositionFunctor>>
-// make_sliding_window_range(
-//     ForwardIterator begin, ForwardIterator end,
-//     EntryInputFunctor const& entry_function, PositionFunctor const& position_function,
-//     WindowType type, size_t width, size_t stride = 0, bool emit_leading_empty_windows = false
-// ) {
-//     using T = SlidingWindowIterator<ForwardIterator, EntryInputFunctor, PositionFunctor>;
-//     return utils::Range<T>(
-//         T(
-//             begin, end, entry_function, position_function,
-//             type, width, stride, emit_leading_empty_windows
-//         ),
-//         T(
-//             end, end, entry_function, position_function,
-//             type, width, stride, emit_leading_empty_windows
-//         )
-//     );
-// }
 
 } // namespace population
 } // namespace genesis
