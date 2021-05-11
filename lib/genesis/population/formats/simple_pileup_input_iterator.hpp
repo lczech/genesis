@@ -83,6 +83,7 @@ public:
     using value_type        = SimplePileupReader::Record;
     using pointer           = value_type*;
     using reference         = value_type&;
+    using const_reference   = value_type const&;
     using difference_type   = std::ptrdiff_t;
     using iterator_category = std::input_iterator_tag;
 
