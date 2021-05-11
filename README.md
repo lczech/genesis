@@ -4,10 +4,10 @@ A library for working with phylogenetic data.
 
 [![Build Status](https://travis-ci.org/lczech/genesis.svg?branch=master)](https://travis-ci.org/lczech/genesis)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/gpl.html)
-[![Softwipe Score](https://img.shields.io/badge/softwipe-9.0-blue)](https://github.com/adrianzap/softwipe/wiki/Code-Quality-Benchmark)
+[![Softwipe Score](https://img.shields.io/badge/softwipe-9.0/10.0-blue)](https://github.com/adrianzap/softwipe/wiki/Code-Quality-Benchmark)
 ![Language](https://img.shields.io/badge/language-C%2B%2B11-lightgrey.svg)
-<!--![Language](https://img.shields.io/badge/language-python-lightgrey.svg)-->
 [![Platforms](https://img.shields.io/conda/pn/bioconda/gappa)](https://anaconda.org/bioconda/gappa)
+<!--![Language](https://img.shields.io/badge/language-python-lightgrey.svg)-->
 
 Features
 -------------------
