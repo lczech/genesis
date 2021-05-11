@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -51,23 +51,62 @@ std::vector<Variant> SyncReader::read(
     utils::InputStream it( source );
 
     Variant sample_set;
-    while( parse_line( it, sample_set ) ) {
+    while( parse_line_( it, sample_set, {}, false )) {
         result.push_back( std::move( sample_set ));
+        sample_set = Variant{};
+    }
+    return result;
+}
+
+std::vector<Variant> SyncReader::read(
+    std::shared_ptr< utils::BaseInputSource > source,
+    std::vector<bool> const&                  sample_filter
+) const {
+    std::vector<Variant> result;
+    utils::InputStream it( source );
+
+    Variant sample_set;
+    while( parse_line_( it, sample_set, sample_filter, true )) {
+        result.push_back( std::move( sample_set ));
+        sample_set = Variant{};
     }
     return result;
 }
 
 bool SyncReader::parse_line(
     utils::InputStream& input_stream,
-    Variant& sample_set
+    Variant&            sample_set
 ) const {
+    return parse_line_( input_stream, sample_set, {}, false );
+}
+
+bool SyncReader::parse_line(
+    utils::InputStream&      input_stream,
+    Variant&                 sample_set,
+    std::vector<bool> const& sample_filter
+) const {
+    return parse_line_( input_stream, sample_set, sample_filter, true );
+}
+
+// =================================================================================================
+//     Internal Parsing
+// =================================================================================================
+
+bool SyncReader::parse_line_(
+    utils::InputStream&      input_stream,
+    Variant&                 sample_set,
+    std::vector<bool> const& sample_filter,
+    bool                     use_sample_filter
+) const {
+    using namespace genesis::utils;
+
     // Shorthand.
     auto& it = input_stream;
     if( !it ) {
         return false;
     }
 
-    // Read fixed columns
+    // Read fixed columns for chromosome and position.
     sample_set.chromosome = utils::read_until( it, []( char c ){ return c == '\t' || c == '\n'; });
     utils::read_char_or_throw( it, '\t' );
     sample_set.position = utils::parse_unsigned_integer<size_t>( it );
@@ -77,29 +116,55 @@ bool SyncReader::parse_line(
             std::string("In ") + it.source_name() + ": Unexpected end of line at " + it.at()
         );
     }
-    sample_set.reference_base = *it;
+
+    // Read and check fixed column for the refererence base.
+    auto const rb = to_upper( *it );
+    if( rb != 'A' && rb != 'C' && rb != 'G' && rb != 'T' && rb != 'N' && rb != '.' && rb != '*' ) {
+        throw std::runtime_error(
+            std::string("In ") + it.source_name() + ": Invalid reference base char " +
+            char_to_hex(rb) + " at " + it.at()
+        );
+    }
+    sample_set.reference_base = rb;
     ++it;
 
     // Read the samples. We switch once for the first line, and thereafter check that we read the
     // same number of samples each time.
     if( sample_set.samples.empty() ) {
+        size_t src_index = 0;
         while( it && *it != '\n' ) {
-            sample_set.samples.emplace_back();
-            parse_sample_( it, sample_set.samples.back() );
+            if( !use_sample_filter || ( src_index < sample_filter.size() && sample_filter[src_index] )) {
+                sample_set.samples.emplace_back();
+                parse_sample_( it, sample_set.samples.back() );
+            } else {
+                skip_sample_( it );
+            }
+            ++src_index;
         }
     } else {
-        size_t index = 0;
+        // Here we need two indices, one over the samples in the file (source),
+        // and one for the samples that we are writing in our Variant (destination).
+        size_t src_index = 0;
+        size_t dst_index = 0;
         while( it && *it != '\n' ) {
-            if( index >= sample_set.samples.size() ) {
-                throw std::runtime_error(
-                    "Malformed sync " + it.source_name() + " at " + it.at() +
-                    ": Line with different number of samples."
-                );
+            // If the numbers do not match, go straight to the error check and throw.
+            if( dst_index >= sample_set.samples.size() ) {
+                break;
             }
-            parse_sample_( it, sample_set.samples[ index ]);
-            ++index;
+
+            // Parse or skip, depending on filter.
+            if( !use_sample_filter || ( src_index < sample_filter.size() && sample_filter[src_index] )) {
+                assert( dst_index < sample_set.samples.size() );
+                parse_sample_( it, sample_set.samples[dst_index] );
+                ++dst_index;
+            } else {
+                skip_sample_( it );
+            }
+            ++src_index;
         }
-        if( index != sample_set.samples.size() ) {
+
+        // Need to have the exact size of samples in the line.
+        if( dst_index != sample_set.samples.size() ) {
             throw std::runtime_error(
                 "Malformed sync " + it.source_name() + " at " + it.at() +
                 ": Line with different number of samples."
@@ -132,6 +197,31 @@ void SyncReader::parse_sample_(
     sample.n_count = parse_unsigned_integer<size_t>( input_stream );
     read_char_or_throw( input_stream, ':' );
     sample.d_count = parse_unsigned_integer<size_t>( input_stream );
+}
+
+void SyncReader::skip_sample_(
+    utils::InputStream& input_stream
+) const {
+    using namespace genesis::utils;
+
+    // The skip functions are slow, because they need char by char access to the input stream.
+    // Need to fix this at some point. For now, just read into an unused dummy.
+    BaseCounts dummy;
+    parse_sample_( input_stream, dummy );
+
+    // Simply skip everything.
+    // read_char_or_throw( input_stream, '\t' );
+    // skip_while( input_stream, is_digit );
+    // read_char_or_throw( input_stream, ':' );
+    // skip_while( input_stream, is_digit );
+    // read_char_or_throw( input_stream, ':' );
+    // skip_while( input_stream, is_digit );
+    // read_char_or_throw( input_stream, ':' );
+    // skip_while( input_stream, is_digit );
+    // read_char_or_throw( input_stream, ':' );
+    // skip_while( input_stream, is_digit );
+    // read_char_or_throw( input_stream, ':' );
+    // skip_while( input_stream, is_digit );
 }
 
 } // namespace population

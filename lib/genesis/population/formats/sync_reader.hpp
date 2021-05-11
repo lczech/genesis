@@ -42,11 +42,11 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     PoPoolation Synchronized File Reader
+//     PoPoolation2 Synchronized File Reader
 // =================================================================================================
 
 /**
- * @brief Reader for PoPoolation's "synchronized" files.
+ * @brief Reader for PoPoolation2's "synchronized" files.
  *
  * These files are a simple tally of the counts at each position and sample in a (m)pileup file.
  * See https://sourceforge.net/p/popoolation2/wiki/Tutorial/ for the format description.
@@ -72,7 +72,14 @@ public:
     //     Reading
     // ---------------------------------------------------------------------
 
-    std::vector<Variant> read( std::shared_ptr< utils::BaseInputSource > source ) const;
+    std::vector<Variant> read(
+        std::shared_ptr< utils::BaseInputSource > source
+    ) const;
+
+    std::vector<Variant> read(
+        std::shared_ptr< utils::BaseInputSource > source,
+        std::vector<bool> const&                  sample_filter
+    ) const;
 
     // -------------------------------------------------------------------------
     //     Parsing
@@ -83,13 +90,32 @@ public:
         Variant&            sample_set
     ) const;
 
+    bool parse_line(
+        utils::InputStream&      input_stream,
+        Variant&                 sample_set,
+        std::vector<bool> const& sample_filter
+    ) const;
+
     // -------------------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------------------
 
+private:
+
+    bool parse_line_(
+        utils::InputStream&      input_stream,
+        Variant&                 sample_set,
+        std::vector<bool> const& sample_filter,
+        bool                     use_sample_filter
+    ) const;
+
     void parse_sample_(
         utils::InputStream& input_stream,
         BaseCounts&         sample
+    ) const;
+
+    void skip_sample_(
+        utils::InputStream& input_stream
     ) const;
 
 };
