@@ -33,6 +33,8 @@
 #include "genesis/population/functions/base_counts.hpp"
 #include "genesis/utils/math/common.hpp"
 
+#include "genesis/utils/core/logging.hpp"
+
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
@@ -126,6 +128,13 @@ FstAN f_st_asymptotically_unbiased_a1n1a2n2( BaseCounts const& p1, BaseCounts co
         static_cast<double>( p2.t_count ) / p2_nt_cnt
     };
 
+    // Edge case. If there are no counts at all, we return empty.
+    // The follow up function f_st_asymptotically_unbiased_nkdk() will also catch this edge case,
+    // return zeros as well, and nothing will be added to the total F_ST sum.
+    if( p1_nt_cnt == 0.0 || p2_nt_cnt == 0.0 ) {
+        return FstAN{};
+    }
+
     // Compute their averages.
     double const avg_freqs[] = {
         ( p1_freqs[0] + p2_freqs[0] ) / 2.0,
@@ -199,8 +208,8 @@ std::pair<double, double> f_st_asymptotically_unbiased_nkdk( FstAN const& fstan 
     }
     assert( fstan.n_1 > 1.0 );
     assert( fstan.n_2 > 1.0 );
-    assert( fstan.n_1 >= fstan.a_1 );
-    assert( fstan.n_2 >= fstan.a_2 );
+    assert( fstan.a_1 <= fstan.n_1 );
+    assert( fstan.a_2 <= fstan.n_2 );
 
     // calculate_h1, calculate_h2
     double const h1 = ( fstan.a_1 * ( fstan.n_1 - fstan.a_1 )) / ( fstan.n_1 * ( fstan.n_1 - 1.0 ));

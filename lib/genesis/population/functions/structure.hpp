@@ -238,10 +238,10 @@ utils::Matrix<double> f_st_conventional_pool(
  */
 struct FstAN
 {
-    double a_1 = 0;
-    double n_1 = 0;
-    double a_2 = 0;
-    double n_2 = 0;
+    double a_1 = 0.0;
+    double n_1 = 0.0;
+    double a_2 = 0.0;
+    double n_2 = 0.0;
 };
 
 /**
