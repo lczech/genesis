@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -30,7 +30,9 @@
 
 #include "src/common.hpp"
 
+#include "genesis/population/formats/sync_input_iterator.hpp"
 #include "genesis/population/formats/sync_reader.hpp"
+#include "genesis/population/functions/base_counts.hpp"
 #include "genesis/population/variant.hpp"
 
 using namespace genesis::population;
@@ -131,4 +133,69 @@ TEST( Sync, SyncReader )
     EXPECT_EQ( 1, data[3].samples[1].g_count );
     EXPECT_EQ( 0, data[3].samples[1].n_count );
     EXPECT_EQ( 0, data[3].samples[1].d_count );
+}
+
+TEST( Sync, SyncInputIterator )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/test.sync";
+
+    // Test the while() approach
+    size_t cnt_while = 0;
+    BaseCounts sum_while[2];
+    auto it = SyncInputIterator( from_file( infile ));
+    while( it ) {
+        EXPECT_EQ( 2, it->samples.size() );
+        merge_inplace( sum_while[0], it->samples[0] );
+        merge_inplace( sum_while[1], it->samples[1] );
+
+        ++cnt_while;
+        ++it;
+    }
+    EXPECT_EQ( 4, cnt_while );
+
+    // Test first column sum
+    EXPECT_EQ(  1, sum_while[0].a_count );
+    EXPECT_EQ( 15, sum_while[0].t_count );
+    EXPECT_EQ( 18, sum_while[0].c_count );
+    EXPECT_EQ(  0, sum_while[0].g_count );
+    EXPECT_EQ(  0, sum_while[0].n_count );
+    EXPECT_EQ(  0, sum_while[0].d_count );
+
+    // Test second column sum
+    EXPECT_EQ(  0, sum_while[1].a_count );
+    EXPECT_EQ( 15, sum_while[1].t_count );
+    EXPECT_EQ( 18, sum_while[1].c_count );
+    EXPECT_EQ(  1, sum_while[1].g_count );
+    EXPECT_EQ(  0, sum_while[1].n_count );
+    EXPECT_EQ(  0, sum_while[1].d_count );
+
+    // Test the for() approach
+    size_t cnt_for = 0;
+    BaseCounts sum_for[2];
+    for( auto it = SyncInputIterator( from_file( infile )); it; ++it ) {
+        EXPECT_EQ( 2, it->samples.size() );
+        merge_inplace( sum_for[0], it->samples[0] );
+        merge_inplace( sum_for[1], it->samples[1] );
+
+        ++cnt_for;
+    }
+    EXPECT_EQ( 4, cnt_for );
+
+    // Test first column sum
+    EXPECT_EQ(  1, sum_for[0].a_count );
+    EXPECT_EQ( 15, sum_for[0].t_count );
+    EXPECT_EQ( 18, sum_for[0].c_count );
+    EXPECT_EQ(  0, sum_for[0].g_count );
+    EXPECT_EQ(  0, sum_for[0].n_count );
+    EXPECT_EQ(  0, sum_for[0].d_count );
+
+    // Test second column sum
+    EXPECT_EQ(  0, sum_for[1].a_count );
+    EXPECT_EQ( 15, sum_for[1].t_count );
+    EXPECT_EQ( 18, sum_for[1].c_count );
+    EXPECT_EQ(  1, sum_for[1].g_count );
+    EXPECT_EQ(  0, sum_for[1].n_count );
+    EXPECT_EQ(  0, sum_for[1].d_count );
 }
