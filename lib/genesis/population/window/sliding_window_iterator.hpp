@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -277,7 +277,7 @@ public:
      * to wrap up after a chromosome, such as writing the output that was producing during the
      * iterator.
      *
-     * See is_first_window() for the respective beginning-of-chromsome indicator, that can be used
+     * See is_first_window() for the respective beginning-of-chromosome indicator, that can be used
      * to run some initialization per chromosome, such as preparing some output.
      */
     bool is_last_window() const
@@ -398,7 +398,7 @@ private:
             return;
         }
 
-        // Clear the window and prepare for new chromsome.
+        // Clear the window and prepare for new chromosome.
         window_.clear();
         window_.chromosome( settings_.chromosome_function( *current_ ));
         is_first_window_ = true;

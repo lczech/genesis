@@ -103,7 +103,7 @@ namespace population {
  * Once all data has been processed, finish_chromosome() should be called to emit the last remaining
  * window(s). See the following note for details. Furthermore, in some cases, it might be desirable
  * to emit a window for an incomplete interval or an incomplete numer of variants at the end of a
- * chromsome, while in other cases, these incomplete last entries might need to be skipped.
+ * chromosome, while in other cases, these incomplete last entries might need to be skipped.
  * See emit_incomplete_windows() for details.
  *
  * Note:
@@ -505,7 +505,7 @@ public:
      * we are sure that we are always on the same chromosome (or are not using chromosome information
      * at all), and hence, that @p position always increases between calls of this function.
      *
-     * This is mostly meant as a simplification in cases where the data does not come with chromsome
+     * This is mostly meant as a simplification in cases where the data does not come with chromosome
      * information. Typically however, when using VCF data, the `CHROM` column is present and
      * should be used; that is, typically, the other overload of this function should be used.
      */

@@ -173,7 +173,7 @@ public:
         /**
          * @brief Genomic position of the entry along a chromosome.
          *
-         * For the actual chromosome, we need to call Window::chromsome(), because for storage and
+         * For the actual chromosome, we need to call Window::chromosome(), because for storage and
          * speed reasons, we do not store the chromosome name with every entry.
          */
         size_t position;
