@@ -41,6 +41,7 @@
 #endif // htslib guard
 
 #include <array>
+#include <iosfwd>
 #include <utility>
 
 namespace genesis {
@@ -59,6 +60,25 @@ std::array<std::pair<char, size_t>, 4> sorted_variant_counts(
 // =================================================================================================
 //     Conversion Functions
 // =================================================================================================
+
+/**
+ * @brief Output a Variant instance to a stream in the PoPoolation2 sync format.
+ *
+ * The format is a tab-delimited file with one variant per line:
+ *
+ *   - col1: reference contig
+ *   - col2: position within the refernce contig
+ *   - col3: reference character
+ *   - col4: allele frequencies of population number 1
+ *   - col5: allele frequencies of population number 2
+ *   - coln: allele frequencies of population number n
+ *
+ * Each population column outputs counts separated by colons, in the order
+ * `A:T:C:G:N:D`, with `D` being deletions (`*` in pileup).
+ *
+ * See https://sourceforge.net/p/popoolation2/wiki/Tutorial/ for details.
+ */
+std::ostream& to_sync( Variant const& var, std::ostream& os );
 
 Variant convert_to_variant( SimplePileupReader::Record const& record );
 

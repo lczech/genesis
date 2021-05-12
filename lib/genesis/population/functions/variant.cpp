@@ -41,6 +41,7 @@ extern "C" {
 #include <array>
 #include <cassert>
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 
 namespace genesis {
@@ -142,6 +143,17 @@ std::array<std::pair<char, size_t>, 4> sorted_variant_counts(
 // =================================================================================================
 //     Conversion Functions
 // =================================================================================================
+
+std::ostream& to_sync( Variant const& var, std::ostream& os )
+{
+    os << var.chromosome << "\t" << var.position << "\t" << var.reference_base;
+    for( auto const& bs : var.samples ) {
+        os << "\t";
+        to_sync( bs, os );
+    }
+    os << "\n";
+    return os;
+}
 
 Variant convert_to_variant( SimplePileupReader::Record const& record )
 {

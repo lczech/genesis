@@ -349,5 +349,12 @@ std::ostream& operator<<( std::ostream& os, BaseCounts const& bs )
     return os;
 }
 
+std::ostream& to_sync( BaseCounts const& bs, std::ostream& os )
+{
+    os << bs.a_count << ":" << bs.t_count << ":" << bs.c_count << ":" << bs.g_count;
+    os << ":" << bs.n_count << ":" << bs.d_count;
+    return os;
+}
+
 } // namespace population
 } // namespace genesis
