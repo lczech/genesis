@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -706,6 +706,43 @@ inline double weighted_geometric_mean(
 //     Harmoic Mean
 // =================================================================================================
 
+enum class HarmonicMeanZeroPolicy
+{
+    /**
+     * @brief Throw an exception when a zero value is encountered in the data.
+     */
+    kThrow,
+
+    /**
+     * @brief Ignore any zero values.
+     */
+    kIgnore,
+
+    /**
+     * @brief If any zero value is encountered in the data, simply return zero as the harmonic mean.
+     *
+     * This is for example the interpretation of using the harmonic mean to compute the average
+     * resistance of a set of resistors in parallel, where one zero-resistance resistor would lead
+     * to the whole set having zero resistance.
+     */
+    kReturnZero,
+
+    /**
+     * @brief Apply a zero-value correction.
+     *
+     * The correction is computed as
+     *
+     * \f$ \mu_h = \frac{N_T - N_0}{\sum^{N_T - N_0}_{i=1} \frac{1}{x_i}} \times \frac{N_T - N_0} {N_T} \f$
+     *
+     * where \f$ \mu_h \f$ is harmonic mean, \f$ x_i \f$ are the non-zero values of the data only,
+     * \f$ N_T \f$ is the (total) sample size, and \f$ N_0 \f$ is the number of zero values.
+     *
+     * This follows the EPA (Environmental Protection Agency) program DFLOW, see
+     * https://www.epa.gov/ceam/dflow and https://rdrr.io/cran/lmomco/man/harmonic.mean.html
+     */
+    kCorrection
+};
+
 /**
  * @brief Calculate the harmonic mean of a range of positive numbers.
  *
@@ -713,8 +750,8 @@ inline double weighted_geometric_mean(
  * with @p last being the past-the-end element.
  * The function then calculates the harmonic mean of all positive finite elements in the range.
  * If no elements are finite, or if the range is empty, the returned value is `0.0`.
- * Non-finite numbers are ignored. If finite non-positive numbers (zero or negative) are found,
- * an exception is thrown.
+ * Non-finite numbers are ignored. If negative numbers are found, an exception is thrown.
+ * Zero values are treated according to the @p zero_policy.
  *
  * @see harmonic_mean( std::vector<double> const& ) for a version for `std::vector`.
  * @see weighted_harmonic_mean() for a weighted version.
@@ -722,36 +759,70 @@ inline double weighted_geometric_mean(
  * @see geometric_mean() for a function that calculates the geometric mean.
  */
 template <class ForwardIterator>
-double harmonic_mean( ForwardIterator first, ForwardIterator last )
-{
-    double sum   = 0.0;
-    size_t count = 0;
+double harmonic_mean(
+    ForwardIterator first, ForwardIterator last,
+    HarmonicMeanZeroPolicy zero_policy = HarmonicMeanZeroPolicy::kThrow
+) {
+    // Keep track of the total sum of inverses, the count of how many samples were used in total
+    // (this excludes non-finite data points), and the number of zero value found, which is only
+    // used with HarmonicMeanZeroPolicy::kCorrection
+    double sum    = 0.0;
+    size_t count  = 0;
+    size_t zeroes = 0;
 
     // Iterate elements. For numeric stability, we use sum of logs instead of products;
     // otherwise, we run into overflows too quickly!
     auto it = first;
     while( it != last ) {
         if( std::isfinite( *it ) ) {
-            if( *it <= 0.0 ) {
+            if( *it < 0.0 ) {
                 throw std::invalid_argument(
-                    "Cannot calculate harmonic mean of non-positive numbers."
+                    "Cannot calculate harmonic mean of negative values."
                 );
             }
-            sum += 1.0 / static_cast<double>( *it );
-            ++count;
+
+            if( *it > 0.0 ) {
+                sum += 1.0 / static_cast<double>( *it );
+                ++count;
+            } else {
+                switch( zero_policy ) {
+                    case HarmonicMeanZeroPolicy::kThrow: {
+                        throw std::invalid_argument(
+                            "Zero value found when calculating harmonic mean."
+                        );
+                    }
+                    case HarmonicMeanZeroPolicy::kIgnore: {
+                        // Do nothing.
+                        break;
+                    }
+                    case HarmonicMeanZeroPolicy::kReturnZero: {
+                        // If any value is zero, we do not need to finish the iteration.
+                        return 0.0;
+                    }
+                    case HarmonicMeanZeroPolicy::kCorrection:{
+                        // Increment both counters, but do not add anything to the sum.
+                        ++count;
+                        ++zeroes;
+                        break;
+                    }
+                }
+            }
         }
         ++it;
     }
 
-    // If there are no valid elements, return an all-zero result.
-    if( count == 0 ) {
+    // If there are no valid elements, or all of them are zero, return an all-zero result.
+    if( count == 0 || count == zeroes ) {
         return 0.0;
     }
-
-    // Return the result.
     assert( count > 0 );
+    assert( count > zeroes );
     assert( std::isfinite( sum ));
-    return static_cast<double>( count ) / sum;
+
+    // Return the result. We always compute the correction,
+    // which however does not alter the result if not used.
+    auto const correction = static_cast<double>( count - zeroes ) / static_cast<double>( count );
+    return correction * static_cast<double>( count - zeroes ) / sum;
 }
 
 /**
@@ -761,9 +832,11 @@ double harmonic_mean( ForwardIterator first, ForwardIterator last )
  * @see arithmetic_mean() for a function that calculates the arithmetic mean, and
  * @see geometric_mean() for a function that calculates the geometric mean.
  */
-inline double harmonic_mean( std::vector<double> const& vec )
-{
-    return harmonic_mean( vec.begin(), vec.end() );
+inline double harmonic_mean(
+    std::vector<double> const& vec,
+    HarmonicMeanZeroPolicy zero_policy = HarmonicMeanZeroPolicy::kThrow
+) {
+    return harmonic_mean( vec.begin(), vec.end(), zero_policy );
 }
 
 /**
@@ -774,8 +847,8 @@ inline double harmonic_mean( std::vector<double> const& vec )
  * past-the-end elements. Both ranges need to have the same size.
  * The function then calculates the weighted harmonic mean of all positive finite elements
  * in the range. If no elements are finite, or if the range is empty, the returned value is `0.0`.
- * Non-finite numbers are ignored. If finite non-positive numbers (zero or negative) are found,
- * an exception is thrown. The weights have to be non-negative.
+ * Non-finite numbers are ignored. If negative numbers are found, an exception is thrown.
+ * Zero values are treated according to the @p zero_policy. The weights have to be non-negative.
  *
  * For a set of values \f$ v \f$ and a set of weights \f$ w \f$,
  * the weighted harmonic mean \f$ g \f$ is calculated following [1]:
@@ -794,32 +867,73 @@ inline double harmonic_mean( std::vector<double> const& vec )
 template <class ForwardIterator>
 double weighted_harmonic_mean(
     ForwardIterator first_value,  ForwardIterator last_value,
-    ForwardIterator first_weight, ForwardIterator last_weight
+    ForwardIterator first_weight, ForwardIterator last_weight,
+    HarmonicMeanZeroPolicy zero_policy = HarmonicMeanZeroPolicy::kThrow
 ) {
-    double num = 0.0;
-    double den = 0.0;
-    size_t cnt = 0;
+    // Keep track of the numerator (sum of all weights of positive values) and denominator
+    // (sum of weights divided by values) of the summation, as well as the sum of all weights
+    // (which can be different from the numerator, if there are zero values), the total number of
+    // values used, and the number of zero values found.
+    double weights = 0.0;
+    double num     = 0.0;
+    double den     = 0.0;
+    size_t count   = 0;
+    size_t zeroes  = 0;
 
-    // Multiply elements.
-    for_each_finite_pair( first_value, last_value, first_weight, last_weight, [&]( double value, double weight ){
-        if( value <= 0.0 ) {
-            throw std::invalid_argument(
-                "Cannot calculate weighted harmonic mean of non-positive values."
-            );
+    // Multiply elements, only considering finite ones.
+    for_each_finite_pair(
+        first_value, last_value,
+        first_weight, last_weight,
+        [&]( double value, double weight ){
+            if( value < 0.0 ) {
+                throw std::invalid_argument(
+                    "Cannot calculate weighted harmonic mean of negative values."
+                );
+            }
+            if( weight < 0.0 ) {
+                throw std::invalid_argument(
+                    "Cannot calculate weighted harmonic mean with negative weights."
+                );
+            }
+            if( value > 0.0 ) {
+                weights += weight;
+                num     += weight;
+                den     += weight / static_cast<double>( value );
+                ++count;
+            } else {
+                switch( zero_policy ) {
+                    case HarmonicMeanZeroPolicy::kThrow: {
+                        throw std::invalid_argument(
+                            "Zero value found when calculating weighted harmonic mean."
+                        );
+                    }
+                    case HarmonicMeanZeroPolicy::kIgnore: {
+                        // Do nothing.
+                        break;
+                    }
+                    case HarmonicMeanZeroPolicy::kReturnZero:
+                    case HarmonicMeanZeroPolicy::kCorrection:{
+                        // Increment the sum of all weights, so that zero values are contributing
+                        // to the corrected result according to their weight, and increment
+                        // both counters, but do not add anything to the sums.
+                        // In case of the return zero policy, we use the zeroes counter as a flag
+                        // indicating that we have found a zero value.
+                        weights += weight;
+                        ++count;
+                        ++zeroes;
+                        break;
+                    }
+                }
+            }
         }
-        if( weight < 0.0 ) {
-            throw std::invalid_argument(
-                "Cannot calculate weighted harmonic mean with negative weights."
-            );
-        }
+    );
 
-        num += weight;
-        den += weight / static_cast<double>( value );
-        ++cnt;
-    });
-
-    // If there are no valid elements, return an all-zero result.
-    if( cnt == 0 ) {
+    // If there are no valid elements, or all of them are zero, return an all-zero result.
+    if( count == 0 || count == zeroes ) {
+        return 0.0;
+    }
+    // For the return zero policy, if one of them is zero, return zero.
+    if( zero_policy == HarmonicMeanZeroPolicy::kReturnZero && zeroes > 0 ) {
         return 0.0;
     }
     if( num == 0.0 || den == 0.0 ) {
@@ -827,12 +941,21 @@ double weighted_harmonic_mean(
             "Cannot calculate weighted harmonic mean with all weights being 0."
         );
     }
-
-    // Return the result.
-    assert( cnt > 0 );
+    if( zeroes == 0 ) {
+        (void) zeroes;
+        assert( weights == num );
+    }
+    assert( count > 0 );
+    assert( count > zeroes );
+    assert( weights >= num );
     assert( std::isfinite( num ) && ( num > 0.0 ));
     assert( std::isfinite( den ) && ( den > 0.0 ));
-    return num / den;
+    assert( std::isfinite( weights ) && ( weights > 0.0 ));
+
+    // Return the result. We always compute the correction,
+    // which however does not alter the result if not used.
+    auto const correction = num / weights;
+    return correction * num / den;
 }
 
 /**
@@ -847,9 +970,14 @@ double weighted_harmonic_mean(
  */
 inline double weighted_harmonic_mean(
     std::vector<double> const& values,
-    std::vector<double> const& weights
+    std::vector<double> const& weights,
+    HarmonicMeanZeroPolicy zero_policy = HarmonicMeanZeroPolicy::kThrow
 ) {
-    return weighted_harmonic_mean( values.begin(), values.end(), weights.begin(), weights.end() );
+    return weighted_harmonic_mean(
+        values.begin(), values.end(),
+        weights.begin(), weights.end(),
+        zero_policy
+    );
 }
 
 // =================================================================================================

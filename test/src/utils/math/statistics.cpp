@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -154,6 +154,22 @@ TEST( Math, HarmonicMean )
     // Edge cases.
     EXPECT_ANY_THROW( harmonic_mean({  0.0 }) );
     EXPECT_ANY_THROW( harmonic_mean({ -1.0 }) );
+    EXPECT_ANY_THROW( harmonic_mean({ 1.0, 0.0 }) );
+
+    // Zero policy: Ignore.
+    EXPECT_DOUBLE_EQ( 2.0,  harmonic_mean({ 1.0, 4.0, 4.0 },      HarmonicMeanZeroPolicy::kIgnore) );
+    EXPECT_DOUBLE_EQ( 2.0,  harmonic_mean({ 1.0, 4.0, 4.0, 0.0 }, HarmonicMeanZeroPolicy::kIgnore) );
+
+    // Zero policy: Return zero.
+    EXPECT_DOUBLE_EQ( 2.0,  harmonic_mean({ 1.0, 4.0, 4.0 },      HarmonicMeanZeroPolicy::kReturnZero) );
+    EXPECT_DOUBLE_EQ( 0.0,  harmonic_mean({ 1.0, 4.0, 4.0, 0.0 }, HarmonicMeanZeroPolicy::kReturnZero) );
+
+    // Zero policy: Correction.
+    EXPECT_DOUBLE_EQ( 2.0,  harmonic_mean({ 1.0, 4.0, 4.0 },      HarmonicMeanZeroPolicy::kCorrection) );
+    EXPECT_DOUBLE_EQ(
+        3.5327102803738315,
+        harmonic_mean({ 0.0, 0.0, 5.0, 6.0, 7.0 }, HarmonicMeanZeroPolicy::kCorrection)
+    );
 }
 
 TEST( Math, WeightedHarmonicMean )
@@ -177,6 +193,39 @@ TEST( Math, WeightedHarmonicMean )
     EXPECT_ANY_THROW( weighted_harmonic_mean({ -1.0 }, { 1.0 }) );
     EXPECT_ANY_THROW( weighted_harmonic_mean({ 5.0 }, { 1.0, 2.0 }) );
     EXPECT_ANY_THROW( weighted_harmonic_mean({ 5.0, 2.0 }, { 1.0 }) );
+
+    // Zero policy: Ignore.
+    EXPECT_DOUBLE_EQ( 2.0,  weighted_harmonic_mean(
+        { 1.0, 4.0, 4.0 }, { 1.0, 1.0, 1.0 },
+        HarmonicMeanZeroPolicy::kIgnore
+    ));
+    EXPECT_DOUBLE_EQ( 2.0,  weighted_harmonic_mean(
+        { 1.0, 4.0, 4.0, 0.0 }, { 1.0, 1.0, 1.0, 1.0 },
+        HarmonicMeanZeroPolicy::kIgnore
+    ));
+
+    // Zero policy: Return zero.
+    EXPECT_DOUBLE_EQ( 2.0,  weighted_harmonic_mean(
+        { 1.0, 4.0, 4.0 }, { 1.0, 1.0, 1.0 },
+        HarmonicMeanZeroPolicy::kReturnZero
+    ));
+    EXPECT_DOUBLE_EQ( 0.0,  weighted_harmonic_mean(
+        { 1.0, 4.0, 4.0, 0.0 }, { 1.0, 1.0, 1.0, 1.0 },
+        HarmonicMeanZeroPolicy::kReturnZero
+    ));
+
+    // Zero policy: Correction.
+    EXPECT_DOUBLE_EQ( 2.0,  weighted_harmonic_mean(
+        { 1.0, 4.0, 4.0 }, { 1.0, 1.0, 1.0 },
+        HarmonicMeanZeroPolicy::kCorrection
+    ));
+    EXPECT_DOUBLE_EQ(
+        3.5327102803738315,
+        weighted_harmonic_mean(
+            { 0.0, 0.0, 5.0, 6.0, 7.0 }, { 1.0, 1.0, 1.0, 1.0, 1.0 },
+            HarmonicMeanZeroPolicy::kCorrection
+        )
+    );
 }
 
 TEST( Math, PNorm )
