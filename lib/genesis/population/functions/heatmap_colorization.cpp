@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -135,7 +135,7 @@ std::pair<utils::Matrix<utils::Color>, double> HeatmapColorization::spectrum_to_
             // Special case: no bin filled at all in this window. That means, there were no variants
             // in the whole window. If needed, mark with special "empty" color, which we
             // stored in the mask color of the color map.
-            if( col_max == 0 && use_empty_window_color_ ) {
+            if( col_max == 0.0 && use_empty_window_color_ ) {
                 image( row_idx, c ) = color_map_( std::numeric_limits<double>::quiet_NaN() );
                 continue;
             }
@@ -181,8 +181,6 @@ std::pair<utils::Matrix<utils::Color>, double> HeatmapColorization::spectrum_to_
                 image( row_idx, c ) = color_map_( norm(col[r]) );
 
             } else {
-                // double frac = static_cast<double>( col[r] ) / used_max;
-                // image( row_idx, c ) = color_map_( frac );
                 double frac = static_cast<double>( col[r] ) / used_max;
                 image( row_idx, c ) = color_map_( frac );
             }

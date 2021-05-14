@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -78,9 +78,9 @@ public:
 
     HeatmapColorization() = default;
 
-    explicit HeatmapColorization( std::vector<utils::Color> const& value )
+    explicit HeatmapColorization( std::vector<utils::Color> const& palette )
     {
-        color_map_.palette( value );
+        color_map_.palette( palette );
     }
 
     ~HeatmapColorization() = default;
