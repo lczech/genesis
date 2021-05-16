@@ -706,6 +706,10 @@ inline double weighted_geometric_mean(
 //     Harmoic Mean
 // =================================================================================================
 
+/**
+ * @brief Select a policy on how to treat zeroes in the computation of harmonic_mean()
+ * and weighted_harmonic_mean().
+ */
 enum class HarmonicMeanZeroPolicy
 {
     /**
@@ -748,9 +752,10 @@ enum class HarmonicMeanZeroPolicy
  *
  * The iterators @p first and @p last need to point to a range of `double` values,
  * with @p last being the past-the-end element.
- * The function then calculates the harmonic mean of all positive finite elements in the range.
+ * The function then calculates the harmonic mean of all non-negative or positive (depending on the
+ * @p zero_policy) finite elements in the range.
  * If no elements are finite, or if the range is empty, the returned value is `0.0`.
- * Non-finite numbers are ignored. If negative numbers are found, an exception is thrown.
+ * Non-finite numbers are ignored. If finite negative numbers are found, an exception is thrown.
  * Zero values are treated according to the @p zero_policy.
  *
  * @see harmonic_mean( std::vector<double> const& ) for a version for `std::vector`.
@@ -785,6 +790,7 @@ double harmonic_mean(
                 sum += 1.0 / static_cast<double>( *it );
                 ++count;
             } else {
+                assert( *it == 0.0 );
                 switch( zero_policy ) {
                     case HarmonicMeanZeroPolicy::kThrow: {
                         throw std::invalid_argument(
@@ -845,10 +851,12 @@ inline double harmonic_mean(
  * The iterators @p first_value and @p last_value, as well as @p first_weight and @p last_weight,
  * need to point to ranges of `double` values, with @p last_value and @p last_weight being the
  * past-the-end elements. Both ranges need to have the same size.
- * The function then calculates the weighted harmonic mean of all positive finite elements
- * in the range. If no elements are finite, or if the range is empty, the returned value is `0.0`.
- * Non-finite numbers are ignored. If negative numbers are found, an exception is thrown.
- * Zero values are treated according to the @p zero_policy. The weights have to be non-negative.
+ * The function then calculates the weighted harmonic mean of all non-negative or positive
+ * (depending on the @p zero_policy) finite elements in the range.
+ * If no elements are finite, or if the range is empty, the returned value is `0.0`.
+ * Non-finite numbers are ignored. If finite negative numbers are found, an exception is thrown.
+ * Zero values are treated according to the @p zero_policy. The weights have to be non-negative,
+ * and elements with non-finite weights are skipped.
  *
  * For a set of values \f$ v \f$ and a set of weights \f$ w \f$,
  * the weighted harmonic mean \f$ g \f$ is calculated following [1]:
@@ -901,6 +909,7 @@ double weighted_harmonic_mean(
                 den     += weight / static_cast<double>( value );
                 ++count;
             } else {
+                assert( *it == 0.0 );
                 switch( zero_policy ) {
                     case HarmonicMeanZeroPolicy::kThrow: {
                         throw std::invalid_argument(
