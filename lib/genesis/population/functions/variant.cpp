@@ -161,7 +161,7 @@ Variant convert_to_variant( SimplePileupReader::Record const& record )
     Variant result;
     result.chromosome     = record.chromosome;
     result.position       = record.position;
-    result.reference_base = record.reference_base;
+    result.reference_base = utils::to_upper( record.reference_base );
 
     // Convert the individual samples
     result.samples.reserve( record.samples.size() );
@@ -171,8 +171,17 @@ Variant convert_to_variant( SimplePileupReader::Record const& record )
 
     // Pileup does not contain ALT bases, so infer them from counts,
     // using the base with the most counts that is not the reference base.
-    auto const sorted = sorted_variant_counts( result, true );
-    result.alternative_base = sorted[1].first;
+    // We only do this if we have a reference base though, as otherwise, the sorting and alternative
+    // is meaningless anyway. Only need to check upper case here, as we converted above.
+    if(
+        result.reference_base == 'A' ||
+        result.reference_base == 'C' ||
+        result.reference_base == 'G' ||
+        result.reference_base == 'T'
+    ) {
+        auto const sorted = sorted_variant_counts( result, true );
+        result.alternative_base = utils::to_upper( sorted[1].first );
+    }
 
     return result;
 }
