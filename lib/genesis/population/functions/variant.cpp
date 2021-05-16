@@ -155,8 +155,10 @@ std::ostream& to_sync( Variant const& var, std::ostream& os )
     return os;
 }
 
-Variant convert_to_variant( SimplePileupReader::Record const& record )
-{
+Variant convert_to_variant(
+    SimplePileupReader::Record const& record,
+    unsigned char min_phred_score
+) {
     // Set basic data
     Variant result;
     result.chromosome     = record.chromosome;
@@ -166,7 +168,7 @@ Variant convert_to_variant( SimplePileupReader::Record const& record )
     // Convert the individual samples
     result.samples.reserve( record.samples.size() );
     for( size_t i = 0; i < record.samples.size(); ++i ) {
-        result.samples.push_back( convert_to_base_counts( record.samples[i] ));
+        result.samples.push_back( convert_to_base_counts( record.samples[i], min_phred_score ));
     }
 
     // Pileup does not contain ALT bases, so infer them from counts,

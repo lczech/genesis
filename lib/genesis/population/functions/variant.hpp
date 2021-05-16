@@ -80,7 +80,10 @@ std::array<std::pair<char, size_t>, 4> sorted_variant_counts(
  */
 std::ostream& to_sync( Variant const& var, std::ostream& os );
 
-Variant convert_to_variant( SimplePileupReader::Record const& record );
+Variant convert_to_variant(
+    SimplePileupReader::Record const& record,
+    unsigned char min_phred_score = 0
+);
 
 #ifdef GENESIS_HTSLIB
 
