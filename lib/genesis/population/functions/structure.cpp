@@ -33,8 +33,6 @@
 #include "genesis/population/functions/base_counts.hpp"
 #include "genesis/utils/math/common.hpp"
 
-#include "genesis/utils/core/logging.hpp"
-
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
