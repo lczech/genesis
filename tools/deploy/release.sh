@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+# Copyright (C) 2014-2021 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -149,7 +149,7 @@ fi
 print_separator "Build all"
 
 make clean
-make -j 4
+make -j 8
 
 ####################################################################################################
 #    Demo and Tutorial Programs
@@ -234,7 +234,7 @@ echo "Update genesis header lib/genesis/genesis.hpp"
 print_separator "Build with version"
 
 # Build again, this time with the updated version tag.
-make update -j 4
+make update -j 8
 
 ####################################################################################################
 #    Commit and Tag
