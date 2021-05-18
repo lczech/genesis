@@ -38,6 +38,7 @@
 #include "genesis/population/formats/hts_file.hpp"
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
+#include "genesis/population/formats/sync_input_iterator.hpp"
 #include "genesis/population/formats/sync_reader.hpp"
 #include "genesis/population/formats/vcf_common.hpp"
 #include "genesis/population/formats/vcf_format_iterator.hpp"
