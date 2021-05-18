@@ -1,6 +1,6 @@
 [![genesis](/doc/logo/logo_readme.png?raw=true "genesis")](http://genesis-lib.org/)
 
-A library for working with phylogenetic data.
+A library for working with phylogenetic and population genetic data.
 
 [![Build Status](https://travis-ci.org/lczech/genesis.svg?branch=master)](https://travis-ci.org/lczech/genesis)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/gpl.html)
@@ -12,7 +12,7 @@ A library for working with phylogenetic data.
 Features
 -------------------
 
-Genesis is a C++ library for working with phylogenetic data:
+Genesis is a C++ library for working with phylogenetic and population genetic data:
 <!-- Some of the features of genesis: -->
 
  *  **Trees**
@@ -26,19 +26,26 @@ Genesis is a C++ library for working with phylogenetic data:
      *  Calculate distance measures (e.g., KR distance, EDPL).
      *  Run analyses like k-means Clustering, Squash Clustering, Edge PCA.
      *  Visualize aspects like read abundances or correlation with meta-data on the branches of the tree.
+ *  **Populations**
+     *  Read and work with genome mapping and variant formats such as `pileup` and `vcf`.
+     *  Iterate positions in a genome, individually or in windows.
+     *  Compute statistics such as Tajima's D and F_ST for pool sequencing data.
  *  **Sequences** and **Taxonomies**
-     * Read, filter, manipulate and write sequences in `fasta` and `phylip` format.
-     * Calculate consensus sequences with different methods.
-     * Work with taxonomic paths and build a taxonomic hierarchy.
+     *  Read, filter, manipulate and write sequences in `fasta`, `fastq`, and `phylip` format.
+     *  Calculate consensus sequences with different methods.
+     *  Work with taxonomic paths and build a taxonomic hierarchy.
  *  **Utilities**
-     * Math tools (matrices, histograms, statistics functions etc)
-     * Color support (color lists, gradients etc, for making colored trees)
-     * Various supportive file formats (bmp, csv, json, xml and more)
+     *  Math tools (matrices, histograms, statistics functions etc)
+     *  Color support (color lists, gradients etc, for making colored trees)
+     *  Various supportive file formats (bmp, csv, json, xml and more)
 
 This is just an overview of the more prominent features.
 See the [API reference](http://doc.genesis-lib.org/namespaces.html) for more.
 
-Genesis is a library that is intended for researchers and developers who want to build their own tools and methods, or run their own custom analyses. If you are simply interested in analyzing your data with our methods, have a look at our command line tool [Gappa](https://github.com/lczech/gappa).
+Genesis is a library that is intended for researchers and developers who want to build their own
+tools and methods, or run their own custom analyses. If you are simply interested in analyzing your
+data with our methods, have a look at our command line tool [Gappa](https://github.com/lczech/gappa)
+for many common phylogenetic placement analyses.
 
 <!-- A main focus are evolutionary placements of short environmental sequences
 on a reference phylogenetic tree.
@@ -58,23 +65,23 @@ The functionality of genesis can be used in two ways:
 
 For download and build instructions, see **[Setup](http://doc.genesis-lib.org/setup.html)**.
 
-You futhermore find all the information for getting started with genesis in the
+You furthermore find all the information for getting started with genesis in the
 **[documentation](http://doc.genesis-lib.org/)**.
 It contains a user manual with setup instructions and tutorials, as well as the full API reference.
 
-For **user support**, please see our [Phylogenetic Placement Google Group](https://groups.google.com/forum/#!forum/phylogenetic-placement).
-It is intended for discussions about phylogenetic placement,
-and for user support for our software tools.
-You can also find support for [EPA-ng](https://github.com/Pbdas/epa-ng)
-and [Gappa](https://github.com/lczech/gappa) there.
-
-For **bug reports and feature requests**, please
+For **bug reports and feature requests** of genesis, please
 [open an issue on our GitHub page](https://github.com/lczech/genesis/issues).
+
+For **user support** of the phylogenetic placement parts of the library, please see our
+[Phylogenetic Placement Google Group](https://groups.google.com/forum/#!forum/phylogenetic-placement).
+It is intended for discussions about phylogenetic placement,
+and for user support for our software tools, such as [EPA-ng](https://github.com/Pbdas/epa-ng)
+and [Gappa](https://github.com/lczech/gappa).
 
 Showcases
 -------------------
 
-A focus point of the toolkit is to work with phylogenetic placements.
+A focus point of the library is to work with phylogenetic placements.
 The following figure summarized the placement position of 7.5 mio short reads on a
 reference tree with 190 taxa. The color code indicates the number of reads placed
 on each branch.
