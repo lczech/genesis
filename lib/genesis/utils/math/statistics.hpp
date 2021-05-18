@@ -917,7 +917,7 @@ double weighted_harmonic_mean(
                 den     += weight / static_cast<double>( value );
                 ++count;
             } else {
-                assert( *it == 0.0 );
+                assert( value == 0.0 );
                 switch( zero_policy ) {
                     case HarmonicMeanZeroPolicy::kThrow: {
                         throw std::invalid_argument(
