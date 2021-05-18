@@ -502,17 +502,21 @@ double weighted_arithmetic_mean(
     size_t cnt = 0;
 
     // Multiply elements.
-    for_each_finite_pair( first_value, last_value, first_weight, last_weight, [&]( double value, double weight ){
-        if( weight < 0.0 ) {
-            throw std::invalid_argument(
-                "Cannot calculate weighted arithmetic mean with negative weights."
-            );
-        }
+    for_each_finite_pair(
+        first_value, last_value,
+        first_weight, last_weight,
+        [&]( double value, double weight ){
+            if( weight < 0.0 ) {
+                throw std::invalid_argument(
+                    "Cannot calculate weighted arithmetic mean with negative weights."
+                );
+            }
 
-        num += weight * value;
-        den += weight;
-        ++cnt;
-    });
+            num += weight * value;
+            den += weight;
+            ++cnt;
+        }
+    );
 
     // If there are no valid elements, return an all-zero result.
     if( cnt == 0 ) {
@@ -651,22 +655,26 @@ double weighted_geometric_mean(
     size_t cnt = 0;
 
     // Multiply elements.
-    for_each_finite_pair( first_value, last_value, first_weight, last_weight, [&]( double value, double weight ){
-        if( value <= 0.0 ) {
-            throw std::invalid_argument(
-                "Cannot calculate weighted geometric mean of non-positive values."
-            );
-        }
-        if( weight < 0.0 ) {
-            throw std::invalid_argument(
-                "Cannot calculate weighted geometric mean with negative weights."
-            );
-        }
+    for_each_finite_pair(
+        first_value, last_value,
+        first_weight, last_weight,
+        [&]( double value, double weight ){
+            if( value <= 0.0 ) {
+                throw std::invalid_argument(
+                    "Cannot calculate weighted geometric mean of non-positive values."
+                );
+            }
+            if( weight < 0.0 ) {
+                throw std::invalid_argument(
+                    "Cannot calculate weighted geometric mean with negative weights."
+                );
+            }
 
-        num += weight * std::log( value );
-        den += weight;
-        ++cnt;
-    });
+            num += weight * std::log( value );
+            den += weight;
+            ++cnt;
+        }
+    );
 
     // If there are no valid elements, return an all-zero result.
     if( cnt == 0 ) {
@@ -706,6 +714,10 @@ inline double weighted_geometric_mean(
 //     Harmoic Mean
 // =================================================================================================
 
+/**
+ * @brief Select a policy on how to treat zeroes in the computation of harmonic_mean()
+ * and weighted_harmonic_mean().
+ */
 enum class HarmonicMeanZeroPolicy
 {
     /**
@@ -748,9 +760,10 @@ enum class HarmonicMeanZeroPolicy
  *
  * The iterators @p first and @p last need to point to a range of `double` values,
  * with @p last being the past-the-end element.
- * The function then calculates the harmonic mean of all positive finite elements in the range.
+ * The function then calculates the harmonic mean of all non-negative or positive (depending on the
+ * @p zero_policy) finite elements in the range.
  * If no elements are finite, or if the range is empty, the returned value is `0.0`.
- * Non-finite numbers are ignored. If negative numbers are found, an exception is thrown.
+ * Non-finite numbers are ignored. If finite negative numbers are found, an exception is thrown.
  * Zero values are treated according to the @p zero_policy.
  *
  * @see harmonic_mean( std::vector<double> const& ) for a version for `std::vector`.
@@ -785,6 +798,7 @@ double harmonic_mean(
                 sum += 1.0 / static_cast<double>( *it );
                 ++count;
             } else {
+                assert( *it == 0.0 );
                 switch( zero_policy ) {
                     case HarmonicMeanZeroPolicy::kThrow: {
                         throw std::invalid_argument(
@@ -799,7 +813,7 @@ double harmonic_mean(
                         // If any value is zero, we do not need to finish the iteration.
                         return 0.0;
                     }
-                    case HarmonicMeanZeroPolicy::kCorrection:{
+                    case HarmonicMeanZeroPolicy::kCorrection: {
                         // Increment both counters, but do not add anything to the sum.
                         ++count;
                         ++zeroes;
@@ -845,10 +859,12 @@ inline double harmonic_mean(
  * The iterators @p first_value and @p last_value, as well as @p first_weight and @p last_weight,
  * need to point to ranges of `double` values, with @p last_value and @p last_weight being the
  * past-the-end elements. Both ranges need to have the same size.
- * The function then calculates the weighted harmonic mean of all positive finite elements
- * in the range. If no elements are finite, or if the range is empty, the returned value is `0.0`.
- * Non-finite numbers are ignored. If negative numbers are found, an exception is thrown.
- * Zero values are treated according to the @p zero_policy. The weights have to be non-negative.
+ * The function then calculates the weighted harmonic mean of all non-negative or positive
+ * (depending on the @p zero_policy) finite elements in the range.
+ * If no elements are finite, or if the range is empty, the returned value is `0.0`.
+ * Non-finite numbers are ignored. If finite negative numbers are found, an exception is thrown.
+ * Zero values are treated according to the @p zero_policy. The weights have to be non-negative,
+ * and elements with non-finite weights are skipped.
  *
  * For a set of values \f$ v \f$ and a set of weights \f$ w \f$,
  * the weighted harmonic mean \f$ g \f$ is calculated following [1]:
@@ -901,6 +917,7 @@ double weighted_harmonic_mean(
                 den     += weight / static_cast<double>( value );
                 ++count;
             } else {
+                assert( *it == 0.0 );
                 switch( zero_policy ) {
                     case HarmonicMeanZeroPolicy::kThrow: {
                         throw std::invalid_argument(
@@ -1197,11 +1214,15 @@ double pearson_correlation_coefficient(
     double mean_a = 0.0;
     double mean_b = 0.0;
     size_t count = 0;
-    for_each_finite_pair( first_a, last_a, first_b, last_b, [&]( double val_a, double val_b ){
-        mean_a += val_a;
-        mean_b += val_b;
-        ++count;
-    });
+    for_each_finite_pair(
+        first_a, last_a,
+        first_b, last_b,
+        [&]( double val_a, double val_b ){
+            mean_a += val_a;
+            mean_b += val_b;
+            ++count;
+        }
+    );
     if( count == 0 ) {
         return std::numeric_limits<double>::quiet_NaN();
     }
@@ -1213,13 +1234,17 @@ double pearson_correlation_coefficient(
     double numerator = 0.0;
     double std_dev_a = 0.0;
     double std_dev_b = 0.0;
-    for_each_finite_pair( first_a, last_a, first_b, last_b, [&]( double val_a, double val_b ){
-        double const d1 = val_a - mean_a;
-        double const d2 = val_b - mean_b;
-        numerator += d1 * d2;
-        std_dev_a += d1 * d1;
-        std_dev_b += d2 * d2;
-    });
+    for_each_finite_pair(
+        first_a, last_a,
+        first_b, last_b,
+        [&]( double val_a, double val_b ){
+            double const d1 = val_a - mean_a;
+            double const d2 = val_b - mean_b;
+            numerator += d1 * d2;
+            std_dev_a += d1 * d1;
+            std_dev_b += d2 * d2;
+        }
+    );
 
     // Calculate PCC, and assert that it is in the correct range
     // (or not a number, which can happen if the std dev is 0.0, e.g. in all-zero vectors).
