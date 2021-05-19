@@ -154,7 +154,7 @@ public:
     /**
      * @brief Create an instance given a pointer to the htslib-internal header struct.
      *
-     * This copies the header using <code>:\:bcf_hdr_dup()</code> from htslib, and then manages the
+     * This copies the header using <code>\::bcf_hdr_dup()</code> from htslib, and then manages the
      * livetime of the newly created <code>\::bcf_hdr_t</code> instance only.
      */
     explicit VcfHeader( ::bcf_hdr_t* bcf_hdr );

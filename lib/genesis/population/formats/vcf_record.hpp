@@ -433,7 +433,7 @@ public:
     bool has_info( std::string const& id ) const;
 
     /**
-     * @copydoc VcfRecord::has_info( std::string const& )
+     * @copydoc genesis::population::VcfRecord::has_info( std::string const& ) const
      */
     bool has_info( char const* id ) const;
 
@@ -446,7 +446,7 @@ public:
     void assert_info( std::string const& id ) const;
 
     /**
-     * @copydoc VcfRecord::assert_info( std::string const& )
+     * @copydoc genesis::population::VcfRecord::assert_info( std::string const& ) const
      */
     void assert_info( char const* ) const;
 
@@ -464,7 +464,7 @@ public:
      * If the @p destination string is re-used between calles for different records,
      * this is the faster variant that saves on memory allocations.
      *
-     * @copydetails VcfRecord::get_info_string( std::string const& ) const
+     * @copydetails genesis::population::VcfRecord::get_info_string( std::string const& ) const
      */
     void get_info_string( std::string const& id, std::string& destination ) const;
 
@@ -473,7 +473,7 @@ public:
      *
      * While htslib uses `float`, we use `double` throughout genesis, and hence return this here.
      *
-     * @copydetails VcfRecord::get_info_string( std::string const& ) const
+     * @copydetails genesis::population::VcfRecord::get_info_string( std::string const& ) const
      */
     std::vector<double> get_info_float( std::string const& id ) const;
 
@@ -484,14 +484,14 @@ public:
      * If the @p destination vector is re-used between calles for different records,
      * this is the faster variant that saves on memory allocations.
      *
-     * @copydetails VcfRecord::get_info_float( std::string const& ) const
+     * @copydetails genesis::population::VcfRecord::get_info_float( std::string const& ) const
      */
     void get_info_float( std::string const& id, std::vector<double>& destination ) const;
 
     /**
      * @brief Return the info value for the given key @p id as a vector of int.
      *
-     * @copydetails VcfRecord::get_info_string( std::string const& ) const
+     * @copydetails genesis::population::VcfRecord::get_info_string( std::string const& ) const
      */
     std::vector<int32_t> get_info_int( std::string const& id ) const;
 
@@ -501,7 +501,7 @@ public:
      * If the @p destination vector is re-used between calles for different records,
      * this is the faster variant that saves on memory allocations.
      *
-     * @copydetails VcfRecord::get_info_string( std::string const& ) const
+     * @copydetails genesis::population::VcfRecord::get_info_string( std::string const& ) const
      */
     void get_info_int( std::string const& id, std::vector<int32_t>& destination ) const;
 
@@ -535,7 +535,7 @@ public:
     bool has_format( std::string const& id ) const;
 
     /**
-     * @copydoc VcfRecord::has_format( std::string const& )
+     * @copydoc genesis::population::VcfRecord::has_format( std::string const& ) const
      */
     bool has_format( char const* id ) const;
 
@@ -548,7 +548,7 @@ public:
     void assert_format( std::string const& id ) const;
 
     /**
-     * @copydoc VcfRecord::assert_format( std::string const& )
+     * @copydoc genesis::population::VcfRecord::assert_format( std::string const& ) const
      */
     void assert_format( char const* id ) const;
 

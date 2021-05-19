@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -92,7 +92,7 @@ bool is_subset( Bitvector const& sub, Bitvector const& super );
  */
 bool is_superset( Bitvector const& super, Bitvector const& sub );
 
-// /**
+// /* *
 //  * @brief Return whether @p lhs is lexicographically less than @p rhs.
 //  *
 //  * This function consideres the bits ordered with most significant bits towards the left, so that
@@ -101,21 +101,21 @@ bool is_superset( Bitvector const& super, Bitvector const& sub );
 //  */
 // bool is_lexicographically_less( Bitvector const& lhs, Bitvector const& rhs );
 //
-// /**
+// /* *
 //  * @brief Return whether @p lhs is lexicographically less than @p rhs, or equal to it.
 //  *
 //  * @copydetails is_lexicographically_less()
 //  */
 // bool is_lexicographically_less_or_equal( Bitvector const& lhs, Bitvector const& rhs );
 //
-// /**
+// /* *
 //  * @brief Return whether @p lhs is lexicographically greater than @p rhs.
 //  *
 //  * @copydetails is_lexicographically_less()
 //  */
 // bool is_lexicographically_greater( Bitvector const& lhs, Bitvector const& rhs );
 //
-// /**
+// /* *
 //  * @brief Return whether @p lhs is lexicographically greater than @p rhs, or equal to it.
 //  *
 //  * @copydetails is_lexicographically_less()
