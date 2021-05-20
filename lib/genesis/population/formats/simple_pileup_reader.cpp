@@ -34,8 +34,8 @@
 #include "genesis/utils/io/char.hpp"
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
+#include "genesis/utils/math/bitvector/helper.hpp"
 
-#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
@@ -69,7 +69,7 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read(
     utils::InputStream it( source );
 
     // Convert the list of indices to a bool vec that tells which samples we want to process.
-    auto const sample_filter = make_sample_filter( sample_indices );
+    auto const sample_filter = utils::make_bool_vector_from_indices( sample_indices );
 
     Record rec;
     while( parse_line_( it, rec, sample_filter, true )) {
@@ -108,29 +108,6 @@ bool SimplePileupReader::parse_line(
 }
 
 // =================================================================================================
-//     Helper Functions
-// =================================================================================================
-
-std::vector<bool> SimplePileupReader::make_sample_filter( std::vector<size_t> const& indices )
-{
-    // Get the largest element of the vector. If it's empty, we return an empty vector as well.
-    auto max_it = std::max_element( indices.begin(), indices.end() );
-    if( max_it == indices.end() ) {
-        return {};
-    }
-    size_t max_index = *max_it;
-
-    // Fill a bool vector, setting all positions to true
-    // that are indicated by the indices, pun intended.
-    auto result = std::vector<bool>( max_index, false );
-    for( auto const& idx : indices ) {
-        assert( idx < result.size() );
-        result[idx] = true;
-    }
-    return result;
-}
-
-// =================================================================================================
 //     Internal Members
 // =================================================================================================
 
@@ -150,7 +127,7 @@ bool SimplePileupReader::parse_line_(
     // If we reached the end of the input stream, reset the record. We do not reset per default,
     // in order to avoid costly re-initialization of the sample vector. But when we finish with
     // an input stream, we want to reset, so that subsequent usage of this reader class does not
-    // fail if the pileip file contains a different number of samples.
+    // fail if the pileup file contains a different number of samples.
     // Still, the user will currently get an error when using the same reader instance to
     // simultaneously (interlaced) read from multiple pileup files with differing number of samples
     // into the same record... But who does that?! If you are a user having this issue, please

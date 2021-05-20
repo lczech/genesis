@@ -33,6 +33,7 @@
 
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/math/bitvector/helper.hpp"
 
 #include <string>
 
@@ -126,7 +127,7 @@ public:
         , use_sample_filter_( true )
     {
         // Prepare the sample filter from the indices.
-        sample_filter_ = SimplePileupReader::make_sample_filter( sample_indices );
+        sample_filter_ = utils::make_bool_vector_from_indices( sample_indices );
 
         // Read the first record of the file.
         increment();

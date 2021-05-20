@@ -273,7 +273,7 @@ public:
      * @brief Set whether to expect the base of the ancestral allele as the last part of each
      * sample in a record line.
      *
-     * This is a pipeup extension used by Pool-HMM (Boitard et al 2013) to denote the ancestral
+     * This is a pileup extension used by Pool-HMM (Boitard et al 2013) to denote the ancestral
      * allele of each position directly within the pipleup file. Set to true when this is present
      * in the input.
      *
@@ -289,15 +289,6 @@ public:
         with_ancestral_base_ = value;
         return *this;
     }
-
-    // -------------------------------------------------------------------------
-    //     Helper Functions
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Helper function to create a sample filter from a list of sample indices.
-     */
-    static std::vector<bool> make_sample_filter( std::vector<size_t> const& indices );
 
     // -------------------------------------------------------------------------
     //     Internal Members
