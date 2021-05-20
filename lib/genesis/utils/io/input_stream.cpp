@@ -102,7 +102,9 @@ InputStream& InputStream::advance()
     }
 
     // Read data if necessary.
-    update_blocks_();
+    if( data_pos_ >= BlockLength ) {
+        update_blocks_();
+    }
     assert( data_pos_ < BlockLength );
 
     // In case we are moving to a new line, set the counters accordingly.
@@ -136,7 +138,9 @@ void InputStream::get_line( std::string& target )
     // we might need to update the blocks and store the results in between.
     while( true ) {
         // Read data if necessary.
-        update_blocks_();
+        if( data_pos_ >= BlockLength ) {
+            update_blocks_();
+        }
         assert( data_pos_ < BlockLength );
 
         // Store the starting position, so that we can copy from there once we found the end.
@@ -301,29 +305,30 @@ void InputStream::reset_()
 
 void InputStream::update_blocks_()
 {
-    // This function is only called from the read char and line methods, which both beforehand
-    // check the following condition. So, if it breaks, this function is invalidly called
-    // from somewhere else.
+    // This function is only called locally in contexts where we already know that we need to
+    // update the blocks. We only assert this here again, meaning that we expect the caller
+    // functions to check for this already. Handling it this way ensures that the function
+    // jump is only made when necesary.
+    assert( data_pos_ >= BlockLength );
+
+    // Furthermore, the callers need to check the following condition. So, if it breaks, this
+    // function is invalidly called from somewhere else.
     assert( data_pos_ <  data_end_ );
 
     // If this assertion breaks, someone tempered with our internal invariants.
     assert( data_end_ <= BlockLength * 2 );
 
-    // If we are past the first block, we need to load more data into the blocks.
-    if( data_pos_ >= BlockLength ) {
+    // Move the second to the first block.
+    std::memcpy( buffer_, buffer_ + BlockLength, BlockLength );
+    data_pos_ -= BlockLength;
+    data_end_ -= BlockLength;
 
-        // Move the second to the first block.
-        std::memcpy( buffer_, buffer_ + BlockLength, BlockLength );
-        data_pos_ -= BlockLength;
-        data_end_ -= BlockLength;
-
-        // If we are not yet at the end of the data, start the reader again:
-        // Copy the third block to the second, and read into the third one.
-        if( input_reader_ && input_reader_->valid() ) {
-            data_end_ += input_reader_->finish_reading();
-            std::memcpy( buffer_ + BlockLength, buffer_ + 2 * BlockLength, BlockLength );
-            input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
-        }
+    // If we are not yet at the end of the data, start the reader again:
+    // Copy the third block to the second, and read into the third one.
+    if( input_reader_ && input_reader_->valid() ) {
+        data_end_ += input_reader_->finish_reading();
+        std::memcpy( buffer_ + BlockLength, buffer_ + 2 * BlockLength, BlockLength );
+        input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
     }
 
     // After the update, the current position needs to be within the first block.

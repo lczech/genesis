@@ -138,7 +138,7 @@ public:
     /**
      * @brief Dereference operator. Return the current char.
      */
-    char operator* () const
+    inline char operator* () const
     {
         return current_;
     }
@@ -167,7 +167,7 @@ public:
     /**
      * @brief Move to the next char in the stream. Shortcut for advance().
      */
-    self_type& operator ++ ()
+    inline self_type& operator ++ ()
     {
         advance();
         return *this;
@@ -178,7 +178,7 @@ public:
      *
      * Return the current char and move to the next one.
      */
-    char get_char()
+    inline char get_char()
     {
         char ret = current_;
         advance();
@@ -250,7 +250,7 @@ public:
     /**
      * @brief Return true iff the input is good (not end of data) and can be read from.
      */
-    bool good() const
+    inline bool good() const
     {
         return data_pos_ < data_end_;
     }
@@ -259,7 +259,7 @@ public:
      * @brief Return true iff the input is good (not end of data) and can be read from.
      * Shortcut for good().
      */
-    explicit operator bool() const
+    inline explicit operator bool() const
     {
         return data_pos_ < data_end_;
     }
@@ -267,7 +267,7 @@ public:
     /**
     * @brief Return true iff the input reached its end.
     */
-    bool eof() const
+    inline bool eof() const
     {
         return data_pos_ >= data_end_;
     }
