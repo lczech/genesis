@@ -114,8 +114,6 @@ struct SlidingWindowIteratorSettings
 
     // bool emit_unfinished_trailing_window = false;
     //
-    // bool start_from_one = false
-    //
     // bool emit empty_windows = true;
 
 
@@ -359,6 +357,30 @@ public:
 
 private:
 
+    void init_chromosome_()
+    {
+        // Saveguard. This might be called on an empty range, in which case we just do nothing.
+        if( current_ == end_ ) {
+            return;
+        }
+
+        // Clear the window and prepare for new chromosome.
+        window_.clear();
+        window_.chromosome( settings_.chromosome_function( *current_ ));
+        is_first_window_ = true;
+        is_last_window_ = false;
+        next_index_ = 0;
+
+        if( settings_.emit_leading_empty_windows ) {
+            current_start_ = 1;
+        } else {
+            // Set the start to the window position that we would get after going through all
+            // the previous windows if they were emitted.
+            auto const pos = settings_.position_function( *current_ );
+            current_start_ = pos - (( pos - 1 ) % settings_.stride );
+        }
+    }
+
     void increment_()
     {
         // Special case: If we have no more data, the iterator still needs to stop at the last
@@ -389,30 +411,6 @@ private:
         }
 
         update_();
-    }
-
-    void init_chromosome_()
-    {
-        // Saveguard. This might be called on an empty range, in which case we just do nothing.
-        if( current_ == end_ ) {
-            return;
-        }
-
-        // Clear the window and prepare for new chromosome.
-        window_.clear();
-        window_.chromosome( settings_.chromosome_function( *current_ ));
-        is_first_window_ = true;
-        is_last_window_ = false;
-        next_index_ = 0;
-
-        if( settings_.emit_leading_empty_windows ) {
-            current_start_ = 0;
-        } else {
-            // Set the start to the window position that we would get after going through all
-            // the previous windows if they were emitted.
-            auto const pos = settings_.position_function( *current_ );
-            current_start_ = pos - pos % settings_.stride;
-        }
     }
 
     void update_()
@@ -465,7 +463,7 @@ private:
 
         // Update the window positions.
         window_.first_position( current_start_ );
-        window_.last_position( current_start_ + settings_.width );
+        window_.last_position( current_start_ + settings_.width - 1 );
     }
 
     // -------------------------------------------------------------------------
@@ -479,7 +477,7 @@ private:
 
     // Current window and its position
     Window window_;
-    size_t current_start_ = 0;
+    size_t current_start_ = 1;
     size_t next_index_ = 0;
 
     // Need to manually keep track of those...
