@@ -75,55 +75,6 @@ InputStream& InputStream::operator= ( InputStream&& other )
 }
 
 // =================================================================================================
-//     Char Operations
-// =================================================================================================
-
-char InputStream::current() const
-{
-    if( data_pos_ >= data_end_ ) {
-        throw std::runtime_error(
-            "Unexpected end of " + source_name() + " at " + at() + "."
-        );
-    }
-    if( current_ < 0 ) {
-        throw std::domain_error(
-            "Invalid input char in " + source_name() + " at " + at() + "."
-        );
-    }
-    return current_;
-}
-
-InputStream& InputStream::advance()
-{
-    // If we were already at the end, set counter so zero.
-    if( data_pos_ >= data_end_ ) {
-        reset_();
-        return *this;
-    }
-
-    // Read data if necessary.
-    if( data_pos_ >= BlockLength ) {
-        update_blocks_();
-    }
-    assert( data_pos_ < BlockLength );
-
-    // In case we are moving to a new line, set the counters accordingly.
-    if( current_ == '\n' ) {
-        ++line_;
-        column_ = 1;
-    } else {
-        ++column_;
-    }
-
-    // Next position.
-    ++data_pos_;
-
-    // Set the char.
-    set_current_char_();
-    return *this;
-}
-
-// =================================================================================================
 //     Line Operations
 // =================================================================================================
 
@@ -295,76 +246,6 @@ void InputStream::get_line( std::string& target )
 // =================================================================================================
 //     Internal Members
 // =================================================================================================
-
-void InputStream::reset_()
-{
-    line_    = 0;
-    column_  = 0;
-    current_ = '\0';
-}
-
-void InputStream::update_blocks_()
-{
-    // This function is only called locally in contexts where we already know that we need to
-    // update the blocks. We only assert this here again, meaning that we expect the caller
-    // functions to check for this already. Handling it this way ensures that the function
-    // jump is only made when necesary.
-    assert( data_pos_ >= BlockLength );
-
-    // Furthermore, the callers need to check the following condition. So, if it breaks, this
-    // function is invalidly called from somewhere else.
-    assert( data_pos_ <  data_end_ );
-
-    // If this assertion breaks, someone tempered with our internal invariants.
-    assert( data_end_ <= BlockLength * 2 );
-
-    // Move the second to the first block.
-    std::memcpy( buffer_, buffer_ + BlockLength, BlockLength );
-    data_pos_ -= BlockLength;
-    data_end_ -= BlockLength;
-
-    // If we are not yet at the end of the data, start the reader again:
-    // Copy the third block to the second, and read into the third one.
-    if( input_reader_ && input_reader_->valid() ) {
-        data_end_ += input_reader_->finish_reading();
-        std::memcpy( buffer_ + BlockLength, buffer_ + 2 * BlockLength, BlockLength );
-        input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
-    }
-
-    // After the update, the current position needs to be within the first block.
-    assert( data_pos_ < BlockLength );
-}
-
-void InputStream::set_current_char_()
-{
-    if( data_pos_ >= data_end_ ) {
-        // If we just reached the end, do not fully reset the line and column counters.
-        // They might be needed in some parser.
-        current_ = '\0';
-        return;
-    }
-
-    // Treat stupid Windows and Mac lines breaks. Set them to \n, so that downstream parsers
-    // don't have to deal with this.
-    if( buffer_[ data_pos_ ] == '\r' ) {
-        buffer_[ data_pos_ ] = '\n';
-
-        // If this is a Win line break \r\n, skip one of them, so that only a single \n
-        // is visible to the outside.
-        if( data_pos_ + 1 < data_end_ && buffer_[ data_pos_ + 1 ] == '\n' ) {
-            ++data_pos_;
-        }
-    }
-
-    // If this is the last char of the data, but there is no closing \n, add one.
-    if( data_pos_ + 1 == data_end_ && buffer_[ data_pos_ ] != '\n' ) {
-        ++data_end_;
-        buffer_[ data_pos_ + 1 ] = '\n';
-    }
-
-    // Set the char.
-    current_ = buffer_[ data_pos_ ];
-}
 
 void InputStream::init_( std::shared_ptr<BaseInputSource> input_source )
 {

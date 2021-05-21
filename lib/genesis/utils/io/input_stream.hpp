@@ -35,6 +35,7 @@
 #include "genesis/utils/io/input_reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
 
+#include <cassert>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -78,9 +79,9 @@ class InputStream
 {
 public:
 
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Member Types
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Block length for internal buffering.
@@ -94,9 +95,9 @@ public:
     using self_type         = InputStream;
     using value_type        = char;
 
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     InputStream()
         : source_name_( "invalid source" )
@@ -131,9 +132,9 @@ public:
     self_type& operator= ( self_type const& ) = delete;
     self_type& operator= ( self_type&& other );
 
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Char Operations
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Dereference operator. Return the current char.
@@ -157,19 +158,60 @@ public:
      * Usually, those two conditions are checked in the parser anyway, so in most cases it is
      * preferred to use the @link operator*() dereference operator@endlink instead.
      */
-    char current() const;
+    inline char current() const
+    {
+        if( data_pos_ >= data_end_ ) {
+            throw std::runtime_error(
+                "Unexpected end of " + source_name() + " at " + at() + "."
+            );
+        }
+        if( current_ < 0 ) {
+            throw std::domain_error(
+                "Invalid input char in " + source_name() + " at " + at() + "."
+            );
+        }
+        return current_;
+    }
 
     /**
      * @brief Move to the next char in the stream and advance the counters.
      */
-    self_type& advance();
+    inline self_type& advance()
+    {
+        operator++();
+        return *this;
+    }
 
     /**
      * @brief Move to the next char in the stream. Shortcut for advance().
      */
     inline self_type& operator ++ ()
     {
-        advance();
+        // If we were already at the end, set counter so zero.
+        if( data_pos_ >= data_end_ ) {
+            reset_();
+            return *this;
+        }
+
+        // Read data if necessary.
+        if( data_pos_ >= BlockLength ) {
+            update_blocks_();
+        }
+        assert( data_pos_ < BlockLength );
+
+        // In case we are moving to a new line, set the counters accordingly.
+        if( current_ == '\n' ) {
+            ++line_;
+            column_ = 1;
+        } else {
+            ++column_;
+        }
+
+        // Next position.
+        ++data_pos_;
+
+        // Set the char.
+        set_current_char_();
         return *this;
     }
 
@@ -185,9 +227,9 @@ public:
         return ret;
     }
 
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Line Operations
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Read the current line, append it to the @p target, and move to the beginning of the
@@ -213,9 +255,9 @@ public:
         return result;
     }
 
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------------
     //     State
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Return the current line of the input stream.
@@ -288,36 +330,104 @@ public:
         return source_name_;
     }
 
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Internal Members
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
 private:
-
-    /**
-     * @brief Set the column, line and currenct char to zero values.
-     */
-    void reset_();
-
-    /**
-     * @brief Refill the buffer blocks if necessary.
-     */
-    void update_blocks_();
-
-    /**
-     * @brief Helper function that does some checks on the current char and sets it to what
-     * is at `data_pos_` in the `buffer_`.
-     */
-    void set_current_char_();
 
     /**
      * @brief Init the buffers and the state of this object.
      */
     void init_( std::shared_ptr<BaseInputSource> input_source );
 
-    // -------------------------------------------------------------
+    /**
+     * @brief Set the column, line and currenct char to zero values.
+     */
+    void reset_()
+    {
+        line_    = 0;
+        column_  = 0;
+        current_ = '\0';
+    }
+
+    /**
+     * @brief Refill the buffer blocks if necessary.
+     */
+    inline void update_blocks_()
+    {
+        // This function is only called locally in contexts where we already know that we need to
+        // update the blocks. We only assert this here again, meaning that we expect the caller
+        // functions to check for this already. Handling it this way ensures that the function
+        // jump is only made when necesary.
+        assert( data_pos_ >= BlockLength );
+
+        // Furthermore, the callers need to check the following condition. So, if it breaks, this
+        // function is invalidly called from somewhere else.
+        assert( data_pos_ <  data_end_ );
+
+        // If this assertion breaks, someone tempered with our internal invariants.
+        assert( data_end_ <= BlockLength * 2 );
+
+        // Move the second to the first block.
+        std::memcpy( buffer_, buffer_ + BlockLength, BlockLength );
+        data_pos_ -= BlockLength;
+        data_end_ -= BlockLength;
+
+        // If we are not yet at the end of the data, start the reader again:
+        // Copy the third block to the second, and read into the third one.
+        if( input_reader_ && input_reader_->valid() ) {
+            data_end_ += input_reader_->finish_reading();
+            std::memcpy( buffer_ + BlockLength, buffer_ + 2 * BlockLength, BlockLength );
+            input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
+        }
+
+        // After the update, the current position needs to be within the first block.
+        assert( data_pos_ < BlockLength );
+    }
+
+    /**
+     * @brief Helper function that does some checks on the current char and sets it to what
+     * is at `data_pos_` in the `buffer_`.
+     */
+    inline void set_current_char_()
+    {
+        // Catch two uncommon conditions, and rather check them again, than checking
+        // both of them all the time. Little speedup!
+        if( data_pos_ + 1 >= data_end_ ) {
+            if( data_pos_ >= data_end_ ) {
+                // If we just reached the end, do not fully reset the line and column counters.
+                // They might be needed in some parser.
+                current_ = '\0';
+                return;
+            }
+
+            // If this is the last char of the data, but there is no closing \n, add one.
+            if( data_pos_ + 1 == data_end_ && buffer_[ data_pos_ ] != '\n' ) {
+                ++data_end_;
+                buffer_[ data_pos_ + 1 ] = '\n';
+            }
+        }
+
+        // Set the char.
+        current_ = buffer_[ data_pos_ ];
+
+        // Treat stupid Windows and Mac lines breaks. Set them to \n, so that downstream parsers
+        // don't have to deal with this.
+        if( current_ == '\r' ) {
+            current_ = '\n';
+
+            // If this is a Win line break \r\n, skip one of them, so that only a single \n
+            // is visible to the outside.
+            if( data_pos_ + 1 < data_end_ && buffer_[ data_pos_ + 1 ] == '\n' ) {
+                ++data_pos_;
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
     //     Data Members
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
 private:
 
