@@ -74,13 +74,21 @@ double amnm_( // get_aMnm_buffer
     ) {
         double result = 0.0;
 
-        #pragma omp parallel for
+        // #pragma omp parallel for
         for( size_t r = 1; r <= poolsize - 1; ++r ) {
             double const p = static_cast<double>( r ) / static_cast<double>( poolsize );
-            double const binom = utils::binomial_distribution( allele_frequency, nucleotide_count, p );
+
+            // We use the "lenient" flag of the binomial distribution, so that values of
+            // nucleotide_count = n > 1024 do not throw an exception, but return infinity instead.
+            // That is okay, because this will lead to the theta denominator being infinity as well,
+            // which is then inverted, so it becomes 0, and then added to the total theta of the
+            // window. So, it just vanishes in that case, which is okay.
+            double const binom = utils::binomial_distribution(
+                allele_frequency, nucleotide_count, p, true
+            );
             double const partial = binom / static_cast<double>( r );
 
-            #pragma omp atomic
+            // #pragma omp atomic
             result += partial;
         }
         return result;

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -89,6 +89,9 @@ size_t binomial_coefficient( size_t n, size_t k );
  * a `double` value instead, and hence can compute binomial coefficients of up to `n == 1024`
  * (exclusive), which for `k == n/2` is about as large as double precision allows.
  *
+ * For `n > 1024`, either an exception is thrown, or, if `lenient == true`, positive infinity
+ * is returned.
+ *
  * The returned values for all @p n and @p k that are also valid with the integer version
  * binomial_coefficient() yield identical results (up to double precision). That is, in particular
  * for all `n < 63`, as well as for larger `n` with small `k`.
@@ -96,22 +99,25 @@ size_t binomial_coefficient( size_t n, size_t k );
  * Note furthermore that we use a lookup table for the bulk of the computation here.
  * Hence, for larger numbers, this function is also faster than explicity computing the values.
  */
-double binomial_coefficient_approx( size_t n, size_t k );
+double binomial_coefficient_approx( size_t n, size_t k, bool lenient = false );
 
 /**
  * @brief Compute the probability mass function for a binomial distribution.
  *
  * Note that we reverse the order of @p k and @p n here compared to binomial_coefficient() here,
  * in order to comply with common notation.
+ *
+ * For `n > 1024`, either an exception is thrown, or, if `lenient == true`, positive infinity
+ * is returned. See binomial_coefficient_approx() for details.
  */
-inline double binomial_distribution( size_t k, size_t n, double p )
+inline double binomial_distribution( size_t k, size_t n, double p, bool lenient = false )
 {
     if( ! std::isfinite(p) || p < 0.0 || p > 1.0 ) {
         throw std::invalid_argument(
             "Cannot compute binomial distribution with p outside of [ 0, 1 ]"
         );
     }
-    double const coeff = binomial_coefficient_approx( n, k );
+    double const coeff = binomial_coefficient_approx( n, k, lenient );
     return coeff * std::pow( p, k ) * std::pow( 1.0 - p, n - k );
 }
 
