@@ -149,12 +149,16 @@ bool VariantPileupReader::parse_line_(
 
     // Read reference base.
     next_field_( it );
-    auto const rb = utils::to_upper( *it );
+    auto rb = utils::to_upper( *it );
     if( rb != 'A' && rb != 'C' && rb != 'G' && rb != 'T' && rb != 'N' ) {
-        throw std::runtime_error(
-            "Malformed pileup " + it.source_name() + " at " + it.at() +
-            ": Invalid reference base that is not in [ACGTN]"
-        );
+        if( strict_bases_ ) {
+            throw std::runtime_error(
+                "Malformed pileup " + it.source_name() + " at " + it.at() +
+                ": Invalid reference base that is not in [ACGTN]"
+            );
+        } else {
+            rb = 'N';
+        }
     }
     variant.reference_base = rb;
     ++it;
@@ -249,7 +253,16 @@ void VariantPileupReader::process_sample_(
 
                 // Then, we skip that many chars, making sure that all is in order.
                 for( size_t i = 0; i < indel_cnt; ++i ) {
-                    if( !it || !std::strchr( allowed_codes.c_str(), utils::to_upper( *it ))) {
+                    if( !it ) {
+                        throw std::runtime_error(
+                            "Malformed pileup " + it.source_name() + " at " + it.at() +
+                            ": Line with missing indel characters."
+                        );
+                    }
+                    if(
+                        strict_bases_ &&
+                        !std::strchr( allowed_codes.c_str(), utils::to_upper( *it ))
+                    ) {
                         throw std::runtime_error(
                             "Malformed pileup " + it.source_name() + " at " + it.at() +
                             ": Line with invalid indel character " + utils::char_to_hex( *it )

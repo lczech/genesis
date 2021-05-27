@@ -220,6 +220,23 @@ public:
     //     Settings
     // -------------------------------------------------------------------------
 
+    bool strict_bases() const
+    {
+        return strict_bases_;
+    }
+
+    /**
+     * @brief Set whether to strictly require bases to be in `ACGTN`.
+     *
+     * If set to `true`, we expect bases to be `ACGTN`, and throw otherwise.
+     * If set to `false`, we will change any other base to be `N`.
+     */
+    self_type& strict_bases( bool value )
+    {
+        strict_bases_ = value;
+        return *this;
+    }
+
     bool with_quality_string() const
     {
         return with_quality_string_;
@@ -322,6 +339,9 @@ private:
     // -------------------------------------------------------------------------
 
 private:
+
+    // If set, we expect bases to be ACGTN. If not set, we will fix any that are not to N.
+    bool strict_bases_ = false;
 
     // Set whether the file contains the base quality score column, and if so, how its encoded
     // (we default to Sanger with offset 33), and if we want to skip low quality bases.

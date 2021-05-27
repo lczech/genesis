@@ -36,6 +36,8 @@
 #include "genesis/utils/io/scanner.hpp"
 #include "genesis/utils/math/bitvector/helper.hpp"
 
+#include "genesis/utils/core/logging.hpp"
+
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
@@ -153,14 +155,20 @@ bool SimplePileupReader::parse_line_(
     record.position = utils::parse_unsigned_integer<size_t>( it );
     assert( !it || !utils::is_digit( *it ));
 
+    LOG_MSG << "fuckit";
+
     // Read reference base.
     next_field_( it );
-    auto const rb = utils::to_upper( *it );
+    auto rb = utils::to_upper( *it );
     if( rb != 'A' && rb != 'C' && rb != 'G' && rb != 'T' && rb != 'N' ) {
-        throw std::runtime_error(
-            "Malformed pileup " + it.source_name() + " at " + it.at() +
-            ": Invalid reference base that is not in [ACGTN]"
-        );
+        if( strict_bases_ ) {
+            throw std::runtime_error(
+                "Malformed pileup " + it.source_name() + " at " + it.at() +
+                ": Invalid reference base that is not in [ACGTN]"
+            );
+        } else {
+            rb = 'N';
+        }
     }
     record.reference_base = rb;
     ++it;
@@ -258,7 +266,16 @@ void SimplePileupReader::process_sample_(
 
                 // Then, we skip that many chars, making sure that all is in order.
                 for( size_t i = 0; i < indel_cnt; ++i ) {
-                    if( !it || !std::strchr( allowed_codes.c_str(), utils::to_upper( *it ))) {
+                    if( !it ) {
+                        throw std::runtime_error(
+                            "Malformed pileup " + it.source_name() + " at " + it.at() +
+                            ": Line with missing indel characters."
+                        );
+                    }
+                    if(
+                        strict_bases_ &&
+                        !std::strchr( allowed_codes.c_str(), utils::to_upper( *it ))
+                    ) {
                         throw std::runtime_error(
                             "Malformed pileup " + it.source_name() + " at " + it.at() +
                             ": Line with invalid indel character " + utils::char_to_hex( *it )
@@ -343,14 +360,18 @@ void SimplePileupReader::process_sample_(
         next_field_( it );
         // We can simply read in the char here. Even if the iterator is at its end, it will
         // simply return a null char, which will trigger the subsequent error check.
-        char const c = utils::to_upper( *it );
-        if( !it || ( c != 'A' && c != 'C' && c != 'G' && c != 'T' && c != 'N' )) {
-            throw std::runtime_error(
-                "Malformed pileup " + it.source_name() + " at " + it.at() +
-                ": Expecting ancestral base character in [ACGTN]."
-            );
+        char ab = utils::to_upper( *it );
+        if( !it || ( ab != 'A' && ab != 'C' && ab != 'G' && ab != 'T' && ab != 'N' )) {
+            if( strict_bases_ ) {
+                throw std::runtime_error(
+                    "Malformed pileup " + it.source_name() + " at " + it.at() +
+                    ": Expecting ancestral base character in [ACGTN]."
+                );
+            } else {
+                ab = 'N';
+            }
         }
-        sample.ancestral_base = c;
+        sample.ancestral_base = ab;
         ++it;
     }
 
