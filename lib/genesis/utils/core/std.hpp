@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -64,6 +64,8 @@ namespace utils {
  *
  * Since this is not available in C++11, we need our own implementation.
  * It is following http://herbsutter.com/gotw/_102/
+ * When using this function, make sure to specify at least the `utils` namespace, even from within
+ * that namespace, in order to avoid name overloads if compiled with C++17.
  */
 template<typename T, typename... Args>
 std::unique_ptr<T> make_unique(Args&&... args)
