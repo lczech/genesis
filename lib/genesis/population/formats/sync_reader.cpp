@@ -108,9 +108,9 @@ bool SyncReader::parse_line_(
 
     // Read fixed columns for chromosome and position.
     sample_set.chromosome = utils::read_until( it, []( char c ){ return c == '\t' || c == '\n'; });
-    utils::read_char_or_throw( it, '\t' );
-    sample_set.position = utils::parse_unsigned_integer<size_t>( it );
-    utils::read_char_or_throw( it, '\t' );
+    it.read_char_or_throw( '\t' );
+    sample_set.position = it.parse_unsigned_integer<size_t>();
+    it.read_char_or_throw( '\t' );
     if( !it || *it == '\n' ) {
         throw std::runtime_error(
             std::string("In ") + it.source_name() + ": Unexpected end of line at " + it.at()
@@ -182,21 +182,22 @@ void SyncReader::parse_sample_(
     BaseCounts&         sample
 ) const {
     using namespace genesis::utils;
-    read_char_or_throw( input_stream, '\t' );
+    auto& it = input_stream;
+    it.read_char_or_throw( '\t' );
 
     // The allele frequencies are stored in the order `A:T:C:G:N:del`,
     // see https://sourceforge.net/p/popoolation2/wiki/Tutorial/
-    sample.a_count = parse_unsigned_integer<size_t>( input_stream );
-    read_char_or_throw( input_stream, ':' );
-    sample.t_count = parse_unsigned_integer<size_t>( input_stream );
-    read_char_or_throw( input_stream, ':' );
-    sample.c_count = parse_unsigned_integer<size_t>( input_stream );
-    read_char_or_throw( input_stream, ':' );
-    sample.g_count = parse_unsigned_integer<size_t>( input_stream );
-    read_char_or_throw( input_stream, ':' );
-    sample.n_count = parse_unsigned_integer<size_t>( input_stream );
-    read_char_or_throw( input_stream, ':' );
-    sample.d_count = parse_unsigned_integer<size_t>( input_stream );
+    sample.a_count = it.parse_unsigned_integer<size_t>();
+    it.read_char_or_throw( ':' );
+    sample.t_count = it.parse_unsigned_integer<size_t>();
+    it.read_char_or_throw( ':' );
+    sample.c_count = it.parse_unsigned_integer<size_t>();
+    it.read_char_or_throw( ':' );
+    sample.g_count = it.parse_unsigned_integer<size_t>();
+    it.read_char_or_throw( ':' );
+    sample.n_count = it.parse_unsigned_integer<size_t>();
+    it.read_char_or_throw( ':' );
+    sample.d_count = it.parse_unsigned_integer<size_t>();
 }
 
 void SyncReader::skip_sample_(
@@ -210,17 +211,17 @@ void SyncReader::skip_sample_(
     parse_sample_( input_stream, dummy );
 
     // Simply skip everything.
-    // read_char_or_throw( input_stream, '\t' );
+    // input_stream.read_char_or_throw( '\t' );
     // skip_while( input_stream, is_digit );
-    // read_char_or_throw( input_stream, ':' );
+    // input_stream.read_char_or_throw( ':' );
     // skip_while( input_stream, is_digit );
-    // read_char_or_throw( input_stream, ':' );
+    // input_stream.read_char_or_throw( ':' );
     // skip_while( input_stream, is_digit );
-    // read_char_or_throw( input_stream, ':' );
+    // input_stream.read_char_or_throw( ':' );
     // skip_while( input_stream, is_digit );
-    // read_char_or_throw( input_stream, ':' );
+    // input_stream.read_char_or_throw( ':' );
     // skip_while( input_stream, is_digit );
-    // read_char_or_throw( input_stream, ':' );
+    // input_stream.read_char_or_throw( ':' );
     // skip_while( input_stream, is_digit );
 }
 
