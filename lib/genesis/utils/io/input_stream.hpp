@@ -429,7 +429,10 @@ public:
 
         // Parse as largest, and then try to cast to desired type,
         // testing that back-conversion gives the same value and sign.
-        auto const x = parse_unsigned_integer<size_t>();
+        // The back-cast of `sign * r` is always valid, as the negative range of signed ints
+        // is smaller than the positive, so if it's negative, multiplying by -1 will always result
+        // in a valid value.
+        auto const x = parse_unsigned_integer_size_t_();
         auto const r = sign * static_cast<T>(x);
         if( static_cast<size_t>( sign * r ) != x || !( r == 0 || (sign < 0) == (r < 0) )) {
             throw std::overflow_error(
@@ -607,37 +610,39 @@ private:
      */
     inline void set_current_char_()
     {
-        // Catch two uncommon conditions, and rather check them again, than checking
-        // both of them all the time. Little speedup!
-        if( data_pos_ + 1 >= data_end_ ) {
-            if( data_pos_ >= data_end_ ) {
-                // If we just reached the end, do not fully reset the line and column counters.
+        // Check end of stream conditions.
+        if( data_pos_ >= data_end_ ) {
+            // We do not expect to overshoot. Let's assert this, but if it still happens
+            // (in release build), we can also cope, and will just set \0 as the current char.
+            assert( data_pos_ == data_end_ );
+
+            if( data_pos_ == data_end_ && data_pos_ > 0 && buffer_[ data_pos_ - 1 ] != '\n' ) {
+                // If this is the end of the data, but there was no closing \n, add one.
+                buffer_[ data_pos_ ] = '\n';
+                ++data_end_;
+            } else {
+                // If we reached the end, do not fully reset the line and column counters.
                 // They might be needed in some parser.
                 current_ = '\0';
                 return;
             }
+        }
 
-            // If this is the last char of the data, but there is no closing \n, add one.
-            if( data_pos_ + 1 == data_end_ && buffer_[ data_pos_ ] != '\n' ) {
-                ++data_end_;
-                buffer_[ data_pos_ + 1 ] = '\n';
+        // Treat stupid Windows and Mac lines breaks. Set them to \n, so that downstream parsers
+        // don't have to deal with this.
+        if( buffer_[ data_pos_ ] == '\r' ) {
+            buffer_[ data_pos_ ] = '\n';
+
+            // If this is a Win line break \r\n, skip one of them, so that only a single \n
+            // is visible to the outside. We do not treat \n\r line breaks properly here!
+            // If any system still uses those, we'd have to change code here.
+            if( data_pos_ + 1 < data_end_ && buffer_[ data_pos_ + 1 ] == '\n' ) {
+                ++data_pos_;
             }
         }
 
         // Set the char.
         current_ = buffer_[ data_pos_ ];
-
-        // Treat stupid Windows and Mac lines breaks. Set them to \n, so that downstream parsers
-        // don't have to deal with this.
-        if( current_ == '\r' ) {
-            current_ = '\n';
-
-            // If this is a Win line break \r\n, skip one of them, so that only a single \n
-            // is visible to the outside.
-            if( data_pos_ + 1 < data_end_ && buffer_[ data_pos_ + 1 ] == '\n' ) {
-                ++data_pos_;
-            }
-        }
     }
 
     // -------------------------------------------------------------------------

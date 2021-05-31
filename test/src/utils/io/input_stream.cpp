@@ -214,6 +214,12 @@ TEST( InputStream, ParseInt )
         line_lengths[line] += std::to_string(r).size();
         out << r;
 
+        // Extra test case: Stream that does not end in a new line!
+        // Let's test this, and make sure that it works.
+        if( i == n - 1 ) {
+            break;
+        }
+
         // Decide randomly whether we make a new line or a colon, except for the last number,
         // where we always end with a new line, as otherwise the below simply parsing function
         // will expect another int after the colon.
@@ -258,8 +264,11 @@ TEST( InputStream, ParseInt )
         ++input_stream;
     }
 
+    // Test that we end up where we want, with the correct sum of numbers, and the correct line.
+    // When creating the file above, we omitted the closing new line from the file, which is added
+    // by the parser automatically. So here we expect one additional line to be found.
+    EXPECT_EQ( line + 1, target_line );
     EXPECT_EQ( sum, target_sum );
-    EXPECT_EQ( line, target_line );
 
     // Make sure the file is deleted.
     ASSERT_EQ( 0, std::remove(tmpfile.c_str()) );
