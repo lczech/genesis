@@ -436,19 +436,37 @@ private:
 
         // Now enqueue new entries.
         while( current_ != end_ ) {
+            auto const cur_pos = settings_.position_function( *current_ );
+
             // Get the chromosome and position of the current entry, and see if it belongs
             // into the current window. If not, we are done here with this window.
             if(
                 settings_.chromosome_function( *current_ ) != window_.chromosome() ||
-                settings_.position_function( *current_ ) >= current_start_ + settings_.width
+                cur_pos >= current_start_ + settings_.width
             ) {
                 break;
+            }
+            assert( settings_.chromosome_function( *current_ ) == window_.chromosome() );
+
+            // Check that we are not going backwards in the chromosome,
+            // i.e., if we got unsorted data. That would lead to unwanted behaviour.
+            if(
+                ! window_.empty() &&
+                window_.entries().back().position >= cur_pos
+            ) {
+                throw std::runtime_error(
+                    "Invalid entry in sliding window that not in sequence with other entries. "
+                    "Previous entry is " + window_.chromosome() + ":" +
+                    std::to_string( window_.entries().back().position ) +
+                    ", current (invalid) entry is " + window_.chromosome() + ":" +
+                    std::to_string( cur_pos )
+                );
             }
 
             // Now enqueue the entry, and move to the next.
             window_.entries().emplace_back(
                 next_index_,
-                settings_.position_function( *current_ ),
+                cur_pos,
                 settings_.entry_input_function( *current_ )
             );
             ++next_index_;
