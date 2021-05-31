@@ -38,6 +38,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -255,6 +256,56 @@ public:
         std::string result;
         get_line( result );
         return result;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Char Operations
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Lexing function that reads a single char from the stream and checks whether it equals
+     * the provided one.
+     *
+     * If not, the function throws `std::runtime_error`. The stream is advanced by one position and
+     * the char is returned. For a similar function that checks the value of the current char but
+     * does not advance in the stream, see affirm_char_or_throw().
+     */
+    inline char read_char_or_throw( char const criterion )
+    {
+        // Check char and move to next.
+        if( data_pos_ >= data_end_ || current_ != criterion ) {
+            throw std::runtime_error(
+                std::string("In ") + source_name() + ": " +
+                "Expecting " + char_to_hex( criterion ) + " at " + at() + ", " +
+                "but received " + char_to_hex( current_ ) + " instead."
+            );
+        }
+        assert( good() && current_ == criterion );
+        operator++();
+        return criterion;
+    }
+
+    /**
+     * @brief Lexing function that reads a single char from the stream and checks whether it
+     * fulfills the provided criterion.
+     *
+     * If not, the function throws `std::runtime_error`. The stream is advanced by one position and
+     * the char is returned. For a similar function that checks the value of the current char but
+     * does not advance in the stream, see affirm_char_or_throw().
+     */
+    inline char read_char_or_throw( std::function<bool (char)> criterion )
+    {
+        // Check char and move to next.
+        if( data_pos_ >= data_end_ || !criterion( current_ )) {
+            throw std::runtime_error(
+                std::string("In ") + source_name() + ": " +
+                "Unexpected char " + char_to_hex( current_ ) + " at " + at() + "."
+            );
+        }
+        assert( good() );
+        auto const chr = current_;
+        operator++();
+        return chr;
     }
 
     // -------------------------------------------------------------------------
