@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -32,13 +32,19 @@
 
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/core/std.hpp"
+#include "genesis/utils/math/common.hpp"
 
 #include <algorithm>
+#include <chrono>
+#include <cstdint>
 #include <cstdio>
 #include <fstream>
 #include <iterator>
+#include <limits>
+#include <random>
 #include <sstream>
 #include <string>
+#include <vector>
 
 using namespace genesis;
 using namespace genesis::utils;
@@ -154,6 +160,106 @@ TEST( InputStream, LargeFile )
 
         ++cnt;
     }
+
+    // Make sure the file is deleted.
+    ASSERT_EQ( 0, std::remove(tmpfile.c_str()) );
+}
+
+TEST( InputStream, ParseInt )
+{
+    // Skip test if no data directory availabe.
+    NEEDS_TEST_DATA;
+
+    // Create a file with some test data in it.
+    std::string tmpfile = environment->data_dir + "utils/ints.txt";
+    std::ofstream out{ tmpfile };
+    ASSERT_TRUE( out );
+
+    // Prepare random numbers of different lengths. We need to test length of > 8,
+    // for the naive algorithm to kick in.
+    // First, we use a distrib of how many digits we want, and then distribs for each of them,
+    // in order to guarantee that we see enough short numbers.
+    auto const max = 10;
+    auto const seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine engine(seed);
+    std::uniform_int_distribution<> separator(0,1);
+    std::uniform_int_distribution<> negative(0,1);
+    std::uniform_int_distribution<size_t> digits( 1, max );
+    std::vector<std::uniform_int_distribution<int64_t>> distribs;
+
+    // Dumy entry to get the indexing in the vector to match the number of digits that it is
+    // going to produce. Then, fill with actual distribs
+    distribs.emplace_back( 0, 0 );
+    for( size_t i = 0; i < max; ++i ) {
+        auto const min = ( i == 0 ? 0 : int_pow( 10, i ));
+        auto const max = int_pow( 10, i+1 ) - 1;
+        distribs.emplace_back( min, max );
+    }
+
+    // We write random numbers, along with either new lines or colon characters.
+    // We use these two, as new lines are below and colons are above digits in the ascii table,
+    // so that we test both conditions for where a number stops.
+    // We keep track of lines and line lengths here as well, for testing the column counter.
+
+    auto const n = 1000000;
+    int64_t sum = 0;
+    auto line_lengths = std::vector<size_t>( 1, 0 );
+    size_t line = 0;
+    for( size_t i = 0; i < n; ++i ) {
+        auto const d = digits( engine );
+        auto const sign = negative(engine) ? -1 : +1;
+        auto const r = sign * distribs[d]( engine );
+
+        sum += r;
+        line_lengths[line] += std::to_string(r).size();
+        out << r;
+
+        // Decide randomly whether we make a new line or a colon, except for the last number,
+        // where we always end with a new line, as otherwise the below simply parsing function
+        // will expect another int after the colon.
+        auto const make_new_line = separator( engine );
+        if( make_new_line || i == n - 1 ) {
+            out << '\n';
+            ++line;
+            line_lengths.emplace_back( 0 );
+        } else {
+            out << ':';
+            ++line_lengths[line];
+        }
+    }
+    out.close();
+
+    // Now read through and check that we got all the same again.
+    InputStream input_stream( from_file( tmpfile ));
+    int64_t target_sum = 0;
+    size_t target_line = 0;
+    size_t target_length = 0;
+    while( input_stream ) {
+
+        auto const n = input_stream.parse_signed_integer<int64_t>();
+        target_sum += n;
+        target_length += std::to_string(n).size();
+
+        if( *input_stream == '\n' ) {
+            EXPECT_EQ( line_lengths[target_line], target_length );
+
+            // Check that we are correctly counting lines and columns.
+            // We need to offset by one, due to lines and columns starting their count at 1.
+            EXPECT_EQ( target_line + 1, input_stream.line() );
+            EXPECT_EQ( target_length + 1, input_stream.column() );
+
+            ++target_line;
+            target_length = 0;
+        } else if( *input_stream == ':' ) {
+            ++target_length;
+        } else {
+            EXPECT_TRUE(false);
+        }
+        ++input_stream;
+    }
+
+    EXPECT_EQ( sum, target_sum );
+    EXPECT_EQ( line, target_line );
 
     // Make sure the file is deleted.
     ASSERT_EQ( 0, std::remove(tmpfile.c_str()) );

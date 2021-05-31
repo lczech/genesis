@@ -34,6 +34,13 @@
 #include <cassert>
 #include <stdexcept>
 
+// For C++17, we have a little speedup in the integer parsing part.
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+    #include <charconv>
+
+#endif
+
 namespace genesis {
 namespace utils {
 
@@ -244,6 +251,341 @@ void InputStream::get_line( std::string& target )
 }
 
 // =================================================================================================
+//     Parsing
+// =================================================================================================
+
+// Only use intrinsics version for the compilers that support them!
+#if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
+
+size_t InputStream::parse_unsigned_integer_intrinsic_()
+{
+    // This function only works on little endian systems (I think).
+    // We do not check this here, as so far, no one has tried to run our code on any machine
+    // that is not little endian. So we are good for now.
+
+    // Copy 8 bytes into a chunk that we process as one unit.
+    std::uint64_t chunk = 0;
+    std::memcpy( &chunk, &buffer_[ data_pos_ ], sizeof( chunk ));
+
+    // Helper macro functions to check whether a word bytes that are less than or greater
+    // than some specified value, and mark these bytes.
+    // http://graphics.stanford.edu/~seander/bithacks.html#HasLessInWord
+    // http://graphics.stanford.edu/~seander/bithacks.html#HasMoreInWord
+    auto const zero = static_cast<uint64_t>(0);
+    #define hasless(x,n) (((x)-~zero/255*(n))&~(x)&~zero/255*128)
+    #define hasmore(x,n) ((((x)+~zero/255*(127-(n)))|(x))&~zero/255*128)
+
+    // Get all positions that are not digits, by marking a bit in their respective byte.
+    auto const l = hasless( chunk, '0' );
+    auto const m = hasmore( chunk, '9' );
+    auto const p = l | m;
+
+    // Example:
+    // String "167\n253\n"
+    //         \n        3        5        2       \n        7        6        1
+    // c 00001010 00110011 00110101 00110010 00001010 00110111 00110110 00110001 734989653227550257
+    // l 10000000 00000000 00000000 00000000 10000000 00000000 00000000 00000000 9223372039002259456
+    // m 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 0
+    // p 10000000 00000000 00000000 00000000 10000000 00000000 00000000 00000000 9223372039002259456
+
+    #undef hasless
+    #undef hasmore
+
+    // Find the index of the first byte that is not a digit. We first get the bit position
+    // using an intrinsic, and then divite by 8 to get the byte. The branching to select the
+    // correct intrinsic should be resolved at compile time already.
+    // We are using __builtin_ffs and its variants:
+    // Returns one plus the index of the least significant 1-bit of x, or if x is zero, returns zero.
+    // https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html#Other-Builtins
+    int idx = 0;
+    if( sizeof(int) == sizeof(size_t) ) {
+        idx = __builtin_ffs(p) / 8;
+    } else if( sizeof(long) == sizeof(size_t) ) {
+        idx = __builtin_ffsl(p) / 8;
+    } else if( sizeof(long long) == sizeof(size_t) ) {
+        idx = __builtin_ffsll(p) / 8;
+    } else {
+        static_assert(
+            ( sizeof(int) == sizeof(size_t) ) ||
+            ( sizeof(long) == sizeof(size_t) ) ||
+            ( sizeof(long long) == sizeof(size_t) ),
+            "No compilter intrinsic __builtin_ffs[l][l] for size_t"
+        );
+        throw std::runtime_error(
+            "No compilter intrinsic __builtin_ffs[l][l] for size_t"
+        );
+    }
+
+    // Edge cases. If the returned index is 0, there was no non-digit byte in the chunk,
+    // so we run the naive loop instead. We could also call this function here again recursively,
+    // summing up parts of large numbers. But that would mean that we need to do overflow
+    // detection and all that, and currently, this does not seem needed. Let's be lazy today.
+    // If the index is 1, the first byte is not a digit, which is an error, as this function
+    // is only called from parsers that expect a number.
+    if( idx == 0 ) {
+        return parse_unsigned_integer_naive_();
+    }
+    if( idx == 1 ) {
+        throw std::runtime_error(
+            "Expecting integer in " + source_name() + " at " + at() + "."
+        );
+    }
+
+    // Not needed but kept for reference: Mask out all bits that we do not want.
+    // auto const mask = ~(~zero << ((idx-1)*8));
+    // chunk &= mask;
+
+    // We need to move the actual data chars that we want to parse to the left-most
+    // position for the following code to work. So, for our example from above, we need to move
+    // the "xxxx x761" in the chunk so that we get "7610 0000".
+    chunk <<= (8 * ( 8 - idx + 1 ));
+
+    // Now use an O(log(n)) method of computing the result, where we combine adjacent parts into
+    // numbers, first 2 bytes, then 4 bytes, then all 8 bytes. Inspired by parse_8_chars() from
+    // https://kholdstare.github.io/technical/2020/05/26/faster-integer-parsing.html
+
+    // 1-byte mask trick (works on 4 pairs of single digits)
+    std::uint64_t lower_digits = (chunk & 0x0f000f000f000f00) >> 8;
+    std::uint64_t upper_digits = (chunk & 0x000f000f000f000f) * 10;
+    chunk = lower_digits + upper_digits;
+
+    // 2-byte mask trick (works on 2 pairs of two digits)
+    lower_digits = (chunk & 0x00ff000000ff0000) >> 16;
+    upper_digits = (chunk & 0x000000ff000000ff) * 100;
+    chunk = lower_digits + upper_digits;
+
+    // 4-byte mask trick (works on pair of four digits)
+    lower_digits = (chunk & 0x0000ffff00000000) >> 32;
+    upper_digits = (chunk & 0x000000000000ffff) * 10000;
+    chunk = lower_digits + upper_digits;
+
+    // Now move as far as needed in the buffer...
+    data_pos_ += idx - 1;
+    column_   += idx - 1;
+    set_current_char_();
+
+    // ...and finally initiate the next block if needed.
+    if( data_pos_ >= BlockLength ) {
+        update_blocks_();
+    }
+    assert( data_pos_ < BlockLength );
+
+    return chunk;
+}
+
+size_t InputStream::parse_unsigned_integer_from_chars_()
+{
+
+    // Re-implementation of the gcc from_chars() code.
+    // https://github.com/gcc-mirror/gcc/blob/12bb62fbb47bd2848746da53c72ed068a4274daf/libstdc++-v3/include/std/charconv
+    // Currently not in use and not well tested!
+
+    // Prepare. We alias T, in case we want to refactor to a template function at some point.
+    using T = size_t;
+    using namespace utils;
+    T x = 0;
+
+    int const base = 10;
+    auto raise_and_add_ = [base]( T& val, unsigned char c ) {
+        return !(
+            __builtin_mul_overflow( val, base, &val ) ||
+            __builtin_add_overflow( val, c, &val )
+        );
+    };
+
+    auto from_chars_digit_ = [&]( char const*& first, char const* last, T& val ) {
+        while( first != last ) {
+            char const c = *first;
+            if( is_digit(c) ) {
+                if( !raise_and_add_(val, c - '0') ) {
+                    return false;
+                }
+                first++;
+            } else {
+                return true;
+            }
+        }
+        return true;
+    };
+
+    char const* start = &buffer_[ data_pos_ ];
+    char const* end   = &buffer_[ data_end_ ];
+    auto const valid = from_chars_digit_( start, end, x );
+    auto const dist = start - &buffer_[ data_pos_ ];
+
+    if( dist == 0 ) {
+        throw std::runtime_error(
+            "Expecting integer in " + source_name() + " at " + at() + "."
+        );
+    } else if( !valid ) {
+        throw std::overflow_error(
+            "Numerical overflow in " + source_name() + " at " + at() + "."
+        );
+    } else if( std::is_signed<T>::value ) {
+        assert( false );
+        // T tmp;
+        // if (__builtin_mul_overflow(x, sign, &tmp)) {
+        //     throw std::overflow_error(
+        //         "Numerical overflow in " + source_name() + " at " + at() + "."
+        //     );
+        // }
+    }
+
+    // Move to where we the parsing left us.
+    data_pos_ += dist;
+    column_   += dist;
+    set_current_char_();
+
+    // Now finally initiate the next block if needed.
+    if( data_pos_ >= BlockLength ) {
+        update_blocks_();
+    }
+    assert( data_pos_ < BlockLength );
+
+    return x;
+}
+
+#endif // defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
+
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+size_t InputStream::parse_unsigned_integer_std_from_chars_()
+{
+    // Prepare. We alias T, in case we want to refactor to a template function at some point.
+    using T = size_t;
+    using namespace utils;
+    T x = 0;
+
+    // Fastest method accoing to
+    // https://www.fluentcpp.com/2018/07/27/how-to-efficiently-convert-a-string-to-an-int-in-c/
+    // is from_chars(), so let's us it!
+
+    auto const conv = std::from_chars( &buffer_[ data_pos_ ], &buffer_[ data_end_ ], x );
+
+    // How many chars did we consume?
+    auto const dist = conv.ptr - &buffer_[ data_pos_ ];
+
+    // Check that we processed at least one digit, as this function is only called when the
+    // input format requires an integer. This is equivalent to the check in the non C++17 version
+    // below for data_pos_ >= data_end_ || ! is_digit( current_ )
+    if( dist == 0 ) {
+        throw std::runtime_error(
+            "Expecting integer in " + source_name() + " at " + at() + "."
+        );
+    }
+
+    if( conv.ec != std::errc() ) {
+        if( conv.ec == std::errc::result_out_of_range ) {
+            throw std::overflow_error(
+                "Numerical overflow in " + source_name() + " at " + at() + "."
+            );
+        } else if( conv.ec == std::errc::invalid_argument ) {
+            // Cannot happen, as we above checked that there is at least one digit.
+            assert( false );
+        } else {
+            // Cannot happen, as we caught every case of `ec`.
+            assert( false );
+        }
+
+        // In either case, we need to stop here.
+        throw std::overflow_error(
+            "Integer parsing error in " + source_name() + " at " + at() + "."
+        );
+    }
+
+    // Move to where we the parsing left us.
+    column_   += dist;
+    data_pos_ += dist;
+
+    // Now finally initiate the next block if needed.
+    if( data_pos_ >= BlockLength ) {
+        update_blocks_();
+    }
+    assert( data_pos_ < BlockLength );
+
+    // Finally we also need to update the char so that new lines are taken care of.
+    set_current_char_();
+
+    return x;
+}
+
+#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+size_t InputStream::parse_unsigned_integer_naive_()
+{
+    // Prepare. We alias T, in case we want to refactor to a template function at some point.
+    using T = size_t;
+    using namespace utils;
+    T x = 0;
+
+    if( data_pos_ >= data_end_ || ! is_digit( current_ ) ) {
+        throw std::runtime_error(
+            "Expecting integer in " + source_name() + " at " + at() + "."
+        );
+    }
+
+    while(( data_pos_ < data_end_ ) && is_digit( current_ )) {
+        T y = current_ - '0';
+
+        if( x > ( std::numeric_limits<T>::max() - y ) / 10 ) {
+            throw std::overflow_error(
+                "Numerical overflow in " + source_name() + " at " + at() + "."
+            );
+        }
+
+        x = 10 * x + y;
+
+        // In the original function that was not part of this class, we simply called
+        // advance() here, to move to the next char. However, here, we already know that
+        // we have data_pos_ < data_end_, and that we do not have a new line.
+        // Furthermore, we also can ignore the update for block length while in this loop
+        // (or maybe even completely), as it does not matter much if we move a bit into the
+        // second block before starting the reading thread again. This loop here cannot
+        // iterate that many times anyway before we overflow the interger.
+        // So let's simply move on to the next char.
+        // advance();
+        assert( data_pos_ < data_end_ );
+        assert( current_ != '\n' );
+        ++column_;
+        ++data_pos_;
+        current_ = buffer_[ data_pos_ ];
+    }
+
+    // Now finally initiate the next block if needed.
+    if( data_pos_ >= BlockLength ) {
+        update_blocks_();
+    }
+    assert( data_pos_ < BlockLength );
+
+    // Finally we also need to update the char so that new lines are taken care of.
+    set_current_char_();
+
+    return x;
+}
+
+size_t InputStream::parse_unsigned_integer_size_t_()
+{
+    // Select the fastest alternative available for a given compiler and C++ version.
+    #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
+
+        // If we have GCC or Clang, use our own handcrafted fast-as-hell implementation.
+        return parse_unsigned_integer_intrinsic_();
+
+    #elif ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+        // Otherwise, if this is C++17, at least use its own fast version,
+        // that can use some compiler intrinsics itself.
+        return parse_unsigned_integer_std_from_chars_();
+
+    #else
+
+        // If neither, just use the slow, naive loop.
+        return parse_unsigned_integer_naive_();
+
+    #endif
+}
+
+// =================================================================================================
 //     Internal Members
 // =================================================================================================
 
@@ -311,6 +653,38 @@ void InputStream::init_( std::shared_ptr<BaseInputSource> input_source )
         delete[] buffer_;
         throw;
     }
+}
+
+void InputStream::update_blocks_()
+{
+    // This function is only called locally in contexts where we already know that we need to
+    // update the blocks. We only assert this here again, meaning that we expect the caller
+    // functions to check for this already. Handling it this way ensures that the function
+    // jump is only made when necesary.
+    assert( data_pos_ >= BlockLength );
+
+    // Furthermore, the callers need to check the following condition. So, if it breaks, this
+    // function is invalidly called from somewhere else.
+    assert( data_pos_ <  data_end_ );
+
+    // If this assertion breaks, someone tempered with our internal invariants.
+    assert( data_end_ <= BlockLength * 2 );
+
+    // Move the second to the first block.
+    std::memcpy( buffer_, buffer_ + BlockLength, BlockLength );
+    data_pos_ -= BlockLength;
+    data_end_ -= BlockLength;
+
+    // If we are not yet at the end of the data, start the reader again:
+    // Copy the third block to the second, and read into the third one.
+    if( input_reader_ && input_reader_->valid() ) {
+        data_end_ += input_reader_->finish_reading();
+        std::memcpy( buffer_ + BlockLength, buffer_ + 2 * BlockLength, BlockLength );
+        input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
+    }
+
+    // After the update, the current position needs to be within the first block.
+    assert( data_pos_ < BlockLength );
 }
 
 } // namespace utils

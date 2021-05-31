@@ -32,12 +32,14 @@
  */
 
 #include "genesis/utils/core/std.hpp"
+#include "genesis/utils/io/char.hpp"
 #include "genesis/utils/io/input_reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
 
 #include <cassert>
 #include <cstdint>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -133,7 +135,7 @@ public:
     self_type& operator= ( self_type&& other );
 
     // -------------------------------------------------------------------------
-    //     Char Operations
+    //     Stream Iterator Operations
     // -------------------------------------------------------------------------
 
     /**
@@ -223,7 +225,7 @@ public:
     inline char get_char()
     {
         char ret = current_;
-        advance();
+        operator++();
         return ret;
     }
 
@@ -253,6 +255,146 @@ public:
         std::string result;
         get_line( result );
         return result;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Parsers
+    // -------------------------------------------------------------------------
+
+private:
+
+    // Only use intrinsics version for the compilers that support them!
+    #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
+
+        /**
+         * @brief Super fast loop-less parsing of unsigned ints from < 8 chars,
+         * using GCC/Clang compiler intrinsic builtins.
+         */
+        size_t parse_unsigned_integer_intrinsic_();
+
+        /**
+         * @brief Re-implementation of the C++17 function std::from_chars().
+         * Currently not in use and not well tested!
+         */
+        size_t parse_unsigned_integer_from_chars_();
+
+    #endif
+
+    // Only use C++17 code if we are compiled with that version.
+    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+        /**
+         * @brief Another speedup technique using std::from_chars(),
+         * which however only works when compiled with C++17 or later.
+         */
+        size_t parse_unsigned_integer_std_from_chars_();
+
+    #endif
+
+    /**
+     * @brief Naive parsing that simply loops over chars.
+     */
+    size_t parse_unsigned_integer_naive_();
+
+    /**
+     * @brief Internal helper functiont that decides which of the above to use.
+     */
+    size_t parse_unsigned_integer_size_t_();
+
+public:
+
+    /**
+     * @brief Read an unsigned integer from a stream and return it.
+     *
+     * The function expects a sequence of digits. The current char in the stream has to be a digit,
+     * otherwise the function throws `std::runtime_error`. It stops reading at the first non-digit.
+     * In case the value range is too small, the function throws `std::overflow_error`.
+     *
+     * We also have a specialization of this function for size_t at the end of this header file
+     * that does not do the conversion check, as yet another little bit of speed of when not needed.
+     */
+    template<class T>
+    T parse_unsigned_integer()
+    {
+        // No need to assert unsignedness here. We will later check that casting to the desired
+        // type worked, and we test for the correct sign there as well, so that it workes for
+        // signed types.
+        // static_assert(
+        //     std::is_unsigned<T>::value,
+        //     "Need unsigned type for parse_unsigned_integer()"
+        // );
+
+        auto const x = parse_unsigned_integer_size_t_();
+
+        // We parsed as largest, and now try to cast to desired type,
+        // testing that back-conversion gives the same value and correct sign.
+        auto const r = static_cast<T>(x);
+        if( static_cast<size_t>(r) != x || r < 0 ) {
+            throw std::overflow_error(
+                "Numerical overflow in " + source_name() + " at " + at() + "."
+            );
+        }
+        return r;
+    }
+
+    /**
+     * @brief Read a signed integer from a stream and return it.
+     *
+     * The function expects a sequence of digits, possibly with a leading `+` or `-`.
+     * The first char after that has to be a digit, otherwise the function throws `std::runtime_error`.
+     * It stops reading at the first non-digit.
+     * In case the value range is too small, the function throws `std::overflow_error`,
+     * or `underflow_error`, respectively.
+     */
+    template<class T>
+    T parse_signed_integer()
+    {
+        static_assert(
+            std::is_signed<T>::value,
+            "Need signed type for parse_signed_integer()"
+        );
+
+        if( data_pos_ >= data_end_ ) {
+            throw std::runtime_error(
+                "Expecting number in " + source_name() + " at " + at() + "."
+            );
+        }
+
+        int sign = 1;
+        if( current_ == '-' || current_ == '+' ) {
+            if( current_ == '-' ) {
+                sign = -1;
+            }
+
+            // Here we know that we are within limits of the buffer, and not at a new line.
+            // Let's not use the expensive operator then.
+            // operator++();
+            assert( data_pos_ < data_end_ );
+            assert( current_ != '\n' );
+            ++column_;
+            ++data_pos_;
+            current_ = buffer_[ data_pos_ ];
+        }
+
+        // Parse as largest, and then try to cast to desired type,
+        // testing that back-conversion gives the same value and sign.
+        auto const x = parse_unsigned_integer<size_t>();
+        auto const r = sign * static_cast<T>(x);
+        if( static_cast<size_t>( sign * r ) != x || !( r == 0 || (sign < 0) == (r < 0) )) {
+            throw std::overflow_error(
+                "Numerical overflow in " + source_name() + " at " + at() + "."
+            );
+        }
+        return r;
+    }
+
+    /**
+     * @brief Alias for parse_signed_integer().
+     */
+    template<class T>
+    T parse_integer()
+    {
+        return parse_signed_integer<T>();
     }
 
     // -------------------------------------------------------------------------
@@ -354,37 +496,7 @@ private:
     /**
      * @brief Refill the buffer blocks if necessary.
      */
-    inline void update_blocks_()
-    {
-        // This function is only called locally in contexts where we already know that we need to
-        // update the blocks. We only assert this here again, meaning that we expect the caller
-        // functions to check for this already. Handling it this way ensures that the function
-        // jump is only made when necesary.
-        assert( data_pos_ >= BlockLength );
-
-        // Furthermore, the callers need to check the following condition. So, if it breaks, this
-        // function is invalidly called from somewhere else.
-        assert( data_pos_ <  data_end_ );
-
-        // If this assertion breaks, someone tempered with our internal invariants.
-        assert( data_end_ <= BlockLength * 2 );
-
-        // Move the second to the first block.
-        std::memcpy( buffer_, buffer_ + BlockLength, BlockLength );
-        data_pos_ -= BlockLength;
-        data_end_ -= BlockLength;
-
-        // If we are not yet at the end of the data, start the reader again:
-        // Copy the third block to the second, and read into the third one.
-        if( input_reader_ && input_reader_->valid() ) {
-            data_end_ += input_reader_->finish_reading();
-            std::memcpy( buffer_ + BlockLength, buffer_ + 2 * BlockLength, BlockLength );
-            input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
-        }
-
-        // After the update, the current position needs to be within the first block.
-        assert( data_pos_ < BlockLength );
-    }
+    void update_blocks_();
 
     /**
      * @brief Helper function that does some checks on the current char and sets it to what
@@ -446,6 +558,23 @@ private:
     size_t line_;
     size_t column_;
 };
+
+// =================================================================================================
+//     Template Specializations
+// =================================================================================================
+
+/**
+ * @brief Read an unsigned integer from a stream into a size_t and return it.
+ *
+ * This template specialization is mean as yet another speedup for the case of this data type,
+ * as we can then work without casting and overflow check. It is also the base function that
+ * is called from the others that do the overflow check.
+ */
+template<>
+inline size_t InputStream::parse_unsigned_integer<size_t>()
+{
+    return parse_unsigned_integer_size_t_();
+}
 
 } // namespace utils
 } // namespace genesis
