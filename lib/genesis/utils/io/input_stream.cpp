@@ -261,7 +261,13 @@ size_t InputStream::parse_unsigned_integer_gcc_intrinsic_()
 {
     // This function only works on little endian systems (I think).
     // We do not check this here, as so far, no one has tried to run our code on any machine
-    // that is not little endian. So we are good for now.
+    // that is not little endian. So we are good for now. In case this code needs to be adapted
+    // to big endian as well: I think the only change required is the `chunk <<= ...` that needs
+    // to turn into a right shift instead. Not entirely sure though.
+    // Also, in this function, we make use of the fact that our internal buffer is always way larger
+    // than any valid integer input. That is, we may read from after the block end, or even the
+    // stream end, but we have enough buffer for this to be okay (after all, we are just reading
+    // eight bytes here). We then check for this later.
 
     // Copy 8 bytes into a chunk that we process as one unit.
     std::uint64_t chunk = 0;
@@ -281,12 +287,14 @@ size_t InputStream::parse_unsigned_integer_gcc_intrinsic_()
     auto const p = l | m;
 
     // Example:
-    // String "167\n253\n"
+    // String "167\n253\n" turns into chunk c (on little endian systems)
     //         \n        3        5        2       \n        7        6        1
-    // c 00001010 00110011 00110101 00110010 00001010 00110111 00110110 00110001 734989653227550257
-    // l 10000000 00000000 00000000 00000000 10000000 00000000 00000000 00000000 9223372039002259456
-    // m 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 0
-    // p 10000000 00000000 00000000 00000000 10000000 00000000 00000000 00000000 9223372039002259456
+    // c 00001010 00110011 00110101 00110010 00001010 00110111 00110110 00110001
+    // l 10000000 00000000 00000000 00000000 10000000 00000000 00000000 00000000
+    // m 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    // p 10000000 00000000 00000000 00000000 10000000 00000000 00000000 00000000
+    //   ^                                   ^
+    // with the two '\n' bytes marked.
 
     #undef hasless
     #undef hasmore
@@ -315,14 +323,15 @@ size_t InputStream::parse_unsigned_integer_gcc_intrinsic_()
             "No compilter intrinsic __builtin_ffs[l][l] for std::uint64_t"
         );
     }
+    assert( 0 <= idx && idx <= 8 );
 
     // Not needed but kept for reference: Mask out all bits that we do not want.
     // auto const mask = ~(~zero << ((idx-1)*8));
     // chunk &= mask;
 
-    // We need to move the actual data chars that we want to parse to the left-most
-    // position for the following code to work. So, for our example from above, we need to move
-    // the "xxxx x761" in the chunk so that we get "7610 0000".
+    // On little endian systems, we need to move the actual data chars that we want to parse to the
+    // left-most position for the following code to work. So, for our example from above, we need
+    // to move the "xxxx x761" in the chunk so that we get "7610 0000".
     chunk <<= (8 * ( 8 - idx + 1 ));
 
     // Now use an O(log(n)) method of computing the result, where we combine adjacent parts into
@@ -344,15 +353,19 @@ size_t InputStream::parse_unsigned_integer_gcc_intrinsic_()
     upper_digits = (chunk & 0x000000000000ffff) * 10000;
     chunk = lower_digits + upper_digits;
 
-    // Edge cases. We treat tham at the end, so that in the standard cases, the processor
-    // does not come to a grinding halt when trying to figure out if these cases apply.
+    // Edge cases. We treat them at the end, so that in the standard cases, the processor
+    // does not come to a grinding halt when trying to figure out if these cases apply;
+    // this might be premature optimization, but in our tests, it made the function slightly faster.
     // If the returned index is 0, there was no non-digit byte in the chunk,
     // so we run the naive loop instead. We could also call this function here again recursively,
     // summing up parts of large numbers. But that would mean that we need to do overflow
     // detection and all that, and currently, this does not seem needed. Let's be lazy today.
-    // If the index is 1, the first byte is not a digit, which is an error, as this function
+    // Furthermore, if the 8 bytes that we process here are at the end of the stream, we cannot
+    // confidently use them, in cases for example where the stream ends in a number, but does
+    // not have a new line char at the end. So in that case, better parse naievely.
+    // Lastly, if the index is 1, the first byte is not a digit, which is an error, as this function
     // is only called from parsers that expect a number.
-    if( idx == 0 ) {
+    if( idx == 0 || data_pos_ + 8 >= data_end_ ) {
         return parse_unsigned_integer_naive_();
     }
     if( idx == 1 ) {
@@ -453,6 +466,9 @@ size_t InputStream::parse_unsigned_integer_from_chars_()
 
 size_t InputStream::parse_unsigned_integer_std_from_chars_()
 {
+    // Uses the C++17 std::from_chars() function.
+    // Currently not in use and not well tested!
+
     // Prepare. We alias T, in case we want to refactor to a template function at some point.
     using T = size_t;
     using namespace utils;
@@ -573,11 +589,11 @@ size_t InputStream::parse_unsigned_integer_size_t_()
         // If we have GCC or Clang, use our own handcrafted fast-as-hell implementation.
         return parse_unsigned_integer_gcc_intrinsic_();
 
-    #elif ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-
-        // Otherwise, if this is C++17, at least use its own fast version,
-        // that can use some compiler intrinsics itself.
-        return parse_unsigned_integer_std_from_chars_();
+    // #elif ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    //
+    //     // Otherwise, if this is C++17, at least use its own fast version,
+    //     // that can use some compiler intrinsics itself.
+    //     return parse_unsigned_integer_std_from_chars_();
 
     #else
 
