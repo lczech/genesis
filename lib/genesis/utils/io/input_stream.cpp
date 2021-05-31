@@ -316,21 +316,6 @@ size_t InputStream::parse_unsigned_integer_intrinsic_()
         );
     }
 
-    // Edge cases. If the returned index is 0, there was no non-digit byte in the chunk,
-    // so we run the naive loop instead. We could also call this function here again recursively,
-    // summing up parts of large numbers. But that would mean that we need to do overflow
-    // detection and all that, and currently, this does not seem needed. Let's be lazy today.
-    // If the index is 1, the first byte is not a digit, which is an error, as this function
-    // is only called from parsers that expect a number.
-    if( idx == 0 ) {
-        return parse_unsigned_integer_naive_();
-    }
-    if( idx == 1 ) {
-        throw std::runtime_error(
-            "Expecting integer in " + source_name() + " at " + at() + "."
-        );
-    }
-
     // Not needed but kept for reference: Mask out all bits that we do not want.
     // auto const mask = ~(~zero << ((idx-1)*8));
     // chunk &= mask;
@@ -358,6 +343,23 @@ size_t InputStream::parse_unsigned_integer_intrinsic_()
     lower_digits = (chunk & 0x0000ffff00000000) >> 32;
     upper_digits = (chunk & 0x000000000000ffff) * 10000;
     chunk = lower_digits + upper_digits;
+
+    // Edge cases. We treat tham at the end, so that in the standard cases, the processor
+    // does not come to a grinding halt when trying to figure out if these cases apply.
+    // If the returned index is 0, there was no non-digit byte in the chunk,
+    // so we run the naive loop instead. We could also call this function here again recursively,
+    // summing up parts of large numbers. But that would mean that we need to do overflow
+    // detection and all that, and currently, this does not seem needed. Let's be lazy today.
+    // If the index is 1, the first byte is not a digit, which is an error, as this function
+    // is only called from parsers that expect a number.
+    if( idx == 0 ) {
+        return parse_unsigned_integer_naive_();
+    }
+    if( idx == 1 ) {
+        throw std::runtime_error(
+            "Expecting integer in " + source_name() + " at " + at() + "."
+        );
+    }
 
     // Now move as far as needed in the buffer...
     data_pos_ += idx - 1;
