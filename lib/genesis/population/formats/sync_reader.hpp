@@ -109,6 +109,21 @@ private:
         bool                     use_sample_filter
     ) const;
 
+    // Only use intrinsics version for the compilers that support them!
+    #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
+
+        void parse_sample_gcc_intrinsic_(
+            utils::InputStream& input_stream,
+            BaseCounts&         sample
+        ) const;
+
+    #endif
+
+    void parse_sample_simple_(
+        utils::InputStream& input_stream,
+        BaseCounts&         sample
+    ) const;
+
     void parse_sample_(
         utils::InputStream& input_stream,
         BaseCounts&         sample

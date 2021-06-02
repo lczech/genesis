@@ -321,7 +321,7 @@ private:
          * @brief Super fast loop-less parsing of unsigned ints from < 8 chars,
          * using GCC/Clang compiler intrinsic builtins.
          */
-        size_t parse_unsigned_integer_intrinsic_();
+        size_t parse_unsigned_integer_gcc_intrinsic_();
 
         /**
          * @brief Re-implementation of the C++17 function std::from_chars().
@@ -521,6 +521,58 @@ public:
     std::string source_name() const
     {
         return source_name_;
+    }
+
+    /**
+     * @brief Direct access to the internal buffer.
+     *
+     * This function returns a pointer to the internal buffer, as well as the length (past the end)
+     * that is currently buffered. This is meant for special file parsers that can optimize better
+     * when using this - but it is highly dangerous to use if you do not know what you are doing!
+     *
+     * The idea is as follows: With access to the buffer, parse data as needed, keeping track of
+     * how many chars have been processed. Then, use the jump() function to update this stream to
+     * the new position of the stream (the char after the last one being processed by the parsing).
+     *
+     * Caveat: Never parse and jump across new line characters (or, for that matter, carriage return
+     * characters, which won't be automatically converted when using the buffer directly)! This
+     * would invalidate the line counting!
+     *
+     * Caveat: Never read after the end of the buffer, that is, never access the char at the
+     * returned last position `buffer + length` or after!
+     */
+    std::pair<char const*, size_t> buffer()
+    {
+        assert( data_pos_ <= data_end_ );
+        return { &buffer_[ data_pos_ ], data_end_ - data_pos_ };
+    }
+
+    /**
+     * @brief Jump forward in the stream by a certain amount of chars.
+     *
+     * This is meant to update the stream position after using buffer() for direct parsing.
+     * See the caveats there!
+     *
+     * In particular, we can never jump behind the current buffer end, and shall not jump across
+     * new lines. That is, this function is not meant as a way to jump to an arbitrary (later)
+     * position in a file!
+     */
+    void jump( size_t n )
+    {
+        // Safety first!
+        if( data_pos_ + n >= data_end_ ) {
+            throw std::runtime_error(
+                "Invalid InputStream jump to position after buffer end."
+            );
+        }
+
+        // Update the position as neeeded.
+        data_pos_ += n;
+        column_ += n;
+        if( data_pos_ >= BlockLength ) {
+            update_blocks_();
+        }
+        set_current_char_();
     }
 
     // -------------------------------------------------------------------------

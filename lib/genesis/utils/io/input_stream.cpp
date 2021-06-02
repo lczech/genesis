@@ -257,7 +257,7 @@ void InputStream::get_line( std::string& target )
 // Only use intrinsics version for the compilers that support them!
 #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
 
-size_t InputStream::parse_unsigned_integer_intrinsic_()
+size_t InputStream::parse_unsigned_integer_gcc_intrinsic_()
 {
     // This function only works on little endian systems (I think).
     // We do not check this here, as so far, no one has tried to run our code on any machine
@@ -267,7 +267,7 @@ size_t InputStream::parse_unsigned_integer_intrinsic_()
     std::uint64_t chunk = 0;
     std::memcpy( &chunk, &buffer_[ data_pos_ ], sizeof( chunk ));
 
-    // Helper macro functions to check whether a word bytes that are less than or greater
+    // Helper macro functions to check whether a word has bytes that are less than or greater
     // than some specified value, and mark these bytes.
     // http://graphics.stanford.edu/~seander/bithacks.html#HasLessInWord
     // http://graphics.stanford.edu/~seander/bithacks.html#HasMoreInWord
@@ -298,21 +298,21 @@ size_t InputStream::parse_unsigned_integer_intrinsic_()
     // Returns one plus the index of the least significant 1-bit of x, or if x is zero, returns zero.
     // https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html#Other-Builtins
     int idx = 0;
-    if( sizeof(int) == sizeof(size_t) ) {
+    if( sizeof(int) == sizeof(std::uint64_t) ) {
         idx = __builtin_ffs(p) / 8;
-    } else if( sizeof(long) == sizeof(size_t) ) {
+    } else if( sizeof(long) == sizeof(std::uint64_t) ) {
         idx = __builtin_ffsl(p) / 8;
-    } else if( sizeof(long long) == sizeof(size_t) ) {
+    } else if( sizeof(long long) == sizeof(std::uint64_t) ) {
         idx = __builtin_ffsll(p) / 8;
     } else {
         static_assert(
-            ( sizeof(int) == sizeof(size_t) ) ||
-            ( sizeof(long) == sizeof(size_t) ) ||
-            ( sizeof(long long) == sizeof(size_t) ),
-            "No compilter intrinsic __builtin_ffs[l][l] for size_t"
+            ( sizeof(int) == sizeof(std::uint64_t) ) ||
+            ( sizeof(long) == sizeof(std::uint64_t) ) ||
+            ( sizeof(long long) == sizeof(std::uint64_t) ),
+            "No compilter intrinsic __builtin_ffs[l][l] for std::uint64_t"
         );
         throw std::runtime_error(
-            "No compilter intrinsic __builtin_ffs[l][l] for size_t"
+            "No compilter intrinsic __builtin_ffs[l][l] for std::uint64_t"
         );
     }
 
@@ -571,7 +571,7 @@ size_t InputStream::parse_unsigned_integer_size_t_()
     #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
 
         // If we have GCC or Clang, use our own handcrafted fast-as-hell implementation.
-        return parse_unsigned_integer_intrinsic_();
+        return parse_unsigned_integer_gcc_intrinsic_();
 
     #elif ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 
