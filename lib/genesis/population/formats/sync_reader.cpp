@@ -355,7 +355,7 @@ void SyncReader::parse_sample_gcc_intrinsic_(
     // At the end do the error check, so that we are not wasting cycles to wait for the result
     // of this check in the standard (non-error) case first. If this fails, all good, we have
     // not moved in the buffer, so just run the slow version on the same data again,
-    // to get proper error reporting.
+    // to get proper parsing (for cases with more than 7 digits) or proper error reporting.
     // We here check that the sample was delimited by a tab, that all number conversions were good
     // (that is, they contained at least one digit, and at most 7), and were all delimited by colons.
     if(
