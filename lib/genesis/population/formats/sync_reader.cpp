@@ -353,11 +353,13 @@ void SyncReader::parse_sample_gcc_intrinsic_(
     sample.d_count = d_chunk.data;
 
     // At the end do the error check, so that we are not wasting cycles to wait for the result
-    // of this check in the standard (non-error) case first. If this fails, all good, we have
-    // not moved in the buffer, so just run the slow version on the same data again,
+    // of this check in the standard (non-error) case first. If this fails, no problem, we have
+    // not yet moved in the buffer, so just run the slow version on the same data again,
     // to get proper parsing (for cases with more than 7 digits) or proper error reporting.
     // We here check that the sample was delimited by a tab, that all number conversions were good
     // (that is, they contained at least one digit, and at most 7), and were all delimited by colons.
+    // We also already asserted above that all offsets are at least 1, so that the subtraction
+    // of 1 here works without wrapping around the unsigned int.
     if(
         ( *it != '\t' ) ||
         ! good ||
@@ -393,7 +395,8 @@ void SyncReader::parse_sample_gcc_intrinsic_(
     assert( d_chunk.length >=  2 );
 
     // We can only process data with 7 or fewer digits. Let's assert this.
-    // One potential way this could fail is if somehome we produced random data, or max int, or so.
+    // Potential ways this could fail are, e.g., if somehome we produced random data or max int by
+    // subtracting one from zero, or accessed uninitialized memory, or some other horrible error.
     assert( sample.a_count < 10000000 );
     assert( sample.t_count < 10000000 );
     assert( sample.c_count < 10000000 );
@@ -439,11 +442,11 @@ void SyncReader::parse_sample_(
     auto const buff = it.buffer();
 
     // We find that almost all entries in real world data are single digits.
-    // Then, an entry has 11 chars: 0:0:6:0:0:0. Use this fact for super-charging the parsing.
-    // We check that all chars are exactly as we expect them.
-    // We only need to check that at position 12 there is no digit, that is, that the number is done
-    // and does not have any more digits. The check whether that char is valid in the context of the
-    // file is then done later in the next parsing step after finishing this function.
+    // Then, an entry has 11 chars: "0:0:6:0:0:0". Use this fact for super-charging the parsing.
+    // We check that all chars are exactly as we expect them. At the end, we only need to check that
+    // at position 12 there is no digit, that is, that the number is done and does not have any more
+    // digits. The check whether that char is valid in the context of the file is then done later
+    // in the next parsing step after finishing this function.
     if(
         buff.second >= 12              &&
         buff.first[  0 ] == '\t'       &&
@@ -460,6 +463,7 @@ void SyncReader::parse_sample_(
         is_digit(   buff.first[ 11 ] ) &&
         ! is_digit( buff.first[ 12 ] )
     ) {
+        // Convert single digits from ASCII to their int value.
         sample.a_count = buff.first[  1 ] - '0';
         sample.t_count = buff.first[  3 ] - '0';
         sample.c_count = buff.first[  5 ] - '0';
