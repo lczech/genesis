@@ -440,7 +440,7 @@ if(GENESIS_USE_HTSLIB)
                 COMMAND
                 autoconf
                 COMMAND
-                ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
+                ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --disable-libcurl
 
             # Build Step
             # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
