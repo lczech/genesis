@@ -258,62 +258,17 @@ endif (APPLE)
 # ----------------------------------------------------------
 
 IF(GENESIS_USE_ZLIB)
-    message (STATUS "Looking for zlib")
-    find_package(ZLIB)
-
-    # If found, set all needed compiler flags and also add those flags to the Genesis exported flags.
-    if(ZLIB_FOUND)
-        message( STATUS "Found zlib: ${ZLIB_INCLUDE_DIRS} ${ZLIB_VERSION_STRING}" )
-        message( STATUS "${ColorGreen}Using zlib${ColorEnd}" )
-
-        # Include the headers etc
-        include_directories( ${ZLIB_INCLUDE_DIRS} )
-
-        # Set needed definition and linker flags for Genesis and for the parent scope.
-        add_definitions( "-DGENESIS_ZLIB" )
-        set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_ZLIB" )
-        set( GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${ZLIB_LIBRARIES} )
-
-    else()
-        message( STATUS "${ColorRed}zlib not found${ColorEnd}" )
-        message(
-            STATUS
-            "${ColorYellow}Try installing `zlib1g-dev` first, or the equivalent for your system."
-            "To build without zlib support, call CMake with `-DGENESIS_USE_ZLIB=OFF`.${ColorEnd}"
-        )
-        message( FATAL_ERROR "Required package zlib not found.")
-    endif()
+    # Included from modules dir tools/cmake
+    include( IncludeZlib )
 ENDIF()
 
 # ----------------------------------------------------------
 #     (p)threads
 # ----------------------------------------------------------
 
-# We check whether to use threads and OpenMP here,
-# so that all binaries are compiled with the same settings.
-
 IF(GENESIS_USE_THREADS)
-    message (STATUS "Looking for Threads")
-    set (CMAKE_THREAD_PREFER_PTHREAD ON)
-    set (THREADS_PREFER_PTHREAD_FLAG ON)
-    find_package (Threads)
-
-    # If found, set all needed compiler flags and also add those flags to the Genesis exported flags.
-    if(THREADS_FOUND)
-        message( STATUS "Found Threads: ${CMAKE_THREAD_LIBS_INIT}" )
-        message( STATUS "${ColorGreen}Using Threads${ColorEnd}" )
-
-        # Set needed definition and linker flags for Genesis and for the parent scope.
-        add_definitions( "-DGENESIS_PTHREADS" )
-        set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_PTHREADS" )
-        set( GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
-
-    else()
-        message( STATUS "${ColorRed}Threads not found${ColorEnd}" )
-        message( STATUS "To build without threading support, call CMake with -DGENESIS_USE_THREADS=OFF" )
-        message( FATAL_ERROR "Required package threads not found.")
-    endif()
-
+    # Included from modules dir tools/cmake
+    include( IncludePthreads )
 ENDIF()
 
 # ----------------------------------------------------------
@@ -321,211 +276,21 @@ ENDIF()
 # ----------------------------------------------------------
 
 IF(GENESIS_USE_OPENMP)
-    message (STATUS "Looking for OpenMP")
-
-    # CMake versions before 3.5 do not properly support Clang OpenMP flags.
-    # And even with more recent CMake versions, it is not fully working.
-    # In order to still enable OpenMP, we use our own patch of the find module.
-    # See ./tools/cmake/FindOpenMP_patch.cmake for the modifications we made to support Clang.
-    if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
-
-        find_package( OpenMP_patch )
-
-        # If our patch does not work, try the standard one, just in case.
-        if( NOT OPENMP_FOUND )
-            unset(OpenMP_CXX_FLAGS)
-            unset(OpenMP_CXX_FLAGS CACHE)
-            find_package( OpenMP )
-        endif()
-
-    else()
-        # In all other cases, use the normal find module.
-        find_package( OpenMP )
-    endif()
-
-    # If found, set all needed compiler flags and also add those flags to the Genesis exported flags.
-    if(OPENMP_FOUND)
-
-        message( STATUS "Found OpenMP: ${OpenMP_CXX_FLAGS}" )
-        message (STATUS "${ColorGreen}Using OpenMP${ColorEnd}")
-
-        # Set needed definition for Genesis and for the parent scope.
-        add_definitions( "-DGENESIS_OPENMP" )
-        set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_OPENMP" )
-
-        # Set the flags needed for compiling Genesis.
-        set( CMAKE_C_FLAGS            "${CMAKE_C_FLAGS}            ${OpenMP_C_FLAGS}")
-        set( CMAKE_CXX_FLAGS          "${CMAKE_CXX_FLAGS}          ${OpenMP_CXX_FLAGS}" )
-        set( CMAKE_EXE_LINKER_FLAGS   "${CMAKE_EXE_LINKER_FLAGS}   ${OpenMP_EXE_LINKER_FLAGS}" )
-
-        # Set the flags that are exported to parent scope so that the parent can also compile using
-        # the those flags.
-        set( GENESIS_C_FLAGS          "${GENESIS_C_FLAGS}          ${OpenMP_C_FLAGS}" )
-        set( GENESIS_CXX_FLAGS        "${GENESIS_CXX_FLAGS}        ${OpenMP_CXX_FLAGS}" )
-        set( GENESIS_EXE_LINKER_FLAGS "${GENESIS_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
-
-    else()
-        message( STATUS "${ColorRed}OpenMP not found${ColorEnd}" )
-
-        # Special warning for users that have a Clang version that supports OpenMP, but where
-        # the find module still did not succeed.
-        if(
-            "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
-            AND NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.8
-        )
-            message (
-                STATUS
-                "${ColorYellow}You are trying to compile with Clang and OpenMp. "
-                "This does not seem to work right now. Try installing `libiomp-dev` first, "
-                "or the equivalent for your system.${ColorEnd}"
-            )
-        endif()
-
-        message( STATUS "To build without OpenMP support, call CMake with -DGENESIS_USE_OPENMP=OFF" )
-        message( FATAL_ERROR "Required package OpenMP not found.")
-    endif()
-
+    # Included from modules dir tools/cmake
+    include( IncludeOpenMP )
 ENDIF()
 
 # ----------------------------------------------------------
 #     htslib
 # ----------------------------------------------------------
 
-# Store the commit hash that we want to check out for htslib.
-SET( htslib_COMMIT_HASH "bd133acf51498431a5c7dfd8aa06ce17ec6d3b96" ) #htslib_COMMIT_HASH#
-
 if(GENESIS_USE_HTSLIB)
-    message (STATUS "Looking for htslib")
 
-    # We download and built on our own, using the correct commit hash to get our exact desired
-    # version, and install locally to the build directory.
-    ExternalProject_Add(
-        htslib
-        PREFIX ""
+    # Store the commit hash that we want to check out for htslib.
+    SET( htslib_COMMIT_HASH "bd133acf51498431a5c7dfd8aa06ce17ec6d3b96" ) #htslib_COMMIT_HASH#
 
-        # Download and Update Steps
-        # DOWNLOAD_COMMAND  ""
-        GIT_REPOSITORY https://github.com/samtools/htslib.git
-        GIT_TAG ${htslib_COMMIT_HASH}
-        UPDATE_COMMAND    ""
-
-        # Configure Step. See htslib/INSTALL
-        # We need to manually add -fPIC here, as somehow otherwise the local installation
-        # won't link properly. Linking will always remain a mystery to me...
-        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-source
-        CONFIGURE_COMMAND
-            autoheader
-            COMMAND
-            autoconf
-            COMMAND
-            ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --disable-libcurl
-
-        # Build Step
-        # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
-        BUILD_IN_SOURCE true
-        BUILD_COMMAND
-            $(MAKE)
-
-        # Install Step
-        INSTALL_COMMAND $(MAKE) install
-    )
-
-    # Set the paths so that those can be included by the targets.
-    # We explicitly set the static library here, so that we link against that one.
-    set( HTSLIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib )
-    set( HTSLIB_INCLUDE_DIR "${HTSLIB_DIR}/include" )
-    set( HTSLIB_LINK_DIR    "${HTSLIB_DIR}/lib" )
-    set( HTSLIB_LIBRARY     "${HTSLIB_DIR}/lib/libhts.a" )
-
-    # Cannot test here for existing files, as those are not yet built when this is called...
-    # IF(
-    #     NOT EXISTS ${HTSLIB_INCLUDE_DIR}/htslib/hts.h OR
-    #     NOT EXISTS ${HTSLIB_LIBRARY}/libhts.a
-    # )
-    #     message( FATAL_ERROR "Building htslib failed.")
-    # ENDIF()
-
-    # Find additional libraries needed by htslib.
-    # If that works and the libraries were found, we do not need to do anything,
-    # as the htslib compilation will look for them again and link to them correctly.
-    # We here merely make sure that all needed libraries are available.
-
-    # find_library(HTSLIB_LZMA     NAMES lzma)
-    message( STATUS "Looking for LibLZMA" )
-    find_package(LibLZMA)
-    IF(LIBLZMA_FOUND)
-        message( STATUS "Found LibLZMA: ${LIBLZMA_LIBRARIES}" )
-        set( HTSLIB_LZMA ${LIBLZMA_LIBRARIES} )
-    ELSE()
-        message( STATUS "${ColorRed}LibLZMA not found${ColorEnd}" )
-        message (
-            STATUS "${ColorYellow}You are trying to compile with htslib, which needs LibLZMA. "
-            "This does not seem to work right now. Try installing `liblzma-dev` first, "
-            "or the equivalent for your system. To instead build without htslib support, "
-            "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
-        )
-        set( HTSLIB_LZMA "NOTFOUND" )
-    ENDIF()
-
-    # find_library(HTSLIB_BZ2      NAMES bz2)
-    message( STATUS "Looking for BZip2" )
-    find_package(BZip2)
-    IF(BZIP2_FOUND)
-        message( STATUS "Found BZip2: ${BZIP2_LIBRARIES}" )
-        set( HTSLIB_BZ2 ${BZIP2_LIBRARIES} )
-    ELSE()
-        message( STATUS "${ColorRed}BZip2 not found${ColorEnd}" )
-        message (
-            STATUS "${ColorYellow}You are trying to compile with htslib, which needs BZip2. "
-            "This does not seem to work right now. Try installing `libbz2-dev` first, "
-            "or the equivalent for your system. To instead build without htslib support, "
-            "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
-        )
-        set( HTSLIB_BZ2 "NOTFOUND" )
-    ENDIF()
-
-    # Useful output for debugging
-    message( STATUS "HTSLIB_INCLUDE_DIR: ${HTSLIB_INCLUDE_DIR}" )
-    message( STATUS "HTSLIB_LINK_DIR:    ${HTSLIB_LINK_DIR}" )
-    message( STATUS "HTSLIB_LIBRARY:     ${HTSLIB_LIBRARY}" )
-    message( STATUS "HTSLIB_LZMA:        ${HTSLIB_LZMA}" )
-    message( STATUS "HTSLIB_BZ2:         ${HTSLIB_BZ2}" )
-
-    IF(
-        ${HTSLIB_INCLUDE_DIR} MATCHES "NOTFOUND" OR
-        ${HTSLIB_LINK_DIR}    MATCHES "NOTFOUND" OR
-        ${HTSLIB_LIBRARY}     MATCHES "NOTFOUND" OR
-        ${HTSLIB_LZMA}        MATCHES "NOTFOUND" OR
-        ${HTSLIB_BZ2}         MATCHES "NOTFOUND"
-    )
-        message( FATAL_ERROR "Required package htslib (or some of its dependencies) not found.")
-    ELSE()
-
-        # Technically, we can only claim to have "found" the library when using the system-wide
-        # installation here, as in the local (default) case it won't yet be compiled...
-        # But let's stick to the user output that we used for the other dependencies,
-        # and assume that once we are here, the build process will work.
-        message( STATUS "Found htslib: ${HTSLIB_LIBRARY}" )
-        message (STATUS "${ColorGreen}Using htslib${ColorEnd}")
-
-        # Include the headers and directories, so that they are found by our source.
-        include_directories(${HTSLIB_INCLUDE_DIR})
-        link_directories(${HTSLIB_LINK_DIR})
-
-        # Set needed definitions and linker flags for genesis and for the parent scope.
-        # The targets (our shared and static lib) will use these to link against.
-        set( GENESIS_INCLUDE_DIR ${GENESIS_INCLUDE_DIR} ${HTSLIB_INCLUDE_DIR} )
-        add_definitions( "-DGENESIS_HTSLIB" )
-        set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_HTSLIB" )
-        set(
-            GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}
-            ${HTSLIB_LIBRARY} z ${HTSLIB_LZMA} ${HTSLIB_BZ2}
-        )
-        # set(
-        #     GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}
-        #     -L/usr/local/lib -lhts ${HTSLIB_LIBRARY} z ${HTSLIB_LZMA} ${HTSLIB_BZ2}
-        # )
-    ENDIF()
+    # Included from modules dir tools/cmake
+    include( IncludeHtslib )
 
 endif()
 
