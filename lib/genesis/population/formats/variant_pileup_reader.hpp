@@ -50,7 +50,7 @@ namespace population {
  * @brief Reader for Variant information of (m)pileup files.
  *
  * This reader is a specialized version of the SimplePileupReader, which instead of yielding
- * per-line tallies bases and phred quality scores, directly yields their summed up counts
+ * per-line tallied bases and phred quality scores, directly yields their summed up counts
  * of bases per line.
  *
  * For each line in the file, a Variant is produced. One such sample in an (m)pileup file consists
