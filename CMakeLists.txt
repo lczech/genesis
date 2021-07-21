@@ -153,15 +153,11 @@ option (GENESIS_USE_THREADS         "Use a threading library (mainly, pthreads).
 option (GENESIS_USE_OPENMP          "Use OpenMP."                                        ON)
 
 # Additional dependencies: htslib
-# By default, we use a locally installed (in the build directory) version of htslib,
-# so that we can check out the exact commit that we want. We also allow to use the system-wide
-# installation by setting `GENESIS_SYSTEM_HTSLIB ON`(if set, we assume that htslib is present and
-# in a compatible version - we do not check this, but the compilation will just fail if it is not).
-# Also, by setting `GENESIS_USE_HTSLIB OFF`, all htslib-related functionality can also be deactivated,
+# We use a locally installed (in the build directory) version of htslib,
+# so that we can check out the exact commit that we want.
+# By setting `GENESIS_USE_HTSLIB OFF`, all htslib-related functionality can also be deactivated,
 # but those functions then won't be available in the library.
 option (GENESIS_USE_HTSLIB          "Use htslib. See also GENESIS_SYSTEM_HTSLIB"         ON)
-option (GENESIS_SYSTEM_HTSLIB       "If set, use the system-wide installation of htslib" OFF)
-set(HTSLIB_HINT "" CACHE STRING     "Path to htslib if GENESIS_SYSTEM_HTSLIB=ON")
 
 # Define unity build option with list of valid values. Default is full unity build.
 set( GENESIS_UNITY_BUILD FULL CACHE STRING
@@ -401,72 +397,53 @@ SET( htslib_COMMIT_HASH "bd133acf51498431a5c7dfd8aa06ce17ec6d3b96" ) #htslib_COM
 if(GENESIS_USE_HTSLIB)
     message (STATUS "Looking for htslib")
 
-    IF(GENESIS_SYSTEM_HTSLIB)
-        message( STATUS "Looking for system-wide htslib installation" )
-        IF(HTSLIB_HINT)
-            message( STATUS "Using hint path: ${HTSLIB_HINT}" )
-        ENDIF()
+    # We download and built on our own, using the correct commit hash to get our exact desired
+    # version, and install locally to the build directory.
+    ExternalProject_Add(
+        htslib
+        PREFIX ""
 
-        # Find system-wide installation of htslib
-        find_path(HTSLIB_INCLUDE_DIR NAMES htslib/hts.h HINTS "${HTSLIB_HINT}/include")
-        find_library(HTSLIB_LIBRARY  NAMES libhts.a hts HINTS "${HTSLIB_HINT}/lib")
-        set( HTSLIB_LINK_DIR ${HTSLIB_LIBRARY} )
+        # Download and Update Steps
+        # DOWNLOAD_COMMAND  ""
+        GIT_REPOSITORY https://github.com/samtools/htslib.git
+        GIT_TAG ${htslib_COMMIT_HASH}
+        UPDATE_COMMAND    ""
 
-        IF(HTSLIB_FOUND)
-            message( STATUS "Using system htslib" )
-        ENDIF()
+        # Configure Step. See htslib/INSTALL
+        # We need to manually add -fPIC here, as somehow otherwise the local installation
+        # won't link properly. Linking will always remain a mystery to me...
+        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-source
+        CONFIGURE_COMMAND
+            autoheader
+            COMMAND
+            autoconf
+            COMMAND
+            ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --disable-libcurl
 
-    ELSE()
-        message( STATUS "Using local htslib" )
+        # Build Step
+        # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
+        BUILD_IN_SOURCE true
+        BUILD_COMMAND
+            $(MAKE)
 
-        # We download and built on our own, using the correct commit hash to get our exact desired
-        # version, and install locally to the build directory.
-        ExternalProject_Add(
-            htslib
-            PREFIX ""
+        # Install Step
+        INSTALL_COMMAND $(MAKE) install
+    )
 
-            # Download and Update Steps
-            # DOWNLOAD_COMMAND  ""
-            GIT_REPOSITORY https://github.com/samtools/htslib.git
-            GIT_TAG ${htslib_COMMIT_HASH}
-            UPDATE_COMMAND    ""
+    # Set the paths so that those can be included by the targets.
+    # We explicitly set the static library here, so that we link against that one.
+    set( HTSLIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib )
+    set( HTSLIB_INCLUDE_DIR "${HTSLIB_DIR}/include" )
+    set( HTSLIB_LINK_DIR    "${HTSLIB_DIR}/lib" )
+    set( HTSLIB_LIBRARY     "${HTSLIB_DIR}/lib/libhts.a" )
 
-            # Configure Step. See htslib/INSTALL
-            # We need to manually add -fPIC here, as somehow otherwise the local installation
-            # won't link properly. Linking will always remain a mystery to me...
-            SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-source
-            CONFIGURE_COMMAND
-                autoheader
-                COMMAND
-                autoconf
-                COMMAND
-                ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --disable-libcurl
-
-            # Build Step
-            # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
-            BUILD_IN_SOURCE true
-            BUILD_COMMAND
-                $(MAKE)
-
-            # Install Step
-            INSTALL_COMMAND $(MAKE) install
-        )
-
-        # Set the paths so that those can be included by the targets.
-        # We explicitly set the static library here, so that we link against that one.
-        set( HTSLIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib )
-        set( HTSLIB_INCLUDE_DIR "${HTSLIB_DIR}/include" )
-        set( HTSLIB_LINK_DIR    "${HTSLIB_DIR}/lib" )
-        set( HTSLIB_LIBRARY     "${HTSLIB_DIR}/lib/libhts.a" )
-
-        # Cannot test here for existing files, as those are not yet built when this is called...
-        # IF(
-        #     NOT EXISTS ${HTSLIB_INCLUDE_DIR}/htslib/hts.h OR
-        #     NOT EXISTS ${HTSLIB_LIBRARY}/libhts.a
-        # )
-        #     message( FATAL_ERROR "Building htslib failed.")
-        # ENDIF()
-    ENDIF()
+    # Cannot test here for existing files, as those are not yet built when this is called...
+    # IF(
+    #     NOT EXISTS ${HTSLIB_INCLUDE_DIR}/htslib/hts.h OR
+    #     NOT EXISTS ${HTSLIB_LIBRARY}/libhts.a
+    # )
+    #     message( FATAL_ERROR "Building htslib failed.")
+    # ENDIF()
 
     # Find additional libraries needed by htslib.
     # If that works and the libraries were found, we do not need to do anything,
