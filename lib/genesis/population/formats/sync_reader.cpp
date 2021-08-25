@@ -174,10 +174,13 @@ bool SyncReader::parse_line_(
         }
     }
 
-    // Sync does not have alt bases, so try to get one based on coutns.
+    // Sync does not have alt bases, so try to get one based on counts.
     // Excluding the ref base, we use the base of the remaining three that has the highest total
     // count across all samples, unless all of them are zero, in which case we do not set the
     // alt base. We also skip cases where the ref is not in ACGT, as then alt is also meaningless.
+    // We first need to re-set the alternative, as we might have a variant coming from a previous
+    // loop iteration in the reader.
+    variant.alternative_base = 'N';
     if(
         variant.reference_base == 'A' ||
         variant.reference_base == 'C' ||
