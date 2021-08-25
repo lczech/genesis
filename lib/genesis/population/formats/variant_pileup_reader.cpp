@@ -30,6 +30,7 @@
 
 #include "genesis/population/formats/variant_pileup_reader.hpp"
 
+#include "genesis/population/functions/variant.hpp"
 #include "genesis/sequence/functions/codes.hpp"
 #include "genesis/utils/io/char.hpp"
 #include "genesis/utils/io/parser.hpp"
@@ -204,6 +205,9 @@ bool VariantPileupReader::parse_line_(
             );
         }
     }
+
+    // Pileup does not have alt bases, so try to get one based on counts.
+    variant.alternative_base = guess_alternative_base( variant, true );
 
     assert( !it || *it == '\n' );
     ++it;

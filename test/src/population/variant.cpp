@@ -211,7 +211,7 @@ TEST( Variant, SortedVariantCounts )
 
     // Line 1
 
-    auto const sort1t = sorted_variant_counts( samples[0], true );
+    auto const sort1t = sorted_base_counts( samples[0], true );
     EXPECT_EQ( 'G', sort1t[0].first );
     EXPECT_EQ(  13, sort1t[0].second );
     EXPECT_EQ( 'A', sort1t[1].first );
@@ -221,7 +221,7 @@ TEST( Variant, SortedVariantCounts )
     // EXPECT_EQ( 'T', sort1t[3].first );
     EXPECT_EQ(   0, sort1t[3].second );
 
-    auto const sort1f = sorted_variant_counts( samples[0], false );
+    auto const sort1f = sorted_base_counts( samples[0], false );
     // EXPECT_EQ( 'A', sort1f[0].first );
     EXPECT_EQ(  13, sort1f[0].second );
     // EXPECT_EQ( 'G', sort1f[1].first );
@@ -233,7 +233,7 @@ TEST( Variant, SortedVariantCounts )
 
     // Line 2
 
-    auto const sort2t = sorted_variant_counts( samples[1], true );
+    auto const sort2t = sorted_base_counts( samples[1], true );
     EXPECT_EQ( 'T', sort2t[0].first );
     EXPECT_EQ(   9, sort2t[0].second );
     EXPECT_EQ( 'A', sort2t[1].first );
@@ -243,7 +243,7 @@ TEST( Variant, SortedVariantCounts )
     // EXPECT_EQ( 'G', sort2t[3].first );
     EXPECT_EQ(   0, sort2t[3].second );
 
-    auto const sort2f = sorted_variant_counts( samples[1], false );
+    auto const sort2f = sorted_base_counts( samples[1], false );
     EXPECT_EQ( 'A', sort2f[0].first );
     EXPECT_EQ(  12, sort2f[0].second );
     EXPECT_EQ( 'T', sort2f[1].first );
@@ -255,7 +255,7 @@ TEST( Variant, SortedVariantCounts )
 
     // Line 3
 
-    auto const sort3t = sorted_variant_counts( samples[2], true );
+    auto const sort3t = sorted_base_counts( samples[2], true );
     EXPECT_EQ( 'A', sort3t[0].first );
     EXPECT_EQ(   9, sort3t[0].second );
     EXPECT_EQ( 'T', sort3t[1].first );
@@ -265,7 +265,7 @@ TEST( Variant, SortedVariantCounts )
     EXPECT_EQ( 'C', sort3t[3].first );
     EXPECT_EQ(   0, sort3t[3].second );
 
-    auto const sort3f = sorted_variant_counts( samples[2], false );
+    auto const sort3f = sorted_base_counts( samples[2], false );
     EXPECT_EQ( 'T', sort3f[0].first );
     EXPECT_EQ(  15, sort3f[0].second );
     EXPECT_EQ( 'G', sort3f[1].first );
@@ -277,7 +277,7 @@ TEST( Variant, SortedVariantCounts )
 
     // Line 4
 
-    auto const sort4t = sorted_variant_counts( samples[3], true );
+    auto const sort4t = sorted_base_counts( samples[3], true );
     EXPECT_EQ( 'T', sort4t[0].first );
     EXPECT_EQ(   9, sort4t[0].second );
     // EXPECT_EQ( 'A', sort4t[1].first );
@@ -287,7 +287,7 @@ TEST( Variant, SortedVariantCounts )
     // EXPECT_EQ( 'G', sort4t[3].first );
     EXPECT_EQ(   0, sort4t[3].second );
 
-    auto const sort4f = sorted_variant_counts( samples[3], false );
+    auto const sort4f = sorted_base_counts( samples[3], false );
     EXPECT_EQ( 'T', sort4f[0].first );
     EXPECT_EQ(   9, sort4f[0].second );
     // EXPECT_EQ( 'A', sort4f[1].first );

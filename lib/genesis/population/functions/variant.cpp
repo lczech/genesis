@@ -56,7 +56,7 @@ BaseCounts total_base_counts( Variant const& variant )
     return merge( variant.samples );
 }
 
-std::array<std::pair<char, size_t>, 4> sorted_variant_counts(
+std::array<std::pair<char, size_t>, 4> sorted_base_counts(
     Variant const& variant, bool reference_first
 ) {
     // We use sorting networks for speed here. See f_st_asymptotically_unbiased_a1n1a2n2()
@@ -140,6 +140,41 @@ std::array<std::pair<char, size_t>, 4> sorted_variant_counts(
     }
 }
 
+char guess_reference_base( Variant const& variant )
+{
+    auto const ref = utils::to_upper( variant.reference_base );
+    if( ref == 'A' || ref == 'C' || ref == 'G' || ref == 'T' ) {
+        return ref;
+    } else {
+        auto const sorted = sorted_base_counts( variant, false );
+        if( sorted[0].second > 0 ) {
+            return utils::to_upper( sorted[0].first );
+        }
+    }
+
+    // Last else case outside, so that compilers always see that this function returns a value.
+    return 'N';
+}
+
+char guess_alternative_base( Variant const& variant, bool force )
+{
+    auto const alt = utils::to_upper( variant.alternative_base );
+    if( ! force && ( alt == 'A' || alt == 'C' || alt == 'G' || alt == 'T' )) {
+        return alt;
+    } else {
+        auto const ref = utils::to_upper( variant.reference_base );
+        if( ref == 'A' || ref == 'C' || ref == 'G' || ref == 'T' ) {
+            auto const sorted = sorted_base_counts( variant, true );
+            if( sorted[1].second > 0 ) {
+                return utils::to_upper( sorted[1].first );
+            }
+        }
+    }
+
+    // Else case outside, so that compilers always see that this function returns a value.
+    return 'N';
+}
+
 // =================================================================================================
 //     Conversion Functions
 // =================================================================================================
@@ -183,7 +218,7 @@ Variant convert_to_variant(
         result.reference_base == 'G' ||
         result.reference_base == 'T'
     ) {
-        auto const sorted = sorted_variant_counts( result, true );
+        auto const sorted = sorted_base_counts( result, true );
         if( sorted[1].second > 0 ) {
             result.alternative_base = utils::to_upper( sorted[1].first );
         }

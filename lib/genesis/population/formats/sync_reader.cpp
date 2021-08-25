@@ -178,20 +178,7 @@ bool SyncReader::parse_line_(
     // Excluding the ref base, we use the base of the remaining three that has the highest total
     // count across all samples, unless all of them are zero, in which case we do not set the
     // alt base. We also skip cases where the ref is not in ACGT, as then alt is also meaningless.
-    // We first need to re-set the alternative, as we might have a variant coming from a previous
-    // loop iteration in the reader.
-    variant.alternative_base = 'N';
-    if(
-        variant.reference_base == 'A' ||
-        variant.reference_base == 'C' ||
-        variant.reference_base == 'G' ||
-        variant.reference_base == 'T'
-    ) {
-        auto const sorted = sorted_variant_counts( variant, true );
-        if( sorted[1].second > 0 ) {
-            variant.alternative_base = utils::to_upper( sorted[1].first );
-        }
-    }
+    variant.alternative_base = guess_alternative_base( variant, true );
 
     assert( !it || *it == '\n' );
     ++it;
