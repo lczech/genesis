@@ -50,6 +50,14 @@ namespace population {
  *
  * These files are a simple tally of the counts at each position and sample in a (m)pileup file.
  * See https://sourceforge.net/p/popoolation2/wiki/Tutorial/ for the format description.
+ *
+ * Note on our internal data representation: The reader returns a Variant per line, where most of
+ * the data is set based on the sync input content. However, the sync format does not have altnative
+ * bases, so we instead try to estimate the alternative based on counts:
+ * Excluding the reference base, we use the base of the remaining three that has the highest total
+ * count across all samples, unless all of them are zero, in which case we do not set the altnative
+ * base. We also skip cases where the ref is not in `ACGT`, as then the alternative base is also
+ * meaningless. In these cases, the alternative will be `N`.
  */
 class SyncReader
 {

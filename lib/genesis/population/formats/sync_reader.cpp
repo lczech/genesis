@@ -30,6 +30,7 @@
 
 #include "genesis/population/formats/sync_reader.hpp"
 
+#include "genesis/population/functions/variant.hpp"
 #include "genesis/utils/io/char.hpp"
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
@@ -170,6 +171,22 @@ bool SyncReader::parse_line_(
                 "Malformed sync " + it.source_name() + " at " + it.at() +
                 ": Line with different number of samples."
             );
+        }
+    }
+
+    // Sync does not have alt bases, so try to get one based on coutns.
+    // Excluding the ref base, we use the base of the remaining three that has the highest total
+    // count across all samples, unless all of them are zero, in which case we do not set the
+    // alt base. We also skip cases where the ref is not in ACGT, as then alt is also meaningless.
+    if(
+        variant.reference_base == 'A' ||
+        variant.reference_base == 'C' ||
+        variant.reference_base == 'G' ||
+        variant.reference_base == 'T'
+    ) {
+        auto const sorted = sorted_variant_counts( variant, true );
+        if( sorted[1].second > 0 ) {
+            variant.alternative_base = utils::to_upper( sorted[1].first );
         }
     }
 
