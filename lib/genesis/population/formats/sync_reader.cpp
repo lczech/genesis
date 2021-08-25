@@ -30,6 +30,7 @@
 
 #include "genesis/population/formats/sync_reader.hpp"
 
+#include "genesis/population/functions/variant.hpp"
 #include "genesis/utils/io/char.hpp"
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
@@ -51,10 +52,10 @@ std::vector<Variant> SyncReader::read(
     std::vector<Variant> result;
     utils::InputStream it( source );
 
-    Variant sample_set;
-    while( parse_line_( it, sample_set, {}, false )) {
-        result.push_back( std::move( sample_set ));
-        sample_set = Variant{};
+    Variant variant;
+    while( parse_line_( it, variant, {}, false )) {
+        result.push_back( std::move( variant ));
+        variant = Variant{};
     }
     return result;
 }
@@ -66,27 +67,27 @@ std::vector<Variant> SyncReader::read(
     std::vector<Variant> result;
     utils::InputStream it( source );
 
-    Variant sample_set;
-    while( parse_line_( it, sample_set, sample_filter, true )) {
-        result.push_back( std::move( sample_set ));
-        sample_set = Variant{};
+    Variant variant;
+    while( parse_line_( it, variant, sample_filter, true )) {
+        result.push_back( std::move( variant ));
+        variant = Variant{};
     }
     return result;
 }
 
 bool SyncReader::parse_line(
     utils::InputStream& input_stream,
-    Variant&            sample_set
+    Variant&            variant
 ) const {
-    return parse_line_( input_stream, sample_set, {}, false );
+    return parse_line_( input_stream, variant, {}, false );
 }
 
 bool SyncReader::parse_line(
     utils::InputStream&      input_stream,
-    Variant&                 sample_set,
+    Variant&                 variant,
     std::vector<bool> const& sample_filter
 ) const {
-    return parse_line_( input_stream, sample_set, sample_filter, true );
+    return parse_line_( input_stream, variant, sample_filter, true );
 }
 
 // =================================================================================================
@@ -95,7 +96,7 @@ bool SyncReader::parse_line(
 
 bool SyncReader::parse_line_(
     utils::InputStream&      input_stream,
-    Variant&                 sample_set,
+    Variant&                 variant,
     std::vector<bool> const& sample_filter,
     bool                     use_sample_filter
 ) const {
@@ -108,9 +109,9 @@ bool SyncReader::parse_line_(
     }
 
     // Read fixed columns for chromosome and position.
-    sample_set.chromosome = utils::read_until( it, []( char c ){ return c == '\t' || c == '\n'; });
+    variant.chromosome = utils::read_until( it, []( char c ){ return c == '\t' || c == '\n'; });
     it.read_char_or_throw( '\t' );
-    sample_set.position = it.parse_unsigned_integer<size_t>();
+    variant.position = it.parse_unsigned_integer<size_t>();
     it.read_char_or_throw( '\t' );
     if( !it || *it == '\n' ) {
         throw std::runtime_error(
@@ -126,17 +127,17 @@ bool SyncReader::parse_line_(
             char_to_hex(rb) + " at " + it.at()
         );
     }
-    sample_set.reference_base = rb;
+    variant.reference_base = rb;
     ++it;
 
     // Read the samples. We switch once for the first line, and thereafter check that we read the
     // same number of samples each time.
-    if( sample_set.samples.empty() ) {
+    if( variant.samples.empty() ) {
         size_t src_index = 0;
         while( it && *it != '\n' ) {
             if( !use_sample_filter || ( src_index < sample_filter.size() && sample_filter[src_index] )) {
-                sample_set.samples.emplace_back();
-                parse_sample_( it, sample_set.samples.back() );
+                variant.samples.emplace_back();
+                parse_sample_( it, variant.samples.back() );
             } else {
                 skip_sample_( it );
             }
@@ -149,14 +150,14 @@ bool SyncReader::parse_line_(
         size_t dst_index = 0;
         while( it && *it != '\n' ) {
             // If the numbers do not match, go straight to the error check and throw.
-            if( dst_index >= sample_set.samples.size() ) {
+            if( dst_index >= variant.samples.size() ) {
                 break;
             }
 
             // Parse or skip, depending on filter.
             if( !use_sample_filter || ( src_index < sample_filter.size() && sample_filter[src_index] )) {
-                assert( dst_index < sample_set.samples.size() );
-                parse_sample_( it, sample_set.samples[dst_index] );
+                assert( dst_index < variant.samples.size() );
+                parse_sample_( it, variant.samples[dst_index] );
                 ++dst_index;
             } else {
                 skip_sample_( it );
@@ -165,11 +166,27 @@ bool SyncReader::parse_line_(
         }
 
         // Need to have the exact size of samples in the line.
-        if( dst_index != sample_set.samples.size() ) {
+        if( dst_index != variant.samples.size() ) {
             throw std::runtime_error(
                 "Malformed sync " + it.source_name() + " at " + it.at() +
                 ": Line with different number of samples."
             );
+        }
+    }
+
+    // Sync does not have alt bases, so try to get one based on coutns.
+    // Excluding the ref base, we use the base of the remaining three that has the highest total
+    // count across all samples, unless all of them are zero, in which case we do not set the
+    // alt base. We also skip cases where the ref is not in ACGT, as then alt is also meaningless.
+    if(
+        variant.reference_base == 'A' ||
+        variant.reference_base == 'C' ||
+        variant.reference_base == 'G' ||
+        variant.reference_base == 'T'
+    ) {
+        auto const sorted = sorted_variant_counts( variant, true );
+        if( sorted[1].second > 0 ) {
+            variant.alternative_base = utils::to_upper( sorted[1].first );
         }
     }
 

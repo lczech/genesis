@@ -175,6 +175,8 @@ Variant convert_to_variant(
     // using the base with the most counts that is not the reference base.
     // We only do this if we have a reference base though, as otherwise, the sorting and alternative
     // is meaningless anyway. Only need to check upper case here, as we converted above.
+    // Also, we do not set the alt base if it does not have any counts, and in that case is also
+    // meaningless to have an alt base.
     if(
         result.reference_base == 'A' ||
         result.reference_base == 'C' ||
@@ -182,7 +184,9 @@ Variant convert_to_variant(
         result.reference_base == 'T'
     ) {
         auto const sorted = sorted_variant_counts( result, true );
-        result.alternative_base = utils::to_upper( sorted[1].first );
+        if( sorted[1].second > 0 ) {
+            result.alternative_base = utils::to_upper( sorted[1].first );
+        }
     }
 
     return result;
