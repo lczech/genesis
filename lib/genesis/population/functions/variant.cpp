@@ -33,10 +33,14 @@
 #include "genesis/population/functions/base_counts.hpp"
 #include "genesis/utils/io/char.hpp"
 
+#ifdef GENESIS_HTSLIB
+
 extern "C" {
     #include <htslib/hts.h>
     #include <htslib/vcf.h>
 }
+
+#endif // htslib guard
 
 #include <array>
 #include <cassert>
