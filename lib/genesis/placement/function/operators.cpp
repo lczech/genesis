@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -48,6 +48,7 @@
 
 #include "genesis/utils/text/table.hpp"
 
+#include <cmath>
 #include <ostream>
 #include <sstream>
 #include <unordered_map>
@@ -141,14 +142,25 @@ double add_sample_to_mass_tree(
 
             // Use the relative position of the mass on its original branch to put it to the
             // same position relative to its new branch.
+            // If any of the branches has length zero, we'd get a nan position, so fix this.
             double position
                 = place.proximal_length
                 / place.edge().data<PlacementEdgeData>().branch_length
-                * edge.data<tree::MassTreeEdgeData>().branch_length;
+                * edge.data<tree::MassTreeEdgeData>().branch_length
+            ;
+            if(
+                ! std::isfinite( place.edge().data<PlacementEdgeData>().branch_length ) ||
+                ! std::isfinite( edge.data<tree::MassTreeEdgeData>().branch_length )    ||
+                place.edge().data<PlacementEdgeData>().branch_length == 0.0             ||
+                edge.data<tree::MassTreeEdgeData>().branch_length == 0.0
+            ) {
+                position = 0.0;
+            }
 
             // Add the mass at that position, normalized and using the sign.
             edge.data<tree::MassTreeEdgeData>().masses[ position ]
-                += sign * place.like_weight_ratio * multiplicity / scaler;
+                += sign * place.like_weight_ratio * multiplicity / scaler
+            ;
 
             // Accumulate the work we need to do to move the masses from their pendant
             // positions to the branches.
