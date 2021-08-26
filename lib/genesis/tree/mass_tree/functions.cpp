@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -311,8 +311,14 @@ void mass_trees_make_average_branch_lengths( std::vector<MassTree>& mass_trees )
             auto& edge_data = tree.edge_at( edge_idx ).data<MassTreeEdgeData>();
             auto new_masses = std::map<double, double>();
 
-            // Branch position scaler.
-            auto const scaler = avg_br_lens[ edge_idx ] / edge_data.branch_length;
+            // Branch position scaler. Need to take care of zero branch lengths.
+            assert( std::isfinite( avg_br_lens[ edge_idx ] ));
+            assert( std::isfinite( edge_data.branch_length ));
+            auto scaler = avg_br_lens[ edge_idx ] / edge_data.branch_length;
+            if( ! std::isfinite( scaler )) {
+                assert( edge_data.branch_length == 0.0 );
+                scaler = 1.0;
+            }
 
             // Move masses proprotional to branch lengths change.
             for( auto const& mass : edge_data.masses ) {
