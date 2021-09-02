@@ -348,7 +348,7 @@ inline void closure( std::vector<double>& vec )
  * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
  * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
  * which for some use cases would cause problems like a division by zero later on.
- * By default, @p epsilon is `-1.0`, which deactivates this check`.
+ * By default, @p epsilon is `-1.0`, which deactivates this check.
  *
  * @see mean_stddev( std::vector<double> const&, double epsilon ) for a version for `std::vector`.
  * @see arithmetic_mean() for a function that only calculates the mean, and thus saves the effort
