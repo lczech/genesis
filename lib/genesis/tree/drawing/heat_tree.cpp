@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -37,6 +37,7 @@
 #include "genesis/tree/iterator/eulertour.hpp"
 
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/formats/bmp/writer.hpp"
 #include "genesis/utils/formats/svg/matrix.hpp"
 #include "genesis/utils/tools/color/norm_linear.hpp"
 
@@ -46,7 +47,7 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Helper Functions
+//     Row Order Helpers
 // =================================================================================================
 
 static std::vector<size_t> heat_tree_row_order_(
@@ -134,39 +135,37 @@ utils::Matrix<T> heat_tree_reorder_rows_(
 }
 
 // =================================================================================================
-//     SVG Functions
+//     Internal Functions
 // =================================================================================================
 
-utils::SvgDocument heat_tree(
-    HeatTreeParameters const&        params
-) {
-    // We use a dummy linear norm here, to satisfy the compiler (because the standard norm has
-    // purely virtual functiosn and can thus not be instanciated). As the color map however is
-    // empty, the called function will not use the norm.
-    return heat_tree(
-        params, {}, utils::ColorNormalizationLinear(), {}, utils::ColorNormalizationLinear()
-    );
-}
+/**
+ * @brief Local helper struct to communicate positions in the svg doc between functions.
+ */
+struct HeatTreeGrid
+{
+    /**
+     * @brief Top y-coordinate for the gradients/palettes.
+     */
+    double pal_top;
 
-utils::SvgDocument heat_tree(
-    HeatTreeParameters const&        params,
-    utils::ColorMap const&           matrix_color_map,
-    utils::ColorNormalization const& matrix_color_norm
-) {
-    // We use a dummy linear norm here, to satisfy the compiler (because the standard norm has
-    // purely virtual functiosn and can thus not be instanciated). As the color map however is
-    // empty, the called function will not use the norm.
-    return heat_tree(
-        params, matrix_color_map, matrix_color_norm, {}, utils::ColorNormalizationLinear()
-    );
-}
+    /**
+     * @brief Height of the gradients/palettes.
+     */
+    double pal_height;
 
-utils::SvgDocument heat_tree(
-    HeatTreeParameters const&        params,
-    utils::ColorMap const&           matrix_color_map,
-    utils::ColorNormalization const& matrix_color_norm,
-    utils::ColorMap const&           tree_color_map,
-    utils::ColorNormalization const& tree_color_norm
+    /**
+     * @brief Left x-coordinate of the matrix.
+     */
+    double matrix_left;
+
+    /**
+     * @brief Width of the matrix.
+     */
+    double matrix_width;
+};
+
+RectangularLayout heat_tree_tree_layout_(
+    HeatTreeParameters const& params
 ) {
     using namespace genesis::utils;
 
@@ -209,13 +208,21 @@ utils::SvgDocument heat_tree(
         layout.set_edge_strokes( strokes );
     }
 
-    // Prepare svg doc.
-    auto svg_doc = layout.to_svg_document();
-    svg_doc.margin.left = svg_doc.margin.top = svg_doc.margin.bottom = svg_doc.margin.right = 200;
+    return layout;
+}
+
+void heat_tree_add_tree_color_scale_(
+    RectangularLayout const&         layout,
+    utils::ColorMap const&           tree_color_map,
+    utils::ColorNormalization const& tree_color_norm,
+    utils::SvgDocument&              svg_doc,
+    HeatTreeGrid&                    grid
+) {
+    using namespace genesis::utils;
 
     // Add color scale for the tree.
-    double const svg_pal_height = svg_doc.bounding_box().width() / 10.0;
     double const svg_pal_top = 1.2 * svg_doc.bounding_box().height();
+    double const svg_pal_height = svg_doc.bounding_box().width() / 10.0;
     if( ! tree_color_map.empty() ) {
         // Make the scale.
         auto svg_pal_settings = SvgColorBarSettings();
@@ -238,9 +245,20 @@ utils::SvgDocument heat_tree(
         svg_doc << std::move( svg_scale.second );
     }
 
-    // Sort matrix rows to fit with tree node order.
-    auto const row_order = heat_tree_row_order_( params.tree, layout.inner_node_spreading() );
-    auto const matrix = heat_tree_reorder_rows_( params.matrix, row_order );
+    // The height of the tree (plus some space) is what we use  as the top coordinate for the
+    // gradients. We store this, so that the matrix gradient can use this as well.
+    grid.pal_top = svg_pal_top;
+    grid.pal_height = svg_pal_height;
+}
+
+void heat_tree_add_heat_matrix_svg_(
+    HeatTreeParameters const&          params,
+    RectangularLayout const&           layout,
+    utils::Matrix<utils::Color> const& matrix,
+    utils::SvgDocument&                svg_doc,
+    HeatTreeGrid&                      grid
+) {
+    using namespace genesis::utils;
 
     // Make the heat matrix, with row heights so that it fits the total tree height.
     SvgMatrixSettings svg_mat_set;
@@ -257,19 +275,72 @@ utils::SvgDocument heat_tree(
     svg_doc << std::move( svg_matrix );
     svg_doc.margin.right += svg_matrix_width + 200;
 
+    // Lastly, set the needed grid params, so that downstream functions can use them.
+    grid.matrix_left = svg_matrix_left;
+    grid.matrix_width = svg_matrix_width;
+}
+
+void heat_tree_add_heat_matrix_bmp_(
+    HeatTreeParameters const&          params,
+    RectangularLayout const&           layout,
+    utils::Matrix<utils::Color> const& matrix,
+    utils::SvgDocument&                svg_doc,
+    HeatTreeGrid&                      grid
+) {
+    using namespace genesis::utils;
+
+    // TODO
+    (void) params.column_labels;
+
+    // Make a bmp version of the matrix.
+    std::string matrix_bmp;
+    BmpWriter().write( matrix, to_string( matrix_bmp ));
+
+    // Get position and scale for the matrix.
+    auto const pixel_height = layout.height() / static_cast<double>( matrix.rows() - 1 );
+    auto const pixel_width = pixel_height;
+    auto const offset_x = svg_doc.bounding_box().width() + 20.0;
+    auto const offset_y = - pixel_width / 2.0;
+
+    // Add to svg.
+    auto img = SvgImage(
+        svg_data_uri( "image/bmp", matrix_bmp, true ),
+        SvgPoint{ offset_x, offset_y },
+        SvgSize{
+            static_cast<double>( matrix.cols() ) * pixel_width,
+            static_cast<double>( matrix.rows() ) * pixel_height
+        }
+    );
+    img.rendering = SvgImage::ImageRendering::kPixelated;
+    svg_doc << std::move( img );
+    svg_doc.margin.right += static_cast<double>( matrix.cols() ) * pixel_width + 200;
+
+    // Lastly, set the needed grid params, so that downstream functions can use them.
+    grid.matrix_left = offset_x;
+    grid.matrix_width = static_cast<double>( matrix.cols() ) * pixel_width;
+}
+
+void heat_tree_add_matrix_color_scale_(
+    utils::ColorMap const&           matrix_color_map,
+    utils::ColorNormalization const& matrix_color_norm,
+    utils::SvgDocument&              svg_doc,
+    HeatTreeGrid&                    grid
+) {
+    using namespace genesis::utils;
+
     // Add color scale for the matrix.
     if( ! matrix_color_map.empty() ) {
         // Make the scale.
         auto svg_pal_settings = SvgColorBarSettings();
         svg_pal_settings.direction = SvgColorBarSettings::Direction::kLeftToRight;
-        svg_pal_settings.width = svg_matrix_width;
-        svg_pal_settings.height = svg_pal_height;
+        svg_pal_settings.width = grid.matrix_width;
+        svg_pal_settings.height = grid.pal_height;
         // svg_pal_settings.text_size = svg_pal_height / 3.0;
         auto svg_scale = make_svg_color_bar( svg_pal_settings, matrix_color_map, matrix_color_norm );
 
         // Move it to below the tree.
         svg_scale.second.transform.append( SvgTransform::Translate(
-            svg_matrix_left, svg_pal_top
+            grid.matrix_left, grid.pal_top
         ));
         svg_doc.margin.bottom = 0.2 * svg_doc.bounding_box().height() + 2 * svg_pal_settings.height + 200;
 
@@ -279,6 +350,74 @@ utils::SvgDocument heat_tree(
         }
         svg_doc << std::move( svg_scale.second );
     }
+}
+
+// =================================================================================================
+//     SVG Functions
+// =================================================================================================
+
+utils::SvgDocument heat_tree(
+    HeatTreeParameters const&        params
+) {
+    // We use a dummy linear norm here, to satisfy the compiler (because the standard norm has
+    // purely virtual functiosn and can thus not be instanciated). As the color map however is
+    // empty, the called function will not use the norm.
+    return heat_tree(
+        params, {}, utils::ColorNormalizationLinear(), {}, utils::ColorNormalizationLinear()
+    );
+}
+
+utils::SvgDocument heat_tree(
+    HeatTreeParameters const&        params,
+    utils::ColorMap const&           matrix_color_map,
+    utils::ColorNormalization const& matrix_color_norm
+) {
+    // We use a dummy linear norm here, to satisfy the compiler (because the standard norm has
+    // purely virtual functiosn and can thus not be instanciated). As the color map however is
+    // empty, the called function will not use the norm.
+    return heat_tree(
+        params, matrix_color_map, matrix_color_norm, {}, utils::ColorNormalizationLinear()
+    );
+}
+
+utils::SvgDocument heat_tree(
+    HeatTreeParameters const&        params,
+    utils::ColorMap const&           matrix_color_map,
+    utils::ColorNormalization const& matrix_color_norm,
+    utils::ColorMap const&           tree_color_map,
+    utils::ColorNormalization const& tree_color_norm
+) {
+    using namespace genesis::utils;
+    HeatTreeGrid grid;
+
+    // Get the tree layout, including colored branches.
+    auto layout = heat_tree_tree_layout_( params );
+
+    // Prepare svg doc where all elements are added to.
+    // This already includes the tree drawing.
+    auto svg_doc = layout.to_svg_document();
+    svg_doc.margin.left = svg_doc.margin.top = svg_doc.margin.bottom = svg_doc.margin.right = 200;
+
+    // Add color scale for the tree.
+    heat_tree_add_tree_color_scale_(
+        layout, tree_color_map, tree_color_norm, svg_doc, grid
+    );
+
+    // Sort matrix rows to fit with tree node order.
+    auto const row_order = heat_tree_row_order_( params.tree, layout.inner_node_spreading() );
+    auto const matrix = heat_tree_reorder_rows_( params.matrix, row_order );
+
+    // Make the heat matrix, with row heights so that it fits the total tree height.
+    if( params.matrix_as_bmp ) {
+        heat_tree_add_heat_matrix_bmp_( params, layout, matrix, svg_doc, grid );
+    } else {
+        heat_tree_add_heat_matrix_svg_( params, layout, matrix, svg_doc, grid );
+    }
+
+    // Add color scale for the matrix.
+    heat_tree_add_matrix_color_scale_(
+        matrix_color_map, matrix_color_norm, svg_doc, grid
+    );
 
     return svg_doc;
 }
