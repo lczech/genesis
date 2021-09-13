@@ -49,21 +49,21 @@ std::vector<bool> make_bool_vector_from_indices( std::vector<size_t> const& indi
     if( max_it == indices.end() ) {
         return std::vector<bool>( size, false );
     }
-    size_t max_index = *max_it;
+    size_t target_size = *max_it + 1;
     if( size > 0 ) {
-        if( max_index > size ) {
+        if( target_size > size ) {
             throw std::invalid_argument(
                 "Cannot use make_bool_vector_from_indices() with size " + std::to_string( size ) +
-                " that is smaller than the larged index " + std::to_string( max_index ) +
-                " in the list of indices."
+                " that is smaller than required to include the larged index " +
+                std::to_string( *max_it ) + " in the list of indices (zero-based)."
             );
         }
-        max_index = size;
+        target_size = size;
     }
 
     // Fill a bool vector, setting all positions to true
     // that are indicated by the indices, pun intended.
-    auto result = std::vector<bool>( max_index, false );
+    auto result = std::vector<bool>( target_size, false );
     for( auto const& idx : indices ) {
         assert( idx < result.size() );
         result[idx] = true;
