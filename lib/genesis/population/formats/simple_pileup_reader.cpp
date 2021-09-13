@@ -192,14 +192,18 @@ bool SimplePileupReader::parse_line_(
         size_t src_index = 0;
         size_t dst_index = 0;
         while( it && *it != '\n' ) {
-            if( dst_index >= record.samples.size() ) {
-                throw std::runtime_error(
-                    "Malformed pileup " + it.source_name() + " at " + it.at() +
-                    ": Line with different number of samples."
-                );
-            }
-            if( !use_sample_filter || ( src_index < sample_filter.size() && sample_filter[src_index] )) {
+            if(
+                ! use_sample_filter ||
+                ( src_index < sample_filter.size() && sample_filter[src_index] )
+            ) {
+                if( dst_index >= record.samples.size() ) {
+                    throw std::runtime_error(
+                        "Malformed pileup " + it.source_name() + " at " + it.at() +
+                        ": Line with different number of samples."
+                    );
+                }
                 assert( dst_index < record.samples.size() );
+
                 process_sample_( it, record, record.samples[dst_index] );
                 ++dst_index;
             } else {
