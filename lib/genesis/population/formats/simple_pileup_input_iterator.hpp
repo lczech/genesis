@@ -48,7 +48,9 @@ namespace population {
  * @brief Iterate an input source and parse it as a (m)pileup file.
  *
  * This simple wrapper allows easy iteration through the records/lines of an (m)pileup file
- * line by line. See SimplePileupReader for details.
+ * line by line. See SimplePileupReader for details. The class is templated, so that it can
+ * be either used to produce SimplePileupReader::Record or Variant objects per line of the input
+ * mpileup file.
  *
  * Basic usage:
  *
@@ -60,11 +62,12 @@ namespace population {
  *
  * or
  *
- *     for( auto it = SimplePileupInputIterator( utils::from_file( infile )); it; ++it ) {
+ *     for( auto it = SimplePileupInputIterator<Variant>( utils::from_file( infile )); it; ++it ) {
  *         // work with it
  *     }
  *
- * both allow to iterate each line in the file.
+ * both allow to iterate each line in the file. The first instanciates an iterator over
+ * SimplePileupReader::Record, while the second over Variant.
  *
  * Additionally, filtering of which samples (by index) to include can be provided, either as a vector
  * of indices to consider, or as a bool vector that is `true` at the indices to consider. The latter
@@ -72,6 +75,7 @@ namespace population {
  * If it is shorter, all samples after its last index will be ignored. If it is longer,
  * the remaining entries are not used as a filter.
  */
+template<class T = SimplePileupReader::Record>
 class SimplePileupInputIterator
 {
 public:
@@ -81,7 +85,7 @@ public:
     // -------------------------------------------------------------------------
 
     using self_type         = SimplePileupInputIterator;
-    using value_type        = SimplePileupReader::Record;
+    using value_type        = T;
     using pointer           = value_type*;
     using reference         = value_type&;
     using const_reference   = value_type const&;
@@ -181,32 +185,32 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
-    SimplePileupReader::Record const& record() const
+    T const& record() const
     {
         return record_;
     }
 
-    SimplePileupReader::Record& record()
+    T& record()
     {
         return record_;
     }
 
-    SimplePileupReader::Record const* operator ->() const
+    T const* operator ->() const
     {
         return &record_;
     }
 
-    SimplePileupReader::Record* operator ->()
+    T* operator ->()
     {
         return &record_;
     }
 
-    SimplePileupReader::Record const& operator*() const
+    T const& operator*() const
     {
         return record_;
     }
 
-    SimplePileupReader::Record& operator*()
+    T& operator*()
     {
         return record_;
     }
@@ -229,11 +233,7 @@ public:
 
     void increment()
     {
-        if( use_sample_filter_ ) {
-            good_ = reader_.parse_line( *input_stream_, record_, sample_filter_ );
-        } else {
-            good_ = reader_.parse_line( *input_stream_, record_ );
-        }
+        increment_();
     }
 
     bool operator==( self_type const& it ) const
@@ -247,6 +247,14 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Internal Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    void increment_();
+
+    // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
@@ -257,13 +265,37 @@ private:
     std::shared_ptr<utils::InputStream> input_stream_;
 
     // Reading into records
-    SimplePileupReader::Record record_;
+    T record_;
     SimplePileupReader reader_;
 
     // Sample filtering
     std::vector<bool> sample_filter_;
     bool              use_sample_filter_ = false;
 };
+
+// -------------------------------------------------------------------------
+//     Explicit Specialiyations in Namespace Scope
+// -------------------------------------------------------------------------
+
+template<>
+inline void SimplePileupInputIterator<SimplePileupReader::Record>::increment_()
+{
+    if( use_sample_filter_ ) {
+        good_ = reader_.parse_line_record( *input_stream_, record_, sample_filter_ );
+    } else {
+        good_ = reader_.parse_line_record( *input_stream_, record_ );
+    }
+}
+
+template<>
+inline void SimplePileupInputIterator<Variant>::increment_()
+{
+    if( use_sample_filter_ ) {
+        good_ = reader_.parse_line_variant( *input_stream_, record_, sample_filter_ );
+    } else {
+        good_ = reader_.parse_line_variant( *input_stream_, record_ );
+    }
+}
 
 } // namespace population
 } // namespace genesis

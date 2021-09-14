@@ -47,7 +47,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Genome Region Helper Functions
+//     Parsing & Printing
 // =================================================================================================
 
 std::ostream& operator<<( std::ostream& os, GenomeRegion const& region );
@@ -71,10 +71,19 @@ GenomeRegion parse_genome_region( std::string const& region );
  */
 GenomeRegionList parse_genome_regions( std::string const& regions );
 
+// =================================================================================================
+//     Region Coverage
+// =================================================================================================
+
 /**
  * @brief Test whether the chromosome/position is within a given genomic @p region.
  */
 bool is_covered( GenomeRegion const& region, std::string const& chromosome, size_t position );
+
+/**
+ * @brief Test whether the chromosome/position is within a given list of genomic @p regions.
+ */
+bool is_covered( GenomeRegionList const& regions, std::string const& chromosome, size_t position );
 
 /**
  * @brief Test whether the chromosome/position of a @p variant is within a given genomic @p region.
@@ -88,9 +97,23 @@ bool is_covered( GenomeRegion const& region, T const& variant )
     return is_covered( region, variant.chromosome, variant.position );
 }
 
+/**
+ * @brief Test whether the chromosome/position of a @p variant is within a given list of
+ * genomic @p regions.
+ *
+ * This is a function template, so that it can accept any data structure that contains public
+ * member variables `chromosome` (`std::string`) and `position` (`size_t`), such as Variant.
+ */
+template<class T>
+bool is_covered( GenomeRegionList const& regions, T const& variant )
+{
+    return is_covered( regions, variant.chromosome, variant.position );
+}
+
 #ifdef GENESIS_HTSLIB
 
 bool is_covered( GenomeRegion const& region, VcfRecord const& variant );
+bool is_covered( GenomeRegionList const& regions, VcfRecord const& variant );
 
 #endif // htslib guard
 

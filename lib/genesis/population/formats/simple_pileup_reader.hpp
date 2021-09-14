@@ -31,6 +31,7 @@
  * @ingroup population
  */
 
+#include "genesis/population/variant.hpp"
 #include "genesis/sequence/functions/quality.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
@@ -53,9 +54,11 @@ namespace population {
  * tally of the bases of all reads that cover a given position.
  * This makes it fast in cases where only per-position, but no per-read information is needed.
  *
- * For each processed line, a SimplePileupReader::Record is produced, which captures the basic
+ * For each processed line, a SimplePileupReader::Record is produced when using the `record`
+ * versions of the read and parse function, which captures the basic
  * information of the line, as well as a tally for each sample in the line, collected in
  * SimplePileupReader::Sample. One such sample consists of two or more columns in the file.
+ *
  * The number of columns per sample depends on the additional information contained in the file.
  * As we have no way of deciding this automatically, these columns have to be activated beforehand:
  *
@@ -64,6 +67,12 @@ namespace population {
  *
  * More columns might be needed in the future, and potentially their ordering might need to be
  * adapted. But for now, we only have these use cases.
+ *
+ * Alternatvely, using the `variant` versions of the read and parse functions, instead of producing
+ * a SimplePileupReader::Record, a Variant per line in the mpileup file can be produced.
+ * This tends to be slightly faster, and elimiates the need to do downstream conversion.
+ * That is, instead of yielding per-line tallied bases and phred quality scores,
+ * these functions directly yields their summed up counts of bases per line.
  */
 class SimplePileupReader
 {
@@ -162,62 +171,121 @@ public:
     self_type& operator= ( self_type&& )      = default;
 
     // ---------------------------------------------------------------------
-    //     Reading
+    //     Reading Records
     // ---------------------------------------------------------------------
 
     /**
-     * @brief Read an (m)pileup file line by line.
+     * @brief Read an (m)pileup file line by line, as pileup Record%s.
      */
-    std::vector<Record> read( std::shared_ptr< utils::BaseInputSource > source ) const;
+    std::vector<Record> read_records( std::shared_ptr< utils::BaseInputSource > source ) const;
 
     /**
-     * @brief Read an (m)pileup file line by line, but only the samples at the given indices.
+     * @brief Read an (m)pileup file line by line, but only the samples at the given indices,
+     * as pileup Record%s.
      */
-    std::vector<Record> read(
+    std::vector<Record> read_records(
         std::shared_ptr< utils::BaseInputSource > source,
         std::vector<size_t> const&                sample_indices
     ) const;
 
     /**
      * @brief Read an (m)pileup file line by line, but only the samples at which the
-     * @p sample_filter is `true`.
+     * @p sample_filter is `true`, as pileup Record%s.
      *
      * This filter does not need to contain the same number of values as the record has samples.
      * If it is shorter, all samples after its last index will be ignored. If it is longer,
      * the remaining entries are not used as a filter.
      */
-    std::vector<Record> read(
+    std::vector<Record> read_records(
+        std::shared_ptr< utils::BaseInputSource > source,
+        std::vector<bool> const&                  sample_filter
+    ) const;
+
+    // ---------------------------------------------------------------------
+    //     Reading Variants
+    // ---------------------------------------------------------------------
+
+    /**
+     * @brief Read an (m)pileup file line by line, as Variant%s.
+     */
+    std::vector<Variant> read_variants( std::shared_ptr< utils::BaseInputSource > source ) const;
+
+    /**
+     * @brief Read an (m)pileup file line by line, but only the samples at the given indices,
+     * as Variant%s.
+     */
+    std::vector<Variant> read_variants(
+        std::shared_ptr< utils::BaseInputSource > source,
+        std::vector<size_t> const&                sample_indices
+    ) const;
+
+    /**
+     * @brief Read an (m)pileup file line by line, but only the samples at which the
+     * @p sample_filter is `true`, as Variant%s.
+     *
+     * This filter does not need to contain the same number of values as the record has samples.
+     * If it is shorter, all samples after its last index will be ignored. If it is longer,
+     * the remaining entries are not used as a filter.
+     */
+    std::vector<Variant> read_variants(
         std::shared_ptr< utils::BaseInputSource > source,
         std::vector<bool> const&                  sample_filter
     ) const;
 
     // -------------------------------------------------------------------------
-    //     Parsing
+    //     Parsing Records
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Read an (m)pileup line.
+     * @brief Read an (m)pileup line, as a Record.
      */
-    bool parse_line(
+    bool parse_line_record(
         utils::InputStream& input_stream,
         Record&             record
     ) const;
 
     /**
-     * @brief Read an (m)pileup line, but only the samples at which the @p sample_filter is `true`.
+     * @brief Read an (m)pileup line, but only the samples at which the @p sample_filter is `true`,
+     * as a Record.
      *
      * This filter does not need to contain the same number of values as the record has samples.
      * If it is shorter, all samples after its last index will be ignored. If it is longer,
      * the remaining entries are not used as a filter.
      */
-    bool parse_line(
+    bool parse_line_record(
         utils::InputStream&      input_stream,
         Record&                  record,
         std::vector<bool> const& sample_filter
     ) const;
 
     // -------------------------------------------------------------------------
-    //     Settings
+    //     Parsing Variants
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Read an (m)pileup line, as a Variant.
+     */
+    bool parse_line_variant(
+        utils::InputStream& input_stream,
+        Variant&            variant
+    ) const;
+
+    /**
+     * @brief Read an (m)pileup line, but only the samples at which the @p sample_filter is `true`,
+     * as a Variant.
+     *
+     * This filter does not need to contain the same number of values as the line has samples.
+     * If it is shorter, all samples after its last index will be ignored. If it is longer,
+     * the remaining entries are not used as a filter.
+     */
+    bool parse_line_variant(
+        utils::InputStream&      input_stream,
+        Variant&                 variant,
+        std::vector<bool> const& sample_filter
+    ) const;
+
+    // -------------------------------------------------------------------------
+    //     General Settings
     // -------------------------------------------------------------------------
 
     bool strict_bases() const
@@ -308,22 +376,91 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Variant Settings
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Get the currently set minimum phred quality score that a base needs to have
+     * to be added to the Variant BaseCounts for a sample.
+     *
+     * This is only used for the reading and parsing functions that return Variant%s.
+     */
+    size_t min_phred_score() const
+    {
+        return min_phred_score_;
+    }
+
+    /**
+     * @brief Set the minimum phred quality score that a base needs to have
+     * to be added to the Variant BaseCounts for a sample.
+     *
+     * Bases below this quality score are ignored when summing up the counts per sample.
+     *
+     * This is only used for the reading and parsing functions that return Variant%s.
+     */
+    self_type& min_phred_score( size_t value )
+    {
+        min_phred_score_ = value;
+        return *this;
+    }
+
+    // -------------------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------------------
 
 private:
 
+    /**
+     * @brief Helper function to parse one line into a target,
+     * which can be a Record or a Variant.
+     */
+    template<class T>
     bool parse_line_(
         utils::InputStream&      input_stream,
-        Record&                  record,
+        T&                       target,
         std::vector<bool> const& sample_filter,
         bool                     use_sample_filter
     ) const;
 
+    /**
+     * @brief Helper function to parse a pileup sample,
+     * either into a Record::Sample, or a BaseCount.
+     */
+    template<class T, class S>
     void process_sample_(
         utils::InputStream& input_stream,
-        Record&             record,
-        Sample&             sample
+        T const&            target,
+        S&                  sample
+    ) const;
+
+    template<class S>
+    void set_sample_read_coverage_(
+        size_t read_coverage,
+        S& sample
+    ) const;
+
+    template<class S>
+    void set_sample_read_bases_(
+        std::string const& read_bases,
+        S& sample
+    ) const;
+
+    template<class S>
+    void process_quality_string_(
+        utils::InputStream& input_stream,
+        S& sample
+    ) const;
+
+    void tally_base_(
+        utils::InputStream& input_stream,
+        BaseCounts& base_count,
+        char b
+    ) const;
+
+    template<class S>
+    void process_ancestral_base_(
+        utils::InputStream& input_stream,
+        S& sample
     ) const;
 
     void skip_sample_(
@@ -347,9 +484,13 @@ private:
     // (we default to Sanger with offset 33), and if we want to skip low quality bases.
     bool with_quality_string_ = true;
     sequence::QualityEncoding quality_encoding_ = sequence::QualityEncoding::kSanger;
+    size_t min_phred_score_ = 0;
 
     // Set whether the last part of the sample line contains the base of the ancestral allele.
     bool with_ancestral_base_ = false;
+
+    // Internal buffer to read bases into. Used for speedup to avoid reallocations.
+    mutable std::string base_buffer_;
 };
 
 } // namespace population

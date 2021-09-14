@@ -42,7 +42,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Genome Region
+//     Parsing & Printing
 // =================================================================================================
 
 std::ostream& operator<<( std::ostream& os, GenomeRegion const& region )
@@ -141,6 +141,10 @@ GenomeRegionList parse_genome_regions( std::string const& regions )
     return result;
 }
 
+// =================================================================================================
+//     Region Coverage
+// =================================================================================================
+
 bool is_covered( GenomeRegion const& region, std::string const& chromosome, size_t position )
 {
     if( region.start > region.end ) {
@@ -160,11 +164,21 @@ bool is_covered( GenomeRegion const& region, std::string const& chromosome, size
     }
 }
 
+bool is_covered( GenomeRegionList const& regions, std::string const& chromosome, size_t position )
+{
+    return regions.is_covered( chromosome, position );
+}
+
 #ifdef GENESIS_HTSLIB
 
 bool is_covered( GenomeRegion const& region, VcfRecord const& variant )
 {
     return is_covered( region, variant.get_chromosome(), variant.get_position() );
+}
+
+bool is_covered( GenomeRegionList const& regions, VcfRecord const& variant )
+{
+    return is_covered( regions, variant.get_chromosome(), variant.get_position() );
 }
 
 #endif // htslib guard

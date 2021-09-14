@@ -46,7 +46,7 @@ TEST( Pileup, SimpleReader )
     std::string const infile = environment->data_dir + "population/example.pileup";
 
     auto reader = SimplePileupReader();
-    auto records = reader.read( from_file( infile ));
+    auto records = reader.read_records( from_file( infile ));
 
     std::vector<char> ref_bases = { 'T', 'T', 'T', 'A', 'G', 'T', 'G', 'C' };
 
