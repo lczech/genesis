@@ -31,7 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/population/base_counts.hpp"
-#include "genesis/population/formats/variant_pileup_reader.hpp"
+#include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/functions/base_counts.hpp"
 #include "genesis/population/functions/variant.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -45,8 +45,8 @@ TEST( Pileup, VariantReader )
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/example.pileup";
 
-    auto reader = VariantPileupReader();
-    auto variants = reader.read( from_file( infile ));
+    auto reader = SimplePileupReader();
+    auto variants = reader.read_variants( from_file( infile ));
 
     std::vector<char> ref_bases = { 'T', 'T', 'T', 'A', 'G', 'T', 'G', 'C' };
 
