@@ -280,21 +280,43 @@ private:
 template<>
 inline void SimplePileupInputIterator<SimplePileupReader::Record>::increment_()
 {
+    // Read into temp object, so that we have the previous one still available.
+    SimplePileupReader::Record tmp;
     if( use_sample_filter_ ) {
-        good_ = reader_.parse_line_record( *input_stream_, record_, sample_filter_ );
+        good_ = reader_.parse_line_record( *input_stream_, tmp, sample_filter_ );
     } else {
-        good_ = reader_.parse_line_record( *input_stream_, record_ );
+        good_ = reader_.parse_line_record( *input_stream_, tmp );
     }
+
+    // Make sure that the input is sorted.
+    if( good_ && ( tmp.chromosome < record_.chromosome || tmp.position <= record_.position )) {
+        throw std::runtime_error(
+            "Malformed pileup " + input_stream_->source_name() + " at " + input_stream_->at() +
+            ": unordered chromosomes and positions"
+        );
+    }
+    record_ = std::move( tmp );
 }
 
 template<>
 inline void SimplePileupInputIterator<Variant>::increment_()
 {
+    // Read into temp object, so that we have the previous one still available.
+    Variant tmp;
     if( use_sample_filter_ ) {
-        good_ = reader_.parse_line_variant( *input_stream_, record_, sample_filter_ );
+        good_ = reader_.parse_line_variant( *input_stream_, tmp, sample_filter_ );
     } else {
-        good_ = reader_.parse_line_variant( *input_stream_, record_ );
+        good_ = reader_.parse_line_variant( *input_stream_, tmp );
     }
+
+    // Make sure that the input is sorted.
+    if( good_ && ( tmp.chromosome < record_.chromosome || tmp.position <= record_.position )) {
+        throw std::runtime_error(
+            "Malformed pileup " + input_stream_->source_name() + " at " + input_stream_->at() +
+            ": unordered chromosomes and positions"
+        );
+    }
+    record_ = std::move( tmp );
 }
 
 } // namespace population
