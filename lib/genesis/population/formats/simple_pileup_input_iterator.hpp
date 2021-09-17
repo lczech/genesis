@@ -54,7 +54,7 @@ namespace population {
  *
  * Basic usage:
  *
- *     auto it = SimplePileupInputIterator( utils::from_file( infile ));
+ *     auto it = SimplePileupInputIterator<>( utils::from_file( infile ));
  *     while( it ) {
  *         // work with it.record() or it->...
  *         ++it;
