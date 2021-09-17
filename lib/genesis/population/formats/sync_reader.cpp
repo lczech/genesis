@@ -46,14 +46,35 @@ namespace population {
 //     Reading & Parsing
 // =================================================================================================
 
+/**
+ * @brief Local helper function to remove code duplication for the correct input order check.
+ */
+void process_sync_correct_input_order_(
+    utils::InputStream const& it,
+    std::string& cur_chr, size_t& cur_pos,
+    Variant const& new_var
+) {
+    if( new_var.chromosome < cur_chr || new_var.position <= cur_pos ) {
+        throw std::runtime_error(
+            "Malformed pileup " + it.source_name() + " at " + it.at() +
+            ": unordered chromosomes and positions"
+        );
+    }
+    cur_chr = new_var.chromosome;
+    cur_pos = new_var.position;
+}
 std::vector<Variant> SyncReader::read(
     std::shared_ptr< utils::BaseInputSource > source
 ) const {
     std::vector<Variant> result;
     utils::InputStream it( source );
 
+    // Read, with correct order check, just in case.
+    std::string cur_chr = "";
+    size_t      cur_pos = 0;
     Variant variant;
     while( parse_line_( it, variant, {}, false )) {
+        process_sync_correct_input_order_( it, cur_chr, cur_pos, variant );
         result.push_back( std::move( variant ));
         variant = Variant{};
     }
@@ -67,8 +88,12 @@ std::vector<Variant> SyncReader::read(
     std::vector<Variant> result;
     utils::InputStream it( source );
 
+    // Read, with correct order check, just in case.
+    std::string cur_chr = "";
+    size_t      cur_pos = 0;
     Variant variant;
     while( parse_line_( it, variant, sample_filter, true )) {
+        process_sync_correct_input_order_( it, cur_chr, cur_pos, variant );
         result.push_back( std::move( variant ));
         variant = Variant{};
     }
@@ -105,6 +130,7 @@ bool SyncReader::parse_line_(
     // Shorthand.
     auto& it = input_stream;
     if( !it ) {
+        variant = Variant{};
         return false;
     }
 
