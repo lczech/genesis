@@ -24,8 +24,11 @@
     260 Panama Street, Stanford, CA 94305, USA
 */
 
+#include <cassert>
 #include <functional>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace genesis {
 namespace utils {
@@ -35,7 +38,7 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief Type erasure for iterators, using std::function to get rid of the underlying input type.
+ * @brief Type erasure for iterators, using std::function to eliminate the underlying input type.
  *
  * This class offers some abstraction to get a uniform iterator type over some underlying iterator.
  * Expects a function (most likely, you want to use a lambda) that converts the underlying data
@@ -50,7 +53,7 @@ namespace utils {
  *     auto end = vcf_range.end();
  *
  *     // Create the conversion with type erasure via the lambda function.
- *     generator = LambdaIteratorGenerator<Variant>(
+ *     generator = LambdaIterator<Variant>(
  *         [beg, end]() mutable -> std::shared_ptr<Variant>{
  *             if( beg != end ) {
  *                 auto res = std::make_shared<Variant>( convert_to_variant(*beg) );
@@ -69,7 +72,7 @@ namespace utils {
  *
  *     // Use a pileup iterator, which does not offer begin and end.
  *     auto it = SimplePileupInputIterator( utils::from_file( pileup_file_.value ), reader );
- *     generator = LambdaIteratorGenerator<Variant>(
+ *     generator = LambdaIterator<Variant>(
  *         [it]() mutable -> std::shared_ptr<Variant>{
  *             if( it ) {
  *                 auto res = std::make_shared<Variant>( convert_to_variant(*it) );
@@ -84,7 +87,7 @@ namespace utils {
  * And accordinly for other underlying iterator types.
  */
 template<class T>
-class LambdaIteratorGenerator
+class LambdaIterator
 {
 public:
 
@@ -92,7 +95,7 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using self_type         = LambdaIteratorGenerator;
+    using self_type         = LambdaIterator;
     using value_type        = T;
     using pointer           = value_type const*;
     using reference         = value_type const&;
@@ -103,7 +106,7 @@ public:
     //     Iterator
     // -------------------------------------------------------------------------
 
-    class LambdaIterator
+    class Iterator
     {
     public:
 
@@ -111,27 +114,31 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type = LambdaIteratorGenerator<T>::LambdaIterator;
+        using self_type = LambdaIterator<T>::Iterator;
 
-        // LambdaIterator() = default;
+        // Iterator() = default;
 
-        LambdaIterator(
-            LambdaIteratorGenerator* generator,
-            std::shared_ptr<T> current_element
+        Iterator(
+            LambdaIterator* generator
         )
             : generator_(generator)
-            , current_element_(current_element)
-        {}
+        {
+            // We use the generator as a check if this Iterator is intended to be a begin()
+            // or end() iterator. If its the former, get the first element.
+            if( generator_ ) {
+                advance_();
+            }
+        }
 
-        ~LambdaIterator() = default;
+        ~Iterator() = default;
 
-        LambdaIterator( self_type const& ) = default;
-        LambdaIterator( self_type&& )      = default;
+        Iterator( self_type const& ) = default;
+        Iterator( self_type&& )      = default;
 
-        LambdaIterator& operator= ( self_type const& ) = default;
-        LambdaIterator& operator= ( self_type&& )      = default;
+        Iterator& operator= ( self_type const& ) = default;
+        Iterator& operator= ( self_type&& )      = default;
 
-        // friend LambdaIteratorGenerator;
+        // friend LambdaIterator;
 
         // -------------------------------------------------------------------------
         //     Accessors
@@ -147,20 +154,25 @@ public:
         //     return *current_element_;
         // }
 
+        operator bool() const
+        {
+            return static_cast<bool>( current_element_ );
+        }
+
         // -------------------------------------------------------------------------
         //     Iteration
         // -------------------------------------------------------------------------
 
         self_type& operator ++ ()
         {
-            current_element_ = generator_->get_element_();
+            advance_();
             return *this;
         }
 
-        self_type& operator ++(int)
+        self_type operator ++(int)
         {
             auto cpy = *this;
-            current_element_ = generator_->get_element_();
+            advance_();
             return cpy;
         }
 
@@ -174,9 +186,43 @@ public:
             return !(*this == it);
         }
 
+        // -------------------------------------------------------------------------
+        //     Internal Members
+        // -------------------------------------------------------------------------
+
+        void advance_()
+        {
+            bool got_element = false;
+            do {
+                // Get the next element from the input source.
+                current_element_ = generator_->get_element_();
+
+                if( current_element_ ) {
+                    // If this is an element (not yet at the end of the data),
+                    // apply all transforms and filters, and get out of here if all of them
+                    // return `true`, that is, if none of them wants to filter out the element.
+                    // If however one of them returns `false`, we need to find another element.
+                    got_element = true;
+                    for( auto const& tra_fil : generator_->transforms_and_filters_ ) {
+                        got_element = tra_fil( *current_element_ );
+                        if( ! got_element ) {
+                            // If one of the transforms/filters does not want us to continue,
+                            // we do not call the others. Break out of the inner loop.
+                            break;
+                        }
+                    }
+
+                } else {
+                    // If this is not a valid element, we reached the end of the input.
+                    assert( current_element_ == nullptr );
+                    break;
+                }
+            } while( ! got_element );
+        }
+
     private:
 
-        LambdaIteratorGenerator* generator_;
+        LambdaIterator* generator_;
         std::shared_ptr<T> current_element_;
 
     };
@@ -185,36 +231,36 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    LambdaIteratorGenerator() = default;
+    LambdaIterator() = default;
 
-    LambdaIteratorGenerator(
+    LambdaIterator(
         std::function<std::shared_ptr<value_type>()> get_element
     )
         : get_element_(get_element)
     {}
 
-    ~LambdaIteratorGenerator() = default;
+    ~LambdaIterator() = default;
 
-    LambdaIteratorGenerator( self_type const& ) = default;
-    LambdaIteratorGenerator( self_type&& )      = default;
+    LambdaIterator( self_type const& ) = default;
+    LambdaIterator( self_type&& )      = default;
 
     self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
 
-    friend LambdaIterator;
+    friend Iterator;
 
     // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
-    LambdaIterator begin()
+    Iterator begin()
     {
-        return LambdaIterator( this, get_element_() );
+        return Iterator( this );
     }
 
-    LambdaIterator end()
+    Iterator end()
     {
-        return LambdaIterator( this, nullptr );
+        return Iterator( nullptr );
     }
 
     /**
@@ -227,20 +273,86 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Filters and Transformations
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Add a transformation function that is applied to each element of the iteration.
+     *
+     * Note that all of add_transform(), add_filter(), and add_transform_filter() are chained
+     * in the order in which they are added - meaning that they can be mixed as needed.
+     * For example, it makes sense to first filter by some property, and then apply transformations
+     * only on those elements that passed the filter to avoid unneeded work.
+     */
+    self_type& add_transform( std::function<void(T&)> transform )
+    {
+        transforms_and_filters_.push_back(
+            [transform]( T& variant ){
+                transform( variant );
+                return true;
+            }
+        );
+        return *this;
+    }
+
+    /**
+     * @brief Add a filter function that is applied to each element of the iteration.
+     *
+     * If the function returns `false`, the element is skipped in the iteration.
+     *
+     * @copydetails add_transform()
+     */
+    self_type& add_filter( std::function<bool(T const&)> filter )
+    {
+        transforms_and_filters_.push_back(
+            [filter]( T& variant ){
+                return filter( variant );
+            }
+        );
+        return *this;
+    }
+
+    /**
+     * @brief Add a transformation and filter function that is applied to each element
+     * of the iteration.
+     *
+     * This can be used to transform and filter an alement at the same time,
+     * as a shortcut where several steps might be needed at once.
+     * If the function returns `false`, the element is skipped in the iteration.
+     *
+     * @copydetails add_transform()
+     */
+    self_type& add_transform_filter( std::function<bool(T&)> filter )
+    {
+        transforms_and_filters_.push_back(
+            [filter]( T& variant ){
+                return filter( variant );
+            }
+        );
+        return *this;
+    }
+
+    /**
+     * @brief Clear all filters and transformations.
+     */
+    self_type& clear_filters_and_transformations()
+    {
+        transforms_and_filters_.clear();
+    }
+
+    // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
 private:
 
+    // std::vector<std::function<void(T&)>> transforms_;
+    // std::vector<std::function<bool(T const&)>> filters_;
+    std::vector<std::function<bool(T&)>> transforms_and_filters_;
+
     std::function<std::shared_ptr<value_type>()> get_element_;
 
 };
-
-/**
- * @brief Alias for the internal iterator of a LambdaIteratorGenerator for easier usage.
- */
-template<class T>
-using LambdaIterator = typename LambdaIteratorGenerator<T>::LambdaIterator;
 
 } // namespace utils
 } // namespace genesis
