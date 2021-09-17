@@ -45,36 +45,50 @@ namespace population {
 //     General Filtering
 // =================================================================================================
 
-// /**
-//  * @brief Select how to filter Variant%s based on whether a predicate is true for any or for all
-//  * of the BaseCounts samples in the Variant.
-//  */
-// enum class VariantFilterType
-// {
-//     /**
-//      * @brief The filter returns `true` if _any_ of the BaseCounts samples in the Variant return
-//      * `true` for a given predicate.
-//      */
-//     kAny,
-//
-//     /**
-//      * @brief The filter returns `true` if _all_ of the BaseCounts samples in the Variant return
-//      * `true` for a given predicate.
-//      */
-//     kAll
-// };
+/**
+ * @brief Select how to filter Variant%s based on whether a predicate is true for any or for all
+ * of the BaseCounts samples in the Variant.
+ */
+enum class VariantFilterType
+{
+    /**
+     * @brief The filter returns `true` if _any_ of the BaseCounts samples in the Variant return
+     * `true` for a given predicate.
+     */
+    kAny,
+
+    /**
+     * @brief The filter returns `true` if _all_ of the BaseCounts samples in the Variant return
+     * `true` for a given predicate.
+     */
+    kAll
+};
+
+/**
+ * @brief
+ *
+ * See status() for details.
+ */
+bool filter_is_snp(
+    Variant const& variant,
+    VariantFilterType type,
+    size_t min_coverage = 0,
+    size_t max_coverage = 0,
+    size_t min_count = 0,
+    bool tolerate_deletions = false
+);
 
 // =================================================================================================
 //     Filtering by count
 // =================================================================================================
 
-// void filter_by_min_maf_count( BaseCounts const& sample, size_t min_count );
+// bool filter_by_min_maf_count( BaseCounts const& sample, size_t min_count );
 //
-// void filter_by_min_maf_count( Variant const& variant, size_t min_count, VariantFilterType type );
+// bool filter_by_min_maf_count( Variant const& variant, size_t min_count, VariantFilterType type );
 //
-// void filter_by_max_count( BaseCounts const& sample, size_t max_count );
+// bool filter_by_max_count( BaseCounts const& sample, size_t max_count );
 //
-// void filter_by_max_count( Variant const& variant, size_t max_count, VariantFilterType type );
+// bool filter_by_max_count( Variant const& variant, size_t max_count, VariantFilterType type );
 
 // =================================================================================================
 //     Transforming by count

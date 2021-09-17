@@ -30,12 +30,18 @@
 
 #include "genesis/population/functions/filter_transform.hpp"
 
+#include "genesis/population/functions/base_counts.hpp"
+
 #include <cassert>
 #include <iostream>
 #include <stdexcept>
 
 namespace genesis {
 namespace population {
+
+// =================================================================================================
+//     General Filtering
+// =================================================================================================
 
 // =================================================================================================
 //     Filtering by count
