@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -65,8 +65,9 @@ namespace sequence {
  *  *  Illumina 1.8+, with offset 33.
  *  *  Solexa, with offset 64, and a special encoding equation.
  *
- * These are the types of encodings used in fastq files over the years. It seems that Sanger
- * is the most commonly used one today, so this is also what we use as a default.
+ * These are the types of encodings used in fastq files over the years.
+ * It seems that Sanger / Illumina 1.8+ is the most commonly used one today,
+ * so this is also what we use as a default.
  */
 enum class QualityEncoding
 {
@@ -83,6 +84,17 @@ enum class QualityEncoding
  * See QualityEncoding for the names being used here.
  */
 std::string quality_encoding_name( QualityEncoding encoding );
+
+/**
+ * @brief Guess the QualityEncoding type, given its description name.
+ *
+ * This is the reverse of quality_encoding_name(), but additionally allows the given @p name to be
+ * fuzzy. The @p name is stripped off all non-alphanumerical characters and made lower-case.
+ * The remainder (e.g., `illumina13`) then is matched to the enum QualityEncoding, with the
+ * additional option that just `illumina` (without any version number) is matched to
+ * QualityEncoding::kIllumina18.
+ */
+QualityEncoding guess_quality_encoding_from_name( std::string const& name );
 
 /**
  * @brief Decode a single quality score char (for example coming from a fastq file) to a phred score.
@@ -120,7 +132,7 @@ std::vector<unsigned char> quality_decode_to_phred_score(
  * maximize compatability with other programs. Also, Sanger is used by the NCBI Short Read Archive
  * and Illumina 1.8+, and hence the most common format as of today.
  *
- * If the flag @p clam is set (default), values outside of the valid range 0 to 93 are clamped,
+ * If the flag @p clamp is set (default), values outside of the valid range 0 to 93 are clamped,
  * that is, set to be inside the valid range. As the phred score is unsigned, this leads to values
  * above 93 simply being encoded as if they were exactly 93. If @p clamp is set to false,
  * an exception is thrown instead if a value above 93 is encountered.
