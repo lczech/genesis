@@ -163,7 +163,7 @@ BaseCountsStatus status(
 size_t get_base_count( BaseCounts const& bc, char base );
 
 // =================================================================================================
-//     Accumulation, Filtering, etc
+//     Accumulation and other processing
 // =================================================================================================
 
 /**
@@ -194,16 +194,6 @@ BaseCounts merge( BaseCounts const& p1, BaseCounts const& p2 );
  * @brief Merge the counts of a vector BaseCounts%s.
  */
 BaseCounts merge( std::vector<BaseCounts> const& p );
-
-/**
- * @brief Filter by minimum count that we need for a type of nucleotide (`A`, `C`, `G`, `T`)
- * to be considered; set to zero if @p min_count is not reached.
- *
- * This filter is used as a type of quality control filter. All nucleotide counts (that is,
- * BaseCounts::a_count, BaseCounts::c_count, BaseCounts::g_count, and BaseCounts::t_count) that are
- * below the given @p min_count are set to zero.
- */
-void filter_min_count( BaseCounts& sample, size_t min_count );
 
 /**
  * @brief Consensus character for a BaseCounts, and its confidence.

@@ -130,7 +130,7 @@ size_t get_base_count( BaseCounts const& bc, char base )
 }
 
 // =================================================================================================
-//     Accumulation, Filtering, etc
+//     Accumulation and other processing
 // =================================================================================================
 
 void merge_inplace( BaseCounts& p1, BaseCounts const& p2 )
@@ -169,23 +169,6 @@ BaseCounts merge( std::vector<BaseCounts> const& p )
         result.d_count += ps.d_count;
     }
     return result;
-}
-
-void filter_min_count( BaseCounts& sample, size_t min_count )
-{
-    // Reset counts if needed, according to min count setting.
-    if( sample.a_count < min_count ) {
-        sample.a_count = 0;
-    }
-    if( sample.c_count < min_count ) {
-        sample.c_count = 0;
-    }
-    if( sample.g_count < min_count ) {
-        sample.g_count = 0;
-    }
-    if( sample.t_count < min_count ) {
-        sample.t_count = 0;
-    }
 }
 
 std::pair<char, double> consensus( BaseCounts const& sample )
