@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/population/genome_locus.hpp"
+#include "genesis/population/functions/genome_locus.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;
@@ -48,6 +49,24 @@ TEST( Population, GenomeLocus )
     EXPECT_TRUE( a != b );
 
     // Now, we do every combination of comparisons.
+
+    // Spaceship
+    EXPECT_EQ(  0, locus_compare( a, a ));
+    EXPECT_EQ( -1, locus_compare( a, b ));
+    EXPECT_EQ( -1, locus_compare( a, c ));
+    EXPECT_EQ( -1, locus_compare( a, d ));
+    EXPECT_EQ( +1, locus_compare( b, a ));
+    EXPECT_EQ(  0, locus_compare( b, b ));
+    EXPECT_EQ( -1, locus_compare( b, c ));
+    EXPECT_EQ( -1, locus_compare( b, d ));
+    EXPECT_EQ( +1, locus_compare( c, a ));
+    EXPECT_EQ( +1, locus_compare( c, b ));
+    EXPECT_EQ(  0, locus_compare( c, c ));
+    EXPECT_EQ( -1, locus_compare( c, d ));
+    EXPECT_EQ( +1, locus_compare( d, a ));
+    EXPECT_EQ( +1, locus_compare( d, b ));
+    EXPECT_EQ( +1, locus_compare( d, c ));
+    EXPECT_EQ(  0, locus_compare( d, d ));
 
     // Less than, true
     EXPECT_TRUE( a < b );

@@ -31,7 +31,6 @@
  * @ingroup population
  */
 
-#include <iostream>
 #include <string>
 
 namespace genesis {
@@ -45,7 +44,10 @@ namespace population {
  * @brief A single locus, that is, a position on a chromosome.
  *
  * For our purposes here, we define a locus to be one position on one chromosome exactly.
- * We also define all comparison operators for two @link GenomeLocus Loci@endlink.
+ *
+ * When working with multiple loci, we here often expect their chromosome names to be sorted in
+ * lexicographical order. Hence, for example, when comparing two loci on different chromosomes,
+ * we also take the ordering of their chromosome names into account.
  */
 struct GenomeLocus
 {
@@ -81,44 +83,6 @@ struct GenomeLocus
         return chromosome + ":" + std::to_string( position );
     }
 };
-
-bool operator ==( GenomeLocus const& a, GenomeLocus const& b )
-{
-    return a.chromosome == b.chromosome && a.position == b.position;
-}
-
-bool operator !=( GenomeLocus const& a, GenomeLocus const& b )
-{
-    return !(a == b);
-}
-
-bool operator <( GenomeLocus const& a, GenomeLocus const& b )
-{
-    return a.chromosome < b.chromosome || ( a.chromosome == b.chromosome && a.position < b.position );
-}
-
-bool operator >( GenomeLocus const& a, GenomeLocus const& b )
-{
-    return b < a;
-}
-
-bool operator <=( GenomeLocus const& a, GenomeLocus const& b )
-{
-    // We could do the simple default way of implementing this as `a == b || a < b`,
-    // but this seems wasteful; in this case, we can do with fewer comparisons!
-    return a.chromosome < b.chromosome || ( a.chromosome == b.chromosome && a.position <= b.position );
-}
-
-bool operator >=( GenomeLocus const& a, GenomeLocus const& b )
-{
-    return b <= a;
-}
-
-std::ostream& operator<< ( std::ostream& os, GenomeLocus const& l )
-{
-    os << l.to_string();
-    return os;
-}
 
 } // namespace population
 } // namespace genesis
