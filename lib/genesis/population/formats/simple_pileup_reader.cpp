@@ -56,7 +56,7 @@ void process_pileup_correct_input_order_(
     std::string& cur_chr, size_t& cur_pos,
     std::string const& new_chr, size_t new_pos
 ) {
-    if( new_chr < cur_chr || new_pos <= cur_pos ) {
+    if( new_chr < cur_chr || ( new_chr == cur_chr && new_pos <= cur_pos )) {
         throw std::runtime_error(
             "Malformed pileup " + it.source_name() + " at " + it.at() +
             ": unordered chromosomes and positions"

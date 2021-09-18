@@ -54,7 +54,10 @@ void process_sync_correct_input_order_(
     std::string& cur_chr, size_t& cur_pos,
     Variant const& new_var
 ) {
-    if( new_var.chromosome < cur_chr || new_var.position <= cur_pos ) {
+    if(
+        ( new_var.chromosome  < cur_chr ) ||
+        ( new_var.chromosome == cur_chr && new_var.position <= cur_pos )
+    ) {
         throw std::runtime_error(
             "Malformed pileup " + it.source_name() + " at " + it.at() +
             ": unordered chromosomes and positions"

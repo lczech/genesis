@@ -289,7 +289,12 @@ inline void SimplePileupInputIterator<SimplePileupReader::Record>::increment_()
     }
 
     // Make sure that the input is sorted.
-    if( good_ && ( tmp.chromosome < record_.chromosome || tmp.position <= record_.position )) {
+    if( good_ &&
+        (
+            ( tmp.chromosome  < record_.chromosome ) ||
+            ( tmp.chromosome == record_.chromosome && tmp.position <= record_.position )
+        )
+    ) {
         throw std::runtime_error(
             "Malformed pileup " + input_stream_->source_name() + " at " + input_stream_->at() +
             ": unordered chromosomes and positions"
@@ -310,7 +315,12 @@ inline void SimplePileupInputIterator<Variant>::increment_()
     }
 
     // Make sure that the input is sorted.
-    if( good_ && ( tmp.chromosome < record_.chromosome || tmp.position <= record_.position )) {
+    if( good_ &&
+        (
+            ( tmp.chromosome  < record_.chromosome ) ||
+            ( tmp.chromosome == record_.chromosome && tmp.position <= record_.position )
+        )
+    ) {
         throw std::runtime_error(
             "Malformed pileup " + input_stream_->source_name() + " at " + input_stream_->at() +
             ": unordered chromosomes and positions"

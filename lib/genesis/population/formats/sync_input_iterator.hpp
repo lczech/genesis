@@ -216,7 +216,12 @@ public:
         }
 
         // Make sure that the input is sorted.
-        if( good_ && ( tmp.chromosome < variant_.chromosome || tmp.position <= variant_.position )) {
+        if( good_ &&
+            (
+                ( tmp.chromosome  < variant_.chromosome ) ||
+                ( tmp.chromosome == variant_.chromosome && tmp.position <= variant_.position )
+            )
+        ) {
             throw std::runtime_error(
                 "Malformed pileup " + input_stream_->source_name() + " at " + input_stream_->at() +
                 ": unordered chromosomes and positions"
