@@ -782,7 +782,7 @@ TEST( Vcf, InputIterator )
     size_t cnt = 0;
 
     // Use a small block size to trigger the thread support of the iterator.
-    auto it = VcfInputIterator( infile, 2 );
+    auto it = VcfInputIterator( infile, true, 2 );
     while( it ) {
         at += it.record().at() + " ";
         ++cnt;
