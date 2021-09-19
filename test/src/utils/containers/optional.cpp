@@ -117,6 +117,24 @@ TEST( Containers, OptionalConstruction )
         Optional<int> b( a );
         EXPECT_FALSE( b );
     }
+
+    // Allows to move-construct from value type
+    {
+        std::string test = "hello";
+        Optional<std::string> a( std::move( test ));
+
+        EXPECT_TRUE( a );
+        EXPECT_EQ( "hello", *a );
+    }
+
+    // Allows to move-construct from other optional
+    {
+        Optional<std::string> a( "hello" );
+        Optional<std::string> b( std::move(a) );
+
+        EXPECT_TRUE( b );
+        EXPECT_EQ( "hello", *b );
+    }
 }
 
 TEST( Containers, OptionalAssignment )
@@ -162,6 +180,7 @@ TEST( Containers, OptionalAssignment )
     {
         Optional<int> a;
         a = 7;
+        EXPECT_TRUE( a );
         EXPECT_TRUE( *a == 7 );
     }
 
@@ -170,6 +189,7 @@ TEST( Containers, OptionalAssignment )
         const int i = 7;
         Optional<int> a;
         a = i;
+        EXPECT_TRUE( a );
         EXPECT_TRUE( *a == i );
     }
 
@@ -186,6 +206,32 @@ TEST( Containers, OptionalAssignment )
         Optional<int> a;
         a = Optional<char>();
         EXPECT_FALSE( a );
+    }
+
+    // Allows to move-assign from value type
+    {
+        std::string test = "hello";
+        Optional<std::string> a;
+        a = std::move( test );
+
+        EXPECT_TRUE( a );
+        EXPECT_EQ( "hello", *a );
+    }
+
+    // Allows to move-assign from other optional
+    {
+        Optional<std::string> a( "hello" );
+        Optional<std::string> b;
+        b = std::move(a);
+
+        EXPECT_TRUE( b );
+        EXPECT_EQ( "hello", *b );
+    }
+
+    // Assign with different value typw
+    {
+        Optional<size_t> a;
+        a = -1;
     }
 }
 

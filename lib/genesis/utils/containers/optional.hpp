@@ -202,6 +202,11 @@ public:
         , value_    ( arg  )
     {}
 
+    Optional( T && arg )
+        : has_value_( true )
+        , value_    ( std::move( arg ))
+    {}
+
     template< class U >
     Optional( Optional<U> const & other )
         : has_value_( other.has_value() )
@@ -211,9 +216,32 @@ public:
         }
     }
 
+    template< class U >
+    Optional( Optional<U> && other )
+        : has_value_( other.has_value() )
+    {
+        if ( other.has_value() ){
+            value_ = std::move( other.value() );
+        }
+    }
+
     Optional & operator=( nullopt_t )
     {
         reset();
+        return *this;
+    }
+
+    Optional & operator=( T const & other )
+    {
+        has_value_ = true;
+        value_ = other;
+        return *this;
+    }
+
+    Optional & operator=( T && other )
+    {
+        has_value_ = true;
+        value_ = std::move( other );
         return *this;
     }
 
@@ -223,6 +251,16 @@ public:
         has_value_ = other.has_value();
         if ( other.has_value() ) {
             value_ = other.value();
+        }
+        return *this;
+    }
+
+    template< class U >
+    Optional & operator=( Optional<U> && other )
+    {
+        has_value_ = other.has_value();
+        if ( other.has_value() ) {
+            value_ = std::move( other.value() );
         }
         return *this;
     }
