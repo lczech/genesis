@@ -24,9 +24,12 @@
     260 Panama Street, Stanford, CA 94305, USA
 */
 
+#include "genesis/utils/containers/optional.hpp"
+
 #include <cassert>
 #include <functional>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -44,7 +47,8 @@ namespace utils {
  * Expects a function (most likely, you want to use a lambda) that converts the underlying data
  * into the desired type T, which is where the type erasure happens. The data that is iterated over
  * is kept in a shared pointer, which at the end of the iteration (when the underlying iterator
- * is done) simply has to be returned as nullptr by the lambda to indicate the end of the iteration.
+ * is done) simply has to be returned as genesis::utils::nullopt by the lambda to indicate
+ * the end of the iteration.
  *
  * Example:
  *
@@ -54,13 +58,13 @@ namespace utils {
  *
  *     // Create the conversion with type erasure via the lambda function.
  *     generator = LambdaIterator<Variant>(
- *         [beg, end]() mutable -> std::shared_ptr<Variant>{
+ *         [beg, end]() mutable -> genesis::utils::Optional<Variant>{
  *             if( beg != end ) {
- *                 auto res = std::make_shared<Variant>( convert_to_variant(*beg) );
+ *                 auto res = utils::make_optional<Variant>( convert_to_variant(*beg) );
  *                 ++beg;
  *                 return res;
  *             } else {
- *                 return nullptr;
+ *                 return genesis::utils::nullopt;
  *             }
  *         }
  *     );
@@ -73,13 +77,13 @@ namespace utils {
  *     // Use a pileup iterator, which does not offer begin and end.
  *     auto it = SimplePileupInputIterator( utils::from_file( pileup_file_.value ), reader );
  *     generator = LambdaIterator<Variant>(
- *         [it]() mutable -> std::shared_ptr<Variant>{
+ *         [it]() mutable -> genesis::utils::Optional<Variant>{
  *             if( it ) {
- *                 auto res = std::make_shared<Variant>( convert_to_variant(*it) );
+ *                 auto res = utils::make_optional<Variant>( convert_to_variant(*it) );
  *                 ++it;
  *                 return res;
  *             } else {
- *                 return nullptr;
+ *                 return genesis::utils::nullopt;
  *             }
  *         }
  *     );
@@ -115,8 +119,11 @@ public:
         // -------------------------------------------------------------------------
 
         using self_type = LambdaIterator<T>::Iterator;
+        using value_type = T;
 
-        // Iterator() = default;
+    private:
+
+        Iterator() = default;
 
         Iterator(
             LambdaIterator* generator
@@ -125,10 +132,22 @@ public:
         {
             // We use the generator as a check if this Iterator is intended to be a begin()
             // or end() iterator. If its the former, get the first element.
+            // We could also just use the default constructor to create end() iterators,
+            // this would have the same effect.
+            // After we are done iterating the input, we then set the generator_ to nullptr,
+            // as a sign that we are done. This allows us also to know if we reached end() without
+            // having to store the end() iterator when using this class.
             if( generator_ ) {
+                if( ! generator_->get_element_ ) {
+                    throw std::invalid_argument(
+                        "Cannot use LambdaIterator without a function to get elements."
+                    );
+                }
                 advance_();
             }
         }
+
+    public:
 
         ~Iterator() = default;
 
@@ -138,25 +157,58 @@ public:
         Iterator& operator= ( self_type const& ) = default;
         Iterator& operator= ( self_type&& )      = default;
 
-        // friend LambdaIterator;
+        friend LambdaIterator;
 
         // -------------------------------------------------------------------------
         //     Accessors
         // -------------------------------------------------------------------------
 
-        T const& operator*() const
+        value_type const * operator->() const
         {
+            assert( current_element_ );
+            return &*current_element_;
+        }
+
+        value_type * operator->()
+        {
+            assert( current_element_ );
+            return &*current_element_;
+        }
+
+        value_type const & operator*() const
+        {
+            assert( current_element_ );
             return *current_element_;
         }
 
-        // T operator*()
-        // {
-        //     return *current_element_;
-        // }
-
-        operator bool() const
+        value_type & operator*()
         {
-            return static_cast<bool>( current_element_ );
+            assert( current_element_ );
+            return *current_element_;
+        }
+
+        /**
+         * @brief Optimization function that offers to steal the internal Optional.
+         *
+         * After this function has been called, the element is in a moved-from state,
+         * and cannot be accessed via any other methods. The iterator hence cannot be
+         * dereferenced any more.
+         * Advancing the iterator to the next element will set the element to a new, valid value.
+         */
+        utils::Optional<T> take_optional()
+        {
+            return std::move( current_element_ );
+        }
+
+        std::string const& source_name() const
+        {
+            if( ! generator_ ) {
+                throw std::runtime_error(
+                    "Cannot access default constructed or past-the-end LambdaIterator content."
+                );
+            }
+            assert( generator_ );
+            return generator_->source_name_;
         }
 
         // -------------------------------------------------------------------------
@@ -176,9 +228,43 @@ public:
             return cpy;
         }
 
+        /**
+         * @brief Return whether the iterator is at a valid position,
+         * that is, if its input has yielded an element.
+         */
+        operator bool() const
+        {
+            // We are not using the optional status of the element here, as this can be in a
+            // moved-from state if take_optional() was called. Instead, we rely on the fact
+            // that we set the generator_ to nullptr if this is either the end() iterator or
+            // if the iteration has reached its end after the data is done.
+            return generator_ != nullptr;
+
+            // assert( static_cast<bool>( current_element_ ) || current_element_ == nullopt );
+            // return static_cast<bool>( current_element_ );
+        }
+
+        /**
+         * @brief Compare two iterators for equality.
+         *
+         * Any two iterators that are created by calling begin() on the same LambdaIterator
+         * instance will compare equal, as long as neither of them is past-the-end.
+         * A valid (not past-the-end) iterator and an end() iterator will not compare equal,
+         * no matter from which LambdaIterator they were created.
+         */
         bool operator==( self_type const& it ) const
         {
-            return current_element_ == it.current_element_;
+            // We need fake iterator comparison here. We do not want to compare the pointed-to
+            // optional objects (as this is not what iterator comparison is supposed to do),
+            // so instead we just return if we belong to the same generator.
+            // That works for iteration purposes.
+            // We do not test if both of them have data, as this might have been moved from
+            // using the take() function.
+            return generator_ == it.generator_;
+            // static_cast<bool>( current_element_ ) == static_cast<bool>( it.current_element_ )
+
+            // Version for when the element is stored in a std::shared_ptr
+            // return current_element_ == it.current_element_;
         }
 
         bool operator!=( self_type const& it ) const
@@ -190,8 +276,12 @@ public:
         //     Internal Members
         // -------------------------------------------------------------------------
 
+    private:
+
         void advance_()
         {
+            assert( generator_ );
+
             bool got_element = false;
             do {
                 // Get the next element from the input source.
@@ -214,7 +304,10 @@ public:
 
                 } else {
                     // If this is not a valid element, we reached the end of the input.
-                    assert( current_element_ == nullptr );
+                    // We note this by unsetting the generator_. Other functions here use that
+                    // as a hint that we are done with the iteration.
+                    assert( current_element_ == nullopt );
+                    generator_ = nullptr;
                     break;
                 }
             } while( ! got_element );
@@ -222,8 +315,8 @@ public:
 
     private:
 
-        LambdaIterator* generator_;
-        std::shared_ptr<T> current_element_;
+        LambdaIterator* generator_          = nullptr;
+        utils::Optional<T> current_element_ = nullopt;
 
     };
 
@@ -233,10 +326,22 @@ public:
 
     LambdaIterator() = default;
 
+    /**
+     * @brief Create an iterator over some underlying content.
+     *
+     * The constructor expects the function that returns elements as long as there is underlying
+     * data, and returns and empty optional once the end is reached.
+     *
+     * Optionally, a @p source_name can be given here, which we simply store and make accessible
+     * via source_name(). This is a convenience so that iterators generated via a `make` function
+     * can forward their input source name for user output.
+     */
     LambdaIterator(
-        std::function<std::shared_ptr<value_type>()> get_element
+        std::function<utils::Optional<value_type>()> get_element,
+        std::string const& source_name = ""
     )
         : get_element_(get_element)
+        , source_name_(source_name)
     {}
 
     ~LambdaIterator() = default;
@@ -250,7 +355,7 @@ public:
     friend Iterator;
 
     // -------------------------------------------------------------------------
-    //     Data Members
+    //     Iteration
     // -------------------------------------------------------------------------
 
     Iterator begin()
@@ -264,12 +369,20 @@ public:
     }
 
     /**
-     * @brief Return whether a function was assigend to this generator, that is, whether it is
-     * default constructed (`false`) or not (`true`).
+     * @brief Return whether a function to get elemetns was assigend to this generator,
+     * that is, whether it is default constructed (`false`) or not (`true`).
      */
     operator bool() const
     {
         return static_cast<bool>( get_element_ );
+    }
+
+    /**
+     * @brief Get the source name that was given at construction.
+     */
+    std::string const& source_name() const
+    {
+        return source_name_;
     }
 
     // -------------------------------------------------------------------------
@@ -287,8 +400,8 @@ public:
     self_type& add_transform( std::function<void(T&)> transform )
     {
         transforms_and_filters_.push_back(
-            [transform]( T& variant ){
-                transform( variant );
+            [transform]( T& element ){
+                transform( element );
                 return true;
             }
         );
@@ -305,8 +418,8 @@ public:
     self_type& add_filter( std::function<bool(T const&)> filter )
     {
         transforms_and_filters_.push_back(
-            [filter]( T& variant ){
-                return filter( variant );
+            [filter]( T& element ){
+                return filter( element );
             }
         );
         return *this;
@@ -325,8 +438,8 @@ public:
     self_type& add_transform_filter( std::function<bool(T&)> filter )
     {
         transforms_and_filters_.push_back(
-            [filter]( T& variant ){
-                return filter( variant );
+            [filter]( T& element ){
+                return filter( element );
             }
         );
         return *this;
@@ -350,7 +463,8 @@ private:
     // std::vector<std::function<bool(T const&)>> filters_;
     std::vector<std::function<bool(T&)>> transforms_and_filters_;
 
-    std::function<std::shared_ptr<value_type>()> get_element_;
+    std::function<utils::Optional<value_type>()> get_element_;
+    std::string source_name_;
 
 };
 
