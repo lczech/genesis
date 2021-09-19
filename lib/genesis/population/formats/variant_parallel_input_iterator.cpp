@@ -352,10 +352,10 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
             // This function is only ever called if all inputs are of type following.
             assert( generator_->selections_[i] == ContributionType::kFollowing );
 
-            // Skip iterators that are already at their end.
-            if( ! iterator ) {
-                continue;
-            }
+            // As we are doing the intersection of all iterators here, none of them can be at the
+            // end right now. If one were, we would already have reached the end of our
+            // parallel iteration before, and never entered this function.
+            assert( iterator );
 
             // In all iterators, we must be at the current locus, as this is only intersections.
             // So now, it's time to move on once. Then, go to the next iterator.
@@ -363,7 +363,8 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
             assert( locus_equal( iterator->chromosome, iterator->position, current_locus_ ));
             increment_iterator_( iterator );
 
-            // Check if we are done with this iterator. No need to continue.
+            // Check if we are done with this iterator. If so, we are completely done,
+            // no need to do anything else here.
             if( ! iterator ) {
                 one_at_end = true;
                 break;
@@ -375,7 +376,8 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
     GenomeLocus cand_loc;
 
     // Loop until we have found a locus that all iterators share,
-    // or until one of them is at the end (in which case, there won't be any more intersections).
+    // or until one of them is at the end (in which case, there won't be any more intersections
+    // and we are done with the parallel iteration).
     bool found_locus = false;
     while( ! found_locus && ! one_at_end ) {
 
@@ -389,14 +391,25 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
             // This function is only ever called if all inputs are of type following.
             assert( generator_->selections_[i] == ContributionType::kFollowing );
 
-            // Init the candidate. This could be done slighly more efficiently if we duplicated
-            // a bit of code into the above first round code, but it seems good enough for now.
+            // If the iterator is already at its end, we are done here.
+            // This case can here only occur if we have an empty input source,
+            // in which case the call to adanvance_() made from the constructor lead us here.
+            // We assert that this is indeed the first call of this function by using the
+            // current_element_ as a check.
+            if( ! iterator ) {
+                assert( current_locus_.empty() );
+                one_at_end = true;
+                break;
+            }
+
+            // Init the candidate. This happens in the first iteration of the for loop.
             if( cand_loc.empty() ) {
+                assert( i == 0 );
                 cand_loc = GenomeLocus{ iterator->chromosome, iterator->position };
             }
 
             // If the iterator is behind the candidate, move it forward until it either catches
-            // up or overshoots the locus, or reaches its end.
+            // up, or overshoots the locus, or reaches its end.
             while( iterator && locus_less( iterator->chromosome, iterator->position, cand_loc )) {
                 increment_iterator_( iterator );
             }
@@ -454,7 +467,7 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
 
     // If we are here, we have found a good new locus. It needs to be further down from the current
     // (again this also works in the first call of this function, when current is empty).
-    assert( cand_loc > current_locus_ );
+    assert( iterators_.size() == 0 || cand_loc > current_locus_ );
 
     // Assert that all are at the given locus, and not at their end.
     assert( iterators_.size() == 0 || found_locus );
