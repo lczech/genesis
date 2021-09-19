@@ -96,6 +96,9 @@ VariantParallelInputIterator::Iterator::Iterator(
     assert( iterators_.size() == variants_.size() );
     assert( iterators_.size() == variant_sizes_.size() );
 
+    // Lastly, start with the additional carrying loci.
+    carrying_locus_it_ = generator_->carrying_loci_.cbegin();
+
     // Now go to the first locus we want.
     advance_();
 }
@@ -145,11 +148,14 @@ Variant VariantParallelInputIterator::Iterator::joined_variant(
             assert( variants_[i]->samples.size() == variant_sizes_[i] );
 
             // Set and check the ref and alt bases.
+            // This is the first input that has data here. Use it to initialize the bases.
             if( ! bases_init ) {
                 res.reference_base   = variants_[i]->reference_base;
                 res.alternative_base = variants_[i]->alternative_base;
                 bases_init = true;
             }
+
+            // Now check that all inputs have the same bases.
             if( res.reference_base != variants_[i]->reference_base ) {
                 if( allow_ref_base_mismatches ) {
                     res.reference_base = 'N';
@@ -205,9 +211,16 @@ Variant VariantParallelInputIterator::Iterator::joined_variant(
         }
     }
 
-    // At least one iterator variant must have had data, otherwise we would not be here
-    // during the iteration. Hence, the bases have been initialized at some point.
-    assert( bases_init );
+    // If none of the input sources had data, that means that we are currently at an
+    // additional carrying locus. Check this. We do not need to do anything else,
+    // as the resulting Variant already contains all the information that we have at hand.
+    assert(
+        bases_init ||
+        (
+            carrying_locus_it_ != generator_->carrying_loci_.end() &&
+            locus_equal( *carrying_locus_it_, current_locus_ )
+        )
+    );
 
     // Make sure that the number of samples is the same as the sum of all sample sizes
     // in the variant_sizes_ vector combined.
@@ -273,6 +286,34 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
         }
     }
 
+    // If there are additional carrying loci, use them to find the candidate as well.
+    assert( generator_ );
+    if( carrying_locus_it_ != generator_->carrying_loci_.end() ) {
+        // All the assertions from above apply here as well.
+        assert( ! carrying_locus_it_->empty() );
+        assert( locus_greater_or_equal( *carrying_locus_it_, current_locus_ ) );
+
+        // If the carrying locus is at the current locus, we need to move it forward,
+        // same as above.
+        if( locus_equal( *carrying_locus_it_, current_locus_ ) ) {
+            ++carrying_locus_it_;
+        }
+
+        // Now, if it still is not at its end, we can use it as a candidate as well,
+        // if it is earlier than the current input source based candidate (of it the candidate
+        // is empty, which for example happens if all input sources are following, or if all
+        // inputs have already reached their end).
+        if(
+            carrying_locus_it_ != generator_->carrying_loci_.end() &&
+            (
+                cand_loc.empty() ||
+                locus_less( *carrying_locus_it_, cand_loc )
+            )
+        ) {
+            cand_loc = *carrying_locus_it_;
+        }
+    }
+
     // If we have not set any candidate locus, that means that all carrying iterators
     // are at their end. Time to wrap up then.
     if( cand_loc.empty() ) {
@@ -288,6 +329,10 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
             }
             return true;
         }() );
+
+        // Also, we must have reached the end of the additional carrying loci,
+        // otherwise we would have found a candidate from there.
+        assert( carrying_locus_it_ == generator_->carrying_loci_.end() );
 
         // We are done here.
         generator_ = nullptr;
@@ -338,6 +383,11 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
 
 void VariantParallelInputIterator::Iterator::advance_using_only_following_()
 {
+    // If this function is called, we only have following iterators,
+    // so there are no addtional carrying loci given.
+    assert( carrying_locus_it_ == generator_->carrying_loci_.end() );
+    assert( generator_->carrying_loci_.empty() );
+
     // Once one of the iterators reaches its end, we are done, as then there cannot
     // be any more intersections.
     bool one_at_end  = false;

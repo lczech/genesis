@@ -40,10 +40,11 @@
 
 #include <cassert>
 #include <functional>
-#include <string>
+#include <set>
 #include <stdexcept>
-#include <vector>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace genesis {
 namespace population {
@@ -129,8 +130,10 @@ public:
      * In the absence of a carrying set of loci, only those loci are visited that are in _all_
      * inputs; in other words, in this case, the `kFollowing` type acts as an intersection of loci.
      *
-     * This model does not allow complex subset operations of loci, such as intersections,
-     * complements, (symmetrical) differences, and exclusions.
+     * This model does not allow more complex subset operations of loci, such as intersections,
+     * complements, (symmetrical) differences, and exclusions. For these cases, one can use the
+     * add_carrying_locus() and add_carrying_loci() functions that allow a pre-defined set of
+     * loci to be iterated over.
      */
     enum class ContributionType
     {
@@ -151,9 +154,9 @@ public:
     using self_type         = VariantParallelInputIterator;
     using value_type        = Variant;
 
-    // -------------------------------------------------------------------------
-    //     Iterator
-    // -------------------------------------------------------------------------
+    // ======================================================================================
+    //      Internal Iterator
+    // ======================================================================================
 
     /**
      * @brief Iterator over loci of the input sources.
@@ -267,7 +270,7 @@ public:
          *
          * This joins all BaseCounts of all Variant%s of the input sources at the current locus.
          * For sources that have no data at the current position, as many empty BaseCounts
-         * (with all zero counts) are inserted as they iterator has samples; hence, the number
+         * (with all zero counts) are inserted as the iterator has samples; hence, the number
          * of BaseCounts in the Variant::samples of the returned Variant (as indicated by
          * Variant.samples.size()) is kept consistent at each locus.
          *
@@ -423,7 +426,14 @@ public:
         // can simply iterator over. At least, we move (not copy) data into here, for efficiency.
         std::vector<utils::Optional<Variant>> variants_;
 
+        // Store the current additional carrying locus, if there is one.
+        std::set<GenomeLocus>::const_iterator carrying_locus_it_;
+
     };
+
+    // ======================================================================================
+    //      Main Class
+    // ======================================================================================
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -528,17 +538,105 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Input Loci
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Add a set of @link GenomeLocus GenomeLoci@endlink that are used as carrying loci
+     * in the iteration.
+     *
+     * This allows to iterate over a pre-defined set of loci. The iterator stops at each of these
+     * loci, independently of whether any of the underlying input sources have data at this locus.
+     * That means, it acts as an "empty" input that only contributes loci, as if it were added
+     * with ContributionType::kCarrying, but without any actual variants.
+     * Duplicate loci in these additional carrying loci are ignored.
+     *
+     * Using this is particularly useful for more complex subset operations of loci, such as
+     * intersections, complements, (symmetrical) differences, and exclusions. These cases cannot
+     * be modelled with our simple ContributionType based approach; so instead, one can externally
+     * prepare the list of loci that need to be visited, and provide these to this function.
+     * In these cases, to use _exactly_ the list of provided loci, all actual input sources can
+     * be added as ContributionType::kFollowing, to make sure that none of them adds additional
+     * loci to the traversal.
+     *
+     * Note that in addition to the loci added via this function, all loci of input sources that are
+     * of ContributionType::kCarrying are also visited.
+     */
+    self_type& add_carrying_locus( GenomeLocus const& locus )
+    {
+        // Error check.
+        if( locus.chromosome.empty() || locus.position == 0 ) {
+            throw std::invalid_argument(
+                "Cannot add a carrying locus with empty chromosome or position 0 "
+                "to VariantParallelInputIterator"
+            );
+        }
+
+        // Add to the list. Also, if loci are added with this function, these serve as carrying loci,
+        // and so we can always use advance_using_carrying_() to find the next locus;
+        // mark this by setting has_carrying_input_.
+        carrying_loci_.insert( locus );
+        has_carrying_input_ = true;
+        return *this;
+    }
+
+    /**
+     * @brief Add a set of @link GenomeLocus GenomeLoci@endlink that are used as carrying loci
+     * in the iteration.
+     *
+     * @see add_carrying_locus( GenomeLocus )
+     */
+    self_type& add_carrying_loci( std::vector<GenomeLocus> const& loci )
+    {
+        add_carrying_loci( loci.begin(), loci.end() );
+        return *this;
+    }
+
+    /**
+     * @copydoc add_carrying_loci( std::vector<GenomeLocus> const& )
+     */
+    template<class ForwardIterator>
+    self_type& add_carrying_loci( ForwardIterator first, ForwardIterator last )
+    {
+        while( first != last ) {
+            add_carrying_locus( *first );
+            ++first;
+        }
+
+        // Version for if we wanted to switch the set for a vector.
+        // Sort the list of loci. All this is so inefficient, as we store the chromosome names
+        // again and again for each locus. The sorting is okay though, we need to have that
+        // complexity somewhere - using a std::set for example would just shift the place where
+        // we do the sorting, but would make iteration a bit more tricky, and would need even more
+        // memory.
+        // std::sort( carrying_loci_.begin(), carrying_loci_.end() );
+        // carrying_loci_.erase(
+        //     std::unique( carrying_loci_.begin(), carrying_loci_.end() ),
+        //     carrying_loci_.end()
+        // );
+
+        return *this;
+    }
+
+    // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
 private:
 
-    // Store all input sources, as well as they type (carrying or following) of how we want
+    // Store all input sources, as well as the type (carrying or following) of how we want
     // to traverse them. We keep track whether at least one of them is of type carrying.
     // If not (all following), the advance function of the iterator needs to be special.
     std::vector<VariantInputIterator> inputs_;
     std::vector<ContributionType> selections_;
     bool has_carrying_input_ = false;
+
+    // Store all additional loci that we want to include as stops in the iterator.
+    // Memory-wise, this is highly inefficient, as we store the chromosome name for each of them.
+    // But for now, this is easiest and fastest. We use a set, so that adding loci one after another
+    // always results in a sorted container, without having to re-sort every time.
+    // This again has a bit of a higher memory impact, but that should be okay for now.
+    std::set<GenomeLocus> carrying_loci_;
 
 };
 

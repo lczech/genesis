@@ -33,6 +33,8 @@
 #include "genesis/population/formats/variant_parallel_input_iterator.hpp"
 #include "genesis/utils/core/algorithm.hpp"
 
+#include <set>
+
 using namespace genesis::population;
 using namespace genesis::utils;
 
@@ -40,7 +42,8 @@ void test_parallel_input_iterator_(
     VariantParallelInputIterator::ContributionType p_sel,
     VariantParallelInputIterator::ContributionType s_sel,
     VariantParallelInputIterator::ContributionType v_sel,
-    std::vector<size_t> expected_positions
+    std::set<size_t> expected_positions,
+    std::set<size_t> additional_loci = {}
 ) {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -63,10 +66,26 @@ void test_parallel_input_iterator_(
         v_sel
     );
 
-    std::vector<size_t> found_positions;
+    // Add the addtional loci, if present. If all of the input sources are following, but
+    // we have additional carrying loci, we do only visit those, and hence need to clear the
+    // list of expected postions from the intersection of the input sources first.
+    if(
+        p_sel == VariantParallelInputIterator::ContributionType::kFollowing &&
+        s_sel == VariantParallelInputIterator::ContributionType::kFollowing &&
+        v_sel == VariantParallelInputIterator::ContributionType::kFollowing &&
+        ! additional_loci.empty()
+    ) {
+        expected_positions.clear();
+    }
+    for( auto const& al : additional_loci ) {
+        pit.add_carrying_locus( GenomeLocus( "XYZ", al ));
+        expected_positions.insert( al );
+    }
+
+    std::set<size_t> found_positions;
     for( auto it = pit.begin(); it != pit.end(); ++it ) {
-        // LOG_DBG1 << it.locus().to_string();
-        found_positions.emplace_back( it.locus().position );
+        // LOG_DBG2 << it.locus().to_string();
+        found_positions.insert( it.locus().position );
 
         // Make sure that all inputs have either no data, or the correct number of samples.
         EXPECT_TRUE( ! it.variants()[0] || it.variants()[0]->samples.size() == 1 );
@@ -109,8 +128,9 @@ void test_parallel_input_iterator_(
     EXPECT_EQ( expected_positions, found_positions );
 }
 
-TEST( Variant, ParallelInputIterator )
-{
+void test_parallel_input_iterator_all_(
+    std::set<size_t> additional_loci = {}
+) {
     //  Key to which input file has which positions
     //  Pos   P   S   V
     //  5     x       x
@@ -127,60 +147,89 @@ TEST( Variant, ParallelInputIterator )
 
     // Test out all compbinations of carrying and following iterators.
 
-    // LOG_DBG << "UUU";
+    // LOG_DBG1 << "UUU";
     test_parallel_input_iterator_(
         VariantParallelInputIterator::ContributionType::kCarrying,
         VariantParallelInputIterator::ContributionType::kCarrying,
         VariantParallelInputIterator::ContributionType::kCarrying,
-        std::vector<size_t>{ 5, 8, 10, 12, 15, 17, 20, 22, 25, 28, 30 }
+        std::set<size_t>{ 5, 8, 10, 12, 15, 17, 20, 22, 25, 28, 30 },
+        additional_loci
     );
-    // LOG_DBG << "UUI";
+    // LOG_DBG1 << "UUI";
     test_parallel_input_iterator_(
         VariantParallelInputIterator::ContributionType::kCarrying,
         VariantParallelInputIterator::ContributionType::kCarrying,
         VariantParallelInputIterator::ContributionType::kFollowing,
-        std::vector<size_t>{ 5, 8, 10, 12, 15, 17, 22, 25, 28, 30 }
+        std::set<size_t>{ 5, 8, 10, 12, 15, 17, 22, 25, 28, 30 },
+        additional_loci
     );
-    // LOG_DBG << "UIU";
+    // LOG_DBG1 << "UIU";
     test_parallel_input_iterator_(
         VariantParallelInputIterator::ContributionType::kCarrying,
         VariantParallelInputIterator::ContributionType::kFollowing,
         VariantParallelInputIterator::ContributionType::kCarrying,
-        std::vector<size_t>{ 5, 8, 10, 15, 17, 20, 22, 25, 28 }
+        std::set<size_t>{ 5, 8, 10, 15, 17, 20, 22, 25, 28 },
+        additional_loci
     );
-    // LOG_DBG << "IUU";
+    // LOG_DBG1 << "IUU";
     test_parallel_input_iterator_(
         VariantParallelInputIterator::ContributionType::kFollowing,
         VariantParallelInputIterator::ContributionType::kCarrying,
         VariantParallelInputIterator::ContributionType::kCarrying,
-        std::vector<size_t>{ 5, 10, 12, 15, 17, 20, 25, 28, 30 }
+        std::set<size_t>{ 5, 10, 12, 15, 17, 20, 25, 28, 30 },
+        additional_loci
     );
-    // LOG_DBG << "UII";
+    // LOG_DBG1 << "UII";
     test_parallel_input_iterator_(
         VariantParallelInputIterator::ContributionType::kCarrying,
         VariantParallelInputIterator::ContributionType::kFollowing,
         VariantParallelInputIterator::ContributionType::kFollowing,
-        std::vector<size_t>{ 5, 8, 10, 15, 17, 22, 28 }
+        std::set<size_t>{ 5, 8, 10, 15, 17, 22, 28 },
+        additional_loci
     );
-    // LOG_DBG << "IUI";
+    // LOG_DBG1 << "IUI";
     test_parallel_input_iterator_(
         VariantParallelInputIterator::ContributionType::kFollowing,
         VariantParallelInputIterator::ContributionType::kCarrying,
         VariantParallelInputIterator::ContributionType::kFollowing,
-        std::vector<size_t>{ 10, 12, 17, 25, 28, 30 }
+        std::set<size_t>{ 10, 12, 17, 25, 28, 30 },
+        additional_loci
     );
-    // LOG_DBG << "IIU";
+    // LOG_DBG1 << "IIU";
     test_parallel_input_iterator_(
         VariantParallelInputIterator::ContributionType::kFollowing,
         VariantParallelInputIterator::ContributionType::kFollowing,
         VariantParallelInputIterator::ContributionType::kCarrying,
-        std::vector<size_t>{ 5, 10, 15, 20, 25 }
+        std::set<size_t>{ 5, 10, 15, 20, 25 },
+        additional_loci
     );
-    // LOG_DBG << "III";
+    // LOG_DBG1 << "III";
     test_parallel_input_iterator_(
         VariantParallelInputIterator::ContributionType::kFollowing,
         VariantParallelInputIterator::ContributionType::kFollowing,
         VariantParallelInputIterator::ContributionType::kFollowing,
-        std::vector<size_t>{ 10 }
+        std::set<size_t>{ 10 },
+        additional_loci
     );
+}
+
+TEST( Variant, ParallelInputIterator )
+{
+    // Test without additional loci.
+    // LOG_DBG << "Normal";
+    test_parallel_input_iterator_all_();
+
+    // Test with different positions and numbers of additional loci.
+    // LOG_DBG << "1";
+    test_parallel_input_iterator_all_({ 1 });
+    // LOG_DBG << "15";
+    test_parallel_input_iterator_all_({ 15 });
+    // LOG_DBG << "16";
+    test_parallel_input_iterator_all_({ 16 });
+    // LOG_DBG << "32";
+    test_parallel_input_iterator_all_({ 32 });
+    // LOG_DBG << "1, 15, 32";
+    test_parallel_input_iterator_all_({ 1, 15, 32 });
+    // LOG_DBG << "15, 32";
+    test_parallel_input_iterator_all_({ 15, 32 });
 }
