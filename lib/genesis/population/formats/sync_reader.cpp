@@ -139,8 +139,20 @@ bool SyncReader::parse_line_(
 
     // Read fixed columns for chromosome and position.
     variant.chromosome = utils::read_until( it, []( char c ){ return c == '\t' || c == '\n'; });
+    if( variant.chromosome.empty() ) {
+        throw std::runtime_error(
+            "Malformed sync " + it.source_name() + " at " + it.at() +
+            ": empty chromosome name"
+        );
+    }
     it.read_char_or_throw( '\t' );
     variant.position = it.parse_unsigned_integer<size_t>();
+    if( variant.position == 0 ) {
+        throw std::runtime_error(
+            "Malformed sync " + it.source_name() + " at " + it.at() +
+            ": chromosome position == 0"
+        );
+    }
     it.read_char_or_throw( '\t' );
     if( !it || *it == '\n' ) {
         throw std::runtime_error(
