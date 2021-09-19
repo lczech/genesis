@@ -12,3 +12,7 @@ for f in `ls acknowledgements/*.inc` ; do
     cat $f >> acknowledgements.md
     echo "" >> acknowledgements.md
 done
+
+# Remove excess blank line at end of the file
+stripped=$(<acknowledgements.md)
+printf '%s\n' "$stripped" > acknowledgements.md
