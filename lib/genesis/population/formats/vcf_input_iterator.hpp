@@ -145,7 +145,7 @@ public:
      * that only those samples (columns of the VCF records) are evaluated and accessible - or,
      * if @p inverse_sample_names is set to `true`, instead all <i>but</i> those samples.
      *
-     * @copydetails VcfInputIterator( std::string const&, size_t )
+     * @copydetails VcfInputIterator( std::string const&, bool, size_t )
      */
     VcfInputIterator(
         std::string const& filename,

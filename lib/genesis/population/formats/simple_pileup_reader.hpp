@@ -257,7 +257,7 @@ public:
      * If it is shorter, all samples after its last index will be ignored. If it is longer,
      * the remaining entries are not used as a filter.
      *
-     * @copydetails parse_line_record( utils::InputStream&, Record& )
+     * @copydetails SimplePileupReader::parse_line_record( utils::InputStream&, SimplePileupReader::Record& ) const
      */
     bool parse_line_record(
         utils::InputStream&      input_stream,
@@ -272,7 +272,7 @@ public:
     /**
      * @brief Read an (m)pileup line, as a Variant.
      *
-     * @copydetails parse_line_record( utils::InputStream&, Record& )
+     * @copydetails SimplePileupReader::parse_line_record( utils::InputStream&, SimplePileupReader::Record& ) const
      */
     bool parse_line_variant(
         utils::InputStream& input_stream,
@@ -287,7 +287,7 @@ public:
      * If it is shorter, all samples after its last index will be ignored. If it is longer,
      * the remaining entries are not used as a filter.
      *
-     * @copydetails parse_line_record( utils::InputStream&, Record& )
+     * @copydetails SimplePileupReader::parse_line_record( utils::InputStream&, SimplePileupReader::Record& ) const
      */
     bool parse_line_variant(
         utils::InputStream&      input_stream,
