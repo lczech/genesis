@@ -1,0 +1,548 @@
+#ifndef GENESIS_POPULATION_FORMATS_VARIANT_PARALLEL_INPUT_ITERATOR_H_
+#define GENESIS_POPULATION_FORMATS_VARIANT_PARALLEL_INPUT_ITERATOR_H_
+
+/*
+    Genesis - A toolkit for working with phylogenetic data.
+    Copyright (C) 2014-2021 Lucas Czech
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Contact:
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
+*/
+
+/**
+ * @brief
+ *
+ * @file
+ * @ingroup population
+ */
+
+#include "genesis/population/base_counts.hpp"
+#include "genesis/population/formats/variant_input_iterator.hpp"
+#include "genesis/population/functions/genome_locus.hpp"
+#include "genesis/population/genome_locus.hpp"
+#include "genesis/population/variant.hpp"
+#include "genesis/utils/containers/optional.hpp"
+
+#include <cassert>
+#include <functional>
+#include <string>
+#include <stdexcept>
+#include <vector>
+#include <utility>
+
+namespace genesis {
+namespace population {
+
+// =================================================================================================
+//      Variant Parallel Input Iterator
+// =================================================================================================
+
+/**
+ * @brief Iterate multiple input sources that yield Variant%s in parallel.
+ *
+ * This iterator allows to traverse multiple sources of data in parallel, where each stop of the
+ * traversal is a Locus in the input sources.
+ * Using @link VariantParallelInputIterator::ContributionType ContributionType@endlink, one can select the
+ * contribution of loci of each input.
+ *
+ * At each visited locus, the iterator yields the data of the underlying input sources as a vector
+ * of optional Variant%s, with one Variant per input source. If a source does not have data at
+ * the current locus, the optional Variant is empty.
+ * Use the dereference `operator*()` and `operator->()` of the iterator or the access functions
+ * variants() and variant_at() to get the set of variants at the current locus() of the iteration,
+ * or use joined_variant() to get one Variant that has all sample BaseCounts joined into it.
+ *
+ * Example:
+ *
+ *     // Add input sources to a parallel iterator, one carrying, so that all its loci are visited,
+ *     // and one following, meaning that its loci are only visited if the first one also
+ *     // as those loci.
+ *     auto parallel = VariantParallelInputIterator();
+ *     parallel.add_variant_input_iterator(
+ *         make_variant_input_iterator_from_pileup_file( "path/to/file.pileup.gz" ),
+ *         VariantParallelInputIterator::ContributionType::kCarrying
+ *     );
+ *     parallel.add_variant_input_iterator(
+ *         make_variant_input_iterator_from_sync_file( "path/to/file.sync" ),
+ *         VariantParallelInputIterator::ContributionType::kFollowing
+ *     );
+ *
+ *     for( auto it = parallel.begin(); it != parallel.end(); ++it ) {
+ *         // Work with the iterator, which stops at every locus of the first input source.
+ *         std::cout << "At: " << it.locus() << "\n";
+ *         for( auto const& var : *it ) {
+ *             if( var ) {
+ *                 // The variant is valid - the input has data at the current locus.
+ *                 // For example, get the number of samples of that variant.
+ *                 auto const s = var->samples.size();
+ *             }
+ *         }
+ *
+ *         // Or get all data combined into one Variant.
+ *         auto const joined_var = it.joined_variant();
+ *     }
+ *
+ *     // or
+ *
+ *     for( auto const& opt_variant : parallel ) {
+ *         // Work directly with the std::vector<utils::Optional<Variant>> opt_variant that is
+ *         // returned by dereferencing the iterator. Note that this does not allow access to other
+ *         // members of the iterator, such as its locus() and joined_variant() functions.
+ *     }
+ *
+ * See the VariantParallelInputIterator::Iterator class for details on access to the data
+ * during traversal.
+ */
+class VariantParallelInputIterator
+{
+public:
+
+    // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Select which loci of an input are used.
+     *
+     * We offer two ways an input can be traversed over: Either take all its loci (carrying),
+     * or only those which also appear in other inputs as well (following).
+     *
+     * For the most part, the `kCarrying` type acts as a set union of the input loci.
+     * The `kFollowing` type on the other hand does not contribute its unique loci,
+     * but does not change or constrain the ones that are visited by the carrying inputs.
+     * A notable case happens if all inputs are added as type `kFollowing`:
+     * In the absence of a carrying set of loci, only those loci are visited that are in _all_
+     * inputs; in other words, in this case, the `kFollowing` type acts as an intersection of loci.
+     *
+     * This model does not allow complex subset operations of loci, such as intersections,
+     * complements, (symmetrical) differences, and exclusions.
+     */
+    enum class ContributionType
+    {
+        /**
+         * @brief For a given input, stop at all its positions.
+         */
+        kCarrying,
+
+        /**
+         * @brief For a given input, only stop at positions where other inputs also want to stop.
+         *
+         * In other words, this input does not contribute the loci that are unique to it
+         * to the traversal.
+         */
+        kFollowing
+    };
+
+    using self_type         = VariantParallelInputIterator;
+    using value_type        = Variant;
+
+    // -------------------------------------------------------------------------
+    //     Iterator
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Iterator over loci of the input sources.
+     *
+     * This is the class that does the actual work. Use the dereference `operator*()`
+     * and `operator->()` or the access functions variants() and variant_at() to get the set of
+     * variants at the current locus() of the iteration, or use joined_variant() to get one
+     * Variant that has all sample BaseCounts joined into it.
+     */
+    class Iterator
+    {
+    public:
+
+        // -------------------------------------------------------------------------
+        //     Constructors and Rule of Five
+        // -------------------------------------------------------------------------
+
+        using self_type         = VariantParallelInputIterator::Iterator;
+        using value_type        = std::vector<utils::Optional<Variant>>;
+        using pointer           = value_type const*;
+        using reference         = value_type const&;
+        using iterator_category = std::input_iterator_tag;
+
+    private:
+
+        Iterator() = default;
+        Iterator( VariantParallelInputIterator* generator );
+
+    public:
+
+        ~Iterator() = default;
+
+        Iterator( self_type const& ) = default;
+        Iterator( self_type&& )      = default;
+
+        Iterator& operator= ( self_type const& ) = default;
+        Iterator& operator= ( self_type&& )      = default;
+
+        friend VariantParallelInputIterator;
+
+        // -------------------------------------------------------------------------
+        //     Accessors
+        // -------------------------------------------------------------------------
+
+        std::vector<utils::Optional<Variant>> const * operator->() const
+        {
+            return &variants_;
+        }
+
+        std::vector<utils::Optional<Variant>> * operator->()
+        {
+            return &variants_;
+        }
+
+        std::vector<utils::Optional<Variant>> const & operator*() const
+        {
+            return variants_;
+        }
+
+        std::vector<utils::Optional<Variant>> & operator*()
+        {
+            return variants_;
+        }
+
+        /**
+         * @brief Return the data of all input iterators at the current locus.
+         *
+         * Any input sources that do not have data at the current locus() have an empty
+         * optional in the vector.
+         */
+        std::vector<utils::Optional<Variant>> const& variants() const
+        {
+            return variants_;
+        }
+
+        /**
+         * @copydoc ::genesis::population::VariantParallelInputIterator::Iterator::variants() const
+         */
+        std::vector<utils::Optional<Variant>>& variants()
+        {
+            return variants_;
+        }
+
+        /**
+         * @brief Return the data of the input iterators at the given @p index at the current locus.
+         *
+         * The indexing follows the order in which inputs have been added to the
+         * VariantParallelInputIterator.
+         * See also VariantParallelInputIterator::input_size() to get their count.
+         *
+         * An input source that do not have data at the current locus() has an empty optional.
+         */
+        utils::Optional<Variant> const& variant_at( size_t index ) const
+        {
+            // Return with boundary check.
+            return variants_.at( index );
+        }
+
+        /**
+         * @copydoc ::genesis::population::VariantParallelInputIterator::Iterator::variant_at( size_t ) const
+         */
+        utils::Optional<Variant>& variant_at( size_t index )
+        {
+            // Return with boundary check.
+            return variants_.at( index );
+        }
+
+        /**
+         * @brief Create a single Variant instance that combines all Variant%s from the input
+         * sources at the current locus.
+         *
+         * This joins all BaseCounts of all Variant%s of the input sources at the current locus.
+         * For sources that have no data at the current position, as many empty BaseCounts
+         * (with all zero counts) are inserted as they iterator has samples; hence, the number
+         * of BaseCounts in the Variant::samples of the returned Variant (as indicated by
+         * Variant.samples.size()) is kept consistent at each locus.
+         *
+         * By default, we expect that the Variant%s of each iterator have the same
+         * Variant::reference_base; if not, the function throws an exception.
+         * For the Variant::alternative_base, by default we allow different bases, as not every
+         * file format contains alternative bases, meaning that it might be set to `'N'` instead
+         * of the actual value in those file formats.
+         * To change the default behaviour, use @p allow_ref_base_mismatches and/or
+         * @p allow_alt_base_mismatches as needed. When a mismatch is allowed, in cases of
+         * a mismatch, the returned Variant will contain an `'N'` as the base.
+         *
+         * Lastly, by default, we copy the BaseCounts of all Variant::samples into the resulting
+         * Variant. If however these are not needed at the current iterator position any more
+         * (that is, if this iterator is not dereferenced or the variants() function is not called)
+         * after calling this function, we can instead move them, for efficiency.
+         */
+        Variant joined_variant(
+            bool allow_ref_base_mismatches = false,
+            bool allow_alt_base_mismatches = true,
+            bool move_samples = false
+        );
+
+        /**
+         * @brief Return the current locus where the iteration is at.
+         */
+        GenomeLocus const& locus() const
+        {
+            return current_locus_;
+        }
+
+        // -------------------------------------------------------------------------
+        //     Iteration
+        // -------------------------------------------------------------------------
+
+        self_type& operator ++ ()
+        {
+            advance_();
+            return *this;
+        }
+
+        self_type operator ++(int)
+        {
+            auto cpy = *this;
+            advance_();
+            return cpy;
+        }
+
+        operator bool() const
+        {
+            return generator_ != nullptr;
+        }
+
+        /**
+         * @brief Compare two iterators for equality.
+         *
+         * Any two iterators that are created by calling begin() on the same LambdaIterator
+         * instance will compare equal, as long as neither of them is past-the-end.
+         * A valid (not past-the-end) iterator and an end() iterator will not compare equal,
+         * no matter from which LambdaIterator they were created.
+         */
+        bool operator==( self_type const& it ) const
+        {
+            return generator_ == it.generator_;
+        }
+
+        bool operator!=( self_type const& it ) const
+        {
+            return !(*this == it);
+        }
+
+        // -------------------------------------------------------------------------
+        //     Internal Members
+        // -------------------------------------------------------------------------
+
+    private:
+
+        /**
+         * @brief Move to the next locus.
+         */
+        void advance_()
+        {
+            // Some basic checks.
+            assert( generator_ );
+            assert( generator_->inputs_.size() == generator_->selections_.size() );
+            assert( generator_->inputs_.size() == iterators_.size() );
+
+            // Depending on what type of inputs we have, we need two different algorithms
+            // to find the next position to iterate to.
+            if( generator_->has_carrying_input_ ) {
+                advance_using_carrying_();
+            } else {
+                advance_using_only_following_();
+            }
+        }
+
+        /**
+         * @brief Advance the iterator, for the case that at least one of them is carrying.
+         */
+        void advance_using_carrying_();
+
+        /**
+         * @brief Special case for advancing for when all inputs are of type following.
+         *
+         * The above advance_using_carrying_() does not work in that case, as we have no guaranteed
+         * stopping positions, and hence need a different approach.
+         */
+        void advance_using_only_following_();
+
+        /**
+         * @brief Increment an iterator by one position,
+         * and check that the chromosome and position are good and their order is correct.
+         */
+        void increment_iterator_( VariantInputIterator::Iterator& iterator );
+
+        /**
+         * @brief Helper function to assert that each iterator at each position has a valid
+         * chromosome name and position value.
+         */
+        void assert_correct_chr_and_pos_( VariantInputIterator::Iterator const& iterator );
+
+        /**
+         * @brief Set the variants_ to the data of their iterator variants
+         * if the iterators are at the current locus, or to empty (optional) data otherwise.
+         */
+        void update_variants_();
+
+    private:
+
+        // Parent
+        VariantParallelInputIterator* generator_ = nullptr;
+
+        // Keep track of the locus that the iterator currently is at.
+        // Not all sources have to be there (if they don't have data for that locus), in which case
+        // we want them to be at the next position in their data beyond the current locus.
+        GenomeLocus current_locus_;
+
+        // Keep the iterators that we want to traverse. We only need the begin() iteratos,
+        // as they are themselves able to tell us if they are still good (via their operator bool).
+        std::vector<VariantInputIterator::Iterator> iterators_;
+
+        // We need to store how many BaseCounts the Variant of each iterator has,
+        // in order to fill in empty ones at the iterator positions where they don't have data.
+        // We cannot always look that up from the iterators themselves, as they might already
+        // have reached their end of the data while others are still having data.
+        std::vector<size_t> variant_sizes_;
+        size_t variant_size_sum_;
+
+        // Storage for the variants of the iterators. We need these copies, as not all iterators
+        // are expected to have all loci in the genome, so if we'd instead gave access to the
+        // iterators directly to the user of this class, they'd have to check if the iterator is at
+        // the correct locus, and so on. So instead, we offer a user-friendly interface that they
+        // can simply iterator over. At least, we move (not copy) data into here, for efficiency.
+        std::vector<utils::Optional<Variant>> variants_;
+
+    };
+
+    // -------------------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------------------
+
+    VariantParallelInputIterator() = default;
+    ~VariantParallelInputIterator() = default;
+
+    VariantParallelInputIterator( self_type const& ) = default;
+    VariantParallelInputIterator( self_type&& )      = default;
+
+    self_type& operator= ( self_type const& ) = default;
+    self_type& operator= ( self_type&& )      = default;
+
+    friend Iterator;
+
+    // -------------------------------------------------------------------------
+    //     Iteration
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Begin the iteration.
+     *
+     * Use this to obtain an VariantParallelInputIterator::Iterator that starts traversing
+     * the input sources.
+     */
+    Iterator begin()
+    {
+        return Iterator( this );
+    }
+
+    /**
+     * @brief End marker for the iteration.
+     */
+    Iterator end()
+    {
+        return Iterator( nullptr );
+    }
+
+    // -------------------------------------------------------------------------
+    //     Input Sources
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Add an input to the parallel iterator.
+     */
+    self_type& add_variant_input_iterator(
+        VariantInputIterator const& input,
+        ContributionType selection
+    ) {
+        inputs_.emplace_back( input );
+        selections_.emplace_back( selection );
+        assert( inputs_.size() == selections_.size() );
+
+        if( selection == ContributionType::kCarrying ) {
+            has_carrying_input_ = true;
+        }
+        return *this;
+    }
+
+    /**
+     * @brief Add an input to the parallel iterator.
+     *
+     * This version of the function takes the function to obtain elements from the underlying
+     * data iterator, same as VariantInputIterator. See there and LambdaIterator for details.
+     */
+    self_type& add_variant_input(
+        std::function<utils::Optional<Variant>()> input_element_generator,
+        ContributionType selection
+    ) {
+        add_variant_input_iterator( VariantInputIterator( input_element_generator ), selection );
+        return *this;
+    }
+
+    /**
+     * @brief Get access to the input iterators that have been added to this parallel iterator.
+     */
+    std::vector<VariantInputIterator> const& inputs() const
+    {
+        return inputs_;
+    }
+
+    /**
+     * @brief Get access to the input iterators that have been added to this parallel iterator.
+     *
+     * This non-const version of the function can for exmple be used to bulk-add filters
+     * and transformations to the iterators, using their functions add_transform(),
+     * add_filter(), and add_transform_filter(); see LambdaIterator for details.
+     */
+    std::vector<VariantInputIterator>& inputs()
+    {
+        return inputs_;
+    }
+
+    /**
+     * @brief Return the number of input sourced added.
+     */
+    size_t input_size() const
+    {
+        assert( inputs_.size() == selections_.size() );
+        return inputs_.size();
+    }
+
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    // Store all input sources, as well as they type (carrying or following) of how we want
+    // to traverse them. We keep track whether at least one of them is of type carrying.
+    // If not (all following), the advance function of the iterator needs to be special.
+    std::vector<VariantInputIterator> inputs_;
+    std::vector<ContributionType> selections_;
+    bool has_carrying_input_ = false;
+
+};
+
+} // namespace population
+} // namespace genesis
+
+#endif // include guard
