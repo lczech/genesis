@@ -46,11 +46,10 @@ namespace population {
  * @brief A region (between two positions) on a chromosome.
  *
  * This can be used to represent a gene, a feature, or just generally a region of interest.
- * We use a simple form with a chromosome name and a start and end position.
+ * We use a simple form with a chromosome name, and a start and end position, both inclusive.
  */
 struct GenomeRegion
 {
-
 public:
 
     std::string chromosome;
