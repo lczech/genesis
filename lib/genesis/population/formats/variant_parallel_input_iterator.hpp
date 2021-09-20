@@ -70,6 +70,7 @@ namespace population {
  *
  * Example:
  *
+ * ~~~{.cpp}
  *     // Add input sources to a parallel iterator, one carrying, so that all its loci are visited,
  *     // and one following, meaning that its loci are only visited if the first one also
  *     // as those loci.
@@ -105,6 +106,7 @@ namespace population {
  *         // returned by dereferencing the iterator. Note that this does not allow access to other
  *         // members of the iterator, such as its locus() and joined_variant() functions.
  *     }
+ * ~~~
  *
  * See the VariantParallelInputIterator::Iterator class for details on access to the data
  * during traversal.
@@ -159,7 +161,7 @@ public:
     // ======================================================================================
 
     /**
-     * @brief Iterator over loci of the input sources.
+     * @brief %Iterator over loci of the input sources.
      *
      * This is the class that does the actual work. Use the dereference `operator*()`
      * and `operator->()` or the access functions variants() and variant_at() to get the set of
@@ -520,8 +522,11 @@ public:
      * @brief Get access to the input iterators that have been added to this parallel iterator.
      *
      * This non-const version of the function can for exmple be used to bulk-add filters
-     * and transformations to the iterators, using their functions add_transform(),
-     * add_filter(), and add_transform_filter(); see LambdaIterator for details.
+     * and transformations to the iterators, using their functions
+     * @link utils::LambdaIterator::add_transform() add_transform()@endlink,
+     * @link utils::LambdaIterator::add_filter() add_filter()@endlink, and
+     * @link utils::LambdaIterator::add_transform_filter() add_transform_filter()@endlink;
+     * see utils::LambdaIterator for details.
      */
     std::vector<VariantInputIterator>& inputs()
     {
@@ -584,7 +589,7 @@ public:
      * @brief Add a set of @link GenomeLocus GenomeLoci@endlink that are used as carrying loci
      * in the iteration.
      *
-     * @see add_carrying_locus( GenomeLocus )
+     * @see VariantParallelInputIterator::add_carrying_locus( GenomeLocus const& )
      */
     self_type& add_carrying_loci( std::vector<GenomeLocus> const& loci )
     {

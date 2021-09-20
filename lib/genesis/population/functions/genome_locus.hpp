@@ -92,6 +92,7 @@ inline int locus_compare(
             return +1;
         }
     }
+    assert( l_chromosome == r_chromosome );
     assert( l_position == r_position );
     return 0;
 }
