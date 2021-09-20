@@ -58,8 +58,8 @@ namespace population {
  *
  * This iterator allows to traverse multiple sources of data in parallel, where each stop of the
  * traversal is a Locus in the input sources.
- * Using @link VariantParallelInputIterator::ContributionType ContributionType@endlink, one can select the
- * contribution of loci of each input.
+ * Using @link VariantParallelInputIterator::ContributionType ContributionType@endlink,
+ * one can select the contribution of loci of each input.
  *
  * At each visited locus, the iterator yields the data of the underlying input sources as a vector
  * of optional Variant%s, with one Variant per input source. If a source does not have data at

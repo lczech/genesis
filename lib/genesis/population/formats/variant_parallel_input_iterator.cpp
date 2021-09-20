@@ -217,7 +217,7 @@ Variant VariantParallelInputIterator::Iterator::joined_variant(
     assert(
         bases_init ||
         (
-            carrying_locus_it_ != generator_->carrying_loci_.end() &&
+            carrying_locus_it_ != generator_->carrying_loci_.cend() &&
             locus_equal( *carrying_locus_it_, current_locus_ )
         )
     );
@@ -288,7 +288,7 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
 
     // If there are additional carrying loci, use them to find the candidate as well.
     assert( generator_ );
-    if( carrying_locus_it_ != generator_->carrying_loci_.end() ) {
+    if( carrying_locus_it_ != generator_->carrying_loci_.cend() ) {
         // All the assertions from above apply here as well.
         assert( ! carrying_locus_it_->empty() );
         assert( locus_greater_or_equal( *carrying_locus_it_, current_locus_ ) );
@@ -304,7 +304,7 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
         // is empty, which for example happens if all input sources are following, or if all
         // inputs have already reached their end).
         if(
-            carrying_locus_it_ != generator_->carrying_loci_.end() &&
+            carrying_locus_it_ != generator_->carrying_loci_.cend() &&
             (
                 cand_loc.empty() ||
                 locus_less( *carrying_locus_it_, cand_loc )
@@ -332,7 +332,7 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
 
         // Also, we must have reached the end of the additional carrying loci,
         // otherwise we would have found a candidate from there.
-        assert( carrying_locus_it_ == generator_->carrying_loci_.end() );
+        assert( carrying_locus_it_ == generator_->carrying_loci_.cend() );
 
         // We are done here.
         generator_ = nullptr;
@@ -385,7 +385,7 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
 {
     // If this function is called, we only have following iterators,
     // so there are no addtional carrying loci given.
-    assert( carrying_locus_it_ == generator_->carrying_loci_.end() );
+    assert( carrying_locus_it_ == generator_->carrying_loci_.cend() );
     assert( generator_->carrying_loci_.empty() );
 
     // Once one of the iterators reaches its end, we are done, as then there cannot
