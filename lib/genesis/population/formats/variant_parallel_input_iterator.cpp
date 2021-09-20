@@ -572,7 +572,7 @@ void VariantParallelInputIterator::Iterator::increment_iterator_(
         throw std::runtime_error(
             "Cannot iterate multiple input sources in parallel, as (at least) "
             "one of them is not sorted by chromosome and position. "
-            "Offending input source: " + iterator.source_name() + " at " +
+            "Offending input source: " + iterator.data().source_name + " at " +
             iterator->chromosome + ":" + std::to_string( iterator->position )
         );
     }
@@ -593,7 +593,7 @@ void VariantParallelInputIterator::Iterator::assert_correct_chr_and_pos_(
         throw std::runtime_error(
             "Cannot iterate multiple input sources in parallel, as (at least) "
             "one of them has an invalid chromosome (empty name) or position (0). "
-            "Offending input source: " + iterator.source_name() + " at " +
+            "Offending input source: " + iterator.data().source_name + " at " +
             iterator->chromosome + ":" + std::to_string( iterator->position )
         );
     }
@@ -645,7 +645,7 @@ void VariantParallelInputIterator::Iterator::update_variants_()
                 throw std::runtime_error(
                     "Cannot iterate multiple input sources in parallel, as (at least) "
                     "one of them has an inconsistent number of samples. "
-                    "Offending input source: " + iterator.source_name() + " at " +
+                    "Offending input source: " + iterator.data().source_name + " at " +
                     iterator->chromosome + ":" + std::to_string( iterator->position ) + ". " +
                     "Expecting " + std::to_string( variant_sizes_[i] ) +
                     " samples (based on the first used line of input of that source), " +

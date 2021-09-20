@@ -60,14 +60,48 @@ namespace population {
 // =================================================================================================
 
 /**
+ * @brief Data storage for input-specific information when traversing a variant file.
+ *
+ * The utils::LambdaIterator allows us to store some extra data. When traversing a file as
+ * Variant%s, we can use this extra field to store information such as the file name and
+ * the individual sample names.
+ *
+ * In the future, we might even want to store pointers to the underlying iterators and readers
+ * (useful for VCF for example), so that users can work with those when iterating. For now however,
+ * we just store some basic information.
+ */
+struct VariantInputIteratorData
+{
+    /**
+     * @brief Full file path, when reading from a file.
+     */
+    std::string file_path;
+
+    /**
+     * @brief User-readable name of the input source.
+     *
+     * This can for example be the file base name, without path and extensions.
+     */
+    std::string source_name;
+
+    /**
+     * @brief Sample names, for example as found in the file header.
+     */
+    std::vector<std::string> sample_names;
+};
+
+/**
  * @brief Iterate Variant%s, using a variety of input file formats.
  *
  * This generic iterator is an abstraction that is agnostic to the underlying file format,
  * and can be used with anything that can be converted to a Variant per genome position.
  * It offers to iterate a whole input file, and transform and filter the Variant as needed
  * in order to make downstream processing as easy as possible.
+ *
+ * Use for example the `make_variant_input_iterator_...()` functions to get such an interator
+ * for different input file types.
  */
-using VariantInputIterator = utils::LambdaIterator<Variant>;
+using VariantInputIterator = utils::LambdaIterator<Variant, VariantInputIteratorData>;
 
 // =================================================================================================
 //     Input Sources
@@ -94,7 +128,9 @@ inline VariantInputIterator make_variant_input_iterator_from_pileup_file(
     );
 
     // Get file base name without path and potential extensions.
-    auto fn = utils::file_basename( filename, { ".gz", ".pileup", ".mpileup" });
+    VariantInputIteratorData data;
+    data.file_path = filename;
+    data.source_name = utils::file_basename( filename, { ".gz", ".pileup", ".mpileup" });
 
     return VariantInputIterator(
         [ it ]() mutable -> utils::Optional<Variant>{
@@ -106,7 +142,7 @@ inline VariantInputIterator make_variant_input_iterator_from_pileup_file(
                 return utils::nullopt;
             }
         },
-        fn
+        std::move( data )
     );
 }
 
@@ -120,7 +156,9 @@ inline VariantInputIterator make_variant_input_iterator_from_sync_file(
     auto it = SyncInputIterator( utils::from_file( filename ));
 
     // Get file base name without path and potential extensions.
-    auto fn = utils::file_basename( filename, { ".gz", ".sync" });
+    VariantInputIteratorData data;
+    data.file_path = filename;
+    data.source_name = utils::file_basename( filename, { ".gz", ".sync" });
 
     return VariantInputIterator(
         [ it ]() mutable -> utils::Optional<Variant>{
@@ -132,7 +170,7 @@ inline VariantInputIterator make_variant_input_iterator_from_sync_file(
                 return utils::nullopt;
             }
         },
-        fn
+        std::move( data )
     );
 }
 
@@ -157,7 +195,9 @@ inline VariantInputIterator make_variant_input_iterator_from_vcf_file(
     }
 
     // Get file base name without path and potential extensions.
-    auto fn = utils::file_basename( filename, { ".gz", ".vcf", ".bcf" });
+    VariantInputIteratorData data;
+    data.file_path = filename;
+    data.source_name = utils::file_basename( filename, { ".gz", ".vcf", ".bcf" });
 
     return VariantInputIterator(
         [ it ]() mutable -> utils::Optional<Variant>{
@@ -178,7 +218,7 @@ inline VariantInputIterator make_variant_input_iterator_from_vcf_file(
                 return utils::nullopt;
             }
         },
-        fn
+        std::move( data )
     );
 }
 

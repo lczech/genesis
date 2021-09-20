@@ -37,21 +37,37 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//      Helpers
+// =================================================================================================
+
+/**
+ * @brief Empty helper data struct to serve as a dummy for LambdaIterator.
+ *
+ * By default, the LambdaIterator::Data type does not do anything.
+ * This class here serves as the empty dummy class, so that the user does not have to
+ * provide one when using LambdaIterator without an extra data type.
+ */
+struct EmptyLambdaIteratorData
+{};
+
+// =================================================================================================
 //      Lambda Iterator
 // =================================================================================================
 
 /**
  * @brief Type erasure for iterators, using std::function to eliminate the underlying input type.
  *
- * This class offers some abstraction to get a uniform iterator type over some underlying iterator.
- * Expects a function (most likely, you want to use a lambda) that converts the underlying data
- * into the desired type T, which is where the type erasure happens. The data that is iterated over
- * is kept in a shared pointer, which at the end of the iteration (when the underlying iterator
- * is done) simply has to be returned as genesis::utils::nullopt by the lambda to indicate
- * the end of the iteration.
+ * This class offers an abstraction to get a uniform iterator type over a set of underlying iterators
+ * of different type. It expects a function (most likely, you want to use a lambda) that converts
+ * the underlying data into the desired type T, which is where the type erasure happens.
+ * The data that is iterated over is kept in an @link utils::Optional Optional@endlink,
+ * which at the end of the iteration (when the underlying iterator is done) simply has to be
+ * returned as @link genesis::utils::nullopt nullopt@endlink by the lambda to indicate the end
+ * of the iteration.
  *
  * Example:
  *
+ * ~~~{.cpp}
  *     // Convert from an iterator over VcfRecord to Variant.
  *     auto beg = vcf_range.begin();
  *     auto end = vcf_range.end();
@@ -71,9 +87,11 @@ namespace utils {
  *
  *     // Iterate over generator.begin() and generator.end()
  *     for( auto it : generator ) ...
+ * ~~~
  *
  * For other types of iterators, instead of `beg` and `end`, other input can be used:
  *
+ * ~~~{.cpp}
  *     // Use a pileup iterator, which does not offer begin and end.
  *     auto it = SimplePileupInputIterator( utils::from_file( pileup_file_.value ), reader );
  *     generator = LambdaIterator<Variant>(
@@ -87,10 +105,24 @@ namespace utils {
  *             }
  *         }
  *     );
+ * ~~~
  *
- * And accordinly for other underlying iterator types.
+ * And accordingly for other underlying iterator types.
+ *
+ * In addition to the type `T` that we iterate over, for user convenience, we also offer to use
+ * a data storage variable of the template type `D` (typedef'd as LambdaIterator::Data).
+ * This data is provided at construction of the LambdaIterator, and can be accessed via the
+ * @link LambdaIterator::data() data()@endlink functions.
+ * it is a generic extra variable to store iterator-specific information.
+ * As the LambdaIterator is intended to be initializable with just a lambda function that yields
+ * the elements to traverse over, there is otherwise no convenient way to access related information
+ * of the underlying iterator. For example, when iterating over a file, one might want to store
+ * the file name or other characteristics of the input in the data().
+ *
+ * @see VariantInputIterator for a use case of this iterator that allows to traverse different
+ * input file types that all are convertible to @link genesis::population::Variant Variant@endlink.
  */
-template<class T>
+template<class T, class D = EmptyLambdaIteratorData>
 class LambdaIterator
 {
 public:
@@ -106,9 +138,11 @@ public:
     using difference_type   = std::ptrdiff_t;
     using iterator_category = std::input_iterator_tag;
 
-    // -------------------------------------------------------------------------
-    //     Iterator
-    // -------------------------------------------------------------------------
+    using Data              = D;
+
+    // ======================================================================================
+    //      Internal Iterator
+    // ======================================================================================
 
     class Iterator
     {
@@ -118,8 +152,9 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type = LambdaIterator<T>::Iterator;
+        using self_type  = LambdaIterator<T, D>::Iterator;
         using value_type = T;
+        using Data       = D;
 
     private:
 
@@ -200,7 +235,10 @@ public:
             return std::move( current_element_ );
         }
 
-        std::string const& source_name() const
+        /**
+         * @brief Access the data stored in the iterator.
+         */
+        Data const& data() const
         {
             if( ! generator_ ) {
                 throw std::runtime_error(
@@ -208,7 +246,21 @@ public:
                 );
             }
             assert( generator_ );
-            return generator_->source_name_;
+            return generator_->data_;
+        }
+
+        /**
+         * @brief Access the data stored in the iterator.
+         */
+        Data& data()
+        {
+            if( ! generator_ ) {
+                throw std::runtime_error(
+                    "Cannot access default constructed or past-the-end LambdaIterator content."
+                );
+            }
+            assert( generator_ );
+            return generator_->data_;
         }
 
         // -------------------------------------------------------------------------
@@ -320,6 +372,10 @@ public:
 
     };
 
+    // ======================================================================================
+    //      Main Class
+    // ======================================================================================
+
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
@@ -330,18 +386,41 @@ public:
      * @brief Create an iterator over some underlying content.
      *
      * The constructor expects the function that returns elements as long as there is underlying
-     * data, and returns and empty optional once the end is reached.
+     * data, and returns and empty optional (@link genesis::utils::nullopt nullopt@endlink)
+     * once the end is reached.
+     */
+    LambdaIterator(
+        std::function<utils::Optional<value_type>()> get_element
+    )
+        : get_element_(get_element)
+    {}
+
+    /**
+     * @copydoc LambdaIterator( std::function<utils::Optional<value_type>()> )
      *
-     * Optionally, a @p source_name can be given here, which we simply store and make accessible
-     * via source_name(). This is a convenience so that iterators generated via a `make` function
-     * can forward their input source name for user output.
+     * Additionally, @p data can be given here, which we simply store and make accessible
+     * via data(). This is a convenience so that iterators generated via a `make` function
+     * can for example forward their input source name for user output.
      */
     LambdaIterator(
         std::function<utils::Optional<value_type>()> get_element,
-        std::string const& source_name = ""
+        Data const& data
     )
         : get_element_(get_element)
-        , source_name_(source_name)
+        , data_(data)
+    {}
+
+    /**
+     * @copydoc LambdaIterator( std::function<utils::Optional<value_type>()>, Data const& )
+     *
+     * This version of the constructor takes the data by r-value reference, for moving it.
+     */
+    LambdaIterator(
+        std::function<utils::Optional<value_type>()> get_element,
+        Data&& data
+    )
+        : get_element_(get_element)
+        , data_( std::move( data ))
     {}
 
     ~LambdaIterator() = default;
@@ -378,11 +457,19 @@ public:
     }
 
     /**
-     * @brief Get the source name that was given at construction.
+     * @brief Access the data stored in the iterator.
      */
-    std::string const& source_name() const
+    Data const& data() const
     {
-        return source_name_;
+        return data_;
+    }
+
+    /**
+     * @brief Access the data stored in the iterator.
+     */
+    Data& data()
+    {
+        return data_;
     }
 
     // -------------------------------------------------------------------------
@@ -464,7 +551,7 @@ private:
     std::vector<std::function<bool(T&)>> transforms_and_filters_;
 
     std::function<utils::Optional<value_type>()> get_element_;
-    std::string source_name_;
+    Data data_;
 
 };
 
