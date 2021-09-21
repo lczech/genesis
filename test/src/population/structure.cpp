@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -117,7 +117,7 @@ TEST( Structure, FstPool )
         auto pop1_filt = make_transform_range(
             [&]( WindowGen::Window::Entry const& entry ) {
                 auto copy = entry.data[0];
-                filter_min_count( copy, settings.min_allele_count );
+                transform_by_min_count( copy, settings.min_allele_count );
                 return copy;
             },
             window
@@ -125,7 +125,7 @@ TEST( Structure, FstPool )
         auto pop2_filt = make_transform_range(
             [&]( WindowGen::Window::Entry const& entry ) {
                 auto copy = entry.data[1];
-                filter_min_count( copy, settings.min_allele_count );
+                transform_by_min_count( copy, settings.min_allele_count );
                 return copy;
             },
             window
@@ -158,8 +158,8 @@ TEST( Structure, FstPool )
     while( reader.parse_line( instream, sample_set )) {
         EXPECT_EQ( 2, sample_set.samples.size() );
 
-        // filter_min_count( sample_set.samples[0], settings.min_allele_count );
-        // filter_min_count( sample_set.samples[1], settings.min_allele_count );
+        // transform_by_min_count( sample_set.samples[0], settings.min_allele_count );
+        // transform_by_min_count( sample_set.samples[1], settings.min_allele_count );
 
         if( status(
                 merge( sample_set.samples ),

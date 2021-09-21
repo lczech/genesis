@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -93,14 +93,14 @@ struct EmptyAccumulator
 // =================================================================================================
 
 /**
- * @brief Window over the chromosomes of a genome.
+ * @brief %Window over the chromosomes of a genome.
  *
  * This class is a container for the Data that is produced when sliding over the chromosomes of a
  * genome in windows. It is for example emitted by the WindowGenerator class.
  *
- * The class is mostly meant to be used as a plain old data structure, where some data is filled
- * in (e.g., via the WindowGenerator), and can then be processed to compute some values for the
- * Window. That is, from the user side, the const access functions are mostly important,
+ * The class is mostly meant to be used to be read/iterated over, where the data is filled
+ * in beforehand (e.g., via the WindowGenerator), and can then be processed to compute some values
+ * for the Window. That is, from the user side, the const access functions are mostly important,
  * while the non-const modification functions are chiefly meant for the code that fills the
  * Window in the first place.
  */
@@ -300,7 +300,7 @@ public:
     /**
      * @brief Get the distance between the first and the last variant (entry) in the Window.
      *
-     * The width() function returns a different distance depending on the WindowType used for the
+     * The width() function returns a different distance depending on the #WindowType used for the
      * Window. However, sometimes it is useful to know the distance between the first and the last
      * variant (entry) in a window, independently from whether that Window runs across intervals
      * or variatns. This is what we here compute and call the span of the window.
@@ -361,11 +361,11 @@ public:
 
     /**
      * @brief Get the position in the chromosome reported according to the currently set
-     * WindowAnchorType.
+     * #WindowAnchorType.
      *
-     * See anchor_type( WindowAnchorType ) to change the type of position that is reported here,
-     * and see anchor_position( WindowAnchorType ) for an alternative that allows to freely pick
-     * the WindowAnchorType instead.
+     * See anchor_type( #WindowAnchorType ) to change the type of position that is reported here,
+     * and see anchor_position( #WindowAnchorType ) for an alternative that allows to freely pick
+     * the #WindowAnchorType instead.
      */
     size_t anchor_position() const
     {
@@ -373,7 +373,7 @@ public:
     }
 
     /**
-     * @brief Get the position in the chromosome reported according to a specific WindowAnchorType.
+     * @brief Get the position in the chromosome reported according to a specific #WindowAnchorType.
      */
     size_t anchor_position( WindowAnchorType anchor_type ) const
     {
@@ -439,7 +439,7 @@ public:
     }
 
     /**
-     * @brief Get the WindowAnchorType that is currently set for using anchor_position().
+     * @brief Get the #WindowAnchorType that is currently set for using anchor_position().
      */
     WindowAnchorType anchor_type() const
     {
@@ -447,9 +447,9 @@ public:
     }
 
     /**
-     * @brief Set the WindowAnchorType that is currently set for using anchor_position().
+     * @brief Set the #WindowAnchorType that is currently set for using anchor_position().
      *
-     * This function is mainly useful to set the WindowAnchorType once, and then use the variant of
+     * This function is mainly useful to set the #WindowAnchorType once, and then use the variant of
      * anchor_position() without any arguments to get the reported position.
      */
     void anchor_type( WindowAnchorType value )

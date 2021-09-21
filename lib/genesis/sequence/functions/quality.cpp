@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -35,6 +35,7 @@
 #include "genesis/utils/io/char.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
 #include <array>
@@ -188,6 +189,30 @@ std::string quality_encoding_name( QualityEncoding encoding )
         default:
             throw std::invalid_argument( "Invalid quality encoding type." );
     };
+}
+
+QualityEncoding guess_quality_encoding_from_name( std::string const& name )
+{
+    // Transform the string into a uniform form.
+    auto s = utils::to_lower( name );
+    s.erase( std::remove_if(s.begin(), s.end(), []( char c ){
+        return ! utils::is_alnum( c );
+    }), s.end() );
+
+    // Match the enum.
+    if( s == "sanger" ) {
+        return QualityEncoding::kSanger;
+    } else if( s == "illumina13" ) {
+        return QualityEncoding::kIllumina13;
+    } else if( s == "illumina15" ) {
+        return QualityEncoding::kIllumina15;
+    } else if( s == "illumina18" || s == "illumina" ) {
+        return QualityEncoding::kIllumina18;
+    } else if( s == "solexa" ) {
+        return QualityEncoding::kSolexa;
+    } else {
+        throw std::runtime_error( "Invalid quality encoding name: \"" + name + "\""  );
+    }
 }
 
 unsigned char quality_decode_to_phred_score( char quality_code, QualityEncoding encoding )

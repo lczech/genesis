@@ -32,6 +32,7 @@
  */
 
 #include "genesis/population/functions/base_counts.hpp"
+#include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/variant.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/utils/containers/filter_iterator.hpp"
@@ -435,12 +436,12 @@ PoolDiversityResults pool_diversity_measures(
     // The following is inefficient, as we do the transform multiple times in all the loops
     // below (note that all statistics functions also loop at least once!). But this function
     // here is meant as a high level variant, and we have to live with that.
-    // Better solution is to run filter_min_count() already when adding the samples
+    // Better solution is to run transform_by_min_count() already when adding the samples
     // to the range that we loop over here.
     auto min_filtered_range = utils::make_transform_range(
         [&]( BaseCounts const& sample ){
             auto copy = sample;
-            filter_min_count( copy, settings.min_allele_count );
+            transform_by_min_count( copy, settings.min_allele_count );
             return copy;
         },
         begin, end

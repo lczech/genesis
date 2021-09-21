@@ -89,7 +89,8 @@ bool is_covered( GenomeRegionList const& regions, std::string const& chromosome,
  * @brief Test whether the chromosome/position of a @p variant is within a given genomic @p region.
  *
  * This is a function template, so that it can accept any data structure that contains public
- * member variables `chromosome` (`std::string`) and `position` (`size_t`), such as Variant.
+ * member variables `chromosome` (`std::string`) and `position` (`size_t`), such as Variant
+ * or GenomeLocus.
  */
 template<class T>
 bool is_covered( GenomeRegion const& region, T const& variant )
@@ -102,7 +103,8 @@ bool is_covered( GenomeRegion const& region, T const& variant )
  * genomic @p regions.
  *
  * This is a function template, so that it can accept any data structure that contains public
- * member variables `chromosome` (`std::string`) and `position` (`size_t`), such as Variant.
+ * member variables `chromosome` (`std::string`) and `position` (`size_t`), such as Variant
+ * or GenomeLocus.
  */
 template<class T>
 bool is_covered( GenomeRegionList const& regions, T const& variant )

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -181,4 +181,48 @@ TEST( Sequence, QualityComputations )
     EXPECT_EQ( 7, phred_score_to_solexa_score( 8 ));
     EXPECT_EQ( 8, phred_score_to_solexa_score( 9 ));
     EXPECT_EQ( 10, phred_score_to_solexa_score( 10 ));
+}
+
+TEST( Sequence, QualityEncodingNames )
+{
+    // Basics: Back and forth.
+    EXPECT_EQ(
+        QualityEncoding::kSanger,
+        guess_quality_encoding_from_name( quality_encoding_name( QualityEncoding::kSanger ))
+    );
+    EXPECT_EQ(
+        QualityEncoding::kIllumina13,
+        guess_quality_encoding_from_name( quality_encoding_name( QualityEncoding::kIllumina13 ))
+    );
+    EXPECT_EQ(
+        QualityEncoding::kIllumina15,
+        guess_quality_encoding_from_name( quality_encoding_name( QualityEncoding::kIllumina15 ))
+    );
+    EXPECT_EQ(
+        QualityEncoding::kIllumina18,
+        guess_quality_encoding_from_name( quality_encoding_name( QualityEncoding::kIllumina18 ))
+    );
+    EXPECT_EQ(
+        QualityEncoding::kSolexa,
+        guess_quality_encoding_from_name( quality_encoding_name( QualityEncoding::kSolexa ))
+    );
+
+    // Special and error cases.
+    EXPECT_EQ(
+        QualityEncoding::kIllumina18,
+        guess_quality_encoding_from_name( " Illumina." )
+    );
+    EXPECT_ANY_THROW(
+        guess_quality_encoding_from_name( " IlluminiaX" )
+    );
+    EXPECT_ANY_THROW(
+        guess_quality_encoding_from_name( "" )
+    );
+
+    // Cases as might be used by a command line interface.
+    EXPECT_EQ( QualityEncoding::kSanger,     guess_quality_encoding_from_name( "sanger" ));
+    EXPECT_EQ( QualityEncoding::kSolexa,     guess_quality_encoding_from_name( "solexa" ));
+    EXPECT_EQ( QualityEncoding::kIllumina13, guess_quality_encoding_from_name( "illumina-1.3" ));
+    EXPECT_EQ( QualityEncoding::kIllumina15, guess_quality_encoding_from_name( "illumina-1.5" ));
+    EXPECT_EQ( QualityEncoding::kIllumina18, guess_quality_encoding_from_name( "illumina-1.8" ));
 }

@@ -50,7 +50,7 @@ namespace population {
  * @brief Reader for line-by-line assessment of (m)pileup files.
  *
  * This simple reader processes (m)pileup files line by line. That is, it does not take into
- * consideration which read starts at which position, but instead gives a quick and simple
+ * consideration which mapped read starts at which position, but instead gives a quick and simple
  * tally of the bases of all reads that cover a given position.
  * This makes it fast in cases where only per-position, but no per-read information is needed.
  *
@@ -149,13 +149,13 @@ public:
      */
     struct Record
     {
-        std::string         chromosome;
-        size_t              position;
-        char                reference_base;
+        std::string         chromosome = "";
+        size_t              position = 0;
+        char                reference_base = 'N';
         std::vector<Sample> samples;
     };
 
-    using self_type         = SimplePileupReader;
+    using self_type = SimplePileupReader;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -238,6 +238,11 @@ public:
 
     /**
      * @brief Read an (m)pileup line, as a Record.
+     *
+     * Note that this only handles a single line, and hence cannot check that the correct order
+     * of chromosomes and positions in the input is kept. A well-formed (m)pileup file will have
+     * the correct order, so that should not be an issue. Use the `read_...` functions, or
+     * the SimplePileupInputIterator for ways to read in (m)pileup data that have this check.
      */
     bool parse_line_record(
         utils::InputStream& input_stream,
@@ -251,6 +256,8 @@ public:
      * This filter does not need to contain the same number of values as the record has samples.
      * If it is shorter, all samples after its last index will be ignored. If it is longer,
      * the remaining entries are not used as a filter.
+     *
+     * @copydetails SimplePileupReader::parse_line_record( utils::InputStream&, SimplePileupReader::Record& ) const
      */
     bool parse_line_record(
         utils::InputStream&      input_stream,
@@ -264,6 +271,8 @@ public:
 
     /**
      * @brief Read an (m)pileup line, as a Variant.
+     *
+     * @copydetails SimplePileupReader::parse_line_record( utils::InputStream&, SimplePileupReader::Record& ) const
      */
     bool parse_line_variant(
         utils::InputStream& input_stream,
@@ -277,6 +286,8 @@ public:
      * This filter does not need to contain the same number of values as the line has samples.
      * If it is shorter, all samples after its last index will be ignored. If it is longer,
      * the remaining entries are not used as a filter.
+     *
+     * @copydetails SimplePileupReader::parse_line_record( utils::InputStream&, SimplePileupReader::Record& ) const
      */
     bool parse_line_variant(
         utils::InputStream&      input_stream,

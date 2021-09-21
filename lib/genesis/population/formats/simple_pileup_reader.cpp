@@ -48,14 +48,36 @@ namespace population {
 //     Reading Records
 // =================================================================================================
 
+/**
+ * @brief Local helper function to remove code duplication for the correct input order check.
+ */
+void process_pileup_correct_input_order_(
+    utils::InputStream const& it,
+    std::string& cur_chr, size_t& cur_pos,
+    std::string const& new_chr, size_t new_pos
+) {
+    if( new_chr < cur_chr || ( new_chr == cur_chr && new_pos <= cur_pos )) {
+        throw std::runtime_error(
+            "Malformed pileup " + it.source_name() + " at " + it.at() +
+            ": unordered chromosomes and positions"
+        );
+    }
+    cur_chr = new_chr;
+    cur_pos = new_pos;
+}
+
 std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
     std::shared_ptr< utils::BaseInputSource > source
 ) const {
     std::vector<SimplePileupReader::Record> result;
     utils::InputStream it( source );
 
+    // Read, with correct order check, just in case.
+    std::string cur_chr = "";
+    size_t      cur_pos = 0;
     Record rec;
     while( parse_line_( it, rec, {}, false )) {
+        process_pileup_correct_input_order_( it, cur_chr, cur_pos, rec.chromosome, rec.position );
         result.push_back( rec );
     }
     return result;
@@ -71,8 +93,12 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
     // Convert the list of indices to a bool vec that tells which samples we want to process.
     auto const sample_filter = utils::make_bool_vector_from_indices( sample_indices );
 
+    // Read, with correct order check, just in case.
+    std::string cur_chr = "";
+    size_t      cur_pos = 0;
     Record rec;
     while( parse_line_( it, rec, sample_filter, true )) {
+        process_pileup_correct_input_order_( it, cur_chr, cur_pos, rec.chromosome, rec.position );
         result.push_back( rec );
     }
     return result;
@@ -85,8 +111,12 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
     std::vector<SimplePileupReader::Record> result;
     utils::InputStream it( source );
 
+    // Read, with correct order check, just in case.
+    std::string cur_chr = "";
+    size_t      cur_pos = 0;
     Record rec;
     while( parse_line_( it, rec, sample_filter, true )) {
+        process_pileup_correct_input_order_( it, cur_chr, cur_pos, rec.chromosome, rec.position );
         result.push_back( rec );
     }
     return result;
@@ -102,8 +132,12 @@ std::vector<Variant> SimplePileupReader::read_variants(
     std::vector<Variant> result;
     utils::InputStream it( source );
 
+    // Read, with correct order check, just in case.
+    std::string cur_chr = "";
+    size_t      cur_pos = 0;
     Variant var;
     while( parse_line_( it, var, {}, false )) {
+        process_pileup_correct_input_order_( it, cur_chr, cur_pos, var.chromosome, var.position );
         result.push_back( var );
     }
     return result;
@@ -119,8 +153,12 @@ std::vector<Variant> SimplePileupReader::read_variants(
     // Convert the list of indices to a bool vec that tells which samples we want to process.
     auto const sample_filter = utils::make_bool_vector_from_indices( sample_indices );
 
+    // Read, with correct order check, just in case.
+    std::string cur_chr = "";
+    size_t      cur_pos = 0;
     Variant var;
     while( parse_line_( it, var, sample_filter, true )) {
+        process_pileup_correct_input_order_( it, cur_chr, cur_pos, var.chromosome, var.position );
         result.push_back( var );
     }
     return result;
@@ -133,8 +171,12 @@ std::vector<Variant> SimplePileupReader::read_variants(
     std::vector<Variant> result;
     utils::InputStream it( source );
 
+    // Read, with correct order check, just in case.
+    std::string cur_chr = "";
+    size_t      cur_pos = 0;
     Variant var;
     while( parse_line_( it, var, sample_filter, true )) {
+        process_pileup_correct_input_order_( it, cur_chr, cur_pos, var.chromosome, var.position );
         result.push_back( var );
     }
     return result;
@@ -218,11 +260,23 @@ bool SimplePileupReader::parse_line_(
     // Read chromosome.
     utils::affirm_char_or_throw( it, utils::is_graph );
     target.chromosome = utils::read_while( it, utils::is_graph );
+    if( target.chromosome.empty() ) {
+        throw std::runtime_error(
+            "Malformed pileup " + it.source_name() + " at " + it.at() +
+            ": empty chromosome name"
+        );
+    }
     assert( !it || !utils::is_graph( *it ));
 
     // Read position.
     next_field_( it );
     target.position = utils::parse_unsigned_integer<size_t>( it );
+    if( target.position == 0 ) {
+        throw std::runtime_error(
+            "Malformed pileup " + it.source_name() + " at " + it.at() +
+            ": chromosome position == 0"
+        );
+    }
     assert( !it || !utils::is_digit( *it ));
 
     // Read reference base.

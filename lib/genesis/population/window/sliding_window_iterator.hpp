@@ -115,6 +115,11 @@ struct SlidingWindowIteratorSettings
     // bool emit_unfinished_trailing_window = false;
     //
     // bool emit empty_windows = true;
+    //
+    // all three of the above could also be an int enum where differnt settings
+    // can be combined as binary flags. kEmitAllEmptyWindows would then be 111
+    //
+    // in the doc, write a note that all of them are only used for interval windows.
 
 
     /**

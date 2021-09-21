@@ -115,6 +115,10 @@ public:
     /**
      * @brief Create an instance that reads from an input file name.
      *
+     * By default, we expect the input to be ordered by chromosome and position, and throw an
+     * exception if this is not the case. Set @p expect_ordered to `false` to deactivate this check,
+     * and instead allow VcfRecord%s to appear in any order of chromosomes and positions.
+     *
      * The optional parameter @p block_size sets the number of VcfRecord%s that are read
      * asynchronously into a buffer for speed improvements. This is mostly interesting for
      * window- or region-based analyses, where a certain number of records are needed to fill the
@@ -127,10 +131,11 @@ public:
      */
     explicit VcfInputIterator(
         std::string const& filename,
+        bool expect_ordered = true,
         size_t block_size = 1024
     )
         // Call the other constuctor, to avoid code duplication.
-        : VcfInputIterator( filename, std::vector<std::string>{}, false, block_size )
+        : VcfInputIterator( filename, std::vector<std::string>{}, false, expect_ordered, block_size )
     {}
 
     /**
@@ -140,16 +145,18 @@ public:
      * that only those samples (columns of the VCF records) are evaluated and accessible - or,
      * if @p inverse_sample_names is set to `true`, instead all <i>but</i> those samples.
      *
-     * @copydetails VcfInputIterator( std::string const&, size_t )
+     * @copydetails VcfInputIterator( std::string const&, bool, size_t )
      */
     VcfInputIterator(
         std::string const& filename,
         std::vector<std::string> const& sample_names,
         bool inverse_sample_names = false,
+        bool expect_ordered = true,
         size_t block_size = 1024
     )
         : filename_( filename )
         , block_size_( block_size )
+        , expect_ordered_( expect_ordered )
         , file_(          std::make_shared<HtsFile>( filename ))
         , header_(        std::make_shared<VcfHeader>( *file_ ))
         , current_block_( std::make_shared<std::vector<VcfRecord>>() )
@@ -339,113 +346,17 @@ public:
 
 private:
 
-    void init_()
-    {
-        assert( file_ );
-        assert( header_ );
-        assert( current_block_ );
-        assert( buffer_block_ );
+    void init_();
 
-        // Init the records and create empty VcfRecord to read into.
-        current_block_->reserve( block_size_ );
-        buffer_block_->reserve( block_size_ );
-        for( size_t i = 0; i < block_size_; ++i ) {
-            current_block_->emplace_back( *header_ );
-            buffer_block_->emplace_back( *header_ );
-        }
-        assert( current_block_->size() == block_size_ );
-        assert( buffer_block_->size() == block_size_ );
+    void increment_();
 
-        // Read the first block synchronously, so that there is data initialized to be dereferenced.
-        end_pos_ = VcfInputIterator::read_block_( file_, current_block_, block_size_ );
-        assert( current_pos_ == 0 );
-
-        // If there is less data than the block size, the file is already done.
-        // No need to start the async buffering.
-        if( end_pos_ < block_size_ ) {
-            return;
-        }
-
-        // Now start the worker thread to fill the buffer.
-        fill_buffer_block_();
-    }
-
-    void increment_()
-    {
-        // Finish the reading (potentially waiting if not yet finished in the worker thread).
-        // The future returns how much data there was to be read, which we use as our status.
-        // After that, swap the buffer and start a new reading operation in the worker thread.
-
-        // Move to the next element in the vector. If we are at the end of the record vector,
-        // and if that vector was full (complete block size), there is more data, so start reading.
-        ++current_pos_;
-        if( current_pos_ == end_pos_ && end_pos_ == block_size_ ) {
-            assert( future_ );
-            assert( future_->valid() );
-
-            // Get how many records were read into the buffer, which also waits for the reading
-            // if necessary. After that, we can swao the buffer, start reading again, and set
-            // or internal current location to the first element of the vector again.
-            end_pos_ = future_->get();
-            std::swap( buffer_block_, current_block_ );
-            fill_buffer_block_();
-            current_pos_ = 0;
-        }
-    }
-
-    void fill_buffer_block_()
-    {;
-        assert( thread_pool_ );
-        assert( future_ );
-
-        // This function is only every called after we finished any previous operations,
-        // so let's assert that the thread pool and future are in the states that we expect.
-        assert( thread_pool_->load() == 0 );
-        assert( ! future_->valid() );
-
-        // In order to use lambda captures by copy for class member variables in C++11, we first
-        // have to make local copies, and then capture those. Capturing the class members direclty
-        // was only introduced later. Bit cumbersome, but gets the work done.
-        auto file         = file_;
-        auto buffer_block = buffer_block_;
-        auto block_size   = block_size_;
-
-        // The lambda returns the result of read_block_ call, that is, the number of records
-        // that have been read, and which we later (in the future_) use to see how much data we got.
-        *future_ = thread_pool_->enqueue(
-            [ file, buffer_block, block_size ](){
-                return VcfInputIterator::read_block_( file, buffer_block, block_size );
-            }
-        );
-    }
+    void fill_buffer_block_();
 
     static size_t read_block_(
         std::shared_ptr<HtsFile> file,
         std::shared_ptr<std::vector<VcfRecord>> target,
         size_t block_size
-    ) {
-        // This is a static function that does not depend on the class member data, so that
-        // we can use it from the future lambda in the thread pool above without having to worry
-        // about lambda captures of `this` going extinct... which was an absolutely nasty bug to
-        // find! Such a rookie mistake! For that reason, we also take all arguments as shared
-        // pointers, so that they are kept alive while the thread pool is working.
-        // However, once its done with its work, the function (the one that we give to the thread
-        // pool with a lambda) is popped from the thread queue, so that the shared pointer can
-        // be freed again - that is, we do not need to worry about the lambda keeping the shared
-        // pointer from freeing its memory indefinitely.
-
-        assert( file );
-        assert( target->size() == block_size );
-
-        // Read as long as there is data. Return number of read records.
-        size_t i = 0;
-        for( ; i < block_size; ++i ) {
-            if( ! (*target)[i].read_next( *file ) ) {
-                break;
-            }
-        }
-        return i;
-    }
+    );
 
     // -------------------------------------------------------------------------
     //     Data Members
@@ -458,6 +369,7 @@ private:
     // We buffer block_size_ many vcf records, and within each block, iterate via current_pos_
     // from 0 (first element of the block) to end_pos_ (past the end counter).
     size_t block_size_ = 1024;
+    bool expect_ordered_ = true;
     size_t current_pos_ = 0;
     size_t end_pos_ = 0;
 

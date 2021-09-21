@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_BASE_COUNTS_H_
-#define GENESIS_POPULATION_BASE_COUNTS_H_
+#ifndef GENESIS_POPULATION_GENOME_LOCUS_H_
+#define GENESIS_POPULATION_GENOME_LOCUS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -32,55 +32,56 @@
  */
 
 #include <string>
-#include <vector>
 
 namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Base Counts
+//     Genome Locus
 // =================================================================================================
 
 /**
- * @brief One set of nucleotide base counts, for example for a given sample that represents a pool
- * of sequenced individuals.
+ * @brief A single locus, that is, a position on a chromosome.
  *
- * This class is a general representation of the read counts (frequencies) contained in the
- * variants/SNPs of (a pool of) individuals at a certain chromosome position.
- * The class only stores theses counts; for the additional container that also captures the
- * chromosome and position, see Variant.
+ * For our purposes here, we define a locus to be one position on one chromosome exactly.
+ *
+ * When working with multiple loci, we here often expect their chromosome names to be sorted in
+ * lexicographical order. Hence, for example, when comparing two loci on different chromosomes,
+ * we also take the ordering of their chromosome names into account.
  */
-struct BaseCounts
+struct GenomeLocus
 {
-    /**
-     * @brief Count of all `A` nucleotides that are present in the sample.
-     */
-    size_t a_count = 0;
+    std::string chromosome;
+    size_t      position = 0;
 
-    /**
-     * @brief Count of all `C` nucleotides that are present in the sample.
-     */
-    size_t c_count = 0;
+    GenomeLocus() = default;
+    GenomeLocus( std::string const& chr, size_t pos )
+        : chromosome( chr )
+        , position( pos )
+    {}
 
-    /**
-     * @brief Count of all `G` nucleotides that are present in the sample.
-     */
-    size_t g_count = 0;
+    ~GenomeLocus() = default;
 
-    /**
-     * @brief Count of all `T` nucleotides that are present in the sample.
-     */
-    size_t t_count = 0;
+    GenomeLocus( GenomeLocus const& ) = default;
+    GenomeLocus( GenomeLocus&& )      = default;
 
-    /**
-     * @brief Count of all `N` (undetermined/any) nucleotides that are present in the sample.
-     */
-    size_t n_count = 0;
+    GenomeLocus& operator= ( GenomeLocus const& ) = default;
+    GenomeLocus& operator= ( GenomeLocus&& )      = default;
 
-    /**
-     * @brief Count of all deleted (`*`) nucleotides that are present in the sample.
-     */
-    size_t d_count = 0;
+    bool empty() const
+    {
+        return chromosome == "" && position == 0;
+    }
+
+    operator std::string() const
+    {
+        return to_string();
+    }
+
+    std::string to_string() const
+    {
+        return chromosome + ":" + std::to_string( position );
+    }
 };
 
 } // namespace population

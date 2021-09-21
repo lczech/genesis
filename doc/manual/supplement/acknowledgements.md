@@ -105,6 +105,88 @@ If Python bindings are enabled, Genesis automatically tries to download
 The license information above was copied from https://github.com/pybind/pybind11/blob/master/LICENSE
 on 2017-03-09.
 
+## htslib @anchor supplement_acknowledgements_dependencies_htslib
+
+We do not deliver any code of htslib with our sources, but
+if htslib is enabled (in `CMakeLists.txt` via `GENESIS_USE_HTSLIB`),
+genesis automatically downloads and builds [htslib](https://github.com/samtools/htslib)
+as part of its own build process.
+
+@htmlonly <details><summary>License</summary> @endhtmlonly
+>    [Files in this distribution outwith the cram/ subdirectory are distributed
+>    according to the terms of the following MIT/Expat license.]
+>
+>    The MIT/Expat License
+>
+>    Copyright (C) 2012-2021 Genome Research Ltd.
+>
+>    Permission is hereby granted, free of charge, to any person obtaining a copy
+>    of this software and associated documentation files (the "Software"), to deal
+>    in the Software without restriction, including without limitation the rights
+>    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+>    copies of the Software, and to permit persons to whom the Software is
+>    furnished to do so, subject to the following conditions:
+>
+>    The above copyright notice and this permission notice shall be included in
+>    all copies or substantial portions of the Software.
+>
+>    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+>    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+>    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+>    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+>    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+>    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+>    DEALINGS IN THE SOFTWARE.
+>
+>
+>    [Files within the cram/ subdirectory in this distribution are distributed
+>    according to the terms of the following Modified 3-Clause BSD license.]
+>
+>    The Modified-BSD License
+>
+>    Copyright (C) 2012-2020 Genome Research Ltd.
+>
+>    Redistribution and use in source and binary forms, with or without
+>    modification, are permitted provided that the following conditions are met:
+>
+>    1. Redistributions of source code must retain the above copyright notice,
+>       this list of conditions and the following disclaimer.
+>
+>    2. Redistributions in binary form must reproduce the above copyright notice,
+>       this list of conditions and the following disclaimer in the documentation
+>       and/or other materials provided with the distribution.
+>
+>    3. Neither the names Genome Research Ltd and Wellcome Trust Sanger Institute
+>       nor the names of its contributors may be used to endorse or promote products
+>       derived from this software without specific prior written permission.
+>
+>    THIS SOFTWARE IS PROVIDED BY GENOME RESEARCH LTD AND CONTRIBUTORS "AS IS"
+>    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+>    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+>    DISCLAIMED. IN NO EVENT SHALL GENOME RESEARCH LTD OR ITS CONTRIBUTORS BE LIABLE
+>    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+>    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+>    SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+>    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+>    OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+>    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+>
+>
+>    [The use of a range of years within a copyright notice in this distribution
+>    should be interpreted as being equivalent to a list of years including the
+>    first and last year specified and all consecutive years between them.
+>
+>    For example, a copyright notice that reads "Copyright (C) 2005, 2007-2009,
+>    2011-2012" should be interpreted as being identical to a notice that reads
+>    "Copyright (C) 2005, 2007, 2008, 2009, 2011, 2012" and a copyright notice
+>    that reads "Copyright (C) 2005-2012" should be interpreted as being identical
+>    to a notice that reads "Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010,
+>    2011, 2012".]
+@htmlonly </details> @endhtmlonly
+
+The license information above was copied from https://github.com/samtools/htslib/blob/develop/LICENSE
+on 2021-09-18.
+
 # Code Reuse @anchor supplement_acknowledgements_code_reuse
 
 In the following, we list all sources that were adapted and incorporated in Genesis in modified
@@ -249,6 +331,56 @@ The repository at https://github.com/mateidavid/zstr is published under the
 The license information above was copied from
 https://github.com/mateidavid/zstr/blob/master/LICENSE
 on 2020-05-10.
+
+## optional-bare @anchor supplement_acknowledgements_code_reuse_optional_bare
+
+Genesis contains an implementation for optional data:
+
+  * @link genesis::utils::Optional Optional@endlink
+
+The code of this class is adapted from the excellent
+[optional-bare](https://github.com/martinmoene/optional-bare) by Martin Moene.
+We adapted the original code by renaming the classes and variables and formatting the code
+to our standards.
+
+All code for this class, located in `genesis/lib/genesis/utils/containers/optional.hpp` is
+
+>    Copyright 2017-2019 by Martin Moene.
+>    Distributed under the Boost Software License, Version 1.0.
+>    See http://www.boost.org/LICENSE_1_0.txt
+
+The original code repository, located at https://github.com/martinmoene/optional-bare,
+is published under the [Boost Software License - Version 1.0](http://www.boost.org/LICENSE_1_0.txt):
+
+@htmlonly <details><summary>License</summary> @endhtmlonly
+>    Boost Software License - Version 1.0 - August 17th, 2003
+>
+>    Permission is hereby granted, free of charge, to any person or organization
+>    obtaining a copy of the software and accompanying documentation covered by
+>    this license (the "Software") to use, reproduce, display, distribute,
+>    execute, and transmit the Software, and to prepare derivative works of the
+>    Software, and to permit third-parties to whom the Software is furnished to
+>    do so, all subject to the following:
+>
+>    The copyright notices in the Software and this entire statement, including
+>    the above license grant, this restriction and the following disclaimer,
+>    must be included in all copies of the Software, in whole or in part, and
+>    all derivative works of the Software, unless such copies or derivative
+>    works are solely in the form of machine-executable object code generated by
+>    a source language processor.
+>
+>    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+>    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+>    FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
+>    SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
+>    FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
+>    ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+>    DEALINGS IN THE SOFTWARE.
+@htmlonly </details> @endhtmlonly
+
+The license information above was copied from
+https://github.com/martinmoene/optional-bare/blob/master/LICENSE.txt
+on 2021-09-18.
 
 ## Succinct Range Minimum Query @anchor supplement_acknowledgements_code_reuse_succinct_rmq
 

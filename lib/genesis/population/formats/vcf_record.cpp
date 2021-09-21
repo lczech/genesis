@@ -169,7 +169,13 @@ void VcfRecord::unpack() const
 
 std::string VcfRecord::get_chromosome() const
 {
-    return ::bcf_hdr_id2name( header_->data(), record_->rid );
+    std::string chr = ::bcf_hdr_id2name( header_->data(), record_->rid );
+    if( chr.empty() ) {
+        throw std::runtime_error(
+            "Malformed VCF file: empty chromosome name"
+        );
+    }
+    return chr;
 }
 
 size_t VcfRecord::get_position() const
@@ -177,6 +183,7 @@ size_t VcfRecord::get_position() const
     // This one time, htslib wants to be smart and make the position 0-based. While we appreciate
     // their effort, in that case, this leads to inconcruencies for users who are not aware of this.
     // Hence, we "fix" this back to the original number as given in the 1-based VCF/BCF file.
+    assert( record_->pos >= 0 );
     return record_->pos + 1;
 }
 

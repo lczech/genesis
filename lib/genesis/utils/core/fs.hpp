@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -202,7 +202,7 @@ std::unordered_map<std::string, std::string> file_info ( std::string const& file
 /**
  * @brief Return the size of a file.
  */
-size_t      file_size      ( std::string const& filename );
+size_t file_size( std::string const& filename );
 
 /**
  * @brief Return the path leading to a file.
@@ -210,12 +210,34 @@ size_t      file_size      ( std::string const& filename );
  * Does not resolve the path. Simply splits at the last directory separator.
  * If there is no directory separator, it returns an empty string.
  */
-std::string file_path      ( std::string const& filename );
+std::string file_path( std::string const& filename );
 
 /**
  * @brief Remove directory name from file name if present.
  */
-std::string file_basename  ( std::string const& filename );
+std::string file_basename( std::string const& filename );
+
+/**
+ * @brief Remove the directory name from a file name if present, and remove a list of given extensions.
+ *
+ * After obtaining the file basename (the final rightmost segment of the file path after the last
+ * directory seperator `/`), the @p remove_extensions are also removed from the file name.
+ * The given list is iterated regularly, and removed (from right to left, as these are suffixes)
+ * from the file name, if present.
+ *
+ * For example:
+ *
+ *     std::string path = "/path/to/filename.txt.gz";
+ *     std::cout << file_basename( path, { ".gz", ".txt" }) << "\n";
+ *
+ * yields "filename". This is useful for example to remove a set of known extensions for a file
+ * type, for clean user output. Not all extensions have to be present; those that are not, are
+ * simply skipped.
+ */
+std::string file_basename(
+    std::string const& filename,
+    std::vector<std::string> const& remove_extensions
+);
 
 /**
  * @brief Remove extension if present.
@@ -223,14 +245,14 @@ std::string file_basename  ( std::string const& filename );
  * Caveat: Does not remove the path. So, if the filename itself does not contain an extension
  * separator ".", but the path does, this will yield an unwanted result. Call file_basename() first.
  */
-std::string file_filename  ( std::string const& filename );
+std::string file_filename( std::string const& filename );
 
 /**
  * @brief Return the extension name of a file.
  *
  * Also see file_filename().
  */
-std::string file_extension ( std::string const& filename );
+std::string file_extension( std::string const& filename );
 
 // =================================================================================================
 //     File Names
