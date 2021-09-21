@@ -98,8 +98,17 @@ struct VariantInputIteratorData
  * It offers to iterate a whole input file, and transform and filter the Variant as needed
  * in order to make downstream processing as easy as possible.
  *
- * Use for example the `make_variant_input_iterator_...()` functions to get such an interator
- * for different input file types.
+ * This is useful for downstream processing, where we just want to work with the Variant%s along
+ * the genome, but want to allow different file formats for their input. Use this iterator
+ * to achieve this. For example, use the `make_variant_input_iterator_...()` functions to get such
+ * an interator for different input file types.
+ *
+ * The iterator furthermore offers a data field of type VariantInputIteratorData, which gets
+ * filled with basic data about the input file and sample names (if available in the file format).
+ * Use the @link utils::LambdaIterator::data() data()@endlink function to access this data
+ * while iterating.
+ *
+ * @see @link utils::LambdaIterator LambdaIterator@endlink for usage and details.
  */
 using VariantInputIterator = utils::LambdaIterator<Variant, VariantInputIteratorData>;
 
@@ -190,7 +199,9 @@ inline VariantInputIterator make_variant_input_iterator_from_vcf_file(
     if( ! it.header().has_format( "AD", VcfValueType::kInteger, VcfValueSpecial::kReference )) {
         throw std::runtime_error(
             "Cannot iterator over VCF file " + filename + " as Variants, " +
-            "because it does not contain the required \"AD\" FORMAT field."
+            "because it does not contain the required \"AD\" FORMAT field. "  +
+            "Note that we expect the samples in the VCF file to represent pools of individuals " +
+            "here, instead of single individuals."
         );
     }
 
@@ -214,7 +225,7 @@ inline VariantInputIterator make_variant_input_iterator_from_vcf_file(
                 ++it;
                 return res;
             } else {
-                // If we reached the end of the input, return and empty optional to signify this.
+                // If we reached the end of the input, return an empty optional to signal this.
                 return utils::nullopt;
             }
         },
