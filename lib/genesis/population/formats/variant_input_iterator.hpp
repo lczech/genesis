@@ -62,6 +62,8 @@ namespace population {
 /**
  * @brief Data storage for input-specific information when traversing a variant file.
  *
+ * This is used by VariantInputIterator, see there for details.
+ *
  * The utils::LambdaIterator allows us to store some extra data. When traversing a file as
  * Variant%s, we can use this extra field to store information such as the file name and
  * the individual sample names.
