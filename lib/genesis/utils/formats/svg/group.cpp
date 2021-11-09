@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -59,23 +59,43 @@ SvgBox SvgGroup::bounding_box() const
 
 void SvgGroup::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
-    out << repeat( SvgDocument::indentation_string, indent );
-    out << "<g";
+    // Extra indent, to make it nice if a hyperlink is given.
+    size_t extra_in = 0;
 
+    // Hyperlink opening tag, if set.
+    if( ! hyperlink_.empty() ) {
+        extra_in = 1;
+        out << repeat( SvgDocument::indentation_string, indent );
+        out << "<a";
+        for( auto const& attr : hyperlink_ ) {
+            out << svg_attribute( attr.first, attr.second );
+        }
+        out << ">\n";
+    }
+
+    // Group opening tag.
+    out << repeat( SvgDocument::indentation_string, indent + extra_in );
+    out << "<g";
     if( ! id.empty() ) {
         out << svg_attribute( "id", id );
     }
     transform.write( out );
-
     out << ">\n";
 
     // Print content.
     for( auto const& elem : content_ ) {
-        elem.write( out, indent + 1, options );
+        elem.write( out, indent + extra_in + 1, options );
     }
 
-    out << repeat( SvgDocument::indentation_string, indent );
+    // Group closing tag.
+    out << repeat( SvgDocument::indentation_string, indent + extra_in );
     out << "</g>\n";
+
+    // Hyperlink closing tag, if set.
+    if( ! hyperlink_.empty() ) {
+        out << repeat( SvgDocument::indentation_string, indent );
+        out << "</a>\n";
+    }
 }
 
 SvgGroup& SvgGroup::add( SvgObject const& object )
