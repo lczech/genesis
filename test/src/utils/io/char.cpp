@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -63,11 +63,17 @@ TEST( Char, AsciiFunctions )
 
 TEST( Char, CharToHex )
 {
-    EXPECT_EQ( "LF (0x0A)", char_to_hex( '\n', true ));
-    EXPECT_EQ( "'N' (0x4E)", char_to_hex( 'N', true ));
+    EXPECT_EQ( "LF (0x0A; control: NL line feed, new line)", char_to_hex( '\n', true ));
+    EXPECT_EQ( "'N' (0x4E; letter: capital N)", char_to_hex( 'N', true ));
     EXPECT_EQ( "non-ASCII char (0xF7)", char_to_hex( static_cast<char>( 0xF7 ), true ));
 
-    EXPECT_EQ( "LF (0x0A)", char_to_hex( static_cast<unsigned char>( 0x0A ), true ));
-    EXPECT_EQ( "'N' (0x4E)", char_to_hex( static_cast<unsigned char>( 0x4E ), true ));
+    EXPECT_EQ(
+        "LF (0x0A; control: NL line feed, new line)",
+        char_to_hex( static_cast<unsigned char>( 0x0A ), true )
+    );
+    EXPECT_EQ(
+        "'N' (0x4E; letter: capital N)",
+        char_to_hex( static_cast<unsigned char>( 0x4E ), true )
+    );
     EXPECT_EQ( "non-ASCII char (0xF7)", char_to_hex( static_cast<unsigned char>( 0xF7 ), true ));
 }

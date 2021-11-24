@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -94,6 +94,7 @@ constexpr bool is_control(char c) noexcept
  */
 constexpr bool is_digit(char c) noexcept
 {
+    static_assert('0' == 48,      "The compiler is not using ASCII. We cannot work like that!");
     static_assert('0' + 9 == '9', "The compiler is not using ASCII. We cannot work like that!");
     return c >= '0' && c <= '9';
 }
@@ -113,6 +114,7 @@ constexpr bool is_xdigit(char c) noexcept
  */
 constexpr bool is_lower(char c) noexcept
 {
+    static_assert('a' == 97,       "The compiler is not using ASCII. We cannot work like that!");
     static_assert('a' + 25 == 'z', "The compiler is not using ASCII. We cannot work like that!");
     return c >= 'a' && c <= 'z';
 }
@@ -122,6 +124,7 @@ constexpr bool is_lower(char c) noexcept
  */
 constexpr bool is_upper(char c) noexcept
 {
+    static_assert('A' == 65,       "The compiler is not using ASCII. We cannot work like that!");
     static_assert('A' + 25 == 'Z', "The compiler is not using ASCII. We cannot work like that!");
     return c >= 'A' && c <= 'Z';
 }
@@ -250,8 +253,8 @@ constexpr bool char_match_ci( char c1,  char c2 ) noexcept
  * This is meant for user output, for example to warn about invalid input characters.
  * Hence, by default, a text-representation is returned, using the form
  *
- *     LF (0x0A)
- *     'N' (0x4E)
+ *     LF (0x0A; control: NL line feed, new line)
+ *     'N' (0x4E; letter: capital N)
  *
  * where non-printable characters are abbreviated by their symbol, and printable
  * characters are included in single quotation marks.
