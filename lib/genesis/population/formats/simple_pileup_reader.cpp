@@ -776,9 +776,14 @@ void SimplePileupReader::next_field_( utils::InputStream& input_stream ) const
 {
     // There needs to be at last some whitespace that separates the field. Affirm that,
     // then skip it until we are at the content of the next field.
-    utils::affirm_char_or_throw( input_stream, utils::is_blank );
-    utils::skip_while( input_stream, utils::is_blank );
-    assert( !input_stream || !utils::is_blank( *input_stream ));
+    // utils::affirm_char_or_throw( input_stream, utils::is_blank );
+    // utils::skip_while( input_stream, utils::is_blank );
+    // assert( !input_stream || !utils::is_blank( *input_stream ));
+
+    // Nope, the above skips empty fields, which can occurr when there are no bases
+    // at a position at all. Let's just follow the standard more strictly, and check for a tab.
+    utils::affirm_char_or_throw( input_stream, '\t' );
+    ++input_stream;
 }
 
 } // namespace population
