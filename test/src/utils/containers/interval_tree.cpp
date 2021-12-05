@@ -477,6 +477,28 @@ TEST(IntervalTree, Insert)
         test_max_property_(tree);
         test_red_black_property_violation_(tree);
     }
+
+    // Iterate in ascending order of low
+    {
+        TestIntervalTypes <int>::tree_type tree;
+        tree.insert({16, 21});
+        tree.insert({8, 9});
+        tree.insert({25, 30});
+        tree.insert({5, 8});
+        tree.insert({15, 23});
+        tree.insert({17, 19});
+        tree.insert({26, 26});
+        tree.insert({0, 3});
+        tree.insert({6, 10});
+        tree.insert({19, 20});
+
+        std::vector<int> lows;
+        for( auto const& ival : tree ) {
+            // LOG_DBG << ival.to_string();
+            lows.push_back(ival.low());
+        }
+        EXPECT_TRUE( std::is_sorted( lows.begin(), lows.end() ) );
+    }
 }
 
 // =================================================================================================
