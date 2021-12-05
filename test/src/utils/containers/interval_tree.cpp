@@ -181,6 +181,8 @@ TEST(Interval, Basics)
         auto ival = types::interval_type{1, 24};
         EXPECT_EQ(ival.low(), 1);
         EXPECT_EQ(ival.high(), 24);
+
+        EXPECT_EQ( "[ 1, 24 ]", ival.to_string() );
     }
 
     // Create Interval 2
@@ -689,6 +691,7 @@ TEST(IntervalTree, OverlapFind)
     {
         TestIntervalTypes <int>::tree_type tree;
         EXPECT_EQ(tree.overlap_find({2, 7}), std::end(tree));
+        EXPECT_EQ(tree.overlap_find(2), std::end(tree));
     }
 
     // Not Find Overlap With Root If It Doesnt Overlap
@@ -696,6 +699,7 @@ TEST(IntervalTree, OverlapFind)
         TestIntervalTypes <int>::tree_type tree;
         tree.insert({0, 1});
         EXPECT_EQ(tree.overlap_find({2, 7}), std::end(tree));
+        EXPECT_EQ(tree.overlap_find(2), std::end(tree));
     }
 
     // Find Overlap With Root
@@ -703,6 +707,7 @@ TEST(IntervalTree, OverlapFind)
         TestIntervalTypes <int>::tree_type tree;
         tree.insert({2, 4});
         EXPECT_EQ(tree.overlap_find({2, 7}), std::begin(tree));
+        EXPECT_EQ(tree.overlap_find(2), std::begin(tree));
     }
 
     // Find Overlap With Root On Const Tree
@@ -711,6 +716,7 @@ TEST(IntervalTree, OverlapFind)
         tree.insert({2, 4});
         [](decltype(tree) const& tree) {
             EXPECT_EQ(tree.overlap_find({2, 7}), std::begin(tree));
+            EXPECT_EQ(tree.overlap_find(2), std::begin(tree));
         }(tree);
     }
 
@@ -726,6 +732,8 @@ TEST(IntervalTree, OverlapFind)
         TestIntervalTypes <int>::tree_type tree;
         tree.insert({2, 7});
         EXPECT_EQ(tree.overlap_find({7, 9}), std::begin(tree));
+        EXPECT_EQ(tree.overlap_find(7), std::begin(tree));
+        EXPECT_EQ(tree.overlap_find(9), std::end(tree));
     }
 
     // Not Find Overlap If Nothing Overlaps
@@ -736,6 +744,7 @@ TEST(IntervalTree, OverlapFind)
         tree.insert({10, 15});
         tree.insert({15, 20});
         EXPECT_EQ(tree.overlap_find({77, 99}), std::end(tree));
+        EXPECT_EQ(tree.overlap_find(77), std::end(tree));
     }
 
     // Not Find Overlap On Border If Exclusive
@@ -746,6 +755,7 @@ TEST(IntervalTree, OverlapFind)
         tree.insert({10, 15});
         tree.insert({15, 20});
         EXPECT_EQ(tree.overlap_find({5, 5}, true), std::end(tree));
+        EXPECT_EQ(tree.overlap_find({20, 25}, true), std::end(tree));
     }
 
     // Find Multiple Overlaps
@@ -756,16 +766,26 @@ TEST(IntervalTree, OverlapFind)
         tree.insert({10, 15});
         tree.insert({15, 20});
 
+        EXPECT_EQ(  0, tree.lowest() );
+        EXPECT_EQ( 20, tree.highest() );
+
         std::vector <decltype(tree)::interval_type> intervals;
         tree.overlap_find_all({5, 5}, [&intervals](types::iterator_type const& iter) {
             intervals.push_back(*iter);
             return true;
         });
-        EXPECT_EQ(  0, tree.lowest() );
-        EXPECT_EQ( 20, tree.highest() );
+        EXPECT_EQ( 2, intervals.size() );
 
         // using ::testing::UnorderedElementsAre;
         // ASSERT_THAT(intervals, UnorderedElementsAre(decltype(tree)::interval_type{0, 5}, decltype(tree)::interval_type{5, 10}));
+
+        // With numerical type
+        intervals.clear();
+        tree.overlap_find_all(5, [&intervals](types::iterator_type const& iter) {
+            intervals.push_back(*iter);
+            return true;
+        });
+        EXPECT_EQ( 2, intervals.size() );
     }
 
     // Find All Will Find Nothing If Empty
@@ -773,6 +793,10 @@ TEST(IntervalTree, OverlapFind)
         TestIntervalTypes <int>::tree_type tree;
         int findCount = 0;
         tree.overlap_find_all({2, 7}, [&findCount](types::iterator_type const&){
+            ++findCount;
+            return true;
+        });
+        tree.overlap_find_all(2, [&findCount](types::iterator_type const&){
             ++findCount;
             return true;
         });
@@ -806,8 +830,18 @@ TEST(IntervalTree, OverlapFind)
         tree.insert({0, 5});
         tree.insert({0, 5});
 
+        // With interval
         int findCount = 0;
         tree.overlap_find_all({2, 3}, [&findCount](decltype(tree)::iterator iter){
+            ++findCount;
+            EXPECT_EQ(*iter, (decltype(tree)::interval_type{0, 5}));
+            return true;
+        });
+        EXPECT_EQ(findCount, tree.size());
+
+        // With numerical type
+        findCount = 0;
+        tree.overlap_find_all(2, [&findCount](decltype(tree)::iterator iter){
             ++findCount;
             EXPECT_EQ(*iter, (decltype(tree)::interval_type{0, 5}));
             return true;
@@ -824,8 +858,18 @@ TEST(IntervalTree, OverlapFind)
         tree.insert({0, 5});
         tree.insert({0, 5});
 
+        // With interval
         int findCount = 0;
         tree.overlap_find_all({2, 3}, [&findCount](decltype(tree)::iterator iter){
+            ++findCount;
+            EXPECT_EQ(*iter, (decltype(tree)::interval_type{0, 5}));
+            return findCount < 3;
+        });
+        EXPECT_EQ(findCount, 3);
+
+        // With numerical type
+        findCount = 0;
+        tree.overlap_find_all(2, [&findCount](decltype(tree)::iterator iter){
             ++findCount;
             EXPECT_EQ(*iter, (decltype(tree)::interval_type{0, 5}));
             return findCount < 3;

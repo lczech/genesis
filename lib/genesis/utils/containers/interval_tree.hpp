@@ -320,6 +320,10 @@ public:
         );
     }
 
+    // -------------------------------------------------------------------------
+    //     Find All
+    // -------------------------------------------------------------------------
+
     /**
      * @brief Find all exact matches and execute a function for each of them.
      */
@@ -379,6 +383,10 @@ public:
             }
         );
     }
+
+    // -------------------------------------------------------------------------
+    //     Find In Subtree
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Find the next exact match EXCLUDING from.
@@ -440,6 +448,10 @@ public:
         );
     }
 
+    // -------------------------------------------------------------------------
+    //     Overlap Find
+    // -------------------------------------------------------------------------
+
     /**
      * @brief Find the first interval that overlaps with ival.
      *
@@ -471,7 +483,29 @@ public:
     }
 
     /**
-     * @brief Find all intervals that overlaps with ival.
+     * @brief Find the first interval that overlaps with the given position.
+     */
+    iterator overlap_find( numerical_type position )
+    {
+        interval_type ival{ position, position };
+        return overlap_find( ival, false );
+    }
+
+    /**
+     * @brief Find the first interval that overlaps with the given position.
+     */
+    const_iterator overlap_find( numerical_type position ) const
+    {
+        interval_type ival{ position, position };
+        return overlap_find( ival, false );
+    }
+
+    // -------------------------------------------------------------------------
+    //     Overlap Find All
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Find all intervals that overlap with a given interval.
      *
      * @param ival The interval to find an overlap for within the tree.
      * @param exclusive Exclude edges?
@@ -486,9 +520,13 @@ public:
             return;
         }
         if (exclusive) {
-            overlap_find_all_<self_type, true, iterator, FunctionT>(this, root_, ival, on_find);
+            overlap_find_all_<self_type, true, iterator, FunctionT>(
+                this, root_, ival, on_find
+            );
         } else {
-            overlap_find_all_<self_type, false, iterator, FunctionT>(this, root_, ival, on_find);
+            overlap_find_all_<self_type, false, iterator, FunctionT>(
+                this, root_, ival, on_find
+            );
         }
     }
 
@@ -502,11 +540,43 @@ public:
             return;
         }
         if (exclusive) {
-            overlap_find_all_<self_type, true, const_iterator, FunctionT>(this, root_, ival, on_find);
+            overlap_find_all_<self_type, true, const_iterator, FunctionT>(
+                this, root_, ival, on_find
+            );
         } else {
-            overlap_find_all_<self_type, false, const_iterator, FunctionT>(this, root_, ival, on_find);
+            overlap_find_all_<self_type, false, const_iterator, FunctionT>(
+                this, root_, ival, on_find
+            );
         }
     }
+
+    /**
+     * @brief Find all intervals that overlap with a given position.
+     */
+    template <typename FunctionT>
+    void overlap_find_all(
+        numerical_type position,
+        FunctionT const& on_find
+    ) {
+        interval_type ival{ position, position };
+        overlap_find_all( ival, on_find, false );
+    }
+
+    /**
+     * @brief Find all intervals that overlap with a given position.
+     */
+    template <typename FunctionT>
+    void overlap_find_all(
+        numerical_type position,
+        FunctionT const& on_find
+    ) const {
+        interval_type ival{ position, position };
+        overlap_find_all( ival, on_find, false );
+    }
+
+    // -------------------------------------------------------------------------
+    //     Overlap Find In Subtree
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Find the next interval that overlaps with ival
@@ -839,6 +909,36 @@ private:
         }
     }
 
+    // excludes ptr
+    template <typename ComparatorFunctionT>
+    node_type* find_ex_(
+        node_type* ptr, interval_type const& ival, ComparatorFunctionT const& compare
+    ) const {
+        if (ptr->left_ && ival.high() <= ptr->left_->max()) {
+            // no right? can only continue left
+            if (!ptr->right_ || ival.low() > ptr->right_->max()) {
+                return find_(ptr->left_, ival, compare);
+            }
+
+            auto* res = find_(ptr->left_, ival, compare);
+            if (res != nullptr) {
+                return res;
+            }
+        }
+
+        if (ptr->right_ && ival.high() <= ptr->right_->max()) {
+            if (!ptr->left_ || ival.low() > ptr->left_->max()) {
+                return find_(ptr->right_, ival, compare);
+            }
+
+            auto* res = find_(ptr->right_, ival, compare);
+            if (res != nullptr) {
+                return res;
+            }
+        }
+        return nullptr;
+    }
+
     template <typename ThisType, typename IteratorT, typename FunctionT, typename ComparatorFunctionT>
     static bool find_all_(
         typename std::conditional<std::is_same<IteratorT, iterator>::value, ThisType, ThisType const>::type* self,
@@ -874,36 +974,6 @@ private:
         return true;
     }
 
-    // excludes ptr
-    template <typename ComparatorFunctionT>
-    node_type* find_ex_(
-        node_type* ptr, interval_type const& ival, ComparatorFunctionT const& compare
-    ) const {
-        if (ptr->left_ && ival.high() <= ptr->left_->max()) {
-            // no right? can only continue left
-            if (!ptr->right_ || ival.low() > ptr->right_->max()) {
-                return find_(ptr->left_, ival, compare);
-            }
-
-            auto* res = find_(ptr->left_, ival, compare);
-            if (res != nullptr) {
-                return res;
-            }
-        }
-
-        if (ptr->right_ && ival.high() <= ptr->right_->max()) {
-            if (!ptr->left_ || ival.low() > ptr->left_->max()) {
-                return find_(ptr->right_, ival, compare);
-            }
-
-            auto* res = find_(ptr->right_, ival, compare);
-            if (res != nullptr) {
-                return res;
-            }
-        }
-        return nullptr;
-    }
-
     // -------------------------------------------------------------------------
     //     Overlap Implementations
     // -------------------------------------------------------------------------
@@ -921,6 +991,36 @@ private:
             }
         }
         return overlap_find_ex_<Exclusive>(ptr, ival);
+    }
+
+    // excludes ptr
+    template <bool Exclusive>
+    node_type* overlap_find_ex_(node_type* ptr, interval_type const& ival) const
+    {
+        if (ptr->left_ && ptr->left_->max() >= ival.low()) {
+            // no right? can only continue left
+            // or upper bounds higher than what is contained right? continue left.
+            if (!ptr->right_ || ival.low() > ptr->right_->max()) {
+                return overlap_find_<Exclusive>(ptr->left_, ival);
+            }
+
+            auto* res = overlap_find_<Exclusive>(ptr->left_, ival);
+            if (res != nullptr) {
+                return res;
+            }
+        }
+
+        if (ptr->right_ && ptr->right_->max() >= ival.low()) {
+            if (!ptr->left_ || ival.low() > ptr->left_->max()) {
+                return overlap_find_<Exclusive>(ptr->right_, ival);
+            }
+
+            auto* res = overlap_find_<Exclusive>(ptr->right_, ival);
+            if (res != nullptr) {
+                return res;
+            }
+        }
+        return nullptr;
     }
 
     template <typename ThisType, bool Exclusive, typename IteratorT, typename FunctionT>
@@ -976,36 +1076,6 @@ private:
             }
         }
         return true;
-    }
-
-    // excludes ptr
-    template <bool Exclusive>
-    node_type* overlap_find_ex_(node_type* ptr, interval_type const& ival) const
-    {
-        if (ptr->left_ && ptr->left_->max() >= ival.low()) {
-            // no right? can only continue left
-            // or upper bounds higher than what is contained right? continue left.
-            if (!ptr->right_ || ival.low() > ptr->right_->max()) {
-                return overlap_find_<Exclusive>(ptr->left_, ival);
-            }
-
-            auto* res = overlap_find_<Exclusive>(ptr->left_, ival);
-            if (res != nullptr) {
-                return res;
-            }
-        }
-
-        if (ptr->right_ && ptr->right_->max() >= ival.low()) {
-            if (!ptr->left_ || ival.low() > ptr->left_->max()) {
-                return overlap_find_<Exclusive>(ptr->right_, ival);
-            }
-
-            auto* res = overlap_find_<Exclusive>(ptr->right_, ival);
-            if (res != nullptr) {
-                return res;
-            }
-        }
-        return nullptr;
     }
 
     // -------------------------------------------------------------------------
@@ -1074,7 +1144,7 @@ private:
     // }
 
     // -------------------------------------------------------------------------
-    //     Find Implementations
+    //     Modifiers Implementations
     // -------------------------------------------------------------------------
 
     void left_rotate_(node_type* x)
