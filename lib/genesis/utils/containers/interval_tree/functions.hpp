@@ -37,7 +37,7 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Interval Helper Functions
+//     Make Safe Interval
 // =================================================================================================
 
 /**
@@ -47,7 +47,7 @@ namespace utils {
  */
 template <
     typename DataType = EmptyIntervalData,
-    typename NumericalType = default_interval_value_type,
+    typename NumericalType = DefaultIntervalNumericalType,
     typename IntervalKind = IntervalClosed
 >
 #if __cplusplus >= 201703L
@@ -69,7 +69,7 @@ Interval<DataType, NumericalType, IntervalKind> make_safe_interval(
  */
 template <
     typename DataType = EmptyIntervalData,
-    typename NumericalType = default_interval_value_type,
+    typename NumericalType = DefaultIntervalNumericalType,
     typename IntervalKind = IntervalClosed
 >
 #if __cplusplus >= 201703L
@@ -92,7 +92,7 @@ Interval<DataType, NumericalType, IntervalKind> make_safe_interval(
  */
 template <
     typename DataType = EmptyIntervalData,
-    typename NumericalType = default_interval_value_type,
+    typename NumericalType = DefaultIntervalNumericalType,
     typename IntervalKind = IntervalClosed
 >
 #if __cplusplus >= 201703L
@@ -101,12 +101,16 @@ template <
 Interval<DataType, NumericalType, IntervalKind> make_safe_interval(
     NumericalType lhs,
     NumericalType rhs,
-    DataType && data
+    DataType&& data
 ) {
     return Interval<DataType, NumericalType, IntervalKind>{
         std::min(lhs, rhs), std::max(lhs, rhs), std::move(data)
     };
 }
+
+// =================================================================================================
+//     Join
+// =================================================================================================
 
 /**
  * @brief Creates a new Interval that contains both intervals and whatever is between.
@@ -115,7 +119,7 @@ Interval<DataType, NumericalType, IntervalKind> make_safe_interval(
  */
 template <
     typename DataType = EmptyIntervalData,
-    typename NumericalType = default_interval_value_type,
+    typename NumericalType = DefaultIntervalNumericalType,
     typename IntervalKind = IntervalClosed
 >
 Interval<DataType, NumericalType, IntervalKind> join(
@@ -132,7 +136,7 @@ Interval<DataType, NumericalType, IntervalKind> join(
  */
 template <
     typename DataType = EmptyIntervalData,
-    typename NumericalType = default_interval_value_type,
+    typename NumericalType = DefaultIntervalNumericalType,
     typename IntervalKind = IntervalClosed
 >
 Interval<DataType, NumericalType, IntervalKind> join(
@@ -150,7 +154,7 @@ Interval<DataType, NumericalType, IntervalKind> join(
  */
 template <
     typename DataType = EmptyIntervalData,
-    typename NumericalType = default_interval_value_type,
+    typename NumericalType = DefaultIntervalNumericalType,
     typename IntervalKind = IntervalClosed
 >
 Interval<DataType, NumericalType, IntervalKind> join(

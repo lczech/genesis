@@ -72,7 +72,7 @@ namespace utils {
  */
 template <
     typename DataType = EmptyIntervalData,
-    typename NumericalType = default_interval_value_type,
+    typename NumericalType = DefaultIntervalNumericalType,
     typename IntervalKind = IntervalClosed
 >
 class IntervalTree

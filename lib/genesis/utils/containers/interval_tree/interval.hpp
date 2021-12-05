@@ -122,7 +122,7 @@ struct IntervalOpen
 };
 
 /**
- * @brief Helper type to define a closes `[]` Interval.
+ * @brief Helper type to define a closed `[]` Interval.
  */
 struct IntervalClosed
 {
@@ -150,7 +150,7 @@ struct IntervalClosed
 /**
  * @brief Default numerical type to use in an Interval.
  */
-using default_interval_value_type = int;
+using DefaultIntervalNumericalType = int;
 
 /**
  * @brief Empty class used as default for Interval data.
@@ -167,7 +167,7 @@ struct EmptyIntervalData
 // =================================================================================================
 
 /**
- * @brief Iterate the Interval%s stored in an IntervalTree.
+ * @brief Type to store an interval (range) between two numbers, as used in the IntervalTree.
  *
  * The implementation is based on [interval-tree](https://github.com/5cript/interval-tree),
  * which is published under the CC0-1.0 License (Creative Commons Zero v1.0 Universal);
@@ -177,7 +177,7 @@ struct EmptyIntervalData
  */
 template <
     typename DataType = EmptyIntervalData,
-    typename NumericalType = default_interval_value_type,
+    typename NumericalType = DefaultIntervalNumericalType,
     typename IntervalKind = IntervalClosed
 >
 struct Interval
@@ -382,9 +382,9 @@ public:
         return high_ - low_;
     }
 
-    std::string to_string() const
+    std::string to_string( bool narrow = false ) const
     {
-        return interval_kind::to_string( low_, high_ );
+        return interval_kind::to_string( low_, high_, narrow );
     }
 
     operator std::string() const
