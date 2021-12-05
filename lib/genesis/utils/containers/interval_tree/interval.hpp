@@ -65,6 +65,16 @@ struct IntervalLeftOpen
     {
         return (b < p) && (p <= e);
     }
+
+    template <typename NumericalType>
+    static inline std::string to_string(NumericalType b, NumericalType e, bool narrow = false)
+    {
+        if( narrow ) {
+            return "("  + std::to_string(b) + ","  + std::to_string(e) + "]";
+        } else {
+            return "( " + std::to_string(b) + ", " + std::to_string(e) + " ]";
+        }
+    }
 };
 
 /**
@@ -76,6 +86,16 @@ struct IntervalRightOpen
     static inline bool within(NumericalType b, NumericalType e, NumericalType p)
     {
         return (b <= p) && (p < e);
+    }
+
+    template <typename NumericalType>
+    static inline std::string to_string(NumericalType b, NumericalType e, bool narrow = false)
+    {
+        if( narrow ) {
+            return "["  + std::to_string(b) + ","  + std::to_string(e) + ")";
+        } else {
+            return "[ " + std::to_string(b) + ", " + std::to_string(e) + " )";
+        }
     }
 };
 
@@ -89,6 +109,16 @@ struct IntervalOpen
     {
         return (b < p) && (p < e);
     }
+
+    template <typename NumericalType>
+    static inline std::string to_string(NumericalType b, NumericalType e, bool narrow = false)
+    {
+        if( narrow ) {
+            return "("  + std::to_string(b) + ","  + std::to_string(e) + ")";
+        } else {
+            return "( " + std::to_string(b) + ", " + std::to_string(e) + " )";
+        }
+    }
 };
 
 /**
@@ -100,6 +130,16 @@ struct IntervalClosed
     static inline bool within(NumericalType b, NumericalType e, NumericalType p)
     {
         return (b <= p) && (p <= e);
+    }
+
+    template <typename NumericalType>
+    static inline std::string to_string(NumericalType b, NumericalType e, bool narrow = false)
+    {
+        if( narrow ) {
+            return "["  + std::to_string(b) + ","  + std::to_string(e) + "]";
+        } else {
+            return "[ " + std::to_string(b) + ", " + std::to_string(e) + " ]";
+        }
     }
 };
 
@@ -340,6 +380,16 @@ public:
     numerical_type size() const
     {
         return high_ - low_;
+    }
+
+    std::string to_string() const
+    {
+        return interval_kind::to_string( low_, high_ );
+    }
+
+    operator std::string() const
+    {
+        return to_string();
     }
 
     // -------------------------------------------------------------------------
