@@ -174,6 +174,32 @@ public:
         return {root_, this};
     }
 
+    /**
+     * @brief Return the lowest low value of the contained Interval%s.
+     *
+     * This is the leftmost position of all intervals.
+     */
+    numerical_type lowest() const
+    {
+        if( ! root_ ) {
+            throw std::runtime_error( "Cannot call lowest() on empty IntervalTree" );
+        }
+        return minimum_( root_ )->low();
+    }
+
+    /**
+     * @brief Return the highest high value of the contained Interval%s.
+     *
+     * This is the rightmost position of all intervals.
+     */
+    numerical_type highest() const
+    {
+        if( ! root_ ) {
+            throw std::runtime_error( "Cannot call highest() on empty IntervalTree" );
+        }
+        return root_->max();
+    }
+
     // -------------------------------------------------------------------------
     //     Iterators
     // -------------------------------------------------------------------------

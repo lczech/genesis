@@ -532,6 +532,9 @@ TEST(IntervalTree, Find)
         EXPECT_NE(iter, std::end(tree));
         EXPECT_EQ(iter->low(), 15);
         EXPECT_EQ(iter->high(), 23);
+
+        EXPECT_EQ(  0, tree.lowest() );
+        EXPECT_EQ( 30, tree.highest() );
     }
 
     // Find All In Tree With Duplicates
@@ -568,6 +571,8 @@ TEST(IntervalTree, Find)
             return findCount < 3;
         });
         EXPECT_EQ(findCount, 3);
+        EXPECT_EQ( 5, tree.lowest() );
+        EXPECT_EQ( 8, tree.highest() );
     }
 
     // Find All Elements Back
@@ -646,6 +651,8 @@ TEST(IntervalTree, Find)
 
         ASSERT_EQ(intervals.size(), 1);
         EXPECT_EQ(intervals[0], targetInterval);
+        EXPECT_EQ(  8, tree.lowest() );
+        EXPECT_EQ( 30, tree.highest() );
     }
 
     // Overlap Find All On Const Tree
@@ -754,6 +761,9 @@ TEST(IntervalTree, OverlapFind)
             intervals.push_back(*iter);
             return true;
         });
+        EXPECT_EQ(  0, tree.lowest() );
+        EXPECT_EQ( 20, tree.highest() );
+
         // using ::testing::UnorderedElementsAre;
         // ASSERT_THAT(intervals, UnorderedElementsAre(decltype(tree)::interval_type{0, 5}, decltype(tree)::interval_type{5, 10}));
     }
@@ -783,6 +793,8 @@ TEST(IntervalTree, OverlapFind)
             return true;
         });
         EXPECT_EQ(findCount, 0);
+        EXPECT_EQ(  5, tree.lowest() );
+        EXPECT_EQ( 30, tree.highest() );
     }
 
     // Find All Will Find All With Lots Of Duplicates
@@ -838,6 +850,8 @@ TEST(IntervalTree, OverlapFind)
         EXPECT_NE(iter, std::end(tree));
         EXPECT_EQ(iter->low(), 1000);
         EXPECT_EQ(iter->high(), 2000);
+        EXPECT_EQ( 5, tree.lowest() );
+        EXPECT_EQ( 2000, tree.highest() );
     }
 }
 
@@ -871,6 +885,9 @@ TEST(IntervalTree, FloatOverlapFind)
     tree.insert(mk_safe_dbl_ival(9.562870818388700e-01, 1.134464013796314e+00));
     tree.insert(mk_safe_dbl_ival(1.127801743538376e+00, 1.308996938995747e+00));
     tree.insert(mk_safe_dbl_ival(1.296053859335657e+00, 1.483529864195180e+00));
+
+    EXPECT_FLOAT_EQ( -1.483529864195180e+00, tree.lowest() );
+    EXPECT_FLOAT_EQ(  1.483529864195180e+00, tree.highest() );
 
     double lat0 = 1.040893537045970;
     double lat1 = 1.570796326794897;
