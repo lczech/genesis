@@ -27,7 +27,7 @@
 /*
     The code below is adapted from https://github.com/5cript/interval-tree
     which was published under the CC0-1.0 License (Creative Commons Zero v1.0 Universal).
-    We modified the code to fit our needs and formatting, but the functionaly is the same.
+    We modified the code to fit our needs and formatting, but the functionality is the same.
  */
 
 /**
