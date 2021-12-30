@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2021 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -62,13 +62,15 @@ namespace utils {
  * @param[out]  out_stream  Reference to the target output stream. Unfortunately, we cannot return
  *                          streams, as they do not offer copy or move, so we have to do it this way.
  * @param[in]   mode        Mode flag as used by std::ostream.
+ * @param[in]   create_dirs Create parent directories if needed.
  *
  * @see Options::allow_file_overwriting( bool )
  */
 inline void file_output_stream(
     std::string const&      filename,
     std::ofstream&          out_stream,
-    std::ios_base::openmode mode = std::ios_base::out
+    std::ios_base::openmode mode = std::ios_base::out,
+    bool                    create_dirs = true
 ) {
     if( ! Options::get().allow_file_overwriting() && utils::file_exists( filename ) ) {
         throw except::ExistingFileError(
@@ -76,6 +78,11 @@ inline void file_output_stream(
             "files, activate genesis::utils::Options::get().allow_file_overwriting() first.",
             filename
         );
+    }
+
+    if( create_dirs ) {
+        auto const path = file_path( filename );
+        dir_create( path );
     }
 
     out_stream.open( filename, mode );
