@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -185,6 +185,9 @@ inline VariantInputIterator make_variant_input_iterator_from_sync_file(
     );
 }
 
+// Only available if compiled with htslib
+#ifdef GENESIS_HTSLIB
+
 /**
  * @brief Create a VariantInputIterator to iterate the contents of a VCF file as Variant%s.
  *
@@ -234,6 +237,8 @@ inline VariantInputIterator make_variant_input_iterator_from_vcf_file(
         std::move( data )
     );
 }
+
+#endif // GENESIS_HTSLIB
 
 // =================================================================================================
 //     Filters
