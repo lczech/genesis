@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -32,6 +32,7 @@
 
 #include "genesis/utils/core/version.hpp"
 
+#include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
@@ -105,7 +106,7 @@ void Options::command_line( int const argc, char const* const* argv )
 //     Number of Threads
 // =================================================================================================
 
-void Options::number_of_threads ( unsigned int number )
+void Options::number_of_threads( unsigned int number )
 {
     if( number == 0 ) {
         #ifdef GENESIS_PTHREADS
@@ -145,12 +146,19 @@ unsigned int Options::guess_number_of_threads( bool use_openmp ) const
     // Dummy to avoid compiler warnings.
     (void) use_openmp;
 
+    // Default to single threaded.
+    unsigned int guess = 1;
+
     #if defined( GENESIS_OPENMP )
 
         // Use number of OpenMP threads, which might be set through the
         // `OMP_NUM_THREADS` environment variable.
+        // If there was an error there, fix it.
         if( use_openmp ) {
-            return omp_get_max_threads();
+            guess = omp_get_max_threads();
+        }
+        if( guess == 0 ) {
+            guess = 1;
         }
 
     #endif
@@ -158,18 +166,22 @@ unsigned int Options::guess_number_of_threads( bool use_openmp ) const
     #if defined( GENESIS_PTHREADS )
 
         // Initialize threads with actual number of cores.
-        // return std::thread::hardware_concurrency();
-
         auto const lcores = std::thread::hardware_concurrency();
-        auto const threads_per_core = hyperthreads_enabled() ? 2 : 1;
-        return lcores / threads_per_core;
 
-    #else
-
-        // Default to single threaded.
-        return 1;
+        // If hardware concurrency and openmp agree that there is more than one core,
+        // this means that OMP_NUM_THREADS was not set to anything specific, and hence we want
+        // to use all cores. However, in that case, we need to correct for hypterthreading.
+        // Also, if guess == 1 here, openmp was not used above, so in that case we also use
+        // the hardware concurrency as the guess.
+        if((( lcores == guess ) || ( guess == 1 )) && ( lcores > 1 )) {
+            auto const threads_per_core = hyperthreads_enabled() ? 2 : 1;
+            guess = lcores / threads_per_core;
+        }
 
     #endif
+
+    assert( guess >= 1 );
+    return guess;
 }
 
 // =================================================================================================
