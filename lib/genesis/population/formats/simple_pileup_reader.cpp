@@ -51,7 +51,7 @@ namespace population {
 /**
  * @brief Local helper function to remove code duplication for the correct input order check.
  */
-void process_pileup_correct_input_order_(
+void process_pileup_correct_input_order_check_(
     utils::InputStream const& it,
     std::string& cur_chr, size_t& cur_pos,
     std::string const& new_chr, size_t new_pos
@@ -77,7 +77,7 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
     size_t      cur_pos = 0;
     Record rec;
     while( parse_line_( it, rec, {}, false )) {
-        process_pileup_correct_input_order_( it, cur_chr, cur_pos, rec.chromosome, rec.position );
+        process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, rec.chromosome, rec.position );
         result.push_back( rec );
     }
     return result;
@@ -98,7 +98,7 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
     size_t      cur_pos = 0;
     Record rec;
     while( parse_line_( it, rec, sample_filter, true )) {
-        process_pileup_correct_input_order_( it, cur_chr, cur_pos, rec.chromosome, rec.position );
+        process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, rec.chromosome, rec.position );
         result.push_back( rec );
     }
     return result;
@@ -116,7 +116,7 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
     size_t      cur_pos = 0;
     Record rec;
     while( parse_line_( it, rec, sample_filter, true )) {
-        process_pileup_correct_input_order_( it, cur_chr, cur_pos, rec.chromosome, rec.position );
+        process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, rec.chromosome, rec.position );
         result.push_back( rec );
     }
     return result;
@@ -137,7 +137,7 @@ std::vector<Variant> SimplePileupReader::read_variants(
     size_t      cur_pos = 0;
     Variant var;
     while( parse_line_( it, var, {}, false )) {
-        process_pileup_correct_input_order_( it, cur_chr, cur_pos, var.chromosome, var.position );
+        process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, var.chromosome, var.position );
         result.push_back( var );
     }
     return result;
@@ -158,7 +158,7 @@ std::vector<Variant> SimplePileupReader::read_variants(
     size_t      cur_pos = 0;
     Variant var;
     while( parse_line_( it, var, sample_filter, true )) {
-        process_pileup_correct_input_order_( it, cur_chr, cur_pos, var.chromosome, var.position );
+        process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, var.chromosome, var.position );
         result.push_back( var );
     }
     return result;
@@ -176,7 +176,7 @@ std::vector<Variant> SimplePileupReader::read_variants(
     size_t      cur_pos = 0;
     Variant var;
     while( parse_line_( it, var, sample_filter, true )) {
-        process_pileup_correct_input_order_( it, cur_chr, cur_pos, var.chromosome, var.position );
+        process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, var.chromosome, var.position );
         result.push_back( var );
     }
     return result;
@@ -601,7 +601,7 @@ void SimplePileupReader::process_quality_string_<BaseCounts>(
 
             // Process the score, and tally up its base if the score is high enough.
             auto const score = sequence::quality_decode_to_phred_score( *it, quality_encoding_ );
-            if( score >= min_phred_score_ ) {
+            if( score >= min_base_quality_ ) {
                 tally_base_( it, sample, base_buffer_[pos] );
             }
 
@@ -718,10 +718,18 @@ void SimplePileupReader::process_ancestral_base_<BaseCounts>(
 
     // Also check if we want to read the ancestral base, if present.
     if( with_ancestral_base_ ) {
-        throw std::runtime_error(
-            "SimplePileupReader currently does not implement to read (m)pileup files "
-            "with ancestral bases when reading Variants."
-        );
+        // throw std::runtime_error(
+        //     "SimplePileupReader currently does not implement to read (m)pileup files "
+        //     "with ancestral bases when reading Variants."
+        // );
+
+        // Let's simply read and ignore the ancestral base, as our Variant/BaseCounts setup
+        // does not store those at the moment.
+        // For simplicity and to avoid code duplication, we just call the other version of this
+        // function with a dummy Sample. This is not super efficient, but given how rare pileups
+        // with ancestral base are, this is totally fine for now. Can optimize later.
+        SimplePileupReader::Sample dummy;
+        process_ancestral_base_( input_stream, dummy );
     }
 }
 

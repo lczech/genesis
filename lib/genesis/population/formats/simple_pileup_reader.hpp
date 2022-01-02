@@ -92,6 +92,7 @@ public:
      *  2. A list of bases (and some other information on read start and end etc) from the reads
      *     that cover the given position on the chromosome.
      *  3. (Optionally) A list of phread-scaled ASCII-encoded quality scores for the list of bases.
+     *  4. (Optionally) The ancestral base at the position (some pileup files have this).
      *
      * As this here is a simple reader, we ignore the information on read starts/ends, as well as
      * potential insertions and deletions (indels), and instead simply tally up the number of
@@ -373,7 +374,7 @@ public:
      * allele of each position directly within the pipleup file. Set to true when this is present
      * in the input.
      *
-     * A typical line from a pileup file looks like
+     * A typical line from a pileup file with ancestral bases looks like
      *
      *     2L	30	A	15	aaaAaaaAaAAaaAa	PY\aVO^`ZaaV[_S	A
      *
@@ -396,9 +397,9 @@ public:
      *
      * This is only used for the reading and parsing functions that return Variant%s.
      */
-    size_t min_phred_score() const
+    size_t min_base_quality() const
     {
-        return min_phred_score_;
+        return min_base_quality_;
     }
 
     /**
@@ -406,12 +407,14 @@ public:
      * to be added to the Variant BaseCounts for a sample.
      *
      * Bases below this quality score are ignored when summing up the counts per sample.
+     * Default is 0, meaning that all bases are used.
      *
      * This is only used for the reading and parsing functions that return Variant%s.
+     * When reading a Sample instead, all bases and their quality scores are in the output.
      */
-    self_type& min_phred_score( size_t value )
+    self_type& min_base_quality( size_t value )
     {
-        min_phred_score_ = value;
+        min_base_quality_ = value;
         return *this;
     }
 
@@ -495,7 +498,7 @@ private:
     // (we default to Sanger with offset 33), and if we want to skip low quality bases.
     bool with_quality_string_ = true;
     sequence::QualityEncoding quality_encoding_ = sequence::QualityEncoding::kSanger;
-    size_t min_phred_score_ = 0;
+    size_t min_base_quality_ = 0;
 
     // Set whether the last part of the sample line contains the base of the ancestral allele.
     bool with_ancestral_base_ = false;

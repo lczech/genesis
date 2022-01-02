@@ -139,19 +139,21 @@ std::vector<std::string> file_read_lines( std::string const& filename, bool dete
     return result;
 }
 
-void file_write( std::string const& content, std::string const& filename )
+void file_write( std::string const& content, std::string const& filename, bool create_dirs )
 {
-    // TODO check if path exists, create if not (make a function for that)
-
     std::ofstream ofs;
-    utils::file_output_stream( filename, ofs );
+    utils::file_output_stream( filename, ofs, std::ios_base::out, create_dirs );
     ofs << content;
 }
 
-void file_append( std::string const& content, std::string const& filename )
+void file_append( std::string const& content, std::string const& filename, bool create_dirs )
 {
-    // TODO check if path exists, create if not (make a function for that)
     // TODO maybe merge with file_write and use mode as optional parameter.
+
+    if( create_dirs ) {
+        auto const path = file_path( filename );
+        dir_create( path );
+    }
 
     std::ofstream out_stream( filename, std::ofstream::app );
     if( out_stream.fail() ) {
@@ -686,8 +688,7 @@ std::string file_basename( std::string const& filename )
 {
     auto result = filename;
     const size_t idx = result.find_last_of("\\/");
-    if (idx != std::string::npos)
-    {
+    if( idx != std::string::npos ) {
         result.erase(0, idx + 1);
     }
     return result;
@@ -710,8 +711,7 @@ std::string file_filename( std::string const& filename )
 {
     auto result = filename;
     const size_t idx = result.rfind('.');
-    if (idx != 0 && idx != std::string::npos)
-    {
+    if( idx != 0 && idx != std::string::npos ) {
         result.erase(idx);
     }
     return result;
@@ -721,8 +721,7 @@ std::string file_extension( std::string const& filename )
 {
     auto result = filename;
     const size_t idx = result.rfind('.');
-    if (idx != 0 && idx != std::string::npos)
-    {
+    if( idx != 0 && idx != std::string::npos ) {
         result.erase(0, idx + 1);
     }
     return result;

@@ -68,7 +68,10 @@ bool file_exists( std::string const& filename );
  *
  * If the file is not readable, the function throws `std::runtime_error`.
  */
-std::string file_read( std::string const& filename, bool detect_compression = true );
+std::string file_read(
+    std::string const& filename,
+    bool detect_compression = true
+);
 
 /**
  * @brief Return the contents of a file as a vector of strings, one entry for each line.
@@ -78,7 +81,10 @@ std::string file_read( std::string const& filename, bool detect_compression = tr
  *
  * If the file is not readable, the function throws `std::runtime_error`.
  */
-std::vector<std::string> file_read_lines( std::string const& filename, bool detect_compression = true );
+std::vector<std::string> file_read_lines(
+    std::string const& filename,
+    bool detect_compression = true
+);
 
 /**
  * @brief Write the content of a string to a file.
@@ -88,14 +94,22 @@ std::vector<std::string> file_read_lines( std::string const& filename, bool dete
  * See @link Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
  * change this behaviour.
  */
-void file_write( std::string const& content, std::string const& filename );
+void file_write(
+    std::string const& content,
+    std::string const& filename,
+    bool create_dirs = true
+);
 
 /**
  * @brief Append the content of a string to a file.
  *
  * If the file is not writable, the function throws `std::runtime_error`.
  */
-void file_append( std::string const& content, std::string const& filename );
+void file_append(
+    std::string const& content,
+    std::string const& filename,
+    bool create_dirs = true
+);
 
 // =================================================================================================
 //     Directory Access
