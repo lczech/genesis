@@ -41,7 +41,9 @@
 #   include <io.h>
 #   include <windows.h>
 #else
+#ifndef __aarch64__
 #   include <cpuid.h>
+#endif
 #   include <stdio.h>
 #   include <sys/ioctl.h>
 #   include <unistd.h>
@@ -132,7 +134,10 @@ bool Options::hyperthreads_enabled() const
 {
     // Get CPU info.
     int32_t info[4];
-    #ifdef _WIN32
+    #ifdef __aarch64__
+        (void)info;
+        return false;
+    #elif defined( _WIN32 )
         __cpuid( info, 1 );
     #else
         __cpuid_count( 1, 0, info[0], info[1], info[2], info[3] );

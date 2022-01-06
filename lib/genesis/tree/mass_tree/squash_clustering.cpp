@@ -41,6 +41,7 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
+#include <limits>
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>

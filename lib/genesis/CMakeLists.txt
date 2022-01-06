@@ -56,6 +56,13 @@ if (GENESIS_BUILD_SHARED_LIB)
     add_library           (genesis_lib_shared SHARED ${genesis_lib_sources})
     set_target_properties (genesis_lib_shared PROPERTIES OUTPUT_NAME genesis)
 
+    # explicitly add OpenMP, compatible with Macos/brew installed OpenMP after Cmake 3.12
+    if(${CMAKE_VERSION} VERSION_GREATER "3.9.0")
+      if(OPENMP_FOUND)
+        target_link_libraries (genesis_lib_shared PUBLIC OpenMP::OpenMP_CXX)
+      endif()
+    endif()
+
     # Link against any external libraries, e.g. Pthreads.
     target_link_libraries (genesis_lib_shared PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
 
@@ -74,6 +81,13 @@ if (GENESIS_BUILD_STATIC_LIB)
     message (STATUS "${ColorBlue}Building static lib${ColorEnd}")
     add_library           (genesis_lib_static STATIC ${genesis_lib_sources})
     set_target_properties (genesis_lib_static PROPERTIES OUTPUT_NAME genesis)
+
+    # explicitly add OpenMP, compatible with Macos/brew installed OpenMP after Cmake 3.12
+    if(${CMAKE_VERSION} VERSION_GREATER "3.9.0")
+      if(OPENMP_FOUND)
+        target_link_libraries (genesis_lib_static PUBLIC OpenMP::OpenMP_CXX)
+      endif()
+    endif()
 
     # Link against any external libraries, e.g. Pthreads.
     target_link_libraries (genesis_lib_static PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
