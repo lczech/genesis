@@ -39,6 +39,7 @@
 #include <algorithm>
 #include <cassert>
 #include <stdexcept>
+#include <limits>
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>

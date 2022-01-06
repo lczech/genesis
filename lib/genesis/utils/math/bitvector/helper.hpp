@@ -32,6 +32,7 @@
  */
 
 #include <vector>
+#include <cstddef>
 
 namespace genesis {
 namespace utils {
