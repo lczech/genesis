@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -180,10 +180,34 @@ double diameter( Tree const& tree )
     if( tree.empty() ) {
         return 0.0;
     }
-    auto dist_mat = node_branch_length_distance_matrix( tree );
-    assert( ! dist_mat.empty() );
-    assert( dist_mat.rows() == dist_mat.cols() );
-    return *std::max_element( dist_mat.begin(), dist_mat.end() );
+
+    // Finding the diameter of a tee (as a graph) can be done via BFS from the root to find one of
+    // the ends of the dimater, and then another BFS from that leaf to the other end of the dimater:
+    // https://cs.stackexchange.com/questions/22855/algorithm-to-find-diameter-of-a-tree-using-bfs-dfs-why-does-it-work
+    // This however goes by number of nodes, instead of branch lengths. Still, I'm fairly certain
+    // that the same logic applies, and so we can use this technique to find our dimater with
+    // just two BFSs and only little memory!
+
+    // Find the node that is furthest from the root. It has to be a leaf.
+    auto const root_dists = node_branch_length_distance_vector( tree );
+    auto const max_idx_1 = std::distance(
+        root_dists.begin(), std::max_element( root_dists.begin(), root_dists.end() )
+    );
+    assert( root_dists.size() == tree.node_count() );
+    assert( is_leaf( tree.node_at( max_idx_1 ) ));
+
+    // Now find the node that is furthest from that previously found node,
+    // and return its distance. We do not need to identify its index;
+    // we can just return the max element of the list of distances.
+    auto const far_dists = node_branch_length_distance_vector( tree, &tree.node_at( max_idx_1 ));
+    assert( far_dists.size() == tree.node_count() );
+    return *std::max_element( far_dists.begin(), far_dists.end() );
+
+    // Old, slow, and very memory intensive for large trees.
+    // auto dist_mat = node_branch_length_distance_matrix( tree );
+    // assert( ! dist_mat.empty() );
+    // assert( dist_mat.rows() == dist_mat.cols() );
+    // return *std::max_element( dist_mat.begin(), dist_mat.end() );
 }
 
 std::vector<double> branch_lengths(
