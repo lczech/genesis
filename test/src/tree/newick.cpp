@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -34,14 +34,17 @@
 
 #include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/common_tree/newick_writer.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/formats/newick/color_writer_plugin.hpp"
 #include "genesis/tree/formats/newick/input_iterator.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/formats/newick/simple_reader.hpp"
+#include "genesis/tree/formats/newick/simple_tree.hpp"
+#include "genesis/tree/formats/newick/simple_writer.hpp"
 #include "genesis/tree/formats/newick/writer.hpp"
-#include "genesis/tree/tree.hpp"
+#include "genesis/tree/function/functions.hpp"
+#include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/tree_set.hpp"
+#include "genesis/tree/tree.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -242,4 +245,13 @@ TEST( Newick, MultipleNamedTreesIterator )
         ++count;
     }
     EXPECT_EQ( 7, count );
+}
+
+TEST( Newick, SimpleReaderWriter )
+{
+    // Tree with all kinds of newick shenennigans.
+    std::string const newick_string = "(A:0.1:0.9:100[a nice comment],B:0.2:0.3[&&NHX:support=1.0]{5},(C:0.3{10}{11},D:0.4[comment1][comment2]):0.5);\n";
+    auto const tree = SimpleNewickTreeNewickReader().read( from_string( newick_string ));
+    EXPECT_TRUE( validate_topology(tree) );
+    EXPECT_EQ( newick_string, SimpleNewickTreeNewickWriter().to_string( tree ));
 }
