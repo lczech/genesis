@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,6 +40,8 @@
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/formats/sync_input_iterator.hpp"
 #include "genesis/population/formats/sync_reader.hpp"
+#include "genesis/population/formats/variant_input_iterator.hpp"
+#include "genesis/population/formats/variant_parallel_input_iterator.hpp"
 #include "genesis/population/formats/vcf_common.hpp"
 #include "genesis/population/formats/vcf_format_iterator.hpp"
 #include "genesis/population/formats/vcf_header.hpp"
@@ -47,11 +49,14 @@
 #include "genesis/population/formats/vcf_record.hpp"
 #include "genesis/population/functions/base_counts.hpp"
 #include "genesis/population/functions/diversity.hpp"
+#include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/genome_heatmap.hpp"
+#include "genesis/population/functions/genome_locus.hpp"
 #include "genesis/population/functions/genome_region.hpp"
 #include "genesis/population/functions/heatmap_colorization.hpp"
 #include "genesis/population/functions/structure.hpp"
 #include "genesis/population/functions/variant.hpp"
+#include "genesis/population/genome_locus.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/population/window/af_spectrum.hpp"
