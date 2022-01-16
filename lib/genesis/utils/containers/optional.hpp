@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_CONTAINERS_OPTINAL_H_
-#define GENESIS_UTILS_CONTAINERS_OPTINAL_H_
+#ifndef GENESIS_UTILS_CONTAINERS_OPTIONAL_H_
+#define GENESIS_UTILS_CONTAINERS_OPTIONAL_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
