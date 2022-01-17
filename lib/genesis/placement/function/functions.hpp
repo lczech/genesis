@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -190,6 +190,28 @@ void filter_min_weight_threshold( Pquery& pquery, double threshold = 0.01 );
  * from all @link Pquery Pqueries @endlink of the Sample.
  */
 void filter_min_weight_threshold( Sample& smp,    double threshold = 0.01 );
+
+/**
+ * @brief Remove all PqueryPlacement%s that have a `pendant_length` below the given threshold.
+ */
+void filter_min_pendant_length( Pquery& pquery, double threshold );
+
+/**
+ * @brief Remove all PqueryPlacement%s that have a `pendant_length` below the given threshold
+ * from all @link Pquery Pqueries @endlink of the Sample.
+ */
+void filter_min_pendant_length( Sample& sample, double threshold );
+
+/**
+ * @brief Remove all PqueryPlacement%s that have a `pendant_length` above the given threshold.
+ */
+void filter_max_pendant_length( Pquery& pquery, double threshold );
+
+/**
+ * @brief Remove all PqueryPlacement%s that have a `pendant_length` above the given threshold
+ * from all @link Pquery Pqueries @endlink of the Sample.
+ */
+void filter_max_pendant_length( Sample& sample, double threshold );
 
 /**
  * @brief Remove all @link Pquery Pqueries@endlink from the Sample that have no PqueryPlacement%s.
