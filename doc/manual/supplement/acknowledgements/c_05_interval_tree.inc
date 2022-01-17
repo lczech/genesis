@@ -9,8 +9,8 @@ Genesis contains an implementation of an interval tree:
 
 The code of these classes is adapted from
 [interval-tree](https://github.com/5cript/interval-tree) by
-Tim Ebbeke ([@5cript](https://github.com/5cript)) and
-Nick Weber ([@WeberNick](https://github.com/WeberNick)).
+Tim Ebbeke ([\@5cript](https://github.com/5cript)) and
+Nick Weber ([\@WeberNick](https://github.com/WeberNick)).
 We adapted the original code by renaming the classes and variables and formatting the code
 to our standards, as well as improving some of the functions and adding additional functionality
 for our needs.

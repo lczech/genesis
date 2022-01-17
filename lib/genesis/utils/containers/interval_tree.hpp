@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -424,7 +424,6 @@ public:
      *
      * @param from The iterator to search from, EXCLUSIVE!
      * @param ival The interval to find an exact match for within the tree.
-     * @param compare A comparison function to use.
      */
     iterator find_next_in_subtree(iterator from, interval_type const& ival)
     {
@@ -508,6 +507,7 @@ public:
      * @brief Find all intervals that overlap with a given interval.
      *
      * @param ival The interval to find an overlap for within the tree.
+     * @param on_find Functional to run for each found interval.
      * @param exclusive Exclude edges?
      */
     template <typename FunctionT>
