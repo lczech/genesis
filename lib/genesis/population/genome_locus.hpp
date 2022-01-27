@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
  * @ingroup population
  */
 
+#include <stdexcept>
 #include <string>
 
 namespace genesis {
@@ -83,6 +84,144 @@ struct GenomeLocus
         return chromosome + ":" + std::to_string( position );
     }
 };
+
+// Alternative version that also has a data field.
+//
+// // =================================================================================================
+// //     Genome Locus
+// // =================================================================================================
+//
+// /**
+//  * @brief A single locus, that is, a position on a chromosome.
+//  *
+//  * For our purposes, we define a locus to be one position on one chromosome exactly.
+//  * We use 1-based positions, in order to comply with common chromosome annotation formats.
+//  * Furthermore, we use an empty chromosome string and/or position 0 as indicators of an empty or
+//  * default constructed locus.
+//  *
+//  * When working with multiple loci, we often expect their chromosome names to be sorted in
+//  * lexicographical order. Hence, for example, when comparing two loci on different chromosomes,
+//  * we also take the ordering of their chromosome names into account, see the `locus_...()`
+//  * compare functions for example.
+//  *
+//  * The class takes an extra data type as template parameter, which can be used to store
+//  * arbitrary data for this locus.
+//
+//  * @see GenomeRegion
+//  * @see GenomeRegionList
+//  */
+// template<class DataType = EmptyGenomeData>
+// class GenomeLocus
+// {
+// public:
+//
+//     // -------------------------------------------------------------------------
+//     //     Typedefs
+//     // -------------------------------------------------------------------------
+//
+//     using data_type = DataType;
+//
+//     // -------------------------------------------------------------------------
+//     //     Constructors and Rule of Five
+//     // -------------------------------------------------------------------------
+//
+//     /**
+//      * @brief Default construct an empty locus.
+//      */
+//     GenomeLocus() = default;
+//
+//     /**
+//      * @brief Construct a locus with a chromosome and position.
+//      */
+//     GenomeLocus( std::string const& chr, size_t pos )
+//         : GenomeLocus( chr, pos, DataType{} )
+//     {}
+//
+//     /**
+//      * @brief Construct a locus with a chromosome and position, and copy the data.
+//      */
+//     GenomeLocus( std::string const& chr, size_t pos, DataType const& data )
+//         : GenomeLocus( chr, pos, DataType{ data })
+//     {}
+//
+//     /**
+//      * @brief Construct a locus with a chromosome and position, and move the data.
+//      */
+//     GenomeLocus( std::string const& chr, size_t pos, DataType&& data )
+//         : chromosome_( chr )
+//         , position_( pos )
+//         , data_( std::move( data ))
+//     {
+//         if( chr.empty() || pos == 0 ) {
+//             throw std::invalid_argument(
+//                 "Cannot construct GenomeLocus with empty chromosome or position zero."
+//             );
+//         }
+//     }
+//
+//     ~GenomeLocus() = default;
+//
+//     GenomeLocus( GenomeLocus const& ) = default;
+//     GenomeLocus( GenomeLocus&& )      = default;
+//
+//     GenomeLocus& operator= ( GenomeLocus const& ) = default;
+//     GenomeLocus& operator= ( GenomeLocus&& )      = default;
+//
+//     // -------------------------------------------------------------------------
+//     //     Accessors
+//     // -------------------------------------------------------------------------
+//
+//     std::string const& chromosome() const
+//     {
+//         return chromosome_;
+//     }
+//
+//     size_t position() const
+//     {
+//         return position_;
+//     }
+//
+//     data_type& data()
+//     {
+//         return data_;
+//     }
+//
+//     data_type const& data() const
+//     {
+//         return data_;
+//     }
+//
+//     bool empty() const
+//     {
+//         return chromosome_ == "" && position_ == 0;
+//     }
+//
+//     // -------------------------------------------------------------------------
+//     //     Operators
+//     // -------------------------------------------------------------------------
+//
+//     operator std::string() const
+//     {
+//         return to_string();
+//     }
+//
+//     std::string to_string() const
+//     {
+//         return chromosome_ + ":" + std::to_string( position_ );
+//     }
+//
+//     // -------------------------------------------------------------------------
+//     //     Member Variables
+//     // -------------------------------------------------------------------------
+//
+// private:
+//
+//     std::string chromosome_;
+//     size_t      position_ = 0;
+//
+//     data_type   data_;
+//
+// };
 
 } // namespace population
 } // namespace genesis

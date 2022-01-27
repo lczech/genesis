@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,7 +32,9 @@
  */
 
 #include <iosfwd>
+#include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace genesis {
@@ -63,147 +65,223 @@ public:
     {}
 };
 
-// =================================================================================================
-//     Genome Region List
-// =================================================================================================
-
-/**
- * @brief A sorted list of genome regions.
- *
- * This list keeps GenomeRegion%s and sorts them by chromosome and interval. It (currently) does
- * not allow overlapping/nested regions. This list can be used either as simply a set of regions
- * to process, or, using find() and is_covered() to query whether certain positions on a chromosome
- * are part of any of the regions stored in the list.
- */
-class GenomeRegionList
-{
-public:
-
-    // -------------------------------------------------------------------------
-    //     Typedefs and Enums
-    // -------------------------------------------------------------------------
-
-    using self_type       = GenomeRegionList;
-    using container       = std::vector<GenomeRegion>;
-
-    using value_type      = GenomeRegion;
-    using reference       = value_type&;
-    using const_reference = value_type const&;
-
-    using iterator               = typename container::iterator;
-    using const_iterator         = typename container::const_iterator;
-    using reverse_iterator       = typename container::reverse_iterator;
-    using const_reverse_iterator = typename container::const_reverse_iterator;
-
-    using difference_type = typename container::difference_type;
-    using size_type       = typename container::size_type;
-
-    // -------------------------------------------------------------------------
-    //     Constructors and Rule of Five
-    // -------------------------------------------------------------------------
-
-    GenomeRegionList()
-        : find_cache_( regions_.end() )
-    {}
-
-    ~GenomeRegionList() = default;
-
-    GenomeRegionList( GenomeRegionList const& ) = default;
-    GenomeRegionList( GenomeRegionList&& )      = default;
-
-    GenomeRegionList& operator= ( GenomeRegionList const& ) = default;
-    GenomeRegionList& operator= ( GenomeRegionList&& )      = default;
-
-    // -------------------------------------------------------------------------
-    //     Modifiers
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Add a GenomeRegion to the list.
-     *
-     * This function ensures that regions are valid (`start < end`), and keeps the list sorted.
-     */
-    void add( GenomeRegion const& region );
-
-    /**
-     * @brief Add a GenomeRegion to the list, given its chromosome, and start and end positions.
-     */
-    void add( std::string const& chromosome, size_t start = 0, size_t end = 0 );
-
-    // -------------------------------------------------------------------------
-    //     Queries
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Return whether a given position on a chromosome is part of any of the regions stored.
-     */
-    bool is_covered( std::string const& chromosome, size_t position ) const;
-
-    /**
-     * @brief Return an iterator to the GenomeRegion that covers the given position on the
-     * chromosome, or an end iterator if there is no region that covers the position.
-     */
-    const_iterator find( std::string const& chromosome, size_t position ) const;
-
-    // -------------------------------------------------------------------------
-    //     Accessors
-    // -------------------------------------------------------------------------
-
-    size_t size() const
-    {
-        return regions_.size();
-    }
-
-    bool empty() const
-    {
-        return regions_.empty();
-    }
-
-    const_reference operator[]( size_t i ) const
-    {
-        return regions_[i];
-    }
-
-    const_reference at( size_t i ) const
-    {
-        return regions_.at(i);
-    }
-
-    // -------------------------------------------------------------------------
-    //     Iterators
-    // -------------------------------------------------------------------------
-
-    // iterator begin()
-    // {
-    //     return regions_.begin();
-    // }
-
-    const_iterator begin() const
-    {
-        return regions_.begin();
-    }
-
-    // iterator end()
-    // {
-    //     return regions_.end();
-    // }
-
-    const_iterator end() const
-    {
-        return regions_.end();
-    }
-
-
-    // -------------------------------------------------------------------------
-    //     Data Members
-    // -------------------------------------------------------------------------
-
-private:
-
-    container regions_;
-    mutable const_iterator find_cache_;
-
-};
+// Alternative version that also has a data field.
+//
+// // =================================================================================================
+// //     Genome Region
+// // =================================================================================================
+//
+// /**
+//  * @brief A region (between a start and and end position) on a chromosome.
+//  *
+//  * This can be used to represent a gene, a feature, or just generally a region of interest.
+//  * We use a simple form with a chromosome name, and a start and end position, both inclusive,
+//  * that is, a closed interval. Both start and end can also be identical, in which case they
+//  * denote a single position; see also GenomeLocus for a class representing this.
+//  *
+//  * We use 1-based positions, in order to comply with common chromosome annotation formats.
+//  * Furthermore, we use an empty chromosome string and/or positions 0 as indicators of an empty or
+//  * default constructed locus.
+//  *
+//  * The class takes an extra data type as template parameter, which can be used to store
+//  * arbitrary data for this locus.
+//  *
+//  * @see GenomeLocus
+//  * @see GenomeRegionList
+//  */
+// template<class DataType = EmptyGenomeData>
+// class GenomeRegion
+// {
+// public:
+//
+//     // -------------------------------------------------------------------------
+//     //     Typedefs
+//     // -------------------------------------------------------------------------
+//
+//     using data_type = DataType;
+//
+//     // -------------------------------------------------------------------------
+//     //     Constructors and Rule of Five
+//     // -------------------------------------------------------------------------
+//
+//     /**
+//      * @brief Default construct an empty region.
+//      */
+//     GenomeRegion() = default;
+//
+//     /**
+//      * @brief Construct a region with a chromosome and a start and end position.
+//      */
+//     GenomeRegion( std::string const& chr, size_t start, size_t end )
+//         : chromosome_( chr )
+//         , start_(start)
+//         , end_(end)
+//         : GenomeRegion( chr, start, end, DataType{} )
+//     {
+//         if( chr.empty() || start == 0 || end == 0 ) {
+//             throw std::invalid_argument(
+//                 "Cannot construct GenomeRegion with empty chromosome or position zero."
+//             );
+//         }
+//         if( start > end ) {
+//             throw std::invalid_argument(
+//                 "Cannot construct GenomeRegion with start > end."
+//             );
+//         }
+//     }
+//
+//     /**
+//      * @brief Construct a region with a chromosome and a start and end position,
+//      * and copy the data.
+//      */
+//     GenomeRegion( std::string const& chr, size_t start, size_t end, DataType const& data )
+//         : GenomeRegion( chr, start, end, DataType{ data })
+//     {}
+//
+//     /**
+//      * @brief Construct a region with a chromosome and a start and end position,
+//      * and move the data.
+//      */
+//     GenomeRegion( std::string const& chr, size_t start, size_t end, DataType&& data )
+//         : chromosome_( chr )
+//         , start_(start)
+//         , end_(end)
+//         , data_( std::move( data ))
+//     {
+//         if( chr.empty() || start == 0 || end == 0 ) {
+//             throw std::invalid_argument(
+//                 "Cannot construct GenomeRegion with empty chromosome or position zero."
+//             );
+//         }
+//     }
+//
+//     /**
+//      * @brief Construct a region from a GenomeLocus of the same data type.
+//      *
+//      * This uses the GenomeLocus::position() for both start and end, and copies the data.
+//      */
+//     template<
+//         class OtherDataType,
+//         typename std::enable_if< std::is_same<DataType, OtherDataType>::value >::type = 0
+//     >
+//     GenomeRegion( GenomeLocus<OtherDataType> const& locus )
+//         : GenomeRegion(
+//             locus.chromosome(), locus.position(), locus.position(), locus.data()
+//         )
+//     {}
+//
+//     /**
+//      * @brief Construct a region from a GenomeLocus of the same data type.
+//      *
+//      * This uses the GenomeLocus::position() for both start and end, and moves the data.
+//      */
+//     template<
+//         class OtherDataType,
+//         typename std::enable_if< std::is_same<DataType, OtherDataType>::value >::type = 0
+//     >
+//     GenomeRegion( GenomeLocus<OtherDataType>&& locus )
+//         : GenomeRegion(
+//             locus.chromosome(), locus.position(), locus.position(), std::move( locus.data() )
+//         )
+//     {}
+//
+//     /**
+//      * @brief Construct a region from a GenomeLocus of a different data type.
+//      *
+//      * This uses the GenomeLocus::position() for both start and end,
+//      * and default constructs the data.
+//      */
+//     template<
+//         class OtherDataType,
+//         typename std::enable_if< ! std::is_same<DataType, OtherDataType>::value >::type = 0
+//     >
+//     GenomeRegion( GenomeLocus<OtherDataType> const& locus )
+//         : GenomeRegion( locus.chromosome(), locus.position(), locus.position() )
+//     {}
+//
+//     ~GenomeRegion() = default;
+//
+//     GenomeRegion( GenomeRegion const& ) = default;
+//     GenomeRegion( GenomeRegion&& )      = default;
+//
+//     GenomeRegion& operator= ( GenomeRegion const& ) = default;
+//     GenomeRegion& operator= ( GenomeRegion&& )      = default;
+//
+//     // -------------------------------------------------------------------------
+//     //     Accessors
+//     // -------------------------------------------------------------------------
+//
+//     std::string const& chromosome() const
+//     {
+//         return chromosome_;
+//     }
+//
+//     size_t start() const
+//     {
+//         return start_;
+//     }
+//
+//     size_t end() const
+//     {
+//         return end_;
+//     }
+//
+//     data_type& data()
+//     {
+//         return data_;
+//     }
+//
+//     data_type const& data() const
+//     {
+//         return data_;
+//     }
+//
+//     size_t length() const
+//     {
+//         // Closed interval, so we need to add 1.
+//         return end_ - start_ + 1;
+//     }
+//
+//     bool empty() const
+//     {
+//         return chromosome_ == "" && start_ == 0 && end_ == 0;
+//     }
+//
+//     // -------------------------------------------------------------------------
+//     //     Operators
+//     // -------------------------------------------------------------------------
+//
+//     operator std::string() const
+//     {
+//         return to_string();
+//     }
+//
+//     std::string to_string() const
+//     {
+//         if( start_ == 0 && end_ == 0 ) {
+//             return chromosome_;
+//         } else if( start_ == end_ ) {
+//             return chromosome_ + ":" + std::to_string( start_ );
+//         } else {
+//             return
+//                 chromosome_ + ":" +
+//                 std::to_string( start_ ) + "-" +
+//                 std::to_string( end_ )
+//             ;
+//         }
+//     }
+//
+//     // -------------------------------------------------------------------------
+//     //     Member Variables
+//     // -------------------------------------------------------------------------
+//
+//     std::string chromosome_;
+//     size_t      start_ = 0;
+//     size_t      end_   = 0;
+//
+//     data_type   data_;
+//
+// };
 
 } // namespace population
 } // namespace genesis
