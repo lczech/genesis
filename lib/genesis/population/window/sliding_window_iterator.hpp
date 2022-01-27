@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -424,7 +424,9 @@ private:
         if( settings_.window_type == WindowType::kInterval ) {
             update_interval_();
         } else if( settings_.window_type == WindowType::kVariants ) {
-            throw std::runtime_error( "Not yet implemented" );
+            update_variants_();
+        } else if( settings_.window_type == WindowType::kChromosome ) {
+            update_chromosome_();
         } else {
             throw std::runtime_error( "Invalid WindowType" );
         }
@@ -487,6 +489,16 @@ private:
         // Update the window positions.
         window_.first_position( current_start_ );
         window_.last_position( current_start_ + settings_.width - 1 );
+    }
+
+    void update_variants_()
+    {
+        throw std::runtime_error( "Not yet implemented" );
+    }
+
+    void update_chromosome_()
+    {
+        throw std::runtime_error( "Not yet implemented" );
     }
 
     // -------------------------------------------------------------------------
