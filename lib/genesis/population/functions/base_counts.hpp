@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -163,6 +163,27 @@ BaseCountsStatus status(
 size_t get_base_count( BaseCounts const& bc, char base );
 
 // =================================================================================================
+//     Sorting
+// =================================================================================================
+
+/**
+ * @brief Return the order of base counts (nucleotides), largest one first.
+ */
+SortedBaseCounts sorted_base_counts( BaseCounts const& sample );
+
+/**
+ * @brief Return the sorted base counts of both input samples, orderd by the average
+ * frequencies of the nucleotide counts in the two samples.
+ *
+ * Both returned counts will be in the same order, with the nucleotide first that has the highest
+ * average count in the two samples, etc.
+ */
+std::pair<SortedBaseCounts, SortedBaseCounts> sorted_average_base_counts(
+    BaseCounts const& sample_a,
+    BaseCounts const& sample_b
+);
+
+// =================================================================================================
 //     Accumulation and other processing
 // =================================================================================================
 
@@ -170,7 +191,8 @@ size_t get_base_count( BaseCounts const& bc, char base );
  * @brief Count of the pure nucleotide bases at this position, that is,
  * the sum of all `A`, `C`, `G`, and `T`.
  *
- * This is simply the sum of `a_count + c_count + g_count + t_count`.
+ * This is simply the sum of `a_count + c_count + g_count + t_count`, which we often use as the
+ * coverage at the given site.
  *
  * NB: In PoPoolation, this variable is called `eucov`.
  */

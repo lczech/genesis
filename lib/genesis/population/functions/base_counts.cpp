@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -127,6 +127,150 @@ size_t get_base_count( BaseCounts const& bc, char base )
     throw std::runtime_error(
         "Invalid base character " + utils::char_to_hex( base )
     );
+}
+
+// =================================================================================================
+//     Sorting
+// =================================================================================================
+
+/**
+ * @brief Local helper function that runs a sorting network to sort four values,
+ * coming from the four nucleotides.
+ *
+ * The input are four values, either counts or frequencies. The output are the indices into this
+ * array that are sorted so that the largest one comes first:
+ *
+ *     auto const data = std::array<T, 4>{ 15, 10, 20, 5 };
+ *     auto const order = nucleotide_sorting_order_( data );
+ *
+ * yields `{ 2, 0, 1, 3 }`, so that `data[order[0]] = data[2] = 20` is the largest value,
+ * `data[order[1]] = data[0] = 15` the second largest, and so forth.
+ */
+template<typename T>
+std::array<size_t, 4> nucleotide_sorting_order_( std::array<T, 4> const& values )
+{
+    // Sort quickly via sorting network, putting large values first.
+    // See https://stackoverflow.com/a/25070688/4184258
+    auto indices = std::array<size_t, 4>{ 0, 1, 2, 3 };
+    if( values[indices[0]] < values[indices[1]] ) {
+        std::swap( indices[0], indices[1] );
+    }
+    if( values[indices[2]] < values[indices[3]] ) {
+        std::swap( indices[2], indices[3] );
+    }
+    if( values[indices[0]] < values[indices[2]] ) {
+        std::swap( indices[0], indices[2] );
+    }
+    if( values[indices[1]] < values[indices[3]] ) {
+        std::swap( indices[1], indices[3] );
+    }
+    if( values[indices[1]] < values[indices[2]] ) {
+        std::swap( indices[1], indices[2] );
+    }
+
+    // Now they are sorted, largest ones first.
+    assert( values[indices[0]] >= values[indices[1]] );
+    assert( values[indices[1]] >= values[indices[2]] );
+    assert( values[indices[2]] >= values[indices[3]] );
+
+    return indices;
+}
+
+SortedBaseCounts sorted_base_counts( BaseCounts const& sample )
+{
+    // Sort quickly via sorting network, putting large values first.
+    // See https://stackoverflow.com/a/25070688/4184258
+    // This is the same as above in nucleotide_sorting_order_(), but we here swap directly,
+    // for speed, as a tradeoff against code duplication...
+    SortedBaseCounts result = {
+        'A', sample.a_count,
+        'C', sample.c_count,
+        'G', sample.g_count,
+        'T', sample.t_count
+    };
+    if( result[0].count < result[1].count ) {
+        std::swap( result[0], result[1] );
+    }
+    if( result[2].count < result[3].count ) {
+        std::swap( result[2], result[3] );
+    }
+    if( result[0].count < result[2].count ) {
+        std::swap( result[0], result[2] );
+    }
+    if( result[1].count < result[3].count ) {
+        std::swap( result[1], result[3] );
+    }
+    if( result[1].count < result[2].count ) {
+        std::swap( result[1], result[2] );
+    }
+    return result;
+}
+
+std::pair<SortedBaseCounts, SortedBaseCounts> sorted_average_base_counts(
+    BaseCounts const& sample_a,
+    BaseCounts const& sample_b
+) {
+    // Prepare result.
+    auto result = std::pair<SortedBaseCounts, SortedBaseCounts>{};
+
+    // Get frequencies in sample 1
+    size_t const s1_cnts[] = {
+        sample_a.a_count, sample_a.c_count, sample_a.g_count, sample_a.t_count
+    };
+    double const s1_nt_cnt = static_cast<double>( nucleotide_sum( sample_a )); // eucov
+    double const s1_freqs[] = {
+        static_cast<double>( sample_a.a_count ) / s1_nt_cnt,
+        static_cast<double>( sample_a.c_count ) / s1_nt_cnt,
+        static_cast<double>( sample_a.g_count ) / s1_nt_cnt,
+        static_cast<double>( sample_a.t_count ) / s1_nt_cnt
+    };
+
+    // Get frequencies in sample 2
+    size_t const s2_cnts[] = {
+        sample_b.a_count, sample_b.c_count, sample_b.g_count, sample_b.t_count
+    };
+    double const s2_nt_cnt = static_cast<double>( nucleotide_sum( sample_b )); // eucov
+    double const s2_freqs[] = {
+        static_cast<double>( sample_b.a_count ) / s2_nt_cnt,
+        static_cast<double>( sample_b.c_count ) / s2_nt_cnt,
+        static_cast<double>( sample_b.g_count ) / s2_nt_cnt,
+        static_cast<double>( sample_b.t_count ) / s2_nt_cnt
+    };
+
+    // Edge case. If there are no counts at all, we return empty.
+    // The follow up function f_st_asymptotically_unbiased_nkdk() will also catch this edge case,
+    // return zeros as well, and nothing will be added to the total F_ST sum.
+    if( s1_nt_cnt == 0.0 || s2_nt_cnt == 0.0 ) {
+        return result;
+    }
+
+    // Compute their averages.
+    std::array<double, 4> const avg_freqs = {
+        ( s1_freqs[0] + s2_freqs[0] ) / 2.0,
+        ( s1_freqs[1] + s2_freqs[1] ) / 2.0,
+        ( s1_freqs[2] + s2_freqs[2] ) / 2.0,
+        ( s1_freqs[3] + s2_freqs[3] ) / 2.0
+    };
+
+    // Get the sorting order, based on the averages.
+    auto const order = nucleotide_sorting_order_( avg_freqs );
+
+    // Now they are sorted, largest ones first.
+    assert( avg_freqs[order[0]] >= avg_freqs[order[1]] );
+    assert( avg_freqs[order[1]] >= avg_freqs[order[2]] );
+    assert( avg_freqs[order[2]] >= avg_freqs[order[3]] );
+
+    // Prepare result. We use an array of the nucleotides to get them in the order as needed.
+    static const char nts[] = {'A', 'C', 'G', 'T'};
+    result.first[0]  = { nts[order[0]], s1_cnts[order[0]] };
+    result.first[1]  = { nts[order[1]], s1_cnts[order[1]] };
+    result.first[2]  = { nts[order[2]], s1_cnts[order[2]] };
+    result.first[3]  = { nts[order[3]], s1_cnts[order[3]] };
+    result.second[0] = { nts[order[0]], s2_cnts[order[0]] };
+    result.second[1] = { nts[order[1]], s2_cnts[order[1]] };
+    result.second[2] = { nts[order[2]], s2_cnts[order[2]] };
+    result.second[3] = { nts[order[3]], s2_cnts[order[3]] };
+    return result;
 }
 
 // =================================================================================================

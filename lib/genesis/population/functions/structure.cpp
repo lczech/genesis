@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -99,123 +99,61 @@ std::tuple<double, double, double> f_st_conventional_pool_pi_snp(
 //     F_ST Asymptotically Unbiased (Karlsson) Helper Functions
 // =================================================================================================
 
-FstAN f_st_asymptotically_unbiased_a1n1a2n2( BaseCounts const& p1, BaseCounts const& p2 )
-{
-    // get_a1a2n1n2
-    // We do not want expensive sorting and looking for nucleotide characters here,
-    // so instead, we use use sorting indices over arrays, and swap values in a sorting network
-    // to quickly find the largest two frequencies. Neat.
-
-    // Get frequencies in sample 1
-    size_t const p1_cnts[] = { p1.a_count, p1.c_count, p1.g_count, p1.t_count };
-    double const p1_nt_cnt = static_cast<double>( nucleotide_sum( p1 )); // eucov
-    double const p1_freqs[] = {
-        static_cast<double>( p1.a_count ) / p1_nt_cnt,
-        static_cast<double>( p1.c_count ) / p1_nt_cnt,
-        static_cast<double>( p1.g_count ) / p1_nt_cnt,
-        static_cast<double>( p1.t_count ) / p1_nt_cnt
-    };
-
-    // Get frequencies in sample 2
-    size_t const p2_cnts[] = { p2.a_count, p2.c_count, p2.g_count, p2.t_count };
-    double const p2_nt_cnt = static_cast<double>( nucleotide_sum( p2 )); // eucov
-    double const p2_freqs[] = {
-        static_cast<double>( p2.a_count ) / p2_nt_cnt,
-        static_cast<double>( p2.c_count ) / p2_nt_cnt,
-        static_cast<double>( p2.g_count ) / p2_nt_cnt,
-        static_cast<double>( p2.t_count ) / p2_nt_cnt
-    };
-
-    // Edge case. If there are no counts at all, we return empty.
-    // The follow up function f_st_asymptotically_unbiased_nkdk() will also catch this edge case,
-    // return zeros as well, and nothing will be added to the total F_ST sum.
-    if( p1_nt_cnt == 0.0 || p2_nt_cnt == 0.0 ) {
-        return FstAN{};
-    }
-
-    // Compute their averages.
-    double const avg_freqs[] = {
-        ( p1_freqs[0] + p2_freqs[0] ) / 2.0,
-        ( p1_freqs[1] + p2_freqs[1] ) / 2.0,
-        ( p1_freqs[2] + p2_freqs[2] ) / 2.0,
-        ( p1_freqs[3] + p2_freqs[3] ) / 2.0
-    };
-
-    // Sort quickly via sorting network, putting large values first.
-    // See https://stackoverflow.com/a/25070688/4184258
-    // We however do not directly sort the values, as we instead need the sorting order
-    // to retrieve the values from the original counts. So, we sort their indices instead,
-    // using an array for simplicity of notation (all compiled away, and equivalent to using
-    // index_a = 0; index_b = 1;... instead here).
-    // Technically, there might be a better solution, as we are not interested in the order of
-    // the last two values. But seriously, that won't safe enough to justify the effort.
-    size_t indices[] = { 0, 1, 2, 3 };
-    if( avg_freqs[indices[0]] < avg_freqs[indices[1]] ) {
-        std::swap( indices[0], indices[1] );
-    }
-    if( avg_freqs[indices[2]] < avg_freqs[indices[3]] ) {
-        std::swap( indices[2], indices[3] );
-    }
-    if( avg_freqs[indices[0]] < avg_freqs[indices[2]] ) {
-        std::swap( indices[0], indices[2] );
-    }
-    if( avg_freqs[indices[1]] < avg_freqs[indices[3]] ) {
-        std::swap( indices[1], indices[3] );
-    }
-    if( avg_freqs[indices[1]] < avg_freqs[indices[2]] ) {
-        std::swap( indices[1], indices[2] );
-    }
-
-    // Now they are sorted, largest ones first.
-    assert( avg_freqs[indices[0]] >= avg_freqs[indices[1]] );
-    assert( avg_freqs[indices[1]] >= avg_freqs[indices[2]] );
-    assert( avg_freqs[indices[2]] >= avg_freqs[indices[3]] );
+std::pair<double, double> f_st_asymptotically_unbiased_nkdk(
+    std::pair<SortedBaseCounts, SortedBaseCounts> const& sample_counts
+) {
+    // PoPoolation2 function: calculate_nk_dk
+    using namespace genesis::utils;
 
     // Error check. We only want biallelic SNPs, so we check that the smallesst two values
     // here are actually zero.
-    if( avg_freqs[indices[2]] != 0.0 || avg_freqs[indices[3]] != 0.0 ) {
+    if(
+        sample_counts.first[2].count  != 0 || sample_counts.first[3].count  != 0 ||
+        sample_counts.second[2].count != 0 || sample_counts.second[3].count != 0
+    ) {
         throw std::runtime_error(
             "In f_st_asymptotically_unbiased(): Expecting biallelic SNPs where only "
-            "two counts are > 0, but found more non-zero counts."
+            "two nucleotide counts are > 0, but found more non-zero counts."
         );
     }
 
     // We checked that we have biallelic counts here. Assert this again.
-    assert( p1_freqs[indices[2]] == 0.0 && p1_freqs[indices[3]] == 0.0 );
-    assert( p2_freqs[indices[2]] == 0.0 && p2_freqs[indices[3]] == 0.0 );
-    assert( p1_cnts[indices[2]] == 0 && p1_cnts[indices[3]] == 0 );
-    assert( p2_cnts[indices[2]] == 0 && p2_cnts[indices[3]] == 0 );
+    // Also assert that the bases are in the same order in both samples.
+    assert( sample_counts.first[2].count  == 0 && sample_counts.first[3].count  == 0 );
+    assert( sample_counts.second[2].count == 0 && sample_counts.second[3].count == 0 );
+    assert(
+        sample_counts.first[0].base == sample_counts.second[0].base &&
+        sample_counts.first[1].base == sample_counts.second[1].base &&
+        sample_counts.first[2].base == sample_counts.second[2].base &&
+        sample_counts.first[3].base == sample_counts.second[3].base
+    );
 
-    // Prepare result. We use explict names here for clarity;
-    // the compiler will get rid of these copies (hopefully).
-    FstAN result;
-    result.a_1 = static_cast<double>( p1_cnts[indices[0]] );
-    result.n_1 = static_cast<double>( p1_cnts[indices[0]] + p1_cnts[indices[1]] );
-    result.a_2 = static_cast<double>( p2_cnts[indices[0]] );
-    result.n_2 = static_cast<double>( p2_cnts[indices[0]] + p2_cnts[indices[1]] );
-    return result;
-}
-
-std::pair<double, double> f_st_asymptotically_unbiased_nkdk( FstAN const& fstan ) // calculate_nk_dk
-{
-    using namespace genesis::utils;
+    // Get the major allele count (`a` here and in PoPoolation2),
+    // the minor allele count (`b` here, not used in PoPoolation2 under that name),
+    // and the total coverage (`n` here and in PoPoolation2).
+    auto const a_1 = static_cast<double>( sample_counts.first[0].count );
+    auto const b_1 = static_cast<double>( sample_counts.first[1].count );
+    auto const n_1 = a_1 + b_1;
+    auto const a_2 = static_cast<double>( sample_counts.second[0].count );
+    auto const b_2 = static_cast<double>( sample_counts.second[1].count );
+    auto const n_2 = a_2 + b_2;
 
     // Edge case
-    if( fstan.n_1 <= 1.0 || fstan.n_2 <= 1.0 ) {
+    if( n_1 <= 1.0 || n_2 <= 1.0 ) {
         return { 0.0, 0.0 };
     }
-    assert( fstan.n_1 > 1.0 );
-    assert( fstan.n_2 > 1.0 );
-    assert( fstan.a_1 <= fstan.n_1 );
-    assert( fstan.a_2 <= fstan.n_2 );
+    assert( n_1 > 1.0 );
+    assert( n_2 > 1.0 );
+    assert( a_1 <= n_1 );
+    assert( a_2 <= n_2 );
 
-    // calculate_h1, calculate_h2
-    double const h1 = ( fstan.a_1 * ( fstan.n_1 - fstan.a_1 )) / ( fstan.n_1 * ( fstan.n_1 - 1.0 ));
-    double const h2 = ( fstan.a_2 * ( fstan.n_2 - fstan.a_2 )) / ( fstan.n_2 * ( fstan.n_2 - 1.0 ));
+    // PoPoolation2 functions: calculate_h1, calculate_h2
+    double const h1 = ( a_1 * b_1 ) / ( n_1 * ( n_1 - 1.0 ));
+    double const h2 = ( a_2 * b_2 ) / ( n_2 * ( n_2 - 1.0 ));
 
-    // calculate_nk_dk
-    double const sqr = squared(( fstan.a_1 / fstan.n_1 ) - ( fstan.a_2 / fstan.n_2 ));
-    double const sub = ( h1 / fstan.n_1 + h2 / fstan.n_2 );
+    // PoPoolation2 function: calculate_nk_dk
+    double const sqr = squared(( a_1 / n_1 ) - ( a_2 / n_2 ));
+    double const sub = ( h1 / n_1 + h2 / n_2 );
     double const nk = sqr - sub;
     double const dk = nk + h1 + h2;
 

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -182,9 +182,9 @@ double theta_pi_pool( // get_pi_calculator
 
     double pi_sum = 0.0;
     for( auto& it = begin; it != end; ++it ) {
-        double pi_snp = heterozygosity( *it );
-        pi_snp /= theta_pi_pool_denominator( settings, nucleotide_sum( *it ));
-        pi_sum += pi_snp;
+        double const pi_snp = heterozygosity( *it );
+        double const denom  = theta_pi_pool_denominator( settings, nucleotide_sum( *it ));
+        pi_sum += ( pi_snp / denom );
     }
     return pi_sum;
 }

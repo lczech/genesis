@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -233,45 +233,26 @@ utils::Matrix<double> f_st_conventional_pool(
 // =================================================================================================
 
 /**
- * @brief Helper struct for the `a_1`, `a_2`, `n_1`, and `n_2` values needed for
- * f_st_asymptotically_unbiased().
- */
-struct FstAN
-{
-    double a_1 = 0.0;
-    double n_1 = 0.0;
-    double a_2 = 0.0;
-    double n_2 = 0.0;
-};
-
-/**
- * @brief Comparison operator equals for FstAN structs.
- */
-inline bool operator ==( FstAN const& f1, FstAN const& f2 )
-{
-    return f1.a_1 == f2.a_1 && f1.n_1 == f2.n_1 && f1.a_2 == f2.a_2 && f1.n_2 == f2.n_2;
-}
-
-/**
- * @brief Compute the `a` and `n` values needed for the asymptotically unbiased F_ST estimator
- * of Karlsson et al.
+ * @brief Compute the numerator `N_k` and denominator `D_k`  needed for the asymptotically unbiased
+ * F_ST estimator of Karlsson et al (2007).
  *
- * See f_st_asymptotically_unbiased() for details.
+ * See f_st_asymptotically_unbiased() for details. The function expects sorted base counts for the
+ * two samples of which we want to compute F_ST, which are produced by sorted_average_base_counts().
  */
-FstAN f_st_asymptotically_unbiased_a1n1a2n2( BaseCounts const& p1, BaseCounts const& p2 );
+std::pair<double, double> f_st_asymptotically_unbiased_nkdk(
+    std::pair<SortedBaseCounts, SortedBaseCounts> const& sample_counts
+);
 
 /**
- * @brief Compute the `N_k` and `D_k` values needed for the asymptotically unbiased F_ST estimator
- * of Karlsson et al.
- *
- * See f_st_asymptotically_unbiased() for details.
- */
-std::pair<double, double> f_st_asymptotically_unbiased_nkdk( FstAN const& fstan );
-
-/**
- * @brief Compute the asymptotically unbiased F_ST estimator of Karlsson et al.
+ * @brief Compute the asymptotically unbiased F_ST estimator of Karlsson et al. (2007)
  *
  * This follows the implementation in PoPoolation2 by Kofler et al.
+ *
+ * > **Efficient mapping of mendelian traits in dogs through genome-wide association.**<br />
+ * > Karlsson EK, Baranowska I, Wade CM, Salmon Hillbertz NHC, Zody MC, Anderson N, Biagi TM,
+ * > Patterson N, Pielberg GR, Kulbokas EJ, Comstock KE, Keller ET, Mesirov JP, Von Euler H,
+ * > Kämpe O, Hedhammar Å, Lander ES, Andersson G, Andersson L, Lindblad-Toh K.<br />
+ * > Nature Genetics, 2007, 39(11), 1321–1328. https://doi.org/10.1038/ng.2007.10
  */
 template<class ForwardIterator1, class ForwardIterator2>
 double f_st_asymptotically_unbiased( // get_asymptunbiased_fstcalculator
@@ -290,8 +271,8 @@ double f_st_asymptotically_unbiased( // get_asymptunbiased_fstcalculator
     while( p1_it != p1_end && p2_it != p2_end ) {
 
         // Get intermediate values and add them up.
-        auto const anan = f_st_asymptotically_unbiased_a1n1a2n2( *p1_it, *p2_it );
-        auto const nkdk = f_st_asymptotically_unbiased_nkdk( anan );
+        auto const counts = sorted_average_base_counts( *p1_it, *p2_it );
+        auto const nkdk = f_st_asymptotically_unbiased_nkdk( counts );
         sum_nk += nkdk.first;
         sum_dk += nkdk.second;
 

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
  * @ingroup population
  */
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -81,6 +82,60 @@ struct BaseCounts
      * @brief Count of all deleted (`*`) nucleotides that are present in the sample.
      */
     size_t d_count = 0;
+};
+
+// =================================================================================================
+//     Sorted Base Counts
+// =================================================================================================
+
+/**
+ * @brief Ordered array of base counts for the four nucleotides.
+ *
+ * Some functions need the bases sorted by their count. This structure is used to keep that data,
+ * with the highest count base first.
+ */
+struct SortedBaseCounts
+{
+    /**
+     * @brief Combination of a nucleotide base and its count.
+     */
+    struct BaseCount
+    {
+        char   base;
+        size_t count;
+
+        BaseCount()
+            : base('N')
+            , count(0)
+        {}
+
+        BaseCount( char b, size_t c )
+            : base(b)
+            , count(c)
+        {}
+    };
+
+    SortedBaseCounts() = default;
+
+    SortedBaseCounts(
+        char b0, size_t c0, char b1, size_t c1, char b2, size_t c2, char b3, size_t c3
+    )
+        : data( std::array<BaseCount, 4>{
+            BaseCount{ b0, c0 }, BaseCount{ b1, c1 }, BaseCount{ b2, c2 }, BaseCount{ b3, c3 },
+        })
+    {}
+
+    BaseCount& operator[]( size_t index )
+    {
+        return data[index];
+    }
+
+    BaseCount const& operator[]( size_t index ) const
+    {
+        return data[index];
+    }
+
+    std::array<BaseCount, 4> data;
 };
 
 } // namespace population

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ BaseCounts total_base_counts( Variant const& variant )
     return merge( variant.samples );
 }
 
-std::array<std::pair<char, size_t>, 4> sorted_base_counts(
+SortedBaseCounts sorted_base_counts(
     Variant const& variant, bool reference_first
 ) {
     // We use sorting networks for speed here. See f_st_asymptotically_unbiased_a1n1a2n2()
@@ -68,7 +68,7 @@ std::array<std::pair<char, size_t>, 4> sorted_base_counts(
 
     auto const total = total_base_counts( variant );
     if( reference_first ) {
-        std::array<std::pair<char, size_t>, 4> result;
+        SortedBaseCounts result;
         switch( variant.reference_base ) {
             case 'a':
             case 'A': {
@@ -108,39 +108,18 @@ std::array<std::pair<char, size_t>, 4> sorted_base_counts(
                 );
             }
         }
-        if( result[1].second < result[2].second ) {
+        if( result[1].count < result[2].count ) {
             std::swap( result[1], result[2] );
         }
-        if( result[1].second < result[3].second ) {
+        if( result[1].count < result[3].count ) {
             std::swap( result[1], result[3] );
         }
-        if( result[2].second < result[3].second ) {
+        if( result[2].count < result[3].count ) {
             std::swap( result[2], result[3] );
         }
         return result;
     } else {
-        std::array<std::pair<char, size_t>, 4> result = {
-            std::pair<char, size_t>{ 'A', total.a_count },
-            std::pair<char, size_t>{ 'C', total.c_count },
-            std::pair<char, size_t>{ 'G', total.g_count },
-            std::pair<char, size_t>{ 'T', total.t_count }
-        };
-        if( result[0].second < result[1].second ) {
-            std::swap( result[0], result[1] );
-        }
-        if( result[2].second < result[3].second ) {
-            std::swap( result[2], result[3] );
-        }
-        if( result[0].second < result[2].second ) {
-            std::swap( result[0], result[2] );
-        }
-        if( result[1].second < result[3].second ) {
-            std::swap( result[1], result[3] );
-        }
-        if( result[1].second < result[2].second ) {
-            std::swap( result[1], result[2] );
-        }
-        return result;
+        return sorted_base_counts( total );
     }
 }
 
@@ -151,8 +130,8 @@ char guess_reference_base( Variant const& variant )
         return ref;
     } else {
         auto const sorted = sorted_base_counts( variant, false );
-        if( sorted[0].second > 0 ) {
-            return utils::to_upper( sorted[0].first );
+        if( sorted[0].count > 0 ) {
+            return utils::to_upper( sorted[0].base );
         }
     }
 
@@ -169,8 +148,8 @@ char guess_alternative_base( Variant const& variant, bool force )
         auto const ref = utils::to_upper( variant.reference_base );
         if( ref == 'A' || ref == 'C' || ref == 'G' || ref == 'T' ) {
             auto const sorted = sorted_base_counts( variant, true );
-            if( sorted[1].second > 0 ) {
-                return utils::to_upper( sorted[1].first );
+            if( sorted[1].count > 0 ) {
+                return utils::to_upper( sorted[1].base );
             }
         }
     }
@@ -223,8 +202,8 @@ Variant convert_to_variant(
         result.reference_base == 'T'
     ) {
         auto const sorted = sorted_base_counts( result, true );
-        if( sorted[1].second > 0 ) {
-            result.alternative_base = utils::to_upper( sorted[1].first );
+        if( sorted[1].count > 0 ) {
+            result.alternative_base = utils::to_upper( sorted[1].base );
         }
     }
 

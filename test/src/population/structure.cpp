@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -170,94 +170,4 @@ TEST( Structure, FstPool )
             window_gen.enqueue( sample_set.chromosome, sample_set.position, sample_set.samples );
         }
     }
-}
-
-FstAN make_fstan( size_t a1, size_t n1, size_t a2, size_t n2 )
-{
-    FstAN res;
-    res.a_1 = a1;
-    res.n_1 = n1;
-    res.a_2 = a2;
-    res.n_2 = n2;
-    return res;
-}
-
-BaseCounts make_fstan_base_counts( size_t a, size_t c, size_t g, size_t t, size_t n, size_t d )
-{
-    // Helper function, because BaseCounts does not have a value initializer contructor.
-    BaseCounts result;
-    result.a_count = a;
-    result.c_count = c;
-    result.g_count = g;
-    result.t_count = t;
-    result.n_count = n;
-    result.d_count = d;
-    return result;
-}
-
-TEST( Structure, FstAN )
-{
-    // Some good test cases
-    EXPECT_EQ(
-        make_fstan( 10, 15, 20, 25 ),
-        f_st_asymptotically_unbiased_a1n1a2n2(
-            make_fstan_base_counts( 10, 5, 0, 0, 0, 0 ),
-            make_fstan_base_counts( 20, 5, 0, 0, 0, 0 )
-        )
-    );
-    EXPECT_EQ(
-        make_fstan( 10, 15, 20, 25 ),
-        f_st_asymptotically_unbiased_a1n1a2n2(
-            make_fstan_base_counts( 10, 0, 0, 5, 0, 0 ),
-            make_fstan_base_counts( 20, 0, 0, 5, 0, 0 )
-        )
-    );
-    EXPECT_EQ(
-        make_fstan( 10, 15, 20, 25 ),
-        f_st_asymptotically_unbiased_a1n1a2n2(
-            make_fstan_base_counts( 0, 10, 5, 0, 0, 0 ),
-            make_fstan_base_counts( 0, 20, 5, 0, 0, 0 )
-        )
-    );
-    EXPECT_EQ(
-        make_fstan( 10, 20, 10, 20 ),
-        f_st_asymptotically_unbiased_a1n1a2n2(
-            make_fstan_base_counts( 0, 10, 0, 10, 0, 0 ),
-            make_fstan_base_counts( 0, 10, 0, 10, 0, 0 )
-        )
-    );
-    EXPECT_EQ(
-        make_fstan( 20, 30, 30, 70 ),
-        f_st_asymptotically_unbiased_a1n1a2n2(
-            make_fstan_base_counts( 0, 0, 10, 20, 0, 0 ),
-            make_fstan_base_counts( 0, 0, 40, 30, 0, 0 )
-        )
-    );
-    EXPECT_EQ(
-        make_fstan( 10, 10, 10, 10 ),
-        f_st_asymptotically_unbiased_a1n1a2n2(
-            make_fstan_base_counts( 0, 0, 0, 10, 10, 10 ),
-            make_fstan_base_counts( 0, 0, 0, 10, 10, 10 )
-        )
-    );
-
-    // Error cases: more than two values --> not biallelic
-    EXPECT_ANY_THROW(
-        f_st_asymptotically_unbiased_a1n1a2n2(
-            make_fstan_base_counts( 1, 10, 5, 0, 0, 0 ),
-            make_fstan_base_counts( 0, 20, 5, 0, 0, 0 )
-        )
-    );
-    EXPECT_ANY_THROW(
-        f_st_asymptotically_unbiased_a1n1a2n2(
-            make_fstan_base_counts( 0, 10, 5, 0, 0, 0 ),
-            make_fstan_base_counts( 1, 20, 5, 0, 0, 0 )
-        )
-    );
-    EXPECT_ANY_THROW(
-        f_st_asymptotically_unbiased_a1n1a2n2(
-            make_fstan_base_counts( 1, 10, 5, 1, 0, 0 ),
-            make_fstan_base_counts( 1, 20, 5, 1, 0, 0 )
-        )
-    );
 }

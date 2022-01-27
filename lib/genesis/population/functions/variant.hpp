@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
  * @ingroup population
  */
 
+#include "genesis/population/base_counts.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 
@@ -65,7 +66,7 @@ BaseCounts total_base_counts( Variant const& variant );
  * the reference base of the Variant, while the other three bases are sorted by counts.
  * If @p reference_first is set to `false`, all four bases are sorted by their counts.
  */
-std::array<std::pair<char, size_t>, 4> sorted_base_counts(
+SortedBaseCounts sorted_base_counts(
     Variant const& variant, bool reference_first
 );
 
