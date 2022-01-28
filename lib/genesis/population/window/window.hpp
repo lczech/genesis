@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,20 +46,40 @@ namespace population {
 
 /**
  * @brief WindowType of a Window, that is, whether we slide along a fixed size interval of the
- * genome, or along a fixed number of variants.
+ * genome, along a fixed number of variants, or represents a whole chromosome.
  */
 enum class WindowType
 {
+    /**
+     * @brief Windows of this type are defined by a fixed start and end position on a chromosome.
+     *
+     * The amount of data contain in between these two loci can differ, for example, the number of
+     * variant positions
+     */
     kInterval,
-    kVariants
+
+    /**
+     * @brief Windows of this type are defined as containing a fixed number of entries (usually,
+     * Variant%s or other data that )
+     */
+    kVariants,
+
+    /**
+     * @brief Windows of this type contain positions across a whole chromosome.
+     *
+     * The window contains all relevant data from a whole chromosome. Relevant can be either all
+     * positions, only variant ones, or some other filter can be applied when filling the window,
+     * as needed. Moving to the next window then is equivalent to moving to the next chromosome.
+     */
+    kChromosome
 };
 
 /**
  * @brief Position in the genome that is used for reporting when emitting or using a window.
  *
- * When a window is finished, the on_emission() plugin function is called, which reports the
+ * When a window is filled with data, we need to report the
  * position in the genome at which the window is. There are several ways that this position
- * is computed. Typically, just the first position of the window is used (that is, for an
+ * can be computed. Typically, just the first position of the window is used (that is, for an
  * interval, the beginning of the interval, and for variants, the position of the first variant).
  *
  * However, it might be desirable to report a different position, for example when plotting the
@@ -95,14 +115,20 @@ struct EmptyAccumulator
 /**
  * @brief %Window over the chromosomes of a genome.
  *
- * This class is a container for the Data that is produced when sliding over the chromosomes of a
- * genome in windows. It is for example emitted by the WindowGenerator class.
+ * This class is a container for the Window::Data (of template type `D`) that is produced when
+ * sliding over the chromosomes of a genome in windows. It is for example produced by the
+ * SlidingWindowIterator class (and the deprecated SlidingWindowGenerator).
  *
  * The class is mostly meant to be used to be read/iterated over, where the data is filled
- * in beforehand (e.g., via the WindowGenerator), and can then be processed to compute some values
- * for the Window. That is, from the user side, the const access functions are mostly important,
- * while the non-const modification functions are chiefly meant for the code that fills the
- * Window in the first place.
+ * in beforehand (e.g., via the SlidingWindowIterator), and can then be processed to compute some
+ * values for the Window. That is, from the user side, the const access functions are mostly
+ * important, while the non-const modification functions are chiefly meant for the code that fills
+ * the Window in the first place.
+ *
+ * This means that data from an input file has to be copied into the Window first, which is a bit
+ * of a waste, but, given that we might want to do things such as sliding windows with stride
+ * smaller than window with, probably a necessary cost to have in order to keep the design simple
+ * and easy to use.
  */
 template<class D, class A = EmptyAccumulator>
 class Window
@@ -166,15 +192,20 @@ public:
         }
 
         /**
-         * @brief Index of the entry, that is, how many other entries have there been in total.
+         * @brief Index of the entry, that is, how many other entries have there been in total
+         * for the current chromosome.
+         *
+         * This is useful when working with WindowType::kVariants, to know the how many-th variant
+         * the entry is. Gets reset to 0 for each chromosome.
          */
         size_t index;
 
         /**
          * @brief Genomic position of the entry along a chromosome.
          *
-         * For the actual chromosome, we need to call Window::chromosome(), because for storage and
-         * speed reasons, we do not store the chromosome name with every entry.
+         * We here only store the position; for the name of the chromosome, call
+         * Window::chromosome(), because for storage and speed reasons, we do not copy and store the
+         * chromosome name with every entry.
          */
         size_t position;
 

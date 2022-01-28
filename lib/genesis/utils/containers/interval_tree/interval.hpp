@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,98 +52,6 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Interval Types
-// =================================================================================================
-
-/**
- * @brief Helper type to define a left open `(]` Interval.
- */
-struct IntervalLeftOpen
-{
-    template <typename NumericalType>
-    static inline bool within(NumericalType b, NumericalType e, NumericalType p)
-    {
-        return (b < p) && (p <= e);
-    }
-
-    template <typename NumericalType>
-    static inline std::string to_string(NumericalType b, NumericalType e, bool narrow = false)
-    {
-        if( narrow ) {
-            return "("  + std::to_string(b) + ","  + std::to_string(e) + "]";
-        } else {
-            return "( " + std::to_string(b) + ", " + std::to_string(e) + " ]";
-        }
-    }
-};
-
-/**
- * @brief Helper type to define a right open `[)` Interval.
- */
-struct IntervalRightOpen
-{
-    template <typename NumericalType>
-    static inline bool within(NumericalType b, NumericalType e, NumericalType p)
-    {
-        return (b <= p) && (p < e);
-    }
-
-    template <typename NumericalType>
-    static inline std::string to_string(NumericalType b, NumericalType e, bool narrow = false)
-    {
-        if( narrow ) {
-            return "["  + std::to_string(b) + ","  + std::to_string(e) + ")";
-        } else {
-            return "[ " + std::to_string(b) + ", " + std::to_string(e) + " )";
-        }
-    }
-};
-
-/**
- * @brief Helper type to define a open `()` Interval.
- */
-struct IntervalOpen
-{
-    template <typename NumericalType>
-    static inline bool within(NumericalType b, NumericalType e, NumericalType p)
-    {
-        return (b < p) && (p < e);
-    }
-
-    template <typename NumericalType>
-    static inline std::string to_string(NumericalType b, NumericalType e, bool narrow = false)
-    {
-        if( narrow ) {
-            return "("  + std::to_string(b) + ","  + std::to_string(e) + ")";
-        } else {
-            return "( " + std::to_string(b) + ", " + std::to_string(e) + " )";
-        }
-    }
-};
-
-/**
- * @brief Helper type to define a closed `[]` Interval.
- */
-struct IntervalClosed
-{
-    template <typename NumericalType>
-    static inline bool within(NumericalType b, NumericalType e, NumericalType p)
-    {
-        return (b <= p) && (p <= e);
-    }
-
-    template <typename NumericalType>
-    static inline std::string to_string(NumericalType b, NumericalType e, bool narrow = false)
-    {
-        if( narrow ) {
-            return "["  + std::to_string(b) + ","  + std::to_string(e) + "]";
-        } else {
-            return "[ " + std::to_string(b) + ", " + std::to_string(e) + " ]";
-        }
-    }
-};
-
-// =================================================================================================
 //     Helper Types
 // =================================================================================================
 
@@ -163,6 +71,169 @@ struct EmptyIntervalData
 {};
 
 // =================================================================================================
+//     Interval Types
+// =================================================================================================
+
+/**
+ * @brief Helper type to define a left open `(]` Interval.
+ */
+struct IntervalLeftOpen
+{
+    template <typename NumericalType>
+    static inline bool within(NumericalType b, NumericalType e, NumericalType p)
+    {
+        assert( b <= e );
+        return (b < p) && (p <= e);
+    }
+
+    template <typename NumericalType>
+    static inline std::string to_string(NumericalType b, NumericalType e, bool narrow = false)
+    {
+        if( narrow ) {
+            return "("  + std::to_string(b) + ","  + std::to_string(e) + "]";
+        } else {
+            return "( " + std::to_string(b) + ", " + std::to_string(e) + " ]";
+        }
+    }
+
+    template<typename NumericalType>
+    static inline size_t length(NumericalType b, NumericalType e)
+    {
+        assert( b <= e );
+        return e - b;
+    }
+};
+
+/**
+ * @brief Helper type to define a right open `[)` Interval.
+ */
+struct IntervalRightOpen
+{
+    template <typename NumericalType>
+    static inline bool within(NumericalType b, NumericalType e, NumericalType p)
+    {
+        assert( b <= e );
+        return (b <= p) && (p < e);
+    }
+
+    template <typename NumericalType>
+    static inline std::string to_string(NumericalType b, NumericalType e, bool narrow = false)
+    {
+        if( narrow ) {
+            return "["  + std::to_string(b) + ","  + std::to_string(e) + ")";
+        } else {
+            return "[ " + std::to_string(b) + ", " + std::to_string(e) + " )";
+        }
+    }
+
+    template<typename NumericalType>
+    static inline size_t length(NumericalType b, NumericalType e)
+    {
+        assert( b <= e );
+        return e - b;
+    }
+};
+
+/**
+ * @brief Helper type to define a open `()` Interval.
+ */
+struct IntervalOpen
+{
+    template <typename NumericalType>
+    static inline bool within(NumericalType b, NumericalType e, NumericalType p)
+    {
+        assert( b <= e );
+        return (b < p) && (p < e);
+    }
+
+    template <typename NumericalType>
+    static inline std::string to_string(NumericalType b, NumericalType e, bool narrow = false)
+    {
+        if( narrow ) {
+            return "("  + std::to_string(b) + ","  + std::to_string(e) + ")";
+        } else {
+            return "( " + std::to_string(b) + ", " + std::to_string(e) + " )";
+        }
+    }
+
+    template<
+        typename NumericalType,
+        typename std::enable_if< std::is_integral<NumericalType>::value >::type = 0
+    >
+    static inline size_t length(NumericalType b, NumericalType e)
+    {
+        // implementation for integer types.
+
+        if( b == e ) {
+            throw std::invalid_argument(
+                "Invalid open interval with the same integer for the low and high values."
+            );
+        }
+        assert( b <= e );
+        return e - b - 1;
+    }
+
+    template<
+        typename NumericalType,
+        typename std::enable_if< ! std::is_integral<NumericalType>::value >::type = 0
+    >
+    static inline size_t length(NumericalType b, NumericalType e)
+    {
+        // implementation for floating point types.
+
+        assert( b <= e );
+        return e - b;
+    }
+};
+
+/**
+ * @brief Helper type to define a closed `[]` Interval.
+ */
+struct IntervalClosed
+{
+    template <typename NumericalType>
+    static inline bool within(NumericalType b, NumericalType e, NumericalType p)
+    {
+        assert( b <= e );
+        return (b <= p) && (p <= e);
+    }
+
+    template <typename NumericalType>
+    static inline std::string to_string(NumericalType b, NumericalType e, bool narrow = false)
+    {
+        if( narrow ) {
+            return "["  + std::to_string(b) + ","  + std::to_string(e) + "]";
+        } else {
+            return "[ " + std::to_string(b) + ", " + std::to_string(e) + " ]";
+        }
+    }
+
+    template<
+        typename NumericalType,
+        typename std::enable_if< std::is_integral<NumericalType>::value >::type = 0
+    >
+    static inline size_t length(NumericalType b, NumericalType e)
+    {
+        // implementation for integer types.
+
+        assert( b <= e );
+        return e - b + 1;
+    }
+
+    template<
+        typename NumericalType,
+        typename std::enable_if< ! std::is_integral<NumericalType>::value >::type = 0
+    >
+    static inline size_t length(NumericalType b, NumericalType e)
+    {
+        // implementation for floating point types.
+
+        assert( b <= e );
+        return e - b;
+    }
+};
+
+// =================================================================================================
 //     Interval
 // =================================================================================================
 
@@ -173,7 +244,8 @@ struct EmptyIntervalData
  * which is published under the CC0-1.0 License (Creative Commons Zero v1.0 Universal);
  * see our @link supplement_acknowledgements_code_reuse_interval_tree Acknowledgements@endlink
  * for further details, and see IntervalTreeIterator, IntervalTreeNode, and IntervalTree for the
- * other classes based on the original code.
+ * other classes based on the original code. We changed the code to fit our standards,
+ * and in particular added support for per-interval data storage capability.
  */
 template <
     typename DataType = EmptyIntervalData,
@@ -275,17 +347,21 @@ public:
     /**
      * @brief Return if both intervals equal.
      */
-    friend bool operator==(Interval const& lhs, Interval const& other)
+    friend bool operator==( Interval const& lhs, Interval const& rhs )
     {
-        return lhs.low_ == other.low_ && lhs.high_ == other.high_;
+        assert( lhs.low_ <= lhs.high_ );
+        assert( rhs.low_ <= rhs.high_ );
+        return lhs.low_ == rhs.low_ && lhs.high_ == rhs.high_;
     }
 
     /**
      * @brief Return if both intervals are different.
      */
-    friend bool operator!=(Interval const& lhs, Interval const& other)
+    friend bool operator!=( Interval const& lhs, Interval const& rhs )
     {
-        return lhs.low_ != other.low_ || lhs.high_ != other.high_;
+        assert( lhs.low_ <= rhs.high_ );
+        assert( rhs.low_ <= rhs.high_ );
+        return lhs.low_ != rhs.low_ || lhs.high_ != rhs.high_;
     }
 
     /**
@@ -294,6 +370,7 @@ public:
      */
     bool overlaps(numerical_type l, numerical_type h) const
     {
+        assert( low_ <= high_ );
         return low_ <= h && l <= high_;
     }
 
@@ -303,6 +380,7 @@ public:
      */
     bool overlaps_exclusive(numerical_type l, numerical_type h) const
     {
+        assert( low_ <= high_ );
         return low_ < h && l < high_;
     }
 
@@ -327,6 +405,7 @@ public:
      */
     bool within(numerical_type value) const
     {
+        assert( low_ <= high_ );
         return interval_kind::within(low_, high_, value);
     }
 
@@ -335,6 +414,8 @@ public:
      */
     bool within(Interval const& other) const
     {
+        assert( low_ <= high_ );
+        assert( other.low_ <= other.high_ );
         return low_ <= other.low_ && high_ >= other.high_;
     }
 
@@ -351,6 +432,9 @@ public:
         if( overlaps(other) ) {
             return 0;
         }
+
+        assert( low_ <= high_ );
+        assert( other.low_ <= other.high_ );
         if( high_ < other.low_ ) {
             return other.low_ - high_;
         } else {
@@ -379,7 +463,28 @@ public:
      */
     numerical_type size() const
     {
+        assert( low_ <= high_ );
         return high_ - low_;
+    }
+
+    /**
+     * @brief Return the length of the interval.
+     *
+     * For integer types, this is the number of values in the interval, which depends on whether
+     * the interval is open, closed, or half-open (as determined by the IntervalKind template
+     * parameter):
+     *
+     *   * `[1, 3]` has length 3
+     *   * `[1, 3)` and `(1, 3]` have length 2
+     *   * `(1, 3)` has length 1
+     *
+     * For other numerical types (in particular floating points), the length is simply the distance
+     * between the high() and low(), and hence the same as size().
+     */
+    numerical_type length() const
+    {
+        assert( low_ <= high_ );
+        return interval_kind::length( low_, high_ );
     }
 
     std::string to_string( bool narrow = false ) const
