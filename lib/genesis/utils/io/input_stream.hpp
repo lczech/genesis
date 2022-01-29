@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -558,7 +558,7 @@ public:
      * new lines. That is, this function is not meant as a way to jump to an arbitrary (later)
      * position in a file!
      */
-    void jump( size_t n )
+    void jump_unchecked( size_t n )
     {
         // Safety first!
         if( data_pos_ + n >= data_end_ ) {

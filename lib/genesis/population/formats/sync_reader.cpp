@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -453,7 +453,7 @@ void SyncReader::parse_sample_gcc_intrinsic_(
     assert( sample.d_count < 10000000 );
 
     // Jump to the position after the last entry.
-    it.jump( d_chunk.offset + d_chunk.length - 1 );
+    it.jump_unchecked( d_chunk.offset + d_chunk.length - 1 );
 }
 
 #endif // defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
@@ -520,7 +520,7 @@ void SyncReader::parse_sample_(
         sample.d_count = buff.first[ 11 ] - '0';
 
         // Jump to the position after the last entry.
-        it.jump( 12 );
+        it.jump_unchecked( 12 );
         return;
     }
 
