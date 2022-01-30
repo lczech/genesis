@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2021 Lucas Czech
+# Copyright (C) 2014-2022 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -162,9 +162,12 @@ target_link_libraries (genesis_tests ${GTEST_BOTH_LIBRARIES})
 
 # Link against any external libraries, e.g. Pthreads.
 target_link_libraries (genesis_tests ${GENESIS_INTERNAL_LINK_LIBRARIES})
-IF(GENESIS_USE_HTSLIB AND NOT GENESIS_SYSTEM_HTSLIB)
+IF(GENESIS_USE_HTSLIB)
     add_dependencies( genesis_tests htslib )
 ENDIF()
+# IF(GENESIS_USE_SAMTOOLS)
+#     add_dependencies( genesis_tests samtools )
+# ENDIF()
 
 # Need to specify the whole path here. For some reason, cmake does not
 # extract it from the executable name here...

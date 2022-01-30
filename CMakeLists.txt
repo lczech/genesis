@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2021 Lucas Czech
+# Copyright (C) 2014-2022 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -160,7 +160,11 @@ option (GENESIS_USE_OPENMP          "Use OpenMP."                               
 # so that we can check out the exact commit that we want.
 # By setting `GENESIS_USE_HTSLIB OFF`, all htslib-related functionality can also be deactivated,
 # but those functions then won't be available in the library.
-option (GENESIS_USE_HTSLIB          "Use htslib. See also GENESIS_SYSTEM_HTSLIB"         ON)
+option (GENESIS_USE_HTSLIB          "Use htslib." ON)
+
+# Another additional dependency: samtools
+# We again use a locally installed version, see the htslib setup above for details. Same here.
+option (GENESIS_USE_SAMTOOLS        "Use samtools. Needs to also have htslib activated." ON)
 
 # Define unity build option with list of valid values. Default is full unity build.
 set( GENESIS_UNITY_BUILD FULL CACHE STRING
@@ -290,12 +294,41 @@ ENDIF()
 if(GENESIS_USE_HTSLIB)
 
     # Store the commit hash that we want to check out for htslib.
-    SET( htslib_COMMIT_HASH "bd133acf51498431a5c7dfd8aa06ce17ec6d3b96" ) #htslib_COMMIT_HASH#
+    # SET( htslib_COMMIT_HASH "bd133acf51498431a5c7dfd8aa06ce17ec6d3b96" ) #htslib_COMMIT_HASH#
+
+    # Instead of the above git-hash-based download, we use a direct download of a release archive file,
+    # because htslib now requires some generated files as well that are not part of the repository...
+    # Why are external dependencies always such a mess?
+    SET( GENESIS_HTSLIB_VERSION "1.13" ) #GENESIS_HTSLIB_VERSION#
 
     # Included from modules dir tools/cmake
     include( IncludeHtslib )
 
 endif()
+
+# ----------------------------------------------------------
+#     samtools
+# ----------------------------------------------------------
+
+# Not used at the moment. Kept here for later reference, if needed.
+# if(GENESIS_USE_SAMTOOLS)
+#
+#     # Store the commit hash that we want to check out for samtools.
+#     # SET( samtools_COMMIT_HASH "bcd9f35cefdd8b92044d2259506aff39f0a6baf9" ) #samtools_COMMIT_HASH#
+#
+#     # Same as above for htslib, we here also use a direct download instead of git,
+#     # because of their generated files and so on... Arghghgh.
+#     SET( GENESIS_SAMTOOLS_VERSION "1.13" ) #GENESIS_SAMTOOLS_VERSION#
+#
+#     # Dependency of the dependency.
+#     IF(NOT GENESIS_USE_HTSLIB)
+#         message( FATAL_ERROR "Using samtools also requires to use htslib.")
+#     ENDIF()
+#
+#     # Included from modules dir tools/cmake
+#     include( IncludeSamtools )
+#
+# endif()
 
 # --------------------------------------------------------------------------------------------------
 #   Sub-Scripts
@@ -332,6 +365,9 @@ endif()
 # --------------------------------------------------------------------------------------------------
 #   Export to parent scope
 # --------------------------------------------------------------------------------------------------
+
+# We want this for nicer naming.
+set( GENESIS_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_LIBRARY} )
 
 # If Genesis is used as a dependency, we need to export definitions and stuff to the parent scope.
 IF( GENESIS_HAS_PARENT_DIR )

@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2021 Lucas Czech
+# Copyright (C) 2014-2022 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,8 +35,10 @@ ExternalProject_Add(
 
     # Download and Update Steps
     # DOWNLOAD_COMMAND  ""
-    GIT_REPOSITORY https://github.com/samtools/htslib.git
-    GIT_TAG ${htslib_COMMIT_HASH}
+    # GIT_REPOSITORY https://github.com/samtools/htslib.git
+    # GIT_TAG ${htslib_COMMIT_HASH}
+    URL https://github.com/samtools/htslib/releases/download/${GENESIS_HTSLIB_VERSION}/htslib-${GENESIS_HTSLIB_VERSION}.tar.bz2
+    DOWNLOAD_NO_PROGRESS TRUE
     UPDATE_COMMAND    ""
 
     # Configure Step. See htslib/INSTALL
@@ -131,8 +133,7 @@ IF(
     message( FATAL_ERROR "Required package htslib (or some of its dependencies) not found.")
 ELSE()
 
-    # Technically, we can only claim to have "found" the library when using the system-wide
-    # installation here, as in the local (default) case it won't yet be compiled...
+    # Technically, we cannot claim to have "found" the library here, as it won't yet be compiled...
     # But let's stick to the user output that we used for the other dependencies,
     # and assume that once we are here, the build process will work.
     message( STATUS "Found htslib: ${HTSLIB_LIBRARY}" )
