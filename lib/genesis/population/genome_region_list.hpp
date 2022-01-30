@@ -173,11 +173,13 @@ public:
      */
     bool is_covered( std::string const& chromosome, numerical_type position ) const
     {
-        if( regions_.count( chromosome ) == 0 ) {
+        // Using find(), so we only have to search in the map once, for speed.
+        auto const it = regions_.find( chromosome );
+        if( it == regions_.end() ) {
             return false;
         }
-        auto const& reg = regions_.at( chromosome );
-        return reg.overlap_find( position ) != reg.end();
+        auto const& chrom_tree = it->second;
+        return chrom_tree.overlap_find( position ) != chrom_tree.end();
     }
 
     /**
@@ -188,13 +190,15 @@ public:
      */
     const_iterator find( std::string const& chromosome, size_t position ) const
     {
-        if( regions_.count( chromosome ) == 0 ) {
+        // Using find(), so we only have to search in the map once, for speed.
+        auto const it = regions_.find( chromosome );
+        if( it == regions_.end() ) {
             throw std::invalid_argument(
                 "GenomeRegionList does not contain chromosome '" + chromosome + "'"
             );
         }
-        auto const& reg = regions_.at( chromosome );
-        return reg.overlap_find( position );
+        auto const& chrom_tree = it->second;
+        return chrom_tree.overlap_find( position );
     }
 
     tree_type& get_chromosome_regions( std::string const& chromosome )
