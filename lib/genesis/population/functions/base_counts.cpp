@@ -365,6 +365,16 @@ std::pair<char, double> consensus( BaseCounts const& sample, BaseCountsStatus co
     }
 }
 
+void reset( BaseCounts& counts )
+{
+    counts.a_count = 0;
+    counts.c_count = 0;
+    counts.g_count = 0;
+    counts.t_count = 0;
+    counts.n_count = 0;
+    counts.d_count = 0;
+}
+
 // =================================================================================================
 //     Conversion Functions
 // =================================================================================================
