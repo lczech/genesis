@@ -83,6 +83,7 @@ public:
     using data_type = EmptyGenomeData;
     using numerical_type = size_t;
     using tree_type = genesis::utils::IntervalTree<data_type, numerical_type>;
+    using self_type = GenomeRegionList;
 
     using iterator               = typename tree_type::iterator;
     using const_iterator         = typename tree_type::const_iterator;
@@ -215,17 +216,17 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
-    /**
-     * @brief Return the size of the list, in number of chromosomes that it contains.
-     *
-     * This is the size of the range of the begin() and end() iterators, and hence, for compliance
-     * with the standard, what we return here. For the actual count of the contained regions
-     * (intervals), see region_count().
-     */
-    size_t size() const
-    {
-        return regions_.size();
-    }
+    // /**
+    //  * @brief Return the size of the list, in number of chromosomes that it contains.
+    //  *
+    //  * This is the size of the range of the begin() and end() iterators, and hence, for compliance
+    //  * with the standard, what we return here. For the actual count of the contained regions
+    //  * (intervals), see region_count().
+    //  */
+    // size_t size() const
+    // {
+    //     return regions_.size();
+    // }
 
     /**
      * @brief Return the number of chromosomes for which there are regions stored.
@@ -295,12 +296,28 @@ public:
     // }
 
     // -------------------------------------------------------------------------
+    //     Settings
+    // -------------------------------------------------------------------------
+
+    // bool allow_overlap() const
+    // {
+    //     return allow_overlap_;
+    // }
+    //
+    // self_type& allow_overlap( bool value )
+    // {
+    //     allow_overlap_ = value;
+    //     return *this;
+    // }
+
+    // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
 private:
 
     std::map<std::string, tree_type> regions_;
+    // bool allow_overlap_ = true;
 
 };
 
