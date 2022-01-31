@@ -161,12 +161,12 @@ public:
      */
     inline char current() const
     {
-        if( data_pos_ >= data_end_ ) {
+        if( data_pos_ >= data_end_ ) GENESIS_UNLIKELY {
             throw std::runtime_error(
                 "Unexpected end of " + source_name() + " at " + at() + "."
             );
         }
-        if( current_ < 0 ) {
+        if( current_ < 0 ) GENESIS_UNLIKELY {
             throw std::domain_error(
                 "Invalid input char in " + source_name() + " at " + at() + "."
             );
@@ -189,13 +189,13 @@ public:
     inline self_type& operator ++ ()
     {
         // If we were already at the end, set counter so zero.
-        if( data_pos_ >= data_end_ ) {
+        if( data_pos_ >= data_end_ ) GENESIS_UNLIKELY {
             reset_();
             return *this;
         }
 
         // Read data if necessary.
-        if( data_pos_ >= BlockLength ) {
+        if( data_pos_ >= BlockLength ) GENESIS_UNLIKELY {
             update_blocks_();
         }
         assert( data_pos_ < BlockLength );
@@ -271,7 +271,7 @@ public:
     inline char read_char_or_throw( char const criterion )
     {
         // Check char and move to next.
-        if( data_pos_ >= data_end_ || current_ != criterion ) {
+        if( data_pos_ >= data_end_ || current_ != criterion ) GENESIS_UNLIKELY {
             throw std::runtime_error(
                 std::string("In ") + source_name() + ": " +
                 "Expecting " + char_to_hex( criterion ) + " at " + at() + ", " +
@@ -294,7 +294,7 @@ public:
     inline char read_char_or_throw( std::function<bool (char)> criterion )
     {
         // Check char and move to next.
-        if( data_pos_ >= data_end_ || !criterion( current_ )) {
+        if( data_pos_ >= data_end_ || !criterion( current_ )) GENESIS_UNLIKELY {
             throw std::runtime_error(
                 std::string("In ") + source_name() + ": " +
                 "Unexpected char " + char_to_hex( current_ ) + " at " + at() + "."
@@ -609,7 +609,7 @@ private:
     inline void set_current_char_()
     {
         // Check end of stream conditions.
-        if( data_pos_ >= data_end_ ) {
+        if( data_pos_ >= data_end_ ) GENESIS_UNLIKELY {
             // We do not expect to overshoot. Let's assert this, but if it still happens
             // (in release build), we can also cope, and will just set \0 as the current char.
             assert( data_pos_ == data_end_ );
