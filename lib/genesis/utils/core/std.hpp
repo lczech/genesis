@@ -61,10 +61,10 @@ namespace utils {
 
 // We define them here as specified by later standards.
 // Using them this way allows us to easly switch them off (by turning them into empty statements).
-#define GENESIS_LIKELY   [[likely]]
-#define GENESIS_UNLIKELY [[unlikely]]
-// #define GENESIS_LIKELY
-// #define GENESIS_UNLIKELY
+// #define GENESIS_LIKELY   [[likely]]
+// #define GENESIS_UNLIKELY [[unlikely]]
+#define GENESIS_LIKELY
+#define GENESIS_UNLIKELY
 
 // =================================================================================================
 //     Shortcomings of the C++ 11 STL...
