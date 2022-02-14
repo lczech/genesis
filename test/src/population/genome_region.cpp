@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -56,30 +56,32 @@ TEST( GenomeRegion, Basics )
     list.add(make_genome_region( "X", 25, 35 ));
 
     // Add some overlapping and invalid regions.
-    EXPECT_ANY_THROW( list.add(make_genome_region( "X", 1, 5 )); );
-    EXPECT_ANY_THROW( list.add(make_genome_region( "X", 3, 18 )); );
+    // EXPECT_ANY_THROW( list.add(make_genome_region( "X", 1, 5 )); );
+    // EXPECT_ANY_THROW( list.add(make_genome_region( "X", 3, 18 )); );
     EXPECT_ANY_THROW( list.add(make_genome_region( "X", 45, 40 )); );
-    EXPECT_ANY_THROW( list.add(make_genome_region( "X", 50, 50 )); );
+    // EXPECT_ANY_THROW( list.add(make_genome_region( "X", 50, 50 )); );
 
     // Test all existing regions.
     EXPECT_FALSE( list.is_covered( "X", 0 ));
     EXPECT_TRUE(  list.is_covered( "X", 1 ));
     EXPECT_TRUE(  list.is_covered( "X", 4 ));
-    EXPECT_FALSE( list.is_covered( "X", 5 ));
+    EXPECT_TRUE(  list.is_covered( "X", 5 ));
     EXPECT_FALSE( list.is_covered( "X", 9 ));
     EXPECT_TRUE(  list.is_covered( "X", 10 ));
     EXPECT_TRUE(  list.is_covered( "X", 15 ));
     EXPECT_TRUE(  list.is_covered( "X", 19 ));
-    EXPECT_FALSE( list.is_covered( "X", 20 ));
+    EXPECT_TRUE(  list.is_covered( "X", 20 ));
     EXPECT_FALSE( list.is_covered( "X", 22 ));
     EXPECT_FALSE( list.is_covered( "X", 24 ));
     EXPECT_TRUE(  list.is_covered( "X", 25 ));
     EXPECT_TRUE(  list.is_covered( "X", 34 ));
-    EXPECT_FALSE( list.is_covered( "X", 35 ));
+    EXPECT_TRUE(  list.is_covered( "X", 35 ));
 
     // Test some other stuff.
     EXPECT_FALSE( list.is_covered( "Y", 5 ));
-    EXPECT_EQ( 4, list.size() );
+    EXPECT_EQ( 1, list.chromosome_count() );
+    EXPECT_EQ( 4, list.region_count( "X" ));
+    EXPECT_EQ( 4, list.total_region_count());
 }
 
 TEST( GenomeRegion, Parse )

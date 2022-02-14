@@ -83,6 +83,7 @@ public:
     using data_type = EmptyGenomeData;
     using numerical_type = size_t;
     using tree_type = genesis::utils::IntervalTree<data_type, numerical_type>;
+    using self_type = GenomeRegionList;
 
     using iterator               = typename tree_type::iterator;
     using const_iterator         = typename tree_type::const_iterator;
@@ -173,11 +174,13 @@ public:
      */
     bool is_covered( std::string const& chromosome, numerical_type position ) const
     {
-        if( regions_.count( chromosome ) == 0 ) {
+        // Using find(), so we only have to search in the map once, for speed.
+        auto const it = regions_.find( chromosome );
+        if( it == regions_.end() ) {
             return false;
         }
-        auto const& reg = regions_.at( chromosome );
-        return reg.overlap_find( position ) != reg.end();
+        auto const& chrom_tree = it->second;
+        return chrom_tree.overlap_find( position ) != chrom_tree.end();
     }
 
     /**
@@ -188,13 +191,15 @@ public:
      */
     const_iterator find( std::string const& chromosome, size_t position ) const
     {
-        if( regions_.count( chromosome ) == 0 ) {
+        // Using find(), so we only have to search in the map once, for speed.
+        auto const it = regions_.find( chromosome );
+        if( it == regions_.end() ) {
             throw std::invalid_argument(
                 "GenomeRegionList does not contain chromosome '" + chromosome + "'"
             );
         }
-        auto const& reg = regions_.at( chromosome );
-        return reg.overlap_find( position );
+        auto const& chrom_tree = it->second;
+        return chrom_tree.overlap_find( position );
     }
 
     tree_type& get_chromosome_regions( std::string const& chromosome )
@@ -211,17 +216,17 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
-    /**
-     * @brief Return the size of the list, in number of chromosomes that it contains.
-     *
-     * This is the size of the range of the begin() and end() iterators, and hence, for compliance
-     * with the standard, what we return here. For the actual count of the contained regions
-     * (intervals), see region_count().
-     */
-    size_t size() const
-    {
-        return regions_.size();
-    }
+    // /**
+    //  * @brief Return the size of the list, in number of chromosomes that it contains.
+    //  *
+    //  * This is the size of the range of the begin() and end() iterators, and hence, for compliance
+    //  * with the standard, what we return here. For the actual count of the contained regions
+    //  * (intervals), see region_count().
+    //  */
+    // size_t size() const
+    // {
+    //     return regions_.size();
+    // }
 
     /**
      * @brief Return the number of chromosomes for which there are regions stored.
@@ -291,12 +296,28 @@ public:
     // }
 
     // -------------------------------------------------------------------------
+    //     Settings
+    // -------------------------------------------------------------------------
+
+    // bool allow_overlap() const
+    // {
+    //     return allow_overlap_;
+    // }
+    //
+    // self_type& allow_overlap( bool value )
+    // {
+    //     allow_overlap_ = value;
+    //     return *this;
+    // }
+
+    // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
 private:
 
     std::map<std::string, tree_type> regions_;
+    // bool allow_overlap_ = true;
 
 };
 

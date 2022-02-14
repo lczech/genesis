@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -96,7 +96,7 @@ void InputStream::get_line( std::string& target )
     // we might need to update the blocks and store the results in between.
     while( true ) {
         // Read data if necessary.
-        if( data_pos_ >= BlockLength ) {
+        if( data_pos_ >= BlockLength ) GENESIS_UNLIKELY {
             update_blocks_();
         }
         assert( data_pos_ < BlockLength );

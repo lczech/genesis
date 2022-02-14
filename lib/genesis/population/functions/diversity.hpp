@@ -107,7 +107,8 @@ struct PoolDiversityResults
  *
  * This is computed as \f$ h = \frac{n}{n-1} \left( 1 - \sum p^2 \right) \f$ with `n` the total
  * nucleotide_sum() (sum of `A`,`C`,`G`,`T` in the sample), and `p` their respective nucleotide
- * frequencies.
+ * frequencies, with @p with_bessel, or without Bessel's correction in the beginning of the equation
+ * when @p with_bessel is set to `false` (default).
  *
  * See Equation 3.1 in
  *
@@ -116,7 +117,7 @@ struct PoolDiversityResults
  *
  * for details.
  */
-double heterozygosity( BaseCounts const& sample );
+double heterozygosity( BaseCounts const& sample, bool with_bessel = false );
 
 // =================================================================================================
 //     Theta Pi
@@ -157,7 +158,7 @@ double theta_pi(
 ) {
     double pi_sum = 0.0;
     for( auto& it = begin; it != end; ++it ) {
-        pi_sum += heterozygosity( *it );
+        pi_sum += heterozygosity( *it, true );
     }
     return pi_sum;
 }
@@ -182,7 +183,7 @@ double theta_pi_pool( // get_pi_calculator
 
     double pi_sum = 0.0;
     for( auto& it = begin; it != end; ++it ) {
-        double const pi_snp = heterozygosity( *it );
+        double const pi_snp = heterozygosity( *it, true );
         double const denom  = theta_pi_pool_denominator( settings, nucleotide_sum( *it ));
         pi_sum += ( pi_snp / denom );
     }
@@ -197,7 +198,9 @@ inline double theta_pi_pool(
     PoolDiversitySettings const& settings,
     BaseCounts const& sample
 ) {
-    return heterozygosity( sample ) / theta_pi_pool_denominator( settings, nucleotide_sum( sample ));
+    auto const h = heterozygosity( sample, true );
+    auto const d = theta_pi_pool_denominator( settings, nucleotide_sum( sample ));
+    return h / d;
 }
 
 // =================================================================================================

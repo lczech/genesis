@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2020 Lucas Czech
+# Copyright (C) 2014-2022 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,9 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Contact:
-# Lucas Czech <lucas.czech@h-its.org>
-# Exelixis Lab, Heidelberg Institute for Theoretical Studies
-# Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+# Lucas Czech <lczech@carnegiescience.edu>
+# Department of Plant Biology, Carnegie Institution For Science
+# 260 Panama Street, Stanford, CA 94305, USA
 
 # ------------------------------------------------------------------------------
 #   Build Options
@@ -67,9 +67,14 @@ if (GENESIS_BUILD_SHARED_LIB)
     target_link_libraries (genesis_lib_shared PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
 
     # Add htslib as a dependency, so that CMake realizes that it has to be built.
-    IF(GENESIS_USE_HTSLIB AND NOT GENESIS_SYSTEM_HTSLIB)
+    IF(GENESIS_USE_HTSLIB)
         add_dependencies( genesis_lib_shared htslib )
     ENDIF()
+
+    # Same for samtools. Not used at the moment though.
+    # IF(GENESIS_USE_SAMTOOLS)
+    #     add_dependencies( genesis_lib_shared samtools )
+    # ENDIF()
 
     # Add this shared library to our exported libraries, which can then be used by the parent scope.
     set( GENESIS_SHARED_LIBRARY genesis_lib_shared PARENT_SCOPE )
@@ -93,9 +98,14 @@ if (GENESIS_BUILD_STATIC_LIB)
     target_link_libraries (genesis_lib_static PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
 
     # Add htslib as a dependency, so that CMake realizes that it has to be built.
-    IF(GENESIS_USE_HTSLIB AND NOT GENESIS_SYSTEM_HTSLIB)
+    IF(GENESIS_USE_HTSLIB)
         add_dependencies( genesis_lib_static htslib )
     ENDIF()
+
+    # Same for samtools. Not used at the moment though.
+    # IF(GENESIS_USE_SAMTOOLS)
+    #     add_dependencies( genesis_lib_static samtools )
+    # ENDIF()
 
     # Add this static library to our exported libraries, which can then be used by the parent scope.
     # In case that we also build the shared lib, GENESIS_LIBRARY is overwritten, which is on

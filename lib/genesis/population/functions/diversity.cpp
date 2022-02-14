@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,6 +53,12 @@ namespace population {
 
 /**
  * @brief Local helper function to compute values for the denominator.
+ *
+ * This computes the sum over all r poolsizes of 1/r times a binomial:
+ *
+ * \f$ \sum_{m=b}^{C-b} \frac{1}{k} {C \choose m} \left(\frac{k}{n}\right)^m \left(\frac{n-k}{n}\right)^{C-m} \f$
+ *
+ * This is needed in the pool seq correction denoinators of Theta Pi and Theta Watterson.
  */
 double amnm_( // get_aMnm_buffer
     size_t poolsize,         // n
@@ -101,7 +107,7 @@ double amnm_( // get_aMnm_buffer
 //     Diversity Estimates
 // =================================================================================================
 
-double heterozygosity( BaseCounts const& sample )
+double heterozygosity( BaseCounts const& sample, bool with_bessel )
 {
     using namespace genesis::utils;
 
@@ -117,7 +123,9 @@ double heterozygosity( BaseCounts const& sample )
     // h -= std::pow( static_cast<double>( sample.c_count ) / nt_cnt, 2 );
     // h -= std::pow( static_cast<double>( sample.g_count ) / nt_cnt, 2 );
     // h -= std::pow( static_cast<double>( sample.t_count ) / nt_cnt, 2 );
-    h *= nt_cnt / ( nt_cnt - 1.0 );
+    if( with_bessel ) {
+        h *= nt_cnt / ( nt_cnt - 1.0 );
+    }
     return h;
 }
 

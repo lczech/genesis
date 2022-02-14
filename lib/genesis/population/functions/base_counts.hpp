@@ -239,6 +239,11 @@ std::pair<char, double> consensus( BaseCounts const& sample );
 */
 std::pair<char, double> consensus( BaseCounts const& sample, BaseCountsStatus const& status );
 
+/**
+ * @brief Set the counts of a BaseCounts to zero.
+ */
+void reset( BaseCounts& counts );
+
 // =================================================================================================
 //     Conversion Functions
 // =================================================================================================
