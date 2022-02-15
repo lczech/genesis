@@ -44,6 +44,7 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 // Forward declarations of htslib structs, so that we do not have to include their headers
@@ -87,10 +88,12 @@ namespace population {
  *         std::cout << "\n";
  *     }
  *
- * At the moment, the class produces a single BaseCounts object as part of the Variant, that
- * countains the accumulated counts at the current locus. In the future, we might extend this
- * to be able to split by read group (`@RG`), or offer to read multiple files at the same time
- * (similar to samtools mpileup). We hence recommend to use the above way of accessing the samples.
+ * By default, as above, all reads are considered to be belonging to the same sample.
+ * In that case hence, the above inner loop over samples will only ever go through one BaseCounts
+ * object stored in the Variant.
+ * We however are also able to split by read group (`@RG`), see split_by_rg() and
+ * with_unaccounted_rg() for details. In that case, the Variant contains one BaseCounts object
+ * per read group, as well as potentially a special one for unaccounted reads with no proper RG.
  */
 class SamVariantInputIterator
 {
@@ -233,6 +236,9 @@ public:
             // Current iterator.
             bam_plp_t iter;
             // ::hts_itr_t* hts_iter = nullptr;
+
+            // List of the @RG read group tags as present in the header.
+            std::unordered_map<std::string, size_t> rg_tags;
         };
 
         // -------------------------------------------------------------------------
@@ -259,6 +265,17 @@ public:
          * position.
          */
         static int read_sam_( void* data, bam1_t* b );
+
+        /**
+         * @brief Get a list of all `@RG` read group tags in a sam header.
+         *
+         * The returned map has the read group tags as keys, and their index in the RG
+         * list of the input file as values. This makes it possible to do a fast index
+         * lookup for each read, given its RG tag in the file.
+         */
+        std::unordered_map<std::string, size_t> get_header_rg_tags_(
+            ::sam_hdr_t* sam_hdr
+        ) const;
 
     private:
 
@@ -407,6 +424,46 @@ public:
         return *this;
     }
 
+    bool split_by_rg() const
+    {
+        return split_by_rg_;
+    }
+
+    /**
+     * @brief If set to `true`, instead of reading all mapped reads as a single sample,
+     * split them by the `@RG` read group tag.
+     *
+     * This way, multiple BaseCounts objects are created in the resulting Variant, one for each
+     * read group, and potentially an additional one for the unaccounted reads that do not have a
+     * read group, if with_unaccounted_rg() is also set.
+     */
+    self_type& split_by_rg( bool value )
+    {
+        split_by_rg_ = value;
+        return *this;
+    }
+
+    bool with_unaccounted_rg() const
+    {
+        return with_unaccounted_rg_;
+    }
+
+    /**
+     * @brief Decide whether to add a sample for reads without a read group,
+     * when splitting by `@RG` tag.
+     *
+     * If split_by_rg() and this option are both set to `true`, also add a special sample for
+     * the reads without a read group, as the last BaseCounts object of the Variant.
+     * If this option here is however set to `false`, all reads without a read group tag or
+     * with an invalid read group tag (that does not appear in the header) are ignored.
+     * If split_by_rg() is not set to `true`, this option here is completely ignored.
+     */
+    self_type& with_unaccounted_rg( bool value )
+    {
+        with_unaccounted_rg_ = value;
+        return *this;
+    }
+
     // bool skip_empty_positions() const
     // {
     //     return skip_empty_positions_;
@@ -441,6 +498,9 @@ private:
     int min_depth_ = 0;
     int max_depth_ = 0;
     int max_acc_depth_ = 0;
+
+    bool split_by_rg_ = false;
+    bool with_unaccounted_rg_ = false;
 
     // Unused / need to investiage if needed
     // int max_indel_depth_ = 250;
