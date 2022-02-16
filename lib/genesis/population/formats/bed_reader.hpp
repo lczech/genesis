@@ -1,0 +1,160 @@
+#ifndef GENESIS_POPULATION_FORMATS_BED_READER_H_
+#define GENESIS_POPULATION_FORMATS_BED_READER_H_
+
+/*
+    Genesis - A toolkit for working with phylogenetic data.
+    Copyright (C) 2014-2022 Lucas Czech
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Contact:
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
+*/
+
+/**
+ * @brief
+ *
+ * @file
+ * @ingroup population
+ */
+
+#include "genesis/population/genome_region.hpp"
+#include "genesis/population/genome_region_list.hpp"
+
+#include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/io/input_stream.hpp"
+
+#include <functional>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace genesis {
+namespace population {
+
+// =================================================================================================
+//     BED Reader
+// =================================================================================================
+
+/**
+ * @brief Reader for BED (Browser Extensible Data) files.
+ *
+ * We follow the definition by https://en.wikipedia.org/wiki/BED_(file_format), which itself is
+ * based on the UCSC Genome Browser definition of the BED format:
+ *
+ *  Column number | Title        | Definition
+ *  ------------: | :----------- | :---------
+ *  1             | chrom        | Chromosome (e.g. chr3, chrY, chr2_random) or scaffold (e.g. scaffold10671) name
+ *  2             | chromStart   | Start coordinate on the chromosome or scaffold for the sequence considered (the first base on the chromosome is numbered 0 in the file format - we here however use 1-based coordinates)
+ *  3             | chromEnd     | End coordinate on the chromosome or scaffold for the sequence considered. This position is non-inclusive, unlike chromStart.
+ *  4             | name         | Name of the line in the BED file
+ *  5             | score        | Score between 0 and 1000
+ *  6             | strand       | DNA strand orientation (positive ["+"] or negative ["-"] or "." if no strand)
+ *  7             | thickStart   | Starting coordinate from which the annotation is displayed in a thicker way on a graphical representation (e.g.: the start codon of a gene)
+ *  8             | thickEnd     | End coordinates from which the annotation is no longer displayed in a thicker way on a graphical representation (e.g.: the stop codon of a gene)
+ *  9             | itemRgb      | RGB value in the form R,G,B (e.g. 255,0,0) determining the display color of the annotation contained in the BED file
+ *  10            | blockCount   | Number of blocks (e.g. exons) on the line of the BED file
+ *  11            | blockSizes   | List of values separated by commas corresponding to the size of the blocks (the number of values must correspond to that of the "blockCount")
+ *  12            | blockStarts  | List of values separated by commas corresponding to the starting coordinates of the blocks, coordinates calculated relative to those present in the chromStart column (the number of values must correspond to that of the "blockCount")
+ *
+ * The reader offers to parse every line or the whole file into a Feature format that contains the
+ * above columns (as far as present in the file), or to read into a GenomeRegionList structure
+ * instead, in which case only the genome coordinates (chromosome and start and end positions) are
+ * used.
+ *
+ * Note that the BED format internally uses 0-based half-open intervals. That is, the start and end
+ * coordinates `chromStart = 0` and `chromEnd = 100` define a region starting at the first base,
+ * with a length of 100. We here however use 1-based closed intervals, and hence store the same
+ * region as `1` and `100`.
+ *
+ * Furthermore, any header lines starting with `browser`, `track`, or `#` are read, but currently
+ * ignored.
+ */
+class BedReader
+{
+public:
+
+    // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief
+     */
+    struct Feature
+    {
+        std::string chrom;
+        size_t chrom_start;
+        size_t chrom_end;
+        std::string name;
+        size_t score;
+        char strand;
+        size_t thick_start;
+        size_t thick_end;
+        std::string item_rgb;
+        size_t block_count;
+        std::vector<size_t> block_sizes;
+        std::vector<size_t> block_starts;
+    };
+
+    // -------------------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------------------
+
+    BedReader() = default;
+    ~BedReader() = default;
+
+    BedReader( BedReader const& ) = default;
+    BedReader( BedReader&& )      = default;
+
+    BedReader& operator= ( BedReader const& ) = default;
+    BedReader& operator= ( BedReader&& )      = default;
+
+    // ---------------------------------------------------------------------
+    //     Reading
+    // ---------------------------------------------------------------------
+
+    std::vector<Feature> read(
+        std::shared_ptr< utils::BaseInputSource > source
+    ) const;
+
+    GenomeRegionList read_as_genome_region_list(
+        std::shared_ptr< utils::BaseInputSource > source
+    ) const;
+
+    // -------------------------------------------------------------------------
+    //     Internal Helpers
+    // -------------------------------------------------------------------------
+
+    void read_(
+        std::shared_ptr< utils::BaseInputSource > source,
+        std::function<void(Feature&&)> callback
+    ) const;
+
+    size_t parse_line_(
+        utils::InputStream& input_stream,
+        Feature&            feature
+    ) const;
+
+    bool next_field_( utils::InputStream& input_stream, size_t& found_columns ) const;
+    std::string parse_string_( utils::InputStream& input_stream ) const;
+
+};
+
+} // namespace population
+} // namespace genesis
+
+#endif // include guard

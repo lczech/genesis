@@ -1,0 +1,6 @@
+# We took the example from https://en.wikipedia.org/wiki/BED_(file_format),
+# but changed the coordinates slightly to have gaps in them, so that we can
+# properly test the interval boundaries.
+chr7    127471196    127472363
+chr7    127472364    127473530
+chr7    127473531    127474697
