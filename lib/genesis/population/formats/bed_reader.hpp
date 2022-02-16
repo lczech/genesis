@@ -73,15 +73,19 @@ namespace population {
  * The reader offers to parse every line or the whole file into a Feature format that contains the
  * above columns (as far as present in the file), or to read into a GenomeRegionList structure
  * instead, in which case only the genome coordinates (chromosome and start and end positions) are
- * used.
+ * used. The input needs to have a consistent number of columns, but only the first three are
+ * mandatory. They all must be in the above order, and if later (more towards the end of the line)
+ * columns are needed, all previous ones need to be filled as well.
+ * Any additional columns after these 12 are also read by our parser, but simply ignored.
  *
  * Note that the BED format internally uses 0-based half-open intervals. That is, the start and end
  * coordinates `chromStart = 0` and `chromEnd = 100` define a region starting at the first base,
  * with a length of 100. We here however use 1-based closed intervals, and hence store the same
- * region as `1` and `100`.
+ * region as `1` and `100`, both in the Feature struct and in the GenomeRegionList.
  *
- * Furthermore, any header lines starting with `browser`, `track`, or `#` are read, but currently
- * ignored.
+ * Furthermore, any lines starting with `browser`, `track`, or `#` are read, but currently
+ * ignored. We are not quite sure if such lines are allowed in the middle of BED files by the
+ * inofficial standard, hence we here also allow that.
  */
 class BedReader
 {
@@ -92,7 +96,11 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief
+     * @brief Store all values that can typically appear in the columns of a BED file.
+     *
+     * The order of fields in the struct is the same as the order of columns.
+     * If the file does not have all the columns, the remaining values here are simply left empty
+     * or at 0.
      */
     struct Feature
     {
@@ -127,10 +135,19 @@ public:
     //     Reading
     // ---------------------------------------------------------------------
 
+    /**
+     * @brief Read a BED input source, and return its content as a list of Feature structs.
+     */
     std::vector<Feature> read(
         std::shared_ptr< utils::BaseInputSource > source
     ) const;
 
+    /**
+     * @brief Read a BED input source, and return its content as a list of Feature structs.
+     *
+     * This only uses the first three columns, `chrom`, `chromStart`, and `chromEnd`,
+     * and ignores everything else.
+     */
     GenomeRegionList read_as_genome_region_list(
         std::shared_ptr< utils::BaseInputSource > source
     ) const;
@@ -139,17 +156,41 @@ public:
     //     Internal Helpers
     // -------------------------------------------------------------------------
 
+private:
+
+    /**
+     * @brief Helper function to process an input source, with a @p callback function that is called
+     * for every line, to do the actual storage and downstream steps after parsing.
+     */
     void read_(
         std::shared_ptr< utils::BaseInputSource > source,
         std::function<void(Feature&&)> callback
     ) const;
 
+    /**
+     * @brief Parse a single line into the given @p feature, and return the number of columns
+     * found in the line.
+     *
+     * The return value is used by read_() to make sure that all lines have the same number of
+     * columns.
+     */
     size_t parse_line_(
         utils::InputStream& input_stream,
         Feature&            feature
     ) const;
 
+    /**
+     * @brief Go to the next column, skipping spaces and tabs.
+     *
+     * The function returns whether there is a next column (true), or whether the end of the line
+     * or file was reached (false). If true, it also increments the @p found_columns counter,
+     * which is used by parse_line_().
+     */
     bool next_field_( utils::InputStream& input_stream, size_t& found_columns ) const;
+
+    /**
+     * @brief Parse a single string value, delimited from the next column by tabs or spaces.
+     */
     std::string parse_string_( utils::InputStream& input_stream ) const;
 
 };
