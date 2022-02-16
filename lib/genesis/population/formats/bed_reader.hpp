@@ -85,7 +85,8 @@ namespace population {
  *
  * Furthermore, any lines starting with `browser`, `track`, or `#` are read, but currently
  * ignored. We are not quite sure if such lines are allowed in the middle of BED files by the
- * inofficial standard, hence we here also allow that.
+ * inofficial standard, hence we here also allow that. The obvious downside of this being the BED
+ * specification is that chromosome names "browser" and "track" cannot be used.
  */
 class BedReader
 {
