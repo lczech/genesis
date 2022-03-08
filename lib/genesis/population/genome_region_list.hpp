@@ -121,9 +121,26 @@ public:
     //         Add Locus
     // -------------------------------------------
 
+    /**
+     * @brief Add a single Locus, that is, an interval covering one position on a chromosome.
+     */
     void add( GenomeLocus const& locus )
     {
         regions_[ locus.chromosome ].insert({ locus.position, locus.position });
+    }
+
+    /**
+     * @brief Add an interval between two Loci on the same chromosome.
+     */
+    void add( GenomeLocus const& start, GenomeLocus const& end )
+    {
+        if( start.chromosome != end.chromosome ) {
+            throw std::invalid_argument(
+                "Cannot use two GenomeLocus instances with different chromosomes "
+                "as an entry in a GenomeRegionList."
+            );
+        }
+        regions_[ start.chromosome ].insert({ start.position, end.position });
     }
 
     // -------------------------------------------
