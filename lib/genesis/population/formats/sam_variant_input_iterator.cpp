@@ -159,13 +159,14 @@ void SamVariantInputIterator::Iterator::increment_()
     }
 
     // Go through the read data at the current position and tally up.
-    // The loop goes through all bases that cover the position. We access the reads that theses
+    // The loop goes through all bases that cover the position. We access the reads that these
     // bases belong to, in order to get information on base quality and the actual nucleotide, etc.
     // See https://github.com/samtools/samtools/blob/ae1f9d8809/bam_plcmd.c#L62
     for( int i = 0; i < n; ++i ) {
         bam_pileup1_t const* p = plp + i;
 
-        // Check per base quality
+        // Check per base quality. If it does not meet our threshold, we skip this base,
+        // and go to the next one (next iteration of the for loop).
         int const qual = p->qpos < p->b->core.l_qseq
             ? bam_get_qual(p->b)[p->qpos]
             : 0
@@ -249,14 +250,14 @@ void SamVariantInputIterator::Iterator::increment_()
         }
         auto& sample = current_variant_.samples[smp_idx];
 
-        // Check deletions
+        // Check deletions. If it is one, note that, and then we are done for this base.
         if( p->is_del || p->is_refskip ){
             ++sample.d_count;
             continue;
         }
 
         // Get the htslib internal code for the nucleotide as defined in seq_nt16_str, in 0-15,
-        // which is what bam_seqi() returns, and use it to set our base counts.
+        // which is what bam_seqi() returns, and use it to tally up (increment) our base counts.
         uint8_t* seq = bam_get_seq(p->b);
         uint8_t  nuc = bam_seqi(seq, p->qpos);
         switch( nuc ) {
@@ -357,7 +358,7 @@ SamVariantInputIterator::Iterator::get_header_rg_tags_(
 
         // Get the name of this rg tag. Need to free it afterwards ourselves.
         // We set the index to the current size (pre emplacement), meaning that each entry
-        // gets the index according to the how many-th element it is.
+        // gets the index according to the how many-th element in the `result` map it is.
         char* name = ks_release( &id_val );
         result.emplace( name, result.size() );
         free( name );
