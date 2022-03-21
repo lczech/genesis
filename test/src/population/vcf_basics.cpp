@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -782,9 +782,18 @@ TEST( Vcf, InputIterator )
     size_t cnt = 0;
 
     // Use a small block size to trigger the thread support of the iterator.
-    auto it = VcfInputIterator( infile, true, 2 );
+    auto it = VcfInputIterator( infile, std::vector<std::string>{ "NA00002" }, false, true );
     while( it ) {
         at += it.record().at() + " ";
+
+        // We use a sample filter. Check that there is only one sample.
+        size_t gt_cnt = 0;
+        for( auto const& gt_it : it.record().get_format_genotype() ) {
+            (void) gt_it;
+            ++gt_cnt;
+        }
+        EXPECT_EQ( 1, gt_cnt );
+
         ++cnt;
         ++it;
     }
