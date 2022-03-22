@@ -50,6 +50,10 @@ void VcfInputIterator::increment_()
 {
     // We need this function in a source file instead of the header,
     // solely to have the htslib functions not spam our namespace...
+    // We could also work with data directly from our VcfRecord here instead,
+    // but this would entail string copies, instead of just pointer copies;
+    // sometimes, plain C has its advantages ;-)
+    // (or we'd switch to C++17 with stringview instead, which would also solve the issue)
 
     assert( file_ );
     assert( record_ );

@@ -288,7 +288,6 @@ private:
     bool expect_ordered_ = true;
 
     // htslib structs. We use shared pointers here to allow copying this iterator.
-    // Also, use a buffer into which we read asynchronously, and then swap with the current_block_
     std::shared_ptr<HtsFile>   file_;
     std::shared_ptr<VcfHeader> header_;
     std::shared_ptr<VcfRecord> record_;
