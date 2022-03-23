@@ -74,6 +74,10 @@ struct EmptyIntervalData
 //     Interval Types
 // =================================================================================================
 
+// -------------------------------------------------------------------------
+//     left open `(]` interval
+// -------------------------------------------------------------------------
+
 /**
  * @brief Helper type to define a left open `(]` Interval.
  */
@@ -103,6 +107,10 @@ struct IntervalLeftOpen
         return e - b;
     }
 };
+
+// -------------------------------------------------------------------------
+//     right open `[)` interval
+// -------------------------------------------------------------------------
 
 /**
  * @brief Helper type to define a right open `[)` Interval.
@@ -134,8 +142,12 @@ struct IntervalRightOpen
     }
 };
 
+// -------------------------------------------------------------------------
+//     open `()` interval
+// -------------------------------------------------------------------------
+
 /**
- * @brief Helper type to define a open `()` Interval.
+ * @brief Helper type to define an open `()` Interval.
  */
 struct IntervalOpen
 {
@@ -185,6 +197,10 @@ struct IntervalOpen
         return e - b;
     }
 };
+
+// -------------------------------------------------------------------------
+//     closed `[]` interval
+// -------------------------------------------------------------------------
 
 /**
  * @brief Helper type to define a closed `[]` Interval.

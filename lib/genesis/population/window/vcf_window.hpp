@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -52,6 +52,9 @@ namespace population {
 
 /**
  * @brief Convenience function to iterate over a whole VCF file.
+ *
+ * @deprecated Not in use any more, just kept around in case it might be needed later.
+ * Use SlidingWindowIterator instead.
  *
  * This function is convenience, and takes care of iterating a VCF file record by record
  * (that is, line by line), using a provided @p conversion function to extract the `D`/`Data`

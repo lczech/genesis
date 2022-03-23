@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/containers/filter_iterator.hpp"
+#include "genesis/utils/containers/lambda_iterator.hpp"
 #include "genesis/utils/containers/transform_iterator.hpp"
 
 #include <algorithm>
@@ -203,4 +204,84 @@ TEST( Containers, FilterIterator )
         res_range_cont.push_back( e );
     }
     EXPECT_EQ( result, res_range_cont );
+}
+
+void test_lambda_iterator_( size_t num_elements, size_t block_size )
+{
+    // LOG_DBG << "num_elements " << num_elements << ", block_size " << block_size;
+
+    // Create data and get correct sum. Could be done with Gauss. Too lazy to look it up now.
+    std::vector<size_t> data( num_elements );
+    std::iota( data.begin(), data.end(), 0 );
+    auto res = std::accumulate( data.begin(), data.end(), size_t{0} );
+
+    // Set up the LambdaIterator.
+    auto beg = data.begin();
+    auto end = data.end();
+    auto generator = LambdaIterator<size_t>(
+        [beg, end]() mutable -> genesis::utils::Optional<size_t>{
+            if( beg != end ) {
+                auto res = genesis::utils::make_optional<size_t>( *beg );
+                ++beg;
+                return res;
+            } else {
+                return genesis::utils::nullopt;
+            }
+        }, block_size
+    );
+
+    // Run the iteration and check that it matches our expectation.
+    size_t sum = 0;
+    for( auto const& it : generator ) {
+        sum += it;
+    }
+    EXPECT_EQ( res, sum );
+}
+
+TEST( Containers, LambdaIterator )
+{
+    // We test several cases here, for example where the block size is exactly the number of
+    // elements, or a divisor of it, or off by one, or more than the number, etc...
+
+    // No elements
+    test_lambda_iterator_( 0, 0 );
+    test_lambda_iterator_( 0, 1 );
+    test_lambda_iterator_( 0, 2 );
+    test_lambda_iterator_( 0, 3 );
+
+    // Single element
+    test_lambda_iterator_( 1, 0 );
+    test_lambda_iterator_( 1, 1 );
+    test_lambda_iterator_( 1, 2 );
+    test_lambda_iterator_( 1, 3 );
+
+    // Two elements
+    test_lambda_iterator_( 2, 0 );
+    test_lambda_iterator_( 2, 1 );
+    test_lambda_iterator_( 2, 2 );
+    test_lambda_iterator_( 2, 3 );
+
+    // Three elements
+    test_lambda_iterator_( 3, 0 );
+    test_lambda_iterator_( 3, 1 );
+    test_lambda_iterator_( 3, 2 );
+    test_lambda_iterator_( 3, 3 );
+
+    // Four elements
+    test_lambda_iterator_( 4, 0 );
+    test_lambda_iterator_( 4, 1 );
+    test_lambda_iterator_( 4, 2 );
+    test_lambda_iterator_( 4, 3 );
+
+    // Many elements
+    test_lambda_iterator_( 100, 0 );
+    test_lambda_iterator_( 100, 1 );
+    test_lambda_iterator_( 100, 2 );
+    test_lambda_iterator_( 100, 3 );
+
+    // Long buffer block
+    test_lambda_iterator_( 0, 100 );
+    test_lambda_iterator_( 1, 100 );
+    test_lambda_iterator_( 2, 100 );
+    test_lambda_iterator_( 3, 100 );
 }

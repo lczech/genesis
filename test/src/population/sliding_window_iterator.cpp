@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 
 #include "src/common.hpp"
 
+#include "genesis/population/window/functions.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/population/window/sliding_window_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
@@ -83,7 +84,7 @@ TEST( SlidingWindowIterator, Basics )
 
     LOG_DBG << "loop";
     while( win_it ) {
-        LOG_DBG << win_it->chromosome() << " : " << win_it->anchor_position() << " " << win_it->first_position() << "-" << win_it->last_position() << " # " << win_it->entry_count();
+        LOG_DBG << win_it->chromosome() << " : " << anchor_position( *win_it ) << " " << win_it->first_position() << "-" << win_it->last_position() << " # " << win_it->entry_count();
         ++win_it;
     }
     LOG_DBG << "end";

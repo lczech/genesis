@@ -50,6 +50,36 @@ namespace population {
 // =================================================================================================
 
 /**
+ * @brief SlidingWindowType of a Window, that is, whether we slide along a fixed size interval of
+ * the genome, along a fixed number of variants, or represents a whole chromosome.
+ */
+enum class SlidingWindowType
+{
+    /**
+     * @brief Windows of this type are defined by a fixed start and end position on a chromosome.
+     *
+     * The amount of data contain in between these two loci can differ, for example, the number of
+     * variant positions
+     */
+    kInterval,
+
+    /**
+     * @brief Windows of this type are defined as containing a fixed number of entries (usually,
+     * Variant%s or other data that )
+     */
+    kVariants,
+
+    /**
+     * @brief Windows of this type contain positions across a whole chromosome.
+     *
+     * The window contains all relevant data from a whole chromosome. Relevant can be either all
+     * positions, only variant ones, or some other filter can be applied when filling the window,
+     * as needed. Moving to the next window then is equivalent to moving to the next chromosome.
+     */
+    kChromosome
+};
+
+/**
  * @brief Settings for running a sliding window iteration.
  *
  * The SlidingWindowIterator takes a lot of settings, and providing all of them in its constructor
@@ -104,31 +134,32 @@ struct SlidingWindowIteratorSettings
      * @brief Type of the Window, that is, whether to iterate over intervals of fixed length,
      * over a certain number of variants/entries per Window, or over whole chromosomes.
      */
-    WindowType window_type = WindowType::kInterval;
+    SlidingWindowType window_type = SlidingWindowType::kInterval;
 
     /**
      * @brief Width of the Window, either in fixed length along the chromosome, or in number
-     * of variants/entries per Window, depending on the setting for WindowType.
+     * of variants/entries per Window, depending on the setting for SlidingWindowType.
      *
-     * The width has to be `> 0`. With WindowType::kInterval, this is the length of the interval,
-     * determining the first and last position in each Window. With WindowType::kVariants instead,
-     * this is the number of variants (SNPs or VCF records/lines) per Window.
+     * The width has to be `> 0`. With SlidingWindowType::kInterval, this is the length of the
+     * interval, determining the first and last position in each Window.
+     * With SlidingWindowType::kVariants instead, this is the number of variants (SNPs or VCF
+     * records/lines) per Window.
      */
     size_t width = 0;
 
     /**
-     * @brief Stride of the Window, that is, how many positions or entries (depending on WindowType)
-     * to move forward with each iteration step.
+     * @brief Stride of the Window, that is, how many positions or entries
+     * (depending on SlidingWindowType) to move forward with each iteration step.
      *
      * The stride has to be `<= width`.
      * If stride is set to 0 (default here), it is set automatically to the width when constructing
      * a SlidingWindowIterator with this settings object, which means, we create windows that do
      * not overlap.
      *
-     * With WindowType::kInterval, this is the shift towards the next interval, determining how the
-     * first and last position in each Window change. With WindowType::kVariants instead, this is
-     * the number of variants (SNPs or VCF records/lines) per Window that we dequeue and enqueue.
-     * Not used with WindowType::kChromosome.
+     * With SlidingWindowType::kInterval, this is the shift towards the next interval, determining
+     * how the first and last position in each Window change. With SlidingWindowType::kVariants
+     * instead, this is the number of variants (SNPs or VCF records/lines) per Window that we
+     * dequeue and enqueue. Not used with SlidingWindowType::kChromosome.
      */
     size_t stride = 0;
 
@@ -137,16 +168,10 @@ struct SlidingWindowIteratorSettings
     // -------------------------------------------------------------------------
 
     /**
-     * @brief The type of position that the Window outputs when using its Window::anchor_position()
-     * function. See there for details.
-     */
-    WindowAnchorType anchor_type = WindowAnchorType::kIntervalBegin;
-
-    /**
      * @brief Select whether the iterator produces empty windows in the beginning of each chromosome,
      * before the first actual position that is reported by the underlying data.
      *
-     * Only used with WindowType::kInterval.
+     * Only used with SlidingWindowType::kInterval.
      *
      * Say the underlying iterator has the first Variant (or whatever datatype it iterates over)
      * at position 1020 for a chromosome, and we use a window size of 100. If this setting is set
@@ -219,7 +244,6 @@ public:
         if( settings_.stride > settings_.width ) {
             throw std::runtime_error( "Cannot use SlidingWindowIterator with stride > width." );
         }
-        window_.anchor_type( settings_.anchor_type );
 
         // Error checking.
         if( ! settings_.entry_input_function ) {
@@ -266,7 +290,6 @@ public:
     //     if( settings_.stride > settings_.width ) {
     //         throw std::runtime_error( "Cannot use SlidingWindowIterator with stride > width." );
     //     }
-    //     window_.anchor_type( settings_.anchor_type );
     //
     //     // Let's get going.
     //     init_chromosome_();
@@ -448,14 +471,14 @@ private:
     void update_()
     {
         // Do the correct type of enqueuing.
-        if( settings_.window_type == WindowType::kInterval ) {
+        if( settings_.window_type == SlidingWindowType::kInterval ) {
             update_interval_();
-        } else if( settings_.window_type == WindowType::kVariants ) {
+        } else if( settings_.window_type == SlidingWindowType::kVariants ) {
             update_variants_();
-        } else if( settings_.window_type == WindowType::kChromosome ) {
+        } else if( settings_.window_type == SlidingWindowType::kChromosome ) {
             update_chromosome_();
         } else {
-            throw std::runtime_error( "Invalid WindowType" );
+            throw std::runtime_error( "Invalid SlidingWindowType" );
         }
     }
 

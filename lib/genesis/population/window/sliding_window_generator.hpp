@@ -38,6 +38,8 @@
 #include <string>
 #include <vector>
 
+#include "genesis/population/window/functions.hpp"
+#include "genesis/population/window/sliding_window_iterator.hpp"
 #include "genesis/population/window/window.hpp"
 
 namespace genesis {
@@ -236,14 +238,14 @@ public:
     // SlidingWindowGenerator() = default;
 
     /**
-     * @brief Construct a SlidingWindowGenerator, given the WindowType and width, and potentially
-     * stride.
+     * @brief Construct a SlidingWindowGenerator, given the SlidingWindowType and width, and
+     * potentially stride.
      *
      * The @p width has to be `> 0`, and the @p stride has to be `<= width`.
      * If stride is not given (or set to `0`), it is set automatically to the width,
      * which means, we create windows that do not overlap.
      */
-    SlidingWindowGenerator( WindowType type, size_t width, size_t stride = 0 )
+    SlidingWindowGenerator( SlidingWindowType type, size_t width, size_t stride = 0 )
         : window_type_(type)
         , width_(width)
         , stride_(stride)
@@ -282,9 +284,9 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Get the non-mutable WindowType of this SlidingWindowGenerator.
+     * @brief Get the non-mutable SlidingWindowType of this SlidingWindowGenerator.
      */
-    WindowType window_type() const
+    SlidingWindowType window_type() const
     {
         return window_type_;
     }
@@ -292,9 +294,9 @@ public:
     /**
      * @brief Get the non-mutable width of this SlidingWindowGenerator.
      *
-     * With WindowType::kInterval, this is the length of the interval, determining the first and
-     * last position in each Window. With WindowType::kVariants instead, this is the number of
-     * variants (SNPs or VCF records/lines) per Window.
+     * With SlidingWindowType::kInterval, this is the length of the interval, determining the first
+     * and last position in each Window. With SlidingWindowType::kVariants instead, this is the
+     * number of variants (SNPs or VCF records/lines) per Window.
      */
     size_t width() const
     {
@@ -304,9 +306,10 @@ public:
     /**
      * @brief Get the non-mutable stride of this SlidingWindowGenerator.
      *
-     * With WindowType::kInterval, this is the shift towards the next interval, determining how the
-     * first and last position in each Window change. With WindowType::kVariants instead, this is
-     * the number of variants (SNPs or VCF records/lines) per Window that we dequeue and enqueue.
+     * With SlidingWindowType::kInterval, this is the shift towards the next interval, determining
+     * how the first and last position in each Window change. With SlidingWindowType::kVariants
+     * instead, this is the number of variants (SNPs or VCF records/lines) per Window that we
+     * dequeue and enqueue.
      */
     size_t stride() const
     {
@@ -335,21 +338,21 @@ public:
         emit_incomplete_windows_ = value;
     }
 
-    /**
-     * @brief Get the WindowAnchorType that we use for the emitted Window%s.
-     */
-    WindowAnchorType anchor_type() const
-    {
-        return window_.anchor_type();
-    }
-
-    /**
-     * @brief Set the WindowAnchorType that we use for the emitted Window%s.
-     */
-    void anchor_type( WindowAnchorType value )
-    {
-        window_.anchor_type( value );
-    }
+    // /* *
+    //  * @brief Get the WindowAnchorType that we use for the emitted Window%s.
+    //  */
+    // WindowAnchorType anchor_type() const
+    // {
+    //     return window_.anchor_type();
+    // }
+    //
+    // /* *
+    //  * @brief Set the WindowAnchorType that we use for the emitted Window%s.
+    //  */
+    // void anchor_type( WindowAnchorType value )
+    // {
+    //     window_.anchor_type( value );
+    // }
 
     // -------------------------------------------------------------------------
     //     Accessors & Modifiers
@@ -592,7 +595,7 @@ public:
         }
 
         // Emit the remaining data entries.
-        if( window_type_ == WindowType::kInterval ) {
+        if( window_type_ == SlidingWindowType::kInterval ) {
             synchronize_interval_( last_position );
             assert( current_start_ <= last_position );
             assert( last_position < current_start_ + width_ );
@@ -604,7 +607,7 @@ public:
                 emit_window_( current_start_, last_position + 1, last_position + 1 );
             }
 
-        } else if( window_type_ == WindowType::kVariants ) {
+        } else if( window_type_ == SlidingWindowType::kVariants ) {
             throw std::runtime_error( "Not yet implemented." );
         } else {
             assert( false );
@@ -659,9 +662,9 @@ private:
         assert( window_.entries().empty() || position > window_.entries().back().position );
 
         // Do the correct type of enqueuing.
-        if( window_type_ == WindowType::kInterval ) {
+        if( window_type_ == SlidingWindowType::kInterval ) {
             enqueue_interval_( position, std::move( data ));
-        } else if( window_type_ == WindowType::kVariants ) {
+        } else if( window_type_ == SlidingWindowType::kVariants ) {
             throw std::runtime_error( "Not yet implemented." );
         } else {
             assert( false );
@@ -679,7 +682,7 @@ private:
      */
     void enqueue_interval_( size_t position, Data&& data )
     {
-        assert( window_type_ == WindowType::kInterval );
+        assert( window_type_ == SlidingWindowType::kInterval );
 
         // Make sure that we move to the interval where our position needs to be added to.
         synchronize_interval_( position );
@@ -722,7 +725,7 @@ private:
      */
     void synchronize_interval_( size_t position )
     {
-        assert( window_type_ == WindowType::kInterval );
+        assert( window_type_ == SlidingWindowType::kInterval );
 
         // This function is only called internally, and only if we are sure that the position is
         // valid. Let's assert this.
@@ -766,7 +769,7 @@ private:
      */
     void emit_window_( size_t first_position, size_t last_position, size_t dequeue_until )
     {
-        assert( window_type_ == WindowType::kInterval );
+        assert( window_type_ == SlidingWindowType::kInterval );
 
         // Make sure that all entries in the queue are within our current bounds,
         // and are in the correct order. We use a lambda that we immediately call.
@@ -816,7 +819,7 @@ private:
 private:
 
     // Fixed settings
-    WindowType window_type_;
+    SlidingWindowType window_type_;
     size_t width_;
     size_t stride_;
 

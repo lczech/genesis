@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -128,8 +128,8 @@ TEST( Population, DiversityMeasures )
     size_t iteration_count = 0;
     size_t value_count = 0;
     using WindowGen = SlidingWindowGenerator<BaseCounts>;
-    WindowGen window_gen( WindowType::kInterval, settings.window_width, settings.window_stride );
-    window_gen.anchor_type( WindowAnchorType::kIntervalMidpoint );
+    WindowGen window_gen( SlidingWindowType::kInterval, settings.window_width, settings.window_stride );
+    // window_gen.anchor_type( WindowAnchorType::kIntervalMidpoint );
     window_gen.add_emission_plugin( [&]( WindowGen::Window const& window ) {
 
         // We skip the initial part of the windows that we are not interested in.

@@ -64,12 +64,12 @@ namespace population {
  *
  * This is used by VariantInputIterator, see there for details.
  *
- * The utils::LambdaIterator allows us to store some extra data. When traversing a file as
- * Variant%s, we can use this extra field to store information such as the file name and
- * the individual sample names.
+ * The utils::LambdaIterator allows us to store some extra data. When traversing a file as a
+ * list of Variant%s, one per genomic position, we can use this extra field to store information
+ * such as the file name and the individual sample names.
  *
  * In the future, we might even want to store pointers to the underlying iterators and readers
- * (useful for VCF for example), so that users can work with those when iterating. For now however,
+ * (useful for VCF for example), so that users can work with them when iterating. For now however,
  * we just store some basic information.
  */
 struct VariantInputIteratorData
@@ -138,10 +138,12 @@ inline VariantInputIterator make_variant_input_iterator_from_pileup_file(
         reader
     );
 
-    // Get file base name without path and potential extensions.
+    // Get file base name without path and potential typical extensions.
     VariantInputIteratorData data;
     data.file_path = filename;
-    data.source_name = utils::file_basename( filename, { ".gz", ".pileup", ".mpileup" });
+    data.source_name = utils::file_basename(
+        filename, { ".gz", ".plp", ".mplp" ".pileup", ".mpileup" }
+    );
 
     return VariantInputIterator(
         [ it ]() mutable -> utils::Optional<Variant>{

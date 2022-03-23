@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,12 +25,15 @@
 */
 
 #include "genesis/utils/containers/optional.hpp"
+#include "genesis/utils/core/thread_pool.hpp"
 
 #include <cassert>
 #include <functional>
+#include <future>
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace genesis {
@@ -73,7 +76,7 @@ struct EmptyLambdaIteratorData
  *     auto end = vcf_range.end();
  *
  *     // Create the conversion with type erasure via the lambda function.
- *     generator = LambdaIterator<Variant>(
+ *     auto generator = LambdaIterator<Variant>(
  *         [beg, end]() mutable -> genesis::utils::Optional<Variant>{
  *             if( beg != end ) {
  *                 auto res = utils::make_optional<Variant>( convert_to_variant(*beg) );
@@ -86,7 +89,7 @@ struct EmptyLambdaIteratorData
  *     );
  *
  *     // Iterate over generator.begin() and generator.end()
- *     for( auto it : generator ) ...
+ *     for( auto const& it : generator ) ...
  * ~~~
  *
  * For other types of iterators, instead of `beg` and `end`, other input can be used:
@@ -94,7 +97,7 @@ struct EmptyLambdaIteratorData
  * ~~~{.cpp}
  *     // Use a pileup iterator, which does not offer begin and end.
  *     auto it = SimplePileupInputIterator( utils::from_file( pileup_file_.value ), reader );
- *     generator = LambdaIterator<Variant>(
+ *     auto generator = LambdaIterator<Variant>(
  *         [it]() mutable -> genesis::utils::Optional<Variant>{
  *             if( it ) {
  *                 auto res = utils::make_optional<Variant>( convert_to_variant(*it) );
@@ -119,6 +122,27 @@ struct EmptyLambdaIteratorData
  * of the underlying iterator. For example, when iterating over a file, one might want to store
  * the file name or other characteristics of the input in the data().
  *
+ * The class furthermore offers filters and transformations of the underlying iterator data,
+ * using the functions add_filter(), add_transform(), and add_transform_filter(), which can all be
+ * mixed and are executed as a combined list in the order in which they were added using these
+ * three functions (that is, it can be first a filter, then a transformation, then a filter again).
+ * This allows to easily skip elements of the underlying iterator without the need to add an
+ * additional layer of abstraction.
+ *
+ * Lastly, the class offers block buffering in a separate thread, for speed up. This capability
+ * takes care of the underlying iterator processing (including potential file parsing etc),
+ * and buffers blocks of elements, so that the actual user function of this class has faster access
+ * to it. For example, when processing data along a genome with lots of computations per position,
+ * it makes sense to run the file reading in a separate thread and buffer positions as needed,
+ * which this class does automatically. This can be deactivated by setting the block size to 0.
+ *
+ * We are aware that with all this extra functionality, the class is slighly overloaded, and that
+ * the filters and the block buffering would typically go in separate classes for modularity.
+ * However, we are taking user convenience and speed into account here: Instead of having to add
+ * filters or a block buffer wrapper around each input iterator that is then wrapped in a
+ * LambdaIterator anyway, we rather take care of this in one place; this also reduces levels of
+ * abstraction, and hence (hopefully) increases processing speed.
+ *
  * @see VariantInputIterator for a use case of this iterator that allows to traverse different
  * input file types that all are convertible to @link genesis::population::Variant Variant@endlink.
  */
@@ -140,10 +164,22 @@ public:
 
     using Data              = D;
 
+    /**
+     * @brief Default size for block buffering.
+     *
+     * The class by default buffers blocks of elements of this size, with the buffer loaded in a
+     * separate thread, in order to speed up iterating over elements that need some processing,
+     * such as input files, which is the typical use case of this class.
+     */
+    static size_t const DEFAULT_BLOCK_SIZE = 1024;
+
     // ======================================================================================
     //      Internal Iterator
     // ======================================================================================
 
+    /**
+     * @brief Internal iterator over the data.
+     */
     class Iterator
     {
     public:
@@ -152,21 +188,30 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type  = LambdaIterator<T, D>::Iterator;
-        using value_type = T;
-        using Data       = D;
+        using self_type         = LambdaIterator<T, D>::Iterator;
+        using value_type        = T;
+        using pointer           = value_type const*;
+        using reference         = value_type const&;
+        using difference_type   = std::ptrdiff_t;
+        using iterator_category = std::input_iterator_tag;
+
+        using Data              = D;
 
     private:
 
         Iterator() = default;
 
         Iterator(
-            LambdaIterator* generator
+            LambdaIterator const* generator
         )
-            : generator_(generator)
+            : generator_(     generator )
+            , current_block_( std::make_shared<std::vector<T>>() )
+            , buffer_block_(  std::make_shared<std::vector<T>>() )
+            , thread_pool_(   std::make_shared<utils::ThreadPool>( 1 ))
+            , future_(        std::make_shared<std::future<size_t>>() )
         {
             // We use the generator as a check if this Iterator is intended to be a begin()
-            // or end() iterator. If its the former, get the first element.
+            // or end() iterator. If its the former, init and get the first element block.
             // We could also just use the default constructor to create end() iterators,
             // this would have the same effect.
             // After we are done iterating the input, we then set the generator_ to nullptr,
@@ -178,7 +223,10 @@ public:
                         "Cannot use LambdaIterator without a function to get elements."
                     );
                 }
-                advance_();
+
+                // Initialize the current_block_ and buffer_block_,
+                // and read the first block(s) of the file.
+                init_();
             }
         }
 
@@ -200,39 +248,34 @@ public:
 
         value_type const * operator->() const
         {
-            assert( current_element_ );
-            return &*current_element_;
+            assert( current_block_ );
+            assert( current_pos_ < end_pos_ );
+            assert( current_pos_ < current_block_->size() );
+            return &((*current_block_)[current_pos_]);
         }
 
         value_type * operator->()
         {
-            assert( current_element_ );
-            return &*current_element_;
+            assert( current_block_ );
+            assert( current_pos_ < end_pos_ );
+            assert( current_pos_ < current_block_->size() );
+            return &((*current_block_)[current_pos_]);
         }
 
         value_type const & operator*() const
         {
-            assert( current_element_ );
-            return *current_element_;
+            assert( current_block_ );
+            assert( current_pos_ < end_pos_ );
+            assert( current_pos_ < current_block_->size() );
+            return (*current_block_)[current_pos_];
         }
 
         value_type & operator*()
         {
-            assert( current_element_ );
-            return *current_element_;
-        }
-
-        /**
-         * @brief Optimization function that offers to steal the internal Optional.
-         *
-         * After this function has been called, the element is in a moved-from state,
-         * and cannot be accessed via any other methods. The iterator hence cannot be
-         * dereferenced any more.
-         * Advancing the iterator to the next element will set the element to a new, valid value.
-         */
-        utils::Optional<T> take_optional()
-        {
-            return std::move( current_element_ );
+            assert( current_block_ );
+            assert( current_pos_ < end_pos_ );
+            assert( current_pos_ < current_block_->size() );
+            return (*current_block_)[current_pos_];
         }
 
         /**
@@ -249,36 +292,39 @@ public:
             return generator_->data_;
         }
 
-        /**
-         * @brief Access the data stored in the iterator.
-         */
-        Data& data()
-        {
-            if( ! generator_ ) {
-                throw std::runtime_error(
-                    "Cannot access default constructed or past-the-end LambdaIterator content."
-                );
-            }
-            assert( generator_ );
-            return generator_->data_;
-        }
+        // We do not offer non-const access at the moment. If we did,
+        // the generator pointer stored in this iterator would need to be non-const as well.
+
+        // /* *
+        //  * @brief Access the data stored in the iterator.
+        //  */
+        // Data& data()
+        // {
+        //     if( ! generator_ ) {
+        //         throw std::runtime_error(
+        //             "Cannot access default constructed or past-the-end LambdaIterator content."
+        //         );
+        //     }
+        //     assert( generator_ );
+        //     return generator_->data_;
+        // }
 
         // -------------------------------------------------------------------------
         //     Iteration
         // -------------------------------------------------------------------------
 
-        self_type& operator ++ ()
+        self_type& operator ++()
         {
-            advance_();
+            increment_();
             return *this;
         }
 
-        self_type operator ++(int)
-        {
-            auto cpy = *this;
-            advance_();
-            return cpy;
-        }
+        // self_type operator ++(int)
+        // {
+        //     auto cpy = *this;
+        //     increment_();
+        //     return cpy;
+        // }
 
         /**
          * @brief Return whether the iterator is at a valid position,
@@ -286,42 +332,39 @@ public:
          */
         operator bool() const
         {
-            // We are not using the optional status of the element here, as this can be in a
-            // moved-from state if take_optional() was called. Instead, we rely on the fact
-            // that we set the generator_ to nullptr if this is either the end() iterator or
-            // if the iteration has reached its end after the data is done.
+            // We here rely on the fact that we set the generator_ to nullptr if this is either
+            // the end() iterator or if the iteration has reached its end after the data is done.
             return generator_ != nullptr;
-
-            // assert( static_cast<bool>( current_element_ ) || current_element_ == nullopt );
-            // return static_cast<bool>( current_element_ );
         }
 
         /**
          * @brief Compare two iterators for equality.
          *
-         * Any two iterators that are created by calling begin() on the same LambdaIterator
-         * instance will compare equal, as long as neither of them is past-the-end.
+         * Any two iterators that are copies of each other without having moved will compare equal,
+         * as long as neither of them is past-the-end.
          * A valid (not past-the-end) iterator and an end() iterator will not compare equal,
          * no matter from which LambdaIterator they were created.
+         * Two past-the-end iterators compare equal.
          */
-        bool operator==( self_type const& it ) const
+        bool operator==( self_type const& other ) const
         {
-            // We need fake iterator comparison here. We do not want to compare the pointed-to
-            // optional objects (as this is not what iterator comparison is supposed to do),
-            // so instead we just return if we belong to the same generator.
-            // That works for iteration purposes.
-            // We do not test if both of them have data, as this might have been moved from
-            // using the take() function.
-            return generator_ == it.generator_;
-            // static_cast<bool>( current_element_ ) == static_cast<bool>( it.current_element_ )
-
-            // Version for when the element is stored in a std::shared_ptr
-            // return current_element_ == it.current_element_;
+            // We compare the generators as a baseline - two past-the-end iterator shall
+            // always compare equal. If only one of them is past-the-end, they will compare false.
+            // Only if both are valid (not past-the-end) iterators, we compare their current
+            // position in the block - two iterators to the same position in the same block
+            // (using pointer comparison for the block - not actual data comparison) are equal.
+            if( ! generator_ || ! other.generator_ ) {
+                // generator_ is used as the indicator whether this is a past-the-end iterator
+                // (in which case it is a nullptr), or not.
+                return generator_ == other.generator_;
+            }
+            assert( generator_ && other.generator_ );
+            return current_block_ == other.current_block_ && current_pos_ == other.current_pos_;
         }
 
-        bool operator!=( self_type const& it ) const
+        bool operator!=( self_type const& other ) const
         {
-            return !(*this == it);
+            return !(*this == other);
         }
 
         // -------------------------------------------------------------------------
@@ -330,23 +373,198 @@ public:
 
     private:
 
-        void advance_()
+        void init_()
+        {
+            // Check that they are set up from the constructor.
+            assert( generator_ );
+            assert( current_block_ );
+            assert( buffer_block_ );
+
+            // Edge case: no buffering.
+            // Block size zero indicates to use no buffering, so we just use a single element.
+            if( generator_->block_size_ == 0 ) {
+                // Make space for it, read the first element, and then we are done here.
+                current_block_->resize( 1 );
+                end_pos_ = 1;
+                increment_();
+                return;
+            }
+
+            // Init the records and create empty VcfRecord to read into.
+            // The blocks have been initialized in the contructor already; assert this.
+            current_block_->resize( generator_->block_size_ );
+            buffer_block_->resize(  generator_->block_size_ );
+            assert( current_block_->size() == generator_->block_size_ );
+            assert( buffer_block_->size()  == generator_->block_size_ );
+
+            // Read the first block synchronously,
+            // so that there is data initialized to be dereferenced.
+            end_pos_ = read_block_( generator_, current_block_, generator_->block_size_ );
+            assert( current_pos_ == 0 );
+
+            // If there is less data than the block size, the file is already done.
+            // No need to start the async buffering, we can just get out of here.
+            if( end_pos_ < generator_->block_size_ ) {
+
+                // Edge case: zero elements read. We are already done then.
+                if( end_pos_ == 0 ) {
+                    generator_ = nullptr;
+                }
+                return;
+            }
+
+            // If we are here, the first block was fully read,
+            // so we start the async worker thread to fill the buffer.
+            assert( end_pos_ == generator_->block_size_ );
+            fill_buffer_block_();
+        }
+
+        void increment_()
         {
             assert( generator_ );
+            assert( current_block_ && current_block_->size() > 0 );
 
+            // Edge case: no buffering.
+            // Read the next element. If there is none, we are done.
+            if( generator_->block_size_ == 0 ) {
+                assert( current_block_->size() == 1 );
+                if( ! get_next_element_( generator_, (*current_block_)[0] )) {
+                    generator_ = nullptr;
+                }
+                return;
+            }
+
+            // Finish the reading (potentially waiting if not yet finished in the worker thread).
+            // The future returns how much data there was to be read, which we use as our status.
+            // After that, swap the buffer and start a new reading operation in the worker thread.
+
+            // Move to the next element in the vector.
+            ++current_pos_;
+            assert( current_pos_ <= end_pos_ );
+
+            // If we are at the end of the data, we are either done iterating,
+            // or reached the end of the current buffer block.
+            if( current_pos_ == end_pos_ ) {
+
+                // If we did not get a full block size when reading, we are done iterating.
+                // Indicate this by unsetting the generator_ pointer.
+                if( end_pos_ < generator_->block_size_ ) {
+                    generator_ = nullptr;
+                    return;
+                }
+
+                // If we are at the end of the record vector, and if that vector was full
+                // (complete block size), there is more data, so start reading.
+
+                assert( end_pos_ == generator_->block_size_ );
+                assert( future_ );
+                assert( future_->valid() );
+
+                // Get how many records were read into the buffer, which also waits for the reading
+                // if necessary. If we did not read any now, that means that the number of total
+                // elements is a multiple of the block size, which we handle as a special case here.
+                // There is probably some better way to restructure the code to avoid this edge
+                // case... but good enough for now.
+                end_pos_ = future_->get();
+                if( end_pos_ == 0 ) {
+                    generator_ = nullptr;
+                    return;
+                }
+
+                // Here, we know that there is more data, so we can swap the buffer,
+                // start reading again, and set or internal current location
+                // to the first element of the vector again.
+                assert( end_pos_ > 0 && end_pos_ <= generator_->block_size_ );
+                std::swap( buffer_block_, current_block_ );
+                fill_buffer_block_();
+                current_pos_ = 0;
+            }
+        }
+
+        void fill_buffer_block_()
+        {
+            // Those shared pointers have been initialized in the constructor; let's assert this.
+            assert( generator_ );
+            assert( thread_pool_ );
+            assert( future_ );
+
+            // This function is only every called after we finished any previous operations,
+            // so let's assert that the thread pool and future are in the states that we expect.
+            assert( thread_pool_->load() == 0 );
+            assert( ! future_->valid() );
+
+            // In order to use lambda captures by copy for class member variables in C++11, we first
+            // have to make local copies, and then capture those. Capturing the class members direclty
+            // was only introduced later. Bit cumbersome, but gets the job done.
+            auto generator    = generator_;
+            auto buffer_block = buffer_block_;
+            auto block_size   = generator_->block_size_;
+
+            // The lambda returns the result of read_block_ call, that is, the number of records
+            // that have been read, and which we later (in the future_) use to see how much data we got.
+            *future_ = thread_pool_->enqueue(
+                [ generator, buffer_block, block_size ](){
+                    return read_block_( generator, buffer_block, block_size );
+                }
+            );
+        }
+
+        /**
+         * @brief Read a block of data into a buffer, and return the number of elements read.
+         */
+        static size_t read_block_(
+            LambdaIterator const* generator,
+            std::shared_ptr<std::vector<T>> buffer_block,
+            size_t block_size
+        ) {
+            // This is a static function that does not depend on the class member data, so that
+            // we can use it from the future lambda in the thread pool above without having to worry
+            // about lambda captures of `this` going extinct... which was an absolutely nasty bug to
+            // find! Such a rookie mistake! For that reason, we also take all arguments as shared
+            // pointers, so that they are kept alive while the thread pool is working.
+            // However, once its done with its work, the function (the one that we give to the thread
+            // pool with a lambda) is popped from the thread queue, so that the shared pointer can
+            // be freed again - that is, we do not need to worry about the lambda keeping the shared
+            // pointer from freeing its memory indefinitely.
+
+            assert( generator );
+            assert( buffer_block->size() == block_size );
+
+            // Read as long as there is data. Return number of read records.
+            size_t i = 0;
+            for( ; i < block_size; ++i ) {
+                if( ! get_next_element_( generator, (*buffer_block)[i] )) {
+                    break;
+                }
+            }
+            return i;
+        }
+
+        /**
+         * @brief Read an element from the underlying iterator, store it in a @p target,
+         * and return whether an element was found.
+         *
+         * This also applies the filtering and transformations as needed. The function is static,
+         * so that it can be called asynchronously without the iterator going out of scope.
+         */
+        static bool get_next_element_(
+            LambdaIterator const* generator,
+            T& target
+        ) {
+            assert( generator );
             bool got_element = false;
-            do {
-                // Get the next element from the input source.
-                current_element_ = generator_->get_element_();
+            while( true ) {
+                // Get the next element from the input source, stored in an Optional<T>.
+                auto new_elem = generator->get_element_();
 
-                if( current_element_ ) {
+                if( new_elem ) {
                     // If this is an element (not yet at the end of the data),
                     // apply all transforms and filters, and get out of here if all of them
                     // return `true`, that is, if none of them wants to filter out the element.
                     // If however one of them returns `false`, we need to find another element.
                     got_element = true;
-                    for( auto const& tra_fil : generator_->transforms_and_filters_ ) {
-                        got_element = tra_fil( *current_element_ );
+                    for( auto const& tra_fil : generator->transforms_and_filters_ ) {
+                        got_element = tra_fil( *new_elem );
                         if( ! got_element ) {
                             // If one of the transforms/filters does not want us to continue,
                             // we do not call the others. Break out of the inner loop.
@@ -354,21 +572,44 @@ public:
                         }
                     }
 
+                    // If we got out of the above loop without any failing filters,
+                    // we have fonud an element, so let's move it to our target.
+                    if( got_element ) {
+                        // We already checked that new_elem holds data, so no need to repeat,
+                        // just assert it. Move, then break out of the while loop.
+                        assert( new_elem );
+                        target = std::move( *new_elem );
+                        break;
+                    }
+                    // Else (got_element == false): Loop again, try the next element.
+
                 } else {
                     // If this is not a valid element, we reached the end of the input.
-                    // We note this by unsetting the generator_. Other functions here use that
-                    // as a hint that we are done with the iteration.
-                    assert( current_element_ == nullopt );
-                    generator_ = nullptr;
+                    // We note this in the return value, then break out of the while loop.
+                    assert( new_elem == nullopt );
+                    got_element = false;
                     break;
                 }
-            } while( ! got_element );
+            }
+            return got_element;
         }
 
     private:
 
-        LambdaIterator* generator_          = nullptr;
-        utils::Optional<T> current_element_ = nullopt;
+        // Parent.
+        LambdaIterator const* generator_ = nullptr;
+
+        // Buffer buffering data, and positions in it.
+        std::shared_ptr<std::vector<T>> current_block_;
+        std::shared_ptr<std::vector<T>> buffer_block_;
+        size_t current_pos_ = 0;
+        size_t end_pos_ = 0;
+
+        // Thread pool to run the buffering in the background.
+        // Also, store the future_ used to keep track of the background task. It returns the number of
+        // elements that have been read into the buffer (block_size_, or less at the end of the file).
+        std::shared_ptr<utils::ThreadPool> thread_pool_;
+        std::shared_ptr<std::future<size_t>> future_;
 
     };
 
@@ -390,9 +631,11 @@ public:
      * once the end is reached.
      */
     LambdaIterator(
-        std::function<utils::Optional<value_type>()> get_element
+        std::function<utils::Optional<value_type>()> get_element,
+        size_t block_size = DEFAULT_BLOCK_SIZE
     )
         : get_element_(get_element)
+        , block_size_( block_size )
     {}
 
     /**
@@ -404,10 +647,12 @@ public:
      */
     LambdaIterator(
         std::function<utils::Optional<value_type>()> get_element,
-        Data const& data
+        Data const& data,
+        size_t block_size = DEFAULT_BLOCK_SIZE
     )
         : get_element_(get_element)
         , data_(data)
+        , block_size_( block_size )
     {}
 
     /**
@@ -417,10 +662,12 @@ public:
      */
     LambdaIterator(
         std::function<utils::Optional<value_type>()> get_element,
-        Data&& data
+        Data&& data,
+        size_t block_size = DEFAULT_BLOCK_SIZE
     )
         : get_element_(get_element)
         , data_( std::move( data ))
+        , block_size_( block_size )
     {}
 
     ~LambdaIterator() = default;
@@ -550,8 +797,12 @@ private:
     // std::vector<std::function<bool(T const&)>> filters_;
     std::vector<std::function<bool(T&)>> transforms_and_filters_;
 
+    // Underlying iterator and associated data.
     std::function<utils::Optional<value_type>()> get_element_;
     Data data_;
+
+    // Block buffering settings.
+    size_t block_size_ = DEFAULT_BLOCK_SIZE;
 
 };
 

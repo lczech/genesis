@@ -35,6 +35,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/population/genome_region.hpp"
@@ -59,13 +60,20 @@ struct EmptyGenomeData
 // =================================================================================================
 
 /**
- * @brief
+ * @brief List of regions in a genome, for each chromosome.
+ *
+ * The data structure stores a list of genome regions, such as coming from BED or GFF files.
+ * It allows fast querying, that is, whether a certain position on a chromosome is part of one of
+ * the stored regions. Furthermore, the class allows to iterate through the regions of each
+ * chromosome.
+ *
+ * Positions in the interval of each region are 1-based and inclusive, that is, we used closed
+ * intervals.
  *
  * Interally, we use an @link genesis::utils::IntervalTree IntervalTree@endlink to represent the
- * regions of each chromosome. This is so that access and querying of contained positions is as fast
- * as possible, and so that we do not store the chromosome name string with every region.
- * However, that means that iterating over this class does not yield GenomeRegion%s immediately;
- * if needed, those have to be constructed from the intervals.
+ * regions of each chromosome, stored in a map from chromosome name to IntervalTree.
+ * This is so that access and querying of contained positions is as fast as possible,
+ * and so that we do not store the chromosome name string with every region.
  *
  * @see GenomeLocus
  * @see GenomeRegion
@@ -82,7 +90,9 @@ public:
     // using data_type = DataType;
     using data_type = EmptyGenomeData;
     using numerical_type = size_t;
-    using tree_type = genesis::utils::IntervalTree<data_type, numerical_type>;
+    using tree_type = genesis::utils::IntervalTree<
+        data_type, numerical_type, genesis::utils::IntervalClosed
+    >;
     using self_type = GenomeRegionList;
 
     using iterator               = typename tree_type::iterator;
@@ -111,9 +121,35 @@ public:
 
     /**
      * @brief Add a GenomeRegion to the list, given its chromosome, and start and end positions.
+     *
+     * The @p chromosome cannot be empty, and we expect @p start < @p end. Both @p start and @p end
+     * are 1-based, and inclusive, that is, the interval between them is closed.
      */
     void add( std::string const& chromosome, numerical_type start = 0, numerical_type end = 0 )
     {
+        // Check chromosome.
+        if( chromosome.empty() ) {
+            throw std::invalid_argument(
+                "Cannot add region to GenomeRegionList with empty chromosome name, "
+                "as this denotes an invalid chromosome."
+            );
+        }
+
+        // Check positions.
+        // The start and end are also checked in the interval tree, but let's do it here
+        // so that the error message is nicer in case thei are wrong.
+        if( start > end ) {
+            throw std::invalid_argument(
+                "Cannot add region to GenomeRegionList with start == " +
+                std::to_string( start ) + " > end == " + std::to_string( end )
+            );
+        }
+        if( start == 0 || end == 0 ) {
+            throw std::invalid_argument(
+                "Cannot add region to GenomeRegionList with start == 0 or end == 0, "
+                "as these denote invalid positions."
+            );
+        }
         regions_[ chromosome ].insert({ start, end });
     }
 
@@ -121,9 +157,27 @@ public:
     //         Add Locus
     // -------------------------------------------
 
+    /**
+     * @brief Add a single Locus, that is, an interval covering one position on a chromosome.
+     */
     void add( GenomeLocus const& locus )
     {
-        regions_[ locus.chromosome ].insert({ locus.position, locus.position });
+        add( locus.chromosome, locus.position, locus.position );
+    }
+
+    /**
+     * @brief Add an interval between two Loci on the same chromosome.
+     */
+    void add( GenomeLocus const& start, GenomeLocus const& end )
+    {
+        if( start.chromosome != end.chromosome ) {
+            throw std::invalid_argument(
+                "Cannot use two GenomeLocus instances with different chromosomes ( start == \"" +
+                start.chromosome + "\", end == \"" + end.chromosome + "\") as an entry in a "
+                "GenomeRegionList."
+            );
+        }
+        add( start.chromosome, start.position, end.position );
     }
 
     // -------------------------------------------
@@ -137,7 +191,7 @@ public:
      */
     void add( GenomeRegion const& region )
     {
-        regions_[ region.chromosome ].insert({ region.start, region.end });
+        add( region.chromosome, region.start, region.end );
     }
 
     // -------------------------------------------
@@ -159,14 +213,14 @@ public:
     {
         if( regions_.count( chromosome ) == 0 ) {
             throw std::invalid_argument(
-                "Chromosome name '" + chromosome + "' not found in GenomeRegionList"
+                "Chromosome name \"" + chromosome + "\" not found in GenomeRegionList"
             );
         }
         regions_.erase( chromosome );
     }
 
     // -------------------------------------------------------------------------
-    //     Queries
+    //     Locus Queries
     // -------------------------------------------------------------------------
 
     /**
@@ -183,59 +237,83 @@ public:
         return chrom_tree.overlap_find( position ) != chrom_tree.end();
     }
 
-    /**
-     * @brief Return an iterator to the GenomeRegion that covers the given position on the
-     * chromosome, or an end iterator if there is no region that covers the position.
-     *
-     * Throws an exception if the chromosome is not in the list at all.
-     */
-    const_iterator find( std::string const& chromosome, size_t position ) const
-    {
-        // Using find(), so we only have to search in the map once, for speed.
-        auto const it = regions_.find( chromosome );
-        if( it == regions_.end() ) {
-            throw std::invalid_argument(
-                "GenomeRegionList does not contain chromosome '" + chromosome + "'"
-            );
-        }
-        auto const& chrom_tree = it->second;
-        return chrom_tree.overlap_find( position );
-    }
+    // Not used at the moment, as we have no access to the end iterator to check for a valid find.
 
-    tree_type& get_chromosome_regions( std::string const& chromosome )
-    {
-        return regions_[ chromosome ];
-    }
-
-    tree_type const& get_chromosome_regions( std::string const& chromosome ) const
-    {
-        return regions_.at( chromosome );
-    }
-
-    // -------------------------------------------------------------------------
-    //     Accessors
-    // -------------------------------------------------------------------------
-
-    // /**
-    //  * @brief Return the size of the list, in number of chromosomes that it contains.
+    // /* *
+    //  * @brief Return an iterator to the GenomeRegion that covers the given position on the
+    //  * chromosome, or an end iterator if there is no region that covers the position.
     //  *
-    //  * This is the size of the range of the begin() and end() iterators, and hence, for compliance
-    //  * with the standard, what we return here. For the actual count of the contained regions
-    //  * (intervals), see region_count().
+    //  * Throws an exception if the chromosome is not in the list at all.
     //  */
-    // size_t size() const
+    // const_iterator find( std::string const& chromosome, size_t position ) const
     // {
-    //     return regions_.size();
+    //     // Using find(), so we only have to search in the map once, for speed.
+    //     auto const it = regions_.find( chromosome );
+    //     if( it == regions_.end() ) {
+    //         throw std::invalid_argument(
+    //             "GenomeRegionList does not contain chromosome \"" + chromosome + "\""
+    //         );
+    //     }
+    //     auto const& chrom_tree = it->second;
+    //     return chrom_tree.overlap_find( position );
     // }
+
+    // -------------------------------------------------------------------------
+    //     Chromosome Accessors
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return whether there are chromosomes with regions stored.
+     */
+    bool empty() const
+    {
+        return regions_.empty();
+    }
 
     /**
      * @brief Return the number of chromosomes for which there are regions stored.
-     *
-     * Same as size().
      */
     size_t chromosome_count() const
     {
         return regions_.size();
+    }
+
+    /**
+     * @brief Get a list of all stored chromosome names.
+     */
+    std::vector<std::string> chromosome_names() const
+    {
+        std::vector<std::string> result;
+        for( auto const& p : regions_ ) {
+            result.push_back( p.first );
+        }
+        return result;
+    }
+
+    /**
+     * @brief Return whether a chromosome is stored.
+     */
+    bool has_chromosome( std::string const& chromosome ) const
+    {
+        return regions_.count( chromosome ) > 0;
+    }
+
+    /**
+     * @brief For a given chromosome, return the
+     * @link genesis::utils::IntervalTree IntervalTree@endlink that stores its regions.
+     */
+    tree_type const& chromosome_regions( std::string const& chromosome ) const
+    {
+        return regions_.at( chromosome );
+    }
+
+    /**
+     * @brief For a given chromosome, return the
+     * @link genesis::utils::IntervalTree IntervalTree@endlink that stores its regions.
+     */
+    tree_type& chromosome_regions( std::string const& chromosome )
+    {
+        return regions_.at( chromosome );
     }
 
     /**
@@ -245,7 +323,7 @@ public:
     {
         if( regions_.count( chromosome ) == 0 ) {
             throw std::invalid_argument(
-                "Chromosome name '" + chromosome + "' not found in GenomeRegionList"
+                "Chromosome name \"" + chromosome + "\" not found in GenomeRegionList"
             );
         }
         return regions_.at( chromosome ).size();
@@ -264,11 +342,25 @@ public:
     }
 
     /**
-     * @brief Return whether there are chromosomes with regions stored.
+     * @brief Access the underlying container directly.
+     *
+     * Expose the map from chromosome names to the
+     * @link genesis::utils::IntervalTree IntervalTree@endlink that stores the regions of each
+     * chromosome.
+     * This is okay to expose, as this class is merely a thin convenience wrapper around it anyway.
+     * If the class ever changes to be more than that, we might remove access to this.
      */
-    bool empty() const
+    std::map<std::string, tree_type> const& chromosome_map() const
     {
-        return regions_.empty();
+        return regions_;
+    }
+
+    /**
+     * @copy chromosome_map() const
+     */
+    std::map<std::string, tree_type>& chromosome_map()
+    {
+        return regions_;
     }
 
     // -------------------------------------------------------------------------
@@ -306,6 +398,8 @@ public:
     //
     // self_type& allow_overlap( bool value )
     // {
+    //     when set this way, it will only affect newly added regions...
+    //     better in constructor and const?
     //     allow_overlap_ = value;
     //     return *this;
     // }
@@ -317,6 +411,7 @@ public:
 private:
 
     std::map<std::string, tree_type> regions_;
+
     // bool allow_overlap_ = true;
 
 };

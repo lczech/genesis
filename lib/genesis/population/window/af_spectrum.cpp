@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -51,7 +51,7 @@ namespace population {
 
 AlleleFrequencyWindow::AlleleFrequencyWindow( size_t width, size_t number_of_bins )
     : number_of_bins_( number_of_bins )
-    , window_generator_( WindowType::kInterval, width )
+    , window_generator_( SlidingWindowType::kInterval, width )
 {
     // Set the plugin functions.
     window_generator_.add_chromosome_start_plugin( [&]( std::string const& chromosome, AFWindow::Accumulator& accu ){
