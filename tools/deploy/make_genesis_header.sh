@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2021 Lucas Czech and HITS gGmbH
+# Copyright (C) 2014-2022 Lucas Czech and HITS gGmbH
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -137,7 +137,12 @@ do
     # Write content
     for f in `find ${d}/ -name "*.hpp" | sort`
     do
-        echo "#include \"genesis/${f}\"" >> ${d}.hpp
+        # Only add file if it is tracked by git, see https://stackoverflow.com/a/2406813/4184258
+        git ls-files --error-unmatch "${f}" &> /dev/null
+        RESULT=$?
+        if [ $RESULT -eq 0 ]; then
+            echo "#include \"genesis/${f}\"" >> ${d}.hpp
+        fi
     done
     echo "" >> ${d}.hpp
 
