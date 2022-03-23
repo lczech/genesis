@@ -423,10 +423,21 @@ public:
         void update_interval_()
         {
             // Dequeue everything that is not part of the current interval any more.
-            while(
-                ! window_.entries().empty() && window_.entries().front().position < current_start_
+            // We can speed up by clearing the whole window if its last entry is before the current
+            // start, as in that case, all its entries are, so we want to pop them all anyway.
+            // That is the default case when moving with stride = width, so that's nice.
+            if(
+                window_.entries().size() > 0 &&
+                window_.entries().back().position < current_start_
             ) {
-                window_.entries().pop_front();
+                window_.entries().clear();
+            } else {
+                while(
+                    window_.entries().size() > 0 &&
+                    window_.entries().front().position < current_start_
+                ) {
+                    window_.entries().pop_front();
+                }
             }
 
             // Now enqueue new entries.
@@ -448,7 +459,7 @@ public:
                 // Check that we are not going backwards in the chromosome,
                 // i.e., if we got unsorted data. That would lead to unwanted behaviour.
                 if(
-                    ! window_.empty() &&
+                    window_.size() > 0 &&
                     window_.entries().back().position >= cur_pos
                 ) {
                     throw std::runtime_error(
@@ -701,6 +712,7 @@ make_default_sliding_window_iterator(
 ) {
     using DataType = typename ForwardIterator::value_type;
 
+    // Set functors.
     auto it = SlidingWindowIterator<ForwardIterator>( begin, end );
     it.entry_input_function = []( DataType const& variant ) {
         return variant;
@@ -711,6 +723,8 @@ make_default_sliding_window_iterator(
     it.position_function = []( DataType const& variant ) {
         return variant.position;
     };
+
+    // Set properties.
     it.width( width );
     it.stride( stride );
     it.window_type( window_type );
