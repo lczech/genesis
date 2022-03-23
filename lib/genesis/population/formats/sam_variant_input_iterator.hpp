@@ -58,7 +58,7 @@ extern "C" {
     struct bam_plp_s;
     typedef struct bam_plp_s *bam_plp_t;
 
-    // struct bam_pileup1_t;
+    struct bam_pileup1_t;
     // typedef struct bam_pileup1_t *bam_pileup1_t;
 }
 
@@ -256,6 +256,14 @@ public:
          * @brief Increment the iterator by moving to the next position.
          */
         void increment_();
+
+        /**
+         * @brief For a given pileup base, get the sample index it belongs to.
+         *
+         * When using RG read group tags, this corresponds to the index in get_header_rg_tags_().
+         * Without RG tags, we are just using one sample, so this function just returns 0.
+         */
+        size_t get_sample_index_( bam_pileup1_t const* p ) const;
 
         /**
          * @brief Function needed for htslib to process a single read mapped in sam/bam/cram format.
