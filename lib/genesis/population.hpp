@@ -34,8 +34,10 @@
  */
 
 #include "genesis/population/base_counts.hpp"
+#include "genesis/population/formats/bed_reader.hpp"
 #include "genesis/population/formats/gff_reader.hpp"
 #include "genesis/population/formats/hts_file.hpp"
+#include "genesis/population/formats/sam_variant_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/formats/sync_input_iterator.hpp"
@@ -58,8 +60,10 @@
 #include "genesis/population/functions/variant.hpp"
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/population/genome_region.hpp"
+#include "genesis/population/genome_region_list.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/population/window/af_spectrum.hpp"
+#include "genesis/population/window/functions.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/sliding_window_iterator.hpp"
 #include "genesis/population/window/vcf_window.hpp"
