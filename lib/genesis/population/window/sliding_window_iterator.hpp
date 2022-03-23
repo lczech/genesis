@@ -46,7 +46,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Sliding Window Iterator Settings
+//     Sliding Window Type
 // =================================================================================================
 
 /**
@@ -58,55 +58,80 @@ enum class SlidingWindowType
     /**
      * @brief Windows of this type are defined by a fixed start and end position on a chromosome.
      *
-     * The amount of data contain in between these two loci can differ, for example, the number of
-     * variant positions
+     * The amount of data contained in between these two loci can differ, depending on the number of
+     * variant positions found in the underlying data iterator.
      */
     kInterval,
 
     /**
      * @brief Windows of this type are defined as containing a fixed number of entries (usually,
-     * Variant%s or other data that )
+     * Variant%s or other data that), and hence can span window widths of differing sizes.
      */
     kVariants,
 
     /**
      * @brief Windows of this type contain positions across a whole chromosome.
      *
-     * The window contains all relevant data from a whole chromosome. Relevant can be either all
-     * positions, only variant ones, or some other filter can be applied when filling the window,
-     * as needed. Moving to the next window then is equivalent to moving to the next chromosome.
+     * The window contains all data from a whole chromosome. Moving to the next window then is
+     * equivalent to moving to the next chromosome. Note that this might need a lot of memory
+     * to keep all the data at once.
      */
     kChromosome
 };
 
+// =================================================================================================
+//     Sliding Window Iterator
+// =================================================================================================
+
 /**
- * @brief Settings for running a sliding window iteration.
- *
- * The SlidingWindowIterator takes a lot of settings, and providing all of them in its constructor
- * is cumbersome and error prone, so instead we offer this convenient settings class to all
- * prepare them beforehand. This allows to set all values by their name, instead of just by their
- * position in the constructor.
+ * @brief Iterator for sliding Window%s over the chromosomes of a genome.
  *
  * The template parameters are:
- *  * `InputType`: The input data type that the basis iterator provided (that is, the input iterator
- *    from which the sliding window takes its data),
+ *  * `ForwardIterator`: The type of the underlying iterator over the genome data (that is, the input
+ *     iterator from which the sliding window takes its data). Needs to have a member type
+ *     `value_type` that specifies the actual input type that the iterator produces, which we here
+ *     call the `InputType` (and typedef it as that).
  *  * `DataType`: The data type of the Window::Data that is stored in Window::Entry. The functor
  *    `entry_input_function` needs to be provided to convert from `InputType` to this `DataType`.
+ *    By default, we take this to be the same as the `InputType`, meaning that the Window contains
+ *    the same data type as the underlying iterator that we slide over.
  *
- * The `width`, as well as the three functors
+ * The three functors
  *
  *  * entry_input_function,
  *  * chromosome_function, and
  *  * position_function
  *
- * have to be set in this settings class prior to using it to initialize a SlidingWindowIterator.
- * All other settings are option and/or defaulted to reasonable values.
+ * have to be set in the class prior to starting the iteration. Furthermore, except when using
+ * #SlidingWindowType::kChromosome, the width() has to be set as well.
+ * All other settings are optional and/or defaulted to reasonable values.
  */
-template<class InputType, class DataType = InputType>
-struct SlidingWindowIteratorSettings
+template<class ForwardIterator, class DataType = typename ForwardIterator::value_type>
+class SlidingWindowIterator
 {
+public:
+
     // -------------------------------------------------------------------------
-    //     Functors
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    // using Data              = typename ForwardIterator::value_type;
+    // using Data              = typename std::result_of<decltype(EntryInputFunctor)()>::type;
+
+    using Window            = ::genesis::population::Window<DataType>;
+    using Entry             = typename Window::Entry;
+    using InputType         = typename ForwardIterator::value_type;
+
+    using self_type         = SlidingWindowIterator<ForwardIterator, DataType>;
+    using iterator_category = std::input_iterator_tag;
+
+    using value_type        = Window;
+    using pointer           = value_type*;
+    using reference         = value_type&;
+    using const_reference   = value_type const&;
+
+    // -------------------------------------------------------------------------
+    //     Public Functors
     // -------------------------------------------------------------------------
 
     /**
@@ -121,20 +146,431 @@ struct SlidingWindowIteratorSettings
     std::function<std::string( InputType const& )> chromosome_function;
 
     /**
-     * @brief Functor that yields the current position on the chromosome, given the input iterator
-     * data.
+     * @brief Functor that yields the current position on the chromosome,
+     * given the input iterator data.
      */
     std::function<size_t( InputType const& )> position_function;
 
+    // ======================================================================================
+    //      Internal Iterator
+    // ======================================================================================
+
+    /**
+     * @brief Internal iterator that produces Window%s.
+     */
+    class Iterator
+    {
+    public:
+
+        // -------------------------------------------------------------------------
+        //     Constructors and Rule of Five
+        // -------------------------------------------------------------------------
+
+        using Window            = ::genesis::population::Window<DataType>;
+        using Entry             = typename Window::Entry;
+
+        using self_type         = SlidingWindowIterator<ForwardIterator, DataType>::Iterator;
+        using iterator_category = std::input_iterator_tag;
+
+        using value_type        = Window;
+        using pointer           = value_type*;
+        using reference         = value_type&;
+        using const_reference   = value_type const&;
+
+    private:
+
+        Iterator() = default;
+
+        Iterator(
+            SlidingWindowIterator const* parent
+        )
+            : parent_(  parent )
+        {
+            // We use the parent as a check if this Iterator is intended to be a begin()
+            // or end() iterator. If its the former, init. If the latter, we are done here.
+            // After we are done iterating the input (for which we do need _its_ begin and end
+            // iterators), we then set the parent_ to nullptr, as a sign that we are done.
+            // This allows us also to know if we reached end() (of the sliding window iteration;
+            // not of the underlying data iterator) without having to store the end() iterator
+            // when using this class.
+            if( ! parent_ ) {
+                return;
+            }
+
+            // Check that the functors are set up.
+            if( ! parent_->entry_input_function ) {
+                throw std::runtime_error(
+                    "Need to set SlidingWindowIterator::entry_input_function before iterating "
+                    "over Windows with the SlidingWindowIterator."
+                );
+            }
+            if( ! parent_->chromosome_function ) {
+                throw std::runtime_error(
+                    "Need to set SlidingWindowIterator::chromosome_function before iterating "
+                    "over Windows with the SlidingWindowIterator."
+                );
+            }
+            if( ! parent_->position_function ) {
+                throw std::runtime_error(
+                    "Need to set SlidingWindowIterator::position_function before iterating "
+                    "over Windows with the SlidingWindowIterator."
+                );
+            }
+
+            // Check the settings.
+            if( parent_->width_ == 0 ) {
+                throw std::runtime_error( "Cannot use SlidingWindowIterator of width 0." );
+            }
+            if( parent_->stride_ == 0 ) {
+                parent_->stride_ = parent_->width_;
+            }
+            if( parent_->stride_ > parent_->width_ ) {
+                throw std::runtime_error( "Cannot use SlidingWindowIterator with stride > width." );
+            }
+
+            // Copy over the underlying data iterator.
+            current_ = parent_->begin_;
+            end_     = parent_->end_;
+
+            // Let's get going.
+            init_chromosome_();
+            update_();
+        }
+
+    public:
+
+        ~Iterator() = default;
+
+        Iterator( self_type const& ) = default;
+        Iterator( self_type&& )      = default;
+
+        Iterator& operator= ( self_type const& ) = default;
+        Iterator& operator= ( self_type&& )      = default;
+
+        friend SlidingWindowIterator;
+
+        // -------------------------------------------------------------------------
+        //     Properties
+        // -------------------------------------------------------------------------
+
+        /**
+         * @brief Return whether the current iteration is the first of the current chromosome.
+         *
+         * When iterating over (e.g.) a VCF file with multiple chromosomes, this function is useful
+         * to run some initialization per chromosome in the user code, such as preparing some output.
+         *
+         * See is_last_window() for the respective end-of-chromosome indicator, that can be used
+         * to wrap up after a chromosome, such as writing the output that was producing during the
+         * iterator.
+         */
+        bool is_first_window() const
+        {
+            return is_first_window_;
+        }
+
+        /**
+         * @brief Return whether the current iteration is the last of the current chromosome.
+         *
+         * When iterating over (e.g.) a VCF file with multiple chromosomes, this function is useful
+         * to wrap up after a chromosome in the user code, such as writing the output that was
+         * producing during the iterator.
+         *
+         * See is_first_window() for the respective beginning-of-chromosome indicator, that can be
+         * used to run some initialization per chromosome, such as preparing some output.
+         */
+        bool is_last_window() const
+        {
+            return is_last_window_;
+        }
+
+        // -------------------------------------------------------------------------
+        //     Accessors
+        // -------------------------------------------------------------------------
+
+        value_type const & operator*() const
+        {
+            return window_;
+        }
+
+        value_type & operator*()
+        {
+            return window_;
+        }
+
+        value_type const * operator->() const
+        {
+            return &window_;
+        }
+
+        value_type * operator->()
+        {
+            return &window_;
+        }
+
+        // -------------------------------------------------------------------------
+        //     Iteration
+        // -------------------------------------------------------------------------
+
+        self_type& operator ++()
+        {
+            increment_();
+            return *this;
+        }
+
+        // self_type operator ++(int)
+        // {
+        //     auto cpy = *this;
+        //     increment_();
+        //     return cpy;
+        // }
+
+        /**
+         * @brief Compare two iterators for equality.
+         *
+         * Any two iterators that are copies of each other or started from the same parent
+         * will compare equal, as long as neither of them is past-the-end.
+         * A valid (not past-the-end) iterator and an end() iterator will not compare equal,
+         * no matter from which SlidingWindowIterator they were created.
+         * Two past-the-end iterators compare equal.
+         */
+        bool operator==( self_type const& other ) const
+        {
+            // We compare the parents as a baseline - two past-the-end iterator shall
+            // always compare equal. If only one of them is past-the-end, they will compare false.
+            return parent_ == other.parent_;
+        }
+
+        bool operator!=( self_type const& other ) const
+        {
+            return !(*this == other);
+        }
+
+        // -------------------------------------------------------------------------
+        //     Internal Members
+        // -------------------------------------------------------------------------
+
+    private:
+
+        void init_chromosome_()
+        {
+            // Saveguard. This might be called on an empty range, in which case we just do nothing.
+            if( current_ == end_ ) {
+                return;
+            }
+
+            // Clear the window and prepare for new chromosome.
+            window_.clear();
+            window_.chromosome( parent_->chromosome_function( *current_ ));
+            is_first_window_ = true;
+            is_last_window_ = false;
+            next_index_ = 0;
+
+            if( parent_->emit_leading_empty_windows_ ) {
+                current_start_ = 1;
+            } else {
+                // Set the start to the window position that we would get after going through all
+                // the previous windows if they were emitted.
+                auto const pos = parent_->position_function( *current_ );
+                current_start_ = pos - (( pos - 1 ) % parent_->stride_ );
+            }
+        }
+
+        void increment_()
+        {
+            // Special case: If we have no more underlying data, the iterator still needs to stop
+            // at the last window(s), so that they can be processed. After that, when this
+            // increment_() function is called again by the user, we then set parent_ = nullptr
+            // to indicate that now we are done for good.
+            if( current_ == end_ ) {
+                // If current_ == end_, we have definitely reached the end of the input, so we need
+                // to have set is_last_window_ previously. If not set, that means it was already reset,
+                // so that this is an iteration past the end.
+                if( ! is_last_window_ ) {
+                    throw std::runtime_error( "SlidingWindowIterator: Incrementing past the end" );
+                }
+
+                // Indicate that we are done now.
+                parent_ = nullptr;
+                return;
+            }
+
+            // Check if this call moves to the next chromosome.
+            if( parent_->chromosome_function( *current_ ) != window_.chromosome() ) {
+                init_chromosome_();
+            } else {
+                // Update positions.
+                current_start_ += parent_->stride_;
+                is_first_window_ = false;
+            }
+
+            update_();
+        }
+
+        void update_()
+        {
+            // Do the correct type of enqueuing.
+            if( parent_->window_type_ == SlidingWindowType::kInterval ) {
+                update_interval_();
+            } else if( parent_->window_type_ == SlidingWindowType::kVariants ) {
+                update_variants_();
+            } else if( parent_->window_type_ == SlidingWindowType::kChromosome ) {
+                update_chromosome_();
+            } else {
+                throw std::runtime_error( "Invalid SlidingWindowType" );
+            }
+        }
+
+        void update_interval_()
+        {
+            // Dequeue everything that is not part of the current interval any more.
+            while(
+                ! window_.entries().empty() && window_.entries().front().position < current_start_
+            ) {
+                window_.entries().pop_front();
+            }
+
+            // Now enqueue new entries.
+            while( current_ != end_ ) {
+                auto const cur_pos = parent_->position_function( *current_ );
+
+                // Get the chromosome and position of the current entry, and see if it belongs
+                // into the current window. If not, we are done here with this window.
+                if(
+                    parent_->chromosome_function( *current_ ) != window_.chromosome() ||
+                    cur_pos >= current_start_ + parent_->width_
+                ) {
+                    break;
+                }
+                assert( parent_->chromosome_function( *current_ ) == window_.chromosome() );
+                assert( cur_pos >= current_start_ );
+                assert( cur_pos <  current_start_ + parent_->width_ );
+
+                // Check that we are not going backwards in the chromosome,
+                // i.e., if we got unsorted data. That would lead to unwanted behaviour.
+                if(
+                    ! window_.empty() &&
+                    window_.entries().back().position >= cur_pos
+                ) {
+                    throw std::runtime_error(
+                        "Invalid entry in sliding window that not in sequence with other entries. "
+                        "Previous entry is " + window_.chromosome() + ":" +
+                        std::to_string( window_.entries().back().position ) +
+                        ", current (invalid) entry is " + window_.chromosome() + ":" +
+                        std::to_string( cur_pos )
+                    );
+                }
+
+                // Now enqueue the entry, and move to the next.
+                window_.entries().emplace_back(
+                    next_index_,
+                    cur_pos,
+                    parent_->entry_input_function( *current_ )
+                );
+                ++next_index_;
+                ++current_;
+            }
+
+            // Cases in which we are at the last window: Either we reached the end of the input,
+            // or the end of the current chromosome.
+            if(
+                current_ == end_ ||
+                parent_->chromosome_function( *current_ ) != window_.chromosome()
+            ) {
+                is_last_window_ = true;
+            }
+
+            // Update the window positions.
+            window_.first_position( current_start_ );
+            window_.last_position( current_start_ + parent_->width_ - 1 );
+        }
+
+        void update_variants_()
+        {
+            throw std::runtime_error( "Not yet implemented" );
+        }
+
+        void update_chromosome_()
+        {
+            throw std::runtime_error( "Not yet implemented" );
+        }
+
+    private:
+
+        // Parent.
+        SlidingWindowIterator const* parent_ = nullptr;
+
+        // Current window and its position
+        Window window_;
+        size_t current_start_ = 1;
+        size_t next_index_ = 0;
+
+        // Need to manually keep track of those...
+        bool is_first_window_ = true;
+        bool is_last_window_ = false;
+
+        // Underlying iterator
+        ForwardIterator current_;
+        ForwardIterator end_;
+
+    };
+
+    // ======================================================================================
+    //      Main Class
+    // ======================================================================================
+
     // -------------------------------------------------------------------------
-    //     Basic Settings
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------------------
+
+    SlidingWindowIterator(
+        ForwardIterator begin, ForwardIterator end
+    )
+        : begin_(begin)
+        , end_(end)
+    {}
+
+    ~SlidingWindowIterator() = default;
+
+    SlidingWindowIterator( SlidingWindowIterator const& ) = default;
+    SlidingWindowIterator( SlidingWindowIterator&& )      = default;
+
+    SlidingWindowIterator& operator= ( SlidingWindowIterator const& ) = default;
+    SlidingWindowIterator& operator= ( SlidingWindowIterator&& )      = default;
+
+    friend Iterator;
+
+    // -------------------------------------------------------------------------
+    //     Iteration
+    // -------------------------------------------------------------------------
+
+    Iterator begin()
+    {
+        return Iterator( this );
+    }
+
+    Iterator end()
+    {
+        return Iterator( nullptr );
+    }
+
+    // -------------------------------------------------------------------------
+    //     Settings
     // -------------------------------------------------------------------------
 
     /**
      * @brief Type of the Window, that is, whether to iterate over intervals of fixed length,
      * over a certain number of variants/entries per Window, or over whole chromosomes.
      */
-    SlidingWindowType window_type = SlidingWindowType::kInterval;
+    self_type& window_type( SlidingWindowType value )
+    {
+        window_type_ = value;
+        return *this;
+    }
+
+    SlidingWindowType window_type() const
+    {
+        return window_type_;
+    }
 
     /**
      * @brief Width of the Window, either in fixed length along the chromosome, or in number
@@ -145,7 +581,16 @@ struct SlidingWindowIteratorSettings
      * With SlidingWindowType::kVariants instead, this is the number of variants (SNPs or VCF
      * records/lines) per Window.
      */
-    size_t width = 0;
+    self_type& width( size_t value )
+    {
+        width_ = value;
+        return *this;
+    }
+
+    size_t width() const
+    {
+        return width_;
+    }
 
     /**
      * @brief Stride of the Window, that is, how many positions or entries
@@ -161,11 +606,16 @@ struct SlidingWindowIteratorSettings
      * instead, this is the number of variants (SNPs or VCF records/lines) per Window that we
      * dequeue and enqueue. Not used with SlidingWindowType::kChromosome.
      */
-    size_t stride = 0;
+    self_type& stride( size_t value )
+    {
+        stride_ = value;
+        return *this;
+    }
 
-    // -------------------------------------------------------------------------
-    //     Extended and Detail Settings
-    // -------------------------------------------------------------------------
+    size_t stride() const
+    {
+        return stride_;
+    }
 
     /**
      * @brief Select whether the iterator produces empty windows in the beginning of each chromosome,
@@ -176,379 +626,18 @@ struct SlidingWindowIteratorSettings
      * Say the underlying iterator has the first Variant (or whatever datatype it iterates over)
      * at position 1020 for a chromosome, and we use a window size of 100. If this setting is set
      * to `true`, the SlidingWindowIterator will emit 10 empty windows before reaching this position.
-     * If set to `false`, it will skip these, and start at position 1000, which is the first one
+     * If set to `false`, it will skip these, and start at position 1001, which is the first one
      * that would have been reached by striding along the chromosome.
      */
-    bool emit_leading_empty_windows = true;
-
-    // bool emit empty_windows = true;
-    // bool emit_unfinished_trailing_window = false;
-    //
-    // all three of the above could also be an int enum where differnt settings
-    // can be combined as binary flags. kEmitAllEmptyWindows would then be 111
-    //
-    // in the doc, write a note that all of them are only used for interval windows.
-};
-
-// =================================================================================================
-//     Sliding Window Iterator
-// =================================================================================================
-
-/**
- * @brief Iterator for sliding Window%s over the chromosomes of a genome.
- */
-template<class ForwardIterator, class InputType, class DataType = InputType>
-class SlidingWindowIterator
-{
-public:
-
-    // -------------------------------------------------------------------------
-    //     Typedefs and Enums
-    // -------------------------------------------------------------------------
-
-    // using Data              = typename ForwardIterator::value_type;
-    // using Data              = typename std::result_of<decltype(EntryInputFunctor)()>::type;
-
-    using Window            = ::genesis::population::Window<DataType>;
-    using Entry             = typename Window::Entry;
-
-    using settings_type     = SlidingWindowIteratorSettings<InputType, DataType>;
-    using self_type         = SlidingWindowIterator<ForwardIterator, InputType, DataType>;
-    using value_type        = Window;
-    using reference         = value_type&;
-    using const_reference   = value_type const&;
-
-    // using difference_type   = typename Window::container::difference_type;
-    // using size_type         = typename Window::container::size_type;
-    using iterator_category = std::input_iterator_tag;
-
-    // -------------------------------------------------------------------------
-    //     Constructors and Rule of Five
-    // -------------------------------------------------------------------------
-
-    SlidingWindowIterator(
-        settings_type const& settings,
-        ForwardIterator begin, ForwardIterator end
-    )
-        : settings_(settings)
-        , current_(begin)
-        , end_(end)
+    self_type& emit_leading_empty_windows( bool value )
     {
-        // Some boundary checks.
-        if( settings_.width == 0 ) {
-            throw std::runtime_error( "Cannot use SlidingWindowIterator of width 0." );
-        }
-        if( settings_.stride == 0 ) {
-            settings_.stride = settings_.width;
-        }
-        if( settings_.stride > settings_.width ) {
-            throw std::runtime_error( "Cannot use SlidingWindowIterator with stride > width." );
-        }
-
-        // Error checking.
-        if( ! settings_.entry_input_function ) {
-            throw std::runtime_error(
-                "Need to set SlidingWindowIteratorSettings::entry_input_function before using it "
-                "to construct a SlidingWindowIterator"
-            );
-        }
-        if( ! settings_.chromosome_function ) {
-            throw std::runtime_error(
-                "Need to set SlidingWindowIteratorSettings::chromosome_function before using it "
-                "to construct a SlidingWindowIterator"
-            );
-        }
-        if( ! settings_.position_function ) {
-            throw std::runtime_error(
-                "Need to set SlidingWindowIteratorSettings::position_function before using it "
-                "to construct a SlidingWindowIterator"
-            );
-        }
-
-        // Let's get going.
-        init_chromosome_();
-        update_();
-    }
-
-    // SlidingWindowIterator(
-    //     settings_type const& settings,
-    //     ForwardIterator begin, ForwardIterator end,
-    //     std::string const& chromosome,
-    //     size_t start_position, size_t end_position
-    // )
-    //     : settings_(settings)
-    //     , current_(begin)
-    //     , end_(end)
-    // {
-    //     // Some boundary checks.
-    //     if( settings_.width == 0 ) {
-    //         throw std::runtime_error( "Cannot use SlidingWindowIterator of width 0." );
-    //     }
-    //     if( settings_.stride == 0 ) {
-    //         settings_.stride = settings_.width;
-    //     }
-    //     if( settings_.stride > settings_.width ) {
-    //         throw std::runtime_error( "Cannot use SlidingWindowIterator with stride > width." );
-    //     }
-    //
-    //     // Let's get going.
-    //     init_chromosome_();
-    //     update_();
-    // }
-
-    ~SlidingWindowIterator() = default;
-
-    SlidingWindowIterator( SlidingWindowIterator const& ) = default;
-    SlidingWindowIterator( SlidingWindowIterator&& )      = default;
-
-    SlidingWindowIterator& operator= ( SlidingWindowIterator const& ) = default;
-    SlidingWindowIterator& operator= ( SlidingWindowIterator&& )      = default;
-
-    // -------------------------------------------------------------------------
-    //     Accessors & Modifiers
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Return whether the current iteration is the first of the current chromosome.
-     *
-     * When iterating over (e.g.) a VCF file with multiple chromosomes, this function is useful
-     * to run some initialization per chromosome, such as preparing some output.
-     *
-     * See is_last_window() for the respective end-of-chromosome indicator, that can be used
-     * to wrap up after a chromosome, such as writing the output that was producing during the
-     * iterator.
-     */
-    bool is_first_window() const
-    {
-        return is_first_window_;
-    }
-
-    /**
-     * @brief Return whether the current iteration is the last of the current chromosome.
-     *
-     * When iterating over (e.g.) a VCF file with multiple chromosomes, this function is useful
-     * to wrap up after a chromosome, such as writing the output that was producing during the
-     * iterator.
-     *
-     * See is_first_window() for the respective beginning-of-chromosome indicator, that can be used
-     * to run some initialization per chromosome, such as preparing some output.
-     */
-    bool is_last_window() const
-    {
-        return is_last_window_;
-    }
-
-    // /**
-    //  * @brief Get the chromosome name that we are currently processing.
-    //  *
-    //  * Initially, this is empty. After enqueuing data, it contains the chromosome name of the last
-    //  * Data entry that was enqueued.
-    //  */
-    // std::string const& chromosome() const
-    // {
-    //     // We could keep our own chromosome here, but Window already as a member for this,
-    //     // so we just re-use.
-    //     return window_.chromosome();
-    // }
-
-    // -------------------------------------------------------------------------
-    //     Basic Iterator Operators
-    // -------------------------------------------------------------------------
-
-    value_type const& operator*() const
-    {
-        return window_;
-    }
-
-    value_type const* operator->() const
-    {
-        return &window_;
-    }
-
-    // -------------------------------------------------------------------------
-    //     Iteration
-    // -------------------------------------------------------------------------
-
-    self_type& operator ++ ()
-    {
-        increment_();
+        emit_leading_empty_windows_ = value;
         return *this;
     }
 
-    self_type operator ++(int)
+    bool emit_leading_empty_windows() const
     {
-        self_type it(*this);
-        ++(*this);
-        return it;
-    }
-
-    // -------------------------------------------------------------------------
-    //     Iterator Comparison
-    // -------------------------------------------------------------------------
-
-    // bool operator==( self_type const& it ) const
-    // {
-    //     return current_ == it.current_;
-    // }
-    //
-    // bool operator!=( self_type const& it ) const
-    // {
-    //     return !(*this == it);
-    // }
-
-    explicit operator bool() const
-    {
-        return current_ != end_ || is_last_window_;
-    }
-
-    bool good() const
-    {
-        return current_ != end_ || is_last_window_;
-    }
-
-    // -------------------------------------------------------------------------
-    //     Internal Members
-    // -------------------------------------------------------------------------
-
-private:
-
-    void init_chromosome_()
-    {
-        // Saveguard. This might be called on an empty range, in which case we just do nothing.
-        if( current_ == end_ ) {
-            return;
-        }
-
-        // Clear the window and prepare for new chromosome.
-        window_.clear();
-        window_.chromosome( settings_.chromosome_function( *current_ ));
-        is_first_window_ = true;
-        is_last_window_ = false;
-        next_index_ = 0;
-
-        if( settings_.emit_leading_empty_windows ) {
-            current_start_ = 1;
-        } else {
-            // Set the start to the window position that we would get after going through all
-            // the previous windows if they were emitted.
-            auto const pos = settings_.position_function( *current_ );
-            current_start_ = pos - (( pos - 1 ) % settings_.stride );
-        }
-    }
-
-    void increment_()
-    {
-        // Special case: If we have no more data, the iterator still needs to stop at the last
-        // window, so that it can be processed. Hence, the operator bool() checks for this condition
-        // by testing for is_last_window_. After that, when this increment_() function is called
-        // again by the user, we then set is_last_window_ to false, indicating that now we are
-        // done for good.
-        if( current_ == end_ ) {
-            // If current_ == end_, we have definitely reached the end of the input, so we need
-            // to have set is_last_window_ previously. If not set, that means it was already reset,
-            // so that this is an iteration past the end.
-            if( ! is_last_window_ ) {
-                throw std::runtime_error( "SlidingWindowIterator: Incrementing past the end" );
-            }
-
-            // Now reset, so that operator bool() returns false, indicating that we are done.
-            is_last_window_ = false;
-            return;
-        }
-
-        // Check if this call moves to the next chromosome.
-        if( settings_.chromosome_function( *current_ ) != window_.chromosome() ) {
-            init_chromosome_();
-        } else {
-            // Update positions.
-            current_start_ += settings_.stride;
-            is_first_window_ = false;
-        }
-
-        update_();
-    }
-
-    void update_()
-    {
-        // Do the correct type of enqueuing.
-        if( settings_.window_type == SlidingWindowType::kInterval ) {
-            update_interval_();
-        } else if( settings_.window_type == SlidingWindowType::kVariants ) {
-            update_variants_();
-        } else if( settings_.window_type == SlidingWindowType::kChromosome ) {
-            update_chromosome_();
-        } else {
-            throw std::runtime_error( "Invalid SlidingWindowType" );
-        }
-    }
-
-    void update_interval_()
-    {
-        // Dequeue everything that is not part of the current interval any more.
-        while(
-            ! window_.entries().empty() && window_.entries().front().position < current_start_
-        ) {
-            window_.entries().pop_front();
-        }
-
-        // Now enqueue new entries.
-        while( current_ != end_ ) {
-            auto const cur_pos = settings_.position_function( *current_ );
-
-            // Get the chromosome and position of the current entry, and see if it belongs
-            // into the current window. If not, we are done here with this window.
-            if(
-                settings_.chromosome_function( *current_ ) != window_.chromosome() ||
-                cur_pos >= current_start_ + settings_.width
-            ) {
-                break;
-            }
-            assert( settings_.chromosome_function( *current_ ) == window_.chromosome() );
-
-            // Check that we are not going backwards in the chromosome,
-            // i.e., if we got unsorted data. That would lead to unwanted behaviour.
-            if(
-                ! window_.empty() &&
-                window_.entries().back().position >= cur_pos
-            ) {
-                throw std::runtime_error(
-                    "Invalid entry in sliding window that not in sequence with other entries. "
-                    "Previous entry is " + window_.chromosome() + ":" +
-                    std::to_string( window_.entries().back().position ) +
-                    ", current (invalid) entry is " + window_.chromosome() + ":" +
-                    std::to_string( cur_pos )
-                );
-            }
-
-            // Now enqueue the entry, and move to the next.
-            window_.entries().emplace_back(
-                next_index_,
-                cur_pos,
-                settings_.entry_input_function( *current_ )
-            );
-            ++next_index_;
-            ++current_;
-        }
-
-        // Cases in which we are at the last window: Either we reached the end of the input,
-        // or the end of the current chromosome.
-        if( current_ == end_ || settings_.chromosome_function( *current_ ) != window_.chromosome() ) {
-            is_last_window_ = true;
-        }
-
-        // Update the window positions.
-        window_.first_position( current_start_ );
-        window_.last_position( current_start_ + settings_.width - 1 );
-    }
-
-    void update_variants_()
-    {
-        throw std::runtime_error( "Not yet implemented" );
-    }
-
-    void update_chromosome_()
-    {
-        throw std::runtime_error( "Not yet implemented" );
+        return emit_leading_empty_windows_;
     }
 
     // -------------------------------------------------------------------------
@@ -557,40 +646,75 @@ private:
 
 private:
 
-    // All combined settings for the window
-    settings_type settings_;
-
-    // Current window and its position
-    Window window_;
-    size_t current_start_ = 1;
-    size_t next_index_ = 0;
-
-    // Need to manually keep track of those...
-    bool is_first_window_ = true;
-    bool is_last_window_ = false;
-
     // Underlying iterator
-    ForwardIterator current_;
+    ForwardIterator begin_;
     ForwardIterator end_;
+
+    // Settings. We make stride_ mutable so that the iterator can set it to the width.
+    SlidingWindowType window_type_ = SlidingWindowType::kInterval;
+    size_t width_ = 0;
+    mutable size_t stride_ = 0;
+
+    bool emit_leading_empty_windows_ = true;
+
+    // bool emit empty_windows = true;
+    // bool emit_unfinished_trailing_window = false;
+
 };
 
 // =================================================================================================
-//     Make Genomic Sliding Window Iterator
+//     Make Sliding Window Iterator
 // =================================================================================================
 
 /**
- * @brief Helper function to instanciate a SlidingWindowIterator without the need to specify
- * all template parameters manually.
+ * @brief Helper function to instantiate a SlidingWindowIterator
+ * without the need to specify the template parameters manually.
  */
-template<class ForwardIterator, class InputType, class DataType = InputType>
-SlidingWindowIterator<ForwardIterator, InputType, DataType>
+template<class ForwardIterator, class DataType = typename ForwardIterator::value_type>
+SlidingWindowIterator<ForwardIterator, DataType>
 make_sliding_window_iterator(
-    SlidingWindowIteratorSettings<InputType, DataType> const& settings,
-    ForwardIterator begin, ForwardIterator end
+    ForwardIterator begin, ForwardIterator end,
+    size_t width = 0, size_t stride = 0, SlidingWindowType window_type = SlidingWindowType::kInterval
 ) {
-    return SlidingWindowIterator<ForwardIterator, InputType, DataType>(
-        settings, begin, end
-    );
+    auto it = SlidingWindowIterator<ForwardIterator, DataType>( begin, end );
+    it.width( width );
+    it.stride( stride );
+    it.window_type( window_type );
+    return it;
+}
+
+/**
+ * @brief Helper function to instantiate a SlidingWindowIterator for a default use case.
+ *
+ * This helper assumes that the underlying type of the input data stream and of the Window%s
+ * that we are sliding over are of the same type, that is, we do no conversion in the
+ * `entry_input_function` functor of the SlidingWindowIterator. It further assumes that this data
+ * type has public member variables `chromosome` and `position` that are accessed by the
+ * `chromosome_function` and `position_function` functors of the SlidingWindowIterator.
+ * A data type that is works for is Variant data.
+ */
+template<class ForwardIterator>
+SlidingWindowIterator<ForwardIterator>
+make_default_sliding_window_iterator(
+    ForwardIterator begin, ForwardIterator end,
+    size_t width = 0, size_t stride = 0, SlidingWindowType window_type = SlidingWindowType::kInterval
+) {
+    using DataType = typename ForwardIterator::value_type;
+
+    auto it = SlidingWindowIterator<ForwardIterator>( begin, end );
+    it.entry_input_function = []( DataType const& variant ) {
+        return variant;
+    };
+    it.chromosome_function = []( DataType const& variant ) {
+        return variant.chromosome;
+    };
+    it.position_function = []( DataType const& variant ) {
+        return variant.position;
+    };
+    it.width( width );
+    it.stride( stride );
+    it.window_type( window_type );
+    return it;
 }
 
 } // namespace population

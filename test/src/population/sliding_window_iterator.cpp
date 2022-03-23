@@ -46,14 +46,31 @@ TEST( SlidingWindowIterator, Basics )
     std::string const infile = environment->data_dir + "population/78.pileup.gz";
     // std::string const infile = environment->data_dir + "population/example.pileup";
 
-    auto pileup_iterator = SimplePileupInputIterator<>( from_file( infile ));
+    auto pileup_begin = SimplePileupInputIterator<>( from_file( infile ));
     auto pileup_end = SimplePileupInputIterator<>();
 
-    LOG_DBG << "start";
+    auto win_it = make_default_sliding_window_iterator( pileup_begin, pileup_end, 10000 );
+    win_it.emit_leading_empty_windows( false );
+
+    size_t window_cnt = 0;
+    for( auto const& window : win_it ) {
+        // LOG_DBG << window.chromosome() << " : "
+        //         << anchor_position( window ) << " "
+        //         << window.first_position() << "-" << window.last_position()
+        //         << " # " << window.entry_count();
+
+        EXPECT_TRUE( window.first_position() >= 7790001 );
+        EXPECT_TRUE( window.first_position() <= 7850001 );
+        EXPECT_TRUE( window.last_position() >= 7800000 );
+        EXPECT_TRUE( window.last_position() <= 7860000 );
+
+        ++window_cnt;
+    }
+    EXPECT_EQ( 7, window_cnt );
 
     // auto window_range = make_sliding_window_range(
     // auto win_it = make_sliding_window_iterator<SimplePileupReader::Record>(
-    //     pileup_iterator, pileup_end,
+    //     pileup_begin, pileup_end,
     //     []( SimplePileupReader::Record const& record ) -> SimplePileupReader::Record const& {
     //         return record;
     //     },
@@ -65,29 +82,6 @@ TEST( SlidingWindowIterator, Basics )
     //     },
     //     WindowType::kInterval, 10000, 10000
     // );
-
-    SlidingWindowIteratorSettings<SimplePileupReader::Record> settings;
-    settings.entry_input_function = []( SimplePileupReader::Record const& record ) {
-        return record;
-    };
-    settings.chromosome_function = []( SimplePileupReader::Record const& record ) {
-        return record.chromosome;
-    };
-    settings.position_function = []( SimplePileupReader::Record const& record ) {
-        return record.position;
-    };
-    settings.width = 10000;
-    settings.stride = 10000;
-
-    LOG_DBG << "make";
-    auto win_it = make_sliding_window_iterator( settings, pileup_iterator, pileup_end );
-
-    LOG_DBG << "loop";
-    while( win_it ) {
-        LOG_DBG << win_it->chromosome() << " : " << anchor_position( *win_it ) << " " << win_it->first_position() << "-" << win_it->last_position() << " # " << win_it->entry_count();
-        ++win_it;
-    }
-    LOG_DBG << "end";
 
     // auto win_it = window_range.begin();
     // while( win_it != window_range.end() ) {
