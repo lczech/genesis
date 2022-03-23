@@ -42,21 +42,23 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief A single locus, that is, a position on a chromosome.
+ * @brief A single locus, that is, a position (or coordinate) on a chromosome.
  *
- * For our purposes here, we define a locus to be one position on one chromosome exactly.
+ * For our purposes here, we define a locus to be one position (1-based) on one chromosome exactly.
  *
  * When working with multiple loci, we here often expect their chromosome names to be sorted in
  * lexicographical order. Hence, for example, when comparing two loci on different chromosomes,
  * we also take the ordering of their chromosome names into account.
+ *
+ * @see GenomeRegion
+ * @see GenomeRegionList
  */
 struct GenomeLocus
 {
     std::string chromosome;
     size_t      position = 0;
 
-    GenomeLocus() = default;
-    GenomeLocus( std::string const& chr, size_t pos )
+    GenomeLocus( std::string const& chr = "", size_t pos = 0 )
         : chromosome( chr )
         , position( pos )
     {}
@@ -74,14 +76,9 @@ struct GenomeLocus
         return chromosome == "" && position == 0;
     }
 
-    operator std::string() const
+    bool valid() const
     {
-        return to_string();
-    }
-
-    std::string to_string() const
-    {
-        return chromosome + ":" + std::to_string( position );
+        return chromosome != "" && position != 0;
     }
 };
 

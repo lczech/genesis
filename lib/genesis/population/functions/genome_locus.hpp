@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 #include <cassert>
 #include <iostream>
 #include <string>
+#include <stdexcept>
 
 namespace genesis {
 namespace population {
@@ -44,9 +45,25 @@ namespace population {
 //     Output
 // =================================================================================================
 
-inline std::ostream& operator << ( std::ostream& os, GenomeLocus const& l )
+inline std::string to_string( GenomeLocus const& locus )
 {
-    os << l.to_string();
+    // Error case.
+    if( locus.chromosome.empty() ) {
+        throw std::invalid_argument( "Invalid GenomeLocus with empty chromosome." );
+    }
+
+    // Special case.
+    if( locus.position == 0 ) {
+        return locus.chromosome;
+    }
+
+    // General case.
+    return locus.chromosome + ":" + std::to_string( locus.position );
+}
+
+inline std::ostream& operator << ( std::ostream& os, GenomeLocus const& locus )
+{
+    os << to_string( locus );
     return os;
 }
 
@@ -199,7 +216,7 @@ inline bool operator == ( GenomeLocus const& l, GenomeLocus const& r )
 // -------------------------------------------------------------------------
 
 /**
- * @brief Inquality comparison (`!=`) for two loci in a genome.
+ * @brief Inequality comparison (`!=`) for two loci in a genome.
  */
 inline bool locus_inequal(
     std::string const& l_chromosome, size_t l_position,

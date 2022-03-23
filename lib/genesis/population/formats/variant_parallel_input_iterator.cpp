@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -162,7 +162,7 @@ Variant VariantParallelInputIterator::Iterator::joined_variant(
                 } else {
                     throw std::runtime_error(
                         "Mismatching reference bases while iterating input sources in parallel at " +
-                        current_locus_.to_string() + ". Some sources have base '" +
+                        to_string( current_locus_ ) + ". Some sources have base '" +
                         std::string( 1, res.reference_base ) + "' while others have '" +
                         std::string( 1, variants_[i]->reference_base ) + "'."
                     );
@@ -174,7 +174,7 @@ Variant VariantParallelInputIterator::Iterator::joined_variant(
                 } else {
                     throw std::runtime_error(
                         "Mismatching alternative bases while iterating input sources in parallel at " +
-                        current_locus_.to_string() + ". Some sources have base '" +
+                        to_string( current_locus_ ) + ". Some sources have base '" +
                         std::string( 1, res.alternative_base ) + "' while others have '" +
                         std::string( 1, variants_[i]->alternative_base ) + "'."
                     );

@@ -48,7 +48,14 @@ namespace population {
  * @brief A region (between two positions) on a chromosome.
  *
  * This can be used to represent a gene, a feature, or just generally a region of interest.
- * We use a simple form with a chromosome name, and a start and end position, both inclusive.
+ * We use a simple form with a chromosome name, and a start and end position, both 1-based and
+ * inclusive (closed interval).
+ *
+ * We futhermore use the empty string to denote an invalid or undefined chromosome,
+ * and position 0 for either start or end to denote invalid or undefined positions.
+ *
+ * @see GenomeLocus
+ * @see GenomeRegionList
  */
 struct GenomeRegion
 {
@@ -62,7 +69,24 @@ public:
         : chromosome( chr )
         , start(s)
         , end(e)
-    {}
+    {
+        if( s > e ) {
+            throw std::invalid_argument(
+                "Cannot create GenomeRegion with start == " +
+                std::to_string( start ) + " > end == " + std::to_string( end )
+            );
+        }
+    }
+
+    bool empty() const
+    {
+        return chromosome == "" && start == 0 && end == 0;
+    }
+
+    bool valid() const
+    {
+        return chromosome != "" && start != 0 && end != 0 && start <= end;
+    }
 };
 
 // Alternative version that also has a data field.

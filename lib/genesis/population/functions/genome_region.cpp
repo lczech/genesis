@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,6 +42,20 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
+//     Comparion Operators
+// =================================================================================================
+
+bool operator ==( GenomeRegion const& a, GenomeRegion const& b )
+{
+    return a.chromosome == b.chromosome && a.start == b.start && a.end == b.end;
+}
+
+bool operator !=( GenomeRegion const& a, GenomeRegion const& b )
+{
+    return !( a == b );
+}
+
+// =================================================================================================
 //     Parsing & Printing
 // =================================================================================================
 
@@ -54,31 +68,46 @@ std::ostream& operator<<( std::ostream& os, GenomeRegion const& region )
 
 std::string to_string( GenomeRegion const& region )
 {
+    // Error cases. We need to check separately here, as we want to be able to treat the
+    // start == end == 0 special case extra here, and just print out the chromosome in that case.
+    if( region.chromosome.empty() ) {
+        throw std::invalid_argument(
+            "Invalid GenomeRegion with empty chromosome."
+        );
+    }
+    if(( region.start == 0 ) != ( region.end == 0 )) {
+        throw std::invalid_argument(
+            "Invalid GenomeRegion with one of start and end equal to zero."
+        );
+    }
+    if( region.start > region.end ) {
+        throw std::invalid_argument(
+            "Invalid GenomeRegion with start > end."
+        );
+    }
+
+    // Special cases.
     if( region.start == 0 && region.end == 0 ) {
         return region.chromosome;
     } else if( region.start == region.end ) {
         return region.chromosome + ":" + std::to_string( region.start );
-    } else {
-        return
-            region.chromosome + ":" +
-            std::to_string( region.start ) + "-" +
-            std::to_string( region.end )
-        ;
     }
+
+    // General case.
+    return
+        region.chromosome + ":" +
+        std::to_string( region.start ) + "-" +
+        std::to_string( region.end )
+    ;
 }
 
-bool operator ==( GenomeRegion const& a, GenomeRegion const& b )
-{
-    return a.chromosome == b.chromosome && a.start == b.start && a.end == b.end;
-}
-
-GenomeRegion parse_genome_region( std::string const& region )
+GenomeRegion parse_genome_region( std::string const& region, bool zero_based, bool end_exclusive )
 {
     GenomeRegion result;
 
     // Helper function to throw on error without copies of the same error message each time.
     auto throw_invalid_arg_ = [&](){
-        throw std::invalid_argument( "Invalid genomic region string '" + region + "'" );
+        throw std::invalid_argument( "Invalid genomic region string \"" + region + "\"" );
     };
 
     // Split by chromosome delimitier and store the chrom. Every string at least yields one split.
@@ -118,8 +147,20 @@ GenomeRegion parse_genome_region( std::string const& region )
             throw_invalid_arg_();
         }
 
+        // Fix coordinates if needed.
+        if( zero_based ) {
+            ++result.start;
+            ++result.end;
+        }
+        if( end_exclusive ) {
+            if( result.end == 0 ) {
+                throw_invalid_arg_();
+            }
+            --result.end;
+        }
+
         // Validity check.
-        if( result.start > result.end ) {
+        if( ! result.valid() ) {
             throw_invalid_arg_();
         }
     } else if( chr_split.size() > 2 ) {
@@ -129,13 +170,14 @@ GenomeRegion parse_genome_region( std::string const& region )
     return result;
 }
 
-GenomeRegionList parse_genome_regions( std::string const& regions )
-{
+GenomeRegionList parse_genome_regions(
+    std::string const& regions, bool zero_based, bool end_exclusive
+) {
     GenomeRegionList result;
 
     auto const region_list = utils::split( regions, ",", false );
     for( auto const& region : region_list ) {
-        result.add( parse_genome_region( utils::trim( region )));
+        result.add( parse_genome_region( utils::trim( region ), zero_based, end_exclusive ));
     }
 
     return result;
@@ -151,17 +193,20 @@ bool is_covered( GenomeRegion const& region, std::string const& chromosome, size
         throw std::runtime_error( "Invalid GenomeRegion with start > end" );
     }
 
-    if( region.start > 0 || region.end > 0 ) {
+    if( region.start > 0 && region.end > 0 ) {
         // With proper start and/or end, all has to match.
         auto const chr = chromosome == region.chromosome;
         auto const beg = position >= region.start;
         auto const end = position <= region.end;
         return chr && beg && end;
-    } else {
+    } else if( region.start == 0 && region.end == 0 ) {
         // If both start and end are zero, we are just matching the chromosome.
-        assert( region.start == 0 && region.end == 0 );
         return chromosome == region.chromosome;
     }
+
+    // Edge error case, could throw here as well.
+    assert( region.start == 0 || region.end == 0 );
+    return false;
 }
 
 bool is_covered( GenomeRegionList const& regions, std::string const& chromosome, size_t position )
