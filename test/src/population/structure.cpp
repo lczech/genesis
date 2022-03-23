@@ -88,8 +88,8 @@ TEST( Structure, FstPool )
     // Prepare the window.
     size_t value_count = 0;
     using WindowGen = SlidingWindowGenerator<std::vector<BaseCounts>>;
-    WindowGen window_gen( WindowType::kInterval, settings.window_width, settings.window_stride );
-    window_gen.anchor_type( WindowAnchorType::kIntervalMidpoint );
+    WindowGen window_gen( SlidingWindowType::kInterval, settings.window_width, settings.window_stride );
+    // window_gen.anchor_type( WindowAnchorType::kIntervalMidpoint );
     window_gen.add_emission_plugin( [&]( WindowGen::Window const& window ) {
         if( window.entry_count() == 0 ) {
             return;

@@ -45,60 +45,6 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief WindowType of a Window, that is, whether we slide along a fixed size interval of the
- * genome, along a fixed number of variants, or represents a whole chromosome.
- */
-enum class WindowType
-{
-    /**
-     * @brief Windows of this type are defined by a fixed start and end position on a chromosome.
-     *
-     * The amount of data contain in between these two loci can differ, for example, the number of
-     * variant positions
-     */
-    kInterval,
-
-    /**
-     * @brief Windows of this type are defined as containing a fixed number of entries (usually,
-     * Variant%s or other data that )
-     */
-    kVariants,
-
-    /**
-     * @brief Windows of this type contain positions across a whole chromosome.
-     *
-     * The window contains all relevant data from a whole chromosome. Relevant can be either all
-     * positions, only variant ones, or some other filter can be applied when filling the window,
-     * as needed. Moving to the next window then is equivalent to moving to the next chromosome.
-     */
-    kChromosome
-};
-
-/**
- * @brief Position in the genome that is used for reporting when emitting or using a window.
- *
- * When a window is filled with data, we need to report the
- * position in the genome at which the window is. There are several ways that this position
- * can be computed. Typically, just the first position of the window is used (that is, for an
- * interval, the beginning of the interval, and for variants, the position of the first variant).
- *
- * However, it might be desirable to report a different position, for example when plotting the
- * results. When using WindowType::kVariants for example, one might want to plot the values
- * computed per window at the midpoint genome position of the variants in that window.
- */
-enum class WindowAnchorType
-{
-    kIntervalBegin,
-    kIntervalEnd,
-    kIntervalMidpoint,
-    kVariantFirst,
-    kVariantLast,
-    kVariantMedian,
-    kVariantMean,
-    kVariantMidpoint
-};
-
-/**
  * @brief Empty helper data struct to serve as a dummy for Window.
  *
  * By default, the Window::Accumulator type does not do anything, because most of the time, we
@@ -116,8 +62,30 @@ struct EmptyAccumulator
  * @brief %Window over the chromosomes of a genome.
  *
  * This class is a container for the Window::Data (of template type `D`) that is produced when
- * sliding over the chromosomes of a genome in windows. It is for example produced by the
- * SlidingWindowIterator class (and the deprecated SlidingWindowGenerator).
+ * sliding over the chromosomes of a genome in windows, or filling genomic region windows.
+ * It is for example produced by the SlidingWindowIterator class (and the deprecated
+ * SlidingWindowGenerator).
+ *
+ * We here define a window to have a first_position() and a last_position() that can be set
+ * independently of the content of the window. For example, for a sliding window, they would
+ * be determined by the width and stride of the slider. Within that window, entries can be added,
+ * as for example found in a variant call file, or other data type along the genome.
+ *
+ * For example, we might have a Window between two positions `|` (e.g., determined by a sliding
+ * window), filled with several entries `x` coming from the underlying data source like this:
+ *
+ *     -----|--------x-----x-xx---xxxx---xxxx-xxx----|-----
+ *
+ * The width() of the window then is the number of bases in the genome between the first_position()
+ * and last_position(), that is, the distance between the two `|` (plus one, due to using inclusive
+ * intervals), On the other hand, the span() of the window is the distance between the first and
+ * last entry `x` in the window (again plus one).
+ * Furthermore, the entry_count() or size() is the number of entries in that window, that is,
+ * the total number of `x` in the window.
+ *
+ * **Remark:** We use 1-based inclusive intervals to denote genome regions. That means that the
+ * numeric values returned from both first_position() and last_position() are both positions that
+ * are part of the window.
  *
  * The class is mostly meant to be used to be read/iterated over, where the data is filled
  * in beforehand (e.g., via the SlidingWindowIterator), and can then be processed to compute some
@@ -145,10 +113,11 @@ public:
     /**
      * @brief Data that is stored per entry that was enqueued in a window.
      *
-     * This is the data that the per-window computation is based on. We store the actual user-provided
-     * `D`/`Data` type, as well as its position in the genome (as for example given by the `POS`
-     * column in a VCF file), and the index within the current chromosome - that is, the how many'th
-     * Entry this data point is in the list of enqueued data (starting from zero for each chromosome).
+     * This is the data that the per-window computation is based on. We store the actual
+     * user-provided `D`/`Data` type, as well as its position in the genome (as for example given
+     * by the `POS` column in a VCF file), and the index within the current chromosome - that is,
+     * the how many'th Entry this data point is in the list of enqueued data (starting from zero
+     * for each chromosome).
      */
     struct Entry
     {
@@ -162,7 +131,8 @@ public:
         {}
 
         /**
-         * @brief Contructor that takes @p data by r-value reference; preferred if possible to use.
+         * @brief Contructor that takes @p data by r-value reference (i.e., moved data);
+         * preferred if possible to use, for speed.
          */
         Entry( size_t index, size_t position, Data&& data )
             : index(index)
@@ -193,15 +163,15 @@ public:
 
         /**
          * @brief Index of the entry, that is, how many other entries have there been in total
-         * for the current chromosome.
+         * in the underlying data for the current chromosome.
          *
-         * This is useful when working with WindowType::kVariants, to know the how many-th variant
-         * the entry is. Gets reset to 0 for each chromosome.
+         * This is useful for example when working with SlidingWindowType::kVariants, to know the
+         * how many-th variant in the chromosome the entry is. Gets reset to 0 for each chromosome.
          */
         size_t index;
 
         /**
-         * @brief Genomic position of the entry along a chromosome.
+         * @brief Genomic position (1-based) of the entry along a chromosome.
          *
          * We here only store the position; for the name of the chromosome, call
          * Window::chromosome(), because for storage and speed reasons, we do not copy and store the
@@ -266,24 +236,26 @@ public:
     /**
      * @brief Get the width of the Window.
      *
-     * This is the distance between first_position() and last_position(). That is, for Window%s
-     * of type WindowType::kInterval, this is the distance between the start of the Window
-     * and its end. For WindowType::kVariants however, this is the distance between the positions of
-     * the first and the last variant (entry) in the Window.
+     * This is the distance between first_position() and last_position(), i.e., the distance
+     * between the start of the Window and its end as denoted by these positions, plus one,
+     * as we are using closed intervals where both positions are included.
      *
-     * See span() for a function that computes that latter distance for WindowType::kInterval
-     * windows as well.
+     * See span() for a function that computes the distance between the positions of the
+     * first and last _entry_ in the window instead, which might be smaller than the width,
+     * if there are no entries in the beginning or end of the window.
+     *
+     * See the class documentation for an example of the difference between the two functions.
      */
     size_t width() const
     {
         // We need to do the check here, when this is used.
-        if( first_position_ >= last_position_ ) {
+        if( first_position_ > last_position_ ) {
             throw std::runtime_error(
                 "Invalidly set first and last position in the Window, with " +
                 std::to_string( first_position_ ) + " >= " + std::to_string( last_position_ )
             );
         }
-        return last_position_ - first_position_;
+        return last_position_ - first_position_ + 1;
     }
 
     /**
@@ -329,19 +301,22 @@ public:
     }
 
     /**
-     * @brief Get the distance between the first and the last variant (entry) in the Window.
+     * @brief Get the distance that is spanned by the first and the last variant (entry) in the
+     * Window, that is, the number of bases between them (including both).
      *
-     * The width() function returns a different distance depending on the #WindowType used for the
-     * Window. However, sometimes it is useful to know the distance between the first and the last
-     * variant (entry) in a window, independently from whether that Window runs across intervals
-     * or variatns. This is what we here compute and call the span of the window.
+     * This is the distance between the positions of the first and the last variant (entry) in
+     * the Window, plus one as we are working with closed intervals where both positions are
+     * included. It differs from width(), which instead gives the distance between the first
+     * and last position as set for the Window (plus one again).
+     *
+     * See the class documentation for an example of the difference between the two functions.
      */
     size_t span() const
     {
         if( entries_.empty() ) {
             return 0;
         }
-        return entries_.back().position - entries_.front().position;
+        return entries_.back().position - entries_.front().position + 1;
     }
 
     // -------------------------------------------------------------------------
@@ -351,7 +326,13 @@ public:
     /**
      * @brief Get the first position in the chromosome of the Window, that is, where the Window starts.
      *
-     * We use half-open intervals; the first position is part of the Window, the last is not.
+     * The first and last position in the Window are determined for example by the sliding window
+     * width and stride, or by a genomic region that the window represents. They are hence
+     * independent of the actual data entries stored in the window, but obviously should be covering
+     * their positions. See the Window class documentation for an example.
+     *
+     * We use 1-based coordinates and closed intervals, where both the first and the last position
+     * are inclusive.
      */
     size_t first_position() const
     {
@@ -361,7 +342,7 @@ public:
     /**
      * @brief Set the first position in the chromosome of the Window, that is, where the Window starts.
      *
-     * We use half-open intervals; the first position is part of the Window, the last is not.
+     * @copydetails first_position() const
      */
     void first_position( size_t value )
     {
@@ -372,7 +353,7 @@ public:
      * @brief Get the last (past-the-end) position in the chromosome of the Window, that is,
      * where the Window ends.
      *
-     * We use half-open intervals; the first position is part of the Window, the last is not.
+     * @copydetails first_position() const
      */
     size_t last_position() const
     {
@@ -383,109 +364,11 @@ public:
      * @brief Set the last (past-the-end) position in the chromosome of the Window, that is,
      * where the Window ends.
      *
-     * We use half-open intervals; the first position is part of the Window, the last is not.
+     * @copydetails first_position() const
      */
     void last_position( size_t value )
     {
         last_position_ = value;
-    }
-
-    /**
-     * @brief Get the position in the chromosome reported according to the currently set
-     * #WindowAnchorType.
-     *
-     * See anchor_type( #WindowAnchorType ) to change the type of position that is reported here,
-     * and see anchor_position( #WindowAnchorType ) for an alternative that allows to freely pick
-     * the #WindowAnchorType instead.
-     */
-    size_t anchor_position() const
-    {
-        return anchor_position( anchor_type_ );
-    }
-
-    /**
-     * @brief Get the position in the chromosome reported according to a specific #WindowAnchorType.
-     */
-    size_t anchor_position( WindowAnchorType anchor_type ) const
-    {
-        auto check_entries = [&](){
-            if( entries_.empty() ) {
-                throw std::runtime_error(
-                    "Cannot use empty Window (with no variants/entries) for variant-based anchor "
-                    "positions. Typically these anchor positions are used with WindowType::kVariants."
-                );
-            }
-        };
-
-        // Calculate the SNP position that we want to output when emitting a window.
-        // Some use integer division, which is intended. We don't want the hassle of floating
-        // point genomic positions, so we have to do these roundings... But given a large window
-        // size, that should probably not matter much.
-        switch( anchor_type ) {
-            case WindowAnchorType::kIntervalBegin: {
-                return first_position_;
-            }
-            case WindowAnchorType::kIntervalEnd: {
-                return last_position_;
-            }
-            case WindowAnchorType::kIntervalMidpoint: {
-                return ( first_position_ + last_position_ ) / 2;
-            }
-            case WindowAnchorType::kVariantFirst: {
-                check_entries();
-                assert( ! entries_.empty() );
-                return entries_.front().position;
-            }
-            case WindowAnchorType::kVariantLast: {
-                check_entries();
-                assert( ! entries_.empty() );
-                return entries_.back().position;
-            }
-            case WindowAnchorType::kVariantMedian: {
-                check_entries();
-                assert( ! entries_.empty() );
-                return entries_[ entries_.size() / 2 ].position;
-            }
-            case WindowAnchorType::kVariantMean: {
-                check_entries();
-                assert( ! entries_.empty() );
-
-                size_t sum = 0;
-                for( auto const& e : entries_ ) {
-                    sum += e.position;
-                }
-                return sum / entries_.size();
-            }
-            case WindowAnchorType::kVariantMidpoint: {
-                check_entries();
-                assert( ! entries_.empty() );
-                return (entries_.front().position + entries_.back().position) / 2;
-            }
-            default: {
-                throw std::runtime_error( "Invalid WindowAnchorType." );
-            }
-        }
-        assert( false );
-        return 0;
-    }
-
-    /**
-     * @brief Get the #WindowAnchorType that is currently set for using anchor_position().
-     */
-    WindowAnchorType anchor_type() const
-    {
-        return anchor_type_;
-    }
-
-    /**
-     * @brief Set the #WindowAnchorType that is currently set for using anchor_position().
-     *
-     * This function is mainly useful to set the #WindowAnchorType once, and then use the variant of
-     * anchor_position() without any arguments to get the reported position.
-     */
-    void anchor_type( WindowAnchorType value )
-    {
-        anchor_type_ = value;
     }
 
     // -------------------------------------------------------------------------
@@ -596,8 +479,36 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Modifiers
+    //     Modifiers and Helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * @brief Validate the window data.
+     *
+     * The function checks that 0 < first_position() <= last_position(),
+     * and that all entries in the Window are within first_position() and
+     * last_position().
+     */
+    void validate() const
+    {
+        if( first_position_ == 0 ) {
+            throw std::runtime_error( "Invalid Window with first_position() == 0." );
+        }
+        if( last_position_ < first_position_ ) {
+            throw std::runtime_error( "Invalid Window with last_position() < first_position()." );
+        }
+        for( auto const& entry : entries_ ) {
+            if( entry.position < first_position_ || entry.position > last_position_ ) {
+                throw std::runtime_error(
+                    "Invalid Window::Entry in chromosome " + chromosome_ + " at position " +
+                    std::to_string( entry.position ) +
+                    ", which is not between the window boundaries [" +
+                    std::to_string( first_position_ ) + "," +
+                    std::to_string( last_position_ ) + "]."
+                );
+            }
+        }
+    }
 
     /**
      * @brief Clear all data from the Window.
@@ -616,8 +527,6 @@ public:
     // -------------------------------------------------------------------------
 
 private:
-
-    WindowAnchorType anchor_type_ = WindowAnchorType::kIntervalBegin;
 
     std::string chromosome_;
     size_t first_position_ = 0;
