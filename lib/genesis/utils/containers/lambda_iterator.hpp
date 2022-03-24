@@ -639,7 +639,7 @@ public:
     {}
 
     /**
-     * @copydoc LambdaIterator( std::function<utils::Optional<value_type>()> )
+     * @copydoc LambdaIterator( std::function<utils::Optional<value_type>()>, size_t )
      *
      * Additionally, @p data can be given here, which we simply store and make accessible
      * via data(). This is a convenience so that iterators generated via a `make` function
@@ -656,7 +656,7 @@ public:
     {}
 
     /**
-     * @copydoc LambdaIterator( std::function<utils::Optional<value_type>()>, Data const& )
+     * @copydoc LambdaIterator( std::function<utils::Optional<value_type>()>, Data const&, size_t )
      *
      * This version of the constructor takes the data by r-value reference, for moving it.
      */

@@ -356,7 +356,7 @@ public:
     }
 
     /**
-     * @copy chromosome_map() const
+     * @copydoc chromosome_map() const
      */
     std::map<std::string, tree_type>& chromosome_map()
     {
