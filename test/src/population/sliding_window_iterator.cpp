@@ -30,30 +30,22 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/window/functions.hpp"
-#include "genesis/population/window/window.hpp"
-#include "genesis/population/window/sliding_window_iterator.hpp"
-#include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
+#include "genesis/population/formats/simple_pileup_reader.hpp"
+#include "genesis/population/formats/variant_input_iterator.hpp"
+#include "genesis/population/window/functions.hpp"
+#include "genesis/population/window/sliding_interval_window_iterator.hpp"
+#include "genesis/population/window/window.hpp"
+#include "genesis/utils/containers/lambda_iterator.hpp"
 
 #include <unordered_map>
 
 using namespace genesis::population;
 using namespace genesis::utils;
 
-TEST( SlidingWindowIterator, IntervalBasics )
+template<class WindowIterator>
+void test_sliding_interval_iterator_( WindowIterator& win_it )
 {
-    // Skip test if no data availabe.
-    NEEDS_TEST_DATA;
-    std::string const infile = environment->data_dir + "population/78.pileup.gz";
-    // std::string const infile = environment->data_dir + "population/example.pileup";
-
-    auto pileup_begin = SimplePileupInputIterator<>( from_file( infile ));
-    auto pileup_end = SimplePileupInputIterator<>();
-
-    auto win_it = make_default_sliding_window_iterator( pileup_begin, pileup_end, 10000 );
-    win_it.emit_leading_empty_windows( false );
-
     bool found_first_win = false;
     bool found_last_win = false;
 
@@ -110,6 +102,27 @@ TEST( SlidingWindowIterator, IntervalBasics )
 
     EXPECT_TRUE( found_first_win );
     EXPECT_TRUE( found_last_win );
+}
+
+TEST( WindowIterator, SlidingIntervalDirect )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/78.pileup.gz";
+    // std::string const infile = environment->data_dir + "population/example.pileup";
+
+    // Make an underlying data iterator over some variants.
+    auto pileup_begin = SimplePileupInputIterator<>( from_file( infile ));
+    auto pileup_end = SimplePileupInputIterator<>();
+
+    // Set up the window iterator. Rename to `win_it` to use it with the below test code.
+    auto win_it = make_default_sliding_interval_window_iterator(
+        pileup_begin, pileup_end, 10000
+    );
+    win_it.emit_leading_empty_windows( false );
+
+    // Run the tests.
+    test_sliding_interval_iterator_( win_it );
 
     // auto window_range = make_sliding_window_range(
     // auto win_it = make_sliding_window_iterator<SimplePileupReader::Record>(
@@ -131,4 +144,28 @@ TEST( SlidingWindowIterator, IntervalBasics )
     //     LOG_DBG << win_it->chromosome() << " : " << win_it->anchor_position();
     //     ++win_it;
     // }
+}
+
+TEST( WindowIterator, SlidingIntervalLambda )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/78.pileup.gz";
+    // std::string const infile = environment->data_dir + "population/example.pileup";
+
+    // Make a Lambda Iterator over the data stream.
+    auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
+    // data_gen.block_size( 1024 * 1024 );
+    data_gen.block_size(0);
+    auto pileup_begin = data_gen.begin();
+    auto pileup_end   = data_gen.end();
+
+    // Create a window iterator based on the lambda iterator.
+    auto win_it = make_default_sliding_interval_window_iterator(
+        pileup_begin, pileup_end, 10000
+    );
+    win_it.emit_leading_empty_windows( false );
+
+    test_sliding_interval_iterator_( win_it );
+
 }

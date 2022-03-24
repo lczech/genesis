@@ -39,11 +39,44 @@
 #include <vector>
 
 #include "genesis/population/window/functions.hpp"
-#include "genesis/population/window/sliding_window_iterator.hpp"
 #include "genesis/population/window/window.hpp"
 
 namespace genesis {
 namespace population {
+
+// =================================================================================================
+//     Sliding Window Type
+// =================================================================================================
+
+/**
+ * @brief SlidingWindowType of a Window, that is, whether we slide along a fixed size interval of
+ * the genome, along a fixed number of variants, or represents a whole chromosome.
+ */
+enum class SlidingWindowType
+{
+    /**
+     * @brief Windows of this type are defined by a fixed start and end position on a chromosome.
+     *
+     * The amount of data contained in between these two loci can differ, depending on the number of
+     * variant positions found in the underlying data iterator.
+     */
+    kInterval,
+
+    /**
+     * @brief Windows of this type are defined as containing a fixed number of entries (usually,
+     * Variant%s or other data that), and hence can span window widths of differing sizes.
+     */
+    kVariants,
+
+    /**
+     * @brief Windows of this type contain positions across a whole chromosome.
+     *
+     * The window contains all data from a whole chromosome. Moving to the next window then is
+     * equivalent to moving to the next chromosome. Note that this might need a lot of memory
+     * to keep all the data at once.
+     */
+    kChromosome
+};
 
 // =================================================================================================
 //     Genomic Sliding Window Generator
