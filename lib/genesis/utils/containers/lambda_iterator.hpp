@@ -434,8 +434,19 @@ public:
 
         void increment_()
         {
+            // Make sure that all things are still in place.
             assert( generator_ );
             assert( current_block_ && current_block_->size() > 0 );
+
+            // Make sure that sizes have not been changed in the parent class.
+            assert(
+                current_block_->size() == generator_->block_size_ ||
+                (
+                    generator_->block_size_ == 0 &&
+                    current_block_->size()  == 1
+                )
+            );
+            assert( buffer_block_->size()  == generator_->block_size_ );
 
             // Edge case: no buffering.
             // Read the next element. If there is none, we are done.
@@ -505,6 +516,16 @@ public:
             // so let's assert that the thread pool and future are in the states that we expect.
             assert( thread_pool_->load() == 0 );
             assert( ! future_->valid() );
+
+            // Make sure that sizes have not been changed in the parent class.
+            assert(
+                current_block_->size() == generator_->block_size_ ||
+                (
+                    generator_->block_size_ == 0 &&
+                    current_block_->size()  == 1
+                )
+            );
+            assert( buffer_block_->size()  == generator_->block_size_ );
 
             // In order to use lambda captures by copy for class member variables in C++11, we first
             // have to make local copies, and then capture those. Capturing the class members direclty
@@ -798,6 +819,29 @@ public:
     self_type& clear_filters_and_transformations()
     {
         transforms_and_filters_.clear();
+    }
+
+    // -------------------------------------------------------------------------
+    //     Other Settings
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Get the currenlty set block size used for buffering the input data.
+     */
+    size_t block_size() const
+    {
+        return block_size_;
+    }
+
+    /**
+     * @brief Set the block size used for buffering the input data.
+     *
+     * Shall not be changed after iteration has started, that is, after calling begin().
+     */
+    self_type& block_size( size_t value )
+    {
+        block_size_ = value;
+        return *this;
     }
 
     // -------------------------------------------------------------------------
