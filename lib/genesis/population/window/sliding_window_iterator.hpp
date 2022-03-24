@@ -498,6 +498,25 @@ public:
         void update_variants_()
         {
             throw std::runtime_error( "Not yet implemented" );
+
+            // // Dequeue everything that we do not want to keep. If stride == width (default case),
+            // // we can simply remove everything at once, for speed.
+            // if( parent_->stride_ == parent_->width_ ) {
+            //     window_.entries().clear();
+            // } else {
+            //     for( size_t i = 0; i < parent_->stride_; ++i ) {
+            //         if( window_.empty() ) {
+            //             // Edge case when we start with a new empty window.
+            //             break;
+            //         }
+            //         window_.entries().pop_front();
+            //     }
+            // }
+            //
+            // // Now enqueue new entries.
+            // for( size_t i = 0; i < parent_->stride_; ++i ) {
+            //     /* code */
+            // }
         }
 
         void update_chromosome_()

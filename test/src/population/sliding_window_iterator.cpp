@@ -36,10 +36,12 @@
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 
+#include <unordered_map>
+
 using namespace genesis::population;
 using namespace genesis::utils;
 
-TEST( SlidingWindowIterator, Basics )
+TEST( SlidingWindowIterator, IntervalBasics )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -52,21 +54,62 @@ TEST( SlidingWindowIterator, Basics )
     auto win_it = make_default_sliding_window_iterator( pileup_begin, pileup_end, 10000 );
     win_it.emit_leading_empty_windows( false );
 
+    bool found_first_win = false;
+    bool found_last_win = false;
+
+    // DBG  2R : 7790001 7790001-7800000 # 1
+    // DBG  2R : 7800001 7800001-7810000 # 9874
+    // DBG  2R : 7810001 7810001-7820000 # 9972
+    // DBG  2R : 7820001 7820001-7830000 # 9909
+    // DBG  2R : 7830001 7830001-7840000 # 10000
+    // DBG  2R : 7840001 7840001-7850000 # 9997
+    // DBG  2R : 7850001 7850001-7860000 # 247
+
+    // Map from starting positions to sizes of the windows.
+    std::unordered_map<size_t, size_t> const window_sizes = {
+        { 7790001, 1 },
+        { 7800001, 9874 },
+        { 7810001, 9972 },
+        { 7820001, 9909 },
+        { 7830001, 10000 },
+        { 7840001, 9997 },
+        { 7850001, 247 }
+    };
+
     size_t window_cnt = 0;
-    for( auto const& window : win_it ) {
+    for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
+        auto const& window = *it;
+
         // LOG_DBG << window.chromosome() << " : "
         //         << anchor_position( window ) << " "
         //         << window.first_position() << "-" << window.last_position()
         //         << " # " << window.entry_count();
+
+        if( it.is_first_window() ) {
+            EXPECT_EQ( 7790001, window.first_position() );
+            EXPECT_FALSE( found_first_win );
+            found_first_win = true;
+        }
+        if( it.is_last_window() ) {
+            EXPECT_EQ( 7850001, window.first_position() );
+            EXPECT_FALSE( found_last_win );
+            found_last_win = true;
+        }
 
         EXPECT_TRUE( window.first_position() >= 7790001 );
         EXPECT_TRUE( window.first_position() <= 7850001 );
         EXPECT_TRUE( window.last_position() >= 7800000 );
         EXPECT_TRUE( window.last_position() <= 7860000 );
 
+        EXPECT_TRUE( window_sizes.count( window.first_position() ));
+        EXPECT_EQ( window_sizes.at( window.first_position() ), window.size() );
+
         ++window_cnt;
     }
     EXPECT_EQ( 7, window_cnt );
+
+    EXPECT_TRUE( found_first_win );
+    EXPECT_TRUE( found_last_win );
 
     // auto window_range = make_sliding_window_range(
     // auto win_it = make_sliding_window_iterator<SimplePileupReader::Record>(
