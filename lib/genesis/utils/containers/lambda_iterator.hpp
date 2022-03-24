@@ -197,10 +197,23 @@ public:
 
         using Data              = D;
 
-    private:
-
+        /**
+         * @brief Default constructor for empty (past-the-end) data.
+         *
+         * Public, so that an empty default instance can be used in a (placeholder) variable
+         * before assining it a value (e.g., when default-constructing an object that holds a
+         * LambdaIterator instance).
+         */
         Iterator() = default;
 
+    private:
+
+        /**
+         * @brief Constructor for data iteration.
+         *
+         * Private, as this needs to be created by the parent class (with an instance of itself)
+         * to have the data generator functor available.
+         */
         Iterator(
             LambdaIterator const* generator
         )
