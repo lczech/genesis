@@ -63,7 +63,7 @@ namespace population {
  * and general usage examples of the class.
  */
 template<class ForwardIterator, class DataType = typename ForwardIterator::value_type>
-    class SlidingIntervalWindowIterator final : public BaseWindowIterator<ForwardIterator, DataType>
+class SlidingIntervalWindowIterator final : public BaseWindowIterator<ForwardIterator, DataType>
 {
 public:
 
@@ -91,7 +91,7 @@ public:
     /**
      * @brief Internal iterator that produces Window%s.
      */
-    class Iterator : public BaseWindowIterator<ForwardIterator, DataType>::Iterator
+    class DerivedIterator final : public BaseWindowIterator<ForwardIterator, DataType>::BaseIterator
     {
     public:
 
@@ -99,8 +99,13 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type = typename SlidingIntervalWindowIterator<ForwardIterator, DataType>::Iterator;
-        using base_type = typename BaseWindowIterator<ForwardIterator, DataType>::Iterator;
+        using self_type = typename SlidingIntervalWindowIterator<
+            ForwardIterator, DataType
+        >::DerivedIterator;
+
+        using base_iterator_type = typename BaseWindowIterator<
+            ForwardIterator, DataType
+        >::BaseIterator;
 
         using Window            = ::genesis::population::Window<DataType>;
         using Entry             = typename Window::Entry;
@@ -114,12 +119,13 @@ public:
 
     private:
 
-        Iterator() = default;
+        DerivedIterator() = default;
 
-        Iterator(
+        DerivedIterator(
             SlidingIntervalWindowIterator const* parent
         )
-            : parent_( parent )
+            : base_iterator_type( parent )
+            , parent_( parent )
         {
             // Edge case check. See Base for details.
             if( ! parent_ ) {
@@ -127,7 +133,7 @@ public:
             }
 
             // Call the base class initializer.
-            base_type::init_( parent_ );
+            // base_iterator_type::init_( parent_ );
 
             // Check our own the settings.
             if( parent_->width_ == 0 ) {
@@ -149,13 +155,13 @@ public:
 
     public:
 
-        ~Iterator() = default;
+        ~DerivedIterator() = default;
 
-        Iterator( self_type const& ) = default;
-        Iterator( self_type&& )      = default;
+        DerivedIterator( self_type const& ) = default;
+        DerivedIterator( self_type&& )      = default;
 
-        Iterator& operator= ( self_type const& ) = default;
-        Iterator& operator= ( self_type&& )      = default;
+        DerivedIterator& operator= ( self_type const& ) = default;
+        DerivedIterator& operator= ( self_type&& )      = default;
 
         friend SlidingIntervalWindowIterator;
 
@@ -168,15 +174,15 @@ public:
         void init_chromosome_()
         {
             // Saveguard. This might be called on an empty range, in which case we just do nothing.
-            if( base_type::current_ == base_type::end_ ) {
+            if( base_iterator_type::current_ == base_iterator_type::end_ ) {
                 return;
             }
 
             // Clear the window and prepare for new chromosome.
             window_.clear();
-            window_.chromosome( parent_->chromosome_function( *base_type::current_ ));
-            base_type::is_first_window_ = true;
-            base_type::is_last_window_ = false;
+            window_.chromosome( parent_->chromosome_function( *base_iterator_type::current_ ));
+            base_iterator_type::is_first_window_ = true;
+            base_iterator_type::is_last_window_ = false;
             next_index_ = 0;
 
             if( parent_->emit_leading_empty_windows_ ) {
@@ -184,7 +190,7 @@ public:
             } else {
                 // Set the start to the window position that we would get after going through all
                 // the previous windows if they were emitted.
-                auto const pos = parent_->position_function( *base_type::current_ );
+                auto const pos = parent_->position_function( *base_iterator_type::current_ );
                 current_start_ = pos - (( pos - 1 ) % parent_->stride_ );
             }
         }
@@ -195,11 +201,11 @@ public:
             // at the last window(s), so that they can be processed. After that, when this
             // increment_() function is called again by the user, we then set parent_ = nullptr
             // to indicate that now we are done for good.
-            if( base_type::current_ == base_type::end_ ) {
+            if( base_iterator_type::current_ == base_iterator_type::end_ ) {
                 // If current_ == end_, we have definitely reached the end of the input, so we need
                 // to have set is_last_window_ previously. If not set, that means it was already
                 // reset, so that this is an iteration past the end.
-                if( ! base_type::is_last_window_ ) {
+                if( ! base_iterator_type::is_last_window_ ) {
                     throw std::runtime_error(
                         "SlidingIntervalWindowIterator: Incrementing past the end"
                     );
@@ -211,12 +217,14 @@ public:
             }
 
             // Check if this call moves to the next chromosome.
-            if( parent_->chromosome_function( *base_type::current_ ) != window_.chromosome() ) {
+            if(
+                parent_->chromosome_function( *base_iterator_type::current_ ) != window_.chromosome()
+            ) {
                 init_chromosome_();
             } else {
                 // Update positions.
                 current_start_ += parent_->stride_;
-                base_type::is_first_window_ = false;
+                base_iterator_type::is_first_window_ = false;
             }
 
             // Fill window with data.
@@ -244,18 +252,23 @@ public:
             }
 
             // Now enqueue new entries.
-            while( base_type::current_ != base_type::end_ ) {
-                auto const cur_pos = parent_->position_function( *base_type::current_ );
+            while( base_iterator_type::current_ != base_iterator_type::end_ ) {
+                auto const cur_pos = parent_->position_function( *base_iterator_type::current_ );
 
                 // Get the chromosome and position of the current entry, and see if it belongs
                 // into the current window. If not, we are done here with this window.
                 if(
-                    parent_->chromosome_function( *base_type::current_ ) != window_.chromosome() ||
+                    parent_->chromosome_function(
+                        *base_iterator_type::current_
+                    ) != window_.chromosome() ||
                     cur_pos >= current_start_ + parent_->width_
                 ) {
                     break;
                 }
-                assert( parent_->chromosome_function( *base_type::current_ ) == window_.chromosome() );
+                assert(
+                    parent_->chromosome_function( *base_iterator_type::current_ ) ==
+                    window_.chromosome()
+                );
                 assert( cur_pos >= current_start_ );
                 assert( cur_pos <  current_start_ + parent_->width_ );
 
@@ -278,19 +291,19 @@ public:
                 window_.entries().emplace_back(
                     next_index_,
                     cur_pos,
-                    parent_->entry_input_function( *base_type::current_ )
+                    parent_->entry_input_function( *base_iterator_type::current_ )
                 );
                 ++next_index_;
-                ++base_type::current_;
+                ++base_iterator_type::current_;
             }
 
             // Cases in which we are at the last window: Either we reached the end of the input,
             // or the end of the current chromosome.
             if(
-                base_type::current_ == base_type::end_ ||
-                parent_->chromosome_function( *base_type::current_ ) != window_.chromosome()
+                base_iterator_type::current_ == base_iterator_type::end_ ||
+                parent_->chromosome_function( *base_iterator_type::current_ ) != window_.chromosome()
             ) {
-                base_type::is_last_window_ = true;
+                base_iterator_type::is_last_window_ = true;
             }
 
             // Update the window positions.
@@ -310,7 +323,7 @@ public:
 
     private:
 
-        // Parent. Needs to be set here to have the correct type.
+        // Parent. Needs to live here to have the correct derived type.
         SlidingIntervalWindowIterator const* parent_ = nullptr;
 
         // Current window and its position
@@ -342,21 +355,7 @@ public:
     SlidingIntervalWindowIterator& operator= ( SlidingIntervalWindowIterator const& ) = default;
     SlidingIntervalWindowIterator& operator= ( SlidingIntervalWindowIterator&& )      = default;
 
-    friend Iterator;
-
-    // -------------------------------------------------------------------------
-    //     Iteration
-    // -------------------------------------------------------------------------
-
-    Iterator begin()
-    {
-        return Iterator( this );
-    }
-
-    Iterator end()
-    {
-        return Iterator( nullptr );
-    }
+    friend DerivedIterator;
 
     // -------------------------------------------------------------------------
     //     Settings
@@ -416,6 +415,28 @@ public:
     bool emit_leading_empty_windows() const
     {
         return emit_leading_empty_windows_;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Virtual Members
+    // -------------------------------------------------------------------------
+
+protected:
+
+    std::unique_ptr<typename BaseWindowIterator<ForwardIterator, DataType>::BaseIterator>
+    get_begin_iterator_() override final
+    {
+        // Cannot use make_unique here, as the Iterator constructor is private,
+        // and trying to make make_unique a friend does not seem to be working...
+        return std::unique_ptr<DerivedIterator>( new DerivedIterator( this ));
+        // return utils::make_unique<DerivedIterator>( this );
+    }
+
+    std::unique_ptr<typename BaseWindowIterator<ForwardIterator, DataType>::BaseIterator>
+    get_end_iterator_() override final
+    {
+        return std::unique_ptr<DerivedIterator>( new DerivedIterator( nullptr ));
+        // return utils::make_unique<DerivedIterator>( nullptr );
     }
 
     // -------------------------------------------------------------------------

@@ -33,9 +33,11 @@
 
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/range.hpp"
+#include "genesis/utils/core/std.hpp"
 
 #include <cassert>
 #include <functional>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -143,11 +145,30 @@ public:
     std::function<size_t( InputType const& )> position_function;
 
     // ======================================================================================
-    //      Internal Iterator
+    //      Internal Public Iterator
     // ======================================================================================
 
+protected:
+
+    // Forward Declaration.
+    class BaseIterator;
+
+public:
+
     /**
-     * @brief Internal iterator that produces Window%s.
+     * @brief Internal public iterator that produces Window%s.
+     *
+     * This is the iterator that is exposed to the user when calling begin() and end()
+     * on the main class. Using this interface ensures that all types of window iterators
+     * (sliding window, regions, etc) expose the same type of iterator (at least for the same
+     * template parameters), making it easier to re-use code across different types of window
+     * iterators.
+     *
+     * We internally use a PIMPL-like setup to abstract away from this and allow the actual
+     * iterator implementations to run their own code. However, we here don't use PIMPL to hide
+     * our implementation, but rather to simply abstract from it, so that the public interface
+     * stays stable. See BaseIterator below for the class that needs to be derived from to implement
+     * the actual window iteration code.
      */
     class Iterator
     {
@@ -171,7 +192,11 @@ public:
 
     protected:
 
-        Iterator() = default;
+        Iterator() = delete;
+
+        Iterator( std::unique_ptr<BaseIterator> base_iterator )
+            : pimpl_( std::move( base_iterator ))
+        {}
 
     public:
 
@@ -201,7 +226,8 @@ public:
          */
         bool is_first_window() const
         {
-            return is_first_window_;
+            assert( pimpl_ );
+            return pimpl_->is_first_window_;
         }
 
         /**
@@ -216,7 +242,8 @@ public:
          */
         bool is_last_window() const
         {
-            return is_last_window_;
+            assert( pimpl_ );
+            return pimpl_->is_last_window_;
         }
 
         // -------------------------------------------------------------------------
@@ -225,22 +252,26 @@ public:
 
         value_type const & operator*() const
         {
-            return get_current_window_();
+            assert( pimpl_ );
+            return pimpl_->get_current_window_();
         }
 
         value_type & operator*()
         {
-            return get_current_window_();
+            assert( pimpl_ );
+            return pimpl_->get_current_window_();
         }
 
         value_type const * operator->() const
         {
-            return &get_current_window_();
+            assert( pimpl_ );
+            return &( pimpl_->get_current_window_() );
         }
 
         value_type * operator->()
         {
-            return &get_current_window_();
+            assert( pimpl_ );
+            return &( pimpl_->get_current_window_() );
         }
 
         // -------------------------------------------------------------------------
@@ -249,7 +280,8 @@ public:
 
         self_type& operator ++()
         {
-            increment_();
+            assert( pimpl_ );
+            pimpl_->increment_();
             return *this;
         }
 
@@ -271,15 +303,87 @@ public:
          */
         bool operator==( self_type const& other ) const
         {
+            assert( pimpl_ );
+            assert( other.pimpl_ );
+
             // We compare the parents as a baseline - two past-the-end iterator shall
             // always compare equal. If only one of them is past-the-end, they will compare false.
-            return get_parent_() == other.get_parent_();
+            return pimpl_->get_parent_() == other.pimpl_->get_parent_();
         }
 
         bool operator!=( self_type const& other ) const
         {
             return !(*this == other);
         }
+
+        // -------------------------------------------------------------------------
+        //     PIMPL-like Implementation Abstraction
+        // -------------------------------------------------------------------------
+
+    private:
+
+        std::unique_ptr<BaseIterator> pimpl_;
+
+    };
+
+    // ======================================================================================
+    //      Internal Base Iterator for PIMPL-like Abstraction
+    // ======================================================================================
+
+protected:
+
+    /**
+     * @brief Internal PIMPL-like implementation of the iterator that produces Window%s.
+     *
+     * This is the internal iterator class that the actual window iterator needs to derive from.
+     * It declares the interface that we expect in the PIMPL-like setup in the above public
+     * Iterator.
+     */
+    class BaseIterator
+    {
+    public:
+
+        // -------------------------------------------------------------------------
+        //     Constructors and Rule of Five
+        // -------------------------------------------------------------------------
+
+        using self_type         = BaseWindowIterator<ForwardIterator, DataType>::BaseIterator;
+
+        using Window            = ::genesis::population::Window<DataType>;
+        using Entry             = typename Window::Entry;
+        using InputType         = typename ForwardIterator::value_type;
+
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = Window;
+        using pointer           = value_type*;
+        using reference         = value_type&;
+        using const_reference   = value_type const&;
+
+    protected:
+
+        // BaseIterator() = default;
+
+        /**
+         * @brief Construct the base class, which does initialization checks on its member
+         * variables to ensure that the user has set up the functors correctly.
+         */
+        BaseIterator( BaseWindowIterator const* parent )
+        {
+            init_( parent );
+        }
+
+    public:
+
+        ~BaseIterator() = default;
+
+        BaseIterator( self_type const& ) = default;
+        BaseIterator( self_type&& )      = default;
+
+        BaseIterator& operator= ( self_type const& ) = default;
+        BaseIterator& operator= ( self_type&& )      = default;
+
+        friend BaseWindowIterator;
+        friend Iterator;
 
         // -------------------------------------------------------------------------
         //     Internal Members
@@ -289,8 +393,6 @@ public:
 
         /**
          * @brief Initialize the base iterator class and check that it is set up correctly.
-         *
-         * Needs to be called from the derived class constructor.
          */
         void init_( BaseWindowIterator const* parent )
         {
@@ -348,6 +450,9 @@ public:
 
         /**
          * @brief Get a pointer to the base class parent.
+         *
+         * In the derived class implementation, this should be a pointer to the _derived_ parent
+         * class, to make sure that it contains the correct settings etc needed for the iteration.
          */
         virtual BaseWindowIterator const* get_parent_() const = 0;
 
@@ -366,6 +471,8 @@ public:
     // ======================================================================================
     //      Main Class
     // ======================================================================================
+
+public:
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -392,15 +499,24 @@ public:
     //     Iteration
     // -------------------------------------------------------------------------
 
-    // Iterator begin()
-    // {
-    //     return Iterator( this );
-    // }
-    //
-    // Iterator end()
-    // {
-    //     return Iterator( nullptr );
-    // }
+    Iterator begin()
+    {
+        return Iterator( get_begin_iterator_() );
+    }
+
+    Iterator end()
+    {
+        return Iterator( get_end_iterator_() );
+    }
+
+    // -------------------------------------------------------------------------
+    //     Virtual Members
+    // -------------------------------------------------------------------------
+
+protected:
+
+    virtual std::unique_ptr<BaseIterator> get_begin_iterator_() = 0;
+    virtual std::unique_ptr<BaseIterator> get_end_iterator_() = 0;
 
     // -------------------------------------------------------------------------
     //     Data Members
