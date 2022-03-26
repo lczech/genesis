@@ -150,7 +150,6 @@ public:
             return data;
         }
 
-
         /**
          * @brief Implicit conversion to `Data const&` type.
          *

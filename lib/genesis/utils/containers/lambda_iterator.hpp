@@ -197,10 +197,23 @@ public:
 
         using Data              = D;
 
-    private:
-
+        /**
+         * @brief Default constructor for empty (past-the-end) data.
+         *
+         * Public, so that an empty default instance can be used in a (placeholder) variable
+         * before assining it a value (e.g., when default-constructing an object that holds a
+         * LambdaIterator instance).
+         */
         Iterator() = default;
 
+    private:
+
+        /**
+         * @brief Constructor for data iteration.
+         *
+         * Private, as this needs to be created by the parent class (with an instance of itself)
+         * to have the data generator functor available.
+         */
         Iterator(
             LambdaIterator const* generator
         )
@@ -421,8 +434,19 @@ public:
 
         void increment_()
         {
+            // Make sure that all things are still in place.
             assert( generator_ );
             assert( current_block_ && current_block_->size() > 0 );
+
+            // Make sure that sizes have not been changed in the parent class.
+            assert(
+                current_block_->size() == generator_->block_size_ ||
+                (
+                    generator_->block_size_ == 0 &&
+                    current_block_->size()  == 1
+                )
+            );
+            assert( buffer_block_->size()  == generator_->block_size_ );
 
             // Edge case: no buffering.
             // Read the next element. If there is none, we are done.
@@ -492,6 +516,16 @@ public:
             // so let's assert that the thread pool and future are in the states that we expect.
             assert( thread_pool_->load() == 0 );
             assert( ! future_->valid() );
+
+            // Make sure that sizes have not been changed in the parent class.
+            assert(
+                current_block_->size() == generator_->block_size_ ||
+                (
+                    generator_->block_size_ == 0 &&
+                    current_block_->size()  == 1
+                )
+            );
+            assert( buffer_block_->size()  == generator_->block_size_ );
 
             // In order to use lambda captures by copy for class member variables in C++11, we first
             // have to make local copies, and then capture those. Capturing the class members direclty
@@ -639,7 +673,7 @@ public:
     {}
 
     /**
-     * @copydoc LambdaIterator( std::function<utils::Optional<value_type>()> )
+     * @copydoc LambdaIterator( std::function<utils::Optional<value_type>()>, size_t )
      *
      * Additionally, @p data can be given here, which we simply store and make accessible
      * via data(). This is a convenience so that iterators generated via a `make` function
@@ -656,7 +690,7 @@ public:
     {}
 
     /**
-     * @copydoc LambdaIterator( std::function<utils::Optional<value_type>()>, Data const& )
+     * @copydoc LambdaIterator( std::function<utils::Optional<value_type>()>, Data const&, size_t )
      *
      * This version of the constructor takes the data by r-value reference, for moving it.
      */
@@ -785,6 +819,29 @@ public:
     self_type& clear_filters_and_transformations()
     {
         transforms_and_filters_.clear();
+    }
+
+    // -------------------------------------------------------------------------
+    //     Other Settings
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Get the currenlty set block size used for buffering the input data.
+     */
+    size_t block_size() const
+    {
+        return block_size_;
+    }
+
+    /**
+     * @brief Set the block size used for buffering the input data.
+     *
+     * Shall not be changed after iteration has started, that is, after calling begin().
+     */
+    self_type& block_size( size_t value )
+    {
+        block_size_ = value;
+        return *this;
     }
 
     // -------------------------------------------------------------------------
