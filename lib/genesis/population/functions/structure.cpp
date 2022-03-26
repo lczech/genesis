@@ -41,10 +41,10 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     F_ST Conventional Helper Functions
+//     F_ST Pool Kofler
 // =================================================================================================
 
-std::tuple<double, double, double> f_st_conventional_pool_pi_snp(
+std::tuple<double, double, double> f_st_pool_kofler_pi_snp(
     BaseCounts const& p1, BaseCounts const& p2
 ) {
     using namespace genesis::utils;
@@ -96,10 +96,10 @@ std::tuple<double, double, double> f_st_conventional_pool_pi_snp(
 }
 
 // =================================================================================================
-//     F_ST Asymptotically Unbiased (Karlsson) Helper Functions
+//     F_ST Pool Karlsson
 // =================================================================================================
 
-std::pair<double, double> f_st_asymptotically_unbiased_nkdk(
+std::pair<double, double> f_st_pool_karlsson_nkdk(
     std::pair<SortedBaseCounts, SortedBaseCounts> const& sample_counts
 ) {
     // PoPoolation2 function: calculate_nk_dk

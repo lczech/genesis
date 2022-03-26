@@ -132,14 +132,14 @@ TEST( Structure, FstPool )
         );
 
         // Compute the statistics
-        // LOG_DBG << "f_st_conventional_pool";
-        auto const fst_conv = f_st_conventional_pool(
+        // LOG_DBG << "f_st_pool_kofler";
+        auto const fst_conv = f_st_pool_kofler(
             settings.poolsize, settings.poolsize,
             pop1.begin(), pop1.end(),
             pop2.begin(), pop2.end()
         );
-        // LOG_DBG << "f_st_asymptotically_unbiased";
-        auto const fst_asym_unbiased = f_st_asymptotically_unbiased(
+        // LOG_DBG << "f_st_pool_karlsson";
+        auto const fst_asym_unbiased = f_st_pool_karlsson(
             pop1_filt.begin(), pop1_filt.end(),
             pop2_filt.begin(), pop2_filt.end()
         );

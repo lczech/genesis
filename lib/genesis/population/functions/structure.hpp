@@ -91,7 +91,7 @@ namespace population {
  *         }, window);
  *
  *         // Call an fst computation on that.
- *         f_st_conventional_pool( poolsizes, base_counts_range.begin(), base_counts_range.end() );
+ *         f_st_pool_kofler( poolsizes, base_counts_range.begin(), base_counts_range.end() );
  *     }
  *
  * Then, `base_counts_range.begin()` and `base_counts_range.end()` can be provided as @p begin
@@ -168,33 +168,45 @@ utils::Matrix<double> compute_pairwise_f_st(
 #endif // __cplusplus >= 201402L
 
 // =================================================================================================
-//     F_ST Conventional
+//     F_ST Pool Kofler
 // =================================================================================================
 
 /**
- * @brief Compute the SNP-based Theta Pi values used in f_st_conventional_pool().
+ * @brief Compute the SNP-based Theta Pi values used in f_st_pool_kofler().
  *
  * See there for details. The tuple returns Theta Pi for an individual position, which is simply
  * the heterozygosity() at this position, for both samples @p p1 and @p p2, as well as their
  * combined (average frequency) heterozygosity, in that order.
  */
-std::tuple<double, double, double> f_st_conventional_pool_pi_snp(
+std::tuple<double, double, double> f_st_pool_kofler_pi_snp(
     BaseCounts const& p1, BaseCounts const& p2
 );
 
 /**
- * @brief Compute the conventional F_ST statistic for pool-sequenced data,
- * following Kofler et al, for two ranges of BaseCounts%s.
+ * @brief Compute the F_ST statistic for pool-sequenced data of Kofler et al
+ * as used in PoPoolation2, for two ranges of BaseCounts%s.
+ *
+ * The approach is called the "classical" or "conventional" estimator in PoPoolation2 [1],
+ * and follows Hartl and Clark [2].
+ *
+ * > [1] **PoPoolation2: identifying differentiation between populations
+ * > using sequencing of pooled DNA samples (Pool-Seq).**<br />
+ * > Kofler R, Pandey RV, Schlotterer C.<br />
+ * > Bioinformatics, 2011, 27(24), 3435–3436. https://doi.org/10.1093/bioinformatics/btr589
+ *
+ * > [2] **Principles of Population Genetics.**<br />
+ * > Hartl DL, Clark AG.<br />
+ * > Sinauer, 2007.
  */
 template<class ForwardIterator1, class ForwardIterator2>
-double f_st_conventional_pool( // get_conventional_fstcalculator
+double f_st_pool_kofler( // get_conventional_fstcalculator
     size_t p1_poolsize, size_t p2_poolsize,
     ForwardIterator1 p1_begin, ForwardIterator1 p1_end,
     ForwardIterator2 p2_begin, ForwardIterator2 p2_end
 ) {
     // Edge and error cases
     if( p1_poolsize <= 1 || p2_poolsize <= 1 ) {
-        throw std::invalid_argument( "Cannot run f_st_conventional_pool() with poolsizes <= 1" );
+        throw std::invalid_argument( "Cannot run f_st_pool_kofler() with poolsizes <= 1" );
     }
 
     // Theta Pi values for the two populations and their combination
@@ -207,7 +219,7 @@ double f_st_conventional_pool( // get_conventional_fstcalculator
     while( p1_it != p1_end && p2_it != p2_end ) {
 
         // Compute frequency based pi snps. The tuple returns p1, p2, pp, in that order.
-        auto const pi_snps = f_st_conventional_pool_pi_snp( *p1_it, *p2_it );
+        auto const pi_snps = f_st_pool_kofler_pi_snp( *p1_it, *p2_it );
 
         // Skip invalid entries than can happen when less than two of [ACGT] have counts > 0
         // in one of the BaseCounts samples.
@@ -239,7 +251,7 @@ double f_st_conventional_pool( // get_conventional_fstcalculator
     }
     if( p1_it != p1_end || p2_it != p2_end ) {
         throw std::invalid_argument(
-            "In f_st_conventional_pool(): Provided ranges have different length."
+            "In f_st_pool_kofler(): Provided ranges have different length."
         );
     }
 
@@ -258,20 +270,21 @@ double f_st_conventional_pool( // get_conventional_fstcalculator
 #if __cplusplus >= 201402L
 
 /**
- * @brief Compute the conventional F_ST statistic for pool-sequenced data,
- * following Kofler et al, for all pairs of ranges of BaseCounts%s.
+ * @copydoc f_st_pool_kofler( size_t, size_t, ForwardIterator1, ForwardIterator1, ForwardIterator2, ForwardIterator2 )
  *
- * @see See compute_pairwise_f_st() for the expected input range.
+ * This version of the function computes F_ST for all pairs of a given input range of iterators.
+ *
+ * @see See compute_pairwise_f_st() for the expected input range specification.
  */
 template<class ForwardIterator>
-utils::Matrix<double> f_st_conventional_pool(
+utils::Matrix<double> f_st_pool_kofler(
     std::vector<size_t> const& poolsizes,
     ForwardIterator begin, ForwardIterator end
 ) {
     return compute_pairwise_f_st(
         begin, end,
         [&]( size_t i, size_t j, auto p1_begin, auto p1_end, auto p2_begin, auto p2_end ){
-            return f_st_conventional_pool(
+            return f_st_pool_kofler(
                 poolsizes[i], poolsizes[j],
                 p1_begin, p1_end, p2_begin, p2_end
             );
@@ -282,33 +295,40 @@ utils::Matrix<double> f_st_conventional_pool(
 #endif // __cplusplus >= 201402L
 
 // =================================================================================================
-//     F_ST Asymptotically Unbiased (Karlsson)
+//     F_ST Pool Karlsson
 // =================================================================================================
 
 /**
  * @brief Compute the numerator `N_k` and denominator `D_k`  needed for the asymptotically unbiased
  * F_ST estimator of Karlsson et al (2007).
  *
- * See f_st_asymptotically_unbiased() for details. The function expects sorted base counts for the
+ * See f_st_pool_karlsson() for details. The function expects sorted base counts for the
  * two samples of which we want to compute F_ST, which are produced by sorted_average_base_counts().
  */
-std::pair<double, double> f_st_asymptotically_unbiased_nkdk(
+std::pair<double, double> f_st_pool_karlsson_nkdk(
     std::pair<SortedBaseCounts, SortedBaseCounts> const& sample_counts
 );
 
 /**
- * @brief Compute the asymptotically unbiased F_ST estimator of Karlsson et al. (2007)
+ * @brief Compute the F_ST statistic for pool-sequenced data of Karlsson et al
+ * as used in PoPoolation2, for two ranges of BaseCounts%s.
  *
- * This follows the implementation in PoPoolation2 by Kofler et al.
+ * The approach is called the "asymptotically unbiased" estimator in PoPoolation2 [1],
+ * and follows Karlsson et al [2].
  *
- * > **Efficient mapping of mendelian traits in dogs through genome-wide association.**<br />
+ * > [1] **PoPoolation2: identifying differentiation between populations
+ * > using sequencing of pooled DNA samples (Pool-Seq).**<br />
+ * > Kofler R, Pandey RV, Schlotterer C.<br />
+ * > Bioinformatics, 2011, 27(24), 3435–3436. https://doi.org/10.1093/bioinformatics/btr589
+ *
+ * > [2] **Efficient mapping of mendelian traits in dogs through genome-wide association.**<br />
  * > Karlsson EK, Baranowska I, Wade CM, Salmon Hillbertz NHC, Zody MC, Anderson N, Biagi TM,
  * > Patterson N, Pielberg GR, Kulbokas EJ, Comstock KE, Keller ET, Mesirov JP, Von Euler H,
  * > Kämpe O, Hedhammar Å, Lander ES, Andersson G, Andersson L, Lindblad-Toh K.<br />
  * > Nature Genetics, 2007, 39(11), 1321–1328. https://doi.org/10.1038/ng.2007.10
  */
 template<class ForwardIterator1, class ForwardIterator2>
-double f_st_asymptotically_unbiased( // get_asymptunbiased_fstcalculator
+double f_st_pool_karlsson( // get_asymptunbiased_fstcalculator
     ForwardIterator1 p1_begin, ForwardIterator1 p1_end,
     ForwardIterator2 p2_begin, ForwardIterator2 p2_end
 ) {
@@ -325,7 +345,7 @@ double f_st_asymptotically_unbiased( // get_asymptunbiased_fstcalculator
 
         // Get intermediate values and add them up.
         auto const counts = sorted_average_base_counts( *p1_it, *p2_it );
-        auto const nkdk = f_st_asymptotically_unbiased_nkdk( counts );
+        auto const nkdk = f_st_pool_karlsson_nkdk( counts );
         sum_nk += nkdk.first;
         sum_dk += nkdk.second;
 
@@ -335,7 +355,7 @@ double f_st_asymptotically_unbiased( // get_asymptunbiased_fstcalculator
     }
     if( p1_it != p1_end || p2_it != p2_end ) {
         throw std::invalid_argument(
-            "In f_st_asymptotically_unbiased(): Provided ranges have different length."
+            "In f_st_pool_karlsson(): Provided ranges have different length."
         );
     }
 
@@ -345,19 +365,20 @@ double f_st_asymptotically_unbiased( // get_asymptunbiased_fstcalculator
 #if __cplusplus >= 201402L
 
 /**
- * @brief Compute the asymptotically unbiased F_ST estimator of Karlsson et al,
- * for all pairs of ranges of BaseCounts%s.
+ * @copydoc f_st_pool_karlsson( ForwardIterator1, ForwardIterator1, ForwardIterator2, ForwardIterator2 )
  *
- * @see See compute_pairwise_f_st() for the expected input range.
+ * This version of the function computes F_ST for all pairs of a given input range of iterators.
+ *
+ * @see See compute_pairwise_f_st() for the expected input range specification.
  */
 template<class ForwardIterator>
-utils::Matrix<double> f_st_asymptotically_unbiased(
+utils::Matrix<double> f_st_pool_karlsson(
     ForwardIterator begin, ForwardIterator end
 ) {
     return compute_pairwise_f_st(
         begin, end,
         [&]( size_t i, size_t j, auto p1_begin, auto p1_end, auto p2_begin, auto p2_end ){
-            return f_st_asymptotically_unbiased(
+            return f_st_pool_karlsson(
                 p1_begin, p1_end, p2_begin, p2_end
             );
         }
