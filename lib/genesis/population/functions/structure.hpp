@@ -48,11 +48,131 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
+//     Compute Helper
+// =================================================================================================
+
+// Can only be used with C++14, as we _need_ generic lambda expressions (with `auto` type-specifier
+// in the parameter list). Otherwise, the type that is actually needed for the range iterators
+// in the fst_functor() call in the function is literally impossible to capture. That is because
+// the type contains a TransformIterator, which has a lambda as one of its template parameters,
+// which hence cannot be named or captured in any form other than a lambda or an auto context...
+// See https://stackoverflow.com/a/4846597/4184258 for details. See the version history of this
+// file (which is currently named `genesis/population/functions/structure.hpp`) for the previous
+// instance of this function that also worked under C++11, by simply copy-pasting the contents of
+// compute_pairwise_f_st() to the functions where it is used...
+// That was ungly, and this function is currently not needed for our downstream tools
+// (e.g., grenedalf, see https://github.com/lczech/grenedalf), so we just leave it active here
+// when C++14 is used for compiling.
+
+#if __cplusplus >= 201402L
+
+/**
+ * @brief Helper function to compute a pairwise F_ST statistic, for all pairs of ranges of
+ * BaseCounts%s.
+ *
+ * The function is intended to be used as an internal helper for computing pairwise F_ST
+ * for a set of BaseCounts%s along some region (e.g., a genomic Window).
+ *
+ * The function expects a range (for example, a Window over the genome) of iterators,
+ * where each iterator dereferences to a `std::vector<BaseCounts>`. Each entry in the range is
+ * used as one position in the genome contributing to F_ST. For all entries, the `vector` needs
+ * to have the same number of entries.
+ *
+ * For example, a Window over Variant%s (`Window<Variant>`) can be turned into such a range
+ * as follows
+ *
+ *     // `window` is of type Window<Variant> here
+ *     for( auto const& window : window_iterator ) {
+ *
+ *         // Return the BaseCounts part of the Variants in the window.
+ *         auto base_counts_range = utils::make_transform_range([&]( Variant const& var )
+ *         -> std::vector<BaseCounts> const& {
+ *             return var.samples;
+ *         }, window);
+ *
+ *         // Call an fst computation on that.
+ *         f_st_conventional_pool( poolsizes, base_counts_range.begin(), base_counts_range.end() );
+ *     }
+ *
+ * Then, `base_counts_range.begin()` and `base_counts_range.end()` can be provided as @p begin
+ * and @p end here, respectively. Typically, as this is a helper function, they are provided
+ * by the functions that use this helper; however, they need this range as input themselves,
+ * and the above can be used for that.
+ *
+ * Furthermore, a functor @p fst_functor is expected that conducts the actual computation of
+ * the desired variant of F_ST. This functor is filled in by the functiones that are actually
+ * using this helper.
+ *
+ * Then, for each pair `(i,j)` of samples, the range is iterated, and the respective entries
+ * `i` and `j` of the vectors in the range are used to compute F_ST using the functor @p fst_functor
+ * for this pair of samples, and stored in the resulting matrix at positions `(i,j)` and `(j,i)`.
+ */
+template<class ForwardIterator, typename FstFunctor>
+utils::Matrix<double> compute_pairwise_f_st(
+    ForwardIterator begin, ForwardIterator end,
+    FstFunctor fst_functor
+) {
+    // With no data, return empty result.
+    if( begin == end ) {
+        return {};
+    }
+
+    // Now we know that there are entries in the rage. Use the first one to get the number of
+    // base pair samples in the range. We later check that this is the same for each entry.
+    // Use that size to initialize the resulting matrix.
+    size_t const size = static_cast<std::vector<BaseCounts> const&>( *begin ).size();
+    auto result = utils::Matrix<double>( size, size, 0.0 );
+
+    // We use a lambda that returns a tranforming rage to select an entry at a given index
+    // in the set of BaseCounts at the current iterator position.
+    auto select_entry = [size]( ForwardIterator begin, ForwardIterator end, size_t index ){
+        // Currently, in order to use Window here, we need to explicitly use std::vector<BaseCounts>
+        // instead of the more generic T... Bit unfortunate, but good enough for now.
+        // Will have to revisit later if we get to use cases where the BaseCounts are not stored
+        // in a vector, but some other container.
+        // using T = typename ForwardIterator::value_type;
+        return utils::make_transform_range(
+            [size, index]( std::vector<BaseCounts> const& samples ) -> BaseCounts const& {
+                if( samples.size() != size ) {
+                    throw std::runtime_error(
+                        "In compute_pairwise_f_st(): The number of BaseCounts in the "
+                        "provided range is not consistent throughout the iteration."
+                    );
+                }
+                return samples[index];
+            },
+            begin, end
+        );
+    };
+
+    // Loop over all pairs of entries, and compute f_st for each of these pairs.
+    // That is, in the inner code of the two loops, we run the f_st function that takes
+    // two ranges, providing it with a pair of indices for which we compute the value.
+    for( size_t i = 0; i < size; ++i ) {
+        for( size_t j = i + 1; j < size; ++j ) {
+            auto range_i = select_entry( begin, end, i );
+            auto range_j = select_entry( begin, end, j );
+            auto const fst = fst_functor(
+                i, j,
+                range_i.begin(), range_i.end(),
+                range_j.begin(), range_j.end()
+            );
+            result( i, j ) = fst;
+            result( j, i ) = fst;
+        }
+    }
+
+    return result;
+}
+
+#endif // __cplusplus >= 201402L
+
+// =================================================================================================
 //     F_ST Conventional
 // =================================================================================================
 
 /**
- * @brief Compute the SNP-based Theta Pi values used in f_st_conventional_pool()
+ * @brief Compute the SNP-based Theta Pi values used in f_st_conventional_pool().
  *
  * See there for details. The tuple returns Theta Pi for an individual position, which is simply
  * the heterozygosity() at this position, for both samples @p p1 and @p p2, as well as their
@@ -135,98 +255,31 @@ double f_st_conventional_pool( // get_conventional_fstcalculator
     return ( pp_pi_sum - pp_avg ) / pp_pi_sum;
 }
 
+#if __cplusplus >= 201402L
+
 /**
  * @brief Compute the conventional F_ST statistic for pool-sequenced data,
  * following Kofler et al, for all pairs of ranges of BaseCounts%s.
  *
- * The function is intended to be used for computing pairwise F_ST for a set of BaseCounts%s along
- * some region (e.g., a genomic Window).
- *
- * This function expects a range (for example, a Window over the genome) of iterators,
- * where each iterator dereferences to a `std::vector<BaseCounts>`. Each entry in the range is
- * used as one position in the genome contributing to F_ST. For all entries, the `vector` needs
- * to have the same number of entries, and that number has also to be the same as the size of
- * the given @p poolsizes vector.
- *
- * Then, for each pair `(i,j)` of pool samples, the range is iterated, and the respective entries
- * `i` and `j` of the vectors in the range are used to compute F_ST for this pair of samples,
- * and stored in the resulting matrix at positions `(i,j)` and `(j,i)`.
+ * @see See compute_pairwise_f_st() for the expected input range.
  */
 template<class ForwardIterator>
 utils::Matrix<double> f_st_conventional_pool(
     std::vector<size_t> const& poolsizes,
     ForwardIterator begin, ForwardIterator end
 ) {
-    auto result = utils::Matrix<double>( poolsizes.size(), poolsizes.size(), 0.0 );
-
-    // We use a lambda that returns a tranforming rage to select an entry at a given index
-    // in the set of BaseCounts at the current iterator position.
-    auto const pss = poolsizes.size();
-    auto select_entry = [pss]( ForwardIterator begin, ForwardIterator end, size_t index ){
-        // Currently, in order to use Window here, we need to explicitly use std::vector<BaseCounts>
-        // instead of the more generic T... Bit unfortunate, but good enough for now.
-        // Will have to revisit later if we get to use cases where the BaseCounts are not stored
-        // in a vector, but some other container.
-        // using T = typename ForwardIterator::value_type;
-        return utils::make_transform_range(
-            [pss, index]( std::vector<BaseCounts> const& pools ) -> BaseCounts const& {
-                if( pools.size() != pss ) {
-                    throw std::runtime_error(
-                        "In f_st_conventional_pool(): Provided number of poolsizes (" +
-                        std::to_string( pss ) + ") is not equal to the number of BaseCounts (" +
-                        std::to_string( pools.size() ) + ") at some point in the iteration"
-                    );
-                }
-                return pools[index];
-            },
-            begin, end
-        );
-    };
-
-    // Loop over all pairs of entries, and compute f_st for each of these pairs.
-    // That is, in the inner code of the two loops, we run the f_st function that takes
-    // two ranges, providing it with a pair of indices for which we compute the value.
-    for( size_t i = 0; i < poolsizes.size(); ++i ) {
-        for( size_t j = i + 1; j < poolsizes.size(); ++j ) {
-            auto range_i = select_entry( begin, end, i );
-            auto range_j = select_entry( begin, end, j );
-            auto const fst = f_st_conventional_pool(
+    return compute_pairwise_f_st(
+        begin, end,
+        [&]( size_t i, size_t j, auto p1_begin, auto p1_end, auto p2_begin, auto p2_end ){
+            return f_st_conventional_pool(
                 poolsizes[i], poolsizes[j],
-                range_i.begin(), range_i.end(),
-                range_j.begin(), range_j.end()
+                p1_begin, p1_end, p2_begin, p2_end
             );
-            result( i, j ) = fst;
-            result( j, i ) = fst;
         }
-    }
-
-    return result;
+    );
 }
 
-/**
- * @brief Compute the conventional F_ST statistic for pool-sequenced data,
- * following Kofler et al, for all pairs of ranges of BaseCounts%s.
- *
- * This is a shortcut for
- * @link f_st_conventional_pool( std::vector<size_t> const&, ForwardIterator, ForwardIterator ) f_st_conventional_pool@endlink,
- * but instead of taking a vector of the sizes of each pool, it uses the number of samples
- * and a fix poolsize that is used for all samples.
- */
-template<class ForwardIterator>
-utils::Matrix<double> f_st_conventional_pool(
-    size_t number_of_samples, size_t poolsizes,
-    ForwardIterator begin, ForwardIterator end
-) {
-    // With no data, return empty result
-    if( begin == end ) {
-        return {};
-    }
-
-    // With data: get the number of samples, and use that to fill a vector with identical pool sizes.
-    // Then, use the other version of this function to compute the result.
-    auto const ps = std::vector<size_t>( number_of_samples, poolsizes );
-    return f_st_conventional_pool( ps, begin, end );
-}
+#endif // __cplusplus >= 201402L
 
 // =================================================================================================
 //     F_ST Asymptotically Unbiased (Karlsson)
@@ -289,72 +342,29 @@ double f_st_asymptotically_unbiased( // get_asymptunbiased_fstcalculator
     return sum_nk / sum_dk;
 }
 
+#if __cplusplus >= 201402L
+
 /**
  * @brief Compute the asymptotically unbiased F_ST estimator of Karlsson et al,
  * for all pairs of ranges of BaseCounts%s.
  *
- * The function is intended to be used for computing pairwise F_ST for a set of BaseCounts%s along
- * some region (e.g., a genomic Window).
- *
- * This function expects a range (for example, a Window over the genome) of iterators,
- * where each iterator dereferences to a `std::vector<BaseCounts>`. Each entry in the range is
- * used as one position in the genome contributing to F_ST. For all entries, the `vector` needs
- * to have the same number of entries.
- *
- * Then, for each pair `(i,j)` of pool samples, the range is iterated, and the respective entries
- * `i` and `j` of the vectors in the range are used to compute F_ST for this pair of samples,
- * and stored in the resulting matrix at positions `(i,j)` and `(j,i)`.
+ * @see See compute_pairwise_f_st() for the expected input range.
  */
 template<class ForwardIterator>
 utils::Matrix<double> f_st_asymptotically_unbiased(
     ForwardIterator begin, ForwardIterator end
 ) {
-    // With no data, return empty result
-    if( begin == end ) {
-        return {};
-    }
-
-    // Now we now that there are entries in the rage. Use the first one to get the number of
-    // pool samples in the ragen. We later check that this is the same for each entry in the range.
-    // Use that size to initialize the resulting matrix.
-    size_t const ps = static_cast<std::vector<BaseCounts> const&>( *begin ).size();
-    auto result = utils::Matrix<double>( ps, ps, 0.0 );
-
-    // We use a lambda that returns a tranforming rage to select an entry at a given index
-    // in the set of BaseCounts at the current iterator position.
-    auto select_entry = [ps]( ForwardIterator begin, ForwardIterator end, size_t index ){
-        return utils::make_transform_range(
-            [ps, index]( std::vector<BaseCounts> const& pools ) -> BaseCounts const& {
-                if( pools.size() != ps ) {
-                    throw std::runtime_error(
-                        "In f_st_asymptotically_unbiased(): The number of BaseCounts in the "
-                        "provided range is not consistent"
-                    );
-                }
-                return pools[index];
-            },
-            begin, end
-        );
-    };
-
-    // Loop over all pairs of entries, and compute f_st for each of these pairs.
-    // That is, in the inner code of the two loops, we run the f_st function that takes
-    // two ranges, providing it with a pair of indices for which we compute the value.
-    for( size_t i = 0; i < ps; ++i ) {
-        for( size_t j = i + 1; j < ps; ++j ) {
-            auto range_i = select_entry( begin, end, i );
-            auto range_j = select_entry( begin, end, j );
-            auto const fst = f_st_asymptotically_unbiased(
-                range_i.begin(), range_i.end(),
-                range_j.begin(), range_j.end()
+    return compute_pairwise_f_st(
+        begin, end,
+        [&]( size_t i, size_t j, auto p1_begin, auto p1_end, auto p2_begin, auto p2_end ){
+            return f_st_asymptotically_unbiased(
+                p1_begin, p1_end, p2_begin, p2_end
             );
-            result( i, j ) = fst;
-            result( j, i ) = fst;
         }
-    }
-
-    return result;
+    );
 }
+
+#endif // __cplusplus >= 201402L
 
 } // namespace population
 } // namespace genesis
