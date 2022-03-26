@@ -214,6 +214,8 @@ double f_st_pool_kofler( // get_conventional_fstcalculator
     double p2_pi_sum = 0.0;
     double pp_pi_sum = 0.0;
 
+    // Iterate the two ranges in parallel. Each iteration is one position in the genome.
+    // In each iteration, p1_it and p2_it point at BaseCounts objects containing nucleotide counts.
     auto p1_it = p1_begin;
     auto p2_it = p2_begin;
     while( p1_it != p1_end && p2_it != p2_end ) {
@@ -245,7 +247,7 @@ double f_st_pool_kofler( // get_conventional_fstcalculator
             );
         }
 
-        // Next pair of entries
+        // Next pair of entries.
         ++p1_it;
         ++p2_it;
     }
@@ -379,6 +381,132 @@ utils::Matrix<double> f_st_pool_karlsson(
         begin, end,
         [&]( size_t i, size_t j, auto p1_begin, auto p1_end, auto p2_begin, auto p2_end ){
             return f_st_pool_karlsson(
+                p1_begin, p1_end, p2_begin, p2_end
+            );
+        }
+    );
+}
+
+#endif // __cplusplus >= 201402L
+
+// =================================================================================================
+//     F_ST Pool Spence
+// =================================================================================================
+
+/**
+ * @brief Compute the SNP-based Theta Pi values used in f_st_pool_spence().
+ *
+ * The function returns pi within, between, and total, in that order.
+ * See f_st_pool_spence() for details.
+ */
+std::tuple<double, double, double> f_st_pool_spence_pi_snp(
+    size_t p1_poolsize, size_t p2_poolsize,
+    BaseCounts const& p1, BaseCounts const& p2
+);
+
+/**
+ * @brief Compute the unbiased F_ST statistic for pool-sequenced data of Spence et al,
+ * for two ranges of BaseCounts%s.
+ *
+ * This is our novel approach for estimating F_ST, using pool-sequencing corrected estimates
+ * of Pi within, Pi between, and Pi total, to compute F_ST following the definitions of
+ * Nei [1] and Hudson [2], respectively. These are returned here as a pair in that order.
+ *
+ * > [1] **Analysis of Gene Diversity in Subdivided Populations.**<br />
+ * > Nei M.<br />
+ * > Proceedings of the National Academy of Sciences, 1973, 70(12), 3321–3323.
+ * > https://doi.org/10.1073/PNAS.70.12.3321
+ *
+ * > [2] **Estimation of levels of gene flow from DNA sequence data.**<br />
+ * > Hudson RR, Slatkin M, Maddison WP.<br />
+ * > Genetics, 1992, 132(2), 583–589. https://doi.org/10.1093/GENETICS/132.2.583
+ */
+template<class ForwardIterator1, class ForwardIterator2>
+std::pair<double, double> f_st_pool_spence(
+    size_t p1_poolsize, size_t p2_poolsize,
+    ForwardIterator1 p1_begin, ForwardIterator1 p1_end,
+    ForwardIterator2 p2_begin, ForwardIterator2 p2_end
+) {
+    // Edge and error cases
+    if( p1_poolsize <= 1 || p2_poolsize <= 1 ) {
+        throw std::invalid_argument( "Cannot run f_st_pool_spence() with poolsizes <= 1" );
+    }
+
+    // Sums over the window of pi within, between, total.
+    double pi_w_sum = 0.0;
+    double pi_b_sum = 0.0;
+    double pi_t_sum = 0.0;
+
+    // Iterate the two ranges in parallel. Each iteration is one position in the genome.
+    // In each iteration, p1_it and p2_it point at BaseCounts objects containing nucleotide counts.
+    auto p1_it = p1_begin;
+    auto p2_it = p2_begin;
+    while( p1_it != p1_end && p2_it != p2_end ) {
+
+        // Compute pi values for the snp.
+        // The tuple `pi_snp` returns pi within, between, and total, in that order.
+        auto const pi_snp = f_st_pool_spence_pi_snp( p1_poolsize, p2_poolsize, *p1_it, *p2_it );
+
+        // Skip invalid entries than can happen when less than two of [ACGT] have
+        // counts > 0 in one of the BaseCounts samples.
+        if(
+            std::isfinite( std::get<0>( pi_snp )) &&
+            std::isfinite( std::get<1>( pi_snp )) &&
+            std::isfinite( std::get<2>( pi_snp ))
+        ) {
+            // If we are here, both p1 and p2 have counts. Let's assert.
+            assert( p1_it->a_count + p1_it->c_count + p1_it->g_count + p1_it->t_count > 0 );
+            assert( p2_it->a_count + p2_it->c_count + p2_it->g_count + p2_it->t_count > 0 );
+
+            // Now add them to the tally.
+            pi_w_sum += std::get<0>( pi_snp );
+            pi_b_sum += std::get<1>( pi_snp );
+            pi_t_sum += std::get<2>( pi_snp );
+        } else {
+            // If we are here, at least one of the two inputs has one or fewer counts in [ACGT],
+            // otherwise, the results would have been finite. Let's assert this.
+            assert(
+                ( p1_it->a_count + p1_it->c_count + p1_it->g_count + p1_it->t_count <= 1 ) ||
+                ( p2_it->a_count + p2_it->c_count + p2_it->g_count + p2_it->t_count <= 1 )
+            );
+        }
+
+        // Next pair of entries.
+        ++p1_it;
+        ++p2_it;
+    }
+    if( p1_it != p1_end || p2_it != p2_end ) {
+        throw std::invalid_argument(
+            "In f_st_pool_spence(): Provided ranges have different length."
+        );
+    }
+
+    // Final computation of our two FST estimators, using Nei and Hudson, respectively.
+    double const fst_nei = 1.0 - ( pi_w_sum / pi_t_sum );
+    double const fst_hud = 1.0 - ( pi_w_sum / pi_b_sum );
+    return { fst_nei, fst_hud };
+}
+
+#if __cplusplus >= 201402L
+
+/**
+ * @brief Compute an unbiased F_ST estimator for pool-sequenced data,
+ * following Spence et al, for all pairs of ranges of BaseCounts%s.
+ *
+ * @copydetails f_st_pool_spence( std::vector<size_t> const&, ForwardIterator, ForwardIterator )
+ *
+ * @see See compute_pairwise_f_st() for the expected input range specification.
+ */
+template<class ForwardIterator>
+utils::Matrix<double> f_st_pool_spence(
+    std::vector<size_t> const& poolsizes,
+    ForwardIterator begin, ForwardIterator end
+) {
+    return compute_pairwise_f_st(
+        begin, end,
+        [&]( size_t i, size_t j, auto p1_begin, auto p1_end, auto p2_begin, auto p2_end ){
+            return f_st_pool_spence(
+                poolsizes[i], poolsizes[j],
                 p1_begin, p1_end, p2_begin, p2_end
             );
         }

@@ -65,7 +65,7 @@ TEST( Structure, FstPool )
     settings.min_phred_score = 20;
 
     // Expected values.
-    std::vector<double> exp_conventional = {{
+    std::vector<double> const exp_kofler = {{
         0.01533591, 0.01340363, 0.01554609, 0.01454173, 0.01317223, 0.01554917,
         0.01202964, 0.01316962, 0.01317223, 0.01316962, 0.01778599, 0.01554609,
         0.01554917, 0.00732000, 0.014416005, // <-- slighly changed due to rounding
@@ -74,7 +74,7 @@ TEST( Structure, FstPool )
         0.01316962, 0.01196782, 0.01676964, 0.01210121, 0.01690169, 0.01554609,
         0.01601910, 0.019098585 // <-- not computed by PoPoolation (incomplete window)
     }};
-    std::vector<double> exp_karlsson = {{
+    std::vector<double> const exp_karlsson = {{
         0.02042334, 0.01646975, 0.02125242, 0.01905364, 0.01652186, 0.02120793,
         0.014834166, // <-- slighly changed due to rounding
         0.01646975, 0.01652186, 0.01646975, 0.02709343, 0.02125242, 0.02120793,
@@ -84,9 +84,23 @@ TEST( Structure, FstPool )
         0.02347631, 0.02125242, 0.02240403,
         0.027800744 // <-- not computed by PoPoolation (incomplete window)
     }};
+    std::vector<double> const exp_spence_nei = {{
+        0.00931612172, 0.00730230879, 0.00973944028, 0.00861753481, 0.00732880303, 0.0097167155,
+        0.00647155422, 0.00730230879, 0.00732880303, 0.00730230879, 0.0127319208,  0.00973944028,
+        0.0097167155,  0.00135927851, 0.00861854607, 0.00973944028, 0.0108767017,  0.00647235444,
+        0.00730230879, 0.0155986994,  0.00973944028, 0.00861854607, 0.00730230879, 0.00627407827,
+        0.0111994211,  0.00607555685, 0.0108767017,  0.00973944028, 0.0103280389,  0.0130954999
+    }};
+    std::vector<double> const exp_spence_hudson = {{
+        0.0184602654, 0.0144987433,  0.019290997,  0.0170878148, 0.0145509649, 0.019246419,
+        0.012859885,  0.0144987433,  0.0145509649, 0.0144987433, 0.0251437138, 0.019290997,
+        0.019246419,  0.00271486675, 0.0170898029, 0.019290997,  0.0215193438, 0.0128614649,
+        0.0144987433, 0.0307182342,  0.019290997,  0.0170898029, 0.0144987433, 0.0124699193,
+        0.0221507664, 0.0120777347,  0.0215193438, 0.019290997,  0.0204449219, 0.025852449
+    }};
 
     // Prepare the window.
-    size_t value_count = 0;
+    size_t cnt = 0;
     using WindowGen = SlidingWindowGenerator<std::vector<BaseCounts>>;
     WindowGen window_gen( SlidingWindowType::kInterval, settings.window_width, settings.window_stride );
     // window_gen.anchor_type( WindowAnchorType::kIntervalMidpoint );
@@ -95,7 +109,7 @@ TEST( Structure, FstPool )
             return;
         }
         // LOG_DBG << "position " << window.first_position();
-        // LOG_DBG << "value_count " << value_count;
+        // LOG_DBG << "cnt " << cnt;
 
         // Get the two populations from the range.
         // Unfortunately, we need to versions of this, one that just gives the counts,
@@ -143,11 +157,25 @@ TEST( Structure, FstPool )
             pop1_filt.begin(), pop1_filt.end(),
             pop2_filt.begin(), pop2_filt.end()
         );
+        // LOG_DBG << "f_st_pool_spence";
+        auto const fst_spence = f_st_pool_spence(
+            settings.poolsize, settings.poolsize,
+            pop1_filt.begin(), pop1_filt.end(),
+            pop2_filt.begin(), pop2_filt.end()
+        );
+
+        // LOG_DBG << std::setprecision(9)
+        //         << "kofler " << fst_conv
+        //         << " karlsson " << fst_asym_unbiased
+        //         << " spence " << fst_spence.first << " & " << fst_spence.second
+        // ;
 
         // Compare statistics
-        EXPECT_FLOAT_EQ( exp_conventional[value_count], fst_conv );
-        EXPECT_FLOAT_EQ( exp_karlsson[value_count], fst_asym_unbiased );
-        ++value_count;
+        EXPECT_FLOAT_EQ( exp_kofler[cnt], fst_conv );
+        EXPECT_FLOAT_EQ( exp_karlsson[cnt], fst_asym_unbiased );
+        EXPECT_FLOAT_EQ( exp_spence_nei[cnt], fst_spence.first );
+        EXPECT_FLOAT_EQ( exp_spence_hudson[cnt], fst_spence.second );
+        ++cnt;
     });
 
     // Process the file.

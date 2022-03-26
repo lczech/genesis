@@ -160,5 +160,67 @@ std::pair<double, double> f_st_pool_karlsson_nkdk(
     return { nk, dk };
 }
 
+// =================================================================================================
+//     F_ST Pool Spence
+// =================================================================================================
+
+std::tuple<double, double, double> f_st_pool_spence_pi_snp(
+    size_t p1_poolsize, size_t p2_poolsize,
+    BaseCounts const& p1_counts, BaseCounts const& p2_counts
+) {
+    using namespace genesis::utils;
+
+    // There is some code duplication from f_st_pool_kofler_pi_snp() here, but for speed reasons,
+    // we keep it that way for now. Not worth calling more functions than needed.
+
+    // Helper function for the two components of pi within
+    auto pi_within_partial_ = [](
+        double poolsize, double freq_a, double freq_c, double freq_g, double freq_t, double nt_cnt
+    ) {
+        assert( poolsize > 1.0 );
+
+        double result = 1.0;
+        result -= squared( freq_a );
+        result -= squared( freq_c );
+        result -= squared( freq_g );
+        result -= squared( freq_t );
+        result *= nt_cnt / ( nt_cnt - 1.0 );
+        result *= poolsize / ( poolsize - 1.0 );
+        return result;
+    };
+
+    // Get frequencies in sample 1
+    double const p1_nt_cnt = static_cast<double>( nucleotide_sum( p1_counts ));
+    double const p1_freq_a = static_cast<double>( p1_counts.a_count ) / p1_nt_cnt;
+    double const p1_freq_c = static_cast<double>( p1_counts.c_count ) / p1_nt_cnt;
+    double const p1_freq_g = static_cast<double>( p1_counts.g_count ) / p1_nt_cnt;
+    double const p1_freq_t = static_cast<double>( p1_counts.t_count ) / p1_nt_cnt;
+
+    // Get frequencies in sample 2
+    double const p2_nt_cnt = static_cast<double>( nucleotide_sum( p2_counts ));
+    double const p2_freq_a = static_cast<double>( p2_counts.a_count ) / p2_nt_cnt;
+    double const p2_freq_c = static_cast<double>( p2_counts.c_count ) / p2_nt_cnt;
+    double const p2_freq_g = static_cast<double>( p2_counts.g_count ) / p2_nt_cnt;
+    double const p2_freq_t = static_cast<double>( p2_counts.t_count ) / p2_nt_cnt;
+
+    // Compute pi within
+    auto const pi_within = 0.5 * (
+        pi_within_partial_( p1_poolsize, p1_freq_a, p1_freq_c, p1_freq_g, p1_freq_t, p1_nt_cnt ) +
+        pi_within_partial_( p2_poolsize, p2_freq_a, p2_freq_c, p2_freq_g, p2_freq_t, p2_nt_cnt )
+    );
+
+    // Compute pi between
+    double pi_between = 1.0;
+    pi_between -= p1_freq_a * p2_freq_a;
+    pi_between -= p1_freq_c * p2_freq_c;
+    pi_between -= p1_freq_g * p2_freq_g;
+    pi_between -= p1_freq_t * p2_freq_t;
+
+    // Compute pi total
+    double const pi_total = 0.5 * ( pi_within + pi_between );
+
+    return std::tuple<double, double, double>{ pi_within, pi_between, pi_total };
+}
+
 } // namespace population
 } // namespace genesis
