@@ -213,19 +213,19 @@ void test_lambda_iterator_( size_t num_elements, size_t block_size )
     // Create data and get correct sum. Could be done with Gauss. Too lazy to look it up now.
     std::vector<size_t> data( num_elements );
     std::iota( data.begin(), data.end(), 0 );
-    auto res = std::accumulate( data.begin(), data.end(), size_t{0} );
+    auto expected_sum = std::accumulate( data.begin(), data.end(), size_t{0} );
 
     // Set up the LambdaIterator.
     auto beg = data.begin();
     auto end = data.end();
     auto generator = LambdaIterator<size_t>(
-        [beg, end]() mutable -> genesis::utils::Optional<size_t>{
+        [beg, end]( size_t& value ) mutable {
             if( beg != end ) {
-                auto res = genesis::utils::make_optional<size_t>( *beg );
+                value = *beg;
                 ++beg;
-                return res;
+                return true;
             } else {
-                return genesis::utils::nullopt;
+                return false;
             }
         }, block_size
     );
@@ -235,7 +235,7 @@ void test_lambda_iterator_( size_t num_elements, size_t block_size )
     for( auto const& it : generator ) {
         sum += it;
     }
-    EXPECT_EQ( res, sum );
+    EXPECT_EQ( expected_sum, sum );
 }
 
 TEST( Containers, LambdaIterator )

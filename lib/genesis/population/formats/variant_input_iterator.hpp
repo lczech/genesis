@@ -146,13 +146,13 @@ inline VariantInputIterator make_variant_input_iterator_from_pileup_file(
     );
 
     return VariantInputIterator(
-        [ it ]() mutable -> utils::Optional<Variant>{
+        [ it ]( Variant& variant ) mutable -> bool {
             if( it ) {
-                auto res = utils::make_optional<Variant>( *it );
+                variant = std::move( *it );
                 ++it;
-                return res;
+                return true;
             } else {
-                return utils::nullopt;
+                return false;
             }
         },
         std::move( data )
@@ -173,14 +173,16 @@ inline VariantInputIterator make_variant_input_iterator_from_sync_file(
     data.file_path = filename;
     data.source_name = utils::file_basename( filename, { ".gz", ".sync" });
 
+    // The iterator `it` is copied over to the lambda, and that copy is kept alive
+    // when returning from this function.
     return VariantInputIterator(
-        [ it ]() mutable -> utils::Optional<Variant>{
+        [ it ]( Variant& variant ) mutable {
             if( it ) {
-                auto res = utils::make_optional<Variant>( *it );
+                variant = std::move( *it );
                 ++it;
-                return res;
+                return true;
             } else {
-                return utils::nullopt;
+                return false;
             }
         },
         std::move( data )
@@ -218,7 +220,7 @@ inline VariantInputIterator make_variant_input_iterator_from_vcf_file(
     data.source_name = utils::file_basename( filename, { ".gz", ".vcf", ".bcf" });
 
     return VariantInputIterator(
-        [ it ]() mutable -> utils::Optional<Variant>{
+        [ it ]( Variant& variant ) mutable {
 
             // Only use the lines that have the AD field, skip all others.
             while( it && ! it->has_format( "AD" ) ) {
@@ -228,12 +230,12 @@ inline VariantInputIterator make_variant_input_iterator_from_vcf_file(
             // Now we are either at a record that as the AD field, or at the end.
             if( it ) {
                 assert( it->has_format( "AD" ) );
-                auto res = utils::make_optional<Variant>( convert_to_variant( *it ));
+                variant = convert_to_variant( *it );
                 ++it;
-                return res;
+                return true;
             } else {
-                // If we reached the end of the input, return an empty optional to signal this.
-                return utils::nullopt;
+                // If we reached the end of the input, return false to signal this.
+                return false;
             }
         },
         std::move( data )
