@@ -44,22 +44,35 @@ void run_sam_bam_cram_test_( std::string const& infile, bool split_by_rg, bool w
     // We just use any file that comes in here, no matter what the format.
     auto sam_it = SamVariantInputIterator( infile );
     size_t exp_smp_size = 1;
+    std::vector<std::string> exp_rg_tags;
     sam_it.min_map_qual( 40 );
     if( split_by_rg ) {
         sam_it.split_by_rg( true );
         if( with_unaccounted_rg ) {
             sam_it.with_unaccounted_rg( true );
             exp_smp_size = 3;
+            exp_rg_tags = std::vector<std::string>{ "S1", "S2", "unaccounted" };
         } else {
             // With splitting by rg, but without unaccounted, no reads are left,
             // as our test files do not have rg tags... so, we expect no data at all.
             exp_smp_size = 2;
+            exp_rg_tags = std::vector<std::string>{ "S1", "S2" };
         }
+    }
+
+    // Get start of the iteration, and check rg tags.
+    auto it = sam_it.begin();
+    auto const rg_tags = it.rg_tags();
+    ASSERT_EQ( exp_rg_tags.size(), rg_tags.size() );
+    for( size_t i = 0; i < rg_tags.size(); ++i ) {
+        EXPECT_EQ( exp_rg_tags[i], rg_tags[i] );
     }
 
     BaseCounts total_counts;
     auto sample_counts = std::vector<BaseCounts>{ exp_smp_size };
-    for( auto const& var : sam_it ) {
+    for( ; it != sam_it.end(); ++it ) {
+        auto const& var = *it;
+
         // Our test files do not have read groups... so, we expect the variants to have only
         // the unaccounted rg base counts object.
         EXPECT_EQ( exp_smp_size, var.samples.size() );
@@ -107,7 +120,6 @@ void run_sam_bam_cram_test_( std::string const& infile, bool split_by_rg, bool w
             EXPECT_EQ( 0, sample_counts[2].t_count );
             EXPECT_EQ( 0, sample_counts[2].n_count );
             EXPECT_EQ( 0, sample_counts[2].d_count );
-
         }
     }
 }

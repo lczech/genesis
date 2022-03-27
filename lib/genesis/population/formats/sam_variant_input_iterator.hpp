@@ -38,7 +38,7 @@
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/population/variant.hpp"
-
+#include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 
@@ -50,6 +50,7 @@
 // Forward declarations of htslib structs, so that we do not have to include their headers
 // and completely spam our namespace here.
 extern "C" {
+
     struct htsFile;
     struct hts_itr_t;
     struct sam_hdr_t;
@@ -60,6 +61,7 @@ extern "C" {
 
     struct bam_pileup1_t;
     // typedef struct bam_pileup1_t *bam_pileup1_t;
+
 }
 
 namespace genesis {
@@ -214,6 +216,32 @@ public:
         }
 
         // -------------------------------------------------------------------------
+        //     Data Access
+        // -------------------------------------------------------------------------
+
+        /**
+         * @brief Get the list of read group `RG` tags as found in the SAM/BAM/CRAM file.
+         *
+         * This is useful to get the tags when
+         * @link SamVariantInputIterator::split_by_rg( bool ) split_by_rg()@endlink is set to `true`,
+         * so that the reads are split by their read group tags. This function then returns
+         * the tag names, in the same order that the BaseCounts objects are stored in the resulting
+         * Variant of this iterator.
+         *
+         * When additionally
+         * @link SamVariantInputIterator::with_unaccounted_rg( bool ) with_unaccounted_rg()@endlink
+         * is set to `true`, an additional RG tag "unaccounted" is added to the result as a last
+         * element, which is the same position that the unaccounted reads go in the Varient.
+         *
+         * If @link SamVariantInputIterator::split_by_rg( bool ) split_by_rg()@endlink is `false`,
+         * we are not splitting by read group tags, so then this function returns an empty vector.
+         *
+         * Note that this function needs to fill the vector when called. Hence, if this list is
+         * needed often, it is recommended to call this function once and store the result.
+         */
+        std::vector<std::string> rg_tags() const;
+
+        // -------------------------------------------------------------------------
         //     Internal Structs
         // -------------------------------------------------------------------------
 
@@ -221,6 +249,10 @@ public:
 
         /**
          * @brief Keep per-file data used by htslib/samtools.
+         *
+         * This could all be direct members of the Iterator class instead. But we keep them here in
+         * a separate structure, to make it easier in case we ever want to refactor the class to
+         * accept multiple input files at the same time... probably will not happen, but who knows.
          */
         struct SamFileHandle
         {
@@ -342,6 +374,28 @@ public:
     // -------------------------------------------------------------------------
     //     Settings
     // -------------------------------------------------------------------------
+
+    std::string const& input_file() const
+    {
+        return input_file_;
+    }
+
+    /**
+     * @brief Set the input file.
+     *
+     * This overwrites the file if it was already given in the constructor.
+     * Shall not be called after iteration has been started.
+     */
+    self_type& input_file( std::string const& value )
+    {
+        // Better error messaging that what htslib would give us if the file did not exist.
+        if( ! utils::is_file( value )) {
+            throw std::runtime_error( "Input file not found: " + value );
+        }
+
+        input_file_ = value;
+        return *this;
+    }
 
     int min_map_qual() const
     {

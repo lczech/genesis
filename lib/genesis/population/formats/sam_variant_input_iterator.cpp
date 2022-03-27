@@ -33,7 +33,6 @@
 #include "genesis/population/formats/sam_variant_input_iterator.hpp"
 
 #include "genesis/population/functions/base_counts.hpp"
-#include "genesis/utils/core/fs.hpp"
 
 #include <cassert>
 #include <cstdint>
@@ -53,6 +52,50 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
+//     Iterator Public Members
+// =================================================================================================
+
+std::vector<std::string> SamVariantInputIterator::Iterator::rg_tags() const
+{
+    // Empty list when we do not split by read group tag.
+    assert( parent_ );
+    if( ! parent_->split_by_rg_ ) {
+        return {};
+    }
+
+    // We store the rg tags in a form that is fastest for per-read access. However, turning this
+    // into a neat ordered list is a bit cumbersome... but this usually is only called in the
+    // beginning of the iteration, so that cost is okay.
+    std::vector<std::string> result;
+    for( size_t i = 0; i < handle_.rg_tags.size(); ++i ) {
+        // For each tag in the order that we actually want, find where it is in the map.
+        // We need to scan the whole map every time, as the indicies are stored as values...
+        for( auto const& tag : handle_.rg_tags ) {
+            if( tag.second == i ) {
+                // Found the index for this tag. Add it, and move on.
+                result.push_back( tag.first );
+                break;
+            }
+        }
+        // If we get here, that means that the result size was changed in the above loop.
+        // If not, we did not find the tag that has index i. Assert this.
+        assert( result.size() == i + 1 );
+    }
+
+    // Add the unaccounted tag if needed.
+    if( parent_->with_unaccounted_rg_ ) {
+        result.push_back( "unaccounted" );
+    }
+
+    // Check that we have the correct size, and return.
+    assert(
+        ( ! parent_->with_unaccounted_rg_ && result.size() == handle_.rg_tags.size() ) ||
+        (   parent_->with_unaccounted_rg_ && result.size() == handle_.rg_tags.size() + 1 )
+    );
+    return result;
+}
+
+// =================================================================================================
 //     Iterator Private Members
 // =================================================================================================
 
@@ -64,6 +107,7 @@ void SamVariantInputIterator::Iterator::init_()
     assert( strcmp( seq_nt16_str, "=ACMGRSVTWYHKDBN" ) == 0 );
 
     // Edge case: empty iterator,
+    assert( parent_ );
     if( parent_->input_file_.empty() ) {
         return;
     }
@@ -116,6 +160,9 @@ void SamVariantInputIterator::Iterator::init_()
 
 void SamVariantInputIterator::Iterator::increment_()
 {
+    // Only to be called when the iterator is still valid (not past-the-end).
+    assert( parent_ );
+
     // Find the next position that we want to consider (it has data and fitting coverage).
     // tid is the chromosome name index, pos the position on the chromosome, and n is coverage/depth
     int tid, pos, n;
@@ -197,18 +244,34 @@ void SamVariantInputIterator::Iterator::increment_()
         uint8_t* seq = bam_get_seq(p->b);
         uint8_t  nuc = bam_seqi(seq, p->qpos);
         switch( nuc ) {
-            case  1: ++sample.a_count; break;
-            case  2: ++sample.c_count; break;
-            case  4: ++sample.g_count; break;
-            case  8: ++sample.t_count; break;
-            case 15: ++sample.n_count; break;
-            default:
+            case  1: {
+                ++sample.a_count;
+                break;
+            }
+            case  2: {
+                ++sample.c_count;
+                break;
+            }
+            case  4: {
+                ++sample.g_count;
+                break;
+            }
+            case  8: {
+                ++sample.t_count;
+                break;
+            }
+            case 15: {
+                ++sample.n_count;
+                break;
+            }
+            default: {
                 throw std::runtime_error(
                     "Invalid base in sam/bam/cram file " + handle_.parent->input_file_ +
                     " at " + current_variant_.chromosome + ":" +
                     std::to_string( current_variant_.position ) + ". Found " +
                     std::string( 1, seq_nt16_str[nuc] ) + ", but expected [ACGTN]."
                 );
+            }
         }
     }
 
@@ -416,13 +479,10 @@ SamVariantInputIterator::Iterator::~Iterator()
 //     Sam Variant Input Iterator
 // =================================================================================================
 
-SamVariantInputIterator::SamVariantInputIterator( std::string const& input_file )
+SamVariantInputIterator::SamVariantInputIterator( std::string const& infile )
 {
-    // Better error handling.
-    if( ! utils::is_file( input_file )) {
-        throw std::runtime_error( "Input file not found: " + input_file );
-    }
-    input_file_ = input_file;
+    // Set the file, including error checking.
+    input_file( infile );
 
     // Skip unmapepd and duplicates by default. We set the flags here in the cpp,
     // so that our header file can stay free of htslib includes and constants.
