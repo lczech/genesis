@@ -143,17 +143,6 @@ void SamVariantInputIterator::Iterator::init_()
         handle_.rg_tags = get_header_rg_tags_( handle_.sam_hdr );
     }
 
-    // Init the variant, with samples as needed.
-    if( parent_->split_by_rg_ ) {
-        if( parent_->with_unaccounted_rg_ ) {
-            current_variant_.samples.resize( handle_.rg_tags.size() + 1 );
-        } else {
-            current_variant_.samples.resize( handle_.rg_tags.size() );
-        }
-    } else {
-        current_variant_.samples.resize( 1 );
-    }
-
     // Finally, get the first line.
     increment_();
 }
@@ -163,7 +152,7 @@ void SamVariantInputIterator::Iterator::increment_()
     // Only to be called when the iterator is still valid (not past-the-end).
     assert( parent_ );
 
-    // Find the next position that we want to consider (it has data and fitting coverage).
+    // Find the next input position that we want to consider (it has data and fitting coverage).
     // tid is the chromosome name index, pos the position on the chromosome, and n is coverage/depth
     int tid, pos, n;
     bam_pileup1_t const* plp;
@@ -199,11 +188,25 @@ void SamVariantInputIterator::Iterator::increment_()
     // Set current chromosome/locus, make 1-based for our case.
     current_variant_.chromosome = std::string( handle_.sam_hdr->target_name[tid] );
     current_variant_.position = pos + 1;
+    current_variant_.reference_base = 'N';
+    current_variant_.alternative_base = 'N';
 
-    // Reset the variant base count tallies for all samples.
-    // If we only have one (not splitting by read group), this works too.
+    // Resize to the number of samples, and reset the variant base count tallies for all samples.
+    // We fully resize here, in case that the current_variant_ has been moved from by the user,
+    // see https://stackoverflow.com/a/55054380/4184258.
+    // All other member variables of the Variant are in defined states after being moved from,
+    // but the vector might be empty or of the wrong size afterwards.
+    if( parent_->split_by_rg_ ) {
+        if( parent_->with_unaccounted_rg_ ) {
+            current_variant_.samples.resize( handle_.rg_tags.size() + 1 );
+        } else {
+            current_variant_.samples.resize( handle_.rg_tags.size() );
+        }
+    } else {
+        current_variant_.samples.resize( 1 );
+    }
     for( auto& sample : current_variant_.samples ) {
-        reset( sample );
+        sample.clear();
     }
 
     // Go through the read data at the current position and tally up.

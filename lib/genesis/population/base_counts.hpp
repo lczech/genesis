@@ -82,6 +82,19 @@ struct BaseCounts
      * @brief Count of all deleted (`*`) nucleotides that are present in the sample.
      */
     size_t d_count = 0;
+
+    /**
+     * @brief Reset all counts to 0.
+     */
+    void clear()
+    {
+        a_count = 0;
+        c_count = 0;
+        g_count = 0;
+        t_count = 0;
+        n_count = 0;
+        d_count = 0;
+    }
 };
 
 // =================================================================================================
