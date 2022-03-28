@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -208,7 +208,9 @@ public:
     void increment()
     {
         // Read into temp object, so that we have the previous one still available.
+        // Same logic as SimplePileupInputIterator<Variant>::increment_(), see there for details.
         Variant tmp;
+        tmp.samples.resize( variant_.samples.size() );
         if( use_sample_filter_ ) {
             good_ = reader_.parse_line( *input_stream_, tmp, sample_filter_ );
         } else {

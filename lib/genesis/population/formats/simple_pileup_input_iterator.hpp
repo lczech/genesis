@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -306,8 +306,17 @@ inline void SimplePileupInputIterator<SimplePileupReader::Record>::increment_()
 template<>
 inline void SimplePileupInputIterator<Variant>::increment_()
 {
-    // Read into temp object, so that we have the previous one still available.
+    // Read into temp object, so that we have the previous one still available for the order
+    // comparison downstream. We want to make some form of copy or renewal anyway, as the iterator
+    // might have been used to obtain the Variant by move, in which case we in particular need
+    // to properly reset the BaseCount sample field of the Variant. To do that efficiently,
+    // and also tap into the error check for correct consistent number of samples per line,
+    // we resize to what the current record is. That way, the check in SimplePileupReader will
+    // kick in, while at the same time providing speed improvemetns due to not having to add
+    // BaseCounts one by one when reading.
+    // Initially, the record has sample size 0, which also works, as this is how the reader starts.
     Variant tmp;
+    tmp.samples.resize( record_.samples.size() );
     if( use_sample_filter_ ) {
         good_ = reader_.parse_line_variant( *input_stream_, tmp, sample_filter_ );
     } else {

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -279,7 +279,8 @@ bool SimplePileupReader::parse_line_(
     }
     assert( !it || !utils::is_digit( *it ));
 
-    // Read reference base.
+    // Read reference base. We also set the alternative base, just in case, to make sure that
+    // it has the value that we need it to have in absence of actual data.
     next_field_( it );
     auto rb = utils::to_upper( *it );
     if( rb != 'A' && rb != 'C' && rb != 'G' && rb != 'T' && rb != 'N' ) {
@@ -293,6 +294,7 @@ bool SimplePileupReader::parse_line_(
         }
     }
     target.reference_base = rb;
+    set_target_alternative_base_( target );
     ++it;
 
     // Read the samples. We switch once for the first line, and thereafter check that we read the
@@ -300,7 +302,10 @@ bool SimplePileupReader::parse_line_(
     if( target.samples.empty() ) {
         size_t src_index = 0;
         while( it && *it != '\n' ) {
-            if( !use_sample_filter || ( src_index < sample_filter.size() && sample_filter[src_index] )) {
+            if(
+                ! use_sample_filter ||
+                ( src_index < sample_filter.size() && sample_filter[src_index] )
+            ) {
                 target.samples.emplace_back();
                 process_sample_( it, target, target.samples.back() );
             } else {
@@ -483,6 +488,27 @@ void SimplePileupReader::process_sample_(
             ": Invalid characters."
         );
     }
+}
+
+// -------------------------------------------------------------------------
+//     Helper for alternative base
+// -------------------------------------------------------------------------
+
+template<>
+void SimplePileupReader::set_target_alternative_base_<SimplePileupReader::Record>(
+    SimplePileupReader::Record& target
+) const {
+    // The pileup format does not have an alterantive base, so we do nothing here.
+    (void) target;
+}
+
+template<>
+void SimplePileupReader::set_target_alternative_base_<Variant>(
+    Variant& target
+) const {
+    // The format does not have an ancestral base,
+    // but we want to make sure that it is set to a defined value in the Variant.
+    target.alternative_base = 'N';
 }
 
 // -------------------------------------------------------------------------
