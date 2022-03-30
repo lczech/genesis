@@ -260,13 +260,13 @@ public:
             SamVariantInputIterator const* parent;
 
             // File handle.
-            ::htsFile*   hts_file = nullptr;
+            ::htsFile* hts_file = nullptr;
 
             // File header.
-            ::sam_hdr_t* sam_hdr  = nullptr;
+            ::sam_hdr_t* sam_hdr = nullptr;
 
-            // Current iterator.
-            bam_plp_t iter;
+            // Current iterator. The `bam_plp_t` type is in fact a pointer. Messy htslib.
+            bam_plp_t iter = nullptr;
             // ::hts_itr_t* hts_iter = nullptr;
 
             // List of the @RG read group tags as present in the header.
@@ -351,10 +351,10 @@ public:
 
     ~SamVariantInputIterator() = default;
 
-    SamVariantInputIterator( SamVariantInputIterator const& ) = delete;
+    SamVariantInputIterator( SamVariantInputIterator const& ) = default;
     SamVariantInputIterator( SamVariantInputIterator&& )      = default;
 
-    SamVariantInputIterator& operator= ( SamVariantInputIterator const& ) = delete;
+    SamVariantInputIterator& operator= ( SamVariantInputIterator const& ) = default;
     SamVariantInputIterator& operator= ( SamVariantInputIterator&& )      = default;
 
     // -------------------------------------------------------------------------

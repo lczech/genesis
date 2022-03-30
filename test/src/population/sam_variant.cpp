@@ -34,10 +34,15 @@
 #include "genesis/population/formats/sam_variant_input_iterator.hpp"
 #include "genesis/population/functions/base_counts.hpp"
 #include "genesis/population/functions/variant.hpp"
+#include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/text/string.hpp"
+
+#include <cstdlib>
 
 using namespace genesis::population;
 using namespace genesis::utils;
+
+#ifdef GENESIS_HTSLIB
 
 void run_sam_bam_cram_test_( std::string const& infile, bool split_by_rg, bool with_unaccounted_rg )
 {
@@ -145,11 +150,26 @@ TEST( SamBamCram, InputIteratorBam )
 // Cannot use cram at the moment, as it stores the path to the ref fasta/fai files as absolute
 // paths, and is hence not portable... see https://github.com/samtools/htslib/issues/1401
 
-// TEST( SamBamCram, InputIteratorCram )
-// {
-//     // Skip test if no data availabe.
-//     NEEDS_TEST_DATA;
-//     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", false, false );
-//     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", true, false );
-//     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", true, true );
-// }
+// Revision: We can use MD5 hashed reference sequences, and need to set the env path
+// for those to be found. See genesis/test/data/population/README.txt for creating the MD5 files.
+
+TEST( SamBamCram, InputIteratorCram )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Set the env path so that the MD5-hashed reference sequences for the cram file can be found.
+    // See https://stackoverflow.com/a/61806157/4184258 for details on setting the env var.
+    // See genesis/test/data/population/README.txt for how we created the cram cache files.
+
+    // Get the absolute path to the cram cache dir, and use it for setting up the env string.
+    std::string const env_name  = "REF_PATH";
+    std::string const env_value = real_path( environment->data_dir + "/population/cram_cache/" );
+    setenv( env_name.c_str(), env_value.c_str(), true );
+
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", false, false );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", true, false );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", true, true );
+}
+
+#endif // GENESIS_HTSLIB

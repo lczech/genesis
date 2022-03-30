@@ -35,3 +35,12 @@ With this, we can build an index for the fa file, and convert:
     samtools view -S -C -t ex1.fa.fai -o ex1.cram ex1.sam.gz
 
 for our final three test files in all three formats.
+
+Lastly, because CRAM uses absolute paths for the reference file, we also use a reference cache.
+This is to avoid depending on the absoulte paths were we develop genesis, so that our cram tests can be run anywhere.
+See https://github.com/samtools/htslib/issues/1401 for the issue.
+To solve this, we ran
+
+    ./samtools/misc/seq_cache_populate.pl -root .../genesis/test/data/population/cram_cache -subdirs 0 .../genesis/test/data/population/ex1.fa
+
+to create the cram_cache files, and use these in the gtest setup.
