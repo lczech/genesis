@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,8 +32,12 @@
  */
 
 #include "genesis/population/base_counts.hpp"
+#include "genesis/population/functions/filter_transform.hpp"
+#include "genesis/population/functions/genome_region.hpp"
+#include "genesis/population/genome_region.hpp"
 #include "genesis/population/variant.hpp"
 
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -79,6 +83,74 @@ bool filter_is_snp(
 );
 
 // =================================================================================================
+//     Filters
+// =================================================================================================
+
+/**
+ * @brief Filter function to be used with VariantInputIterator to filter by a genome region.
+ *
+ * This function can be used as a filter with VariantInputIterator::add_filter(), in order
+ * to only iterate over Variant%s that are in the given @p region (if @p inclusive is `true`, default),
+ * or only over Variant%s that are outside of the @p region (if @p inclusive is `false`).
+ */
+inline std::function<bool(Variant const&)> variant_filter_region(
+    GenomeRegion const& region,
+    bool inclusive = true
+) {
+    return [region, inclusive]( Variant const& variant ){
+        return (!inclusive) ^ is_covered( region, variant );
+    };
+}
+
+/**
+ * @brief Filter function to be used with VariantInputIterator to filter by a list of genome regions.
+ *
+ * This function can be used as a filter with VariantInputIterator::add_filter(), in order
+ * to only iterate over Variant%s that are in the given @p regions (if @p inclusive is `true`, default),
+ * or only over Variant%s that are outside of the @p regions (if @p inclusive is `false`).
+ *
+ * The parameter @p copy_regions is an optimization. By default, the function stores a copy of the
+ * @p regions, in order to make sure that it is available. However, if it is guaranteed that
+ * the @p regions object stays in scope during the VariantInputIterator's livetime, this copy
+ * can be avoided.
+ */
+inline std::function<bool(Variant const&)> variant_filter_region(
+    GenomeRegionList const& regions,
+    bool inclusive = true,
+    bool copy_regions = true
+) {
+    if( copy_regions ) {
+        return [regions, inclusive]( Variant const& variant ){
+            return (!inclusive) ^ is_covered( regions, variant );
+        };
+    } else {
+        return [&, inclusive]( Variant const& variant ){
+            return (!inclusive) ^ is_covered( regions, variant );
+        };
+    }
+}
+
+// TODO
+
+// for all and per sample?!
+// we need an NA entry for samples! all zeroes?!
+//
+// --> total sum, and per sample.
+// better: option: all of them have to be good, or at least one of them has to be good
+//
+// variant_filter_min_coverage
+// variant_filter_max_coverage
+// variant_filter_min_max_coverage
+//
+// variant_filter_min_frequency
+// variant_filter_max_frequency
+// variant_filter_min_max_frequency
+//
+// is snp
+//
+// is biallelic
+
+// =================================================================================================
 //     Filtering by count
 // =================================================================================================
 
@@ -89,6 +161,32 @@ bool filter_is_snp(
 // bool filter_by_max_count( BaseCounts const& sample, size_t max_count );
 //
 // bool filter_by_max_count( Variant const& variant, size_t max_count, VariantFilterType type );
+
+// =================================================================================================
+//     Transformations
+// =================================================================================================
+
+// bascially, all of the above filters, but as transforms that set stuff to 0 intead of filtering
+//
+// inline std::functiom<void(Variant&)> variant_transform_min_counts( size_t min_count )
+// {
+//     return [min_count]( Variant& variant ){
+//         for( auto& sample : variant.samples ) {
+//             transform_min_count( sample, min_count );
+//             --> add this function for variants as well first, and use this
+//             (basically just a loop over the other one)
+//             -->> also make this for max and min max, and use these.
+//
+//             --->> then, these already have the function signature that is needed for the iterator~
+//             no need to do a lambda that just calles it!
+//             --> ah no, because we need to capture the min count setting....
+//         }
+//     };
+// }
+//
+// min count to 0
+// max count to 0
+// min max count to 0
 
 // =================================================================================================
 //     Transforming by count
