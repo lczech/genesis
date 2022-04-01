@@ -43,6 +43,7 @@
 #include "genesis/utils/io/input_stream.hpp"
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -141,13 +142,14 @@ public:
         Iterator() = default;
         Iterator( SamVariantInputIterator const* parent )
             : parent_( parent )
+            , handle_( std::make_shared<SamFileHandle>() )
         {
             init_();
         }
 
     public:
 
-        ~Iterator();
+        ~Iterator() = default;
 
         Iterator( self_type const& ) = default;
         Iterator( self_type&& )      = default;
@@ -191,12 +193,12 @@ public:
             return *this;
         }
 
-        self_type operator ++(int)
-        {
-            auto cpy = *this;
-            increment_();
-            return cpy;
-        }
+        // self_type operator ++(int)
+        // {
+        //     auto cpy = *this;
+        //     increment_();
+        //     return cpy;
+        // }
 
         /**
          * @brief Compare two iterators for equality.
@@ -253,6 +255,11 @@ public:
          * This could all be direct members of the Iterator class instead. But we keep them here in
          * a separate structure, to make it easier in case we ever want to refactor the class to
          * accept multiple input files at the same time... probably will not happen, but who knows.
+         *
+         * It's also convenient for our read_sam_() function, which expects a single (void)* to
+         * take its data, which this struct collects. We could of course hand over the whole
+         * iterator instead. But this seems slighlty cleaner, to just have the actual data that
+         * is needed for the file itself available in one place.
          */
         struct SamFileHandle
         {
@@ -271,6 +278,13 @@ public:
 
             // List of the @RG read group tags as present in the header.
             std::unordered_map<std::string, size_t> rg_tags;
+
+            // Destructor needs to destroy all htslib pointers.
+            // We keep this data in a shared pointer in the Iterator, so that any copies of the
+            // iterator (which are usually happening incidentally when creating the loop for
+            // iteration) don't accidentally destroy the htslib structs already.
+            // That was a bug that we had, and this is how we fixed it.
+            ~SamFileHandle();
         };
 
         // -------------------------------------------------------------------------
@@ -323,7 +337,9 @@ public:
         SamVariantInputIterator const* parent_ = nullptr;
 
         // htslib specific file handling pointers during iteration.
-        SamFileHandle handle_;
+        // We put this in a shared ptr so that the iterator can be copied,
+        // but the htslib data gets only freed once all instances are done.
+        std::shared_ptr<SamFileHandle> handle_;
 
         // Current variant object, keeping the base tally of the current locus.
         Variant current_variant_;
@@ -363,6 +379,13 @@ public:
 
     Iterator begin() const
     {
+        // Better error messaging that what htslib would give us if the file did not exist.
+        // We check here, as input_file() allows to change the file after construction,
+        // so we only do the check once we know that we are good to go.
+        if( ! utils::is_file( input_file_ )) {
+            throw std::runtime_error( "Input sam/bam/cram file not found: " + input_file_ );
+        }
+
         return Iterator( this );
     }
 
@@ -388,11 +411,6 @@ public:
      */
     self_type& input_file( std::string const& value )
     {
-        // Better error messaging that what htslib would give us if the file did not exist.
-        if( ! utils::is_file( value )) {
-            throw std::runtime_error( "Input file not found: " + value );
-        }
-
         input_file_ = value;
         return *this;
     }
