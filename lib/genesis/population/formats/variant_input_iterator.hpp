@@ -146,9 +146,35 @@ VariantInputIterator make_variant_input_iterator_from_sam_file(
 
 /**
  * @brief Create a VariantInputIterator to iterate the contents of a (m)pileup file as Variant%s.
+ *
+ * Optionally, this takes a @p reader with settings to be used.
  */
 VariantInputIterator make_variant_input_iterator_from_pileup_file(
     std::string const& filename,
+    SimplePileupReader const& reader = SimplePileupReader{}
+);
+
+/**
+ * @brief Create a VariantInputIterator to iterate the contents of a (m)pileup file as Variant%s.
+ *
+ * This uses only the samples at the indices given in the @p sample_indices list.
+ * Optionally, this takes a @p reader with settings to be used.
+ */
+VariantInputIterator make_variant_input_iterator_from_pileup_file(
+    std::string const& filename,
+    std::vector<size_t> const& sample_indices,
+    SimplePileupReader const& reader = SimplePileupReader{}
+);
+
+/**
+ * @brief Create a VariantInputIterator to iterate the contents of a (m)pileup file as Variant%s.
+ *
+ * This uses only the samples at the indices where the @p sample_filter is `true`.
+ * Optionally, this takes a @p reader with settings to be used.
+ */
+VariantInputIterator make_variant_input_iterator_from_pileup_file(
+    std::string const& filename,
+    std::vector<bool> const& sample_filter,
     SimplePileupReader const& reader = SimplePileupReader{}
 );
 

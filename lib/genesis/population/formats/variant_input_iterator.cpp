@@ -101,17 +101,37 @@ VariantInputIterator make_variant_input_iterator_from_sam_file(
 // =================================================================================================
 
 /**
- * @brief Create a VariantInputIterator to iterate the contents of a (m)pileup file as Variant%s.
+ * @brief Local helper function that takes care of the three functions below.
  */
-VariantInputIterator make_variant_input_iterator_from_pileup_file(
+VariantInputIterator make_variant_input_iterator_from_pileup_file_(
     std::string const& filename,
-    SimplePileupReader const& reader
+    SimplePileupReader const& reader,
+    std::vector<size_t> const& sample_indices,
+    std::vector<bool> const& sample_filter
 ) {
-    // Prepare a reader. This instance is only alive here, but it's copy lives on.
-    auto input = std::make_shared<SimplePileupInputIterator<Variant>>(
-        utils::from_file( filename ),
-        reader
-    );
+    // Prepare a reader. We switch depending on the type of filter.
+    // Not both can be given by the way that this function is called; assert that.
+    assert( sample_indices.empty() || sample_filter.empty() );
+
+    std::shared_ptr<SimplePileupInputIterator<Variant>> input;
+    if( ! sample_indices.empty() ) {
+        input = std::make_shared<SimplePileupInputIterator<Variant>>(
+            utils::from_file( filename ),
+            sample_indices,
+            reader
+        );
+    } else if( ! sample_filter.empty() ) {
+        input = std::make_shared<SimplePileupInputIterator<Variant>>(
+            utils::from_file( filename ),
+            sample_filter,
+            reader
+        );
+    } else {
+        input = std::make_shared<SimplePileupInputIterator<Variant>>(
+            utils::from_file( filename ),
+            reader
+        );
+    }
 
     // Get the data, using the file base name without path and potential extensions as source.
     VariantInputIteratorData data;
@@ -138,17 +158,43 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file(
     );
 }
 
+VariantInputIterator make_variant_input_iterator_from_pileup_file(
+    std::string const& filename,
+    SimplePileupReader const& reader
+) {
+    return make_variant_input_iterator_from_pileup_file_(
+        filename, reader, std::vector<size_t>{}, std::vector<bool>{}
+    );
+}
+
+VariantInputIterator make_variant_input_iterator_from_pileup_file(
+    std::string const& filename,
+    std::vector<size_t> const& sample_indices,
+    SimplePileupReader const& reader
+) {
+    return make_variant_input_iterator_from_pileup_file_(
+        filename, reader, sample_indices, std::vector<bool>{}
+    );
+}
+
+VariantInputIterator make_variant_input_iterator_from_pileup_file(
+    std::string const& filename,
+    std::vector<bool> const& sample_filter,
+    SimplePileupReader const& reader
+) {
+    return make_variant_input_iterator_from_pileup_file_(
+        filename, reader, std::vector<size_t>{}, sample_filter
+    );
+}
+
 // =================================================================================================
 //     Sync
 // =================================================================================================
 
-/**
- * @brief Create a VariantInputIterator to iterate the contents of a PoPoolation2 sync file
- * as Variant%s.
- */
 VariantInputIterator make_variant_input_iterator_from_sync_file(
     std::string const& filename
 ) {
+    // Prepare a reader.
     auto input = std::make_shared<SyncInputIterator>( utils::from_file( filename ));
 
     // Get the data, using the file base name without path and potential extensions as source.
