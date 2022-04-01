@@ -47,6 +47,7 @@ extern "C" {
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
+#include <utility>
 
 namespace genesis {
 namespace population {
@@ -212,16 +213,18 @@ Variant convert_to_variant(
 
 #ifdef GENESIS_HTSLIB
 
-Variant convert_to_variant( VcfRecord const& record )
+/**
+ * @brief Local helper function that returns the REF and ALT chars of a VcfRecord for SNPs.
+ *
+ * This function expects the @p record to only contain SNP REF and ALT (single nucleotides),
+ * and throws when not. It then fills the resulting array with these chars. That is, result[0]
+ * is the REF char, result[1] the first ALT char, and so forth.
+ *
+ * To keep it speedy, we always return an array that is large enough for all `ACGTND`,
+ * and return the number of used entries as the second value of the pair.
+ */
+std::pair<std::array<char, 6>, size_t> get_vcf_record_snp_ref_alt_chars_( VcfRecord const& record )
 {
-    // Error check.
-    if( ! record.has_format( "AD" )) {
-        throw std::runtime_error(
-            "Cannot convert VcfRecord to Variant, as the VcfRecord does not have "
-            "the required FORMAT field 'AD'"
-        );
-    }
-
     // Get all variants (REF and ALT), and check them. We manually add deletion here if ALT == ".",
     // as this is not part of the variants provided from htslib.
     // There are only 6 possible single nucleotide variants (ACGTN.), so we save the effort of
@@ -231,7 +234,7 @@ Variant convert_to_variant( VcfRecord const& record )
     record.unpack();
     auto rec_data = record.data();
 
-    // The n_allele count does not include deletions ('.'), meaning that if there is inly a single
+    // The n_allele count does not include deletions ('.'), meaning that if there is only a single
     // variant, we manually adjust this to also include the deletion.
     // To avoid too much branching, we init the array so that we have all deletions initially,
     // and hence do not need to overwrite in the case that we added that deletion manually
@@ -241,7 +244,8 @@ Variant convert_to_variant( VcfRecord const& record )
     if( var_cnt > 6 ) {
         throw std::runtime_error(
             "Invalid VCF Record that contains a REF or ALT sequence/allele with "
-            "invalid nucleitides where only `[ACGTN.]` are allowed."
+            "invalid nucleitides where only `[ACGTN.]` are allowed, at " +
+            record.get_chromosome() + ":" + std::to_string( record.get_position() )
         );
     }
 
@@ -252,11 +256,28 @@ Variant convert_to_variant( VcfRecord const& record )
         if( std::strlen( rec_data->d.allele[i] ) != 1 ) {
             throw std::runtime_error(
                 "Cannot convert VcfRecord to Variant, as one of the VcfRecord REF or ALT "
-                "sequences/alleles is not a single nucleotide."
+                "sequences/alleles is not a single nucleotide (it is not a SNP), at " +
+                record.get_chromosome() + ":" + std::to_string( record.get_position() )
             );
         }
         vars[i] = *rec_data->d.allele[i];
     }
+
+    return { vars, var_cnt };
+}
+
+Variant convert_to_variant_as_pool( VcfRecord const& record )
+{
+    // Error check.
+    if( ! record.has_format( "AD" )) {
+        throw std::runtime_error(
+            "Cannot convert VcfRecord to Variant, as the VcfRecord does not have "
+            "the required FORMAT field 'AD' for alleleic depth."
+        );
+    }
+
+    // Get the ref and alt chars of the SNP.
+    auto const snp_chars = get_vcf_record_snp_ref_alt_chars_( record );
 
     // Prepare common fields of the result.
     // For the reference base, we use the first nucleotide of the first variant (REF);
@@ -265,17 +286,18 @@ Variant convert_to_variant( VcfRecord const& record )
     Variant result;
     result.chromosome       = record.get_chromosome();
     result.position         = record.get_position();
-    result.reference_base   = vars[0];
-    result.alternative_base = vars[1]; // TODO this is only reasonable for biallelic SNPs
+    result.reference_base   = snp_chars.first[0];
+    result.alternative_base = snp_chars.first[1]; // TODO this is only reasonable for biallelic SNPs
 
     // Process the samples that are present in the VCF record line.
     result.samples.reserve( record.header().get_sample_count() );
     for( auto const& sample_ad : record.get_format_int("AD") ) {
-        if( sample_ad.valid_value_count() > 0 && sample_ad.valid_value_count() != var_cnt ) {
+        if( sample_ad.valid_value_count() > 0 && sample_ad.valid_value_count() != snp_chars.second ) {
             throw std::runtime_error(
-                "Invalid VCF Record that contains " + std::to_string( var_cnt ) +
+                "Invalid VCF Record that contains " + std::to_string( snp_chars.second ) +
                 " REF and ALT sequences/alleles, but its FORMAT field 'AD' only contains " +
-                std::to_string( sample_ad.valid_value_count() ) + " entries"
+                std::to_string( sample_ad.valid_value_count() ) + " entries, at " +
+                record.get_chromosome() + ":" + std::to_string( record.get_position() )
             );
         }
 
@@ -285,16 +307,17 @@ Variant convert_to_variant( VcfRecord const& record )
         auto& sample = result.samples.back();
         for( size_t i = 0; i < sample_ad.valid_value_count(); ++i ) {
 
-            // Get the nucleitide and its count.
+            // Get the nucleotide and its count.
             auto const cnt = sample_ad.get_value_at(i);
             if( cnt < 0 ) {
                 throw std::runtime_error(
-                    "Invalid VCF Record with FORMAT field 'AD' value < 0 for a sample"
+                    "Invalid VCF Record with FORMAT field 'AD' value < 0 for a sample, at " +
+                    record.get_chromosome() + ":" + std::to_string( record.get_position() )
                 );
             }
 
             // Add it to the respective count variable of the sample.
-            switch( vars[i] ) {
+            switch( snp_chars.first[i] ) {
                 case 'a':
                 case 'A': {
                     sample.a_count = cnt;
@@ -327,8 +350,9 @@ Variant convert_to_variant( VcfRecord const& record )
                 default: {
                     throw std::runtime_error(
                         "Invalid VCF Record that contains a REF or ALT sequence/allele with "
-                        "invalid nucleitide `" + std::string( 1, vars[i] ) + "` where only `[ACGTN.]` "
-                        "are allowed."
+                        "invalid nucleitide `" + std::string( 1, snp_chars.first[i] ) +
+                        "` where only `[ACGTN.]` are allowed, at " +
+                        record.get_chromosome() + ":" + std::to_string( record.get_position() )
                     );
                 }
             }
@@ -340,10 +364,116 @@ Variant convert_to_variant( VcfRecord const& record )
         throw std::runtime_error(
             "Invalid VCF Record with number of samples in the record (" +
             std::to_string( result.samples.size() ) + ") not equal to the number of samples given "
-            "in the VCF header (" + std::to_string( record.header().get_sample_count() ) + ")"
+            "in the VCF header (" + std::to_string( record.header().get_sample_count() ) + "), at " +
+            record.get_chromosome() + ":" + std::to_string( record.get_position() )
         );
     }
 
+    return result;
+}
+
+Variant convert_to_variant_as_individuals(
+    VcfRecord const& record,
+    bool use_allelic_depth
+) {
+    Variant result;
+
+    // Short solution for when we want to use the AD field:
+    // Simply re-use the pool approach, and merge into one BaseCounts.
+    if( use_allelic_depth ) {
+        result = convert_to_variant_as_pool( record );
+        result.samples = std::vector<BaseCounts>{ merge( result.samples ) };
+        return result;
+    }
+
+    // Here we treat each individual just by counting genotypes.
+    record.unpack();
+
+    // Error check.
+    if( ! record.has_format( "GT" )) {
+        throw std::runtime_error(
+            "Cannot convert VcfRecord to Variant, as the VcfRecord does not have "
+            "the required FORMAT field 'GT' for genotypes."
+        );
+    }
+
+    // Get the ref and alt chars of the SNP.
+    auto const snp_chars = get_vcf_record_snp_ref_alt_chars_( record );
+
+    // Prepare common fields of the result. Same as convert_to_variant_as_pool(), see there.
+    result.chromosome       = record.get_chromosome();
+    result.position         = record.get_position();
+    result.reference_base   = snp_chars.first[0];
+    result.alternative_base = snp_chars.first[1]; // TODO this is only reasonable for biallelic SNPs
+
+    // We merge everything into one sample, representing the individuals as a pool.
+    result.samples.resize( 1 );
+    auto& sample = result.samples.back();
+
+    // Go through all sample columns of the VCF, examining their GT field.
+    for( auto const& sample_gt : record.get_format_genotype() ) {
+
+        // Go through all REF and ALT entries and their respective GT values for the current sample.
+        for( size_t i = 0; i < sample_gt.valid_value_count(); ++i ) {
+
+            // Get the genoptype and immediately convert to the index
+            // that we can look up in the snp array.
+            auto const gt = sample_gt.get_value_at(i).variant_index();
+
+            // If the VCF is not totally messed up, this needs to be within the number of
+            // REF and ALT nucleotides (or -1 for deletions); check that.
+            if( !( gt < 0 || static_cast<size_t>(gt) < snp_chars.second )) {
+                throw std::runtime_error(
+                    "Invalid VCF Record that contains an index " + std::to_string( gt ) +
+                    " into the genotype list that does not exist, at " +
+                    record.get_chromosome() + ":" + std::to_string( record.get_position() )
+                );
+            }
+
+            // Special case deletion. The genotype value stored in VCF is -1 in that case.
+            if( gt < 0 ) {
+                ++sample.d_count;
+                continue;
+            }
+
+            // Use the index to get what nucleotide the genotype is, and increment the count.
+            switch( snp_chars.first[gt] ) {
+                case 'a':
+                case 'A': {
+                    ++sample.a_count;
+                    break;
+                }
+                case 'c':
+                case 'C': {
+                    ++sample.c_count;
+                    break;
+                }
+                case 'g':
+                case 'G': {
+                    ++sample.g_count;
+                    break;
+                }
+                case 't':
+                case 'T': {
+                    ++sample.t_count;
+                    break;
+                }
+                case 'n':
+                case 'N': {
+                    ++sample.n_count;
+                    break;
+                }
+                default: {
+                    throw std::runtime_error(
+                        "Invalid VCF Record that contains a REF or ALT sequence/allele with "
+                        "invalid nucleitide `" + std::string( 1, snp_chars.first[i] ) +
+                        "` where only `[ACGTN.]` are allowed, at " +
+                        record.get_chromosome() + ":" + std::to_string( record.get_position() )
+                    );
+                }
+            }
+        }
+    }
     return result;
 }
 

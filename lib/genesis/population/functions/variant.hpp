@@ -126,7 +126,57 @@ Variant convert_to_variant(
 
 #ifdef GENESIS_HTSLIB
 
-Variant convert_to_variant( VcfRecord const& record );
+/**
+ * @brief Convert a VcfRecord to a Variant, treating each sample column as a pool of individuals.
+ *
+ * This assumes that the data that was used to create the VCF file was actually a pool of
+ * individuals (e.g., from pool sequencing) for each sample (column) of the VCF file.
+ * We do not actually recommend to use variant calling software on pool-seq data, as it induces
+ * frequency shifts due to the statistical models employed by variant calles that were not built
+ * for pool sequencing data. It however seems to be a commonly used approach, and hence we offer
+ * this function here. For this type of data, the VCF allelic depth ("AD") information contains
+ * the counts of the reference and alternative base, which in this context can be interpreted as
+ * describing the allele frequencines of each pool of individuals.
+ * This requires the VCF to have the "AD" FORMAT field.
+ *
+ * Only SNP data (no indels) are allowed in this function; use VcfRecord::is_snp() to test this.
+ *
+ * @see See make_variant_input_iterator_from_pool_vcf_file() for an example where this is used.
+ * @see See convert_to_variant_as_individuals() for the function that instead
+ * interprets the VCF as usual as a set of individuals.
+ */
+Variant convert_to_variant_as_pool(
+    VcfRecord const& record
+);
+
+/**
+ * @brief Convert a VcfRecord to a Variant, treating each sample as an individual,
+ * and combining them all into one BaseCounts sample.
+ *
+ * In this function, we assume that the data that was used to create the VCF file was the typical
+ * use case of VCF, where each sample (column) in the file corresponds to an individual.
+ * When using this function, all samples (individuals) are combined into one, as our targeted
+ * output type Variant is used to describe allele counts of several individual (e.g., in a pool).
+ * As all columns are combined, the resulting Variant only contains a single BaseCounts object.
+ * We only consider biallelic SNP positions here.
+ *
+ * We offer two ways of combining the samples (columns) of the input VCF record into the BaseCounts:
+ *
+ *   1. When @p use_allelic_depth is `false` (default), individuals simply contribute to the
+ *      BaseCounts according to their polidy. That is, an individual with genotype `A/T` will
+ *      contribute one count each for `A` and `T`.
+ *   2. When @p use_allelic_depth is `true` instead, we use the "AD" FORMAT field instead, to
+ *      obtain the actual counts for the reference and alterantive allele, and use these to
+ *      sum up the BaseCounts data.
+ *
+ * @see See make_variant_input_iterator_from_individual_vcf_file() for an example where this is used.
+ * @see See convert_to_variant_as_pool() for the alterantive function that instead
+ * interprets each sample (column) as a pool of individuals, e.g., from pool sequencing.
+ */
+Variant convert_to_variant_as_individuals(
+    VcfRecord const& record,
+    bool use_allelic_depth = false
+);
 
 #endif // htslib guard
 
