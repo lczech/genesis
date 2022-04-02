@@ -128,10 +128,13 @@ struct EmptyLambdaIteratorData
  *
  * Lastly, the class offers block buffering in a separate thread, for speed up. This capability
  * takes care of the underlying iterator processing (including potential file parsing etc),
- * and buffers blocks of elements, so that the actual user function of this class has faster access
- * to it. For example, when processing data along a genome with lots of computations per position,
+ * and buffers blocks of elements, so that the user of this class has faster access to it.
+ * For example, when processing data along a genome with lots of computations per position,
  * it makes sense to run the file reading in a separate thread and buffer positions as needed,
- * which this class does automatically. This can be deactivated by setting the block size to 0.
+ * which this class does automatically. This can be activated by setting the block_size() to the
+ * indended number of elements to be buffered. By default, this is set to 0, meaning that no
+ * buffering is done. Note that small buffer sizes can induce overhead for the thread
+ * synchronisation; we hence recommend to use block sizes of 1000 or greater, as needed.
  *
  * We are aware that with all this extra functionality, the class is slighly overloaded, and that
  * the filters and the block buffering would typically go in separate classes for modularity.
@@ -168,7 +171,7 @@ public:
      * separate thread, in order to speed up iterating over elements that need some processing,
      * such as input files, which is the typical use case of this class.
      */
-    static size_t const DEFAULT_BLOCK_SIZE = 1024;
+    static size_t const DEFAULT_BLOCK_SIZE = 0;
 
     // ======================================================================================
     //      Internal Iterator
@@ -833,6 +836,10 @@ public:
      * @brief Set the block size used for buffering the input data.
      *
      * Shall not be changed after iteration has started, that is, after calling begin().
+     *
+     * By default, this is set to 0, meaning that no  buffering is done. Note that small buffer
+     * sizes can induce overhead for the thread synchronisation; we hence recommend to use block
+     * sizes of 1000 or greater, as needed.
      */
     self_type& block_size( size_t value )
     {
