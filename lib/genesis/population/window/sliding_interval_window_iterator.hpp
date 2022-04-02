@@ -463,6 +463,11 @@ private:
 /**
  * @brief Helper function to instantiate a SlidingIntervalWindowIterator
  * without the need to specify the template parameters manually.
+ *
+ * The three functors `entry_input_function`, `chromosome_function`, and `position_function`
+ * of the SlidingIntervalWindowIterator have to be set in the returned iterator before using it.
+ * See make_default_sliding_interval_window_iterator() for an alternative make function
+ * that sets these three functors to reasonable defaults that work for the Variant data type.
  */
 template<class ForwardIterator, class DataType = typename ForwardIterator::value_type>
 SlidingIntervalWindowIterator<ForwardIterator, DataType>
