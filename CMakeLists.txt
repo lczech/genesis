@@ -61,7 +61,7 @@ include( "${CMAKE_CURRENT_LIST_DIR}/tools/cmake/AssembleMonolith.cmake" )
 # But, this policy was only introduced in CMake 3.0, which we hence need to test first;
 # this test however is cumbersome, becuase VERSION_GREATER_EQUAL was only introduced in CMake 3.7,
 # so we need to test the negated version...
-if (NOT CMAKE_VERSION VERSION_LESS 3.0)
+if( NOT ( CMAKE_VERSION VERSION_LESS 3.0 ))
     # Appleclang compatibility
     cmake_policy(SET CMP0025 NEW)
     # Support for :: aliasing, used in new way to include OpenMP
