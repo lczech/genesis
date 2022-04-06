@@ -39,8 +39,6 @@
 #include "genesis/population/variant.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -117,14 +115,42 @@ public:
     using iterator_category = std::input_iterator_tag;
 
     // ======================================================================================
+    //      Sam File Handle
+    // ======================================================================================
+
+private:
+
+    /**
+     * @brief Implementation detail. Keep per-file data used by htslib/samtools.
+     *
+     * This could all be direct members of the Iterator class instead. But we keep them here in
+     * a separate structure, to make it easier in case we ever want to refactor the class to
+     * accept multiple input files at the same time... probably will not happen, but who knows.
+     *
+     * It's also convenient for our read_sam_() function, which expects a single (void)* to
+     * take its data, which this struct collects. We could of course hand over the whole
+     * iterator instead. But this seems slighlty cleaner, to just have the actual data that
+     * is needed for the file itself available in one place.
+     *
+     * Lastly, this allows us to keep the static functions that are needed as htslib callbacks
+     * in here, so that we can apply a PIMPL that removes the needt to include htslib headers
+     * here, so that we do not spam our namespace with them. In particular, the htslib
+     * bam_pileup_cd data structure is not properly named (only typdef'ed), so that we cannot
+     * forward declare it.
+     */
+    struct SamFileHandle;
+
+    // ======================================================================================
     //      Internal Iterator
     // ======================================================================================
+
+public:
 
     /**
      * @brief %Iterator over loci of the input sources.
      *
      * This is the class that does the actual work. Use the dereference `operator*()`
-     * and `operator->()` to get the Variant at the current locus() of the iteration.
+     * and `operator->()` to get the Variant at the current locus of the iteration.
      */
     class Iterator
     {
@@ -143,12 +169,7 @@ public:
     private:
 
         Iterator() = default;
-        Iterator( SamVariantInputIterator const* parent )
-            : parent_( parent )
-            , handle_( std::make_shared<SamFileHandle>() )
-        {
-            init_();
-        }
+        Iterator( SamVariantInputIterator const* parent );
 
     public:
 
@@ -161,6 +182,7 @@ public:
         Iterator& operator= ( self_type&& )      = default;
 
         friend SamVariantInputIterator;
+        friend SamFileHandle;
 
         // -------------------------------------------------------------------------
         //     Accessors
@@ -225,13 +247,14 @@ public:
         // -------------------------------------------------------------------------
 
         /**
-         * @brief Get the list of read group `RG` tags as found in the SAM/BAM/CRAM file.
+         * @brief Get the list of read group `RG` tags as used in the iteration,
+         * or as found in the SAM/BAM/CRAM file.
          *
-         * This is useful to get the tags when
+         * This function is useful when
          * @link SamVariantInputIterator::split_by_rg( bool ) split_by_rg()@endlink is set to `true`,
-         * so that the reads are split by their read group tags. This function then returns
-         * the tag names, in the same order that the BaseCounts objects are stored in the resulting
-         * Variant of this iterator.
+         * so that the reads are split by their read group tags. The function then returns
+         * the RG read group tag names, in the same order that the BaseCounts objects are stored
+         * in the resulting Variant of this iterator.
          *
          * When additionally
          * @link SamVariantInputIterator::with_unaccounted_rg( bool ) with_unaccounted_rg()@endlink
@@ -258,62 +281,6 @@ public:
         std::vector<std::string> rg_tags( bool all_header_tags = false ) const;
 
         // -------------------------------------------------------------------------
-        //     Internal Structs
-        // -------------------------------------------------------------------------
-
-    private:
-
-        /**
-         * @brief Keep per-file data used by htslib/samtools.
-         *
-         * This could all be direct members of the Iterator class instead. But we keep them here in
-         * a separate structure, to make it easier in case we ever want to refactor the class to
-         * accept multiple input files at the same time... probably will not happen, but who knows.
-         *
-         * It's also convenient for our read_sam_() function, which expects a single (void)* to
-         * take its data, which this struct collects. We could of course hand over the whole
-         * iterator instead. But this seems slighlty cleaner, to just have the actual data that
-         * is needed for the file itself available in one place.
-         */
-        struct SamFileHandle
-        {
-            // Our main class, for access to settings.
-            SamVariantInputIterator const* parent;
-
-            // File handle.
-            ::htsFile* hts_file = nullptr;
-
-            // File header.
-            ::sam_hdr_t* sam_hdr = nullptr;
-
-            // Current iterator. The `bam_plp_t` type is in fact a pointer. Messy htslib.
-            bam_plp_t iter = nullptr;
-            // ::hts_itr_t* hts_iter = nullptr;
-
-            // List of the @RG read group tags as present in the header, filtered by any potential
-            // rg_tag_filter() and inverse_rg_tag_filter() settings. That is, this maps from
-            // RG tags to their index of the BaseCounts object in the Variant that is produced
-            // by this iterator at each position. We use a map in this direction for speed,
-            // as we get the RG tag name from htslib for each read.
-            std::unordered_map<std::string, size_t> rg_tags;
-
-            // We furthermore store the number of BaseCounts samples needed in each Variant,
-            // as a result of the rg_tag splitting. With no splitting, this is 1, as we then only
-            // ever produce one sample, containing the base counts of all reads, independently of
-            // their RG tag.
-            // With splitting, this depends on rg_tag_filter() and with_unaccounted_rg() settings.
-            // See init_rg_tags_and_target_sample_count_() for details.
-            size_t target_sample_count;
-
-            // Destructor needs to destroy all htslib pointers.
-            // We keep this data in a shared pointer in the Iterator, so that any copies of the
-            // iterator (which are usually happening incidentally when creating the loop for
-            // iteration) don't accidentally destroy the htslib structs already.
-            // That was a bug that we had, and this is how we fixed it.
-            ~SamFileHandle();
-        };
-
-        // -------------------------------------------------------------------------
         //     Internal Members
         // -------------------------------------------------------------------------
 
@@ -323,15 +290,6 @@ public:
          * @brief Initialize the iterator, and start with the first position.
          */
         void init_();
-
-        /**
-         * @brief Set the list of all `@RG` read group tags to be used while iterating.
-         *
-         * The function creates the map has the read group tags as keys, and their index in the RG
-         * list of the input file as values. This makes it possible to do a fast index
-         * lookup for each read, given its RG tag in the file.
-         */
-        void init_rg_tags_and_target_sample_count_( SamFileHandle& handle ) const;
 
         /**
          * @brief Increment the iterator by moving to the next position.
@@ -353,20 +311,6 @@ public:
          */
         size_t get_sample_index_( bam_pileup1_t const* p ) const;
 
-        /**
-         * @brief Get all `@RG` read group tags that are present in the header of the input file.
-         */
-        std::vector<std::string> get_header_rg_tags_( ::sam_hdr_t* sam_hdr ) const;
-
-        /**
-         * @brief Function needed for htslib to process a single read mapped in sam/bam/cram format.
-         *
-         * This function processed a read, tests its mapping quality and flags, and only lets those
-         * reads pass that we actually want to consider for the pileup/variant processing at a given
-         * position.
-         */
-        static int read_sam_( void* data, bam1_t* b );
-
     private:
 
         // Parent.
@@ -375,6 +319,7 @@ public:
         // htslib specific file handling pointers during iteration.
         // We put this in a shared ptr so that the iterator can be copied,
         // but the htslib data gets only freed once all instances are done.
+        // This also allows PIMPL to avoid including the htslib headers here.
         std::shared_ptr<SamFileHandle> handle_;
 
         // Current variant object, keeping the base tally of the current locus.
