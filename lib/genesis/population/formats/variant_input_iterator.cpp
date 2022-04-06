@@ -30,8 +30,7 @@
 
 #include "genesis/population/formats/variant_input_iterator.hpp"
 
-#include "genesis/population/functions/base_counts.hpp"
-#include "genesis/population/functions/variant.hpp"
+#include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
 
 #include <cassert>

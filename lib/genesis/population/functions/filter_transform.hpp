@@ -32,7 +32,6 @@
  */
 
 #include "genesis/population/base_counts.hpp"
-#include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/genome_region.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/variant.hpp"

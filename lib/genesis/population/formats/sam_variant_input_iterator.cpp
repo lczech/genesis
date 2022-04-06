@@ -32,7 +32,7 @@
 
 #include "genesis/population/formats/sam_variant_input_iterator.hpp"
 
-#include "genesis/population/functions/base_counts.hpp"
+#include "genesis/population/functions/functions.hpp"
 
 #include <cassert>
 #include <cstdint>

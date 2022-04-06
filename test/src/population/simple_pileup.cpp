@@ -33,8 +33,7 @@
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/formats/simple_pileup_common.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
-#include "genesis/population/functions/base_counts.hpp"
-#include "genesis/population/functions/variant.hpp"
+#include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/text/string.hpp"
 
 using namespace genesis::population;

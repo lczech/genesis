@@ -35,8 +35,7 @@
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/population/formats/vcf_record.hpp"
-#include "genesis/population/functions/base_counts.hpp"
-#include "genesis/population/functions/variant.hpp"
+#include "genesis/population/functions/functions.hpp"
 
 extern "C" {
     #include <htslib/hts.h>

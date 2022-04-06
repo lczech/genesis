@@ -31,9 +31,8 @@
  * @ingroup population
  */
 
-#include "genesis/population/functions/base_counts.hpp"
 #include "genesis/population/functions/filter_transform.hpp"
-#include "genesis/population/functions/variant.hpp"
+#include "genesis/population/functions/functions.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/utils/containers/filter_iterator.hpp"
 #include "genesis/utils/containers/matrix.hpp"

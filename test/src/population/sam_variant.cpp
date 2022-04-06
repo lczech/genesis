@@ -32,8 +32,7 @@
 
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/formats/sam_variant_input_iterator.hpp"
-#include "genesis/population/functions/base_counts.hpp"
-#include "genesis/population/functions/variant.hpp"
+#include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/text/string.hpp"
 

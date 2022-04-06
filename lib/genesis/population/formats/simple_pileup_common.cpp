@@ -30,8 +30,7 @@
 
 #include "genesis/population/formats/simple_pileup_common.hpp"
 
-#include "genesis/population/functions/base_counts.hpp"
-#include "genesis/population/functions/variant.hpp"
+#include "genesis/population/functions/functions.hpp"
 
 #include <cassert>
 #include <stdexcept>
