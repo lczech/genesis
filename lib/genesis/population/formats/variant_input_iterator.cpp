@@ -71,11 +71,14 @@ VariantInputIterator make_variant_input_iterator_from_sam_file(
     data.source_name = utils::file_basename( filename, { ".sam", ".sam.gz", ".bam", ".cram" });
 
     // Get the sample names from the read group tags. If they are empty, because the reader
-    // was not set up to split by read group tags, we instead use the source name as sample name,
-    // as in that case, the file name itself is the sample name.
+    // was not set up to split by read group tags, we instead use an empty name, to indicate that
+    // there is one unnamed sample.
     data.sample_names = begin.rg_tags();
     if( data.sample_names.empty() ) {
-        data.sample_names.push_back( data.source_name );
+        assert( reader.split_by_rg() == false );
+        data.sample_names.push_back( "" );
+    } else {
+        assert( reader.split_by_rg() == true );
     }
 
     // The input is copied over to the lambda, and that copy is kept alive
@@ -132,6 +135,7 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file_(
             reader
         );
     }
+    assert( input );
 
     // Get the data, using the file base name without path and potential extensions as source.
     VariantInputIteratorData data;
@@ -139,7 +143,12 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file_(
     data.source_name = utils::file_basename(
         filename, { ".gz", ".plp", ".mplp" ".pileup", ".mpileup" }
     );
-    // No sample names in pileup... nothing to do for this here.
+
+    // No sample names in pileup...
+    // so we just fill with empty names to indicate the number of samples.
+    for( size_t i = 0; i < (*input)->samples.size(); ++i ) {
+        data.sample_names.push_back( "" );
+    }
 
     // The input is copied over to the lambda, and that copy is kept alive
     // when returning from this function.
@@ -201,7 +210,12 @@ VariantInputIterator make_variant_input_iterator_from_sync_file(
     VariantInputIteratorData data;
     data.file_path = filename;
     data.source_name = utils::file_basename( filename, { ".gz", ".sync" });
-    // No sample names in sync... nothing to do for this here.
+
+    // No sample names in sync...
+    // so we just fill with empty names to indicate the number of samples.
+    for( size_t i = 0; i < (*input)->samples.size(); ++i ) {
+        data.sample_names.push_back( "" );
+    }
 
     // The input is copied over to the lambda, and that copy is kept alive
     // when returning from this function.
