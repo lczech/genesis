@@ -555,6 +555,16 @@ std::vector<std::string> SamVariantInputIterator::Iterator::rg_tags( bool all_he
     return result;
 }
 
+// -------------------------------------------------------------------------
+//     rg_tags
+// -------------------------------------------------------------------------
+
+size_t SamVariantInputIterator::Iterator::sample_size() const
+{
+    assert( handle_ );
+    return handle_->target_sample_count;
+}
+
 // =================================================================================================
 //     Iterator Private Members
 // =================================================================================================

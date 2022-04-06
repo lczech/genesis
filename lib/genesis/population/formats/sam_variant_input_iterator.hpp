@@ -280,6 +280,12 @@ public:
          */
         std::vector<std::string> rg_tags( bool all_header_tags = false ) const;
 
+        /**
+         * @brief Return the size of the Variant::sample vector of BaseCounts that is produced
+         * by the iterator.
+         */
+        size_t sample_size() const;
+
         // -------------------------------------------------------------------------
         //     Internal Members
         // -------------------------------------------------------------------------

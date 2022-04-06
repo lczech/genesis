@@ -75,8 +75,15 @@ VariantInputIterator make_variant_input_iterator_from_sam_file(
     // there is one unnamed sample.
     data.sample_names = begin.rg_tags();
     if( data.sample_names.empty() ) {
-        assert( reader.split_by_rg() == false );
-        data.sample_names.push_back( "" );
+        // We could have an input file where we want to split by RG, but no RG are set in the
+        // header. When not using unaccounted RG, we would end up with no samples.
+        // Take this into account, and create as many empty (unnamed) samples as needed.
+        // This cannot be more than one though, as it can be the unaccounted or none,
+        // or, if we do not split by RG at all, just the one sample were every read ends up in.
+        for( size_t i = 0; i < begin.sample_size(); ++i ) {
+            data.sample_names.push_back( "" );
+        }
+        assert( data.sample_names.size() <= 1 );
     } else {
         assert( reader.split_by_rg() == true );
     }

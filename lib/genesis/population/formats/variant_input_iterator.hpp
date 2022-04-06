@@ -226,7 +226,7 @@ VariantInputIterator make_variant_input_iterator_from_pool_vcf_file(
 );
 
 /**
- * @copydoc make_variant_input_iterator_from_pool_vcf_file( std::string const& )
+ * @copydoc make_variant_input_iterator_from_pool_vcf_file( std::string const&, bool, bool )
  *
  * Additionally, this version of the function takes a list of @p sample_names which are used as
  * filter so that only those samples (columns of the VCF records) are evaluated and accessible - or,
@@ -262,7 +262,7 @@ VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
 );
 
 /**
- * @copydoc make_variant_input_iterator_from_individual_vcf_file( std::string const&, bool )
+ * @copydoc make_variant_input_iterator_from_individual_vcf_file( std::string const&, bool, bool, bool )
  *
  * Additionally, this version of the function takes a list of @p sample_names which are used as
  * filter so that only those samples (columns of the VCF records) are evaluated and accessible - or,
