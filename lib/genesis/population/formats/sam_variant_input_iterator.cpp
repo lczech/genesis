@@ -55,50 +55,65 @@ namespace population {
 //     Iterator Public Members
 // =================================================================================================
 
-std::vector<std::string> SamVariantInputIterator::Iterator::rg_tags() const
+std::vector<std::string> SamVariantInputIterator::Iterator::rg_tags( bool all_header_tags ) const
 {
+    // Special case, if we just want to get all the rg tags from the file header.
+    assert( handle_ );
+    if( all_header_tags ) {
+        return get_header_rg_tags_( handle_->sam_hdr );
+    }
+
     // Empty list when we do not split by read group tag.
     assert( parent_ );
-    assert( handle_ );
     if( ! parent_->split_by_rg_ ) {
         return {};
     }
 
-    // We store the rg tags in a form that is fastest for per-read access. However, turning this
-    // into a neat ordered list is a bit cumbersome... but this usually is only called in the
-    // beginning of the iteration, so that cost is okay.
+    // We store the rg tags in a form that is fastest for per-read access, as a map from rg tag
+    // to its index that we want to assign it to in the samples vector of the Variant.
+    // However, turning this into a neat ordered list is a bit cumbersome...
+    // but this usually is only called in the beginning of the iteration, so that cost is okay.
+    // Alternatively, we could also go through the get_header_rg_tags_() list again, and apply
+    // the same filtering as done in init_rg_tags_and_target_sample_count_(), but that seems
+    // equally as cumbersome, as we'd need to disentangle the unaccounted, etc...
+    // so let's stick with this approach here.
+    // We can only ever have target_sample_count many valid indices,
+    // so no need to go through all handle_->rg_tags.size() many tags here.
     std::vector<std::string> result;
-    for( size_t i = 0; i < handle_->rg_tags.size(); ++i ) {
+    for( size_t i = 0; i < handle_->target_sample_count; ++i ) {
         // For each tag in the order that we actually want, find where it is in the map.
         // We need to scan the whole map every time, as the indicies are stored as values...
+        // We might not find it at all, if it was filtered out by the rg_tag_filter().
         for( auto const& tag : handle_->rg_tags ) {
+            // The tag indicies cannot ever be creater than the target size of the sample.
+            assert(
+                tag.second < handle_->target_sample_count ||
+                tag.second == std::numeric_limits<size_t>::max()
+            );
+
+            // Found the index for this tag. Add it, and move on.
             if( tag.second == i ) {
-                // Found the index for this tag. Add it, and move on.
                 result.push_back( tag.first );
                 break;
             }
         }
-        // If we get here, that means that the result size was changed in the above loop.
-        // If not, we did not find the tag that has index i. Assert this.
-        assert( result.size() == i + 1 );
     }
 
-    // Add the unaccounted tag if needed.
+    // Add the unaccounted tag if needed, check that we have the correct size, and return.
     if( parent_->with_unaccounted_rg_ ) {
         result.push_back( "unaccounted" );
     }
-
-    // Check that we have the correct size, and return.
-    assert(
-        ( ! parent_->with_unaccounted_rg_ && result.size() == handle_->rg_tags.size() ) ||
-        (   parent_->with_unaccounted_rg_ && result.size() == handle_->rg_tags.size() + 1 )
-    );
+    assert( result.size() == handle_->target_sample_count );
     return result;
 }
 
 // =================================================================================================
 //     Iterator Private Members
 // =================================================================================================
+
+// -------------------------------------------------------------------------
+//     init_
+// -------------------------------------------------------------------------
 
 void SamVariantInputIterator::Iterator::init_()
 {
@@ -140,14 +155,81 @@ void SamVariantInputIterator::Iterator::init_()
     // assert( handle_->hts_iter == nullptr );
     // handle_->hts_iter = sam_itr_queryi(idx[i], HTS_IDX_START, 0, 0);
 
-    // If wanted, get the @RG read group tags from the header.
-    if( parent_->split_by_rg_ ) {
-        handle_->rg_tags = get_header_rg_tags_( handle_->sam_hdr );
-    }
+    // If wanted, use the RG tags of the header to set the samples that we want to use,
+    // including any filtering if wanted, and taking care of the unaccounted setting as well.
+    // If not, we just init to one sample that catches all reads independently of their RG tag.
+    init_rg_tags_and_target_sample_count_( *handle_ );
 
     // Finally, get the first line.
     increment_();
 }
+
+// -------------------------------------------------------------------------
+//     init_rg_tags_and_target_sample_count_
+// -------------------------------------------------------------------------
+
+void SamVariantInputIterator::Iterator::init_rg_tags_and_target_sample_count_(
+    SamFileHandle& handle
+) const {
+    // Prepare result
+    assert( parent_ );
+    handle.rg_tags.clear();
+    handle.target_sample_count = 0;
+
+    // If we do not want to split by RG tag, we simply leave rg_tag empty,
+    // and set the target count to 1, as in that case, we only ever produce one sample,
+    // containing the base counts of all reads, independently of their RG tag.
+    if( ! parent_->split_by_rg_ ) {
+        handle.target_sample_count = 1;
+        return;
+    }
+
+    // From here on, we know that we want to use the @RG read group tags from the header,
+    // and set the rg_tags to the samples (rg tags) that are there, including any potential
+    // filtering.
+
+    // Get all RG read group tags from the header, and add the ones we want to the list.
+    auto tags = get_header_rg_tags_( handle.sam_hdr );
+    for( auto& tag : tags ) {
+
+        // Check if we want to include this rg tag. If not, we indicate that by setting
+        // the index to max, so that the function where samples are assessed can ignore them.
+        // This also makes sure that the rg tag filter setting is independent of the unaccounted
+        // filter, as we still will have listed all proper sample names from the header in the
+        // handle.rg_tags list, so that when iterating, we can distinguish between tags that appear
+        // in the header but are filtered out, and those that are actually unaccounted for or
+        // are lacking the RG tag altogether.
+        if(
+            (   parent_->rg_tag_filter_.empty() ) ||
+            ( ! parent_->inverse_rg_tag_filter_ && parent_->rg_tag_filter_.count( tag ) >  0 ) ||
+            (   parent_->inverse_rg_tag_filter_ && parent_->rg_tag_filter_.count( tag ) == 0 )
+        ) {
+            // We set the index to the current target count, which only counts the valid samples
+            // that we do not want to filter out, meaning that each entry gets the index according
+            // to the how many-th valid element in the result map it is.
+            handle.rg_tags.emplace( std::move( tag ), handle.target_sample_count );
+            ++handle.target_sample_count;
+        } else {
+            // RG tags that we want to filter out get assigned max int,
+            // as an indicator that the reading step shall skip them.
+            handle.rg_tags.emplace( std::move( tag ), std::numeric_limits<size_t>::max() );
+        }
+    }
+
+    // After the above, we have added all tags to our map. We moved the strings, but the `tags`
+    // vector size is still the same, so let's assert this.
+    assert( handle.rg_tags.size() == tags.size() );
+    assert( parent_->split_by_rg_ );
+
+    // If we use the unaccounted group, we need to make room for that additional sample.
+    if( parent_->with_unaccounted_rg_ ) {
+        ++handle.target_sample_count;
+    }
+}
+
+// -------------------------------------------------------------------------
+//     increment_
+// -------------------------------------------------------------------------
 
 void SamVariantInputIterator::Iterator::increment_()
 {
@@ -192,26 +274,29 @@ void SamVariantInputIterator::Iterator::increment_()
         break;
     }
 
+    // htslib takes care of ordering along chromosomes already, so let's just assert this.
+    // If the position is not incrementing, that means we switched chromosome.
+    // We do not assert that chromosomes are in correct lexicographical order, as apparently
+    // that is not necessary for the correct functioning of htslib sam iteration.
+    // assert( std::string( handle_->sam_hdr->target_name[tid] ) >= current_variant_.chromosome);
+    assert( pos >= 0 );
+    assert(
+        ( static_cast<size_t>( pos ) + 1 > current_variant_.position ) ||
+        ( std::string( handle_->sam_hdr->target_name[tid] ) != current_variant_.chromosome )
+    );
+
     // Set current chromosome/locus, make 1-based for our case.
     current_variant_.chromosome = std::string( handle_->sam_hdr->target_name[tid] );
-    current_variant_.position = pos + 1;
+    current_variant_.position = static_cast<size_t>( pos ) + 1;
     current_variant_.reference_base = 'N';
     current_variant_.alternative_base = 'N';
 
     // Resize to the number of samples, and reset the variant base count tallies for all samples.
     // We fully resize here, in case that the current_variant_ has been moved from by the user,
-    // see https://stackoverflow.com/a/55054380/4184258.
-    // All other member variables of the Variant are in defined states after being moved from,
+    // see https://stackoverflow.com/a/55054380/4184258. All other member variables of the Variant
+    // are in defined states after being moved from, so the above initializations are okay,
     // but the vector might be empty or of the wrong size afterwards.
-    if( parent_->split_by_rg_ ) {
-        if( parent_->with_unaccounted_rg_ ) {
-            current_variant_.samples.resize( handle_->rg_tags.size() + 1 );
-        } else {
-            current_variant_.samples.resize( handle_->rg_tags.size() );
-        }
-    } else {
-        current_variant_.samples.resize( 1 );
-    }
+    current_variant_.samples.resize( handle_->target_sample_count );
     for( auto& sample : current_variant_.samples ) {
         sample.clear();
     }
@@ -222,77 +307,91 @@ void SamVariantInputIterator::Iterator::increment_()
     // See https://github.com/samtools/samtools/blob/ae1f9d8809/bam_plcmd.c#L62
     for( int i = 0; i < n; ++i ) {
         bam_pileup1_t const* p = plp + i;
+        tally_up_base_( p );
+    }
+}
 
-        // Check per base quality. If it does not meet our threshold, we skip this base,
-        // and go to the next one (next iteration of the for loop).
-        int const qual = p->qpos < p->b->core.l_qseq
-            ? bam_get_qual(p->b)[p->qpos]
-            : 0
-        ;
-        if( qual < parent_->min_base_qual_ ) {
-            continue;
-        }
+// -------------------------------------------------------------------------
+//     tally_up_base_
+// -------------------------------------------------------------------------
 
-        // Get the sample, according to the read tag if set, or, if not set,
-        // just get the one sample that we have initialized.
-        auto const smp_idx = get_sample_index_( p );
-        if( smp_idx == std::numeric_limits<size_t>::max() ) {
-            // If we are here, we have an unaccounted read and want to skip it.
-            continue;
-        }
-        assert( smp_idx < current_variant_.samples.size() );
-        auto& sample = current_variant_.samples[smp_idx];
+void SamVariantInputIterator::Iterator::tally_up_base_( bam_pileup1_t const* p )
+{
+    assert( parent_ );
+    assert( handle_ );
 
-        // Check deletions. If it is one, note that, and then we are done for this base.
-        if( p->is_del || p->is_refskip ){
-            ++sample.d_count;
-            continue;
-        }
-
-        // Get the htslib internal code for the nucleotide as defined in seq_nt16_str, in 0-15,
-        // which is what bam_seqi() returns, and use it to tally up (increment) our base counts.
-        uint8_t* seq = bam_get_seq(p->b);
-        uint8_t  nuc = bam_seqi(seq, p->qpos);
-        switch( nuc ) {
-            case  1: {
-                ++sample.a_count;
-                break;
-            }
-            case  2: {
-                ++sample.c_count;
-                break;
-            }
-            case  4: {
-                ++sample.g_count;
-                break;
-            }
-            case  8: {
-                ++sample.t_count;
-                break;
-            }
-            case 15: {
-                ++sample.n_count;
-                break;
-            }
-            default: {
-                throw std::runtime_error(
-                    "Invalid base in sam/bam/cram file " + handle_->parent->input_file_ +
-                    " at " + current_variant_.chromosome + ":" +
-                    std::to_string( current_variant_.position ) + ". Found " +
-                    std::string( 1, seq_nt16_str[nuc] ) + ", but expected [ACGTN]."
-                );
-            }
-        }
+    // Check per base quality. If it does not meet our threshold, we skip this base,
+    // and go to the next one (next iteration of the for loop from where this function is called).
+    int const qual = p->qpos < p->b->core.l_qseq
+        ? bam_get_qual(p->b)[p->qpos]
+        : 0
+    ;
+    if( qual < parent_->min_base_qual_ ) {
+        return;
     }
 
-    // Status of the iteration, as given by the result of bam_mplp_auto().
-    // If greater than zero, we are still iterating.
-    // int iter_status_;
-    // iter_status_ = bam_mplp_auto( mplp, & tid, & pos, n_plp, plp );
+    // Get the sample, according to the read tag if set, or, if not set,
+    // just get the one sample that we have initialized.
+    auto const smp_idx = get_sample_index_( p );
+    if( smp_idx == std::numeric_limits<size_t>::max() ) {
+        // If we are here, we have an unaccounted read and want to skip it.
+        return;
+    }
+    assert( current_variant_.samples.size() == handle_->target_sample_count );
+    assert( smp_idx < current_variant_.samples.size() );
+    auto& sample = current_variant_.samples[smp_idx];
+
+    // Check deletions. If it is one, note that, and then we are done for this base.
+    if( p->is_del || p->is_refskip ){
+        ++sample.d_count;
+        return;
+    }
+
+    // Get the htslib internal code for the nucleotide as defined in seq_nt16_str, in 0-15,
+    // which is what bam_seqi() returns, and use it to tally up (increment) our base counts.
+    uint8_t* seq = bam_get_seq (p->b );
+    uint8_t  nuc = bam_seqi( seq, p->qpos );
+    switch( nuc ) {
+        case  1: {
+            ++sample.a_count;
+            break;
+        }
+        case  2: {
+            ++sample.c_count;
+            break;
+        }
+        case  4: {
+            ++sample.g_count;
+            break;
+        }
+        case  8: {
+            ++sample.t_count;
+            break;
+        }
+        case 15: {
+            ++sample.n_count;
+            break;
+        }
+        default: {
+            throw std::runtime_error(
+                "Invalid base in sam/bam/cram file " + handle_->parent->input_file_ +
+                " at " + current_variant_.chromosome + ":" +
+                std::to_string( current_variant_.position ) + ". Found " +
+                std::string( 1, seq_nt16_str[nuc] ) + ", but expected [ACGTN]."
+            );
+        }
+    }
 }
+
+// -------------------------------------------------------------------------
+//     get_sample_index_
+// -------------------------------------------------------------------------
 
 size_t SamVariantInputIterator::Iterator::get_sample_index_( bam_pileup1_t const* p ) const
 {
+    assert( parent_ );
+    assert( handle_ );
+
     // If we are not using splitting by read groups, we just return the index of the single sample
     // that we are using for all reads.
     if( ! parent_->split_by_rg_ ) {
@@ -346,16 +445,13 @@ size_t SamVariantInputIterator::Iterator::get_sample_index_( bam_pileup1_t const
         // the base counts contains an additional element which should never be found
         // by the index lookup. If we are here, we also need to have at least one actual
         // sample plus potentially the unaccounted one, otherwise we would not be here.
+        // A special case are samples ignored due to being filtered by sample_names;
+        // in that case, their index is set to max, to indicate to the caller of this function
+        // to ignore them.
         smp_idx = tag_itr->second;
         assert(
-            current_variant_.samples.size() >=
-            static_cast<size_t>( parent_->with_unaccounted_rg_ ) + 1
-        );
-        assert(
-            smp_idx < (
-                current_variant_.samples.size() -
-                static_cast<size_t>( parent_->with_unaccounted_rg_ )
-            )
+            smp_idx < handle_->target_sample_count ||
+            smp_idx == std::numeric_limits<size_t>::max()
         );
     } else {
         // One of the two error cases occurred.
@@ -375,6 +471,56 @@ size_t SamVariantInputIterator::Iterator::get_sample_index_( bam_pileup1_t const
     return smp_idx;
 }
 
+// -------------------------------------------------------------------------
+//     get_header_rg_tags_
+// -------------------------------------------------------------------------
+
+std::vector<std::string> SamVariantInputIterator::Iterator::get_header_rg_tags_(
+    ::sam_hdr_t* sam_hdr
+) const {
+    // Inspired by https://github.com/samtools/samtools/blob/2ece68ef9d0bd302a74c952b55df1badf9e61aae/bam_split.c#L217
+
+    // Prepare result.
+    assert( parent_ );
+    assert( sam_hdr );
+    std::vector<std::string> result;
+
+    // Get the number of RG tags in the header of the file.
+    auto const n_rg = sam_hdr_count_lines( sam_hdr, "RG" );
+    if( n_rg < 0 ) {
+        throw std::runtime_error(
+            "Failed to get @RG ID tags in file " + parent_->input_file_ +
+            ". Cannot split by RG read group tags."
+        );
+    }
+
+    // Go through all RG tags and store them.
+    kstring_t id_val = KS_INITIALIZE;
+    for( size_t i = 0; i < static_cast<size_t>( n_rg ); ++i ) {
+
+        // Get the next tag.
+        if( sam_hdr_find_tag_pos( sam_hdr, "RG", i, "ID", &id_val ) < 0 ) {
+            ks_free( &id_val );
+            throw std::runtime_error(
+                "Failed to get @RG ID tags in file " + parent_->input_file_
+            );
+        }
+
+        // Get the name of this rg tag. Need to free it afterwards ourselves.
+        // We need to turn it into a string anyways, so let's do this here.
+        char* tag = ks_release( &id_val );
+        result.emplace_back( tag );
+        free( tag );
+    }
+
+    return result;
+}
+
+// -------------------------------------------------------------------------
+//     read_sam_
+// -------------------------------------------------------------------------
+
+// static
 int SamVariantInputIterator::Iterator::read_sam_( void* data, bam1_t* bam )
 {
     // The function processes a single mapped read. Reads that make it through here are then
@@ -423,47 +569,6 @@ int SamVariantInputIterator::Iterator::read_sam_( void* data, bam1_t* bam )
     return ret;
 }
 
-std::unordered_map<std::string, size_t>
-SamVariantInputIterator::Iterator::get_header_rg_tags_(
-    ::sam_hdr_t* sam_hdr
-) const {
-    // Inspired by https://github.com/samtools/samtools/blob/2ece68ef9d0bd302a74c952b55df1badf9e61aae/bam_split.c#L217
-
-    // Prepare result.
-    std::unordered_map<std::string, size_t> result;
-
-    // Get the number of RG tags in the header of the file.
-    auto const n_rg = sam_hdr_count_lines( sam_hdr, "RG" );
-    if( n_rg < 0 ) {
-        throw std::runtime_error(
-            "Failed to get @RG ID tags in file " + parent_->input_file_
-        );
-        return result;
-    }
-
-    // Go through all RG tags and store them.
-    kstring_t id_val = KS_INITIALIZE;
-    for( size_t i = 0; i < static_cast<size_t>( n_rg ); ++i ) {
-
-        // Get the next tag.
-        if( sam_hdr_find_tag_pos(sam_hdr, "RG", i, "ID", &id_val) < 0 ) {
-            ks_free( &id_val );
-            throw std::runtime_error(
-                "Failed to get @RG ID tags in file " + parent_->input_file_
-            );
-        }
-
-        // Get the name of this rg tag. Need to free it afterwards ourselves.
-        // We set the index to the current size (pre emplacement), meaning that each entry
-        // gets the index according to the how many-th element in the `result` map it is.
-        char* name = ks_release( &id_val );
-        result.emplace( name, result.size() );
-        free( name );
-    }
-
-    return result;
-}
-
 // =================================================================================================
 //     Sam File Handle
 // =================================================================================================
@@ -497,14 +602,21 @@ SamVariantInputIterator::Iterator::SamFileHandle::~SamFileHandle()
 //     Sam Variant Input Iterator
 // =================================================================================================
 
-SamVariantInputIterator::SamVariantInputIterator( std::string const& infile )
-{
+SamVariantInputIterator::SamVariantInputIterator(
+    std::string const& infile,
+    std::unordered_set<std::string> const& rg_tag_filter,
+    bool inverse_rg_tag_filter
+) {
     // Set the file, including error checking.
     input_file( infile );
 
     // Skip unmapepd and duplicates by default. We set the flags here in the cpp,
     // so that our header file can stay free of htslib includes and constants.
     flags_ = ( BAM_FUNMAP | BAM_FDUP );
+
+    // Set the rg tag filter
+    rg_tag_filter_ = rg_tag_filter;
+    inverse_rg_tag_filter_ = inverse_rg_tag_filter;
 }
 
 // =================================================================================================

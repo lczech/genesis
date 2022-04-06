@@ -46,6 +46,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 // Forward declarations of htslib structs, so that we do not have to include their headers
@@ -97,6 +98,8 @@ namespace population {
  * We however are also able to split by read group (`@RG`), see split_by_rg() and
  * with_unaccounted_rg() for details. In that case, the Variant contains one BaseCounts object
  * per read group, as well as potentially a special one for unaccounted reads with no proper RG.
+ * This can further be filtered by setting rg_tag_filter(), to only consider certain RG tags
+ * as samples to be produced.
  */
 class SamVariantInputIterator
 {
@@ -233,15 +236,26 @@ public:
          * When additionally
          * @link SamVariantInputIterator::with_unaccounted_rg( bool ) with_unaccounted_rg()@endlink
          * is set to `true`, an additional RG tag "unaccounted" is added to the result as a last
-         * element, which is the same position that the unaccounted reads go in the Varient.
+         * element, which is the same position that the unaccounted reads go in the Variant.
+         *
+         * When using rg_tag_filter() to sub-set the RG tags (samples) being processed, this
+         * function by default only returnes those sample names (RG tags) that represent the
+         * final BaseCounts samples of the resulting Variant when iterating the data
+         * (and potentially including the "unaccounted" group).
          *
          * If @link SamVariantInputIterator::split_by_rg( bool ) split_by_rg()@endlink is `false`,
          * we are not splitting by read group tags, so then this function returns an empty vector.
+         * Note that the Variant that is produced during iteration still contains one BaseCounts
+         * sample, which collects all counts from all reads.
+         *
+         * All of the above is ignored if the argument @p all_header_tags is set to `true`.
+         * In that case, the function instead simply returns those RG tags that are present
+         * in the SAM/BAM/CRAM header, without the "unaccounted", and without any filtering.
          *
          * Note that this function needs to fill the vector when called. Hence, if this list is
          * needed often, it is recommended to call this function once and store the result.
          */
-        std::vector<std::string> rg_tags() const;
+        std::vector<std::string> rg_tags( bool all_header_tags = false ) const;
 
         // -------------------------------------------------------------------------
         //     Internal Structs
@@ -276,8 +290,20 @@ public:
             bam_plp_t iter = nullptr;
             // ::hts_itr_t* hts_iter = nullptr;
 
-            // List of the @RG read group tags as present in the header.
+            // List of the @RG read group tags as present in the header, filtered by any potential
+            // rg_tag_filter() and inverse_rg_tag_filter() settings. That is, this maps from
+            // RG tags to their index of the BaseCounts object in the Variant that is produced
+            // by this iterator at each position. We use a map in this direction for speed,
+            // as we get the RG tag name from htslib for each read.
             std::unordered_map<std::string, size_t> rg_tags;
+
+            // We furthermore store the number of BaseCounts samples needed in each Variant,
+            // as a result of the rg_tag splitting. With no splitting, this is 1, as we then only
+            // ever produce one sample, containing the base counts of all reads, independently of
+            // their RG tag.
+            // With splitting, this depends on rg_tag_filter() and with_unaccounted_rg() settings.
+            // See init_rg_tags_and_target_sample_count_() for details.
+            size_t target_sample_count;
 
             // Destructor needs to destroy all htslib pointers.
             // We keep this data in a shared pointer in the Iterator, so that any copies of the
@@ -299,17 +325,38 @@ public:
         void init_();
 
         /**
+         * @brief Set the list of all `@RG` read group tags to be used while iterating.
+         *
+         * The function creates the map has the read group tags as keys, and their index in the RG
+         * list of the input file as values. This makes it possible to do a fast index
+         * lookup for each read, given its RG tag in the file.
+         */
+        void init_rg_tags_and_target_sample_count_( SamFileHandle& handle ) const;
+
+        /**
          * @brief Increment the iterator by moving to the next position.
          */
         void increment_();
 
         /**
+         * @brief For a given read at the current position during incrementation,
+         * tally up its base to the sample that it belongs to.
+         */
+        void tally_up_base_( bam_pileup1_t const* p );
+
+        /**
          * @brief For a given pileup base, get the sample index it belongs to.
          *
-         * When using RG read group tags, this corresponds to the index in get_header_rg_tags_().
+         * When using RG read group tags, this corresponds to the index given by the value of
+         * SamFileHandle::rg_tags elements.
          * Without RG tags, we are just using one sample, so this function just returns 0.
          */
         size_t get_sample_index_( bam_pileup1_t const* p ) const;
+
+        /**
+         * @brief Get all `@RG` read group tags that are present in the header of the input file.
+         */
+        std::vector<std::string> get_header_rg_tags_( ::sam_hdr_t* sam_hdr ) const;
 
         /**
          * @brief Function needed for htslib to process a single read mapped in sam/bam/cram format.
@@ -319,17 +366,6 @@ public:
          * position.
          */
         static int read_sam_( void* data, bam1_t* b );
-
-        /**
-         * @brief Get a list of all `@RG` read group tags in a sam header.
-         *
-         * The returned map has the read group tags as keys, and their index in the RG
-         * list of the input file as values. This makes it possible to do a fast index
-         * lookup for each read, given its RG tag in the file.
-         */
-        std::unordered_map<std::string, size_t> get_header_rg_tags_(
-            ::sam_hdr_t* sam_hdr
-        ) const;
 
     private:
 
@@ -363,6 +399,14 @@ public:
 
     explicit SamVariantInputIterator(
         std::string const& input_file
+    )
+        : SamVariantInputIterator( input_file, std::unordered_set<std::string>{}, false )
+    {}
+
+    SamVariantInputIterator(
+        std::string const& input_file,
+        std::unordered_set<std::string> const& rg_tag_filter,
+        bool inverse_rg_tag_filter = false
     );
 
     ~SamVariantInputIterator() = default;
@@ -395,7 +439,7 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Settings
+    //     Basic Input Settings
     // -------------------------------------------------------------------------
 
     std::string const& input_file() const
@@ -414,6 +458,10 @@ public:
         input_file_ = value;
         return *this;
     }
+
+    // -------------------------------------------------------------------------
+    //     Detail Settings
+    // -------------------------------------------------------------------------
 
     int min_map_qual() const
     {
@@ -537,10 +585,57 @@ public:
      * If this option here is however set to `false`, all reads without a read group tag or
      * with an invalid read group tag (that does not appear in the header) are ignored.
      * If split_by_rg() is not set to `true`, this option here is completely ignored.
+     *
+     * See also rg_tag_filter() to sub-set the reads by RG, that is, to ignore reads that have
+     * a proper RG tag set, but that belong to a sample that shall be ignored.
      */
     self_type& with_unaccounted_rg( bool value )
     {
         with_unaccounted_rg_ = value;
+        return *this;
+    }
+
+    std::unordered_set<std::string> const& rg_tag_filter() const
+    {
+        return rg_tag_filter_;
+    }
+
+    /**
+     * @brief Set the sample names used for filtering reads by their RG read group tag.
+     *
+     * Only used when split_by_rg() is set to `true`.
+     * Reads that have an RG read group tag that appears in the header of the input file,
+     * but is not present in the @p value list given here (or in the constructor of the class),
+     * will be ignored. That is, they will also not appear in the "unaccounted" sample,
+     * independently of the setting of with_unaccounted_rg(). The unaccounted sample will only
+     * contain data from those reads that do not have an RG tag at all, or one that does not
+     * appear in the header.
+     *
+     * See also inverse_rg_tag_filter() to inverse this setting, that is, to ignore all given
+     * sample names, instead of ignoring all that are not given here.
+     *
+     * When the given @p value list is empty, the filtering by RG read group tag is deactivated
+     * (which is also the default), independently of the inverse_rg_tag_filter() setting.
+     */
+    self_type& rg_tag_filter( std::unordered_set<std::string> const& value )
+    {
+        rg_tag_filter_ = value;
+        return *this;
+    }
+
+    bool inverse_rg_tag_filter() const
+    {
+        return inverse_rg_tag_filter_;
+    }
+
+    /**
+     * @brief Reverse the meaning of the list of sample names given by rg_tag_filter().
+     *
+     * See there for details.
+     */
+    self_type& inverse_rg_tag_filter( bool value )
+    {
+        inverse_rg_tag_filter_ = value;
         return *this;
     }
 
@@ -581,6 +676,8 @@ private:
 
     bool split_by_rg_ = false;
     bool with_unaccounted_rg_ = false;
+    std::unordered_set<std::string> rg_tag_filter_;
+    bool inverse_rg_tag_filter_ = false;
 
     // Unused / need to investiage if needed
     // int max_indel_depth_ = 250;

@@ -44,8 +44,12 @@ using namespace genesis::utils;
 
 #ifdef GENESIS_HTSLIB
 
-void run_sam_bam_cram_test_( std::string const& infile, bool split_by_rg, bool with_unaccounted_rg )
-{
+void run_sam_bam_cram_test_(
+    std::string const& infile,
+    bool split_by_rg,
+    bool with_unaccounted_rg,
+    bool filter_only_s2
+) {
     // We just use any file that comes in here, no matter what the format.
     auto sam_it = SamVariantInputIterator( infile );
     size_t exp_smp_size = 1;
@@ -55,13 +59,23 @@ void run_sam_bam_cram_test_( std::string const& infile, bool split_by_rg, bool w
         sam_it.split_by_rg( true );
         if( with_unaccounted_rg ) {
             sam_it.with_unaccounted_rg( true );
-            exp_smp_size = 3;
-            exp_rg_tags = std::vector<std::string>{ "S1", "S2", "unaccounted" };
+            if( filter_only_s2 ) {
+                sam_it.rg_tag_filter({ "S2" });
+                exp_smp_size = 2;
+                exp_rg_tags = std::vector<std::string>{ "S2", "unaccounted" };
+            } else {
+                exp_smp_size = 3;
+                exp_rg_tags = std::vector<std::string>{ "S1", "S2", "unaccounted" };
+            }
         } else {
-            // With splitting by rg, but without unaccounted, no reads are left,
-            // as our test files do not have rg tags... so, we expect no data at all.
-            exp_smp_size = 2;
-            exp_rg_tags = std::vector<std::string>{ "S1", "S2" };
+            if( filter_only_s2 ) {
+                sam_it.rg_tag_filter({ "S2" });
+                exp_smp_size = 1;
+                exp_rg_tags = std::vector<std::string>{ "S2" };
+            } else {
+                exp_smp_size = 2;
+                exp_rg_tags = std::vector<std::string>{ "S1", "S2" };
+            }
         }
     }
 
@@ -94,37 +108,78 @@ void run_sam_bam_cram_test_( std::string const& infile, bool split_by_rg, bool w
         // std::cout << "\n";
     }
 
-    EXPECT_EQ( 39234, total_counts.a_count );
-    EXPECT_EQ( 22703, total_counts.c_count );
-    EXPECT_EQ( 20181, total_counts.g_count );
-    EXPECT_EQ( 30232, total_counts.t_count );
-    EXPECT_EQ(    23, total_counts.n_count );
-    EXPECT_EQ(     2, total_counts.d_count );
+    // Test total counts, i.e., sum of all reads.
+    if( filter_only_s2 ) {
+        ASSERT_TRUE( split_by_rg );
+
+        // Only counts of S2 here.
+        EXPECT_EQ( 19853, total_counts.a_count );
+        EXPECT_EQ( 11605, total_counts.c_count );
+        EXPECT_EQ( 10097, total_counts.g_count );
+        EXPECT_EQ( 15128, total_counts.t_count );
+        EXPECT_EQ(    20, total_counts.n_count );
+        EXPECT_EQ(     1, total_counts.d_count );
+    } else{
+        // Sum of S1 and S2.
+        EXPECT_EQ( 39234, total_counts.a_count );
+        EXPECT_EQ( 22703, total_counts.c_count );
+        EXPECT_EQ( 20181, total_counts.g_count );
+        EXPECT_EQ( 30232, total_counts.t_count );
+        EXPECT_EQ(    23, total_counts.n_count );
+        EXPECT_EQ(     2, total_counts.d_count );
+    }
 
     // Test that the samples were split up by RG properly.
     if( split_by_rg ) {
-        EXPECT_EQ( 19381, sample_counts[0].a_count );
-        EXPECT_EQ( 11098, sample_counts[0].c_count );
-        EXPECT_EQ( 10084, sample_counts[0].g_count );
-        EXPECT_EQ( 15104, sample_counts[0].t_count );
-        EXPECT_EQ(     3, sample_counts[0].n_count );
-        EXPECT_EQ(     1, sample_counts[0].d_count );
+        if( filter_only_s2 ) {
 
-        EXPECT_EQ( 19853, sample_counts[1].a_count );
-        EXPECT_EQ( 11605, sample_counts[1].c_count );
-        EXPECT_EQ( 10097, sample_counts[1].g_count );
-        EXPECT_EQ( 15128, sample_counts[1].t_count );
-        EXPECT_EQ(    20, sample_counts[1].n_count );
-        EXPECT_EQ(     1, sample_counts[1].d_count );
+            // With only S2, these are the counts of S2 itself.
+            EXPECT_EQ( 19853, sample_counts[0].a_count );
+            EXPECT_EQ( 11605, sample_counts[0].c_count );
+            EXPECT_EQ( 10097, sample_counts[0].g_count );
+            EXPECT_EQ( 15128, sample_counts[0].t_count );
+            EXPECT_EQ(    20, sample_counts[0].n_count );
+            EXPECT_EQ(     1, sample_counts[0].d_count );
 
-        // The unaccounted is empty, as all reads have proper RG tags in our test files.
-        if( sample_counts.size() == 3 ) {
-            EXPECT_EQ( 0, sample_counts[2].a_count );
-            EXPECT_EQ( 0, sample_counts[2].c_count );
-            EXPECT_EQ( 0, sample_counts[2].g_count );
-            EXPECT_EQ( 0, sample_counts[2].t_count );
-            EXPECT_EQ( 0, sample_counts[2].n_count );
-            EXPECT_EQ( 0, sample_counts[2].d_count );
+            // With unaccounted, we have an additonal sample, but it is empty,
+            // as all reads have proper RG tags in our test files.
+            if( sample_counts.size() == 2 ) {
+                EXPECT_EQ( 0, sample_counts[1].a_count );
+                EXPECT_EQ( 0, sample_counts[1].c_count );
+                EXPECT_EQ( 0, sample_counts[1].g_count );
+                EXPECT_EQ( 0, sample_counts[1].t_count );
+                EXPECT_EQ( 0, sample_counts[1].n_count );
+                EXPECT_EQ( 0, sample_counts[1].d_count );
+            }
+
+        } else {
+
+            // Without filtering, we have S1 counts here...
+            EXPECT_EQ( 19381, sample_counts[0].a_count );
+            EXPECT_EQ( 11098, sample_counts[0].c_count );
+            EXPECT_EQ( 10084, sample_counts[0].g_count );
+            EXPECT_EQ( 15104, sample_counts[0].t_count );
+            EXPECT_EQ(     3, sample_counts[0].n_count );
+            EXPECT_EQ(     1, sample_counts[0].d_count );
+
+            // ... and S2 counts here.
+            EXPECT_EQ( 19853, sample_counts[1].a_count );
+            EXPECT_EQ( 11605, sample_counts[1].c_count );
+            EXPECT_EQ( 10097, sample_counts[1].g_count );
+            EXPECT_EQ( 15128, sample_counts[1].t_count );
+            EXPECT_EQ(    20, sample_counts[1].n_count );
+            EXPECT_EQ(     1, sample_counts[1].d_count );
+
+            // With unaccounted, we have an additonal sample, but it is empty,
+            // as all reads have proper RG tags in our test files.
+            if( sample_counts.size() == 3 ) {
+                EXPECT_EQ( 0, sample_counts[2].a_count );
+                EXPECT_EQ( 0, sample_counts[2].c_count );
+                EXPECT_EQ( 0, sample_counts[2].g_count );
+                EXPECT_EQ( 0, sample_counts[2].t_count );
+                EXPECT_EQ( 0, sample_counts[2].n_count );
+                EXPECT_EQ( 0, sample_counts[2].d_count );
+            }
         }
     }
 }
@@ -133,18 +188,28 @@ TEST( SamBamCram, InputIteratorSam )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
-    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", false, false );
-    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", true, false );
-    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", true, true );
+
+    // We run all test combintations that are possible.
+    // First, no splitting by RG read group tag, then with splitting.
+    // With splitting, we then try all combinations of using unaccounted, and sample filtering.
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", false, false, false );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", true, false, false );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", true, true, false );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", true, false, true );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", true, true, true );
 }
 
 TEST( SamBamCram, InputIteratorBam )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
-    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.bam", false, false );
-    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.bam", true, false );
-    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.bam", true, true );
+
+    // Same as InputIteratorSam, see there.
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.bam", false, false, false );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.bam", true, false, false );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.bam", true, true, false );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.bam", true, false, true );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.bam", true, true, true );
 }
 
 // Cannot use cram at the moment, as it stores the path to the ref fasta/fai files as absolute
@@ -167,9 +232,12 @@ TEST( SamBamCram, InputIteratorCram )
     std::string const env_value = real_path( environment->data_dir + "/population/cram_cache/" );
     setenv( env_name.c_str(), env_value.c_str(), true );
 
-    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", false, false );
-    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", true, false );
-    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", true, true );
+    // Same as InputIteratorSam, see there.
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", false, false, false );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", true, false, false );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", true, true, false );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", true, false, true );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", true, true, true );
 }
 
 #endif // GENESIS_HTSLIB
