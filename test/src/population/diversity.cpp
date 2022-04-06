@@ -30,6 +30,7 @@
 
 #include "src/common.hpp"
 
+#include "genesis/population/formats/simple_pileup_common.hpp"
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/functions/diversity.hpp"

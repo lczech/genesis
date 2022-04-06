@@ -243,23 +243,10 @@ std::pair<char, double> consensus( BaseCounts const& sample, BaseCountsStatus co
 //     Conversion Functions
 // =================================================================================================
 
-BaseCounts convert_to_base_counts(
-    SimplePileupReader::Sample const& sample,
-    unsigned char min_phred_score = 0
-);
-
 /**
  * @brief Output stream operator for BaseCounts instances.
  */
 std::ostream& operator<<( std::ostream& os, BaseCounts const& bs );
-
-/**
- * @brief Output a BaseCounts instance to a stream in the PoPoolation2 sync format.
- *
- * This is one column from that file, outputting the counts separated by colons, in the order
- * `A:T:C:G:N:D`, with `D` being deletions (`*` in pileup).
- */
-std::ostream& to_sync( BaseCounts const& bs, std::ostream& os );
 
 } // namespace population
 } // namespace genesis
