@@ -123,20 +123,20 @@ private:
     /**
      * @brief Implementation detail. Keep per-file data used by htslib/samtools.
      *
-     * This could all be direct members of the Iterator class instead. But we keep them here in
-     * a separate structure, to make it easier in case we ever want to refactor the class to
-     * accept multiple input files at the same time... probably will not happen, but who knows.
-     *
-     * It's also convenient for our read_sam_() function, which expects a single (void)* to
-     * take its data, which this struct collects. We could of course hand over the whole
-     * iterator instead. But this seems slighlty cleaner, to just have the actual data that
-     * is needed for the file itself available in one place.
-     *
-     * Lastly, this allows us to keep the static functions that are needed as htslib callbacks
-     * in here, so that we can apply a PIMPL that removes the needt to include htslib headers
+     * This allows us to keep the static functions that are needed as htslib callbacks
+     * in here, so that we can apply a PIMPL that removes the need to include htslib headers
      * here, so that we do not spam our namespace with them. In particular, the htslib
      * bam_pileup_cd data structure is not properly named (only typdef'ed), so that we cannot
      * forward declare it.
+     *
+     * It's also convenient for our read_sam_() function, which expects a single (void)* to
+     * take its data; this struct here is what we use to cast that void pointer to.
+     * We could of course hand over the whole iterator instead. But this seems slighlty cleaner,
+     * to just have the actual data that is needed for the file itself available in one place.
+     *
+     * This could all be direct members of the Iterator class instead. But we keep them here in
+     * a separate structure, to make it easier in case we ever want to refactor the class to
+     * accept multiple input files at the same time... probably will not happen, but who knows.
      */
     struct SamFileHandle;
 
@@ -149,7 +149,8 @@ public:
     /**
      * @brief %Iterator over loci of the input sources.
      *
-     * This is the class that does the actual work. Use the dereference `operator*()`
+     * This is the class that does the actual work of turning the underlying file data into
+     * our Variant and BaseCounts samples. Use the dereference `operator*()`
      * and `operator->()` to get the Variant at the current locus of the iteration.
      */
     class Iterator
@@ -293,11 +294,6 @@ public:
     private:
 
         /**
-         * @brief Initialize the iterator, and start with the first position.
-         */
-        void init_();
-
-        /**
          * @brief Increment the iterator by moving to the next position.
          */
         void increment_();
@@ -305,8 +301,11 @@ public:
         /**
          * @brief For a given read at the current position during incrementation,
          * tally up its base to the sample that it belongs to.
+         *
+         * This adds the count directly to the sample of the current_variant_ that the @p p read
+         * belongs to (taking care of whether we split by RG tags or not).
          */
-        void tally_up_base_( bam_pileup1_t const* p );
+        void process_base_( bam_pileup1_t const* p );
 
         /**
          * @brief For a given pileup base, get the sample index it belongs to.
