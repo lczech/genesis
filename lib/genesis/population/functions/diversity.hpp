@@ -58,7 +58,8 @@ namespace population {
  *
  * These settings are used for example by theta_pi_pool(), theta_watterson_pool(), and
  * tajima_d_pool(), as well as pool_diversity_measures(), in order to have them in a central place,
- * and avoid ordering confusion that would result from having to provide them individually.
+ * and avoid ordering confusion of function arguments, that would result from having to provide
+ * them individually.
  *
  * Note in particular the setting `with_popoolation_bugs`: There are two major bugs (as far as
  * we are aware) in the PoPoolation implementation:
@@ -72,20 +73,21 @@ namespace population {
  */
 struct PoolDiversitySettings
 {
-    size_t window_width = 0;
-    size_t window_stride = 0;
-    size_t min_phred_score = 0;
-
     size_t poolsize = 0;
+
     size_t min_allele_count = 0;
     size_t min_coverage = 0;
     size_t max_coverage = 0;
-    double min_coverage_fraction = 0.0;
+
     bool with_popoolation_bugs = false;
 };
 
 /**
  * @brief Data struct to collect all diversity statistics computed by pool_diversity_measures().
+ *
+ * This is meant as a simple way to obtain all diversity measures at once. It is slightly
+ * inefficient, as the filtering of variants and the traversal of the input iterator is done
+ * more than necessary. But it should still be fast enough for most applications.
  */
 struct PoolDiversityResults
 {
@@ -95,10 +97,30 @@ struct PoolDiversityResults
     double theta_watterson_relative = 0;
     double tajima_d = 0;
 
+    /**
+     * @brief Count of variants in the iterator range that surpass the
+     * PoolDiversitySettings::min_allele_count setting.
+     */
     size_t variant_count = 0;
-    size_t snp_count = 0;
+
+    /**
+     * @brief Out of the #variant_count many variants, how many are properly covered,
+     * that is, have coverage in between PoolDiversitySettings::min_coverage and
+     * PoolDiversitySettings::max_coverage (both inclusive).
+     *
+     * This is the count that is used to compute the relative versions of Theata Pi and
+     * Theta Watterson as well.
+     */
     size_t coverage_count = 0;
-    double coverage_fraction = 0.0;
+
+    /**
+     * @brief Out of the #variant_count and #coverage_count many variants, how many are SNPs,
+     * that is, have at least two different counts greater than zero.
+     *
+     * Variants that are not SNPs and do not have proper coverage are not considered in the
+     * computation of the diversity measures.
+     */
+    size_t snp_count = 0;
 };
 
 /**
@@ -437,7 +459,7 @@ PoolDiversityResults pool_diversity_measures(
     // Filter all counts that are below the given min count.
     // The following is inefficient, as we do the transform multiple times in all the loops
     // below (note that all statistics functions also loop at least once!). But this function
-    // here is meant as a high level variant, and we have to live with that.
+    // here is meant as a high level function for simplicity, and we have to live with that.
     // Better solution is to run transform_by_min_count() already when adding the samples
     // to the range that we loop over here.
     auto min_filtered_range = utils::make_transform_range(
@@ -470,20 +492,16 @@ PoolDiversityResults pool_diversity_measures(
 
         // Add them up.
         ++results.variant_count;
-        results.snp_count      += static_cast<size_t>( stat.is_snp );
         results.coverage_count += static_cast<size_t>( stat.is_covered );
+        results.snp_count      += static_cast<size_t>( stat.is_snp );
     }
-
-    // Compute coverage over the given range.
-    auto const coverage = static_cast<double>( results.coverage_count );
-    results.coverage_fraction = coverage / static_cast<double>( settings.window_width );
 
     // Make a filter that only allows samples that are SNPs and have the needed coverage.
     auto covered_snps_range = utils::make_filter_range( [&]( BaseCounts const& sample ){
         auto stat = status(
             sample, settings.min_coverage, settings.max_coverage, settings.min_allele_count
         );
-        return stat.is_snp && stat.is_covered;
+        return stat.is_covered && stat.is_snp;
     }, min_filtered_range.begin(), min_filtered_range.end() );
 
     // Compute all values.
@@ -497,6 +515,9 @@ PoolDiversityResults pool_diversity_measures(
         settings, covered_snps_range.begin(), covered_snps_range.end(),
         results.theta_pi_absolute, results.theta_watterson_absolute
     );
+
+    // Compute the relative versions of the values.
+    auto const coverage = static_cast<double>( results.coverage_count );
     results.theta_pi_relative        = results.theta_pi_absolute        / coverage;
     results.theta_watterson_relative = results.theta_watterson_absolute / coverage;
 
