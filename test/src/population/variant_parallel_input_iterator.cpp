@@ -214,7 +214,7 @@ void test_parallel_input_iterator_all_(
     );
 }
 
-TEST( Variant, ParallelInputIterator )
+TEST( ParallelInputIterator, Basics )
 {
     // Test without additional loci.
     // LOG_DBG << "Normal";
