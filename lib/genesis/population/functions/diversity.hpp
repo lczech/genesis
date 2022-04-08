@@ -460,12 +460,12 @@ PoolDiversityResults pool_diversity_measures(
     // The following is inefficient, as we do the transform multiple times in all the loops
     // below (note that all statistics functions also loop at least once!). But this function
     // here is meant as a high level function for simplicity, and we have to live with that.
-    // Better solution is to run transform_by_min_count() already when adding the samples
+    // Better solution is to run transform_zero_out_by_min_count() already when adding the samples
     // to the range that we loop over here.
     auto min_filtered_range = utils::make_transform_range(
         [&]( BaseCounts const& sample ){
             auto copy = sample;
-            transform_by_min_count( copy, settings.min_allele_count );
+            transform_zero_out_by_min_count( copy, settings.min_allele_count );
             return copy;
         },
         begin, end

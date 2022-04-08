@@ -133,7 +133,7 @@ TEST( Structure, FstPool )
         auto pop1_filt = make_transform_range(
             [&]( WindowGen::Window::Entry const& entry ) {
                 auto copy = entry.data[0];
-                transform_by_min_count( copy, settings.min_allele_count );
+                transform_zero_out_by_min_count( copy, settings.min_allele_count );
                 return copy;
             },
             window
@@ -141,7 +141,7 @@ TEST( Structure, FstPool )
         auto pop2_filt = make_transform_range(
             [&]( WindowGen::Window::Entry const& entry ) {
                 auto copy = entry.data[1];
-                transform_by_min_count( copy, settings.min_allele_count );
+                transform_zero_out_by_min_count( copy, settings.min_allele_count );
                 return copy;
             },
             window
