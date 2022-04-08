@@ -238,9 +238,20 @@ void SamVariantInputIterator::SamFileHandle::init_( SamVariantInputIterator cons
     // and set the rg_tags_ to the samples (rg tags) that are there, including any potential
     // filtering.
 
-    // Get all RG read group tags from the header, and add the ones we want to the list.
+    // Get all RG read group tags from the header, and add the tags we want to the list.
+    // We check that the filter only uses tags that are actually in the header,
+    // by making a copy of the filter tags, and removing the ones that are in the header.
+    // Anything that remains is an error.
     auto tags = get_header_rg_tags_();
+    auto filter_tags_copy = parent->rg_tag_filter_;
     for( auto& tag : tags ) {
+
+        // Remove the tag from the filter tag list copy if present. This also works if the tag
+        // is not actually present in the set (erase just doesn't do anything in that case),
+        // which of course it might be, as not all tags will be in the filter (otherwise,
+        // we'd not filter at all, or filter everything).
+        // We do this here before the tag has been moved from below.
+        filter_tags_copy.erase( tag );
 
         // Check if we want to include this rg tag. If not, we indicate that by setting
         // the index to max, so that the function where samples are assessed can ignore them.
@@ -264,6 +275,29 @@ void SamVariantInputIterator::SamFileHandle::init_( SamVariantInputIterator cons
             // as an indicator that the reading step shall skip them.
             rg_tags_.emplace( std::move( tag ), std::numeric_limits<size_t>::max() );
         }
+    }
+
+    // Make sure that all given filters are actually valid according to the header.
+    if( filter_tags_copy.size() > 0 ) {
+        // Nice output of some tags in the header. We need to fetch the tags from the header again,
+        // as we moved from the `tags` list in the loop above. But this is the error case,
+        // so the cost for this is fine.
+        tags = get_header_rg_tags_();
+        std::string hd_tags_msg;
+        if( tags.empty() ) {
+            hd_tags_msg = " Header does not contain any RG tags; there can hence be no filtering.";
+        } else {
+            hd_tags_msg = " First @RG tag that appears in the header: \"" + (*tags.begin()) + "\".";
+        }
+
+        // Error. The filter tags are not empty, as we checked in the condition above.
+        assert( ! filter_tags_copy.empty() );
+        throw std::runtime_error(
+            "Invalid list of @RG read group tags given for filtering the SAM/BAM/CRAM file, "
+            "which do not occur in the @RG list in the header of the file." + hd_tags_msg +
+            " First offending RG tag that appears in the given filter list, "
+            "but not in the header: \"" + (*filter_tags_copy.begin()) + "\"."
+        );
     }
 
     // After the above, we have added all tags to our map. We moved the strings, but the `tags`

@@ -239,4 +239,19 @@ TEST( SamBamCram, InputIteratorCram )
     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", true, true, true );
 }
 
+TEST( SamBamCram, InputIteratorRGFail )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    auto const infile = environment->data_dir + "population/ex1.sam.gz";
+
+    // We just use any file that comes in here, no matter what the format.
+    auto sam_it = SamVariantInputIterator( infile );
+    sam_it.split_by_rg( true );
+
+    // Use an RG tag that does not appear in the file.
+    sam_it.rg_tag_filter({ "XYZ" });
+    EXPECT_ANY_THROW( sam_it.begin() );
+}
+
 #endif // GENESIS_HTSLIB
