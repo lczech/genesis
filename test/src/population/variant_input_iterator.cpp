@@ -158,7 +158,53 @@ TEST( Variant, VcfInputIterator )
     EXPECT_EQ( " 14370 1230237", result );
 }
 
-TEST( Variant, ParallelInputIterator )
+#endif // GENESIS_HTSLIB
+
+TEST( Variant, ParallelInputIterator1 )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Only those that do not depend on htslib here.
+    // See below for a version of this test that does all file types that we currently support.
+
+    // Sync in.
+    std::string const snc_infile = environment->data_dir + "population/test.sync";
+    auto snc_it = make_variant_input_iterator_from_sync_file( snc_infile );
+
+    // Pileup in.
+    std::string const plp_infile = environment->data_dir + "population/example.pileup";
+    auto plp_it = make_variant_input_iterator_from_pileup_file( plp_infile );
+
+    // Make parallel iterator from all source.
+    VariantParallelInputIterator parallel;
+    parallel.add_variant_input_iterator(
+        snc_it, VariantParallelInputIterator::ContributionType::kCarrying
+    );
+    parallel.add_variant_input_iterator(
+        plp_it, VariantParallelInputIterator::ContributionType::kCarrying
+    );
+
+    // Make the iterator.
+    auto it = make_variant_input_iterator_from_variant_parallel_input_iterator( parallel );
+
+    // We expect to find all chromosomes that appear in all of the input files.
+    std::unordered_set<std::string> exp_chromosomes = {
+        "2R", "seq1"
+    };
+
+    // Simple test that the correct region is filtered out.
+    std::unordered_set<std::string> tst_chromosomes;
+    for( auto const& variant : it ) {
+        tst_chromosomes.insert( variant.chromosome );
+        // LOG_DBG << variant.chromosome << ":" << variant.position;
+    }
+    EXPECT_EQ( exp_chromosomes, tst_chromosomes );
+}
+
+#ifdef GENESIS_HTSLIB
+
+TEST( Variant, ParallelInputIterator2 )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
