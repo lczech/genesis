@@ -55,14 +55,16 @@ TEST( Structure, FstPool )
 
     // Settings
     PoolDiversitySettings settings;
+    settings.poolsize = 500;
     settings.min_allele_count = 6;
     settings.min_coverage = 50;
     settings.max_coverage = 200;
-    settings.min_coverage_fraction = 1.0;
-    settings.window_width = 100;
-    settings.window_stride = 100;
-    settings.poolsize = 500;
-    settings.min_phred_score = 20;
+    // settings.min_coverage_fraction = 1.0;
+    // settings.window_width = 100;
+    // settings.window_stride = 100;
+    // settings.min_phred_score = 20;
+    size_t const window_width = 100;
+    size_t const window_stride = 100;
 
     // Expected values.
     std::vector<double> const exp_kofler = {{
@@ -102,7 +104,7 @@ TEST( Structure, FstPool )
     // Prepare the window.
     size_t cnt = 0;
     using WindowGen = SlidingWindowGenerator<std::vector<BaseCounts>>;
-    WindowGen window_gen( SlidingWindowType::kInterval, settings.window_width, settings.window_stride );
+    WindowGen window_gen( SlidingWindowType::kInterval, window_width, window_stride );
     // window_gen.anchor_type( WindowAnchorType::kIntervalMidpoint );
     window_gen.add_emission_plugin( [&]( WindowGen::Window const& window ) {
         if( window.entry_count() == 0 ) {
@@ -131,7 +133,7 @@ TEST( Structure, FstPool )
         auto pop1_filt = make_transform_range(
             [&]( WindowGen::Window::Entry const& entry ) {
                 auto copy = entry.data[0];
-                transform_by_min_count( copy, settings.min_allele_count );
+                transform_zero_out_by_min_count( copy, settings.min_allele_count );
                 return copy;
             },
             window
@@ -139,7 +141,7 @@ TEST( Structure, FstPool )
         auto pop2_filt = make_transform_range(
             [&]( WindowGen::Window::Entry const& entry ) {
                 auto copy = entry.data[1];
-                transform_by_min_count( copy, settings.min_allele_count );
+                transform_zero_out_by_min_count( copy, settings.min_allele_count );
                 return copy;
             },
             window

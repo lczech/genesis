@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/population/formats/variant_parallel_input_iterator.hpp"
+#include "genesis/population/genome_region.hpp"
 #include "genesis/utils/core/algorithm.hpp"
 
 #include <set>
@@ -62,7 +63,7 @@ void test_parallel_input_iterator_(
         s_sel
     );
     pit.add_variant_input_iterator(
-        make_variant_input_iterator_from_vcf_file( v_infile ),
+        make_variant_input_iterator_from_pool_vcf_file( v_infile ),
         v_sel
     );
 
@@ -213,7 +214,7 @@ void test_parallel_input_iterator_all_(
     );
 }
 
-TEST( Variant, ParallelInputIterator )
+TEST( ParallelInputIterator, Basics )
 {
     // Test without additional loci.
     // LOG_DBG << "Normal";

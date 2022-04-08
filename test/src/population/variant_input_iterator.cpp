@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,40 +31,69 @@
 #include "src/common.hpp"
 
 #include "genesis/population/base_counts.hpp"
-#include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/formats/variant_input_iterator.hpp"
-#include "genesis/population/functions/base_counts.hpp"
-#include "genesis/population/functions/variant.hpp"
+#include "genesis/population/formats/variant_parallel_input_iterator.hpp"
+#include "genesis/population/functions/filter_transform.hpp"
+#include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/text/string.hpp"
+
+#include <unordered_set>
 
 using namespace genesis::population;
 using namespace genesis::utils;
+
+#ifdef GENESIS_HTSLIB
+
+TEST( Variant, SamInputIterator )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/ex1.sam.gz";
+    auto it = make_variant_input_iterator_from_sam_file( infile );
+
+    // Add a filter that limits it to a region, and then skips a region inside.
+    it.add_filter(
+        filter_by_region( GenomeRegion( "seq1", 272, 279 ))
+    );
+    it.add_filter(
+        filter_by_region( GenomeRegion( "seq1", 274, 277 ), true )
+    );
+
+    // Add a filter that doesn't do anything
+    it.add_filter(
+        filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
+    );
+
+    // Simple test that the correct region is filtered out.
+    std::string result;
+    for( auto const& variant : it ) {
+        // LOG_DBG << variant.chromosome << ":" << variant.position;
+        result += " " + std::to_string( variant.position );
+    }
+    EXPECT_EQ( " 272 273 278 279", result );
+}
+
+#endif // GENESIS_HTSLIB
 
 TEST( Variant, PileupInputIterator )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/example.pileup";
-
-    // Alternative signature. Not available at the moment.
-    // auto it = VariantInputIterator(
-    //     variant_from_pileup_file( infile )
-    // );
-
     auto it = make_variant_input_iterator_from_pileup_file( infile );
 
     // Add a filter that skips the specified region.
     auto region = GenomeRegion( "seq1", 274, 277 );
     // it.add_filter(
-    //     variant_filter_region( region )
+    //     filter_by_region( region )
     // );
     it.add_filter(
-        variant_filter_region( region, false )
+        filter_by_region( region, true )
     );
 
     // Add a filter that doesn't do anything
     it.add_filter(
-        variant_filter_region( GenomeRegion("not_a_chr", 100, 200), false )
+        filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
     );
 
     // Simple test that the correct region is filtered out.
@@ -80,18 +109,17 @@ TEST( Variant, SyncInputIterator )
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/test.sync";
-
     auto it = make_variant_input_iterator_from_sync_file( infile );
 
     // Add a filter that skips the specified region.
     auto region = GenomeRegion( "2R", 2302, 2302 );
     it.add_filter(
-        variant_filter_region( region, false )
+        filter_by_region( region, true )
     );
 
     // Add a filter that doesn't do anything
     it.add_filter(
-        variant_filter_region( GenomeRegion("not_a_chr", 100, 200), false )
+        filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
     );
 
     // Simple test that the correct region is filtered out.
@@ -102,23 +130,24 @@ TEST( Variant, SyncInputIterator )
     EXPECT_EQ( " 2303 2304 2305", result );
 }
 
+#ifdef GENESIS_HTSLIB
+
 TEST( Variant, VcfInputIterator )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/example_ad.vcf";
-
-    auto it = make_variant_input_iterator_from_vcf_file( infile );
+    auto it = make_variant_input_iterator_from_pool_vcf_file( infile, false, false );
 
     // Add a filter that skips the specified region.
     auto region = GenomeRegion( "20", 17000, 1120000 );
     it.add_filter(
-        variant_filter_region( region, false )
+        filter_by_region( region, true )
     );
 
     // Add a filter that doesn't do anything
     it.add_filter(
-        variant_filter_region( GenomeRegion("not_a_chr", 100, 200), false )
+        filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
     );
 
     // Simple test that the correct region is filtered out.
@@ -128,3 +157,58 @@ TEST( Variant, VcfInputIterator )
     }
     EXPECT_EQ( " 14370 1230237", result );
 }
+
+TEST( Variant, ParallelInputIterator )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // SAM in.
+    std::string const sam_infile = environment->data_dir + "population/ex1.sam.gz";
+    auto sam_it = make_variant_input_iterator_from_sam_file( sam_infile );
+
+    // Sync in.
+    std::string const snc_infile = environment->data_dir + "population/test.sync";
+    auto snc_it = make_variant_input_iterator_from_sync_file( snc_infile );
+
+    // Pileup in.
+    std::string const plp_infile = environment->data_dir + "population/example.pileup";
+    auto plp_it = make_variant_input_iterator_from_pileup_file( plp_infile );
+
+    // VCF in.
+    std::string const vcf_infile = environment->data_dir + "population/example_ad.vcf";
+    auto vcf_it = make_variant_input_iterator_from_pool_vcf_file( vcf_infile, false, false );
+
+    // Make parallel iterator from all source.
+    VariantParallelInputIterator parallel;
+    parallel.add_variant_input_iterator(
+        sam_it, VariantParallelInputIterator::ContributionType::kCarrying
+    );
+    parallel.add_variant_input_iterator(
+        snc_it, VariantParallelInputIterator::ContributionType::kCarrying
+    );
+    parallel.add_variant_input_iterator(
+        plp_it, VariantParallelInputIterator::ContributionType::kCarrying
+    );
+    parallel.add_variant_input_iterator(
+        vcf_it, VariantParallelInputIterator::ContributionType::kCarrying
+    );
+
+    // Make the iterator.
+    auto it = make_variant_input_iterator_from_variant_parallel_input_iterator( parallel );
+
+    // We expect to find all chromosomes that appear in all of the input files.
+    std::unordered_set<std::string> exp_chromosomes = {
+        "20", "2R", "seq1", "seq2"
+    };
+
+    // Simple test that the correct region is filtered out.
+    std::unordered_set<std::string> tst_chromosomes;
+    for( auto const& variant : it ) {
+        tst_chromosomes.insert( variant.chromosome );
+        // LOG_DBG << variant.chromosome << ":" << variant.position;
+    }
+    EXPECT_EQ( exp_chromosomes, tst_chromosomes );
+}
+
+#endif // GENESIS_HTSLIB

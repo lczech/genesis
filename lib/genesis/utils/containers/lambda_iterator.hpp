@@ -24,7 +24,6 @@
     260 Panama Street, Stanford, CA 94305, USA
 */
 
-#include "genesis/utils/containers/optional.hpp"
 #include "genesis/utils/core/thread_pool.hpp"
 
 #include <cassert>
@@ -63,10 +62,8 @@ struct EmptyLambdaIteratorData
  * This class offers an abstraction to get a uniform iterator type over a set of underlying iterators
  * of different type. It expects a function (most likely, you want to use a lambda) that converts
  * the underlying data into the desired type T, which is where the type erasure happens.
- * The data that is iterated over is kept in an @link utils::Optional Optional@endlink,
- * which at the end of the iteration (when the underlying iterator is done) simply has to be
- * returned as @link genesis::utils::nullopt nullopt@endlink by the lambda to indicate the end
- * of the iteration.
+ * The data that is iterated over is stored here, and the end of the iterator is indicated by the
+ * lambda by returning `false`.
  *
  * Example:
  *
@@ -77,13 +74,13 @@ struct EmptyLambdaIteratorData
  *
  *     // Create the conversion with type erasure via the lambda function.
  *     auto generator = LambdaIterator<Variant>(
- *         [beg, end]() mutable -> genesis::utils::Optional<Variant>{
+ *         [beg, end]( Variant& var ) mutable {
  *             if( beg != end ) {
- *                 auto res = utils::make_optional<Variant>( convert_to_variant(*beg) );
+ *                 var =  convert_to_variant(*beg);
  *                 ++beg;
- *                 return res;
+ *                 return true;
  *             } else {
- *                 return genesis::utils::nullopt;
+ *                 return false;
  *             }
  *         }
  *     );
@@ -98,13 +95,13 @@ struct EmptyLambdaIteratorData
  *     // Use a pileup iterator, which does not offer begin and end.
  *     auto it = SimplePileupInputIterator( utils::from_file( pileup_file_.value ), reader );
  *     auto generator = LambdaIterator<Variant>(
- *         [it]() mutable -> genesis::utils::Optional<Variant>{
+ *         [it]( Variant& var ) mutable {
  *             if( it ) {
- *                 auto res = utils::make_optional<Variant>( convert_to_variant(*it) );
+ *                 var = *it;
  *                 ++it;
- *                 return res;
+ *                 return true;
  *             } else {
- *                 return genesis::utils::nullopt;
+ *                 return false;
  *             }
  *         }
  *     );
@@ -131,10 +128,13 @@ struct EmptyLambdaIteratorData
  *
  * Lastly, the class offers block buffering in a separate thread, for speed up. This capability
  * takes care of the underlying iterator processing (including potential file parsing etc),
- * and buffers blocks of elements, so that the actual user function of this class has faster access
- * to it. For example, when processing data along a genome with lots of computations per position,
+ * and buffers blocks of elements, so that the user of this class has faster access to it.
+ * For example, when processing data along a genome with lots of computations per position,
  * it makes sense to run the file reading in a separate thread and buffer positions as needed,
- * which this class does automatically. This can be deactivated by setting the block size to 0.
+ * which this class does automatically. This can be activated by setting the block_size() to the
+ * indended number of elements to be buffered. By default, this is set to 0, meaning that no
+ * buffering is done. Note that small buffer sizes can induce overhead for the thread
+ * synchronisation; we hence recommend to use block sizes of 1000 or greater, as needed.
  *
  * We are aware that with all this extra functionality, the class is slighly overloaded, and that
  * the filters and the block buffering would typically go in separate classes for modularity.
@@ -171,7 +171,7 @@ public:
      * separate thread, in order to speed up iterating over elements that need some processing,
      * such as input files, which is the typical use case of this class.
      */
-    static size_t const DEFAULT_BLOCK_SIZE = 1024;
+    static size_t const DEFAULT_BLOCK_SIZE = 0;
 
     // ======================================================================================
     //      Internal Iterator
@@ -586,20 +586,20 @@ public:
             T& target
         ) {
             assert( generator );
-            bool got_element = false;
+            bool usable_element = false;
             while( true ) {
-                // Get the next element from the input source, stored in an Optional<T>.
-                auto new_elem = generator->get_element_();
+                // Get the next element from the input source.
+                bool const got_element = generator->get_element_( target );
 
-                if( new_elem ) {
+                if( got_element ) {
                     // If this is an element (not yet at the end of the data),
                     // apply all transforms and filters, and get out of here if all of them
                     // return `true`, that is, if none of them wants to filter out the element.
                     // If however one of them returns `false`, we need to find another element.
-                    got_element = true;
+                    usable_element = true;
                     for( auto const& tra_fil : generator->transforms_and_filters_ ) {
-                        got_element = tra_fil( *new_elem );
-                        if( ! got_element ) {
+                        usable_element = tra_fil( target );
+                        if( ! usable_element ) {
                             // If one of the transforms/filters does not want us to continue,
                             // we do not call the others. Break out of the inner loop.
                             break;
@@ -608,24 +608,23 @@ public:
 
                     // If we got out of the above loop without any failing filters,
                     // we have fonud an element, so let's move it to our target.
-                    if( got_element ) {
-                        // We already checked that new_elem holds data, so no need to repeat,
-                        // just assert it. Move, then break out of the while loop.
-                        assert( new_elem );
-                        target = std::move( *new_elem );
+                    if( usable_element ) {
+                        // We already checked that got_element holds data, so no need to repeat,
+                        // just assert it. Done here, break out of the while loop.
+                        assert( got_element );
                         break;
                     }
-                    // Else (got_element == false): Loop again, try the next element.
+                    // Else (usable_element == false): Loop again, try the next element.
 
                 } else {
                     // If this is not a valid element, we reached the end of the input.
                     // We note this in the return value, then break out of the while loop.
-                    assert( new_elem == nullopt );
-                    got_element = false;
+                    assert( ! got_element );
+                    usable_element = false;
                     break;
                 }
             }
-            return got_element;
+            return usable_element;
         }
 
     private:
@@ -660,12 +659,12 @@ public:
     /**
      * @brief Create an iterator over some underlying content.
      *
-     * The constructor expects the function that returns elements as long as there is underlying
-     * data, and returns and empty optional (@link genesis::utils::nullopt nullopt@endlink)
-     * once the end is reached.
+     * The constructor expects the function that takes an element by reference to assign it its
+     * new value at each iteration, and returns `true` if there was an element (iteration still
+     * ongoing), or `false` once the end of the underlying iterator is reached.
      */
     LambdaIterator(
-        std::function<utils::Optional<value_type>()> get_element,
+        std::function<bool(value_type&)> get_element,
         size_t block_size = DEFAULT_BLOCK_SIZE
     )
         : get_element_(get_element)
@@ -673,14 +672,14 @@ public:
     {}
 
     /**
-     * @copydoc LambdaIterator( std::function<utils::Optional<value_type>()>, size_t )
+     * @copydoc LambdaIterator( std::function<bool(value_type&)>, size_t )
      *
      * Additionally, @p data can be given here, which we simply store and make accessible
      * via data(). This is a convenience so that iterators generated via a `make` function
      * can for example forward their input source name for user output.
      */
     LambdaIterator(
-        std::function<utils::Optional<value_type>()> get_element,
+        std::function<bool(value_type&)> get_element,
         Data const& data,
         size_t block_size = DEFAULT_BLOCK_SIZE
     )
@@ -690,12 +689,12 @@ public:
     {}
 
     /**
-     * @copydoc LambdaIterator( std::function<utils::Optional<value_type>()>, Data const&, size_t )
+     * @copydoc LambdaIterator( std::function<bool(value_type&)>, Data const&, size_t )
      *
      * This version of the constructor takes the data by r-value reference, for moving it.
      */
     LambdaIterator(
-        std::function<utils::Optional<value_type>()> get_element,
+        std::function<bool(value_type&)> get_element,
         Data&& data,
         size_t block_size = DEFAULT_BLOCK_SIZE
     )
@@ -837,6 +836,10 @@ public:
      * @brief Set the block size used for buffering the input data.
      *
      * Shall not be changed after iteration has started, that is, after calling begin().
+     *
+     * By default, this is set to 0, meaning that no  buffering is done. Note that small buffer
+     * sizes can induce overhead for the thread synchronisation; we hence recommend to use block
+     * sizes of 1000 or greater, as needed.
      */
     self_type& block_size( size_t value )
     {
@@ -855,7 +858,7 @@ private:
     std::vector<std::function<bool(T&)>> transforms_and_filters_;
 
     // Underlying iterator and associated data.
-    std::function<utils::Optional<value_type>()> get_element_;
+    std::function<bool( value_type& )> get_element_;
     Data data_;
 
     // Block buffering settings.

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2017 Lucas Czech
+# Copyright (C) 2014-2022 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,9 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Contact:
-# Lucas Czech <lucas.czech@h-its.org>
-# Exelixis Lab, Heidelberg Institute for Theoretical Studies
-# Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+# Lucas Czech <lczech@carnegiescience.edu>
+# Department of Plant Biology, Carnegie Institution For Science
+# 260 Panama Street, Stanford, CA 94305, USA
 
 ####################################################################################################
 #    Settings
@@ -107,6 +107,10 @@ if [[ $1 == "gtest" ]] ; then
     mode="gtest"
     shift
 fi
+if [[ $1 == "debug" || $1 == "dbg" || $1 == "gdb" ]] ; then
+    mode="debug"
+    shift
+fi
 if [[ $mode == "none" ]] ; then
     # If the mode was not set by any previous lines,
     # use default.
@@ -132,6 +136,12 @@ fi
 # Special relay mode gtest. Forward the filters, call gtest, then exit.
 if [[ $mode == "gtest" ]] ; then
     ${test_exe} --gtest_filter="${filter}"
+    exit
+fi
+
+# Other special mode debug. Forward the filters, and run gdb on the gtest program.
+if [[ $mode == "debug" ]] ; then
+    gdb -ex=run --args ${test_exe} --gtest_filter="${filter}"
     exit
 fi
 

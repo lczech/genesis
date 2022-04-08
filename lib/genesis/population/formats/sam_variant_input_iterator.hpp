@@ -38,18 +38,19 @@
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/population/variant.hpp"
-
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/core/fs.hpp"
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 // Forward declarations of htslib structs, so that we do not have to include their headers
 // and completely spam our namespace here.
 extern "C" {
+
     struct htsFile;
     struct hts_itr_t;
     struct sam_hdr_t;
@@ -60,6 +61,7 @@ extern "C" {
 
     struct bam_pileup1_t;
     // typedef struct bam_pileup1_t *bam_pileup1_t;
+
 }
 
 namespace genesis {
@@ -94,6 +96,8 @@ namespace population {
  * We however are also able to split by read group (`@RG`), see split_by_rg() and
  * with_unaccounted_rg() for details. In that case, the Variant contains one BaseCounts object
  * per read group, as well as potentially a special one for unaccounted reads with no proper RG.
+ * This can further be filtered by setting rg_tag_filter(), to only consider certain RG tags
+ * as samples to be produced.
  */
 class SamVariantInputIterator
 {
@@ -111,14 +115,43 @@ public:
     using iterator_category = std::input_iterator_tag;
 
     // ======================================================================================
+    //      Sam File Handle
+    // ======================================================================================
+
+private:
+
+    /**
+     * @brief Implementation detail. Keep per-file data used by htslib/samtools.
+     *
+     * This allows us to keep the static functions that are needed as htslib callbacks
+     * in here, so that we can apply a PIMPL that removes the need to include htslib headers
+     * here, so that we do not spam our namespace with them. In particular, the htslib
+     * bam_pileup_cd data structure is not properly named (only typdef'ed), so that we cannot
+     * forward declare it.
+     *
+     * It's also convenient for our read_sam_() function, which expects a single (void)* to
+     * take its data; this struct here is what we use to cast that void pointer to.
+     * We could of course hand over the whole iterator instead. But this seems slighlty cleaner,
+     * to just have the actual data that is needed for the file itself available in one place.
+     *
+     * This could all be direct members of the Iterator class instead. But we keep them here in
+     * a separate structure, to make it easier in case we ever want to refactor the class to
+     * accept multiple input files at the same time... probably will not happen, but who knows.
+     */
+    struct SamFileHandle;
+
+    // ======================================================================================
     //      Internal Iterator
     // ======================================================================================
+
+public:
 
     /**
      * @brief %Iterator over loci of the input sources.
      *
-     * This is the class that does the actual work. Use the dereference `operator*()`
-     * and `operator->()` to get the Variant at the current locus() of the iteration.
+     * This is the class that does the actual work of turning the underlying file data into
+     * our Variant and BaseCounts samples. Use the dereference `operator*()`
+     * and `operator->()` to get the Variant at the current locus of the iteration.
      */
     class Iterator
     {
@@ -137,15 +170,11 @@ public:
     private:
 
         Iterator() = default;
-        Iterator( SamVariantInputIterator const* parent )
-            : parent_( parent )
-        {
-            init_();
-        }
+        Iterator( SamVariantInputIterator const* parent );
 
     public:
 
-        ~Iterator();
+        ~Iterator() = default;
 
         Iterator( self_type const& ) = default;
         Iterator( self_type&& )      = default;
@@ -154,6 +183,7 @@ public:
         Iterator& operator= ( self_type&& )      = default;
 
         friend SamVariantInputIterator;
+        friend SamFileHandle;
 
         // -------------------------------------------------------------------------
         //     Accessors
@@ -189,12 +219,12 @@ public:
             return *this;
         }
 
-        self_type operator ++(int)
-        {
-            auto cpy = *this;
-            increment_();
-            return cpy;
-        }
+        // self_type operator ++(int)
+        // {
+        //     auto cpy = *this;
+        //     increment_();
+        //     return cpy;
+        // }
 
         /**
          * @brief Compare two iterators for equality.
@@ -214,32 +244,48 @@ public:
         }
 
         // -------------------------------------------------------------------------
-        //     Internal Structs
+        //     Data Access
         // -------------------------------------------------------------------------
 
-    private:
+        /**
+         * @brief Get the list of read group `RG` tags as used in the iteration,
+         * or as found in the SAM/BAM/CRAM file.
+         *
+         * This function is useful when
+         * @link SamVariantInputIterator::split_by_rg( bool ) split_by_rg()@endlink is set to `true`,
+         * so that the reads are split by their read group tags. The function then returns
+         * the RG read group tag names, in the same order that the BaseCounts objects are stored
+         * in the resulting Variant of this iterator.
+         *
+         * When additionally
+         * @link SamVariantInputIterator::with_unaccounted_rg( bool ) with_unaccounted_rg()@endlink
+         * is set to `true`, an additional RG tag "unaccounted" is added to the result as a last
+         * element, which is the same position that the unaccounted reads go in the Variant.
+         *
+         * When using rg_tag_filter() to sub-set the RG tags (samples) being processed, this
+         * function by default only returnes those sample names (RG tags) that represent the
+         * final BaseCounts samples of the resulting Variant when iterating the data
+         * (and potentially including the "unaccounted" group).
+         *
+         * If @link SamVariantInputIterator::split_by_rg( bool ) split_by_rg()@endlink is `false`,
+         * we are not splitting by read group tags, so then this function returns an empty vector.
+         * Note that the Variant that is produced during iteration still contains one BaseCounts
+         * sample, which collects all counts from all reads.
+         *
+         * All of the above is ignored if the argument @p all_header_tags is set to `true`.
+         * In that case, the function instead simply returns those RG tags that are present
+         * in the SAM/BAM/CRAM header, without the "unaccounted", and without any filtering.
+         *
+         * Note that this function needs to fill the vector when called. Hence, if this list is
+         * needed often, it is recommended to call this function once and store the result.
+         */
+        std::vector<std::string> rg_tags( bool all_header_tags = false ) const;
 
         /**
-         * @brief Keep per-file data used by htslib/samtools.
+         * @brief Return the size of the Variant::sample vector of BaseCounts that is produced
+         * by the iterator.
          */
-        struct SamFileHandle
-        {
-            // Our main class, for access to settings.
-            SamVariantInputIterator const* parent;
-
-            // File handle.
-            ::htsFile*   hts_file = nullptr;
-
-            // File header.
-            ::sam_hdr_t* sam_hdr  = nullptr;
-
-            // Current iterator.
-            bam_plp_t iter;
-            // ::hts_itr_t* hts_iter = nullptr;
-
-            // List of the @RG read group tags as present in the header.
-            std::unordered_map<std::string, size_t> rg_tags;
-        };
+        size_t sample_size() const;
 
         // -------------------------------------------------------------------------
         //     Internal Members
@@ -248,42 +294,27 @@ public:
     private:
 
         /**
-         * @brief Initialize the iterator, and start with the first position.
-         */
-        void init_();
-
-        /**
          * @brief Increment the iterator by moving to the next position.
          */
         void increment_();
 
         /**
+         * @brief For a given read at the current position during incrementation,
+         * tally up its base to the sample that it belongs to.
+         *
+         * This adds the count directly to the sample of the current_variant_ that the @p p read
+         * belongs to (taking care of whether we split by RG tags or not).
+         */
+        void process_base_( bam_pileup1_t const* p );
+
+        /**
          * @brief For a given pileup base, get the sample index it belongs to.
          *
-         * When using RG read group tags, this corresponds to the index in get_header_rg_tags_().
+         * When using RG read group tags, this corresponds to the index given by the value of
+         * SamFileHandle::rg_tags elements.
          * Without RG tags, we are just using one sample, so this function just returns 0.
          */
         size_t get_sample_index_( bam_pileup1_t const* p ) const;
-
-        /**
-         * @brief Function needed for htslib to process a single read mapped in sam/bam/cram format.
-         *
-         * This function processed a read, tests its mapping quality and flags, and only lets those
-         * reads pass that we actually want to consider for the pileup/variant processing at a given
-         * position.
-         */
-        static int read_sam_( void* data, bam1_t* b );
-
-        /**
-         * @brief Get a list of all `@RG` read group tags in a sam header.
-         *
-         * The returned map has the read group tags as keys, and their index in the RG
-         * list of the input file as values. This makes it possible to do a fast index
-         * lookup for each read, given its RG tag in the file.
-         */
-        std::unordered_map<std::string, size_t> get_header_rg_tags_(
-            ::sam_hdr_t* sam_hdr
-        ) const;
 
     private:
 
@@ -291,7 +322,10 @@ public:
         SamVariantInputIterator const* parent_ = nullptr;
 
         // htslib specific file handling pointers during iteration.
-        SamFileHandle handle_;
+        // We put this in a shared ptr so that the iterator can be copied,
+        // but the htslib data gets only freed once all instances are done.
+        // This also allows PIMPL to avoid including the htslib headers here.
+        std::shared_ptr<SamFileHandle> handle_;
 
         // Current variant object, keeping the base tally of the current locus.
         Variant current_variant_;
@@ -315,14 +349,22 @@ public:
 
     explicit SamVariantInputIterator(
         std::string const& input_file
+    )
+        : SamVariantInputIterator( input_file, std::unordered_set<std::string>{}, false )
+    {}
+
+    SamVariantInputIterator(
+        std::string const& input_file,
+        std::unordered_set<std::string> const& rg_tag_filter,
+        bool inverse_rg_tag_filter = false
     );
 
     ~SamVariantInputIterator() = default;
 
-    SamVariantInputIterator( SamVariantInputIterator const& ) = delete;
+    SamVariantInputIterator( SamVariantInputIterator const& ) = default;
     SamVariantInputIterator( SamVariantInputIterator&& )      = default;
 
-    SamVariantInputIterator& operator= ( SamVariantInputIterator const& ) = delete;
+    SamVariantInputIterator& operator= ( SamVariantInputIterator const& ) = default;
     SamVariantInputIterator& operator= ( SamVariantInputIterator&& )      = default;
 
     // -------------------------------------------------------------------------
@@ -331,6 +373,13 @@ public:
 
     Iterator begin() const
     {
+        // Better error messaging that what htslib would give us if the file did not exist.
+        // We check here, as input_file() allows to change the file after construction,
+        // so we only do the check once we know that we are good to go.
+        if( ! utils::is_file( input_file_ )) {
+            throw std::runtime_error( "Input sam/bam/cram file not found: " + input_file_ );
+        }
+
         return Iterator( this );
     }
 
@@ -340,7 +389,28 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Settings
+    //     Basic Input Settings
+    // -------------------------------------------------------------------------
+
+    std::string const& input_file() const
+    {
+        return input_file_;
+    }
+
+    /**
+     * @brief Set the input file.
+     *
+     * This overwrites the file if it was already given in the constructor.
+     * Shall not be called after iteration has been started.
+     */
+    self_type& input_file( std::string const& value )
+    {
+        input_file_ = value;
+        return *this;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Detail Settings
     // -------------------------------------------------------------------------
 
     int min_map_qual() const
@@ -465,10 +535,57 @@ public:
      * If this option here is however set to `false`, all reads without a read group tag or
      * with an invalid read group tag (that does not appear in the header) are ignored.
      * If split_by_rg() is not set to `true`, this option here is completely ignored.
+     *
+     * See also rg_tag_filter() to sub-set the reads by RG, that is, to ignore reads that have
+     * a proper RG tag set, but that belong to a sample that shall be ignored.
      */
     self_type& with_unaccounted_rg( bool value )
     {
         with_unaccounted_rg_ = value;
+        return *this;
+    }
+
+    std::unordered_set<std::string> const& rg_tag_filter() const
+    {
+        return rg_tag_filter_;
+    }
+
+    /**
+     * @brief Set the sample names used for filtering reads by their RG read group tag.
+     *
+     * Only used when split_by_rg() is set to `true`.
+     * Reads that have an RG read group tag that appears in the header of the input file,
+     * but is not present in the @p value list given here (or in the constructor of the class),
+     * will be ignored. That is, they will also not appear in the "unaccounted" sample,
+     * independently of the setting of with_unaccounted_rg(). The unaccounted sample will only
+     * contain data from those reads that do not have an RG tag at all, or one that does not
+     * appear in the header.
+     *
+     * See also inverse_rg_tag_filter() to inverse this setting, that is, to ignore all given
+     * sample names, instead of ignoring all that are not given here.
+     *
+     * When the given @p value list is empty, the filtering by RG read group tag is deactivated
+     * (which is also the default), independently of the inverse_rg_tag_filter() setting.
+     */
+    self_type& rg_tag_filter( std::unordered_set<std::string> const& value )
+    {
+        rg_tag_filter_ = value;
+        return *this;
+    }
+
+    bool inverse_rg_tag_filter() const
+    {
+        return inverse_rg_tag_filter_;
+    }
+
+    /**
+     * @brief Reverse the meaning of the list of sample names given by rg_tag_filter().
+     *
+     * See there for details.
+     */
+    self_type& inverse_rg_tag_filter( bool value )
+    {
+        inverse_rg_tag_filter_ = value;
         return *this;
     }
 
@@ -509,6 +626,8 @@ private:
 
     bool split_by_rg_ = false;
     bool with_unaccounted_rg_ = false;
+    std::unordered_set<std::string> rg_tag_filter_;
+    bool inverse_rg_tag_filter_ = false;
 
     // Unused / need to investiage if needed
     // int max_indel_depth_ = 250;

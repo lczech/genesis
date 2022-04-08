@@ -30,7 +30,6 @@
 
 #include "genesis/population/functions/structure.hpp"
 
-#include "genesis/population/functions/base_counts.hpp"
 #include "genesis/utils/math/common.hpp"
 
 #include <cassert>

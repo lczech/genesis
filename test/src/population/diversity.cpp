@@ -30,6 +30,7 @@
 
 #include "src/common.hpp"
 
+#include "genesis/population/formats/simple_pileup_common.hpp"
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/functions/diversity.hpp"
@@ -70,14 +71,17 @@ TEST( Population, DiversityMeasures )
 
     // Prepare all settings.
     PoolDiversitySettings settings;
-    settings.window_width = 1000;
-    settings.window_stride = 1000;
-    settings.min_phred_score = 20;
+    // settings.window_width = 1000;
+    // settings.window_stride = 1000;
+    // settings.min_phred_score = 20;
+    size_t const window_width = 1000;
+    size_t const window_stride = 1000;
+    size_t const min_phred_score = 20;
     settings.poolsize = 500;
     settings.min_allele_count = 2;
     settings.min_coverage = 4;
     settings.max_coverage = 70;
-    settings.min_coverage_fraction = 0.6;
+    // settings.min_coverage_fraction = 0.6;
     settings.with_popoolation_bugs = true;
 
     // Expected values for SNP count, coverage fraction,
@@ -128,7 +132,7 @@ TEST( Population, DiversityMeasures )
     size_t iteration_count = 0;
     size_t value_count = 0;
     using WindowGen = SlidingWindowGenerator<BaseCounts>;
-    WindowGen window_gen( SlidingWindowType::kInterval, settings.window_width, settings.window_stride );
+    WindowGen window_gen( SlidingWindowType::kInterval, window_width, window_stride );
     // window_gen.anchor_type( WindowAnchorType::kIntervalMidpoint );
     window_gen.add_emission_plugin( [&]( WindowGen::Window const& window ) {
 
@@ -145,7 +149,11 @@ TEST( Population, DiversityMeasures )
 
         // Compare counts
         EXPECT_EQ( exp_snp_cnt[value_count], stats.snp_count );
-        EXPECT_FLOAT_EQ( exp_cov[value_count], stats.coverage_fraction );
+        // EXPECT_FLOAT_EQ( exp_cov[value_count], stats.coverage_fraction );
+        EXPECT_FLOAT_EQ(
+            exp_cov[value_count],
+            static_cast<double>( stats.coverage_count ) / window_width
+        );
 
         // Compare statistic measures
         EXPECT_FLOAT_EQ( exp_pi[value_count], stats.theta_pi_relative );
@@ -164,7 +172,7 @@ TEST( Population, DiversityMeasures )
         auto const& record = *it;
         ASSERT_EQ( 1, record.samples.size() );
 
-        auto sample = convert_to_base_counts( record.samples[0], settings.min_phred_score );
+        auto sample = convert_to_base_counts( record.samples[0], min_phred_score );
         window_gen.enqueue( record.chromosome, record.position, sample );
     }
     window_gen.finish_chromosome();

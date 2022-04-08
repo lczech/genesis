@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_FUNCTIONS_BASE_COUNTS_H_
-#define GENESIS_POPULATION_FUNCTIONS_BASE_COUNTS_H_
+#ifndef GENESIS_POPULATION_FUNCTIONS_FUNCTIONS_H_
+#define GENESIS_POPULATION_FUNCTIONS_FUNCTIONS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -32,11 +32,12 @@
  */
 
 #include "genesis/population/base_counts.hpp"
-#include "genesis/population/formats/simple_pileup_reader.hpp"
+#include "genesis/population/variant.hpp"
 
+#include <array>
 #include <iosfwd>
-#include <string>
 #include <utility>
+#include <string>
 #include <vector>
 
 namespace genesis {
@@ -155,12 +156,23 @@ BaseCountsStatus status(
     bool tolerate_deletions = false
 );
 
+// =================================================================================================
+//     Counts
+// =================================================================================================
+
 /**
  * @brief Get the count for a @p base given as a char.
  *
  * The given @p base has to be one of `ACGTDN` (case insensitive), or `*#.` for deletions as well.
  */
 size_t get_base_count( BaseCounts const& bc, char base );
+
+/**
+ * @brief Get the summed up total base counts of a Variant.
+ *
+ * This is the same as calling merge() on the samples in the Variant.
+ */
+BaseCounts total_base_counts( Variant const& variant );
 
 // =================================================================================================
 //     Sorting
@@ -183,8 +195,19 @@ std::pair<SortedBaseCounts, SortedBaseCounts> sorted_average_base_counts(
     BaseCounts const& sample_b
 );
 
+/**
+ * @brief Get a list of bases sorted by their counts.
+ *
+ * If @p reference_first is set to `true`, the first entry in the resulting array is always
+ * the reference base of the Variant, while the other three bases are sorted by counts.
+ * If @p reference_first is set to `false`, all four bases are sorted by their counts.
+ */
+SortedBaseCounts sorted_base_counts(
+    Variant const& variant, bool reference_first
+);
+
 // =================================================================================================
-//     Accumulation and other processing
+//     Merging
 // =================================================================================================
 
 /**
@@ -217,6 +240,10 @@ BaseCounts merge( BaseCounts const& p1, BaseCounts const& p2 );
  */
 BaseCounts merge( std::vector<BaseCounts> const& p );
 
+// =================================================================================================
+//     Consensus
+// =================================================================================================
+
 /**
  * @brief Consensus character for a BaseCounts, and its confidence.
  *
@@ -240,31 +267,39 @@ std::pair<char, double> consensus( BaseCounts const& sample );
 std::pair<char, double> consensus( BaseCounts const& sample, BaseCountsStatus const& status );
 
 /**
- * @brief Set the counts of a BaseCounts to zero.
+ * @brief Guess the reference base of a Variant.
+ *
+ * If the Variant already has a `reference_base` in `ACGT`, this base is returned (meaning that
+ * this function is idempotent; it does not change the reference base if there already is one).
+ * However, if the `reference_base` is `N` or any other value not in `ACGT`,
+ * the base with the highest count is returned instead,
+ * unless all counts are 0, in which case the returned reference base is `N`.
  */
-void reset( BaseCounts& counts );
+char guess_reference_base( Variant const& variant );
+
+/**
+ * @brief Guess the alternative base of a Variant.
+ *
+ * If the Variant already has an `alternative_base` in `ACGT` and @p force is not `true`,
+ * this original base is returned (meaning that this function is idempotent; it does not change
+ * the alternative base if there already is one).
+ * However, if the `alternative_base` is `N` or any other char not in `ACGT`, or if @p force is `true`,
+ * the base with the highest count that is not the reference base is returned instead.
+ * This also means that the reference base has to be set to a value in `ACGT`,
+ * as otherwise the concept of an alternative base is meaningless anyway.
+ * If the reference base is not one of `ACGT`, the returned alternative base is `N`.
+ * Furthermore, if all three non-reference bases have count 0, the returned alternative base is `N`.
+ */
+char guess_alternative_base( Variant const& variant, bool force = true );
 
 // =================================================================================================
-//     Conversion Functions
+//     Output
 // =================================================================================================
-
-BaseCounts convert_to_base_counts(
-    SimplePileupReader::Sample const& sample,
-    unsigned char min_phred_score = 0
-);
 
 /**
  * @brief Output stream operator for BaseCounts instances.
  */
 std::ostream& operator<<( std::ostream& os, BaseCounts const& bs );
-
-/**
- * @brief Output a BaseCounts instance to a stream in the PoPoolation2 sync format.
- *
- * This is one column from that file, outputting the counts separated by colons, in the order
- * `A:T:C:G:N:D`, with `D` being deletions (`*` in pileup).
- */
-std::ostream& to_sync( BaseCounts const& bs, std::ostream& os );
 
 } // namespace population
 } // namespace genesis

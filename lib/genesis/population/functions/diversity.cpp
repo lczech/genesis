@@ -464,8 +464,8 @@ double tajima_d_pool_denominator( // get_ddivisor
     if( settings.min_allele_count != 2 ) {
         throw std::invalid_argument(
             "Minimum allele count needs to be set to 2 for calculating pool-corrected Tajima's D "
-            "with tajima_d_pool(). In case 2 is insufficient, we recommend to subsample the reads "
-            "to a smaller coverage."
+            "with tajima_d_pool() according to Kofler et al. In case 2 is insufficient, "
+            "we recommend to subsample the reads to a smaller coverage."
         );
     }
     if( 3 * settings.min_coverage >= settings.poolsize ) {

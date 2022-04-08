@@ -155,9 +155,12 @@ Variant VariantParallelInputIterator::Iterator::joined_variant(
                 bases_init = true;
             }
 
-            // Now check that all inputs have the same bases.
+            // Now check that all inputs have the same bases. We however overwrite any input
+            // that has an N with an input that does not have N, to get the best data.
             if( res.reference_base != variants_[i]->reference_base ) {
-                if( allow_ref_base_mismatches ) {
+                if( res.reference_base == 'N' ) {
+                    res.reference_base = variants_[i]->reference_base;
+                } else if( allow_ref_base_mismatches ) {
                     res.reference_base = 'N';
                 } else {
                     throw std::runtime_error(
@@ -169,7 +172,9 @@ Variant VariantParallelInputIterator::Iterator::joined_variant(
                 }
             }
             if( res.alternative_base != variants_[i]->alternative_base ) {
-                if( allow_alt_base_mismatches ) {
+                if( res.alternative_base == 'N' ) {
+                    res.alternative_base = variants_[i]->alternative_base;
+                } else if( allow_alt_base_mismatches ) {
                     res.alternative_base = 'N';
                 } else {
                     throw std::runtime_error(

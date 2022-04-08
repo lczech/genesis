@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/functions/variant.hpp"
+#include "genesis/population/functions/functions.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/transform_iterator.hpp"
@@ -286,6 +286,12 @@ utils::Matrix<double> f_st_pool_kofler(
     return compute_pairwise_f_st(
         begin, end,
         [&]( size_t i, size_t j, auto p1_begin, auto p1_end, auto p2_begin, auto p2_end ){
+            if( i >= poolsizes.size() || j >= poolsizes.size() ) {
+                throw std::runtime_error(
+                    "In f_st_pool_kofler(): Provided ranges have different lengths that "
+                    "are not identical to the number of poolsizes provided."
+                );
+            }
             return f_st_pool_kofler(
                 poolsizes[i], poolsizes[j],
                 p1_begin, p1_end, p2_begin, p2_end
@@ -380,6 +386,8 @@ utils::Matrix<double> f_st_pool_karlsson(
     return compute_pairwise_f_st(
         begin, end,
         [&]( size_t i, size_t j, auto p1_begin, auto p1_end, auto p2_begin, auto p2_end ){
+            (void) i;
+            (void) j;
             return f_st_pool_karlsson(
                 p1_begin, p1_end, p2_begin, p2_end
             );
@@ -505,6 +513,12 @@ utils::Matrix<double> f_st_pool_spence(
     return compute_pairwise_f_st(
         begin, end,
         [&]( size_t i, size_t j, auto p1_begin, auto p1_end, auto p2_begin, auto p2_end ){
+            if( i >= poolsizes.size() || j >= poolsizes.size() ) {
+                throw std::runtime_error(
+                    "In f_st_pool_spence(): Provided ranges have different lengths that "
+                    "are not identical to the number of poolsizes provided."
+                );
+            }
             return f_st_pool_spence(
                 poolsizes[i], poolsizes[j],
                 p1_begin, p1_end, p2_begin, p2_end

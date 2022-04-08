@@ -31,20 +31,14 @@
  * @ingroup population
  */
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/formats/sam_variant_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 #include "genesis/population/formats/sync_input_iterator.hpp"
 #include "genesis/population/formats/sync_reader.hpp"
 #include "genesis/population/formats/vcf_input_iterator.hpp"
-#include "genesis/population/functions/base_counts.hpp"
-#include "genesis/population/functions/filter_transform.hpp"
-#include "genesis/population/functions/genome_region.hpp"
-#include "genesis/population/functions/variant.hpp"
-#include "genesis/population/genome_region.hpp"
+#include "genesis/population/base_counts.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/utils/containers/lambda_iterator.hpp"
-#include "genesis/utils/containers/optional.hpp"
-#include "genesis/utils/core/fs.hpp"
 
 #include <cassert>
 #include <functional>
@@ -54,6 +48,17 @@
 
 namespace genesis {
 namespace population {
+
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+// Cannot include the header, as it itself needs the VariantInputIterator to be defined first.
+// We could split this whole file into two, one for the VariantInputIterator definition,
+// and one for the functions to create it from sources... Maybe do that in the future.
+// As of now, this forward declaration means that the VariantParallelInputIterator header
+// needs to be included by the user at some point themselves... which they probably do anyway.
+class VariantParallelInputIterator;
 
 // =================================================================================================
 //     Generic Variant Iterator
@@ -88,6 +93,10 @@ struct VariantInputIteratorData
 
     /**
      * @brief Sample names, for example as found in the file header.
+     *
+     * Not all input file formats contain sample names. In that case, this field is left empty,
+     * independent of the number of samples contained in the file. That means that downstream
+     * processing needs to check this if sample names are going to be used (e.g., for output).
      */
     std::vector<std::string> sample_names;
 };
@@ -118,223 +127,193 @@ using VariantInputIterator = utils::LambdaIterator<Variant, VariantInputIterator
 //     Input Sources
 // =================================================================================================
 
-/**
- * @brief Create a VariantInputIterator to iterate the contents of a (m)pileup file as Variant%s.
- */
-inline VariantInputIterator make_variant_input_iterator_from_pileup_file(
-    std::string const& filename,
-    SimplePileupReader reader = {}
-) {
-    // Alternative signature that has to be fed into the VariantInputIterator:
-    // inline std::function<std::shared_ptr<Variant>()> make_variant_input_iterator_from_pileup_file(
-    // auto it = VariantInputIterator(
-    //     variant_from_pileup_file( infile )
-    // );
-
-    // TODO with sample index list --> isnt that already part of the reader?!
-
-    auto it = SimplePileupInputIterator<Variant>(
-        utils::from_file( filename ),
-        reader
-    );
-
-    // Get file base name without path and potential typical extensions.
-    VariantInputIteratorData data;
-    data.file_path = filename;
-    data.source_name = utils::file_basename(
-        filename, { ".gz", ".plp", ".mplp" ".pileup", ".mpileup" }
-    );
-
-    return VariantInputIterator(
-        [ it ]() mutable -> utils::Optional<Variant>{
-            if( it ) {
-                auto res = utils::make_optional<Variant>( *it );
-                ++it;
-                return res;
-            } else {
-                return utils::nullopt;
-            }
-        },
-        std::move( data )
-    );
-}
-
-/**
- * @brief Create a VariantInputIterator to iterate the contents of a PoPoolation2 sync file
- * as Variant%s.
- */
-inline VariantInputIterator make_variant_input_iterator_from_sync_file(
-    std::string const& filename
-) {
-    auto it = SyncInputIterator( utils::from_file( filename ));
-
-    // Get file base name without path and potential extensions.
-    VariantInputIteratorData data;
-    data.file_path = filename;
-    data.source_name = utils::file_basename( filename, { ".gz", ".sync" });
-
-    return VariantInputIterator(
-        [ it ]() mutable -> utils::Optional<Variant>{
-            if( it ) {
-                auto res = utils::make_optional<Variant>( *it );
-                ++it;
-                return res;
-            } else {
-                return utils::nullopt;
-            }
-        },
-        std::move( data )
-    );
-}
+// -------------------------------------------------------------------------
+//     SAM/BAM/CRAM
+// -------------------------------------------------------------------------
 
 // Only available if compiled with htslib
 #ifdef GENESIS_HTSLIB
 
 /**
- * @brief Create a VariantInputIterator to iterate the contents of a VCF file as Variant%s.
+ * @brief Create a VariantInputIterator to iterate the contents of a SAM/BAM/CRAM file as Variant%s.
  *
- * This required the VCF to have the "AD" FORMAT field. It only iterates over those VCF record
- * lines that actually have the "AD" FORMAT provided, as this is the information that we use
- * to convert the samples to Variant%s. All records without that field are skipped.
+ * An instance of SamVariantInputIterator can be provided from which the settings are copied.
+ *
+ * Depending on the settings used in the @p reader, this can either produce a single sample
+ * (one BaseCounts object in the resulting Variant at each position in the genome),
+ * or split the input file by the read group (RG) tag (potentially also allowing for an
+ * "unaccounted" group of reads).
  */
-inline VariantInputIterator make_variant_input_iterator_from_vcf_file(
-    std::string const& filename
-) {
-    // Make an iterator over vcf, and check that the necessary format field AD is present
-    // and of the correct form.
-    auto it = VcfInputIterator( filename );
-    if( ! it.header().has_format( "AD", VcfValueType::kInteger, VcfValueSpecial::kReference )) {
-        throw std::runtime_error(
-            "Cannot iterator over VCF file " + filename + " as Variants, " +
-            "because it does not contain the required \"AD\" FORMAT field. "  +
-            "Note that we expect the samples in the VCF file to represent pools of individuals " +
-            "here, instead of single individuals."
-        );
-    }
-
-    // Get file base name without path and potential extensions.
-    VariantInputIteratorData data;
-    data.file_path = filename;
-    data.source_name = utils::file_basename( filename, { ".gz", ".vcf", ".bcf" });
-
-    return VariantInputIterator(
-        [ it ]() mutable -> utils::Optional<Variant>{
-
-            // Only use the lines that have the AD field, skip all others.
-            while( it && ! it->has_format( "AD" ) ) {
-                ++it;
-            }
-
-            // Now we are either at a record that as the AD field, or at the end.
-            if( it ) {
-                assert( it->has_format( "AD" ) );
-                auto res = utils::make_optional<Variant>( convert_to_variant( *it ));
-                ++it;
-                return res;
-            } else {
-                // If we reached the end of the input, return an empty optional to signal this.
-                return utils::nullopt;
-            }
-        },
-        std::move( data )
-    );
-}
+VariantInputIterator make_variant_input_iterator_from_sam_file(
+    std::string const& filename,
+    SamVariantInputIterator const& reader = SamVariantInputIterator{}
+);
 
 #endif // GENESIS_HTSLIB
 
-// =================================================================================================
-//     Filters
-// =================================================================================================
+// -------------------------------------------------------------------------
+//     Pileup
+// -------------------------------------------------------------------------
 
 /**
- * @brief Filter function to be used with VariantInputIterator to filter by a genome region.
+ * @brief Create a VariantInputIterator to iterate the contents of a (m)pileup file as Variant%s.
  *
- * This function can be used as a filter with VariantInputIterator::add_filter(), in order
- * to only iterate over Variant%s that are in the given @p region (if @p inclusive is `true`, default),
- * or only over Variant%s that are outside of the @p region (if @p inclusive is `false`).
+ * Optionally, this takes a @p reader with settings to be used.
  */
-inline std::function<bool(Variant const&)> variant_filter_region(
-    GenomeRegion const& region,
-    bool inclusive = true
-) {
-    return [region, inclusive]( Variant const& variant ){
-        return (!inclusive) ^ is_covered( region, variant );
-    };
-}
+VariantInputIterator make_variant_input_iterator_from_pileup_file(
+    std::string const& filename,
+    SimplePileupReader const& reader = SimplePileupReader{}
+);
 
 /**
- * @brief Filter function to be used with VariantInputIterator to filter by a list of genome regions.
+ * @brief Create a VariantInputIterator to iterate the contents of a (m)pileup file as Variant%s.
  *
- * This function can be used as a filter with VariantInputIterator::add_filter(), in order
- * to only iterate over Variant%s that are in the given @p regions (if @p inclusive is `true`, default),
- * or only over Variant%s that are outside of the @p regions (if @p inclusive is `false`).
- *
- * The parameter @p copy_regions is an optimization. By default, the function stores a copy of the
- * @p regions, in order to make sure that it is available. However, if it is guaranteed that
- * the @p regions object stays in scope during the VariantInputIterator's livetime, this copy
- * can be avoided.
+ * This uses only the samples at the indices given in the @p sample_indices list.
+ * Optionally, this takes a @p reader with settings to be used.
  */
-inline std::function<bool(Variant const&)> variant_filter_region(
-    GenomeRegionList const& regions,
-    bool inclusive = true,
-    bool copy_regions = true
-) {
-    if( copy_regions ) {
-        return [regions, inclusive]( Variant const& variant ){
-            return (!inclusive) ^ is_covered( regions, variant );
-        };
-    } else {
-        return [&, inclusive]( Variant const& variant ){
-            return (!inclusive) ^ is_covered( regions, variant );
-        };
-    }
-}
+VariantInputIterator make_variant_input_iterator_from_pileup_file(
+    std::string const& filename,
+    std::vector<size_t> const& sample_indices,
+    SimplePileupReader const& reader = SimplePileupReader{}
+);
 
-// TODO
+/**
+ * @brief Create a VariantInputIterator to iterate the contents of a (m)pileup file as Variant%s.
+ *
+ * This uses only the samples at the indices where the @p sample_filter is `true`.
+ * Optionally, this takes a @p reader with settings to be used.
+ */
+VariantInputIterator make_variant_input_iterator_from_pileup_file(
+    std::string const& filename,
+    std::vector<bool> const& sample_filter,
+    SimplePileupReader const& reader = SimplePileupReader{}
+);
 
-// for all and per sample?!
-// we need an NA entry for samples! all zeroes?!
-//
-// --> total sum, and per sample.
-// better: option: all of them have to be good, or at least one of them has to be good
-//
-// variant_filter_min_coverage
-// variant_filter_max_coverage
-// variant_filter_min_max_coverage
-//
-// variant_filter_min_frequency
-// variant_filter_max_frequency
-// variant_filter_min_max_frequency
-//
-// is snp
-//
-// is biallelic
+// -------------------------------------------------------------------------
+//     Sync
+// -------------------------------------------------------------------------
 
-// =================================================================================================
-//     Transformations
-// =================================================================================================
+/**
+ * @brief Create a VariantInputIterator to iterate the contents of a PoPoolation2 sync file
+ * as Variant%s.
+ */
+VariantInputIterator make_variant_input_iterator_from_sync_file(
+    std::string const& filename
+);
 
-// bascially, all of the above filters, but as transforms that set stuff to 0 intead of filtering
-//
-// inline std::functiom<void(Variant&)> variant_transform_min_counts( size_t min_count )
-// {
-//     return [min_count]( Variant& variant ){
-//         for( auto& sample : variant.samples ) {
-//             transform_min_count( sample, min_count );
-//             --> add this function for variants as well first, and use this
-//             (basically just a loop over the other one)
-//             -->> also make this for max and min max, and use these.
-//
-//             --->> then, these already have the function signature that is needed for the iterator~
-//             no need to do a lambda that just calles it!
-//             --> ah no, because we need to capture the min count setting....
-//         }
-//     };
-// }
-//
-// min count to 0
-// max count to 0
-// min max count to 0
+// -------------------------------------------------------------------------
+//     VCF
+// -------------------------------------------------------------------------
+
+// Only available if compiled with htslib
+#ifdef GENESIS_HTSLIB
+
+/**
+ * @brief Create a VariantInputIterator to iterate the contents of a VCF file as Variant%s,
+ * treating each sample as a pool of individuals.
+ *
+ * See convert_to_variant_as_pool( VcfRecord const& ) for details on the conversion from
+ * VcfRecord to Variant.
+ *
+ * This function requires the VCF to have the "AD" FORMAT field. It only iterates over those VCF
+ * record lines that actually have the "AD" FORMAT provided, as this is the information that we use
+ * to convert the samples to Variant%s. All records without that field are skipped.
+ * Only SNP records are processed; that is, all non-SNPs (indels and others) are ignord.
+ *
+ * If @p only_biallelic is set to `true` (default), this is further restricted to only contain
+ * biallelic SNPs, that is, only positions with exactly one alternative allele.
+ *
+ * If @p only_filter_pass is set to `true` (default), only those positions are considered that
+ * have the FILTER field set to "PASS". That is, all variants that did not pass a filter in
+ * the VCF processing are skipped.
+ *
+ * @see See make_variant_input_iterator_from_individual_vcf_file() for the function that instead
+ * interprets the VCF as usual as a set of individuals.
+ */
+VariantInputIterator make_variant_input_iterator_from_pool_vcf_file(
+    std::string const& filename,
+    bool only_biallelic = true,
+    bool only_filter_pass = true
+);
+
+/**
+ * @copydoc make_variant_input_iterator_from_pool_vcf_file( std::string const&, bool, bool )
+ *
+ * Additionally, this version of the function takes a list of @p sample_names which are used as
+ * filter so that only those samples (columns of the VCF records) are evaluated and accessible - or,
+ * if @p inverse_sample_names is set to `true`, instead all <i>but</i> those samples.
+ */
+VariantInputIterator make_variant_input_iterator_from_pool_vcf_file(
+    std::string const& filename,
+    std::vector<std::string> const& sample_names,
+    bool inverse_sample_names = false,
+    bool only_biallelic = true,
+    bool only_filter_pass = true
+);
+
+/**
+ * @brief Create a VariantInputIterator to iterate the contents of a VCF file as Variant%s,
+ * treating each sample as an individual, and combining them all into one BaseCounts sample.
+ *
+ * See convert_to_variant_as_individuals( VcfRecord const&, bool ) for details on the conversion
+ * from VcfRecord to Variant. We only consider biallelic SNP positions here.
+ *
+ * If @p only_filter_pass is set to `true` (default), only those positions are considered that
+ * have the FILTER field set to "PASS". That is, all variants that did not pass a filter in
+ * the VCF processing are skipped.
+ *
+ * @see See make_variant_input_iterator_from_pool_vcf_file() for the function that instead
+ * interprets each sample (column) as a pool of individuals, e.g., from pool sequencing.
+ */
+VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
+    std::string const& filename,
+    bool use_allelic_depth = false,
+    bool only_biallelic = true,
+    bool only_filter_pass = true
+);
+
+/**
+ * @copydoc make_variant_input_iterator_from_individual_vcf_file( std::string const&, bool, bool, bool )
+ *
+ * Additionally, this version of the function takes a list of @p sample_names which are used as
+ * filter so that only those samples (columns of the VCF records) are evaluated and accessible - or,
+ * if @p inverse_sample_names is set to `true`, instead all <i>but</i> those samples.
+ */
+VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
+    std::string const& filename,
+    std::vector<std::string> const& sample_names,
+    bool inverse_sample_names = false,
+    bool use_allelic_depth = false,
+    bool only_biallelic = true,
+    bool only_filter_pass = true
+);
+
+#endif // GENESIS_HTSLIB
+
+// -------------------------------------------------------------------------
+//     Variant Parallel Input Iterator
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Create a VariantInputIterator to iterate multiple input sources at once,
+ * using a VariantParallelInputIterator.
+ *
+ * This wraps multiple input sources into one iterator that traverses all of them in parallel,
+ * and is here then yet again turned into a Variant per position, using
+ * VariantParallelInputIterator::Iterator::joined_variant() to combine all input sources into one.
+ * See there for the meaning of the two `bool` parameters of this function.
+ *
+ * As this is iterating multiple fils, we leave the VariantInputIteratorData::file_path and
+ * VariantInputIteratorData::source_name empty, and fill the VariantInputIteratorData::sample_names
+ * with the sample names of the underlying input sources of the parallel iterator, using
+ * their respective `source_name` as a prefix, separated by a colon, for example `my_bam:S1`
+ * for a source file `/path/to/my_bam.bam` with a RG read group tag `S1`.
+ */
+VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_iterator(
+    VariantParallelInputIterator const& parallel_input,
+    bool allow_ref_base_mismatches = false,
+    bool allow_alt_base_mismatches = true
+);
 
 } // namespace population
 } // namespace genesis
