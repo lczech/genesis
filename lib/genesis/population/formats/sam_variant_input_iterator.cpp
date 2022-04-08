@@ -230,6 +230,19 @@ void SamVariantInputIterator::SamFileHandle::init_( SamVariantInputIterator cons
     // and set the target count to 1, as in that case, we only ever produce one sample,
     // containing the base counts of all reads, independently of their RG tag.
     if( ! parent_->split_by_rg_ ) {
+
+        // Some error checks. If we do not split, some settings shall not be set.
+        if(
+            ! parent_->rg_tag_filter_.empty() ||
+            parent_->inverse_rg_tag_filter_ ||
+            parent_->with_unaccounted_rg_
+        ) {
+            throw std::runtime_error(
+                "Input settings for filtering samples based on their RG tag are set in the "
+                "SAM/BAM/CRAM reader, but the RG tag splitting is not activated in the reader."
+            );
+        }
+
         target_sample_count_ = 1;
         return;
     }

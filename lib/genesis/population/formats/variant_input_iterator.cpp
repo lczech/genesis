@@ -33,7 +33,9 @@
 #include "genesis/population/formats/variant_parallel_input_iterator.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/math/bitvector/helper.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <memory>
@@ -41,6 +43,81 @@
 
 namespace genesis {
 namespace population {
+
+// =================================================================================================
+//     Local Helpers
+// =================================================================================================
+
+/**
+ * @brief Local helper function template that takes care of intilizing an input iterator,
+ * and setting the sample filters, for those iterators for which we do not know the number
+ * of samples prior to starting the file iteration.
+ *
+ * The template arguments are: `T` the returned type of input iterator, and `R` the underlying
+ * reader type. This is very specific for the use case here, and currently is only meant for how
+ * we work with the SimplePileupReader and the SyncReader and their iterators. Both their
+ * iterators accept a reader to take settings from.
+ */
+template<class T, class R>
+std::shared_ptr<T> make_input_iterator_with_sample_filter_(
+    std::string const& filename,
+    R const& reader,
+    std::vector<size_t> const& sample_indices,
+    bool inverse_sample_indices,
+    std::vector<bool> const& sample_filter
+) {
+    // Prepare a reader. We switch depending on the type of filter.
+    // Not both can be given by the way that this function is called; assert that.
+    assert( sample_indices.empty() || sample_filter.empty() );
+
+    std::shared_ptr<T> input;
+    if( ! sample_indices.empty() ) {
+
+        // When we have indices given, we need to open the file once to get the number of samples
+        // in the file, then create our correctly sized bool vector, and then open the file again
+        // to start iterating with the filter. Cumbersome, but an unfortunate detail of the
+        // current implementation. Might need fixing later.
+        input = std::make_shared<T>( utils::from_file( filename ), reader );
+        auto const smp_cnt = (*input)->samples.size();
+
+        // Make the filter. We check the condition that the make function checks here as well,
+        // as the error message is super not helpful for users otherwise. See there for details.
+        auto max_it = std::max_element( sample_indices.begin(), sample_indices.end() );
+        if( *max_it + 1 > smp_cnt ) {
+            throw std::invalid_argument(
+                "In " + filename + ": "
+                "Cannot create sample filter for the input file, as the filter index list contains "
+                "entries for " + std::to_string( *max_it + 1 ) + " samples, "
+                "while the input file only contains " + std::to_string( smp_cnt ) + " samples."
+            );
+        }
+
+        // Now make a bool filter, inverse as needed, and restart the file with it.
+        auto smp_flt = utils::make_bool_vector_from_indices( sample_indices, smp_cnt );
+        if( inverse_sample_indices ) {
+            smp_flt.flip();
+        }
+        input = std::make_shared<T>(
+            utils::from_file( filename ),
+            smp_flt,
+            reader
+        );
+
+    } else if( ! sample_filter.empty() ) {
+        input = std::make_shared<T>(
+            utils::from_file( filename ),
+            sample_filter,
+            reader
+        );
+    } else {
+        input = std::make_shared<T>(
+            utils::from_file( filename ),
+            reader
+        );
+    }
+    assert( input );
+    return input;
+}
 
 // =================================================================================================
 //     SAM/BAM/CRAM
@@ -117,32 +194,15 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file_(
     std::string const& filename,
     SimplePileupReader const& reader,
     std::vector<size_t> const& sample_indices,
+    bool inverse_sample_indices,
     std::vector<bool> const& sample_filter
 ) {
-    // Prepare a reader. We switch depending on the type of filter.
-    // Not both can be given by the way that this function is called; assert that.
-    assert( sample_indices.empty() || sample_filter.empty() );
-
-    std::shared_ptr<SimplePileupInputIterator<Variant>> input;
-    if( ! sample_indices.empty() ) {
-        input = std::make_shared<SimplePileupInputIterator<Variant>>(
-            utils::from_file( filename ),
-            sample_indices,
-            reader
-        );
-    } else if( ! sample_filter.empty() ) {
-        input = std::make_shared<SimplePileupInputIterator<Variant>>(
-            utils::from_file( filename ),
-            sample_filter,
-            reader
-        );
-    } else {
-        input = std::make_shared<SimplePileupInputIterator<Variant>>(
-            utils::from_file( filename ),
-            reader
-        );
-    }
-    assert( input );
+    // Get the input, taking care of the filters.
+    auto input = make_input_iterator_with_sample_filter_<
+        SimplePileupInputIterator<Variant>, SimplePileupReader
+    >(
+        filename, reader, sample_indices, inverse_sample_indices, sample_filter
+    );
 
     // Get the data, using the file base name without path and potential extensions as source.
     VariantInputIteratorData data;
@@ -179,17 +239,18 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file(
     SimplePileupReader const& reader
 ) {
     return make_variant_input_iterator_from_pileup_file_(
-        filename, reader, std::vector<size_t>{}, std::vector<bool>{}
+        filename, reader, std::vector<size_t>{}, false, std::vector<bool>{}
     );
 }
 
 VariantInputIterator make_variant_input_iterator_from_pileup_file(
     std::string const& filename,
     std::vector<size_t> const& sample_indices,
+    bool inverse_sample_indices,
     SimplePileupReader const& reader
 ) {
     return make_variant_input_iterator_from_pileup_file_(
-        filename, reader, sample_indices, std::vector<bool>{}
+        filename, reader, sample_indices, inverse_sample_indices, std::vector<bool>{}
     );
 }
 
@@ -199,7 +260,7 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file(
     SimplePileupReader const& reader
 ) {
     return make_variant_input_iterator_from_pileup_file_(
-        filename, reader, std::vector<size_t>{}, sample_filter
+        filename, reader, std::vector<size_t>{}, false, sample_filter
     );
 }
 
@@ -207,11 +268,20 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file(
 //     Sync
 // =================================================================================================
 
-VariantInputIterator make_variant_input_iterator_from_sync_file(
-    std::string const& filename
+VariantInputIterator make_variant_input_iterator_from_sync_file_(
+    std::string const& filename,
+    std::vector<size_t> const& sample_indices,
+    bool inverse_sample_indices,
+    std::vector<bool> const& sample_filter
 ) {
-    // Prepare a reader.
-    auto input = std::make_shared<SyncInputIterator>( utils::from_file( filename ));
+    // Get the input, taking care of the filters. We use a default reader here,
+    // as sync currently does not have any settings that a reader would neeed to take care of.
+    auto input = make_input_iterator_with_sample_filter_<
+        SyncInputIterator, SyncReader
+    >(
+        filename, SyncReader(), sample_indices, inverse_sample_indices, sample_filter
+    );
+    // auto input = std::make_shared<SyncInputIterator>( utils::from_file( filename ));
 
     // Get the data, using the file base name without path and potential extensions as source.
     VariantInputIteratorData data;
@@ -238,6 +308,33 @@ VariantInputIterator make_variant_input_iterator_from_sync_file(
             }
         },
         std::move( data )
+    );
+}
+
+VariantInputIterator make_variant_input_iterator_from_sync_file(
+    std::string const& filename
+) {
+    return make_variant_input_iterator_from_sync_file_(
+        filename, std::vector<size_t>{}, false, std::vector<bool>{}
+    );
+}
+
+VariantInputIterator make_variant_input_iterator_from_sync_file(
+    std::string const& filename,
+    std::vector<size_t> const& sample_indices,
+    bool inverse_sample_indices
+) {
+    return make_variant_input_iterator_from_sync_file_(
+        filename, sample_indices, inverse_sample_indices, std::vector<bool>{}
+    );
+}
+
+VariantInputIterator make_variant_input_iterator_from_sync_file(
+    std::string const& filename,
+    std::vector<bool> const& sample_filter
+) {
+    return make_variant_input_iterator_from_sync_file_(
+        filename, std::vector<size_t>{}, false, sample_filter
     );
 }
 

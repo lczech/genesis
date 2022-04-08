@@ -83,26 +83,26 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
     return result;
 }
 
-std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
-    std::shared_ptr< utils::BaseInputSource > source,
-    std::vector<size_t> const& sample_indices
-) const {
-    std::vector<SimplePileupReader::Record> result;
-    utils::InputStream it( source );
-
-    // Convert the list of indices to a bool vec that tells which samples we want to process.
-    auto const sample_filter = utils::make_bool_vector_from_indices( sample_indices );
-
-    // Read, with correct order check, just in case.
-    std::string cur_chr = "";
-    size_t      cur_pos = 0;
-    Record rec;
-    while( parse_line_( it, rec, sample_filter, true )) {
-        process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, rec.chromosome, rec.position );
-        result.push_back( rec );
-    }
-    return result;
-}
+// std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
+//     std::shared_ptr< utils::BaseInputSource > source,
+//     std::vector<size_t> const& sample_indices
+// ) const {
+//     std::vector<SimplePileupReader::Record> result;
+//     utils::InputStream it( source );
+//
+//     // Convert the list of indices to a bool vec that tells which samples we want to process.
+//     auto const sample_filter = utils::make_bool_vector_from_indices( sample_indices );
+//
+//     // Read, with correct order check, just in case.
+//     std::string cur_chr = "";
+//     size_t      cur_pos = 0;
+//     Record rec;
+//     while( parse_line_( it, rec, sample_filter, true )) {
+//         process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, rec.chromosome, rec.position );
+//         result.push_back( rec );
+//     }
+//     return result;
+// }
 
 std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
     std::shared_ptr< utils::BaseInputSource > source,
@@ -143,26 +143,26 @@ std::vector<Variant> SimplePileupReader::read_variants(
     return result;
 }
 
-std::vector<Variant> SimplePileupReader::read_variants(
-    std::shared_ptr< utils::BaseInputSource > source,
-    std::vector<size_t> const& sample_indices
-) const {
-    std::vector<Variant> result;
-    utils::InputStream it( source );
-
-    // Convert the list of indices to a bool vec that tells which samples we want to process.
-    auto const sample_filter = utils::make_bool_vector_from_indices( sample_indices );
-
-    // Read, with correct order check, just in case.
-    std::string cur_chr = "";
-    size_t      cur_pos = 0;
-    Variant var;
-    while( parse_line_( it, var, sample_filter, true )) {
-        process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, var.chromosome, var.position );
-        result.push_back( var );
-    }
-    return result;
-}
+// std::vector<Variant> SimplePileupReader::read_variants(
+//     std::shared_ptr< utils::BaseInputSource > source,
+//     std::vector<size_t> const& sample_indices
+// ) const {
+//     std::vector<Variant> result;
+//     utils::InputStream it( source );
+//
+//     // Convert the list of indices to a bool vec that tells which samples we want to process.
+//     auto const sample_filter = utils::make_bool_vector_from_indices( sample_indices );
+//
+//     // Read, with correct order check, just in case.
+//     std::string cur_chr = "";
+//     size_t      cur_pos = 0;
+//     Variant var;
+//     while( parse_line_( it, var, sample_filter, true )) {
+//         process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, var.chromosome, var.position );
+//         result.push_back( var );
+//     }
+//     return result;
+// }
 
 std::vector<Variant> SimplePileupReader::read_variants(
     std::shared_ptr< utils::BaseInputSource > source,
@@ -299,8 +299,8 @@ bool SimplePileupReader::parse_line_(
 
     // Read the samples. We switch once for the first line, and thereafter check that we read the
     // same number of samples each time.
+    size_t src_index = 0;
     if( target.samples.empty() ) {
-        size_t src_index = 0;
         while( it && *it != '\n' ) {
             if(
                 ! use_sample_filter ||
@@ -316,7 +316,6 @@ bool SimplePileupReader::parse_line_(
     } else {
         // Here we need two indices, one over the samples in the file (source),
         // and one for the samples that we are writing in our Record (destination).
-        size_t src_index = 0;
         size_t dst_index = 0;
         while( it && *it != '\n' ) {
             if(
@@ -344,6 +343,12 @@ bool SimplePileupReader::parse_line_(
                 ": Line with different number of samples."
             );
         }
+    }
+    if( use_sample_filter && src_index != sample_filter.size() ) {
+        throw std::runtime_error(
+            "Malformed pileup " + it.source_name() + " at " + it.at() +
+            ": Number of samples in the line does not match the number of filter entries."
+        );
     }
 
     assert( !it || *it == '\n' );

@@ -225,6 +225,16 @@ inline size_t nucleotide_sum( BaseCounts const& sample )
 }
 
 /**
+ * @copybrief nucleotide_sum( BaseCounts const& )
+ *
+ * See nucleotide_sum() for details. This function gives the sum over all samples in the Variant.
+ */
+inline size_t total_nucleotide_sum( Variant const& variant )
+{
+    return nucleotide_sum( total_base_counts( variant ));
+}
+
+/**
  * @brief Merge the counts of two BaseCounts%s, by adding the counts of the second (@p p2)
  * to the first (@p p1).
  */

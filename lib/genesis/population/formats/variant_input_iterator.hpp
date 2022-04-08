@@ -143,6 +143,10 @@ using VariantInputIterator = utils::LambdaIterator<Variant, VariantInputIterator
  * (one BaseCounts object in the resulting Variant at each position in the genome),
  * or split the input file by the read group (RG) tag (potentially also allowing for an
  * "unaccounted" group of reads).
+ *
+ * The other `make_variant_input_iterator_...` functions offer settings to sub-set (filter) the
+ * samples based on their names or indices. This can be achieved here as well, but has instead to
+ * be done directly in the @p reader, instead of providing the fitler arguments to this function.
  */
 VariantInputIterator make_variant_input_iterator_from_sam_file(
     std::string const& filename,
@@ -168,12 +172,20 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file(
 /**
  * @brief Create a VariantInputIterator to iterate the contents of a (m)pileup file as Variant%s.
  *
- * This uses only the samples at the indices given in the @p sample_indices list.
+ * This uses only the samples at the zero-based indices given in the @p sample_indices list.
+ * If @p inverse_sample_indices is `true`, this list is inversed, that is, all sample indices _but_
+ * the ones listed are included in the output.
+ *
+ * For example, given a list `{ 0, 2 }` and a file with 4 samples, only the first and the third
+ * sample will be in the output. When however @p inverse_sample_indices is also set, then the output
+ * will contain the second and fourth sample.
+ *
  * Optionally, this takes a @p reader with settings to be used.
  */
 VariantInputIterator make_variant_input_iterator_from_pileup_file(
     std::string const& filename,
     std::vector<size_t> const& sample_indices,
+    bool inverse_sample_indices = false,
     SimplePileupReader const& reader = SimplePileupReader{}
 );
 
@@ -199,6 +211,36 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file(
  */
 VariantInputIterator make_variant_input_iterator_from_sync_file(
     std::string const& filename
+);
+
+/**
+ * @brief Create a VariantInputIterator to iterate the contents of a PoPoolation2 sync file
+ * as Variant%s.
+ *
+ * This uses only the samples at the zero-based indices given in the @p sample_indices list.
+ * If @p inverse_sample_indices is `true`, this list is inversed, that is, all sample indices _but_
+ * the ones listed are included in the output.
+ *
+ * For example, given a list `{ 0, 2 }` and a file with 4 samples, only the first and the third
+ * sample will be in the output. When however @p inverse_sample_indices is also set, then the output
+ * will contain the second and fourth sample.
+ */
+VariantInputIterator make_variant_input_iterator_from_sync_file(
+    std::string const& filename,
+    std::vector<size_t> const& sample_indices,
+    bool inverse_sample_indices = false
+);
+
+/**
+ * @brief Create a VariantInputIterator to iterate the contents of a PoPoolation2 sync file
+ * as Variant%s.
+ *
+ * This uses only the samples at the indices where the @p sample_filter is `true`.
+ * Optionally, this takes a @p reader with settings to be used.
+ */
+VariantInputIterator make_variant_input_iterator_from_sync_file(
+    std::string const& filename,
+    std::vector<bool> const& sample_filter
 );
 
 // -------------------------------------------------------------------------
@@ -303,7 +345,7 @@ VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
  * VariantParallelInputIterator::Iterator::joined_variant() to combine all input sources into one.
  * See there for the meaning of the two `bool` parameters of this function.
  *
- * As this is iterating multiple fils, we leave the VariantInputIteratorData::file_path and
+ * As this is iterating multiple files, we leave the VariantInputIteratorData::file_path and
  * VariantInputIteratorData::source_name empty, and fill the VariantInputIteratorData::sample_names
  * with the sample names of the underlying input sources of the parallel iterator, using
  * their respective `source_name` as a prefix, separated by a colon, for example `my_bam:S1`

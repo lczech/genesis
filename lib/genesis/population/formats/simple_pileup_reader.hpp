@@ -180,22 +180,20 @@ public:
      */
     std::vector<Record> read_records( std::shared_ptr< utils::BaseInputSource > source ) const;
 
-    /**
-     * @brief Read an (m)pileup file line by line, but only the samples at the given indices,
-     * as pileup Record%s.
-     */
-    std::vector<Record> read_records(
-        std::shared_ptr< utils::BaseInputSource > source,
-        std::vector<size_t> const&                sample_indices
-    ) const;
+    // /* *
+    //  * @brief Read an (m)pileup file line by line, but only the samples at the given indices,
+    //  * as pileup Record%s.
+    //  */
+    // std::vector<Record> read_records(
+    //     std::shared_ptr< utils::BaseInputSource > source,
+    //     std::vector<size_t> const&                sample_indices
+    // ) const;
 
     /**
      * @brief Read an (m)pileup file line by line, but only the samples at which the
      * @p sample_filter is `true`, as pileup Record%s.
      *
-     * This filter does not need to contain the same number of values as the record has samples.
-     * If it is shorter, all samples after its last index will be ignored. If it is longer,
-     * the remaining entries are not used as a filter.
+     * We expect this filter to contain the same number of values as the record has samples.
      */
     std::vector<Record> read_records(
         std::shared_ptr< utils::BaseInputSource > source,
@@ -211,22 +209,20 @@ public:
      */
     std::vector<Variant> read_variants( std::shared_ptr< utils::BaseInputSource > source ) const;
 
-    /**
-     * @brief Read an (m)pileup file line by line, but only the samples at the given indices,
-     * as Variant%s.
-     */
-    std::vector<Variant> read_variants(
-        std::shared_ptr< utils::BaseInputSource > source,
-        std::vector<size_t> const&                sample_indices
-    ) const;
+    // /* *
+    //  * @brief Read an (m)pileup file line by line, but only the samples at the given indices,
+    //  * as Variant%s.
+    //  */
+    // std::vector<Variant> read_variants(
+    //     std::shared_ptr< utils::BaseInputSource > source,
+    //     std::vector<size_t> const&                sample_indices
+    // ) const;
 
     /**
      * @brief Read an (m)pileup file line by line, but only the samples at which the
      * @p sample_filter is `true`, as Variant%s.
      *
-     * This filter does not need to contain the same number of values as the record has samples.
-     * If it is shorter, all samples after its last index will be ignored. If it is longer,
-     * the remaining entries are not used as a filter.
+     * We expect this filter to contain the same number of values as the record has samples.
      */
     std::vector<Variant> read_variants(
         std::shared_ptr< utils::BaseInputSource > source,
@@ -254,9 +250,7 @@ public:
      * @brief Read an (m)pileup line, but only the samples at which the @p sample_filter is `true`,
      * as a Record.
      *
-     * This filter does not need to contain the same number of values as the record has samples.
-     * If it is shorter, all samples after its last index will be ignored. If it is longer,
-     * the remaining entries are not used as a filter.
+     * We expect this filter to contain the same number of values as the record has samples.
      *
      * @copydetails SimplePileupReader::parse_line_record( utils::InputStream&, SimplePileupReader::Record& ) const
      */
@@ -284,9 +278,7 @@ public:
      * @brief Read an (m)pileup line, but only the samples at which the @p sample_filter is `true`,
      * as a Variant.
      *
-     * This filter does not need to contain the same number of values as the line has samples.
-     * If it is shorter, all samples after its last index will be ignored. If it is longer,
-     * the remaining entries are not used as a filter.
+     * We expect this filter to contain the same number of values as the record has samples.
      *
      * @copydetails SimplePileupReader::parse_line_record( utils::InputStream&, SimplePileupReader::Record& ) const
      */

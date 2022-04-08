@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/math/bitvector/helper.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
 
 #include <cstdlib>
@@ -142,4 +143,23 @@ TEST( Bitvector, Streams )
     istr.clear();
     istr >> cp;
     EXPECT_EQ( bv, cp );
+}
+
+TEST( Bitvector, BoolVec )
+{
+    {
+        auto const v = make_bool_vector_from_indices( { 1, 3, 5 } );
+        auto const e = std::vector<bool>{ false, true, false, true, false, true };
+        EXPECT_EQ( e, v );
+    }
+    {
+        auto const v = make_bool_vector_from_indices( { 1, 3, 5 }, 8 );
+        auto const e = std::vector<bool>{ false, true, false, true, false, true, false, false };
+        EXPECT_EQ( e, v );
+    }
+    {
+        // Size smaller than largest index.
+        // Here, the size is 5 elements, 0-4, but the largest index is 5.
+        EXPECT_ANY_THROW( make_bool_vector_from_indices( { 1, 3, 5 }, 5 ));
+    }
 }

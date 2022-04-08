@@ -65,7 +65,7 @@ TEST( Sync, SyncReader )
     EXPECT_EQ( 0, data[0].samples[0].d_count );
 
     EXPECT_EQ( 0, data[0].samples[1].a_count );
-    EXPECT_EQ( 7, data[0].samples[1].t_count );
+    EXPECT_EQ( 6, data[0].samples[1].t_count );
     EXPECT_EQ( 0, data[0].samples[1].c_count );
     EXPECT_EQ( 0, data[0].samples[1].g_count );
     EXPECT_EQ( 0, data[0].samples[1].n_count );
@@ -287,7 +287,7 @@ TEST( Sync, SyncInputIterator )
 
     // Test second column sum
     EXPECT_EQ(  0, sum_while[1].a_count );
-    EXPECT_EQ( 15, sum_while[1].t_count );
+    EXPECT_EQ( 14, sum_while[1].t_count );
     EXPECT_EQ( 18, sum_while[1].c_count );
     EXPECT_EQ(  1, sum_while[1].g_count );
     EXPECT_EQ(  0, sum_while[1].n_count );
@@ -315,9 +315,52 @@ TEST( Sync, SyncInputIterator )
 
     // Test second column sum
     EXPECT_EQ(  0, sum_for[1].a_count );
-    EXPECT_EQ( 15, sum_for[1].t_count );
+    EXPECT_EQ( 14, sum_for[1].t_count );
     EXPECT_EQ( 18, sum_for[1].c_count );
     EXPECT_EQ(  1, sum_for[1].g_count );
     EXPECT_EQ(  0, sum_for[1].n_count );
     EXPECT_EQ(  0, sum_for[1].d_count );
+}
+
+TEST( Sync, SampleFilter )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/test.sync";
+
+    // Working, no samples.
+    {
+        // Just testing first position, as this is enough for here.
+        auto it = SyncInputIterator( from_file( infile ), std::vector<bool>{ false, false } );
+        EXPECT_EQ( 0, it->samples.size() );
+    }
+
+    // Working, sample 1.
+    {
+        // Just testing first position, as this is enough for here.
+        auto it = SyncInputIterator( from_file( infile ), std::vector<bool>{ true, false } );
+        EXPECT_EQ( 1, it->samples.size() );
+        EXPECT_EQ( 7, it->samples[0].t_count );
+    }
+
+    // Working, sample 2.
+    {
+        // Just testing first position, as this is enough for here.
+        auto it = SyncInputIterator( from_file( infile ), std::vector<bool>{ false, true } );
+        EXPECT_EQ( 1, it->samples.size() );
+        EXPECT_EQ( 6, it->samples[0].t_count );
+    }
+
+    // Working, both samples.
+    {
+        // Just testing first position, as this is enough for here.
+        auto it = SyncInputIterator( from_file( infile ), std::vector<bool>{ true, true } );
+        EXPECT_EQ( 2, it->samples.size() );
+        EXPECT_EQ( 7, it->samples[0].t_count );
+        EXPECT_EQ( 6, it->samples[1].t_count );
+    }
+
+    // Throwing as number of samples is wrong.
+    EXPECT_ANY_THROW( SyncInputIterator( from_file( infile ), std::vector<bool>{ true } ));
+    EXPECT_ANY_THROW( SyncInputIterator( from_file( infile ), std::vector<bool>{ true, false, false } ));
 }
