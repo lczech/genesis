@@ -30,6 +30,7 @@
 
 #include "genesis/population/formats/variant_input_iterator.hpp"
 
+#include "genesis/population/formats/variant_parallel_input_iterator.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
 
@@ -61,8 +62,8 @@ VariantInputIterator make_variant_input_iterator_from_sam_file(
     // Get the iterators. We store them by copy in the lambda, and these copies are kept alive
     // when returning from this function.
     assert( input );
-    auto begin = input->begin();
-    auto end   = input->end();
+    auto cur = input->begin();
+    auto end = input->end();
 
     // Get the data, using the file base name without path and potential extensions as source.
     VariantInputIteratorData data;
@@ -72,14 +73,14 @@ VariantInputIterator make_variant_input_iterator_from_sam_file(
     // Get the sample names from the read group tags. If they are empty, because the reader
     // was not set up to split by read group tags, we instead use an empty name, to indicate that
     // there is one unnamed sample.
-    data.sample_names = begin.rg_tags();
+    data.sample_names = cur.rg_tags();
     if( data.sample_names.empty() ) {
         // We could have an input file where we want to split by RG, but no RG are set in the
         // header. When not using unaccounted RG, we would end up with no samples.
         // Take this into account, and create as many empty (unnamed) samples as needed.
         // This cannot be more than one though, as it can be the unaccounted or none,
         // or, if we do not split by RG at all, just the one sample were every read ends up in.
-        for( size_t i = 0; i < begin.sample_size(); ++i ) {
+        for( size_t i = 0; i < cur.sample_size(); ++i ) {
             data.sample_names.push_back( "" );
         }
         assert( data.sample_names.size() <= 1 );
@@ -90,10 +91,10 @@ VariantInputIterator make_variant_input_iterator_from_sam_file(
     // The input is copied over to the lambda, and that copy is kept alive
     // when returning from this function.
     return VariantInputIterator(
-        [ input, begin, end ]( Variant& variant ) mutable {
-            if( begin != end ) {
-                variant = std::move( *begin );
-                ++begin;
+        [ input, cur, end ]( Variant& variant ) mutable {
+            if( cur != end ) {
+                variant = std::move( *cur );
+                ++cur;
                 return true;
             } else {
                 return false;
@@ -382,6 +383,52 @@ VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
 }
 
 #endif // GENESIS_HTSLIB
+
+// =================================================================================================
+//     Variant Parallel Input Iterator
+// =================================================================================================
+
+VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_iterator(
+    VariantParallelInputIterator const& parallel_input,
+    bool allow_ref_base_mismatches,
+    bool allow_alt_base_mismatches
+) {
+    // As before, make a shared pointer (with a copy of the input) that stays alive.
+    auto input = std::make_shared<VariantParallelInputIterator>( parallel_input );
+
+    // Get the iterators.
+    assert( input );
+    auto cur = input->begin();
+    auto end = input->end();
+
+    // We do not have a single file here, so let's put the file names into the sample names...
+    // for now at least. Might change the interface in the future to better accommodate for ath.
+    // Leave file_path and source_name at their empty defaults.
+    VariantInputIteratorData data;
+    for( auto const& source : input->inputs() ) {
+        auto const& source_name = source.data().source_name;
+        for( auto const& sample_name : source.data().sample_names ) {
+            data.sample_names.push_back( source_name + ":" + sample_name );
+        }
+    }
+
+    // The input is copied over to the lambda, and that copy is kept alive.
+    return VariantInputIterator(
+        [ input, cur, end, allow_ref_base_mismatches, allow_alt_base_mismatches ]
+        ( Variant& variant ) mutable {
+            if( cur != end ) {
+                variant = cur.joined_variant(
+                    allow_ref_base_mismatches, allow_alt_base_mismatches, true
+                );
+                ++cur;
+                return true;
+            } else {
+                return false;
+            }
+        },
+        std::move( data )
+    );
+}
 
 } // namespace population
 } // namespace genesis

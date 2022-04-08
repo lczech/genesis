@@ -50,6 +50,17 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+// Cannot include the header, as it itself needs the VariantInputIterator to be defined first.
+// We could split this whole file into two, one for the VariantInputIterator definition,
+// and one for the functions to create it from sources... Maybe do that in the future.
+// As of now, this forward declaration means that the VariantParallelInputIterator header
+// needs to be included by the user at some point themselves... which they probably do anyway.
+class VariantParallelInputIterator;
+
+// =================================================================================================
 //     Generic Variant Iterator
 // =================================================================================================
 
@@ -278,6 +289,31 @@ VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
 );
 
 #endif // GENESIS_HTSLIB
+
+// -------------------------------------------------------------------------
+//     Variant Parallel Input Iterator
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Create a VariantInputIterator to iterate multiple input sources at once,
+ * using a VariantParallelInputIterator.
+ *
+ * This wraps multiple input sources into one iterator that traverses all of them in parallel,
+ * and is here then yet again turned into a Variant per position, using
+ * VariantParallelInputIterator::Iterator::joined_variant() to combine all input sources into one.
+ * See there for the meaning of the two `bool` parameters of this function.
+ *
+ * As this is iterating multiple fils, we leave the VariantInputIteratorData::file_path and
+ * VariantInputIteratorData::source_name empty, and fill the VariantInputIteratorData::sample_names
+ * with the sample names of the underlying input sources of the parallel iterator, using
+ * their respective `source_name` as a prefix, separated by a colon, for example `my_bam:S1`
+ * for a source file `/path/to/my_bam.bam` with a RG read group tag `S1`.
+ */
+VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_iterator(
+    VariantParallelInputIterator const& parallel_input,
+    bool allow_ref_base_mismatches = false,
+    bool allow_alt_base_mismatches = true
+);
 
 } // namespace population
 } // namespace genesis

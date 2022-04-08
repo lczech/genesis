@@ -32,9 +32,12 @@
 
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/formats/variant_input_iterator.hpp"
+#include "genesis/population/formats/variant_parallel_input_iterator.hpp"
 #include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/text/string.hpp"
+
+#include <unordered_set>
 
 using namespace genesis::population;
 using namespace genesis::utils;
@@ -153,6 +156,59 @@ TEST( Variant, VcfInputIterator )
         result += " " + std::to_string( variant.position );
     }
     EXPECT_EQ( " 14370 1230237", result );
+}
+
+TEST( Variant, ParallelInputIterator )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // SAM in.
+    std::string const sam_infile = environment->data_dir + "population/ex1.sam.gz";
+    auto sam_it = make_variant_input_iterator_from_sam_file( sam_infile );
+
+    // Sync in.
+    std::string const snc_infile = environment->data_dir + "population/test.sync";
+    auto snc_it = make_variant_input_iterator_from_sync_file( snc_infile );
+
+    // Pileup in.
+    std::string const plp_infile = environment->data_dir + "population/example.pileup";
+    auto plp_it = make_variant_input_iterator_from_pileup_file( plp_infile );
+
+    // VCF in.
+    std::string const vcf_infile = environment->data_dir + "population/example_ad.vcf";
+    auto vcf_it = make_variant_input_iterator_from_pool_vcf_file( vcf_infile, false, false );
+
+    // Make parallel iterator from all source.
+    VariantParallelInputIterator parallel;
+    parallel.add_variant_input_iterator(
+        sam_it, VariantParallelInputIterator::ContributionType::kCarrying
+    );
+    parallel.add_variant_input_iterator(
+        snc_it, VariantParallelInputIterator::ContributionType::kCarrying
+    );
+    parallel.add_variant_input_iterator(
+        plp_it, VariantParallelInputIterator::ContributionType::kCarrying
+    );
+    parallel.add_variant_input_iterator(
+        vcf_it, VariantParallelInputIterator::ContributionType::kCarrying
+    );
+
+    // Make the iterator.
+    auto it = make_variant_input_iterator_from_variant_parallel_input_iterator( parallel );
+
+    // We expect to find all chromosomes that appear in all of the input files.
+    std::unordered_set<std::string> exp_chromosomes = {
+        "20", "2R", "seq1", "seq2"
+    };
+
+    // Simple test that the correct region is filtered out.
+    std::unordered_set<std::string> tst_chromosomes;
+    for( auto const& variant : it ) {
+        tst_chromosomes.insert( variant.chromosome );
+        // LOG_DBG << variant.chromosome << ":" << variant.position;
+    }
+    EXPECT_EQ( exp_chromosomes, tst_chromosomes );
 }
 
 #endif // GENESIS_HTSLIB
