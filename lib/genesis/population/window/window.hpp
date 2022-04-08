@@ -63,7 +63,7 @@ struct EmptyAccumulator
  *
  * This class is a container for the Window::Data (of template type `D`) that is produced when
  * sliding over the chromosomes of a genome in windows, or filling genomic region windows.
- * It is for example produced by the SlidingWindowIterator class (and the deprecated
+ * It is for example produced by the SlidingIntervalWindowIterator class (and the deprecated
  * SlidingWindowGenerator).
  *
  * We here define a window to have a first_position() and a last_position() that can be set
@@ -88,8 +88,8 @@ struct EmptyAccumulator
  * are part of the window.
  *
  * The class is mostly meant to be used to be read/iterated over, where the data is filled
- * in beforehand (e.g., via the SlidingWindowIterator), and can then be processed to compute some
- * values for the Window. That is, from the user side, the const access functions are mostly
+ * in beforehand (e.g., via the SlidingIntervalWindowIterator), and can then be processed to compute
+ * some values for the Window. That is, from the user side, the const access functions are mostly
  * important, while the non-const modification functions are chiefly meant for the code that fills
  * the Window in the first place.
  *

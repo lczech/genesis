@@ -266,7 +266,8 @@ double theta_watterson_pool( // get_theta_calculator
 /**
  * @brief Compute `a_n`, the sum of reciprocals.
  *
- * This is the sum of reciprocals up to `n-1`: \f$ a_n = \sum_{i=1}^{n-1} \frac{1}{i} \f$.
+ * This is the sum of reciprocals up to `n-1`, which is
+ * \f$ a_n = \sum_{i=1}^{n-1} \frac{1}{i} \f$.
  *
  * See Equation 3.6 in
  *
@@ -274,13 +275,16 @@ double theta_watterson_pool( // get_theta_calculator
  * > https://global.oup.com/academic/product/molecular-population-genetics-9780878939657
  *
  * for details.
+ *
+ * @see b_n(), the sum of squared reciprocals.
  */
 double a_n( size_t n );
 
 /**
  * @brief Compute `b_n`, the sum of squared reciprocals.
  *
- * This is the sum of squared reciprocals up to `n-1`: \f$ b_n = \sum_{i=1}^{n-1} \frac{1}{i^2} \f$.
+ * This is the sum of squared reciprocals up to `n-1`, which is
+ * \f$ b_n = \sum_{i=1}^{n-1} \frac{1}{i^2} \f$.
  *
  * See
  *
@@ -293,6 +297,8 @@ double a_n( size_t n );
  * for details. The paper unfortunately does not explain their equations, but there is a hidden
  * document in their code repository that illuminates the situation a bit. See
  * https://sourceforge.net/projects/popoolation/files/correction_equations.pdf
+ *
+ * @see a_n(), the sum of reciprocals.
  */
 double b_n( size_t n );
 
