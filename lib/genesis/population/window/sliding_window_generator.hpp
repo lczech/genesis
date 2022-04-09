@@ -87,7 +87,7 @@ enum class SlidingWindowType
  *
  * @deprecated This design turned out to not be convenient to use. We'll keep the class around,
  * but not add the features that it is still missing (e.g., it can only do interval windows).
- * Use SlidingWindowIterator instead.
+ * Use SlidingIntervalWindowIterator instead.
  *
  * @details
  *

@@ -781,7 +781,6 @@ TEST( Vcf, InputIterator )
     std::string at;
     size_t cnt = 0;
 
-    // Use a small block size to trigger the thread support of the iterator.
     auto it = VcfInputIterator( infile, std::vector<std::string>{ "NA00002" }, false, true );
     while( it ) {
         at += it.record().at() + " ";
@@ -803,6 +802,16 @@ TEST( Vcf, InputIterator )
         at
     );
     EXPECT_EQ( 5, cnt );
+}
+
+TEST( Vcf, InputIteratorFailFilter )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/example.vcf";
+
+    // Try to filter by a name that does not exist.
+    EXPECT_ANY_THROW( VcfInputIterator( infile, std::vector<std::string>{ "XYZ" }) );
 }
 
 #endif // htslib guard

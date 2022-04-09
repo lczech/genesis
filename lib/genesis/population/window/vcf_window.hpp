@@ -54,7 +54,7 @@ namespace population {
  * @brief Convenience function to iterate over a whole VCF file.
  *
  * @deprecated Not in use any more, just kept around in case it might be needed later.
- * Use SlidingWindowIterator instead.
+ * Use SlidingIntervalWindowIterator instead.
  *
  * This function is convenience, and takes care of iterating a VCF file record by record
  * (that is, line by line), using a provided @p conversion function to extract the `D`/`Data`

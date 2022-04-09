@@ -173,8 +173,8 @@ bool SyncReader::parse_line_(
 
     // Read the samples. We switch once for the first line, and thereafter check that we read the
     // same number of samples each time.
+    size_t src_index = 0;
     if( variant.samples.empty() ) {
-        size_t src_index = 0;
         while( it && *it != '\n' ) {
             if( !use_sample_filter || ( src_index < sample_filter.size() && sample_filter[src_index] )) {
                 variant.samples.emplace_back();
@@ -187,7 +187,6 @@ bool SyncReader::parse_line_(
     } else {
         // Here we need two indices, one over the samples in the file (source),
         // and one for the samples that we are writing in our Variant (destination).
-        size_t src_index = 0;
         size_t dst_index = 0;
         while( it && *it != '\n' ) {
             // If the numbers do not match, go straight to the error check and throw.
@@ -213,6 +212,12 @@ bool SyncReader::parse_line_(
                 ": Line with different number of samples."
             );
         }
+    }
+    if( use_sample_filter && src_index != sample_filter.size() ) {
+        throw std::runtime_error(
+            "Malformed sync " + it.source_name() + " at " + it.at() +
+            ": Number of samples in the line does not match the number of filter entries."
+        );
     }
 
     // Sync does not have alt bases, so try to get one based on counts.

@@ -116,26 +116,26 @@ public:
         increment();
     }
 
-    /**
-     * @brief Create an instance that reads from an input source, using only the samples at the
-     * indices given in the @p sample_indices, and optionally take a SimplePileupReader with
-     * settings to be used.
-     */
-    SimplePileupInputIterator(
-        std::shared_ptr< utils::BaseInputSource > source,
-        std::vector<size_t> const&                sample_indices,
-        SimplePileupReader const&                 reader = {}
-    )
-        : input_stream_( std::make_shared<utils::InputStream>( source ))
-        , reader_( reader )
-        , use_sample_filter_( true )
-    {
-        // Prepare the sample filter from the indices.
-        sample_filter_ = utils::make_bool_vector_from_indices( sample_indices );
-
-        // Read the first record of the file.
-        increment();
-    }
+    // /* *
+    //  * @brief Create an instance that reads from an input source, using only the samples at the
+    //  * indices given in the @p sample_indices, and optionally take a SimplePileupReader with
+    //  * settings to be used.
+    //  */
+    // SimplePileupInputIterator(
+    //     std::shared_ptr< utils::BaseInputSource > source,
+    //     std::vector<size_t> const&                sample_indices,
+    //     SimplePileupReader const&                 reader = {}
+    // )
+    //     : input_stream_( std::make_shared<utils::InputStream>( source ))
+    //     , reader_( reader )
+    //     , use_sample_filter_( true )
+    // {
+    //     // Prepare the sample filter from the indices.
+    //     sample_filter_ = utils::make_bool_vector_from_indices( sample_indices );
+    //
+    //     // Read the first record of the file.
+    //     increment();
+    // }
 
     /**
      * @brief Create an instance that reads from an input source, using only the samples at the

@@ -258,7 +258,6 @@ TEST( Pileup, SimpleReader1 )
     EXPECT_FLOAT_EQ( 0.894736842, consensus( pool_7, status( pool_7 )).second );
 }
 
-
 TEST( Pileup, SimpleReader2 )
 {
     // Skip test if no data availabe.
@@ -288,4 +287,49 @@ TEST( Pileup, SimpleReader2 )
     EXPECT_EQ( "A", records[7].samples[0].read_bases );
     EXPECT_EQ( "A", records[8].samples[0].read_bases );
     EXPECT_EQ( "A", records[9].samples[0].read_bases );
+}
+
+TEST( Pileup, SimpleReader3 )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/example3.pileup";
+
+    // Read with filtering for only the second sample
+    auto reader = SimplePileupReader();
+    auto records = reader.read_records( from_file( infile ), std::vector<bool>{ false, true });
+
+    std::vector<char> ref_bases = { 'T', 'C', 'C', 'T', 'T', 'T', 'C', 'A', 'A', 'A' };
+
+    ASSERT_EQ( 10, records.size() );
+    for( size_t i = 0; i < records.size(); ++i ) {
+        EXPECT_EQ( "1", records[i].chromosome );
+        EXPECT_EQ( 18149 + i, records[i].position );
+        EXPECT_EQ( ref_bases[i], records[i].reference_base );
+        ASSERT_EQ( 1, records[i].samples.size() );
+    }
+
+    EXPECT_EQ( "TT", records[0].samples[0].read_bases );
+    EXPECT_EQ( "CC", records[1].samples[0].read_bases );
+    EXPECT_EQ( "CC", records[2].samples[0].read_bases );
+    EXPECT_EQ( "TT", records[3].samples[0].read_bases );
+    EXPECT_EQ( "",  records[4].samples[0].read_bases );
+    EXPECT_EQ( "TT", records[5].samples[0].read_bases );
+    EXPECT_EQ( "CC", records[6].samples[0].read_bases );
+    EXPECT_EQ( "AA", records[7].samples[0].read_bases );
+    EXPECT_EQ( "AA", records[8].samples[0].read_bases );
+    EXPECT_EQ( "AA", records[9].samples[0].read_bases );
+}
+
+TEST( Pileup, SimpleReader4 )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/example3.pileup";
+
+    // Fail with wrong number of filter values.
+    auto reader = SimplePileupReader();
+    EXPECT_ANY_THROW(
+        reader.read_records( from_file( infile ), std::vector<bool>{ false, true, false })
+    );
 }

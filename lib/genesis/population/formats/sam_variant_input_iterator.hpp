@@ -561,8 +561,8 @@ public:
      * contain data from those reads that do not have an RG tag at all, or one that does not
      * appear in the header.
      *
-     * See also inverse_rg_tag_filter() to inverse this setting, that is, to ignore all given
-     * sample names, instead of ignoring all that are not given here.
+     * See also inverse_rg_tag_filter() to inverse this setting. That is, instead of only using
+     * samples based on the RG tags given in this list here, use all _but_ the given RG tags.
      *
      * When the given @p value list is empty, the filtering by RG read group tag is deactivated
      * (which is also the default), independently of the inverse_rg_tag_filter() setting.
