@@ -499,14 +499,17 @@ std::pair<double, double> f_st_pool_spence(
 
 /**
  * @brief Compute an unbiased F_ST estimator for pool-sequenced data,
- * following Spence et al, for all pairs of ranges of BaseCounts%s.
+ * following Spence et al and using the Nei variant of the estimator,
+ * for all pairs of ranges of BaseCounts%s.
  *
- * @copydetails f_st_pool_spence( std::vector<size_t> const&, ForwardIterator, ForwardIterator )
+ * See f_st_pool_spence() for details on the method.
+ * We here need to offer two variants of the pairwise compute helper, as there are two estimator
+ * variants. See f_st_pool_spence_hudson() for the other variant.
  *
  * @see See compute_pairwise_f_st() for the expected input range specification.
  */
 template<class ForwardIterator>
-utils::Matrix<double> f_st_pool_spence(
+utils::Matrix<double> f_st_pool_spence_nei(
     std::vector<size_t> const& poolsizes,
     ForwardIterator begin, ForwardIterator end
 ) {
@@ -515,14 +518,47 @@ utils::Matrix<double> f_st_pool_spence(
         [&]( size_t i, size_t j, auto p1_begin, auto p1_end, auto p2_begin, auto p2_end ){
             if( i >= poolsizes.size() || j >= poolsizes.size() ) {
                 throw std::runtime_error(
-                    "In f_st_pool_spence(): Provided ranges have different lengths that "
+                    "In f_st_pool_spence_nei(): Provided ranges have different lengths that "
                     "are not identical to the number of poolsizes provided."
                 );
             }
             return f_st_pool_spence(
                 poolsizes[i], poolsizes[j],
                 p1_begin, p1_end, p2_begin, p2_end
-            );
+            ).first;
+        }
+    );
+}
+
+/**
+ * @brief Compute an unbiased F_ST estimator for pool-sequenced data,
+ * following Spence et al and using the Hudson variant of the estimator,
+ * for all pairs of ranges of BaseCounts%s.
+ *
+ * See f_st_pool_spence() for details on the method.
+ * We here need to offer two variants of the pairwise compute helper, as there are two estimator
+ * variants. See f_st_pool_spence_nei() for the other variant.
+ *
+ * @see See compute_pairwise_f_st() for the expected input range specification.
+ */
+template<class ForwardIterator>
+utils::Matrix<double> f_st_pool_spence_hudson(
+    std::vector<size_t> const& poolsizes,
+    ForwardIterator begin, ForwardIterator end
+) {
+    return compute_pairwise_f_st(
+        begin, end,
+        [&]( size_t i, size_t j, auto p1_begin, auto p1_end, auto p2_begin, auto p2_end ){
+            if( i >= poolsizes.size() || j >= poolsizes.size() ) {
+                throw std::runtime_error(
+                    "In f_st_pool_spence_hudson(): Provided ranges have different lengths that "
+                    "are not identical to the number of poolsizes provided."
+                );
+            }
+            return f_st_pool_spence(
+                poolsizes[i], poolsizes[j],
+                p1_begin, p1_end, p2_begin, p2_end
+            ).second;
         }
     );
 }

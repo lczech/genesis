@@ -111,7 +111,7 @@ std::pair<double, double> f_st_pool_karlsson_nkdk(
         sample_counts.second[2].count != 0 || sample_counts.second[3].count != 0
     ) {
         throw std::runtime_error(
-            "In f_st_asymptotically_unbiased(): Expecting biallelic SNPs where only "
+            "In f_st_pool_karlsson(): Expecting biallelic SNPs where only "
             "two nucleotide counts are > 0, but found more non-zero counts."
         );
     }
