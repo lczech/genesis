@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,7 +34,10 @@
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
 
+#include "genesis/utils/core/logging.hpp"
+
 #include <cassert>
+#include <cstring>
 #include <limits>
 #include <stdexcept>
 
@@ -42,7 +45,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Reading & Parsing
+//     Reading
 // =================================================================================================
 
 std::vector<GffReader::Feature> GffReader::read(
@@ -50,13 +53,28 @@ std::vector<GffReader::Feature> GffReader::read(
 ) const {
     std::vector<GffReader::Feature> result;
     utils::InputStream it( source );
-
     Feature feat;
     while( parse_line( it, feat ) ) {
         result.push_back( std::move( feat ));
     }
     return result;
 }
+
+GenomeRegionList GffReader::read_as_genome_region_list(
+    std::shared_ptr< utils::BaseInputSource > source
+) const {
+    GenomeRegionList result;
+    utils::InputStream it( source );
+    Feature feat;
+    while( parse_line( it, feat ) ) {
+        result.add( feat.seqname, feat.start, feat.end );
+    }
+    return result;
+}
+
+// =================================================================================================
+//     Parsing
+// =================================================================================================
 
 bool GffReader::parse_line(
     utils::InputStream& input_stream,
@@ -73,6 +91,21 @@ bool GffReader::parse_line(
     // (e.g., when parsing a number, there has to be a number - empty/end of stream will throw).
     // So, in all these cases, we do not need additional checks here; we hence only add checks
     // for end of stream etc when we read the chars ourselves here (e.g., for the strand).
+
+    // Track lines are ignored. We look for the word "track " with a space.
+    // If found, we skip the line.
+    while( true ) {
+        auto const buff = it.buffer();
+        if(
+            ( buff.second >= 6 && strncmp( buff.first, "track ",   6 ) == 0 ) ||
+            ( buff.second >= 8 && strncmp( buff.first, "browser ", 8 ) == 0 ) ||
+            ( *it == '#' || *it == '\n' )
+        ) {
+            it.get_line();
+        } else {
+            break;
+        }
+    }
 
     // Read seqname, source, and feature.
     // We use \n as stopping criterion here as well, so that in case of an error,
@@ -125,46 +158,50 @@ bool GffReader::parse_line(
     }
     utils::read_char_or_throw( it, '\t' );
 
-    // Read attributes. GFF and GTF are slightly different, it seems, one with `=` between
-    // key and value, the other with space, and with a semicolon at the end. We here allow
-    // for all these variants.
+    // Read attributes. GFF2, GFF3, and GTF are slightly different, it seems... Bioinformatics...
+    // We just read all of them into a single string.
+    feature.attributes_group = it.get_line();
+
+    // Old code that works for GFF3 and GTF, but not for GFF2. Kept for future refinement.
+    // GFF2 has just a simple string at the end, while GFF3 has `=` between key and value,
+    // and GTF uses space, and with a semicolon at the end. We here allow for all these variants.
     // GFF: `hid=trf; hstart=1; hend=21`
     // GTF: `gene_id "ENSG00000223972"; gene_name "DDX11L1";`
-    while( it && *it != '\n' ) {
-        // Read key
-        utils::skip_while( it, ' ' );
-        std::string key = utils::read_while( it, []( char c ){
-            return c != '=' && c != ' ' && c != '\n';
-        });
-        utils::read_char_or_throw( it, []( char c ){ return c == '=' || c == ' '; });
-        if( !it || *it == '\n' ) {
-            throw std::runtime_error(
-                std::string("In ") + it.source_name() +
-                ": Unexpected end of line after attribute key at " + it.at()
-            );
-        }
+    // while( it && *it != '\n' ) {
+    //     // Read key
+    //     utils::skip_while( it, ' ' );
+    //     std::string key = utils::read_while( it, []( char c ){
+    //         return c != '=' && c != ' ' && c != '\n';
+    //     });
+    //     utils::read_char_or_throw( it, []( char c ){ return c == '=' || c == ' '; });
+    //     if( !it || *it == '\n' ) {
+    //         throw std::runtime_error(
+    //             std::string("In ") + it.source_name() +
+    //             ": Unexpected end of line after attribute key at " + it.at()
+    //         );
+    //     }
+    //
+    //     // Read value
+    //     std::string value;
+    //     assert( it );
+    //     if( *it == '"' ) {
+    //         value = utils::parse_quoted_string( it );
+    //     } else {
+    //         value = utils::read_while( it, []( char c ){ return c != ';' && c != '\n'; });
+    //     }
+    //
+    //     // Store key value pair
+    //     feature.attributes.emplace_back( std::move( key ), std::move( value ));
+    //
+    //     // The attributes end with a closing `;`, which we just want to skip
+    //     if( it && *it == ';' ) {
+    //         ++it;
+    //     }
+    //     utils::skip_while( it, ' ' );
+    // }
+    // assert( !it || *it == '\n' );
+    // ++it;
 
-        // Read value
-        std::string value;
-        assert( it );
-        if( *it == '"' ) {
-            value = utils::parse_quoted_string( it );
-        } else {
-            value = utils::read_while( it, []( char c ){ return c != ';' && c != '\n'; });
-        }
-
-        // Store key value pair
-        feature.attributes.emplace_back( std::move( key ), std::move( value ));
-
-        // The attributes end with a closing `;`, which we just want to skip
-        if( it && *it == ';' ) {
-            ++it;
-        }
-        utils::skip_while( it, ' ' );
-    }
-
-    assert( !it || *it == '\n' );
-    ++it;
     return true;
 }
 

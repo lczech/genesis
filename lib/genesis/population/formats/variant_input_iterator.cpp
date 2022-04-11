@@ -488,7 +488,8 @@ VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
 VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_iterator(
     VariantParallelInputIterator const& parallel_input,
     bool allow_ref_base_mismatches,
-    bool allow_alt_base_mismatches
+    bool allow_alt_base_mismatches,
+    std::string const& source_sample_separator
 ) {
     // As before, make a shared pointer (with a copy of the input) that stays alive.
     auto input = std::make_shared<VariantParallelInputIterator>( parallel_input );
@@ -505,7 +506,7 @@ VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_ite
     for( auto const& source : input->inputs() ) {
         auto const& source_name = source.data().source_name;
         for( auto const& sample_name : source.data().sample_names ) {
-            data.sample_names.push_back( source_name + ":" + sample_name );
+            data.sample_names.push_back( source_name + source_sample_separator + sample_name );
         }
     }
 

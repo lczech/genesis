@@ -31,6 +31,8 @@
  * @ingroup population
  */
 
+#include "genesis/population/genome_region.hpp"
+#include "genesis/population/genome_region_list.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 
@@ -46,11 +48,22 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief Reader for GFF (General %Feature Format) and GTF (General Transfer Format) files.
+ * @brief Reader for GFF2 and GFF3 (General %Feature Format) and GTF (General Transfer Format) files.
  *
  * See https://uswest.ensembl.org/info/website/upload/gff.html for the format description.
+ * Lines starting with `track ` or `browser ` (including a trailing white space) are ignored,
+ * as are comment lines starting with `#` (or for that matter, `##` for directives),
+ * and empty lines.
  *
- * See also http://gmod.org/wiki/GFF2 and http://gmod.org/wiki/GFF3 for additional information.
+ * We currently do not support the underlying ontology features, and simply store the ninth field
+ * of the file as a string in Feature::attributes_group. This is also how we support all three
+ * formats, GFF2, GFF3, and GTF in one parser: We simply ignore the parts that are different
+ * between them. If need, this last field has to be parsed by the user.
+ *
+ * See also http://gmod.org/wiki/GFF2, http://gmod.org/wiki/GFF3, and
+ * http://genome.ucsc.edu/FAQ/FAQformat.html#format3 for additional information,
+ * and https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md for a thorough
+ * specification of GFF3.
  */
 class GffReader
 {
@@ -60,7 +73,7 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using Attribute = std::pair<std::string, std::string>;
+    // using Attribute = std::pair<std::string, std::string>;
 
     /**
      * @brief
@@ -75,7 +88,8 @@ public:
         double score;
         char strand;
         signed char frame;
-        std::vector<Attribute> attributes;
+        std::string attributes_group;
+        // std::vector<Attribute> attributes;
     };
 
     // -------------------------------------------------------------------------
@@ -95,7 +109,20 @@ public:
     //     Reading
     // ---------------------------------------------------------------------
 
+    /**
+     * @brief Read a GFF2/GFF3/GTF input source, and return its content as a list of Feature structs.
+     */
     std::vector<Feature> read( std::shared_ptr< utils::BaseInputSource > source ) const;
+
+    /**
+     * @brief Read a GFF2/GFF3/GTF input source, and return its content as a GenomeRegionList.
+     *
+     * This only uses the columns `seqname`, `start`, and `end`,
+     * and ignores everything else.
+     */
+    GenomeRegionList read_as_genome_region_list(
+        std::shared_ptr< utils::BaseInputSource > source
+    ) const;
 
     // -------------------------------------------------------------------------
     //     Parsing

@@ -76,6 +76,10 @@ void BedReader::read_(
 ) const {
     utils::InputStream it( source );
 
+    // We use an internal reading function that takes care of checking that the number of columns
+    // is constant throughout the input file. This avoids code duplication for these checkes
+    // in the two public read functions.
+
     Feature feat;
     size_t expected_columns = 0;
     size_t found_columns;

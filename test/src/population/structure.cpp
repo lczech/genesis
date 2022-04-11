@@ -34,10 +34,13 @@
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/formats/sync_reader.hpp"
+#include "genesis/population/formats/variant_input_iterator.hpp"
 #include "genesis/population/functions/diversity.hpp"
 #include "genesis/population/functions/structure.hpp"
+#include "genesis/population/window/sliding_interval_window_iterator.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"
+#include "genesis/utils/containers/transform_iterator.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;
@@ -201,3 +204,49 @@ TEST( Structure, FstPool )
         }
     }
 }
+
+// Test the C++14 helper functions that compute FST for all pairs of input.
+#if __cplusplus >= 201402L
+
+TEST( Structure, FstPoolAllPairs )
+{
+    // See above for details. Here we simply test that the C++14 extension
+    // to compute all pairs of FST between samples compiles at all.
+
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/p1_p2.sync.gz";
+
+    // Settings
+    size_t const window_width = 100;
+    size_t const min_allele_count = 6;
+    std::vector<size_t> const poolsizes{ 100, 100 };
+
+    // Make a Lambda Iterator over the data stream.
+    auto data_gen = make_variant_input_iterator_from_sync_file( infile );
+    auto sync_begin = data_gen.begin();
+    auto sync_end   = data_gen.end();
+
+    // Create a window iterator based on the lambda iterator.
+    auto win_it = make_default_sliding_interval_window_iterator(
+        sync_begin, sync_end, window_width
+    );
+
+    // Use the code simitor to what is documented in compute_pairwise_f_st()
+    for( auto const& window : win_it ) {
+
+        // Return the BaseCounts part of the Variants in the window.
+        auto base_counts_range = make_transform_range([&]( Variant const& var )  {
+            auto copy = var;
+            transform_zero_out_by_min_count( copy, min_allele_count );
+            return copy.samples;
+        }, window);
+
+        // Call an fst computation on that.
+        f_st_pool_kofler( poolsizes, base_counts_range.begin(), base_counts_range.end() );
+        f_st_pool_karlsson( base_counts_range.begin(), base_counts_range.end() );
+        f_st_pool_spence_nei( poolsizes, base_counts_range.begin(), base_counts_range.end() );
+        f_st_pool_spence_hudson( poolsizes, base_counts_range.begin(), base_counts_range.end() );
+    }
+}
+
+#endif // __cplusplus >= 201402L
