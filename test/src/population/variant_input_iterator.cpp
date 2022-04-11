@@ -54,6 +54,7 @@ TEST( VariantInputIterator, SamInputIterator )
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/ex1.sam.gz";
     auto it = make_variant_input_iterator_from_sam_file( infile );
+    EXPECT_EQ( "ex1", it.data().source_name );
 
     // Add a filter that limits it to a region, and then skips a region inside.
     it.add_filter(
@@ -135,6 +136,7 @@ TEST( VariantInputIterator, PileupInputIterator )
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/example.pileup";
     auto it = make_variant_input_iterator_from_pileup_file( infile );
+    EXPECT_EQ( "example", it.data().source_name );
 
     // Add a filter that skips the specified region.
     auto region = GenomeRegion( "seq1", 274, 277 );
@@ -290,6 +292,7 @@ TEST( VariantInputIterator, SyncInputIterator )
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/test.sync";
     auto it = make_variant_input_iterator_from_sync_file( infile );
+    EXPECT_EQ( "test", it.data().source_name );
 
     // Add a filter that skips the specified region.
     auto region = GenomeRegion( "2R", 2302, 2302 );
@@ -426,6 +429,7 @@ TEST( VariantInputIterator, VcfInputIterator )
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/example_ad.vcf";
     auto it = make_variant_input_iterator_from_pool_vcf_file( infile, false, false );
+    EXPECT_EQ( "example_ad", it.data().source_name );
 
     // Add a filter that skips the specified region.
     auto region = GenomeRegion( "20", 17000, 1120000 );
@@ -537,6 +541,7 @@ TEST( VariantInputIterator, ParallelInputIterator1 )
 
     // Make the iterator.
     auto it = make_variant_input_iterator_from_variant_parallel_input_iterator( parallel );
+    EXPECT_EQ( "", it.data().source_name );
 
     // We expect to find all chromosomes that appear in all of the input files.
     std::unordered_set<std::string> exp_chromosomes = {
