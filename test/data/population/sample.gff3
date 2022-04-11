@@ -1,0 +1,173 @@
+# ==================================================================================================
+# from http://uswest.ensembl.org/info/website/upload/gff.html
+# ==================================================================================================
+
+X	Ensembl	Repeat	2419108	2419128	42	.	.	hid=trf; hstart=1; hend=21
+X	Ensembl	Repeat	2419108	2419410	2502	-	.	hid=AluSx; hstart=1; hend=303
+X	Ensembl	Repeat	2419108	2419128	0	.	.	hid=dust; hstart=2419108; hend=2419128
+X	Ensembl	Pred.trans.	2416676	2418760	450.19	-	2	genscan=GENSCAN00000019335
+X	Ensembl	Variation	2413425	2413425	.	+	.
+X	Ensembl	Variation	2413805	2413805	.	+	.
+
+# ==================================================================================================
+# from http://gmod.org/wiki/GFF3
+# ==================================================================================================
+
+##gff-version 3
+ctg123	.	exon	1300	1500	.	+	.	ID=exon00001
+ctg123	.	exon	1050	1500	.	+	.	ID=exon00002
+ctg123	.	exon	3000	3902	.	+	.	ID=exon00003
+ctg123	.	exon	5000	5500	.	+	.	ID=exon00004
+ctg123	.	exon	7000	9000	.	+	.	ID=exon00005
+
+##gff-version 3
+ctg123	.	mRNA	1300	9000	.	+	.	ID=mrna0001;Name=sonichedgehog
+ctg123	.	exon	1300	1500	.	+	.	ID=exon00001;Parent=mrna0001
+ctg123	.	exon	1050	1500	.	+	.	ID=exon00002;Parent=mrna0001
+ctg123	.	exon	3000	3902	.	+	.	ID=exon00003;Parent=mrna0001
+ctg123	.	exon	5000	5500	.	+	.	ID=exon00004;Parent=mrna0001
+ctg123	.	exon	7000	9000	.	+	.	ID=exon00005;Parent=mrna0001
+
+##gff-version 3
+ctg123	.	mRNA	1300	9000	.	+	.	ID=mrna0001;Name=sonichedgehog
+ctg123	.	exon	1300	1500	.	+	.	Parent=mrna0001
+ctg123	.	exon	1050	1500	.	+	.	Parent=mrna0001
+ctg123	.	exon	3000	3902	.	+	.	Parent=mrna0001
+ctg123	.	exon	5000	5500	.	+	.	Parent=mrna0001
+ctg123	.	exon	7000	9000	.	+	.	Parent=mrna0001
+
+##gff-version 3
+ctg123	.	operon	1300	15000	.	+	.	ID=operon001;Name=superOperon
+ctg123	.	mRNA	1300	9000	.	+	.	ID=mrna0001;Parent=operon001;Name=sonichedgehog
+ctg123	.	exon	1300	1500	.	+	.	Parent=mrna0001
+ctg123	.	exon	1050	1500	.	+	.	Parent=mrna0001
+ctg123	.	exon	3000	3902	.	+	.	Parent=mrna0001
+ctg123	.	exon	5000	5500	.	+	.	Parent=mrna0001
+ctg123	.	exon	7000	9000	.	+	.	Parent=mrna0001
+ctg123	.	mRNA	10000	15000	.	+	.	ID=mrna0002;Parent=operon001;Name=subsonicsquirrel
+ctg123	.	exon	10000	12000	.	+	.	Parent=mrna0002
+ctg123	.	exon	14000	15000	.	+	.	Parent=mrna0002
+
+123	example	match	26122	26126	.	+	.	ID=match001
+ctg123	example	match	26497	26869	.	+	.	ID=match001
+ctg123	example	match	27201	27325	.	+	.	ID=match001
+ctg123	example	match	27372	27433	.	+	.	ID=match001
+ctg123	example	match	27565	27565	.	+	.	ID=match001
+
+ctg123	example	gene	1050	9000	.	+	.	ID=EDEN;Name=EDEN;Note=protein	kinase
+
+ctg123	example	mRNA	1050	9000	.	+	.	ID=EDEN.1;Parent=EDEN;Name=EDEN.1;Index=1
+ctg123	example	five_prime_UTR	1050	1200	.	+	.	Parent=EDEN.1
+ctg123	example	CDS	1201	1500	.	+	0	Parent=EDEN.1
+ctg123	example	CDS	3000	3902	.	+	0	Parent=EDEN.1
+ctg123	example	CDS	5000	5500	.	+	0	Parent=EDEN.1
+ctg123	example	CDS	7000	7608	.	+	0	Parent=EDEN.1
+ctg123	example	three_prime_UTR	7609	9000	.	+	.	Parent=EDEN.1
+
+ctg123	example	mRNA	1050	9000	.	+	.	ID=EDEN.2;Parent=EDEN;Name=EDEN.2;Index=1
+ctg123	example	five_prime_UTR	1050	1200	.	+	.	Parent=EDEN.2
+ctg123	example	CDS	1201	1500	.	+	0	Parent=EDEN.2
+ctg123	example	CDS	5000	5500	.	+	0	Parent=EDEN.2
+ctg123	example	CDS	7000	7608	.	+	0	Parent=EDEN.2
+ctg123	example	three_prime_UTR	7609	9000	.	+	.	Parent=EDEN.2
+
+ctg123	example	mRNA	1300	9000	.	+	.	ID=EDEN.3;Parent=EDEN;Name=EDEN.3;Index=1
+ctg123	example	five_prime_UTR	1300	1500	.	+	.	Parent=EDEN.3
+ctg123	example	five_prime_UTR	3000	3300	.	+	.	Parent=EDEN.3
+ctg123	example	CDS	3301	3902	.	+	0	Parent=EDEN.3
+ctg123	example	CDS	5000	5500	.	+	1	Parent=EDEN.3
+ctg123	example	CDS	7000	7600	.	+	1	Parent=EDEN.3
+ctg123	example	three_prime_UTR	7601	9000	.	+	.	Parent=EDEN.3
+
+ctg123	est	EST_match	1050	1500	.	+	.	ID=Match1;Name=agt830.5;Target=agt830.5	1	451
+ctg123	est	EST_match	3000	3202	.	+	.	ID=Match1;Name=agt830.5;Target=agt830.5	452	654
+
+ctg123	est	EST_match	5410	5500	.	-	.	ID=Match2;Name=agt830.3;Target=agt830.3	505	595
+ctg123	est	EST_match	7000	7503	.	-	.	ID=Match2;Name=agt830.3;Target=agt830.3	1	504
+
+ctg123	est	EST_match	1050	1500	.	+	.	ID=Match3;Name=agt221.5;Target=agt221.5	1	451
+ctg123	est	EST_match	5000	5500	.	+	.	ID=Match3;Name=agt221.5;Target=agt221.5	452	952
+ctg123	est	EST_match	7000	7300	.	+	.	ID=Match3;Name=agt221.5;Target=agt221.5	953	1253
+
+ctg123	affy	microarray_oligo	1	100	281	.	.	Name=Expt1
+ctg123	affy	microarray_oligo	101	200	183	.	.	Name=Expt1
+ctg123	affy	microarray_oligo	201	300	213	.	.	Name=Expt1
+ctg123	affy	microarray_oligo	301	400	191	.	.	Name=Expt1
+ctg123	affy	microarray_oligo	401	500	288	.	.	Name=Expt1
+ctg123	affy	microarray_oligo	501	600	184	.	.	Name=Expt1
+
+ctg123	.	microarray_oligo	1	50000	.	.	.	Name=example;wigfile=/usr/data/ctg123.Expt1.wig
+
+# ==================================================================================================
+# from https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
+# ==================================================================================================
+
+##gff-version 3.1.26
+##sequence-region ctg123 1 1497228
+ctg123	.	gene	1000	9000	.	+	.	ID=gene00001;Name=EDEN
+ctg123	.	TF_binding_site	1000	1012	.	+	.	Parent=gene00001
+ctg123	.	mRNA	1050	9000	.	+	.	ID=mRNA00001;Parent=gene00001
+ctg123	.	mRNA	1050	9000	.	+	.	ID=mRNA00002;Parent=gene00001
+ctg123	.	mRNA	1300	9000	.	+	.	ID=mRNA00003;Parent=gene00001
+ctg123	.	exon	1300	1500	.	+	.	Parent=mRNA00003
+ctg123	.	exon	1050	1500	.	+	.	Parent=mRNA00001,mRNA00002
+ctg123	.	exon	3000	3902	.	+	.	Parent=mRNA00001,mRNA00003
+ctg123	.	exon	5000	5500	.	+	.	Parent=mRNA00001,mRNA00002,mRNA00003
+ctg123	.	exon	7000	9000	.	+	.	Parent=mRNA00001,mRNA00002,mRNA00003
+ctg123	.	CDS	1201	1500	.	+	0	ID=cds00001;Parent=mRNA00001
+ctg123	.	CDS	3000	3902	.	+	0	ID=cds00001;Parent=mRNA00001
+ctg123	.	CDS	5000	5500	.	+	0	ID=cds00001;Parent=mRNA00001
+ctg123	.	CDS	7000	7600	.	+	0	ID=cds00001;Parent=mRNA00001
+ctg123	.	CDS	1201	1500	.	+	0	ID=cds00002;Parent=mRNA00002
+ctg123	.	CDS	5000	5500	.	+	0	ID=cds00002;Parent=mRNA00002
+ctg123	.	CDS	7000	7600	.	+	0	ID=cds00002;Parent=mRNA00002
+ctg123	.	CDS	3301	3902	.	+	0	ID=cds00003;Parent=mRNA00003
+ctg123	.	CDS	5000	5500	.	+	1	ID=cds00003;Parent=mRNA00003
+ctg123	.	CDS	7000	7600	.	+	1	ID=cds00003;Parent=mRNA00003
+ctg123	.	CDS	3391	3902	.	+	0	ID=cds00004;Parent=mRNA00003
+ctg123	.	CDS	5000	5500	.	+	1	ID=cds00004;Parent=mRNA00003
+ctg123	.	CDS	7000	7600	.	+	1	ID=cds00004;Parent=mRNA00003
+
+##gff-version 3.1.26
+# organism Enterobacteria phage f1
+# Note Bacteriophage f1, complete genome.
+02448	GenBank	region	1	6407	.	+	.	ID=J02448;Name=J02448;Is_circular=true;
+02448	GenBank	CDS	6006	7238	.	+	0	ID=geneII;Name=II;Note=protein	II;
+
+hr3	.	Match	1	23	.	.	.	ID=Match1;Target=EST23	1	21;Gap=M8	D3	M6	I1	M6
+ctg123	.	nucleotide_to_protein	100	129	.	+	.	ID=match008;Target=p101	1	10;Gap=M3	I1	M2	D1	M4
+ctg123	.	cDNA_match	1050	9000	6.2e-45	+	.	ID=match00001;Target=cdna0123	12	2964;Gap=M451	D3499	M501	D1499	M2001
+
+ctg123	.	cDNA_match	1050	1500	5.8e-42	+	.	ID=match00001;Target=cdna0123	12		462
+ctg123	.	cDNA_match	5000	5500	8.1e-43	+	.	ID=match00001;Target=cdna0123	463	963
+ctg123	.	cDNA_match	7000	9000	1.4e-40	+	.	ID=match00001;Target=cdna0123	964	2964
+
+ctg123	.	EST_match	1200	3200	2.2e-30	+	.	ID=match00002;Target=mjm1123.5	5	506;Gap=M301	D1499	M201
+ctg123	.	EST_match	7000	9000	7.4e-32	-	.	ID=match00003;Target=mjm1123.3	1	502;Gap=M101	D1499	M401
+
+ctg123	.	cDNA_match	1200	9000	.	.	.	ID=cDNA00001
+ctg123	.	match_part	1200	3200	2.2e-30	+	.	ID=match00002;Parent=cDNA00001;Target=mjm1123.5	5	506;Gap=M301	D1499	M201
+ctg123	.	match_part	7000	9000	7.4e-32	-	.	ID=match00003;Parent=cDNA00001;Target=mjm1123.3	1	502;Gap=M101	D1499	M401
+
+ctg123	.	EST_match	1000	1500	.	+	.	ID=match001;Target=EST_A	1	500	+
+
+ctg123	.	EST_match	2000	2500	.	-	.	ID=match001;Target=EST_C	1	500	+
+ctg123	.	EST_match	1000	1500	.	-	.	ID=match001;Target=EST_D	1	500	-
+
+X	TBLASTX	translated_nucleotide_match	1000	1500	.	+	.	ID=matchA;Target=Y 500 1000	-
+X	TBLASTX	translated_nucleotide_match	2000	2500	.	-	.	ID=matchB;Target=Y 1500 2000 +
+
+##gff-version 3.1.26
+##sequence-region ctg123 1 1497228
+ctg123	.	gene	1000	9000	.	+	.	ID=gene00001;Name=EDEN
+ctg123	.	TF_binding_site	1000	1012	.	+	.	ID=tfbs00001;Parent=gene00001
+ctg123	.	mRNA	1050	9000	.	+	.	ID=mRNA00001;Parent=gene00001;Name=EDEN.1
+ctg123	.	five_prime_UTR	1050	1200	.	+	.	Parent=mRNA00001
+ctg123	.	CDS	1201	1500	.	+	0	ID=cds00001;Parent=mRNA00001
+ctg123	.	CDS	3000	3902	.	+	0	ID=cds00001;Parent=mRNA00001
+ctg123	.	CDS	5000	5500	.	+	0	ID=cds00001;Parent=mRNA00001
+ctg123	.	CDS	7000	7600	.	+	0	ID=cds00001;Parent=mRNA00001
+ctg123	.	three_prime_UTR	7601	9000	.	+	.	Parent=mRNA00001
+ctg123	.	cDNA_match	1050	1500	5.8e-42	+	.	ID=match00001;Target=cdna0123+12+462
+ctg123	.	cDNA_match	5000	5500	8.1e-43	+	.	ID=match00001;Target=cdna0123+463+963
+ctg123	.	cDNA_match	7000	9000	1.4e-40	+	.	ID=match00001;Target=cdna0123+964+2964

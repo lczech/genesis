@@ -1,0 +1,34 @@
+# ==================================================================================================
+# from http://genome.ucsc.edu/FAQ/FAQformat.html#format3
+# ==================================================================================================
+
+browser position chr22:10000000-10025000
+browser hide all
+track name=regulatory description="TeleGene(tm) Regulatory Regions" visibility=2
+chr22	TeleGene	enhancer	10000000	10001000	500	+	.	touch1
+chr22	TeleGene	promoter	10010000	10010100	900	+	.	touch1
+chr22	TeleGene	promoter	10020000	10025000	800	-	.	touch2
+
+# ==================================================================================================
+# from http://gmod.org/wiki/GFF2
+# ==================================================================================================
+
+IV	curated	exon	5506900	5506996	.	+	.	Transcript	B0273.1
+IV	curated	exon	5506026	5506382	.	+	.	Transcript	B0273.1
+IV	curated	exon	5506558	5506660	.	+	.	Transcript	B0273.1
+IV	curated	exon	5506738	5506852	.	+	.	Transcript	B0273.1
+
+IV	curated	mRNA	5506800	5508917	.	+	.	Transcript	B0273.1;	Note	"Zn-Finger"
+IV	curated	5'UTR	5506800	5508999	.	+	.	Transcript	B0273.1
+IV	curated	exon	5506900	5506996	.	+	.	Transcript	B0273.1
+IV	curated	exon	5506026	5506382	.	+	.	Transcript	B0273.1
+IV	curated	exon	5506558	5506660	.	+	.	Transcript	B0273.1
+IV	curated	exon	5506738	5506852	.	+	.	Transcript	B0273.1
+IV	curated	3'UTR	5506852	5508917	.	+	.	Transcript	B0273.1
+
+chr3	giemsa	heterochromatin	4500000	6000000	.	.	.	Band 3q12.1 ; Note "Marfan's syndrome" and 3q12.1 ; Note "Marfan's syndrome" ; Note "dystrophic	dysplasia"
+chr3	giemsa	heterochromatin	4500000	6000000	.	.	.	Band 3q12.1 ; Alias MFX
+chr1	assembly	chromosome	1	14972282	.	+	.	Sequence Chr1
+chr1	BLASTX	similarity	76953	77108	132	+	0	Target Protein:SW:ABL_DROME 493 544
+chr1	assembly	Link	10922906	11177731	.	.	.	Target Sequence:LINK_H06O01 1 254826
+LINK_H06O01	assembly	Cosmid	32386	64122	.	.	.	Target Sequence:F49B2 6 31742
