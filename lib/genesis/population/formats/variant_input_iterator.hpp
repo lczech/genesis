@@ -348,13 +348,14 @@ VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
  * As this is iterating multiple files, we leave the VariantInputIteratorData::file_path and
  * VariantInputIteratorData::source_name empty, and fill the VariantInputIteratorData::sample_names
  * with the sample names of the underlying input sources of the parallel iterator, using
- * their respective `source_name` as a prefix, separated by a colon, for example `my_bam:S1`
- * for a source file `/path/to/my_bam.bam` with a RG read group tag `S1`.
+ * their respective `source_name` as a prefix, separated by @p source_sample_separator,
+ * for example `my_bam:S1` for a source file `/path/to/my_bam.bam` with a RG read group tag `S1`.
  */
 VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_iterator(
     VariantParallelInputIterator const& parallel_input,
     bool allow_ref_base_mismatches = false,
-    bool allow_alt_base_mismatches = true
+    bool allow_alt_base_mismatches = true,
+    std::string const& source_sample_separator = ":"
 );
 
 } // namespace population
