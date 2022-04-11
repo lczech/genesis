@@ -208,7 +208,7 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file_(
     VariantInputIteratorData data;
     data.file_path = filename;
     data.source_name = utils::file_basename(
-        filename, { ".gz", ".plp", ".mplp" ".pileup", ".mpileup" }
+        filename, { ".gz", ".plp", ".mplp", ".pileup", ".mpileup" }
     );
 
     // No sample names in pileup...
