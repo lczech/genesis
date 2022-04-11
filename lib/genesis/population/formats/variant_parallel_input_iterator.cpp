@@ -68,16 +68,31 @@ VariantParallelInputIterator::Iterator::Iterator(
         // We use this to get the number of BaseCounts objects in the Variant.
         // We will later need this to default-construct that many BaseCounts
         // for positions where this iterator does not have data.
-        // If the iterator does not have any data at all, we store that as well.
+        auto const sample_name_count = generator_->inputs_[i].data().sample_names.size();
         if( iterators_[i] ) {
             variant_sizes_.push_back( iterators_[i]->samples.size() );
+
+            // We assume that the sample_names are of the correct size, if given.
+            if( sample_name_count > 0 && iterators_[i]->samples.size() != sample_name_count ) {
+                throw std::runtime_error(
+                    "Input source for VariantParallelInputIterator contains " +
+                    std::to_string( iterators_[i]->samples.size() ) + " samples, but its sample " +
+                    "name list contains " + std::to_string( sample_name_count ) + " names."
+                );
+            }
 
             // Let's make sure that the first position is a valid chromosome and
             // position. Later, when we advance the iterator, we repeat the check
             // for every locus we go to as well, just to be sure.
             assert_correct_chr_and_pos_( iterators_[i] );
         } else {
-            variant_sizes_.push_back( 0 );
+            // If the iterator does not have any data at all, that is, it is already at its end,
+            // we use the length of its sample_names list to indicate how many samples it would
+            // have contained if it had data. This is useful for example in situations where the
+            // input is filtered, so that a file that in fact does have data appears to be without
+            // data here. Using the correct number of samples is then important for some downstream
+            // processors that expect the correct number of samples.
+            variant_sizes_.push_back( sample_name_count );
         }
     }
 
