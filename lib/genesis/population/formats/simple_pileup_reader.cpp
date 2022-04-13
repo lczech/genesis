@@ -31,10 +31,10 @@
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 
 #include "genesis/sequence/functions/codes.hpp"
-#include "genesis/utils/io/char.hpp"
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
 #include "genesis/utils/math/bitvector/helper.hpp"
+#include "genesis/utils/text/char.hpp"
 
 #include <cassert>
 #include <cstdlib>

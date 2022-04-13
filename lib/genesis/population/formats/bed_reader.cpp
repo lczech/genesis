@@ -30,9 +30,9 @@
 
 #include "genesis/population/formats/bed_reader.hpp"
 
-#include "genesis/utils/io/char.hpp"
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
+#include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <cassert>
