@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/population/base_counts.hpp"
+#include "genesis/population/formats/sam_flags.hpp"
 #include "genesis/population/formats/sam_variant_input_iterator.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
@@ -252,6 +253,37 @@ TEST( SamBamCram, InputIteratorRGFail )
     // Use an RG tag that does not appear in the file.
     sam_it.rg_tag_filter({ "XYZ" });
     EXPECT_ANY_THROW( sam_it.begin() );
+}
+
+TEST( SamBamCram, Flags )
+{
+    // Number parsing from hex
+    EXPECT_EQ( 0x0,  string_to_sam_flag( "0" ));
+    EXPECT_EQ( 0x1,  string_to_sam_flag( "1" ));
+    EXPECT_EQ( 0x12, string_to_sam_flag( "0x12" ));
+    EXPECT_EQ( 0x1234, string_to_sam_flag( "0x1234" ));
+
+    // Number parsing from oct
+    EXPECT_EQ( 01,  string_to_sam_flag( "1" ));
+    EXPECT_EQ( 012, string_to_sam_flag( "012" ));
+    EXPECT_EQ( 01234, string_to_sam_flag( "01234" ));
+
+    // htslib style parsing
+    EXPECT_EQ( 0x2, string_to_sam_flag( "PROPER_PAIR" ));
+    EXPECT_EQ( 0x2 | 0x20, string_to_sam_flag( "PROPER_PAIR,MREVERSE" ));
+
+    // our improved parsing
+    EXPECT_EQ( 0x2, string_to_sam_flag( "ProperPair" ));
+    EXPECT_EQ( 0x2 | 0x20, string_to_sam_flag( "ProperPair + MateReverse" ));
+
+    // error cases
+    // EXPECT_ANY_THROW( string_to_sam_flag( "0x1234" ));
+    EXPECT_ANY_THROW( string_to_sam_flag( "nope" ));
+    EXPECT_ANY_THROW( string_to_sam_flag( "ProperPair, nope" ));
+
+    // other direction
+    EXPECT_EQ( "", sam_flag_to_string( 0 ));
+    EXPECT_EQ( "PROPER_PAIR,UNMAP", sam_flag_to_string( 0x2 | 0x4 ));
 }
 
 #endif // GENESIS_HTSLIB
