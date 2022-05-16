@@ -20,6 +20,70 @@
 # 260 Panama Street, Stanford, CA 94305, USA
 
 # ------------------------------------------------------------------------------
+#   Check for autotools
+# ------------------------------------------------------------------------------
+
+# Check that autoconf is available, and warn if version has a potential issue.
+# See https://github.com/asdf-vm/asdf-erlang/issues/195, https://github.com/kerl/kerl/issues/359,
+# https://stackoverflow.com/a/67470521/4184258
+find_program(AUTOCONF_RUNTIME autoconf)
+if( AUTOCONF_RUNTIME STREQUAL "AUTOCONF_RUNTIME-NOTFOUND" )
+
+    message (
+        STATUS "${ColorRed}You are trying to compile with htslib, which needs autotools/autoconf. "
+        "This does not seem to to be availabe on your system. To instead build without htslib "
+        "support, call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
+    )
+    message( FATAL_ERROR "Required autotools for building htslib not found.")
+
+else()
+
+    # Run the version command of autotools. Whoever programmed that command did not follow any
+    # good practice. It outputs a multi line thing with lots of information that we do not need.
+    execute_process(
+        COMMAND "${AUTOCONF_RUNTIME}" --version
+        OUTPUT_VARIABLE AUTOCONF_VERSION_OUT
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    # CMake is such a mess... regex `^$` denote the whole string in cmake, instead of individual lines...
+    # So we need to take it apart line by line and only use the first one,
+    # see https://cmake.cmake.narkive.com/f05xOtbE/regex-and-do-not-match-on-multi-line-input
+    STRING(REGEX REPLACE "\r?\n" ";" AUTOCONF_VERSION_LINES "${AUTOCONF_VERSION_OUT}")
+    list (GET AUTOCONF_VERSION_LINES 0 AUTOCONF_VERSION_OUT)
+
+    # Get the autoconf version, and compare it to the known bug versions.
+    # Apparenlty, we need to check first, and then match again, as we cannot use the match
+    # to check whether it has matched at all...
+    IF(AUTOCONF_VERSION_OUT MATCHES "^autoconf .* ([^ ]*)$")
+        string(
+            REGEX MATCH "^autoconf .* ([^ ]*)$"
+            AUTOCONF_VERSION_MATCH "${AUTOCONF_VERSION_OUT}"
+        )
+        set( AUTOCONF_VERSION "${CMAKE_MATCH_1}")
+        message( STATUS "Found autoconf: ${AUTOCONF_VERSION}" )
+
+        # Versions greater than 2.69 cause problems. Of course, we cannot use VERSION_GREATER,
+        # as that was introduced in CMake 3.7 only, so we need to work around that, too...
+        SET(AUTOCONF_MAX_VERSION "2.69")
+        if( NOT (
+            ( AUTOCONF_VERSION VERSION_LESS ${AUTOCONF_MAX_VERSION} ) OR
+            ( AUTOCONF_VERSION VERSION_EQUAL ${AUTOCONF_MAX_VERSION} )
+        ))
+            message (
+                STATUS "${ColorYellow}You are trying to compile with htslib, using autotools/autoconf "
+                "version ${AUTOCONF_VERSION}, which is greater than ${AUTOCONF_MAX_VERSION}. "
+                "There have been issues with these later versions of autotools. If you experience "
+                "these issues, please downgrade autotools to ${AUTOCONF_MAX_VERSION}. "
+                "To instead build without htslib support, "
+                "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
+            )
+        endif()
+    ENDIF()
+
+endif()
+
+# ------------------------------------------------------------------------------
 #   Use htslib
 # ------------------------------------------------------------------------------
 

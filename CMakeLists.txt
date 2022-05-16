@@ -23,9 +23,9 @@
 #   CMake Init
 # --------------------------------------------------------------------------------------------------
 
-# Require the minimum version of any system that we test on - which is the version used by Travis.
-# Thus, we can be sure that this works (as long as they don't change it...).
-cmake_minimum_required (VERSION 2.8.7 FATAL_ERROR)
+# CMake declared that versions below this will not be supported any more,
+# so let's use this as our lower bound for now. Will need more testing though...
+cmake_minimum_required (VERSION 2.8.12 FATAL_ERROR)
 
 # Fun with colors!
 if (NOT WIN32)
