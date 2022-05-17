@@ -50,71 +50,76 @@ ENDIF()
 # ------------------------------------------------------------------------------
 #   Build Libraries
 # ------------------------------------------------------------------------------
+add_library           (genesis_lib_shared SHARED ${genesis_lib_sources})
+set_target_properties (genesis_lib_shared PROPERTIES OUTPUT_NAME genesis)
 
 if (GENESIS_BUILD_SHARED_LIB)
     message (STATUS "${ColorBlue}Building shared lib${ColorEnd}")
-    add_library           (genesis_lib_shared SHARED ${genesis_lib_sources})
-    set_target_properties (genesis_lib_shared PROPERTIES OUTPUT_NAME genesis)
-
-    # explicitly add OpenMP, compatible with Macos/brew installed OpenMP after Cmake 3.12
-    if(${CMAKE_VERSION} VERSION_GREATER "3.9.0")
-      if(OPENMP_FOUND)
-        target_link_libraries (genesis_lib_shared PUBLIC OpenMP::OpenMP_CXX)
-      endif()
-    endif()
-
-    # Link against any external libraries, e.g. Pthreads.
-    target_link_libraries (genesis_lib_shared PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
-
-    # Add htslib as a dependency, so that CMake realizes that it has to be built.
-    IF(GENESIS_USE_HTSLIB)
-        add_dependencies( genesis_lib_shared htslib )
-    ENDIF()
-
-    # Same for samtools. Not used at the moment though.
-    # IF(GENESIS_USE_SAMTOOLS)
-    #     add_dependencies( genesis_lib_shared samtools )
-    # ENDIF()
-
-    # Add this shared library to our exported libraries, which can then be used by the parent scope.
-    set( GENESIS_SHARED_LIBRARY genesis_lib_shared PARENT_SCOPE )
-    set( GENESIS_LIBRARY genesis_lib_shared PARENT_SCOPE )
-
+else()
+    set_target_properties (genesis_lib_shared PROPERTIES EXCLUDE_FROM_ALL ON)
 endif()
+
+# explicitly add OpenMP, compatible with Macos/brew installed OpenMP after Cmake 3.12
+if(${CMAKE_VERSION} VERSION_GREATER "3.9.0")
+  if(OPENMP_FOUND)
+    target_link_libraries (genesis_lib_shared PUBLIC OpenMP::OpenMP_CXX)
+  endif()
+endif()
+
+# Link against any external libraries, e.g. Pthreads.
+target_link_libraries (genesis_lib_shared PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
+
+# Add htslib as a dependency, so that CMake realizes that it has to be built.
+IF(GENESIS_USE_HTSLIB)
+    add_dependencies( genesis_lib_shared htslib )
+ENDIF()
+
+# Same for samtools. Not used at the moment though.
+# IF(GENESIS_USE_SAMTOOLS)
+#     add_dependencies( genesis_lib_shared samtools )
+# ENDIF()
+
+# Add this shared library to our exported libraries, which can then be used by the parent scope.
+set( GENESIS_SHARED_LIBRARY genesis_lib_shared PARENT_SCOPE )
+set( GENESIS_LIBRARY genesis_lib_shared PARENT_SCOPE )
+
+
+add_library           (genesis_lib_static STATIC ${genesis_lib_sources})
+set_target_properties (genesis_lib_static PROPERTIES OUTPUT_NAME genesis)
 
 if (GENESIS_BUILD_STATIC_LIB)
     message (STATUS "${ColorBlue}Building static lib${ColorEnd}")
-    add_library           (genesis_lib_static STATIC ${genesis_lib_sources})
-    set_target_properties (genesis_lib_static PROPERTIES OUTPUT_NAME genesis)
-
-    # explicitly add OpenMP, compatible with Macos/brew installed OpenMP after Cmake 3.12
-    if(${CMAKE_VERSION} VERSION_GREATER "3.9.0")
-      if(OPENMP_FOUND)
-        target_link_libraries (genesis_lib_static PUBLIC OpenMP::OpenMP_CXX)
-      endif()
-    endif()
-
-    # Link against any external libraries, e.g. Pthreads.
-    target_link_libraries (genesis_lib_static PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
-
-    # Add htslib as a dependency, so that CMake realizes that it has to be built.
-    IF(GENESIS_USE_HTSLIB)
-        add_dependencies( genesis_lib_static htslib )
-    ENDIF()
-
-    # Same for samtools. Not used at the moment though.
-    # IF(GENESIS_USE_SAMTOOLS)
-    #     add_dependencies( genesis_lib_static samtools )
-    # ENDIF()
-
-    # Add this static library to our exported libraries, which can then be used by the parent scope.
-    # In case that we also build the shared lib, GENESIS_LIBRARY is overwritten, which is on
-    # purpose. This way, if both libraries are available, we prefer to use the static one.
-    # This is more useful for external projects that use Genesis as a dependency: They probably
-    # do not want to run into dynamic linker issues when the shared library is not found after
-    # moving around their binary. So better link statically.
-    # Also, as the static library has to be actively activated (by setting GENESIS_BUILD_STATIC_LIB),
-    # there already was a user action once we are here, so the user actually wants the static one.
-    set( GENESIS_STATIC_LIBRARY genesis_lib_static PARENT_SCOPE )
-    set( GENESIS_LIBRARY genesis_lib_static PARENT_SCOPE )
+else()
+    set_target_properties (genesis_lib_static PROPERTIES EXCLUDE_FROM_ALL ON)
 endif()
+
+# explicitly add OpenMP, compatible with Macos/brew installed OpenMP after Cmake 3.12
+if(${CMAKE_VERSION} VERSION_GREATER "3.9.0")
+  if(OPENMP_FOUND)
+    target_link_libraries (genesis_lib_static PUBLIC OpenMP::OpenMP_CXX)
+  endif()
+endif()
+
+# Link against any external libraries, e.g. Pthreads.
+target_link_libraries (genesis_lib_static PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
+
+# Add htslib as a dependency, so that CMake realizes that it has to be built.
+IF(GENESIS_USE_HTSLIB)
+    add_dependencies( genesis_lib_static htslib )
+ENDIF()
+
+# Same for samtools. Not used at the moment though.
+# IF(GENESIS_USE_SAMTOOLS)
+#     add_dependencies( genesis_lib_static samtools )
+# ENDIF()
+
+# Add this static library to our exported libraries, which can then be used by the parent scope.
+# In case that we also build the shared lib, GENESIS_LIBRARY is overwritten, which is on
+# purpose. This way, if both libraries are available, we prefer to use the static one.
+# This is more useful for external projects that use Genesis as a dependency: They probably
+# do not want to run into dynamic linker issues when the shared library is not found after
+# moving around their binary. So better link statically.
+# Also, as the static library has to be actively activated (by setting GENESIS_BUILD_STATIC_LIB),
+# there already was a user action once we are here, so the user actually wants the static one.
+set( GENESIS_STATIC_LIBRARY genesis_lib_static PARENT_SCOPE )
+set( GENESIS_LIBRARY genesis_lib_static PARENT_SCOPE )
