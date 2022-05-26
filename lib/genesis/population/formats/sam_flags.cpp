@@ -102,21 +102,29 @@ int string_to_sam_flag( std::string const& value )
 
     // If the above fails, add our own more lenient parsing on top.
     // We allow comma, space, and plus as delimiters, because why not.
-    auto const flags = utils::split( value, ",+ " );
+    auto const flags = utils::split( value, ",+| " );
 
     // Clean up all flags by removing non-alpha-numeric chars, and making it lower case.
     // Then check in the map to get the value.
     result = 0;
     for( auto const& flag : flags ) {
-        auto clean = utils::to_lower_ascii( flag );
-        utils::erase_if( clean, []( char const c ){
+        auto cleaned_value = utils::to_lower_ascii( flag );
+        utils::erase_if( cleaned_value, []( char const c ){
             return ! utils::is_alnum( c );
         });
 
-        if( sam_flag_name_to_int_.count( clean ) == 0 ) {
+        // Try the sam function first, which takes care of all numeric values.
+        int const tmp = bam_str2flag( cleaned_value.c_str() );
+        if( tmp >= 0 ) {
+            result |= tmp;
+            continue;
+        }
+
+        // If that did not work, we expect a name, and use our map to look it up.
+        if( sam_flag_name_to_int_.count( cleaned_value ) == 0 ) {
             throw std::invalid_argument( "Invalid sam flag name \"" + flag + "\"" );
         }
-        result |= sam_flag_name_to_int_.at( clean );
+        result |= sam_flag_name_to_int_.at( cleaned_value );
     }
     return result;
 }
@@ -132,6 +140,67 @@ std::string sam_flag_to_string( int flags )
 // =================================================================================================
 //     Validity check
 // =================================================================================================
+
+static_assert(
+    static_cast<int>( 0x1 ) == BAM_FPAIRED,
+    "Definitions of BAM_FPAIRED in htslib and in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( 0x2 ) == BAM_FPROPER_PAIR,
+    "Definitions of BAM_FPROPER_PAIR in htslib and in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( 0x4 ) == BAM_FUNMAP,
+    "Definitions of BAM_FUNMAP in htslib and in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( 0x8 ) == BAM_FMUNMAP,
+    "Definitions of BAM_FMUNMAP in htslib and in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( 0x10 ) == BAM_FREVERSE,
+    "Definitions of BAM_FREVERSE in htslib and in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( 0x20 ) == BAM_FMREVERSE,
+    "Definitions of BAM_FMREVERSE in htslib and in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( 0x40 ) == BAM_FREAD1,
+    "Definitions of BAM_FREAD1 in htslib and in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( 0x80 ) == BAM_FREAD2,
+    "Definitions of BAM_FREAD2 in htslib and in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( 0x100 ) == BAM_FSECONDARY,
+    "Definitions of BAM_FSECONDARY in htslib and in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( 0x200 ) == BAM_FQCFAIL,
+    "Definitions of BAM_FQCFAIL in htslib and in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( 0x400 ) == BAM_FDUP,
+    "Definitions of BAM_FDUP in htslib and in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
+static_assert(
+    static_cast<int>( 0x800 ) == BAM_FSUPPLEMENTARY,
+    "Definitions of BAM_FSUPPLEMENTARY in htslib and in genesis differ. "
+    "Please submit a bug report at https://github.com/lczech/genesis/issues"
+);
 
 // static_assert(
 //     static_cast<int>( SamFlag::kPaired ) == BAM_FPAIRED,

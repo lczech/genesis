@@ -43,6 +43,9 @@ namespace population {
 //     SAM/BAM/CRAM Flags
 // =================================================================================================
 
+// Enum not used at the moment, as we instead simply use the htslib int bit sets.
+// Keeping it here, in case it comes in useful in the future.
+
 // /**
 //  * @brief Flags for read properties as used in SAM/BAM/CRAM files.
 //  *
@@ -140,9 +143,17 @@ namespace population {
  * @brief Parse a string as a set of flags for sam/bam/cram reads.
  *
  * The given string can either be the numeric value as specified by the sam standard, or given
- * as a list of flag names, which can be separated by comma, space, or plus sign, and where
- * each flag name is treated case-insensitive and without regarding non-alpha-numeric characters.
- * This is a more lenient parsing than what htslib and samtools offer.
+ * as a list of flag names or values, which can be separated by comma, space, vertical bar,
+ * or plus sign, and where each flag name is treated case-insensitive and without regarding
+ * non-alpha-numeric characters. This is a more lenient parsing than what htslib and samtools offer.
+ *
+ * For example, it accepts:
+ *
+ *     1
+ *     0x12
+ *     PROPER_PAIR,MREVERSE
+ *     ProperPair + MateReverse
+ *     PROPER_PAIR | 0x20
  *
  * See http://www.htslib.org/doc/samtools-flags.html and
  * https://broadinstitute.github.io/picard/explain-flags.html for details.

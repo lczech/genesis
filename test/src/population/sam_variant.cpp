@@ -274,7 +274,10 @@ TEST( SamBamCram, Flags )
 
     // our improved parsing
     EXPECT_EQ( 0x2, string_to_sam_flag( "ProperPair" ));
+    EXPECT_EQ( 0x2 | 1, string_to_sam_flag( "ProperPair | 1" ));
     EXPECT_EQ( 0x2 | 0x20, string_to_sam_flag( "ProperPair + MateReverse" ));
+    EXPECT_EQ( 0x2 | 0x20, string_to_sam_flag( "ProperPair | MateReverse" ));
+    EXPECT_EQ( 0x2 | 0x20, string_to_sam_flag( "ProperPair | 0x20" ));
 
     // error cases
     // EXPECT_ANY_THROW( string_to_sam_flag( "0x1234" ));
