@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not,  see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab,  Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35,  D-69118 Heidelberg,  Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -37,6 +37,10 @@
 
 #include "genesis/utils/io/input_buffer.hpp"
 
+// Apparently, for some compilers, the folllowing definition has to be set in order for <cinttypes>
+// to include the scanf format types, see https://stackoverflow.com/a/30851225/4184258
+#define __STDC_FORMAT_MACROS
+
 #include <algorithm>
 #include <cinttypes>
 #include <cstdio>
@@ -45,6 +49,18 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+
+// In the case that the above inclusion of <cinttypes> still did not give us the scanf format types
+// that we need, we define it ourselves, see https://helpmanual.io/man3/SCNx32-avr/
+// but also emit a message to show that this is the case, as a hint for debugging.
+#ifndef SCNx32
+    // hexadecimal scanf format for uint32_t
+    #define SCNx32 'lx'
+    #pragma message ( \
+        "<inttypes.h> did not provide a definition of `SCNx32`, " \
+        "which we hence define here as `lx`" \
+    )
+#endif
 
 namespace genesis {
 namespace utils {
