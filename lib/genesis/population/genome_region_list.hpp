@@ -124,9 +124,15 @@ public:
      *
      * The @p chromosome cannot be empty, and we expect @p start < @p end. Both @p start and @p end
      * are 1-based, and inclusive, that is, the interval between them is closed.
+     *
+     * @copydetails GenomeRegionList::add( GenomeLocus const&, bool )
      */
-    void add( std::string const& chromosome, numerical_type start = 0, numerical_type end = 0 )
-    {
+    void add(
+        std::string const& chromosome,
+        numerical_type start,
+        numerical_type end,
+        bool overlap = false
+    ) {
         // Check chromosome.
         if( chromosome.empty() ) {
             throw std::invalid_argument(
@@ -137,7 +143,7 @@ public:
 
         // Check positions.
         // The start and end are also checked in the interval tree, but let's do it here
-        // so that the error message is nicer in case thei are wrong.
+        // so that the error message is nicer in case they are wrong.
         if( start > end ) {
             throw std::invalid_argument(
                 "Cannot add region to GenomeRegionList with start == " +
@@ -150,7 +156,15 @@ public:
                 "as these denote invalid positions."
             );
         }
-        regions_[ chromosome ].insert({ start, end });
+
+        // Insert, either by merging with an existing, or as a new region.
+        // We just get the chromosome from the map via array access, which will create it
+        // if it is not yet present.
+        if( overlap ) {
+            regions_[ chromosome ].insert_overlap({ start, end });
+        } else {
+            regions_[ chromosome ].insert({ start, end });
+        }
     }
 
     // -------------------------------------------
@@ -159,16 +173,24 @@ public:
 
     /**
      * @brief Add a single Locus, that is, an interval covering one position on a chromosome.
+     *
+     * If @p overlap is set, we first check if there is a region already in the list that overlaps
+     * with the one that is to be added. If so, the new region is merged with existing one,
+     * instead of inserting it. This is more useful of the region list is used to determine coverage,
+     * and less useful if regions are meant to indicate some specific parts of the genome,
+     * such as genes.
      */
-    void add( GenomeLocus const& locus )
+    void add( GenomeLocus const& locus, bool overlap = false )
     {
-        add( locus.chromosome, locus.position, locus.position );
+        add( locus.chromosome, locus.position, locus.position, overlap );
     }
 
     /**
      * @brief Add an interval between two Loci on the same chromosome.
+     *
+     * @copydetails GenomeRegionList::add( GenomeLocus const&, bool )
      */
-    void add( GenomeLocus const& start, GenomeLocus const& end )
+    void add( GenomeLocus const& start, GenomeLocus const& end, bool overlap = false )
     {
         if( start.chromosome != end.chromosome ) {
             throw std::invalid_argument(
@@ -177,7 +199,7 @@ public:
                 "GenomeRegionList."
             );
         }
-        add( start.chromosome, start.position, end.position );
+        add( start.chromosome, start.position, end.position, overlap );
     }
 
     // -------------------------------------------
@@ -188,10 +210,32 @@ public:
      * @brief Add a GenomeRegion to the list.
      *
      * This function ensures that regions are valid (`start < end`), and keeps the list sorted.
+     *
+     * @copydetails GenomeRegionList::add( GenomeLocus const&, bool )
      */
-    void add( GenomeRegion const& region )
+    void add( GenomeRegion const& region, bool overlap = false )
     {
-        add( region.chromosome, region.start, region.end );
+        add( region.chromosome, region.start, region.end, overlap );
+    }
+
+    // -------------------------------------------
+    //         Add Region List
+    // -------------------------------------------
+
+    /**
+     * @brief Add a complete GenomeRegionList to this list.
+     *
+     * This function copies all entries of the @p list.
+     *
+     * @copydetails GenomeRegionList::add( GenomeLocus const&, bool )
+     */
+    void add( GenomeRegionList const& other, bool overlap = false )
+    {
+        for( auto const& chr : other.regions_ ) {
+            for( auto const& interval : chr.second ) {
+                add( chr.first, interval.low(), interval.high(), overlap );
+            }
+        }
     }
 
     // -------------------------------------------

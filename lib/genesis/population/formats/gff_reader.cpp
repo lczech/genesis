@@ -61,15 +61,24 @@ std::vector<GffReader::Feature> GffReader::read(
 }
 
 GenomeRegionList GffReader::read_as_genome_region_list(
-    std::shared_ptr< utils::BaseInputSource > source
+    std::shared_ptr< utils::BaseInputSource > source,
+    bool merge
 ) const {
     GenomeRegionList result;
+    read_as_genome_region_list( source, result, merge );
+    return result;
+}
+
+void GffReader::read_as_genome_region_list(
+    std::shared_ptr< utils::BaseInputSource > source,
+    GenomeRegionList& target,
+    bool merge
+) const {
     utils::InputStream it( source );
     Feature feat;
     while( parse_line( it, feat ) ) {
-        result.add( feat.seqname, feat.start, feat.end );
+        target.add( feat.seqname, feat.start, feat.end, merge );
     }
-    return result;
 }
 
 // =================================================================================================

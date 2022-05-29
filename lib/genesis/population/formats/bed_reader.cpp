@@ -57,13 +57,22 @@ std::vector<BedReader::Feature> BedReader::read(
 }
 
 GenomeRegionList BedReader::read_as_genome_region_list(
-    std::shared_ptr< utils::BaseInputSource > source
+    std::shared_ptr< utils::BaseInputSource > source,
+    bool merge
 ) const {
     GenomeRegionList result;
-    read_( source, [&]( Feature&& feat ){
-        result.add( feat.chrom, feat.chrom_start, feat.chrom_end );
-    });
+    read_as_genome_region_list( source, result, merge );
     return result;
+}
+
+void BedReader::read_as_genome_region_list(
+    std::shared_ptr< utils::BaseInputSource > source,
+    GenomeRegionList& target,
+    bool merge
+) const {
+    read_( source, [&]( Feature&& feat ){
+        target.add( feat.chrom, feat.chrom_start, feat.chrom_end, merge );
+    });
 }
 
 // =================================================================================================

@@ -147,9 +147,26 @@ public:
      *
      * This only uses the first three columns, `chrom`, `chromStart`, and `chromEnd`,
      * and ignores everything else.
+     *
+     * If @p merge is set, the individual regions of the file are merged if they overlap.
+     * This is more useful of the region list is used to determine coverage, and less useful if
+     * regions are meant to indicate some specific parts of the genome, such as genes.
+     * See the `overlap` flag of GenomeRegionList::add( GenomeLocus const&, bool ) for details.
      */
     GenomeRegionList read_as_genome_region_list(
-        std::shared_ptr< utils::BaseInputSource > source
+        std::shared_ptr< utils::BaseInputSource > source,
+        bool merge = false
+    ) const;
+
+    /**
+     * @brief Read a BED input source, and add its content to an existing GenomeRegionList.
+     *
+     * @copydetails BedReader::read_as_genome_region_list( std::shared_ptr< genesis::utils::BaseInputSource >, bool ) const
+     */
+    void read_as_genome_region_list(
+        std::shared_ptr< utils::BaseInputSource > source,
+        GenomeRegionList& target,
+        bool merge = false
     ) const;
 
     // -------------------------------------------------------------------------
