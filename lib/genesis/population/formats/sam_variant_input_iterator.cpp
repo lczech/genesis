@@ -34,6 +34,8 @@
 
 #include "genesis/population/functions/functions.hpp"
 
+#include "genesis/utils/core/logging.hpp"
+
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -455,11 +457,59 @@ int SamVariantInputIterator::SamFileHandle::read_sam_(
             throw std::runtime_error( "Error reading file " + handle->parent_->input_file() );
         }
 
-        // Check per-read properties, and skip the read if not matching requirements.
-        // We check for some basic flags, as well as minimum mapping quality here.
-        if( bam->core.flag & handle->parent_->flags_ ) {
+        // Define flag shorthands for readability.
+        auto const& flags_in_all = handle->parent_->flags_include_all_;
+        auto const& flags_in_any = handle->parent_->flags_include_any_;
+        auto const& flags_ex_all = handle->parent_->flags_exclude_all_;
+        auto const& flags_ex_any = handle->parent_->flags_exclude_any_;
+
+        // Check per-read flags. Skip reads that match one of the conditions.
+        if( flags_in_all && (( bam->core.flag & flags_in_all ) != flags_in_all )) {
+            // from sam_view.c
+            // keep   if (FLAG & N) == N             (all on)
+            // int flag_on;
+            // case 'f': settings.flag_on |= bam_str2flag(optarg); break;
+            // if ( (b->core.flag & settings->flag_on) != settings->flag_on )
+            //     return 1; // skip read
+
             continue;
         }
+        if( flags_in_any && (( bam->core.flag & flags_in_any ) == 0 )) {
+            // from sam_view.c
+            // keep   if (FLAG & N) != 0             (any on)
+            // int flag_anyon;
+            // case LONGOPT('g'):
+            //     settings.flag_anyon |= bam_str2flag(optarg); break;
+            // if (settings->flag_anyon && ((b->core.flag & settings->flag_anyon) == 0))
+            //   return 1; // skip read
+
+            continue;
+        }
+        if( flags_ex_all && (( bam->core.flag & flags_ex_all ) == flags_ex_all )) {
+            // from sam_view.c
+            // reject if (FLAG & N) == N             (any off)
+            // NB I think the "any off" in the previous line is wrong in samtools,
+            // and should be "all off"?!
+            // But the usage of "off" is misleading... we are looking for on bits...
+            // int flag_alloff;
+            // case 'G': settings.flag_alloff |= bam_str2flag(optarg); break;
+            // if (settings->flag_alloff && ((b->core.flag & settings->flag_alloff) == settings->flag_alloff))
+            //     return 1; // skip read
+
+            continue;
+        }
+        if( flags_ex_any && (( bam->core.flag & flags_ex_any ) != 0 )) {
+            // from sam_view.c
+            // keep   if (FLAG & N) == 0             (all off)
+            // int flag_off;
+            // case 'F': settings.flag_off |= bam_str2flag(optarg); break;
+            // if (b->core.flag & settings->flag_off)
+            //     return 1; // skip read
+
+            continue;
+        }
+
+        // Check minimum mapping quality as well.
         if( static_cast<int>( bam->core.qual ) < handle->parent_->min_map_qual_ ) {
             continue;
         }
@@ -900,7 +950,7 @@ SamVariantInputIterator::SamVariantInputIterator(
 
     // Skip unmapepd and duplicates by default. We set the flags here in the cpp,
     // so that our header file can stay free of htslib includes and constants.
-    flags_ = ( BAM_FUNMAP | BAM_FDUP );
+    // flags_ = ( BAM_FUNMAP | BAM_FDUP );
 
     // Set the rg tag filter
     rg_tag_filter_ = rg_tag_filter;
