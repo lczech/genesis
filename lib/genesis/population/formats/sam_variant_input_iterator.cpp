@@ -34,8 +34,6 @@
 
 #include "genesis/population/functions/functions.hpp"
 
-#include "genesis/utils/core/logging.hpp"
-
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -88,6 +86,11 @@ public:
     // by this iterator at each position. We use a map in this direction for speed,
     // as we get the RG tag name from htslib for each read.
     std::unordered_map<std::string, size_t> rg_tags_;
+
+    // We additionally keep a plain list around, just for the iterator to access.
+    // This list might include the "unaccounted" sample as well as a string, which is not part
+    // of the above map. Hence, this list here is purely meant for user output.
+    std::vector<std::string> target_sample_names_;
 
     // We furthermore store the number of BaseCounts samples needed in each Variant,
     // as a result of the rg_tag splitting. With no splitting, this is 1, as we then only
@@ -226,6 +229,7 @@ void SamVariantInputIterator::SamFileHandle::init_( SamVariantInputIterator cons
 
     // Prepare result. This is its default anyway, but why not.
     rg_tags_.clear();
+    target_sample_names_.clear();
     target_sample_count_ = 0;
 
     // If we do not want to split by RG tag, we simply leave rg_tag empty,
@@ -245,6 +249,7 @@ void SamVariantInputIterator::SamFileHandle::init_( SamVariantInputIterator cons
             );
         }
 
+        // Set the target count to 1. We keep the target_sample_names_ empty in this case.
         target_sample_count_ = 1;
         return;
     }
@@ -282,9 +287,12 @@ void SamVariantInputIterator::SamFileHandle::init_( SamVariantInputIterator cons
         ) {
             // We set the index to the current target count, which only counts the valid samples
             // that we do not want to filter out, meaning that each entry gets the index according
-            // to the how many-th valid element in the result map it is.
-            rg_tags_.emplace( std::move( tag ), target_sample_count_ );
+            // to the how many-th valid element in the result map it is. Also add it to the list
+            // of names. We can now move it, as the tag is not needed any more.
+            rg_tags_.emplace( tag, target_sample_count_ );
+            target_sample_names_.emplace_back( std::move( tag ));
             ++target_sample_count_;
+
         } else {
             // RG tags that we want to filter out get assigned max int,
             // as an indicator that the reading step shall skip them.
@@ -293,6 +301,7 @@ void SamVariantInputIterator::SamFileHandle::init_( SamVariantInputIterator cons
     }
 
     // Make sure that all given filters are actually valid according to the header.
+    // If any name remains in the list of copies, we have an error.
     if( filter_tags_copy.size() > 0 ) {
         // Nice output of some tags in the header. We need to fetch the tags from the header again,
         // as we moved from the `tags` list in the loop above. But this is the error case,
@@ -322,8 +331,10 @@ void SamVariantInputIterator::SamFileHandle::init_( SamVariantInputIterator cons
 
     // If we use the unaccounted group, we need to make room for that additional sample.
     if( parent_->with_unaccounted_rg_ ) {
+        target_sample_names_.emplace_back( "unaccounted" );
         ++target_sample_count_;
     }
+    assert( target_sample_names_.size() == target_sample_count_ );
 
     // Finally, set the callback functions that take care of finding the RG group per read.
     // By only determining the RG tag once per read and storing it in the cliend data of the
@@ -335,8 +346,9 @@ void SamVariantInputIterator::SamFileHandle::init_( SamVariantInputIterator cons
     // https://github.com/samtools/samtools/blob/4be69864304f4e7ac0113fdff9e4ff764b9d9267/bam_plcmd.c#L336-L351
     // https://github.com/samtools/samtools/blob/4be69864304f4e7ac0113fdff9e4ff764b9d9267/bam_plcmd.c#L76
     // as mentioned in the GitHub issue (but we use permalinks here, for future stability).
+    // We currently do not use the destructor, as we have nothing to free.
     bam_plp_constructor( iter_, pileup_cd_create_ );
-    bam_plp_destructor(  iter_, pileup_cd_destroy_ );
+    // bam_plp_destructor(  iter_, pileup_cd_destroy_ );
 }
 
 // -------------------------------------------------------------------------
@@ -685,54 +697,32 @@ SamVariantInputIterator::Iterator::Iterator( SamVariantInputIterator const* pare
 
 std::vector<std::string> SamVariantInputIterator::Iterator::rg_tags( bool all_header_tags ) const
 {
-    // Special case, if we just want to get all the rg tags from the file header.
+    // Previously, this function used to rely on a re-filling of the list of tags, using
+    // the settings of the parent_ SamVariantInputIterator. However, in cases where the per-read
+    // filter settings would fitler out _all_ reads (e.g., super high min map qual filter),
+    // the iterator would already reach its end when being intitialized, as no read would ever be
+    // used, and hence parent_ would already be nullptr when this function here was called from
+    // the user. So no we do not rely on the parent_ any more, and instead store the list
+    // in the handle already upon construction.
+    // In the future, it might still be necessary to fix the underlying issue, i.e., the iterator
+    // being ended, and the parent being null, if the use case of this class changes. But for
+    // now, it seems that the approach still works, so we keep it that way.
+
     assert( handle_ );
     if( all_header_tags ) {
+        // Special case, if we just want to get all the rg tags from the file header.
+        // This is a bit trippy in case that the iteration already finished... In that case,
+        // this iterator will already have it's parent_ pointer nulled, but the handle_ will not,
+        // so that we can use this to get the rg header tags again from the file.
+        // In hindsight, it might have been better to not use the parent_ == nullptr as an indicator
+        // that we have finished iteration... On the other hand, this is a pretty good way to
+        // ensure that no part of the iterator is called accidentally afterwards, as this will
+        // immediately lead to failure.
         return handle_->get_header_rg_tags_();
     }
 
-    // Empty list when we do not split by read group tag.
-    assert( parent_ );
-    if( ! parent_->split_by_rg_ ) {
-        return {};
-    }
-
-    // We store the rg tags in a form that is fastest for per-read access, as a map from rg tag
-    // to its index that we want to assign it to in the samples vector of the Variant.
-    // However, turning this into a neat ordered list is a bit cumbersome...
-    // but this usually is only called in the beginning of the iteration, so that cost is okay.
-    // Alternatively, we could also go through the get_header_rg_tags_() list again, and apply
-    // the same filtering as done in SamFileHandle::init_(), but that seems
-    // equally as cumbersome, as we'd need to disentangle the unaccounted, etc...
-    // so let's stick with this approach here.
-    // We can only ever have target_sample_count_ many valid indices,
-    // so no need to go through all handle_->rg_tags.size() many tags here.
-    std::vector<std::string> result;
-    for( size_t i = 0; i < handle_->target_sample_count_; ++i ) {
-        // For each tag in the order that we actually want, find where it is in the map.
-        // We need to scan the whole map every time, as the indicies are stored as values...
-        // We might not find it at all, if it was filtered out by the rg_tag_filter().
-        for( auto const& tag : handle_->rg_tags_ ) {
-            // The tag indicies cannot ever be creater than the target size of the sample.
-            assert(
-                tag.second < handle_->target_sample_count_ ||
-                tag.second == std::numeric_limits<size_t>::max()
-            );
-
-            // Found the index for this tag. Add it, and move on.
-            if( tag.second == i ) {
-                result.push_back( tag.first );
-                break;
-            }
-        }
-    }
-
-    // Add the unaccounted tag if needed, check that we have the correct size, and return.
-    if( parent_->with_unaccounted_rg_ ) {
-        result.push_back( "unaccounted" );
-    }
-    assert( result.size() == handle_->target_sample_count_ );
-    return result;
+    // Normal case: get the tags that are acutally used, potentially after splitting and filtering.
+    return handle_->target_sample_names_;
 }
 
 // -------------------------------------------------------------------------

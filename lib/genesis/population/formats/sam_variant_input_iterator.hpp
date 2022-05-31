@@ -275,9 +275,9 @@ public:
          * All of the above is ignored if the argument @p all_header_tags is set to `true`.
          * In that case, the function instead simply returns those RG tags that are present
          * in the SAM/BAM/CRAM header, without the "unaccounted", and without any filtering.
-         *
-         * Note that this function needs to fill the vector when called. Hence, if this list is
-         * needed often, it is recommended to call this function once and store the result.
+         * Note that in this case, this function needs to fill the vector when called. Hence,
+         * if this list is needed often, it is recommended to call this function once and store
+         * the result.
          */
         std::vector<std::string> rg_tags( bool all_header_tags = false ) const;
 
