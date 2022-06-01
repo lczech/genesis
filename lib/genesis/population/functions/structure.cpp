@@ -160,10 +160,10 @@ std::pair<double, double> f_st_pool_karlsson_nkdk(
 }
 
 // =================================================================================================
-//     F_ST Pool Spence
+//     F_ST Pool Unbiased (Spence)
 // =================================================================================================
 
-std::tuple<double, double, double> f_st_pool_spence_pi_snp(
+std::tuple<double, double, double> f_st_pool_unbiased_pi_snp(
     size_t p1_poolsize, size_t p2_poolsize,
     BaseCounts const& p1_counts, BaseCounts const& p2_counts
 ) {

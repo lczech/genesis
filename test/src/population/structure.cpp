@@ -89,14 +89,14 @@ TEST( Structure, FstPool )
         0.02347631, 0.02125242, 0.02240403,
         0.027800744 // <-- not computed by PoPoolation (incomplete window)
     }};
-    std::vector<double> const exp_spence_nei = {{
+    std::vector<double> const exp_unbiased_nei = {{
         0.00931612172, 0.00730230879, 0.00973944028, 0.00861753481, 0.00732880303, 0.0097167155,
         0.00647155422, 0.00730230879, 0.00732880303, 0.00730230879, 0.0127319208,  0.00973944028,
         0.0097167155,  0.00135927851, 0.00861854607, 0.00973944028, 0.0108767017,  0.00647235444,
         0.00730230879, 0.0155986994,  0.00973944028, 0.00861854607, 0.00730230879, 0.00627407827,
         0.0111994211,  0.00607555685, 0.0108767017,  0.00973944028, 0.0103280389,  0.0130954999
     }};
-    std::vector<double> const exp_spence_hudson = {{
+    std::vector<double> const exp_unbiased_hudson = {{
         0.0184602654, 0.0144987433,  0.019290997,  0.0170878148, 0.0145509649, 0.019246419,
         0.012859885,  0.0144987433,  0.0145509649, 0.0144987433, 0.0251437138, 0.019290997,
         0.019246419,  0.00271486675, 0.0170898029, 0.019290997,  0.0215193438, 0.0128614649,
@@ -162,8 +162,8 @@ TEST( Structure, FstPool )
             pop1_filt.begin(), pop1_filt.end(),
             pop2_filt.begin(), pop2_filt.end()
         );
-        // LOG_DBG << "f_st_pool_spence";
-        auto const fst_spence = f_st_pool_spence(
+        // LOG_DBG << "f_st_pool_unbiased";
+        auto const fst_unbiased = f_st_pool_unbiased(
             settings.poolsize, settings.poolsize,
             pop1_filt.begin(), pop1_filt.end(),
             pop2_filt.begin(), pop2_filt.end()
@@ -172,14 +172,14 @@ TEST( Structure, FstPool )
         // LOG_DBG << std::setprecision(9)
         //         << "kofler " << fst_conv
         //         << " karlsson " << fst_asym_unbiased
-        //         << " spence " << fst_spence.first << " & " << fst_spence.second
+        //         << " unbiased " << fst_unbiased.first << " & " << fst_unbiased.second
         // ;
 
         // Compare statistics
         EXPECT_FLOAT_EQ( exp_kofler[cnt], fst_conv );
         EXPECT_FLOAT_EQ( exp_karlsson[cnt], fst_asym_unbiased );
-        EXPECT_FLOAT_EQ( exp_spence_nei[cnt], fst_spence.first );
-        EXPECT_FLOAT_EQ( exp_spence_hudson[cnt], fst_spence.second );
+        EXPECT_FLOAT_EQ( exp_unbiased_nei[cnt], fst_unbiased.first );
+        EXPECT_FLOAT_EQ( exp_unbiased_hudson[cnt], fst_unbiased.second );
         ++cnt;
     });
 
@@ -244,8 +244,8 @@ TEST( Structure, FstPoolAllPairs )
         // Call an fst computation on that.
         f_st_pool_kofler( poolsizes, base_counts_range.begin(), base_counts_range.end() );
         f_st_pool_karlsson( base_counts_range.begin(), base_counts_range.end() );
-        f_st_pool_spence_nei( poolsizes, base_counts_range.begin(), base_counts_range.end() );
-        f_st_pool_spence_hudson( poolsizes, base_counts_range.begin(), base_counts_range.end() );
+        f_st_pool_unbiased_nei( poolsizes, base_counts_range.begin(), base_counts_range.end() );
+        f_st_pool_unbiased_hudson( poolsizes, base_counts_range.begin(), base_counts_range.end() );
     }
 }
 

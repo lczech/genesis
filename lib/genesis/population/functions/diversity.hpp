@@ -234,7 +234,7 @@ inline double theta_pi_pool(
  * for the pool size.
  *
  * This is the same computation used for theta pi within in the FST computation
- * of f_st_pool_spence(). It does _not_ use the pool seq correction of Kofler et al.
+ * of f_st_pool_unbiased(). It does _not_ use the pool seq correction of Kofler et al.
  */
 template<class ForwardIterator>
 double theta_pi_within_pool(
