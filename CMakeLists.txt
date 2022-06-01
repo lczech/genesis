@@ -23,9 +23,9 @@
 #   CMake Init
 # --------------------------------------------------------------------------------------------------
 
-# Require the minimum version of any system that we test on - which is the version used by Travis.
-# Thus, we can be sure that this works (as long as they don't change it...).
-cmake_minimum_required (VERSION 2.8.7 FATAL_ERROR)
+# CMake declared that versions below this will not be supported any more,
+# so let's use this as our lower bound for now. Will need more testing though...
+cmake_minimum_required (VERSION 2.8.12 FATAL_ERROR)
 
 # Fun with colors!
 if (NOT WIN32)
@@ -106,17 +106,6 @@ set( GENESIS_C_FLAGS "" )
 set( GENESIS_CXX_FLAGS "" )
 set( GENESIS_EXE_LINKER_FLAGS "" )
 
-# Extract Genesis version from version source file.
-file(
-    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/utils/core/version.hpp" GENESIS_VERSION_LINE
-    REGEX "^.*#GENESIS_VERSION#.*$"
-)
-if( ${GENESIS_VERSION_LINE} MATCHES ".*\"(v.*)\".*" )
-    set( GENESIS_VERSION "${CMAKE_MATCH_1}")
-endif()
-message (STATUS "OS: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION}")
-message (STATUS "${ColorBlue}Genesis version: ${GENESIS_VERSION}${ColorEnd}")
-
 # Figure out whether Genesis is compiled stand-alone or as a library/dependency.
 # We use two complementary variables, because we want to use them as default for options
 # (see later on), which do not accept a `NOT`...
@@ -130,6 +119,47 @@ else()
     set( GENESIS_HAS_PARENT_DIR OFF )
     set( GENESIS_IS_MASTER_PROJECT ON )
     message (STATUS "Building Genesis stand-alone")
+endif()
+
+# --------------------------------------------------------------------------------------------------
+#   Genesis Version
+# --------------------------------------------------------------------------------------------------
+
+# Extract Genesis version from version source file.
+file(
+    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/utils/core/version.hpp" GENESIS_VERSION_LINE
+    REGEX "^.*#GENESIS_VERSION#.*$"
+)
+if( ${GENESIS_VERSION_LINE} MATCHES ".*\"(v.*)\".*" )
+    set(GENESIS_VERSION "${CMAKE_MATCH_1}")
+endif()
+file(
+    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/utils/core/version.hpp" GENESIS_VERSION_LINE
+    REGEX "^.*#GENESIS_VERSION_NAME#.*$"
+)
+if( ${GENESIS_VERSION_LINE} MATCHES ".*\"(.*)\".*" )
+    set(GENESIS_VERSION_NAME "${CMAKE_MATCH_1}")
+endif()
+
+# Report what we found so far.
+message (STATUS "OS: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION}")
+message (STATUS
+    "${ColorBlue}Genesis version: ${GENESIS_VERSION} -- \"${GENESIS_VERSION_NAME}\"${ColorEnd}"
+)
+
+# If GIT is present, try to get the last commit hash, as a more detailled indicator of the genesis
+# version. This helps debugging with users that cloned the repo, instead of using a release.
+find_package(Git QUIET)
+if(GIT_FOUND)
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" rev-parse --short HEAD
+        WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
+        OUTPUT_VARIABLE GENESIS_GIT_SHA1
+        ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    IF(NOT (GENESIS_GIT_SHA1 MATCHES "^fatal.*"))
+        message (STATUS "Genesis commit hash: ${GENESIS_GIT_SHA1}")
+    ENDIF()
 endif()
 
 # --------------------------------------------------------------------------------------------------

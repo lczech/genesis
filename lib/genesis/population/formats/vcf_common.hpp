@@ -37,6 +37,9 @@
 #include <string>
 #include <vector>
 
+#include "genesis/population/genome_region.hpp"
+#include "genesis/population/genome_region_list.hpp"
+
 extern "C" {
     // #include <htslib/vcf.h>
     // #include <htslib/hts.h>
@@ -223,6 +226,30 @@ Variant convert_to_variant_as_individuals(
     VcfRecord const& record,
     bool use_allelic_depth = false
 );
+
+/**
+ * @brief Read a VCF file, and use its positions to create a GenomeRegionList.
+ *
+ * This is for example useful to restrict some analysis to the loci of known variants.
+ * Note that the whole file has to be read still; it can hence be better to only do this once
+ * and convert to a faster file format.
+ *
+ * This ignores all sample information, and simply uses the `CHROM`	and `POS` data to construct
+ * intervals of consecutive positions along the chromsomes, i.e., if the file contains positions
+ * `1`, `2`, and `3`, but not `4`, an interval spanning `1-3` is inserted into the list.
+ *
+ * The VCF file does not have to be sorted for this.
+ */
+GenomeRegionList genome_region_list_from_vcf_file( std::string const& file );
+
+/**
+ * @brief Read a VCF file, and add its positions to an existing GenomeRegionList.
+ *
+ * @copydetails genome_region_list_from_vcf_file( std::string const& )
+ * The regions are merged into the existing ones, potentially changing existing starts and ends
+ * of intervals if they overlap with regions found in the VCF.
+ */
+void genome_region_list_from_vcf_file( std::string const& file, GenomeRegionList& target );
 
 // =================================================================================================
 //     VCF Genotype Functions

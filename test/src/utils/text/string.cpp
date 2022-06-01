@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/io/char.hpp"
+#include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <cstdlib>

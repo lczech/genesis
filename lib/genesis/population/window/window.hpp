@@ -37,6 +37,8 @@
 #include <string>
 #include <vector>
 
+#include "genesis/population/genome_region.hpp"
+
 namespace genesis {
 namespace population {
 
@@ -349,8 +351,7 @@ public:
     }
 
     /**
-     * @brief Get the last (past-the-end) position in the chromosome of the Window, that is,
-     * where the Window ends.
+     * @brief Get the last position in the chromosome of the Window, that is, where the Window ends.
      *
      * @copydetails first_position() const
      */
@@ -360,14 +361,24 @@ public:
     }
 
     /**
-     * @brief Set the last (past-the-end) position in the chromosome of the Window, that is,
-     * where the Window ends.
+     * @brief Set the last position in the chromosome of the Window, that is, where the Window ends.
      *
      * @copydetails first_position() const
      */
     void last_position( size_t value )
     {
         last_position_ = value;
+    }
+
+    /**
+     * @brief Return the genome region that this Windows is defined over.
+     *
+     * This is a convenience function that gives the chromosome(), as well as first_position() and
+     * last_position(), combined into a GenomeRegion object, for ease of use.
+     */
+    GenomeRegion genome_region() const
+    {
+        return { chromosome_, first_position_, last_position_ };
     }
 
     // -------------------------------------------------------------------------

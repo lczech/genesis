@@ -30,7 +30,7 @@
 
 #include "genesis/population/functions/functions.hpp"
 
-#include "genesis/utils/io/char.hpp"
+#include "genesis/utils/text/char.hpp"
 
 #include <array>
 #include <cassert>

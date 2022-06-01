@@ -33,9 +33,10 @@
 #include "genesis/population/formats/vcf_common.hpp"
 
 #include "genesis/population/base_counts.hpp"
-#include "genesis/population/variant.hpp"
+#include "genesis/population/formats/vcf_input_iterator.hpp"
 #include "genesis/population/formats/vcf_record.hpp"
 #include "genesis/population/functions/functions.hpp"
+#include "genesis/population/variant.hpp"
 
 extern "C" {
     #include <htslib/hts.h>
@@ -480,6 +481,76 @@ Variant convert_to_variant_as_individuals(
         }
     }
     return result;
+}
+
+GenomeRegionList genome_region_list_from_vcf_file( std::string const& file )
+{
+    GenomeRegionList result;
+    genome_region_list_from_vcf_file( file, result );
+    return result;
+}
+
+void genome_region_list_from_vcf_file( std::string const& file, GenomeRegionList& target )
+{
+    // Prepare bookkeeping. We need the chromosome, the position where we started the current
+    // interval, and the position where we are at in the current interval.
+    std::string cur_chr;
+    size_t beg_pos = 0;
+    size_t cur_pos = 0;
+
+    auto insert_ = [&]( std::string const& chr, size_t beg, size_t end ){
+        if( chr.empty() ) {
+            return;
+        }
+        assert( beg > 0 && end > 0 );
+        assert( beg <= end );
+
+        // We add the interval, using the merge flag,
+        // to make sure that even unsorted VCFs produce consecutive, fully merged regions.
+        target.add( chr, beg, end, true );
+    };
+
+    // Open and read file, without expecting it to be sorted.
+    auto it = VcfInputIterator( file, false );
+    while( it ) {
+        if( it.record().get_chromosome() == cur_chr ) {
+            // We are still within the same chromosome.
+
+            // If we did not move (can happen if multiple variants are reported at the same position),
+            // or moved exactly one position, we are still in the same interval.
+            // We could simply use the insert_overlap functionality of the IntervalTree here
+            // (via GenomeRegionList.add()), and that would already take care of the merging.
+            // But this here is likely faster, as we do not need to always remove and add
+            // intervals to the tree for consecutive runs of positions, which is most likely
+            // the most common use case (using a sorted VCF file).
+            auto const pos = it.record().get_position();
+            if( pos == cur_pos || pos == cur_pos + 1 ) {
+                cur_pos = pos;
+            } else {
+                // Otherwise, we are at a new interval, so we need to finish the current one.
+                assert( ! cur_chr.empty() );
+                insert_( cur_chr, beg_pos, cur_pos );
+
+                // Now set the start of the next interval.
+                beg_pos = pos;
+                cur_pos = pos;
+            }
+        } else {
+            // We are at a new chromsome.
+
+            // Unless we just started, we add the interval, again using the merge flag.
+            insert_( cur_chr, beg_pos, cur_pos );
+
+            // Now set the start of the new interval.
+            cur_chr = it.record().get_chromosome();
+            beg_pos = it.record().get_position();
+            cur_pos = beg_pos;
+        }
+        ++it;
+    }
+
+    // Finally, add the last interval that remains after the file is done.
+    insert_( cur_chr, beg_pos, cur_pos );
 }
 
 // =================================================================================================

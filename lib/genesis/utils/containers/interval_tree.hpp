@@ -716,13 +716,27 @@ public:
      */
     iterator insert_overlap(interval_type const& ival, data_type&& data, bool exclusive = false)
     {
-        auto iter = overlap_find(ival, exclusive);
-        if (iter == end()) {
-            return insert(ival);
-        } else {
+        // Try to find a directly overlapping interval.
+        auto iter = overlap_find( ival, exclusive );
+
+        // We did not find a full overlap, but it might be that ajacent positions still yield
+        // a full interval again with no gaps. We test both ends of the interval.
+        // TODO This might fail for fully open intervals, I think. Will need to test and fix later.
+        if( iter == end() ) {
+            iter = overlap_find( ival.low() - 1 );
+        }
+        if( iter == end() ) {
+            iter = overlap_find( ival.high() + 1 );
+        }
+
+        if( iter != end() ) {
+            // If we found an overlap, use this.
             auto merged = join( iter->interval(), ival, std::move( data ));
             erase(iter);
-            return insert(merged);
+            return insert( merged );
+        } else {
+            // We did not find any overlap. Just insert as a new interval.
+            return insert( ival );
         }
     }
 

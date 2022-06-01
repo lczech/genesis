@@ -814,4 +814,28 @@ TEST( Vcf, InputIteratorFailFilter )
     EXPECT_ANY_THROW( VcfInputIterator( infile, std::vector<std::string>{ "XYZ" }) );
 }
 
+TEST( Vcf, GenomeRegionList )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/regions.vcf";
+
+    std::vector<std::string> exp = { "ABC:10-12", "ABC:25-26", "XYZ:5-7", "XYZ:9-10", "XYZ:19-20" };
+    std::vector<std::string> res;
+
+    auto const list = genome_region_list_from_vcf_file( infile );
+    for( auto const& chr : list.chromosome_map() ) {
+        for( auto const& region : chr.second ) {
+            // LOG_DBG << chr.first << ":" << region.low() << "-" << region.high();
+            res.emplace_back(
+                chr.first + ":" +
+                std::to_string( region.low() ) + "-" +
+                std::to_string( region.high() )
+            );
+        }
+    }
+
+    EXPECT_EQ( exp, res );
+}
+
 #endif // htslib guard

@@ -398,27 +398,27 @@ utils::Matrix<double> f_st_pool_karlsson(
 #endif // __cplusplus >= 201402L
 
 // =================================================================================================
-//     F_ST Pool Spence
+//     F_ST Pool Unbiased (Spence)
 // =================================================================================================
 
 /**
- * @brief Compute the SNP-based Theta Pi values used in f_st_pool_spence().
+ * @brief Compute the SNP-based Theta Pi values used in f_st_pool_unbiased().
  *
  * The function returns pi within, between, and total, in that order.
- * See f_st_pool_spence() for details.
+ * See f_st_pool_unbiased() for details.
  */
-std::tuple<double, double, double> f_st_pool_spence_pi_snp(
+std::tuple<double, double, double> f_st_pool_unbiased_pi_snp(
     size_t p1_poolsize, size_t p2_poolsize,
     BaseCounts const& p1, BaseCounts const& p2
 );
 
 /**
- * @brief Compute the unbiased F_ST statistic for pool-sequenced data of Spence et al,
- * for two ranges of BaseCounts%s.
+ * @brief Compute our unbiased F_ST statistic for pool-sequenced data for two ranges of BaseCounts%s.
  *
  * This is our novel approach for estimating F_ST, using pool-sequencing corrected estimates
  * of Pi within, Pi between, and Pi total, to compute F_ST following the definitions of
  * Nei [1] and Hudson [2], respectively. These are returned here as a pair in that order.
+ * See https://github.com/lczech/pool-seq-pop-gen-stats for details.
  *
  * > [1] **Analysis of Gene Diversity in Subdivided Populations.**<br />
  * > Nei M.<br />
@@ -430,14 +430,14 @@ std::tuple<double, double, double> f_st_pool_spence_pi_snp(
  * > Genetics, 1992, 132(2), 583–589. https://doi.org/10.1093/GENETICS/132.2.583
  */
 template<class ForwardIterator1, class ForwardIterator2>
-std::pair<double, double> f_st_pool_spence(
+std::pair<double, double> f_st_pool_unbiased(
     size_t p1_poolsize, size_t p2_poolsize,
     ForwardIterator1 p1_begin, ForwardIterator1 p1_end,
     ForwardIterator2 p2_begin, ForwardIterator2 p2_end
 ) {
     // Edge and error cases
     if( p1_poolsize <= 1 || p2_poolsize <= 1 ) {
-        throw std::invalid_argument( "Cannot run f_st_pool_spence() with poolsizes <= 1" );
+        throw std::invalid_argument( "Cannot run f_st_pool_unbiased() with poolsizes <= 1" );
     }
 
     // Sums over the window of pi within, between, total.
@@ -453,7 +453,7 @@ std::pair<double, double> f_st_pool_spence(
 
         // Compute pi values for the snp.
         // The tuple `pi_snp` returns pi within, between, and total, in that order.
-        auto const pi_snp = f_st_pool_spence_pi_snp( p1_poolsize, p2_poolsize, *p1_it, *p2_it );
+        auto const pi_snp = f_st_pool_unbiased_pi_snp( p1_poolsize, p2_poolsize, *p1_it, *p2_it );
 
         // Skip invalid entries than can happen when less than two of [ACGT] have
         // counts > 0 in one of the BaseCounts samples.
@@ -485,7 +485,7 @@ std::pair<double, double> f_st_pool_spence(
     }
     if( p1_it != p1_end || p2_it != p2_end ) {
         throw std::invalid_argument(
-            "In f_st_pool_spence(): Provided ranges have different length."
+            "In f_st_pool_unbiased(): Provided ranges have different length."
         );
     }
 
@@ -499,17 +499,16 @@ std::pair<double, double> f_st_pool_spence(
 
 /**
  * @brief Compute an unbiased F_ST estimator for pool-sequenced data,
- * following Spence et al and using the Nei variant of the estimator,
- * for all pairs of ranges of BaseCounts%s.
+ * using the Nei variant of the estimator, for all pairs of ranges of BaseCounts%s.
  *
- * See f_st_pool_spence() for details on the method.
+ * See f_st_pool_unbiased() for details on the method.
  * We here need to offer two variants of the pairwise compute helper, as there are two estimator
- * variants. See f_st_pool_spence_hudson() for the other variant.
+ * variants. See f_st_pool_unbiased_hudson() for the other variant.
  *
  * @see See compute_pairwise_f_st() for the expected input range specification.
  */
 template<class ForwardIterator>
-utils::Matrix<double> f_st_pool_spence_nei(
+utils::Matrix<double> f_st_pool_unbiased_nei(
     std::vector<size_t> const& poolsizes,
     ForwardIterator begin, ForwardIterator end
 ) {
@@ -518,11 +517,11 @@ utils::Matrix<double> f_st_pool_spence_nei(
         [&]( size_t i, size_t j, auto p1_begin, auto p1_end, auto p2_begin, auto p2_end ){
             if( i >= poolsizes.size() || j >= poolsizes.size() ) {
                 throw std::runtime_error(
-                    "In f_st_pool_spence_nei(): Provided ranges have different lengths that "
+                    "In f_st_pool_unbiased_nei(): Provided ranges have different lengths that "
                     "are not identical to the number of poolsizes provided."
                 );
             }
-            return f_st_pool_spence(
+            return f_st_pool_unbiased(
                 poolsizes[i], poolsizes[j],
                 p1_begin, p1_end, p2_begin, p2_end
             ).first;
@@ -532,17 +531,16 @@ utils::Matrix<double> f_st_pool_spence_nei(
 
 /**
  * @brief Compute an unbiased F_ST estimator for pool-sequenced data,
- * following Spence et al and using the Hudson variant of the estimator,
- * for all pairs of ranges of BaseCounts%s.
+ * using the Hudson variant of the estimator, for all pairs of ranges of BaseCounts%s.
  *
- * See f_st_pool_spence() for details on the method.
+ * See f_st_pool_unbiased() for details on the method.
  * We here need to offer two variants of the pairwise compute helper, as there are two estimator
- * variants. See f_st_pool_spence_nei() for the other variant.
+ * variants. See f_st_pool_unbiased_nei() for the other variant.
  *
  * @see See compute_pairwise_f_st() for the expected input range specification.
  */
 template<class ForwardIterator>
-utils::Matrix<double> f_st_pool_spence_hudson(
+utils::Matrix<double> f_st_pool_unbiased_hudson(
     std::vector<size_t> const& poolsizes,
     ForwardIterator begin, ForwardIterator end
 ) {
@@ -551,11 +549,11 @@ utils::Matrix<double> f_st_pool_spence_hudson(
         [&]( size_t i, size_t j, auto p1_begin, auto p1_end, auto p2_begin, auto p2_end ){
             if( i >= poolsizes.size() || j >= poolsizes.size() ) {
                 throw std::runtime_error(
-                    "In f_st_pool_spence_hudson(): Provided ranges have different lengths that "
+                    "In f_st_pool_unbiased_hudson(): Provided ranges have different lengths that "
                     "are not identical to the number of poolsizes provided."
                 );
             }
-            return f_st_pool_spence(
+            return f_st_pool_unbiased(
                 poolsizes[i], poolsizes[j],
                 p1_begin, p1_end, p2_begin, p2_end
             ).second;

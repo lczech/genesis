@@ -31,9 +31,9 @@
 #include "genesis/population/formats/sync_reader.hpp"
 
 #include "genesis/population/functions/functions.hpp"
-#include "genesis/utils/io/char.hpp"
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
+#include "genesis/utils/text/char.hpp"
 
 #include <cassert>
 #include <cstdint>

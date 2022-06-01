@@ -32,9 +32,9 @@
  */
 
 #include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/char.hpp"
 #include "genesis/utils/io/input_reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/text/char.hpp"
 
 #include <cassert>
 #include <cstdint>

@@ -275,9 +275,9 @@ public:
          * All of the above is ignored if the argument @p all_header_tags is set to `true`.
          * In that case, the function instead simply returns those RG tags that are present
          * in the SAM/BAM/CRAM header, without the "unaccounted", and without any filtering.
-         *
-         * Note that this function needs to fill the vector when called. Hence, if this list is
-         * needed often, it is recommended to call this function once and store the result.
+         * Note that in this case, this function needs to fill the vector when called. Hence,
+         * if this list is needed often, it is recommended to call this function once and store
+         * the result.
          */
         std::vector<std::string> rg_tags( bool all_header_tags = false ) const;
 
@@ -410,7 +410,128 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Detail Settings
+    //     Flag Settings
+    // -------------------------------------------------------------------------
+
+    uint32_t flags_include_all() const
+    {
+        return flags_include_all_;
+    }
+
+    /**
+     * @brief Only use reads with \e all bits set in @p value present in the FLAG field of the read.
+     *
+     * This is equivalent to the `-f` / `--require-flags` setting in samtools view.
+     *
+     * The @p value can be specified in hex by beginning with `0x` (i.e., `/^0x[0-9A-F]+/`),
+     * in octal by beginning with `0` (i.e., `/^0[0-7]+/`), as a decimal number not beginning
+     * with '0', or as a comma-, plus-, or space-separated list of flag names. We are more lenient
+     * in parsing flag names then samtools, and allow different capitalization and delimiteres
+     * such as dashes and underscores in the flag names as well.
+     *
+     * See http://www.htslib.org/doc/samtools-flags.html and
+     * https://broadinstitute.github.io/picard/explain-flags.html for details on the flag
+     * values, and see https://www.htslib.org/doc/samtools-view.html for their usage
+     * in samtools.
+     *
+     * @see flags_include_any( uint32_t ), flags_exclude_all( uint32_t ), flags_exclude_any( uint32_t )
+     */
+    self_type& flags_include_all( uint32_t value )
+    {
+        flags_include_all_ = value;
+        return *this;
+    }
+
+    uint32_t flags_include_any() const
+    {
+        return flags_include_any_;
+    }
+
+    /**
+     * @brief Only use reads with \e any bits set in @p value present in the FLAG field of the read.
+     *
+     * This is equivalent to the `--rf` / `--incl-flags` / `--include-flags` setting in samtools view.
+     *
+     * The @p value can be specified in hex by beginning with `0x` (i.e., `/^0x[0-9A-F]+/`),
+     * in octal by beginning with `0` (i.e., `/^0[0-7]+/`), as a decimal number not beginning
+     * with '0', or as a comma-, plus-, or space-separated list of flag names. We are more lenient
+     * in parsing flag names then samtools, and allow different capitalization and delimiteres
+     * such as dashes and underscores in the flag names as well.
+     *
+     * See http://www.htslib.org/doc/samtools-flags.html and
+     * https://broadinstitute.github.io/picard/explain-flags.html for details on the flag
+     * values, and see https://www.htslib.org/doc/samtools-view.html for their usage
+     * in samtools.
+     *
+     * @see flags_include_all( uint32_t ), flags_exclude_all( uint32_t ), flags_exclude_any( uint32_t )
+     */
+    self_type& flags_include_any( uint32_t value )
+    {
+        flags_include_any_ = value;
+        return *this;
+    }
+
+    uint32_t flags_exclude_all() const
+    {
+        return flags_exclude_all_;
+    }
+
+    /**
+     * @brief Do not use reads with \e all bits set in @p value present in the FLAG field of the read.
+     *
+     * This is equivalent to the `-G` setting in samtools view.
+     *
+     * The @p value can be specified in hex by beginning with `0x` (i.e., `/^0x[0-9A-F]+/`),
+     * in octal by beginning with `0` (i.e., `/^0[0-7]+/`), as a decimal number not beginning
+     * with '0', or as a comma-, plus-, or space-separated list of flag names. We are more lenient
+     * in parsing flag names then samtools, and allow different capitalization and delimiteres
+     * such as dashes and underscores in the flag names as well.
+     *
+     * See http://www.htslib.org/doc/samtools-flags.html and
+     * https://broadinstitute.github.io/picard/explain-flags.html for details on the flag
+     * values, and see https://www.htslib.org/doc/samtools-view.html for their usage
+     * in samtools.
+     *
+     * @see flags_include_all( uint32_t ), flags_include_any( uint32_t ), flags_exclude_any( uint32_t )
+     */
+    self_type& flags_exclude_all( uint32_t value )
+    {
+
+        flags_exclude_all_ = value;
+        return *this;
+    }
+
+    uint32_t flags_exclude_any() const
+    {
+        return flags_exclude_any_;
+    }
+
+    /**
+     * @brief Do not use reads with \e any bits set in @p value present in the FLAG field of the read.
+     *
+     * This is equivalent to the `-F` / `--excl-flags` / `--exclude-flags` setting in samtools view.
+     *
+     * The @p value can be specified in hex by beginning with `0x` (i.e., `/^0x[0-9A-F]+/`),
+     * in octal by beginning with `0` (i.e., `/^0[0-7]+/`), as a decimal number not beginning
+     * with '0', or as a comma-, plus-, or space-separated list of flag names. We are more lenient
+     * in parsing flag names then samtools, and allow different capitalization and delimiteres
+     * such as dashes and underscores in the flag names as well.
+     *
+     * See http://www.htslib.org/doc/samtools-flags.html and
+     * https://broadinstitute.github.io/picard/explain-flags.html for details on the flag
+     * values, and see https://www.htslib.org/doc/samtools-view.html for their usage
+     * in samtools.
+     *
+     * @see flags_include_all( uint32_t ), flags_include_any( uint32_t ), flags_exclude_all( uint32_t )
+     */
+    self_type& flags_exclude_any( uint32_t value )
+    {
+        flags_exclude_any_ = value;
+        return *this;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Quality Settings
     // -------------------------------------------------------------------------
 
     int min_map_qual() const
@@ -447,6 +568,10 @@ public:
         min_base_qual_ = value;
         return *this;
     }
+
+    // -------------------------------------------------------------------------
+    //     Depth Settings
+    // -------------------------------------------------------------------------
 
     int min_depth() const
     {
@@ -501,6 +626,10 @@ public:
         max_acc_depth_ = value;
         return *this;
     }
+
+    // -------------------------------------------------------------------------
+    //     Read Group Settings
+    // -------------------------------------------------------------------------
 
     bool split_by_rg() const
     {
@@ -611,9 +740,11 @@ private:
 
     // Settings
 
-    // Read filtering flags, as used by htslib
-    // TODO: need to make those accessible for being settable by the user
-    uint32_t flags_;
+    // Read filtering flags, as used by htslib and samtools
+    uint32_t flags_include_all_ = 0;
+    uint32_t flags_include_any_ = 0;
+    uint32_t flags_exclude_all_ = 0;
+    uint32_t flags_exclude_any_ = 0;
 
     // Minimum mapping and base qualities
     int min_map_qual_ = 0;

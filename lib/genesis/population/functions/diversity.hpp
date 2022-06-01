@@ -172,14 +172,16 @@ double theta_pi_pool_denominator(
  * @brief Compute classic theta pi, that is, the sum of heterozygosities.
  *
  * The function simply sums heterozygosity() for all samples in the given range.
+ * If @p with_bessel is set, Bessel's correction for the total nucleotide count is used.
  */
 template<class ForwardIterator>
 double theta_pi(
-    ForwardIterator begin, ForwardIterator end
+    ForwardIterator begin, ForwardIterator end,
+    bool with_bessel = true
 ) {
     double pi_sum = 0.0;
     for( auto& it = begin; it != end; ++it ) {
-        pi_sum += heterozygosity( *it, true );
+        pi_sum += heterozygosity( *it, with_bessel );
     }
     return pi_sum;
 }
@@ -188,8 +190,9 @@ double theta_pi(
  * @brief Compute theta pi with pool-sequencing correction according to Kofler et al,
  * that is, the sum of heterozygosities divided by the correction denominator.
  *
- * The function sums heterozygosity() for all samples in the given range, and divides each
- * by the respective denominator to correct for error from pool sequencing.
+ * The function sums heterozygosity() for all samples in the given range, including Bessel's
+ * correction for the total nucleotide count at each position, and divides each by the respective
+ * denominator to correct for error from pool sequencing.
  * See theta_pi_pool_denominator() for details.
  */
 template<class ForwardIterator>
@@ -213,7 +216,8 @@ double theta_pi_pool( // get_pi_calculator
 
 /**
  * @brief Compute theta pi with pool-sequencing correction according to Kofler et al,
- * for a single BaseCounts, that is, its heterozygosity() divided by the correction denominator.
+ * for a single BaseCounts, that is, its heterozygosity() including Bessel's correction for the
+ * total nucleotide count at each position, divided by the correction denominator.
  */
 inline double theta_pi_pool(
     PoolDiversitySettings const& settings,
@@ -222,6 +226,28 @@ inline double theta_pi_pool(
     auto const h = heterozygosity( sample, true );
     auto const d = theta_pi_pool_denominator( settings, nucleotide_sum( sample ));
     return h / d;
+}
+
+/**
+ * @brief Compute classic theta pi (within a population), that is, the sum of heterozygosities
+ * including Bessel's correction for total nucleotide sum at each position, and Bessel's correction
+ * for the pool size.
+ *
+ * This is the same computation used for theta pi within in the FST computation
+ * of f_st_pool_unbiased(). It does _not_ use the pool seq correction of Kofler et al.
+ */
+template<class ForwardIterator>
+double theta_pi_within_pool(
+    ForwardIterator begin, ForwardIterator end,
+    size_t poolsize
+) {
+    auto const psb = static_cast<double>( poolsize ) / ( static_cast<double>( poolsize ) - 1.0 );
+    double pi_sum = 0.0;
+    for( auto& it = begin; it != end; ++it ) {
+        // Apply heterozygosity with Bessel's for nucleotide count, and Bessel's for pool size.
+        pi_sum += heterozygosity( *it, true ) * psb;
+    }
+    return pi_sum;
 }
 
 // =================================================================================================

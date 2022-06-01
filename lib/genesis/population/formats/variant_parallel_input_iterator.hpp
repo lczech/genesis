@@ -152,10 +152,19 @@ public:
      * In the absence of a carrying set of loci, only those loci are visited that are in _all_
      * inputs; in other words, in this case, the `kFollowing` type acts as an intersection of loci.
      *
-     * This model does not allow more complex subset operations of loci, such as intersections,
-     * complements, (symmetrical) differences, and exclusions. For these cases, one can use the
-     * add_carrying_locus() and add_carrying_loci() functions that allow a pre-defined set of
-     * loci to be iterated over.
+     * NB: We do not call these two types "union" and "intersection", as we feel that this might
+     * be confusing. These terms describe operations on two or more sets, and are not properties
+     * of any single set. For example, a carrying input and a following input combined do neither
+     * yield the union nor the intersection of the two, but instead just all loci from the first one.
+     * Only if all inputs are of the same type, either carrying or following, does the result
+     * behave as the union or intersection of the loci, respectively.
+     *
+     * This model does not allow more complex subset operations of loci, such as per-input
+     * intersections, complements, (symmetrical) differences, and exclusions. For these cases,
+     * one can use the add_carrying_locus() and add_carrying_loci() functions that allow a
+     * pre-defined set of loci to be iterated over; if then all actual data inputs are set to
+     * be following, only those pre-defined loci will be visited, making it possible to select
+     * an arbitrary set of loci for iteration.
      */
     enum class ContributionType
     {

@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/population/base_counts.hpp"
+#include "genesis/population/formats/sam_flags.hpp"
 #include "genesis/population/formats/sam_variant_input_iterator.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
@@ -47,13 +48,14 @@ void run_sam_bam_cram_test_(
     std::string const& infile,
     bool split_by_rg,
     bool with_unaccounted_rg,
-    bool filter_only_s2
+    bool filter_only_s2,
+    bool filter_high_map_qual = false
 ) {
     // We just use any file that comes in here, no matter what the format.
     auto sam_it = SamVariantInputIterator( infile );
     size_t exp_smp_size = 1;
     std::vector<std::string> exp_rg_tags;
-    sam_it.min_map_qual( 40 );
+    sam_it.min_map_qual( filter_high_map_qual ? 200 : 40 );
     if( split_by_rg ) {
         sam_it.split_by_rg( true );
         if( with_unaccounted_rg ) {
@@ -86,6 +88,14 @@ void run_sam_bam_cram_test_(
         EXPECT_EQ( exp_rg_tags[i], rg_tags[i] );
     }
 
+    // Check that the all function on rg headers also works.
+    std::vector<std::string> exp_all_rg_tags{ "S1", "S2" };
+    auto const all_rg_tags = it.rg_tags( true );
+    ASSERT_EQ( exp_all_rg_tags.size(), all_rg_tags.size() );
+    for( size_t i = 0; i < all_rg_tags.size(); ++i ) {
+        EXPECT_EQ( exp_all_rg_tags[i], all_rg_tags[i] );
+    }
+
     BaseCounts total_counts;
     auto sample_counts = std::vector<BaseCounts>{ exp_smp_size };
     for( ; it != sam_it.end(); ++it ) {
@@ -105,6 +115,19 @@ void run_sam_bam_cram_test_(
             merge_inplace( sample_counts[i], bs );
         }
         // std::cout << "\n";
+    }
+
+    if( filter_high_map_qual ) {
+        // Special case: we have filterout out all reads, nothing remains.
+        // Mainly a sanity check, to see how the iterator reacts when there is
+        // nothing reamining: does it still terminate correctly?
+        EXPECT_EQ( 0, total_counts.a_count );
+        EXPECT_EQ( 0, total_counts.c_count );
+        EXPECT_EQ( 0, total_counts.g_count );
+        EXPECT_EQ( 0, total_counts.t_count );
+        EXPECT_EQ( 0, total_counts.n_count );
+        EXPECT_EQ( 0, total_counts.d_count );
+        return;
     }
 
     // Test total counts, i.e., sum of all reads.
@@ -196,6 +219,12 @@ TEST( SamBamCram, InputIteratorSam )
     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", true, true, false );
     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", true, false, true );
     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", true, true, true );
+
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", false, false, false, true );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", true, false, false, true );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", true, true, false, true );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", true, false, true, true );
+    run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", true, true, true, true );
 }
 
 TEST( SamBamCram, InputIteratorBam )
@@ -252,6 +281,40 @@ TEST( SamBamCram, InputIteratorRGFail )
     // Use an RG tag that does not appear in the file.
     sam_it.rg_tag_filter({ "XYZ" });
     EXPECT_ANY_THROW( sam_it.begin() );
+}
+
+TEST( SamBamCram, Flags )
+{
+    // Number parsing from hex
+    EXPECT_EQ( 0x0,  string_to_sam_flag( "0" ));
+    EXPECT_EQ( 0x1,  string_to_sam_flag( "1" ));
+    EXPECT_EQ( 0x12, string_to_sam_flag( "0x12" ));
+    EXPECT_EQ( 0x1234, string_to_sam_flag( "0x1234" ));
+
+    // Number parsing from oct
+    EXPECT_EQ( 01,  string_to_sam_flag( "1" ));
+    EXPECT_EQ( 012, string_to_sam_flag( "012" ));
+    EXPECT_EQ( 01234, string_to_sam_flag( "01234" ));
+
+    // htslib style parsing
+    EXPECT_EQ( 0x2, string_to_sam_flag( "PROPER_PAIR" ));
+    EXPECT_EQ( 0x2 | 0x20, string_to_sam_flag( "PROPER_PAIR,MREVERSE" ));
+
+    // our improved parsing
+    EXPECT_EQ( 0x2, string_to_sam_flag( "ProperPair" ));
+    EXPECT_EQ( 0x2 | 1, string_to_sam_flag( "ProperPair | 1" ));
+    EXPECT_EQ( 0x2 | 0x20, string_to_sam_flag( "ProperPair + MateReverse" ));
+    EXPECT_EQ( 0x2 | 0x20, string_to_sam_flag( "ProperPair | MateReverse" ));
+    EXPECT_EQ( 0x2 | 0x20, string_to_sam_flag( "ProperPair | 0x20" ));
+
+    // error cases
+    // EXPECT_ANY_THROW( string_to_sam_flag( "0x1234" ));
+    EXPECT_ANY_THROW( string_to_sam_flag( "nope" ));
+    EXPECT_ANY_THROW( string_to_sam_flag( "ProperPair, nope" ));
+
+    // other direction
+    EXPECT_EQ( "", sam_flag_to_string( 0 ));
+    EXPECT_EQ( "PROPER_PAIR,UNMAP", sam_flag_to_string( 0x2 | 0x4 ));
 }
 
 #endif // GENESIS_HTSLIB
