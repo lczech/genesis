@@ -50,6 +50,13 @@ namespace population {
  * lexicographical order. Hence, for example, when comparing two loci on different chromosomes,
  * we also take the ordering of their chromosome names into account.
  *
+ * There are some special cases:
+ *
+ *   * We use an empty chromosome with position 0 to denote an empty(), unspecified locus.
+ *   * A non-empty chromosome with position 0 means "any position" on the chromosome;
+ *     this is however not considered to be a specified() locus.
+ *   * An empty chromosome with a position other than 0 is an invalid state, and will throw.
+ *
  * @see GenomeRegion
  * @see GenomeRegionList
  */
@@ -61,7 +68,9 @@ struct GenomeLocus
     GenomeLocus( std::string const& chr = "", size_t pos = 0 )
         : chromosome( chr )
         , position( pos )
-    {}
+    {
+        throw_if_invalid_();
+    }
 
     ~GenomeLocus() = default;
 
@@ -73,12 +82,25 @@ struct GenomeLocus
 
     bool empty() const
     {
+        throw_if_invalid_();
         return chromosome == "" && position == 0;
     }
 
-    bool valid() const
+    bool specified() const
     {
+        throw_if_invalid_();
         return chromosome != "" && position != 0;
+    }
+
+private:
+
+    void throw_if_invalid_() const
+    {
+        if( chromosome == "" and position > 0 ) {
+            throw std::runtime_error(
+                "GenomeLocus with invalid state: Empty chromosome but non-zero position."
+            );
+        }
     }
 };
 

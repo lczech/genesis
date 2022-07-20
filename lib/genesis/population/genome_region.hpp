@@ -47,12 +47,21 @@ namespace population {
 /**
  * @brief A region (between two positions) on a chromosome.
  *
- * This can be used to represent a gene, a feature, or just generally a region of interest.
- * We use a simple form with a chromosome name, and a start and end position, both 1-based and
- * inclusive (closed interval).
+ * This can be used to represent a gene, a feature, or just generally a region of interest,
+ * or even the whole chromosome (see special cases below).
+ * We use a simple form with a `chromosome` name, and a `start` and `end` position,
+ * both 1-based and inclusive (closed interval).
  *
- * We futhermore use the empty string to denote an invalid or undefined chromosome,
- * and position 0 for either start or end to denote invalid or undefined positions.
+ * There are some special cases:
+ *
+ *   * We use an empty `chromosome` with `start` and `end` equal to 0 to denote an empty(),
+ *     unspecified region.
+ *   * Another special case is a non-empty `chromosome` with both `start` and `end` being equal to 0,
+ *     which denotes the whole chromosome as the region;
+ *     this is however not considered to be a specified() region.
+ *   * All other cases are invalid, that is, an empty `chromosome` with non-zero `start` or `end`,
+ *     or cases where `start` or `end` are zero, but not both,
+ *     or where `start` is greather than `end`.
  *
  * @see GenomeLocus
  * @see GenomeRegionList
@@ -66,26 +75,45 @@ public:
     size_t end   = 0;
 
     GenomeRegion( std::string const& chr = "", size_t s = 0, size_t e = 0 )
-        : chromosome( chr )
+        : chromosome(chr)
         , start(s)
         , end(e)
     {
-        if( s > e ) {
-            throw std::invalid_argument(
-                "Cannot create GenomeRegion with start == " +
-                std::to_string( start ) + " > end == " + std::to_string( end )
-            );
-        }
+        throw_if_invalid_();
     }
 
     bool empty() const
     {
+        throw_if_invalid_();
         return chromosome == "" && start == 0 && end == 0;
     }
 
-    bool valid() const
+    bool specified() const
     {
-        return chromosome != "" && start != 0 && end != 0 && start <= end;
+        throw_if_invalid_();
+        return chromosome != "" && start != 0 && end != 0;
+    }
+
+private:
+
+    void throw_if_invalid_() const
+    {
+        if( chromosome == "" && ( start > 0 || end > 0 )) {
+            throw std::runtime_error(
+                "Invalid GenomeRegion: Empty chromosome but non-zero start and/or end."
+            );
+        }
+        if( chromosome != "" && (( start > 0 ) ^ ( end > 0 ))) {
+            throw std::runtime_error(
+                "Invalid GenomeRegion: Non-empty chromosome with non-zero start or end."
+            );
+        }
+        if( start > end ) {
+            throw std::invalid_argument(
+                "Invalid GenomeRegion with start == " +
+                std::to_string( start ) + " > end == " + std::to_string( end )
+            );
+        }
     }
 };
 

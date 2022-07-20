@@ -177,7 +177,7 @@ GenomeRegion parse_genome_region( std::string const& region, bool zero_based, bo
         }
 
         // Validity check.
-        if( ! result.valid() ) {
+        if( ! result.specified() ) {
             throw_invalid_arg_();
         }
     } else if( chr_split.size() > 2 ) {
@@ -276,7 +276,7 @@ void parse_genome_region_file(
             }
 
             // Validity check.
-            if( ! region.valid() ) {
+            if( ! region.specified() ) {
                 throw_invalid_arg_( line );
             }
         }

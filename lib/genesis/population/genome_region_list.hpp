@@ -70,8 +70,10 @@ struct EmptyGenomeData
  * Positions in the interval of each region are 1-based and inclusive, that is, we used closed
  * intervals. We also offer the special case to add a whole chromosome as a region, in which case
  * the is_covered() function will return `true` for all positions on that chromosome (without
- * checking that the position is in fact part of the chromosome - as we do not have information
- * on the lengths of chromosomes in this class).
+ * checking that the position is in fact part of the chromosome - as we do not use information
+ * on the lengths of chromosomes in this class). We use start and end positions equal to 0 to
+ * mark these special whole-chromosome cases - be aware of that when adding regions to the list.
+ * See also GenomeLocus and GenomeRegion for related classes that have the same special cases.
  *
  * Interally, we use an @link genesis::utils::IntervalTree IntervalTree@endlink to represent the
  * regions of each chromosome, stored in a map from chromosome name to IntervalTree.
@@ -144,7 +146,8 @@ public:
      * @brief Add a GenomeRegion to the list, given its chromosome, and start and end positions.
      *
      * The @p chromosome cannot be empty, and we expect @p start < @p end. Both @p start and @p end
-     * are 1-based, and inclusive, that is, the interval between them is closed.
+     * are 1-based, and inclusive, that is, the interval between them is closed. The special case
+     * of both @p start and @p end equal to 0 means that the whole chromosome is added as an interval.
      *
      * @copydetails GenomeRegionList::add( GenomeLocus const&, bool )
      */
@@ -171,10 +174,12 @@ public:
                 std::to_string( start ) + " > end == " + std::to_string( end )
             );
         }
-        if( start == 0 || end == 0 ) {
+        if(( start == 0 ) ^ ( end == 0 )) {
             throw std::invalid_argument(
-                "Cannot add region to GenomeRegionList with start == 0 or end == 0, "
-                "as these denote invalid positions."
+                "Cannot add region to GenomeRegionList with either start == 0 or end == 0, "
+                "but not both, as we use 1-base indexing, with both being 0 being interpreted "
+                "as the special case of denoting the whole chromosome. "
+                "Hence either both start and end have to be 0, or neither."
             );
         }
 
@@ -230,7 +235,7 @@ public:
     /**
      * @brief Add a GenomeRegion to the list.
      *
-     * This function ensures that regions are valid (`start < end`), and keeps the list sorted.
+     * This function ensures that regions are valid (`start < end`).
      *
      * @copydetails GenomeRegionList::add( GenomeLocus const&, bool )
      */
@@ -254,11 +259,7 @@ public:
     {
         for( auto const& chr : other.regions_ ) {
             for( auto const& interval : chr.second ) {
-                if( interval.low() == 0 && interval.high() == 0 ) {
-                    add( chr.first );
-                } else {
-                    add( chr.first, interval.low(), interval.high(), overlap );
-                }
+                add( chr.first, interval.low(), interval.high(), overlap );
             }
         }
     }
