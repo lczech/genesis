@@ -119,3 +119,30 @@ TEST( GenomeRegion, Parse )
     EXPECT_ANY_THROW( parse_genome_region( ":-" ));
     EXPECT_ANY_THROW( parse_genome_region( ":.." ));
 }
+
+TEST( GenomeRegion, ParseFile )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/regions.txt";
+
+    GenomeRegionList list;
+    parse_genome_region_file( infile, list );
+
+    EXPECT_TRUE(  list.is_covered( "A" ));
+    EXPECT_TRUE(  list.is_covered( "A", 0 ));
+    EXPECT_TRUE(  list.is_covered( "A", 10 ));
+
+    EXPECT_FALSE( list.is_covered( "B" ));
+    EXPECT_FALSE( list.is_covered( "B", 0 ));
+    EXPECT_FALSE( list.is_covered( "B", 9 ));
+    EXPECT_TRUE(  list.is_covered( "B", 10 ));
+    EXPECT_TRUE(  list.is_covered( "B", 20 ));
+    EXPECT_FALSE( list.is_covered( "B", 21 ));
+
+    EXPECT_FALSE( list.is_covered( "C" ));
+    EXPECT_FALSE( list.is_covered( "C", 0 ));
+    EXPECT_FALSE( list.is_covered( "C", 9 ));
+    EXPECT_TRUE(  list.is_covered( "C", 10 ));
+    EXPECT_FALSE( list.is_covered( "C", 11 ));
+}

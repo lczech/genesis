@@ -30,6 +30,9 @@
 
 #include "genesis/population/functions/genome_region.hpp"
 
+#include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/io/scanner.hpp"
 #include "genesis/utils/text/convert.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -110,6 +113,17 @@ GenomeRegion parse_genome_region( std::string const& region, bool zero_based, bo
         throw std::invalid_argument( "Invalid genomic region string \"" + region + "\"" );
     };
 
+    // Helper function to convert a string to a position, with a nicer error message.
+    auto convert_str_to_pos_ = [&]( std::string const& str ){
+        size_t res = 0;
+        try {
+            res = utils::convert_from_string<size_t>( str, true );
+        } catch( ... ) {
+            throw_invalid_arg_();
+        }
+        return res;
+    };
+
     // Split by chromosome delimitier and store the chrom. Every string at least yields one split.
     auto const chr_split = utils::split( region, ":", false );
     assert( chr_split.size() > 0 );
@@ -132,7 +146,10 @@ GenomeRegion parse_genome_region( std::string const& region, bool zero_based, bo
         // If there is no delimiter, use the number for both start and end.
         if( pos_split.size() == 1 ) {
             // Did neither find "-" nor "..". Use position as both start and end.
-            auto const pos = utils::convert_from_string<size_t>( pos_split[0], true );
+            if( pos_split[0].empty() ) {
+                throw_invalid_arg_();
+            }
+            auto const pos = convert_str_to_pos_( pos_split[0] );
             result.start = pos;
             result.end   = pos;
         } else if( pos_split.size() == 2 ) {
@@ -141,8 +158,8 @@ GenomeRegion parse_genome_region( std::string const& region, bool zero_based, bo
             if( pos_split[0].empty() || pos_split[1].empty() ) {
                 throw_invalid_arg_();
             }
-            result.start = utils::convert_from_string<size_t>( pos_split[0], true );
-            result.end   = utils::convert_from_string<size_t>( pos_split[1], true );
+            result.start = convert_str_to_pos_( pos_split[0] );
+            result.end   = convert_str_to_pos_( pos_split[1] );
         } else {
             throw_invalid_arg_();
         }
@@ -181,6 +198,100 @@ GenomeRegionList parse_genome_regions(
     }
 
     return result;
+}
+
+void parse_genome_region_file(
+    std::string const& filename,
+    GenomeRegionList& target,
+    bool overlap,
+    bool zero_based,
+    bool end_exclusive
+) {
+    // Helper function to throw on error without copies of the same error message each time.
+    auto throw_invalid_arg_ = []( std::string const& region ){
+        throw std::invalid_argument( "Invalid genomic region string \"" + region + "\"" );
+    };
+
+    // Helper function to convert a string to a position, with a nicer error message.
+    auto convert_str_to_pos_ = [&]( std::string const& line, std::string const& str ){
+        size_t res = 0;
+        try {
+            res = utils::convert_from_string<size_t>( str, true );
+        } catch( ... ) {
+            throw_invalid_arg_( line );
+        }
+        return res;
+    };
+
+    utils::InputStream it( utils::from_file( filename ));
+    while( it ) {
+        // Get line, then try parsing in different ways.
+        auto line = utils::read_to_end_of_line( it );
+
+        GenomeRegion region;
+        auto const tab_space = utils::split( line, " \t", false );
+        assert( tab_space.size() > 0 );
+        if( tab_space.size() == 1 ) {
+            // If we cannot split by tab or space, we have some other format.
+            // This will also catch the case where the line contains just a chromosome name.
+            region = parse_genome_region( line, zero_based, end_exclusive );
+
+        } else {
+            // If we can split with tab or space, we do that.
+            // Bit of code repetition from above parse_genome_region()... might fix later.
+
+            if( tab_space.size() == 2 ) {
+                // First for just a single position...
+                region.chromosome = tab_space[0];
+                if( tab_space[1].empty() ) {
+                    throw_invalid_arg_( line );
+                }
+                auto const pos = convert_str_to_pos_( line, tab_space[1] );
+                region.start = pos;
+                region.end   = pos;
+
+            } else if( tab_space.size() == 3 ) {
+                // ... and then for start and end positions.
+                if( tab_space[1].empty() || tab_space[2].empty() ) {
+                    throw_invalid_arg_( line );
+                }
+                region.chromosome = tab_space[0];
+                region.start = convert_str_to_pos_( line, tab_space[1] );
+                region.end   = convert_str_to_pos_( line, tab_space[2] );
+
+            } else {
+                throw_invalid_arg_( line );
+            }
+
+            // Fix coordinates if needed.
+            if( zero_based ) {
+                ++region.start;
+                ++region.end;
+            }
+            if( end_exclusive ) {
+                if( region.end == 0 ) {
+                    throw_invalid_arg_( line );
+                }
+                --region.end;
+            }
+
+            // Validity check.
+            if( ! region.valid() ) {
+                throw_invalid_arg_( line );
+            }
+        }
+
+        // Now add it to the list.
+        if( region.start == 0 && region.end == 0 ) {
+            target.add( region.chromosome );
+        } else {
+            target.add( region, overlap );
+        }
+
+        // Move to next line.
+        assert( !it || *it == '\n'  );
+        ++it;
+    }
 }
 
 // =================================================================================================

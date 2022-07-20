@@ -96,6 +96,29 @@ GenomeRegionList parse_genome_regions(
     bool end_exclusive = false
 );
 
+/**
+ * @brief Parse a file with one position or region per line, in different formats.
+ *
+ * The function expects an input file, and tries to interpret each line as a position or region
+ * in a chromosome, offering a variety of formats:
+ *
+ *   * "chr" for whole chromosomes,
+ *   * "chr:position", "chr:start-end", "chr:start..end" for positions and regions,
+ *   * tab- or space-delimited "chr position" or "chr start end" as well for positions and regions.
+ *
+ * This allows for maximum flexibility when reading in such files. Note that this is more flexible
+ * than parse_genome_region(), which does not support the tab- and space-delimiation - when parsing
+ * an individual string, that does not make much sense, hence we only offer this delimitation
+ * for files as of now.
+ */
+void parse_genome_region_file(
+    std::string const& filename,
+    GenomeRegionList& target,
+    bool overlap = false,
+    bool zero_based = false,
+    bool end_exclusive = false
+);
+
 // =================================================================================================
 //     Region Coverage
 // =================================================================================================
