@@ -68,7 +68,10 @@ struct EmptyGenomeData
  * chromosome.
  *
  * Positions in the interval of each region are 1-based and inclusive, that is, we used closed
- * intervals.
+ * intervals. We also offer the special case to add a whole chromosome as a region, in which case
+ * the is_covered() function will return `true` for all positions on that chromosome (without
+ * checking that the position is in fact part of the chromosome - as we do not have information
+ * on the lengths of chromosomes in this class).
  *
  * Interally, we use an @link genesis::utils::IntervalTree IntervalTree@endlink to represent the
  * regions of each chromosome, stored in a map from chromosome name to IntervalTree.
@@ -118,6 +121,24 @@ public:
     // -------------------------------------------
     //         Add Manually
     // -------------------------------------------
+
+    /**
+     * @brief Add a whole chromosome to the list, so that all its positions are considered to be
+     * covered.
+     */
+    void add( std::string const& chromosome )
+    {
+        // Check chromosome.
+        if( chromosome.empty() ) {
+            throw std::invalid_argument(
+                "Cannot add region to GenomeRegionList with empty chromosome name, "
+                "as this denotes an invalid chromosome."
+            );
+        }
+
+        // We use the special value 0 to denote that we want the whole chromosome.
+        regions_[ chromosome ].insert({ 0, 0 });
+    }
 
     /**
      * @brief Add a GenomeRegion to the list, given its chromosome, and start and end positions.
@@ -233,7 +254,11 @@ public:
     {
         for( auto const& chr : other.regions_ ) {
             for( auto const& interval : chr.second ) {
-                add( chr.first, interval.low(), interval.high(), overlap );
+                if( interval.low() == 0 && interval.high() == 0 ) {
+                    add( chr.first );
+                } else {
+                    add( chr.first, interval.low(), interval.high(), overlap );
+                }
             }
         }
     }
@@ -278,7 +303,28 @@ public:
             return false;
         }
         auto const& chrom_tree = it->second;
+
+        // If the chromosome in our interval tree contains the 0 interval, we consider that
+        // as having the whole chromosome covered.
+        if( chrom_tree.overlap_find( 0 ) != chrom_tree.end() ) {
+            return true;
+        }
+
+        // If the above is not the case, check the actual position.
         return chrom_tree.overlap_find( position ) != chrom_tree.end();
+    }
+
+    /**
+     * @brief Return whether a whole chromosome is covered.
+     */
+    bool is_covered( std::string const& chromosome ) const
+    {
+        auto const it = regions_.find( chromosome );
+        if( it == regions_.end() ) {
+            return false;
+        }
+        auto const& chrom_tree = it->second;
+        return chrom_tree.overlap_find( 0 ) != chrom_tree.end();
     }
 
     // Not used at the moment, as we have no access to the end iterator to check for a valid find.
@@ -354,6 +400,11 @@ public:
     /**
      * @brief For a given chromosome, return the
      * @link genesis::utils::IntervalTree IntervalTree@endlink that stores its regions.
+     *
+     * Note that this exposes the underlying container, and hence has to be used with caution.
+     * In particular position 0 is considered special in this GenomeRegionList class:
+     * any chromosome for which we have stored an interval that covers 0 is considered to be
+     * fully covered for all its positions.
      */
     tree_type& chromosome_regions( std::string const& chromosome )
     {
@@ -393,6 +444,8 @@ public:
      * chromosome.
      * This is okay to expose, as this class is merely a thin convenience wrapper around it anyway.
      * If the class ever changes to be more than that, we might remove access to this.
+     *
+     * @see chromosome_regions( std::string const& )
      */
     std::map<std::string, tree_type> const& chromosome_map() const
     {
