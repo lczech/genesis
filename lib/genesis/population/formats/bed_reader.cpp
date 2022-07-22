@@ -294,6 +294,5 @@ std::string BedReader::parse_string_( utils::InputStream& input_stream ) const
     });
 }
 
-
 } // namespace population
 } // namespace genesis
