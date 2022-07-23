@@ -37,6 +37,7 @@
 #include "genesis/population/formats/bed_reader.hpp"
 #include "genesis/population/formats/gff_reader.hpp"
 #include "genesis/population/formats/hts_file.hpp"
+#include "genesis/population/formats/map_bim_reader.hpp"
 #include "genesis/population/formats/sam_flags.hpp"
 #include "genesis/population/formats/sam_variant_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_common.hpp"
