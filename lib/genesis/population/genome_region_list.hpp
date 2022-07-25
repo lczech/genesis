@@ -63,9 +63,14 @@ struct EmptyGenomeData
  * @brief List of regions in a genome, for each chromosome.
  *
  * The data structure stores a list of genome regions, such as coming from BED or GFF files.
- * It allows fast querying, that is, whether a certain position on a chromosome is part of one of
- * the stored regions. Furthermore, the class allows to iterate through the regions of each
- * chromosome.
+ * The class allows to iterate through the regions of each chromosome.
+ *
+ * It furtheremore allows querying positions, that is, whether a certain position on a chromosome
+ * is part of one of the stored regions. However, when many regions are stored in the list,
+ * and many queries need to be performed (such as when reading files and needing to check every
+ * position on every chromosome), this can become prohibitively slow, despite using a fast
+ * data structure. Use GenomeLocusSet as an alternative that is way faster when all that is needed
+ * is information on whether a certain position/coordinate is set or not set.
  *
  * Positions in the interval of each region are 1-based and inclusive, that is, we used closed
  * intervals. We also offer the special case to add a whole chromosome as a region, in which case
@@ -73,7 +78,8 @@ struct EmptyGenomeData
  * checking that the position is in fact part of the chromosome - as we do not use information
  * on the lengths of chromosomes in this class). We use start and end positions equal to 0 to
  * mark these special whole-chromosome cases - be aware of that when adding regions to the list.
- * See also GenomeLocus and GenomeRegion for related classes that have the same special cases.
+ * See also GenomeLocus, GenomeLocusSet, and GenomeRegion for related classes that have the same
+ * special cases.
  *
  * Interally, we use an @link genesis::utils::IntervalTree IntervalTree@endlink to represent the
  * regions of each chromosome, stored in a map from chromosome name to IntervalTree.
@@ -81,6 +87,7 @@ struct EmptyGenomeData
  * and so that we do not store the chromosome name string with every region.
  *
  * @see GenomeLocus
+ * @see GenomeLocusSet
  * @see GenomeRegion
  */
 // template<class DataType = EmptyGenomeData>
@@ -130,20 +137,12 @@ public:
      */
     void add( std::string const& chromosome )
     {
-        // Check chromosome.
-        if( chromosome.empty() ) {
-            throw std::invalid_argument(
-                "Cannot add region to GenomeRegionList with empty chromosome name, "
-                "as this denotes an invalid chromosome."
-            );
-        }
-
         // We use the special value 0 to denote that we want the whole chromosome.
-        regions_[ chromosome ].insert({ 0, 0 });
+        add( chromosome, 0, 0 );
     }
 
     /**
-     * @brief Add a GenomeRegion to the list, given its chromosome, and start and end positions.
+     * @brief Add a region to the list, given its chromosome, and start and end positions.
      *
      * The @p chromosome cannot be empty, and we expect @p start < @p end. Both @p start and @p end
      * are 1-based, and inclusive, that is, the interval between them is closed. The special case
@@ -198,7 +197,7 @@ public:
     // -------------------------------------------
 
     /**
-     * @brief Add a single Locus, that is, an interval covering one position on a chromosome.
+     * @brief Add a single GenomeLocus, that is, an interval covering one position on a chromosome.
      *
      * If @p overlap is set, we first check if there is a region already in the list that overlaps
      * with the one that is to be added. If so, the new region is merged with existing one,
@@ -212,7 +211,7 @@ public:
     }
 
     /**
-     * @brief Add an interval between two Loci on the same chromosome.
+     * @brief Add an interval between two @link GenomeLocus GenomeLoci@endlink on the same chromosome.
      *
      * @copydetails GenomeRegionList::add( GenomeLocus const&, bool )
      */
