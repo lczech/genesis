@@ -35,6 +35,7 @@
 
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/formats/bed_reader.hpp"
+#include "genesis/population/formats/genome_region_reader.hpp"
 #include "genesis/population/formats/gff_reader.hpp"
 #include "genesis/population/formats/hts_file.hpp"
 #include "genesis/population/formats/map_bim_reader.hpp"
@@ -62,6 +63,7 @@
 #include "genesis/population/functions/heatmap_colorization.hpp"
 #include "genesis/population/functions/structure.hpp"
 #include "genesis/population/genome_locus.hpp"
+#include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/genome_region_list.hpp"
 #include "genesis/population/variant.hpp"

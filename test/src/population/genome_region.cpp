@@ -30,8 +30,9 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/genome_region.hpp"
+#include "genesis/population/formats/genome_region_reader.hpp"
 #include "genesis/population/functions/genome_region.hpp"
+#include "genesis/population/genome_region.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;
@@ -127,7 +128,34 @@ TEST( GenomeRegion, ParseFile )
     std::string const infile = environment->data_dir + "population/regions.txt";
 
     GenomeRegionList list;
-    parse_genome_region_file( infile, list );
+    GenomeRegionReader().read_as_genome_region_list( from_file( infile ), list );
+
+    EXPECT_TRUE(  list.is_covered( "A" ));
+    EXPECT_TRUE(  list.is_covered( "A", 0 ));
+    EXPECT_TRUE(  list.is_covered( "A", 10 ));
+
+    EXPECT_FALSE( list.is_covered( "B" ));
+    EXPECT_FALSE( list.is_covered( "B", 0 ));
+    EXPECT_FALSE( list.is_covered( "B", 9 ));
+    EXPECT_TRUE(  list.is_covered( "B", 10 ));
+    EXPECT_TRUE(  list.is_covered( "B", 20 ));
+    EXPECT_FALSE( list.is_covered( "B", 21 ));
+
+    EXPECT_FALSE( list.is_covered( "C" ));
+    EXPECT_FALSE( list.is_covered( "C", 0 ));
+    EXPECT_FALSE( list.is_covered( "C", 9 ));
+    EXPECT_TRUE(  list.is_covered( "C", 10 ));
+    EXPECT_FALSE( list.is_covered( "C", 11 ));
+}
+
+TEST( GenomeList, ParseFile )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/regions.txt";
+
+    // Parse into a genome locus list.
+    GenomeLocusSet const list = GenomeRegionReader().read_as_genome_locus_set( from_file( infile ));
 
     EXPECT_TRUE(  list.is_covered( "A" ));
     EXPECT_TRUE(  list.is_covered( "A", 0 ));
