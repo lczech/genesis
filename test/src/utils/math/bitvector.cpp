@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -110,10 +110,10 @@ TEST( Bitvector, Arithmetics )
 TEST( Bitvector, CopyRange )
 {
     auto const bv_20 = Bitvector( 20 );
-    auto const bv_10 = Bitvector( bv_20, 10 );
+    auto const bv_10 = Bitvector( 10, bv_20 );
     EXPECT_EQ( 10, bv_10.size() );
 
-    auto const bv_cp = Bitvector( bv_20, 20 );
+    auto const bv_cp = Bitvector( 20, bv_20 );
     EXPECT_EQ( 20, bv_cp.size() );
 }
 
@@ -162,4 +162,47 @@ TEST( Bitvector, BoolVec )
         // Here, the size is 5 elements, 0-4, but the largest index is 5.
         EXPECT_ANY_THROW( make_bool_vector_from_indices( { 1, 3, 5 }, 5 ));
     }
+}
+
+TEST( Bitvector, Operators )
+{
+    // Minimal set of vectors to test all combinations of bits.
+    auto const bv_s = Bitvector( "0011" );
+    auto const bv_l = Bitvector( "010101" );
+
+    // and, using smaller
+    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, false ));
+    EXPECT_EQ( Bitvector("0001"),   bitwise_and( bv_l, bv_s, false ));
+    EXPECT_EQ( Bitvector("0001"),   bitwise_and( bv_s, bv_l, false ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, false ));
+
+    // and, using larger
+    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, true ));
+    EXPECT_EQ( Bitvector("000100"), bitwise_and( bv_l, bv_s, true ));
+    EXPECT_EQ( Bitvector("000100"), bitwise_and( bv_s, bv_l, true ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, true ));
+
+    // or, using smaller
+    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, false ));
+    EXPECT_EQ( Bitvector("0111"),   bitwise_or( bv_l, bv_s, false ));
+    EXPECT_EQ( Bitvector("0111"),   bitwise_or( bv_s, bv_l, false ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, false ));
+
+    // or, using larger
+    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, true ));
+    EXPECT_EQ( Bitvector("011101"), bitwise_or( bv_l, bv_s, true ));
+    EXPECT_EQ( Bitvector("011101"), bitwise_or( bv_s, bv_l, true ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, true ));
+
+    // xor, using smaller
+    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, false ));
+    EXPECT_EQ( Bitvector("0110"),   bitwise_xor( bv_l, bv_s, false ));
+    EXPECT_EQ( Bitvector("0110"),   bitwise_xor( bv_s, bv_l, false ));
+    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, false ));
+
+    // xor, using larger
+    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, true ));
+    EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_l, bv_s, true ));
+    EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_s, bv_l, true ));
+    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, true ));
 }

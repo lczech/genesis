@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -42,51 +42,51 @@ namespace utils {
 //     Bitvector Operators
 // =================================================================================================
 
-Bitvector bitwise_and (Bitvector const& lhs, Bitvector const& rhs)
+Bitvector bitwise_and( Bitvector const& lhs, Bitvector const& rhs, bool use_larger )
 {
-    if( lhs.size() < rhs.size() ) {
-        auto result = Bitvector( rhs, lhs.size() );
+    if(( use_larger ) ^ ( lhs.size() < rhs.size() )) {
+        auto result = Bitvector( lhs.size(), rhs );
         result &= lhs;
         return result;
     } else {
-        auto result = Bitvector( lhs, rhs.size() );
+        auto result = Bitvector( rhs.size(), lhs );
         result &= rhs;
         return result;
     }
 }
 
-Bitvector bitwise_or (Bitvector const& lhs, Bitvector const& rhs)
+Bitvector bitwise_or( Bitvector const& lhs, Bitvector const& rhs, bool use_larger )
 {
-    if( lhs.size() < rhs.size() ) {
-        auto result = Bitvector( rhs, lhs.size() );
+    if(( use_larger ) ^ ( lhs.size() < rhs.size() )) {
+        auto result = Bitvector( lhs.size(), rhs );
         result |= lhs;
         return result;
     } else {
-        auto result = Bitvector( lhs, rhs.size() );
+        auto result = Bitvector( rhs.size(), lhs );
         result |= rhs;
         return result;
     }
 }
 
-Bitvector bitwise_xor (Bitvector const& lhs, Bitvector const& rhs)
+Bitvector bitwise_xor( Bitvector const& lhs, Bitvector const& rhs, bool use_larger )
 {
-    if( lhs.size() < rhs.size() ) {
-        auto result = Bitvector( rhs, lhs.size() );
+    if(( use_larger ) ^ ( lhs.size() < rhs.size() )) {
+        auto result = Bitvector( lhs.size(), rhs );
         result ^= lhs;
         return result;
     } else {
-        auto result = Bitvector( lhs, rhs.size() );
+        auto result = Bitvector( rhs.size(), lhs );
         result ^= rhs;
         return result;
     }
 }
 
-Bitvector set_minus (Bitvector const& lhs, Bitvector const& rhs)
+Bitvector set_minus( Bitvector const& lhs, Bitvector const& rhs )
 {
     return lhs & (~rhs);
 }
 
-Bitvector symmetric_difference (Bitvector const& lhs, Bitvector const& rhs)
+Bitvector symmetric_difference( Bitvector const& lhs, Bitvector const& rhs )
 {
     return (lhs | rhs) & ~(lhs & rhs);
 }

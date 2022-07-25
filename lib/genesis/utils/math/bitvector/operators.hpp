@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,32 +45,30 @@ namespace utils {
 /**
  * @brief Take the bitwise `and` of two Bitvector%s of potentially different size.
  *
- * The function is the same as normal `and`, but operates only on the number of bits of
- * the shorter Bitvector, that is,
- * it operates on bits `[ 0 , m )` with `m = min( lhs.size(), rhs.size() )`.
+ * The function is the same as the normal version, but allows to use Bitvector%s of different sizes.
+ * By default (`use_larger == false`), we use the number of bits of the shorter Bitvector,
+ * that is, it operates on bits `[ 0 , m )` with `m = min( lhs.size(), rhs.size() )`.
+ * If @p use_larger is set however, the resulting Bitvector has the max size of the two inputs,
+ * with the bits at the end (the ones after `m`) being `false`.
  */
-Bitvector bitwise_and (Bitvector const& lhs, Bitvector const& rhs);
+Bitvector bitwise_and( Bitvector const& lhs, Bitvector const& rhs, bool use_larger = false );
 
 /**
 * @brief Take the bitwise `or` of two Bitvector%s of potentially different size.
 *
-* The function is the same as normal `or`, but operates only on the number of bits of
-* the shorter Bitvector, that is,
-* it operates on bits `[ 0 , m )` with `m = min( lhs.size(), rhs.size() )`.
+* @copydetails bitwise_and()
 */
-Bitvector bitwise_or (Bitvector const& lhs, Bitvector const& rhs);
+Bitvector bitwise_or( Bitvector const& lhs, Bitvector const& rhs, bool use_larger = false );
 
 /**
 * @brief Take the bitwise `xor` of two Bitvector%s of potentially different size.
 *
-* The function is the same as normal `xor`, but operates only on the number of bits of
-* the shorter Bitvector, that is,
-* it operates on bits `[ 0 , m )` with `m = min( lhs.size(), rhs.size() )`.
+* @copydetails bitwise_and()
 */
-Bitvector bitwise_xor (Bitvector const& lhs, Bitvector const& rhs);
+Bitvector bitwise_xor( Bitvector const& lhs, Bitvector const& rhs, bool use_larger = false );
 
 Bitvector set_minus (Bitvector const& lhs, Bitvector const& rhs);
-Bitvector symmetric_difference (Bitvector const& lhs, Bitvector const& rhs);
+Bitvector symmetric_difference( Bitvector const& lhs, Bitvector const& rhs );
 
 /**
  * @brief Strict subset.
