@@ -280,9 +280,16 @@ public:
             // Skip chromosomes that are not in the current list. The intersection of a chromosome
             // that is only in the rhs but not in lhs is empty anyway, so nothing to do.
             if( ! chrs_to_delete.count( chr.first ) ) {
+                assert( ! lhs.has_chromosome( chr.first ));
                 continue;
             }
             assert( lhs.has_chromosome( chr.first ));
+            assert( rhs.has_chromosome( chr.first ));
+
+            // Whenever a bitvector is set for a chromosome, we give it at least size 1,
+            // so we can at least always access the bit 0. Assert this.
+            assert( lhs.positions_.at( chr.first ).size() > 0 );
+            assert( rhs.positions_.at( chr.first ).size() > 0 );
 
             // Get some shorthands, for readability, and a bit for speed as well.
             auto&       lhs_bits  = lhs.positions_.at( chr.first );
@@ -299,10 +306,12 @@ public:
             } else if( lhs_bit_0 && !rhs_bit_0 ) {
                 // lhs uses the whole chromosoe, rhs not. The intersection of this is rhs.
                 lhs_bits = rhs_bits;
+                assert( lhs_bits.size() > 0 );
                 assert( !lhs_bits.get(0) );
             } else if( !lhs_bit_0 && rhs_bit_0 ) {
                 // lhs does not use the whole chromosome, but rhs does.
                 // The intersection of this is just lhs again, so nothing to do here.
+                assert( lhs_bits.size() > 0 );
                 assert( !lhs_bits.get(0) );
             } else {
                 assert( !lhs_bit_0 && !rhs_bit_0 );
@@ -310,6 +319,7 @@ public:
                 // We use the smaller one as our target size, hence `use_larger == false` here.
                 // Everything behind those positions will end up false anyway when intersecting.
                 lhs_bits = bitwise_and( lhs_bits, rhs_bits, false );
+                assert( lhs_bits.size() > 0 );
                 assert( !lhs_bits.get(0) );
             }
 
@@ -343,12 +353,13 @@ public:
 
         // Go through all chromosomes of the rhs.
         for( auto const& chr : rhs.positions_ ) {
-            // Shorthands.
-            auto&       lhs_bits = lhs.positions_.at( chr.first );
+            // Shorthands. We cannot access the lhs positions yet, as they might not exist.
             auto const& rhs_bits = rhs.positions_.at( chr.first );
             assert( &rhs_bits == &chr.second );
 
             if( lhs.has_chromosome( chr.first )) {
+                assert( lhs.positions_.count( chr.first ) > 0 );
+                auto& lhs_bits = lhs.positions_.at( chr.first );
                 if( lhs_bits.get(0) || rhs_bits.get(0) ) {
                     // We check the special 0 bit case here, meaning that if either of the vectors
                     // has the bit set, we shorten the vector here, to save some memory.
@@ -360,9 +371,11 @@ public:
                     lhs_bits = bitwise_or( lhs_bits, rhs_bits, true );
                 }
             } else {
-                // lhs does not have the chromosome, so we just copy.
-                // We again do a special case and shorten all-chromosome vectors here,
-                // while we are at it.
+                // lhs does not have the chromosome, so we just copy. We here use the array
+                // operator to create the entry in the map first. We also again do a special case
+                // and shorten all-chromosome vectors here, while we are at it.
+                assert( lhs.positions_.count( chr.first ) == 0 );
+                auto& lhs_bits = lhs.positions_[ chr.first ];
                 if( rhs_bits.get(0) ) {
                     lhs_bits = Bitvector( 1, true );
                 } else {
