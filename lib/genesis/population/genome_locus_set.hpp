@@ -108,6 +108,14 @@ public:
     }
 
     /**
+     * @brief Add a single locus (position, coordinate) to the list.
+     */
+    void add( std::string const& chromosome, size_t position )
+    {
+        add( chromosome, position, position );
+    }
+
+    /**
      * @brief Add a region to the list, given its chromosome, and @p start and @p end positions.
      *
      * All positions between @p start and @p end are set.
@@ -304,7 +312,7 @@ public:
                 // Make a new bitvector that just marks this chromosome.
                 lhs_bits = Bitvector( 1, true );
             } else if( lhs_bit_0 && !rhs_bit_0 ) {
-                // lhs uses the whole chromosoe, rhs not. The intersection of this is rhs.
+                // lhs uses the whole chromosome, rhs not. The intersection of this is rhs.
                 lhs_bits = rhs_bits;
                 assert( lhs_bits.size() > 0 );
                 assert( !lhs_bits.get(0) );

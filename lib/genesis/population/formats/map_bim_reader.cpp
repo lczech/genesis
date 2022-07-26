@@ -57,6 +57,16 @@ std::vector<MapBimReader::Feature> MapBimReader::read(
     return result;
 }
 
+GenomeLocusSet MapBimReader::read_as_genome_locus_set(
+    std::shared_ptr< utils::BaseInputSource > source
+) const {
+    GenomeLocusSet result;
+    read_( source, [&]( Feature&& feat ){
+        result.add( feat.chromosome, feat.coordinate, feat.coordinate );
+    });
+    return result;
+}
+
 GenomeRegionList MapBimReader::read_as_genome_region_list(
     std::shared_ptr< utils::BaseInputSource > source,
     bool merge

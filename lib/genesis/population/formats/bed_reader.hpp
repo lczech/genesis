@@ -31,6 +31,7 @@
  * @ingroup population
  */
 
+#include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/genome_region_list.hpp"
 #include "genesis/utils/io/input_source.hpp"
@@ -139,6 +140,19 @@ public:
      * @brief Read a BED input source, and return its content as a list of Feature structs.
      */
     std::vector<Feature> read(
+        std::shared_ptr< utils::BaseInputSource > source
+    ) const;
+
+    /**
+     * @brief Read an input source, and return its content as a GenomeLocusSet.
+     *
+     * This only uses the first three columns, `chrom`, `chromStart`, and `chromEnd`,
+     * and ignores everything else.
+     *
+     * This is the recommended way to read an input for testing whether genome coordinates
+     * are covered (filtered / to be considered) for downstream analyses.
+     */
+    GenomeLocusSet read_as_genome_locus_set(
         std::shared_ptr< utils::BaseInputSource > source
     ) const;
 

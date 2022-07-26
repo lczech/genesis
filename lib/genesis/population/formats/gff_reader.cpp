@@ -60,6 +60,18 @@ std::vector<GffReader::Feature> GffReader::read(
     return result;
 }
 
+GenomeLocusSet GffReader::read_as_genome_locus_set(
+    std::shared_ptr< utils::BaseInputSource > source
+) const {
+    GenomeLocusSet result;
+    utils::InputStream it( source );
+    Feature feat;
+    while( parse_line( it, feat ) ) {
+        result.add( feat.seqname, feat.start, feat.end );
+    }
+    return result;
+}
+
 GenomeRegionList GffReader::read_as_genome_region_list(
     std::shared_ptr< utils::BaseInputSource > source,
     bool merge

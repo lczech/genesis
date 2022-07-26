@@ -483,6 +483,21 @@ Variant convert_to_variant_as_individuals(
     return result;
 }
 
+GenomeLocusSet genome_locus_set_from_vcf_file( std::string const& file )
+{
+    // Simpler version than genome_region_list_from_vcf_file(), as we do not need to keep track
+    // of regions here... simply add all the positions individually to the set.
+    GenomeLocusSet result;
+
+    // Open and read file, without expecting it to be sorted.
+    auto it = VcfInputIterator( file, false );
+    while( it ) {
+        result.add( it.record().get_chromosome(), it.record().get_position() );
+        ++it;
+    }
+    return result;
+}
+
 GenomeRegionList genome_region_list_from_vcf_file( std::string const& file )
 {
     GenomeRegionList result;
