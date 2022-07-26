@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -90,6 +90,25 @@ const std::array<Bitvector::IntType, 4> Bitvector::count_mask_ =
 //     Constructor and Rule of Five
 // =============================================================================
 
+Bitvector::Bitvector( size_t size, Bitvector const& other )
+    : Bitvector::Bitvector( size, false )
+{
+    // if( &other == this ) {
+    //     throw std::runtime_error(
+    //         "In Bitvector::Bitvector( size_t, Bitvector const& ): Cannot self assign."
+    //     );
+    // }
+
+    // Copy over all data, making sure to not go past the end of either vector.
+    // If other is smaller than the size we are creating here, we are technically copying
+    // is padding bits as well, but those are false anyway, so that's okay.
+    auto const n = std::min( data_.size(), other.data_.size() );
+    for( size_t i = 0; i < n; ++i ) {
+        data_[i] = other.data_[i];
+    }
+    unset_padding_();
+}
+
 Bitvector::Bitvector( std::string const& values )
     : Bitvector::Bitvector( values.size(), false )
 {
@@ -109,17 +128,17 @@ Bitvector::Bitvector( std::string const& values )
     }
 }
 
-Bitvector::Bitvector( Bitvector const& other, size_t max_size )
-{
-    if( max_size > other.size() ) {
-        max_size = other.size();
-    }
-    size_ = max_size;
-    auto const ds = (size_ / IntSize) + (size_ % IntSize == 0 ? 0 : 1);
-    assert( ds <= other.data_.size() );
-    data_ = std::vector<IntType>( other.data_.begin(), other.data_.begin() + ds );
-    unset_padding_();
-}
+// Bitvector::Bitvector( Bitvector const& other, size_t max_size )
+// {
+//     if( max_size > other.size() ) {
+//         max_size = other.size();
+//     }
+//     size_ = max_size;
+//     auto const ds = (size_ / IntSize) + (size_ % IntSize == 0 ? 0 : 1);
+//     assert( ds <= other.data_.size() );
+//     data_ = std::vector<IntType>( other.data_.begin(), other.data_.begin() + ds );
+//     unset_padding_();
+// }
 
 // =============================================================================
 //     Operators

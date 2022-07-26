@@ -56,6 +56,16 @@ std::vector<BedReader::Feature> BedReader::read(
     return result;
 }
 
+GenomeLocusSet BedReader::read_as_genome_locus_set(
+    std::shared_ptr< utils::BaseInputSource > source
+) const {
+    GenomeLocusSet result;
+    read_( source, [&]( Feature&& feat ){
+        result.add( feat.chrom, feat.chrom_start, feat.chrom_end );
+    });
+    return result;
+}
+
 GenomeRegionList BedReader::read_as_genome_region_list(
     std::shared_ptr< utils::BaseInputSource > source,
     bool merge
@@ -293,7 +303,6 @@ std::string BedReader::parse_string_( utils::InputStream& input_stream ) const
         return c != '\t' && c != ' ' && c != '\n';
     });
 }
-
 
 } // namespace population
 } // namespace genesis

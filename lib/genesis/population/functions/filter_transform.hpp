@@ -34,6 +34,7 @@
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/population/functions/genome_region.hpp"
+#include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/variant.hpp"
 
@@ -306,28 +307,45 @@ inline std::function<bool(Variant const&)> filter_by_region(
 
 /**
  * @copydoc filter_by_region( std::shared_ptr<GenomeRegionList>, bool )
- *
- * This version of the function can be used if the @p regions is not given as a `std::shared_ptr`.
- * The parameter @p copy_regions is an optimization. By default, the function stores a copy of the
- * @p regions, in order to make sure that it is available. However, if it is guaranteed that
- * the @p regions object stays in scope during the VariantInputIterator's lifetime, this copy
- * can be avoided.
  */
 inline std::function<bool(Variant const&)> filter_by_region(
-    GenomeRegionList const& regions,
-    bool complement = false,
-    bool copy_regions = false
+    std::shared_ptr<GenomeLocusSet> loci,
+    bool complement = false
 ) {
-    if( copy_regions ) {
-        return [regions, complement]( Variant const& variant ){
-            return complement ^ is_covered( regions, variant );
-        };
-    } else {
-        return [&regions, complement]( Variant const& variant ){
-            return complement ^ is_covered( regions, variant );
-        };
+    if( ! loci ) {
+        throw std::invalid_argument(
+            "Can only used filter_by_region() with a valid shared pointer to a GenomeLocusSet."
+        );
     }
+    return [loci, complement]( Variant const& variant ){
+        return complement ^ is_covered( *loci, variant );
+    };
 }
+
+// /**
+//  * @copydoc filter_by_region( std::shared_ptr<GenomeRegionList>, bool )
+//  *
+//  * This version of the function can be used if the @p regions is not given as a `std::shared_ptr`.
+//  * The parameter @p copy_regions is an optimization. By default, the function stores a copy of the
+//  * @p regions, in order to make sure that it is available. However, if it is guaranteed that
+//  * the @p regions object stays in scope during the VariantInputIterator's lifetime, this copy
+//  * can be avoided.
+//  */
+// inline std::function<bool(Variant const&)> filter_by_region(
+//     GenomeRegionList const& regions,
+//     bool complement = false,
+//     bool copy_regions = false
+// ) {
+//     if( copy_regions ) {
+//         return [regions, complement]( Variant const& variant ){
+//             return complement ^ is_covered( regions, variant );
+//         };
+//     } else {
+//         return [&regions, complement]( Variant const& variant ){
+//             return complement ^ is_covered( regions, variant );
+//         };
+//     }
+// }
 
 // =================================================================================================
 //     Transformations

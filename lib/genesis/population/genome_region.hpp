@@ -64,6 +64,7 @@ namespace population {
  *     or where `start` is greather than `end`.
  *
  * @see GenomeLocus
+ * @see GenomeLocusSet
  * @see GenomeRegionList
  */
 struct GenomeRegion

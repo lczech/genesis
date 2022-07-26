@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -46,11 +46,7 @@ namespace utils {
 //     Bool Text Conversion
 // =================================================================================================
 
-/**
- * @brief Local helper function. Converts a string to bool, storing the result in @p result,
- * and returning whether the conversionw as successfull.
- */
-bool convert_to_bool_( std::string const& str, bool& result )
+bool convert_to_bool( std::string const& str, bool& result )
 {
     // Prep.
     auto const cont = to_lower_ascii( trim( str ));
@@ -69,7 +65,7 @@ bool convert_to_bool_( std::string const& str, bool& result )
 bool convert_to_bool( std::string const& str )
 {
     bool result;
-    if( !convert_to_bool_( str, result )) {
+    if( !convert_to_bool( str, result )) {
         throw std::runtime_error( "String is not convertible to bool." );
     }
     return result;
@@ -78,18 +74,14 @@ bool convert_to_bool( std::string const& str )
 bool is_convertible_to_bool( std::string const& str )
 {
     bool result;
-    return convert_to_bool_( str, result );
+    return convert_to_bool( str, result );
 }
 
 // =================================================================================================
 //     Bool Double Text Conversion
 // =================================================================================================
 
-/**
- * @brief Local helper function. Converts a string to bool, but stores it as a double,
- * storing the result in @p result, and returning whether the conversionw as successfull.
- */
-bool convert_to_bool_double_( std::string const& str, double& result )
+bool convert_to_bool_double( std::string const& str, double& result )
 {
     // Prep.
     auto const cont = to_lower_ascii( trim( str ));
@@ -105,15 +97,13 @@ bool convert_to_bool_double_( std::string const& str, double& result )
         result = std::numeric_limits<double>::quiet_NaN();
         return true;
     }
-
-    // For old compilers.
     return false;
 }
 
 double convert_to_bool_double( std::string const& str )
 {
     double result;
-    if( !convert_to_bool_double_( str, result )) {
+    if( !convert_to_bool_double( str, result )) {
         throw std::runtime_error( "String is not convertible to bool." );
     }
     return result;
@@ -122,31 +112,29 @@ double convert_to_bool_double( std::string const& str )
 bool is_convertible_to_bool_double( std::string const& str )
 {
     double result;
-    return convert_to_bool_double_( str, result );
+    return convert_to_bool_double( str, result );
 }
 
 // =================================================================================================
-//     Double Text Conversion
+//     Conversion Helper
 // =================================================================================================
 
-/**
- * @brief Local helper function. Converts a string to double, storing the result in @p result,
- * and returning whether the conversionw as successfull.
- */
-bool convert_to_double_( std::string const& str, double& result )
+template<typename T, class F>
+bool convert_to_numeric_( std::string const& str, T& result, T initial, F conversion )
 {
+    // Some default cases. Ignore whitespace. Accepty emptry string.
     bool err = false;
-    result = std::numeric_limits<double>::quiet_NaN();
-    if( str.empty() ) {
+    result = initial;
+    auto const lower = trim( str );
+    if( lower.empty() ) {
         return true;
     }
 
     try{
-        // Try conversion. Throws on failure.
-        auto const val = trim( str );
-        std::string::size_type sz;
-        result = std::stod( val, &sz );
-        if( sz != val.size() ) {
+        // Try conversion. Throws on failure, which we catch.
+        std::size_t pos;
+        result = conversion( lower, &pos );
+        if( pos != lower.size() ) {
             err = true;
         }
     } catch(...) {
@@ -155,11 +143,28 @@ bool convert_to_double_( std::string const& str, double& result )
     return !err;
 }
 
+// =================================================================================================
+//     Double Text Conversion
+// =================================================================================================
+
+bool convert_to_double( std::string const& str, double& result )
+{
+    // Need to use a lambda here, see https://stackoverflow.com/a/71310216/4184258
+    return convert_to_numeric_(
+        str, result, std::numeric_limits<double>::quiet_NaN(),
+        []( std::string const& str, std::size_t* pos ){
+            return std::stod( str, pos );
+        }
+    );
+}
+
 double convert_to_double( std::string const& str )
 {
     double result;
-    if( !convert_to_double_( str, result )) {
-        throw std::runtime_error( "String is not convertible to double." );
+    if( !convert_to_double( str, result )) {
+        throw std::runtime_error(
+            "String is not convertible to double."
+        );
     }
     return result;
 }
@@ -167,7 +172,71 @@ double convert_to_double( std::string const& str )
 bool is_convertible_to_double( std::string const& str )
 {
     double result;
-    return convert_to_double_( str, result );
+    return convert_to_double( str, result );
+}
+
+// =================================================================================================
+//     Signed Integer Text Conversion
+// =================================================================================================
+
+bool convert_to_signed_integer( std::string const& str, long long& result )
+{
+    // Need to use a lambda here, see https://stackoverflow.com/a/71310216/4184258
+    return convert_to_numeric_(
+        str, result, static_cast<long long>(0),
+        []( std::string const& str, std::size_t* pos ){
+            return std::stoll( str, pos );
+        }
+    );
+}
+
+long long convert_to_signed_integer( std::string const& str )
+{
+    long long result;
+    if( !convert_to_signed_integer( str, result )) {
+        throw std::runtime_error(
+            "String is not convertible to signed integer (long long)."
+        );
+    }
+    return result;
+}
+
+bool is_convertible_to_signed_integer( std::string const& str )
+{
+    long long result;
+    return convert_to_signed_integer( str, result );
+}
+
+// =================================================================================================
+//     Unsigned Integer Text Conversion
+// =================================================================================================
+
+bool convert_to_unsigned_integer( std::string const& str, unsigned long long& result )
+{
+    // Need to use a lambda here, see https://stackoverflow.com/a/71310216/4184258
+    return convert_to_numeric_(
+        str, result, static_cast<unsigned long long>(0),
+        []( std::string const& str, std::size_t* pos ){
+            return std::stoull( str, pos );
+        }
+    );
+}
+
+unsigned long long convert_to_unsigned_integer( std::string const& str )
+{
+    unsigned long long result;
+    if( !convert_to_unsigned_integer( str, result )) {
+        throw std::runtime_error(
+            "String is not convertible to unsigned integer (unsigned long long)."
+        );
+    }
+    return result;
+}
+
+bool is_convertible_to_unsigned_integer( std::string const& str )
+{
+    unsigned long long result;
+    return convert_to_unsigned_integer( str, result );
 }
 
 } // namespace utils

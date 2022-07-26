@@ -281,11 +281,11 @@ std::pair<char, double> consensus( BaseCounts const& sample, BaseCountsStatus co
  *
  * If the Variant already has a `reference_base` in `ACGT`, this base is returned (meaning that
  * this function is idempotent; it does not change the reference base if there already is one).
- * However, if the `reference_base` is `N` or any other value not in `ACGT`,
+ * However, if the `reference_base` is `N` or any other value not in `ACGT`, or if @p force is `true`,
  * the base with the highest count is returned instead,
  * unless all counts are 0, in which case the returned reference base is `N`.
  */
-char guess_reference_base( Variant const& variant );
+char guess_reference_base( Variant const& variant, bool force = false );
 
 /**
  * @brief Guess the alternative base of a Variant.
@@ -300,7 +300,15 @@ char guess_reference_base( Variant const& variant );
  * If the reference base is not one of `ACGT`, the returned alternative base is `N`.
  * Furthermore, if all three non-reference bases have count 0, the returned alternative base is `N`.
  */
-char guess_alternative_base( Variant const& variant, bool force = true );
+char guess_alternative_base( Variant const& variant, bool force = false );
+
+/**
+ * @brief Guess the reference and alternative bases for a Variant, and set them.
+ *
+ * This uses the same approach as guess_reference_base() and guess_alternative_base(),
+ * but is more efficient than calling both in sequence. See there for details.
+ */
+void guess_and_set_ref_and_alt_bases( Variant& variant, bool force = false );
 
 // =================================================================================================
 //     Output

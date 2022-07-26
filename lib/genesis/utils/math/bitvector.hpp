@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -89,6 +89,14 @@ public:
     }
 
     /**
+     * @brief Create a Bitvector of a given @p size, and copy the content of another Bitvector.
+     *
+     * If the @p other bitvector is smaller, the remaining bits are set to `0`.
+     * If it is bigger, only the first @p size many bits of it are used.
+     */
+    Bitvector( size_t size, Bitvector const& other );
+
+    /**
      * @brief Constructor that takes a `std::string` of `0`s and `1`s to build the Bitvector.
      *
      * This is for cases where some fixed Bitvector needs to be constructed (e.g., for testing
@@ -96,12 +104,12 @@ public:
      */
     Bitvector( std::string const& values );
 
-    /**
-     * @brief Create a Bitvector by copying the first @p max_size of another Bitvector.
-     *
-     * If `max_size > other.size()`, all max_size are used.
-     */
-    Bitvector( Bitvector const& other, size_t max_size );
+    // /* *
+    //  * @brief Create a Bitvector by copying the first @p max_size of another Bitvector.
+    //  *
+    //  * If `max_size > other.size()`, all max_size are used.
+    //  */
+    // Bitvector( Bitvector const& other, size_t max_size );
 
     ~Bitvector() = default;
 
@@ -223,6 +231,18 @@ public:
     // ---------------------------------------------------------
     //     Other Functions
     // ---------------------------------------------------------
+
+    /**
+     * @brief Return whether the Bitvector is empty, that is, has size() == 0.
+     *
+     * Note that this function does _not_ count the number of bits that are set to `true`.
+     * It simply returns whether the Bitvector has any size (`false`),
+     * or was default constructed (`true`).
+     */
+    inline bool empty() const
+    {
+        return size_ == 0;
+    }
 
     /**
      * @brief Return the size (number of bits) of this Bitvector.

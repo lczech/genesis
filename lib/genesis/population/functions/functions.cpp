@@ -285,13 +285,16 @@ std::pair<SortedBaseCounts, SortedBaseCounts> sorted_average_base_counts(
     return result;
 }
 
-SortedBaseCounts sorted_base_counts(
-    Variant const& variant, bool reference_first
+/**
+ * @brief Local helper function that takes an already computed @p tota from total_base_counts(),
+ * so that it can be re-used internally here.
+ */
+SortedBaseCounts sorted_base_counts_(
+    Variant const& variant, bool reference_first, BaseCounts const& total
 ) {
     // We use sorting networks for speed here. See f_st_asymptotically_unbiased_a1n1a2n2()
     // for details on the technique.
 
-    auto const total = total_base_counts( variant );
     if( reference_first ) {
         SortedBaseCounts result;
         switch( variant.reference_base ) {
@@ -329,7 +332,8 @@ SortedBaseCounts sorted_base_counts(
             }
             default: {
                 throw std::runtime_error(
-                    "Invalid reference base character " + utils::char_to_hex( variant.reference_base )
+                    "Cannot use reference base " + utils::char_to_hex( variant.reference_base ) +
+                    "to sort base counts."
                 );
             }
         }
@@ -346,6 +350,13 @@ SortedBaseCounts sorted_base_counts(
     } else {
         return sorted_base_counts( total );
     }
+}
+
+SortedBaseCounts sorted_base_counts(
+    Variant const& variant, bool reference_first
+) {
+    auto const total = total_base_counts( variant );
+    return sorted_base_counts_( variant, reference_first, total );
 }
 
 // =================================================================================================
@@ -444,10 +455,10 @@ std::pair<char, double> consensus( BaseCounts const& sample, BaseCountsStatus co
     }
 }
 
-char guess_reference_base( Variant const& variant )
+char guess_reference_base( Variant const& variant, bool force )
 {
     auto const ref = utils::to_upper( variant.reference_base );
-    if( ref == 'A' || ref == 'C' || ref == 'G' || ref == 'T' ) {
+    if( ! force && ( ref == 'A' || ref == 'C' || ref == 'G' || ref == 'T' )) {
         return ref;
     } else {
         auto const sorted = sorted_base_counts( variant, false );
@@ -477,6 +488,56 @@ char guess_alternative_base( Variant const& variant, bool force )
 
     // Else case outside, so that compilers always see that this function returns a value.
     return 'N';
+}
+
+void guess_and_set_ref_and_alt_bases( Variant& variant, bool force )
+{
+    // Get base data.
+    auto ref = utils::to_upper( variant.reference_base );
+    auto const alt = utils::to_upper( variant.alternative_base );
+
+    // We only want to compute the total counts if necessary.
+    BaseCounts total;
+    bool computed_total = false;
+
+    // Set the reference, unless it is already a good value (and we don't force it).
+    // We don't flip the condition here, to keept it consistent with the above functions.
+    if( ! force && ( ref == 'A' || ref == 'C' || ref == 'G' || ref == 'T' )) {
+        // Nothing to do.
+    } else {
+        variant.reference_base = 'N';
+
+        // Now we need the total base counts.
+        total = total_base_counts( variant );
+        computed_total = true;
+
+        // Use them to define our ref base.
+        auto const sorted = sorted_base_counts( total );
+        if( sorted[0].count > 0 ) {
+            // Update the ref base. Also update our internal `ref` here, as we need it below.
+            ref = utils::to_upper( sorted[0].base );
+            variant.reference_base = ref;
+        }
+    }
+
+    // Set the alternative.
+    if( ! force && ( alt == 'A' || alt == 'C' || alt == 'G' || alt == 'T' )) {
+        // Nothing to do.
+    } else {
+        variant.alternative_base = 'N';
+        if( ref == 'A' || ref == 'C' || ref == 'G' || ref == 'T' ) {
+            // Only compute the total if needed.
+            if( ! computed_total ) {
+                total = total_base_counts( variant );
+            }
+
+            // Use it to define our alt base.
+            auto const sorted = sorted_base_counts_( variant, true, total );
+            if( sorted[1].count > 0 ) {
+                variant.alternative_base = utils::to_upper( sorted[1].base );
+            }
+        }
+    }
 }
 
 // =================================================================================================

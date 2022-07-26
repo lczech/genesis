@@ -31,8 +31,9 @@
  * @ingroup population
  */
 
-#include "genesis/population/genome_region.hpp"
+#include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/genome_region_list.hpp"
+#include "genesis/population/genome_region.hpp"
 
 #ifdef GENESIS_HTSLIB
 
@@ -96,32 +97,13 @@ GenomeRegionList parse_genome_regions(
     bool end_exclusive = false
 );
 
-/**
- * @brief Parse a file with one position or region per line, in different formats.
- *
- * The function expects an input file, and tries to interpret each line as a position or region
- * in a chromosome, offering a variety of formats:
- *
- *   * "chr" for whole chromosomes,
- *   * "chr:position", "chr:start-end", "chr:start..end" for positions and regions,
- *   * tab- or space-delimited "chr position" or "chr start end" as well for positions and regions.
- *
- * This allows for maximum flexibility when reading in such files. Note that this is more flexible
- * than parse_genome_region(), which does not support the tab- and space-delimiation - when parsing
- * an individual string, that does not make much sense, hence we only offer this delimitation
- * for files as of now.
- */
-void parse_genome_region_file(
-    std::string const& filename,
-    GenomeRegionList& target,
-    bool overlap = false,
-    bool zero_based = false,
-    bool end_exclusive = false
-);
-
 // =================================================================================================
 //     Region Coverage
 // =================================================================================================
+
+// -------------------------------------------------------------------------
+//     Explicit chr and pos
+// -------------------------------------------------------------------------
 
 /**
  * @brief Test whether the chromosome/position is within a given genomic @p region.
@@ -131,7 +113,22 @@ bool is_covered( GenomeRegion const& region, std::string const& chromosome, size
 /**
  * @brief Test whether the chromosome/position is within a given list of genomic @p regions.
  */
-bool is_covered( GenomeRegionList const& regions, std::string const& chromosome, size_t position );
+inline bool is_covered( GenomeRegionList const& regions, std::string const& chromosome, size_t position )
+{
+    return regions.is_covered( chromosome, position );
+}
+
+/**
+ * @brief Test whether the chromosome/position is within a given @p GenomeLocusSet.
+ */
+inline bool is_covered( GenomeLocusSet const& loci, std::string const& chromosome, size_t position )
+{
+    return loci.is_covered( chromosome, position );
+}
+
+// -------------------------------------------------------------------------
+//     Templates for structs
+// -------------------------------------------------------------------------
 
 /**
  * @brief Test whether the chromosome/position of a @p locus is within a given genomic @p region.
@@ -160,10 +157,39 @@ bool is_covered( GenomeRegionList const& regions, T const& locus )
     return is_covered( regions, locus.chromosome, locus.position );
 }
 
+/**
+ * @brief Test whether the chromosome/position of a @p locus is within a given @p GenomeLocusSet.
+ *
+ * This is a function template, so that it can accept any data structure that contains public
+ * member variables `chromosome` (`std::string`) and `position` (`size_t`), such as Variant
+ * or GenomeLocus.
+ */
+template<class T>
+bool is_covered( GenomeLocusSet const& loci, T const& locus )
+{
+    return is_covered( loci, locus.chromosome, locus.position );
+}
+
+// -------------------------------------------------------------------------
+//     VCF versions
+// -------------------------------------------------------------------------
+
 #ifdef GENESIS_HTSLIB
 
-bool is_covered( GenomeRegion const& region, VcfRecord const& variant );
-bool is_covered( GenomeRegionList const& regions, VcfRecord const& variant );
+inline bool is_covered( GenomeRegion const& region, VcfRecord const& variant )
+{
+    return is_covered( region, variant.get_chromosome(), variant.get_position() );
+}
+
+inline bool is_covered( GenomeRegionList const& regions, VcfRecord const& variant )
+{
+    return is_covered( regions, variant.get_chromosome(), variant.get_position() );
+}
+
+inline bool is_covered( GenomeLocusSet const& loci, VcfRecord const& variant )
+{
+    return is_covered( loci, variant.get_chromosome(), variant.get_position() );
+}
 
 #endif // htslib guard
 

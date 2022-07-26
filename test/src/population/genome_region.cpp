@@ -30,8 +30,9 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/genome_region.hpp"
+#include "genesis/population/formats/genome_region_reader.hpp"
 #include "genesis/population/functions/genome_region.hpp"
+#include "genesis/population/genome_region.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;
@@ -124,10 +125,10 @@ TEST( GenomeRegion, ParseFile )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
-    std::string const infile = environment->data_dir + "population/regions.txt";
+    std::string const infile = environment->data_dir + "population/regions_1.txt";
 
     GenomeRegionList list;
-    parse_genome_region_file( infile, list );
+    GenomeRegionReader().read_as_genome_region_list( from_file( infile ), list );
 
     EXPECT_TRUE(  list.is_covered( "A" ));
     EXPECT_TRUE(  list.is_covered( "A", 0 ));
@@ -145,4 +146,145 @@ TEST( GenomeRegion, ParseFile )
     EXPECT_FALSE( list.is_covered( "C", 9 ));
     EXPECT_TRUE(  list.is_covered( "C", 10 ));
     EXPECT_FALSE( list.is_covered( "C", 11 ));
+}
+
+TEST( GenomeList, ParseFile )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/regions_1.txt";
+
+    // Parse into a genome locus list.
+    GenomeLocusSet const list = GenomeRegionReader().read_as_genome_locus_set( from_file( infile ));
+
+    EXPECT_TRUE(  list.is_covered( "A" ));
+    EXPECT_TRUE(  list.is_covered( "A", 0 ));
+    EXPECT_TRUE(  list.is_covered( "A", 10 ));
+
+    EXPECT_FALSE( list.is_covered( "B" ));
+    EXPECT_FALSE( list.is_covered( "B", 0 ));
+    EXPECT_FALSE( list.is_covered( "B", 9 ));
+    EXPECT_TRUE(  list.is_covered( "B", 10 ));
+    EXPECT_TRUE(  list.is_covered( "B", 20 ));
+    EXPECT_FALSE( list.is_covered( "B", 21 ));
+    EXPECT_FALSE( list.is_covered( "B", 29 ));
+    EXPECT_TRUE(  list.is_covered( "B", 30 ));
+    EXPECT_TRUE(  list.is_covered( "B", 40 ));
+    EXPECT_FALSE( list.is_covered( "B", 41 ));
+
+    EXPECT_FALSE( list.is_covered( "C" ));
+    EXPECT_FALSE( list.is_covered( "C", 0 ));
+    EXPECT_FALSE( list.is_covered( "C", 9 ));
+    EXPECT_TRUE(  list.is_covered( "C", 10 ));
+    EXPECT_FALSE( list.is_covered( "C", 11 ));
+}
+
+void test_genome_list_set_operators_( GenomeLocusSet const& list_1, GenomeLocusSet const& list_2 )
+{
+    // Intersection
+    {
+        auto result = list_1;
+        result.set_intersect( list_2 );
+
+        EXPECT_FALSE( result.is_covered( "A" ));
+        EXPECT_FALSE( result.is_covered( "A", 0 ));
+        EXPECT_FALSE( result.is_covered( "A", 4 ));
+        EXPECT_TRUE(  result.is_covered( "A", 5 ));
+        EXPECT_TRUE(  result.is_covered( "A", 10 ));
+        EXPECT_FALSE( result.is_covered( "A", 11 ));
+
+        EXPECT_FALSE( result.is_covered( "B" ));
+        EXPECT_FALSE( result.is_covered( "B", 0 ));
+        EXPECT_FALSE( result.is_covered( "B", 14 ));
+        EXPECT_TRUE(  result.is_covered( "B", 15 ));
+        EXPECT_TRUE(  result.is_covered( "B", 20 ));
+        EXPECT_FALSE( result.is_covered( "B", 21 ));
+        EXPECT_FALSE( result.is_covered( "B", 34 ));
+        EXPECT_TRUE(  result.is_covered( "B", 35 ));
+        EXPECT_TRUE(  result.is_covered( "B", 40 ));
+        EXPECT_FALSE( result.is_covered( "B", 41 ));
+
+        EXPECT_FALSE( result.is_covered( "C" ));
+        EXPECT_FALSE( result.is_covered( "C", 0 ));
+        EXPECT_FALSE( result.is_covered( "C", 10 ));
+        EXPECT_TRUE(  result.is_covered( "C", 15 ));
+        EXPECT_TRUE(  result.is_covered( "C", 20 ));
+        EXPECT_FALSE( result.is_covered( "C", 25 ));
+        EXPECT_FALSE( result.is_covered( "C", 29 ));
+        EXPECT_TRUE(  result.is_covered( "C", 30 ));
+
+        EXPECT_TRUE(  result.is_covered( "D" ));
+        EXPECT_TRUE(  result.is_covered( "D", 0 ));
+        EXPECT_TRUE(  result.is_covered( "D", 1 ));
+
+        EXPECT_FALSE( result.is_covered( "E" ));
+        EXPECT_FALSE( result.is_covered( "E", 0 ));
+        EXPECT_FALSE( result.is_covered( "E", 10 ));
+        EXPECT_FALSE( result.is_covered( "E", 20 ));
+    }
+
+    // Union
+    {
+        auto result = list_1;
+        result.set_union( list_2 );
+
+        EXPECT_TRUE(  result.is_covered( "A" ));
+        EXPECT_TRUE(  result.is_covered( "A", 0 ));
+        EXPECT_TRUE(  result.is_covered( "A", 4 ));
+        EXPECT_TRUE(  result.is_covered( "A", 5 ));
+        EXPECT_TRUE(  result.is_covered( "A", 10 ));
+        EXPECT_TRUE(  result.is_covered( "A", 11 ));
+
+        EXPECT_FALSE( result.is_covered( "B" ));
+        EXPECT_FALSE( result.is_covered( "B", 0 ));
+        EXPECT_FALSE( result.is_covered( "B", 9 ));
+        EXPECT_TRUE(  result.is_covered( "B", 10 ));
+        EXPECT_TRUE(  result.is_covered( "B", 15 ));
+        EXPECT_TRUE(  result.is_covered( "B", 20 ));
+        EXPECT_TRUE(  result.is_covered( "B", 25 ));
+        EXPECT_FALSE( result.is_covered( "B", 26 ));
+        EXPECT_FALSE( result.is_covered( "B", 29 ));
+        EXPECT_TRUE(  result.is_covered( "B", 30 ));
+        EXPECT_TRUE(  result.is_covered( "B", 40 ));
+        EXPECT_TRUE(  result.is_covered( "B", 45 ));
+        EXPECT_FALSE( result.is_covered( "B", 46 ));
+
+        EXPECT_FALSE( result.is_covered( "C" ));
+        EXPECT_FALSE( result.is_covered( "C", 0 ));
+        EXPECT_TRUE(  result.is_covered( "C", 10 ));
+        EXPECT_FALSE( result.is_covered( "C", 14 ));
+        EXPECT_TRUE(  result.is_covered( "C", 15 ));
+        EXPECT_TRUE(  result.is_covered( "C", 20 ));
+        EXPECT_TRUE(  result.is_covered( "C", 25 ));
+        EXPECT_TRUE(  result.is_covered( "C", 29 ));
+        EXPECT_TRUE(  result.is_covered( "C", 30 ));
+        EXPECT_FALSE( result.is_covered( "C", 31 ));
+
+        EXPECT_TRUE(  result.is_covered( "D" ));
+        EXPECT_TRUE(  result.is_covered( "D", 0 ));
+        EXPECT_TRUE(  result.is_covered( "D", 1 ));
+
+        EXPECT_FALSE( result.is_covered( "E" ));
+        EXPECT_FALSE( result.is_covered( "E", 0 ));
+        EXPECT_FALSE( result.is_covered( "E", 9 ));
+        EXPECT_TRUE(  result.is_covered( "E", 10 ));
+        EXPECT_TRUE(  result.is_covered( "E", 20 ));
+        EXPECT_FALSE( result.is_covered( "E", 21 ));
+    }
+}
+
+TEST( GenomeList, SetOperators )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile_1 = environment->data_dir + "population/regions_1.txt";
+    std::string const infile_2 = environment->data_dir + "population/regions_2.txt";
+
+    // Get lists.
+    auto const list_1 = GenomeRegionReader().read_as_genome_locus_set( from_file( infile_1 ));
+    auto const list_2 = GenomeRegionReader().read_as_genome_locus_set( from_file( infile_2 ));
+
+    // The operators are symmetric, so test both directions.
+    test_genome_list_set_operators_( list_1, list_2 );
+    test_genome_list_set_operators_( list_2, list_1 );
 }

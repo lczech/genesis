@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -49,7 +49,7 @@ namespace utils {
 /**
  * @brief Generic conversion from string to any data type that is supported by `std::stringsteam operator >>`.
  *
- * This function is useful for general conversion. It throws when the string cannot be fully
+ * This function is useful for general conversion. It throw when the string cannot be fully
  * converted. That is, if there is more content after the converted value. If @p trim is `false`
  * (default), this is also affected by white space. In that case, the value to be parsed has to be
  * the only content of the input string.
@@ -93,7 +93,28 @@ inline std::string convert_from_string<std::string>( std::string const& str, boo
 //     Bool Text Conversion
 // =================================================================================================
 
+/**
+ * @brief Convert a string to bool, store the result in @p result,
+ * and return whether the conversion as successful.
+ *
+ * @copydetails is_convertible_to_bool( std::string const& )
+ */
+bool convert_to_bool( std::string const& str, bool& result );
+
+/**
+ * @brief Convert a string to bool, return the result, and throw an exception when the
+ * conversion was not successful.
+ *
+ * @copydetails is_convertible_to_bool( std::string const& )
+ */
 bool convert_to_bool( std::string const& str );
+
+/**
+ * @brief Return whether a string can be converted to bool.
+ *
+ * Strings that can be converted to bool with this function are `true`, `false`, `yes`, `no`, `on`,
+ * `off`, `1`, `0`, and the empty string (evaluated as `false`), with all text case insensitive.
+ */
 bool is_convertible_to_bool( std::string const& str );
 
 template<typename ForwardIterator>
@@ -132,7 +153,31 @@ bool is_convertible_to_bool(
 //     Bool Double Text Conversion
 // =================================================================================================
 
+/**
+ * @brief Convert a string to bool, but store the result as a double in @p result,
+ * and return whether the conversion as successful.
+ *
+ * @copydetails is_convertible_to_bool_double( std::string const& )
+ */
+bool convert_to_bool_double( std::string const& str, double& result );
+
+/**
+ * @brief Convert a string to bool, but return it as a double,
+ * and throw an exception when the conversion was not successful.
+ *
+ * @copydetails is_convertible_to_bool_double( std::string const& )
+ */
 double convert_to_bool_double( std::string const& str );
+
+/**
+ * @brief Return whether a string can be converted to bool (and stored as a double).
+ *
+ * This conversion is useful to work with dataframes that are all double,
+ * for example to work with our Generalized Linear Model implementation, see glm_fit().
+ *
+ * Strings that can be converted to bool with this function are `true`, `false`, `yes`, `no`, `on`,
+ * `off`, `1`, `0`, and the empty string (evaluated as `quiet_NaN`), with all text case insensitive.
+ */
 bool is_convertible_to_bool_double( std::string const& str );
 
 template<typename ForwardIterator>
@@ -171,7 +216,21 @@ bool is_convertible_to_bool_double(
 //     Double Text Conversion
 // =================================================================================================
 
+/**
+ * @brief Convert a string to double, store the result in @p result,
+ * and return whether the conversion as successful.
+ */
+bool convert_to_double( std::string const& str, double& result );
+
+/**
+ * @brief Convert a string to double, return the result, and throw an exception when the
+ * conversion was not successful.
+ */
 double convert_to_double( std::string const& str );
+
+/**
+ * @brief Return whether a string can be converted to double.
+ */
 bool is_convertible_to_double( std::string const& str );
 
 template<typename ForwardIterator>
@@ -199,6 +258,112 @@ bool is_convertible_to_double(
 ) {
     while( first != last ) {
         if( !is_convertible_to_double( *first )) {
+            return false;
+        }
+        ++first;
+    }
+    return true;
+}
+
+// =================================================================================================
+//     Signed Integer Text Conversion
+// =================================================================================================
+
+/**
+ * @brief Convert a string to signed integer, store the result in @p result,
+ * and return whether the conversion as successful.
+ */
+bool convert_to_signed_integer( std::string const& str, long long& result );
+
+/**
+ * @brief Convert a string to signed integer, return the result, and throw an exception when the
+ * conversion was not successful.
+ */
+long long convert_to_signed_integer( std::string const& str );
+
+/**
+ * @brief Return whether a string can be converted to signed integer.
+ */
+bool is_convertible_to_signed_integer( std::string const& str );
+
+template<typename ForwardIterator>
+std::vector<long long> convert_to_signed_integer(
+    ForwardIterator first,
+    ForwardIterator last,
+    size_t size = 0
+) {
+    // Prep.
+    std::vector<long long> ret;
+    ret.reserve( size );
+
+    // Add all values. Throws on error.
+    while( first != last ) {
+        ret.push_back( convert_to_signed_integer( *first ));
+        ++first;
+    }
+    return ret;
+}
+
+template<typename ForwardIterator>
+bool is_convertible_to_signed_integer(
+    ForwardIterator first,
+    ForwardIterator last
+) {
+    while( first != last ) {
+        if( !is_convertible_to_signed_integer( *first )) {
+            return false;
+        }
+        ++first;
+    }
+    return true;
+}
+
+// =================================================================================================
+//     Unsigned Integer Text Conversion
+// =================================================================================================
+
+/**
+ * @brief Convert a string to unsigned integer, store the result in @p result,
+ * and return whether the conversion as successful.
+ */
+bool convert_to_unsigned_integer( std::string const& str, unsigned long long& result );
+
+/**
+ * @brief Convert a string to unsigned integer, return the result, and throw an exception when the
+ * conversion was not successful.
+ */
+unsigned long long convert_to_unsigned_integer( std::string const& str );
+
+/**
+ * @brief Return whether a string can be converted to unsigned integer.
+ */
+bool is_convertible_to_unsigned_integer( std::string const& str );
+
+template<typename ForwardIterator>
+std::vector<unsigned long long> convert_to_unsigned_integer(
+    ForwardIterator first,
+    ForwardIterator last,
+    size_t size = 0
+) {
+    // Prep.
+    std::vector<unsigned long long> ret;
+    ret.reserve( size );
+
+    // Add all values. Throws on error.
+    while( first != last ) {
+        ret.push_back( convert_to_unsigned_integer( *first ));
+        ++first;
+    }
+    return ret;
+}
+
+template<typename ForwardIterator>
+bool is_convertible_to_unsigned_integer(
+    ForwardIterator first,
+    ForwardIterator last
+) {
+    while( first != last ) {
+        if( !is_convertible_to_unsigned_integer( *first )) {
             return false;
         }
         ++first;

@@ -57,6 +57,7 @@ namespace population {
  *     this is however not considered to be a specified() locus.
  *   * An empty chromosome with a position other than 0 is an invalid state, and will throw.
  *
+ * @see GenomeLocusSet
  * @see GenomeRegion
  * @see GenomeRegionList
  */
