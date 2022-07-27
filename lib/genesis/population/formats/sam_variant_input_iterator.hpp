@@ -35,6 +35,7 @@
 
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/functions/genome_locus.hpp"
+#include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/population/variant.hpp"
@@ -531,6 +532,24 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Region Filter
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Set a region filter, so that only loci set in the @p loci are used,
+     * and all others are skipped.
+     *
+     * This still needs some basic processing per position, as we are currently not using the
+     * htslib internal filters, but apply it afterwards. Still, this skips the base counting,
+     * so it is an advantage over filtering later on.
+     */
+    self_type& region_filter( std::shared_ptr<GenomeLocusSet> region_filter )
+    {
+        region_filter_ = region_filter;
+        return *this;
+    }
+
+    // -------------------------------------------------------------------------
     //     Quality Settings
     // -------------------------------------------------------------------------
 
@@ -745,6 +764,9 @@ private:
     uint32_t flags_include_any_ = 0;
     uint32_t flags_exclude_all_ = 0;
     uint32_t flags_exclude_any_ = 0;
+
+    // Filter for which positions to consider or skip
+    std::shared_ptr<GenomeLocusSet> region_filter_;
 
     // Minimum mapping and base qualities
     int min_map_qual_ = 0;
