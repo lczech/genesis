@@ -30,6 +30,7 @@
 
 #include "genesis/utils/core/options.hpp"
 
+#include "genesis/utils/core/info.hpp"
 #include "genesis/utils/core/version.hpp"
 
 #include <cassert>
@@ -63,14 +64,6 @@ namespace utils {
 // =================================================================================================
 //     Initialization
 // =================================================================================================
-
-#if defined( DEBUG ) && defined( NDEBUG )
-    static_assert( false, "Cannot compile with both DEBUG and NDEBUG flags set." );
-#endif
-
-#if ! defined( DEBUG ) && ! defined( NDEBUG )
-    static_assert( false, "Cannot compile with neiher DEBUG nor NDEBUG flag set." );
-#endif
 
 Options::Options()
 {
@@ -130,65 +123,6 @@ void Options::number_of_threads( unsigned int number )
     #endif
 }
 
-bool Options::hyperthreads_enabled() const
-{
-    // Get CPU info.
-    int32_t info[4];
-    #ifdef __aarch64__
-        (void)info;
-        return false;
-    #elif defined( _WIN32 )
-        __cpuid( info, 1 );
-    #else
-        __cpuid_count( 1, 0, info[0], info[1], info[2], info[3] );
-    #endif
-
-    return (bool) (info[3] & (0x1 << 28));
-}
-
-unsigned int Options::guess_number_of_threads( bool use_openmp ) const
-{
-    // Dummy to avoid compiler warnings.
-    (void) use_openmp;
-
-    // Default to single threaded.
-    unsigned int guess = 1;
-
-    #if defined( GENESIS_OPENMP )
-
-        // Use number of OpenMP threads, which might be set through the
-        // `OMP_NUM_THREADS` environment variable.
-        // If there was an error there, fix it.
-        if( use_openmp ) {
-            guess = omp_get_max_threads();
-        }
-        if( guess == 0 ) {
-            guess = 1;
-        }
-
-    #endif
-
-    #if defined( GENESIS_PTHREADS )
-
-        // Initialize threads with actual number of cores.
-        auto const lcores = std::thread::hardware_concurrency();
-
-        // If hardware concurrency and openmp agree that there is more than one core,
-        // this means that OMP_NUM_THREADS was not set to anything specific, and hence we want
-        // to use all cores. However, in that case, we need to correct for hypterthreading.
-        // Also, if guess == 1 here, openmp was not used above, so in that case we also use
-        // the hardware concurrency as the guess.
-        if((( lcores == guess ) || ( guess == 1 )) && ( lcores > 1 )) {
-            auto const threads_per_core = hyperthreads_enabled() ? 2 : 1;
-            guess = lcores / threads_per_core;
-        }
-
-    #endif
-
-    assert( guess >= 1 );
-    return guess;
-}
-
 // =================================================================================================
 //     Random Seed & Engine
 // =================================================================================================
@@ -197,210 +131,6 @@ void Options::random_seed(const unsigned long seed)
 {
     random_seed_ = seed;
     random_engine_.seed( seed );
-}
-
-// =================================================================================================
-//     Run Time Environment
-// =================================================================================================
-
-bool Options::stdin_is_terminal()
-{
-    // Using http://stackoverflow.com/a/1312957/4184258
-    #if defined( _WIN32 ) || defined(  _WIN64  )
-        return _isatty( _fileno( stdin ));
-    #else
-        return isatty( fileno( stdin ));
-    #endif
-}
-
-bool Options::stdout_is_terminal()
-{
-    #if defined( _WIN32 ) || defined(  _WIN64  )
-        return _isatty( _fileno( stdout ));
-    #else
-        return isatty( fileno( stdout ));
-    #endif
-}
-
-bool Options::stderr_is_terminal()
-{
-    #if defined( _WIN32 ) || defined(  _WIN64  )
-        return _isatty( _fileno( stderr ));
-    #else
-        return isatty( fileno( stderr ));
-    #endif
-}
-
-std::pair<int, int> Options::terminal_size()
-{
-    #if defined( _WIN32 ) || defined(  _WIN64  )
-
-        CONSOLE_SCREEN_BUFFER_INFO csbi;
-        int cols, rows;
-        GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-        cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-        rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-        return { cols, rows };
-
-    #else
-
-        struct winsize w;
-        ioctl( STDOUT_FILENO, TIOCGWINSZ, &w );
-        return { w.ws_col, w.ws_row };
-
-    #endif
-}
-
-// =================================================================================================
-//     Compile Time Environment
-// =================================================================================================
-
-bool Options::is_debug()
-{
-    #ifdef DEBUG
-        return true;
-    #else
-        return false;
-    #endif
-}
-
-bool Options::is_release()
-{
-    #ifdef NDEBUG
-        return true;
-    #else
-        return false;
-    #endif
-}
-
-std::string Options::build_type()
-{
-    #if defined( DEBUG )
-        return "debug";
-    #elif defined( NDEBUG )
-        return "release";
-    #else
-        return "unknown";
-    #endif
-}
-
-bool Options::is_little_endian()
-{
-    static const uint16_t e = 0x1000;
-    return 0 == *reinterpret_cast< uint8_t const* >( &e );
-}
-
-bool Options::is_big_endian()
-{
-    static const uint16_t e = 0x0001;
-    return 0 == *reinterpret_cast< uint8_t const* >( &e );
-}
-
-std::string Options::platform()
-{
-    #if defined _WIN64
-        return "Win64";
-    #elif defined _WIN32
-        return "Win32";
-    #elif defined __linux__
-        return "Linux";
-    #elif defined __APPLE__
-        return "Apple";
-    #elif defined __unix__
-        return "Unix";
-    #else
-        return "Unknown";
-    #endif
-}
-
-std::string Options::compiler_family()
-{
-    #if defined(__clang__)
-        return "clang";
-    #elif defined(__ICC) || defined(__INTEL_COMPILER)
-        return "icc";
-    #elif defined(__GNUC__) || defined(__GNUG__)
-        return "gcc";
-    #elif defined(__HP_cc) || defined(__HP_aCC)
-        return "hp";
-    #elif defined(__IBMCPP__)
-        return "ilecpp";
-    #elif defined(_MSC_VER)
-        return "msvc";
-    #elif defined(__PGI)
-        return "pgcpp";
-    #elif defined(__SUNPRO_CC)
-        return "sunpro";
-    #else
-        return "unknown";
-    #endif
-}
-
-std::string Options::compiler_version()
-{
-    #if defined(__clang__)
-        return __clang_version__;
-    #elif defined(__ICC) || defined(__INTEL_COMPILER)
-        return __INTEL_COMPILER;
-    #elif defined(__GNUC__) || defined(__GNUG__)
-        return std::to_string(__GNUC__)            + "." +
-               std::to_string(__GNUC_MINOR__)      + "." +
-               std::to_string(__GNUC_PATCHLEVEL__)
-        ;
-    #elif defined(__HP_cc) || defined(__HP_aCC)
-        return "";
-    #elif defined(__IBMCPP__)
-        return __IBMCPP__;
-    #elif defined(_MSC_VER)
-        return _MSC_VER;
-    #elif defined(__PGI)
-        return __PGI;
-    #elif defined(__SUNPRO_CC)
-        return __SUNPRO_CC;
-    #else
-        return "unknown";
-    #endif
-}
-
-std::string Options::cpp_version()
-{
-    #ifdef __cplusplus
-        return std::to_string(__cplusplus);
-    #else
-        return "unknown";
-    #endif
-}
-
-std::string Options::compile_date_time()
-{
-    return std::string( __DATE__ " " __TIME__ );
-}
-
-bool Options::using_pthreads()
-{
-    #ifdef GENESIS_PTHREADS
-        return true;
-    #else
-        return false;
-    #endif
-}
-
-bool Options::using_openmp()
-{
-    #ifdef GENESIS_OPENMP
-        return true;
-    #else
-        return false;
-    #endif
-}
-
-bool Options::using_zlib()
-{
-    #ifdef GENESIS_ZLIB
-        return true;
-    #else
-        return false;
-    #endif
 }
 
 // =================================================================================================
@@ -421,13 +151,15 @@ std::string Options::info_compile_time() const
     std::string res;
     res += "Compile Time Options\n";
     res += "=============================================\n\n";
-    res += "Platform:          " + platform() + "\n";
-    res += "Compiler:          " + compiler_family() + " " + compiler_version() + "\n";
-    res += "C++ version:       " + cpp_version() + "\n";
-    res += "Build type:        " + build_type()  + "\n";
-    res += "Endianness:        " + std::string( is_little_endian() ? "little endian" : "big endian" ) + "\n";
-    res += "Using Pthreads:    " + std::string( using_pthreads() ? "true" : "false" ) + "\n";
-    res += "Using OpenMP:      " + std::string( using_openmp() ? "true" : "false" ) + "\n";
+    res += "Platform:          " + info_platform() + "\n";
+    res += "Compiler:          " + info_compiler_family() + " " + info_compiler_version() + "\n";
+    res += "C++ version:       " + info_cpp_version() + "\n";
+    res += "Build type:        " + info_build_type()  + "\n";
+    res += "Endianness:        " + std::string(
+        info_is_little_endian() ? "little endian" : "big endian"
+    ) + "\n";
+    res += "Using Pthreads:    " + std::string( info_using_pthreads() ? "true" : "false" ) + "\n";
+    res += "Using OpenMP:      " + std::string( info_using_openmp() ? "true" : "false" ) + "\n";
     return res;
 }
 

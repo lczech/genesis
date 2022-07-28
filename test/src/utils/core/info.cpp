@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -30,15 +30,15 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/core/options.hpp"
+#include "genesis/utils/core/info.hpp"
 
 #include <string>
 
 using namespace genesis::utils;
 
-TEST( Options, Endianness )
+TEST( OptionsInfo, Endianness )
 {
     std::string endian = "Genesis currently only supports Little Endian systems!";
-    ASSERT_TRUE( Options::is_little_endian() ) << endian;
-    ASSERT_FALSE( Options::is_big_endian() )   << endian;
+    ASSERT_TRUE( info_is_little_endian() ) << endian;
+    ASSERT_FALSE( info_is_big_endian() )   << endian;
 }

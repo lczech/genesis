@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -111,19 +111,6 @@ public:
      */
     void number_of_threads( unsigned int number );
 
-    /**
-     * @brief Try to guess the number of hardware threads of the current system.
-     *
-     * This function uses multiple sources and ways to try to guess the number of physical cores
-     * of the system.
-     */
-    unsigned int guess_number_of_threads( bool use_openmp = true ) const;
-
-    /**
-     * @brief Try to get whether hyperthreads are enabled in the current system.
-     */
-    bool hyperthreads_enabled() const;
-
     // -------------------------------------------------------------------------
     //     Random Seed & Engine
     // -------------------------------------------------------------------------
@@ -161,7 +148,7 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Misc Options
+    //     File Options
     // -------------------------------------------------------------------------
 
     /**
@@ -195,12 +182,17 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Set whether an object info one-liner is printed when using the `operator <<` that is defined
-     * for many classes.
+     * @brief Set whether an object info one-liner is printed when using the `operator <<` that
+     * is defined for many classes.
      *
-     * In genesis, we create the functions `print_info()` and `print_gist()`, and overload the `operator <<`
-     * for many classes as a convenient way to get information about an object,
-     * for example for debugging purposes.
+     * NOTE: So far, this is only implemented for the @link genesis::tree::Tree Tree@endlink class.
+     * It might be extended in the future to more classes, for example if we re-activate the
+     * python bindings, as this feature might be more useful when scripting. So take the word
+     * "many" here with a huge grain of salt.
+     *
+     * In genesis, we create the functions `print_info()` and `print_gist()`,
+     * and overload the `operator <<` for many classes as a convenient way to get information about
+     * an object, for example for debugging purposes.
      * Using this setting, the behaviour of the `operator <<` is controlled:
      * If set to `true`, a one-liner containing basic information about the object (its type,
      * and for containers, its size) is printed.
@@ -228,17 +220,22 @@ public:
      * @brief Set whether an object gist is printed when using the `operator <<` that is defined
      * for many (container) classes.
      *
-     * In genesis, we create the functions `print_info()` and `print_gist()`, and overload the `operator <<`
-     * for many classes as a convenient way to get information about an object,
+     * NOTE: So far, this is only implemented for the @link genesis::tree::Tree Tree@endlink class.
+     * It might be extended in the future to more classes, for example if we re-activate the
+     * python bindings, as this feature might be more useful when scripting. So take the word
+     * "many" here with a huge grain of salt.
+     *
+     * In genesis, we create the functions `print_info()` and `print_gist()`, and overload
+     * the `operator <<` for many classes as a convenient way to get information about an object,
      * for example for debugging purposes.
      * Using this setting, the behaviour of the `operator <<` is controlled:
-     * If set to a value `n` greather than 0, the first `n` elements that the object contains are printed.
-     * If set to a negative value, all elements are printed.
+     * If set to a value `n` greather than 0, the first `n` elements that the object contains are
+     * printed. If set to a negative value, all elements are printed.
      * Default is 0, that is, no gist of the object's elements is printed.
      *
-     * See also print_object_infos( bool ) for an additional setting that allows to print an info one-liner
-     * when using `operator <<` on an object. Both settings can also be combined. In that case,
-     * first, the one-line info is printed, followed by the gist.
+     * See also print_object_infos( bool ) for an additional setting that allows to print an info
+     * one-liner when using `operator <<` on an object. Both settings can also be combined.
+     * In that case, first, the one-line info is printed, followed by the gist.
      */
     inline void print_object_gists( long value )
     {
@@ -254,112 +251,6 @@ public:
     {
         return print_obj_gists_;
     }
-
-    // -------------------------------------------------------------------------
-    //     Run Time Environment
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Return true iff the standard input stream is a terminal, and false if not, i.e., if
-     * it is a file or a pipe.
-     */
-    static bool stdin_is_terminal();
-
-    /**
-     * @brief Return true iff the standard output stream is a terminal, and false if not, i.e., if
-     * it is a file or a pipe.
-     */
-    static bool stdout_is_terminal();
-
-    /**
-     * @brief Return true iff the standard error stream is a terminal, and false if not, i.e., if
-     * it is a file or a pipe.
-     */
-    static bool stderr_is_terminal();
-
-    /**
-     * @brief Return the width and height of the terminal that is used to run the program,
-     * in number of columns and lines.
-     */
-    static std::pair<int, int> terminal_size();
-
-    // -------------------------------------------------------------------------
-    //     Compile Time Environment
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Return whether the binary was compiled with build type `DEBUG`.
-     */
-    static bool is_debug();
-
-    /**
-     * @brief Return whether the binary was compiled with build type `RELEASE`.
-     */
-    static bool is_release();
-
-    /**
-     * @brief Return the build type that was used to compile the binary, i.e., "debug" or "release".
-     */
-    static std::string build_type();
-
-    /**
-     * @brief Return whether the system uses little endian memory.
-     */
-    static bool is_little_endian();
-
-    /**
-     * @brief Return whether the system uses big endian memory.
-     */
-    static bool is_big_endian();
-
-    /**
-     * @brief Return the platform under which genesis was compiled.
-     *
-     * This can be either "Win32", "Linux", "Apple", "Unix" or "Unknown".
-     */
-    static std::string platform();
-
-    /**
-     * @brief Return the compiler family (name) that was used to compile genesis.
-     *
-     * See compiler_version() to get the version of the compiler.
-     */
-    static std::string compiler_family();
-
-    /**
-     * @brief Return the compiler version that was used to compile genesis.
-     *
-     * See compiler_family() to get the corresponding compiler name.
-     */
-    static std::string compiler_version();
-
-    /**
-     * @brief Return the CPP version that was used to compile genesis.
-     */
-    static std::string cpp_version();
-
-    /**
-     * @brief Return the date and time when genesis was compiled.
-     *
-     * Due to this using the preprocessor, the returned date and time are from when
-     * the Options class was first compiled in a clean build process.
-     */
-    static std::string compile_date_time();
-
-    /**
-     * @brief Return whether the binary was compiled using Pthreads.
-     */
-    static bool using_pthreads();
-
-    /**
-     * @brief Return whether the binary was compiled using OpenMP.
-     */
-    static bool using_openmp();
-
-    /**
-     * @brief Return whether the binary was compiled using zlib.
-     */
-    static bool using_zlib();
 
     // -------------------------------------------------------------------------
     //     Overview

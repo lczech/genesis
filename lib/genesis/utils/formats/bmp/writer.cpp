@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -31,7 +31,7 @@
 #include "genesis/utils/formats/bmp/writer.hpp"
 
 #include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/options.hpp"
+#include "genesis/utils/core/info.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/tools/color.hpp"
@@ -233,7 +233,7 @@ void BmpWriter::write_uint16_( uint16_t data, std::ostream& target ) const
 {
     auto const bytes = reinterpret_cast< uint8_t const* >( &data );
 
-    if( Options::is_little_endian() ) {
+    if( info_is_little_endian() ) {
         target.put( bytes[0] );
         target.put( bytes[1] );
     } else {
@@ -246,7 +246,7 @@ void BmpWriter::write_uint32_( uint32_t data, std::ostream& target ) const
 {
     auto const bytes = reinterpret_cast< uint8_t const* >( &data );
 
-    if( Options::is_little_endian() ) {
+    if( info_is_little_endian() ) {
         target.put( bytes[0] );
         target.put( bytes[1] );
         target.put( bytes[2] );
