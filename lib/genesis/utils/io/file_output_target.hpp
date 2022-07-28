@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -88,15 +88,17 @@ private:
      */
     std::ostream& out_stream_() override
     {
-        // Lazy loading.
+        // Lazy loading, in case many output streams are somehow used in a vector or so.
         if( !stream_.is_open() ) {
+            // We use our own function to open the stream, to get consistent error checking,
+            // as well as the automatic file overwriting check.
             file_output_stream( file_name_, stream_, mode_ );
         }
         return stream_;
     }
 
     /**
-     * @brief Override of the target name funtion. Returns "output file (<file_name>)".
+     * @brief Override of the target name function. Returns "output file (<file_name>)".
      */
     std::string target_name_() const override
     {

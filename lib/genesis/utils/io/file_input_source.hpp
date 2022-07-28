@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -34,8 +34,9 @@
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/io/base_input_source.hpp"
 
-#include <cstdio>
+#include <cassert>
 #include <cerrno>
+#include <cstdio>
 #include <cstring>
 #include <istream>
 #include <stdexcept>
@@ -70,8 +71,11 @@ public:
     explicit FileInputSource( std::string const& file_name )
         : file_name_( file_name )
     {
-        if( ! file_exists( file_name ) ) {
-            throw std::runtime_error( "File does not exist or is not readable: " + file_name );
+        std::string err_str;
+        if( ! file_is_readable( file_name )) {
+            throw std::runtime_error(
+                "Cannot open input file '" + file_name + "': " + err_str
+            );
         }
     }
 
@@ -93,7 +97,14 @@ public:
     FileInputSource& operator= ( FileInputSource const& ) = default;
     FileInputSource& operator= ( FileInputSource&& )      = default;
 
-    ~FileInputSource() override = default;
+    ~FileInputSource() override
+    {
+        // It might already be closed,
+        // but in case of aborting before the end of the file, it might not.
+        if( file_ ) {
+            std::fclose( file_ );
+        }
+    }
 
     // -------------------------------------------------------------
     //     Overloaded Internal Members
@@ -121,7 +132,8 @@ private:
 
             if( file_ == nullptr ) {
                 throw std::runtime_error(
-                    "Cannot open file " + file_name_ + ": " + std::string( strerror( errno ))
+                    "Cannot open input file '" + file_name_ + "': " +
+                    std::string( strerror( errno ))
                 );
             }
 
@@ -130,14 +142,21 @@ private:
         }
 
         // Do the reading.
+        errno = 0;
         size_t const ret = std::fread( buffer, 1, size, file_ );
         if( std::ferror( file_ ) ) {
-            throw std::runtime_error( "Cannot read from file: " + file_name_ );
+            assert( ! std::feof( file_ ));
+            throw std::runtime_error(
+                "Cannot read from input file '" + file_name_  + "': " +
+                std::string( strerror( errno ))
+            );
         }
 
         // Similarly, we need to close again once we are done, so that the file is not kept
         // open unnecessarily long after reading.
         if( ret < size ) {
+            assert(  std::feof( file_ ));
+            assert( !std::ferror( file_ ));
             std::fclose( file_ );
             file_ = nullptr;
             finished_ = true;

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,17 +48,23 @@ namespace utils {
 bool path_exists( std::string const& path );
 
 /**
- * @brief Return true iff the provided path is a file.
+ * @brief Return whether a file is readable.
  *
- * Internally, this function simply return the value of file_exists(), as this already does the
- * needed check. Thus, it is an alias.
+ * For this, the file has to exist, and be accessible.
+ * Another potential error is that too many files are opened already.
+ *
+ * See file_is_readable( std::string const&, std::string& ) for a version of the function that also
+ * allows to retrieve the error message in cases where the result is `false`.
  */
-bool is_file( std::string const& path );
+bool file_is_readable( std::string const& filename );
 
 /**
- * @brief Return true iff the file exists.
+ * @brief Return whether a file is readable, and potentially store the error message.
+ *
+ * For this, the file has to exist, and be accessible.
+ * Another potential error is that too many files are opened already.
  */
-bool file_exists( std::string const& filename );
+bool file_is_readable( std::string const& filename, std::string& err_str );
 
 /**
  * @brief Return the contents of a file as a string.
@@ -110,6 +116,24 @@ void file_append(
     std::string const& filename,
     bool create_dirs = true
 );
+
+// Not offering the following functions any more, as there seems to be no good / portable / reliable
+// way to check that a file exists, but is for example not a directory.
+// In all (of the few) use cases that we had, what we actually wanted to check for anyway was
+// whether the file is readable, so now we offer file_is_readable() instead for that purpose.
+
+// /**
+//  * @brief Return true iff the provided path is a file.
+//  *
+//  * Internally, this function simply return the value of file_exists(), as this already does the
+//  * needed check. Thus, it is an alias.
+//  */
+// bool is_file( std::string const& path );
+//
+// /**
+//  * @brief Return true iff the file exists.
+//  */
+// bool file_exists( std::string const& filename );
 
 // =================================================================================================
 //     Directory Access

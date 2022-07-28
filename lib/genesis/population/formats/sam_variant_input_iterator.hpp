@@ -377,8 +377,11 @@ public:
         // Better error messaging that what htslib would give us if the file did not exist.
         // We check here, as input_file() allows to change the file after construction,
         // so we only do the check once we know that we are good to go.
-        if( ! utils::is_file( input_file_ )) {
-            throw std::runtime_error( "Input sam/bam/cram file not found: " + input_file_ );
+        std::string err_str;
+        if( ! utils::file_is_readable( input_file_, err_str )) {
+            throw std::runtime_error(
+                "Cannot open input sam/bam/cram file '" + input_file_ + "': " + err_str
+            );
         }
 
         return Iterator( this );
