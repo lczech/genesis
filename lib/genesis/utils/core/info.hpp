@@ -147,6 +147,22 @@ bool info_stderr_is_terminal();
 std::pair<int, int> info_terminal_size();
 
 // =================================================================================================
+//     File Handling
+// =================================================================================================
+
+/**
+ * @brief Return the maximum number of files (i.e., file descriptors)
+ * that can be opened simultaneously in the current process.
+ */
+size_t info_max_file_count();
+
+/**
+ * @brief Return the number of files (i.e., file descriptors) that the current process
+ * (the process calling this function) has opened at the moment.
+ */
+size_t info_current_file_count();
+
+// =================================================================================================
 //     Number of Threads
 // =================================================================================================
 

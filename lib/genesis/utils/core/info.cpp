@@ -38,6 +38,14 @@
 #include <cstdio>
 #include <stdexcept>
 
+#include <errno.h>
+#include <stdio.h>
+#include <sys/resource.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #if defined( _WIN32 ) || defined(  _WIN64  )
 #    include <io.h>
 #    include <windows.h>
@@ -272,6 +280,45 @@ std::pair<int, int> info_terminal_size()
         return { w.ws_col, w.ws_row };
 
     #endif
+}
+
+// =================================================================================================
+//     File Handling
+// =================================================================================================
+
+size_t info_max_file_count()
+{
+    // https://www.man7.org/linux/man-pages/man2/getdtablesize.2.html
+    return getdtablesize();
+
+    // Alternative way. Not needed, as the above function internally calls the rlimits anyway.
+    // https://man7.org/linux/man-pages/man2/getrlimit.2.html
+    // struct rlimit rlimits;
+    // getrlimit(RLIMIT_NOFILE, &rlimits);
+    // rlimits.rlim_cur // soft limit
+    // rlimits.rlim_max // hard limit (ceiling for rlim_cur)
+}
+
+size_t info_current_file_count()
+{
+    // Adapted from https://web.archive.org/web/20150326011742/
+    // http://blog.lobstertechnology.com/2005/08/22/determine-the-number-of-open-files/
+
+    // We loop over all possible file descriptor numbers...
+    auto const max_fd_cnt = info_max_file_count();
+
+    // ... and check if they are currently in use. If errno returns anything other
+    // than EBADF 'file descriptor is bad', it increments a count.
+    size_t fd_counter = 0;
+    struct stat stats;
+    for( size_t i = 0; i <= max_fd_cnt; ++i ) {
+        errno = 0;
+        fstat( i, &stats );
+        if( errno != EBADF ) {
+            ++fd_counter;
+        }
+    }
+    return fd_counter;
 }
 
 // =================================================================================================
