@@ -227,7 +227,7 @@ void test_lambda_iterator_( size_t num_elements, size_t block_size )
             } else {
                 return false;
             }
-        }, block_size
+        }, {}, block_size
     );
 
     // Run the iteration and check that it matches our expectation.
