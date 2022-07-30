@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,13 +16,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
- * @brief Implementation of PlacementMeasures class.
+ * @brief
  *
  * @file
  * @ingroup placement
@@ -63,10 +63,6 @@
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>
-#endif
-
-#ifdef GENESIS_PTHREADS
-#    include <thread>
 #endif
 
 namespace genesis {
@@ -172,13 +168,12 @@ double pairwise_distance(
  * @brief Internal function that calculates the sum of distances contributed by one pquery for
  * the variance. See variance() for more information.
  *
- * This function is intended to be called by variance() or variance_thread_() -- it is not a
- * stand-alone function.
+ * This function is intended to be called by variance() -- it is not a stand-alone function.
  */
 static double variance_partial_ (
-    const PqueryPlain&              pqry_a,
-    const std::vector<PqueryPlain>& pqrys_b,
-    const utils::Matrix<double>&    node_distances,
+    PqueryPlain const&              pqry_a,
+    std::vector<PqueryPlain> const& pqrys_b,
+    utils::Matrix<double> const&    node_distances,
     bool                            with_pendant_length
 ) {
     double partial = 0.0;
@@ -197,38 +192,6 @@ static double variance_partial_ (
     return partial;
 }
 
-/**
- * @brief Internal function that calculates the sum of distances for the variance that is
- * contributed by a subset of the pqueries. See variance() for more information.
- *
- * This function is intended to be called by variance() -- it is not a stand-alone function.
- * It takes an offset and an incrementation value and does an interleaved loop over the pqueries,
- * similar to the sequential version for calculating the variance.
- */
-static void variance_thread_ (
-    const int                       offset,
-    const int                       incr,
-    const std::vector<PqueryPlain>* pqrys,
-    const utils::Matrix<double>*    node_distances,
-    double*                         partial,
-    bool                            with_pendant_length
-) {
-    // Use internal variables to avoid false sharing.
-    assert( partial && *partial == 0.0 );
-    double tmp_partial = 0.0;
-
-    // Iterate over the pqueries, starting at offset and interleaved with incr for each thread.
-    for (size_t i = offset; i < pqrys->size(); i += incr) {
-        // LOG_PROG(i, pqrys->size()) << "of Variance() finished (Thread " << offset << ").";
-
-        PqueryPlain const& pqry_a = (*pqrys)[i];
-        tmp_partial += variance_partial_(pqry_a, *pqrys, *node_distances, with_pendant_length);
-    }
-
-    // Return the results.
-    *partial = tmp_partial;
-}
-
 double variance(
     const Sample& smp,
     bool          with_pendant_length
@@ -245,54 +208,24 @@ double variance(
     // do not need to search a path between placements every time.
     auto node_distances = node_branch_length_distance_matrix(smp.tree());
 
-#ifdef GENESIS_PTHREADS
-
-    // Prepare storage for thread data.
-    int num_threads = utils::Options::get().number_of_threads();
-    std::vector<double>      partials(num_threads, 0.0);
-    std::vector<std::thread> threads;
-
-    // Start all threads.
-    for (int i = 0; i < num_threads; ++i) {
-        threads.emplace_back(
-            &variance_thread_,
-            i, num_threads, &vd_pqueries, &node_distances,
-            &partials[i],
-            with_pendant_length
-        );
-        // threads[i] = new std::thread ();
-    }
-
-    // Wait for all threads to finish, collect their results.
-    for (int i = 0; i < num_threads; ++i) {
-        threads[i].join();
-        variance += partials[i];
-    }
-
-#else
-
     // Do a pairwise calculation on all placements.
     // int progress = 0;
-    for (const PqueryPlain& pqry_a : vd_pqueries) {
+    #pragma omp parallel for
+    for( size_t i = 0; i < vd_pqueries.size(); ++i ) {
         // LOG_PROG(++progress, vd_pqueries.size()) << "of Variance() finished.";
+
+        PqueryPlain const& pqry_a = vd_pqueries[i];
         variance += variance_partial_(pqry_a, vd_pqueries, node_distances, with_pendant_length);
     }
-
-#endif
 
     // Calculate normalizing factor. Should be the same value as given by placement_mass(),
     // however this calculation is probably faster, as we already have the plain values at hand.
     double mass = 0.0;
-    for (const auto& pqry : vd_pqueries) {
-        for (const auto& place : pqry.placements) {
+    for( auto const& pqry : vd_pqueries ) {
+        for( auto const& place : pqry.placements ) {
             mass += place.like_weight_ratio * pqry.multiplicity;
         }
     }
-
-    // As we conditionally compile the above, we add dummies here to avoid compiler warnings
-    // about unused functions:
-    (void) variance_thread_;
-    (void) variance_partial_;
 
     // Return the normalized value.
     return ((variance / mass) / mass);
