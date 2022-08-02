@@ -51,7 +51,14 @@
 #    include <windows.h>
 #else
 #    ifndef __aarch64__
-#        include <cpuid.h>
+        // Both GCC and LLVM are missing the header guard for this header up until recent versions,
+        // see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=96238 and https://reviews.llvm.org/D91226
+        // So we guard on our own here, which matters when genesis is compiled in a single unit.
+        // See also genesis/utils/core/options.cpp for the current other use case of this.
+#       ifndef GENESIS_INCLUDED_CPUID_H_
+#           define GENESIS_INCLUDED_CPUID_H_
+#           include <cpuid.h>
+#       endif
 #    endif
 #    include <stdio.h>
 #    include <sys/ioctl.h>
