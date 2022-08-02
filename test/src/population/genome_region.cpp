@@ -77,6 +77,17 @@ TEST( GenomeRegion, Basics )
     EXPECT_TRUE(  list.is_covered( "X", 25 ));
     EXPECT_TRUE(  list.is_covered( "X", 34 ));
     EXPECT_TRUE(  list.is_covered( "X", 35 ));
+    EXPECT_FALSE( list.is_covered( "X", 36 ));
+
+    // Test coverage
+    EXPECT_EQ( 0, list.cover_count( "X", 0 ));
+    EXPECT_EQ( 1, list.cover_count( "X", 1 ));
+    EXPECT_EQ( 1, list.cover_count( "X", 5 ));
+    EXPECT_EQ( 1, list.cover_count( "X", 14 ));
+    EXPECT_EQ( 2, list.cover_count( "X", 15 ));
+    EXPECT_EQ( 1, list.cover_count( "X", 16 ));
+    EXPECT_EQ( 1, list.cover_count( "X", 20 ));
+    EXPECT_EQ( 0, list.cover_count( "X", 21 ));
 
     // Test some other stuff.
     EXPECT_FALSE( list.is_covered( "Y", 5 ));
@@ -133,6 +144,9 @@ TEST( GenomeRegion, ParseFile )
     EXPECT_TRUE(  list.is_covered( "A" ));
     EXPECT_TRUE(  list.is_covered( "A", 0 ));
     EXPECT_TRUE(  list.is_covered( "A", 10 ));
+
+    EXPECT_EQ( 0, list.cover_count( "A", 1 ));
+    EXPECT_EQ( 1, list.cover_count( "A", 1, true ));
 
     EXPECT_FALSE( list.is_covered( "B" ));
     EXPECT_FALSE( list.is_covered( "B", 0 ));
