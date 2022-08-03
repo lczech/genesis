@@ -48,6 +48,22 @@ namespace utils {
 bool path_exists( std::string const& path );
 
 /**
+ * @brief Return true iff the provided path is a (readable) file.
+ *
+ * Internally, this function simply returns the value of file_is_readable(), meaning that we also
+ * check that the file can actually be read. That is semantically a bit different from just stating
+ * that it is a file... But file system stuff in C++ pre-17 is hard, and this works for now.
+ */
+bool is_file( std::string const& path );
+
+/**
+ * @brief Return true iff the file exists (and is in fact a file, and not, e.g., a directory).
+ *
+ * @copydetails is_file( std::string const& )
+ */
+bool file_exists( std::string const& filename );
+
+/**
  * @brief Return whether a file is readable.
  *
  * For this, the file has to exist, and be accessible.
@@ -116,24 +132,6 @@ void file_append(
     std::string const& filename,
     bool create_dirs = true
 );
-
-// Not offering the following functions any more, as there seems to be no good / portable / reliable
-// way to check that a file exists, but is for example not a directory.
-// In all (of the few) use cases that we had, what we actually wanted to check for anyway was
-// whether the file is readable, so now we offer file_is_readable() instead for that purpose.
-
-// /**
-//  * @brief Return true iff the provided path is a file.
-//  *
-//  * Internally, this function simply return the value of file_exists(), as this already does the
-//  * needed check. Thus, it is an alias.
-//  */
-// bool is_file( std::string const& path );
-//
-// /**
-//  * @brief Return true iff the file exists.
-//  */
-// bool file_exists( std::string const& filename );
 
 // =================================================================================================
 //     Directory Access

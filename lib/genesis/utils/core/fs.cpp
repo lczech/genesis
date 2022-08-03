@@ -87,22 +87,23 @@ bool path_exists( std::string const& path )
     #endif
 }
 
-// bool is_file( std::string const& path )
-// {
-//     return file_exists( path );
-// }
-//
-// bool file_exists( std::string const& filename )
-// {
-//     // There are plenty of discussions on stackoverflow on how to do this correctly,
-//     // e.g., https://stackoverflow.com/a/12774387
-//     // None of them worked for me, meaning that they also returned true for directories.
-//     // Thus, we use a simple approach that does a basic check, and then also tests for dir...
-//
-//     std::ifstream instream(filename);
-//     instream.seekg( 0, std::ios::end);
-//     return instream.good() && ! is_dir( filename );
-// }
+bool is_file( std::string const& path )
+{
+    return file_is_readable( path );
+}
+
+bool file_exists( std::string const& filename )
+{
+    // There are plenty of discussions on stackoverflow on how to do this correctly, e.g.,
+    // https://stackoverflow.com/a/12774387, but there seems to be no good / portable / reliable
+    // way to check that a file exists, but is for example not a directory.
+    // None of them really worked for me here, meaning that they also returned true for directories.
+
+    // Thus, we re-use the file readablility check here, which also makes sure that the file
+    // can actually be opened (i.e., we have access rights, and we don't have too many file handles
+    // open simultaneously).
+    return file_is_readable( filename );
+}
 
 bool file_is_readable( std::string const& filename )
 {
