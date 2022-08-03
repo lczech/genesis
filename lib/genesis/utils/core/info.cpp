@@ -237,6 +237,15 @@ bool info_using_zlib()
     #endif
 }
 
+bool info_using_htslib()
+{
+    #ifdef GENESIS_HTSLIB
+        return true;
+    #else
+        return false;
+    #endif
+}
+
 // =================================================================================================
 //     Run Time Environment
 // =================================================================================================

@@ -118,6 +118,11 @@ bool info_using_openmp();
  */
 bool info_using_zlib();
 
+/**
+ * @brief Return whether the binary was compiled with our optional htslib dependency.
+ */
+bool info_using_htslib();
+
 // =================================================================================================
 //     Run Time Environment
 // =================================================================================================
