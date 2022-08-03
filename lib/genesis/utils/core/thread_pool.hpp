@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include <cassert>
 #include <condition_variable>
 #include <functional>
 #include <future>
@@ -88,9 +89,16 @@ public:
      * We allow for 0 tasks on construction, so that default construction is possible.
      * However, the enqueue() throws if used with such an instance.
      */
-    explicit ThreadPool( size_t num_threads = 0 )
+    explicit ThreadPool( size_t num_threads )
     {
-        // Create the desired number of workers
+        // Some dead end checking.
+        if( num_threads == 0 ) {
+            throw std::runtime_error(
+                "Cannot construct an empty ThreadPool, as this would not be able to do anything."
+            );
+        }
+
+        // Create the desired number of workers.
         for( size_t i = 0; i < num_threads; ++i ) {
             worker_pool_.emplace_back( [this]{
 
@@ -183,11 +191,7 @@ public:
     -> std::future<typename std::result_of<F(Args...)>::type>
     {
         using result_type = typename std::result_of<F(Args...)>::type;
-
-        // Some dead end checking
-        if( worker_pool_.empty() ) {
-            throw std::runtime_error( "Cannot enqueue task into empty ThreadPool." );
-        }
+        assert( ! worker_pool_.empty() );
 
         // Prepare the task by binding the function to its arguments
         auto task = std::make_shared< std::packaged_task<result_type()> >(

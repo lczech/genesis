@@ -31,6 +31,9 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/thread_pool.hpp"
+
+#include <memory>
 #include <random>
 #include <string>
 #include <utility>
@@ -89,7 +92,7 @@ public:
     void command_line( int const argc, char const* const* argv );
 
     // -------------------------------------------------------------------------
-    //     Number of Threads
+    //     Multi-Threading
     // -------------------------------------------------------------------------
 
     /**
@@ -110,6 +113,33 @@ public:
      * If @p number is 0, the number of threads is set again to hardware concurrency.
      */
     void number_of_threads( unsigned int number );
+
+    /**
+     * @brief Initialize the global thread pool to be used for parallel computations.
+     *
+     * If @p num_threads is not provided (i.e., left at 0), we use the result of
+     * guess_number_of_threads() to initialize the number of threads to use in the pool.
+     * After this, global_thread_pool() can be used to obtain the pool to enqueue work.
+     */
+    void init_global_thread_pool( size_t num_threads = 0 );
+
+    /**
+     * @brief Return a global thread pool to be used for parallel computations.
+     *
+     * The thread pool has to be initialized with init_global_thread_pool() first.
+     *
+     * Ideally, we want to use this pool for every CPU-heavy computation. Hopefully, we can at some
+     * point use this instead of OpenMP, but that will require some refactoring.
+     * So for now, we use this pool to limit parallel file reading operations with LambdaIterator.
+     *
+     * Note: In cases where we need to limit our number of spawned threads to some maximum amount,
+     * we might even want to use this pool for our readers, which often use AsynchronousReader,
+     * thus spawning threads to  minimize i/o wait times; but this is not recommended, as the
+     * threads waiting for i/o might  then be unnecessaryliy wait in the thread pool, just for them
+     * to then relatively quickly (compared to potential wait times in the thread queue) execute
+     * their disk operation.
+     */
+    std::shared_ptr<ThreadPool> global_thread_pool() const;
 
     // -------------------------------------------------------------------------
     //     Random Seed & Engine
@@ -277,16 +307,23 @@ public:
 
 private:
 
-    std::vector<std::string>   command_line_;
-    unsigned int               number_of_threads_;
+    // CLI
+    std::vector<std::string> command_line_;
 
-    unsigned long              random_seed_;
+    // Multi-threading
+    unsigned int number_of_threads_;
+    std::shared_ptr<ThreadPool> thread_pool_;
+
+    // Random
+    unsigned long random_seed_;
     std::default_random_engine random_engine_;
 
-    bool                       allow_file_overwriting_ = false;
+    // File handling
+    bool allow_file_overwriting_ = false;
 
-    bool                       print_obj_infos_ = true;
-    long                       print_obj_gists_ = 0;
+    // Object dumping
+    bool print_obj_infos_ = true;
+    long print_obj_gists_ = 0;
 
     // -------------------------------------------------------------------------
     //     Hidden Class Members

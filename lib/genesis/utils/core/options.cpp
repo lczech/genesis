@@ -37,6 +37,7 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
+#include <stdexcept>
 
 #if defined( _WIN32 ) || defined(  _WIN64  )
 #   include <io.h>
@@ -105,7 +106,7 @@ void Options::command_line( int const argc, char const* const* argv )
 }
 
 // =================================================================================================
-//     Number of Threads
+//     Multi-Threading
 // =================================================================================================
 
 void Options::number_of_threads( unsigned int number )
@@ -128,6 +129,30 @@ void Options::number_of_threads( unsigned int number )
         omp_set_num_threads( number );
 
     #endif
+}
+
+void Options::init_global_thread_pool( size_t num_threads )
+{
+    if( thread_pool_ ) {
+        throw std::runtime_error(
+            "Global thread pool has already been initialized."
+        );
+    }
+    if( num_threads == 0 ) {
+        num_threads = guess_number_of_threads();
+    }
+    thread_pool_ = std::make_shared<utils::ThreadPool>( num_threads );
+}
+
+std::shared_ptr<ThreadPool> Options::global_thread_pool() const
+{
+    if( ! thread_pool_ || thread_pool_->size() == 0 ) {
+        throw std::runtime_error(
+            "Global thread pool has not been properly initialized. "
+            "Call init_global_thread_pool() first."
+        );
+    }
+    return thread_pool_;
 }
 
 // =================================================================================================
