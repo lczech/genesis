@@ -169,3 +169,35 @@ TEST( WindowIterator, SlidingIntervalLambda )
     test_sliding_interval_iterator_( win_it );
 
 }
+
+TEST( WindowIterator, SlidingIntervalEmpty )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/empty.pileup";
+
+    // Make a Lambda Iterator over the data stream.
+    auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
+    auto pileup_begin = data_gen.begin();
+    auto pileup_end   = data_gen.end();
+
+    // Create a window iterator based on the lambda iterator.
+    auto win_it = make_default_sliding_interval_window_iterator(
+        pileup_begin, pileup_end, 10000
+    );
+
+    size_t window_cnt = 0;
+    for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
+
+        // This body should never be exectuted.
+        // We access the iterator still, to make sure that this thing gets compiled properly,
+        // without optimizing anything away by accident.
+        // EXPECT_ANY_THROW( it->chromosome() );
+        EXPECT_TRUE( it.is_first_window() );
+        EXPECT_TRUE( it.is_last_window() );
+        LOG_DBG << "-" << it->chromosome() << "-";
+
+        ++window_cnt;
+    }
+    EXPECT_EQ( 0, window_cnt );
+}

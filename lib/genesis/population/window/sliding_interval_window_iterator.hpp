@@ -58,9 +58,14 @@ namespace population {
  *
  * have to be set in the class prior to starting the iteration, as well as the width().
  * All other settings are optional and/or defaulted to reasonable values.
+ * See make_sliding_interval_window_iterator() and make_default_sliding_interval_window_iterator()
+ * for helper functions that take care of this for most of our data types.
  *
  * See BaseWindowIterator for more details on the three functors, the template parameters,
  * and general usage examples of the class.
+ *
+ * @see make_sliding_interval_window_iterator()
+ * @see make_default_sliding_interval_window_iterator()
  */
 template<class ForwardIterator, class DataType = typename ForwardIterator::value_type>
 class SlidingIntervalWindowIterator final : public BaseWindowIterator<ForwardIterator, DataType>
@@ -150,7 +155,12 @@ public:
 
             // Let's get going.
             init_chromosome_();
-            update_();
+
+            // If the input is empty (no data at all), we might already be done.
+            // If not, fill the window with data.
+            if( parent_ ) {
+                update_();
+            }
         }
 
     public:
@@ -173,8 +183,13 @@ public:
 
         void init_chromosome_()
         {
+            // Check that we are still good. If not, this function being called is likely a user
+            // error by trying to increment a past-the-end iterator.
+            assert( parent_ );
+
             // Saveguard. This might be called on an empty range, in which case we just do nothing.
             if( base_iterator_type::current_ == base_iterator_type::end_ ) {
+                parent_ = nullptr;
                 return;
             }
 
@@ -197,6 +212,9 @@ public:
 
         void increment_() override final
         {
+            // Basic check again.
+            assert( parent_ );
+
             // Special case: If we have no more underlying data, the iterator still needs to stop
             // at the last window(s), so that they can be processed. After that, when this
             // increment_() function is called again by the user, we then set parent_ = nullptr
@@ -233,6 +251,9 @@ public:
 
         void update_()
         {
+            // Basic check again.
+            assert( parent_ );
+
             // Dequeue everything that is not part of the current interval any more.
             // We can speed up by clearing the whole window if its last entry is before the current
             // start, as in that case, all its entries are, so we want to pop them all anyway.
