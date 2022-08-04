@@ -774,20 +774,14 @@ public:
      * For example, it makes sense to first filter by some property, and then apply transformations
      * only on those elements that passed the filter to avoid unneeded work.
      */
-    self_type& add_transform( std::function<void(T&)> transform )
+    self_type& add_transform( std::function<void(T&)> const& transform )
     {
-        if( has_started_ ) {
-            throw std::runtime_error(
-                "LambdaIterator: Cannot change filters/transformations after iteration has started."
-            );
-        }
-        transforms_and_filters_.push_back(
+        return add_transform_filter(
             [transform]( T& element ){
                 transform( element );
                 return true;
             }
         );
-        return *this;
     }
 
     /**
@@ -797,19 +791,13 @@ public:
      *
      * @copydetails add_transform()
      */
-    self_type& add_filter( std::function<bool(T const&)> filter )
+    self_type& add_filter( std::function<bool(T const&)> const& filter )
     {
-        if( has_started_ ) {
-            throw std::runtime_error(
-                "LambdaIterator: Cannot change filters/transformations after iteration has started."
-            );
-        }
-        transforms_and_filters_.push_back(
+        return add_transform_filter(
             [filter]( T& element ){
                 return filter( element );
             }
         );
-        return *this;
     }
 
     /**
@@ -822,18 +810,23 @@ public:
      *
      * @copydetails add_transform()
      */
-    self_type& add_transform_filter( std::function<bool(T&)> filter )
+    self_type& add_transform_filter( std::function<bool(T&)> const& filter )
     {
+        // Sanity check.
         if( has_started_ ) {
             throw std::runtime_error(
                 "LambdaIterator: Cannot change filters/transformations after iteration has started."
             );
         }
-        transforms_and_filters_.push_back(
-            [filter]( T& element ){
-                return filter( element );
-            }
-        );
+
+        // No need to wrap this in another lambda...
+        transforms_and_filters_.push_back( filter );
+
+        // transforms_and_filters_.push_back(
+        //     [filter]( T& element ){
+        //         return filter( element );
+        //     }
+        // );
         return *this;
     }
 
