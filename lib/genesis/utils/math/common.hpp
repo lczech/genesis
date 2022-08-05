@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -124,6 +124,28 @@ inline double binomial_distribution( size_t k, size_t n, double p, bool lenient 
 // =================================================================================================
 //     Number Handling
 // =================================================================================================
+
+/**
+ * @brief Sort two values in ascending order, inplace.
+ */
+template <typename T> inline
+void ascending( T& f, T& s )
+{
+    if( f > s ) {
+        std::swap( f, s );
+    }
+}
+
+/**
+ * @brief Sort two values in descending order, inplace.
+ */
+template <typename T> inline
+void descending( T& f, T& s )
+{
+    if( f < s ) {
+        std::swap( f, s );
+    }
+}
 
 /**
  * @brief Calculate the absolute differenence between two values.
