@@ -485,7 +485,7 @@ public:
         , end_(end)
     {}
 
-    ~BaseWindowIterator() = default;
+    virtual ~BaseWindowIterator() = default;
 
     BaseWindowIterator( BaseWindowIterator const& ) = default;
     BaseWindowIterator( BaseWindowIterator&& )      = default;
