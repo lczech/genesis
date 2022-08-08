@@ -456,7 +456,7 @@ protected:
     std::unique_ptr<typename BaseWindowIterator<ForwardIterator, DataType>::BaseIterator>
     get_end_iterator_() override final
     {
-        return std::unique_ptr<DerivedIterator>( new DerivedIterator( nullptr ));
+        return std::unique_ptr<DerivedIterator>( new DerivedIterator() );
         // return utils::make_unique<DerivedIterator>( nullptr );
     }
 
