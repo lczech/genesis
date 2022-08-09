@@ -182,6 +182,7 @@ function run_validation() {
 # Takes the test case as input, returns 0 if successfull.
 function run_memory() {
     outfile=${valgrind_out_file}
+    # more verbose if needed: --track-origins=yes --show-leak-kinds=all
     valgrind --tool=memcheck --leak-check=full --log-file=${outfile} ${test_exe} --gtest_filter=${1} > /dev/null
 
     deflost=`fgrep "definitely lost:" ${outfile} | xargs | cut -d' ' -f4 | sed "s/,//g"`
@@ -193,6 +194,12 @@ function run_memory() {
     if [ -z "${indlost}" ]; then indlost=0; fi
     if [ -z "${reachable}" ]; then reachable=0; fi
     if [ -z "${errors}" ]; then errors=0; else errors=1; fi
+
+    # Special case to take care of openmp not freeing until the very tear down,
+    # see https://stackoverflow.com/a/6973510/4184258 for details.
+    if [[ ${reachable} == 8 ]]; then
+        reachable=0
+    fi
 
     # Return 0 only if nothing bad happend.
     return $((deflost+indlost+reachable+errors))
