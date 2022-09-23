@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -40,6 +40,7 @@
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/output_stream.hpp"
+#include "genesis/utils/text/char.hpp"
 
 #include <cassert>
 #include <deque>
@@ -61,8 +62,11 @@ void NewickWriter::write( Tree const& tree, std::shared_ptr<utils::BaseOutputTar
     write( tree_to_broker( tree ), target );
 }
 
-void NewickWriter::write( TreeSet const& tree_set, std::shared_ptr<utils::BaseOutputTarget> target, bool with_names ) const
-{
+void NewickWriter::write(
+    TreeSet const& tree_set,
+    std::shared_ptr<utils::BaseOutputTarget> target,
+    bool with_names
+) const {
     auto& os = target->ostream();
     for( size_t i = 0; i < tree_set.size(); ++i ) {
 
@@ -139,7 +143,6 @@ NewickBroker NewickWriter::tree_to_broker( Tree const& tree ) const
 
 void NewickWriter::write( NewickBroker const& broker, std::shared_ptr<utils::BaseOutputTarget> target ) const
 {
-
     auto& os = target->ostream();
 
     // Assertion helpers: how many parenthesis were written?
@@ -149,7 +152,8 @@ void NewickWriter::write( NewickBroker const& broker, std::shared_ptr<utils::Bas
     // Iterate broker in reverse order, because Newick...
     size_t prev_depth = 0;
     size_t cur_length = 0;
-    for( long pos = broker.size() - 1; pos >= 0; --pos ) {
+    for( size_t pos_rev = 0; pos_rev < broker.size(); ++pos_rev ) {
+        auto const pos = (broker.size() - 1) - pos_rev;
         auto const& elem = broker[pos];
         if( elem.depth < 0 ) {
             throw std::runtime_error( "Invalid NewickBroker: Depth < 0." );
@@ -224,6 +228,16 @@ size_t NewickWriter::write_( NewickBrokerElement const& bn, std::ostream& os ) c
         bool need_qmarks = force_quot_marks_;
         need_qmarks |= ( std::string::npos != bn.name.find_first_of( " :;()[]," ));
         need_qmarks |= ( write_tags_ && std::string::npos != bn.name.find_first_of( "{}" ));
+
+        // Check for nonprintables.
+        for( auto const& c : bn.name ) {
+            if( ! utils::is_print(c) ) {
+                throw std::runtime_error(
+                    "Error writing Newick file: non-printable character " + utils::char_to_hex( c ) +
+                    "found in Newick node label."
+                );
+            }
+        }
 
         if( need_qmarks ) {
             os << quotation_mark_ << bn.name << quotation_mark_;
