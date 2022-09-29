@@ -45,7 +45,7 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Compare
+//     Compare anf Find
 // =================================================================================================
 
 /**
@@ -54,19 +54,96 @@ namespace utils {
 bool contains_ci( std::vector<std::string> const& haystack, std::string const& needle );
 
 /**
- * @brief Compare two strings case insensitive.
+ * @brief Return whether a vector of strings contains a given string, case insensitive,
+ * and ignoring all non-alphanumerical characters.
+ */
+bool contains_ci_alnum( std::vector<std::string> const& haystack, std::string const& needle );
+
+/**
+ * @brief Compare two strings, case insensitive.
  */
 bool equals_ci( std::string const& lhs, std::string const& rhs );
 
 /**
- * @brief Return whether a string starts with another string.
+ * @brief Compare two strings, case insensitive, and ignoring all non-alphanumerical characters.
  */
-bool starts_with( std::string const & text, std::string const & start );
+bool equals_ci_alnum( std::string const& lhs, std::string const& rhs );
 
 /**
- * @brief Return whether a string ends with another string.
+ * @brief Return whether a string starts with another string, i.e., check for a prefix.
  */
-bool ends_with(   std::string const & text, std::string const & ending );
+bool starts_with( std::string const& text, std::string const& prefix );
+
+/**
+ * @brief Return whether a string starts with another string, i.e., check for a prefix,
+ * case insensitive.
+ */
+bool starts_with_ci( std::string const& text, std::string const& prefix );
+
+/**
+ * @brief Return whether a string starts with another string (prefix), comparing case-independent,
+ * and ignoring all non-alphanumerical characters.
+ *
+ * For example, `"REF_CNT.S2-1.sorted:1"` starts with `"[ref-cnt]"`, according to this function.
+ */
+bool starts_with_ci_alnum( std::string const& text, std::string const& prefix );
+
+/**
+ * @copydoc starts_with_ci_alnum( std::string const& , std::string const& )
+ *
+ * This version of the function then stores the @p suffix of the matched @p text,
+ * containing all remaining characters that did not match the @p start pattern.
+ * If there is no match, the @p suffix is left unchanged.
+ *
+ * If additionally @p trim_suffix is set, all leading non-alphanumerical characters of the
+ * @p suffix are removed.
+ * For example, `"REF_CNT.S2-1.sorted:1"` starts with `"[ref-cnt]"`, and then contains the suffix
+ * `".S2-1.sorted:1"` - with @p trim_suffix, this is reduced to `"S2-1.sorted:1"` instead.
+ */
+bool starts_with_ci_alnum(
+    std::string const& text,
+    std::string const& prefix,
+    std::string& suffix,
+    bool trim_suffix = false
+);
+
+/**
+ * @brief Return whether a string ends with another string, i.e., check for a suffix.
+ */
+bool ends_with( std::string const& text, std::string const& suffix );
+
+/**
+ * @brief Return whether a string ends with another string, i.e., check for a suffix,
+ * case insensitive.
+ */
+bool ends_with_ci( std::string const& text, std::string const& suffix );
+
+/**
+ * @brief Return whether a string ends with another string (suffix), comparing case-independent,
+ * and ignoring all non-alphanumerical characters.
+ *
+ * For example, `"S2-1.sorted:1.REF_CNT"` ends with `"[ref-cnt]"`, according to this function.
+ */
+bool ends_with_ci_alnum( std::string const& text, std::string const& suffix );
+
+/**
+ * @copydoc ends_with_ci_alnum( std::string const& , std::string const& )
+ *
+ * This version of the function then stores the @p prefix of the matched @p text,
+ * containing all leading characters that did not match the @p suffix pattern.
+ * If there is no match, the @p prefix is left unchanged.
+ *
+ * If additionally @p trim_prefix is set, all trailing non-alphanumerical characters of the
+ * @p prefix are removed.
+ * For example, `"S2-1.sorted:1.REF_CNT"` ends with `"[ref-cnt]"`, and then contains the prefix
+ * `"S2-1.sorted:1."` - with @p trim_prefix, this is reduced to `"S2-1.sorted:1"` instead.
+ */
+bool ends_with_ci_alnum(
+    std::string const& text,
+    std::string const& suffix,
+    std::string& prefix,
+    bool trim_prefix = false
+);
 
 /**
  * @brief Return whether a string is matched by a wildcard pattern containing `?` and `*`
@@ -93,16 +170,31 @@ struct NaturalLess : public std::binary_function<T, T, bool> {
 };
 
 /**
+ * @brief Functor class to compare to strings with natural "human" sorting, see compare_natural().
+ */
+template <class T = std::string>
+struct NaturalGreater : public std::binary_function<T, T, bool> {
+    bool operator()( T const& lhs, T const& rhs ) const {
+        return compare_natural( lhs, rhs ) > 0;
+    }
+};
+
+/**
  * @brief Sort a range of std::string (or convertible to std::string) elements, using natural
  * sorting; see compare_natural().
  */
 template <typename RandomAccessIterator>
 inline void sort_natural(
     RandomAccessIterator first,
-    RandomAccessIterator last
+    RandomAccessIterator last,
+    bool reverse = false
 ) {
     using T = typename RandomAccessIterator::value_type;
-    std::sort( first, last, NaturalLess<T>() );
+    if( reverse ) {
+        std::sort( first, last, NaturalGreater<T>() );
+    } else {
+        std::sort( first, last, NaturalLess<T>() );
+    }
 }
 
 // =================================================================================================
@@ -120,7 +212,7 @@ std::string head( std::string const& text, size_t lines = 10 );
 std::string tail( std::string const& text, size_t lines = 10 );
 
 // =================================================================================================
-//     Find and Count
+//     Split and Count
 // =================================================================================================
 
 /**
@@ -129,9 +221,22 @@ std::string tail( std::string const& text, size_t lines = 10 );
 size_t count_substring_occurrences( std::string const& str, std::string const& sub );
 
 /**
+ * @brief Spilt a @p string into parts, given a @p delimiter char.
+ *
+ * The @p string is split using the @p delimiter char, and returned as a vector
+ * of strings. If `trim_empty` is set, empty strings resulting from adjacent delimiter chars are
+ * excluded from the output.
+ */
+std::vector<std::string> split (
+    std::string const& str,
+    char delimiter = '\t',
+    const bool trim_empty = true
+);
+
+/**
  * @brief Spilt a @p string into parts, given a @p delimiters set of chars.
  *
- * The @p string is split using any of the chars in @p delimiters and returned as a vector
+ * The @p string is split using any of the chars in @p delimiters, and returned as a vector
  * of strings. If `trim_empty` is set, empty strings resulting from adjacent delimiter chars are
  * excluded from the output.
  */
@@ -204,23 +309,77 @@ std::string indent(
  * @brief Return a copy of a string, where all occurrences of a search string
  * are replaced by a replace string.
  */
-std::string replace_all (
+std::string replace_all(
     std::string const& text,
     std::string const& search,
     std::string const& replace
 );
 
 /**
- * @brief Replace all occurrences of the `search_chars` in `text` by the `replace` char.
+ * @brief Return a copy of a string, where all occurrences of a search string are removed.
  */
-std::string replace_all_chars (
+std::string remove_all(
+    std::string const& text,
+    std::string const& search
+);
+
+/**
+ * @brief Replace all occurrences of the @p search_chars in @p text by the @p replace char.
+ */
+std::string replace_all_chars(
     std::string const& text,
     std::string const& search_chars,
     char               replace
 );
 
 /**
- * @brief Return a copy of the input string, with left trimmed white spaces.
+ * @brief Replace all occurrences of characters for which @p predicate is `true` in @p text
+ * by the @p replace char.
+ */
+template< class UnaryPredicate >
+std::string replace_all_chars_pred(
+    std::string const& text,
+    UnaryPredicate     predicate,
+    char               replace
+) {
+    auto result = text;
+    for( auto& c : result ) {
+        if( predicate( c ) ) {
+            c = replace;
+        }
+    }
+    return result;
+}
+
+/**
+ * @brief Remove all occurrences of the @p search_chars in @p text.
+ */
+std::string remove_all_chars(
+    std::string const& text,
+    std::string const& search_chars
+);
+
+/**
+ * @brief Remove all occurrences characters for which @p predicate is `true` in @p text.
+ */
+template< class UnaryPredicate >
+std::string remove_all_chars_pred(
+    std::string const& text,
+    UnaryPredicate     predicate
+) {
+    auto result = text;
+    result.erase( std::remove_if( result.begin(), result.end(), predicate ), result.end() );
+    return result;
+}
+
+/**
+ * @brief Remove all non-alphanumerical characters from a string.
+ */
+std::string remove_all_non_alnum( std::string const& text );
+
+/**
+ * @brief Return a copy of the input string, with left trimmed white spaces
+ * (or any other @p delimiters).
  */
 std::string trim_right (
     std::string const& s,
@@ -228,7 +387,8 @@ std::string trim_right (
 );
 
 /**
- * @brief Return a copy of the input string, with right trimmed white spaces.
+ * @brief Return a copy of the input string, with right trimmed white spaces
+ * (or any other @p delimiters).
  */
 std::string trim_left (
     std::string const& s,
@@ -236,7 +396,8 @@ std::string trim_left (
 );
 
 /**
- * @brief Return a copy of the input string, with trimmed white spaces.
+ * @brief Return a copy of the input string, with trimmed white spaces
+ * (or any other @p delimiters).
  */
 std::string trim (
     std::string const& s,
