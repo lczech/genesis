@@ -31,6 +31,7 @@
  * @ingroup population
  */
 
+#include "genesis/population/formats/frequency_table_input_iterator.hpp"
 #include "genesis/population/formats/sam_variant_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 #include "genesis/population/formats/sync_input_iterator.hpp"
@@ -241,6 +242,40 @@ VariantInputIterator make_variant_input_iterator_from_sync_file(
 VariantInputIterator make_variant_input_iterator_from_sync_file(
     std::string const& filename,
     std::vector<bool> const& sample_filter
+);
+
+// -------------------------------------------------------------------------
+//     Frequency Table
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Create a VariantInputIterator to iterate the contents of a frequency table file as
+ * Variant%s.
+ *
+ * Optionally, this takes a @p reader with settings to be used.
+ */
+VariantInputIterator make_variant_input_iterator_from_frequency_table_file(
+    std::string const& filename,
+    char separator_char = '\t',
+    FrequencyTableInputIterator const& reader = FrequencyTableInputIterator{}
+);
+
+/**
+ * @brief Create a VariantInputIterator to iterate the contents of a frequency table file as
+ * Variant%s.
+ *
+ * Additionally, this version of the function takes a list of @p sample_names which are used as
+ * filter so that only those samples (columns of the frequency table) are evaluated and accessible -
+ * or, if @p inverse_sample_names is set to `true`, instead all <i>but</i> those samples.
+ *
+ * Optionally, this takes a @p reader with settings to be used.
+ */
+VariantInputIterator make_variant_input_iterator_from_frequency_table_file(
+    std::string const& filename,
+    std::vector<std::string> const& sample_names_filter,
+    bool inverse_sample_names_filter = false,
+    char separator_char = '\t',
+    FrequencyTableInputIterator const& reader = FrequencyTableInputIterator{}
 );
 
 // -------------------------------------------------------------------------
