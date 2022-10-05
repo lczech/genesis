@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -31,18 +31,13 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/thread_pool.hpp"
 #include "genesis/utils/io/input_source.hpp"
 
 #include <cassert>
 #include <memory>
 #include <string>
 #include <utility>
-
-#ifdef GENESIS_PTHREADS
-#    include <condition_variable>
-#    include <mutex>
-#    include <thread>
-#endif
 
 namespace genesis {
 namespace utils {
@@ -64,8 +59,8 @@ namespace utils {
      * If not, it is an alias for SynchronousReader.
      *
      * Using this typedef instead of one of the two reader classes directly thus makes it possible
-     * to ignore the `GENESIS_PTHREADS` setting when using them. It serves as an abstraction. For example,
-     * InputStream uses the typedef this way.
+     * to ignore the `GENESIS_PTHREADS` setting when using them. It serves as an abstraction.
+     * For example, InputStream uses the typedef this way.
      */
     using InputReader = AsynchronousReader;
 
@@ -82,8 +77,8 @@ namespace utils {
     * If not, it is an alias for SynchronousReader.
     *
     * Using this typedef instead of one of the two reader classes directly thus makes it possible
-    * to ignore the `GENESIS_PTHREADS` setting when using them. It serves as an abstraction. For example,
-    * InputStream uses the typedef this way.
+    * to ignore the `GENESIS_PTHREADS` setting when using them. It serves as an abstraction.
+    * For example, InputStream uses the typedef this way.
     */
     using InputReader = SynchronousReader;
 
@@ -98,9 +93,18 @@ namespace utils {
 /**
  * @brief Read bytes from an @link BaseInputSource InputSource@endlink into a `char buffer`.
  *
- * The reading is done asynchronously, that is, a second thread is started. This is usually faster
- * than synchronous reading (see SynchronousReader), particularly for large data blocks.
- * It is thus the preferred reader, if available.
+ * The reading is done asynchronously, that is, a second thread is started, or a thread pool is used.
+ * This is usually faster than synchronous reading (see SynchronousReader), particularly for large
+ * data blocks. It is thus the preferred reader, if available.
+ *
+ * The caller is responsible for keeping the data buffer alive while the reading is happening.
+ * That is, calling start_reading() without then also calling finish_reading() and having the
+ * buffer go out of scope could lead to a segfault. Don't do that.
+ *
+ * Note that we recommend using an individual ThreadPool of size 1 for using this class, which is
+ * the default if no external thread pool is provided. We however also allow to set an external
+ * thread pool, so that in cases where the number of spawned threads need to be limited, this
+ * can be achieved. Not recommended though, as it will likely result in slowdown.
  *
  * This class is only available if threading is available, that is, if the `GENESIS_PTHREADS` macro
  * definition is set. If this is the case, the @link utils::InputReader InputReader@endlink
@@ -119,71 +123,23 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    AsynchronousReader() = default;
+    AsynchronousReader( std::shared_ptr<utils::ThreadPool> thread_pool = {} )
+    {
+        if( thread_pool ) {
+            thread_pool_ = thread_pool;
+            assert( thread_pool_->size() > 0 );
+        } else {
+            thread_pool_ = std::make_shared<utils::ThreadPool>( 1 );
+        }
+    }
 
     AsynchronousReader( AsynchronousReader const& ) = delete;
     AsynchronousReader( AsynchronousReader&& )      = delete;
 
-    // Not sure if this move constructor and the move assignment are correct.
-    // We don't need them right now, so better disable them.
-    // Inspired by http://stackoverflow.com/questions/29986208/how-should-i-deal-with-mutexes-in-movable-types-in-c
-
-    // AsynchronousReader( AsynchronousReader&& other )
-    // {
-    //     std::unique_lock< std::mutex > guard( lock_ );
-    //
-    //     input_source_  = std::move( other.input_source_ );
-    //
-    //     target_buffer_ = std::move( other.target_buffer_ );
-    //     target_size_   = std::move( other.target_size_ );
-    //     achieved_size_ = std::move( other.achieved_size_ );
-    //
-    //     worker_            = std::move( other.worker_ );
-    //     destructor_called_ = std::move( other.destructor_called_ );
-    //     read_except_ptr_   = std::move( other.read_except_ptr_ );
-    // }
-
     AsynchronousReader& operator= ( AsynchronousReader const& ) = delete;
     AsynchronousReader& operator= ( AsynchronousReader&& )      = delete;
 
-    // AsynchronousReader& operator= ( AsynchronousReader&& other )
-    // {
-    //     if( this == &other ) {
-    //         return *this;
-    //     }
-    //
-    //     std::unique_lock< std::mutex > guard_lhs( lock_,       std::defer_lock );
-    //     std::unique_lock< std::mutex > guard_rhs( other.lock_, std::defer_lock );
-    //     std::lock( guard_lhs, guard_rhs);
-    //
-    //     input_source_  = std::move( other.input_source_ );
-    //
-    //     target_buffer_ = std::move( other.target_buffer_ );
-    //     target_size_   = std::move( other.target_size_ );
-    //     achieved_size_ = std::move( other.achieved_size_ );
-    //
-    //     worker_            = std::move( other.worker_ );
-    //     destructor_called_ = std::move( other.destructor_called_ );
-    //     read_except_ptr_   = std::move( other.read_except_ptr_ );
-    //
-    //     return *this;
-    // }
-
-    ~AsynchronousReader()
-    {
-        if( input_source_ == nullptr ) {
-            return;
-        }
-
-        // Terminate the reading process, in case it is still running.
-        { // Scoped lock.
-            std::unique_lock< std::mutex > guard( lock_ );
-            destructor_called_ = true;
-        }
-
-        cond_read_requested_.notify_one();
-        worker_.join();
-    }
+    ~AsynchronousReader() = default;
 
     // -------------------------------------------------------------
     //     Init and General Members
@@ -191,58 +147,7 @@ public:
 
     void init( std::shared_ptr< BaseInputSource > input_source )
     {
-        // Get a lock.
-        std::unique_lock< std::mutex > init_guard( lock_ );
-
-        // Prepare input variables.
-        input_source_      = input_source;
-        target_size_       = -1;
-        destructor_called_ = false;
-
-        // Prepare worker thread.
-        worker_ = std::thread( [&] {
-            std::unique_lock< std::mutex > worker_guard( lock_ );
-            try {
-
-                // Read until termination requested.
-                while( true ) {
-
-                    // Condition: wait until the master wants the worker to read.
-                    cond_read_requested_.wait(
-                        worker_guard,
-                        [&] () {
-                            return ( target_size_ != -1 ) || destructor_called_;
-                        }
-                    );
-
-                    // If we are about to destroy the object, we can stop here.
-                    if( destructor_called_ ) {
-                        return;
-                    }
-
-                    // Read.
-                    assert( target_size_ >= 0 );
-                    achieved_size_ = input_source_->read(
-                        target_buffer_,
-                        static_cast<size_t>( target_size_ )
-                    );
-                    target_size_   = -1;
-
-                    // If we did not get any data, we are done with the input source.
-                    if( achieved_size_ == 0 ) {
-                        break;
-                    }
-
-                    cond_read_finished_.notify_one();
-                }
-
-            // Store any exception, so that we can re-throw from main thread.
-            } catch( ... ) {
-                read_except_ptr_ = std::current_exception();
-            }
-
-            cond_read_finished_.notify_one();
-        });
+        input_source_ = input_source;
     }
 
     bool valid() const
@@ -264,33 +169,38 @@ public:
     //     Reading
     // -------------------------------------------------------------
 
-    void start_reading( char* target_buffer, long target_size )
+    void start_reading( char* target_buffer, size_t target_size )
     {
-        // Set the target variables and start the worker.
-        std::unique_lock< std::mutex > guard( lock_ );
-        target_buffer_ = target_buffer;
-        target_size_   = target_size;
-        achieved_size_ = -1;
-        cond_read_requested_.notify_one();
-    }
+        // We only assert the validity of the buffer here, as it is a user error to not provide
+        // a large enough buffer here.
+        assert( target_buffer );
 
-    long finish_reading()
-    {
-        // Wait until the worker is done reading.
-        std::unique_lock< std::mutex > guard(lock_);
-        cond_read_finished_.wait(
-            guard,
-            [&]{
-                    return achieved_size_ != -1 || read_except_ptr_;
+        // The function shall only ever be called once in a row, followed by finish_reading().
+        // Not doing that is a user error, so we here just assert that here.
+        assert( ! future_.valid() );
+
+        // We need a local copy of the input source here, as C++11 does not allow to capture
+        // class member variables by value...
+        auto input_source = input_source_;
+
+        // We capture the target by value, meaning that the caller has to stay alive until the
+        // task is finished, so that we don't get a memory access violation for the buffer.
+        future_ = thread_pool_->enqueue(
+            [=](){
+                return input_source->read( target_buffer, target_size );
             }
         );
+    }
 
-        // If there was an exception, re-throw. Otherwise, return number of read bytes.
-        if( read_except_ptr_ ) {
-            std::rethrow_exception( read_except_ptr_ );
-        } else {
-            return achieved_size_;
-        }
+    size_t finish_reading()
+    {
+        // Same as above for start_reading(), we here only assert the correct order of execution.
+        assert( future_.valid() );
+
+        // Now get the future, which blocks until the data is actually there.
+        // This also re-throws any errors that might have occurred during executing,
+        // see https://stackoverflow.com/q/14222899/4184258
+        return future_.get();
     }
 
     // -------------------------------------------------------------
@@ -299,19 +209,16 @@ public:
 
 private:
 
+    // Where to read from.
     std::shared_ptr<BaseInputSource> input_source_;
 
-    char* target_buffer_;
-    long  target_size_;
-    long  achieved_size_;
+    // Thread pool to run the reading in the background.
+    std::shared_ptr<ThreadPool> thread_pool_;
 
-    std::thread worker_;
-    bool destructor_called_;
-    std::exception_ptr read_except_ptr_;
+    // Future that stores the achieved size of how many bytes were red.
+    // If we ever want to make this class moveable, this probably needs to live in a shared_ptr.
+    std::future<size_t> future_;
 
-    std::mutex lock_;
-    std::condition_variable cond_read_requested_;
-    std::condition_variable cond_read_finished_;
 };
 
 #endif
@@ -379,13 +286,13 @@ public:
     //     Reading
     // -------------------------------------------------------------
 
-    void start_reading( char* target_buffer, long target_size )
+    void start_reading( char* target_buffer, size_t target_size )
     {
         target_buffer_ = target_buffer;
         target_size_   = target_size;
     }
 
-    long finish_reading()
+    size_t finish_reading()
     {
         return input_source_->read( target_buffer_, target_size_ );
     }
@@ -399,7 +306,7 @@ private:
     std::shared_ptr<BaseInputSource> input_source_;
 
     char* target_buffer_;
-    long  target_size_;
+    size_t target_size_;
 };
 
 } // namespace utils

@@ -31,6 +31,7 @@
  * @ingroup population
  */
 
+#include <cassert>
 #include <cstdint>
 #include <map>
 #include <stdexcept>
@@ -293,7 +294,8 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Return whether a given position on a chromosome is part of any of the regions stored.
+     * @brief Return whether a given position on a chromosome is part of any of the regions
+     * (intervals) that are stored here.
      */
     bool is_covered( std::string const& chromosome, numerical_type position ) const
     {
@@ -316,6 +318,8 @@ public:
 
     /**
      * @brief Return whether a whole chromosome is covered.
+     *
+     * That special case is specified by an interval that covers position 0.
      */
     bool is_covered( std::string const& chromosome ) const
     {
@@ -325,6 +329,48 @@ public:
         }
         auto const& chrom_tree = it->second;
         return chrom_tree.overlap_find( 0 ) != chrom_tree.end();
+    }
+
+    /**
+     * @brief Retun the number of regions (intervals) that overlap with a given position on a
+     * chromosome.
+     *
+     * The is_covered() function only returns whether a position is covered at all, but does not
+     * tell by how many regions/intervals it is covered. This function returns that value.
+     *
+     * Note that the special "whole chromsome" case (marked by setting an interval that covers
+     * position 0) is not considered here by default, as this is likely to be not intended.
+     * With @p whole_chromosome, this behaviour can be changed, meaning that if position 0 is also
+     * covered (and hence the whole chromosome is marked as covered), the resulting counter
+     * is incremented by 1.
+     */
+    size_t cover_count(
+        std::string const& chromosome,
+        numerical_type position,
+        bool whole_chromosome = false
+    ) const {
+        // Using find(), so we only have to search in the map once, for speed.
+        auto const it = regions_.find( chromosome );
+        if( it == regions_.end() ) {
+            return 0;
+        }
+        auto const& chrom_tree = it->second;
+
+        // Count overlaps.
+        size_t result = 0;
+        chrom_tree.overlap_find_all( position, [&]( const_iterator it ){
+            (void) it;
+            assert( it->interval().within( position ));
+            ++result;
+            return true;
+        });
+
+        // Add whole chromosome if needed.
+        if( whole_chromosome && ( chrom_tree.overlap_find( 0 ) != chrom_tree.end() )) {
+            ++result;
+        }
+
+        return result;
     }
 
     // Not used at the moment, as we have no access to the end iterator to check for a valid find.

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,17 +48,39 @@ namespace utils {
 bool path_exists( std::string const& path );
 
 /**
- * @brief Return true iff the provided path is a file.
+ * @brief Return true iff the provided path is a (readable) file.
  *
- * Internally, this function simply return the value of file_exists(), as this already does the
- * needed check. Thus, it is an alias.
+ * Internally, this function simply returns the value of file_is_readable(), meaning that we also
+ * check that the file can actually be read. That is semantically a bit different from just stating
+ * that it is a file... But file system stuff in C++ pre-17 is hard, and this works for now.
  */
 bool is_file( std::string const& path );
 
 /**
- * @brief Return true iff the file exists.
+ * @brief Return true iff the file exists (and is in fact a file, and not, e.g., a directory).
+ *
+ * @copydetails is_file( std::string const& )
  */
 bool file_exists( std::string const& filename );
+
+/**
+ * @brief Return whether a file is readable.
+ *
+ * For this, the file has to exist, and be accessible.
+ * Another potential error is that too many files are opened already.
+ *
+ * See file_is_readable( std::string const&, std::string& ) for a version of the function that also
+ * allows to retrieve the error message in cases where the result is `false`.
+ */
+bool file_is_readable( std::string const& filename );
+
+/**
+ * @brief Return whether a file is readable, and potentially store the error message.
+ *
+ * For this, the file has to exist, and be accessible.
+ * Another potential error is that too many files are opened already.
+ */
+bool file_is_readable( std::string const& filename, std::string& err_str );
 
 /**
  * @brief Return the contents of a file as a string.

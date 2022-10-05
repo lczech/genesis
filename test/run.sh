@@ -90,6 +90,14 @@ if [[ $1 == "memory" || $1 == "mem" ]] ; then
         exit
     fi
 fi
+if [[ $1 == "heap" || $1 == "massif" ]] ; then
+    mode="heap"
+    shift
+    if [ -z "`which valgrind`" ] ; then
+        echo "Program 'valgrind' not found. Cannot run memory tests."
+        exit
+    fi
+fi
 if [[ $1 == "speed" ]] ; then
     mode="speed"
     shift
@@ -174,6 +182,7 @@ function run_validation() {
 # Takes the test case as input, returns 0 if successfull.
 function run_memory() {
     outfile=${valgrind_out_file}
+    # more verbose if needed: --track-origins=yes --show-leak-kinds=all
     valgrind --tool=memcheck --leak-check=full --log-file=${outfile} ${test_exe} --gtest_filter=${1} > /dev/null
 
     deflost=`fgrep "definitely lost:" ${outfile} | xargs | cut -d' ' -f4 | sed "s/,//g"`
@@ -186,8 +195,24 @@ function run_memory() {
     if [ -z "${reachable}" ]; then reachable=0; fi
     if [ -z "${errors}" ]; then errors=0; else errors=1; fi
 
+    # Special case to take care of openmp not freeing until the very tear down,
+    # see https://stackoverflow.com/a/6973510/4184258 for details.
+    if [[ ${reachable} == 8 ]]; then
+        reachable=0
+    fi
+
     # Return 0 only if nothing bad happend.
     return $((deflost+indlost+reachable+errors))
+}
+
+# Run a valgrind massif heap check.
+# Takes the test case as input, returns 0 if successfull.
+function run_heap() {
+    outfile=${valgrind_out_file}
+    valgrind --tool=massif --log-file=${outfile} ${test_exe} --gtest_filter=${1} > /dev/null
+
+    # Return 0 only if nothing bad happend.
+    return 0
 }
 
 # Run the test `speed_runs` times and show execution times.
@@ -316,6 +341,10 @@ for line in `${test_exe} --gtest_list_tests --gtest_filter="${filter}"` ; do
         run_memory $test_id 2>> ${valgrind_out_file}
         success=$?
     fi
+    if [[ ${mode} == "heap" ]] ; then
+        run_heap $test_id 2>> ${valgrind_out_file}
+        success=$?
+    fi
     if [[ ${mode} == "speed" ]] ; then
         run_speed $test_id 2>> ${gtest_out_file}
         success=$?
@@ -326,7 +355,7 @@ for line in `${test_exe} --gtest_list_tests --gtest_filter="${filter}"` ; do
     run_duration=`echo "scale=3;(${run_e_time} - ${run_s_time})/(10^06)" | bc`
     if [[ ${mode} == "validation" ]] ; then
         printf "   % 10.3fms" ${run_duration}
-    elif [[ ${mode} == "memory" ]] ; then
+    elif [[ ${mode} == "memory" || ${mode} == "heap" ]] ; then
         run_duration=`echo "scale=3;(${run_duration})/(10^03)" | bc`
         printf "   % 10.3fs " ${run_duration}
     fi

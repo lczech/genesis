@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -30,6 +30,7 @@
 
 #include "genesis/utils/text/string.hpp"
 
+#include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/math/common.hpp"
 
 #include <algorithm>
@@ -50,14 +51,28 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Compare
+//     Compare and Find
 // =================================================================================================
 
 bool contains_ci( std::vector<std::string> const& haystack, std::string const& needle )
 {
+    // Lazy. Could be more optimized for sure, if this ever becomes a bottleneck.
     auto const l_needle = to_lower( needle );
     for( auto const& val : haystack ) {
         if( to_lower( val ) == l_needle ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool contains_ci_alnum( std::vector<std::string> const& haystack, std::string const& needle )
+{
+    // Lazy. Could be more optimized for sure, if this ever becomes a bottleneck.
+    auto const lower_alnum_needle = to_lower( remove_all_non_alnum( needle ));
+    for( auto const& val : haystack ) {
+        auto alnum_val = remove_all_non_alnum( val );
+        if( equals_ci( alnum_val, lower_alnum_needle )) {
             return true;
         }
     }
@@ -78,20 +93,122 @@ bool equals_ci( std::string const& lhs, std::string const& rhs)
     return true;
 }
 
-bool starts_with( std::string const & text, std::string const & start )
+bool equals_ci_alnum( std::string const& lhs, std::string const& rhs )
 {
-    if (start.size() > text.size()) {
-        return false;
-    }
-    return std::equal( start.begin(), start.end(), text.begin() );
+    // Lazy. Could be more optimized for sure, if this ever becomes a bottleneck.
+    auto const alnum_lhs = remove_all_non_alnum( lhs );
+    auto const alnum_rhs = remove_all_non_alnum( rhs );
+    return equals_ci( alnum_lhs, alnum_rhs );
 }
 
-bool ends_with( std::string const & text, std::string const & ending )
+bool starts_with( std::string const& text, std::string const& prefix )
 {
-    if (ending.size() > text.size()) {
+    if( prefix.size() > text.size() ) {
         return false;
     }
-    return std::equal( ending.rbegin(), ending.rend(), text.rbegin() );
+    return std::equal( prefix.begin(), prefix.end(), text.begin() );
+}
+
+bool starts_with_ci( std::string const& text, std::string const& prefix )
+{
+    // Lazy. Could be more optimized for sure, if this ever becomes a bottleneck.
+    return starts_with( to_lower( text ), to_lower( prefix ));
+}
+
+bool starts_with_ci_alnum( std::string const& text, std::string const& prefix )
+{
+    // Ignore the suffix
+    std::string suffix;
+    return starts_with_ci_alnum( text, prefix, suffix );
+}
+
+bool starts_with_ci_alnum(
+    std::string const& text, std::string const& prefix, std::string& suffix, bool trim_suffix
+) {
+    // Pattern matching of trying to find the prefix in the text,
+    // ignorning all non-alnum characters, and case-insensitive.
+    // For example, we want prefix == "refcnt" to match text == "REF_CNT.S2-1.sorted:1",
+    // and then return the remainder "S2-1.sorted:1" as our suffix.
+    size_t p = 0;
+    size_t t = 0;
+    while( p < prefix.size() && t < text.size() ) {
+        // assert( is_graph(prefix[p]) );
+        // assert( is_graph(text[t]) );
+
+        if( ! is_alnum(prefix[p]) ) {
+            ++p;
+            continue;
+        }
+        if( ! is_alnum(text[t]) ) {
+            ++t;
+            continue;
+        }
+        if( char_match_ci( prefix[p], text[t] )) {
+            ++p;
+            ++t;
+        } else {
+            return false;
+        }
+    }
+    assert( p <= prefix.size() );
+    assert( t <= text.size() );
+
+    // If our pattern matching reached the end of the text,
+    // there is nothing left in the text that we could use as a suffix.
+    if( t == text.size() ) {
+        suffix = "";
+        return true;
+    }
+
+    // However, if we are not yet at the end of the text, we must have reached
+    // the end of the search pattern (prefix), as otherwise the loop would not have termined.
+    assert( t < text.size() );
+    assert( p == prefix.size() );
+
+    // Now we skip all non-alnum chars in the text from where we are, if requested.
+    while( trim_suffix && t < text.size() && ! is_alnum(text[t]) ) {
+        ++t;
+    }
+
+    // If there is stuff left, that is the suffix that we use.
+    suffix = text.substr(t);
+    return true;
+}
+
+bool ends_with( std::string const& text, std::string const& suffix )
+{
+    if( suffix.size() > text.size() ) {
+        return false;
+    }
+    return std::equal( suffix.rbegin(), suffix.rend(), text.rbegin() );
+}
+
+bool ends_with_ci( std::string const& text, std::string const& suffix )
+{
+    // Lazy. Could be more optimized for sure, if this ever becomes a bottleneck.
+    return ends_with_ci( to_lower( text ), to_lower( suffix ));
+}
+
+bool ends_with_ci_alnum( std::string const& text, std::string const& suffix )
+{
+    // Ignore the prefix
+    std::string prefix;
+    return ends_with_ci_alnum( text, suffix, prefix );
+}
+
+bool ends_with_ci_alnum(
+    std::string const& text, std::string const& suffix, std::string& prefix, bool trim_prefix
+) {
+    // Lazy. Could be more optimized for sure, if this ever becomes a bottleneck.
+    // Find a prefix, by reversing all strings.
+    auto const text_r   = std::string( text.rbegin(),   text.rend() );
+    auto const suffix_r = std::string( suffix.rbegin(), suffix.rend() );
+    if( starts_with_ci_alnum( text_r, suffix_r, prefix, trim_prefix )) {
+        // If this succeeded, reverse the result again, to make it correct.
+        prefix = std::string( prefix.rbegin(), prefix.rend() );
+        return true;
+    }
+    return false;
 }
 
 bool match_wildcards( std::string const& str, std::string const& pattern )
@@ -323,7 +440,7 @@ std::string tail( std::string const& text, size_t lines )
 }
 
 // =================================================================================================
-//     Find and Count
+//     Split and Count
 // =================================================================================================
 
 size_t count_substring_occurrences( std::string const& str, std::string const& sub )
@@ -381,6 +498,14 @@ static std::vector<std::string> split_ (
     }
 
     return result;
+}
+
+std::vector<std::string> split (
+    std::string const& str,
+    char delimiter,
+    const bool trim_empty
+) {
+    return split( str, std::string( 1, delimiter ), trim_empty );
 }
 
 std::vector<std::string> split (
@@ -561,6 +686,13 @@ void replace_all(
 }
 */
 
+std::string remove_all(
+    std::string const& text,
+    std::string const& search
+) {
+    return replace_all( text, search, "" );
+}
+
 std::string replace_all_chars (
     std::string const& text,
     std::string const& search_chars,
@@ -573,6 +705,27 @@ std::string replace_all_chars (
         }
     }
     return result;
+}
+
+std::string remove_all_chars(
+    std::string const& text,
+    std::string const& search_chars
+) {
+    // We do multiple rounds... bit easier for now, and not performance critical.
+    auto result = text;
+    for( size_t i = 0; i < search_chars.length(); ++i ) {
+        result.erase( std::remove( result.begin(), result.end(), search_chars[i] ), result.end() );
+    }
+    return result;
+}
+
+std::string remove_all_non_alnum( std::string const& text )
+{
+    return remove_all_chars_pred(
+        text, []( char c ){
+            return ! is_alnum(c);
+        }
+    );
 }
 
 std::string trim_right (

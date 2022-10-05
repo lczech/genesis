@@ -339,6 +339,73 @@ VariantInputIterator make_variant_input_iterator_from_sync_file(
 }
 
 // =================================================================================================
+//     Frequency Table
+// =================================================================================================
+
+VariantInputIterator make_variant_input_iterator_from_frequency_table_file(
+    std::string const& filename,
+    char separator_char,
+    FrequencyTableInputIterator const& reader
+) {
+    return make_variant_input_iterator_from_frequency_table_file(
+        filename, std::vector<std::string>{}, false, separator_char, reader
+    );
+}
+
+VariantInputIterator make_variant_input_iterator_from_frequency_table_file(
+    std::string const& filename,
+    std::vector<std::string> const& sample_names_filter,
+    bool inverse_sample_names_filter,
+    char separator_char,
+    FrequencyTableInputIterator const& reader
+) {
+    // Make an iterator over, using the given reader to take over its settings.
+    // We wrap this in a shared pointer so that this very instance can stay alive
+    // when being copied over to the lambda that we return from this function.
+    auto input = std::make_shared<FrequencyTableInputIterator>( reader );
+    input->input_source( utils::from_file( filename ));
+    input->sample_names_filter(
+        std::unordered_set<std::string>( sample_names_filter.begin(), sample_names_filter.end() )
+    );
+    input->inverse_sample_names_filter( inverse_sample_names_filter );
+    input->separator_char( separator_char );
+
+    // Get the iterators. We store them by copy in the lambda, and these copies are kept alive
+    // when returning from this function.
+    assert( input );
+    auto cur = input->begin();
+    auto end = input->end();
+
+    // Get the data, using the file base name without path and potential extensions as source.
+    VariantInputIteratorData data;
+    data.file_path = filename;
+    data.source_name = utils::file_basename(
+        filename, { ".csv", ".csv.gz", ".tsv", ".tsv.gz", ".txt" }
+    );
+
+    // Get the sample names from the iterator.
+    data.sample_names = cur.sample_names();
+
+    // The input is copied over to the lambda, and that copy is kept alive
+    // when returning from this function.
+    return VariantInputIterator(
+        [ input, cur, end ]( Variant& variant ) mutable {
+            if( cur != end ) {
+                // The deref operator of the iterator is const, so this falls back to copy ctor.
+                // We keep the move here though, in case we change this behaviour later,
+                // and allow to move from the iterator.
+                variant = std::move( *cur );
+                ++cur;
+                return true;
+            } else {
+                return false;
+            }
+        },
+        std::move( data )
+    );
+}
+
+// =================================================================================================
 //     VCF
 // =================================================================================================
 

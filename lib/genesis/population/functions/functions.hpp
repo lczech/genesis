@@ -165,7 +165,14 @@ BaseCountsStatus status(
  *
  * The given @p base has to be one of `ACGTDN` (case insensitive), or `*#.` for deletions as well.
  */
-size_t get_base_count( BaseCounts const& bc, char base );
+BaseCounts::size_type get_base_count( BaseCounts const& bc, char base );
+
+/**
+ * @brief Set the count for a @p base given as a char.
+ *
+ * The given @p base has to be one of `ACGTDN` (case insensitive), or `*#.` for deletions as well.
+ */
+void set_base_count( BaseCounts& bc, char base, BaseCounts::size_type value );
 
 /**
  * @brief Get the summed up total base counts of a Variant.

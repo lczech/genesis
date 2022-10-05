@@ -49,6 +49,37 @@ TEST( Text, StartEnd )
     EXPECT_TRUE(  ends_with( "hello world", "" ));
 }
 
+TEST( Text, StartEndCIAlnum)
+{
+    std::string fix;
+
+    EXPECT_TRUE( starts_with_ci_alnum( "REF_CNT", "[ref-cnt]", fix ));
+    EXPECT_EQ( "", fix );
+    EXPECT_TRUE( starts_with_ci_alnum( ".REF_CNT-", "[ref-cnt]", fix ));
+    EXPECT_EQ( "-", fix );
+    EXPECT_TRUE( starts_with_ci_alnum( ".REF_CNT-", "[ref-cnt]", fix, true ));
+    EXPECT_EQ( "", fix );
+    EXPECT_TRUE( starts_with_ci_alnum( "REF_CNT.S2-1.sorted:1", "[ref-cnt]", fix ));
+    EXPECT_EQ( ".S2-1.sorted:1", fix );
+    EXPECT_TRUE( starts_with_ci_alnum( "REF_CNT.S2-1.sorted:1", "[ref-cnt]", fix, true ));
+    EXPECT_EQ( "S2-1.sorted:1", fix );
+
+    EXPECT_FALSE( starts_with_ci_alnum( "REF_CNT.S2-1.sorted:1", "[ref-cnt]-foo" ));
+
+    EXPECT_TRUE( ends_with_ci_alnum( "REF_CNT", "[ref-cnt]", fix ));
+    EXPECT_EQ( "", fix );
+    EXPECT_TRUE( ends_with_ci_alnum( "-REF_CNT.", "[ref-cnt]", fix ));
+    EXPECT_EQ( "-", fix );
+    EXPECT_TRUE( ends_with_ci_alnum( "-REF_CNT.", "[ref-cnt]", fix, true ));
+    EXPECT_EQ( "", fix );
+    EXPECT_TRUE( ends_with_ci_alnum( "S2-1.sorted:1.REF_CNT", "[ref-cnt]", fix ));
+    EXPECT_EQ( "S2-1.sorted:1.", fix );
+    EXPECT_TRUE( ends_with_ci_alnum( "S2-1.sorted:1.REF_CNT", "[ref-cnt]", fix, true ));
+    EXPECT_EQ( "S2-1.sorted:1", fix );
+
+    EXPECT_FALSE( ends_with_ci_alnum( "S2-1.sorted:1.REF_CNT", "[ref-cnt]-foo" ));
+}
+
 TEST( Text, MatchWildcards )
 {
     EXPECT_TRUE( match_wildcards( "", "" ));
@@ -340,8 +371,8 @@ TEST( Text, SortNaturalBasics )
 
 TEST( Text, SortNaturalList )
 {
-// Examples from  http://www.davekoelle.com/files/alphanum.hpp
-// Released under the MIT License - https://opensource.org/licenses/MIT
+    // Examples from  http://www.davekoelle.com/files/alphanum.hpp
+    // Released under the MIT License - https://opensource.org/licenses/MIT
 
     // Reverse sorted, so that we have work to do.
     auto lst = std::vector<std::string>{{

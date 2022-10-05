@@ -39,6 +39,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -206,7 +207,8 @@ double f_st_pool_kofler( // get_conventional_fstcalculator
 ) {
     // Edge and error cases
     if( p1_poolsize <= 1 || p2_poolsize <= 1 ) {
-        throw std::invalid_argument( "Cannot run f_st_pool_kofler() with poolsizes <= 1" );
+        return std::numeric_limits<double>::quiet_NaN();
+        // throw std::invalid_argument( "Cannot run f_st_pool_kofler() with poolsizes <= 1" );
     }
 
     // Theta Pi values for the two populations and their combination
@@ -437,7 +439,11 @@ std::pair<double, double> f_st_pool_unbiased(
 ) {
     // Edge and error cases
     if( p1_poolsize <= 1 || p2_poolsize <= 1 ) {
-        throw std::invalid_argument( "Cannot run f_st_pool_unbiased() with poolsizes <= 1" );
+        return {
+            std::numeric_limits<double>::quiet_NaN(),
+            std::numeric_limits<double>::quiet_NaN()
+        };
+        // throw std::invalid_argument( "Cannot run f_st_pool_unbiased() with poolsizes <= 1" );
     }
 
     // Sums over the window of pi within, between, total.

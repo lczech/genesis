@@ -1,0 +1,3 @@
+chr	pos	ref	alt	empty	Smp1.freq	SmpA.cov	refcntSmpC	SmpCaltcount	SmpA.frequency	smp2-reference-count	coverage-smp2
+1	1	T	C	foo	0.4	20	5	5	0.8	8	12
+1	5	C	G	bar	0.5	15	8	4	0.2	5	15

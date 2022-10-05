@@ -752,7 +752,8 @@ void SamVariantInputIterator::Iterator::increment_()
     assert( handle_->sam_hdr_ );
     assert( handle_->iter_ );
 
-    // Find the next input position that we want to consider (it has data and fitting coverage).
+    // Find the next input position that we want to consider (it has data and fitting coverage,
+    // and is not filtered out due to the region list).
     // tid is the chromosome name index, pos the position on the chromosome, and n is coverage/depth
     int tid, pos, n;
     bam_pileup1_t const* plp;
@@ -772,6 +773,17 @@ void SamVariantInputIterator::Iterator::increment_()
             return;
         }
         if( tid < 0 || n < 0 ) {
+            continue;
+        }
+
+        // Region filter, used only if one was provided.
+        if(
+            parent_->region_filter_ &&
+            ! parent_->region_filter_->is_covered(
+                std::string( handle_->sam_hdr_->target_name[tid] ),
+                static_cast<size_t>( pos ) + 1
+            )
+        ) {
             continue;
         }
 

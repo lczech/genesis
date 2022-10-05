@@ -167,7 +167,7 @@ public:
     /**
      * @brief Default size for block buffering.
      *
-     * The class by default buffers blocks of elements of this size, with the buffer loaded in a
+     * The class can buffers blocks of elements of this size, with the buffer loaded in a
      * separate thread, in order to speed up iterating over elements that need some processing,
      * such as input files, which is the typical use case of this class.
      */
@@ -220,7 +220,6 @@ public:
             : generator_(     generator )
             , current_block_( std::make_shared<std::vector<T>>() )
             , buffer_block_(  std::make_shared<std::vector<T>>() )
-            , thread_pool_(   std::make_shared<utils::ThreadPool>( 1 ))
             , future_(        std::make_shared<std::future<size_t>>() )
         {
             // We use the generator as a check if this Iterator is intended to be a begin()
@@ -509,12 +508,12 @@ public:
         {
             // Those shared pointers have been initialized in the constructor; let's assert this.
             assert( generator_ );
-            assert( thread_pool_ );
+            assert( generator_->thread_pool_ );
             assert( future_ );
 
             // This function is only every called after we finished any previous operations,
             // so let's assert that the thread pool and future are in the states that we expect.
-            assert( thread_pool_->load() == 0 );
+            // assert( generator_->thread_pool_->load() == 0 );
             assert( ! future_->valid() );
 
             // Make sure that sizes have not been changed in the parent class.
@@ -536,7 +535,7 @@ public:
 
             // The lambda returns the result of read_block_ call, that is, the number of records
             // that have been read, and which we later (in the future_) use to see how much data we got.
-            *future_ = thread_pool_->enqueue(
+            *future_ = generator_->thread_pool_->enqueue(
                 [ generator, buffer_block, block_size ](){
                     return read_block_( generator, buffer_block, block_size );
                 }
@@ -638,10 +637,8 @@ public:
         size_t current_pos_ = 0;
         size_t end_pos_ = 0;
 
-        // Thread pool to run the buffering in the background.
-        // Also, store the future_ used to keep track of the background task. It returns the number of
+        // Store the future_ used to keep track of the background task. It returns the number of
         // elements that have been read into the buffer (block_size_, or less at the end of the file).
-        std::shared_ptr<utils::ThreadPool> thread_pool_;
         std::shared_ptr<std::future<size_t>> future_;
 
     };
@@ -665,11 +662,18 @@ public:
      */
     LambdaIterator(
         std::function<bool(value_type&)> get_element,
+        std::shared_ptr<utils::ThreadPool> thread_pool = {},
         size_t block_size = DEFAULT_BLOCK_SIZE
     )
         : get_element_(get_element)
+        , thread_pool_( thread_pool )
         , block_size_( block_size )
-    {}
+    {
+        if( ! thread_pool ) {
+            thread_pool = std::make_shared<utils::ThreadPool>( 1 );
+        }
+        thread_pool_ = thread_pool;
+    }
 
     /**
      * @copydoc LambdaIterator( std::function<bool(value_type&)>, size_t )
@@ -681,12 +685,13 @@ public:
     LambdaIterator(
         std::function<bool(value_type&)> get_element,
         Data const& data,
+        std::shared_ptr<utils::ThreadPool> thread_pool = {},
         size_t block_size = DEFAULT_BLOCK_SIZE
     )
-        : get_element_(get_element)
-        , data_(data)
-        , block_size_( block_size )
-    {}
+        : LambdaIterator( get_element, thread_pool, block_size )
+    {
+        data_ = data;
+    }
 
     /**
      * @copydoc LambdaIterator( std::function<bool(value_type&)>, Data const&, size_t )
@@ -696,12 +701,13 @@ public:
     LambdaIterator(
         std::function<bool(value_type&)> get_element,
         Data&& data,
+        std::shared_ptr<utils::ThreadPool> thread_pool = {},
         size_t block_size = DEFAULT_BLOCK_SIZE
     )
-        : get_element_(get_element)
-        , data_( std::move( data ))
-        , block_size_( block_size )
-    {}
+        : LambdaIterator( get_element, thread_pool, block_size )
+    {
+        data_ = std::move( data );
+    }
 
     ~LambdaIterator() = default;
 
@@ -719,6 +725,10 @@ public:
 
     Iterator begin()
     {
+        if( has_started_ ) {
+            throw std::runtime_error( "LambdaIterator: Cannot call begin() multiple times." );
+        }
+        has_started_ = true;
         return Iterator( this );
     }
 
@@ -764,15 +774,14 @@ public:
      * For example, it makes sense to first filter by some property, and then apply transformations
      * only on those elements that passed the filter to avoid unneeded work.
      */
-    self_type& add_transform( std::function<void(T&)> transform )
+    self_type& add_transform( std::function<void(T&)> const& transform )
     {
-        transforms_and_filters_.push_back(
+        return add_transform_filter(
             [transform]( T& element ){
                 transform( element );
                 return true;
             }
         );
-        return *this;
     }
 
     /**
@@ -782,14 +791,13 @@ public:
      *
      * @copydetails add_transform()
      */
-    self_type& add_filter( std::function<bool(T const&)> filter )
+    self_type& add_filter( std::function<bool(T const&)> const& filter )
     {
-        transforms_and_filters_.push_back(
+        return add_transform_filter(
             [filter]( T& element ){
                 return filter( element );
             }
         );
-        return *this;
     }
 
     /**
@@ -802,13 +810,23 @@ public:
      *
      * @copydetails add_transform()
      */
-    self_type& add_transform_filter( std::function<bool(T&)> filter )
+    self_type& add_transform_filter( std::function<bool(T&)> const& filter )
     {
-        transforms_and_filters_.push_back(
-            [filter]( T& element ){
-                return filter( element );
-            }
-        );
+        // Sanity check.
+        if( has_started_ ) {
+            throw std::runtime_error(
+                "LambdaIterator: Cannot change filters/transformations after iteration has started."
+            );
+        }
+
+        // No need to wrap this in another lambda...
+        transforms_and_filters_.push_back( filter );
+
+        // transforms_and_filters_.push_back(
+        //     [filter]( T& element ){
+        //         return filter( element );
+        //     }
+        // );
         return *this;
     }
 
@@ -817,12 +835,41 @@ public:
      */
     self_type& clear_filters_and_transformations()
     {
+        if( has_started_ ) {
+            throw std::runtime_error(
+                "LambdaIterator: Cannot change filters/transformations after iteration has started."
+            );
+        }
         transforms_and_filters_.clear();
     }
 
     // -------------------------------------------------------------------------
-    //     Other Settings
+    //     Thread Settings
     // -------------------------------------------------------------------------
+
+    /**
+     * @brief Get the thread pool used for buffering of elements in this iterator.
+     */
+    std::shared_ptr<utils::ThreadPool> thread_pool() const
+    {
+        return thread_pool_;
+    }
+
+    /**
+     * @brief Set the thread pool used for buffering of elements in this iterator.
+     *
+     * Shall not be changed after iteration has started, that is, after calling begin().
+     */
+    self_type& thread_pool( std::shared_ptr<utils::ThreadPool> value )
+    {
+        if( has_started_ ) {
+            throw std::runtime_error(
+                "LambdaIterator: Cannot change thread pool after iteration has started."
+            );
+        }
+        thread_pool_ = value;
+        return *this;
+    }
 
     /**
      * @brief Get the currenlty set block size used for buffering the input data.
@@ -837,12 +884,17 @@ public:
      *
      * Shall not be changed after iteration has started, that is, after calling begin().
      *
-     * By default, this is set to 0, meaning that no  buffering is done. Note that small buffer
+     * By default, this is set to 0, meaning that no buffering is done. Note that small buffer
      * sizes can induce overhead for the thread synchronisation; we hence recommend to use block
      * sizes of 1000 or greater, as needed.
      */
     self_type& block_size( size_t value )
     {
+        if( has_started_ ) {
+            throw std::runtime_error(
+                "LambdaIterator: Cannot change thread pool block size after iteration has started."
+            );
+        }
         block_size_ = value;
         return *this;
     }
@@ -861,8 +913,15 @@ private:
     std::function<bool( value_type& )> get_element_;
     Data data_;
 
+    // Thread pool to run the buffering in the background.
+    std::shared_ptr<utils::ThreadPool> thread_pool_;
+
     // Block buffering settings.
     size_t block_size_ = DEFAULT_BLOCK_SIZE;
+
+    // Flag to avoid accidentally calling begin() twice, or calling threading settings
+    // after begin() has already been called.
+    bool has_started_ = false;
 
 };
 

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,7 +49,27 @@ namespace population {
  * @brief Reader for PoPoolation2's "synchronized" files.
  *
  * These files are a simple tally of the counts at each position and sample in a (m)pileup file.
- * See https://sourceforge.net/p/popoolation2/wiki/Tutorial/ for the format description.
+ * Sync files are structured as follows. Each line represents a position on a chromosome:
+ *
+ *     2R  2302    T   0:7:0:0:0:0 0:7:0:0:0:0
+ *     2R  2303    T   0:8:0:0:0:0 0:8:0:0:0:0
+ *     2R  2304    C   0:0:9:0:0:0 0:0:9:0:0:0
+ *     2R  2305    C   1:0:9:0:0:0 0:0:9:1:0:0
+ *
+ * where:
+ *
+ *   - col1: reference contig/chromosome
+ *   - col2: position within the reference contig/chromosome
+ *   - col3: reference character (base)
+ *   - col4: allele frequencies of population number 1
+ *   - col5: allele frequencies of population number 2
+ *   - coln: allele frequencies of population number n
+ *
+ * The allele frequencies are in the format `A:T:C:G:N:D`, i.e: count of bases `A`,
+ * count of bases `T`, etc, and deletion count in the end (character '*' in the mpileup).
+ *
+ * See https://sourceforge.net/p/popoolation2/wiki/Tutorial/ for the original format description.
+ * Unfortunately, the file format does not support sample names.
  *
  * Note on our internal data representation: The reader returns a Variant per line, where most of
  * the data is set based on the sync input content. However, the sync format does not have altnative

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -101,7 +101,7 @@ private:
         // Lazy loading. Needed in case we want to write in parallel to many files - having all
         // open when creating the output targets might overflow the file pointers.
         if( !stream_ || !stream_->good() ) {
-            // Although we are in untils namespace here, we specify the namespace full,
+            // Although we are in utils namespace here already, we specify the namespace full,
             // in order to avoid ambiguous overload when compiled with C++17.
             stream_ = genesis::utils::make_unique<GzipOStream>(
                 output_target_->ostream(), compression_level_

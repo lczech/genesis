@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -177,27 +177,36 @@ public:
     }
 
     /**
-     * @brief Return whether currently this plugin replaces spaces with underscores.
+     * @brief Return whether currently this plugin replaces characters that are invalid in the
+     * Newick file format with underscores.
      *
-     * See the setter replace_name_spaces( bool ) for details.
+     * See the setter replace_invalid_chars( bool ) for details.
      */
-    bool replace_name_spaces() const
+    bool replace_invalid_chars() const
     {
-        return replace_name_spaces_;
+        return replace_invalid_chars_;
     }
 
     /**
-     * @brief Set whether to replace all spaces (' ') in names with underscores ('_').
+     * @brief Set whether to replace all characters that are invalid in the
+     * Newick file format in names with underscores ('_').
      *
-     * This is the reverse of CommonTreeNewickReaderPlugin::replace_name_underscores().
-     * It is activated by default, as it does no harm on already existing underscores.
-     * However, as spaces cannot be part of names in Newick, if it is deactivated (set to `false`),
-     * all names that contain spaces are instead wrapped in quotation marks by the NewickWriter,
-     * see NewickWriter::quotation_marks( std::string const& ) for details.
+     * This is the reverse of CommonTreeNewickReaderPlugin::replace_name_underscores(),
+     * in that it replaces spaces with underscores,
+     * but also handles other invalid characters `:;()[],={}"` that cannot be used in Newick labels,
+     * see http://evolution.genetics.washington.edu/phylip/newicktree.html.
+     * See also NewickWriter for similar options.
+     *
+     * It is activated by default, as this makes sure that other software can handle the names.
+     * However, as these characters cannot be part of names in Newick, if it is deactivated
+     * (set to `false`), all names that contain any of these characters are instead wrapped in
+     * quotation marks by the NewickWriter, see NewickWriter::quotation_marks( std::string const& )
+     * for details. This does not work well with many other tools which cannot read these quoted
+     * names; we hence recommend to keept it at default, and replace all invalid characters.
      */
-    self_type& replace_name_spaces( bool value )
+    self_type& replace_invalid_chars( bool value )
     {
-        replace_name_spaces_ = value;
+        replace_invalid_chars_ = value;
         return *this;
     }
 
@@ -268,8 +277,14 @@ public:
             std::string name = node.data<CommonNodeData>().name;
 
             // Handle spaces/underscores.
-            if( replace_name_spaces_ ) {
-                name = utils::replace_all(name, " ", "_");
+            if( replace_invalid_chars_ ) {
+                static const std::string invalids( " :;()[],={}\"" );
+                for( auto& c : name ) {
+                    if( invalids.find(c) != std::string::npos ) {
+                        c = '_';
+                    }
+                }
+                // name = utils::replace_all(name, " ", "_");
             }
 
             // Filter out default names if needed.
@@ -323,8 +338,8 @@ private:
     std::string default_inner_name_ = "Inner_Node";
     std::string default_root_name_  = "Root_Node";
 
-    bool        use_default_names_   = false;
-    bool        replace_name_spaces_ = true;
+    bool        use_default_names_     = false;
+    bool        replace_invalid_chars_ = true;
 
     bool enable_names_          = true;
     bool enable_branch_lengths_ = true;

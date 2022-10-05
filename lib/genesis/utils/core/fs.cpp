@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,8 +32,8 @@
 
 #include <cassert>
 #include <cctype>
+#include <cerrno>
 #include <dirent.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <fstream>
 #include <functional>
@@ -44,9 +44,16 @@
 #include <stdexcept>
 #include <stdlib.h>
 #include <streambuf>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <utility>
+
+#if defined(_WIN32) || defined(_WIN64)
+   #include <io.h>
+   #include <fileapi.h>
+   #define access _access_s
+#else
+   #include <unistd.h>
+   #include <sys/stat.h>
+#endif
 
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/io/gzip.hpp"
@@ -66,38 +73,70 @@ namespace utils {
 
 bool path_exists( std::string const& path )
 {
-    struct stat info;
-    return ( stat( path.c_str(), &info ) == 0 );
+    #if defined(_WIN32) || defined(_WIN64)
+        // https://stackoverflow.com/a/25450408/4184258
+        // https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileattributesa
+        auto const lpath = "\\\\?\\" + path;
+        return GetFileAttributesW( lpath.c_str() ) != INVALID_FILE_ATTRIBUTES;
+
+        // https://stackoverflow.com/a/28132053/4184258 - limited to 260 chars
+        // return 0 != PathFileExists( path.c_str() );
+    #else
+        struct stat info;
+        return ( stat( path.c_str(), &info ) == 0 );
+    #endif
 }
 
 bool is_file( std::string const& path )
 {
-    return file_exists( path );
+    return file_is_readable( path );
 }
 
 bool file_exists( std::string const& filename )
 {
-    // There are plenty of discussions on stackoverflow on how to do this correctly,
-    // e.g., https://stackoverflow.com/a/12774387
-    // None of them worked for me, meaning that they also returned true for directories.
-    // Thus, we use a simple approach that does a basic check, and then also tests for dir...
+    // There are plenty of discussions on stackoverflow on how to do this correctly, e.g.,
+    // https://stackoverflow.com/a/12774387, but there seems to be no good / portable / reliable
+    // way to check that a file exists, but is for example not a directory.
+    // None of them really worked for me here, meaning that they also returned true for directories.
 
-    std::ifstream instream(filename);
-    instream.seekg( 0, std::ios::end);
-    return instream.good() && ! is_dir( filename );
+    // Thus, we re-use the file readablility check here, which also makes sure that the file
+    // can actually be opened (i.e., we have access rights, and we don't have too many file handles
+    // open simultaneously).
+    return file_is_readable( filename );
+}
+
+bool file_is_readable( std::string const& filename )
+{
+    std::string err_str;
+    return file_is_readable( filename, err_str );
+}
+
+bool file_is_readable( std::string const& filename, std::string& err_str )
+{
+    errno = 0;
+    std::ifstream instream( filename );
+    instream.seekg( 0, std::ios::end );
+    auto const result = instream.good() && ! is_dir( filename );
+    if( ! result ) {
+        err_str = std::string( strerror( errno ));
+    }
+    return result;
 }
 
 std::string file_read( std::string const& filename, bool detect_compression )
 {
     // Create string beforehand to enable copy elision.
     std::string str;
+    errno = 0;
 
     if( detect_compression && is_gzip_compressed_file( filename )) {
 
         // Open decompressing stream
         GzipIFStream instream( filename );
         if( !instream.good() ) {
-            throw std::runtime_error( "Cannot read from file '" + filename + "'." );
+            throw std::runtime_error(
+                "Cannot read from file '" + filename + "': " + std::string( strerror( errno ))
+            );
         }
 
         // Can't assess file size for compressed files, so just read.
@@ -111,7 +150,9 @@ std::string file_read( std::string const& filename, bool detect_compression )
     // Open normal stream
     std::ifstream instream(filename);
     if( !instream.good() ) {
-        throw std::runtime_error( "Cannot read from file '" + filename + "'." );
+        throw std::runtime_error(
+            "Cannot read from file '" + filename + "': " + std::string( strerror( errno ))
+        );
     }
 
     // Get file size, so that we do not waste time and space for string concats.
@@ -155,9 +196,12 @@ void file_append( std::string const& content, std::string const& filename, bool 
         dir_create( path );
     }
 
+    errno = 0;
     std::ofstream out_stream( filename, std::ofstream::app );
     if( out_stream.fail() ) {
-        throw std::runtime_error( "Cannot append to file '" + filename + "'." );
+        throw std::runtime_error(
+            "Cannot append to file '" + filename + "': " + std::string( strerror( errno ))
+        );
     }
     out_stream << content;
 }
@@ -208,12 +252,17 @@ void dir_create( std::string const& path, bool with_parents )
     }
 
     // Try to make dir.
-    if( stat (path.c_str(), &info) != 0 ) {
+    errno = 0;
+    if( stat( path.c_str(), &info ) != 0 ) {
         if( mkdir( path.c_str(), mode ) != 0 && errno != EEXIST ) {
-            throw std::runtime_error( "Cannot create directory: " + path );
+            throw std::runtime_error(
+                "Cannot create directory '" + path + "': " + std::string( strerror( errno ))
+            );
         }
-    } else if( !S_ISDIR(info.st_mode) ) {
-        throw std::runtime_error( "Path exists, but is not a directory: " + path );
+    } else if( !S_ISDIR( info.st_mode )) {
+        throw std::runtime_error(
+            "Cannot create directory '" + path + "': Path already exists, but is not a directory"
+        );
     }
 }
 
@@ -235,10 +284,13 @@ static std::vector<std::string> dir_list_contents_(
     DIR*           dp;
     struct dirent* dirp;
 
-    if( ( dp  = opendir( dir.c_str() )) == nullptr) {
-        throw std::runtime_error( "Cannot open directory '" + dir + "'." );
+    errno = 0;
+    if(( dp  = opendir( dir.c_str() )) == nullptr ) {
+        throw std::runtime_error(
+            "Cannot open directory '" + dir + "': " + std::string( strerror( errno ))
+        );
     }
-    while ((dirp = readdir(dp)) != nullptr) {
+    while(( dirp = readdir(dp) ) != nullptr ) {
         auto const fn = std::string( dirp->d_name );
 
         if (fn == "." || fn == "..") {
@@ -279,8 +331,16 @@ std::vector<std::string> dir_list_files(
     bool full_path,
     std::string const& regex
 ) {
+    // We use file_is_readable() here, which kinda limits us to readable files only;
+    // but that should be fine, we are probably not interested in others anyway.
+    // And that was also the implicity behaviour for when we used the now defunct is_file()
+    // here instead... just not documented.
+    auto is_file_ = []( std::string const& file_name ){
+        return file_is_readable( file_name );
+    };
+
     return dir_list_contents_(
-        dir, full_path, regex, is_file
+        dir, full_path, regex, is_file_
     );
 }
 
@@ -313,14 +373,14 @@ static std::string current_path_getcwd_()
     int error = errno;
     switch( error ) {
         case EACCES:
-            throw std::runtime_error( "Cannot read current directory. Access denied." );
+            throw std::runtime_error( "Cannot read current directory: Access denied." );
 
         case ENOMEM:
-            throw std::runtime_error( "Cannot read current directory. Insufficient storage." );
+            throw std::runtime_error( "Cannot read current directory: Insufficient storage." );
 
         default: {
             std::ostringstream str;
-            str << "Cannot read current directory. Unrecognised error: " << error;
+            str << "Cannot read current directory: " << std::string( strerror( errno ));
             throw std::runtime_error( str.str() );
         }
     }
@@ -336,22 +396,29 @@ static std::string current_path_unix_()
 
     std::string path;
     typedef std::pair<dev_t, ino_t> file_id;
+    errno = 0;
 
     // Keep track of start directory, so can jump back to it later
     int start_fd = open(".", O_RDONLY);
     if( start_fd == -1 ) {
-        throw std::runtime_error( "Cannot read current directory." );
+        throw std::runtime_error(
+            "Cannot read current directory: " + std::string( strerror( errno ))
+        );
     }
 
     struct stat sb;
     if( fstat(start_fd, &sb) ) {
-        throw std::runtime_error( "Cannot read current directory." );
+        throw std::runtime_error(
+            "Cannot read current directory: " + std::string( strerror( errno ))
+        );
     }
 
     // Get info for root directory, so we can determine when we hit it
     file_id current_id(sb.st_dev, sb.st_ino);
     if( stat( "/", &sb )) {
-        throw std::runtime_error( "Cannot read current directory." );
+        throw std::runtime_error(
+            "Cannot read current directory: " + std::string( strerror( errno ))
+        );
     }
 
     std::vector<std::string> path_components;
@@ -409,11 +476,23 @@ static std::string current_path_unix_()
             path += *i + "/";
         }
     } else {
-        throw std::runtime_error( "Cannot read current directory." );
+        if( errno ) {
+            throw std::runtime_error(
+                "Cannot read current directory: " + std::string( strerror( errno ))
+            );
+        } else {
+            throw std::runtime_error( "Cannot read current directory." );
+        }
     }
 
     if( fchdir(start_fd) ) {
-        throw std::runtime_error( "Cannot change directory." );
+        if( errno ) {
+            throw std::runtime_error(
+                "Cannot change directory: " + std::string( strerror( errno ))
+            );
+        } else {
+            throw std::runtime_error( "Cannot change directory." );
+        }
     }
     close(start_fd);
 
@@ -462,14 +541,19 @@ static void relative_dir_base_split_( std::string const& path, std::string& dir,
 static std::string chdir_getcwd_( std::string const& dir )
 {
     // Open current directory so we can save a handle to it
+    errno = 0;
     int start_fd = open(".", O_RDONLY);
     if (start_fd == -1) {
-        throw std::runtime_error( "Cannot open current directory." );
+        throw std::runtime_error(
+            "Cannot open current directory: " + std::string( strerror( errno ))
+        );
     }
 
     // Change to directory
     if( chdir(dir.c_str()) ) {
-        throw std::runtime_error( "Cannot change directory." );
+        throw std::runtime_error(
+            "Cannot change directory: " + std::string( strerror( errno ))
+        );
     }
 
     // And get its path
@@ -477,7 +561,9 @@ static std::string chdir_getcwd_( std::string const& dir )
 
     // And change back of course
     if( fchdir(start_fd) ) {
-        throw std::runtime_error( "Cannot change directory." );
+        throw std::runtime_error(
+            "Cannot change directory: " + std::string( strerror( errno ))
+        );
     }
     close(start_fd);
 
@@ -594,9 +680,12 @@ static std::string real_path_unix_( std::string const& path, bool resolve_link )
         return path;
     }
 
+    errno = 0;
     struct stat sb;
     if( stat(path.c_str(), &sb) ) {
-        throw std::runtime_error( "Cannot read path." );
+        throw std::runtime_error(
+            "Cannot read path '" + path + "': " + std::string( strerror( errno ))
+        );
     }
 
     if( S_ISDIR( sb.st_mode )) {
@@ -605,7 +694,10 @@ static std::string real_path_unix_( std::string const& path, bool resolve_link )
         if( resolve_link ) {
             std::string result;
             if( ! symlink_resolve_( path, result ) ) {
-                throw std::runtime_error( "Cannot determine real path." );
+                throw std::runtime_error(
+                    "Cannot determine real path to '" + path + "': " +
+                    std::string( strerror( errno ))
+                );
             }
             return result;
         } else {
@@ -629,7 +721,9 @@ static std::string real_path_realpath_( std::string const& path, bool resolve_li
     char resolved_path[PATH_MAX];
     auto ptr = realpath( path.c_str(), resolved_path );
     if( errno != 0 ) {
-        throw std::runtime_error( "Cannot determine real path." );
+        throw std::runtime_error(
+            "Cannot determine real path to '" + path + "': " + std::string( strerror( errno ))
+        );
     }
     return std::string( ptr );
 }
@@ -667,8 +761,15 @@ std::unordered_map<std::string, std::string> file_info( std::string const& filen
 
 size_t file_size( std::string const& filename )
 {
+    errno = 0;
     auto result = filename;
     std::ifstream in(result, std::ifstream::ate | std::ifstream::binary);
+    if( !in.good() ) {
+        throw std::runtime_error(
+            "Cannot determine file size of file '" + filename + "': " +
+            std::string( strerror( errno ))
+        );
+    }
     return static_cast<size_t>(in.tellg());
 }
 
@@ -776,8 +877,9 @@ std::string sanitize_filename( std::string const& filename )
     result = trim( result );
     result = replace_all_chars( result, "<>:\"\\/|?*", '_' );
 
+    // Everything was deleted. WTF?!
     if( result == "" ) {
-        throw std::runtime_error( "Invalid filename." );
+        throw std::runtime_error( "Invalid filename '" + filename + "'" );
     }
 
     return result;

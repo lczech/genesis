@@ -54,34 +54,39 @@ namespace population {
 struct BaseCounts
 {
     /**
+     * @brief Public alias for the size type that the class uses to store its counts.
+     */
+    using size_type = size_t;
+
+    /**
      * @brief Count of all `A` nucleotides that are present in the sample.
      */
-    size_t a_count = 0;
+    size_type a_count = 0;
 
     /**
      * @brief Count of all `C` nucleotides that are present in the sample.
      */
-    size_t c_count = 0;
+    size_type c_count = 0;
 
     /**
      * @brief Count of all `G` nucleotides that are present in the sample.
      */
-    size_t g_count = 0;
+    size_type g_count = 0;
 
     /**
      * @brief Count of all `T` nucleotides that are present in the sample.
      */
-    size_t t_count = 0;
+    size_type t_count = 0;
 
     /**
      * @brief Count of all `N` (undetermined/any) nucleotides that are present in the sample.
      */
-    size_t n_count = 0;
+    size_type n_count = 0;
 
     /**
      * @brief Count of all deleted (`*`) nucleotides that are present in the sample.
      */
-    size_t d_count = 0;
+    size_type d_count = 0;
 
     /**
      * @brief Reset all counts to 0.

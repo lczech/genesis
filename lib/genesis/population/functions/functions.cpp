@@ -100,7 +100,7 @@ BaseCountsStatus status(
 //     Counts
 // =================================================================================================
 
-size_t get_base_count( BaseCounts const& bc, char base )
+BaseCounts::size_type get_base_count( BaseCounts const& bc, char base )
 {
     switch( base ) {
         case 'a':
@@ -134,6 +134,50 @@ size_t get_base_count( BaseCounts const& bc, char base )
     throw std::runtime_error(
         "Invalid base character " + utils::char_to_hex( base )
     );
+}
+
+void set_base_count( BaseCounts& bc, char base, BaseCounts::size_type value )
+{
+    switch( base ) {
+        case 'a':
+        case 'A': {
+            bc.a_count = value;
+            break;
+        }
+        case 'c':
+        case 'C': {
+            bc.c_count = value;
+            break;
+        }
+        case 'g':
+        case 'G': {
+            bc.g_count = value;
+            break;
+        }
+        case 't':
+        case 'T': {
+            bc.t_count = value;
+            break;
+        }
+        case 'n':
+        case 'N': {
+            bc.n_count = value;
+            break;
+        }
+        case 'd':
+        case 'D':
+        case '*':
+        case '.':
+        case '#': {
+            bc.d_count = value;
+            break;
+        }
+        default: {
+            throw std::runtime_error(
+                "Invalid base character " + utils::char_to_hex( base )
+            );
+        }
+    }
 }
 
 BaseCounts total_base_counts( Variant const& variant )

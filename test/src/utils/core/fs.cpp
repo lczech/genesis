@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -35,6 +35,19 @@
 #include <string>
 
 using namespace genesis::utils;
+
+TEST( FileSystem, FileExists )
+{
+    // Skip test if no data directory availabe.
+    NEEDS_TEST_DATA;
+
+    // Test existing and non-existing files.
+    EXPECT_TRUE( is_file( environment->data_dir + "utils/csv/table.csv" ));
+    EXPECT_FALSE( is_file( "/road/to/nowhere" ));
+
+    // Test existing directory. Should be false, but no throw.
+    EXPECT_FALSE( is_file( environment->data_dir + "utils/csv/" ));
+}
 
 TEST( FileSystem, DirCreate )
 {

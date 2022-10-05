@@ -170,7 +170,7 @@ public:
      * stays stable. See BaseIterator below for the class that needs to be derived from to implement
      * the actual window iteration code.
      */
-    class Iterator
+    class Iterator final
     {
     public:
 
@@ -361,7 +361,7 @@ protected:
 
     protected:
 
-        // BaseIterator() = default;
+        BaseIterator() = default;
 
         /**
          * @brief Construct the base class, which does initialization checks on its member
@@ -374,7 +374,7 @@ protected:
 
     public:
 
-        ~BaseIterator() = default;
+        virtual ~BaseIterator() = default;
 
         BaseIterator( self_type const& ) = default;
         BaseIterator( self_type&& )      = default;
@@ -485,7 +485,7 @@ public:
         , end_(end)
     {}
 
-    ~BaseWindowIterator() = default;
+    virtual ~BaseWindowIterator() = default;
 
     BaseWindowIterator( BaseWindowIterator const& ) = default;
     BaseWindowIterator( BaseWindowIterator&& )      = default;

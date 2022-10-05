@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not,  see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab,  Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35,  D-69118 Heidelberg,  Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -39,6 +39,36 @@
 
 namespace genesis {
 namespace utils {
+
+// =================================================================================================
+//     Fast Randomness
+// =================================================================================================
+
+// Implementation from https://en.wikipedia.org/wiki/Permuted_congruential_generator#Example_code
+
+static uint64_t       pcg32_state      = 0x4d595df4d0f33173;   // Or something seed-dependent
+static uint64_t const pcg32_multiplier = 6364136223846793005u;
+static uint64_t const pcg32_increment  = 1442695040888963407u; // Or an arbitrary odd constant
+
+static inline uint32_t pcg32_rotr32( uint32_t x, unsigned int r )
+{
+	return x >> r | x << (-r & 31);
+}
+
+uint32_t permuted_congruential_generator()
+{
+	uint64_t x = pcg32_state;
+	auto count = static_cast<unsigned int>( x >> 59 ); // 59 = 64 - 5
+
+	pcg32_state = x * pcg32_multiplier + pcg32_increment;
+	x ^= x >> 18; // 18 = (64 - 27)/2
+	return pcg32_rotr32( static_cast<uint32_t>( x >> 27 ), count ); // 27 = 32 - 5
+}
+
+void permuted_congruential_generator_init( uint64_t seed )
+{
+	pcg32_state = seed + pcg32_increment;
+}
 
 // ================================================================================================
 //     Sampling

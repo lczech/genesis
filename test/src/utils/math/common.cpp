@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -135,4 +135,21 @@ TEST( Math, LogFactorial )
         EXPECT_FLOAT_EQ( cur, log_factorial( i ));
         prev = cur;
     }
+}
+
+TEST( Math, AlmostEqualRelative )
+{
+    EXPECT_TRUE( almost_equal_relative( 1.0, 1.0 ));
+    EXPECT_TRUE( almost_equal_relative( 1.0, 1.0, 1.0 ));
+
+    EXPECT_FALSE( almost_equal_relative( 1.0, 1.1, 0.05 ));
+    EXPECT_FALSE( almost_equal_relative( 1.0, 1.1, 0.09 ));
+    EXPECT_TRUE(  almost_equal_relative( 1.0, 1.1, 0.10 ));
+    EXPECT_TRUE(  almost_equal_relative( 1.0, 1.1, 0.11 ));
+
+    EXPECT_FALSE( almost_equal_relative( 1.0, 2.0 ));
+    EXPECT_FALSE( almost_equal_relative( 1.0, 2.0, 0.49 ));
+    EXPECT_TRUE(  almost_equal_relative( 1.0, 2.0, 0.50 ));
+    EXPECT_TRUE(  almost_equal_relative( 1.0, 2.0, 0.51 ));
+    EXPECT_TRUE(  almost_equal_relative( 1.0, 2.0, 1.00 ));
 }

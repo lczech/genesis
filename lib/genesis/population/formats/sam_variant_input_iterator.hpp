@@ -35,6 +35,7 @@
 
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/functions/genome_locus.hpp"
+#include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/population/variant.hpp"
@@ -376,8 +377,11 @@ public:
         // Better error messaging that what htslib would give us if the file did not exist.
         // We check here, as input_file() allows to change the file after construction,
         // so we only do the check once we know that we are good to go.
-        if( ! utils::is_file( input_file_ )) {
-            throw std::runtime_error( "Input sam/bam/cram file not found: " + input_file_ );
+        std::string err_str;
+        if( ! utils::file_is_readable( input_file_, err_str )) {
+            throw std::runtime_error(
+                "Cannot open input sam/bam/cram file '" + input_file_ + "': " + err_str
+            );
         }
 
         return Iterator( this );
@@ -527,6 +531,24 @@ public:
     self_type& flags_exclude_any( uint32_t value )
     {
         flags_exclude_any_ = value;
+        return *this;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Region Filter
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Set a region filter, so that only loci set in the @p loci are used,
+     * and all others are skipped.
+     *
+     * This still needs some basic processing per position, as we are currently not using the
+     * htslib internal filters, but apply it afterwards. Still, this skips the base counting,
+     * so it is an advantage over filtering later on.
+     */
+    self_type& region_filter( std::shared_ptr<GenomeLocusSet> region_filter )
+    {
+        region_filter_ = region_filter;
         return *this;
     }
 
@@ -745,6 +767,9 @@ private:
     uint32_t flags_include_any_ = 0;
     uint32_t flags_exclude_all_ = 0;
     uint32_t flags_exclude_any_ = 0;
+
+    // Filter for which positions to consider or skip
+    std::shared_ptr<GenomeLocusSet> region_filter_;
 
     // Minimum mapping and base qualities
     int min_map_qual_ = 0;
