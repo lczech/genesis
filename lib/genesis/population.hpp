@@ -35,6 +35,7 @@
 
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/formats/bed_reader.hpp"
+#include "genesis/population/formats/frequency_table_input_iterator.hpp"
 #include "genesis/population/formats/genome_region_reader.hpp"
 #include "genesis/population/formats/gff_reader.hpp"
 #include "genesis/population/formats/hts_file.hpp"
@@ -70,6 +71,7 @@
 #include "genesis/population/window/af_spectrum.hpp"
 #include "genesis/population/window/base_window_iterator.hpp"
 #include "genesis/population/window/functions.hpp"
+#include "genesis/population/window/region_window_iterator.hpp"
 #include "genesis/population/window/sliding_interval_window_iterator.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/vcf_window.hpp"
