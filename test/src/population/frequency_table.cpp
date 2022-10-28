@@ -58,7 +58,20 @@ TEST( FrequencyTableInputIterator, Read )
     // }
     // EXPECT_EQ( exp_names, beg.sample_names() );
 
-    auto it = make_variant_input_iterator_from_frequency_table_file( infile );
+    // Test custom header field names.
+    auto reader = FrequencyTableInputIterator();
+    reader.header_chromosome_string( "chr" );
+    reader.header_position_string( "pos" );
+    reader.header_reference_base_string( "ref" );
+    reader.header_alternative_base_string( "alt" );
+
+    // Our example table contains different types of header field styles,
+    // so we cannot cover all of them here.
+    // reader.header_sample_reference_count_substring( "refcnt" );
+    // reader.header_sample_alternative_count_substring( "altcount" );
+    // reader.header_sample_frequency_substring( ".freq" );
+    // reader.header_sample_coverage_substring( "coverage-" );
+    auto it = make_variant_input_iterator_from_frequency_table_file( infile, '\t', reader );
     for( auto const& var : it ) {
         variants.emplace_back( var );
     }

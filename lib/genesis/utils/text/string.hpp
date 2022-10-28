@@ -70,15 +70,32 @@ bool equals_ci( std::string const& lhs, std::string const& rhs );
 bool equals_ci_alnum( std::string const& lhs, std::string const& rhs );
 
 /**
- * @brief Return whether a string starts with another string, i.e., check for a prefix.
+ * @brief Return whether a string starts with another string, i.e., check for a @p prefix.
  */
 bool starts_with( std::string const& text, std::string const& prefix );
 
 /**
- * @brief Return whether a string starts with another string, i.e., check for a prefix,
+ * @brief Return whether a string starts with another string, i.e., check for a @p prefix.
+ *
+ * This version of the function then stores the @p suffix of the matched @p text,
+ * containing all remaining characters that did not match the @p prefix pattern.
+ * If there is no match, the @p suffix is left unchanged.
+ */
+bool starts_with( std::string const& text, std::string const& prefix, std::string& suffix );
+
+/**
+ * @brief Return whether a string starts with another string, i.e., check for a @p prefix,
  * case insensitive.
  */
 bool starts_with_ci( std::string const& text, std::string const& prefix );
+
+/**
+ * @brief Return whether a string starts with another string, i.e., check for a @p prefix,
+ * case insensitive.
+ *
+ * @copydetails starts_with( std::string const&, std::string const&, std::string& )
+ */
+bool starts_with_ci( std::string const& text, std::string const& prefix, std::string& suffix );
 
 /**
  * @brief Return whether a string starts with another string (prefix), comparing case-independent,
@@ -92,7 +109,7 @@ bool starts_with_ci_alnum( std::string const& text, std::string const& prefix );
  * @copydoc starts_with_ci_alnum( std::string const& , std::string const& )
  *
  * This version of the function then stores the @p suffix of the matched @p text,
- * containing all remaining characters that did not match the @p start pattern.
+ * containing all remaining characters that did not match the @p prefix pattern.
  * If there is no match, the @p suffix is left unchanged.
  *
  * If additionally @p trim_suffix is set, all leading non-alphanumerical characters of the
@@ -108,15 +125,32 @@ bool starts_with_ci_alnum(
 );
 
 /**
- * @brief Return whether a string ends with another string, i.e., check for a suffix.
+ * @brief Return whether a string ends with another string, i.e., check for a @p suffix.
  */
 bool ends_with( std::string const& text, std::string const& suffix );
+
+/**
+ * @brief Return whether a string ends with another string, i.e., check for a @p suffix.
+ *
+ * This version of the function then stores the @p prefix of the matched @p text,
+ * containing all leading characters that did not match the @p suffix pattern.
+ * If there is no match, the @p prefix is left unchanged.
+ */
+bool ends_with( std::string const& text, std::string const& suffix, std::string& prefix );
 
 /**
  * @brief Return whether a string ends with another string, i.e., check for a suffix,
  * case insensitive.
  */
 bool ends_with_ci( std::string const& text, std::string const& suffix );
+
+/**
+ * @brief Return whether a string ends with another string, i.e., check for a suffix,
+ * case insensitive.
+ *
+ * @copydetails ends_with( std::string const&, std::string const&, std::string& )
+ */
+bool ends_with_ci( std::string const& text, std::string const& suffix, std::string& prefix );
 
 /**
  * @brief Return whether a string ends with another string (suffix), comparing case-independent,

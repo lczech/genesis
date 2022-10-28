@@ -109,10 +109,30 @@ bool starts_with( std::string const& text, std::string const& prefix )
     return std::equal( prefix.begin(), prefix.end(), text.begin() );
 }
 
+bool starts_with( std::string const& text, std::string const& prefix, std::string& suffix )
+{
+    auto const res = starts_with( text, prefix );
+    if( res ) {
+        assert( prefix.size() <= text.size() );
+        suffix = text.substr( prefix.size() );
+    }
+    return res;
+}
+
 bool starts_with_ci( std::string const& text, std::string const& prefix )
 {
     // Lazy. Could be more optimized for sure, if this ever becomes a bottleneck.
     return starts_with( to_lower( text ), to_lower( prefix ));
+}
+
+bool starts_with_ci( std::string const& text, std::string const& prefix, std::string& suffix )
+{
+    auto const res = starts_with_ci( text, prefix );
+    if( res ) {
+        assert( prefix.size() <= text.size() );
+        suffix = text.substr( prefix.size() );
+    }
+    return res;
 }
 
 bool starts_with_ci_alnum( std::string const& text, std::string const& prefix )
@@ -183,10 +203,30 @@ bool ends_with( std::string const& text, std::string const& suffix )
     return std::equal( suffix.rbegin(), suffix.rend(), text.rbegin() );
 }
 
+bool ends_with( std::string const& text, std::string const& suffix, std::string& prefix )
+{
+    auto const res = ends_with( text, suffix );
+    if( res ) {
+        assert( suffix.size() <= text.size() );
+        prefix = text.substr( 0, text.size() - suffix.size() );
+    }
+    return res;
+}
+
 bool ends_with_ci( std::string const& text, std::string const& suffix )
 {
     // Lazy. Could be more optimized for sure, if this ever becomes a bottleneck.
     return ends_with_ci( to_lower( text ), to_lower( suffix ));
+}
+
+bool ends_with_ci( std::string const& text, std::string const& suffix, std::string& prefix )
+{
+    auto const res = ends_with_ci( text, suffix );
+    if( res ) {
+        assert( suffix.size() <= text.size() );
+        prefix = text.substr( 0, text.size() - suffix.size() );
+    }
+    return res;
 }
 
 bool ends_with_ci_alnum( std::string const& text, std::string const& suffix )

@@ -318,22 +318,36 @@ public:
         //     String Matching Helpers
         // ---------------------------------------------
 
+        bool match_header_field_(
+            std::string const& field,
+            std::string const& user_string,
+            std::vector<std::string> const& predefined_list
+        ) const;
+
         bool match_header_sample_(
             std::string const& field,
-            std::vector<std::string> const& list1,
-            std::vector<std::string> const& list2,
+            std::string const& user_substring,
+            std::vector<std::string> const& predefined_list,
             std::string& samplename
         ) const;
 
         bool match_header_sample_(
             std::string const& field,
-            std::vector<std::string> const& list,
+            std::string const& user_substring,
+            std::vector<std::string> const& predefined_list1,
+            std::vector<std::string> const& predefined_list2,
             std::string& samplename
         ) const;
 
-        bool match_header_sample_partial_(
+        bool match_header_sample_user_partial_(
             std::string const& field,
-            std::string const& prefix,
+            std::string const& substring,
+            std::string& samplename
+        ) const;
+
+        bool match_header_sample_predefined_partial_(
+            std::string const& field,
+            std::string const& substring,
             std::string& samplename
         ) const;
 
@@ -505,6 +519,208 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Header Parsing Settings
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Specify a string that marks the chromosome column in the header.
+     *
+     * By default, this string is empty, and instead we search for the chromosome column
+     * in the header by matching with a list of commonly used strings, such as
+     * `chromosome`, `chr`, or `contig`.
+     *
+     * However, if set to a non-empty string, this string is searched instead in the header, and
+     * the respective column is used for the chromosome information when parsing the table.
+     */
+    self_type& header_chromosome_string( std::string const& str )
+    {
+        usr_chr_name_ = str;
+        return *this;
+    }
+
+    /**
+     * @brief Return the currently set string that marks the chromosome columnn in the header.
+     *
+     * See the setter header_chromosome_string( std::string const& ) for details.
+     */
+    std::string const& header_chromosome_string() const
+    {
+        return usr_chr_name_;
+    }
+
+    /**
+     * @brief Specify a string that marks the position column in the header.
+     *
+     * See the setter header_chromosome_string( std::string const& ) for details;
+     * this setter here however specifies the column for the position within a given chromosome.
+     */
+    self_type& header_position_string( std::string const& str )
+    {
+        usr_pos_name_ = str;
+        return *this;
+    }
+
+    /**
+     * @brief Return the currently set string that marks the position columnn in the header.
+     *
+     * See the setter header_position_string( std::string const& ) for details.
+     */
+    std::string const& header_position_string() const
+    {
+        return usr_pos_name_;
+    }
+
+    /**
+     * @brief Specify a string that marks the reference base column in the header.
+     *
+     * See the setter header_chromosome_string( std::string const& ) for details;
+     * this setter here however specifies the column for the reference base.
+     */
+    self_type& header_reference_base_string( std::string const& str )
+    {
+        usr_ref_name_ = str;
+        return *this;
+    }
+
+    /**
+     * @brief Return the currently set string that marks the reference base columnn in the header.
+     *
+     * See the setter header_reference_base_string( std::string const& ) for details.
+     */
+    std::string const& header_reference_base_string() const
+    {
+        return usr_ref_name_;
+    }
+
+    /**
+     * @brief Specify a string that marks the alternative base column in the header.
+     *
+     * See the setter header_chromosome_string( std::string const& ) for details;
+     * this setter here however specifies the column for the alternative base.
+     */
+    self_type& header_alternative_base_string( std::string const& str )
+    {
+        usr_alt_name_ = str;
+        return *this;
+    }
+
+    /**
+     * @brief Return the currently set string that marks the alternative base columnn in the header.
+     *
+     * See the setter header_alternative_base_string( std::string const& ) for details.
+     */
+    std::string const& header_alternative_base_string() const
+    {
+        return usr_alt_name_;
+    }
+
+    /**
+     * @brief Specify a (sub)string that is the prefix or suffix
+     * for header columns containing the reference base count of a sample.
+     *
+     * By default, this string is empty, and instead we search for the reference base count columns
+     * of samples in the header by matching with a list of commonly used prefixes and suffixes,
+     * such as `ref_cnt` or `reference-base-count`.
+     *
+     * However, if set to a non-empty string, this string is searched instead in the header
+     * as a prefix or suffix, and for every match, the respective column is used as the reference
+     * base count information of a sample when parsing the table. The sample name is then the
+     * remainder of the column name that is left without the prefix or suffix.
+     */
+    self_type& header_sample_reference_count_substring( std::string const& str )
+    {
+        usr_smp_ref_name_ = str;
+        return *this;
+    }
+
+    /**
+     * @brief Return the currently set (sub)string that is the prefix or suffix
+     * for header columns containing the reference base count of a sample.
+     *
+     * See the setter header_sample_reference_count_substring( std::string const& ) for details.
+     */
+    std::string const& header_sample_reference_count_substring() const
+    {
+        return usr_smp_ref_name_;
+    }
+
+    /**
+     * @brief Specify a (sub)string that is the prefix or suffix
+     * for header columns containing the alternative base count of a sample.
+     *
+     * See the setter header_sample_reference_count_substring( std::string const& ) for details;
+     * this setter here however specifies the prefix or suffix for columns containing
+     * the alternative base count of samples.
+     */
+    self_type& header_sample_alternative_count_substring( std::string const& str )
+    {
+        usr_smp_alt_name_ = str;
+        return *this;
+    }
+
+    /**
+     * @brief Return the currently set (sub)string that is the prefix or suffix
+     * for header columns containing the alternative base count of a sample.
+     *
+     * See the setter header_sample_alternative_count_substring( std::string const& ) for details.
+     */
+    std::string const& header_sample_alternative_count_substring() const
+    {
+        return usr_smp_alt_name_;
+    }
+
+    /**
+     * @brief Specify a (sub)string that is the prefix or suffix
+     * for header columns containing the frequency of a sample.
+     *
+     * See the setter header_sample_reference_count_substring( std::string const& ) for details;
+     * this setter here however specifies the prefix or suffix for columns containing
+     * the frequency of samples.
+     */
+    self_type& header_sample_frequency_substring( std::string const& str )
+    {
+        usr_smp_frq_name_ = str;
+        return *this;
+    }
+
+    /**
+     * @brief Return the currently set (sub)string that is the prefix or suffix
+     * for header columns containing the frequency of a sample.
+     *
+     * See the setter header_sample_frequency_substring( std::string const& ) for details.
+     */
+    std::string const& header_sample_frequency_substring() const
+    {
+        return usr_smp_frq_name_;
+    }
+
+    /**
+     * @brief Specify a (sub)string that is the prefix or suffix
+     * for header columns containing the coverage of a sample (that is,
+     * the sum of reference and alternative base counts).
+     *
+     * See the setter header_sample_reference_count_substring( std::string const& ) for details;
+     * this setter here however specifies the prefix or suffix for columns containing
+     * the coverage of samples.
+     */
+    self_type& header_sample_coverage_substring( std::string const& str )
+    {
+        usr_smp_cov_name_ = str;
+        return *this;
+    }
+
+    /**
+     * @brief Return the currently set (sub)string that is the prefix or suffix
+     * for header columns containing the coverage of a sample.
+     *
+     * See the setter header_sample_coverage_substring( std::string const& ) for details.
+     */
+    std::string const& header_sample_coverage_substring() const
+    {
+        return usr_smp_cov_name_;
+    }
+
+    // -------------------------------------------------------------------------
     //     Settings
     // -------------------------------------------------------------------------
 
@@ -661,9 +877,20 @@ private:
     std::vector<std::string> pos_names_ = { "position", "pos" };
     std::vector<std::string> ref_names_ = { "reference", "referencebase", "ref", "refbase" };
     std::vector<std::string> alt_names_ = { "alternative", "alternativebase", "alt", "altbase" };
-    std::vector<std::string> cnt_names_ = { "count", "cnt" };
-    std::vector<std::string> frq_names_ = { "frequency", "freq", "maf", "af" };
+    std::vector<std::string> cnt_names_ = { "counts", "count", "cnt", "ct" };
+    std::vector<std::string> frq_names_ = { "frequency", "freq", "maf", "af", "allelefrequency" };
     std::vector<std::string> cov_names_ = { "coverage", "cov", "depth", "ad" };
+
+    // User supplied overwrites for the above automatic terms.
+    // If either of them is given, we use those instead of the generic word lists.
+    std::string usr_chr_name_;
+    std::string usr_pos_name_;
+    std::string usr_ref_name_;
+    std::string usr_alt_name_;
+    std::string usr_smp_ref_name_;
+    std::string usr_smp_alt_name_;
+    std::string usr_smp_frq_name_;
+    std::string usr_smp_cov_name_;
 
 };
 

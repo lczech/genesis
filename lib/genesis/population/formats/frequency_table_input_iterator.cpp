@@ -94,9 +94,9 @@ void FrequencyTableInputIterator::Iterator::parse_header_()
     // to be going to be slower.
     for( auto const& field : header_fields ) {
         // Safety.
-        if( ! std::all_of( field.begin(), field.end(), utils::is_graph )) {
+        if( field.empty() || ! std::all_of( field.begin(), field.end(), utils::is_graph )) {
             throw std::runtime_error(
-                "Invalid frequency table with non-graph characters in header."
+                "Invalid frequency table with non-graph characters or empty field in header."
             );
         }
 
@@ -144,7 +144,7 @@ void FrequencyTableInputIterator::Iterator::check_header_fields_(
     }
     if( ! header_info_.has_pos ) {
         throw std::runtime_error(
-            "Invalid frequency table that does not contain a chromosome column"
+            "Invalid frequency table that does not contain a position column"
         );
     }
 
@@ -219,6 +219,9 @@ void FrequencyTableInputIterator::Iterator::parse_header_field_(
     std::string const& field,
     std::unordered_set<std::string>& all_samplenames
 ) {
+    // We already checked before, so just assert here.
+    assert( ! field.empty() );
+
     // We here have some field given from the table header, and want to figure out what it is.
     // We try all our types of fields that are supported by this reader: is it
     //  - the chromosome name or the position in the chromosome
@@ -272,9 +275,13 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_chr_(
     std::string const& field
 ) {
     assert( parent_ );
+    assert( ! field.empty() );
 
-    // Check if we find a matching header name.
-    if( ! utils::contains_ci_alnum( parent_->chr_names_, field )) {
+    // Check if we find a matching header name. Either it matches the user provided header column
+    // name, if that is provided, or it matches any of our predefined names for that column.
+    // We don't actually need to check if the usr_chr_name_ is non-empty, as it only matches the
+    // non-empty field if it also is non-empty. If it doesn't match either, we are done here.
+    if( ! match_header_field_( field, parent_->usr_chr_name_, parent_->chr_names_ )) {
         return 0;
     }
 
@@ -322,7 +329,8 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_pos_(
     // Only difference is the parsing function in the processor lambda.
 
     assert( parent_ );
-    if( ! utils::contains_ci_alnum( parent_->pos_names_, field )) {
+    assert( ! field.empty() );
+    if( ! match_header_field_( field, parent_->usr_pos_name_, parent_->pos_names_ )) {
         return 0;
     }
     if( header_info_.has_pos ) {
@@ -355,7 +363,8 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_ref_(
     // Only difference is the parsing function in the processor lambda.
 
     assert( parent_ );
-    if( ! utils::contains_ci_alnum( parent_->ref_names_, field )) {
+    assert( ! field.empty() );
+    if( ! match_header_field_( field, parent_->usr_ref_name_, parent_->ref_names_ )) {
         return 0;
     }
     if( header_info_.has_ref ) {
@@ -392,7 +401,8 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_alt_(
     // Only difference is the parsing function in the processor lambda.
 
     assert( parent_ );
-    if( ! utils::contains_ci_alnum( parent_->alt_names_, field )) {
+    assert( ! field.empty() );
+    if( ! match_header_field_( field, parent_->usr_alt_name_, parent_->alt_names_ )) {
         return 0;
     }
     if( header_info_.has_alt ) {
@@ -432,8 +442,11 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_sample_ref_(
 
     // Check if any combination of names fits the fields, and store the remaining sample name.
     assert( parent_ );
+    assert( ! field.empty() );
     std::string samplename;
-    if( ! match_header_sample_( field, parent_->ref_names_, parent_->cnt_names_, samplename )) {
+    if( ! match_header_sample_(
+        field, parent_->usr_smp_ref_name_, parent_->ref_names_, parent_->cnt_names_, samplename
+    )) {
         return 0;
     }
 
@@ -495,8 +508,11 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_sample_alt_(
     // function to use instead... not quite sure if this is better.
 
     assert( parent_ );
+    assert( ! field.empty() );
     std::string samplename;
-    if( ! match_header_sample_( field, parent_->alt_names_, parent_->cnt_names_, samplename )) {
+    if( ! match_header_sample_(
+        field, parent_->usr_smp_alt_name_, parent_->alt_names_, parent_->cnt_names_, samplename
+    )) {
         return 0;
     }
     all_samplenames.insert( samplename );
@@ -536,8 +552,11 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_sample_frq_(
     // to keep it shorter. See there for explanations.
 
     assert( parent_ );
+    assert( ! field.empty() );
     std::string samplename;
-    if( ! match_header_sample_( field, parent_->frq_names_, samplename )) {
+    if( ! match_header_sample_(
+        field, parent_->usr_smp_frq_name_, parent_->frq_names_, samplename
+    )) {
         return 0;
     }
     all_samplenames.insert( samplename );
@@ -577,8 +596,11 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_sample_cov_(
     // to keep it shorter. See there for explanations.
 
     assert( parent_ );
+    assert( ! field.empty() );
     std::string samplename;
-    if( ! match_header_sample_( field, parent_->cov_names_, samplename )) {
+    if( ! match_header_sample_(
+        field, parent_->usr_smp_cov_name_, parent_->cov_names_, samplename
+    )) {
         return 0;
     }
     all_samplenames.insert( samplename );
@@ -648,12 +670,65 @@ bool FrequencyTableInputIterator::Iterator::is_ignored_sample_(
 //     String Matching Helpers
 // -------------------------------------------------------------------------
 
+bool FrequencyTableInputIterator::Iterator::match_header_field_(
+    std::string const& field,
+    std::string const& user_string,
+    std::vector<std::string> const& predefined_list
+) const {
+    // If the user string is not empty, we want to match against it.
+    // Only if it is empty, we want to try to match against the predefined list.
+    // Otherwise, if the user string is provided but does not match, we would still compare
+    // against our predifined strings, hence defying the purpose of a user provided string,
+    // as then the user would not have control over what the exact match should be like any more.
+    assert( ! field.empty() );
+    if( ! user_string.empty() ) {
+        return field == user_string;
+    }
+    return utils::contains_ci_alnum( predefined_list, field );
+}
+
 bool FrequencyTableInputIterator::Iterator::match_header_sample_(
     std::string const& field,
-    std::vector<std::string> const& list1,
-    std::vector<std::string> const& list2,
+    std::string const& user_substring,
+    std::vector<std::string> const& predefined_list,
     std::string& samplename
 ) const {
+    // First try to find an exact match with the prefix or suffix provided by the user.
+    // This needs to be exact in terms of case sensitivity and non-alnum chars.
+    // Same as above, if a user string is provided, we only match against that,
+    // but then don't continue to match against the predifined lists as well.
+    assert( ! field.empty() );
+    if( ! user_substring.empty() ) {
+        return match_header_sample_user_partial_( field, user_substring, samplename );
+    }
+
+    // If that did not work, we try the predefined lists instead:
+    // Try to find the field as a prefix or a suffix in any of the elements of the list.
+    for( auto const& name : predefined_list ) {
+        if( match_header_sample_predefined_partial_( field, name, samplename )) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool FrequencyTableInputIterator::Iterator::match_header_sample_(
+    std::string const& field,
+    std::string const& user_substring,
+    std::vector<std::string> const& predefined_list1,
+    std::vector<std::string> const& predefined_list2,
+    std::string& samplename
+) const {
+    // First try to find an exact match with the prefix or suffix provided by the user.
+    // This needs to be exact in terms of case sensitivity and non-alnum chars.
+    // Same as above, if a user string is provided, we only match against that,
+    // but then don't continue to match against the predifined lists as well.
+    assert( ! field.empty() );
+    if( ! user_substring.empty() ) {
+        return match_header_sample_user_partial_( field, user_substring, samplename );
+    }
+
+    // If that did not work, we try the predefined lists instead:
     // Try to find the field as a prefix or a suffix in any of the elements of the combination
     // of both lists, in any order. This is rather cumbersome, but we only do that for the header
     // line, so it's okay.
@@ -661,14 +736,14 @@ bool FrequencyTableInputIterator::Iterator::match_header_sample_(
     // and then try to find all their pairwise combinations, such as "refcnt" or "countreference"
     // as a prefix or a suffix of the field. If any matches, we take the rest of the field that
     // was not machted as the sample name.
-    for( auto const& name1 : list1 ) {
-        for( auto const& name2 : list2 ) {
+    for( auto const& name1 : predefined_list1 ) {
+        for( auto const& name2 : predefined_list2 ) {
             auto name = name1 + name2;
-            if( match_header_sample_partial_( field, name, samplename )) {
+            if( match_header_sample_predefined_partial_( field, name, samplename )) {
                 return true;
             }
             name = name2 + name1;
-            if( match_header_sample_partial_( field, name, samplename )) {
+            if( match_header_sample_predefined_partial_( field, name, samplename )) {
                 return true;
             }
         }
@@ -676,29 +751,34 @@ bool FrequencyTableInputIterator::Iterator::match_header_sample_(
     return false;
 }
 
-bool FrequencyTableInputIterator::Iterator::match_header_sample_(
+bool FrequencyTableInputIterator::Iterator::match_header_sample_user_partial_(
     std::string const& field,
-    std::vector<std::string> const& list,
+    std::string const& substring,
     std::string& samplename
 ) const {
-    // Try to find the field as a prefix or a suffix in any of the elements of the list.
-    for( auto const& name : list ) {
-        if( match_header_sample_partial_( field, name, samplename )) {
-            return true;
-        }
+    // Check for exact prefix or suffix matches, and also require that there needs to be
+    // a remainder to be used as sample name, i.e., that not the whole substring matches.
+    if( utils::starts_with( field, substring, samplename ) && ! samplename.empty() ) {
+        return true;
+    }
+    if( utils::ends_with( field, substring, samplename ) && ! samplename.empty() ) {
+        return true;
     }
     return false;
 }
 
-bool FrequencyTableInputIterator::Iterator::match_header_sample_partial_(
+bool FrequencyTableInputIterator::Iterator::match_header_sample_predefined_partial_(
     std::string const& field,
-    std::string const& prefix,
+    std::string const& substring,
     std::string& samplename
 ) const {
-    if( utils::starts_with_ci_alnum( field, prefix, samplename, true ) && ! samplename.empty() ) {
+    // Check for case insensitive, and only alnum char, prefix or suffix matches, and also require
+    // that there needs to be a remainder to be used as sample name, i.e., that not the whole
+    // substring matches.
+    if( utils::starts_with_ci_alnum( field, substring, samplename, true ) && ! samplename.empty() ) {
         return true;
     }
-    if( utils::ends_with_ci_alnum( field, prefix, samplename, true ) && ! samplename.empty() ) {
+    if( utils::ends_with_ci_alnum( field, substring, samplename, true ) && ! samplename.empty() ) {
         return true;
     }
     return false;
