@@ -75,8 +75,8 @@ namespace population {
  * @see make_sliding_entries_window_iterator()
  * @see make_default_sliding_entries_window_iterator()
  */
-template<class ForwardIterator, class DataType = typename ForwardIterator::value_type>
-class SlidingEntriesWindowIterator final : public BaseWindowIterator<ForwardIterator, DataType>
+template<class InputIterator, class DataType = typename InputIterator::value_type>
+class SlidingEntriesWindowIterator final : public BaseWindowIterator<InputIterator, DataType>
 {
 public:
 
@@ -84,12 +84,12 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using self_type = SlidingEntriesWindowIterator<ForwardIterator, DataType>;
-    using base_type = BaseWindowIterator<ForwardIterator, DataType>;
+    using self_type = SlidingEntriesWindowIterator<InputIterator, DataType>;
+    using base_type = BaseWindowIterator<InputIterator, DataType>;
 
     using Window            = ::genesis::population::Window<DataType>;
     using Entry             = typename Window::Entry;
-    using InputType         = typename ForwardIterator::value_type;
+    using InputType         = typename InputIterator::value_type;
 
     using iterator_category = std::input_iterator_tag;
     using value_type        = Window;
@@ -104,7 +104,7 @@ public:
     /**
      * @brief Internal iterator that produces Window%s.
      */
-    class DerivedIterator final : public BaseWindowIterator<ForwardIterator, DataType>::BaseIterator
+    class DerivedIterator final : public BaseWindowIterator<InputIterator, DataType>::BaseIterator
     {
     public:
 
@@ -113,16 +113,16 @@ public:
         // -------------------------------------------------------------------------
 
         using self_type = typename SlidingEntriesWindowIterator<
-            ForwardIterator, DataType
+            InputIterator, DataType
         >::DerivedIterator;
 
         using base_iterator_type = typename BaseWindowIterator<
-            ForwardIterator, DataType
+            InputIterator, DataType
         >::BaseIterator;
 
         using Window            = ::genesis::population::Window<DataType>;
         using Entry             = typename Window::Entry;
-        using InputType         = typename ForwardIterator::value_type;
+        using InputType         = typename InputIterator::value_type;
 
         using iterator_category = std::input_iterator_tag;
         using value_type        = Window;
@@ -340,7 +340,7 @@ public:
             return const_cast<value_type&>( window_ );
         }
 
-        BaseWindowIterator<ForwardIterator, DataType> const* get_parent_() const override final
+        BaseWindowIterator<InputIterator, DataType> const* get_parent_() const override final
         {
             return parent_;
         }
@@ -365,7 +365,7 @@ public:
     // -------------------------------------------------------------------------
 
     SlidingEntriesWindowIterator(
-        ForwardIterator begin, ForwardIterator end
+        InputIterator begin, InputIterator end
     )
         : base_type( begin, end )
     {}
@@ -428,7 +428,7 @@ public:
 
 protected:
 
-    std::unique_ptr<typename BaseWindowIterator<ForwardIterator, DataType>::BaseIterator>
+    std::unique_ptr<typename BaseWindowIterator<InputIterator, DataType>::BaseIterator>
     get_begin_iterator_() override final
     {
         // Cannot use make_unique here, as the Iterator constructor is private,
@@ -437,7 +437,7 @@ protected:
         // return utils::make_unique<DerivedIterator>( this );
     }
 
-    std::unique_ptr<typename BaseWindowIterator<ForwardIterator, DataType>::BaseIterator>
+    std::unique_ptr<typename BaseWindowIterator<InputIterator, DataType>::BaseIterator>
     get_end_iterator_() override final
     {
         return std::unique_ptr<DerivedIterator>( new DerivedIterator( nullptr ));
@@ -464,12 +464,12 @@ private:
  * @brief Helper function to instantiate a SlidingEntriesWindowIterator
  * without the need to specify the template parameters manually.
  */
-template<class ForwardIterator, class DataType = typename ForwardIterator::value_type>
-SlidingEntriesWindowIterator<ForwardIterator, DataType>
+template<class InputIterator, class DataType = typename InputIterator::value_type>
+SlidingEntriesWindowIterator<InputIterator, DataType>
 make_sliding_entries_window_iterator(
-    ForwardIterator begin, ForwardIterator end, size_t count = 0, size_t stride = 0
+    InputIterator begin, InputIterator end, size_t count = 0, size_t stride = 0
 ) {
-    auto it = SlidingEntriesWindowIterator<ForwardIterator, DataType>( begin, end );
+    auto it = SlidingEntriesWindowIterator<InputIterator, DataType>( begin, end );
     it.count( count );
     it.stride( stride );
     return it;
@@ -485,15 +485,15 @@ make_sliding_entries_window_iterator(
  * `chromosome_function` and `position_function` functors of the SlidingEntriesWindowIterator.
  * For example, a data type that this works for is Variant data.
  */
-template<class ForwardIterator>
-SlidingEntriesWindowIterator<ForwardIterator>
+template<class InputIterator>
+SlidingEntriesWindowIterator<InputIterator>
 make_default_sliding_entries_window_iterator(
-    ForwardIterator begin, ForwardIterator end, size_t count = 0, size_t stride = 0
+    InputIterator begin, InputIterator end, size_t count = 0, size_t stride = 0
 ) {
-    using DataType = typename ForwardIterator::value_type;
+    using DataType = typename InputIterator::value_type;
 
     // Set functors.
-    auto it = SlidingEntriesWindowIterator<ForwardIterator>( begin, end );
+    auto it = SlidingEntriesWindowIterator<InputIterator>( begin, end );
     it.entry_input_function = []( DataType const& variant ) {
         return variant;
     };

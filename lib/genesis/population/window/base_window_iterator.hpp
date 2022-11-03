@@ -56,7 +56,7 @@ namespace population {
  * This base class serves for sliding windows, windows over regions of a genome, etc.
  *
  * The template parameters are:
- *  * `ForwardIterator`: The type of the underlying iterator over the genome data (that is, the input
+ *  * `InputIterator`: The type of the underlying iterator over the genome data (that is, the input
  *     iterator from which the windows take their data). Needs to have a member type
  *     `value_type` that specifies the actual input type that the iterator produces, which we here
  *     call the `InputType` (and typedef it as that).
@@ -78,7 +78,7 @@ namespace population {
  *
  *     // Make an iterator using some underlying data iterator
  *     // that yields data for one position in the genome at a time.
- *     auto win_it = SlidingIntervalWindowIterator<ForwardIterator>( data_begin, data_end );
+ *     auto win_it = SlidingIntervalWindowIterator<InputIterator>( data_begin, data_end );
  *
  *     // Set functors to access the underlying data.
  *     win_it.entry_input_function = []( DataType const& variant ) {
@@ -102,7 +102,11 @@ namespace population {
  *
  * Other derived classes work accordingly.
  */
-template<class ForwardIterator, class DataType = typename ForwardIterator::value_type>
+template<
+    class InputIterator,
+    class DataType   = typename InputIterator::value_type,
+    class WindowType = typename ::genesis::population::Window<DataType>
+>
 class BaseWindowIterator
 {
 public:
@@ -111,14 +115,11 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using self_type         = BaseWindowIterator<ForwardIterator, DataType>;
-
-    using Window            = ::genesis::population::Window<DataType>;
-    using Entry             = typename Window::Entry;
-    using InputType         = typename ForwardIterator::value_type;
+    using self_type         = BaseWindowIterator<InputIterator, DataType>;
+    using InputType         = typename InputIterator::value_type;
 
     using iterator_category = std::input_iterator_tag;
-    using value_type        = Window;
+    using value_type        = WindowType;
     using pointer           = value_type*;
     using reference         = value_type&;
     using const_reference   = value_type const&;
@@ -178,14 +179,11 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type         = BaseWindowIterator<ForwardIterator, DataType>::Iterator;
-
-        using Window            = ::genesis::population::Window<DataType>;
-        using Entry             = typename Window::Entry;
-        using InputType         = typename ForwardIterator::value_type;
+        using self_type         = typename BaseWindowIterator<InputIterator, DataType>::Iterator;
+        using InputType         = typename InputIterator::value_type;
 
         using iterator_category = std::input_iterator_tag;
-        using value_type        = Window;
+        using value_type        = WindowType;
         using pointer           = value_type*;
         using reference         = value_type&;
         using const_reference   = value_type const&;
@@ -202,11 +200,20 @@ public:
 
         ~Iterator() = default;
 
-        Iterator( self_type const& ) = default;
-        Iterator( self_type&& )      = default;
+        Iterator( self_type const& ) = delete;
+        Iterator( self_type&& other )
+        {
+            pimpl_ = std::move( other.pimpl_ );
+            other.pimpl_ = nullptr;
+        }
 
-        Iterator& operator= ( self_type const& ) = default;
-        Iterator& operator= ( self_type&& )      = default;
+        Iterator& operator= ( self_type const& ) = delete;
+        Iterator& operator= ( self_type&& other )
+        {
+            pimpl_ = std::move( other.pimpl_ );
+            other.pimpl_ = nullptr;
+            return *this;
+        }
 
         friend BaseWindowIterator;
 
@@ -347,14 +354,11 @@ protected:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type         = BaseWindowIterator<ForwardIterator, DataType>::BaseIterator;
-
-        using Window            = ::genesis::population::Window<DataType>;
-        using Entry             = typename Window::Entry;
-        using InputType         = typename ForwardIterator::value_type;
+        using self_type         = typename BaseWindowIterator<InputIterator, DataType>::BaseIterator;
+        using InputType         = typename InputIterator::value_type;
 
         using iterator_category = std::input_iterator_tag;
-        using value_type        = Window;
+        using value_type        = WindowType;
         using pointer           = value_type*;
         using reference         = value_type&;
         using const_reference   = value_type const&;
@@ -376,11 +380,13 @@ protected:
 
         virtual ~BaseIterator() = default;
 
-        BaseIterator( self_type const& ) = default;
-        BaseIterator( self_type&& )      = default;
-
-        BaseIterator& operator= ( self_type const& ) = default;
-        BaseIterator& operator= ( self_type&& )      = default;
+        // Abstract base class. Cannot be defaulted, and there is no need to.
+        // We leave that to the implementations.
+        //
+        // BaseIterator( self_type const& ) = default;
+        // BaseIterator( self_type&& )      = default;
+        // BaseIterator& operator= ( self_type const& ) = default;
+        // BaseIterator& operator= ( self_type&& )      = default;
 
         friend BaseWindowIterator;
         friend Iterator;
@@ -463,8 +469,8 @@ protected:
         bool is_last_window_ = false;
 
         // Underlying iterator
-        ForwardIterator current_;
-        ForwardIterator end_;
+        InputIterator current_;
+        InputIterator end_;
 
     };
 
@@ -478,9 +484,7 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    BaseWindowIterator(
-        ForwardIterator begin, ForwardIterator end
-    )
+    BaseWindowIterator( InputIterator begin, InputIterator end )
         : begin_(begin)
         , end_(end)
     {}
@@ -525,8 +529,8 @@ protected:
 private:
 
     // Underlying iterator to the data that we want to put in windows.
-    ForwardIterator begin_;
-    ForwardIterator end_;
+    InputIterator begin_;
+    InputIterator end_;
 
 };
 
