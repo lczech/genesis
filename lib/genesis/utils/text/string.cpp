@@ -216,7 +216,7 @@ bool ends_with( std::string const& text, std::string const& suffix, std::string&
 bool ends_with_ci( std::string const& text, std::string const& suffix )
 {
     // Lazy. Could be more optimized for sure, if this ever becomes a bottleneck.
-    return ends_with_ci( to_lower( text ), to_lower( suffix ));
+    return ends_with( to_lower( text ), to_lower( suffix ));
 }
 
 bool ends_with_ci( std::string const& text, std::string const& suffix, std::string& prefix )
