@@ -52,7 +52,7 @@ jobs:
       - name: Configure
         run: |
           export GENESIS_DEBUG=ON
-          export GENESIS_USE_OPENMP=OFF
+          export GENESIS_USE_OPENMP=ON
           export GENESIS_USE_HTSLIB=OFF
           if [[ "${{ matrix.build_type }}" == "RELEASE" ]]; then export GENESIS_DEBUG=OFF; fi
 
