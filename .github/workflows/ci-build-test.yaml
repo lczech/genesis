@@ -63,7 +63,8 @@ jobs:
           cmake --build ./build
 
       - name: Unix - Tests
-        if: runner.os != 'Windows'
-        if: matrix.build_type == 'DEBUG'
+        if: >
+          runner.os != 'Windows' &&
+          matrix.build_type == 'DEBUG'
         run: |
           ./bin/test/genesis_tests
