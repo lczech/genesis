@@ -194,7 +194,7 @@ option (GENESIS_USE_HTSLIB          "Use htslib." ON)
 
 # Another additional dependency: samtools
 # We again use a locally installed version, see the htslib setup above for details. Same here.
-option (GENESIS_USE_SAMTOOLS        "Use samtools. Needs to also have htslib activated." ON)
+# option (GENESIS_USE_SAMTOOLS        "Use samtools. Needs to also have htslib activated." ON)
 
 # Define unity build option with list of valid values. Default is full unity build.
 set( GENESIS_UNITY_BUILD FULL CACHE STRING

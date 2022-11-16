@@ -1,0 +1,69 @@
+# ==================================================================================================
+#     Header
+# ==================================================================================================
+
+name: CI: Build & Test
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - misc
+
+# ==================================================================================================
+#     Jobs
+# ==================================================================================================
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+
+    # ==========================================================================
+    #     Matrix
+    # ==========================================================================
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os:
+          - ubuntu-20.04
+        compiler:
+          - llvm
+          - gcc
+        build_type:
+          - RELEASE
+          - DEBUG
+
+    # ==========================================================================
+    #     Setps
+    # ==========================================================================
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup C++
+        uses: aminya/setup-cpp@v0.22.0
+        with:
+          compiler: ${{ matrix.compiler }}
+          cmake: true
+
+      - name: Configure CMake
+        run: |
+          export GENESIS_DEBUG=ON
+          export GENESIS_USE_OPENMP=OFF
+          export GENESIS_USE_HTSLIB=OFF
+          if [[ "${{ matrix.build_type }}" == "RELEASE" ]]; then export GENESIS_DEBUG=OFF; fi
+
+          cmake -S . -B ./build -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} -DGENESIS_USE_HTSLIB=${GENESIS_USE_HTSLIB}
+
+      - name: Build
+        run: |
+          cmake --build ./build
+
+      - name: Unix - Tests
+        if: runner.os != 'Windows'
+        if: matrix.build_type == 'DEBUG'
+        run: |
+          ./bin/test/genesis_tests
