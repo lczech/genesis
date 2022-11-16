@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -166,12 +166,16 @@ TEST( DateTime, ConversionString )
 
 TEST( DateTime, ClangMktimeBug )
 {
+    // The clang bug that we test here apparently is only due to a subtle error
+    // that we had here, see https://stackoverflow.com/a/73143713
+    // This is solved here now, but we keep this test around for regression.
+
     // Pick a date. Coincidentally, we use the one from
     // https://stackoverflow.com/questions/46031765/convert-time-string-to-stdtime-t-using-stdget-time-wrong-result
     std::string const testdate = "2016:07:30 09:27:06";
 
-    // Set up stream and parsing information
-    struct std::tm tm;
+    // Set up stream and parsing information.
+    struct std::tm tm{};
     std::istringstream iss;
     iss.str( testdate );
     iss.imbue( std::locale( "C" ));
