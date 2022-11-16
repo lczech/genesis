@@ -84,7 +84,7 @@ void test_parallel_input_iterator_(
 
         pit.add_variant_input_iterator(
             make_variant_input_iterator_from_sync_file( v_infile ),
-            s_sel
+            v_sel
         );
 
     #endif
