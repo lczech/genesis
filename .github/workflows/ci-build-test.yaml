@@ -49,7 +49,7 @@ jobs:
           compiler: ${{ matrix.compiler }}
           cmake: true
 
-      - name: Configure CMake
+      - name: Configure
         run: |
           export GENESIS_DEBUG=ON
           export GENESIS_USE_OPENMP=OFF

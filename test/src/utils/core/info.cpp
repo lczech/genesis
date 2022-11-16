@@ -56,7 +56,7 @@ TEST( Info, FileCount )
     // Get how many files are open at the moment. That should just be stdin, stdout, stderr.
     // Also, apparently, in the GitHub Actions workflow, there are three more...
     auto const initial_size = info_current_file_count();
-    ASSERT_GE( 3, initial_size );
+    ASSERT_LE( 3, initial_size );
 
     {
         // Prepare an input. We cannot just use our InputStream class,
