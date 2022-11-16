@@ -60,7 +60,7 @@ jobs:
 
       - name: Build
         run: |
-          cmake --build ./build
+          cmake --build ./build -- -j 2
 
       - name: Unix - Tests
         if: >

@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/population/formats/variant_parallel_input_iterator.hpp"
+#include "genesis/population/formats/variant_input_iterator.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/utils/core/algorithm.hpp"
 
