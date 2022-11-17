@@ -29,14 +29,18 @@ jobs:
         os:
           - ubuntu-20.04
         compiler:
-          - llvm
           - gcc
+          - llvm
         build_type:
           - DEBUG
           # - RELEASE
 
         include:
           - os: ubuntu-latest
+            compiler: gcc
+            build_type: RELEASE
+          - os: ubuntu-latest
+            compiler: llvm
             build_type: RELEASE
 
     # ==========================================================================
@@ -56,7 +60,7 @@ jobs:
       - name: Install Dependencies
         if: runner.os == 'linux'
         run: |
-          apt-get install autoconf automake autotools-dev liblzma-dev libbz2-dev
+          sudo apt-get install autoconf liblzma-dev libbz2-dev
 
       - name: Configure
         run: |
