@@ -35,9 +35,9 @@ jobs:
           - DEBUG
           # - RELEASE
 
-      include:
-        - os: ubuntu-latest
-          build_type: RELEASE
+        include:
+          - os: ubuntu-latest
+            build_type: RELEASE
 
     # ==========================================================================
     #     Steps
