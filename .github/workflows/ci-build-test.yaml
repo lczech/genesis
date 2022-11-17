@@ -32,11 +32,15 @@ jobs:
           - llvm
           - gcc
         build_type:
-          - RELEASE
           - DEBUG
+          # - RELEASE
+
+      include:
+        - os: ubuntu-latest
+          build_type: RELEASE
 
     # ==========================================================================
-    #     Setps
+    #     Steps
     # ==========================================================================
 
     steps:
@@ -49,11 +53,16 @@ jobs:
           compiler: ${{ matrix.compiler }}
           cmake: true
 
+      - name: Install Dependencies
+        if: runner.os == 'linux'
+        run: |
+          apt-get install autoconf automake autotools-dev liblzma-dev libbz2-dev
+
       - name: Configure
         run: |
           export GENESIS_DEBUG=ON
           export GENESIS_USE_OPENMP=ON
-          export GENESIS_USE_HTSLIB=OFF
+          export GENESIS_USE_HTSLIB=ON
           if [[ "${{ matrix.build_type }}" == "RELEASE" ]]; then export GENESIS_DEBUG=OFF; fi
 
           cmake -S . -B ./build -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} -DGENESIS_USE_HTSLIB=${GENESIS_USE_HTSLIB}
