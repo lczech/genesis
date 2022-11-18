@@ -7,7 +7,7 @@ on:
   pull_request:
   push:
     branches:
-      - main
+      - master
       - misc
 
 # ==================================================================================================
@@ -29,8 +29,8 @@ jobs:
         os:
           - ubuntu-20.04
         compiler:
-          - gcc
-          - llvm
+          # - gcc
+          - llvm-11
         build_type:
           - DEBUG
           # - RELEASE
