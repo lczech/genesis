@@ -129,9 +129,9 @@ ExternalProject_Add(
 # Set the paths so that those can be included by the targets.
 # We explicitly set the static library here, so that we link against that one.
 set( HTSLIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib )
-set( HTSLIB_INCLUDE_DIR "${HTSLIB_DIR}/include" )
-set( HTSLIB_LINK_DIR    "${HTSLIB_DIR}/lib" )
-set( HTSLIB_LIBRARY     "${HTSLIB_DIR}/lib/libhts.a" )
+set( HTSLIB_INCLUDE_DIR ${HTSLIB_DIR}/include )
+set( HTSLIB_LINK_DIR    ${HTSLIB_DIR}/lib )
+set( HTSLIB_LIBRARY     ${HTSLIB_DIR}/lib/libhts.a )
 
 # Cannot test here for existing files, as those are not yet built when this is called...
 # IF(
