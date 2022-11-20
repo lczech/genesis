@@ -73,6 +73,10 @@ jobs:
 
       - name: Build
         run: |
+          if [[ ! -z "${LLVM_PATH}" ]]; then
+            export LDFLAGS=`echo ${LDFLAGS} | sed 's/"//g'`
+            export CPPFLAGS=`echo ${CPPFLAGS} | sed 's/"//g'`
+          fi
           cmake --build ./build -- -j 2
 
       - name: Unix - Tests
