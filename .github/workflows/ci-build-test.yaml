@@ -27,19 +27,44 @@ jobs:
 
       matrix:
         os:
+          # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
+          - ubuntu-22.04
           - ubuntu-20.04
+          - macos-12
+          - macos-11
         compiler:
-          # - gcc
+          - gcc-5
+          - gcc-6
+          - gcc-7
+          - gcc-8
+          - gcc-9
+          - gcc-10
+          - gcc-11
+          - gcc-12
+          - llvm-5
+          - llvm-6
+          - llvm-7
+          - llvm-8
+          - llvm-9
+          - llvm-10
           - llvm-11
+          - llvm-12
         build_type:
           - DEBUG
           # - RELEASE
 
         include:
+          # Also test release version with both compilers and OSs
           - os: ubuntu-latest
             compiler: gcc
             build_type: RELEASE
           - os: ubuntu-latest
+            compiler: llvm
+            build_type: RELEASE
+          - os: macos-latest
+            compiler: gcc
+            build_type: RELEASE
+          - os: macos-latest
             compiler: llvm
             build_type: RELEASE
 
@@ -64,11 +89,6 @@ jobs:
 
       - name: Configure
         run: |
-          if [[ ! -z "${LLVM_PATH}" ]]; then
-            export LDFLAGS=`echo ${LDFLAGS} | sed 's/"//g'`
-            export CPPFLAGS=`echo ${CPPFLAGS} | sed 's/"//g'`
-          fi
-
           export GENESIS_DEBUG=ON
           export GENESIS_USE_OPENMP=ON
           export GENESIS_USE_HTSLIB=ON
@@ -77,7 +97,14 @@ jobs:
           cmake -S . -B ./build -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} -DGENESIS_USE_HTSLIB=${GENESIS_USE_HTSLIB}
 
       - name: Build
+        # Below we use a workaround for LLVM, see
+        # https://github.com/samtools/htslib/issues/1527 and
+        # https://github.com/aminya/setup-cpp/issues/145
         run: |
+          if [[ ! -z "${LLVM_PATH}" ]]; then
+            export LDFLAGS=`echo ${LDFLAGS} | sed 's/"//g'`
+            export CPPFLAGS=`echo ${CPPFLAGS} | sed 's/"//g'`
+          fi
           cmake --build ./build -- -j 2
 
       - name: Unix - Tests
