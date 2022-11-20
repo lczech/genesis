@@ -33,8 +33,9 @@ jobs:
           - macos-12
           - macos-11
         compiler:
-          - gcc-5
-          - gcc-6
+          # Older GCC versions are not supported by Ubuntu any more
+          # - gcc-5
+          # - gcc-6
           - gcc-7
           - gcc-8
           - gcc-9
@@ -68,6 +69,13 @@ jobs:
             compiler: llvm
             build_type: RELEASE
 
+        exclude:
+            # Older GCC versions are not supported by Ubuntu any more
+          - os: ubuntu-22.04
+            compiler: gcc-
+          - os: ubuntu-22.04
+            compiler: gcc-8
+
     # ==========================================================================
     #     Steps
     # ==========================================================================
@@ -77,6 +85,7 @@ jobs:
         uses: actions/checkout@v3.1.0
 
       - name: Setup C++
+        # https://github.com/marketplace/actions/setup-cpp-c-c
         uses: aminya/setup-cpp@v0.22.0
         with:
           compiler: ${{ matrix.compiler }}
@@ -85,7 +94,7 @@ jobs:
       - name: Install Dependencies
         if: runner.os == 'linux'
         run: |
-          sudo apt-get install autoconf liblzma-dev libbz2-dev
+          sudo apt-get install autoconf2.64 liblzma-dev libbz2-dev
 
       - name: Configure
         run: |
