@@ -64,6 +64,11 @@ jobs:
 
       - name: Configure
         run: |
+          if [[ ! -z "${LLVM_PATH}" ]]; then
+            export LDFLAGS=`echo ${LDFLAGS} | sed 's/"//g'`
+            export CPPFLAGS=`echo ${CPPFLAGS} | sed 's/"//g'`
+          fi
+
           export GENESIS_DEBUG=ON
           export GENESIS_USE_OPENMP=ON
           export GENESIS_USE_HTSLIB=ON
@@ -73,10 +78,6 @@ jobs:
 
       - name: Build
         run: |
-          if [[ ! -z "${LLVM_PATH}" ]]; then
-            export LDFLAGS=`echo ${LDFLAGS} | sed 's/"//g'`
-            export CPPFLAGS=`echo ${CPPFLAGS} | sed 's/"//g'`
-          fi
           cmake --build ./build -- -j 2
 
       - name: Unix - Tests
