@@ -96,17 +96,17 @@ jobs:
         # htslib dependencies, see https://github.com/samtools/htslib/blob/develop/INSTALL
         run: |
           sudo apt-get install autoconf automake zlib1g-dev libbz2-dev liblzma-dev
+        # sudo apt-get remove autoconf
+        # sudo apt-get install autoconf2.64 liblzma-dev libbz2-dev
 
-        #sudo apt-get remove autoconf
-        #sudo apt-get install autoconf2.64 liblzma-dev libbz2-dev
-
-      # - name: Install Dependencies - MacOS
-      #   if: runner.os == 'macos'
-      #   # The commands below were try and error with the CI...
-      #   run: |
-      #     brew uninstall --ignore-dependencies autoconf
-      #     brew install autoconf@2.69
-      #     echo 'export PATH="/usr/local/opt/autoconf@2.69/bin:$PATH"' >> /Users/runner/.bash_profile
+      - name: Install Dependencies - MacOS
+        if: runner.os == 'macos'
+        # The commands below were try and error with the CI...
+        run: |
+          brew install autoconf automake libomp
+        # brew uninstall --ignore-dependencies autoconf
+        # brew install autoconf@2.69
+        # echo 'export PATH="/usr/local/opt/autoconf@2.69/bin:$PATH"' >> /Users/runner/.bash_profile
 
       - name: Configure
         run: |
