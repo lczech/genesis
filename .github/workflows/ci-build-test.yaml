@@ -100,7 +100,7 @@ jobs:
       - name: Install Dependencies - MacOS
         if: runner.os == 'macos'
         run: |
-          brew remove autoconf
+          brew uninstall --ignore-dependencies autoconf
           brew install autoconf@2.69
 
       - name: Configure
