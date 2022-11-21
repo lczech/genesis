@@ -167,6 +167,13 @@ ENDIF()
 #   Add htslib
 # ==================================================================================================
 
+# URL timestamp extraction, see https://cmake.org/cmake/help/latest/policy/CMP0135.html
+# Introduced in CMake 3.24, but older CMake versions fail if present, so we need to check first...
+# Why is that so complicated? Can't CMake just ignore unknown policies?!
+if( NOT ( CMAKE_VERSION VERSION_LESS 3.24 ))
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
 # We download and built on our own, using the correct commit hash to get our exact desired
 # version, and install locally to the build directory.
 ExternalProject_Add(
@@ -207,7 +214,7 @@ ExternalProject_Add(
 # Set the paths so that those can be included by the targets.
 # We explicitly set the static library here, so that we link against that one.
 set( HTSLIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib" )
-set( HTSLIB_INCLUDE_DIR "${HTSLIB_DIR}/include" "${Deflate_INCLUDE_DIRS}" )
+set( HTSLIB_INCLUDE_DIR "${HTSLIB_DIR}/include;${Deflate_INCLUDE_DIRS}" )
 set( HTSLIB_LINK_DIR    "${HTSLIB_DIR}/lib" )
 set( HTSLIB_LIBRARY     "${HTSLIB_DIR}/lib/libhts.a" )
 
