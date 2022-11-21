@@ -39,10 +39,20 @@ if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
     # https://mac.r-project.org/openmp/ for details. Let;s hope that works universally...
     set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lomp " )
 
+    message (STATUS "Using find_package( OpenMP ) patch")
     find_package( OpenMP_patch )
+
+    # If our first patch does not work, try the other one, based on a newer CMake FindOpenMP file.
+    if( NOT OPENMP_FOUND )
+        message (STATUS "find_package( OpenMP ) patch did succeed - trying patch2 instead")
+        unset(OpenMP_CXX_FLAGS)
+        unset(OpenMP_CXX_FLAGS CACHE)
+        find_package( OpenMP_patch2 )
+    endif()
 
     # If our patch does not work, try the standard one, just in case.
     if( NOT OPENMP_FOUND )
+        message (STATUS "find_package( OpenMP ) patch did succeed - trying base script instead")
         unset(OpenMP_CXX_FLAGS)
         unset(OpenMP_CXX_FLAGS CACHE)
         find_package( OpenMP )

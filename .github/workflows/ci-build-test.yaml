@@ -126,6 +126,12 @@ jobs:
 
           cmake -S . -B ./build -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} -DGENESIS_USE_HTSLIB=${GENESIS_USE_HTSLIB}
 
+      - name: MacOS OpenMP debug
+        if: runner.os == 'macos'
+        run: |
+          cat "/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeOutput.log"
+          cat "/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeError.log".
+
       - name: Build
         # Below we use a workaround for LLVM as configured by setup-cpp, which clashes with htslib:
         # https://github.com/samtools/htslib/issues/1527 and
