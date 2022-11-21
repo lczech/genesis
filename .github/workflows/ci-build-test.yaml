@@ -70,7 +70,7 @@ jobs:
             build_type: RELEASE
 
         exclude:
-          # Newer GCC versions are not available on older Ubuntu
+            # Newer GCC versions are not available on older Ubuntu
           - os: ubuntu-20.04
             compiler: gcc-12
             # Older GCC versions are not supported by Ubuntu any more
@@ -130,7 +130,7 @@ jobs:
         if: runner.os == 'macos'
         run: |
           cat "/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeOutput.log"
-          cat "/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeError.log".
+          cat "/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeError.log"
 
       - name: Build
         # Below we use a workaround for LLVM as configured by setup-cpp, which clashes with htslib:
