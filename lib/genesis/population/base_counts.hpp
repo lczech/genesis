@@ -138,9 +138,9 @@ struct SortedBaseCounts
     SortedBaseCounts(
         char b0, size_t c0, char b1, size_t c1, char b2, size_t c2, char b3, size_t c3
     )
-        : data( std::array<BaseCount, 4>{
+        : data( std::array<BaseCount, 4>{{
             BaseCount{ b0, c0 }, BaseCount{ b1, c1 }, BaseCount{ b2, c2 }, BaseCount{ b3, c3 },
-        })
+        }})
     {}
 
     BaseCount& operator[]( size_t index )
