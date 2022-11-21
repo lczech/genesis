@@ -97,9 +97,10 @@ jobs:
           sudo apt-get remove autoconf
           sudo apt-get install autoconf2.64 liblzma-dev libbz2-dev
 
-      - name: Install Dependencies - MacPS
+      - name: Install Dependencies - MacOS
         if: runner.os == 'macos'
         run: |
+          brew remove autoconf
           brew install autoconf@2.69
 
       - name: Configure
