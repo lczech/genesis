@@ -329,7 +329,7 @@ if(GENESIS_USE_HTSLIB)
     # Instead of the above git-hash-based download, we use a direct download of a release archive file,
     # because htslib now requires some generated files as well that are not part of the repository...
     # Why are external dependencies always such a mess?
-    SET( GENESIS_HTSLIB_VERSION "1.13" ) #GENESIS_HTSLIB_VERSION#
+    SET( GENESIS_HTSLIB_VERSION "1.16" ) #GENESIS_HTSLIB_VERSION#
 
     # Included from modules dir tools/cmake
     include( IncludeHtslib )

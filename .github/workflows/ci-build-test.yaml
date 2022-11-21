@@ -85,7 +85,7 @@ jobs:
         uses: actions/checkout@v3.1.0
 
       - name: Setup C++
-        # https://github.com/marketplace/actions/setup-cpp-c-c
+        # Reference: https://github.com/marketplace/actions/setup-cpp-c-c
         uses: aminya/setup-cpp@v0.22.0
         with:
           compiler: ${{ matrix.compiler }}
@@ -93,17 +93,20 @@ jobs:
 
       - name: Install Dependencies - Ubuntu
         if: runner.os == 'linux'
+        # htslib dependencies, see https://github.com/samtools/htslib/blob/develop/INSTALL
         run: |
-          sudo apt-get remove autoconf
-          sudo apt-get install autoconf2.64 liblzma-dev libbz2-dev
+          sudo apt-get install autoconf automake zlib1g-dev libbz2-dev liblzma-dev
 
-      - name: Install Dependencies - MacOS
-        if: runner.os == 'macos'
-        # The commands below were try and error with the CI...
-        run: |
-          brew uninstall --ignore-dependencies autoconf
-          brew install autoconf@2.69
-          echo 'export PATH="/usr/local/opt/autoconf@2.69/bin:$PATH"' >> /Users/runner/.bash_profile
+        #sudo apt-get remove autoconf
+        #sudo apt-get install autoconf2.64 liblzma-dev libbz2-dev
+
+      # - name: Install Dependencies - MacOS
+      #   if: runner.os == 'macos'
+      #   # The commands below were try and error with the CI...
+      #   run: |
+      #     brew uninstall --ignore-dependencies autoconf
+      #     brew install autoconf@2.69
+      #     echo 'export PATH="/usr/local/opt/autoconf@2.69/bin:$PATH"' >> /Users/runner/.bash_profile
 
       - name: Configure
         run: |
@@ -115,7 +118,7 @@ jobs:
           cmake -S . -B ./build -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} -DGENESIS_USE_HTSLIB=${GENESIS_USE_HTSLIB}
 
       - name: Build
-        # Below we use a workaround for LLVM, see
+        # Below we use a workaround for LLVM as configured by setup-cpp, which clashes with htslib:
         # https://github.com/samtools/htslib/issues/1527 and
         # https://github.com/aminya/setup-cpp/issues/145
         run: |
