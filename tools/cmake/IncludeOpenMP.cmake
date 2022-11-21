@@ -34,6 +34,11 @@ message (STATUS "Looking for OpenMP")
 # See ./tools/cmake/FindOpenMP_patch.cmake for the modifications we made to support Clang.
 if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
 
+    # For some clang mac versions, we need to add a linker flag, see
+    # https://open-box.readthedocs.io/en/latest/installation/openmp_macos.html and
+    # https://mac.r-project.org/openmp/ for details. Let;s hope that works universally...
+    set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lomp " )
+
     find_package( OpenMP_patch )
 
     # If our patch does not work, try the standard one, just in case.

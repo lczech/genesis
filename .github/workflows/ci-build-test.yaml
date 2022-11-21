@@ -102,7 +102,10 @@ jobs:
       - name: Install Dependencies - MacOS
         if: runner.os == 'macos'
         # The commands below were try and error with the CI...
+        # xocde-select from https://mac.r-project.org/openmp/ and
+        # https://open-box.readthedocs.io/en/latest/installation/openmp_macos.html
         run: |
+          xcode-select --install
           brew install autoconf automake libomp
         # brew uninstall --ignore-dependencies autoconf
         # brew install autoconf@2.69
