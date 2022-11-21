@@ -207,7 +207,7 @@ std::array<size_t, 4> nucleotide_sorting_order_( std::array<T, 4> const& values 
 {
     // Sort quickly via sorting network, putting large values first.
     // See https://stackoverflow.com/a/25070688/4184258
-    auto indices = std::array<size_t, 4>{ 0, 1, 2, 3 };
+    auto indices = std::array<size_t, 4>{{ 0, 1, 2, 3 }};
     if( values[indices[0]] < values[indices[1]] ) {
         std::swap( indices[0], indices[1] );
     }
@@ -301,12 +301,12 @@ std::pair<SortedBaseCounts, SortedBaseCounts> sorted_average_base_counts(
     }
 
     // Compute their averages.
-    std::array<double, 4> const avg_freqs = {
+    std::array<double, 4> const avg_freqs = {{
         ( s1_freqs[0] + s2_freqs[0] ) / 2.0,
         ( s1_freqs[1] + s2_freqs[1] ) / 2.0,
         ( s1_freqs[2] + s2_freqs[2] ) / 2.0,
         ( s1_freqs[3] + s2_freqs[3] ) / 2.0
-    };
+    }};
 
     // Get the sorting order, based on the averages.
     auto const order = nucleotide_sorting_order_( avg_freqs );
