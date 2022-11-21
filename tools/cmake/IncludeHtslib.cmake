@@ -110,10 +110,12 @@ ExternalProject_Add(
     # won't link properly. Linking will always remain a mystery to me...
     SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-source
     CONFIGURE_COMMAND
-        autoheader
+        autoreconf -i
         COMMAND
-        autoconf
-        COMMAND
+        # autoheader
+        # COMMAND
+        # autoconf
+        # COMMAND
         ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --disable-libcurl
 
     # Build Step
