@@ -72,7 +72,7 @@ jobs:
         exclude:
             # Older GCC versions are not supported by Ubuntu any more
           - os: ubuntu-22.04
-            compiler: gcc-
+            compiler: gcc-7
           - os: ubuntu-22.04
             compiler: gcc-8
 
@@ -91,10 +91,16 @@ jobs:
           compiler: ${{ matrix.compiler }}
           cmake: true
 
-      - name: Install Dependencies
+      - name: Install Dependencies - Ubuntu
         if: runner.os == 'linux'
         run: |
+          sudo apt-get remove autoconf
           sudo apt-get install autoconf2.64 liblzma-dev libbz2-dev
+
+      - name: Install Dependencies - MacPS
+        if: runner.os == 'macos'
+        run: |
+          brew install autoconf@2.69
 
       - name: Configure
         run: |
@@ -116,9 +122,9 @@ jobs:
           fi
           cmake --build ./build -- -j 2
 
-      - name: Unix - Tests
+      - name: Tests
         if: >
-          runner.os != 'Windows' &&
+          runner.os != 'windows' &&
           matrix.build_type == 'DEBUG'
         run: |
           ./bin/test/genesis_tests
