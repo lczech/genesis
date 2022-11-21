@@ -1,3 +1,12 @@
+# This file is copied here from
+# https://github.com/Kitware/CMake/blob/dae70fa7e8f8ca965ea9d587dcdd8cd1446b1884/Modules/CMakeParseImplicitLinkInfo.cmake
+# and is part of our approach to get openmp to work with apple clang...
+# See FindOpenMP_patch2.cmake here for details.
+#
+# Lucas
+
+# ==================================================================================================
+
 # Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
 # file Copyright.txt or https://cmake.org/licensing for details.
 

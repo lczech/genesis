@@ -36,23 +36,23 @@ if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
 
     # For some clang mac versions, we need to add a linker flag, see
     # https://open-box.readthedocs.io/en/latest/installation/openmp_macos.html and
-    # https://mac.r-project.org/openmp/ for details. Let;s hope that works universally...
+    # https://mac.r-project.org/openmp/ for details. Let's hope that works universally...
     set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lomp " )
 
     message (STATUS "Using find_package( OpenMP ) patch")
     find_package( OpenMP_patch )
 
     # If our first patch does not work, try the other one, based on a newer CMake FindOpenMP file.
-    if( NOT OPENMP_FOUND )
-        message (STATUS "find_package( OpenMP ) patch did succeed - trying patch2 instead")
-        unset(OpenMP_CXX_FLAGS)
-        unset(OpenMP_CXX_FLAGS CACHE)
-        find_package( OpenMP_patch2 )
-    endif()
+    # if( NOT OPENMP_FOUND )
+    #     message (STATUS "find_package( OpenMP ) patch did not succeed - trying patch2 instead")
+    #     unset(OpenMP_CXX_FLAGS)
+    #     unset(OpenMP_CXX_FLAGS CACHE)
+    #     find_package( OpenMP_patch2 )
+    # endif()
 
     # If our patch does not work, try the standard one, just in case.
     if( NOT OPENMP_FOUND )
-        message (STATUS "find_package( OpenMP ) patch did succeed - trying base script instead")
+        message (STATUS "find_package( OpenMP ) patch did not succeed - trying base script instead")
         unset(OpenMP_CXX_FLAGS)
         unset(OpenMP_CXX_FLAGS CACHE)
         find_package( OpenMP )
@@ -111,6 +111,7 @@ else()
     if(
         "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
         AND NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.8
+        AND NOT APPLE
     )
         message (
             STATUS
@@ -120,6 +121,23 @@ else()
         )
     endif()
 
-    message( STATUS "To build without OpenMP support, call CMake with -DGENESIS_USE_OPENMP=OFF" )
-    message( FATAL_ERROR "Required package OpenMP not found.")
+    if( APPLE AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
+        message (
+            STATUS
+            "${ColorYellow}You are trying to compile with Apple Clang and OpenMP. "
+            "This does not seem to work right now, and is known to be notoriously difficult to get "
+            "to work. We have deactivated OpenMP for now, as it seems near impossible to support "
+            "all MacOS versions and their respective OpenMP issues. If you want the speed "
+            "improvements that OpenMP gives, try installing the necessary OpenMP libraries for your "
+            "system first. Alternatively, we recommend compiling with gcc instead.${ColorEnd}"
+        )
+        message(
+            STATUS
+            "To silence this message and build without OpenMP support, call CMake with "
+            "-DGENESIS_USE_OPENMP=OFF"
+        )
+    else()
+        message( STATUS "To build without OpenMP support, call CMake with -DGENESIS_USE_OPENMP=OFF" )
+        message( FATAL_ERROR "Required package OpenMP not found.")
+    endif (APPLE)
 endif()

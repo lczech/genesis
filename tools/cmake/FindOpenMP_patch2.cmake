@@ -1,3 +1,13 @@
+# Older CMake versions do not have a fully functioning implementation of the find openmp module,
+# and in particular have trouble with apple clang. So here we copy a more recent implementation from
+# https://github.com/Kitware/CMake/blob/dae70fa7e8f8ca965ea9d587dcdd8cd1446b1884/Modules/FindOpenMP.cmake
+# to circumvent these issues. This file also requires us to copy CMakeParseImplicitLinkInfo.cmake
+# from the same source and version of cmake on github.
+#
+# Lucas
+
+# ==================================================================================================
+
 # Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
 # file Copyright.txt or https://cmake.org/licensing for details.
 
