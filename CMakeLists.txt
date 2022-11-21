@@ -279,6 +279,8 @@ if(
     AND ( NOT ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "6" ))
     AND ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "8" )
 )
+    message(STATUS "Building with Clang 6 or Clang 7. Switching to --rtlib=compiler-rt")
+
     set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS} ")
     set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --rtlib=compiler-rt" )
 

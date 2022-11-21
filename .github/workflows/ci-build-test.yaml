@@ -108,10 +108,16 @@ jobs:
       - name: Install Dependencies - MacOS
         if: runner.os == 'macos'
         # The commands below were try and error with the CI...
-        # xocde-select from https://mac.r-project.org/openmp/ and
-        # https://open-box.readthedocs.io/en/latest/installation/openmp_macos.html
+        #  - install simple dependencies of htslib, and for (trying to get) OpenMP
+        #  - switch xcode mode, see https://stackoverflow.com/a/67654877
+        #  - we also tried xocde-select from https://mac.r-project.org/openmp/ and
+        #    https://open-box.readthedocs.io/en/latest/installation/openmp_macos.html
+        #    but that did not work
+        #  - previously, we used an htslib version that required autoconf 2.69.
+        #    we switched now, but keep this here for reference if needed later
         run: |
-          brew install autoconf automake libomp
+          brew install autoconf automake libdeflate libomp
+          sudo xcode-select -s /Library/Developer/CommandLineTools
         # xcode-select --install
         # brew uninstall --ignore-dependencies autoconf
         # brew install autoconf@2.69
@@ -126,17 +132,17 @@ jobs:
 
           cmake -S . -B ./build -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} -DGENESIS_USE_HTSLIB=${GENESIS_USE_HTSLIB}
 
-      - name: MacOS OpenMP debug
-        if: always() && runner.os == 'macos'
-        run: |
-          CMAKE_OUT="/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeOutput.log"
-          CMAKE_ERR="/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeError.log"
-          if [[ -f ${CMAKE_OUT} ]]; then
-            cat ${CMAKE_OUT}
-          fi
-          if [[ -f ${CMAKE_ERR} ]]; then
-            cat ${CMAKE_ERR}
-          fi
+      # - name: MacOS CMake debug
+      #   if: always() && runner.os == 'macos'
+      #   run: |
+      #     CMAKE_OUT="/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeOutput.log"
+      #     CMAKE_ERR="/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeError.log"
+      #     if [[ -f ${CMAKE_OUT} ]]; then
+      #       cat ${CMAKE_OUT}
+      #     fi
+      #     if [[ -f ${CMAKE_ERR} ]]; then
+      #       cat ${CMAKE_ERR}
+      #     fi
 
       - name: Build
         # Below we use a workaround for LLVM as configured by setup-cpp, which clashes with htslib:
