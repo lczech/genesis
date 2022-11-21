@@ -129,8 +129,14 @@ jobs:
       - name: MacOS OpenMP debug
         if: runner.os == 'macos'
         run: |
-          cat "/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeOutput.log"
-          cat "/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeError.log"
+          CMAKE_OUT="/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeOutput.log"
+          CMAKE_ERR="/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeError.log"
+          if [[ -f ${CMAKE_OUT} ]]; then
+            cat ${CMAKE_OUT}
+          fi
+          if [[ -f ${CMAKE_ERR} ]]; then
+            cat ${CMAKE_ERR}
+          fi
 
       - name: Build
         # Below we use a workaround for LLVM as configured by setup-cpp, which clashes with htslib:
