@@ -97,7 +97,8 @@ jobs:
       - name: Install Dependencies - Ubuntu
         if: runner.os == 'linux'
         # 1: htslib dependencies, see https://github.com/samtools/htslib/blob/develop/INSTALL
-        # 2: clang on ubuntu 22 is not properly set up, we need libtinfo5
+        # 2: clang on ubuntu 22 is not properly set up, we need libtinfo5,
+        #    see https://github.com/aminya/setup-cpp/issues/149
         run: |
           sudo apt-get install autoconf automake zlib1g-dev libbz2-dev liblzma-dev
           sudo apt-get install libtinfo5
