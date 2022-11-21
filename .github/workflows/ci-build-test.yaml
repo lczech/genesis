@@ -99,9 +99,11 @@ jobs:
 
       - name: Install Dependencies - MacOS
         if: runner.os == 'macos'
+        # The commands below were try and error with the CI...
         run: |
           brew uninstall --ignore-dependencies autoconf
           brew install autoconf@2.69
+          echo 'export PATH="/usr/local/opt/autoconf@2.69/bin:$PATH"' >> /Users/runner/.bash_profile
 
       - name: Configure
         run: |
