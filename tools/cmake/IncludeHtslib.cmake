@@ -19,9 +19,16 @@
 # Department of Plant Biology, Carnegie Institution For Science
 # 260 Panama Street, Stanford, CA 94305, USA
 
-# ------------------------------------------------------------------------------
+# ==================================================================================================
+#   Init
+# ==================================================================================================
+
+# This file is included from the main CMakeLists.txt in order to build htslib.
+message (STATUS "Looking for htslib")
+
+# ==================================================================================================
 #   Check for autotools
-# ------------------------------------------------------------------------------
+# ==================================================================================================
 
 # Check that autoconf is available, and warn if version has a potential issue.
 # See https://github.com/asdf-vm/asdf-erlang/issues/195, https://github.com/kerl/kerl/issues/359,
@@ -83,13 +90,82 @@ else()
 
 endif()
 
-# ------------------------------------------------------------------------------
-#   Use htslib
-# ------------------------------------------------------------------------------
+# ==================================================================================================
+#   External dependencies
+# ==================================================================================================
 
-# This file is included from the main CMakeLists.txt in order to build htslib.
+# Find additional libraries needed by htslib.
+# If that works and the libraries were found, we do not need to do anything,
+# as the htslib compilation will look for them again and link to them correctly.
+# We here merely make sure that all needed libraries are available.
 
-message (STATUS "Looking for htslib")
+# ----------------------------------------------------
+#   Find LibLZMA
+# ----------------------------------------------------
+
+# find_library(HTSLIB_LZMA     NAMES lzma)
+message( STATUS "Looking for LibLZMA" )
+find_package(LibLZMA)
+IF(LIBLZMA_FOUND)
+    message( STATUS "Found LibLZMA: ${LIBLZMA_LIBRARIES}" )
+    set( HTSLIB_LZMA ${LIBLZMA_LIBRARIES} )
+ELSE()
+    message( STATUS "${ColorRed}LibLZMA not found${ColorEnd}" )
+    message (
+        STATUS "${ColorYellow}You are trying to compile with htslib, which needs LibLZMA. "
+        "This does not seem to work right now. Try installing `liblzma-dev` first, "
+        "or the equivalent for your system. To instead build without htslib support, "
+        "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
+    )
+    set( HTSLIB_LZMA "NOTFOUND" )
+ENDIF()
+
+# ----------------------------------------------------
+#   Find BZip2
+# ----------------------------------------------------
+
+# find_library(HTSLIB_BZ2      NAMES bz2)
+message( STATUS "Looking for BZip2" )
+find_package(BZip2)
+IF(BZIP2_FOUND)
+    message( STATUS "Found BZip2: ${BZIP2_LIBRARIES}" )
+    set( HTSLIB_BZ2 ${BZIP2_LIBRARIES} )
+ELSE()
+    message( STATUS "${ColorRed}BZip2 not found${ColorEnd}" )
+    message (
+        STATUS "${ColorYellow}You are trying to compile with htslib, which needs BZip2. "
+        "This does not seem to work right now. Try installing `libbz2-dev` first, "
+        "or the equivalent for your system. To instead build without htslib support, "
+        "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
+    )
+    set( HTSLIB_BZ2 "NOTFOUND" )
+ENDIF()
+
+# ----------------------------------------------------
+#   Find Deflate
+# ----------------------------------------------------
+
+message( STATUS "Looking for Deflate" )
+find_package( Deflate )
+IF(Deflate_FOUND)
+    message( STATUS "Found Deflate: ${Deflate_LIBRARIES}" )
+    set( HTSLIB_Deflate ${Deflate_LIBRARIES} )
+    set( HTSLIB_Deflate_configure "" )
+ELSE()
+    message( STATUS "${ColorYellow}Deflate not found${ColorEnd}" )
+    message (
+        STATUS "${ColorYellow}You are trying to compile with htslib, which optionally needs libdeflate. "
+        "This does not seem to work right now. Try installing `libdeflate-tools` first, "
+        "or the equivalent for your system. We are compiling without libdeflate support now.${ColorEnd}"
+    )
+    set( HTSLIB_Deflate "" )
+    set( Deflate_INCLUDE_DIRS "" )
+    set( HTSLIB_Deflate_configure "--without-libdeflate" )
+ENDIF()
+
+# ==================================================================================================
+#   Add htslib
+# ==================================================================================================
 
 # We download and built on our own, using the correct commit hash to get our exact desired
 # version, and install locally to the build directory.
@@ -116,7 +192,7 @@ ExternalProject_Add(
         # COMMAND
         # autoconf
         # COMMAND
-        ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --disable-libcurl
+        ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --disable-libcurl ${HTSLIB_Deflate_configure}
 
     # Build Step
     # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
@@ -130,10 +206,10 @@ ExternalProject_Add(
 
 # Set the paths so that those can be included by the targets.
 # We explicitly set the static library here, so that we link against that one.
-set( HTSLIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib )
-set( HTSLIB_INCLUDE_DIR ${HTSLIB_DIR}/include )
-set( HTSLIB_LINK_DIR    ${HTSLIB_DIR}/lib )
-set( HTSLIB_LIBRARY     ${HTSLIB_DIR}/lib/libhts.a )
+set( HTSLIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib" )
+set( HTSLIB_INCLUDE_DIR "${HTSLIB_DIR}/include ${Deflate_INCLUDE_DIRS}" )
+set( HTSLIB_LINK_DIR    "${HTSLIB_DIR}/lib" )
+set( HTSLIB_LIBRARY     "${HTSLIB_DIR}/lib/libhts.a" )
 
 # Cannot test here for existing files, as those are not yet built when this is called...
 # IF(
@@ -143,44 +219,9 @@ set( HTSLIB_LIBRARY     ${HTSLIB_DIR}/lib/libhts.a )
 #     message( FATAL_ERROR "Building htslib failed.")
 # ENDIF()
 
-# Find additional libraries needed by htslib.
-# If that works and the libraries were found, we do not need to do anything,
-# as the htslib compilation will look for them again and link to them correctly.
-# We here merely make sure that all needed libraries are available.
-
-# find_library(HTSLIB_LZMA     NAMES lzma)
-message( STATUS "Looking for LibLZMA" )
-find_package(LibLZMA)
-IF(LIBLZMA_FOUND)
-    message( STATUS "Found LibLZMA: ${LIBLZMA_LIBRARIES}" )
-    set( HTSLIB_LZMA ${LIBLZMA_LIBRARIES} )
-ELSE()
-    message( STATUS "${ColorRed}LibLZMA not found${ColorEnd}" )
-    message (
-        STATUS "${ColorYellow}You are trying to compile with htslib, which needs LibLZMA. "
-        "This does not seem to work right now. Try installing `liblzma-dev` first, "
-        "or the equivalent for your system. To instead build without htslib support, "
-        "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
-    )
-    set( HTSLIB_LZMA "NOTFOUND" )
-ENDIF()
-
-# find_library(HTSLIB_BZ2      NAMES bz2)
-message( STATUS "Looking for BZip2" )
-find_package(BZip2)
-IF(BZIP2_FOUND)
-    message( STATUS "Found BZip2: ${BZIP2_LIBRARIES}" )
-    set( HTSLIB_BZ2 ${BZIP2_LIBRARIES} )
-ELSE()
-    message( STATUS "${ColorRed}BZip2 not found${ColorEnd}" )
-    message (
-        STATUS "${ColorYellow}You are trying to compile with htslib, which needs BZip2. "
-        "This does not seem to work right now. Try installing `libbz2-dev` first, "
-        "or the equivalent for your system. To instead build without htslib support, "
-        "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
-    )
-    set( HTSLIB_BZ2 "NOTFOUND" )
-ENDIF()
+# ==================================================================================================
+#   Finalize
+# ==================================================================================================
 
 # Useful output for debugging
 message( STATUS "HTSLIB_INCLUDE_DIR: ${HTSLIB_INCLUDE_DIR}" )
@@ -188,6 +229,7 @@ message( STATUS "HTSLIB_LINK_DIR:    ${HTSLIB_LINK_DIR}" )
 message( STATUS "HTSLIB_LIBRARY:     ${HTSLIB_LIBRARY}" )
 message( STATUS "HTSLIB_LZMA:        ${HTSLIB_LZMA}" )
 message( STATUS "HTSLIB_BZ2:         ${HTSLIB_BZ2}" )
+message( STATUS "HTSLIB_Deflate:     ${HTSLIB_Deflate}" )
 
 IF(
     ${HTSLIB_INCLUDE_DIR} MATCHES "NOTFOUND" OR
@@ -216,7 +258,7 @@ ELSE()
     set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_HTSLIB" )
     set(
         GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}
-        ${HTSLIB_LIBRARY} z -lz ${HTSLIB_LZMA} ${HTSLIB_BZ2}
+        ${HTSLIB_LIBRARY} z -lz ${HTSLIB_LZMA} ${HTSLIB_BZ2} ${HTSLIB_Deflate}
     )
     # set(
     #     GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}
