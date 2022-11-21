@@ -154,12 +154,12 @@ IF(Deflate_FOUND)
 ELSE()
     message( STATUS "${ColorYellow}Deflate not found${ColorEnd}" )
     message (
-        STATUS "${ColorYellow}You are trying to compile with htslib, which optionally needs libdeflate. "
-        "This does not seem to work right now. Try installing `libdeflate-tools` first, "
-        "or the equivalent for your system. We are compiling without libdeflate support now.${ColorEnd}"
+        STATUS "${ColorYellow}You are trying to compile with htslib, which optionally needs "
+        "libdeflate. This does not seem to work right now. Try installing `libdeflate-tools` "
+        "first, or the equivalent for your system. We are compiling without libdeflate support "
+        "for now.${ColorEnd}"
     )
     set( HTSLIB_Deflate "" )
-    set( Deflate_INCLUDE_DIRS "" )
     set( HTSLIB_Deflate_configure "--without-libdeflate" )
 ENDIF()
 
@@ -214,7 +214,7 @@ ExternalProject_Add(
 # Set the paths so that those can be included by the targets.
 # We explicitly set the static library here, so that we link against that one.
 set( HTSLIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib" )
-set( HTSLIB_INCLUDE_DIR "${HTSLIB_DIR}/include;${Deflate_INCLUDE_DIRS}" )
+set( HTSLIB_INCLUDE_DIR "${HTSLIB_DIR}/include" )
 set( HTSLIB_LINK_DIR    "${HTSLIB_DIR}/lib" )
 set( HTSLIB_LIBRARY     "${HTSLIB_DIR}/lib/libhts.a" )
 
@@ -231,12 +231,15 @@ set( HTSLIB_LIBRARY     "${HTSLIB_DIR}/lib/libhts.a" )
 # ==================================================================================================
 
 # Useful output for debugging
-message( STATUS "HTSLIB_INCLUDE_DIR: ${HTSLIB_INCLUDE_DIR}" )
-message( STATUS "HTSLIB_LINK_DIR:    ${HTSLIB_LINK_DIR}" )
-message( STATUS "HTSLIB_LIBRARY:     ${HTSLIB_LIBRARY}" )
-message( STATUS "HTSLIB_LZMA:        ${HTSLIB_LZMA}" )
-message( STATUS "HTSLIB_BZ2:         ${HTSLIB_BZ2}" )
-message( STATUS "HTSLIB_Deflate:     ${HTSLIB_Deflate}" )
+message( STATUS "HTSLIB_INCLUDE_DIR:   ${HTSLIB_INCLUDE_DIR}" )
+message( STATUS "HTSLIB_LINK_DIR:      ${HTSLIB_LINK_DIR}" )
+message( STATUS "HTSLIB_LIBRARY:       ${HTSLIB_LIBRARY}" )
+message( STATUS "HTSLIB_LZMA:          ${HTSLIB_LZMA}" )
+message( STATUS "HTSLIB_BZ2:           ${HTSLIB_BZ2}" )
+message( STATUS "HTSLIB_Deflate:       ${HTSLIB_Deflate}" )
+if(DEFINED Deflate_INCLUDE_DIRS)
+    message( STATUS "Deflate_INCLUDE_DIRS: ${Deflate_INCLUDE_DIRS}" )
+endif()
 
 IF(
     ${HTSLIB_INCLUDE_DIR} MATCHES "NOTFOUND" OR
@@ -257,6 +260,11 @@ ELSE()
     # Include the headers and directories, so that they are found by our source.
     include_directories(${HTSLIB_INCLUDE_DIR})
     link_directories(${HTSLIB_LINK_DIR})
+
+    if(DEFINED Deflate_INCLUDE_DIRS)
+        include_directories(${Deflate_INCLUDE_DIRS})
+        set( GENESIS_INCLUDE_DIR ${GENESIS_INCLUDE_DIR} ${Deflate_INCLUDE_DIRS} )
+    endif()
 
     # Set needed definitions and linker flags for genesis and for the parent scope.
     # The targets (our shared and static lib) will use these to link against.
