@@ -110,8 +110,8 @@ jobs:
         # xocde-select from https://mac.r-project.org/openmp/ and
         # https://open-box.readthedocs.io/en/latest/installation/openmp_macos.html
         run: |
-          xcode-select --install
           brew install autoconf automake libomp
+        # xcode-select --install
         # brew uninstall --ignore-dependencies autoconf
         # brew install autoconf@2.69
         # echo 'export PATH="/usr/local/opt/autoconf@2.69/bin:$PATH"' >> /Users/runner/.bash_profile
