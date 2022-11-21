@@ -28,10 +28,10 @@ jobs:
       matrix:
         os:
           # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
-          - ubuntu-22.04
           - ubuntu-20.04
-          - macos-12
+          - ubuntu-22.04
           - macos-11
+          - macos-12
         compiler:
           # Older GCC versions are not supported by Ubuntu any more
           # - gcc-5
@@ -70,6 +70,9 @@ jobs:
             build_type: RELEASE
 
         exclude:
+          # Newer GCC versions are not available on older Ubuntu
+          - os: ubuntu-20.04
+            compiler: gcc-12
             # Older GCC versions are not supported by Ubuntu any more
           - os: ubuntu-22.04
             compiler: gcc-7
@@ -93,9 +96,11 @@ jobs:
 
       - name: Install Dependencies - Ubuntu
         if: runner.os == 'linux'
-        # htslib dependencies, see https://github.com/samtools/htslib/blob/develop/INSTALL
+        # 1: htslib dependencies, see https://github.com/samtools/htslib/blob/develop/INSTALL
+        # 2: clang on ubuntu 22 is not properly set up, we need libtinfo5
         run: |
           sudo apt-get install autoconf automake zlib1g-dev libbz2-dev liblzma-dev
+          sudo apt-get install libtinfo5
         # sudo apt-get remove autoconf
         # sudo apt-get install autoconf2.64 liblzma-dev libbz2-dev
 
