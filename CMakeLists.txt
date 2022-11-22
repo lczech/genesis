@@ -270,16 +270,16 @@ set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
 # mpi: CCFLAGS += -DUSE_MPI
 # LDFLAGS = -lm $(THREADS)
 
-# With clang 6 and 7, we run into a bug (https://stackoverflow.com/a/49795448) of clang,
+# With clang 5 to 7, we run into a bug (https://stackoverflow.com/a/49795448) of clang,
 # because we are using `__builtin_mul_overflow` in genesis/utils/io/input_stream.cpp
 # This here tries to fix this. If this causes more trouble in the future, we might instead
 # use the native algorithm in that function...
 if(
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
-    AND ( NOT ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "6" ))
+    AND ( NOT ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "5" ))
     AND ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "8" )
 )
-    message(STATUS "Building with Clang 6 or Clang 7. Switching to --rtlib=compiler-rt")
+    message(STATUS "Building with Clang 5, 6 or 7. Switching to --rtlib=compiler-rt")
 
     set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS} ")
     set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --rtlib=compiler-rt" )
