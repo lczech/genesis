@@ -72,22 +72,24 @@ else()
         set( AUTOCONF_VERSION "${CMAKE_MATCH_1}")
         message( STATUS "Found autoconf: ${AUTOCONF_VERSION}" )
 
+        # Update on the below: Outdated, as we now use a newer version of htslib,
+        # which properly supports more recent autoconf versions as well.
         # Versions greater than 2.69 cause problems. Of course, we cannot use VERSION_GREATER,
         # as that was introduced in CMake 3.7 only, so we need to work around that, too...
-        SET(AUTOCONF_MAX_VERSION "2.69")
-        if( NOT (
-            ( AUTOCONF_VERSION VERSION_LESS ${AUTOCONF_MAX_VERSION} ) OR
-            ( AUTOCONF_VERSION VERSION_EQUAL ${AUTOCONF_MAX_VERSION} )
-        ))
-            message (
-                STATUS "${ColorYellow}You are trying to compile with htslib, using autotools/autoconf "
-                "version ${AUTOCONF_VERSION}, which is greater than ${AUTOCONF_MAX_VERSION}. "
-                "There have been issues with these later versions of autotools. If you experience "
-                "these issues, please downgrade autotools to ${AUTOCONF_MAX_VERSION}. "
-                "To instead build without htslib support, "
-                "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
-            )
-        endif()
+        # SET(AUTOCONF_MAX_VERSION "2.69")
+        # if( NOT (
+        #     ( AUTOCONF_VERSION VERSION_LESS ${AUTOCONF_MAX_VERSION} ) OR
+        #     ( AUTOCONF_VERSION VERSION_EQUAL ${AUTOCONF_MAX_VERSION} )
+        # ))
+        #     message (
+        #         STATUS "${ColorYellow}You are trying to compile with htslib, using autotools/autoconf "
+        #         "version ${AUTOCONF_VERSION}, which is greater than ${AUTOCONF_MAX_VERSION}. "
+        #         "There have been issues with these later versions of autotools. If you experience "
+        #         "these issues, please downgrade autotools to ${AUTOCONF_MAX_VERSION}. "
+        #         "To instead build without htslib support, "
+        #         "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
+        #     )
+        # endif()
     ENDIF()
 
 endif()
