@@ -210,8 +210,8 @@ jobs:
         run: |
           ./bin/test/genesis_tests
 
-      - name: Test - GDB
-        # If the regular test run failed, we repeat with GDB, for more information
+      - name: Test - gdb
+        # If the regular test run failed, we repeat with gdb, to print the stack.
         if: ${{ failure() && steps.test.conclusion == 'failure' }}
         run: |
-          ./bin/test/genesis_tests gdb
+          ./test/run.sh gdb
