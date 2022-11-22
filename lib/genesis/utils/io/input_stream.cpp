@@ -388,6 +388,40 @@ size_t InputStream::parse_unsigned_integer_gcc_intrinsic_()
     return chunk;
 }
 
+#endif // defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
+
+// Completely deactivated for now, as we are not using it anyway,
+// and it's causing trouble with clang 5-7.
+// #if ( defined(__GNUC__) || defined(__GNUG__) ) && ( !defined(__clang__) || ( __clang_major__ >= 8 ))
+
+// We used to have to following in our main CMakeList.txt to try to support this,
+// but that lead to linker errors downstream, and was hence not worth keeping.
+// Keeping it here for future reference, but likeley not needed any more.
+
+// # With clang 5 to 7, we run into a bug (https://stackoverflow.com/a/49795448) of clang,
+// # because we are using `__builtin_mul_overflow` in genesis/utils/io/input_stream.cpp
+// # This here tries to fix this. If this causes more trouble in the future, we might instead
+// # use the native algorithm in that function...
+// # Update: Yes, that causes trouble, as we then get linker errors:
+// # undefined reference to symbol '_Unwind_Resume@@GCC_3.0'
+// # see https://stackoverflow.com/a/22774687 - so instead we deactivate this hack here for now,
+// # and use a different implementation in input_stream.cpp instead when using clang 5-7.
+// # if(
+// #     "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
+// #     AND ( NOT ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "5" ))
+// #     AND ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "8" )
+// # )
+// #     message(STATUS "Building with Clang 5, 6 or 7. Switching to --rtlib=compiler-rt")
+// #
+// #     set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS} ")
+// #     set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --rtlib=compiler-rt" )
+// #
+// #     set( GENESIS_CXX_FLAGS        "${GENESIS_CXX_FLAGS} ")
+// #     set( GENESIS_EXE_LINKER_FLAGS "${GENESIS_EXE_LINKER_FLAGS} --rtlib=compiler-rt" )
+// # endif()
+
+#if 0
+
 size_t InputStream::parse_unsigned_integer_from_chars_()
 {
 
@@ -467,7 +501,7 @@ size_t InputStream::parse_unsigned_integer_from_chars_()
     return x;
 }
 
-#endif // defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
+#endif // ( defined(__GNUC__) || defined(__GNUG__) ) && ( !defined(__clang__) || ( __clang_major__ >= 8 ))
 
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 
