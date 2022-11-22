@@ -118,6 +118,11 @@ fi
 if [[ $1 == "debug" || $1 == "dbg" || $1 == "gdb" ]] ; then
     mode="debug"
     shift
+
+    if [ -z "`which gdb`" ] ; then
+        echo "Program 'gdb' not found. Cannot run this script with mode debug."
+        exit
+    fi
 fi
 if [[ $mode == "none" ]] ; then
     # If the mode was not set by any previous lines,
@@ -149,7 +154,13 @@ fi
 
 # Other special mode debug. Forward the filters, and run gdb on the gtest program.
 if [[ $mode == "debug" ]] ; then
-    gdb -ex "run" -ex "bt" --args ${test_exe} --gtest_filter="${filter}"
+    # When we are on GitHub Actions, we want a fully automated debugging.
+    if [[ `whoami` == runner ]] ; then
+        echo "Running gdb auto"
+        gdb -ex "run" -ex "bt" -ex "q" --args ${test_exe} --gtest_filter="${filter}"
+    else
+        gdb -ex "run" -ex "bt" --args ${test_exe} --gtest_filter="${filter}"
+    fi
     exit
 fi
 
