@@ -68,7 +68,7 @@ if( genesis_apps_sources )
         endif()
 
         # Link against any external libraries, e.g. Pthreads.
-        target_link_libraries (${app_name} PUBLIC ${GENESIS_INTERNAL_LINK_LIBRARIES})
+        target_link_libraries (${app_name} PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
         IF(GENESIS_USE_HTSLIB)
             add_dependencies( ${app_name} htslib )
         ENDIF()
