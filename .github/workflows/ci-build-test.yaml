@@ -118,6 +118,7 @@ jobs:
         run: |
           brew install autoconf automake libdeflate libomp
           sudo xcode-select -s /Library/Developer/CommandLineTools
+          xcode-select -p
         # xcode-select --install
         # brew uninstall --ignore-dependencies autoconf
         # brew install autoconf@2.69
@@ -156,8 +157,15 @@ jobs:
           cmake --build ./build -- -j 2
 
       - name: Tests
+        id: test
         if: >
           runner.os != 'windows' &&
           matrix.build_type == 'DEBUG'
         run: |
           ./bin/test/genesis_tests
+
+      - name: Test - GDB
+        # If the regular test run failed, we repeat with GDB, for more information
+        if: ${{ failure() && steps.test.conclusion == 'failure' }}
+        run: |
+          ./bin/test/genesis_tests gdb
