@@ -54,13 +54,13 @@ cd "$(dirname "$0")"
 if [ ! -f "${test_exe}" ] ; then
     echo "Test executable '${test_exe}' not found."
     echo "Run the build process first!"
-    exit
+    exit 1
 fi
 
 # This script needs bc.
 if [ -z "`which bc`" ] ; then
     echo "Program 'bc' not found. Cannot run this script."
-    exit
+    exit 1
 fi
 
 # Check for some simple commands.
@@ -87,7 +87,7 @@ if [[ $1 == "memory" || $1 == "mem" ]] ; then
     shift
     if [ -z "`which valgrind`" ] ; then
         echo "Program 'valgrind' not found. Cannot run memory tests."
-        exit
+        exit 1
     fi
 fi
 if [[ $1 == "heap" || $1 == "massif" ]] ; then
@@ -95,7 +95,7 @@ if [[ $1 == "heap" || $1 == "massif" ]] ; then
     shift
     if [ -z "`which valgrind`" ] ; then
         echo "Program 'valgrind' not found. Cannot run memory tests."
-        exit
+        exit 1
     fi
 fi
 if [[ $1 == "speed" ]] ; then
@@ -121,7 +121,7 @@ if [[ $1 == "debug" || $1 == "dbg" || $1 == "gdb" ]] ; then
 
     if [ -z "`which gdb`" ] ; then
         echo "Program 'gdb' not found. Cannot run this script with mode debug."
-        exit
+        exit 1
     fi
 fi
 if [[ $mode == "none" ]] ; then
