@@ -110,6 +110,7 @@ jobs:
         # The commands below were try and error with the CI...
         #  - install simple dependencies of htslib, and for (trying to get) OpenMP
         #  - switch xcode mode, see https://stackoverflow.com/a/67654877
+        #  - output xcode info for debugging, see https://stackoverflow.com/a/73765819
         #  - we also tried xocde-select from https://mac.r-project.org/openmp/ and
         #    https://open-box.readthedocs.io/en/latest/installation/openmp_macos.html
         #    but that did not work
@@ -117,8 +118,11 @@ jobs:
         #    we switched now, but keep this here for reference if needed later
         run: |
           brew install autoconf automake libdeflate libomp
-          sudo xcode-select -s /Library/Developer/CommandLineTools
+          echo "Patching xcode gcc issues"
+          sudo xcode-select --switch /Library/Developer/CommandLineTools
           xcode-select -p
+          /usr/bin/xcodebuild -version
+          pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
         # xcode-select --install
         # brew uninstall --ignore-dependencies autoconf
         # brew install autoconf@2.69
