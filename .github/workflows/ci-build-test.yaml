@@ -119,10 +119,11 @@ jobs:
         run: |
           brew install autoconf automake libdeflate libomp
           echo "Patching xcode gcc issues"
+          xcode-select -p
           sudo xcode-select --switch /Library/Developer/CommandLineTools
           xcode-select -p
-          /usr/bin/xcodebuild -version
           pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
+        # /usr/bin/xcodebuild -version
         # xcode-select --install
         # brew uninstall --ignore-dependencies autoconf
         # brew install autoconf@2.69
