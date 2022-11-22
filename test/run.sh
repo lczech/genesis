@@ -157,7 +157,7 @@ if [[ $mode == "debug" ]] ; then
     # When we are on GitHub Actions, we want a fully automated debugging, print the stack, then exit.
     if [[ `whoami` == "runner" ]] ; then
         echo "Running gdb auto"
-        gdb -ex "set confirm off" -ex "run" -ex "bt" -ex "q" --args ${test_exe} --gtest_filter="${filter}"
+        gdb -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "bt" -ex "q" --args ${test_exe} --gtest_filter="${filter}"
     else
         gdb -ex "run" -ex "bt" --args ${test_exe} --gtest_filter="${filter}"
     fi

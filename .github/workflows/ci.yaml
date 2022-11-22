@@ -133,9 +133,10 @@ jobs:
         # 1: htslib dependencies, see https://github.com/samtools/htslib/blob/develop/INSTALL
         # 2: clang on ubuntu 22 is not properly set up, we need libtinfo5,
         #    see https://github.com/aminya/setup-cpp/issues/149
+        # 3: Install gdb for debugging output.
         run: |
           sudo apt-get install autoconf automake zlib1g-dev libbz2-dev liblzma-dev
-          sudo apt-get install libtinfo5
+          sudo apt-get install libtinfo5 gdb
         # sudo apt-get remove autoconf
         # sudo apt-get install autoconf2.64 liblzma-dev libbz2-dev
 
@@ -151,7 +152,7 @@ jobs:
         #  - previously, we used an htslib version that required autoconf 2.69.
         #    we switched now, but keep this here for reference if needed later
         run: |
-          brew install autoconf automake libdeflate libomp
+          brew install autoconf automake libdeflate libomp gdb
           echo "Patching xcode gcc issues"
           xcode-select -p
           sudo xcode-select --switch /Library/Developer/CommandLineTools
@@ -212,6 +213,7 @@ jobs:
 
       - name: Test - gdb
         # If the regular test run failed, we repeat with gdb, to print the stack.
+        # We are not using the `./test/run.sh gdb` here, to make it easier for MacOS.
         if: ${{ failure() && steps.test.conclusion == 'failure' }}
         run: |
-          ./test/run.sh gdb
+          gdb -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "bt" -ex "q" --args ./bin/test/genesis_tests
