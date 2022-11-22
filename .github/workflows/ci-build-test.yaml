@@ -42,8 +42,8 @@ jobs:
           - ubuntu-22.04
           - macos-11
           - macos-12
+
         compiler:
-          # Older GCC versions are not supported by Ubuntu any more
           # - gcc-5
           # - gcc-6
           - gcc-7
@@ -52,6 +52,7 @@ jobs:
           - gcc-10
           - gcc-11
           - gcc-12
+          # - gcc-13
           - llvm-5
           - llvm-6
           - llvm-7
@@ -61,12 +62,17 @@ jobs:
           - llvm-11
           - llvm-12
           - llvm-13
+
         build_type:
           - DEBUG
           # - RELEASE
 
+        htslib:
+          - ON
+          # - OFF
+
         include:
-          # Also test release version with both compilers and OSs
+          # Test the release version with both compilers and OSs
           - os: ubuntu-latest
             compiler: gcc
             build_type: RELEASE
@@ -79,6 +85,20 @@ jobs:
           - os: macos-latest
             compiler: llvm
             build_type: RELEASE
+
+          # Test without htslib with both compilers and OSs
+          - os: ubuntu-latest
+            compiler: gcc
+            htslib: OFF
+          - os: ubuntu-latest
+            compiler: llvm
+            htslib: OFF
+          - os: macos-latest
+            compiler: gcc
+            htslib: OFF
+          - os: macos-latest
+            compiler: llvm
+            htslib: OFF
 
         exclude:
             # Newer GCC versions are not available on all Ubuntu
@@ -146,14 +166,17 @@ jobs:
       - name: Configure
         run: |
           export GENESIS_DEBUG=ON
-          export GENESIS_USE_OPENMP=ON
           export GENESIS_USE_HTSLIB=ON
+          export GENESIS_USE_OPENMP=ON
+
+          # Take matrix includes into account
           if [[ "${{ matrix.build_type }}" == "RELEASE" ]]; then export GENESIS_DEBUG=OFF; fi
+          if [[ "${{ matrix.htslib }}" == "OFF" ]]; then export GENESIS_USE_HTSLIB=OFF; fi
 
           # Deactivate OpenMP on MacOS for now. Causes way too much trouble.
-          if [[ "${{ RUNNER_OS }}" == "macOS" ]]; then export GENESIS_USE_OPENMP=OFF; fi
+          if [[ "${ RUNNER_OS }" == "macOS" ]]; then export GENESIS_USE_OPENMP=OFF; fi
 
-          cmake -S . -B ./build -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} -DGENESIS_USE_HTSLIB=${GENESIS_USE_HTSLIB}
+          cmake -S . -B ./build -DGENESIS_USE_HTSLIB=${GENESIS_USE_HTSLIB} -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP}
 
       # - name: MacOS CMake debug
       #   if: always() && runner.os == 'macos'
@@ -183,7 +206,7 @@ jobs:
         if: >
           success() &&
           runner.os != 'windows' &&
-          matrix.build_type == 'DEBUG'
+          matrix.build_type != 'RELEASE'
         run: |
           ./bin/test/genesis_tests
 
