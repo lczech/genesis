@@ -264,6 +264,23 @@ set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
 set (CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O2 -DDEBUG -g -ggdb3 -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC")
 set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
 
+# Check for LTO, and use it.
+# This hopefully fixes an issue with some compilers stating that
+# `ld.lld: error: undefined symbol: _Unwind_Resume`, see
+# https://github.com/rust-lang/rust/issues/47493#issuecomment-606385776
+if( NOT ( CMAKE_VERSION VERSION_LESS 3.9 ))
+    cmake_policy(SET CMP0069 NEW)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT GENESIS_HAS_LTO)
+else()
+    set(GENESIS_HAS_LTO OFF)
+endif()
+if(GENESIS_HAS_LTO)
+    message(STATUS "Building with LTO/IPO support")
+else()
+    message(STATUS "Building without LTO/IPO support")
+endif()
+
 # Misc options
 # STDCC   = clang++
 # MPICC   = mpic++

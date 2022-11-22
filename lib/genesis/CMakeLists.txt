@@ -76,6 +76,11 @@ if (GENESIS_BUILD_SHARED_LIB)
     #     add_dependencies( genesis_lib_shared samtools )
     # ENDIF()
 
+    # Activate LTO if available
+    if(GENESIS_HAS_LTO)
+        set_property(TARGET genesis_lib_shared PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+    endif()
+
     # Add this shared library to our exported libraries, which can then be used by the parent scope.
     set( GENESIS_SHARED_LIBRARY genesis_lib_shared PARENT_SCOPE )
     set( GENESIS_LIBRARY genesis_lib_shared PARENT_SCOPE )
@@ -106,6 +111,11 @@ if (GENESIS_BUILD_STATIC_LIB)
     # IF(GENESIS_USE_SAMTOOLS)
     #     add_dependencies( genesis_lib_static samtools )
     # ENDIF()
+
+    # Activate LTO if available
+    if(GENESIS_HAS_LTO)
+        set_property(TARGET genesis_lib_static PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+    endif()
 
     # Add this static library to our exported libraries, which can then be used by the parent scope.
     # In case that we also build the shared lib, GENESIS_LIBRARY is overwritten, which is on
