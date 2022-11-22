@@ -2,11 +2,15 @@
 
 A library for working with phylogenetic and population genetic data.
 
-[![Build Status](https://travis-ci.org/lczech/genesis.svg?branch=master)](https://travis-ci.org/lczech/genesis)
+[![CI](https://github.com/lczech/genesis/workflows/CI/badge.svg?branch=master)](https://github.com/lczech/genesis/actions)
+[![Softwipe Score](https://img.shields.io/badge/softwipe-9.0/10.0-brightgreen)](https://github.com/adrianzap/softwipe/wiki/Code-Quality-Benchmark)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/gpl.html)
-[![Softwipe Score](https://img.shields.io/badge/softwipe-9.0/10.0-blue)](https://github.com/adrianzap/softwipe/wiki/Code-Quality-Benchmark)
 ![Language](https://img.shields.io/badge/language-C%2B%2B11-lightgrey.svg)
 [![Platforms](https://img.shields.io/conda/pn/bioconda/gappa)](https://anaconda.org/bioconda/gappa)
+<br />
+[![Release](https://img.shields.io/github/v/release/lczech/genesis.svg)](https://github.com/lczech/genesis/releases)
+[![DOI](https://img.shields.io/badge/doi-10.1093%2Fbioinformatics%2Fbtaa070-blue)](https://doi.org/10.1093/bioinformatics/btaa070)
+<!-- [![Build Status](https://travis-ci.org/lczech/genesis.svg?branch=master)](https://travis-ci.org/lczech/genesis) -->
 <!--![Language](https://img.shields.io/badge/language-python-lightgrey.svg)-->
 
 Features
@@ -27,8 +31,8 @@ Genesis is a C++ library for working with phylogenetic and population genetic da
      *  Run analyses like k-means Clustering, Squash Clustering, Edge PCA.
      *  Visualize aspects like read abundances or correlation with meta-data on the branches of the tree.
  *  **Populations**
-     *  Read and work with genome mapping and variant formats such as `pileup` and `vcf`.
-     *  Iterate positions in a genome, individually or in windows.
+     *  Read and work with genome mapping and variant formats such as `sam`/`bam`/`cram`, `pileup`, `sync`, and `vcf`, as well as auxiliary formats such as `gff`/`gtf`, `bim`/`map`, and `bed`.
+     *  Iterate positions in a genome, individually or in different types of windows.
      *  Compute statistics such as Tajima's D and F_ST for pool sequencing data.
  *  **Sequences** and **Taxonomies**
      *  Read, filter, manipulate and write sequences in `fasta`, `fastq`, and `phylip` format.
