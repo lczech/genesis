@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -234,6 +234,29 @@ public:
         return lookup_.empty();
     }
 
+    /**
+     * @brief Number of cache hits.
+     *
+     * Returns the number of times that an element could be retrieved without calling the load
+     * function.
+     */
+    size_t cache_hits() const
+    {
+        return cache_hits_;
+    }
+
+    /**
+     * @brief Number of cache misses.
+     *
+     * This includes the (probably rare) cases where a multithreaded access led to the same element
+     * being loaded multiple times. That is, this counter returns the number of times that
+     * the load function was called.
+     */
+    size_t cache_misses() const
+    {
+        return cache_misses_;
+    }
+
     // -------------------------------------------------------------------------
     //     Element Access
     // -------------------------------------------------------------------------
@@ -267,6 +290,7 @@ public:
 
         // Found it! Move it to the front and return its mapped element.
         if( lit != lookup_.end() ) {
+            ++cache_hits_;
             return promote_and_get_( lit->second );
         }
 
@@ -277,6 +301,7 @@ public:
         cache_.push_front({ key, load_function( key ) });
         lookup_[ key ] = cache_.begin();
         assert( cache_.size() == lookup_.size() );
+        ++cache_misses_;
 
         // Make sure that we stay within capacity.
         shrink_();
@@ -337,6 +362,7 @@ public:
             // Found it! Move it to the front and return its mapped element.
             if( lit != lookup_.end() ) {
                 // LOG_DBG << "Found.";
+                ++cache_hits_;
                 return promote_and_get_( lit->second );
             }
         }
@@ -349,7 +375,9 @@ public:
         // Now, store it if needed.
         {
             // Lock access to everything.
+            // We increment the cache misses here, to have the lock active on the variable.
             std::lock_guard<std::mutex> lock( mutex_ );
+            ++cache_misses_;
 
             // Check whether the element was put into the cache in the meantime (by another thread).
             auto const lit = lookup_.find( key );
@@ -553,6 +581,16 @@ private:
      * @brief Protect concurrent access.
      */
     std::mutex mutex_;
+
+    /**
+     * @brief Number of cache hits
+     */
+    size_t cache_hits_ = 0;
+
+    /**
+     * @brief Number of cache misses
+     */
+    size_t cache_misses_ = 0;
 
 };
 

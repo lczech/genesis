@@ -400,13 +400,20 @@ size_t InputStream::parse_unsigned_integer_from_chars_()
     using namespace utils;
     T x = 0;
 
-    int const base = 10;
-    auto raise_and_add_ = [base]( T& val, unsigned char c ) {
+    // Hardcoded base 10. See below for other version that allows to select base.
+    auto raise_and_add_ = []( T& val, unsigned char c ) {
         return !(
-            __builtin_mul_overflow( val, base, &val ) ||
+            __builtin_mul_overflow( val, 10, &val ) ||
             __builtin_add_overflow( val, c, &val )
         );
     };
+    // int const base = 10;
+    // auto raise_and_add_ = [base]( T& val, unsigned char c ) {
+    //     return !(
+    //         __builtin_mul_overflow( val, base, &val ) ||
+    //         __builtin_add_overflow( val, c, &val )
+    //     );
+    // };
 
     auto from_chars_digit_ = [&]( char const*& first, char const* last, T& val ) {
         while( first != last ) {

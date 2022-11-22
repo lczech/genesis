@@ -85,9 +85,17 @@ enum class SlidingWindowType
 /**
  * @brief Generator for sliding Window%s over the chromosomes of a genome.
  *
- * @deprecated This design turned out to not be convenient to use. We'll keep the class around,
- * but not add the features that it is still missing (e.g., it can only do interval windows).
- * Use SlidingIntervalWindowIterator instead.
+ * @deprecated This design turned out to not be convenient to use, is very slow, and uses the now
+ * disfunct 0-based position counting.
+ *
+ * Hence, as of now, with our now 1-based position counting, this classes enques entries with an
+ * off-by-one error, so that entries at the borders of windows gets assigned to the next window
+ * instead. This can be fixed by setting current_start_ = 1 in the initial conditions and in the
+ * clear() function. But we don't fix that for now, as we discovered that PoPoolation has that bug,
+ * and so we keep this class around for a convenient way of comparing our results to PoPoolation...
+ *
+ * We'll keep the class around, but not add the features that it is still missing (e.g., it can
+ * only do interval windows). Use SlidingIntervalWindowIterator instead.
  *
  * @details
  *

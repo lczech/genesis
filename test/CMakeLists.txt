@@ -23,14 +23,15 @@
 #   Extra Warnings
 # ------------------------------------------------------------------------------
 
-# Apple osx clang >= 9.3, as well as new gcc versions >= 9 spam a lot of warnings in googletest
-# about implicitly-declared types being deprecated. Let's silence them, as we are not interested
-# in warnings about googletest. That's something they have to fix!
+# Apple osx clang >= 9.3, some other versions of clang, as well as new gcc versions >= 9
+# spam a lot of warnings in googletest about implicitly-declared types being deprecated.
+# Let's silence them, as we are not interested in warnings about googletest.
+# That's something they have to fix!
 # Also, we have to use the double cmake version comparison here, as old osx cmake versions
 # do not yet have VERSION_GREATER_EQUAL, and crash otherwise...
 SET( GTEST_NO_WARN_DEPRECATED_COPY OFF )
 IF(
-    (APPLE AND
+    (#APPLE AND
     (CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND
     ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9.3") OR
     (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9.3")))

@@ -51,6 +51,25 @@ endif()
 # If found, set all needed compiler flags and also add those flags to the Genesis exported flags.
 if(OPENMP_FOUND)
 
+    # With clang++ 11, we get:
+    # > Target "genesis_lib_shared" links to target "OpenMP::OpenMP_CXX" but the target was not found.
+    # To solve this, (for CMake < 3.9 ?!), we need to make the target ourselves,
+    # adapted from https://cliutils.gitlab.io/modern-cmake/chapters/packages/OpenMP.html
+    if(NOT TARGET OpenMP::OpenMP_CXX)
+        find_package(Threads REQUIRED)
+        add_library(OpenMP::OpenMP_CXX IMPORTED INTERFACE)
+        set_property(
+            TARGET OpenMP::OpenMP_CXX
+            PROPERTY INTERFACE_COMPILE_OPTIONS ${OpenMP_CXX_FLAGS}
+        )
+        # Only works if the same flag is passed to the linker;
+        # use CMake 3.9+ otherwise (Intel, AppleClang)
+        set_property(
+            TARGET OpenMP::OpenMP_CXX
+            PROPERTY INTERFACE_LINK_LIBRARIES ${OpenMP_CXX_FLAGS} Threads::Threads
+        )
+    endif()
+
     message( STATUS "Found OpenMP: ${OpenMP_CXX_FLAGS}" )
     message (STATUS "${ColorGreen}Using OpenMP${ColorEnd}")
 
