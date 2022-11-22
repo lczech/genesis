@@ -3,12 +3,14 @@
 # ==================================================================================================
 
 name: ci-build-test
-on:
-  pull_request:
-  push:
-    branches:
-      - master
-      - misc
+on: [push, pull_request]
+
+# on:
+#   pull_request:
+#   push:
+#     branches:
+#       - master
+#       - misc
 
 # ==================================================================================================
 #     Jobs
@@ -17,6 +19,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
 
     # ==========================================================================
     #     Matrix
@@ -42,6 +45,7 @@ jobs:
           - gcc-10
           - gcc-11
           - gcc-12
+          - gcc-13
           - llvm-5
           - llvm-6
           - llvm-7
@@ -50,6 +54,7 @@ jobs:
           - llvm-10
           - llvm-11
           - llvm-12
+          - llvm-13
         build_type:
           - DEBUG
           # - RELEASE
@@ -73,6 +78,10 @@ jobs:
             # Newer GCC versions are not available on older Ubuntu
           - os: ubuntu-20.04
             compiler: gcc-12
+          - os: ubuntu-20.04
+            compiler: gcc-13
+          - os: ubuntu-20.04
+            compiler: llvm-13
             # Older GCC versions are not supported by Ubuntu any more
           - os: ubuntu-22.04
             compiler: gcc-7
@@ -164,6 +173,7 @@ jobs:
       - name: Tests
         id: test
         if: >
+          success() &&
           runner.os != 'windows' &&
           matrix.build_type == 'DEBUG'
         run: |

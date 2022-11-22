@@ -149,7 +149,7 @@ fi
 
 # Other special mode debug. Forward the filters, and run gdb on the gtest program.
 if [[ $mode == "debug" ]] ; then
-    gdb -ex=run --args ${test_exe} --gtest_filter="${filter}"
+    gdb -ex "run" -ex "bt" --args ${test_exe} --gtest_filter="${filter}"
     exit
 fi
 
