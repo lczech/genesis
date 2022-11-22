@@ -19,6 +19,13 @@ on: [push, pull_request]
 jobs:
   build-and-test:
     runs-on: ${{ matrix.os }}
+
+    # We have issues with MacOS... because of reasons...
+    # So we have tests that are currently failing, but still want to keep them around,
+    # as some of them seem to be issues with Clang itself, and not with our code,
+    # and are hence expected to be solved with some update on their end at a later point.
+    # We try to use this here to have the whole workflow succeed even with these jobs failing,
+    # see https://github.com/actions/toolkit/issues/399
     continue-on-error: true
 
     # ==========================================================================
@@ -45,7 +52,6 @@ jobs:
           - gcc-10
           - gcc-11
           - gcc-12
-          - gcc-13
           - llvm-5
           - llvm-6
           - llvm-7
@@ -75,13 +81,12 @@ jobs:
             build_type: RELEASE
 
         exclude:
-            # Newer GCC versions are not available on older Ubuntu
+            # Newer GCC versions are not available on all Ubuntu
           - os: ubuntu-20.04
             compiler: gcc-12
           - os: ubuntu-20.04
-            compiler: gcc-13
-          - os: ubuntu-20.04
             compiler: llvm-13
+
             # Older GCC versions are not supported by Ubuntu any more
           - os: ubuntu-22.04
             compiler: gcc-7
@@ -144,6 +149,9 @@ jobs:
           export GENESIS_USE_OPENMP=ON
           export GENESIS_USE_HTSLIB=ON
           if [[ "${{ matrix.build_type }}" == "RELEASE" ]]; then export GENESIS_DEBUG=OFF; fi
+
+          # Deactivate OpenMP on MacOS for now. Causes way too much trouble.
+          if [[ "${{ RUNNER_OS }}" == "macOS" ]]; then export GENESIS_USE_OPENMP=OFF; fi
 
           cmake -S . -B ./build -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP} -DGENESIS_USE_HTSLIB=${GENESIS_USE_HTSLIB}
 
