@@ -30,18 +30,10 @@
 #   GTest Download
 # ------------------------------------------------------------------------------
 
-# This min requirement is less than what we expect in the main CMakeList file,
-# so we should be good. We state it here for re-use of this script.
-cmake_minimum_required( VERSION 2.8.12 )
-
+cmake_minimum_required( VERSION 3.1 )
 project( googletest-download NONE )
 
 include(ExternalProject)
-
-# The download progress is ugly and not needed. Since CMake 3.1, we can disable it.
-IF( ${CMAKE_VERSION} VERSION_GREATER 3.1 )
-    SET( CMAKE_DOWNLOAD_PROGRESS "DOWNLOAD_NO_PROGRESS 1" )
-ENDIF()
 
 # Download a fixed release instead of the current master,
 # so that we know that it works for us.
@@ -53,7 +45,7 @@ ExternalProject_Add( googletest
     BUILD_COMMAND     ""
     INSTALL_COMMAND   ""
     TEST_COMMAND      ""
-    ${CMAKE_DOWNLOAD_PROGRESS}
+    DOWNLOAD_NO_PROGRESS TRUE
 )
 
 # Alternative version that needs Git to be installed (thus, we do not use it by default).

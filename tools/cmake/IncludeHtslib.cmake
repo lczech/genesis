@@ -25,6 +25,8 @@
 
 # This file is included from the main CMakeLists.txt in order to build htslib.
 message (STATUS "Looking for htslib")
+cmake_minimum_required( VERSION 3.1 )
+include(ExternalProject)
 
 # ==================================================================================================
 #   Check for autotools
@@ -236,8 +238,8 @@ message( STATUS "HTSLIB_LINK_DIR:      ${HTSLIB_LINK_DIR}" )
 message( STATUS "HTSLIB_LIBRARY:       ${HTSLIB_LIBRARY}" )
 message( STATUS "HTSLIB_LZMA:          ${HTSLIB_LZMA}" )
 message( STATUS "HTSLIB_BZ2:           ${HTSLIB_BZ2}" )
-message( STATUS "HTSLIB_Deflate:       ${HTSLIB_Deflate}" )
 if(DEFINED Deflate_INCLUDE_DIRS)
+    message( STATUS "HTSLIB_Deflate:       ${HTSLIB_Deflate}" )
     message( STATUS "Deflate_INCLUDE_DIRS: ${Deflate_INCLUDE_DIRS}" )
 endif()
 
