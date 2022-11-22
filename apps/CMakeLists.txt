@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2017 Lucas Czech
+# Copyright (C) 2014-2022 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,9 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Contact:
-# Lucas Czech <lucas.czech@h-its.org>
-# Exelixis Lab, Heidelberg Institute for Theoretical Studies
-# Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+# Lucas Czech <lczech@carnegiescience.edu>
+# Department of Plant Biology, Carnegie Institution For Science
+# 260 Panama Street, Stanford, CA 94305, USA
 
 # ------------------------------------------------------------------------------
 #   Build Options
@@ -58,10 +58,20 @@ if( genesis_apps_sources )
 
         add_executable( ${app_name} ${app_src} )
 
-        target_link_libraries( ${app_name} genesis_lib_shared )
+        target_link_libraries( ${app_name} PUBLIC genesis_lib_shared )
+
+        # explicitly add OpenMP, compatible with Macos/brew installed OpenMP after Cmake 3.12
+        if(${CMAKE_VERSION} VERSION_GREATER "3.9.0")
+          if(OPENMP_FOUND)
+            target_link_libraries (${app_name} PUBLIC OpenMP::OpenMP_CXX)
+          endif()
+        endif()
 
         # Link against any external libraries, e.g. Pthreads.
-        target_link_libraries (${app_name} ${GENESIS_INTERNAL_LINK_LIBRARIES})
+        target_link_libraries (${app_name} PUBLIC ${GENESIS_INTERNAL_LINK_LIBRARIES})
+        IF(GENESIS_USE_HTSLIB)
+            add_dependencies( ${app_name} htslib )
+        ENDIF()
 
     endforeach()
 

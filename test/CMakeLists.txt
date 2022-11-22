@@ -158,11 +158,18 @@ if(GTEST_NO_WARN_DEPRECATED_COPY)
     target_compile_options(genesis_tests PRIVATE "-Wno-deprecated-copy")
 endif()
 
-target_link_libraries (genesis_tests genesis_lib_shared)
-target_link_libraries (genesis_tests ${GTEST_BOTH_LIBRARIES})
+target_link_libraries (genesis_tests PUBLIC genesis_lib_shared)
+target_link_libraries (genesis_tests PUBLIC ${GTEST_BOTH_LIBRARIES})
+
+# explicitly add OpenMP, compatible with Macos/brew installed OpenMP after Cmake 3.12
+if(${CMAKE_VERSION} VERSION_GREATER "3.9.0")
+  if(OPENMP_FOUND)
+    target_link_libraries (genesis_tests PUBLIC OpenMP::OpenMP_CXX)
+  endif()
+endif()
 
 # Link against any external libraries, e.g. Pthreads.
-target_link_libraries (genesis_tests ${GENESIS_INTERNAL_LINK_LIBRARIES})
+target_link_libraries (genesis_tests PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
 IF(GENESIS_USE_HTSLIB)
     add_dependencies( genesis_tests htslib )
 ENDIF()
