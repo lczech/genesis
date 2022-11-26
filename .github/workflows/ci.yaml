@@ -230,4 +230,4 @@ jobs:
         # We are not using the `./test/run.sh gdb` here, to make it easier for MacOS.
         if: ${{ failure() && steps.test.conclusion == 'failure' }}
         run: |
-          gdb -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "bt" -ex "q" --args ./bin/test/genesis_tests
+          gdb -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests
