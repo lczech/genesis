@@ -177,6 +177,13 @@ jobs:
           # Deactivate OpenMP on MacOS for now. Causes way too much trouble.
           if [[ "${RUNNER_OS}" == "macOS" ]]; then export GENESIS_USE_OPENMP=OFF; fi
 
+          # Try setting the xcode thingy here as well...
+          # See https://stackoverflow.com/a/67654877/4184258
+          if [[ "${RUNNER_OS}" == "macOS" ]]; then
+            echo "Setting xcode select"
+            sudo xcode-select --switch /Library/Developer/CommandLineTools
+          fi
+
           cmake -S . -B ./build -DGENESIS_USE_HTSLIB=${GENESIS_USE_HTSLIB} -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP}
 
       # - name: MacOS CMake debug
@@ -200,6 +207,13 @@ jobs:
             export LDFLAGS=`echo ${LDFLAGS} | sed 's/"//g'`
             export CPPFLAGS=`echo ${CPPFLAGS} | sed 's/"//g'`
           fi
+
+          # Try setting the xcode thingy here as well...
+          if [[ "${RUNNER_OS}" == "macOS" ]]; then
+            echo "Setting xcode select"
+            sudo xcode-select --switch /Library/Developer/CommandLineTools
+          fi
+
           cmake --build ./build -- -j 2
 
       - name: Tests

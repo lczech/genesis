@@ -37,7 +37,10 @@ if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
     # For some clang mac versions, we need to add a linker flag, see
     # https://open-box.readthedocs.io/en/latest/installation/openmp_macos.html and
     # https://mac.r-project.org/openmp/ for details. Let's hope that works universally...
-    set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lomp " )
+    IF(APPLE)
+        set( TMP_CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}" )
+        set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lomp" )
+    ENDIF()
 
     message (STATUS "Using find_package( OpenMP ) patch")
     find_package( OpenMP_patch )
@@ -57,6 +60,11 @@ if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
         unset(OpenMP_CXX_FLAGS CACHE)
         find_package( OpenMP )
     endif()
+
+    IF(APPLE)
+        # Reset so that we don't accidentally add the wrong flags.
+        set( CMAKE_EXE_LINKER_FLAGS "${TMP_CMAKE_EXE_LINKER_FLAGS}" )
+    ENDIF()
 
 else()
     # In all other cases, use the normal find module.
