@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -235,10 +235,13 @@ std::string svg_attribute(
  *         stroke
  *     );
  *
- * The angles are measured in radians.
+ * The angles are measured in radians, and always drawn clockwise from start to end.
+ * If @p wedge is given, the path is drawn including segments to the circle center;
+ * otherwise, the path position is moved to the beginning of the arc first, and left at its end.
  */
 inline std::string svg_arc(
-    double center_x, double center_y, double radius, double start_angle, double end_angle
+    double center_x, double center_y, double radius, double start_angle, double end_angle,
+    bool wedge = false
 ) {
     std::string large_arc;
     if( start_angle > end_angle ) {
@@ -253,9 +256,17 @@ inline std::string svg_arc(
     double end_y   = center_y + ( radius * std::sin( start_angle ));
 
     std::ostringstream os;
-    os << "M " << start_x << " " << start_y << " ";
+    if( wedge ) {
+        os << "M " << center_x << " " << center_y << " ";
+        os << "L " << start_x << " " << start_y << " ";
+    } else {
+        os << "M " << start_x << " " << start_y << " ";
+    }
     os << "A " << radius << " " << radius << " " << 0 << " " << large_arc << " " << 0 << " ";
     os << end_x << " " << end_y;
+    if( wedge ) {
+        os << "L " << center_x << " " << center_y << " ";
+    }
     return os.str();
 }
 
