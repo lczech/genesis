@@ -45,6 +45,15 @@ IF(
 ENDIF()
 # message (STATUS "GTEST_NO_WARN_DEPRECATED_COPY: ${GTEST_NO_WARN_DEPRECATED_COPY}")
 
+# Without any optimization, gtest causes some errors:
+# error: 'dummy' may be used uninitialized [-Werror=maybe-uninitialized]
+# Let's stop that from messing with our build - not our problem to fix!
+SET( GTEST_NO_WARN_MAYBE_UNINITIALIZED OFF )
+if("${CMAKE_CXX_FLAGS}" MATCHES "-O0" OR "${CMAKE_CXX_FLAGS_DEBUG}" MATCHES "-O0" )
+    SET( GTEST_NO_WARN_MAYBE_UNINITIALIZED ON )
+    message (STATUS "Deactivate -Wmaybe-uninitialized for test binary.")
+endif()
+
 # ------------------------------------------------------------------------------
 #   Setup GTest
 # ------------------------------------------------------------------------------
@@ -116,6 +125,10 @@ if(NOT GTEST_FOUND)
         # target_compile_options(gmock      PRIVATE "-Wno-deprecated-copy")
         # target_compile_options(gmock_main PRIVATE "-Wno-deprecated-copy")
     endif()
+    if(GTEST_NO_WARN_MAYBE_UNINITIALIZED)
+        target_compile_options(gtest      PRIVATE "-Wno-uninitialized")
+        target_compile_options(gtest_main PRIVATE "-Wno-uninitialized")
+    endif()
 
     message (STATUS "Finished downloading GTest")
 endif()
@@ -156,6 +169,9 @@ set_target_properties (genesis_tests PROPERTIES OUTPUT_NAME genesis_tests)
 
 if(GTEST_NO_WARN_DEPRECATED_COPY)
     target_compile_options(genesis_tests PRIVATE "-Wno-deprecated-copy")
+endif()
+if(GTEST_NO_WARN_MAYBE_UNINITIALIZED)
+    target_compile_options(genesis_tests PRIVATE "-Wno-uninitialized")
 endif()
 
 target_link_libraries (genesis_tests PUBLIC genesis_lib_shared)
