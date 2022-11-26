@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -62,10 +62,10 @@ void LayoutBase::tree( Tree const& orig_tree, bool ladderize_tree )
     init_tree_( orig_tree );
 }
 
-Tree& LayoutBase::tree()
-{
-    return tree_;
-}
+// Tree& LayoutBase::tree()
+// {
+//     return tree_;
+// }
 
 Tree const& LayoutBase::tree() const
 {
@@ -255,8 +255,8 @@ void LayoutBase::set_node_shapes( std::vector< utils::SvgGroup> const& shapes )
 void LayoutBase::init_tree_( Tree const& orig_tree )
 {
     // Init nodes.
-    for( size_t i = 0; i < tree().node_count(); ++i ) {
-        auto& node = tree().node_at(i);
+    for( size_t i = 0; i < tree_.node_count(); ++i ) {
+        auto& node = tree_.node_at(i);
         auto const& orig_node = orig_tree.node_at(i);
 
         // Safety: correct indices.
@@ -273,8 +273,8 @@ void LayoutBase::init_tree_( Tree const& orig_tree )
     }
 
     // Init edges.
-    for( size_t i = 0; i < tree().edge_count(); ++i ) {
-        auto& edge = tree().edge_at(i);
+    for( size_t i = 0; i < tree_.edge_count(); ++i ) {
+        auto& edge = tree_.edge_at(i);
         auto const& orig_edge = orig_tree.edge_at(i);
 
         // Safety: correct indices.
@@ -303,7 +303,7 @@ void LayoutBase::init_layout_()
     // Set node parent indices.
     size_t parent = tree_.root_node().index();
     for( auto it : eulertour( tree() )) {
-        auto& node_data = tree().node_at( it.node().index() ).data<LayoutNodeData>();
+        auto& node_data = tree_.node_at( it.node().index() ).data<LayoutNodeData>();
         if( node_data.parent_index == -1 ) {
             node_data.parent_index = parent;
         }
@@ -336,7 +336,7 @@ void LayoutBase::set_node_spreadings_leaves_()
     // Set spreading of leaves.
     size_t leaf_count = 0;
     for( auto it : eulertour( tree() )) {
-        auto& node_data = tree().node_at( it.node().index() ).data<LayoutNodeData>();
+        auto& node_data = tree_.node_at( it.node().index() ).data<LayoutNodeData>();
         if( is_leaf( it.node() )) {
             auto const lcd = static_cast<double>( leaf_count );
             auto const nld = static_cast<double>( num_leaves );
@@ -354,7 +354,7 @@ void LayoutBase::set_node_spreadings_leaves_()
     // Set remaining spreading of inner nodes to mid-points of their children.
     for( auto it : postorder( tree() )) {
         auto const node_index = it.node().index();
-        auto& node_data   = tree().node_at( node_index ).data<LayoutNodeData>();
+        auto& node_data   = tree_.node_at( node_index ).data<LayoutNodeData>();
         auto const prnt_index = node_data.parent_index;
 
         if( node_data.spreading < 0.0 ) {
@@ -453,14 +453,14 @@ void LayoutBase::set_node_distances_phylogram_()
     auto const max_d = *std::max_element( node_dists.begin(), node_dists.end() );
 
     for( size_t i = 0; i < node_dists.size(); ++i ) {
-        tree().node_at(i).data<LayoutNodeData>().distance = node_dists[i] / max_d;
+        tree_.node_at(i).data<LayoutNodeData>().distance = node_dists[i] / max_d;
     }
 }
 
 void LayoutBase::set_node_distances_cladogram_()
 {
     // Set root distance to 0.
-    tree().root_node().data<LayoutNodeData>().distance = 0.0;
+    tree_.root_node().data<LayoutNodeData>().distance = 0.0;
 
     // Get the heights of all subtrees starting from the root.
     auto const heights = subtree_max_path_heights( tree() );
@@ -481,7 +481,7 @@ void LayoutBase::set_node_distances_cladogram_()
 
         // Set the distance.
         auto const distance = ( root_height - height ) / root_height;
-        tree().node_at( it.node().index() ).data<LayoutNodeData>().distance = distance;
+        tree_.node_at( it.node().index() ).data<LayoutNodeData>().distance = distance;
     }
 }
 
