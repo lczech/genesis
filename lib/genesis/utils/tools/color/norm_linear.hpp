@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -178,38 +178,7 @@ public:
     template <class ForwardIterator>
     ColorNormalizationLinear& autoscale( ForwardIterator first, ForwardIterator last )
     {
-        // New values, so that we first do not override the current ones.
-        auto min = std::numeric_limits<double>::max();
-        auto max = std::numeric_limits<double>::lowest();
-
-        size_t cnt = 0;
-
-        while( first != last ) {
-            if( ! std::isfinite( *first ) || *first == mask_value() ) {
-                ++first;
-                continue;
-            }
-            if( *first < min ) {
-                min = *first;
-            }
-            if( *first > max ) {
-                max = *first;
-            }
-
-            ++cnt;
-            ++first;
-        }
-
-        // Only update if we found values.
-        if( cnt == 0 ) {
-            return *this;
-        }
-
-        // Set the values simply to what we found.
-        min_value_ = min;
-        max_value_ = max;
-        ColorNormalizationLinear::update_hook_( min, max );
-
+        autoscale_( first, last, true, true );
         return *this;
     }
 
@@ -219,10 +188,7 @@ public:
     template <class ForwardIterator>
     ColorNormalizationLinear& autoscale_min( ForwardIterator first, ForwardIterator last )
     {
-        auto const max = max_value_;
-        autoscale( first, last );
-        max_value_ = max;
-        ColorNormalizationLinear::update_hook_( min_value_, max_value_ );
+        autoscale_( first, last, true, false );
         return *this;
     }
 
@@ -232,10 +198,7 @@ public:
     template <class ForwardIterator>
     ColorNormalizationLinear& autoscale_max( ForwardIterator first, ForwardIterator last )
     {
-        auto const min = min_value_;
-        autoscale( first, last );
-        min_value_ = min;
-        ColorNormalizationLinear::update_hook_( min_value_, max_value_ );
+        autoscale_( first, last, false, true );
         return *this;
     }
 
@@ -260,8 +223,59 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Internal Helper Functions
+    // -------------------------------------------------------------------------
+
+protected:
+
+    template <class ForwardIterator>
+    ColorNormalizationLinear& autoscale_(
+        ForwardIterator first, ForwardIterator last,
+        bool set_min, bool set_max
+    ) {
+        // New values, so that we first do not override the current ones.
+        auto min = std::numeric_limits<double>::max();
+        auto max = std::numeric_limits<double>::lowest();
+
+        size_t cnt = 0;
+        while( first != last ) {
+            if( ! std::isfinite( *first ) || *first == mask_value() ) {
+                ++first;
+                continue;
+            }
+            if( *first < min ) {
+                min = *first;
+            }
+            if( *first > max ) {
+                max = *first;
+            }
+
+            ++cnt;
+            ++first;
+        }
+
+        // Only update if we found values.
+        if( cnt == 0 ) {
+            return *this;
+        }
+
+        // Set the values simply to what we found.
+        if( set_min ) {
+            min_value_ = min;
+        }
+        if( set_max ) {
+            max_value_ = max;
+        }
+        ColorNormalizationLinear::update_hook_( min, max );
+
+        return *this;
+    }
+
+    // -------------------------------------------------------------------------
     //     (Pure) Virtual Functions
     // -------------------------------------------------------------------------
+
+protected:
 
     /**
      * @brief Return whether the ranges are correct.
@@ -270,8 +284,6 @@ public:
     {
         return min_value_ < max_value_;
     }
-
-protected:
 
     /**
      * @brief Throw if the ranges are incorrect.

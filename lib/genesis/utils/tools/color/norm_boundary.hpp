@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -206,8 +206,9 @@ public:
      * `min` and `max` first.
      */
     template <class ForwardIterator>
-    ColorNormalizationBoundary& autoscale( ForwardIterator first, ForwardIterator last, size_t intervals )
-    {
+    ColorNormalizationBoundary& autoscale(
+        ForwardIterator first, ForwardIterator last, size_t intervals
+    ) {
         // New values, so that we first do not override the current ones.
         auto min = std::numeric_limits<double>::max();
         auto max = std::numeric_limits<double>::lowest();
@@ -242,6 +243,8 @@ public:
     //     (Pure) Virtual Functions
     // -------------------------------------------------------------------------
 
+protected:
+
     /**
      * @brief Return whether the boundaries are correct.
      */
@@ -249,8 +252,6 @@ public:
     {
         return boundaries_.size() >= 3 && std::is_sorted( boundaries_.begin(), boundaries_.end() );
     }
-
-protected:
 
     /**
      * @brief Throw if the boundaries are incorrect.

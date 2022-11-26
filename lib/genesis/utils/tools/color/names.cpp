@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -1188,8 +1188,7 @@ static NamedColorList::const_iterator get_color_list_iterator_(
     NamedColorList const & list,
     std::string       name
 ) {
-    name = utils::replace_all(name, " ", "");
-    name = utils::replace_all(name, "_", "");
+    name = remove_all_non_alnum( name );
 
     // We also strip spaces and undescores from the list names itself.
     // We could store the list in a format that already does that - however,
@@ -1198,9 +1197,7 @@ static NamedColorList::const_iterator get_color_list_iterator_(
         list.begin(),
         list.end(),
         [&name] ( std::pair<std::string, ColorBytes> const& elem ) {
-            auto elem_name = utils::replace_all( elem.first, " ", "" );
-            elem_name      = utils::replace_all( elem_name,  "_", "" );
-
+            auto elem_name = utils::remove_all_non_alnum( elem.first );
             return utils::equals_ci( elem_name, name );
         }
     );
