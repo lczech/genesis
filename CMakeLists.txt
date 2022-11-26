@@ -264,6 +264,15 @@ set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
 set (CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O2 -DDEBUG -g -ggdb3 -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC")
 set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
 
+# Settings for getting code coverage reports of the tests with gcov and lcov.
+# Compile with gcc (clang will need a different command for running gcov, I think its `clang gov`
+# or something), using
+# set (CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG -O0 -g -ggdb3 -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -fprofile-arcs -ftest-coverage")
+# Then run the test binary, and then
+# lcov --directory ./build/ --capture --output-file ./code_coverage.info -rc lcov_branch_coverage=1
+# genhtml code_coverage.info --branch-coverage --output-directory ./code_coverage_report/
+# to get the report.
+
 # Check for LTO, and use it.
 # This hopefully fixes an issue with some compilers stating that
 # `ld.lld: error: undefined symbol: _Unwind_Resume`, see
