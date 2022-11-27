@@ -26,7 +26,10 @@ jobs:
     # and are hence expected to be solved with some update on their end at a later point.
     # We try to use this here to have the whole workflow succeed even with these jobs failing,
     # see https://github.com/actions/toolkit/issues/399
-    continue-on-error: true
+    # --> We have deactivated the failing macos jobs for now, so let's deactivate this switch here,
+    # so that for now, we fail the workflow when a single job fails. That makes it easier to see
+    # problems down the line.
+    # continue-on-error: true
 
     # ==========================================================================
     #     Matrix
@@ -235,8 +238,11 @@ jobs:
         #    we switched now, but keep this here for reference if needed later
         run: |
           brew install autoconf automake libdeflate libomp gdb
-          echo "Patching xcode gcc issues"
-          sudo xcode-select --switch /Library/Developer/CommandLineTools
+
+          if [[ "${{ matrix.compiler }}" == "gcc*" ]]; then
+            echo "Patching xcode gcc issues"
+            sudo xcode-select --switch /Library/Developer/CommandLineTools
+          fi
         # xcode-select -p
         # xcode-select -p
         # pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
