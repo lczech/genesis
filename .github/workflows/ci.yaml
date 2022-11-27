@@ -141,13 +141,13 @@ jobs:
       - name: Setup C++
         # Reference: https://github.com/marketplace/actions/setup-cpp-c-c
         uses: aminya/setup-cpp@v0.22.0
-        if: runner.compiler != 'apple'
+        if: matrix.compiler != 'apple'
         with:
           compiler: ${{ matrix.compiler }}
           cmake: true
 
       - name: Setup C++ - AppleClang
-        if: runner.compiler == 'apple'
+        if: matrix.compiler == 'apple'
         run: |
           brew install cmake
 
