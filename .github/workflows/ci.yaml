@@ -17,7 +17,7 @@ on: [push, pull_request]
 # ==================================================================================================
 
 jobs:
-  build-and-test:
+  ci:
     runs-on: ${{ matrix.os }}
 
     # We have issues with MacOS... because of reasons...
@@ -100,18 +100,35 @@ jobs:
             compiler: llvm
             htslib: OFF
 
+          # We test AppleClang as well, as a special case.
+          - os: macos-11
+            compiler: apple
+          - os: macos-12
+            compiler: apple
+
         exclude:
-            # Newer GCC versions are not available on all Ubuntu
+          # Newer GCC versions are not available on all Ubuntu
           - os: ubuntu-20.04
             compiler: gcc-12
           - os: ubuntu-20.04
             compiler: llvm-13
 
-            # Older GCC versions are not supported by Ubuntu any more
+          # Older GCC versions are not supported by Ubuntu any more
           - os: ubuntu-22.04
             compiler: gcc-7
           - os: ubuntu-22.04
             compiler: gcc-8
+
+          # llvm-9 causes weird segfauls on Ubuntu, which do not seem to be our fault.
+          # Need to investiage further at some point. We used setup-cpp locally to install
+          # the very same version of llvm-9, and got tons of segfauls for all kind of functions...
+          - os: ubuntu
+            compiler: llvm-9
+
+          # We also currently exclude clang from macos, as it fails with different types of
+          # linker errors. As this is merely a problem in the setup, we defer solving this for now.
+          - os: macos
+            compiler: llvm
 
     # ==========================================================================
     #     Steps
@@ -124,9 +141,15 @@ jobs:
       - name: Setup C++
         # Reference: https://github.com/marketplace/actions/setup-cpp-c-c
         uses: aminya/setup-cpp@v0.22.0
+        if: runner.compiler != 'apple'
         with:
           compiler: ${{ matrix.compiler }}
           cmake: true
+
+      - name: Setup C++ - AppleClang
+        if: runner.compiler == 'apple'
+        run: |
+          brew install cmake
 
       - name: Install Dependencies - Ubuntu
         if: runner.os == 'linux'
@@ -153,11 +176,11 @@ jobs:
         #    we switched now, but keep this here for reference if needed later
         run: |
           brew install autoconf automake libdeflate libomp gdb
-          echo "Patching xcode gcc issues"
-          xcode-select -p
-          sudo xcode-select --switch /Library/Developer/CommandLineTools
-          xcode-select -p
-          pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
+        # echo "Patching xcode gcc issues"
+        # xcode-select -p
+        # sudo xcode-select --switch /Library/Developer/CommandLineTools
+        # xcode-select -p
+        # pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
         # /usr/bin/xcodebuild -version
         # xcode-select --install
         # brew uninstall --ignore-dependencies autoconf
@@ -176,13 +199,6 @@ jobs:
 
           # Deactivate OpenMP on MacOS for now. Causes way too much trouble.
           if [[ "${RUNNER_OS}" == "macOS" ]]; then export GENESIS_USE_OPENMP=OFF; fi
-
-          # Try setting the xcode thingy here as well...
-          # See https://stackoverflow.com/a/67654877/4184258
-          if [[ "${RUNNER_OS}" == "macOS" ]]; then
-            echo "Setting xcode select"
-            sudo xcode-select --switch /Library/Developer/CommandLineTools
-          fi
 
           cmake -S . -B ./build -DGENESIS_USE_HTSLIB=${GENESIS_USE_HTSLIB} -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP}
 
@@ -206,12 +222,6 @@ jobs:
           if [[ ! -z "${LLVM_PATH}" ]]; then
             export LDFLAGS=`echo ${LDFLAGS} | sed 's/"//g'`
             export CPPFLAGS=`echo ${CPPFLAGS} | sed 's/"//g'`
-          fi
-
-          # Try setting the xcode thingy here as well...
-          if [[ "${RUNNER_OS}" == "macOS" ]]; then
-            echo "Setting xcode select"
-            sudo xcode-select --switch /Library/Developer/CommandLineTools
           fi
 
           cmake --build ./build -- -j 2
