@@ -109,6 +109,8 @@ jobs:
             htslib: OFF
 
           # We test AppleClang as well, as a special case.
+          - os: macos-10.15
+            compiler: apple
           - os: macos-11
             compiler: apple
           - os: macos-12
@@ -233,9 +235,9 @@ jobs:
         #    we switched now, but keep this here for reference if needed later
         run: |
           brew install autoconf automake libdeflate libomp gdb
-        # echo "Patching xcode gcc issues"
+          echo "Patching xcode gcc issues"
+          sudo xcode-select --switch /Library/Developer/CommandLineTools
         # xcode-select -p
-        # sudo xcode-select --switch /Library/Developer/CommandLineTools
         # xcode-select -p
         # pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
         # /usr/bin/xcodebuild -version
