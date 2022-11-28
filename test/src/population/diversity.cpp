@@ -280,20 +280,24 @@ TEST( Population, DiversityMeasuresIterator )
     using VariantWindow = Window<genesis::population::Variant>;
 
     // Prepare the reader.
+    LOG_DBG << "SimplePileupReader()";
     auto reader = SimplePileupReader();
     reader.quality_encoding( genesis::sequence::QualityEncoding::kIllumina13 );
     reader.min_base_quality( min_phred_score );
 
     // Make a Lambda Iterator over the data stream.
+    LOG_DBG << "make_variant_input_iterator_from_pileup_file()";
     auto data_gen = make_variant_input_iterator_from_pileup_file( infile, reader );
     auto pileup_begin = data_gen.begin();
     auto pileup_end   = data_gen.end();
 
     // Create a window iterator based on the lambda iterator.
+    LOG_DBG << "make_default_sliding_interval_window_iterator()";
     auto win_it = make_default_sliding_interval_window_iterator(
         pileup_begin, pileup_end, window_width, window_stride
     );
 
+    LOG_DBG << "for()";
     size_t value_count = 0;
     size_t window_cnt = 0;
     size_t iteration_count = 0;

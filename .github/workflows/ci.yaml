@@ -1,0 +1,328 @@
+# ==================================================================================================
+#     Header
+# ==================================================================================================
+
+name: CI
+on: [push, pull_request]
+
+# on:
+#   pull_request:
+#   push:
+#     branches:
+#       - master
+#       - misc
+
+# ==================================================================================================
+#     Jobs
+# ==================================================================================================
+
+jobs:
+  ci:
+    runs-on: ${{ matrix.os }}
+
+    # We have issues with MacOS... because of reasons...
+    # So we have tests that are currently failing, but still want to keep them around,
+    # as some of them seem to be issues with Clang itself, and not with our code,
+    # and are hence expected to be solved with some update on their end at a later point.
+    # We try to use this here to have the whole workflow succeed even with these jobs failing,
+    # see https://github.com/actions/toolkit/issues/399
+    # --> We have deactivated the failing macos jobs for now, so let's deactivate this switch here,
+    # so that for now, we fail the workflow when a single job fails. That makes it easier to see
+    # problems down the line.
+    # continue-on-error: true
+
+    # ==========================================================================
+    #     Matrix
+    # ==========================================================================
+
+    strategy:
+      fail-fast: false
+
+      # -------------------------------------------------------
+      #     matrix
+      # -------------------------------------------------------
+
+      matrix:
+        os:
+          # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
+          - ubuntu-20.04
+          - ubuntu-22.04
+          - macos-11
+          - macos-12
+
+        compiler:
+          # - gcc-5
+          # - gcc-6
+          - gcc-7
+          - gcc-8
+          - gcc-9
+          - gcc-10
+          - gcc-11
+          - gcc-12
+          # - gcc-13
+          - llvm-5
+          - llvm-6
+          - llvm-7
+          - llvm-8
+          - llvm-9
+          - llvm-10
+          - llvm-11
+          - llvm-12
+          - llvm-13
+
+        build_type:
+          - DEBUG
+          # - RELEASE
+
+        htslib:
+          - ON
+          # - OFF
+
+        # -------------------------------------------------------
+        #     exclude
+        # -------------------------------------------------------
+
+        exclude:
+          # Newer GCC versions are not available on all Ubuntu
+          - os: ubuntu-20.04
+            compiler: gcc-12
+          - os: ubuntu-20.04
+            compiler: llvm-13
+
+          # Older GCC versions are not supported by Ubuntu any more
+          - os: ubuntu-22.04
+            compiler: gcc-7
+          - os: ubuntu-22.04
+            compiler: gcc-8
+
+          # llvm-9 causes weird segfauls on Ubuntu, which do not seem to be our fault.
+          # Need to investiage further at some point. We used setup-cpp locally to install
+          # the very same version of llvm-9, and got tons of segfauls for all kind of functions...
+          - os: ubuntu-20.04
+            compiler: llvm-9
+          - os: ubuntu-22.04
+            compiler: llvm-9
+
+          # We also currently exclude clang from macos, as it fails with different types of
+          # linker errors. As this is merely a problem in the setup, we defer solving this for now.
+          # Wildcards do not work here, so we have to list them all... :-(
+          - os: macos-11
+            compiler: llvm-5
+          - os: macos-11
+            compiler: llvm-6
+          - os: macos-11
+            compiler: llvm-7
+          - os: macos-11
+            compiler: llvm-8
+          - os: macos-11
+            compiler: llvm-9
+          - os: macos-11
+            compiler: llvm-10
+          - os: macos-11
+            compiler: llvm-11
+          - os: macos-11
+            compiler: llvm-12
+          - os: macos-11
+            compiler: llvm-13
+          - os: macos-12
+            compiler: llvm-5
+          - os: macos-12
+            compiler: llvm-6
+          - os: macos-12
+            compiler: llvm-7
+          - os: macos-12
+            compiler: llvm-8
+          - os: macos-12
+            compiler: llvm-9
+          - os: macos-12
+            compiler: llvm-10
+          - os: macos-12
+            compiler: llvm-11
+          - os: macos-12
+            compiler: llvm-12
+          - os: macos-12
+            compiler: llvm-13
+
+        # -------------------------------------------------------
+        #     include
+        # -------------------------------------------------------
+
+        include:
+          # Test the release version with both compilers and OSs
+          - os: ubuntu-latest
+            compiler: gcc
+            build_type: RELEASE
+          - os: ubuntu-latest
+            compiler: llvm
+            build_type: RELEASE
+          - os: macos-latest
+            compiler: gcc
+            build_type: RELEASE
+          - os: macos-latest
+            compiler: llvm
+            build_type: RELEASE
+
+          # Test without htslib with both compilers and OSs
+          - os: ubuntu-latest
+            compiler: gcc
+            htslib: OFF
+          - os: ubuntu-latest
+            compiler: llvm
+            htslib: OFF
+          - os: macos-latest
+            compiler: gcc
+            htslib: OFF
+          - os: macos-latest
+            compiler: llvm
+            htslib: OFF
+
+          # We test AppleClang as well, as a special case.
+          # - os: macos-10.15
+          #   compiler: apple
+          - os: macos-11
+            compiler: apple
+          - os: macos-12
+            compiler: apple
+
+    # ==========================================================================
+    #     Steps
+    # ==========================================================================
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+
+      # -------------------------------------------------------
+      #     Setup
+      # -------------------------------------------------------
+
+      - name: Setup C++
+        # Reference: https://github.com/marketplace/actions/setup-cpp-c-c
+        uses: aminya/setup-cpp@v0.22.0
+        if: matrix.compiler != 'apple'
+        with:
+          compiler: ${{ matrix.compiler }}
+          cmake: true
+
+      - name: Setup C++ - AppleClang
+        if: matrix.compiler == 'apple'
+        run: |
+          brew install cmake
+
+      # -------------------------------------------------------
+      #     Dependencies
+      # -------------------------------------------------------
+
+      - name: Install Dependencies - Ubuntu
+        if: runner.os == 'linux'
+        # 1: htslib dependencies, see https://github.com/samtools/htslib/blob/develop/INSTALL
+        # 2: clang on ubuntu 22 is not properly set up, we need libtinfo5,
+        #    see https://github.com/aminya/setup-cpp/issues/149
+        # 3: Install gdb for debugging output.
+        run: |
+          sudo apt-get install autoconf automake zlib1g-dev libbz2-dev liblzma-dev
+          sudo apt-get install libtinfo5 gdb
+        # sudo apt-get remove autoconf
+        # sudo apt-get install autoconf2.64 liblzma-dev libbz2-dev
+
+      - name: Install Dependencies - MacOS
+        if: runner.os == 'macos'
+        # The commands below were try and error with the CI...
+        #  - install simple dependencies of htslib, and for (trying to get) OpenMP
+        #  - switch xcode mode, see https://stackoverflow.com/a/67654877
+        #  - output xcode info for debugging, see https://stackoverflow.com/a/73765819
+        #  - we also tried xocde-select from https://mac.r-project.org/openmp/ and
+        #    https://open-box.readthedocs.io/en/latest/installation/openmp_macos.html
+        #    but that did not work
+        #  - previously, we used an htslib version that required autoconf 2.69.
+        #    we switched now, but keep this here for reference if needed later
+        run: |
+          brew install autoconf automake libdeflate libomp gdb
+
+          if [[ "${{ matrix.compiler }}" == gcc* ]]; then
+            echo "Patching xcode gcc issues"
+            sudo xcode-select --switch /Library/Developer/CommandLineTools
+          fi
+        # xcode-select -p
+        # xcode-select -p
+        # pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
+        # /usr/bin/xcodebuild -version
+        # xcode-select --install
+        # brew uninstall --ignore-dependencies autoconf
+        # brew install autoconf@2.69
+        # echo 'export PATH="/usr/local/opt/autoconf@2.69/bin:$PATH"' >> /Users/runner/.bash_profile
+
+      # -------------------------------------------------------
+      #     Configure
+      # -------------------------------------------------------
+
+      - name: Configure
+        run: |
+          export GENESIS_DEBUG=ON
+          export GENESIS_USE_HTSLIB=ON
+          export GENESIS_USE_OPENMP=ON
+
+          # Take matrix includes into account
+          if [[ "${{ matrix.build_type }}" == "RELEASE" ]]; then export GENESIS_DEBUG=OFF; fi
+          if [[ "${{ matrix.htslib }}" == "OFF" ]]; then export GENESIS_USE_HTSLIB=OFF; fi
+
+          # Deactivate OpenMP on MacOS for now. Causes way too much trouble.
+          if [[ "${RUNNER_OS}" == "macOS" ]]; then export GENESIS_USE_OPENMP=OFF; fi
+
+          # Need to set the xcode patch here as well, as job steps don't keep status.
+          if [[ "${RUNNER_OS}" == "macOS" ]] && [[ "${{ matrix.compiler }}" == gcc* ]]; then
+            echo "Patching xcode gcc issues"
+            sudo xcode-select --switch /Library/Developer/CommandLineTools
+          fi
+
+          cmake -S . -B ./build -DGENESIS_USE_HTSLIB=${GENESIS_USE_HTSLIB} -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP}
+
+      # - name: MacOS CMake debug
+      #   if: always() && runner.os == 'macos'
+      #   run: |
+      #     CMAKE_OUT="/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeOutput.log"
+      #     CMAKE_ERR="/Users/runner/work/genesis/genesis/build/CMakeFiles/CMakeError.log"
+      #     if [[ -f ${CMAKE_OUT} ]]; then
+      #       cat ${CMAKE_OUT}
+      #     fi
+      #     if [[ -f ${CMAKE_ERR} ]]; then
+      #       cat ${CMAKE_ERR}
+      #     fi
+
+      # -------------------------------------------------------
+      #     Build & Test
+      # -------------------------------------------------------
+
+      - name: Build
+        # Below we use a workaround for LLVM as configured by setup-cpp, which clashes with htslib:
+        # https://github.com/samtools/htslib/issues/1527 and
+        # https://github.com/aminya/setup-cpp/issues/145
+        run: |
+          if [[ ! -z "${LLVM_PATH}" ]]; then
+            export LDFLAGS=`echo ${LDFLAGS} | sed 's/"//g'`
+            export CPPFLAGS=`echo ${CPPFLAGS} | sed 's/"//g'`
+          fi
+
+          # Need to set the xcode patch here as well, as job steps don't keep status.
+          if [[ "${RUNNER_OS}" == "macOS" ]] && [[ "${{ matrix.compiler }}" == gcc* ]]; then
+            echo "Patching xcode gcc issues"
+            sudo xcode-select --switch /Library/Developer/CommandLineTools
+          fi
+
+          cmake --build ./build -- -j 2
+
+      - name: Tests
+        id: test
+        if: >
+          success() &&
+          runner.os != 'windows' &&
+          matrix.build_type != 'RELEASE'
+        run: |
+          ./bin/test/genesis_tests
+
+      - name: Test - gdb
+        # If the regular test run failed, we repeat with gdb, to print the stack.
+        # We are not using the `./test/run.sh gdb` here, to make it easier for MacOS.
+        if: ${{ failure() && steps.test.conclusion == 'failure' }}
+        run: |
+          gdb -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests

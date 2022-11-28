@@ -54,13 +54,13 @@ cd "$(dirname "$0")"
 if [ ! -f "${test_exe}" ] ; then
     echo "Test executable '${test_exe}' not found."
     echo "Run the build process first!"
-    exit
+    exit 1
 fi
 
 # This script needs bc.
 if [ -z "`which bc`" ] ; then
     echo "Program 'bc' not found. Cannot run this script."
-    exit
+    exit 1
 fi
 
 # Check for some simple commands.
@@ -87,7 +87,7 @@ if [[ $1 == "memory" || $1 == "mem" ]] ; then
     shift
     if [ -z "`which valgrind`" ] ; then
         echo "Program 'valgrind' not found. Cannot run memory tests."
-        exit
+        exit 1
     fi
 fi
 if [[ $1 == "heap" || $1 == "massif" ]] ; then
@@ -95,7 +95,7 @@ if [[ $1 == "heap" || $1 == "massif" ]] ; then
     shift
     if [ -z "`which valgrind`" ] ; then
         echo "Program 'valgrind' not found. Cannot run memory tests."
-        exit
+        exit 1
     fi
 fi
 if [[ $1 == "speed" ]] ; then
@@ -118,6 +118,11 @@ fi
 if [[ $1 == "debug" || $1 == "dbg" || $1 == "gdb" ]] ; then
     mode="debug"
     shift
+
+    if [ -z "`which gdb`" ] ; then
+        echo "Program 'gdb' not found. Cannot run this script with mode debug."
+        exit 1
+    fi
 fi
 if [[ $mode == "none" ]] ; then
     # If the mode was not set by any previous lines,
@@ -149,7 +154,13 @@ fi
 
 # Other special mode debug. Forward the filters, and run gdb on the gtest program.
 if [[ $mode == "debug" ]] ; then
-    gdb -ex=run --args ${test_exe} --gtest_filter="${filter}"
+    # When we are on GitHub Actions, we want a fully automated debugging, print the stack, then exit.
+    if [[ `whoami` == "runner" ]] ; then
+        echo "Running gdb auto"
+        gdb -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "bt" -ex "q" --args ${test_exe} --gtest_filter="${filter}"
+    else
+        gdb -ex "run" -ex "bt" --args ${test_exe} --gtest_filter="${filter}"
+    fi
     exit
 fi
 

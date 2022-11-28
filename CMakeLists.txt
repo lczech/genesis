@@ -194,7 +194,7 @@ option (GENESIS_USE_HTSLIB          "Use htslib." ON)
 
 # Another additional dependency: samtools
 # We again use a locally installed version, see the htslib setup above for details. Same here.
-option (GENESIS_USE_SAMTOOLS        "Use samtools. Needs to also have htslib activated." ON)
+# option (GENESIS_USE_SAMTOOLS        "Use samtools. Needs to also have htslib activated." ON)
 
 # Define unity build option with list of valid values. Default is full unity build.
 set( GENESIS_UNITY_BUILD FULL CACHE STRING
@@ -264,6 +264,32 @@ set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
 set (CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O2 -DDEBUG -g -ggdb3 -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC")
 set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
 
+# Settings for getting code coverage reports of the tests with gcov and lcov.
+# Compile with gcc (clang will need a different command for running gcov, I think its `clang gov`
+# or something), using
+# set (CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG -O0 -g -ggdb3 -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -fprofile-arcs -ftest-coverage")
+# Then run the test binary, and then
+# lcov --directory ./build/ --capture --output-file ./code_coverage.info -rc lcov_branch_coverage=1
+# genhtml code_coverage.info --branch-coverage --output-directory ./code_coverage_report/
+# to get the report.
+
+# Check for LTO, and use it.
+# This hopefully fixes an issue with some compilers stating that
+# `ld.lld: error: undefined symbol: _Unwind_Resume`, see
+# https://github.com/rust-lang/rust/issues/47493#issuecomment-606385776
+if( NOT ( CMAKE_VERSION VERSION_LESS 3.9 ))
+    cmake_policy(SET CMP0069 NEW)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT GENESIS_HAS_LTO)
+else()
+    set(GENESIS_HAS_LTO OFF)
+endif()
+if(GENESIS_HAS_LTO)
+    message(STATUS "Building with LTO/IPO support")
+else()
+    message(STATUS "Building without LTO/IPO support")
+endif()
+
 # Misc options
 # STDCC   = clang++
 # MPICC   = mpic++
@@ -329,7 +355,7 @@ if(GENESIS_USE_HTSLIB)
     # Instead of the above git-hash-based download, we use a direct download of a release archive file,
     # because htslib now requires some generated files as well that are not part of the repository...
     # Why are external dependencies always such a mess?
-    SET( GENESIS_HTSLIB_VERSION "1.13" ) #GENESIS_HTSLIB_VERSION#
+    SET( GENESIS_HTSLIB_VERSION "1.16" ) #GENESIS_HTSLIB_VERSION#
 
     # Included from modules dir tools/cmake
     include( IncludeHtslib )

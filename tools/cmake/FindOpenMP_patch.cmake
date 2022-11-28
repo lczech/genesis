@@ -156,9 +156,6 @@
 # https://cmake.org/gitweb?p=cmake.git;a=blob;f=Modules/FindOpenMP.cmake;h=ee4bdd6c873b0dd8d88c79a5589b56f997010d09;hb=1549927d
 # and modified in the placed indicated with my name: Lucas Czech
 
-# Make it possible to track issues when users compile with this patch:
-message (STATUS "Using find_package( OpenMP ) patch")
-
 #=============================================================================
 
 set(_OPENMP_REQUIRED_VARS)

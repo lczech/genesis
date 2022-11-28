@@ -31,19 +31,33 @@
 # do not yet have VERSION_GREATER_EQUAL, and crash otherwise...
 SET( GTEST_NO_WARN_DEPRECATED_COPY OFF )
 IF(
-    (#APPLE AND
-    (CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND
-    ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9.3") OR
-    (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9.3")))
-    OR
-    ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
-    ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
-    (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9")))
+    (
+        #APPLE AND
+        (CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND
+        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9.3") OR
+        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9.3"))
+    ) OR (
+        (CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
+        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
+        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9"))
+    ) OR (
+        CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND
+        NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13"
+    )
 )
-    SET( GTEST_NO_WARN_DEPRECATED_COPY ON )
     message (STATUS "Deactivate -Wdeprecated-copy for test binary.")
+    SET( GTEST_NO_WARN_DEPRECATED_COPY ON )
 ENDIF()
 # message (STATUS "GTEST_NO_WARN_DEPRECATED_COPY: ${GTEST_NO_WARN_DEPRECATED_COPY}")
+
+# Without any optimization, gtest causes some errors:
+# error: 'dummy' may be used uninitialized [-Werror=maybe-uninitialized]
+# Let's stop that from messing with our build - not our problem to fix!
+SET( GTEST_NO_WARN_MAYBE_UNINITIALIZED OFF )
+if("${CMAKE_CXX_FLAGS}" MATCHES "-O0" OR "${CMAKE_CXX_FLAGS_DEBUG}" MATCHES "-O0" )
+    message (STATUS "Deactivate -Wmaybe-uninitialized for test binary.")
+    SET( GTEST_NO_WARN_MAYBE_UNINITIALIZED ON )
+endif()
 
 # ------------------------------------------------------------------------------
 #   Setup GTest
@@ -116,6 +130,10 @@ if(NOT GTEST_FOUND)
         # target_compile_options(gmock      PRIVATE "-Wno-deprecated-copy")
         # target_compile_options(gmock_main PRIVATE "-Wno-deprecated-copy")
     endif()
+    if(GTEST_NO_WARN_MAYBE_UNINITIALIZED)
+        target_compile_options(gtest      PRIVATE "-Wno-uninitialized")
+        target_compile_options(gtest_main PRIVATE "-Wno-uninitialized")
+    endif()
 
     message (STATUS "Finished downloading GTest")
 endif()
@@ -157,12 +175,22 @@ set_target_properties (genesis_tests PROPERTIES OUTPUT_NAME genesis_tests)
 if(GTEST_NO_WARN_DEPRECATED_COPY)
     target_compile_options(genesis_tests PRIVATE "-Wno-deprecated-copy")
 endif()
+if(GTEST_NO_WARN_MAYBE_UNINITIALIZED)
+    target_compile_options(genesis_tests PRIVATE "-Wno-uninitialized")
+endif()
 
-target_link_libraries (genesis_tests genesis_lib_shared)
-target_link_libraries (genesis_tests ${GTEST_BOTH_LIBRARIES})
+target_link_libraries (genesis_tests PUBLIC genesis_lib_shared)
+target_link_libraries (genesis_tests PUBLIC ${GTEST_BOTH_LIBRARIES})
+
+# explicitly add OpenMP, compatible with Macos/brew installed OpenMP after Cmake 3.12
+if(${CMAKE_VERSION} VERSION_GREATER "3.9.0")
+  if(OPENMP_FOUND)
+    target_link_libraries (genesis_tests PUBLIC OpenMP::OpenMP_CXX)
+  endif()
+endif()
 
 # Link against any external libraries, e.g. Pthreads.
-target_link_libraries (genesis_tests ${GENESIS_INTERNAL_LINK_LIBRARIES})
+target_link_libraries (genesis_tests PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
 IF(GENESIS_USE_HTSLIB)
     add_dependencies( genesis_tests htslib )
 ENDIF()

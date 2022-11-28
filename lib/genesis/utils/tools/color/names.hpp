@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -65,14 +65,14 @@ std::vector<Color> color_palette_web();
 /**
  * @brief Return true iff the given name is a named web color.
  *
- * Names are filtered so that spaces, underscores and the letter case are ignored.
+ * Names are compared only by their alnum chars, and the letter case is ignored.
  */
 bool is_web_color_name( std::string const& name );
 
 /**
  * @brief Retrieve a named web color by name.
  *
- * Names are filtered so that spaces, underscores and the letter case are ignored.
+ * Names are compared only by their alnum chars, and the letter case is ignored.
  * If the color name does not exist, an `std::invalid_argument` exception is thrown.
  */
 Color color_from_name_web( std::string const& name );
@@ -86,7 +86,7 @@ std::vector<Color> color_palette_xkcd();
 /**
  * @brief Return true iff the given name is a named xkcd color.
  *
- * Names are filtered so that spaces, underscores and the letter case are ignored.
+ * Names are compared only by their alnum chars, and the letter case is ignored.
  * See color_from_name_xkcd() for details on this color list.
  */
 bool is_xkcd_color_name( std::string const& name );
@@ -94,7 +94,7 @@ bool is_xkcd_color_name( std::string const& name );
 /**
  * @brief Retrieve a named xkcd color by name.
  *
- * Names are filtered so that spaces, underscores and the letter case are ignored.
+ * Names are compared only by their alnum chars, and the letter case is ignored.
  * If the color name does not exist, an `std::invalid_argument` exception is thrown.
  *
  * The colors are taken from an [https://xkcd.com/](xkcd) color survey.

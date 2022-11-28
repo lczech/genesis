@@ -19,9 +19,18 @@
 # Department of Plant Biology, Carnegie Institution For Science
 # 260 Panama Street, Stanford, CA 94305, USA
 
-# ------------------------------------------------------------------------------
+# ==================================================================================================
+#   Init
+# ==================================================================================================
+
+# This file is included from the main CMakeLists.txt in order to build htslib.
+message (STATUS "Looking for htslib")
+cmake_minimum_required( VERSION 3.1 )
+include(ExternalProject)
+
+# ==================================================================================================
 #   Check for autotools
-# ------------------------------------------------------------------------------
+# ==================================================================================================
 
 # Check that autoconf is available, and warn if version has a potential issue.
 # See https://github.com/asdf-vm/asdf-erlang/issues/195, https://github.com/kerl/kerl/issues/359,
@@ -63,33 +72,111 @@ else()
         set( AUTOCONF_VERSION "${CMAKE_MATCH_1}")
         message( STATUS "Found autoconf: ${AUTOCONF_VERSION}" )
 
+        # Update on the below: Outdated, as we now use a newer version of htslib,
+        # which properly supports more recent autoconf versions as well.
         # Versions greater than 2.69 cause problems. Of course, we cannot use VERSION_GREATER,
         # as that was introduced in CMake 3.7 only, so we need to work around that, too...
-        SET(AUTOCONF_MAX_VERSION "2.69")
-        if( NOT (
-            ( AUTOCONF_VERSION VERSION_LESS ${AUTOCONF_MAX_VERSION} ) OR
-            ( AUTOCONF_VERSION VERSION_EQUAL ${AUTOCONF_MAX_VERSION} )
-        ))
-            message (
-                STATUS "${ColorYellow}You are trying to compile with htslib, using autotools/autoconf "
-                "version ${AUTOCONF_VERSION}, which is greater than ${AUTOCONF_MAX_VERSION}. "
-                "There have been issues with these later versions of autotools. If you experience "
-                "these issues, please downgrade autotools to ${AUTOCONF_MAX_VERSION}. "
-                "To instead build without htslib support, "
-                "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
-            )
-        endif()
+        # SET(AUTOCONF_MAX_VERSION "2.69")
+        # if( NOT (
+        #     ( AUTOCONF_VERSION VERSION_LESS ${AUTOCONF_MAX_VERSION} ) OR
+        #     ( AUTOCONF_VERSION VERSION_EQUAL ${AUTOCONF_MAX_VERSION} )
+        # ))
+        #     message (
+        #         STATUS "${ColorYellow}You are trying to compile with htslib, using autotools/autoconf "
+        #         "version ${AUTOCONF_VERSION}, which is greater than ${AUTOCONF_MAX_VERSION}. "
+        #         "There have been issues with these later versions of autotools. If you experience "
+        #         "these issues, please downgrade autotools to ${AUTOCONF_MAX_VERSION}. "
+        #         "To instead build without htslib support, "
+        #         "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
+        #     )
+        # endif()
     ENDIF()
 
 endif()
 
-# ------------------------------------------------------------------------------
-#   Use htslib
-# ------------------------------------------------------------------------------
+# ==================================================================================================
+#   External dependencies
+# ==================================================================================================
 
-# This file is included from the main CMakeLists.txt in order to build htslib.
+# Find additional libraries needed by htslib.
+# If that works and the libraries were found, we do not need to do anything,
+# as the htslib compilation will look for them again and link to them correctly.
+# We here merely make sure that all needed libraries are available.
 
-message (STATUS "Looking for htslib")
+# ----------------------------------------------------
+#   Find LibLZMA
+# ----------------------------------------------------
+
+# find_library(HTSLIB_LZMA     NAMES lzma)
+message( STATUS "Looking for LibLZMA" )
+find_package(LibLZMA)
+IF(LIBLZMA_FOUND)
+    message( STATUS "Found LibLZMA: ${LIBLZMA_LIBRARIES}" )
+    set( HTSLIB_LZMA ${LIBLZMA_LIBRARIES} )
+ELSE()
+    message( STATUS "${ColorRed}LibLZMA not found${ColorEnd}" )
+    message (
+        STATUS "${ColorYellow}You are trying to compile with htslib, which needs LibLZMA. "
+        "This does not seem to work right now. Try installing `liblzma-dev` first, "
+        "or the equivalent for your system. To instead build without htslib support, "
+        "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
+    )
+    set( HTSLIB_LZMA "NOTFOUND" )
+ENDIF()
+
+# ----------------------------------------------------
+#   Find BZip2
+# ----------------------------------------------------
+
+# find_library(HTSLIB_BZ2      NAMES bz2)
+message( STATUS "Looking for BZip2" )
+find_package(BZip2)
+IF(BZIP2_FOUND)
+    message( STATUS "Found BZip2: ${BZIP2_LIBRARIES}" )
+    set( HTSLIB_BZ2 ${BZIP2_LIBRARIES} )
+ELSE()
+    message( STATUS "${ColorRed}BZip2 not found${ColorEnd}" )
+    message (
+        STATUS "${ColorYellow}You are trying to compile with htslib, which needs BZip2. "
+        "This does not seem to work right now. Try installing `libbz2-dev` first, "
+        "or the equivalent for your system. To instead build without htslib support, "
+        "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
+    )
+    set( HTSLIB_BZ2 "NOTFOUND" )
+ENDIF()
+
+# ----------------------------------------------------
+#   Find Deflate
+# ----------------------------------------------------
+
+message( STATUS "Looking for Deflate" )
+find_package( Deflate )
+IF(Deflate_FOUND)
+    message( STATUS "Found Deflate: ${Deflate_LIBRARIES}" )
+    set( HTSLIB_Deflate ${Deflate_LIBRARIES} )
+    set( HTSLIB_Deflate_configure "" )
+ELSE()
+    message( STATUS "${ColorYellow}Deflate not found${ColorEnd}" )
+    message (
+        STATUS "${ColorYellow}You are trying to compile with htslib, which optionally needs "
+        "libdeflate. This does not seem to work right now. Try installing `libdeflate-tools` "
+        "first, or the equivalent for your system. We are compiling without libdeflate support "
+        "for now.${ColorEnd}"
+    )
+    set( HTSLIB_Deflate "" )
+    set( HTSLIB_Deflate_configure "--without-libdeflate" )
+ENDIF()
+
+# ==================================================================================================
+#   Add htslib
+# ==================================================================================================
+
+# URL timestamp extraction, see https://cmake.org/cmake/help/latest/policy/CMP0135.html
+# Introduced in CMake 3.24, but older CMake versions fail if present, so we need to check first...
+# Why is that so complicated? Can't CMake just ignore unknown policies?!
+if( NOT ( CMAKE_VERSION VERSION_LESS 3.24 ))
+    cmake_policy(SET CMP0135 NEW)
+endif()
 
 # We download and built on our own, using the correct commit hash to get our exact desired
 # version, and install locally to the build directory.
@@ -110,11 +197,13 @@ ExternalProject_Add(
     # won't link properly. Linking will always remain a mystery to me...
     SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-source
     CONFIGURE_COMMAND
-        autoheader
+        autoreconf -i
         COMMAND
-        autoconf
-        COMMAND
-        ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --disable-libcurl
+        # autoheader
+        # COMMAND
+        # autoconf
+        # COMMAND
+        ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --disable-libcurl ${HTSLIB_Deflate_configure}
 
     # Build Step
     # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
@@ -128,7 +217,7 @@ ExternalProject_Add(
 
 # Set the paths so that those can be included by the targets.
 # We explicitly set the static library here, so that we link against that one.
-set( HTSLIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib )
+set( HTSLIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib" )
 set( HTSLIB_INCLUDE_DIR "${HTSLIB_DIR}/include" )
 set( HTSLIB_LINK_DIR    "${HTSLIB_DIR}/lib" )
 set( HTSLIB_LIBRARY     "${HTSLIB_DIR}/lib/libhts.a" )
@@ -141,51 +230,20 @@ set( HTSLIB_LIBRARY     "${HTSLIB_DIR}/lib/libhts.a" )
 #     message( FATAL_ERROR "Building htslib failed.")
 # ENDIF()
 
-# Find additional libraries needed by htslib.
-# If that works and the libraries were found, we do not need to do anything,
-# as the htslib compilation will look for them again and link to them correctly.
-# We here merely make sure that all needed libraries are available.
-
-# find_library(HTSLIB_LZMA     NAMES lzma)
-message( STATUS "Looking for LibLZMA" )
-find_package(LibLZMA)
-IF(LIBLZMA_FOUND)
-    message( STATUS "Found LibLZMA: ${LIBLZMA_LIBRARIES}" )
-    set( HTSLIB_LZMA ${LIBLZMA_LIBRARIES} )
-ELSE()
-    message( STATUS "${ColorRed}LibLZMA not found${ColorEnd}" )
-    message (
-        STATUS "${ColorYellow}You are trying to compile with htslib, which needs LibLZMA. "
-        "This does not seem to work right now. Try installing `liblzma-dev` first, "
-        "or the equivalent for your system. To instead build without htslib support, "
-        "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
-    )
-    set( HTSLIB_LZMA "NOTFOUND" )
-ENDIF()
-
-# find_library(HTSLIB_BZ2      NAMES bz2)
-message( STATUS "Looking for BZip2" )
-find_package(BZip2)
-IF(BZIP2_FOUND)
-    message( STATUS "Found BZip2: ${BZIP2_LIBRARIES}" )
-    set( HTSLIB_BZ2 ${BZIP2_LIBRARIES} )
-ELSE()
-    message( STATUS "${ColorRed}BZip2 not found${ColorEnd}" )
-    message (
-        STATUS "${ColorYellow}You are trying to compile with htslib, which needs BZip2. "
-        "This does not seem to work right now. Try installing `libbz2-dev` first, "
-        "or the equivalent for your system. To instead build without htslib support, "
-        "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
-    )
-    set( HTSLIB_BZ2 "NOTFOUND" )
-ENDIF()
+# ==================================================================================================
+#   Finalize
+# ==================================================================================================
 
 # Useful output for debugging
-message( STATUS "HTSLIB_INCLUDE_DIR: ${HTSLIB_INCLUDE_DIR}" )
-message( STATUS "HTSLIB_LINK_DIR:    ${HTSLIB_LINK_DIR}" )
-message( STATUS "HTSLIB_LIBRARY:     ${HTSLIB_LIBRARY}" )
-message( STATUS "HTSLIB_LZMA:        ${HTSLIB_LZMA}" )
-message( STATUS "HTSLIB_BZ2:         ${HTSLIB_BZ2}" )
+message( STATUS "HTSLIB_INCLUDE_DIR:   ${HTSLIB_INCLUDE_DIR}" )
+message( STATUS "HTSLIB_LINK_DIR:      ${HTSLIB_LINK_DIR}" )
+message( STATUS "HTSLIB_LIBRARY:       ${HTSLIB_LIBRARY}" )
+message( STATUS "HTSLIB_LZMA:          ${HTSLIB_LZMA}" )
+message( STATUS "HTSLIB_BZ2:           ${HTSLIB_BZ2}" )
+if(DEFINED Deflate_INCLUDE_DIRS)
+    message( STATUS "HTSLIB_Deflate:       ${HTSLIB_Deflate}" )
+    message( STATUS "Deflate_INCLUDE_DIRS: ${Deflate_INCLUDE_DIRS}" )
+endif()
 
 IF(
     ${HTSLIB_INCLUDE_DIR} MATCHES "NOTFOUND" OR
@@ -207,6 +265,11 @@ ELSE()
     include_directories(${HTSLIB_INCLUDE_DIR})
     link_directories(${HTSLIB_LINK_DIR})
 
+    if(DEFINED Deflate_INCLUDE_DIRS)
+        include_directories(${Deflate_INCLUDE_DIRS})
+        set( GENESIS_INCLUDE_DIR ${GENESIS_INCLUDE_DIR} ${Deflate_INCLUDE_DIRS} )
+    endif()
+
     # Set needed definitions and linker flags for genesis and for the parent scope.
     # The targets (our shared and static lib) will use these to link against.
     set( GENESIS_INCLUDE_DIR ${GENESIS_INCLUDE_DIR} ${HTSLIB_INCLUDE_DIR} )
@@ -214,7 +277,7 @@ ELSE()
     set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_HTSLIB" )
     set(
         GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}
-        ${HTSLIB_LIBRARY} z ${HTSLIB_LZMA} ${HTSLIB_BZ2}
+        ${HTSLIB_LIBRARY} z -lz ${HTSLIB_LZMA} ${HTSLIB_BZ2} ${HTSLIB_Deflate}
     )
     # set(
     #     GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}

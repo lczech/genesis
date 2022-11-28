@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -126,12 +126,14 @@ TEST( AttributeTree, IndexedNewickReaderCatchAll )
         auto const& data = node.data<AttributeTreeNodeData>();
         node_attr_cnt += data.attributes.size();
     }
+    (void) node_attr_cnt;
 
     size_t edge_attr_cnt = 0;
     for( auto const& edge : tree.edges() ) {
         auto const& data = edge.data<AttributeTreeEdgeData>();
         edge_attr_cnt += data.attributes.size();
     }
+    (void) edge_attr_cnt;
 
     auto counts = count_attribute_tree_data( tree );
     EXPECT_EQ(  0, counts.first );

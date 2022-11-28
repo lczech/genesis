@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/population/formats/variant_parallel_input_iterator.hpp"
+#include "genesis/population/formats/variant_input_iterator.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/utils/core/algorithm.hpp"
 
@@ -49,8 +50,17 @@ void test_parallel_input_iterator_(
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const p_infile = environment->data_dir + "population/parallel.pileup";
-    std::string const s_infile = environment->data_dir + "population/parallel.sync";
-    std::string const v_infile = environment->data_dir + "population/parallel.vcf";
+    std::string const s_infile = environment->data_dir + "population/parallel_a.sync";
+
+    #ifdef GENESIS_HTSLIB
+
+        std::string const v_infile = environment->data_dir + "population/parallel.vcf";
+
+    #else
+
+        std::string const v_infile = environment->data_dir + "population/parallel_b.sync";
+
+    #endif
 
     // Init with the desired settings
     auto pit = VariantParallelInputIterator();
@@ -62,10 +72,23 @@ void test_parallel_input_iterator_(
         make_variant_input_iterator_from_sync_file( s_infile ),
         s_sel
     );
-    pit.add_variant_input_iterator(
-        make_variant_input_iterator_from_pool_vcf_file( v_infile ),
-        v_sel
-    );
+
+    #ifdef GENESIS_HTSLIB
+
+        pit.add_variant_input_iterator(
+            make_variant_input_iterator_from_pool_vcf_file( v_infile ),
+            v_sel
+        );
+
+    #else
+
+        pit.add_variant_input_iterator(
+            make_variant_input_iterator_from_sync_file( v_infile ),
+            v_sel
+        );
+
+    #endif
+
 
     // Add the addtional loci, if present. If all of the input sources are following, but
     // we have additional carrying loci, we do only visit those, and hence need to clear the

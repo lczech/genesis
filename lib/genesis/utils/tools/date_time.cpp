@@ -239,8 +239,9 @@ static const std::array<std::string, 9> formats_ = {{
  * We use this variant, which returns its success, to not have to `try catch` in the functions
  * that guess the format.
  */
-bool convert_to_tm_( std::string const& str, std::string const& format, std::string const& locale, std::tm& t )
-{
+bool convert_to_tm_(
+    std::string const& str, std::string const& format, std::string const& locale, std::tm& t
+) {
     // gcc claims that version 4.8.1 was feature-complete for C+=11, see
     // https://gcc.gnu.org/projects/cxx-status.html#cxx11. That fact that std::put_time and
     // std::get_time are only available starting with gcc 5 determines that this is not true.
@@ -323,7 +324,9 @@ std::tm convert_to_tm( std::string const& str, std::string const& format, std::s
 
 std::tm convert_to_tm( std::string const& str, std::string const& format )
 {
-    std::tm t;
+    // See https://stackoverflow.com/a/73143713 for a potential subtle bug
+    // std::tm t;
+    struct std::tm t{};
     for( auto const& locale : locales_ ) {
         if( convert_to_tm_( str, format, locale, t )) {
             return t;
@@ -337,7 +340,9 @@ std::tm convert_to_tm( std::string const& str, std::string const& format )
 
 std::tm convert_to_tm( std::string const& str )
 {
-    std::tm t;
+    // Same as above, see https://stackoverflow.com/a/73143713
+    // std::tm t;
+    struct std::tm t{};
 
     // The formats that we try here are not dependent on the locale. If we introduce additional
     // formats in the future, it might be necessary to also loop over those, for example the
@@ -355,14 +360,16 @@ std::tm convert_to_tm( std::string const& str )
 
 bool is_convertible_to_tm( std::string const& str, std::string const& format, std::string const& locale )
 {
-    std::tm t;
+    // std::tm t;
+    struct std::tm t{};
     return convert_to_tm_( str, format, locale, t );
 }
 
 bool is_convertible_to_tm( std::string const& str, std::string const& format )
 {
     // If one of the locales works, the string is convertible.
-    std::tm t;
+    // std::tm t;
+    struct std::tm t{};
     for( auto const& locale : locales_ ) {
         if( convert_to_tm_( str, format, locale, t )) {
             return true;
@@ -374,7 +381,8 @@ bool is_convertible_to_tm( std::string const& str, std::string const& format )
 bool is_convertible_to_tm( std::string const& str )
 {
     // If one of the formats works, the string is convertible.
-    std::tm t;
+    // std::tm t;
+    struct std::tm t{};
     for( auto const& format : formats_ ) {
         if( convert_to_tm_( str, format, "C", t )) {
             return true;

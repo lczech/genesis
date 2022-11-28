@@ -246,7 +246,7 @@ std::pair<std::array<char, 6>, size_t> get_vcf_record_snp_ref_alt_chars_( VcfRec
     // and hence do not need to overwrite in the case that we added that deletion manually
     // to the counter.
     size_t const var_cnt = rec_data->n_allele == 1 ? rec_data->n_allele + 1 : rec_data->n_allele;
-    auto vars = std::array<char, 6>{ '.', '.', '.', '.', '.', '.' };
+    auto vars = std::array<char, 6>{{ '.', '.', '.', '.', '.', '.' }};
     if( var_cnt > 6 ) {
         throw std::runtime_error(
             "Invalid VCF Record that contains a REF or ALT sequence/allele with "

@@ -321,6 +321,13 @@ private:
          */
         size_t parse_unsigned_integer_gcc_intrinsic_();
 
+    #endif
+
+    // This implementation needs __builtin_mul_overflow, which is buggy on Clang 5-7.
+    // We currently do not use it anyway, so let's deactivate it completely for now.
+    // #if ( defined(__GNUC__) || defined(__GNUG__) ) && ( !defined(__clang__) || ( __clang_major__ >= 8 ))
+    #if 0
+
         /**
          * @brief Re-implementation of the C++17 function std::from_chars().
          * Currently not in use and not well tested!

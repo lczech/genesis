@@ -23,8 +23,7 @@
 #   Build Options
 # ------------------------------------------------------------------------------
 
-set (LIBRARY_OUTPUT_PATH    ${PROJECT_SOURCE_DIR}/bin)
-
+set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 include_directories (${PROJECT_SOURCE_DIR}/lib)
 
 # ------------------------------------------------------------------------------
@@ -47,16 +46,23 @@ ELSE()
 
 ENDIF()
 
-add_library(genesis_lib_obj OBJECT ${genesis_lib_sources})
-target_link_libraries(genesis_lib_obj PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
-target_compile_options(genesis_lib_obj PRIVATE -fPIC)
+# ------------------------------------------------------------------------------
+#   Build Object Library
+# ------------------------------------------------------------------------------
 
+# We use an object library first, which is then used by both the shared and static lib,
+# in order to only compile the sources once, but have both lib flavors available.
+add_library( genesis_lib_obj OBJECT ${genesis_lib_sources} )
 
-# explicitly add OpenMP, compatible with Macos/brew installed OpenMP after Cmake 3.12
+# Link against any external libraries, e.g. Pthreads.
+target_link_libraries( genesis_lib_obj PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES} )
+target_compile_options( genesis_lib_obj PRIVATE -fPIC )
+
+# Explicitly add OpenMP, compatible with Macos/brew installed OpenMP after Cmake 3.12
 if(${CMAKE_VERSION} VERSION_GREATER "3.9.0")
-  if(OPENMP_FOUND)
-    target_link_libraries (genesis_lib_obj PUBLIC OpenMP::OpenMP_CXX)
-  endif()
+    if(OPENMP_FOUND)
+        target_link_libraries (genesis_lib_obj PUBLIC OpenMP::OpenMP_CXX)
+    endif()
 endif()
 
 # Add htslib as a dependency, so that CMake realizes that it has to be built.
@@ -64,48 +70,63 @@ IF(GENESIS_USE_HTSLIB)
     add_dependencies( genesis_lib_obj htslib )
 ENDIF()
 
+# Same for samtools. Not used at the moment though.
+# IF(GENESIS_USE_SAMTOOLS)
+#     add_dependencies( genesis_lib_obj samtools )
+# ENDIF()
+
+# Activate LTO if available
+if(GENESIS_HAS_LTO)
+    set_property(TARGET genesis_lib_obj PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
 # ------------------------------------------------------------------------------
-#   Build Libraries
+#   Build Shared Library
 # ------------------------------------------------------------------------------
+
+# Build the shared library, unless explicitly requested not to.
+# add_library           (genesis_lib_shared SHARED $<TARGET_OBJECTS:genesis_lib_obj>)
 add_library           (genesis_lib_shared SHARED)
 set_target_properties (genesis_lib_shared PROPERTIES OUTPUT_NAME genesis)
-
 if (GENESIS_BUILD_SHARED_LIB)
     message (STATUS "${ColorBlue}Building shared lib${ColorEnd}")
 else()
     set_target_properties (genesis_lib_shared PROPERTIES EXCLUDE_FROM_ALL ON)
 endif()
 
+# The shared lib uses the object library.
+target_link_libraries (genesis_lib_shared PUBLIC genesis_lib_obj)
 
-# Link against any external libraries, e.g. Pthreads.
-target_link_libraries (genesis_lib_shared PRIVATE genesis_lib_obj)
-
-# Same for samtools. Not used at the moment though.
-# IF(GENESIS_USE_SAMTOOLS)
-#     add_dependencies( genesis_lib_shared samtools )
-# ENDIF()
+# Activate LTO if available. This needs to match the object library.
+if(GENESIS_HAS_LTO)
+    set_property(TARGET genesis_lib_shared PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
 
 # Add this shared library to our exported libraries, which can then be used by the parent scope.
 set( GENESIS_SHARED_LIBRARY genesis_lib_shared PARENT_SCOPE )
 set( GENESIS_LIBRARY genesis_lib_shared PARENT_SCOPE )
 
+# ------------------------------------------------------------------------------
+#   Build Static Library
+# ------------------------------------------------------------------------------
 
+# Build the static library, unless explicitly requested not to.
+# add_library           (genesis_lib_static STATIC $<TARGET_OBJECTS:genesis_lib_obj>)
 add_library           (genesis_lib_static STATIC)
 set_target_properties (genesis_lib_static PROPERTIES OUTPUT_NAME genesis)
-
 if (GENESIS_BUILD_STATIC_LIB)
     message (STATUS "${ColorBlue}Building static lib${ColorEnd}")
 else()
     set_target_properties (genesis_lib_static PROPERTIES EXCLUDE_FROM_ALL ON)
 endif()
 
-# Link against any external libraries, e.g. Pthreads.
-target_link_libraries (genesis_lib_static PRIVATE genesis_lib_obj)
+# The static lib uses the object library.
+target_link_libraries (genesis_lib_static PUBLIC genesis_lib_obj)
 
-# Same for samtools. Not used at the moment though.
-# IF(GENESIS_USE_SAMTOOLS)
-#     add_dependencies( genesis_lib_static samtools )
-# ENDIF()
+# Activate LTO if available. This needs to match the object library.
+if(GENESIS_HAS_LTO)
+    set_property(TARGET genesis_lib_static PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
 
 # Add this static library to our exported libraries, which can then be used by the parent scope.
 # In case that we also build the shared lib, GENESIS_LIBRARY is overwritten, which is on
@@ -116,4 +137,6 @@ target_link_libraries (genesis_lib_static PRIVATE genesis_lib_obj)
 # Also, as the static library has to be actively activated (by setting GENESIS_BUILD_STATIC_LIB),
 # there already was a user action once we are here, so the user actually wants the static one.
 set( GENESIS_STATIC_LIBRARY genesis_lib_static PARENT_SCOPE )
-set( GENESIS_LIBRARY genesis_lib_static PARENT_SCOPE )
+if (GENESIS_BUILD_STATIC_LIB)
+    set( GENESIS_LIBRARY genesis_lib_static PARENT_SCOPE )
+endif()

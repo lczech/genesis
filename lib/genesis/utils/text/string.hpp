@@ -197,7 +197,7 @@ int compare_natural( std::string const& lhs, std::string const& rhs );
  * @brief Functor class to compare to strings with natural "human" sorting, see compare_natural().
  */
 template <class T = std::string>
-struct NaturalLess : public std::binary_function<T, T, bool> {
+struct NaturalLess {
     bool operator()( T const& lhs, T const& rhs ) const {
         return compare_natural( lhs, rhs ) < 0;
     }
@@ -207,7 +207,7 @@ struct NaturalLess : public std::binary_function<T, T, bool> {
  * @brief Functor class to compare to strings with natural "human" sorting, see compare_natural().
  */
 template <class T = std::string>
-struct NaturalGreater : public std::binary_function<T, T, bool> {
+struct NaturalGreater {
     bool operator()( T const& lhs, T const& rhs ) const {
         return compare_natural( lhs, rhs ) > 0;
     }
@@ -223,6 +223,11 @@ inline void sort_natural(
     RandomAccessIterator last,
     bool reverse = false
 ) {
+    // The above implementations of NaturalLess and NaturalGreater were using std::binary_function
+    // before, which is deprecated. We hence now simply removed those, which seems to work.
+    // If that causes trouble with other compilers, see https://stackoverflow.com/a/33115341 for
+    // alternative solutions.
+
     using T = typename RandomAccessIterator::value_type;
     if( reverse ) {
         std::sort( first, last, NaturalGreater<T>() );
