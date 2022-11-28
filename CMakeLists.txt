@@ -442,6 +442,7 @@ IF( GENESIS_HAS_PARENT_DIR )
     set( GENESIS_C_FLAGS          ${GENESIS_C_FLAGS}          PARENT_SCOPE )
     set( GENESIS_CXX_FLAGS        ${GENESIS_CXX_FLAGS}        PARENT_SCOPE )
     set( GENESIS_EXE_LINKER_FLAGS ${GENESIS_EXE_LINKER_FLAGS} PARENT_SCOPE )
+    set( GENESIS_HAS_LTO          ${GENESIS_HAS_LTO}          PARENT_SCOPE )
 
     # Set the libraries to be used for `target_link_libraries()` in the parent scope.
     # This is a combination of our own internal libraries (shared and static lib), as well as
