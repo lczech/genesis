@@ -79,47 +79,6 @@ jobs:
           # - OFF
 
         # -------------------------------------------------------
-        #     include
-        # -------------------------------------------------------
-
-        include:
-          # Test the release version with both compilers and OSs
-          - os: ubuntu-latest
-            compiler: gcc
-            build_type: RELEASE
-          - os: ubuntu-latest
-            compiler: llvm
-            build_type: RELEASE
-          - os: macos-latest
-            compiler: gcc
-            build_type: RELEASE
-          - os: macos-latest
-            compiler: llvm
-            build_type: RELEASE
-
-          # Test without htslib with both compilers and OSs
-          - os: ubuntu-latest
-            compiler: gcc
-            htslib: OFF
-          - os: ubuntu-latest
-            compiler: llvm
-            htslib: OFF
-          - os: macos-latest
-            compiler: gcc
-            htslib: OFF
-          - os: macos-latest
-            compiler: llvm
-            htslib: OFF
-
-          # We test AppleClang as well, as a special case.
-          # - os: macos-10.15
-          #   compiler: apple
-          - os: macos-11
-            compiler: apple
-          - os: macos-12
-            compiler: apple
-
-        # -------------------------------------------------------
         #     exclude
         # -------------------------------------------------------
 
@@ -183,6 +142,47 @@ jobs:
             compiler: llvm-12
           - os: macos-12
             compiler: llvm-13
+
+        # -------------------------------------------------------
+        #     include
+        # -------------------------------------------------------
+
+        include:
+          # Test the release version with both compilers and OSs
+          - os: ubuntu-latest
+            compiler: gcc
+            build_type: RELEASE
+          - os: ubuntu-latest
+            compiler: llvm
+            build_type: RELEASE
+          - os: macos-latest
+            compiler: gcc
+            build_type: RELEASE
+          - os: macos-latest
+            compiler: llvm
+            build_type: RELEASE
+
+          # Test without htslib with both compilers and OSs
+          - os: ubuntu-latest
+            compiler: gcc
+            htslib: OFF
+          - os: ubuntu-latest
+            compiler: llvm
+            htslib: OFF
+          - os: macos-latest
+            compiler: gcc
+            htslib: OFF
+          - os: macos-latest
+            compiler: llvm
+            htslib: OFF
+
+          # We test AppleClang as well, as a special case.
+          # - os: macos-10.15
+          #   compiler: apple
+          - os: macos-11
+            compiler: apple
+          - os: macos-12
+            compiler: apple
 
     # ==========================================================================
     #     Steps
@@ -269,9 +269,9 @@ jobs:
           # Deactivate OpenMP on MacOS for now. Causes way too much trouble.
           if [[ "${RUNNER_OS}" == "macOS" ]]; then export GENESIS_USE_OPENMP=OFF; fi
 
-          # Try setting the xcode thingy here as well...
-          if [[ "${RUNNER_OS}" == "macOS" ]]; then
-            echo "Setting xcode select"
+          # Need to set the xcode patch here as well, as job steps don't keep status.
+          if [[ "${RUNNER_OS}" == "macOS" ]] && [[ "${{ matrix.compiler }}" == "gcc*" ]]; then
+            echo "Patching xcode gcc issues"
             sudo xcode-select --switch /Library/Developer/CommandLineTools
           fi
 
@@ -303,9 +303,9 @@ jobs:
             export CPPFLAGS=`echo ${CPPFLAGS} | sed 's/"//g'`
           fi
 
-          # Try setting the xcode thingy here as well...
-          if [[ "${RUNNER_OS}" == "macOS" ]]; then
-            echo "Setting xcode select"
+          # Need to set the xcode patch here as well, as job steps don't keep status.
+          if [[ "${RUNNER_OS}" == "macOS" ]] && [[ "${{ matrix.compiler }}" == "gcc*" ]]; then
+            echo "Patching xcode gcc issues"
             sudo xcode-select --switch /Library/Developer/CommandLineTools
           fi
 
