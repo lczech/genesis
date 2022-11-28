@@ -239,7 +239,7 @@ jobs:
         run: |
           brew install autoconf automake libdeflate libomp gdb
 
-          if [[ "${{ matrix.compiler }}" == "gcc*" ]]; then
+          if [[ "${{ matrix.compiler }}" == gcc* ]]; then
             echo "Patching xcode gcc issues"
             sudo xcode-select --switch /Library/Developer/CommandLineTools
           fi
@@ -270,7 +270,7 @@ jobs:
           if [[ "${RUNNER_OS}" == "macOS" ]]; then export GENESIS_USE_OPENMP=OFF; fi
 
           # Need to set the xcode patch here as well, as job steps don't keep status.
-          if [[ "${RUNNER_OS}" == "macOS" ]] && [[ "${{ matrix.compiler }}" == "gcc*" ]]; then
+          if [[ "${RUNNER_OS}" == "macOS" ]] && [[ "${{ matrix.compiler }}" == gcc* ]]; then
             echo "Patching xcode gcc issues"
             sudo xcode-select --switch /Library/Developer/CommandLineTools
           fi
@@ -304,7 +304,7 @@ jobs:
           fi
 
           # Need to set the xcode patch here as well, as job steps don't keep status.
-          if [[ "${RUNNER_OS}" == "macOS" ]] && [[ "${{ matrix.compiler }}" == "gcc*" ]]; then
+          if [[ "${RUNNER_OS}" == "macOS" ]] && [[ "${{ matrix.compiler }}" == gcc* ]]; then
             echo "Patching xcode gcc issues"
             sudo xcode-select --switch /Library/Developer/CommandLineTools
           fi
