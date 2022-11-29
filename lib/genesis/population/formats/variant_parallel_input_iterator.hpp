@@ -187,8 +187,8 @@ public:
         kFollowing
     };
 
-    using self_type         = VariantParallelInputIterator;
-    using value_type        = Variant;
+    using self_type  = VariantParallelInputIterator;
+    using value_type = Variant;
 
     // ======================================================================================
     //      Internal Iterator
@@ -348,7 +348,8 @@ public:
          * Lastly, by default, we copy the BaseCounts of all Variant::samples into the resulting
          * Variant. If however these are not needed at the current iterator position any more
          * (that is, if this iterator is not dereferenced or the variants() function is not called)
-         * after calling this function, we can instead move them, for efficiency.
+         * after calling this function, we can instead move them, for efficiency, by providing
+         * `move_samples == true`.
          */
         Variant joined_variant(
             bool allow_ref_base_mismatches = false,

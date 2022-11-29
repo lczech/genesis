@@ -115,7 +115,7 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using self_type         = BaseWindowIterator<InputIterator, DataType>;
+    using self_type         = BaseWindowIterator<InputIterator, DataType, WindowType>;
     using InputType         = typename InputIterator::value_type;
 
     using iterator_category = std::input_iterator_tag;
@@ -179,14 +179,18 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type         = typename BaseWindowIterator<InputIterator, DataType>::Iterator;
-        using InputType         = typename InputIterator::value_type;
+        using self_type = typename BaseWindowIterator<
+            InputIterator, DataType, WindowType
+        >::Iterator;
+        using InputType = typename InputIterator::value_type;
 
         using iterator_category = std::input_iterator_tag;
         using value_type        = WindowType;
         using pointer           = value_type*;
         using reference         = value_type&;
         using const_reference   = value_type const&;
+
+        static_assert( std::is_same<Iterator, self_type>::value, "Iterator != self_type" );
 
     protected:
 
@@ -200,15 +204,15 @@ public:
 
         ~Iterator() = default;
 
-        Iterator( self_type const& ) = delete;
-        Iterator( self_type&& other )
+        Iterator( Iterator const& ) = delete;
+        Iterator( Iterator&& other )
         {
             pimpl_ = std::move( other.pimpl_ );
             other.pimpl_ = nullptr;
         }
 
-        Iterator& operator= ( self_type const& ) = delete;
-        Iterator& operator= ( self_type&& other )
+        Iterator& operator= ( Iterator const& ) = delete;
+        Iterator& operator= ( Iterator&& other )
         {
             pimpl_ = std::move( other.pimpl_ );
             other.pimpl_ = nullptr;
@@ -354,8 +358,10 @@ protected:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type         = typename BaseWindowIterator<InputIterator, DataType>::BaseIterator;
-        using InputType         = typename InputIterator::value_type;
+        using self_type = typename BaseWindowIterator<
+            InputIterator, DataType, WindowType
+        >::BaseIterator;
+        using InputType = typename InputIterator::value_type;
 
         using iterator_category = std::input_iterator_tag;
         using value_type        = WindowType;
