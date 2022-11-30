@@ -383,10 +383,10 @@ SvgBox SvgTransform::apply( SvgBox const& b ) const
     auto const tr_br = apply( SvgPoint( b.bottom_right.x, b.bottom_right.y ));
 
     // Get the overall surrounding box that fits all.
-    auto const tlx = std::min( std::initializer_list<double>{{ tr_tl.x, tr_tr.x, tr_bl.x, tr_br.x }});
-    auto const tly = std::min( std::initializer_list<double>{{ tr_tl.y, tr_tr.y, tr_bl.y, tr_br.y }});
-    auto const brx = std::max( std::initializer_list<double>{{ tr_tl.x, tr_tr.x, tr_bl.x, tr_br.x }});
-    auto const bry = std::max( std::initializer_list<double>{{ tr_tl.y, tr_tr.y, tr_bl.y, tr_br.y }});
+    auto const tlx = std::min( std::initializer_list<double>{ tr_tl.x, tr_tr.x, tr_bl.x, tr_br.x });
+    auto const tly = std::min( std::initializer_list<double>{ tr_tl.y, tr_tr.y, tr_bl.y, tr_br.y });
+    auto const brx = std::max( std::initializer_list<double>{ tr_tl.x, tr_tr.x, tr_bl.x, tr_br.x });
+    auto const bry = std::max( std::initializer_list<double>{ tr_tl.y, tr_tr.y, tr_bl.y, tr_br.y });
 
     return SvgBox( SvgPoint( tlx, tly ), SvgPoint( brx, bry ));
 }
