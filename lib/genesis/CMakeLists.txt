@@ -57,6 +57,7 @@ add_library( genesis_lib_obj OBJECT ${genesis_lib_sources} )
 # Link against any external libraries, e.g. Pthreads.
 target_link_libraries( genesis_lib_obj PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES} )
 target_compile_options( genesis_lib_obj PRIVATE -fPIC )
+target_include_directories( genesis_lib_obj PUBLIC ${PROJECT_SOURCE_DIR}/lib )
 
 # Explicitly add OpenMP, compatible with Macos/brew installed OpenMP after Cmake 3.12
 if(${CMAKE_VERSION} VERSION_GREATER "3.9.0")
