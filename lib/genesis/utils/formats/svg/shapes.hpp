@@ -496,6 +496,14 @@ public:
 
     self_type& operator <<( std::string elem );
 
+    /**
+     * @brief Compute the bounding box of the path.
+     *
+     * Note that we have not implemented a full svg renderer here. Hence, we only use the immediate
+     * coordinates as given in the path commands, but ignore any parts that might go outside of
+     * that, such as Bezier curves. Still, this bounding box should give a good enough outline for
+     * many purposes, e.g., to scale a group or set the document margins roughly around the path.
+     */
     SvgBox bounding_box() const;
 
     void write(

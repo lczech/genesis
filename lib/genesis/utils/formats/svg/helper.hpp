@@ -61,6 +61,11 @@ struct SvgPoint
         , y(y)
     {}
 
+    SvgPoint operator+ ( SvgPoint const& other ) const
+    {
+        return SvgPoint( x + other.x, y + other.y );
+    }
+
     double x;
     double y;
 };

@@ -57,6 +57,9 @@ SvgBox SvgGroup::bounding_box() const
 
     // We apply the group transformations here. This could potentally oversize the box again,
     // as we might rotate stuff etc, but it's good enough for now.
+    if( bbox.empty() ) {
+        return bbox;
+    }
     return transform.apply( bbox );
 }
 

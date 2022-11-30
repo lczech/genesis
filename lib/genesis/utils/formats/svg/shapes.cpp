@@ -32,10 +32,15 @@
 
 #include "genesis/utils/formats/svg/document.hpp"
 #include "genesis/utils/formats/svg/helper.hpp"
+#include "genesis/utils/text/char.hpp"
+#include "genesis/utils/text/convert.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
+#include <cassert>
+#include <limits>
 #include <ostream>
+#include <sstream>
 #include <stdexcept>
 
 namespace genesis {
@@ -486,8 +491,175 @@ SvgPath& SvgPath::operator <<( std::string elem )
 
 SvgBox SvgPath::bounding_box() const
 {
-    // TODO
-    return {};
+    // We collect all points that are part of the path, and transform later.
+    // Could be done more mem efficient by doing the transforms immediately,
+    // but well... easier that way for now.
+    std::vector<SvgPoint> points;
+
+    // Helper functions to read a single value and a pair of values, e.g., a coordinate.
+    // We check that these are values, and not new commands. In the check, we access the first
+    // character of the current list element, which is valid, as our split function
+    // does not output empty elements.
+    auto read_val_ = []( std::vector<std::string> const& list, size_t& i, double& val )
+    {
+        if( i >= list.size() ) {
+            return false;
+        }
+        assert( ! list[i].empty() );
+        if( is_alpha( list[i][0] ) ) {
+            return false;
+        }
+        val = convert_to_double( list[i + 0] );
+        ++i;
+        return true;
+    };
+    auto read_coord_pair_ = []( std::vector<std::string> const& list, size_t& i, SvgPoint& coord )
+    {
+        if( i + 1 >= list.size() ) {
+            return false;
+        }
+        assert( ! list[i].empty() );
+        if( is_alpha( list[i][0] ) ) {
+            return false;
+        }
+        coord.x = convert_to_double( list[i + 0] );
+        coord.y = convert_to_double( list[i + 1] );
+        i += 2;
+        return true;
+    };
+
+    bool start = true;
+    SvgPoint cur;
+    for( auto const& elem : elements ) {
+        auto const list = split( elem, " \t," );
+
+        // We expect the commands to be separated from their values... That is not according
+        // to the svg standard, where there does not need to be a delimiter, but it works for now,
+        // where we have control over the path commands that we use.
+        for( size_t i = 0; i < list.size(); ) {
+            auto const& tok = list[i];
+            if( start && tok != "M" && tok != "m" ) {
+                throw std::invalid_argument( "SvgPath has to start with an M or m command." );
+            }
+            start = false;
+
+            // Start the token processing at the first value. Easier for all below code.
+            // We also define a coord helper, and some others to fill with data.
+            ++i;
+            double val;
+            SvgPoint coord;
+
+            // moveto and lineto
+            // https://svgwg.org/svg2-draft/paths.html#PathDataMovetoCommands
+            // https://svgwg.org/svg2-draft/paths.html#PathDataLinetoCommands
+            if( tok == "M" || tok == "L" || tok == "m" || tok == "l" ) {
+                while( read_coord_pair_( list, i, coord )) {
+                    if( tok == "M" || tok == "L" ) {
+                        cur = coord;
+                    }
+                    if( tok == "m" || tok == "l" ) {
+                        cur = cur + coord;
+                    }
+                    points.push_back( cur );
+                }
+                continue;
+            }
+
+            // closepath
+            // https://svgwg.org/svg2-draft/paths.html#PathDataClosePathCommand
+            if( tok == "Z" || tok == "z" ) {
+                continue;
+            }
+
+            // lineto h and v
+            // https://svgwg.org/svg2-draft/paths.html#PathDataLinetoCommands
+            if( tok == "H" || tok == "h" || tok == "V" || tok == "v" ) {
+                while( read_val_( list, i, val )) {
+                    if( tok == "H" ) {
+                        cur.x = val;
+                    }
+                    if( tok == "h" ) {
+                        cur.x += val;
+                    }
+                    if( tok == "V" ) {
+                        cur.y = val;
+                    }
+                    if( tok == "v" ) {
+                        cur.y += val;
+                    }
+                    points.push_back( cur );
+                }
+                continue;
+            }
+
+            // cubic and quadratic bezier
+            // https://svgwg.org/svg2-draft/paths.html#PathDataCubicBezierCommands
+            // https://svgwg.org/svg2-draft/paths.html#PathDataQuadraticBezierCommands
+            if(
+                tok == "C" || tok == "c" || tok == "S" || tok == "s" ||
+                tok == "Q" || tok == "q" || tok == "T" || tok == "t"
+            ) {
+                while( read_coord_pair_( list, i, coord )) {
+                    // We read extra coordinates as needed. Only the last pair is what we want.
+                    bool good = true;
+                    if(
+                        tok == "C" || tok == "c" ||
+                        tok == "S" || tok == "s" ||
+                        tok == "Q" || tok == "q"
+                    ) {
+                        good &= read_coord_pair_( list, i, coord );
+                    }
+                    if( tok == "C" || tok == "c" ) {
+                        good &= read_coord_pair_( list, i, coord );
+                    }
+                    if( ! good ) {
+                        throw std::runtime_error( "Invalid SvgPath Bezier command." );
+                    }
+
+                    // Turn them into our current coordinate as needed, and store it.
+                    if( tok == "C" || tok == "S" || tok == "Q" || tok == "T" ) {
+                        cur = coord;
+                    }
+                    if( tok == "c" || tok == "s" || tok == "q" || tok == "t" ) {
+                        cur = cur + coord;
+                    }
+                    points.push_back( cur );
+                }
+                continue;
+            }
+
+            // elliptical arc curve
+            // https://svgwg.org/svg2-draft/paths.html#PathDataEllipticalArcCommands
+            if( tok == "A" || tok == "a" ) {
+                while( read_coord_pair_( list, i, coord )) {
+                    // We simplify our code here a bit, and read the flags as doubles...
+                    // we ignore them anyway, so that should work.
+                    bool good = true;
+                    good &= read_val_( list, i, val );
+                    good &= read_coord_pair_( list, i, coord );
+                    good &= read_coord_pair_( list, i, coord );
+                    if( ! good ) {
+                        throw std::runtime_error( "Invalid SvgPath elliptical arc curve command." );
+                    }
+
+                    // Turn them into our current coordinate as needed, and store it.
+                    if( tok == "A" ) {
+                        cur = coord;
+                    }
+                    if( tok == "a" ) {
+                        cur = cur + coord;
+                    }
+                    points.push_back( cur );
+                }
+                continue;
+            }
+
+            // Reaching here means we did not find the token.
+            throw std::runtime_error( "Invalid SvgPath command '" + tok + "'." );
+        }
+    }
+
+    return svg_bounding_box( points, transform );
 }
 
 void SvgPath::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const

@@ -71,10 +71,11 @@ std::string svg_arc(
     } else {
         os << "M " << start_x << " " << start_y << " ";
     }
-    os << "A " << radius << " " << radius << " " << 0 << " " << large_arc << " " << 0 << " ";
+    os << "A " << radius << " " << radius << " ";
+    os << 0 << " " << large_arc << " " << 0 << " ";
     os << end_x << " " << end_y;
     if( wedge ) {
-        os << "L " << center_x << " " << center_y << " ";
+        os << " L " << center_x << " " << center_y << " ";
     }
     return os.str();
 }
