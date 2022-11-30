@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -31,6 +31,7 @@
 #include "genesis/utils/formats/svg/shapes.hpp"
 
 #include "genesis/utils/formats/svg/document.hpp"
+#include "genesis/utils/formats/svg/helper.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
@@ -64,10 +65,21 @@ SvgLine::SvgLine( double x1, double y1, double x2, double y2, SvgStroke const& s
 
 SvgBox SvgLine::bounding_box() const
 {
+    // For a line, we do not want to just apply the transformations on the whole box,
+    // as this might give a way too large box under rotation. Instead, we rotate both
+    // points individually, and then compute the box from that.
+    auto const t1 = transform.apply( point_1 );
+    auto const t2 = transform.apply( point_2 );
     return {
-        SvgPoint( std::min( point_1.x, point_2.x ), std::min( point_1.y, point_2.y )),
-        SvgPoint( std::max( point_1.x, point_2.x ), std::max( point_1.y, point_2.y ))
+        SvgPoint( std::min( t1.x, point_2.x ), std::min( t1.y, point_2.y )),
+        SvgPoint( std::max( t2.x, point_2.x ), std::max( t2.y, point_2.y ))
     };
+
+    // Without applying transformations:
+    // return {
+    //     SvgPoint( std::min( point_1.x, point_2.x ), std::min( point_1.y, point_2.y )),
+    //     SvgPoint( std::max( point_1.x, point_2.x ), std::max( point_1.y, point_2.y ))
+    // };
 }
 
 void SvgLine::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
@@ -126,7 +138,7 @@ SvgRect::SvgRect(
 
 SvgBox SvgRect::bounding_box() const
 {
-    return { position, size.width, size.height };
+    return transform.apply( SvgBox{ position, size.width, size.height });
 }
 
 void SvgRect::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
@@ -189,10 +201,12 @@ SvgCircle::SvgCircle(
 
 SvgBox SvgCircle::bounding_box() const
 {
-    return {
+    // Computing the transformations of a circle is tricky... Not bothering with that for now,
+    // and instead just compute the transformed large box that definitly fits it.
+    return transform.apply( SvgBox{
         SvgPoint( center.x - radius, center.y - radius ),
         SvgPoint( center.x + radius, center.y + radius )
-    };
+    });
 }
 
 void SvgCircle::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
@@ -250,10 +264,11 @@ SvgEllipse::SvgEllipse(
 
 SvgBox SvgEllipse::bounding_box() const
 {
-    return {
+    // Same as for the circle, not bothering with the complex transformations as of now...
+    return transform.apply( SvgBox{
         SvgPoint( center.x - rx, center.y - ry ),
         SvgPoint( center.x + rx, center.y + ry )
-    };
+    });
 }
 
 void SvgEllipse::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
@@ -324,26 +339,7 @@ SvgPolyline& SvgPolyline::operator <<( SvgPoint p )
 
 SvgBox SvgPolyline::bounding_box() const
 {
-    if( points.size() == 0 ) {
-        return {};
-        // throw std::runtime_error(
-        //     "Cannot calculate bounding box of Polyline without any points."
-        // );
-    }
-
-    auto minmax_x = std::minmax_element(
-        points.begin(), points.end(),
-        []( SvgPoint lhs, SvgPoint rhs ){ return lhs.x < rhs.x; }
-    );
-    auto minmax_y = std::minmax_element(
-        points.begin(), points.end(),
-        []( SvgPoint lhs, SvgPoint rhs ){ return lhs.y < rhs.y; }
-    );
-
-    return {
-        SvgPoint( minmax_x.first->x,  minmax_y.first->y ),
-        SvgPoint( minmax_x.second->x, minmax_y.second->y )
-    };
+    return svg_bounding_box( points, transform );
 }
 
 void SvgPolyline::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
@@ -419,26 +415,7 @@ SvgPolygon& SvgPolygon::operator <<( SvgPoint p )
 
 SvgBox SvgPolygon::bounding_box() const
 {
-    if( points.size() == 0 ) {
-        return {};
-        // throw std::runtime_error(
-        //     "Cannot calculate bounding box of Polygon without any points."
-        // );
-    }
-
-    auto minmax_x = std::minmax_element(
-        points.begin(), points.end(),
-        []( SvgPoint lhs, SvgPoint rhs ){ return lhs.x < rhs.x; }
-    );
-    auto minmax_y = std::minmax_element(
-        points.begin(), points.end(),
-        []( SvgPoint lhs, SvgPoint rhs ){ return lhs.y < rhs.y; }
-    );
-
-    return {
-        SvgPoint( minmax_x.first->x,  minmax_y.first->y ),
-        SvgPoint( minmax_x.second->x, minmax_y.second->y )
-    };
+    return svg_bounding_box( points, transform );
 }
 
 void SvgPolygon::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
@@ -545,15 +522,27 @@ void SvgPath::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
 
 SvgBox SvgUse::bounding_box() const
 {
-    // TODO
-    return {};
+    // Computing the bounding box here is super involved, as the object could have its own
+    // transformations first. Then, its bounding box might already be oversized due to how we
+    // apply transformations on bounding boxes, and then we add the offset and apply the
+    // transformations of this SvgUse object here afterwards, potentally overscaling again...
+    // But that's the best that we can do for now. Good enough.
+    auto ob = object->bounding_box();
+    ob.top_left.x += offset.x;
+    ob.top_left.y += offset.y;
+    ob.bottom_right.x += offset.x;
+    ob.bottom_right.y += offset.y;
+    return transform.apply( ob );
 }
 
 void SvgUse::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<use";
-    out << svg_attribute( "xlink:href", "#" + referenced_id );
+    if( ! id.empty() ) {
+        out << svg_attribute( "id", id );
+    }
+    out << svg_attribute( "xlink:href", "#" + object->id() );
     out << svg_attribute( "x", offset.x + options.offset_x );
     out << svg_attribute( "y", offset.y + options.offset_y );
     transform.write( out );

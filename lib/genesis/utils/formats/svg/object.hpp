@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -85,6 +85,11 @@ public:
     //     Members
     // -------------------------------------------------------------
 
+    std::string const& id() const
+    {
+        return pimpl_->id_();
+    }
+
     SvgBox bounding_box() const
     {
         return pimpl_->bounding_box_();
@@ -108,6 +113,7 @@ private:
     {
         virtual ~Concept() {}
 
+        virtual std::string const& id_() const = 0;
         virtual SvgBox bounding_box_() const = 0;
 
         virtual void write_(
@@ -125,6 +131,11 @@ private:
         Model( T const& value )
             : object_( value )
         {}
+
+        std::string const& id_() const override
+        {
+            return object_.id;
+        }
 
         SvgBox bounding_box_() const override
         {

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -87,7 +87,8 @@ SvgImage::SvgImage(
 
 SvgBox SvgImage::bounding_box() const
 {
-    return SvgBox( position, size.width, size.height );
+    // We compute the large box that takes rotated corners into account.
+    return transform.apply( SvgBox( position, size.width, size.height ));
 }
 
 void SvgImage::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const

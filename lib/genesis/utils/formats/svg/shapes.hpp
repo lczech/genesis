@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -31,10 +31,12 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/helper.hpp"
 #include "genesis/utils/formats/svg/attributes.hpp"
+#include "genesis/utils/formats/svg/helper.hpp"
+#include "genesis/utils/formats/svg/object.hpp"
 
 #include <iosfwd>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -536,21 +538,32 @@ public:
     // -------------------------------------------------------------
 
     SvgUse(
-        std::string const& id,
-        SvgPoint const& offset
+        SvgObject const& other
     )
-        : referenced_id( id )
-        , offset( offset )
+        : SvgUse( other, 0.0, 0.0 )
     {}
 
     SvgUse(
-        std::string const& id,
+        SvgObject const& other,
+        SvgPoint const& offset
+    )
+        : SvgUse( other, offset.x, offset.y )
+    {}
+
+    SvgUse(
+        SvgObject const& other,
         double offset_x,
         double offset_y
     )
-        : referenced_id( id )
+        : object( &other )
         , offset( offset_x, offset_y )
-    {}
+    {
+        if( other.id().empty() ) {
+            throw std::runtime_error(
+                "Cannot create an SvgUse object using an SvgObject with an empty id attribute."
+            );
+        }
+    }
 
     ~SvgUse() = default;
 
@@ -576,7 +589,11 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
-    std::string  referenced_id;
+    std::string id;
+
+    SvgObject const* object;
+    // std::string  referenced_id;
+
     SvgPoint     offset;
     SvgTransform transform;
 

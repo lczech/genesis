@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -281,6 +281,7 @@ public:
         // -------------------------------------------------------------
 
         void write( std::ostream& out ) const;
+        SvgPoint apply( SvgPoint const& p ) const;
 
         // -------------------------------------------------------------
         //     Data Members
@@ -304,16 +305,25 @@ public:
 
         Rotate() = default;
 
+        /**
+         * @brief Rotation, in degrees.
+         */
         Rotate( double angle )
             : a(angle)
         {}
 
+        /**
+         * @brief Rotation, in degrees, around a given offset point.
+         */
         Rotate( double angle, double cx, double cy )
             : a(angle)
             , cx(cx)
             , cy(cy)
         {}
 
+        /**
+         * @brief Rotation, in degrees, around a given offset point.
+         */
         Rotate( double angle, SvgPoint offset )
             : Rotate( angle, offset.x, offset.y )
         {}
@@ -331,6 +341,7 @@ public:
         // -------------------------------------------------------------
 
         void write( std::ostream& out ) const;
+        SvgPoint apply( SvgPoint const& p ) const;
 
         // -------------------------------------------------------------
         //     Data Members
@@ -378,6 +389,7 @@ public:
         // -------------------------------------------------------------
 
         void write( std::ostream& out ) const;
+        SvgPoint apply( SvgPoint const& p ) const;
 
         // -------------------------------------------------------------
         //     Data Members
@@ -388,10 +400,10 @@ public:
     };
 
     // -------------------------------------------------------------------------
-    //     Subclass Skew
+    //     Subclass SkewX
     // -------------------------------------------------------------------------
 
-    struct Skew
+    struct SkewX
     {
     public:
 
@@ -399,37 +411,77 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------
 
-        Skew() = default;
+        SkewX() = default;
 
-        Skew( double a )
+        /**
+         * @brief SkewX an object, with an angle given in degrees.
+         */
+        SkewX( double a )
             : ax(a)
-            , ay(a)
         {}
 
-        Skew( double ax, double ay )
-            : ax(ax)
-            , ay(ay)
-        {}
+        ~SkewX() = default;
 
-        ~Skew() = default;
+        SkewX( SkewX const& ) = default;
+        SkewX( SkewX&& )      = default;
 
-        Skew( Skew const& ) = default;
-        Skew( Skew&& )      = default;
-
-        Skew& operator= ( Skew const& ) = default;
-        Skew& operator= ( Skew&& )      = default;
+        SkewX& operator= ( SkewX const& ) = default;
+        SkewX& operator= ( SkewX&& )      = default;
 
         // -------------------------------------------------------------
         //     Operators and Write
         // -------------------------------------------------------------
 
         void write( std::ostream& out ) const;
+        SvgPoint apply( SvgPoint const& p ) const;
 
         // -------------------------------------------------------------
         //     Data Members
         // -------------------------------------------------------------
 
         double ax = 0.0;
+    };
+
+    // -------------------------------------------------------------------------
+    //     Subclass SkewY
+    // -------------------------------------------------------------------------
+
+    struct SkewY
+    {
+    public:
+
+        // -------------------------------------------------------------
+        //     Constructors and Rule of Five
+        // -------------------------------------------------------------
+
+        SkewY() = default;
+
+        /**
+         * @brief SkewY an object, with an angle given in degrees.
+         */
+        SkewY( double a )
+            : ay(a)
+        {}
+
+        ~SkewY() = default;
+
+        SkewY( SkewY const& ) = default;
+        SkewY( SkewY&& )      = default;
+
+        SkewY& operator= ( SkewY const& ) = default;
+        SkewY& operator= ( SkewY&& )      = default;
+
+        // -------------------------------------------------------------
+        //     Operators and Write
+        // -------------------------------------------------------------
+
+        void write( std::ostream& out ) const;
+        SvgPoint apply( SvgPoint const& p ) const;
+
+        // -------------------------------------------------------------
+        //     Data Members
+        // -------------------------------------------------------------
+
         double ay = 0.0;
     };
 
@@ -469,6 +521,7 @@ public:
         // -------------------------------------------------------------
 
         void write( std::ostream& out ) const;
+        SvgPoint apply( SvgPoint const& p ) const;
 
         // -------------------------------------------------------------
         //     Data Members
@@ -506,7 +559,7 @@ public:
 
         template< typename T >
         Transformation( T const& object )
-            // Although we are in untils namespace here, we specify the namespace full,
+            // Although we are in utils namespace here, we specify the namespace full,
             // in order to avoid ambiguous overload when compiled with C++17.
             : pimpl_( genesis::utils::make_unique< Model<T> >( object ))
         {}
@@ -529,9 +582,13 @@ public:
         //     Members
         // -------------------------------------------------------------
 
-        void write(
-            std::ostream& out
-        ) const {
+        SvgPoint apply( SvgPoint const& p ) const
+        {
+            return pimpl_->apply_( p );
+        }
+
+        void write( std::ostream& out ) const
+        {
             pimpl_->write_( out );
         }
 
@@ -545,9 +602,8 @@ public:
         {
             virtual ~Concept() {}
 
-            virtual void write_(
-                std::ostream& out
-            ) const = 0;
+            virtual SvgPoint apply_( SvgPoint const& p ) const = 0;
+            virtual void write_( std::ostream& out ) const = 0;
 
             virtual std::unique_ptr< Concept > clone() const = 0;
         };
@@ -559,15 +615,19 @@ public:
                 : object_( value )
             {}
 
-            void write_(
-                std::ostream& out
-            ) const override {
+            SvgPoint apply_( SvgPoint const& p ) const override
+            {
+                return object_.apply( p );
+            }
+
+            void write_( std::ostream& out ) const override
+            {
                 object_.write( out );
             }
 
             std::unique_ptr< Concept > clone() const override
             {
-                // Although we are in untils namespace here, we specify the namespace full,
+                // Although we are in utils namespace here, we specify the namespace full,
                 // in order to avoid ambiguous overload when compiled with C++17.
                 return genesis::utils::make_unique< Model<T> >( object_ );
             }
@@ -598,6 +658,24 @@ public:
 
     void append( Transformation&& t );
     void append( Transformation const& t );
+
+    /**
+     * @brief Apply all transformations to a point, and return the new transformed coordinate.
+     */
+    SvgPoint apply( SvgPoint const& p ) const;
+
+    /**
+     * @brief Apply all transformations to a box, and return the new transformed coordinates.
+     *
+     * As our implmentation is not a full svg renderer, we cheat here and just transform the
+     * corners of the box. That means, with rotations etc, there could be parts of an object
+     * where this model fails us. Note that we transform all four corners, and hence compute
+     * a box that is too large under rotations.
+     *
+     * Still, this is good enough for our puposes of determining the rough outlines of objects,
+     * so that we can scale the document around them.
+     */
+    SvgBox apply( SvgBox const& b ) const;
 
     void write( std::ostream& out ) const;
 
