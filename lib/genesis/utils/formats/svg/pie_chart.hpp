@@ -60,8 +60,8 @@ class ColorMap;
  * @brief Make a pie chart in SVG.
  *
  * The given @p values are automatically re-scaled to fill the circle.
- * If given @p colors have fewer entries thatn there are @p values, they are re-used (modulo);
- * if there are more @p colors than @p values, only the first ones needed are used.
+ * If there are more @p colors than @p values, only the first ones needed are used;
+ * if given @p colors have fewer entries thatn there are @p values, an exception is thrown.
  *
  * The @p radius of the char defaults to 1.0, and the @p start_angle to `-pi/2`, so that the chart
  * starts from the top (most typical). By default, we also draw the values @p clockwise

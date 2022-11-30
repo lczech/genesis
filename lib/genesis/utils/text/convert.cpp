@@ -66,7 +66,7 @@ bool convert_to_bool( std::string const& str )
 {
     bool result;
     if( !convert_to_bool( str, result )) {
-        throw std::runtime_error( "String is not convertible to bool." );
+        throw std::runtime_error( "String is not convertible to bool: \"" + str + "\"" );
     }
     return result;
 }
@@ -104,7 +104,7 @@ double convert_to_bool_double( std::string const& str )
 {
     double result;
     if( !convert_to_bool_double( str, result )) {
-        throw std::runtime_error( "String is not convertible to bool." );
+        throw std::runtime_error( "String is not convertible to bool: \"" + str + "\"" );
     }
     return result;
 }
@@ -163,7 +163,7 @@ double convert_to_double( std::string const& str )
     double result;
     if( !convert_to_double( str, result )) {
         throw std::runtime_error(
-            "String is not convertible to double."
+            "String is not convertible to double: \"" + str + "\""
         );
     }
     return result;
@@ -195,7 +195,7 @@ long long convert_to_signed_integer( std::string const& str )
     long long result;
     if( !convert_to_signed_integer( str, result )) {
         throw std::runtime_error(
-            "String is not convertible to signed integer (long long)."
+            "String is not convertible to signed integer (long long): \"" + str + "\""
         );
     }
     return result;
@@ -227,7 +227,7 @@ unsigned long long convert_to_unsigned_integer( std::string const& str )
     unsigned long long result;
     if( !convert_to_unsigned_integer( str, result )) {
         throw std::runtime_error(
-            "String is not convertible to unsigned integer (unsigned long long)."
+            "String is not convertible to unsigned integer (unsigned long long): \"" + str + "\""
         );
     }
     return result;

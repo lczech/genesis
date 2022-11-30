@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -104,8 +104,7 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
     }
     double const max_spreading = node_count / ( node_count + 1 );
 
-    size_t max_text_len = 0;
-
+    // size_t max_text_len = 0;
     for( auto const& node : tree().nodes() ) {
 
         auto const& node_data = node.data<LayoutNodeData>();
@@ -224,7 +223,7 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
             }
 
             taxa_names << std::move( label );
-            max_text_len = std::max( max_text_len, node_data.name.size() );
+            // max_text_len = std::max( max_text_len, node_data.name.size() );
         }
 
         // If there is a node shape, draw it.
@@ -240,8 +239,8 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
     tree_lines.reverse();
 
     // Set the margins according to longest label.
-    auto const marg = std::max( 30.0, max_text_len * text_template().font.size );
-    doc.margin = SvgMargin( marg );
+    // auto const marg = std::max( 30.0, max_text_len * text_template().font.size );
+    // doc.margin = SvgMargin( marg );
 
     // We are sure that we won't use the groups again, so let's move them!
     doc << std::move( tree_lines );

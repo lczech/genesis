@@ -45,6 +45,12 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+struct SvgTransform;
+
+// =================================================================================================
 //     Svg Point
 // =================================================================================================
 
@@ -54,6 +60,11 @@ struct SvgPoint
         : x(x)
         , y(y)
     {}
+
+    SvgPoint operator+ ( SvgPoint const& other ) const
+    {
+        return SvgPoint( x + other.x, y + other.y );
+    }
 
     double x;
     double y;
@@ -225,6 +236,18 @@ std::string svg_attribute(
     return ss.str();
 }
 
+inline std::string svg_data_uri(
+    std::string const& media_type,
+    std::string const& content,
+    bool encode_base64 = false
+) {
+    return "data:" + media_type + (
+        encode_base64
+        ? ( ";base64," + base64_encode( content ))
+        : ( "," + content )
+    );
+}
+
 /**
  * @brief Create an arc to use in an SvgPath.
  *
@@ -239,48 +262,26 @@ std::string svg_attribute(
  * If @p wedge is given, the path is drawn including segments to the circle center;
  * otherwise, the path position is moved to the beginning of the arc first, and left at its end.
  */
-inline std::string svg_arc(
-    double center_x, double center_y, double radius, double start_angle, double end_angle,
+std::string svg_arc(
+    double center_x, double center_y, double radius,
+    double start_angle, double end_angle,
     bool wedge = false
-) {
-    std::string large_arc;
-    if( start_angle > end_angle ) {
-        large_arc = ( end_angle - start_angle <= utils::PI ? "1" : "0" );
-    } else {
-        large_arc = ( end_angle - start_angle <= utils::PI ? "0" : "1" );
-    }
+);
 
-    double start_x = center_x + ( radius * std::cos( end_angle ));
-    double start_y = center_y + ( radius * std::sin( end_angle ));
-    double end_x   = center_x + ( radius * std::cos( start_angle ));
-    double end_y   = center_y + ( radius * std::sin( start_angle ));
+/**
+ * @brief Compute the bounding box of a set of points.
+ */
+SvgBox svg_bounding_box(
+    std::vector<SvgPoint> const& points
+);
 
-    std::ostringstream os;
-    if( wedge ) {
-        os << "M " << center_x << " " << center_y << " ";
-        os << "L " << start_x << " " << start_y << " ";
-    } else {
-        os << "M " << start_x << " " << start_y << " ";
-    }
-    os << "A " << radius << " " << radius << " " << 0 << " " << large_arc << " " << 0 << " ";
-    os << end_x << " " << end_y;
-    if( wedge ) {
-        os << "L " << center_x << " " << center_y << " ";
-    }
-    return os.str();
-}
-
-inline std::string svg_data_uri(
-    std::string const& media_type,
-    std::string const& content,
-    bool encode_base64 = false
-) {
-    return "data:" + media_type + (
-        encode_base64
-        ? ( ";base64," + base64_encode( content ))
-        : ( "," + content )
-    );
-}
+/**
+ * @brief Compute the bounding box of a set of points, including their transformation.
+ */
+SvgBox svg_bounding_box(
+    std::vector<SvgPoint> const& points,
+    SvgTransform const& transform
+);
 
 // template< typename T >
 // std::string svg_style(

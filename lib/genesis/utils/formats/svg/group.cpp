@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2022 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -54,7 +54,13 @@ SvgBox SvgGroup::bounding_box() const
     for( auto const& elem : content_ ) {
         bbox = SvgBox::combine( bbox, elem.bounding_box() );
     }
-    return bbox;
+
+    // We apply the group transformations here. This could potentally oversize the box again,
+    // as we might rotate stuff etc, but it's good enough for now.
+    if( bbox.empty() ) {
+        return bbox;
+    }
+    return transform.apply( bbox );
 }
 
 void SvgGroup::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const

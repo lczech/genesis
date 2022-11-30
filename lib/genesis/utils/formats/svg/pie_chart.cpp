@@ -34,8 +34,8 @@
 #include "genesis/utils/formats/svg/helper.hpp"
 #include "genesis/utils/formats/svg/object.hpp"
 #include "genesis/utils/formats/svg/shapes.hpp"
-
 #include "genesis/utils/tools/color.hpp"
+
 #include <cassert>
 #include <cstdlib>
 #include <numeric>
@@ -55,10 +55,6 @@ SvgGroup make_svg_pie_chart(
     double start_angle,
     bool clockwise
 ) {
-    // Prepare result and basics.
-    SvgGroup result;
-    double const total = std::accumulate( values.begin(), values.end(), 0.0 );
-    double const dir = clockwise ? 1.0 : -1.0;
 
     // Edge cases.
     if( values.size() == 0 ) {
@@ -66,6 +62,13 @@ SvgGroup make_svg_pie_chart(
     }
     if( colors.size() == 0 ) {
         throw std::runtime_error( "No colors given to make svg pie chart" );
+    }
+    if( colors.size() < values.size() ) {
+        throw std::runtime_error(
+            "No enough colors given to make svg pie chart. Given " +
+            std::to_string( colors.size() ) + " colors, but " +
+            std::to_string( values.size() ) + " values."
+        );
     }
     auto const all_good = std::all_of( values.cbegin(), values.cend(), []( double v ){
         return std::isfinite(v) && v >= 0.0;
@@ -75,6 +78,11 @@ SvgGroup make_svg_pie_chart(
             "Invalid negative or non-finite values given to make svg pie chart"
         );
     }
+
+    // Prepare result and helper values.
+    SvgGroup result;
+    double const total = std::accumulate( values.begin(), values.end(), 0.0 );
+    double const dir = clockwise ? 1.0 : -1.0;
 
     // Fill the chart. We keep a running sum (in radians) of how much pie we have filled.
     double sum = 0.0;
@@ -96,10 +104,11 @@ SvgGroup make_svg_pie_chart(
 
         // We create a pie segment as a path, moving to the origin, then an arc with the
         // specified angles, then back to the origin. The svg_arc function takes care of that.
+        assert( i < colors.size() );
         result << SvgPath(
             {{ svg_arc( 0, 0, radius, start_a, end_a, true ) }},
             SvgStroke( SvgStroke::Type::kNone ),
-            SvgFill( colors[ i % colors.size() ] )
+            SvgFill( colors[ i ] )
         );
     }
 
