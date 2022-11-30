@@ -202,6 +202,9 @@ set( GENESIS_UNITY_BUILD FULL CACHE STRING
 )
 set_property( CACHE GENESIS_UNITY_BUILD PROPERTY STRINGS FULL MODULES OFF )
 
+# Set whether to try to use LTO, if available.
+option( GENESIS_USE_LTO "Use LTO/IPO (link time optimization), if available." ON )
+
 # --------------------------------------------------------------------------------------------------
 #   Build Type
 # --------------------------------------------------------------------------------------------------
@@ -228,6 +231,7 @@ if( GENESIS_IS_MASTER_PROJECT AND DEFINED ENV{GENESIS_DEBUG} AND "$ENV{GENESIS_D
     # set (CMAKE_VERBOSE_MAKEFILE ON)
     SET( GENESIS_BUILD_TESTS ON )
     SET( GENESIS_UNITY_BUILD OFF )
+    SET( GENESIS_USE_LTO     OFF )
 
 endif()
 
@@ -277,13 +281,17 @@ set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
 # This hopefully fixes an issue with some compilers stating that
 # `ld.lld: error: undefined symbol: _Unwind_Resume`, see
 # https://github.com/rust-lang/rust/issues/47493#issuecomment-606385776
-if( NOT ( CMAKE_VERSION VERSION_LESS 3.9 ))
-    cmake_policy(SET CMP0069 NEW)
-    include(CheckIPOSupported)
-    check_ipo_supported(RESULT GENESIS_HAS_LTO)
-else()
+IF(GENESIS_USE_LTO)
+    if( NOT ( CMAKE_VERSION VERSION_LESS 3.9 ))
+        cmake_policy(SET CMP0069 NEW)
+        include(CheckIPOSupported)
+        check_ipo_supported(RESULT GENESIS_HAS_LTO)
+    else()
+        set(GENESIS_HAS_LTO OFF)
+    endif()
+ELSE()
     set(GENESIS_HAS_LTO OFF)
-endif()
+ENDIF()
 if(GENESIS_HAS_LTO)
     message(STATUS "Building with LTO/IPO support")
 else()
