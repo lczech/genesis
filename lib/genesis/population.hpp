@@ -72,6 +72,7 @@
 #include "genesis/population/window/base_window_iterator.hpp"
 #include "genesis/population/window/functions.hpp"
 #include "genesis/population/window/region_window_iterator.hpp"
+#include "genesis/population/window/sliding_entries_window_iterator.hpp"
 #include "genesis/population/window/sliding_interval_window_iterator.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/vcf_window.hpp"

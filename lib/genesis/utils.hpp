@@ -88,6 +88,7 @@
 #include "genesis/utils/formats/svg/image.hpp"
 #include "genesis/utils/formats/svg/matrix.hpp"
 #include "genesis/utils/formats/svg/object.hpp"
+#include "genesis/utils/formats/svg/pie_chart.hpp"
 #include "genesis/utils/formats/svg/shapes.hpp"
 #include "genesis/utils/formats/svg/svg.hpp"
 #include "genesis/utils/formats/svg/text.hpp"
