@@ -34,6 +34,7 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
+#include <iterator>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -83,8 +84,25 @@ public:
     Bitvector( size_t size, std::initializer_list<size_t> list)
         : Bitvector(size, false)
     {
-        for (size_t e : list) {
+        for( size_t e : list ) {
             set(e);
+        }
+    }
+
+    /**
+     * @brief Construct a Bitvector using a range of bools.
+     *
+     * The given iterator pair @p first to @p last needs to dereference to values
+     * that are convertible to `bool`.
+     */
+    template<class It>
+    Bitvector( It first, It last )
+        : Bitvector( std::distance( first,last ), false )
+    {
+        size_t i = 0;
+        for( auto it = first; it != last; ++it ) {
+            set( i, *it );
+            ++i;
         }
     }
 
