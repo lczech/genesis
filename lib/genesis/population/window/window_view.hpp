@@ -286,13 +286,13 @@ public:
                 "the get_next_element function first."
             );
         }
-        if( started ) {
+        if( started_ ) {
             throw std::runtime_error(
                 "WindowView is an input iterator (single pass), "
                 "but begin() has been called multiple times."
             );
         }
-        started = true;
+        started_ = true;
         return Iterator( this );
     }
 
@@ -325,7 +325,7 @@ public:
 
 private:
 
-    mutable bool started = false;
+    mutable bool started_ = false;
     std::string chromosome_;
 
 };

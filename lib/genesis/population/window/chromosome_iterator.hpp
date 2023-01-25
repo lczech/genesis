@@ -50,12 +50,12 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief Iterator for traversing each chromosome as a whole, with an inner WindowView iterator
- * over the positions of each chromosome.
+ * @brief Iterator for traversing each chromosome as a whole, or the entire genome,
+ * with an inner WindowView iterator over the positions of each chromosome.
  *
  * With each step of the iteration, an inner WindowView iterator is yielded that traverses all
- * positions on a chromosome of the underlying input data stream. Then, when incrementing the main
- * iterator, we move forward to the next chromosome.
+ * positions on a chromosome of the underlying input data stream (or the whole genome).
+ * Then, when incrementing the main iterator, we move forward to the next chromosome (if available).
  *
  * This class is merely meant as a simplification over manually keeping track of the current
  * chromosome, for example when computing a statistic for whole chromosomes, so that those
@@ -64,13 +64,18 @@ namespace population {
  * This class contains a quite unfortunate amount of boiler plate, but hopefully makes downstream
  * algorithms easier to write.
  *
+ * In order to traverse the whole genome at once, instead of iterating over individual chromosomes,
+ * use whole_genome(); see there for details.
+ *
  * The three functors
  *
  *  * #entry_input_function,
  *  * #chromosome_function, and
  *  * #position_function
  *
- * have to be set in the class prior to starting the iteration.
+ * have to be set in the class prior to starting the iteration for the chromosome iterator.
+ * For the whole genome case, only the first of them has to be set, as we internally do not need
+ * access to the chromosome and position information of the underlying data iterator.
  * See make_chromosome_iterator() and make_default_chromosome_iterator()
  * for helper functions that take care of this for most of our data types.
  *
@@ -171,8 +176,14 @@ public:
             base_iterator_type::is_first_window_ = true;
             base_iterator_type::is_last_window_ = true;
 
-            // Let's get going.
-            increment_();
+            // Let's get going. For the whole genome case, we only need to do the init once,
+            // and then are done, as the iterator will do the whole thing in one pass, so there
+            // never is a second iteration, and hence, increment is never called.
+            if( parent_->whole_genome_ ) {
+                init_whole_genome_();
+            } else {
+                increment_chromosome_();
+            }
         }
 
     public:
@@ -199,9 +210,14 @@ public:
             // error by trying to increment a past-the-end iterator.
             assert( parent_ );
 
-            // For now, we simply forward. If we add a second mode for traversing the whole genome,
-            // this is where we would want to switch between the two implementations.
-            increment_chromosome_();
+            // Select which type of increment we need.
+            // For whole chromosome, we always reach the end after incrementing,
+            // and don't need to do anything, except for singalling that end.
+            if( parent_->whole_genome_ ) {
+                parent_ = nullptr;
+            } else {
+                increment_chromosome_();
+            }
         }
 
         void increment_chromosome_()
@@ -210,7 +226,8 @@ public:
             assert( parent_ );
 
             // Move to the next chromosome. This is only important if this increment function
-            // is called before the inner window view iterator has finished the whole chromsome.
+            // is called before the inner window view iterator has finished the whole chromsome,
+            // so if for example a break is called within.
             while(
                 base_iterator_type::current_ != base_iterator_type::end_ &&
                 parent_->chromosome_function( *base_iterator_type::current_ ) == window_.chromosome()
@@ -256,9 +273,7 @@ public:
                 // with the current entry of the underlying iterator. If not, we first move to the
                 // next position (if there is any), before getting the data.
                 if( is_first ) {
-                    if( cur == end ) {
-                        return nullptr;
-                    }
+                    assert( cur != end );
                     return &*cur;
                 }
 
@@ -279,6 +294,46 @@ public:
                 // Now check whether we are done with the chromosome.
                 // If not, we return the current element that we just moved to.
                 if( cur == end || par->chromosome_function( *cur ) != chr ) {
+                    return nullptr;
+                }
+                return &*cur;
+            };
+        }
+
+        void init_whole_genome_()
+        {
+            assert( parent_ );
+
+            // Need to check whether there is any data at all. If not, we are done here.
+            if( base_iterator_type::current_ == base_iterator_type::end_ ) {
+                parent_ = nullptr;
+                return;
+            }
+
+            // Similar to the above, we need pointer variables to the iterators and other elements.
+            auto& cur = self_type::current_;
+            auto& end = self_type::end_;
+
+            // We reset the window view, so that it's a new iterator for the new chromosome,
+            // starting from the first position, with a fitting increment function.
+            window_ = WindowViewType();
+            window_.get_next_element = [ &cur, &end ]( bool is_first ) mutable -> DataType* {
+                assert( cur != end );
+
+                // If this is the first call of the function, we are initializing the WindowView
+                // with the current entry of the underlying iterator. If not, we first move to the
+                // next position (if there is any), before getting the data.
+                if( is_first ) {
+                    return &*cur;
+                }
+
+                // Now we are in the case that we want to move to the next position first.
+                // Move to the next position, and check that it is in the correct order.
+                ++cur;
+
+                // Now check whether we are done with the chromosome.
+                // If not, we return the current element that we just moved to.
+                if( cur == end ) {
                     return nullptr;
                 }
                 return &*cur;
@@ -336,6 +391,24 @@ public:
     //     Settings
     // -------------------------------------------------------------------------
 
+    bool whole_genome() const
+    {
+        return whole_genome_;
+    }
+
+    /**
+     * @brief If set, iterate the whole genome at once, instead of each chromosome individually.
+     *
+     * This means that the whole input data is iterated at once, so that the inner iterator,
+     * as provided by the WindowView, only gets instanciated once, and that WindowView then
+     * traverses the genome.
+     */
+    self_type& whole_genome( bool value )
+    {
+        whole_genome_ = value;
+        return *this;
+    }
+
     // -------------------------------------------------------------------------
     //     Virtual Members
     // -------------------------------------------------------------------------
@@ -364,14 +437,16 @@ protected:
 
 private:
 
+    bool whole_genome_ = false;
+
 };
 
 // =================================================================================================
-//     Make Sliding Window Iterator
+//     Make Chromosome Window View Iterator
 // =================================================================================================
 
 /**
- * @brief Helper function to instantiate a ChromosomeIterator
+ * @brief Helper function to instantiate a ChromosomeIterator for each chromosome,
  * without the need to specify the template parameters manually.
  */
 template<class InputIterator, class DataType = typename InputIterator::value_type>
@@ -383,7 +458,8 @@ make_chromosome_iterator(
 }
 
 /**
- * @brief Helper function to instantiate a ChromosomeIterator for a default use case.
+ * @brief Helper function to instantiate a ChromosomeIterator for each chromosome,
+ * for a default use case.
  *
  * This helper assumes that the underlying type of the input data stream and of the data
  * that we are sliding over are of the same type, that is, we do no conversion in the
@@ -412,6 +488,48 @@ make_default_chromosome_iterator(
     };
 
     // Set properties and return.
+    return it;
+}
+
+// =================================================================================================
+//     Make Genome Window View Iterator
+// =================================================================================================
+
+/**
+ * @brief Helper function to instantiate a ChromosomeIterator for the whole genome,
+ * without the need to specify the template parameters manually.
+ *
+ * This helper function creates a ChromosomeIterator from the given pair of iterators,
+ * and sets ChromosomeIterator::whole_genome() to `true`, so that the whole genome is traversed
+ * without stopping at individual chromosomes in each iteration.
+ */
+template<class InputIterator, class DataType = typename InputIterator::value_type>
+ChromosomeIterator<InputIterator, DataType>
+make_genome_iterator(
+    InputIterator begin, InputIterator end
+) {
+    auto it = ChromosomeIterator<InputIterator, DataType>( begin, end );
+    it.whole_genome( true );
+    return it;
+}
+
+/**
+ * @brief Helper function to instantiate a ChromosomeIterator for the whole genome,
+ * for a default use case.
+ *
+ * @copydetails make_default_chromosome_iterator
+ *
+ * This helper function creates a ChromosomeIterator from the given pair of iterators,
+ * and sets ChromosomeIterator::whole_genome() to `true`, so that the whole genome is traversed
+ * without stopping at individual chromosomes in each iteration.
+ */
+template<class InputIterator>
+ChromosomeIterator<InputIterator>
+make_default_genome_iterator(
+    InputIterator begin, InputIterator end
+) {
+    auto it = make_default_chromosome_iterator( begin, end );
+    it.whole_genome( true );
     return it;
 }
 

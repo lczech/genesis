@@ -42,7 +42,7 @@
 using namespace genesis::population;
 using namespace genesis::utils;
 
-TEST( WindowIterator, ChromosomeIteratorBasic )
+TEST( WindowIterator, ChromosomeIteratorChromosome )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -52,10 +52,9 @@ TEST( WindowIterator, ChromosomeIteratorBasic )
         std::string const infile = environment->data_dir + "population/empty.pileup";
         // std::string const infile = environment->data_dir + "population/example.pileup";
 
-        // Make a Lambda Iterator over the data stream.
+        // Make a Lambda Iterator over the data stream,
+        // and set up the window iterator. Rename to `win_it` to use it with the below test code.
         auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
-
-        // Set up the window iterator. Rename to `win_it` to use it with the below test code.
         auto win_it = make_default_chromosome_iterator( data_gen.begin(), data_gen.end() );
 
         // Run the tests.
@@ -80,10 +79,9 @@ TEST( WindowIterator, ChromosomeIteratorBasic )
         std::string const infile = environment->data_dir + "population/78.pileup.gz";
         // std::string const infile = environment->data_dir + "population/example.pileup";
 
-        // Make a Lambda Iterator over the data stream.
+        // Make a Lambda Iterator over the data stream,
+        // and set up the window iterator. Rename to `win_it` to use it with the below test code.
         auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
-
-        // Set up the window iterator. Rename to `win_it` to use it with the below test code.
         auto win_it = make_default_chromosome_iterator( data_gen.begin(), data_gen.end() );
 
         // Run the tests.
@@ -108,10 +106,9 @@ TEST( WindowIterator, ChromosomeIteratorBasic )
     {
         std::string const infile = environment->data_dir + "population/ex1.bam";
 
-        // Make a Lambda Iterator over the data stream.
+        // Make a Lambda Iterator over the data stream,
+        // and set up the window iterator. Rename to `win_it` to use it with the below test code.
         auto data_gen = make_variant_input_iterator_from_sam_file( infile );
-
-        // Set up the window iterator. Rename to `win_it` to use it with the below test code.
         auto win_it = make_default_chromosome_iterator( data_gen.begin(), data_gen.end() );
 
         // Run the tests.
@@ -131,5 +128,96 @@ TEST( WindowIterator, ChromosomeIteratorBasic )
         ASSERT_EQ( 2, pos_per_chr.size() );
         EXPECT_EQ( 1569, pos_per_chr[0] );
         EXPECT_EQ( 1567, pos_per_chr[1] );
+    }
+}
+
+TEST( WindowIterator, ChromosomeIteratorWholeGenome )
+{
+    // Almost exactly the same as above... we could refactor this to avoid the duplication...
+    // Good enough for now, fix later.
+
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Empty file
+    {
+        std::string const infile = environment->data_dir + "population/empty.pileup";
+        // std::string const infile = environment->data_dir + "population/example.pileup";
+
+        // Make a Lambda Iterator over the data stream,
+        // and set up the window iterator. Rename to `win_it` to use it with the below test code.
+        auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
+        auto win_it = make_default_genome_iterator( data_gen.begin(), data_gen.end() );
+
+        // Run the tests.
+        std::vector<size_t> pos_per_chr;
+        for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
+            pos_per_chr.push_back(0);
+            // LOG_DBG << "chr " << it->chromosome();
+            for( auto const& elem : *it ) {
+                // LOG_DBG1 << "at " << elem.position;
+                (void) elem;
+                ++pos_per_chr.back();
+            }
+            // LOG_DBG << "done " << cnt;
+        }
+
+        // Tests
+        EXPECT_EQ( 0, pos_per_chr.size() );
+    }
+
+    // Single chromosome
+    {
+        std::string const infile = environment->data_dir + "population/78.pileup.gz";
+        // std::string const infile = environment->data_dir + "population/example.pileup";
+
+        // Make a Lambda Iterator over the data stream,
+        // and set up the window iterator. Rename to `win_it` to use it with the below test code.
+        auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
+        auto win_it = make_default_genome_iterator( data_gen.begin(), data_gen.end() );
+
+        // Run the tests.
+        std::vector<size_t> pos_per_chr;
+        for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
+            pos_per_chr.push_back(0);
+            // LOG_DBG << "chr " << it->chromosome();
+            for( auto const& elem : *it ) {
+                // LOG_DBG1 << "at " << elem.position;
+                (void) elem;
+                ++pos_per_chr.back();
+            }
+            // LOG_DBG << "done " << cnt;
+        }
+
+        // Tests
+        ASSERT_EQ( 1, pos_per_chr.size() );
+        EXPECT_EQ( 50000, pos_per_chr[0] );
+    }
+
+    // Multiple chromosomes
+    {
+        std::string const infile = environment->data_dir + "population/ex1.bam";
+
+        // Make a Lambda Iterator over the data stream,
+        // and set up the window iterator. Rename to `win_it` to use it with the below test code.
+        auto data_gen = make_variant_input_iterator_from_sam_file( infile );
+        auto win_it = make_default_genome_iterator( data_gen.begin(), data_gen.end() );
+
+        // Run the tests.
+        std::vector<size_t> pos_per_chr;
+        for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
+            pos_per_chr.push_back(0);
+            // LOG_DBG << "chr " << it->chromosome();
+            for( auto const& elem : *it ) {
+                // LOG_DBG1 << "at " << elem.position;
+                (void) elem;
+                ++pos_per_chr.back();
+            }
+            // LOG_DBG << "done " << cnt;
+        }
+
+        // Tests
+        ASSERT_EQ( 1, pos_per_chr.size() );
+        EXPECT_EQ( 3136, pos_per_chr[0] );
     }
 }
