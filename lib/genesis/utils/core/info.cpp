@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,10 +32,12 @@
 
 #include "genesis/utils/core/version.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <stdexcept>
 
 #include <errno.h>
@@ -357,46 +359,57 @@ bool hyperthreads_enabled()
     return (bool) (info[3] & (0x1 << 28));
 }
 
-unsigned int guess_number_of_threads( bool use_openmp )
+size_t guess_number_of_threads( bool use_openmp, bool use_slurm, bool physical_cores )
 {
     // Dummy to avoid compiler warnings.
     (void) use_openmp;
 
-    // Default to single threaded.
-    unsigned int guess = 1;
+    // Default to 1 thread. Will be overwritten later.
+    size_t guess = 1;
 
+    // Initialize threads with actual number of cores.
+    // The function might return 0 if no number could be determined, in which case we default to 1.
+    auto const hw_concur = std::thread::hardware_concurrency();
+    if( hw_concur > 0 ) {
+        guess = static_cast<size_t>( hw_concur );
+    }
+
+    // Now take hyperthreads into account.
+    auto const threads_per_core = hyperthreads_enabled() ? 2 : 1;
+    auto const hw_cores = hw_concur / threads_per_core;
+    if( hw_cores > 0 && physical_cores ) {
+        guess = static_cast<size_t>( hw_cores );
+    }
+
+    // Now try slurm, if specified.
+    if( use_slurm ) {
+        auto const slurm_ptr = std::getenv( "SLURM_CPUS_PER_TASK" );
+        if( slurm_ptr ) {
+            auto const slurm_cpus = std::atoi( slurm_ptr );
+            if( slurm_cpus > 0 ) {
+                guess = static_cast<size_t>( slurm_cpus );
+            }
+        }
+    }
+
+    // Lastly, try OpenMP, if specified.
     #if defined( GENESIS_OPENMP )
 
-        // Use number of OpenMP threads, which might be set through the
-        // `OMP_NUM_THREADS` environment variable.
-        // If there was an error there, fix it.
+        // Use number of OpenMP threads, which might be set through the `OMP_NUM_THREADS`
+        // environment variable. If there was an error there, fix it.
         if( use_openmp ) {
-            guess = omp_get_max_threads();
-        }
-        if( guess == 0 ) {
-            guess = 1;
-        }
-
-    #endif
-
-    #if defined( GENESIS_PTHREADS )
-
-        // Initialize threads with actual number of cores.
-        auto const lcores = std::thread::hardware_concurrency();
-
-        // If hardware concurrency and openmp agree that there is more than one core,
-        // this means that OMP_NUM_THREADS was not set to anything specific, and hence we want
-        // to use all cores. However, in that case, we need to correct for hypterthreading.
-        // Also, if guess == 1 here, openmp was not used above, so in that case we also use
-        // the hardware concurrency as the guess.
-        if((( lcores == guess ) || ( guess == 1 )) && ( lcores > 1 )) {
-            auto const threads_per_core = hyperthreads_enabled() ? 2 : 1;
-            guess = lcores / threads_per_core;
+            auto openmp_threads = static_cast<size_t>( std::max( omp_get_max_threads(), 0 ));
+            if( openmp_threads > 0 ) {
+                guess = static_cast<size_t>( openmp_threads );
+            }
+            if( openmp_threads == hw_concur && hw_cores > 0 && physical_cores ) {
+                guess = static_cast<size_t>( hw_cores );
+            }
         }
 
     #endif
 
-    assert( guess >= 1 );
+    assert( guess > 0 );
     return guess;
 }
 
