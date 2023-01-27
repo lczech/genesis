@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include <atomic>
 #include <cassert>
 #include <condition_variable>
 #include <functional>
@@ -40,6 +41,7 @@
 #include <queue>
 #include <stdexcept>
 #include <thread>
+#include <utility>
 #include <vector>
 
 namespace genesis {
@@ -74,6 +76,12 @@ namespace utils {
  *     std::cout << result.get() << "\n";
  *
  * As the workers are stored in the ThreadPool object itself, it does not allow to be copied.
+ *
+ * When a submitted task itself tries to enqueue a task (which can happen in our library, where
+ * parallelization is introduced at several levels of granularity), we execute that nested task
+ * directly, instead of enqueueing it in the pool. Otherwise, we could end up in a deadlock situation,
+ * where the submitting task is executed in the pool, and keeps waiting for the nested task, but
+ * that one never gets picked up by a thread, as all threads might be in such a waiting state.
  */
 class ThreadPool
 {
@@ -91,44 +99,11 @@ public:
      */
     explicit ThreadPool( size_t num_threads )
     {
-        // Some dead end checking.
-        if( num_threads == 0 ) {
-            throw std::runtime_error(
-                "Cannot construct an empty ThreadPool, as this would not be able to do anything."
-            );
-        }
+        // Store the ID where this pool was started.
+        this_id_ = std::this_thread::get_id();
 
-        // Create the desired number of workers.
-        for( size_t i = 0; i < num_threads; ++i ) {
-            worker_pool_.emplace_back( [this]{
-
-                // Each worker runs an infinite loop until requested to stop,
-                // using conditional waits to not waste compute power.
-                while( true ) {
-                    std::function<void()> task;
-
-                    // Synchronized access to the task list: see if there is a task to be done,
-                    // and if so, pick it up and remove it from the queue
-                    {
-                        std::unique_lock<std::mutex> lock( task_queue_mutex_ );
-                        this->condition_.wait(
-                            lock,
-                            [this]{
-                                return !this->task_queue_.empty() || this->terminate_pool_;
-                            }
-                        );
-                        if( this->terminate_pool_ && this->task_queue_.empty() ) {
-                            return;
-                        }
-                        task = std::move( this->task_queue_.front() );
-                        this->task_queue_.pop();
-                    }
-
-                    // Run the task
-                    task();
-                }
-            });
-        }
+        // Create the threads.
+        init_( num_threads );
     }
 
     ThreadPool( ThreadPool const& ) = delete;
@@ -180,11 +155,23 @@ public:
     }
 
     /**
+     * @brief Return counts of the number of tasks that have been enqueued in total (first) and that
+     * have been nested calles that were executed directly without being enqueued (second).
+     */
+    std::pair<size_t, size_t> statistics() const
+    {
+        return std::make_pair( enqueued_tasks_.load(), nested_tasks_.load() );
+    }
+
+    /**
      * @brief Enqueue a new task, using a function to call and its arguments.
      *
      * The enqueue function returns a future that can be used to check whether the task has
      * finished, or to wait for it to be finished. This also allows the task to send its result
      * back to the caller, if needed, by simply returning it from the task function.
+     *
+     * We internally use a std::packaged_task, so that any exception thrown in the function will
+     * be caught and trapped inside of the std::future, until its get() function is called.
      */
     template<class F, class... Args>
     auto enqueue( F&& f, Args&&... args )
@@ -193,7 +180,10 @@ public:
         using result_type = typename std::result_of<F(Args...)>::type;
         assert( ! worker_pool_.empty() );
 
-        // Prepare the task by binding the function to its arguments
+        // Prepare the task by binding the function to its arguments.
+        // Using a packaged task ensures that any exception thrown in the task function
+        // will be caught by the future, and re-thrown when its get() function is called,
+        // see e.g., https://stackoverflow.com/a/16345305/4184258
         auto task = std::make_shared< std::packaged_task<result_type()> >(
             std::bind( std::forward<F>(f), std::forward<Args>(args)... )
         );
@@ -201,7 +191,27 @@ public:
         // Prepare the resulting future result of the task
         std::future<result_type> future_result = task->get_future();
 
-        // Put the task into the queue, synchronized
+        // If this function was called from a thread that is not the same as from where this pool
+        // was started, we have to assume that it's a nested call, where a task in a pool itself
+        // submits tasks to the queue. In that case, we could easily deadlock, as the initial task
+        // is runnining in one of the threads of the pool, but will only finish once its nested task
+        // is done, but that might starve at the end of the queue, as all running tasks might be
+        // in such a waiting state...
+        // In order to solve this, we just run the task function here directly, without enqueueing it.
+        // This might mess up the whole purpose of the pool if tasks can be submitted from other
+        // threads that are not threads in the pool itself - but that's not a use case that we
+        // currently have, so we can live with that. It would still work, but not make optimal use
+        // of the threads then.
+        if( this_id_ != std::this_thread::get_id() ) {
+            (*task)();
+            ++nested_tasks_;
+            return future_result;
+        }
+
+        // Here, we know that the task was enqueued from the same thread as the pool was started from,
+        // which we assert, and then we can add it to the queue without dead locking.
+        // Put the task into the queue, synchronized, and in a small scope.
+        assert( this_id_ == std::this_thread::get_id() );
         {
             std::unique_lock<std::mutex> lock( task_queue_mutex_ );
 
@@ -210,6 +220,7 @@ public:
                 throw std::runtime_error( "Cannot enqueue task into terminated ThreadPool." );
             }
             task_queue_.emplace([task](){ (*task)(); });
+            ++enqueued_tasks_;
         }
 
         // Get a worker to pick up the task, and return the future result
@@ -223,6 +234,60 @@ public:
 
 private:
 
+    void init_( size_t num_threads )
+    {
+        // Some dead end checking.
+        if( num_threads == 0 ) {
+            throw std::runtime_error(
+                "Cannot construct an empty ThreadPool, as this would not be able to do anything."
+            );
+        }
+
+        // Create the desired number of workers.
+        for( size_t i = 0; i < num_threads; ++i ) {
+            worker_pool_.emplace_back(
+                [this]
+                {
+                    // Each worker runs an infinite loop until requested to stop,
+                    // using conditional waits to not waste compute power.
+                    while( true ) {
+                        std::function<void()> task;
+
+                        // Synchronized access to the task list: see if there is a task to be done,
+                        // and if so, pick it up and remove it from the queue
+                        {
+                            std::unique_lock<std::mutex> lock( task_queue_mutex_ );
+                            this->condition_.wait(
+                                lock,
+                                [this]
+                                {
+                                    return !this->task_queue_.empty() || this->terminate_pool_;
+                                }
+                            );
+                            if( this->terminate_pool_ && this->task_queue_.empty() ) {
+                                return;
+                            }
+                            task = std::move( this->task_queue_.front() );
+                            this->task_queue_.pop();
+                        }
+
+                        // Run the task
+                        task();
+                    }
+                }
+            );
+        }
+    }
+
+    // -------------------------------------------------------------
+    //     Internal Members
+    // -------------------------------------------------------------
+
+private:
+
+    // Store the current thread ID, needed for nested task submissions.
+    std::thread::id this_id_;
+
     // Store all workers
     std::vector<std::thread> worker_pool_;
 
@@ -232,7 +297,11 @@ private:
     // Synchronization
     mutable std::mutex task_queue_mutex_;
     std::condition_variable condition_;
-    bool terminate_pool_ = false;
+    std::atomic<bool> terminate_pool_{ false };
+
+    // Statistics
+    std::atomic<size_t> enqueued_tasks_{ 0 };
+    std::atomic<size_t> nested_tasks_{ 0 };
 };
 
 } // namespace utils
