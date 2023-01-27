@@ -28,6 +28,9 @@
  * @ingroup test
  */
 
+#include <numeric>
+#include <vector>
+
 #include "src/common.hpp"
 
 #include "genesis/utils/core/thread_pool.hpp"
@@ -35,14 +38,14 @@
 
 using namespace genesis::utils;
 
-void thread_pool_sleep()
+void thread_pool_sleep_()
 {
     // We add a sleep in each task, so that multiple tasks get submitted first,
     // before the pool starts running them, so that they have a chance to submit their nested tasks.
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
-void thread_pool_work(size_t i)
+void thread_pool_work_(size_t i)
 {
     (void) i;
 
@@ -50,7 +53,7 @@ void thread_pool_work(size_t i)
     auto pool = Options::get().global_thread_pool();
     auto res = pool->enqueue([=](){
         // LOG_DBG << "beg B " << i;
-        thread_pool_sleep();
+        thread_pool_sleep_();
         // LOG_DBG << "end B " << i;
         return true;
     });//.get();
@@ -61,8 +64,6 @@ void thread_pool_work(size_t i)
 
 TEST( ThreadPool, Nested )
 {
-    Options::get().init_global_thread_pool( 2 );
-
     // LOG_DBG << "---";
     std::vector<std::future<bool>> tasks;
 
@@ -71,9 +72,9 @@ TEST( ThreadPool, Nested )
         auto pool = Options::get().global_thread_pool();
         tasks.emplace_back( pool->enqueue( [=](){
             // LOG_DBG << "beg A " << i;
-            thread_pool_sleep();
-            thread_pool_work(i);
-            thread_pool_sleep();
+            thread_pool_sleep_();
+            thread_pool_work_(i);
+            thread_pool_sleep_();
             // LOG_DBG << "end A " << i;
             return true;
         }));
@@ -86,4 +87,135 @@ TEST( ThreadPool, Nested )
 
     // tp_pool.wait_for_tasks();
     // LOG_DBG << "---";
+}
+
+void test_thread_pool_parallel_block_( size_t num_tasks, size_t num_blocks )
+{
+    // LOG_DBG << "---";
+
+    // Make a list of numbers for testing.
+    std::vector<int> numbers( num_tasks );
+    std::iota( numbers.begin(), numbers.end(), 1 );
+    auto const exp = std::accumulate( numbers.begin(), numbers.end(), 0 );
+
+    // Prepare the pool
+    auto pool = Options::get().global_thread_pool();
+
+    // Do some parallel computation.
+    auto mult_fut = pool->parallel_block(
+        0, num_tasks,
+        [&numbers]( size_t b, size_t e )
+        {
+            // LOG_DBG << "b " << b << " e " << e;
+            int sum = 0;
+            for( size_t i = b; i < e; ++i ) {
+                sum += numbers[i];
+            }
+            return sum;
+        },
+        num_blocks
+    );
+
+    // Aggregate the result per block.
+    auto const res = mult_fut.get();
+    auto total = std::accumulate( res.begin(), res.end(), 0 );
+    EXPECT_EQ( exp, total );
+}
+
+TEST( ThreadPool, ParallelBlock )
+{
+    test_thread_pool_parallel_block_( 0, 1 );
+    test_thread_pool_parallel_block_( 0, 2 );
+    test_thread_pool_parallel_block_( 1, 1 );
+    test_thread_pool_parallel_block_( 1, 2 );
+    test_thread_pool_parallel_block_( 2, 1 );
+    test_thread_pool_parallel_block_( 2, 2 );
+    test_thread_pool_parallel_block_( 100, 1 );
+    test_thread_pool_parallel_block_( 100, 2 );
+    test_thread_pool_parallel_block_( 100, 10 );
+    test_thread_pool_parallel_block_( 100, 15 );
+}
+
+void test_thread_pool_parallel_for_( size_t num_tasks, size_t num_blocks )
+{
+    // LOG_DBG << "---";
+
+    // Make a list of numbers for testing.
+    std::vector<int> numbers( num_tasks );
+    std::iota( numbers.begin(), numbers.end(), 1 );
+    auto const exp = 2 * std::accumulate( numbers.begin(), numbers.end(), 0 );
+
+    // Prepare the pool
+    auto pool = Options::get().global_thread_pool();
+
+    // Do some parallel computation.
+    auto mult_fut = pool->parallel_for(
+        0, num_tasks,
+        [&numbers]( size_t i )
+        {
+            numbers[i] *= 2;
+        },
+        num_blocks
+    );
+
+    // Aggregate the result per block.
+    mult_fut.get();
+    auto const total = std::accumulate( numbers.begin(), numbers.end(), 0 );
+    EXPECT_EQ( exp, total );
+}
+
+TEST( ThreadPool, ParallelFor )
+{
+    test_thread_pool_parallel_for_( 0, 1 );
+    test_thread_pool_parallel_for_( 0, 2 );
+    test_thread_pool_parallel_for_( 1, 1 );
+    test_thread_pool_parallel_for_( 1, 2 );
+    test_thread_pool_parallel_for_( 2, 1 );
+    test_thread_pool_parallel_for_( 2, 2 );
+    test_thread_pool_parallel_for_( 100, 1 );
+    test_thread_pool_parallel_for_( 100, 2 );
+    test_thread_pool_parallel_for_( 100, 10 );
+    test_thread_pool_parallel_for_( 100, 15 );
+}
+
+void test_thread_pool_parallel_for_each_( size_t num_tasks, size_t num_blocks )
+{
+    // LOG_DBG << "---";
+
+    // Make a list of numbers for testing.
+    std::vector<int> numbers( num_tasks );
+    std::iota( numbers.begin(), numbers.end(), 1 );
+    auto const exp = 2 * std::accumulate( numbers.begin(), numbers.end(), 0 );
+
+    // Prepare the pool
+    auto pool = Options::get().global_thread_pool();
+
+    // Do some parallel computation.
+    auto mult_fut = pool->parallel_for_each(
+        numbers.begin(), numbers.end(),
+        []( int& elem )
+        {
+            elem *= 2;
+        },
+        num_blocks
+    );
+
+    // Aggregate the result per block.
+    mult_fut.get();
+    auto const total = std::accumulate( numbers.begin(), numbers.end(), 0 );
+    EXPECT_EQ( exp, total );
+}
+
+TEST( ThreadPool, ParallelForEach )
+{
+    test_thread_pool_parallel_for_each_( 0, 1 );
+    test_thread_pool_parallel_for_each_( 0, 2 );
+    test_thread_pool_parallel_for_each_( 1, 1 );
+    test_thread_pool_parallel_for_each_( 1, 2 );
+    test_thread_pool_parallel_for_each_( 2, 1 );
+    test_thread_pool_parallel_for_each_( 2, 2 );
+    test_thread_pool_parallel_for_each_( 100, 1 );
+    test_thread_pool_parallel_for_each_( 100, 2 );
+    test_thread_pool_parallel_for_each_( 100, 10 );
+    test_thread_pool_parallel_for_each_( 100, 15 );
 }

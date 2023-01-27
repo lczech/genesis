@@ -24,6 +24,36 @@
     260 Panama Street, Stanford, CA 94305, USA
 */
 
+/*
+    The parallel block/for functionality is inspired by BS::thread_pool,
+    see https://github.com/bshoshany/thread-pool, but adapted to fit into our contex,
+    and improved for a more even distribution of the workload, and usage convenience.
+
+    We here still need to include the following original license of BS::thread_pool:
+
+    MIT License
+
+    Copyright (c) 2022 Barak Shoshany
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+*/
+
 /**
  * @brief
  *
@@ -34,6 +64,7 @@
 #include <atomic>
 #include <cassert>
 #include <condition_variable>
+#include <iterator>
 #include <functional>
 #include <future>
 #include <memory>
@@ -43,6 +74,8 @@
 #include <thread>
 #include <utility>
 #include <vector>
+
+#include "genesis/utils/core/multi_future.hpp"
 
 namespace genesis {
 namespace utils {
@@ -134,7 +167,7 @@ public:
     }
 
     // -------------------------------------------------------------
-    //     Members
+    //     Accessor Members
     // -------------------------------------------------------------
 
     /**
@@ -162,6 +195,10 @@ public:
     {
         return std::make_pair( enqueued_tasks_.load(), nested_tasks_.load() );
     }
+
+    // -------------------------------------------------------------
+    //     Pool Functionality
+    // -------------------------------------------------------------
 
     /**
      * @brief Enqueue a new task, using a function to call and its arguments.
@@ -226,6 +263,180 @@ public:
         // Get a worker to pick up the task, and return the future result
         condition_.notify_one();
         return future_result;
+    }
+
+    /**
+     * @brief Parallel block over a range of elements, breaking the range into blocks for which
+     * the @p body function is executed individually.
+     *
+     * The function takes a @p begin index and an @p end (past-the-end) index, and executes
+     * the @p body in @p num_blocks many blocks, aiming to equally distribute the work across the
+     * range @p begin to @p end.
+     * In other words, it is equivalent to `for( T i = begin; i < end; ++i )`.
+     *
+     * The @p body function to loop through is called once per block. It should take two arguments:
+     * the first index in the block and the index after the last index in the block, e.g.:
+     *
+     * ```
+     * []( size_t begin, size_t end ) {
+     *     for( size_t i = begin; i < end; ++i ) {
+     *         // ...
+     *     }
+     * }
+     * ```
+     *
+     * The @p num_blocks determines the number of blocks to split the loop body into. Default is
+     * to use the number of threads in the pool.
+     *
+     * The function returns a MultiFuture that can be used to wait for all the blocks to finish.
+     * If the loop body returns a value, the MultiFuture can also be used to obtain the values
+     * returned by each block, for example:
+     *
+     * ```
+     * []( size_t begin, size_t end ) {
+     *     size_t block_sum = 0;
+     *     for( size_t i = begin; i < end; ++i ) {
+     *         // ...
+     *         block_sum += ...
+     *     }
+     *     return block_sum;
+     * }
+     * ```
+     *
+     * This is useful for example for aggregating values, such as a parallel sum.
+     */
+    template<
+        typename F,
+        typename T1, typename T2, typename T = typename std::common_type<T1, T2>::type,
+        typename R = typename std::result_of<typename std::decay<F>::type(T, T)>::type
+    >
+    MultiFuture<R> parallel_block( T1 begin, T2 end, F&& body, size_t num_blocks = 0 )
+    {
+        // Casting, so that we work with a common type... bit of a relic, but sure, why not.
+        auto begin_t = static_cast<T>( begin );
+        auto end_t = static_cast<T>( end );
+
+        // Default block size is the number of threads.
+        num_blocks = (( num_blocks == 0 ) ? worker_pool_.size() : num_blocks );
+
+        // Compute the needed sizes. We do _not_ follow BS::thread_pool here, as they currently
+        // do not distribute work optimally, see https://github.com/bshoshany/thread-pool/issues/96
+        // Instead, we round up, by adding 1 to the block size unless it's an exact fit.
+        if( begin_t > end_t ) {
+            std::swap( begin_t, end_t );
+        }
+        auto total_size = static_cast<size_t>( end_t - begin_t );
+        auto block_size = static_cast<size_t>( total_size / num_blocks );
+        if( total_size % num_blocks != 0 ) {
+            ++block_size;
+        }
+        if( block_size == 0 ) {
+            block_size = 1;
+            num_blocks = (( total_size > 1 ) ? total_size : 1 );
+        }
+
+        // Edge case.
+        if( total_size == 0 ) {
+            return MultiFuture<R>();
+        }
+
+        // Enqueue all blocks.
+        MultiFuture<R> result( num_blocks );
+        for( size_t i = 0; i < num_blocks; ++i ) {
+            auto const b = static_cast<T>( i * block_size ) + begin_t;
+            auto const e = (i == num_blocks - 1)
+                ? end_t
+                : (static_cast<T>((i + 1) * block_size) + begin_t)
+            ;
+            result[i] = enqueue( std::forward<F>( body ), b, e );
+        }
+        return result;
+    }
+
+    /**
+     * @brief Parallel `for` over a range of positions, breaking the range into blocks for which
+     * the @p body function is executed individually.
+     *
+     * This is almost the same as parallel_block(), but intended to be used with `for` loops that
+     * do not need to compute per-block return values. The function signature of `F` is hence simply
+     * expected to be `void F( size_t i )`, and is called for every position in the processed range.
+     *
+     * ```
+     * std::vector<int> numbers( 100 );
+     * auto futures = pool->parallel_for(
+     *     0, numbers.size(),
+     *     [&numbers]( size_t i )
+     *     {
+     *         numbers[i] *= 2;
+     *     }
+     * );
+     * futures.get();
+     * ```
+     *
+     * This makes it a convenience function; see also parallel_for_each() for container-based data.
+     */
+    template<
+        typename F,
+        typename T1, typename T2, typename T = typename std::common_type<T1, T2>::type
+    >
+    MultiFuture<void> parallel_for( T1 begin, T2 end, F&& body, size_t num_blocks = 0 )
+    {
+        return parallel_block(
+            begin, end,
+            [&body]( T b, T e ){
+                for( size_t i = b; i < e; ++i ) {
+                    body(i);
+                }
+            }, num_blocks
+        );
+    }
+
+    /**
+     * @brief Parallel `for each` over a container, processing it in blocks for which
+     * the @p body function is executed individually.
+     *
+     * This is almost the same as parallel_for(), but intended to be used with containers.
+     * The function signature of `F` is hence simply expected to be `void F( T& element )` or
+     * `void F( T const& element )`, and is called for every element in the container.
+     *
+     * ```
+     * std::vector<int> numbers( 100 );
+     * auto futures = pool->parallel_for_each(
+     *     numbers.begin(), numbers.end(),
+     *     []( int& element )
+     *     {
+     *         element *= 2;
+     *     }
+     * );
+     * futures.get();
+     * ```
+     *
+     * This makes it a convenience function.
+     */
+    template<typename F, typename T>
+    MultiFuture<void> parallel_for_each( T const begin, T const end, F&& body, size_t num_blocks = 0 )
+    {
+        // Boundary checks.
+        auto const total = std::distance( begin, end );
+        if( total < 0 ) {
+            throw std::invalid_argument( "Cannot use parallel_for_each() with a reverse range." );
+        }
+        if( total == 0 ) {
+            return MultiFuture<void>();
+        }
+
+        // Run the loop over elements in parallel blocks.
+        // For some reason, we need to take `begin` by const copy in the signature above,
+        // and copy it again here for the lambda. Otherwise, we run into some weird iterator
+        // invalidity issues, that might come from the threading or something... it's weird.
+        return parallel_block(
+            0, total,
+            [begin, &body]( size_t b, size_t e ){
+                for( size_t i = b; i < e; ++i ) {
+                    body( *(begin + i) );
+                }
+            }, num_blocks
+        );
     }
 
     // -------------------------------------------------------------

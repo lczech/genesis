@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -36,6 +36,7 @@
 #include <sys/types.h>
 
 #include "src/common.hpp"
+#include "genesis/utils/core/options.hpp"
 
 GenesisTestEnvironment* environment;
 
@@ -93,6 +94,10 @@ int main(int argc, char **argv)
     // We want to see Logging information while testing.
     genesis::utils::Logging::log_to_stdout();
     genesis::utils::Logging::max_level(genesis::utils::Logging::kDebug4);
+
+    // Start the global thread pool, once here.
+    // Needed by some of the tests.
+    genesis::utils::Options::get().init_global_thread_pool( 2 );
 
     ::testing::AddGlobalTestEnvironment(environment);
     return RUN_ALL_TESTS();
