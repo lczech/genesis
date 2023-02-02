@@ -62,6 +62,7 @@
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/info.hpp"
 #include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/core/multi_future.hpp"
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/core/thread_pool.hpp"
