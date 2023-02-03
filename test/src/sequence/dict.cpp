@@ -30,6 +30,7 @@
 
 #include "src/common.hpp"
 
+#include "genesis/sequence/formats/dict_reader.hpp"
 #include "genesis/sequence/formats/fasta_reader.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/sequence/functions/dict.hpp"
@@ -44,6 +45,38 @@
 
 using namespace genesis;
 using namespace genesis::sequence;
+
+TEST( SequenceDict, DictReader )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Read sequence dict file.
+    std::string infile = environment->data_dir + "sequence/TAIR10_chr_all.dict";
+    auto const dict = DictReader().read( utils::from_file( infile ));
+
+    // Check data.
+    ASSERT_EQ(              7, dict.size() );
+    EXPECT_EQ(            "1", dict[0].name );
+    EXPECT_EQ(       30427671, dict[0].length );
+    EXPECT_EQ(            "2", dict[1].name );
+    EXPECT_EQ(       19698289, dict[1].length );
+    EXPECT_EQ(            "3", dict[2].name );
+    EXPECT_EQ(       23459830, dict[2].length );
+    EXPECT_EQ(            "4", dict[3].name );
+    EXPECT_EQ(       18585056, dict[3].length );
+    EXPECT_EQ(            "5", dict[4].name );
+    EXPECT_EQ(       26975502, dict[4].length );
+    EXPECT_EQ( "mitochondria", dict[5].name );
+    EXPECT_EQ(         366924, dict[5].length );
+    EXPECT_EQ(  "chloroplast", dict[6].name );
+    EXPECT_EQ(         154478, dict[6].length );
+
+    EXPECT_NE(    dict.end(), dict.find( "1" ));
+    EXPECT_EQ(    dict.end(), dict.find( "X" ));
+    EXPECT_TRUE(  dict.contains( "1" ));
+    EXPECT_FALSE( dict.contains( "X" ));
+}
 
 TEST( SequenceDict, FastaReader )
 {
