@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,11 +42,19 @@
 
 using namespace genesis::utils;
 
+TEST( DateTime, Current )
+{
+    // We don't want to re-create the actual std::time_t and std::tm data here,
+    // so instead, we just test that the result has the right length.
+    EXPECT_EQ( 10, current_date().size() );
+    EXPECT_EQ(  8, current_time().size() );
+}
+
 // Run these tests only if the compiler is gcc >= 5, or not gcc at all.
 // This is because gcc < 5 does not support std::get_time and std::put_time, and only partially
 // supports their raw alternatives. All these tests are for functionality that uses these unsupported
 // functions. We hence cannot run the tests with gcc < 5.
-#if !( defined(__GNUC__) && (__GNUC___ < 5) && !defined(__clang__) && !defined(__INTEL_COMPILER) )
+#if !( defined(__GNUC__) && (__GNUC__ < 5) ) || defined(__clang__) || defined(__INTEL_COMPILER)
 
 TEST( DateTime, ConversionTM )
 {
