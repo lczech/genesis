@@ -103,6 +103,7 @@ TEST( WindowIterator, ChromosomeIteratorChromosome )
     }
 
     // Multiple chromosomes
+    #ifdef GENESIS_HTSLIB
     {
         std::string const infile = environment->data_dir + "population/ex1.bam";
 
@@ -129,6 +130,7 @@ TEST( WindowIterator, ChromosomeIteratorChromosome )
         EXPECT_EQ( 1569, pos_per_chr[0] );
         EXPECT_EQ( 1567, pos_per_chr[1] );
     }
+    #endif
 }
 
 TEST( WindowIterator, ChromosomeIteratorWholeGenome )
@@ -195,6 +197,7 @@ TEST( WindowIterator, ChromosomeIteratorWholeGenome )
     }
 
     // Multiple chromosomes
+    #ifdef GENESIS_HTSLIB
     {
         std::string const infile = environment->data_dir + "population/ex1.bam";
 
@@ -220,4 +223,5 @@ TEST( WindowIterator, ChromosomeIteratorWholeGenome )
         ASSERT_EQ( 1, pos_per_chr.size() );
         EXPECT_EQ( 3136, pos_per_chr[0] );
     }
+    #endif
 }
