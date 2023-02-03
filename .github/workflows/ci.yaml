@@ -329,7 +329,7 @@ jobs:
         if: ${{ failure() && steps.test.conclusion == 'failure' }}
         run: |
           GDBEXE="gdb"
-          if [[ ${{ matrix.os }} == macos* ]] ; then
-            GDBEXE="sudo gdb"
-          fi
+          # if [[ ${{ matrix.os }} == macos* ]] ; then
+          #   GDBEXE="sudo gdb"
+          # fi
           ${GDBEXE} -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests
