@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,8 +31,6 @@
 #include "genesis/sequence/formats/fasta_reader.hpp"
 
 #include "genesis/sequence/functions/labels.hpp"
-#include "genesis/sequence/sequence_set.hpp"
-#include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_stream.hpp"
@@ -76,6 +74,25 @@ void FastaReader::read(
 ) const {
     utils::InputStream is( source );
     parse_document( is, sequence_set );
+}
+
+SequenceDict FastaReader::read_dict( std::shared_ptr<utils::BaseInputSource> source ) const
+{
+    SequenceDict result;
+    utils::InputStream input_stream( source );
+    Sequence seq;
+    if( parsing_method_ == ParsingMethod::kDefault ) {
+        while( parse_sequence( input_stream, seq ) ) {
+            result.add( seq.label(), seq.length() );
+        }
+    } else if( parsing_method_ == ParsingMethod::kPedantic ) {
+        while( parse_sequence_pedantic( input_stream, seq ) ) {
+            result.add( seq.label(), seq.length() );
+        }
+    } else {
+        assert( false );
+    }
+    return result;
 }
 
 // =================================================================================================

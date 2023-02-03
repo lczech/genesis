@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -31,8 +31,11 @@
  * @ingroup sequence
  */
 
-#include "genesis/utils/tools/char_lookup.hpp"
+#include "genesis/sequence/sequence_dict.hpp"
+#include "genesis/sequence/sequence_set.hpp"
+#include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/tools/char_lookup.hpp"
 
 #include <iosfwd>
 #include <memory>
@@ -46,11 +49,6 @@ namespace genesis {
 
 namespace utils {
     class InputStream;
-}
-
-namespace sequence {
-    class SequenceSet;
-    class Sequence;
 }
 
 // =================================================================================================
@@ -196,6 +194,12 @@ public:
      * get an input source that can be used here.
      */
     void read( std::shared_ptr< utils::BaseInputSource > source, SequenceSet& sequence_set ) const;
+
+    /**
+     * @brief Read all Sequence%s from an input source in fasta format, but only return their
+     * names and lengths as a SequenceDict.
+     */
+    SequenceDict read_dict( std::shared_ptr<utils::BaseInputSource> source ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
