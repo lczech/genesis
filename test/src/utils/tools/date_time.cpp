@@ -106,7 +106,8 @@ TEST( DateTime, ConversionTime )
 {
 
     // TODO mac os cannot handle the last two values correctly. investigate why that is.
-    #if defined(__APPLE__) && defined(__clang__)
+    // This is true for clang and gcc, apparently...
+    #if defined(__APPLE__) // && defined(__clang__)
 
     std::vector<std::string> const times = {
         "2020-04-17 ", " 20200417", " 2020-04-17T00:27:58 ", "2020-04-17 00:27:58\t", "\t20200417T002758",
