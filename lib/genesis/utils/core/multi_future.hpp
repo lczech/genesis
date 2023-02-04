@@ -114,6 +114,19 @@ public:
     }
 
     /**
+     * @brief Return whether all stored futures are valid.
+     */
+    bool valid() const
+    {
+        for( auto const& fut : futures_ ) {
+            if( ! fut.valid() ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * @brief Get the results from all the stored futures.
      *
      * This is the version for `T` being `void`, in which case the futures do not return a value.
@@ -171,6 +184,14 @@ public:
      * @brief Get a reference to one of the stored futures.
      */
     std::future<T>& operator[]( size_t i )
+    {
+        return futures_[i];
+    }
+
+    /**
+     * @brief Get a const reference to one of the stored futures.
+     */
+    std::future<T> const& operator[]( size_t i ) const
     {
         return futures_[i];
     }

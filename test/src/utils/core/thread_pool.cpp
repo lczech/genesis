@@ -91,7 +91,7 @@ TEST( ThreadPool, Nested )
 
 void test_thread_pool_parallel_block_( size_t num_tasks, size_t num_blocks )
 {
-    // LOG_DBG << "---";
+    LOG_DBG << "--- num_tasks " << num_tasks << " num_blocks " << num_blocks;
 
     // Make a list of numbers for testing.
     std::vector<int> numbers( num_tasks );
@@ -106,7 +106,7 @@ void test_thread_pool_parallel_block_( size_t num_tasks, size_t num_blocks )
         0, num_tasks,
         [&numbers]( size_t b, size_t e )
         {
-            // LOG_DBG << "b " << b << " e " << e;
+            LOG_DBG1 << "b " << b << " e " << e;
             int sum = 0;
             for( size_t i = b; i < e; ++i ) {
                 sum += numbers[i];
@@ -138,7 +138,7 @@ TEST( ThreadPool, ParallelBlock )
 
 void test_thread_pool_parallel_for_( size_t num_tasks, size_t num_blocks )
 {
-    // LOG_DBG << "---";
+    LOG_DBG << "--- num_tasks " << num_tasks << " num_blocks " << num_blocks;
 
     // Make a list of numbers for testing.
     std::vector<int> numbers( num_tasks );
@@ -153,6 +153,7 @@ void test_thread_pool_parallel_for_( size_t num_tasks, size_t num_blocks )
         0, num_tasks,
         [&numbers]( size_t i )
         {
+            LOG_DBG1 << "i " << i;
             numbers[i] *= 2;
         },
         num_blocks
@@ -180,7 +181,7 @@ TEST( ThreadPool, ParallelFor )
 
 void test_thread_pool_parallel_for_each_( size_t num_tasks, size_t num_blocks )
 {
-    // LOG_DBG << "---";
+    LOG_DBG << "--- num_tasks " << num_tasks << " num_blocks " << num_blocks;
 
     // Make a list of numbers for testing.
     std::vector<int> numbers( num_tasks );
@@ -195,6 +196,7 @@ void test_thread_pool_parallel_for_each_( size_t num_tasks, size_t num_blocks )
         numbers.begin(), numbers.end(),
         []( int& elem )
         {
+            LOG_DBG1 << "elem " << elem;
             elem *= 2;
         },
         num_blocks
