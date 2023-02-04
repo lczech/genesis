@@ -31,6 +31,8 @@
  * @ingroup sequence
  */
 
+#include "genesis/sequence/sequence.hpp"
+
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -82,6 +84,11 @@ public:
     // -------------------------------------------------------------------------
     //     Modifiers
     // -------------------------------------------------------------------------
+
+    void add( Sequence const& sequence )
+    {
+        add( sequence.label(), sequence.length() );
+    }
 
     void add( std::string const& name, size_t length )
     {

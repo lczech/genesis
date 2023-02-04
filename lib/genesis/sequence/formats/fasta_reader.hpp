@@ -31,6 +31,7 @@
  * @ingroup sequence
  */
 
+#include "genesis/sequence/reference_genome.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 #include "genesis/sequence/sequence.hpp"
@@ -201,6 +202,12 @@ public:
      */
     SequenceDict read_dict( std::shared_ptr<utils::BaseInputSource> source ) const;
 
+    /**
+     * @brief Read all Sequence%s from an input source in fasta format into a ReferenceGenome,
+     * which allows fast lookup of sequences by their name, while maintaining their order.
+     */
+    ReferenceGenome read_reference_genome( std::shared_ptr<utils::BaseInputSource> source ) const;
+
     // ---------------------------------------------------------------------
     //     Parsing
     // ---------------------------------------------------------------------
@@ -332,6 +339,35 @@ public:
      * valid_chars() function should suffice. See there for details.
      */
     utils::CharLookup<bool>& valid_char_lookup();
+
+    // ---------------------------------------------------------------------
+    //     Helper Functions
+    // ---------------------------------------------------------------------
+
+private:
+
+    /**
+     * @brief Helper function for the switching between the two parsing methods.
+     *
+     * Expects a result type `R` that has an add() function taking a Sequence.
+     */
+    template<class R>
+    void parse_document_( utils::InputStream& input_stream, R& result ) const
+    {
+        Sequence seq;
+        if( parsing_method_ == ParsingMethod::kDefault ) {
+            while( parse_sequence( input_stream, seq ) ) {
+                result.add( std::move(seq) );
+            }
+        } else if( parsing_method_ == ParsingMethod::kPedantic ) {
+            while( parse_sequence_pedantic( input_stream, seq ) ) {
+                result.add( std::move(seq) );
+            }
+        } else {
+            // There are no other methods currently implemented.
+            assert( false );
+        }
+    }
 
     // ---------------------------------------------------------------------
     //     Members

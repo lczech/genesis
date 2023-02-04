@@ -63,8 +63,8 @@ FastaReader::FastaReader()
 SequenceSet FastaReader::read( std::shared_ptr< utils::BaseInputSource > source ) const
 {
     SequenceSet result;
-    utils::InputStream is( source );
-    parse_document( is, result );
+    utils::InputStream input_stream( source );
+    parse_document_( input_stream, result );
     return result;
 }
 
@@ -72,26 +72,24 @@ void FastaReader::read(
     std::shared_ptr< utils::BaseInputSource > source,
     SequenceSet& sequence_set
 ) const {
-    utils::InputStream is( source );
-    parse_document( is, sequence_set );
+    utils::InputStream input_stream( source );
+    parse_document_( input_stream, sequence_set );
 }
 
 SequenceDict FastaReader::read_dict( std::shared_ptr<utils::BaseInputSource> source ) const
 {
     SequenceDict result;
     utils::InputStream input_stream( source );
-    Sequence seq;
-    if( parsing_method_ == ParsingMethod::kDefault ) {
-        while( parse_sequence( input_stream, seq ) ) {
-            result.add( seq.label(), seq.length() );
-        }
-    } else if( parsing_method_ == ParsingMethod::kPedantic ) {
-        while( parse_sequence_pedantic( input_stream, seq ) ) {
-            result.add( seq.label(), seq.length() );
-        }
-    } else {
-        assert( false );
-    }
+    parse_document_( input_stream, result );
+    return result;
+}
+
+ReferenceGenome FastaReader::read_reference_genome(
+    std::shared_ptr<utils::BaseInputSource> source
+) const {
+    ReferenceGenome result;
+    utils::InputStream input_stream( source );
+    parse_document_( input_stream, result );
     return result;
 }
 
@@ -103,22 +101,7 @@ void FastaReader::parse_document(
     utils::InputStream& input_stream,
     SequenceSet&        sequence_set
 ) const {
-    Sequence seq;
-
-    if( parsing_method_ == ParsingMethod::kDefault ) {
-        while( parse_sequence( input_stream, seq ) ) {
-            sequence_set.add( seq );
-        }
-
-    } else if( parsing_method_ == ParsingMethod::kPedantic ) {
-        while( parse_sequence_pedantic( input_stream, seq ) ) {
-            sequence_set.add( seq );
-        }
-
-    } else {
-        // There are no other methods currently implemented.
-        assert( false );
-    }
+    parse_document_( input_stream, sequence_set );
 }
 
 bool FastaReader::parse_sequence(
