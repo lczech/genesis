@@ -30,7 +30,6 @@
 
 #include "src/common.hpp"
 
-#include "genesis/sequence/formats/dict_reader.hpp"
 #include "genesis/sequence/formats/fasta_reader.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/sequence/functions/dict.hpp"
@@ -46,14 +45,9 @@
 using namespace genesis;
 using namespace genesis::sequence;
 
-TEST( SequenceDict, DictReader )
+void test_tair10_dict_file( SequenceDict const& dict )
 {
-    // Skip test if no data availabe.
-    NEEDS_TEST_DATA;
-
-    // Read sequence dict file.
-    std::string infile = environment->data_dir + "sequence/TAIR10_chr_all.dict";
-    auto const dict = DictReader().read( utils::from_file( infile ));
+    // The dict and fai files contain the same information, so we only need to write the tests once.
 
     // Check data.
     ASSERT_EQ(              7, dict.size() );
@@ -76,6 +70,28 @@ TEST( SequenceDict, DictReader )
     EXPECT_EQ(    dict.end(), dict.find( "X" ));
     EXPECT_TRUE(  dict.contains( "1" ));
     EXPECT_FALSE( dict.contains( "X" ));
+}
+
+TEST( SequenceDict, DictReader )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Read sequence dict file and test it.
+    std::string infile = environment->data_dir + "sequence/TAIR10_chr_all.dict";
+    auto const dict = read_sequence_dict( utils::from_file( infile ));
+    test_tair10_dict_file( dict );
+}
+
+TEST( SequenceDict, FaiReader )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Read sequence fai file and test it.
+    std::string infile = environment->data_dir + "sequence/TAIR10_chr_all.fa.fai";
+    auto const dict = read_sequence_fai( utils::from_file( infile ));
+    test_tair10_dict_file( dict );
 }
 
 TEST( SequenceDict, FastaReader )

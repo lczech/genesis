@@ -46,6 +46,7 @@
 #include "genesis/sequence/formats/phylip_writer.hpp"
 #include "genesis/sequence/functions/codes.hpp"
 #include "genesis/sequence/functions/consensus.hpp"
+#include "genesis/sequence/functions/dict.hpp"
 #include "genesis/sequence/functions/entropy.hpp"
 #include "genesis/sequence/functions/functions.hpp"
 #include "genesis/sequence/functions/labels.hpp"
@@ -55,6 +56,7 @@
 #include "genesis/sequence/functions/stats.hpp"
 #include "genesis/sequence/printers/bitmap.hpp"
 #include "genesis/sequence/printers/simple.hpp"
+#include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/sequence/sequence.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 

@@ -33,6 +33,7 @@
 
 #include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/sequence/sequence_set.hpp"
+#include "genesis/utils/io/input_source.hpp"
 
 #include <string>
 #include <vector>
@@ -43,6 +44,32 @@ namespace sequence {
 // =================================================================================================
 //     Sequence Dict
 // =================================================================================================
+
+/**
+ * @brief Read a `.dict` sequence dictionary file, describing, e.g., reference genome sequence
+ * properties.
+ *
+ * The file format is for example produced by `GATK/Picard CreateSequenceDictionary`
+ * or by `samtools dict`. More information on the format can be found at:
+ *
+ *    * http://www.htslib.org/doc/samtools-dict.html
+ *    * https://gatk.broadinstitute.org/hc/en-us/articles/360036729911-CreateSequenceDictionary-Picard-
+ *
+ * See there for details.
+ */
+SequenceDict read_sequence_dict( std::shared_ptr<utils::BaseInputSource> source );
+
+/**
+ * @brief Read a `.fai` sequence index file, describing, e.g., reference genome sequence properties.
+ *
+ * The file format is for example produced by `samtools faidx`.
+ * More information on the format can be found at:
+ *
+ *    * http://www.htslib.org/doc/samtools-faidx.html
+ *
+ * See there for details.
+ */
+SequenceDict read_sequence_fai( std::shared_ptr<utils::BaseInputSource> source );
 
 /**
  * @brief Get the sequence dict/index information of a given set of Sequence%s.
