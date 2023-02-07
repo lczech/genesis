@@ -38,11 +38,11 @@
 
 using namespace genesis::utils;
 
-void thread_pool_sleep_()
+void thread_pool_sleep_( size_t milliseconds = 10 )
 {
     // We add a sleep in each task, so that multiple tasks get submitted first,
     // before the pool starts running them, so that they have a chance to submit their nested tasks.
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 }
 
 void thread_pool_work_(size_t i)
@@ -106,7 +106,7 @@ void test_thread_pool_parallel_block_( size_t num_tasks, size_t num_blocks )
         0, num_tasks,
         [&numbers]( size_t b, size_t e )
         {
-            LOG_DBG1 << "b " << b << " e " << e;
+            LOG_DBG1 << "b " << b << " e " << e << " s " << numbers.size();
             int sum = 0;
             for( size_t i = b; i < e; ++i ) {
                 sum += numbers[i];
@@ -120,6 +120,10 @@ void test_thread_pool_parallel_block_( size_t num_tasks, size_t num_blocks )
     auto const res = mult_fut.get();
     auto total = std::accumulate( res.begin(), res.end(), 0 );
     EXPECT_EQ( exp, total );
+
+    // For debugging, to avoid interleaved output, we add a wait here...
+    // not sure if that helps, but at the moment, things seem to be out of order.
+    thread_pool_sleep_(100);
 }
 
 TEST( ThreadPool, ParallelBlock )
@@ -153,7 +157,7 @@ void test_thread_pool_parallel_for_( size_t num_tasks, size_t num_blocks )
         0, num_tasks,
         [&numbers]( size_t i )
         {
-            LOG_DBG1 << "i " << i;
+            LOG_DBG1 << "i " << i << " s " << numbers.size();
             numbers[i] *= 2;
         },
         num_blocks
@@ -163,6 +167,9 @@ void test_thread_pool_parallel_for_( size_t num_tasks, size_t num_blocks )
     mult_fut.get();
     auto const total = std::accumulate( numbers.begin(), numbers.end(), 0 );
     EXPECT_EQ( exp, total );
+
+    // Same as above, for debugging...
+    thread_pool_sleep_(100);
 }
 
 TEST( ThreadPool, ParallelFor )
@@ -206,6 +213,9 @@ void test_thread_pool_parallel_for_each_( size_t num_tasks, size_t num_blocks )
     mult_fut.get();
     auto const total = std::accumulate( numbers.begin(), numbers.end(), 0 );
     EXPECT_EQ( exp, total );
+
+    // Same as above, for debugging...
+    thread_pool_sleep_(100);
 }
 
 TEST( ThreadPool, ParallelForEach )
