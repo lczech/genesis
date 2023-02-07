@@ -110,6 +110,10 @@ public:
         return lookup_.count( label );
     }
 
+    /**
+     * @brief Return an iterator to the Sequence with the given @p label, or an iterator to end()
+     * if no Sequence with that label is present.
+     */
     const_iterator find( std::string const& label ) const
     {
         auto lit = lookup_.find( label );
@@ -190,6 +194,8 @@ public:
 
 private:
 
+    // Using a list here to get stable iterators to be used in the map below.
+    // We don't need random access (I think...), so that's fine.
     std::list<Sequence> sequences_;
     std::unordered_map<std::string, const_iterator> lookup_;
 

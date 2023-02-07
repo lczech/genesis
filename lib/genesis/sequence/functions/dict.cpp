@@ -178,13 +178,24 @@ SequenceDict read_sequence_fai( std::shared_ptr<utils::BaseInputSource> source )
     return result;
 }
 
-SequenceDict sequence_set_to_dict( SequenceSet const& set )
+template<class T>
+SequenceDict sequence_iterable_to_dict_( T const& input )
 {
     SequenceDict result;
-    for( auto const& seq : set ) {
-        result.add( seq.label(), seq.length() );
+    for( auto const& elem : input ) {
+        result.add( elem.label(), elem.length() );
     }
     return result;
+}
+
+SequenceDict sequence_set_to_dict( SequenceSet const& set )
+{
+    return sequence_iterable_to_dict_( set );
+}
+
+SequenceDict reference_genome_to_dict( ReferenceGenome const& rg )
+{
+    return sequence_iterable_to_dict_( rg );
 }
 
 bool verify( SequenceDict const& dict, SequenceSet const& set, bool lenient )

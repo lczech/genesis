@@ -31,6 +31,7 @@
  * @ingroup sequence
  */
 
+#include "genesis/sequence/reference_genome.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 #include "genesis/utils/io/input_source.hpp"
@@ -76,8 +77,21 @@ SequenceDict read_sequence_fai( std::shared_ptr<utils::BaseInputSource> source )
  *
  * This is a helper function that can be used to obtain an overview of the names and lengths
  * of a set of sequences, for some downstream processing, or as information about a reference genome.
+ *
+ * @see reference_genome_to_dict()
  */
 SequenceDict sequence_set_to_dict( SequenceSet const& set );
+
+/**
+ * @brief Get the sequence dict/index information of a given set of Sequence%s that are stored
+ * in a ReferenceGenome.
+ *
+ * This is a helper function that can be used to obtain an overview of the names and lengths
+ * of a set of sequences, for some downstream processing, or as information about a reference genome.
+ *
+ * @see sequence_set_to_dict()
+ */
+SequenceDict reference_genome_to_dict( ReferenceGenome const& rg );
 
 /**
  * @brief Verify that a SequenceDict fits a SequenceSet.
