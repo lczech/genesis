@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 
 #include "genesis/population/variant.hpp"
 
+#include "genesis/sequence/reference_genome.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 
@@ -59,10 +60,21 @@ namespace population {
  * columns. This is because otherwise, the amount of data duplication for the fixed columns
  * such as chromosome name and position would just be too much waste.
  *
- * If there is no ref base given (if it is `N`), we cannot know to which bases the counts
- * correspond to. In that case, we assign the ref count to `A`, and the alt count to `C`,
- * respectively. If only the ref base is given, but no alt base, we again use `C` for the alt base,
- * unless the ref is already `C`, in which case we use `A` for the alt base.
+ * The parser will automatically try to determine which samples contain which types of data
+ * (reference and alternative counts, frequencies, coverage), and compute whatever needed from that.
+ *
+ * Some formats do not contain information on the reference and/or alternative base, such as the
+ * HAF-pipe frequency tables. For these cases, a reference_genome() can be provided, which will
+ * at least set the reference base of the Variant correctly. The alternative base will then be
+ * set to the transition base of the reference (A <-> G and C <-> T), which might be wrong, but is
+ * the most likely that we can do in the absence of further information. We might add using a
+ * reference panel VCF in the future to solve this problem, but as most of our downstream algorithms
+ * do not really care about which base is ref and alt, we don't support this as of now.
+ *
+ * If there is no ref base column (or if it is `N`) or ref genome given, we cannot know to which
+ * bases the counts correspond to. In that case, we assign the ref count to `A`, and the alt count
+ * to `G`, respectively. If only the ref base is given, but no alt base, we again use the transition
+ * base, as explained above.
  */
 class FrequencyTableInputIterator
 {
@@ -724,6 +736,36 @@ public:
     //     Settings
     // -------------------------------------------------------------------------
 
+    std::shared_ptr<::genesis::sequence::ReferenceGenome> reference_genome() const
+    {
+        return ref_genome_;
+    }
+
+    /**
+     * @brief Reference genome used to phase input data without reference bases.
+     *
+     * Some frequency table formats, such as the ones coming from HAF-pipe, do not contain
+     * information on the reference or alternative bases. In these cases, we could just assign
+     * the frequencies to random bases. However, when given the proper reference genome here
+     * that was used to infer the frequencies in the first place, we can at least assign
+     * the correct reference base.
+     *
+     * Note: While supplying the reference genome will correctly set the referen base,
+     * we might still not be able to obtain the alternative base that the frequency represents,
+     * if that information is simply not present in the input file. For instance, with the HAF-pipe
+     * output format, that is unknowable. In the future, we might add reading in a founder panel VCF,
+     * or something alike that would give that information.
+     * However, most of our downstream algorithms do not really need to know the exact alternative
+     * base anyway, so instead, in these cases, we simply assign the transition base of the
+     * reference base (A <-> G and C <-> T) instead, to keep it simple. That is the most likely
+     * we can do without further information.
+     */
+    self_type& reference_genome( std::shared_ptr<::genesis::sequence::ReferenceGenome> value )
+    {
+        ref_genome_ = value;
+        return *this;
+    }
+
     char separator_char() const
     {
         return separator_char_;
@@ -840,6 +882,7 @@ private:
     bool inverse_sample_names_filter_ = false;
 
     // Input settings.
+    std::shared_ptr<::genesis::sequence::ReferenceGenome> ref_genome_;
     char separator_char_ = '\t';
 
     // When reading frequencies, for now, we want to turn them into counts, as this is what
@@ -855,7 +898,7 @@ private:
 
     // Make sure that this actually fits into the BaseCounts values.
     static_assert(
-        static_cast<BaseCounts::size_type>( max_int_factor_ ) == max_int_factor_,
+        static_cast<double>( static_cast<BaseCounts::size_type>( max_int_factor_ )) == max_int_factor_,
         "Numeric type for BaseCounts does not fit for FrequencyTableInputIterator::max_int_factor_"
     );
 
@@ -869,6 +912,7 @@ private:
     double allowed_rel_freq_error_ = 0.001;
 
     // What does the frequency mean? We use: true = ref, false = alt frequency.
+    // Probably would be more neat with an enum, but it's only used internally, so that's okay.
     bool frequency_is_ref_ = true;
 
     // Default names for header fields in a csv file that typically describe

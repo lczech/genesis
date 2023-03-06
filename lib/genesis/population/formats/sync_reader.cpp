@@ -160,7 +160,7 @@ bool SyncReader::parse_line_(
         );
     }
 
-    // Read and check fixed column for the refererence base.
+    // Read and check fixed column for the reference base.
     auto const rb = to_upper( *it );
     if( rb != 'A' && rb != 'C' && rb != 'G' && rb != 'T' && rb != 'N' && rb != '.' && rb != '*' ) {
         throw std::runtime_error(
