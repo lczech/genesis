@@ -67,4 +67,5 @@ __pycache__/
 TODO
 extern/
 apps/*.cpp
+apps/*.hpp
 apps/*/
