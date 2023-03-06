@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ namespace population {
  *
  * The class consists of the following data fields:
  *
- *   * A chromosome and position.
+ *   * A chromosome and position, 1-based.
  *   * The reference base and alternative base at that position (which might not always be available
  *     in the input file format, in which case we use 'N'). Note that we currently only support
  *     one alternative base here, that is, biallelic variants only.

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/variant.hpp"
+#include "genesis/sequence/reference_genome.hpp"
 
 #include <array>
 #include <iosfwd>
@@ -316,6 +317,26 @@ char guess_alternative_base( Variant const& variant, bool force = false );
  * but is more efficient than calling both in sequence. See there for details.
  */
 void guess_and_set_ref_and_alt_bases( Variant& variant, bool force = false );
+
+/**
+ * @brief Guess the reference and alternative bases for a Variant, and set them,
+ * using a ReferenceGenome to get the reference base where possible.
+ *
+ * This uses the same approach as guess_and_set_ref_and_alt_bases( Variant&, bool ), but
+ * additionally consideres the given @p ref_genome. If the reference genome contains a value
+ * in `ACGT` (case insensitive) at the position of the @p variant, it is used as the reference.
+ * Note that the function throws an exception should the reference base already be set to a different
+ * value, in order to notify users that something is off.
+ *
+ * If the reference genome is `N` though, the function behaves the same as its reference-free
+ * alternative. For the alternative base, it always uses the most abundant base that is not the
+ * reference, same as its alternative function.
+ */
+void guess_and_set_ref_and_alt_bases(
+    Variant& variant,
+    genesis::sequence::ReferenceGenome const& ref_genome,
+    bool force = false
+);
 
 // =================================================================================================
 //     Output

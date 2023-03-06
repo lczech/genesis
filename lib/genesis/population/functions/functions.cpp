@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 
 #include "genesis/population/functions/functions.hpp"
 
+#include "genesis/sequence/functions/codes.hpp"
 #include "genesis/utils/text/char.hpp"
 
 #include <array>
@@ -330,7 +331,7 @@ std::pair<SortedBaseCounts, SortedBaseCounts> sorted_average_base_counts(
 }
 
 /**
- * @brief Local helper function that takes an already computed @p tota from total_base_counts(),
+ * @brief Local helper function that takes an already computed @p total from total_base_counts(),
  * so that it can be re-used internally here.
  */
 SortedBaseCounts sorted_base_counts_(
@@ -580,6 +581,84 @@ void guess_and_set_ref_and_alt_bases( Variant& variant, bool force )
             if( sorted[1].count > 0 ) {
                 variant.alternative_base = utils::to_upper( sorted[1].base );
             }
+        }
+    }
+}
+
+void guess_and_set_ref_and_alt_bases(
+    Variant& variant,
+    genesis::sequence::ReferenceGenome const& ref_genome,
+    bool force
+) {
+    // Shouldn't happen from our parsing etc, but better safe than sorry.
+    if( variant.position == 0 ) {
+        throw std::runtime_error( "Invalid position 0 in Variant." );
+    }
+
+    // Get the reference sequence, and see if it is long enough. Throws if seq not present.
+    // We here need to convert from our 1-based population position to the string 0-based indexing.
+    auto const& ref_seq = ref_genome.get( variant.chromosome );
+    assert( variant.position > 0 );
+    if( variant.position - 1 >= ref_seq.length() ) {
+        throw std::runtime_error(
+            "Reference Genome sequence \"" + variant.chromosome +
+            "\" is " + std::to_string( ref_seq.length() ) +
+            " bases long, which is shorter than then requested (1-based) position " +
+            std::to_string( variant.position )
+        );
+    }
+
+    // Now use that reference base. If it is in ACGT, we use it as ref; if not, we check against
+    // ambiguity codes to see if it fits with our count-based ref and alt bases instead.
+    assert( variant.position - 1 < ref_seq.length() );
+    auto const ref_base = utils::to_upper( ref_seq[ variant.position - 1 ] );
+    if( ref_base == 'A' || ref_base == 'C' || ref_base == 'G' || ref_base == 'T' ) {
+        if( variant.reference_base != 'N' && variant.reference_base != ref_base ) {
+            throw std::runtime_error(
+                "At chromosome \"" + variant.chromosome + "\" position " +
+                std::to_string( variant.position ) + ", the Reference Genome has base '" +
+                std::string( 1, ref_base ) + "', while the Variant already has mismatching base '" +
+                std::string( 1, variant.reference_base ) + "' set"
+            );
+        }
+
+        // Now set the base, and obtain the alternative via our normal counting method.
+        variant.reference_base = ref_base;
+        variant.alternative_base = guess_alternative_base( variant, force );
+
+    } else {
+        // No usable ref base. Run the normal guessing.
+        guess_and_set_ref_and_alt_bases( variant, force );
+
+        // Now we cross check that the ref genome base is a valid base,
+        // and also that it is an ambiguity char that contains either the ref or alt that we found.
+        // If not, something is likely off...
+        // This might be too rigurous though - will have to see in practice, and might change later.
+        bool contains = false;
+        try {
+            using genesis::sequence::nucleic_acid_code_containment;
+            contains |= nucleic_acid_code_containment( ref_base, variant.reference_base );
+            contains |= nucleic_acid_code_containment( ref_base, variant.alternative_base );
+        } catch(...) {
+            // The above throws an error if the given bases are not valid.
+            // Catch this, and re-throw a nicer, more understandable exception instead.
+            throw std::runtime_error(
+                "At chromosome \"" + variant.chromosome + "\" position " +
+                std::to_string( variant.position ) + ", the Reference Genome has base '" +
+                std::string( 1, ref_base ) + "', which is not a valid nucleic acid code"
+            );
+        }
+        if( ! contains ) {
+            throw std::runtime_error(
+                "At chromosome \"" + variant.chromosome + "\" position " +
+                std::to_string( variant.position ) + ", the reference base is '" +
+                std::string( 1, variant.reference_base ) + "' and the alternative base is '" +
+                std::string( 1, variant.alternative_base ) +
+                "', determined from nucleotide counts in the data at this position. " +
+                "However, the Reference Genome has base '" + std::string( 1, ref_base ) +
+                "', which does not code for either of them, " +
+                "and hence likely points to some kind of mismatch"
+            );
         }
     }
 }
