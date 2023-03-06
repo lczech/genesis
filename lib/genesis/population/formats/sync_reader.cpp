@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -224,7 +224,11 @@ bool SyncReader::parse_line_(
     // Excluding the ref base, we use the base of the remaining three that has the highest total
     // count across all samples, unless all of them are zero, in which case we do not set the
     // alt base. We also skip cases where the ref is not in ACGT, as then alt is also meaningless.
-    variant.alternative_base = guess_alternative_base( variant, true );
+    if( guess_alt_base_ ) {
+        variant.alternative_base = guess_alternative_base( variant, true );
+    } else {
+        variant.alternative_base = 'N';
+    }
 
     assert( !it || *it == '\n' );
     ++it;

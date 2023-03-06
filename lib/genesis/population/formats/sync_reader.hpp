@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -73,11 +73,8 @@ namespace population {
  *
  * Note on our internal data representation: The reader returns a Variant per line, where most of
  * the data is set based on the sync input content. However, the sync format does not have altnative
- * bases, so we instead try to estimate the alternative based on counts:
- * Excluding the reference base, we use the base of the remaining three that has the highest total
- * count across all samples, unless all of them are zero, in which case we do not set the altnative
- * base. We also skip cases where the ref is not in `ACGT`, as then the alternative base is also
- * meaningless. In these cases, the alternative will be `N`.
+ * bases. By default, we leave it hence as 'N'. See however the guess_alt_base() setting
+ * to instead estimate the alternative base from the data.
  */
 class SyncReader
 {
@@ -125,6 +122,34 @@ public:
     ) const;
 
     // -------------------------------------------------------------------------
+    //     Settings
+    // -------------------------------------------------------------------------
+
+    bool guess_alt_base() const
+    {
+        return guess_alt_base_;
+    }
+
+    /**
+     * @brief Set to guess the alternative base of the Variant, instead of leaving it at 'N'.
+     *
+     * Excluding the reference base, we use the base of the remaining three that has the highest
+     * total count across all samples, unless all of them are zero, in which case we do not set
+     * the altnative base. We also skip cases where the ref is not in `ACGT`, as then the
+     * alternative base is also meaningless. In these cases, the alternative will be `N`.
+     *
+     * Note though that this can lead to conflicts between different files, if the second most
+     * abundant nucleotide differs between them, e.g., in non-biallelic positions. Usually we can
+     * deal with this, see for example VariantParallelInputIterator::Iterator::joined_variant().
+     * Still, it is important to keep this in mind.
+     */
+    SyncReader& guess_alt_base( bool value )
+    {
+        guess_alt_base_ = value;
+        return *this;
+    }
+
+    // -------------------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------------------
 
@@ -160,6 +185,14 @@ private:
     void skip_sample_(
         utils::InputStream& input_stream
     ) const;
+
+    // -------------------------------------------------------------------------
+    //     Member Varables
+    // -------------------------------------------------------------------------
+
+private:
+
+    bool guess_alt_base_ = false;
 
 };
 
