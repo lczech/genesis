@@ -116,11 +116,33 @@ public:
      */
     const_iterator find( std::string const& label ) const
     {
+        // Try to get the sequence from the cache, for speed.
+        if( cache_ != sequences_.cend() && cache_->label() == label ) {
+            return cache_;
+        }
+
+        // If not cached, do a normal lookup, and set the cache.
         auto lit = lookup_.find( label );
         if( lit == lookup_.end() ) {
             return sequences_.end();
         }
+        assert( lit->first == label );
+        cache_ = lit->second;
         return lit->second;
+    }
+
+    /**
+     * @brief Same as find(), but returns the sequence directly, or throws if not present.
+     */
+    const_reference get( std::string const& label ) const
+    {
+        auto const it = find( label );
+        if( it == sequences_.end() ) {
+            throw std::runtime_error(
+                "Reference Genome does not contain requested sequence \"" + label + "\""
+            );
+        }
+        return *it;
     }
 
     // -------------------------------------------------------------------------
@@ -140,6 +162,7 @@ public:
     */
     const_reference add( Sequence&& seq )
     {
+        // Basic checks
         auto const label = seq.label();
         if( lookup_.count( label ) > 0 ) {
             throw std::runtime_error(
@@ -148,10 +171,16 @@ public:
             );
         }
         assert( lookup_.count( label ) == 0 );
+
+        // Add the sequence to the list, and to the lookup
+        // We also need to reset the cache, to point to the new end of the list.
         sequences_.push_back( std::move(seq) );
         assert( sequences_.size() > 0 );
         lookup_[ label ] = std::prev( sequences_.cend() );
         assert( lookup_.count( label ) > 0 );
+        cache_ = sequences_.cend();
+
+        // Now return the sequence that was just added.
         return sequences_.back();
     }
 
@@ -198,6 +227,10 @@ private:
     // We don't need random access (I think...), so that's fine.
     std::list<Sequence> sequences_;
     std::unordered_map<std::string, const_iterator> lookup_;
+
+    // We keep a cache of the last sequence name that was requested,
+    // for speeding up lookups on the same chromosome, which is the most typical case.
+    mutable const_iterator cache_;
 
 };
 
