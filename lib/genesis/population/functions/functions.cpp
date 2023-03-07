@@ -186,6 +186,12 @@ BaseCounts total_base_counts( Variant const& variant )
     return merge( variant.samples );
 }
 
+size_t total_base_count_sum( Variant const& variant )
+{
+    auto const m = merge( variant.samples );
+    return m.a_count + m.c_count + m.g_count + m.t_count;
+}
+
 // =================================================================================================
 //     Sorting
 // =================================================================================================
@@ -595,23 +601,12 @@ void guess_and_set_ref_and_alt_bases(
         throw std::runtime_error( "Invalid position 0 in Variant." );
     }
 
-    // Get the reference sequence, and see if it is long enough. Throws if seq not present.
-    // We here need to convert from our 1-based population position to the string 0-based indexing.
-    auto const& ref_seq = ref_genome.get( variant.chromosome );
+    // Get the reference sequence, and see if it is long enough. Throws if seq or base not present.
     assert( variant.position > 0 );
-    if( variant.position - 1 >= ref_seq.length() ) {
-        throw std::runtime_error(
-            "Reference Genome sequence \"" + variant.chromosome +
-            "\" is " + std::to_string( ref_seq.length() ) +
-            " bases long, which is shorter than then requested (1-based) position " +
-            std::to_string( variant.position )
-        );
-    }
+    auto const ref_base = ref_genome.get_base( variant.chromosome, variant.position );
 
     // Now use that reference base. If it is in ACGT, we use it as ref; if not, we check against
     // ambiguity codes to see if it fits with our count-based ref and alt bases instead.
-    assert( variant.position - 1 < ref_seq.length() );
-    auto const ref_base = utils::to_upper( ref_seq[ variant.position - 1 ] );
     if( ref_base == 'A' || ref_base == 'C' || ref_base == 'G' || ref_base == 'T' ) {
         if( variant.reference_base != 'N' && variant.reference_base != ref_base ) {
             throw std::runtime_error(

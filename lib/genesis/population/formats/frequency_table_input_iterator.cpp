@@ -37,7 +37,6 @@
 #include "genesis/utils/io/scanner.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/text/char.hpp"
-#include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/convert.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -859,17 +858,9 @@ void FrequencyTableInputIterator::Iterator::increment_()
         // Get the current ref genome base.
         assert( current_variant_->chromosome.size() > 0 );
         assert( current_variant_->position > 0 );
-        auto const& ref_seq = parent_->ref_genome_->get( current_variant_->chromosome );
-        if( current_variant_->position - 1 >= ref_seq.length() ) {
-            throw std::runtime_error(
-                "Reference Genome sequence \"" + current_variant_->chromosome +
-                "\" is " + std::to_string( ref_seq.length() ) +
-                " bases long, which is shorter than then requested (1-based) position " +
-                std::to_string( current_variant_->position )
-            );
-        }
-        assert( current_variant_->position - 1 < ref_seq.length() );
-        auto ref_gen_base = utils::to_upper( ref_seq[ current_variant_->position - 1 ] );
+        auto ref_gen_base = parent_->ref_genome_->get_base(
+            current_variant_->chromosome, current_variant_->position
+        );
 
         // Check that we can use it.
         if(

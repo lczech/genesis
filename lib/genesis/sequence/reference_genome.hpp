@@ -33,6 +33,8 @@
 
 #include "genesis/sequence/sequence.hpp"
 
+#include "genesis/utils/text/char.hpp"
+
 #include <cassert>
 #include <list>
 #include <stdexcept>
@@ -134,7 +136,7 @@ public:
     /**
      * @brief Same as find(), but returns the sequence directly, or throws if not present.
      */
-    const_reference get( std::string const& label ) const
+    inline const_reference get( std::string const& label ) const
     {
         auto const it = find( label );
         if( it == sequences_.end() ) {
@@ -143,6 +145,35 @@ public:
             );
         }
         return *it;
+    }
+
+    /**
+     * @brief Get a particular base at a given chromosome and position.
+     *
+     * Reference genomes are often used to look up a particular base, so we offer this functionality
+     * here directly. The function throws if either the chromosome is not part of the genome,
+     * or if the position is outside of the size of the chromosome.
+     *
+     * Important: We here use 1-based indexing for the position, which differs from a direct lookup
+     * using the sites of the sequence directly, but is more in line with the usage in our
+     * population functions.
+     */
+    inline char get_base( std::string const& chromosome, size_t position, bool to_upper = true ) const
+    {
+        auto const& ref_seq = get( chromosome );
+        if( position == 0 || position - 1 >= ref_seq.length() ) {
+            throw std::runtime_error(
+                "Reference Genome sequence \"" + chromosome + "\" is " +
+                std::to_string( ref_seq.length() ) +
+                " bases long, which is shorter than then requested (1-based) position " +
+                std::to_string( position )
+            );
+        }
+        assert( position - 1 < ref_seq.length() );
+        if( to_upper ) {
+            return utils::to_upper( ref_seq[ position - 1 ]);
+        }
+        return ref_seq[ position - 1 ];
     }
 
     // -------------------------------------------------------------------------

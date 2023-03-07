@@ -182,6 +182,11 @@ void set_base_count( BaseCounts& bc, char base, BaseCounts::size_type value );
  */
 BaseCounts total_base_counts( Variant const& variant );
 
+/**
+ * @brief Get the summed up counts of all four nucleotides `ACGT` of a Variant.
+ */
+size_t total_base_count_sum( Variant const& variant );
+
 // =================================================================================================
 //     Sorting
 // =================================================================================================
