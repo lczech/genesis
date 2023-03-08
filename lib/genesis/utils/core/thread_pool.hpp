@@ -76,6 +76,7 @@
 #include <vector>
 
 #include "genesis/utils/core/multi_future.hpp"
+#include "genesis/utils/core/logging.hpp"
 
 namespace genesis {
 namespace utils {
@@ -312,44 +313,65 @@ public:
     >
     MultiFuture<R> parallel_block( T1 begin, T2 end, F&& body, size_t num_blocks = 0 )
     {
+        // Get the total range and number of tasks.
         // Casting, so that we work with a common type... bit of a relic, but sure, why not.
         auto begin_t = static_cast<T>( begin );
         auto end_t = static_cast<T>( end );
-
-        // Default block size is the number of threads.
-        num_blocks = (( num_blocks == 0 ) ? worker_pool_.size() : num_blocks );
-
-        // Compute the needed sizes. We do _not_ follow BS::thread_pool here, as they currently
-        // do not distribute work optimally, see https://github.com/bshoshany/thread-pool/issues/96
-        // Instead, we round up, by adding 1 to the block size unless it's an exact fit.
         if( begin_t > end_t ) {
             std::swap( begin_t, end_t );
         }
-        auto total_size = static_cast<size_t>( end_t - begin_t );
-        auto block_size = static_cast<size_t>( total_size / num_blocks );
-        if( total_size % num_blocks != 0 ) {
-            ++block_size;
-        }
-        if( block_size == 0 ) {
-            block_size = 1;
-            num_blocks = (( total_size > 1 ) ? total_size : 1 );
-        }
+        size_t const total_size = end_t - begin_t;
 
-        // Edge case.
+        // Edge case. Nothing to do.
         if( total_size == 0 ) {
+            assert( begin_t == end_t );
             return MultiFuture<R>();
         }
 
+        // Default block size is the number of threads, unless there are not even that many tasks,
+        // in which case we can use fewer blocks.
+        if( num_blocks == 0 ) {
+            assert( worker_pool_.size() > 0 );
+            num_blocks = worker_pool_.size();
+        }
+        if( num_blocks > total_size ) {
+            num_blocks = total_size;
+        }
+        assert( num_blocks > 0 );
+        assert( num_blocks <= total_size );
+
+        // Compute the needed sizes. We do _not_ follow BS::thread_pool here, as they currently
+        // do not distribute work optimally, see https://github.com/bshoshany/thread-pool/issues/96
+        // Instead, we use blocks of minimal size, and add the remainder to the first few blocks,
+        // so that the blocks that are one larger than the others run first, minimizing our wait
+        // time at the end. See e.g., https://stackoverflow.com/a/36689107
+        size_t const block_size = total_size / num_blocks;
+        size_t const remainder  = total_size % num_blocks;
+        assert( block_size > 0 );
+        assert( remainder < num_blocks );
+
         // Enqueue all blocks.
+        size_t current_start = 0;
         MultiFuture<R> result( num_blocks );
         for( size_t i = 0; i < num_blocks; ++i ) {
-            auto const b = static_cast<T>( i * block_size ) + begin_t;
-            auto const e = (i == num_blocks - 1)
-                ? end_t
-                : (static_cast<T>((i + 1) * block_size) + begin_t)
-            ;
+            // We get the length of the current block, and in the beginning also add one to their
+            // length to distribute the remainder elements that did not fit evently into the blocks.
+            // Use that length to get the begin and end points, and submit the block.
+            auto const l = block_size + ( i < remainder ? 1 : 0 );
+            auto const b = begin_t + static_cast<T>( current_start );
+            auto const e = begin_t + static_cast<T>( current_start + l );
+            assert( b < e );
             result[i] = enqueue( std::forward<F>( body ), b, e );
+
+            // Our next block will start where this one ended.
+            current_start += l;
+            assert( current_start <= total_size );
         }
+
+        // Now we should have processed everything exactly.
+        // Check this, then return the future.
+        assert( current_start == total_size );
+        assert( begin_t + static_cast<T>( current_start ) == end_t );
         return result;
     }
 
@@ -383,7 +405,7 @@ public:
     {
         return parallel_block(
             begin, end,
-            [&body]( T b, T e ){
+            [body]( T b, T e ){
                 for( size_t i = b; i < e; ++i ) {
                     body(i);
                 }
@@ -429,9 +451,10 @@ public:
         // For some reason, we need to take `begin` by const copy in the signature above,
         // and copy it again here for the lambda. Otherwise, we run into some weird iterator
         // invalidity issues, that might come from the threading or something... it's weird.
+        // The iterator itself is never advanced here, so that should not lead to this error...
         return parallel_block(
             0, total,
-            [begin, &body]( size_t b, size_t e ){
+            [begin, body]( size_t b, size_t e ){
                 for( size_t i = b; i < e; ++i ) {
                     body( *(begin + i) );
                 }

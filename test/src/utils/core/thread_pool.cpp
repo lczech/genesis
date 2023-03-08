@@ -91,7 +91,7 @@ TEST( ThreadPool, Nested )
 
 void test_thread_pool_parallel_block_( size_t num_tasks, size_t num_blocks )
 {
-    LOG_DBG << "--- num_tasks " << num_tasks << " num_blocks " << num_blocks;
+    // LOG_DBG << "--- num_tasks " << num_tasks << " num_blocks " << num_blocks;
 
     // Make a list of numbers for testing.
     std::vector<int> numbers( num_tasks );
@@ -106,7 +106,7 @@ void test_thread_pool_parallel_block_( size_t num_tasks, size_t num_blocks )
         0, num_tasks,
         [&numbers]( size_t b, size_t e )
         {
-            LOG_DBG1 << "b " << b << " e " << e << " s " << numbers.size();
+            // LOG_DBG1 << "b " << b << " e " << e << " s " << numbers.size();
             int sum = 0;
             for( size_t i = b; i < e; ++i ) {
                 sum += numbers[i];
@@ -121,28 +121,62 @@ void test_thread_pool_parallel_block_( size_t num_tasks, size_t num_blocks )
     auto total = std::accumulate( res.begin(), res.end(), 0 );
     EXPECT_EQ( exp, total );
 
+    // EXPECT_EQ( num_blocks, mult_fut.size() );
+    // EXPECT_EQ( std::min( num_tasks, num_blocks ), mult_fut.size() );
+    // LOG_DBG << ">>> " << mult_fut.size();
+
     // For debugging, to avoid interleaved output, we add a wait here...
     // not sure if that helps, but at the moment, things seem to be out of order.
-    thread_pool_sleep_(100);
+    // thread_pool_sleep_(100);
 }
 
 TEST( ThreadPool, ParallelBlock )
 {
+    // Test the border cases
+    test_thread_pool_parallel_block_( 0, 0 );
     test_thread_pool_parallel_block_( 0, 1 );
     test_thread_pool_parallel_block_( 0, 2 );
+    test_thread_pool_parallel_block_( 0, 3 );
+    test_thread_pool_parallel_block_( 1, 0 );
     test_thread_pool_parallel_block_( 1, 1 );
     test_thread_pool_parallel_block_( 1, 2 );
+    test_thread_pool_parallel_block_( 1, 3 );
+    test_thread_pool_parallel_block_( 2, 0 );
     test_thread_pool_parallel_block_( 2, 1 );
     test_thread_pool_parallel_block_( 2, 2 );
+    test_thread_pool_parallel_block_( 2, 3 );
+    test_thread_pool_parallel_block_( 3, 0 );
+    test_thread_pool_parallel_block_( 3, 1 );
+    test_thread_pool_parallel_block_( 3, 2 );
+    test_thread_pool_parallel_block_( 3, 3 );
+
+    // Test some extreme cases
+    test_thread_pool_parallel_block_( 0, 100 );
+    test_thread_pool_parallel_block_( 1, 100 );
+    test_thread_pool_parallel_block_( 2, 100 );
+    test_thread_pool_parallel_block_( 3, 100 );
+    test_thread_pool_parallel_block_( 100, 0 );
     test_thread_pool_parallel_block_( 100, 1 );
     test_thread_pool_parallel_block_( 100, 2 );
+    test_thread_pool_parallel_block_( 100, 3 );
+
+    // Test for a good division of labor
     test_thread_pool_parallel_block_( 100, 10 );
+    test_thread_pool_parallel_block_( 100, 11 );
+    test_thread_pool_parallel_block_( 100, 12 );
+    test_thread_pool_parallel_block_( 100, 13 );
+    test_thread_pool_parallel_block_( 100, 14 );
     test_thread_pool_parallel_block_( 100, 15 );
+    test_thread_pool_parallel_block_( 100, 16 );
+    test_thread_pool_parallel_block_( 100, 17 );
+    test_thread_pool_parallel_block_( 100, 18 );
+    test_thread_pool_parallel_block_( 100, 19 );
+    test_thread_pool_parallel_block_( 100, 20 );
 }
 
 void test_thread_pool_parallel_for_( size_t num_tasks, size_t num_blocks )
 {
-    LOG_DBG << "--- num_tasks " << num_tasks << " num_blocks " << num_blocks;
+    // LOG_DBG << "--- num_tasks " << num_tasks << " num_blocks " << num_blocks;
 
     // Make a list of numbers for testing.
     std::vector<int> numbers( num_tasks );
@@ -157,7 +191,7 @@ void test_thread_pool_parallel_for_( size_t num_tasks, size_t num_blocks )
         0, num_tasks,
         [&numbers]( size_t i )
         {
-            LOG_DBG1 << "i " << i << " s " << numbers.size();
+            // LOG_DBG1 << "i " << i << " s " << numbers.size();
             numbers[i] *= 2;
         },
         num_blocks
@@ -168,27 +202,59 @@ void test_thread_pool_parallel_for_( size_t num_tasks, size_t num_blocks )
     auto const total = std::accumulate( numbers.begin(), numbers.end(), 0 );
     EXPECT_EQ( exp, total );
 
+    // EXPECT_EQ( num_blocks, mult_fut.size() );
+
     // Same as above, for debugging...
-    thread_pool_sleep_(100);
+    // thread_pool_sleep_(100);
 }
 
 TEST( ThreadPool, ParallelFor )
 {
+    // Test the border cases
+    test_thread_pool_parallel_for_( 0, 0 );
     test_thread_pool_parallel_for_( 0, 1 );
     test_thread_pool_parallel_for_( 0, 2 );
+    test_thread_pool_parallel_for_( 0, 3 );
+    test_thread_pool_parallel_for_( 1, 0 );
     test_thread_pool_parallel_for_( 1, 1 );
     test_thread_pool_parallel_for_( 1, 2 );
+    test_thread_pool_parallel_for_( 1, 3 );
+    test_thread_pool_parallel_for_( 2, 0 );
     test_thread_pool_parallel_for_( 2, 1 );
     test_thread_pool_parallel_for_( 2, 2 );
+    test_thread_pool_parallel_for_( 2, 3 );
+    test_thread_pool_parallel_for_( 3, 0 );
+    test_thread_pool_parallel_for_( 3, 1 );
+    test_thread_pool_parallel_for_( 3, 2 );
+    test_thread_pool_parallel_for_( 3, 3 );
+
+    // Test some extreme cases
+    test_thread_pool_parallel_for_( 0, 100 );
+    test_thread_pool_parallel_for_( 1, 100 );
+    test_thread_pool_parallel_for_( 2, 100 );
+    test_thread_pool_parallel_for_( 3, 100 );
+    test_thread_pool_parallel_for_( 100, 0 );
     test_thread_pool_parallel_for_( 100, 1 );
     test_thread_pool_parallel_for_( 100, 2 );
+    test_thread_pool_parallel_for_( 100, 3 );
+
+    // Test for a good division of labor
     test_thread_pool_parallel_for_( 100, 10 );
+    test_thread_pool_parallel_for_( 100, 11 );
+    test_thread_pool_parallel_for_( 100, 12 );
+    test_thread_pool_parallel_for_( 100, 13 );
+    test_thread_pool_parallel_for_( 100, 14 );
     test_thread_pool_parallel_for_( 100, 15 );
+    test_thread_pool_parallel_for_( 100, 16 );
+    test_thread_pool_parallel_for_( 100, 17 );
+    test_thread_pool_parallel_for_( 100, 18 );
+    test_thread_pool_parallel_for_( 100, 19 );
+    test_thread_pool_parallel_for_( 100, 20 );
 }
 
 void test_thread_pool_parallel_for_each_( size_t num_tasks, size_t num_blocks )
 {
-    LOG_DBG << "--- num_tasks " << num_tasks << " num_blocks " << num_blocks;
+    // LOG_DBG << "--- num_tasks " << num_tasks << " num_blocks " << num_blocks;
 
     // Make a list of numbers for testing.
     std::vector<int> numbers( num_tasks );
@@ -203,7 +269,7 @@ void test_thread_pool_parallel_for_each_( size_t num_tasks, size_t num_blocks )
         numbers.begin(), numbers.end(),
         []( int& elem )
         {
-            LOG_DBG1 << "elem " << elem;
+            // LOG_DBG1 << "elem " << elem;
             elem *= 2;
         },
         num_blocks
@@ -214,20 +280,52 @@ void test_thread_pool_parallel_for_each_( size_t num_tasks, size_t num_blocks )
     auto const total = std::accumulate( numbers.begin(), numbers.end(), 0 );
     EXPECT_EQ( exp, total );
 
+    // EXPECT_EQ( num_blocks, mult_fut.size() );
+
     // Same as above, for debugging...
-    thread_pool_sleep_(100);
+    // thread_pool_sleep_(100);
 }
 
 TEST( ThreadPool, ParallelForEach )
 {
+    // Test the border cases
+    test_thread_pool_parallel_for_each_( 0, 0 );
     test_thread_pool_parallel_for_each_( 0, 1 );
     test_thread_pool_parallel_for_each_( 0, 2 );
+    test_thread_pool_parallel_for_each_( 0, 3 );
+    test_thread_pool_parallel_for_each_( 1, 0 );
     test_thread_pool_parallel_for_each_( 1, 1 );
     test_thread_pool_parallel_for_each_( 1, 2 );
+    test_thread_pool_parallel_for_each_( 1, 3 );
+    test_thread_pool_parallel_for_each_( 2, 0 );
     test_thread_pool_parallel_for_each_( 2, 1 );
     test_thread_pool_parallel_for_each_( 2, 2 );
+    test_thread_pool_parallel_for_each_( 2, 3 );
+    test_thread_pool_parallel_for_each_( 3, 0 );
+    test_thread_pool_parallel_for_each_( 3, 1 );
+    test_thread_pool_parallel_for_each_( 3, 2 );
+    test_thread_pool_parallel_for_each_( 3, 3 );
+
+    // Test some extreme cases
+    test_thread_pool_parallel_for_each_( 0, 100 );
+    test_thread_pool_parallel_for_each_( 1, 100 );
+    test_thread_pool_parallel_for_each_( 2, 100 );
+    test_thread_pool_parallel_for_each_( 3, 100 );
+    test_thread_pool_parallel_for_each_( 100, 0 );
     test_thread_pool_parallel_for_each_( 100, 1 );
     test_thread_pool_parallel_for_each_( 100, 2 );
+    test_thread_pool_parallel_for_each_( 100, 3 );
+
+    // Test for a good division of labor
     test_thread_pool_parallel_for_each_( 100, 10 );
+    test_thread_pool_parallel_for_each_( 100, 11 );
+    test_thread_pool_parallel_for_each_( 100, 12 );
+    test_thread_pool_parallel_for_each_( 100, 13 );
+    test_thread_pool_parallel_for_each_( 100, 14 );
     test_thread_pool_parallel_for_each_( 100, 15 );
+    test_thread_pool_parallel_for_each_( 100, 16 );
+    test_thread_pool_parallel_for_each_( 100, 17 );
+    test_thread_pool_parallel_for_each_( 100, 18 );
+    test_thread_pool_parallel_for_each_( 100, 19 );
+    test_thread_pool_parallel_for_each_( 100, 20 );
 }
