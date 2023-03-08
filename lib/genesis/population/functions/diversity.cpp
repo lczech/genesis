@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,8 +30,8 @@
 
 #include "genesis/population/functions/diversity.hpp"
 
-#include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/function_cache.hpp"
+#include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/math/common.hpp"
 
 #include <cassert>
@@ -40,9 +40,9 @@
 #include <stdexcept>
 #include <unordered_map>
 
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
+// #ifdef GENESIS_OPENMP
+// #   include <omp.h>
+// #endif
 
 namespace genesis {
 namespace population {
@@ -158,7 +158,7 @@ double theta_pi_pool_denominator(
         // Iterate all allele frequencies in between the min and max-min boundaries.
         double div = 0.0;
 
-        #pragma omp parallel for
+        // #pragma omp parallel for
         for( size_t m_it = min_allele_count; m_it <= ( nucleotide_count - min_allele_count ); ++m_it ) {
             // We iterate from b to M-b (in PoPoolation terminology), inclusively.
             // Use double values however for the computations.
@@ -169,7 +169,7 @@ double theta_pi_pool_denominator(
             double const term = ( 2.0 * m * ( M - m )) / ( M * ( M - 1.0 ));
             double const partial = term * amnm_( poolsize, nucleotide_count, m_it );
 
-            #pragma omp atomic
+            // #pragma omp atomic
             div += partial;
         }
         return div;
@@ -208,13 +208,13 @@ double theta_watterson_pool_denominator(
         // Iterate all allele frequencies in between the min and max-min boundaries.
         double div = 0.0;
 
-        #pragma omp parallel for
+        // #pragma omp parallel for
         for( size_t m_it = min_allele_count; m_it <= ( nucleotide_count - min_allele_count ); ++m_it ) {
 
             // Compute the term. We here use the cache, which also computes results if not yet cached.
             auto const anmn = amnm_( poolsize, nucleotide_count, m_it );
 
-            #pragma omp atomic
+            // #pragma omp atomic
             div += anmn;
         }
         return div;
