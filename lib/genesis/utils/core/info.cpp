@@ -393,21 +393,32 @@ size_t guess_number_of_threads( bool use_openmp, bool use_slurm, bool physical_c
     }
 
     // Lastly, try OpenMP, if specified.
-    #if defined( GENESIS_OPENMP )
+    if( use_openmp ) {
+        size_t openmp_threads = 0;
 
-        // Use number of OpenMP threads, which might be set through the `OMP_NUM_THREADS`
-        // environment variable. If there was an error there, fix it.
-        if( use_openmp ) {
-            auto openmp_threads = static_cast<size_t>( std::max( omp_get_max_threads(), 0 ));
-            if( openmp_threads > 0 ) {
-                guess = static_cast<size_t>( openmp_threads );
+        #if defined( GENESIS_OPENMP )
+
+            // Use number of OpenMP threads, which might be set through the `OMP_NUM_THREADS`
+            // environment variable. If there was an error there, fix it.
+            openmp_threads = static_cast<size_t>( std::max( omp_get_max_threads(), 0 ));
+
+        #else
+
+            // Use the env variable directly if we don't have access to the OpenMP functions.
+            auto const openmp_ptr = std::getenv( "OMP_NUM_THREADS" );
+            if( openmp_ptr ) {
+                openmp_threads = std::atoi( openmp_ptr );
             }
-            if( openmp_threads == hw_concur && hw_cores > 0 && physical_cores ) {
-                guess = static_cast<size_t>( hw_cores );
-            }
+
+        #endif
+
+        if( openmp_threads > 0 ) {
+            guess = static_cast<size_t>( openmp_threads );
         }
-
-    #endif
+        if( openmp_threads == hw_concur && hw_cores > 0 && physical_cores ) {
+            guess = static_cast<size_t>( hw_cores );
+        }
+    }
 
     assert( guess > 0 );
     return guess;
