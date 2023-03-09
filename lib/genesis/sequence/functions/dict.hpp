@@ -99,11 +99,11 @@ SequenceDict reference_genome_to_dict( ReferenceGenome const& rg );
  * The function return `true` iff the @p dict has sequences of the same name and length,
  * in the same order, as the @p set, and `false` otherwise.
  *
- * If @p lenient is set, we cut off the sequence names after the first tab character, in case there
- * are any, as this is what typical fasta indexing tools also seem to do. In that case, anything
- * after the first tab is not used for the comparison.
+ * If @p match_first_word is set, we cut off the sequence names after the first tab or space
+ * character, in case there are any, as this is what typical fasta indexing tools also seem to do.
+ * In that case, anything after the first tab or space is not used for the comparison.
  */
-bool verify( SequenceDict const& dict, SequenceSet const& set, bool lenient = false );
+bool verify( SequenceDict const& dict, SequenceSet const& set, bool match_first_word = false );
 
 } // namespace sequence
 } // namespace genesis

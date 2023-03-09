@@ -85,11 +85,12 @@ SequenceDict FastaReader::read_dict( std::shared_ptr<utils::BaseInputSource> sou
 }
 
 ReferenceGenome FastaReader::read_reference_genome(
-    std::shared_ptr<utils::BaseInputSource> source
+    std::shared_ptr<utils::BaseInputSource> source,
+    bool also_look_up_first_word
 ) const {
     ReferenceGenome result;
     utils::InputStream input_stream( source );
-    parse_document_( input_stream, result );
+    parse_document_( input_stream, result, also_look_up_first_word );
     return result;
 }
 

@@ -203,10 +203,15 @@ public:
     SequenceDict read_dict( std::shared_ptr<utils::BaseInputSource> source ) const;
 
     /**
-     * @brief Read all Sequence%s from an input source in fasta format into a ReferenceGenome,
-     * which allows fast lookup of sequences by their name, while maintaining their order.
+     * @brief Read all Sequence%s from an input source in fasta format into a ReferenceGenome.
+     *
+     * This allows fast lookup of sequences by their name, while maintaining their order.
+     * See ReferenceGenome for details, and for the explanation of @p also_look_up_first_word.
      */
-    ReferenceGenome read_reference_genome( std::shared_ptr<utils::BaseInputSource> source ) const;
+    ReferenceGenome read_reference_genome(
+        std::shared_ptr<utils::BaseInputSource> source,
+        bool also_look_up_first_word = true
+    ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
@@ -349,19 +354,21 @@ private:
     /**
      * @brief Helper function for the switching between the two parsing methods.
      *
-     * Expects a result type `R` that has an add() function taking a Sequence.
+     * Expects a result type `R` that has an `add` function taking a Sequence.
+     * Also takes additional @p args for the `add` function, if needed, but can be omitted
+     * if the `add` function does not need or take any extra arguments.
      */
-    template<class R>
-    void parse_document_( utils::InputStream& input_stream, R& result ) const
+    template<class R, typename... A>
+    void parse_document_( utils::InputStream& input_stream, R& result, A... args ) const
     {
         Sequence seq;
         if( parsing_method_ == ParsingMethod::kDefault ) {
             while( parse_sequence( input_stream, seq ) ) {
-                result.add( std::move(seq) );
+                result.add( std::move(seq), args... );
             }
         } else if( parsing_method_ == ParsingMethod::kPedantic ) {
             while( parse_sequence_pedantic( input_stream, seq ) ) {
-                result.add( std::move(seq) );
+                result.add( std::move(seq), args... );
             }
         } else {
             // There are no other methods currently implemented.

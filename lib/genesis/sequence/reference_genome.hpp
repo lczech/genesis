@@ -34,6 +34,7 @@
 #include "genesis/sequence/sequence.hpp"
 
 #include "genesis/utils/text/char.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <cassert>
 #include <list>
@@ -182,34 +183,65 @@ public:
 
     /**
      * @brief Add a Sequence to the ReferenceGenome by copying it, and return a const_reference to it.
+     *
+     * If @p also_look_up_first_word is set (true by default), we add an additional look up name for
+     * the added sequence:
+     * In addition to its full name, it can also be looked up with just the first word, that is,
+     * until the first tab or space character, in case there are any, as this is what typical fasta
+     * indexing tools also seem to do. The sequence is still stored with its original name though,
+     * and just that additional lookup is added for using find() or get().
      */
-    const_reference add( Sequence const& seq )
+    const_reference add( Sequence const& seq, bool also_look_up_first_word = true )
     {
-        return add( Sequence{seq} );
+        return add( std::move( Sequence{seq} ), also_look_up_first_word );
     }
 
     /**
     * @brief Add a Sequence to the ReferenceGenome by moving it, and return a const_reference to it.
+    *
+    * @copydetails add( Sequence const&, bool )
     */
-    const_reference add( Sequence&& seq )
+    const_reference add( Sequence&& seq, bool also_look_up_first_word = true )
     {
-        // Basic checks
-        auto const label = seq.label();
-        if( lookup_.count( label ) > 0 ) {
+        // Get and check the original form of the label.
+        auto const label1 = seq.label();
+        if( lookup_.count( label1 ) > 0 ) {
             throw std::runtime_error(
-                "Reference Genome contains duplicate sequence name \"" + label + "\", "
+                "Reference Genome already contains sequence name \"" + label1 + "\", "
                 "which cannot be added again."
             );
         }
-        assert( lookup_.count( label ) == 0 );
+        assert( lookup_.count( label1 ) == 0 );
 
-        // Add the sequence to the list, and to the lookup
-        // We also need to reset the cache, to point to the new end of the list.
+        // Do the same for the first-word form as well. We always compute the label here,
+        // even if not used later, so that we can do the check before actually modifying our content.
+        // Slightly cleaner that way.
+        auto const label2 = utils::split( seq.label(), "\t " )[0];
+        if( also_look_up_first_word && lookup_.count( label2 ) > 0 ) {
+            throw std::runtime_error(
+                "Reference Genome already contains sequence name \"" + label2 + "\", "
+                "which is the shortened version of the original name \"" + label1 + "\"."
+            );
+        }
+        assert( lookup_.count( label2 ) == 0 );
+
+        // Add the sequence to the list.
+        // We also need to reset the cache, to point to the new end of the list,
+        // so that our lookup cache always points to a valid element.
         sequences_.push_back( std::move(seq) );
-        assert( sequences_.size() > 0 );
-        lookup_[ label ] = std::prev( sequences_.cend() );
-        assert( lookup_.count( label ) > 0 );
         cache_ = sequences_.cend();
+        assert( sequences_.size() > 0 );
+
+        // Also add the sequence name to the lookup. If we also add a first-word-only version of it,
+        // we might have cases where this is the same as the original (when the name does not
+        // contain any tabs or spaces), but that doesn't matter; we'd just add the same label
+        // twice (which would overwrite it in the map), pointing to the same sequence either way.
+        lookup_[ label1 ] = std::prev( sequences_.cend() );
+        assert( lookup_.count( label1 ) > 0 );
+        if( also_look_up_first_word ) {
+            lookup_[ label2 ] = std::prev( sequences_.cend() );
+            assert( lookup_.count( label2 ) > 0 );
+        }
 
         // Now return the sequence that was just added.
         return sequences_.back();

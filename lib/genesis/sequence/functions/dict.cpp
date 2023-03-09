@@ -34,7 +34,6 @@
 #include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/convert.hpp"
 #include "genesis/utils/text/string.hpp"
-#include "genesis/utils/text/string.hpp"
 
 #include <cassert>
 #include <stdexcept>
@@ -198,7 +197,7 @@ SequenceDict reference_genome_to_dict( ReferenceGenome const& rg )
     return sequence_iterable_to_dict_( rg );
 }
 
-bool verify( SequenceDict const& dict, SequenceSet const& set, bool lenient )
+bool verify( SequenceDict const& dict, SequenceSet const& set, bool match_first_word )
 {
     if( dict.size() != set.size() ) {
         return false;
@@ -207,9 +206,9 @@ bool verify( SequenceDict const& dict, SequenceSet const& set, bool lenient )
         if( dict[i].name.empty() || set[i].label().empty() ) {
             return false;
         }
-        if( lenient ) {
-            auto const s_dct = utils::split( dict[i].name, '\t' );
-            auto const s_set = utils::split( set[i].label(), '\t' );
+        if( match_first_word ) {
+            auto const s_dct = utils::split( dict[i].name, "\t " );
+            auto const s_set = utils::split( set[i].label(), "\t " );
             assert( ! s_dct.empty() );
             assert( ! s_set.empty() );
             if( s_dct[0] != s_set[0] ) {
