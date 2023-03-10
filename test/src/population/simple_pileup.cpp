@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -135,8 +135,8 @@ TEST( Pileup, SimpleReader1 )
     EXPECT_FALSE(   status( pool_0 ).is_snp );
     EXPECT_FALSE(   status( pool_0 ).is_biallelic );
     EXPECT_FALSE(   status( pool_0 ).is_ignored );
-    EXPECT_EQ( 'T', consensus( pool_0, status( pool_0 )).first );
-    EXPECT_FLOAT_EQ( 1.0, consensus( pool_0, status( pool_0 )).second );
+    EXPECT_EQ( 'T', consensus( pool_0, status( pool_0 ).is_covered ).first );
+    EXPECT_FLOAT_EQ( 1.0, consensus( pool_0, status( pool_0 ).is_covered ).second );
 
     // Record 1, Sample 0
     EXPECT_EQ( 23,  records[1].samples[0].read_coverage );
@@ -152,8 +152,8 @@ TEST( Pileup, SimpleReader1 )
     EXPECT_TRUE(    status( pool_1 ).is_snp );
     EXPECT_TRUE(    status( pool_1 ).is_biallelic );
     EXPECT_FALSE(   status( pool_1 ).is_ignored );
-    EXPECT_EQ( 'T', consensus( pool_1, status( pool_1 )).first );
-    EXPECT_FLOAT_EQ( 0.952380952, consensus( pool_1, status( pool_1 )).second );
+    EXPECT_EQ( 'T', consensus( pool_1, status( pool_1 ).is_covered ).first );
+    EXPECT_FLOAT_EQ( 0.952380952, consensus( pool_1, status( pool_1 ).is_covered ).second );
 
     // Record 2, Sample 0
     EXPECT_EQ( 23,  records[2].samples[0].read_coverage );
@@ -169,8 +169,8 @@ TEST( Pileup, SimpleReader1 )
     EXPECT_FALSE(   status( pool_2 ).is_snp );
     EXPECT_FALSE(   status( pool_2 ).is_biallelic );
     EXPECT_TRUE(    status( pool_2 ).is_ignored );
-    EXPECT_EQ( 'N', consensus( pool_2, status( pool_2 )).first );
-    EXPECT_FLOAT_EQ( 0.0, consensus( pool_2, status( pool_2 )).second );
+    EXPECT_EQ( 'N', consensus( pool_2, status( pool_2 ).is_covered ).first );
+    EXPECT_FLOAT_EQ( 0.0, consensus( pool_2, status( pool_2 ).is_covered ).second );
 
     // Record 3, Sample 0
     EXPECT_EQ( 23,  records[3].samples[0].read_coverage );
@@ -186,8 +186,8 @@ TEST( Pileup, SimpleReader1 )
     EXPECT_FALSE(   status( pool_3 ).is_snp );
     EXPECT_FALSE(   status( pool_3 ).is_biallelic );
     EXPECT_FALSE(   status( pool_3 ).is_ignored );
-    EXPECT_EQ( 'A', consensus( pool_3, status( pool_3 )).first );
-    EXPECT_FLOAT_EQ( 1.0, consensus( pool_3, status( pool_3 )).second );
+    EXPECT_EQ( 'A', consensus( pool_3, status( pool_3 ).is_covered ).first );
+    EXPECT_FLOAT_EQ( 1.0, consensus( pool_3, status( pool_3 ).is_covered ).second );
 
     // Record 4, Sample 0
     EXPECT_EQ( 22,  records[4].samples[0].read_coverage );
@@ -203,8 +203,8 @@ TEST( Pileup, SimpleReader1 )
     EXPECT_TRUE(    status( pool_4 ).is_snp );
     EXPECT_TRUE(    status( pool_4 ).is_biallelic );
     EXPECT_FALSE(   status( pool_4 ).is_ignored );
-    EXPECT_EQ( 'G', consensus( pool_4, status( pool_4 )).first );
-    EXPECT_FLOAT_EQ( 0.954545455, consensus( pool_4, status( pool_4 )).second );
+    EXPECT_EQ( 'G', consensus( pool_4, status( pool_4 ).is_covered ).first );
+    EXPECT_FLOAT_EQ( 0.954545455, consensus( pool_4, status( pool_4 ).is_covered ).second );
 
     // Record 5, Sample 0
     EXPECT_EQ( 22,  records[5].samples[0].read_coverage );
@@ -220,8 +220,8 @@ TEST( Pileup, SimpleReader1 )
     EXPECT_TRUE(    status( pool_5 ).is_snp );
     EXPECT_FALSE(   status( pool_5 ).is_biallelic );
     EXPECT_FALSE(   status( pool_5 ).is_ignored );
-    EXPECT_EQ( 'T', consensus( pool_5, status( pool_5 )).first );
-    EXPECT_FLOAT_EQ( 0.909090909, consensus( pool_5, status( pool_5 )).second );
+    EXPECT_EQ( 'T', consensus( pool_5, status( pool_5 ).is_covered ).first );
+    EXPECT_FLOAT_EQ( 0.909090909, consensus( pool_5, status( pool_5 ).is_covered ).second );
 
     // Record 6, Sample 0
     EXPECT_EQ( 23,  records[6].samples[0].read_coverage );
@@ -237,8 +237,8 @@ TEST( Pileup, SimpleReader1 )
     EXPECT_FALSE(   status( pool_6 ).is_snp );
     EXPECT_FALSE(   status( pool_6 ).is_biallelic );
     EXPECT_FALSE(   status( pool_6 ).is_ignored );
-    EXPECT_EQ( 'G', consensus( pool_6, status( pool_6 )).first );
-    EXPECT_FLOAT_EQ( 1.0, consensus( pool_6, status( pool_6 )).second );
+    EXPECT_EQ( 'G', consensus( pool_6, status( pool_6 ).is_covered ).first );
+    EXPECT_FLOAT_EQ( 1.0, consensus( pool_6, status( pool_6 ).is_covered ).second );
 
     // Record 7, Sample 0
     EXPECT_EQ( 23,  records[7].samples[0].read_coverage );
@@ -254,8 +254,8 @@ TEST( Pileup, SimpleReader1 )
     EXPECT_TRUE(    status( pool_7 ).is_snp );
     EXPECT_FALSE(   status( pool_7 ).is_biallelic );
     EXPECT_FALSE(   status( pool_7 ).is_ignored );
-    EXPECT_EQ( 'C', consensus( pool_7, status( pool_7 )).first );
-    EXPECT_FLOAT_EQ( 0.894736842, consensus( pool_7, status( pool_7 )).second );
+    EXPECT_EQ( 'C', consensus( pool_7, status( pool_7 ).is_covered ).first );
+    EXPECT_FLOAT_EQ( 0.894736842, consensus( pool_7, status( pool_7 ).is_covered ).second );
 }
 
 TEST( Pileup, SimpleReader2 )

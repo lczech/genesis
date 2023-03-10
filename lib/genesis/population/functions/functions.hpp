@@ -166,14 +166,14 @@ BaseCountsStatus status(
  *
  * The given @p base has to be one of `ACGTDN` (case insensitive), or `*#.` for deletions as well.
  */
-BaseCounts::size_type get_base_count( BaseCounts const& bc, char base );
+BaseCounts::size_type get_base_count( BaseCounts const& sample, char base );
 
 /**
  * @brief Set the count for a @p base given as a char.
  *
  * The given @p base has to be one of `ACGTDN` (case insensitive), or `*#.` for deletions as well.
  */
-void set_base_count( BaseCounts& bc, char base, BaseCounts::size_type value );
+void set_base_count( BaseCounts& sample, char base, BaseCounts::size_type value );
 
 /**
  * @brief Get the summed up total base counts of a Variant.
@@ -181,6 +181,11 @@ void set_base_count( BaseCounts& bc, char base, BaseCounts::size_type value );
  * This is the same as calling merge() on the samples in the Variant.
  */
 BaseCounts total_base_counts( Variant const& variant );
+
+/**
+ * @brief Get the summed up counts of all four nucleotides `ACGT` of a BaseCounts objects.
+ */
+size_t total_base_count_sum( BaseCounts const& sample );
 
 /**
  * @brief Get the summed up counts of all four nucleotides `ACGT` of a Variant.
@@ -282,12 +287,12 @@ std::pair<char, double> consensus( BaseCounts const& sample );
 * @brief Consensus character for a BaseCounts, and its confidence.
 *
 * This is simply the character (out of `ACGT`) that appears most often (or, for ties,
-* the lexicographically smallest character). If the BaseCounts is not well covered by reads
-* (that is, if its BaseCountsStatus::is_covered is `false`), the consensus character is `N`.
+* the lexicographically smallest character). If @p is_covered is false (meaning, the position is
+* not well covered by reads), the consensus character is `N`.
 * The confidence is the count of the consensus character, divided by the total count
 * of all four nucleotides.
 */
-std::pair<char, double> consensus( BaseCounts const& sample, BaseCountsStatus const& status );
+std::pair<char, double> consensus( BaseCounts const& sample, bool is_covered );
 
 /**
  * @brief Guess the reference base of a Variant.

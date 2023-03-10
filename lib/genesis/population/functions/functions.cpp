@@ -101,35 +101,35 @@ BaseCountsStatus status(
 //     Counts
 // =================================================================================================
 
-BaseCounts::size_type get_base_count( BaseCounts const& bc, char base )
+BaseCounts::size_type get_base_count( BaseCounts const& sample, char base )
 {
     switch( base ) {
         case 'a':
         case 'A': {
-            return bc.a_count;
+            return sample.a_count;
         }
         case 'c':
         case 'C': {
-            return bc.c_count;
+            return sample.c_count;
         }
         case 'g':
         case 'G': {
-            return bc.g_count;
+            return sample.g_count;
         }
         case 't':
         case 'T': {
-            return bc.t_count;
+            return sample.t_count;
         }
         case 'n':
         case 'N': {
-            return bc.n_count;
+            return sample.n_count;
         }
         case 'd':
         case 'D':
         case '*':
         case '.':
         case '#': {
-            return bc.d_count;
+            return sample.d_count;
         }
     }
     throw std::runtime_error(
@@ -137,32 +137,32 @@ BaseCounts::size_type get_base_count( BaseCounts const& bc, char base )
     );
 }
 
-void set_base_count( BaseCounts& bc, char base, BaseCounts::size_type value )
+void set_base_count( BaseCounts& sample, char base, BaseCounts::size_type value )
 {
     switch( base ) {
         case 'a':
         case 'A': {
-            bc.a_count = value;
+            sample.a_count = value;
             break;
         }
         case 'c':
         case 'C': {
-            bc.c_count = value;
+            sample.c_count = value;
             break;
         }
         case 'g':
         case 'G': {
-            bc.g_count = value;
+            sample.g_count = value;
             break;
         }
         case 't':
         case 'T': {
-            bc.t_count = value;
+            sample.t_count = value;
             break;
         }
         case 'n':
         case 'N': {
-            bc.n_count = value;
+            sample.n_count = value;
             break;
         }
         case 'd':
@@ -170,7 +170,7 @@ void set_base_count( BaseCounts& bc, char base, BaseCounts::size_type value )
         case '*':
         case '.':
         case '#': {
-            bc.d_count = value;
+            sample.d_count = value;
             break;
         }
         default: {
@@ -186,10 +186,14 @@ BaseCounts total_base_counts( Variant const& variant )
     return merge( variant.samples );
 }
 
+size_t total_base_count_sum( BaseCounts const& sample )
+{
+    return sample.a_count + sample.c_count + sample.g_count + sample.t_count;
+}
+
 size_t total_base_count_sum( Variant const& variant )
 {
-    auto const m = merge( variant.samples );
-    return m.a_count + m.c_count + m.g_count + m.t_count;
+    return total_base_count_sum( merge( variant.samples ));
 }
 
 // =================================================================================================
@@ -497,9 +501,9 @@ std::pair<char, double> consensus( BaseCounts const& sample )
     return { nts[max_idx], conf };
 }
 
-std::pair<char, double> consensus( BaseCounts const& sample, BaseCountsStatus const& status )
+std::pair<char, double> consensus( BaseCounts const& sample, bool is_covered )
 {
-    if( status.is_covered ) {
+    if( is_covered ) {
         return consensus( sample );
     } else {
         return { 'N', 0.0 };
