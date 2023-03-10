@@ -193,7 +193,7 @@ public:
      */
     const_reference add( Sequence const& seq, bool also_look_up_first_word = true )
     {
-        return add( std::move( Sequence{seq} ), also_look_up_first_word );
+        return add( Sequence{seq}, also_look_up_first_word );
     }
 
     /**
