@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -414,21 +414,24 @@ public:
             end_pos_ = read_block_( generator_, current_block_, generator_->block_size_ );
             assert( current_pos_ == 0 );
 
+            // Check how much data we got, and whether we want to start the background worker.
             // If there is less data than the block size, the file is already done.
-            // No need to start the async buffering, we can just get out of here.
-            if( end_pos_ < generator_->block_size_ ) {
-
+            // However, if the first block was fully read, we start the async worker thread
+            // to fill the buffer with the next block of data.
+            if( end_pos_ == generator_->block_size_ ) {
+                fill_buffer_block_();
+            } else if( end_pos_ == 0 ) {
                 // Edge case: zero elements read. We are already done then.
-                if( end_pos_ == 0 ) {
-                    generator_ = nullptr;
-                }
+                generator_ = nullptr;
                 return;
             }
+            assert( end_pos_ > 0 );
+            assert( end_pos_ <= generator_->block_size_ );
 
-            // If we are here, the first block was fully read,
-            // so we start the async worker thread to fill the buffer.
-            assert( end_pos_ == generator_->block_size_ );
-            fill_buffer_block_();
+            // Now we have an element, which will be the first one of the iteration,
+            // and so we execute the visitors for it.
+            assert( current_pos_ == 0 );
+            execute_visitors_( (*current_block_)[current_pos_] );
         }
 
         void increment_()
@@ -450,8 +453,11 @@ public:
             // Edge case: no buffering.
             // Read the next element. If there is none, we are done.
             if( generator_->block_size_ == 0 ) {
+                assert( current_pos_ == 0 );
                 assert( current_block_->size() == 1 );
-                if( ! get_next_element_( generator_, (*current_block_)[0] )) {
+                if( get_next_element_( generator_, (*current_block_)[0] )) {
+                    execute_visitors_( (*current_block_)[current_pos_] );
+                } else {
                     generator_ = nullptr;
                 }
                 return;
@@ -502,6 +508,10 @@ public:
                 fill_buffer_block_();
                 current_pos_ = 0;
             }
+
+            // Now we have moved to the next element, and potentially the next block,
+            // so we are ready to call the visitors for that element.
+            execute_visitors_( (*current_block_)[current_pos_] );
         }
 
         void fill_buffer_block_()
@@ -624,6 +634,14 @@ public:
                 }
             }
             return usable_element;
+        }
+
+        void execute_visitors_( T const& element )
+        {
+            assert( generator_ );
+            for( auto const& visitor : generator_->visitors_ ) {
+                visitor( element );
+            }
         }
 
     private:
@@ -818,15 +836,7 @@ public:
                 "LambdaIterator: Cannot change filters/transformations after iteration has started."
             );
         }
-
-        // No need to wrap this in another lambda...
         transforms_and_filters_.push_back( filter );
-
-        // transforms_and_filters_.push_back(
-        //     [filter]( T& element ){
-        //         return filter( element );
-        //     }
-        // );
         return *this;
     }
 
@@ -841,6 +851,45 @@ public:
             );
         }
         transforms_and_filters_.clear();
+    }
+    // -------------------------------------------------------------------------
+    //     Visitors
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Add a visitor function that is executed when the iterator moves to a new element
+     * during the iteration.
+     *
+     * These functions are executed when starting and incrementing the iterator, once for each
+     * element, in the order in which they are added here. They take the element that the iterator
+     * just moved to as their argument, so that user code can react to the new element.
+     *
+     * They are a way of adding behaviour to the iteration loop that could also simply be placed
+     * in the beginning of the loop body of the user code. Still, offering this here can reduce
+     * redundant code, such as logging elements during the iteration.
+     */
+    self_type& add_visitor( std::function<void(T const&)> const& visitor )
+    {
+        if( has_started_ ) {
+            throw std::runtime_error(
+                "LambdaIterator: Cannot change visitors after iteration has started."
+            );
+        }
+        visitors_.push_back( visitor );
+        return *this;
+    }
+
+    /**
+     * @brief Clear all functions that are executed on incrementing to the next element.
+     */
+    self_type& clear_visitors()
+    {
+        if( has_started_ ) {
+            throw std::runtime_error(
+                "LambdaIterator: Cannot change visitors after iteration has started."
+            );
+        }
+        visitors_.clear();
     }
 
     // -------------------------------------------------------------------------
@@ -905,9 +954,11 @@ public:
 
 private:
 
-    // std::vector<std::function<void(T&)>> transforms_;
-    // std::vector<std::function<bool(T const&)>> filters_;
+    // We have two different types of functions that we accept to operate on the data:
+    // the transforms and filters are executed when filling the buffers,
+    // while the visits are executed once the iteration reaches the respective element.
     std::vector<std::function<bool(T&)>> transforms_and_filters_;
+    std::vector<std::function<void(T const&)>> visitors_;
 
     // Underlying iterator and associated data.
     std::function<bool( value_type& )> get_element_;
