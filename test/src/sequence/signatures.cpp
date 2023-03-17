@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -101,7 +101,7 @@ TEST( Sequence, KmerCounts )
 
             // Check the same for symmetrized counts.
             auto const sym_kmers = signature_symmetrized_counts( seq, settings );
-            sum = std::accumulate( std::begin( kmers ), std::end( kmers ), 0 );
+            sum = std::accumulate( std::begin( sym_kmers ), std::end( sym_kmers ), 0 );
             EXPECT_EQ( seq.size() - k + 1, sum );
         }
     }
