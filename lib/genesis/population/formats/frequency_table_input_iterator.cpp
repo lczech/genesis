@@ -380,7 +380,7 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_ref_(
         // Read the single char base, and check it.
         // This even works when we are at the end of the data already.
         auto const b = utils::to_upper( *it );
-        if( !( b == 'A' || b == 'C' || b == 'G' || b == 'T' || b == 'N' )) {
+        if( ! is_valid_base_or_n( b )) {
             throw std::runtime_error(
                 "Malformed frequency table with reference base not in [ACGTN] in line " + it.at()
             );
@@ -417,7 +417,7 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_alt_(
     column_processors_.push_back( [cur_var]( genesis::utils::InputStream& it ){
         // Same as above for the ref base.
         auto const b = utils::to_upper( *it );
-        if( !( b == 'A' || b == 'C' || b == 'G' || b == 'T' || b == 'N' )) {
+        if( ! is_valid_base_or_n( b )) {
             throw std::runtime_error(
                 "Malformed frequency table with alternative base not in [ACGTN] in line " + it.at()
             );
@@ -866,7 +866,7 @@ void FrequencyTableInputIterator::Iterator::increment_()
         if( header_info_.has_ref && current_variant_->reference_base != 'N' ) {
             // Get a shorthand, and check the bases that the processor allows.
             auto const ref_base = current_variant_->reference_base;
-            assert( ref_base == 'A' || ref_base == 'C' || ref_base == 'G' || ref_base == 'T' );
+            assert( is_valid_base( ref_base ));
 
             // Both are given and the base from the file is not 'N', so let's see if they agree.
             // If not, that indicates some issue, so better be careful.
@@ -889,10 +889,7 @@ void FrequencyTableInputIterator::Iterator::increment_()
             // Here, we have the case where either there is no ref base from the input file,
             // or it's 'N', so that we might want to replace it by the ref genome. Both cases are
             // treated the same here: Check that we can use the genome base, or use N if not.
-            if(
-                ref_gen_base == 'A' || ref_gen_base == 'C' ||
-                ref_gen_base == 'G' || ref_gen_base == 'T'
-            ) {
+            if( is_valid_base( ref_gen_base )) {
                 current_variant_->reference_base = ref_gen_base;
             } else {
                 current_variant_->reference_base = 'N';
@@ -1079,18 +1076,14 @@ void FrequencyTableInputIterator::Iterator::process_sample_data_(
     // or fixed bases if ref and/or alt are not available.
     char ref_base = variant.reference_base;
     char alt_base = variant.alternative_base;
-    assert(
-        ref_base == 'A' || ref_base == 'C' || ref_base == 'G' || ref_base == 'T' || ref_base == 'N'
-    );
-    assert(
-        alt_base == 'A' || alt_base == 'C' || alt_base == 'G' || alt_base == 'T' || alt_base == 'N'
-    );
+    assert( is_valid_base_or_n( ref_base ));
+    assert( is_valid_base_or_n( alt_base ));
     if( utils::char_match_ci( ref_base, 'N' )) {
         ref_base = 'A';
         alt_base = 'G';
     } else if( utils::char_match_ci( alt_base, 'N' )) {
         // Only ref base is given. Use its transition base as the most likely alternative.
-        assert( ref_base == 'A' || ref_base == 'C' || ref_base == 'G' || ref_base == 'T' );
+        assert( is_valid_base( ref_base ));
         alt_base = ::genesis::sequence::nucleic_acid_transition( ref_base );
     }
     assert( sample_index < variant.samples.size() );

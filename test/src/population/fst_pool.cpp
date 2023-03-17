@@ -194,14 +194,26 @@ TEST( Structure, FstPoolGenerator )
         // transform_by_min_count( sample_set.samples[0], settings.min_allele_count );
         // transform_by_min_count( sample_set.samples[1], settings.min_allele_count );
 
-        if( status(
-                merge( sample_set.samples ),
-                settings.min_coverage, settings.max_coverage, settings.min_allele_count
-            ).is_biallelic
-        ) {
-            // LOG_DBG << "enq " <<  sample_set.position << " " << merge( sample_set.samples );
+        // Ugly relic of many refactorings to do it this way... but good enough for now.
+        auto merged = merge( sample_set.samples );
+        BaseCountsFilter filter;
+        filter.min_count = settings.min_allele_count;
+        filter.min_coverage = settings.min_coverage;
+        filter.max_coverage = settings.max_coverage;
+        filter.only_biallelic_snps = true;
+        if( filter_base_counts( merged, filter )) {
             window_gen.enqueue( sample_set.chromosome, sample_set.position, sample_set.samples );
         }
+
+        // Old way of checking the status directly
+        // if( status(
+        //         merge( sample_set.samples ),
+        //         settings.min_coverage, settings.max_coverage, settings.min_allele_count
+        //     ).is_biallelic
+        // ) {
+        //     // LOG_DBG << "enq " <<  sample_set.position << " " << merge( sample_set.samples );
+        //     window_gen.enqueue( sample_set.chromosome, sample_set.position, sample_set.samples );
+        // }
     }
 }
 
@@ -266,10 +278,20 @@ TEST( Structure, FstPoolIterator )
         // transform_by_min_count( sample_set.samples[0], settings.min_allele_count );
         // transform_by_min_count( sample_set.samples[1], settings.min_allele_count );
 
-        return status(
-            merge( variant.samples ),
-            settings.min_coverage, settings.max_coverage, settings.min_allele_count
-        ).is_biallelic;
+        // Ugly relic of many refactorings to do it this way... but good enough for now.
+        auto merged = merge( variant.samples );
+        BaseCountsFilter filter;
+        filter.min_count = settings.min_allele_count;
+        filter.min_coverage = settings.min_coverage;
+        filter.max_coverage = settings.max_coverage;
+        filter.only_biallelic_snps = true;
+        return filter_base_counts( merged, filter );
+
+        // Old way of checking the status directly
+        // return status(
+        //     merge( variant.samples ),
+        //     settings.min_coverage, settings.max_coverage, settings.min_allele_count
+        // ).is_biallelic;
     });
 
     // Create a window iterator based on the lambda iterator.

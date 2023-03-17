@@ -44,60 +44,6 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Status and Information
-// =================================================================================================
-
-BaseCountsStatus status(
-    BaseCounts const& sample,
-    size_t min_coverage,
-    size_t max_coverage,
-    size_t min_count,
-    bool tolerate_deletions
-) {
-    BaseCountsStatus result;
-    auto const nucleotide_count = nucleotide_sum( sample );
-
-    // Set the min/max coverage related values.
-    if(
-        nucleotide_count > 0 && nucleotide_count >= min_coverage &&
-        ( max_coverage == 0 || nucleotide_count <= max_coverage )
-    ) {
-        result.is_covered = true;
-
-        // Sum up the number of different ACGT counts that are present, to determine whether
-        // this is a SNP, and whether it's biallelic. We use bool to int conversion for simplicity,
-        // and to avoid branching. For this, we use the fact that bool converts to 1/0 int.
-        // We have a special case here for min_count == 0, in which case we do
-        // not want to count a 0 as being "above" the min count. That would be riddiculous.
-        static_assert( static_cast<int>( true )  == 1, "Invalid bool(true) to int(1) conversion." );
-        static_assert( static_cast<int>( false ) == 0, "Invalid bool(false) to int(0) conversion." );
-        size_t al_count = 0;
-        al_count += static_cast<int>( sample.a_count > 0 && sample.a_count >= min_count );
-        al_count += static_cast<int>( sample.c_count > 0 && sample.c_count >= min_count );
-        al_count += static_cast<int>( sample.g_count > 0 && sample.g_count >= min_count );
-        al_count += static_cast<int>( sample.t_count > 0 && sample.t_count >= min_count );
-
-        // Determine type of SNP.
-        if( al_count >= 2 ) {
-            result.is_snp = true;
-        }
-        if( al_count == 2 ) {
-            result.is_biallelic = true;
-        }
-
-        // Check deletions. We have the same special case as above here.
-        if( sample.d_count > 0 && sample.d_count >= min_count && !tolerate_deletions ) {
-            result.is_covered   = false;
-            result.is_snp       = false;
-            result.is_biallelic = false;
-            result.is_ignored   = true;
-        }
-    }
-
-    return result;
-}
-
-// =================================================================================================
 //     Counts
 // =================================================================================================
 
@@ -179,21 +125,6 @@ void set_base_count( BaseCounts& sample, char base, BaseCounts::size_type value 
             );
         }
     }
-}
-
-BaseCounts total_base_counts( Variant const& variant )
-{
-    return merge( variant.samples );
-}
-
-size_t total_base_count_sum( BaseCounts const& sample )
-{
-    return sample.a_count + sample.c_count + sample.g_count + sample.t_count;
-}
-
-size_t total_base_count_sum( Variant const& variant )
-{
-    return total_base_count_sum( merge( variant.samples ));
 }
 
 // =================================================================================================
@@ -341,7 +272,7 @@ std::pair<SortedBaseCounts, SortedBaseCounts> sorted_average_base_counts(
 }
 
 /**
- * @brief Local helper function that takes an already computed @p total from total_base_counts(),
+ * @brief Local helper function that takes an already computed @p total from merge_base_counts(),
  * so that it can be re-used internally here.
  */
 SortedBaseCounts sorted_base_counts_(
@@ -410,13 +341,33 @@ SortedBaseCounts sorted_base_counts_(
 SortedBaseCounts sorted_base_counts(
     Variant const& variant, bool reference_first
 ) {
-    auto const total = total_base_counts( variant );
+    auto const total = merge_base_counts( variant );
     return sorted_base_counts_( variant, reference_first, total );
 }
 
 // =================================================================================================
 //     Merging
 // =================================================================================================
+
+size_t allele_count( BaseCounts const& sample )
+{
+    // We use bool to int conversion for simplicity, and to avoid branching.
+    // For this, we use the fact that bool converts to 1/0 int.
+    static_assert( static_cast<int>( true )  == 1, "Invalid bool(true) to int(1) conversion." );
+    static_assert( static_cast<int>( false ) == 0, "Invalid bool(false) to int(0) conversion." );
+
+    // Sum up the number of different ACGT counts that are present, to determine whether
+    // this is a SNP, and whether it's biallelic.
+    size_t al_count = 0;
+    al_count += static_cast<int>( sample.a_count > 0 );
+    al_count += static_cast<int>( sample.c_count > 0 );
+    al_count += static_cast<int>( sample.g_count > 0 );
+    al_count += static_cast<int>( sample.t_count > 0 );
+
+    // Check and return the result.
+    assert( al_count <= 4 );
+    return al_count;
+}
 
 void merge_inplace( BaseCounts& p1, BaseCounts const& p2 )
 {
@@ -513,7 +464,7 @@ std::pair<char, double> consensus( BaseCounts const& sample, bool is_covered )
 char guess_reference_base( Variant const& variant, bool force )
 {
     auto const ref = utils::to_upper( variant.reference_base );
-    if( ! force && ( ref == 'A' || ref == 'C' || ref == 'G' || ref == 'T' )) {
+    if( ! force && is_valid_base( ref )) {
         return ref;
     } else {
         auto const sorted = sorted_base_counts( variant, false );
@@ -529,11 +480,11 @@ char guess_reference_base( Variant const& variant, bool force )
 char guess_alternative_base( Variant const& variant, bool force )
 {
     auto const alt = utils::to_upper( variant.alternative_base );
-    if( ! force && ( alt == 'A' || alt == 'C' || alt == 'G' || alt == 'T' )) {
+    if( ! force && is_valid_base( alt )) {
         return alt;
     } else {
         auto const ref = utils::to_upper( variant.reference_base );
-        if( ref == 'A' || ref == 'C' || ref == 'G' || ref == 'T' ) {
+        if( is_valid_base( ref )) {
             auto const sorted = sorted_base_counts( variant, true );
             if( sorted[1].count > 0 ) {
                 return utils::to_upper( sorted[1].base );
@@ -557,13 +508,13 @@ void guess_and_set_ref_and_alt_bases( Variant& variant, bool force )
 
     // Set the reference, unless it is already a good value (and we don't force it).
     // We don't flip the condition here, to keept it consistent with the above functions.
-    if( ! force && ( ref == 'A' || ref == 'C' || ref == 'G' || ref == 'T' )) {
+    if( ! force && is_valid_base( ref )) {
         // Nothing to do.
     } else {
         variant.reference_base = 'N';
 
         // Now we need the total base counts.
-        total = total_base_counts( variant );
+        total = merge_base_counts( variant );
         computed_total = true;
 
         // Use them to define our ref base.
@@ -576,14 +527,14 @@ void guess_and_set_ref_and_alt_bases( Variant& variant, bool force )
     }
 
     // Set the alternative.
-    if( ! force && ( alt == 'A' || alt == 'C' || alt == 'G' || alt == 'T' )) {
+    if( ! force && is_valid_base( alt )) {
         // Nothing to do.
     } else {
         variant.alternative_base = 'N';
-        if( ref == 'A' || ref == 'C' || ref == 'G' || ref == 'T' ) {
+        if( is_valid_base( ref )) {
             // Only compute the total if needed.
             if( ! computed_total ) {
-                total = total_base_counts( variant );
+                total = merge_base_counts( variant );
             }
 
             // Use it to define our alt base.
@@ -611,7 +562,7 @@ void guess_and_set_ref_and_alt_bases(
 
     // Now use that reference base. If it is in ACGT, we use it as ref; if not, we check against
     // ambiguity codes to see if it fits with our count-based ref and alt bases instead.
-    if( ref_base == 'A' || ref_base == 'C' || ref_base == 'G' || ref_base == 'T' ) {
+    if( is_valid_base( ref_base )) {
         if( variant.reference_base != 'N' && variant.reference_base != ref_base ) {
             throw std::runtime_error(
                 "At chromosome \"" + variant.chromosome + "\" position " +

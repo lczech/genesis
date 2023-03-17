@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -164,12 +164,7 @@ Variant convert_to_variant(
     // is meaningless anyway. Only need to check upper case here, as we converted above.
     // Also, we do not set the alt base if it does not have any counts, and in that case is also
     // meaningless to have an alt base.
-    if(
-        result.reference_base == 'A' ||
-        result.reference_base == 'C' ||
-        result.reference_base == 'G' ||
-        result.reference_base == 'T'
-    ) {
+    if( is_valid_base( result.reference_base )) {
         auto const sorted = sorted_base_counts( result, true );
         if( sorted[1].count > 0 ) {
             result.alternative_base = utils::to_upper( sorted[1].base );

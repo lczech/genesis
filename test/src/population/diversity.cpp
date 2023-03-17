@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -235,7 +235,6 @@ TEST( Population, DiversityMeasuresIterator )
     // are slightly different. For the previous computation and values, where we followed the
     // approach of PoPoolation, see the above deprecated Generator approach,
     // which has the same off-by-on error.
-    //
     std::vector<size_t> const exp_snp_cnt = {
         2, 7, 21, 4, 9, 25, 3, 20, 20, 7, 11, 19, 13, 19, 17, 9, 29, 11, 19, 12, 6, 2, 10, 9, 7,
         3, 3, 8, 9, 4, 9, 10, 18, 21, 24, 9, 15, 20, 16, 12, 5, 12, 6, 12, 5, 9, 6, 11, 8, 10, 2

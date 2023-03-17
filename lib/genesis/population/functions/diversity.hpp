@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -503,37 +503,64 @@ PoolDiversityResults pool_diversity_measures(
         begin, end
     );
 
+    // Make a filter.
+    BaseCountsFilter filter;
+    filter.min_coverage = settings.min_coverage;
+    filter.max_coverage = settings.max_coverage;
+    filter.min_count = settings.min_allele_count;
+    filter.only_snps = true;
+
     // Count how many SNPs there are in total, and how many sites have the needed coverage.
+    BaseCountsFilterStats stats;
     for( auto it = min_filtered_range.begin(); it != min_filtered_range.end(); ++it ) {
-        auto const stat = status(
-            *it, settings.min_coverage, settings.max_coverage, settings.min_allele_count
-        );
+
+        // This is super ugly and slow now, due to the new filter functions...
+        // But it's temporary, as we are going to refactor the diversity calculators next.
+        // Just here for debugging and so that it compiles for now.
+        auto copy = *it;
+        filter_base_counts( copy, filter, stats );
+
+        // auto const stat = status(
+        //     *it, settings.min_coverage, settings.max_coverage, settings.min_allele_count
+        // );
 
         // Make sure that we are dealing with the correct types here.
         // (Just in case we ever refactor the class where these values are stored.)
-        static_assert(
-            std::is_same<decltype(stat.is_snp), bool>::value,
-            "Expect bool type for BaseCountsStatus::is_snp"
-        );
-        static_assert(
-            std::is_same<decltype(stat.is_covered), bool>::value,
-            "Expect bool type for BaseCountsStatus::is_covered"
-        );
-        static_assert( static_cast<size_t>( true )  == 1, "Expect true == 1" );
-        static_assert( static_cast<size_t>( false ) == 0, "Expect false == 0" );
+        // static_assert(
+        //     std::is_same<decltype(stat.is_snp), bool>::value,
+        //     "Expect bool type for BaseCountsStatus::is_snp"
+        // );
+        // static_assert(
+        //     std::is_same<decltype(stat.is_covered), bool>::value,
+        //     "Expect bool type for BaseCountsStatus::is_covered"
+        // );
+        // static_assert( static_cast<size_t>( true )  == 1, "Expect true == 1" );
+        // static_assert( static_cast<size_t>( false ) == 0, "Expect false == 0" );
 
         // Add them up.
         ++results.variant_count;
-        results.coverage_count += static_cast<size_t>( stat.is_covered );
-        results.snp_count      += static_cast<size_t>( stat.is_snp );
+
+        // results.coverage_count += static_cast<size_t>( stat.is_covered );
+        // results.snp_count      += static_cast<size_t>( stat.is_snp );
     }
+    // results.coverage_count = stats.passed + stats.empty + stats.untolerated_deletion + stats.not_snp;
+    results.coverage_count = stats.passed + stats.not_snp;
+    results.snp_count      = stats.passed; // results.variant_count - stats.not_snp;
 
     // Make a filter that only allows samples that are SNPs and have the needed coverage.
     auto covered_snps_range = utils::make_filter_range( [&]( BaseCounts const& sample ){
-        auto stat = status(
-            sample, settings.min_coverage, settings.max_coverage, settings.min_allele_count
-        );
-        return stat.is_covered && stat.is_snp;
+
+        // This is super ugly and slow now, due to the new filter functions...
+        // But it's temporary, as we are going to refactor the diversity calculators next.
+        // Just here for debugging and so that it compiles for now.
+        auto copy = sample;
+        return filter_base_counts( copy, filter );
+
+        // Old behaviour that we replicate above with the new filter functions.
+        // auto stat = status(
+        //     sample, settings.min_coverage, settings.max_coverage, settings.min_allele_count
+        // );
+        // return stat.is_covered && stat.is_snp;
     }, min_filtered_range.begin(), min_filtered_range.end() );
 
     // Compute all values.

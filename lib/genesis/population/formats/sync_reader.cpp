@@ -162,7 +162,7 @@ bool SyncReader::parse_line_(
 
     // Read and check fixed column for the reference base.
     auto const rb = to_upper( *it );
-    if( rb != 'A' && rb != 'C' && rb != 'G' && rb != 'T' && rb != 'N' && rb != '.' && rb != '*' ) {
+    if( ! is_valid_base_or_n( rb ) && rb != '.' && rb != '*' ) {
         throw std::runtime_error(
             std::string("In ") + it.source_name() + ": Invalid reference base char " +
             char_to_hex(rb) + " at " + it.at()

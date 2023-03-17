@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -58,15 +58,15 @@ TEST( VariantInputIterator, SamInputIterator )
 
     // Add a filter that limits it to a region, and then skips a region inside.
     it.add_filter(
-        filter_by_region( GenomeRegion( "seq1", 272, 279 ))
+        make_filter_by_region( GenomeRegion( "seq1", 272, 279 ))
     );
     it.add_filter(
-        filter_by_region( GenomeRegion( "seq1", 274, 277 ), true )
+        make_filter_by_region( GenomeRegion( "seq1", 274, 277 ), true )
     );
 
     // Add a filter that doesn't do anything
     it.add_filter(
-        filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
+        make_filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
     );
 
     // Simple test that the correct region is filtered out.
@@ -141,15 +141,15 @@ TEST( VariantInputIterator, PileupInputIterator )
     // Add a filter that skips the specified region.
     auto region = GenomeRegion( "seq1", 274, 277 );
     // it.add_filter(
-    //     filter_by_region( region )
+    //     make_filter_by_region( region )
     // );
     it.add_filter(
-        filter_by_region( region, true )
+        make_filter_by_region( region, true )
     );
 
     // Add a filter that doesn't do anything
     it.add_filter(
-        filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
+        make_filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
     );
 
     // Simple test that the correct region is filtered out.
@@ -297,12 +297,12 @@ TEST( VariantInputIterator, SyncInputIterator )
     // Add a filter that skips the specified region.
     auto region = GenomeRegion( "2R", 2302, 2302 );
     it.add_filter(
-        filter_by_region( region, true )
+        make_filter_by_region( region, true )
     );
 
     // Add a filter that doesn't do anything
     it.add_filter(
-        filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
+        make_filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
     );
 
     // Simple test that the correct region is filtered out.
@@ -434,12 +434,12 @@ TEST( VariantInputIterator, VcfInputIterator )
     // Add a filter that skips the specified region.
     auto region = GenomeRegion( "20", 17000, 1120000 );
     it.add_filter(
-        filter_by_region( region, true )
+        make_filter_by_region( region, true )
     );
 
     // Add a filter that doesn't do anything
     it.add_filter(
-        filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
+        make_filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
     );
 
     // Simple test that the correct region is filtered out.

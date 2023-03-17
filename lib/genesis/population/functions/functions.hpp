@@ -34,6 +34,7 @@
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/sequence/reference_genome.hpp"
+#include "genesis/utils/text/char.hpp"
 
 #include <array>
 #include <iosfwd>
@@ -45,121 +46,39 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Status and Information
+//     Bases and Counts
 // =================================================================================================
-
-struct BaseCountsStatus
-{
-    /**
-     * @brief Is the Sample covered by enough reads/nucleotides?
-     *
-     * This value is set to `true` iff the total Sample::nucleotide_count (sum of Sample::a_count,
-     * Sample::c_count, Sample::g_count, and Sample::t_count after testing that they are at least
-     * min_count()) is in between the min_coverage() and max_coverage() values (inclusive),
-     * and iff the amount of deletions (Sample::d_count) is not higher than min_count() as well
-     * (unless, tolerate_deletions() is also set to `true`).
-     *
-     * That was a mouthful. Basically, a Sample is covered, if the sum of `A`, `C`, `G`, `T`
-     * is in between min_coverage() and max_coverage(), and (unless we tolerate that) the amount
-     * of deletions is not too high.
-     */
-    bool is_covered = false;
-
-    /**
-     * @brief Does the Sample have two or more alleles?
-     *
-     * That is the case if at least two of the `A`, `C`, `G`, `T` counts (Sample::a_count,
-     * Sample::c_count, Sample::g_count, and Sample::t_count ) are above zero, after testing
-     * that they are at least min_count().
-     *
-     * This value is also `false` if the amount of deletions (Sample::d_count) is too high
-     * (using min_count() as the inclusive threshold), unless tolerate_deletions() is `true`.
-     */
-    bool is_snp = false;
-
-    /**
-     * @brief Is the Sample biallelic?
-     *
-     * This is closely related to Sample::is_snp, but only `true` iff the number of nucleotide
-     * counts above zero is exactly two - that is, if there are only reads of two of `A`, `C`,
-     * `G`, `T` in the sample.
-     *
-     * This value is also `false` if the amount of deletions (Sample::d_count) is too high
-     * (using min_count() as the inclusive threshold), unless tolerate_deletions() is `true`.
-     */
-    bool is_biallelic = false;
-
-    /**
-     * @brief Is the Sample ignored due to high deletions count?
-     *
-     * This value is only set to `true` iff the Sample is well covered (as determined by
-     * Sample::is_covered), but also has a high amount of deletions (at least min_count() many),
-     * and if not also tolerate_deletions() is `true`.
-     *
-     * It is hence an indicator that there are too many deletions in the sample (if we decide
-     * not to tolerate them).
-     */
-    bool is_ignored = false;
-};
 
 /**
- * @brief Compute a simple status with useful properties from the counts of a BaseCounts.
- *
- * ### <code>min_coverage</code>
- *
- * Minimum coverage expected for a BaseCounts to be considered "covered".
- * If the number of nucleotides (`A`, `C`, `G`, `T`) in the reads of a sample is less then the
- * here provided @p min_coverage, then the BaseCounts is not considered sufficiently covered,
- * and the BaseCountsStatus::is_covered flag will be set to `false`.
- *
- * ### <code>max_coverage</code>
- *
- * Same as @p min_coverage, but the upper bound on coverage; maximum coverage
- * expected for a BaseCounts to be considered "covered".
- * If the number of nucleotides exceeds this bound, the BaseCountsStatus::is_covered flag will
- * be set to `false`.
- * If provided with a value of `0` (default), max_coverage is not used.
- *
- * Only if the nucleotide count is in between (or equal to either) these two bounds (@p min_coverage
- * and @p max_coverage), it is considered to be covered, and BaseCountsStatus::is_covered
- * will be set to `true`.
- *
- * ### <code>min_count</code>
- *
- * This value is used to determine whether a BaseCounts has too many deletions,
- * and unless tolerate_deletions() is set to `true`, the BaseCountsStatus::is_ignored will be set
- * to `true` in that case (too many deletions, as given by BaseCounts::d_count), while the values for
- * BaseCountsStatus::is_covered, BaseCountsStatus::is_snp, and BaseCountsStatus::is_biallelic
- * will be set to `false`.
- *
- * Typically, if this function is used after calling filter_min_count() on the BaseCounts, the
- * @p min_count is set to the same value for consistency.
- *
- * ### <code>tolerate_deletions</code>
- *
- * Set whether we tolerate BaseCounts%s with a high amount of deletions.
- *
- * If set to `false` (default), we do not tolerate deletions. In that case, if the number of
- * deletions in a Sample (given by Sample::d_count) is higher than or equal to min_count(),
- * the Sample will be considered ignored (Sample::is_ignored set to `true`), and considered
- * not covered (Sample::is_covered, Sample::is_snp, and Sample::is_biallelic will all be set
- * to `false`).
- *
- * If however set to `true`, we tolerate high amounts of deletions, and the values for the above
- * properties will be set as usual by considering the nucleotide counts (Sample::a_count,
- * Sample::c_count, Sample::g_count, and Sample::t_count) instead.
+ * @brief Return whether a given base is in `ACGT`, case insensitive.
  */
-BaseCountsStatus status(
-    BaseCounts const& sample,
-    size_t min_coverage = 0,
-    size_t max_coverage = 0,
-    size_t min_count = 0,
-    bool tolerate_deletions = false
-);
+inline constexpr bool is_valid_base( char c )
+{
+    // Can't use a functionc all here, to comply with C++11 constexpr rules.
+    // c = utils::to_upper( c );
+    return (
+        c == 'A' || c == 'a' ||
+        c == 'C' || c == 'c' ||
+        c == 'G' || c == 'g' ||
+        c == 'T' || c == 't'
+    );
+}
 
-// =================================================================================================
-//     Counts
-// =================================================================================================
+/**
+ * @brief Return whether a given base is in `ACGTN`, case insensitive.
+ */
+inline constexpr bool is_valid_base_or_n( char c )
+{
+    // Can't use a functionc all here, to comply with C++11 constexpr rules.
+    // c = utils::to_upper( c );
+    return (
+        c == 'A' || c == 'a' ||
+        c == 'C' || c == 'c' ||
+        c == 'G' || c == 'g' ||
+        c == 'T' || c == 't' ||
+        c == 'N' || c == 'n'
+    );
+}
 
 /**
  * @brief Get the count for a @p base given as a char.
@@ -174,23 +93,6 @@ BaseCounts::size_type get_base_count( BaseCounts const& sample, char base );
  * The given @p base has to be one of `ACGTDN` (case insensitive), or `*#.` for deletions as well.
  */
 void set_base_count( BaseCounts& sample, char base, BaseCounts::size_type value );
-
-/**
- * @brief Get the summed up total base counts of a Variant.
- *
- * This is the same as calling merge() on the samples in the Variant.
- */
-BaseCounts total_base_counts( Variant const& variant );
-
-/**
- * @brief Get the summed up counts of all four nucleotides `ACGT` of a BaseCounts objects.
- */
-size_t total_base_count_sum( BaseCounts const& sample );
-
-/**
- * @brief Get the summed up counts of all four nucleotides `ACGT` of a Variant.
- */
-size_t total_base_count_sum( Variant const& variant );
 
 // =================================================================================================
 //     Sorting
@@ -229,6 +131,38 @@ SortedBaseCounts sorted_base_counts(
 // =================================================================================================
 
 /**
+ * @brief Return the number of alleles, that is, of non-zero nucleotide counts of the @p sample.
+ *
+ * This looks at all four nucleotide counts (`ACGT`), and returns the number of them that are
+ * non zero, which hence is between 0 and 4.
+ */
+size_t allele_count( BaseCounts const& sample );
+
+/**
+ * @brief Merge the counts of two BaseCounts%s, by adding the counts of the second (@p p2)
+ * to the first (@p p1).
+ */
+void merge_inplace( BaseCounts& p1, BaseCounts const& p2 );
+
+/**
+ * @brief Merge the counts of two BaseCounts%s.
+ */
+BaseCounts merge( BaseCounts const& p1, BaseCounts const& p2 );
+
+/**
+ * @brief Merge the counts of a vector BaseCounts%s.
+ */
+BaseCounts merge( std::vector<BaseCounts> const& p );
+
+/**
+ * @brief Merge the counts of a vector BaseCounts%s.
+ */
+inline BaseCounts merge_base_counts( Variant const& v )
+{
+    return merge( v.samples );
+}
+
+/**
  * @brief Count of the pure nucleotide bases at this position, that is,
  * the sum of all `A`, `C`, `G`, and `T`.
  *
@@ -249,24 +183,8 @@ inline size_t nucleotide_sum( BaseCounts const& sample )
  */
 inline size_t total_nucleotide_sum( Variant const& variant )
 {
-    return nucleotide_sum( total_base_counts( variant ));
+    return nucleotide_sum( merge_base_counts( variant ));
 }
-
-/**
- * @brief Merge the counts of two BaseCounts%s, by adding the counts of the second (@p p2)
- * to the first (@p p1).
- */
-void merge_inplace( BaseCounts& p1, BaseCounts const& p2 );
-
-/**
- * @brief Merge the counts of two BaseCounts%s.
- */
-BaseCounts merge( BaseCounts const& p1, BaseCounts const& p2 );
-
-/**
- * @brief Merge the counts of a vector BaseCounts%s.
- */
-BaseCounts merge( std::vector<BaseCounts> const& p );
 
 // =================================================================================================
 //     Consensus
