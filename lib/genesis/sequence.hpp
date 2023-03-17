@@ -56,6 +56,7 @@
 #include "genesis/sequence/functions/stats.hpp"
 #include "genesis/sequence/printers/bitmap.hpp"
 #include "genesis/sequence/printers/simple.hpp"
+#include "genesis/sequence/reference_genome.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/sequence/sequence.hpp"
 #include "genesis/sequence/sequence_set.hpp"
