@@ -69,7 +69,7 @@ namespace population {
  * > Kämpe O, Hedhammar Å, Lander ES, Andersson G, Andersson L, Lindblad-Toh K.<br />
  * > Nature Genetics, 2007, 39(11), 1321–1328. https://doi.org/10.1038/ng.2007.10
  */
-class FstPoolCalculatorKarlsson final : public FstPoolCalculator
+class FstPoolCalculatorKarlsson final : public BaseFstPoolCalculator
 {
 public:
 

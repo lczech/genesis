@@ -46,7 +46,23 @@ namespace population {
 //     Fst Pool Calculator
 // =================================================================================================
 
-class FstPoolCalculator
+/**
+ * @brief Base class to compute FST between two pooled samples, given two instances of BaseCounts.
+ *
+ * The class is to be derived from for the actual computation, such as in FstPoolCalculatorKarlsson,
+ * FstPoolCalculatorKofler, or FstPoolCalculatorUnbiased, with three virtual methods to override.
+ * Then, an instance of such a calculator can be provided to FstPoolProcessor, which processes
+ * Variant%s along a genome, computing FST along the way.
+ *
+ * The idea of using classes here instead of simple iterators over Variant%s, such as
+ * VariantInputIterator, is that we want to be able to compute FST for many pairs of samples in
+ * some input. With input iterators that just read the input files once however, we cannot iterate
+ * multiple times over the same input. Hence we would have to keep all Variant%s in memory to be
+ * able to compute FST for multiple pairs - which is not desirable when, e.g., computing FST
+ * for the whole genome at once... So instead, we use these classes, which accumulate all needed
+ * data along the way, and yield the FST value at the very end when calling get_result().
+ */
+class BaseFstPoolCalculator
 {
 public:
 
@@ -54,14 +70,14 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    FstPoolCalculator() = default;
-    virtual ~FstPoolCalculator() = default;
+    BaseFstPoolCalculator() = default;
+    virtual ~BaseFstPoolCalculator() = default;
 
-    FstPoolCalculator( FstPoolCalculator const& ) = default;
-    FstPoolCalculator( FstPoolCalculator&& )      = default;
+    BaseFstPoolCalculator( BaseFstPoolCalculator const& ) = default;
+    BaseFstPoolCalculator( BaseFstPoolCalculator&& )      = default;
 
-    FstPoolCalculator& operator= ( FstPoolCalculator const& ) = default;
-    FstPoolCalculator& operator= ( FstPoolCalculator&& )      = default;
+    BaseFstPoolCalculator& operator= ( BaseFstPoolCalculator const& ) = default;
+    BaseFstPoolCalculator& operator= ( BaseFstPoolCalculator&& )      = default;
 
     // -------------------------------------------------------------------------
     //     Calculator Functions
@@ -99,10 +115,14 @@ protected:
 };
 
 // =================================================================================================
-//     Fst Pool Pairs Calculator
+//     Fst Pool Processor
 // =================================================================================================
 
-class FstPoolPairsCalculator
+/**
+ * @brief Helper class to iterate over Variant%s and process pairs of FST between their samples
+ * (BaseCounts), using a set of BaseFstPoolCalculator.
+ */
+class FstPoolProcessor
 {
 public:
 
@@ -110,14 +130,14 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    FstPoolPairsCalculator() = default;
-    ~FstPoolPairsCalculator() = default;
+    FstPoolProcessor() = default;
+    ~FstPoolProcessor() = default;
 
-    FstPoolPairsCalculator( FstPoolPairsCalculator const& ) = default;
-    FstPoolPairsCalculator( FstPoolPairsCalculator&& )      = default;
+    FstPoolProcessor( FstPoolProcessor const& ) = default;
+    FstPoolProcessor( FstPoolProcessor&& )      = default;
 
-    FstPoolPairsCalculator& operator= ( FstPoolPairsCalculator const& ) = default;
-    FstPoolPairsCalculator& operator= ( FstPoolPairsCalculator&& )      = default;
+    FstPoolProcessor& operator= ( FstPoolProcessor const& ) = default;
+    FstPoolProcessor& operator= ( FstPoolProcessor&& )      = default;
 
     // -------------------------------------------------------------------------
     //     Setup
@@ -125,7 +145,7 @@ public:
 
     void add_calculator(
         size_t index_p1, size_t index_p2,
-        std::unique_ptr<FstPoolCalculator> calculator
+        std::unique_ptr<BaseFstPoolCalculator> calculator
     ) {
         assert( sample_pairs_.size() == calculators_.size() );
         assert( sample_pairs_.size() == results_.size() );
@@ -185,7 +205,7 @@ public:
 private:
 
     std::vector<std::pair<size_t, size_t>> sample_pairs_;
-    std::vector<std::unique_ptr<FstPoolCalculator>> calculators_;
+    std::vector<std::unique_ptr<BaseFstPoolCalculator>> calculators_;
     std::vector<double> results_;
 
 };
@@ -198,10 +218,10 @@ private:
  * @brief Compute all-to-all FST for calculators that use pool sizes.
  */
 template<class Calculator>
-inline FstPoolPairsCalculator make_fst_pool_pairs_calculator(
+inline FstPoolProcessor make_fst_pool_processor(
     std::vector<size_t> const& pool_sizes
 ) {
-    FstPoolPairsCalculator result;
+    FstPoolProcessor result;
     for( size_t i = 0; i < pool_sizes.size(); ++i ) {
         for( size_t j = i + 1; j < pool_sizes.size(); ++j ) {
             result.add_calculator(
@@ -220,11 +240,11 @@ inline FstPoolPairsCalculator make_fst_pool_pairs_calculator(
  * @brief Compute FST for specific pairs of samples, for calculators that use pool sizes.
  */
 template<class Calculator>
-inline FstPoolPairsCalculator make_fst_pool_pairs_calculator(
+inline FstPoolProcessor make_fst_pool_processor(
     std::vector<size_t> const& pool_sizes,
     std::vector<std::pair<size_t, size_t>> const& sample_pairs
 ) {
-    FstPoolPairsCalculator result;
+    FstPoolProcessor result;
     for( auto const& p : sample_pairs ) {
         if( p.first >= pool_sizes.size() || p.second >= pool_sizes.size() ) {
             throw std::invalid_argument(
@@ -249,11 +269,11 @@ inline FstPoolPairsCalculator make_fst_pool_pairs_calculator(
  * @brief Compute one-to-all FST for calculators that use pool sizes.
  */
 template<class Calculator>
-inline FstPoolPairsCalculator make_fst_pool_pairs_calculator(
+inline FstPoolProcessor make_fst_pool_processor(
     std::vector<size_t> const& pool_sizes,
     size_t index
 ) {
-    FstPoolPairsCalculator result;
+    FstPoolProcessor result;
     for( size_t i = 0; i < pool_sizes.size(); ++i ) {
         result.add_calculator(
             index, i,
@@ -270,11 +290,11 @@ inline FstPoolPairsCalculator make_fst_pool_pairs_calculator(
  * @brief Compute one-to-one FST for calculators that use pool sizes.
  */
 template<class Calculator>
-inline FstPoolPairsCalculator make_fst_pool_pairs_calculator(
+inline FstPoolProcessor make_fst_pool_processor(
     std::vector<size_t> const& pool_sizes,
     size_t index_1, size_t index_2
 ) {
-    FstPoolPairsCalculator result;
+    FstPoolProcessor result;
     result.add_calculator(
         index_1, index_2,
         ::genesis::utils::make_unique<Calculator>(

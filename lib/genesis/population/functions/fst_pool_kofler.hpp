@@ -66,7 +66,7 @@ namespace population {
  * > Hartl DL, Clark AG.<br />
  * > Sinauer, 2007.
  */
-class FstPoolCalculatorKofler final : public FstPoolCalculator
+class FstPoolCalculatorKofler final : public BaseFstPoolCalculator
 {
 public:
 

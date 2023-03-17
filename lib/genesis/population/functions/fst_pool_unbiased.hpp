@@ -68,7 +68,7 @@ namespace population {
  * > Hudson RR, Slatkin M, Maddison WP.<br />
  * > Genetics, 1992, 132(2), 583–589. https://doi.org/10.1093/GENETICS/132.2.583
  */
-class FstPoolCalculatorUnbiased final : public FstPoolCalculator
+class FstPoolCalculatorUnbiased final : public BaseFstPoolCalculator
 {
 public:
 
