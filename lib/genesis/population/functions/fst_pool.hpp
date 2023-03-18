@@ -215,7 +215,11 @@ private:
 // =================================================================================================
 
 /**
- * @brief Compute all-to-all FST for calculators that use pool sizes.
+ * @brief Create an FstPoolProcessor for all-to-all computation of FST between all pairs of samples.
+ *
+ * The function expects the pool sizes of all samples. It then yields a processor that can be
+ * provided with all Variant%s of interest along the genome, and computes FST between all pairs
+ * of their samples.
  */
 template<class Calculator>
 inline FstPoolProcessor make_fst_pool_processor(
@@ -237,7 +241,12 @@ inline FstPoolProcessor make_fst_pool_processor(
 }
 
 /**
- * @brief Compute FST for specific pairs of samples, for calculators that use pool sizes.
+ * @brief Create an FstPoolProcessor for computation of FST between specific pairs of samples.
+ *
+ * The function expects the pool sizes of all samples, as well as pairs of indices of the
+ * Variant::samples BaseCounts between which FST shall be calculated.
+ * It then yields a processor that can be provided with all Variant%s of interest along the genome,
+ * and computes FST between all provided pairs of their samples.
  */
 template<class Calculator>
 inline FstPoolProcessor make_fst_pool_processor(
@@ -266,7 +275,12 @@ inline FstPoolProcessor make_fst_pool_processor(
 }
 
 /**
- * @brief Compute one-to-all FST for calculators that use pool sizes.
+ * @brief Create an FstPoolProcessor for one-to-all FST computation between one sample and all others.
+ *
+ * The function expects the pool sizes of all samples, as well as the index of the
+ * Variant::samples BaseCounts object between which FST to all other samples shall be calculated.
+ * It then yields a processor that can be provided with all Variant%s of interest along the genome,
+ * and computes FST between the given index and all other samples.
  */
 template<class Calculator>
 inline FstPoolProcessor make_fst_pool_processor(
@@ -287,7 +301,12 @@ inline FstPoolProcessor make_fst_pool_processor(
 }
 
 /**
- * @brief Compute one-to-one FST for calculators that use pool sizes.
+ * @brief Create an FstPoolProcessor for one-to-one FST computation between two samples.
+ *
+ * The function expects the pool sizes of all samples, as well as two indices of the
+ * Variant::samples BaseCounts objects between which FST shall be calculated.
+ * It then yields a processor that can be provided with all Variant%s of interest along the genome,
+ * and computes FST between the given pair of samples.
  */
 template<class Calculator>
 inline FstPoolProcessor make_fst_pool_processor(

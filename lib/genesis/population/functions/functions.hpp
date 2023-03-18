@@ -171,7 +171,7 @@ inline BaseCounts merge_base_counts( Variant const& v )
  *
  * NB: In PoPoolation, this variable is called `eucov`.
  */
-inline size_t nucleotide_sum( BaseCounts const& sample )
+inline constexpr size_t nucleotide_sum( BaseCounts const& sample )
 {
     return sample.a_count + sample.c_count + sample.g_count + sample.t_count;
 }
