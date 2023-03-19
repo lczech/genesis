@@ -31,6 +31,7 @@
  * @ingroup population
  */
 
+#include "genesis/population/window/base_window.hpp"
 #include "genesis/population/window/window.hpp"
 
 #include <cassert>
@@ -72,7 +73,7 @@ namespace population {
  * iterator with no random access to the data in the window.
  */
 template<class D>
-class WindowView
+class WindowView final : public BaseWindow<D>
 {
 public:
 
@@ -239,20 +240,18 @@ public:
 
     WindowView() = default;
 
-    WindowView( std::string const& chromosome )
-        : chromosome_(chromosome)
-    {}
-
     /**
-     * @brief Constructor that takes a @p window and creates a view into it.
+     * @brief Constructor that takes a Window @p window and creates a view into it.
      *
      * This is just a simple way of "converting" a Window to a WindowView, by having the view
      * access all the data of the Window. This automatically sets the get_element function.
      *
-     * It is required that the scope of the @p window outlives this WindowView.
+     * It is required and the users responsibility
+     * that the scope of the @p window outlives this WindowView.
      */
     WindowView( Window<Data> const& window )
-        : chromosome_( window.chromosome() )
+        // Set the chromosome and positions
+        : BaseWindow<Data>( static_cast<BaseWindow<Data> const&>( window ))
     {
         size_t index = 0;
         get_element = [ index, &window ]() mutable -> Data const* {
@@ -267,7 +266,8 @@ public:
      * @copydoc WindowView( Window<Data> const& )
      */
     WindowView( Window<Data>& window )
-        : chromosome_( window.chromosome() )
+        // Set the chromosome and positions
+        : BaseWindow<Data>( static_cast<BaseWindow<Data> const&>( window ))
     {
         size_t index = 0;
         get_element = [ index, &window ]() mutable -> Data* {
@@ -278,37 +278,13 @@ public:
         };
     }
 
-    ~WindowView() = default;
+    virtual ~WindowView() = default;
 
     WindowView( WindowView const& ) = default;
     WindowView( WindowView&& )      = default;
 
     WindowView& operator= ( WindowView const& ) = default;
     WindowView& operator= ( WindowView&& )      = default;
-
-    // -------------------------------------------------------------------------
-    //     General Properties
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Get the chromosome name that this WindowView belongs to.
-     */
-    std::string const& chromosome() const
-    {
-        return chromosome_;
-    }
-
-    /**
-     * @brief Set the chromosome name that this WindowView belongs to.
-     *
-     * Can be left empty if the window does not belong to any chromosome in particular, e.g.,
-     * when iterating a whole genome. Downstream processes should hence not rely on this being
-     * set to a name; it can be empty.
-     */
-    void chromosome( std::string const& value )
-    {
-        chromosome_ = value;
-    }
 
     // -------------------------------------------------------------------------
     //     Data Accessors
@@ -356,7 +332,6 @@ public:
 private:
 
     mutable bool started_ = false;
-    std::string chromosome_;
 
 };
 

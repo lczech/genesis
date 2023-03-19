@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 #include <string>
 #include <vector>
 
+#include "genesis/population/window/base_window.hpp"
 #include "genesis/population/genome_region.hpp"
 
 namespace genesis {
@@ -101,7 +102,7 @@ struct EmptyAccumulator
  * and easy to use.
  */
 template<class D, class A = EmptyAccumulator>
-class Window
+class Window final : public BaseWindow<D>
 {
 public:
 
@@ -206,7 +207,7 @@ public:
     // -------------------------------------------------------------------------
 
     Window() = default;
-    ~Window() = default;
+    virtual ~Window() = default;
 
     Window( Window const& ) = default;
     Window( Window&& )      = default;
@@ -217,47 +218,6 @@ public:
     // -------------------------------------------------------------------------
     //     General Properties
     // -------------------------------------------------------------------------
-
-    /**
-     * @brief Get the chromosome name that this Window belongs to.
-     */
-    std::string const& chromosome() const
-    {
-        return chromosome_;
-    }
-
-    /**
-     * @brief Set the chromosome name that this Window belongs to.
-     */
-    void chromosome( std::string const& value )
-    {
-        chromosome_ = value;
-    }
-
-    /**
-     * @brief Get the width of the Window.
-     *
-     * This is the distance between first_position() and last_position(), i.e., the distance
-     * between the start of the Window and its end as denoted by these positions, plus one,
-     * as we are using closed intervals where both positions are included.
-     *
-     * See span() for a function that computes the distance between the positions of the
-     * first and last _entry_ in the window instead, which might be smaller than the width,
-     * if there are no entries in the beginning or end of the window.
-     *
-     * See the class documentation for an example of the difference between the two functions.
-     */
-    size_t width() const
-    {
-        // We need to do the check here, when this is used.
-        if( first_position_ > last_position_ ) {
-            throw std::runtime_error(
-                "Invalidly set first and last position in the Window, with " +
-                std::to_string( first_position_ ) + " >= " + std::to_string( last_position_ )
-            );
-        }
-        return last_position_ - first_position_ + 1;
-    }
 
     /**
      * @brief Get the number of `D`/Data @link Entry Entries@endlink that are stored in the Window.
@@ -293,9 +253,11 @@ public:
      */
     double saturation() const
     {
-        double const frac = static_cast<double>( entries_.size() ) / static_cast<double>( width() );
+        double const es = static_cast<double>( entries_.size() );
+        double const wd = static_cast<double>( this->width() );
+        double const frac = es / wd;
 
-        assert( width() > 0 );
+        assert( this->width() > 0 );
         assert( frac >= 0.0 );
         assert( frac <= 1.0 );
         return frac;
@@ -318,67 +280,6 @@ public:
             return 0;
         }
         return entries_.back().position - entries_.front().position + 1;
-    }
-
-    // -------------------------------------------------------------------------
-    //     Position
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Get the first position in the chromosome of the Window, that is, where the Window starts.
-     *
-     * The first and last position in the Window are determined for example by the sliding window
-     * width and stride, or by a genomic region that the window represents. They are hence
-     * independent of the actual data entries stored in the window, but obviously should be covering
-     * their positions. See the Window class documentation for an example.
-     *
-     * We use 1-based coordinates and closed intervals, where both the first and the last position
-     * are inclusive.
-     */
-    size_t first_position() const
-    {
-        return first_position_;
-    }
-
-    /**
-     * @brief Set the first position in the chromosome of the Window, that is, where the Window starts.
-     *
-     * @copydetails first_position() const
-     */
-    void first_position( size_t value )
-    {
-        first_position_ = value;
-    }
-
-    /**
-     * @brief Get the last position in the chromosome of the Window, that is, where the Window ends.
-     *
-     * @copydetails first_position() const
-     */
-    size_t last_position() const
-    {
-        return last_position_;
-    }
-
-    /**
-     * @brief Set the last position in the chromosome of the Window, that is, where the Window ends.
-     *
-     * @copydetails first_position() const
-     */
-    void last_position( size_t value )
-    {
-        last_position_ = value;
-    }
-
-    /**
-     * @brief Return the genome region that this Windows is defined over.
-     *
-     * This is a convenience function that gives the chromosome(), as well as first_position() and
-     * last_position(), combined into a GenomeRegion object, for ease of use.
-     */
-    GenomeRegion genome_region() const
-    {
-        return { chromosome_, first_position_, last_position_ };
     }
 
     // -------------------------------------------------------------------------
@@ -501,33 +402,33 @@ public:
      */
     void validate() const
     {
-        if( first_position_ == 0 ) {
+        if( this->first_position() == 0 ) {
             throw std::runtime_error( "Invalid Window with first_position() == 0." );
         }
-        if( last_position_ < first_position_ ) {
+        if( this->last_position() < this->first_position() ) {
             throw std::runtime_error( "Invalid Window with last_position() < first_position()." );
         }
         for( auto const& entry : entries_ ) {
-            if( entry.position < first_position_ || entry.position > last_position_ ) {
+            if( entry.position < this->first_position() || entry.position > this->last_position() ) {
                 throw std::runtime_error(
-                    "Invalid Window::Entry in chromosome " + chromosome_ + " at position " +
+                    "Invalid Window::Entry in chromosome " + this->chromosome() + " at position " +
                     std::to_string( entry.position ) +
                     ", which is not between the window boundaries [" +
-                    std::to_string( first_position_ ) + "," +
-                    std::to_string( last_position_ ) + "]."
+                    std::to_string( this->first_position() ) + "," +
+                    std::to_string( this->last_position() ) + "]."
                 );
             }
         }
     }
 
-    /**
-     * @brief Clear all data from the Window.
-     */
-    void clear()
+    // -------------------------------------------------------------------------
+    //     Virtual Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    virtual void clear_() override
     {
-        chromosome_    = "";
-        first_position_ = 0;
-        last_position_ = 0;
         accumulator_   = Accumulator{};
         entries_       = container{};
     }
@@ -537,10 +438,6 @@ public:
     // -------------------------------------------------------------------------
 
 private:
-
-    std::string chromosome_;
-    size_t first_position_ = 0;
-    size_t last_position_ = 0;
 
     Accumulator accumulator_;
     container entries_;

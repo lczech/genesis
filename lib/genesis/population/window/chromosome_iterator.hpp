@@ -268,7 +268,8 @@ public:
 
             // We reset the window view, so that it's a new iterator for the new chromosome,
             // starting from the first position, with a fitting increment function.
-            window_ = WindowViewType( chr );
+            window_ = WindowViewType();
+            window_.chromosome( chr );
             window_.get_element = [ is_first, &cur, &end, par, chr ]() mutable -> DataType* {
                 // If this is the first call of the function, we are initializing the WindowView
                 // with the current entry of the underlying iterator. If not, we first move to the

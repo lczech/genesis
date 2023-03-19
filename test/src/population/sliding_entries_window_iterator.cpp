@@ -209,6 +209,13 @@ void run_sliding_entries_window_view_variant_test_( VariantWindowIterator& win_i
 {
     size_t window_cnt = 0;
     for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
+        auto const& window = *it;
+
+        EXPECT_TRUE( window.first_position() >= 7790001 );
+        EXPECT_TRUE( window.first_position() <= 7850001 );
+        EXPECT_TRUE( window.last_position() >= 7800000 );
+        EXPECT_TRUE( window.last_position() <= 7860000 );
+
         ++window_cnt;
     }
     EXPECT_EQ( 6, window_cnt );
