@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,9 @@
  */
 
 #include "genesis/population/window/base_window_iterator.hpp"
+#include "genesis/population/window/window_view_iterator.hpp"
+#include "genesis/population/window/window_view.hpp"
+#include "genesis/population/window/window.hpp"
 
 #include <cassert>
 #include <functional>
@@ -165,7 +168,7 @@ public:
 
     public:
 
-        ~DerivedIterator() = default;
+        virtual ~DerivedIterator() = default;
 
         DerivedIterator( self_type const& ) = default;
         DerivedIterator( self_type&& )      = default;
@@ -368,7 +371,7 @@ public:
         : base_type( begin, end )
     {}
 
-    ~SlidingIntervalWindowIterator() = default;
+    virtual ~SlidingIntervalWindowIterator() = default;
 
     SlidingIntervalWindowIterator( SlidingIntervalWindowIterator const& ) = default;
     SlidingIntervalWindowIterator( SlidingIntervalWindowIterator&& )      = default;
@@ -534,6 +537,27 @@ make_default_sliding_interval_window_iterator(
     it.width( width );
     it.stride( stride );
     return it;
+}
+
+/**
+ * @brief Helper class that creates a SlidingIntervalWindowIterator
+ * and wraps it in a WindowViewIterator.
+ *
+ * See make_default_sliding_interval_window_iterator() for the base functionality,
+ * and see make_window_view_iterator() for the wrapping behaviour.
+ *
+ * Note that because this is a simple wrapper around the constructor of SlidingIntervalWindowIterator,
+ * we lose access to that class itself, so that its more specialized member functions cannot be called
+ * any more. If this is needed, use the two aforementioned `make_...()` functions individually.
+ */
+template<class InputIterator>
+WindowViewIterator<InputIterator>
+make_default_sliding_interval_window_view_iterator(
+    InputIterator begin, InputIterator end, size_t width = 0, size_t stride = 0
+) {
+    return make_window_view_iterator(
+        make_default_sliding_interval_window_iterator( begin, end, width, stride )
+    );
 }
 
 } // namespace population

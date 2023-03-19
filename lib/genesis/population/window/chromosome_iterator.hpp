@@ -188,7 +188,7 @@ public:
 
     public:
 
-        ~DerivedIterator() = default;
+        virtual ~DerivedIterator() = default;
 
         DerivedIterator( self_type const& ) = default;
         DerivedIterator( self_type&& )      = default;
@@ -382,7 +382,7 @@ public:
         : base_type( begin, end )
     {}
 
-    ~ChromosomeIterator() = default;
+    virtual ~ChromosomeIterator() = default;
 
     ChromosomeIterator( ChromosomeIterator const& ) = default;
     ChromosomeIterator( ChromosomeIterator&& )      = default;

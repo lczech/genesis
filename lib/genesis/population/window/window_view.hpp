@@ -31,6 +31,8 @@
  * @ingroup population
  */
 
+#include "genesis/population/window/window.hpp"
+
 #include <cassert>
 #include <functional>
 #include <stdexcept>
@@ -240,6 +242,41 @@ public:
     WindowView( std::string const& chromosome )
         : chromosome_(chromosome)
     {}
+
+    /**
+     * @brief Constructor that takes a @p window and creates a view into it.
+     *
+     * This is just a simple way of "converting" a Window to a WindowView, by having the view
+     * access all the data of the Window. This automatically sets the get_element function.
+     *
+     * It is required that the scope of the @p window outlives this WindowView.
+     */
+    WindowView( Window<Data> const& window )
+        : chromosome_( window.chromosome() )
+    {
+        size_t index = 0;
+        get_element = [ index, &window ]() mutable -> Data const* {
+            if( index >= window.size() ) {
+                return nullptr;
+            }
+            return &window[index++].data;
+        };
+    }
+
+    /**
+     * @copydoc WindowView( Window<Data> const& )
+     */
+    WindowView( Window<Data>& window )
+        : chromosome_( window.chromosome() )
+    {
+        size_t index = 0;
+        get_element = [ index, &window ]() mutable -> Data* {
+            if( index >= window.size() ) {
+                return nullptr;
+            }
+            return &window[index++].data;
+        };
+    }
 
     ~WindowView() = default;
 

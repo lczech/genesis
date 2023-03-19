@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,6 +35,8 @@
 #include "genesis/population/genome_region_list.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/window/base_window_iterator.hpp"
+#include "genesis/population/window/window_view_iterator.hpp"
+#include "genesis/population/window/window_view.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/range.hpp"
 
@@ -190,7 +192,7 @@ public:
 
     public:
 
-        ~DerivedIterator() = default;
+        virtual ~DerivedIterator() = default;
 
         DerivedIterator( self_type const& ) = default;
         DerivedIterator( self_type&& )      = default;
@@ -741,7 +743,7 @@ public:
         }
     }
 
-    ~RegionWindowIterator() = default;
+    virtual ~RegionWindowIterator() = default;
 
     RegionWindowIterator( RegionWindowIterator const& ) = default;
     RegionWindowIterator( RegionWindowIterator&& )      = default;
@@ -857,6 +859,28 @@ make_default_region_window_iterator(
 
     // Set properties.
     return it;
+}
+
+/**
+ * @brief Helper class that creates a RegionWindowIterator
+ * and wraps it in a WindowViewIterator.
+ *
+ * See make_default_region_window_iterator() for the base functionality,
+ * and see make_window_view_iterator() for the wrapping behaviour.
+ *
+ * Note that because this is a simple wrapper around the constructor of RegionWindowIterator,
+ * we lose access to that class itself, so that its more specialized member functions cannot be called
+ * any more. If this is needed, use the two aforementioned `make_...()` functions individually.
+ */
+template<class InputIterator>
+WindowViewIterator<InputIterator>
+make_default_region_window_view_iterator(
+    InputIterator begin, InputIterator end,
+    std::shared_ptr<GenomeRegionList> region_list
+) {
+    return make_window_view_iterator(
+        make_default_region_window_iterator( begin, end, region_list )
+    );
 }
 
 } // namespace population

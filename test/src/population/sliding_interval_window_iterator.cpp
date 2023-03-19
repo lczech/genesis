@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 #include "genesis/population/formats/variant_input_iterator.hpp"
 #include "genesis/population/window/functions.hpp"
 #include "genesis/population/window/sliding_interval_window_iterator.hpp"
+#include "genesis/population/window/variant_window_iterator.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/lambda_iterator.hpp"
 
@@ -168,6 +169,46 @@ TEST( WindowIterator, SlidingIntervalLambda )
 
     test_sliding_interval_iterator_( win_it );
 
+}
+
+void run_sliding_interval_window_view_variant_test_( VariantWindowIterator& win_it )
+{
+    size_t window_cnt = 0;
+    for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
+        ++window_cnt;
+    }
+    EXPECT_EQ( 786, window_cnt );
+}
+
+TEST( WindowIterator, SlidingIntervalWindowView )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/78.pileup.gz";
+    // std::string const infile = environment->data_dir + "population/example.pileup";
+
+    // Make a Lambda Iterator over the data stream.
+    auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
+    // data_gen.block_size( 1024 * 1024 );
+    data_gen.block_size(0);
+    auto pileup_begin = data_gen.begin();
+    auto pileup_end   = data_gen.end();
+
+    // Create a window iterator based on the lambda iterator.
+    auto win_it = make_default_sliding_interval_window_view_iterator(
+        pileup_begin, pileup_end, 10000
+    );
+    // win_it.emit_leading_empty_windows( false );
+
+    // We use a test function that takes our abstract type, to see if we set this up correctly.
+    run_sliding_interval_window_view_variant_test_( win_it );
+
+    // test_sliding_interval_iterator_( win_it );
+    // size_t window_cnt = 0;
+    // for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
+    //     ++window_cnt;
+    // }
+    // EXPECT_EQ( 786, window_cnt );
 }
 
 TEST( WindowIterator, SlidingIntervalEmpty )

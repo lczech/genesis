@@ -81,8 +81,10 @@
 #include "genesis/population/window/sliding_entries_window_iterator.hpp"
 #include "genesis/population/window/sliding_interval_window_iterator.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
+#include "genesis/population/window/variant_window_iterator.hpp"
 #include "genesis/population/window/vcf_window.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/population/window/window_view.hpp"
+#include "genesis/population/window/window_view_iterator.hpp"
 
 #endif // include guard
