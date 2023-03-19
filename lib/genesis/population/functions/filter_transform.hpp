@@ -135,7 +135,7 @@ void transform_zero_out_by_min_count(
  * @copydoc transform_zero_out_by_min_count( BaseCounts&, size_t, bool )
  *
  * Additionally, this overload of the function also writes a statistic: When a count is set to zero,
- * the @stats value BaseCountsFilterStats::below_min_count is incremented.
+ * the @p stats value BaseCountsFilterStats::below_min_count is incremented.
  */
 void transform_zero_out_by_min_count(
     BaseCounts& sample,
@@ -159,7 +159,8 @@ void transform_zero_out_by_min_count(
  * @copydoc transform_zero_out_by_min_count( BaseCounts&, size_t, bool )
  *
  * This overload acts on all Variant::samples in the given @p variant, and also writes a statistic:
- * When a count is set to zero, the @stats value BaseCountsFilterStats::below_min_count is incremented.
+ * When a count is set to zero, the @p stats value BaseCountsFilterStats::below_min_count is
+ * incremented.
  */
 void transform_zero_out_by_min_count(
     Variant& variant,
@@ -189,7 +190,7 @@ void transform_zero_out_by_max_count(
  * @copydoc transform_zero_out_by_max_count( BaseCounts&, size_t, bool )
  *
  * Additionally, this overload of the function also writes a statistic: When a count is set to zero,
- * the @stats value BaseCountsFilterStats::below_min_count is incremented.
+ * the @p stats value BaseCountsFilterStats::below_min_count is incremented.
  */
 void transform_zero_out_by_max_count(
     BaseCounts& sample,
@@ -213,7 +214,8 @@ void transform_zero_out_by_max_count(
  * @copydoc transform_zero_out_by_max_count( BaseCounts&, size_t, bool )
  *
  * This overload acts on all Variant::samples in the given @p variant, and also writes a statistic:
- * When a count is set to zero, the @stats value BaseCountsFilterStats::below_min_count is incremented.
+ * When a count is set to zero, the @p stats value BaseCountsFilterStats::below_min_count is
+ * incremented.
  */
 void transform_zero_out_by_max_count(
     Variant& variant,
@@ -606,7 +608,7 @@ bool filter_variant(
 );
 
 /**
- * @copydoc filter_variant( Variant&, VariantFilter const& )
+ * @copydoc filter_variant( Variant const&, VariantFilter const& )
  *
  * This overload also increments the statistic of the failing or passing filter.
  */

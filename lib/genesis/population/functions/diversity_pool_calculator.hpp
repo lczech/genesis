@@ -84,10 +84,16 @@ namespace population {
  * such a filter/transform function given a BaseCountsFilter settings instance.
  *
  * Alternaively, genesis::utils::make_filter_range() can be used to achieve the same effect,
- * but requiring a bit more manual "wiring" of the components first.
+ * but requiring a bit more manual "wiring" of the components first. This however has the advantage
+ * that BaseCountsFilterStats can be provided, e.g., per window of the analysis, to capture the
+ * number of sites that pass coverage filters etc. These numbers can then be used for
+ * get_theta_pi_relative() and get_theta_watterson_relative(), respectively. Otherwise (when instead
+ * filtering directly in the VariantInputIterator), these numbers are lost, and instead the relative
+ * values would need to be computed, e.g., using the full window sizes, instead of taking only
+ * sufficiently covered positions into account for the normalization.
  *
- * Then, for all SNP positions of interest, call process() to compute the values for theta pi and
- * theta watterson of this sample. The values are internally accumualted.
+ * With either way of filtering, for all SNP positions of interest, call process() to compute the
+ * values for theta pi and theta watterson of this sample. The values are internally accumualted.
  *
  * Once all samples have been processed, the getter functions get_theta_pi_absolute(),
  * get_theta_pi_relative(), get_theta_watterson_absolute(), and get_theta_watterson_relative()

@@ -694,7 +694,7 @@ public:
     }
 
     /**
-     * @copydoc LambdaIterator( std::function<bool(value_type&)>, size_t )
+     * @copydoc LambdaIterator( std::function<bool(value_type&)>, std::shared_ptr<utils::ThreadPool>, size_t )
      *
      * Additionally, @p data can be given here, which we simply store and make accessible
      * via data(). This is a convenience so that iterators generated via a `make` function
@@ -712,7 +712,7 @@ public:
     }
 
     /**
-     * @copydoc LambdaIterator( std::function<bool(value_type&)>, Data const&, size_t )
+     * @copydoc LambdaIterator( std::function<bool(value_type&)>, Data const&, std::shared_ptr<utils::ThreadPool>, size_t )
      *
      * This version of the constructor takes the data by r-value reference, for moving it.
      */

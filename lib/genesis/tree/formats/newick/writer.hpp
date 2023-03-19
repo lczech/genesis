@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -242,7 +242,7 @@ public:
      *
      * Remark: When using a CommonTreeNewickWriterPlugin (or a CommonTreeNewickWriter, as it
      * internally uses the plugin), you can use its setting
-     * @link CommonTreeNewickWriterPlugin::replace_name_spaces( bool ) replace_name_spaces()@endlink
+     * @link CommonTreeNewickWriterPlugin::replace_invalid_chars( bool ) replace_invalid_chars()@endlink
      * in order to replace any spaces in node nams into underscores.
      *
      * This function sets the kind of quotation marks used for wrapping such names. Common are
