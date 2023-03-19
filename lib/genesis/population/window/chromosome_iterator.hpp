@@ -252,6 +252,7 @@ public:
             // We need to access the underlying iterator throw the self type of the class,
             // see here https://stackoverflow.com/a/28623297/4184258
             // (we could do this in all other instances as well, but it only matters here).
+            bool is_first = true;
             auto& cur = self_type::current_;
             auto& end = self_type::end_;
             auto const par = parent_;
@@ -268,12 +269,13 @@ public:
             // We reset the window view, so that it's a new iterator for the new chromosome,
             // starting from the first position, with a fitting increment function.
             window_ = WindowViewType( chr );
-            window_.get_next_element = [ &cur, &end, par, chr ]( bool is_first ) mutable -> DataType* {
+            window_.get_element = [ is_first, &cur, &end, par, chr ]() mutable -> DataType* {
                 // If this is the first call of the function, we are initializing the WindowView
                 // with the current entry of the underlying iterator. If not, we first move to the
                 // next position (if there is any), before getting the data.
                 if( is_first ) {
                     assert( cur != end );
+                    is_first = false;
                     return &*cur;
                 }
 
@@ -311,19 +313,21 @@ public:
             }
 
             // Similar to the above, we need pointer variables to the iterators and other elements.
+            bool is_first = true;
             auto& cur = self_type::current_;
             auto& end = self_type::end_;
 
             // We reset the window view, so that it's a new iterator for the new chromosome,
             // starting from the first position, with a fitting increment function.
             window_ = WindowViewType();
-            window_.get_next_element = [ &cur, &end ]( bool is_first ) mutable -> DataType* {
+            window_.get_element = [ is_first, &cur, &end ]() mutable -> DataType* {
                 assert( cur != end );
 
                 // If this is the first call of the function, we are initializing the WindowView
                 // with the current entry of the underlying iterator. If not, we first move to the
                 // next position (if there is any), before getting the data.
                 if( is_first ) {
+                    is_first = false;
                     return &*cur;
                 }
 
@@ -355,6 +359,7 @@ public:
         // Parent. Needs to live here to have the correct derived type.
         ChromosomeIterator const* parent_ = nullptr;
 
+        // Store the iterator for the window.
         WindowViewType window_;
 
         // We keep track of which chromosomes we have seen yet, in order to allow random order,

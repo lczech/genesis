@@ -51,19 +51,18 @@ namespace population {
  * data, but without copying the entries into the window. It serves as an abstraction for algorithms
  * that need to stream through a file in a window-like manner in a single pass.
  *
- * It expexts the `get_next_element` function to be set, returning a pointer to the current underlying
- * data entry, or a `nullptr` to signal the end of the iteration. That function takes a bool
- * indicating whether this is the inital call (get the first element of the underlying input iterator),
- * or not, in which case the iterator is advanced first. This is a bit cumbersome... but allows us
- * to only take one lambda to process both cases.
+ * It expexts the `get_element` function to be set, returning a pointer to the current underlying
+ * data entry, or a `nullptr` to signal the end of the iteration. The provided function needs to
+ * distinguish the inital call (get the first element of the underlying input iterator),
+ * from later calls, in which case the underlying iterator needs to be advanced first.
  *
- * This provided `get_next_element` function is hence also responsible for advancing the underlying
+ * That is, this provided `get_element` function is also responsible for advancing the underlying
  * stream. This abstraction allows the class to be used as an iterator pointing to some other data,
  * without using the being() and end() functions of that data (which might not even need to have
  * those). For example, when iteraing individual whole chromosomes as windows
  * (see ChromosomeIterator for this), we want to stop the iteration of each window after a
  * chromosome is done, which might be before the end of the data itself (if there are multiple
- * chromosomes in the input). The `get_next_element` function of this WindowView class allows to
+ * chromosomes in the input). The `get_element` function of this WindowView class allows to
  * define such conditions, and stops the iteration.
  *
  * Because of its streaming approach, its memory footprint is smaller than that of a Window,
@@ -125,13 +124,13 @@ public:
             : parent_( parent )
         {
             // Either we have no parent, or a valid one. This is checked in the begin() function.
-            assert( ! parent_ || parent_->get_next_element );
+            assert( ! parent_ || parent_->get_element );
 
             // If there is a parent, this is not an end iterator.
             // Then, we need to read the first element, and check if there is any.
             if( parent_ ) {
-                assert( parent_->get_next_element );
-                current_ = parent_->get_next_element( true );
+                assert( parent_->get_element );
+                current_ = parent_->get_element();
                 if( ! current_ ) {
                     parent_ = nullptr;
                 }
@@ -185,9 +184,9 @@ public:
         self_type& operator ++()
         {
             assert( parent_ );
-            assert( parent_->get_next_element );
+            assert( parent_->get_element );
 
-            current_ = parent_->get_next_element( false );
+            current_ = parent_->get_element();
             if( ! current_ ) {
                 parent_ = nullptr;
             }
@@ -280,10 +279,10 @@ public:
 
     Iterator begin() const
     {
-        if( ! get_next_element ) {
+        if( ! get_element ) {
             throw std::runtime_error(
                 "WindowView begin() has been called without setting "
-                "the get_next_element function first."
+                "the get_element function first."
             );
         }
         if( started_ ) {
@@ -310,18 +309,12 @@ public:
     /**
      * @brief Function to read the next element from some input source.
      *
-     * The function takes a bool indicating whether this is its first call for the chromosome or not.
-     * In the latter, the function is expected to advance in the input first. Then, in both bases,
-     * the return value of the function is expected to be a pointer to the current element in the
-     * underlying input source.
-     *
-     * We chose this design, which admittedly is a bit cumbersome, in order to only have to set one
-     * function for both purposes, advancing and dereferencing. We also cannot do the advance after
-     * getting the current element, as this might fail with iterators that delete their current
-     * element after incrementing. Hence, the pointed to data (the return value of this function)
-     * should always be the data that the underlying input source is at.
+     * The return value of the function is expected to be a pointer to the current element in the
+     * underlying input source. When called multiple times, the function is expected to advance
+     * the underlying iterator first. That also means it usually needs to distinguish between
+     * its first call and subsequent calls, which would require incrementing.
      */
-    std::function<Data*(bool)> get_next_element;
+    std::function<Data*()> get_element;
 
 private:
 
