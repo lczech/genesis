@@ -28,7 +28,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/functions/diversity.hpp"
+#include "genesis/population/functions/diversity_pool_functions.hpp"
 
 #include "genesis/utils/containers/function_cache.hpp"
 #include "genesis/utils/containers/matrix.hpp"
@@ -104,7 +104,7 @@ double amnm_( // get_aMnm_buffer
 }
 
 // =================================================================================================
-//     Diversity Estimates
+//     Theta Pi
 // =================================================================================================
 
 double heterozygosity( BaseCounts const& sample, bool with_bessel )
@@ -129,28 +129,25 @@ double heterozygosity( BaseCounts const& sample, bool with_bessel )
     return h;
 }
 
-// =================================================================================================
-//     Theta Pi
-// =================================================================================================
-
 double theta_pi_pool_denominator(
-    PoolDiversitySettings const& settings,
+    DiversityPoolSettings const& settings,
+    size_t poolsize, // n
     size_t nucleotide_count  // M
 ) {
     // PoPoolation variable names:
+    // min_count:        b
     // poolsize:         n
-    // min_allele_count: b
     // nucleotide_count: M
 
     // Local cache for speed.
     static genesis::utils::FunctionCache<double, size_t, size_t, size_t> denom_cache_{ [](
-        size_t poolsize, size_t min_allele_count, size_t nucleotide_count
+        size_t min_count, size_t poolsize, size_t nucleotide_count
     ){
         // Boundary: if not held, we'd return zero, and that would not be a useful denominator.
-        if( 2 * min_allele_count > nucleotide_count ) {
+        if( 2 * min_count > nucleotide_count ) {
             throw std::invalid_argument(
-                "Cannot compute theta_pi_pool_denominator with min_allele_count = " +
-                std::to_string( min_allele_count ) + " and nucleotide_count = " +
+                "Cannot compute theta_pi_pool_denominator with min_count = " +
+                std::to_string( min_count ) + " and nucleotide_count = " +
                 std::to_string( nucleotide_count )
             );
         }
@@ -159,7 +156,7 @@ double theta_pi_pool_denominator(
         double div = 0.0;
 
         // #pragma omp parallel for
-        for( size_t m_it = min_allele_count; m_it <= ( nucleotide_count - min_allele_count ); ++m_it ) {
+        for( size_t m_it = min_count; m_it <= ( nucleotide_count - min_count ); ++m_it ) {
             // We iterate from b to M-b (in PoPoolation terminology), inclusively.
             // Use double values however for the computations.
             double const m = static_cast<double>( m_it );
@@ -176,7 +173,7 @@ double theta_pi_pool_denominator(
     }};
 
     // Simply return the cached value (which computes them first if not yet cached).
-    return denom_cache_( settings.poolsize, settings.min_allele_count, nucleotide_count );
+    return denom_cache_( settings.min_count, poolsize, nucleotide_count );
 }
 
 // =================================================================================================
@@ -184,23 +181,24 @@ double theta_pi_pool_denominator(
 // =================================================================================================
 
 double theta_watterson_pool_denominator(
-    PoolDiversitySettings const& settings,
+    DiversityPoolSettings const& settings,
+    size_t poolsize,
     size_t nucleotide_count  // M
 ) {
     // PoPoolation variable names:
+    // min_count:        b
     // poolsize:         n
-    // min_allele_count: b
     // nucleotide_count: M
 
     // Local cache for speed.
     static genesis::utils::FunctionCache<double, size_t, size_t, size_t> denom_cache_{ [](
-        size_t poolsize, size_t min_allele_count, size_t nucleotide_count
+        size_t min_count, size_t poolsize, size_t nucleotide_count
     ){
         // Boundary: if not held, we'd return zero, and that would not be a useful denominator.
-        if( 2 * min_allele_count > nucleotide_count ) {
+        if( 2 * min_count > nucleotide_count ) {
             throw std::invalid_argument(
-                "Cannot compute theta_watterson_pool_denominator with min_allele_count = " +
-                std::to_string( min_allele_count ) + " and nucleotide_count = " +
+                "Cannot compute theta_watterson_pool_denominator with min_count = " +
+                std::to_string( min_count ) + " and nucleotide_count = " +
                 std::to_string( nucleotide_count )
             );
         }
@@ -209,7 +207,7 @@ double theta_watterson_pool_denominator(
         double div = 0.0;
 
         // #pragma omp parallel for
-        for( size_t m_it = min_allele_count; m_it <= ( nucleotide_count - min_allele_count ); ++m_it ) {
+        for( size_t m_it = min_count; m_it <= ( nucleotide_count - min_count ); ++m_it ) {
 
             // Compute the term. We here use the cache, which also computes results if not yet cached.
             auto const anmn = amnm_( poolsize, nucleotide_count, m_it );
@@ -221,11 +219,11 @@ double theta_watterson_pool_denominator(
     }};
 
     // Simply return the cached value (which computes them first if not yet cached).
-    return denom_cache_( settings.poolsize, settings.min_allele_count, nucleotide_count );
+    return denom_cache_( settings.min_count, poolsize, nucleotide_count );
 }
 
 // =================================================================================================
-//     Tajima's D Local Helpers
+//     Tajima's D Helper Functions
 // =================================================================================================
 
 double a_n( size_t n ) // get_an_buffer
@@ -449,26 +447,27 @@ double n_base( size_t coverage, size_t poolsize ) // get_nbase_buffer, but bette
 // =================================================================================================
 
 double tajima_d_pool_denominator( // get_ddivisor
-    PoolDiversitySettings const& settings,
+    DiversityPoolSettings const& settings,
+    size_t poolsize, // n
     size_t snp_count,
     double theta
 ) {
     // PoPoolation variable names:
+    // min_count:        b
     // poolsize:         n
-    // min_allele_count: b
     // nucleotide_count: M
 
     using namespace genesis::utils;
 
     // Edge cases.
-    if( settings.min_allele_count != 2 ) {
+    if( settings.min_count != 2 ) {
         throw std::invalid_argument(
             "Minimum allele count needs to be set to 2 for calculating pool-corrected Tajima's D "
             "with tajima_d_pool() according to Kofler et al. In case 2 is insufficient, "
             "we recommend to subsample the reads to a smaller coverage."
         );
     }
-    if( 3 * settings.min_coverage >= settings.poolsize ) {
+    if( 3 * settings.min_coverage >= poolsize ) {
         throw std::invalid_argument(
             "Invalid mincoverage >> poolsize (as internal aproximation we use: "
             "3 * minimumcoverage < poolsize) in tajima_d_pool()"
@@ -486,11 +485,11 @@ double tajima_d_pool_denominator( // get_ddivisor
     double alphastar;
     double betastar;
     if( settings.with_popoolation_bugs ) {
-        avg_n = n_base( settings.poolsize, settings.poolsize );
+        avg_n = n_base( poolsize, poolsize );
         alphastar = static_cast<double>( beta_star( avg_n ));
         betastar  = alphastar;
     } else {
-        avg_n = n_base( settings.min_coverage, settings.poolsize );
+        avg_n = n_base( settings.min_coverage, poolsize );
         alphastar = static_cast<double>( alpha_star( avg_n ));
         betastar  = static_cast<double>( beta_star( avg_n ));;
     }

@@ -1,0 +1,285 @@
+#ifndef GENESIS_POPULATION_FUNCTIONS_DIVERSITY_POOL_CALCULATOR_H_
+#define GENESIS_POPULATION_FUNCTIONS_DIVERSITY_POOL_CALCULATOR_H_
+
+/*
+    Genesis - A toolkit for working with phylogenetic data.
+    Copyright (C) 2014-2023 Lucas Czech
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Contact:
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
+*/
+
+/**
+ * @brief
+ *
+ * @file
+ * @ingroup population
+ */
+
+#include "genesis/population/functions/diversity_pool_functions.hpp"
+#include "genesis/population/functions/functions.hpp"
+#include "genesis/population/variant.hpp"
+
+#include <cassert>
+#include <cmath>
+#include <cstdint>
+#include <iterator>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+namespace genesis {
+namespace population {
+
+// =================================================================================================
+//     Diversity Pool Calculator
+// =================================================================================================
+
+/**
+ * @brief Compute Theta Pi, Theta Watterson, and Tajia's D in their pool-sequencing corrected
+ * versions according to Kofler et al.
+ *
+ * This is an efficient high level helper that is meant to compute these statistics on input
+ * iterator ranges. See theta_pi_pool(), theta_watterson_pool(), and tajima_d_pool() for details
+ * on the functions it computes.
+ *
+ * The provided DiversityPoolSettings take care of most options offered by PoPoolation.
+ * In particular, we want to set the `min_count`, as well as the `min_coverage` and `max_coverage`.
+ *
+ * We do expect here that the input samples that are provided to the process() function
+ * are already filtered and transformed as needed.
+ * For example, typically, we want to use a BaseCountsFilter with these settings:
+ *
+ *     filter.min_count = settings.min_count;
+ *     filter.min_coverage = settings.min_coverage;
+ *     filter.max_coverage = settings.max_coverage;
+ *     filter.only_snps = true;
+ *
+ * That is, the settings for the pool statistics should match the settings used for filtering the
+ * samples. The function filter_base_counts() can be used to transform and filter the input
+ * coming from a file, in order to remove base counts and samples that do not match these filters.
+ *
+ * There are multiple ways that this filtering can be applied. Typically for example, we want
+ * to process a VariantInputIterator, which allows us to use input from a variety of input
+ * file formats, all converted into Variant%s at each position in the genome. This internally
+ * is a genesis::utils::LambdaIterator, which offers to add
+ * @link genesis::utils::LambdaIterator::add_transform_filter() add_transform_filter()@endlink
+ * functions for this purpose. The make_filter_base_counts() is a convenience function that creates
+ * such a filter/transform function given a BaseCountsFilter settings instance.
+ *
+ * Alternaively, genesis::utils::make_filter_range() can be used to achieve the same effect,
+ * but requiring a bit more manual "wiring" of the components first.
+ *
+ * Then, for all SNP positions of interest, call process() to compute the values for theta pi and
+ * theta watterson of this sample. The values are internally accumualted.
+ *
+ * Once all samples have been processed, the getter functions get_theta_pi_absolute(),
+ * get_theta_pi_relative(), get_theta_watterson_absolute(), and get_theta_watterson_relative()
+ * can be used to obtain Theta Pi and Theta Watterson directly. For Tajima's D, more computation is
+ * needed, which is why the according function is called compute_tajima_d().
+ *
+ * See
+ *
+ * > R. Kofler, P. Orozco-terWengel, N. De Maio, R. V. Pandey, V. Nolte,
+ * > A. Futschik, C. Kosiol, C. Schlötterer.<br>
+ * > PoPoolation: A Toolbox for Population Genetic Analysis of
+ * > Next Generation Sequencing Data from Pooled Individuals.<br>
+ * > (2011) PLoS ONE, 6(1), e15925. https://doi.org/10.1371/journal.pone.0015925
+ *
+ * for details on the equations. The paper unfortunately does not explain their equations, but there
+ * is a hidden document in their code repository that illuminates the situation a bit. See
+ * https://sourceforge.net/projects/popoolation/files/correction_equations.pdf
+ */
+class DiversityPoolCalculator
+{
+public:
+
+    // -------------------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------------------
+
+    DiversityPoolCalculator( DiversityPoolSettings const& settings, size_t poolsize )
+        : settings_( settings )
+        , poolsize_( poolsize )
+    {}
+    ~DiversityPoolCalculator() = default;
+
+    DiversityPoolCalculator( DiversityPoolCalculator const& ) = default;
+    DiversityPoolCalculator( DiversityPoolCalculator&& )      = default;
+
+    DiversityPoolCalculator& operator= ( DiversityPoolCalculator const& ) = default;
+    DiversityPoolCalculator& operator= ( DiversityPoolCalculator&& )      = default;
+
+    using self_type = DiversityPoolCalculator;
+
+    // -------------------------------------------------------------------------
+    //     Settings
+    // -------------------------------------------------------------------------
+
+    self_type& compute_theta_pi( bool value )
+    {
+        compute_theta_pi_ = value;
+        return *this;
+    }
+
+    bool compute_theta_pi() const
+    {
+        return compute_theta_pi_;
+    }
+
+    self_type& compute_theta_watterson( bool value )
+    {
+        compute_theta_watterson_ = value;
+        return *this;
+    }
+
+    bool compute_theta_watterson() const
+    {
+        return compute_theta_watterson_;
+    }
+
+    self_type& compute_tajima_d( bool value )
+    {
+        compute_tajima_d_ = value;
+        return *this;
+    }
+
+    bool compute_tajima_d() const
+    {
+        return compute_tajima_d_;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Calculator Functions
+    // -------------------------------------------------------------------------
+
+    void reset()
+    {
+        theta_pi_sum_        = 0.0;
+        theta_watterson_sum_ = 0.0;
+    }
+
+    /**
+     * @brief Process a @p sample, by computing its Theta Pi and Theta Watterson values,
+     * respectively.
+     *
+     * The values are internally accumulated, so that they are usable for the getter functions.
+     * This function here also returns both of them (Pi first, Watterson second) for the given
+     * sample, as a convenience.
+     */
+    std::pair<double, double> process( BaseCounts const& sample )
+    {
+        double tp = 0.0;
+        double tw = 0.0;
+        if( compute_theta_pi_ || compute_tajima_d_ ) {
+            tp = theta_pi_pool( settings_, poolsize_, sample );
+            theta_pi_sum_ += tp;
+        }
+        if( compute_theta_watterson_ || compute_tajima_d_ ) {
+            tw = theta_watterson_pool( settings_, poolsize_, sample );
+            theta_watterson_sum_ += tw;
+        }
+        return std::make_pair( tp, tw );
+    }
+
+    /**
+     * @brief Get the absolute value of Theta Pi.
+     *
+     * This is the sum of all values for all BaseCounts samples that have been given to process().
+     */
+    double get_theta_pi_absolute()
+    {
+        return theta_pi_sum_;
+    }
+
+    /**
+     * @brief Compute the relative Theta Pi.
+     *
+     * According to PoPoolation, this is computed using only the number of SNPs with sufficient
+     * coverage in the given window. This can for example be computed from BaseCountsFilterStats,
+     * by using `coverage_count = BaseCountsFilterStats::passed + BaseCountsFilterStats::not_snp`.
+     *
+     * Alternaively, using the whole window size might also we a way to compute a relative value.
+     * However, this might underestimate diversity in regions with low coverage, as then, we might
+     * have positions with no coverage, so that we do not compute a value there, but they are still
+     * used in the denominator here for computing the relative value.
+     */
+    double get_theta_pi_relative( size_t coverage_count )
+    {
+        return theta_pi_sum_ / static_cast<double>( coverage_count );
+    }
+
+    /**
+     * @brief Get the absolute value of Theta Watterson.
+     *
+     * This is the sum of all values for all BaseCounts samples that have been given to process().
+     */
+    double get_theta_watterson_absolute()
+    {
+        return theta_watterson_sum_;
+    }
+
+    /**
+     * @brief Compute the relative Theta Watterson.
+     *
+     * @copydetails get_theta_pi_relative()
+     */
+    double get_theta_watterson_relative( size_t coverage_count )
+    {
+        return theta_watterson_sum_ / static_cast<double>( coverage_count );
+    }
+
+    /**
+     * @brief Compute the value for Tajima's D, using the computed values for Theta Pi and Theta
+     * Watterson.
+     *
+     * This uses the sums of all values for all BaseCounts samples that have been given to process(),
+     * and needs to be given the total number of SNPs that have been processed.
+     * This can for example be obtained from BaseCountsFilterStats::passed
+     */
+    double compute_tajima_d( size_t snp_count )
+    {
+        return tajima_d_pool(
+            settings_, poolsize_, theta_pi_sum_, theta_watterson_sum_, snp_count
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    //     Private Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    // Settings
+    DiversityPoolSettings settings_;
+    size_t poolsize_ = 0;
+
+    bool compute_theta_pi_        = true;
+    bool compute_theta_watterson_ = true;
+    bool compute_tajima_d_        = true;
+
+    // Data Accumulation
+    double theta_pi_sum_        = 0.0;
+    double theta_watterson_sum_ = 0.0;
+};
+
+} // namespace population
+} // namespace genesis
+
+#endif // include guard

@@ -35,8 +35,9 @@
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/formats/sync_reader.hpp"
 #include "genesis/population/formats/variant_input_iterator.hpp"
-#include "genesis/population/functions/diversity.hpp"
+#include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/fst_pool_functions.hpp"
+#include "genesis/population/functions/functions.hpp"
 #include "genesis/population/window/sliding_interval_window_iterator.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"
@@ -57,17 +58,16 @@ TEST( Structure, FstPoolGenerator )
     std::string const infile = environment->data_dir + "population/p1_p2.sync.gz";
 
     // Settings
-    PoolDiversitySettings settings;
-    settings.poolsize = 500;
-    settings.min_allele_count = 6;
-    settings.min_coverage = 50;
-    settings.max_coverage = 200;
+    size_t const poolsize = 500;
+    size_t const min_allele_count = 6;
+    size_t const min_coverage = 50;
+    size_t const max_coverage = 200;
+    size_t const window_width = 100;
+    size_t const window_stride = 100;
     // settings.min_coverage_fraction = 1.0;
     // settings.window_width = 100;
     // settings.window_stride = 100;
     // settings.min_phred_score = 20;
-    size_t const window_width = 100;
-    size_t const window_stride = 100;
 
     // Expected values.
     std::vector<double> const exp_kofler = {{
@@ -136,7 +136,7 @@ TEST( Structure, FstPoolGenerator )
         auto pop1_filt = make_transform_range(
             [&]( WindowGen::Window::Entry const& entry ) {
                 auto copy = entry.data[0];
-                transform_zero_out_by_min_count( copy, settings.min_allele_count );
+                transform_zero_out_by_min_count( copy, min_allele_count );
                 return copy;
             },
             window
@@ -144,7 +144,7 @@ TEST( Structure, FstPoolGenerator )
         auto pop2_filt = make_transform_range(
             [&]( WindowGen::Window::Entry const& entry ) {
                 auto copy = entry.data[1];
-                transform_zero_out_by_min_count( copy, settings.min_allele_count );
+                transform_zero_out_by_min_count( copy, min_allele_count );
                 return copy;
             },
             window
@@ -153,7 +153,7 @@ TEST( Structure, FstPoolGenerator )
         // Compute the statistics
         // LOG_DBG << "f_st_pool_kofler";
         auto const fst_conv = f_st_pool_kofler(
-            settings.poolsize, settings.poolsize,
+            poolsize, poolsize,
             pop1.begin(), pop1.end(),
             pop2.begin(), pop2.end()
         );
@@ -164,7 +164,7 @@ TEST( Structure, FstPoolGenerator )
         );
         // LOG_DBG << "f_st_pool_unbiased";
         auto const fst_unbiased = f_st_pool_unbiased(
-            settings.poolsize, settings.poolsize,
+            poolsize, poolsize,
             pop1_filt.begin(), pop1_filt.end(),
             pop2_filt.begin(), pop2_filt.end()
         );
@@ -191,15 +191,15 @@ TEST( Structure, FstPoolGenerator )
     while( reader.parse_line( instream, sample_set )) {
         EXPECT_EQ( 2, sample_set.samples.size() );
 
-        // transform_by_min_count( sample_set.samples[0], settings.min_allele_count );
-        // transform_by_min_count( sample_set.samples[1], settings.min_allele_count );
+        // transform_by_min_count( sample_set.samples[0], min_allele_count );
+        // transform_by_min_count( sample_set.samples[1], min_allele_count );
 
         // Ugly relic of many refactorings to do it this way... but good enough for now.
         auto merged = merge( sample_set.samples );
         BaseCountsFilter filter;
-        filter.min_count = settings.min_allele_count;
-        filter.min_coverage = settings.min_coverage;
-        filter.max_coverage = settings.max_coverage;
+        filter.min_count = min_allele_count;
+        filter.min_coverage = min_coverage;
+        filter.max_coverage = max_coverage;
         filter.only_biallelic_snps = true;
         if( filter_base_counts( merged, filter )) {
             window_gen.enqueue( sample_set.chromosome, sample_set.position, sample_set.samples );
@@ -208,7 +208,7 @@ TEST( Structure, FstPoolGenerator )
         // Old way of checking the status directly
         // if( status(
         //         merge( sample_set.samples ),
-        //         settings.min_coverage, settings.max_coverage, settings.min_allele_count
+        //         min_coverage, max_coverage, min_allele_count
         //     ).is_biallelic
         // ) {
         //     // LOG_DBG << "enq " <<  sample_set.position << " " << merge( sample_set.samples );
@@ -223,17 +223,16 @@ TEST( Structure, FstPoolIterator )
     std::string const infile = environment->data_dir + "population/p1_p2.sync.gz";
 
     // Settings
-    PoolDiversitySettings settings;
-    settings.poolsize = 500;
-    settings.min_allele_count = 6;
-    settings.min_coverage = 50;
-    settings.max_coverage = 200;
+    size_t const poolsize = 500;
+    size_t const min_allele_count = 6;
+    size_t const min_coverage = 50;
+    size_t const max_coverage = 200;
+    size_t const window_width = 100;
+    size_t const window_stride = 100;
     // settings.min_coverage_fraction = 1.0;
     // settings.window_width = 100;
     // settings.window_stride = 100;
     // settings.min_phred_score = 20;
-    size_t const window_width = 100;
-    size_t const window_stride = 100;
 
     // Expected values.
     std::vector<double> const exp_kofler = {{
@@ -275,22 +274,22 @@ TEST( Structure, FstPoolIterator )
     // Make a Lambda Iterator over the data stream.
     auto data_gen = make_variant_input_iterator_from_sync_file( infile );
     data_gen.add_filter([&]( Variant const& variant ){
-        // transform_by_min_count( sample_set.samples[0], settings.min_allele_count );
-        // transform_by_min_count( sample_set.samples[1], settings.min_allele_count );
+        // transform_by_min_count( sample_set.samples[0], min_allele_count );
+        // transform_by_min_count( sample_set.samples[1], min_allele_count );
 
         // Ugly relic of many refactorings to do it this way... but good enough for now.
         auto merged = merge( variant.samples );
         BaseCountsFilter filter;
-        filter.min_count = settings.min_allele_count;
-        filter.min_coverage = settings.min_coverage;
-        filter.max_coverage = settings.max_coverage;
+        filter.min_count = min_allele_count;
+        filter.min_coverage = min_coverage;
+        filter.max_coverage = max_coverage;
         filter.only_biallelic_snps = true;
         return filter_base_counts( merged, filter );
 
         // Old way of checking the status directly
         // return status(
         //     merge( variant.samples ),
-        //     settings.min_coverage, settings.max_coverage, settings.min_allele_count
+        //     min_coverage, max_coverage, min_allele_count
         // ).is_biallelic;
     });
 
@@ -331,7 +330,7 @@ TEST( Structure, FstPoolIterator )
         auto pop1_filt = make_transform_range(
             [&]( VariantWindow::Entry const& entry ) {
                 auto copy = entry.data.samples[0];
-                transform_zero_out_by_min_count( copy, settings.min_allele_count );
+                transform_zero_out_by_min_count( copy, min_allele_count );
                 return copy;
             },
             window
@@ -339,7 +338,7 @@ TEST( Structure, FstPoolIterator )
         auto pop2_filt = make_transform_range(
             [&]( VariantWindow::Entry const& entry ) {
                 auto copy = entry.data.samples[1];
-                transform_zero_out_by_min_count( copy, settings.min_allele_count );
+                transform_zero_out_by_min_count( copy, min_allele_count );
                 return copy;
             },
             window
@@ -348,7 +347,7 @@ TEST( Structure, FstPoolIterator )
         // Compute the statistics
         // LOG_DBG << "f_st_pool_kofler";
         auto const fst_conv = f_st_pool_kofler(
-            settings.poolsize, settings.poolsize,
+            poolsize, poolsize,
             pop1.begin(), pop1.end(),
             pop2.begin(), pop2.end()
         );
@@ -359,7 +358,7 @@ TEST( Structure, FstPoolIterator )
         );
         // LOG_DBG << "f_st_pool_unbiased";
         auto const fst_unbiased = f_st_pool_unbiased(
-            settings.poolsize, settings.poolsize,
+            poolsize, poolsize,
             pop1_filt.begin(), pop1_filt.end(),
             pop2_filt.begin(), pop2_filt.end()
         );

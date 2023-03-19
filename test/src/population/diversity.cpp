@@ -34,10 +34,13 @@
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/formats/variant_input_iterator.hpp"
-#include "genesis/population/functions/diversity.hpp"
+#include "genesis/population/functions/diversity_pool_calculator.hpp"
+#include "genesis/population/functions/diversity_pool_functions.hpp"
 #include "genesis/population/window/sliding_interval_window_iterator.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"
+#include "genesis/utils/containers/filter_iterator.hpp"
+#include "genesis/utils/containers/transform_iterator.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;
@@ -75,15 +78,15 @@ TEST( Population, DiversityMeasuresGenerator )
     // (but wrong!) results, we here activate our re-implementation of PoPoolation bugs.
 
     // Prepare all settings.
-    PoolDiversitySettings settings;
+    DiversityPoolSettings settings;
     // settings.window_width = 1000;
     // settings.window_stride = 1000;
     // settings.min_phred_score = 20;
     size_t const window_width = 1000;
     size_t const window_stride = 1000;
     size_t const min_phred_score = 20;
-    settings.poolsize = 500;
-    settings.min_allele_count = 2;
+    size_t const poolsize = 500;
+    settings.min_count = 2;
     settings.min_coverage = 4;
     settings.max_coverage = 70;
     // settings.min_coverage_fraction = 0.6;
@@ -151,19 +154,65 @@ TEST( Population, DiversityMeasuresGenerator )
 
         // Select the sample within the current window.
         auto range = make_transform_range(
-            []( VariantWindow::Entry const& entry ) -> BaseCounts const& {
+            // []( VariantWindow::Entry const& entry ) -> BaseCounts const& {
+            [&]( VariantWindow::Entry const& entry ) {
                 // Cannot use gtest within a lambda...
                 // ASSERT_EQ( 1, entry.data.samples.size() );
                 if( entry.data.samples.size() != 1 ) {
                     throw std::runtime_error( "Internal error: file has wrong number of samples." );
                 }
-                return entry.data.samples[0];
+                auto copy = entry.data.samples[0];
+                transform_zero_out_by_min_count( copy, settings.min_count );
+                return copy;
+                // return entry.data.samples[0];
             },
             window.begin(), window.end()
         );
 
+        // pool_diversity_measures_old( settings, poolsize, range.begin(), range.end() );
+
+        // Make a filter.
+        // We do a lot of copies and back and forth here, due to historic reasons
+        // (lots of refactoring...). It's okay for the test cases here though.
+        BaseCountsFilter filter;
+        filter.min_coverage = settings.min_coverage;
+        filter.max_coverage = settings.max_coverage;
+        filter.min_count = settings.min_count;
+        filter.only_snps = true;
+
+        // Count how many SNPs there are in total, and how many sites have the needed coverage.
+        BaseCountsFilterStats stats;
+        size_t variant_count = 0;
+        for( auto it = range.begin(); it != range.end(); ++it ) {
+
+            // Filter, and gather stats.
+            auto copy = *it;
+            filter_base_counts( copy, filter, stats );
+
+            // Add them up.
+            ++variant_count;
+        }
+        size_t coverage_count = stats.passed + stats.not_snp;
+        size_t snp_count      = stats.passed; // results.variant_count - stats.not_snp;
+        // LOG_DBG << "vc " << variant_count;
+        (void) variant_count;
+
+        // Make a filter that only allows samples that are SNPs and have the needed coverage.
+        auto covered_snps_range = genesis::utils::make_filter_range( [&]( BaseCounts const& sample ){
+            auto copy = sample;
+            return filter_base_counts( copy, filter );
+
+        }, range.begin(), range.end() );
+
         // Compute all statistics and compare them to the expected PoPoolation results.
-        auto const stats = pool_diversity_measures( settings, range.begin(), range.end() );
+        // auto const stats = pool_diversity_measures( settings, range.begin(), range.end() );
+        auto calc = DiversityPoolCalculator( settings, poolsize );
+        for( auto const& sample : covered_snps_range ) {
+            calc.process( sample );
+        }
+        auto const theta_pi_relative = calc.get_theta_pi_relative( coverage_count );
+        auto const theta_watterson_relative = calc.get_theta_watterson_relative( coverage_count );
+        auto const tajima_d = calc.compute_tajima_d( snp_count );
 
         // LOG_DBG1 << iteration_count << "\t" << value_count << "\t"
         //          << window.first_position() << "\t" << window.last_position() << "\t"
@@ -175,17 +224,17 @@ TEST( Population, DiversityMeasuresGenerator )
         // ;
 
         // Compare counts
-        EXPECT_EQ( exp_snp_cnt[value_count], stats.snp_count );
+        EXPECT_EQ( exp_snp_cnt[value_count], snp_count );
         // EXPECT_FLOAT_EQ( exp_cov[value_count], stats.coverage_fraction );
         EXPECT_FLOAT_EQ(
             exp_cov[value_count],
-            static_cast<double>( stats.coverage_count ) / window_width
+            static_cast<double>( coverage_count ) / window_width
         );
 
         // Compare statistic measures
-        EXPECT_FLOAT_EQ( exp_pi[value_count], stats.theta_pi_relative );
-        EXPECT_FLOAT_EQ( exp_tw[value_count], stats.theta_watterson_relative );
-        EXPECT_FLOAT_EQ( exp_td[value_count], stats.tajima_d );
+        EXPECT_FLOAT_EQ( exp_pi[value_count], theta_pi_relative );
+        EXPECT_FLOAT_EQ( exp_tw[value_count], theta_watterson_relative );
+        EXPECT_FLOAT_EQ( exp_td[value_count], tajima_d );
         ++iteration_count;
         ++value_count;
     });
@@ -211,15 +260,15 @@ TEST( Population, DiversityMeasuresIterator )
     std::string const infile = environment->data_dir + "population/78.pileup.gz";
 
     // Prepare all settings.
-    PoolDiversitySettings settings;
+    DiversityPoolSettings settings;
     // settings.window_width = 1000;
     // settings.window_stride = 1000;
     // settings.min_phred_score = 20;
     size_t const window_width = 1000;
     size_t const window_stride = 1000;
     size_t const min_phred_score = 20;
-    settings.poolsize = 500;
-    settings.min_allele_count = 2;
+    size_t const poolsize = 500;
+    settings.min_count = 2;
     settings.min_coverage = 4;
     settings.max_coverage = 70;
     // settings.min_coverage_fraction = 0.6;
@@ -279,24 +328,24 @@ TEST( Population, DiversityMeasuresIterator )
     using VariantWindow = Window<genesis::population::Variant>;
 
     // Prepare the reader.
-    LOG_DBG << "SimplePileupReader()";
+    // LOG_DBG << "SimplePileupReader()";
     auto reader = SimplePileupReader();
     reader.quality_encoding( genesis::sequence::QualityEncoding::kIllumina13 );
     reader.min_base_quality( min_phred_score );
 
     // Make a Lambda Iterator over the data stream.
-    LOG_DBG << "make_variant_input_iterator_from_pileup_file()";
+    // LOG_DBG << "make_variant_input_iterator_from_pileup_file()";
     auto data_gen = make_variant_input_iterator_from_pileup_file( infile, reader );
     auto pileup_begin = data_gen.begin();
     auto pileup_end   = data_gen.end();
 
     // Create a window iterator based on the lambda iterator.
-    LOG_DBG << "make_default_sliding_interval_window_iterator()";
+    // LOG_DBG << "make_default_sliding_interval_window_iterator()";
     auto win_it = make_default_sliding_interval_window_iterator(
         pileup_begin, pileup_end, window_width, window_stride
     );
 
-    LOG_DBG << "for()";
+    // LOG_DBG << "for()";
     size_t value_count = 0;
     size_t window_cnt = 0;
     size_t iteration_count = 0;
@@ -311,19 +360,63 @@ TEST( Population, DiversityMeasuresIterator )
 
         // Select the sample within the current window.
         auto range = make_transform_range(
-            []( VariantWindow::Entry const& entry ) -> BaseCounts const& {
+            // []( VariantWindow::Entry const& entry ) -> BaseCounts const& {
+            [&]( VariantWindow::Entry const& entry ) {
                 // Cannot use gtest within a lambda...
                 // ASSERT_EQ( 1, entry.data.samples.size() );
                 if( entry.data.samples.size() != 1 ) {
                     throw std::runtime_error( "Internal error: file is wrong." );
                 }
+                // auto copy = entry.data.samples[0];
+                // transform_zero_out_by_min_count( copy, settings.min_count );
+                // return copy;
                 return entry.data.samples[0];
             },
             window.begin(), window.end()
         );
 
+        // Make a filter.
+        // We do a lot of copies and back and forth here, due to historic reasons
+        // (lots of refactoring...). It's okay for the test cases here though.
+        BaseCountsFilter filter;
+        filter.min_coverage = settings.min_coverage;
+        filter.max_coverage = settings.max_coverage;
+        filter.min_count = settings.min_count;
+        filter.only_snps = true;
+
+        // Make a filter that only allows samples that are SNPs and have the needed coverage.
+        // This could also be added to the lamda VariantInputIterator, if we were using one.
+        // Also, ount how many SNPs there are in total, and how many sites have the needed coverage.
+        BaseCountsFilterStats stats;
+        size_t variant_count = 0;
+        // auto covered_snps_range = genesis::utils::make_filter_range( [&]( BaseCounts const& sample ){
+        auto covered_snps_range = genesis::utils::make_filter_range( [&]( BaseCounts& sample ){
+            ++variant_count;
+            // auto copy = sample;
+            // return filter_base_counts( copy, filter, stats );
+            return filter_base_counts( sample, filter, stats );
+
+        }, range.begin(), range.end() );
+        (void) variant_count;
+        // LOG_DBG << "variant_count " << variant_count;
+
         // Compute all statistics and compare them to the expected PoPoolation results.
-        auto const stats = pool_diversity_measures( settings, range.begin(), range.end() );
+        // auto const stats = pool_diversity_measures( settings, range.begin(), range.end() );
+
+        // Compute all statistics and compare them to the expected PoPoolation results.
+        // auto const stats = pool_diversity_measures( settings, range.begin(), range.end() );
+        auto calc = DiversityPoolCalculator( settings, poolsize );
+        for( auto const& sample : covered_snps_range ) {
+            calc.process( sample );
+        }
+        size_t coverage_count = stats.passed + stats.not_snp;
+        size_t snp_count      = stats.passed; // results.variant_count - stats.not_snp;
+        auto const theta_pi_relative = calc.get_theta_pi_relative( coverage_count );
+        auto const theta_watterson_relative = calc.get_theta_watterson_relative( coverage_count );
+        auto const tajima_d = calc.compute_tajima_d( snp_count );
+
+        // LOG_DBG << "coverage_count " << coverage_count;
+        // LOG_DBG << "snp_count " << snp_count;
 
         // LOG_DBG1 << iteration_count << "\t" << value_count << "\t"
         //          << window.first_position() << "\t" << window.last_position() << "\t"
@@ -335,17 +428,17 @@ TEST( Population, DiversityMeasuresIterator )
         // ;
 
         // Compare counts
-        EXPECT_EQ( exp_snp_cnt[value_count], stats.snp_count );
+        EXPECT_EQ( exp_snp_cnt[value_count], snp_count );
         // EXPECT_FLOAT_EQ( exp_cov[value_count], stats.coverage_fraction );
         EXPECT_FLOAT_EQ(
             exp_cov[value_count],
-            static_cast<double>( stats.coverage_count ) / window_width
+            static_cast<double>( coverage_count ) / window_width
         );
 
         // Compare statistic measures
-        EXPECT_FLOAT_EQ( exp_pi[value_count], stats.theta_pi_relative );
-        EXPECT_FLOAT_EQ( exp_tw[value_count], stats.theta_watterson_relative );
-        EXPECT_FLOAT_EQ( exp_td[value_count], stats.tajima_d );
+        EXPECT_FLOAT_EQ( exp_pi[value_count], theta_pi_relative );
+        EXPECT_FLOAT_EQ( exp_tw[value_count], theta_watterson_relative );
+        EXPECT_FLOAT_EQ( exp_td[value_count], tajima_d );
         ++value_count;
 
         ++window_cnt;
