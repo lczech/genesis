@@ -37,7 +37,10 @@
 
 #include "genesis/utils/core/std.hpp"
 
+#include <cassert>
+#include <functional>
 #include <memory>
+#include <vector>
 
 namespace genesis {
 namespace population {
@@ -172,6 +175,7 @@ public:
             // Start a view into the first window. This creates a view that mirrors the underlying
             // window, and iteratres through it, using the WindowView constructor that takes a Window.
             window_view_ = WindowViewType{ *current_ };
+            execute_visitors_( window_view_ );
         }
 
     public:
@@ -208,6 +212,7 @@ public:
             // Start a view into the new window. This creates a view that mirrors the underlying
             // window, and iteratres through it, using the WindowView constructor that takes a Window.
             window_view_ = WindowViewType{ *current_ };
+            execute_visitors_( window_view_ );
         }
 
         value_type& get_current_window_() const override final
@@ -218,6 +223,14 @@ public:
         base_type const* get_parent_() const override final
         {
             return parent_;
+        }
+
+        void execute_visitors_( WindowViewType const& element )
+        {
+            assert( parent_ );
+            for( auto const& visitor : parent_->visitors_ ) {
+                visitor( element );
+            }
         }
 
     private:
@@ -259,6 +272,36 @@ public:
     friend DerivedIterator;
 
     // -------------------------------------------------------------------------
+    //     Visitors
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Add a visitor function that is executed when the iterator moves to a new Window
+     * during the iteration.
+     *
+     * These functions are executed when starting and incrementing the iterator, once for each
+     * Window, in the order in which they are added here. They take the WindowView that the iterator
+     * just moved to as their argument, so that user code can react to the new Window properties.
+     *
+     * They are a way of adding behaviour to the iteration loop that could also simply be placed
+     * in the beginning of the loop body of the user code. Still, offering this here can reduce
+     * redundant code, such as logging Windows during the iteration.
+     */
+    self_type& add_visitor( std::function<void(WindowViewType const&)> const& visitor )
+    {
+        visitors_.push_back( visitor );
+        return *this;
+    }
+
+    /**
+     * @brief Clear all functions that are executed on incrementing to the next element.
+     */
+    self_type& clear_visitors()
+    {
+        visitors_.clear();
+    }
+
+    // -------------------------------------------------------------------------
     //     Virtual Members
     // -------------------------------------------------------------------------
 
@@ -288,6 +331,9 @@ private:
 
     // Need a pointer here, in order to allow to take derived classes.
     std::unique_ptr<WrappedWindowIterator> window_iterator_;
+
+    // Keep the visitors for each window view.
+    std::vector<std::function<void(WindowViewType const&)>> visitors_;
 
 };
 
