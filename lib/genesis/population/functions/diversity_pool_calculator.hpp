@@ -117,6 +117,24 @@ class DiversityPoolCalculator
 public:
 
     // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Data struct to collect all diversity statistics computed here.
+     *
+     * This is meant as a simple way to obtain all diversity measures at once. See get_result().
+     */
+    struct Result
+    {
+        double theta_pi_absolute = 0.0;
+        double theta_pi_relative = 0.0;
+        double theta_watterson_absolute = 0.0;
+        double theta_watterson_relative = 0.0;
+        double tajima_d = 0.0;
+    };
+
+    // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
@@ -138,37 +156,37 @@ public:
     //     Settings
     // -------------------------------------------------------------------------
 
-    self_type& compute_theta_pi( bool value )
+    self_type& enable_theta_pi( bool value )
     {
-        compute_theta_pi_ = value;
+        enable_theta_pi_ = value;
         return *this;
     }
 
-    bool compute_theta_pi() const
+    bool enable_theta_pi() const
     {
-        return compute_theta_pi_;
+        return enable_theta_pi_;
     }
 
-    self_type& compute_theta_watterson( bool value )
+    self_type& enable_theta_watterson( bool value )
     {
-        compute_theta_watterson_ = value;
+        enable_theta_watterson_ = value;
         return *this;
     }
 
-    bool compute_theta_watterson() const
+    bool enable_theta_watterson() const
     {
-        return compute_theta_watterson_;
+        return enable_theta_watterson_;
     }
 
-    self_type& compute_tajima_d( bool value )
+    self_type& enable_tajima_d( bool value )
     {
-        compute_tajima_d_ = value;
+        enable_tajima_d_ = value;
         return *this;
     }
 
-    bool compute_tajima_d() const
+    bool enable_tajima_d() const
     {
-        return compute_tajima_d_;
+        return enable_tajima_d_;
     }
 
     // -------------------------------------------------------------------------
@@ -193,11 +211,11 @@ public:
     {
         double tp = 0.0;
         double tw = 0.0;
-        if( compute_theta_pi_ || compute_tajima_d_ ) {
+        if( enable_theta_pi_ || enable_tajima_d_ ) {
             tp = theta_pi_pool( settings_, poolsize_, sample );
             theta_pi_sum_ += tp;
         }
-        if( compute_theta_watterson_ || compute_tajima_d_ ) {
+        if( enable_theta_watterson_ || enable_tajima_d_ ) {
             tw = theta_watterson_pool( settings_, poolsize_, sample );
             theta_watterson_sum_ += tw;
         }
@@ -209,7 +227,7 @@ public:
      *
      * This is the sum of all values for all BaseCounts samples that have been given to process().
      */
-    double get_theta_pi_absolute()
+    double get_theta_pi_absolute() const
     {
         return theta_pi_sum_;
     }
@@ -226,7 +244,7 @@ public:
      * have positions with no coverage, so that we do not compute a value there, but they are still
      * used in the denominator here for computing the relative value.
      */
-    double get_theta_pi_relative( size_t coverage_count )
+    double get_theta_pi_relative( size_t coverage_count ) const
     {
         return theta_pi_sum_ / static_cast<double>( coverage_count );
     }
@@ -236,7 +254,7 @@ public:
      *
      * This is the sum of all values for all BaseCounts samples that have been given to process().
      */
-    double get_theta_watterson_absolute()
+    double get_theta_watterson_absolute() const
     {
         return theta_watterson_sum_;
     }
@@ -246,7 +264,7 @@ public:
      *
      * @copydetails get_theta_pi_relative()
      */
-    double get_theta_watterson_relative( size_t coverage_count )
+    double get_theta_watterson_relative( size_t coverage_count ) const
     {
         return theta_watterson_sum_ / static_cast<double>( coverage_count );
     }
@@ -259,11 +277,42 @@ public:
      * and needs to be given the total number of SNPs that have been processed.
      * This can for example be obtained from BaseCountsFilterStats::passed
      */
-    double compute_tajima_d( size_t snp_count )
+    double compute_tajima_d( size_t snp_count ) const
     {
         return tajima_d_pool(
             settings_, poolsize_, theta_pi_sum_, theta_watterson_sum_, snp_count
         );
+    }
+
+    /**
+     * @brief Convenience function to obtain all other results at once.
+     *
+     * The function fills the Result with both diversity statistics, depending on which of them
+     * have been computed, according to enable_theta_pi(), enable_theta_watterson().
+     * It further computes the relative variants of those statistics if `coverage_count > 0` is
+     * provided, and computes Tajima's D if enable_tajima_d() is set, and if `snp_count > 0` is
+     * provided.
+     */
+    Result get_result( size_t coverage_count = 0, size_t snp_count = 0 ) const
+    {
+        Result res;
+        if( enable_theta_pi_ ) {
+            res.theta_pi_absolute = get_theta_pi_absolute();
+            if( coverage_count > 0 ) {
+                res.theta_pi_relative = get_theta_pi_relative( coverage_count );
+            }
+        }
+        if( enable_theta_watterson_ ) {
+            res.theta_watterson_absolute = get_theta_watterson_absolute();
+            if( coverage_count > 0 ) {
+                res.theta_watterson_relative = get_theta_watterson_relative( coverage_count );
+            }
+        }
+        if( enable_tajima_d_ && snp_count > 0 ) {
+            res.tajima_d = compute_tajima_d( snp_count );
+        }
+
+        return res;
     }
 
     // -------------------------------------------------------------------------
@@ -276,9 +325,9 @@ private:
     DiversityPoolSettings settings_;
     size_t poolsize_ = 0;
 
-    bool compute_theta_pi_        = true;
-    bool compute_theta_watterson_ = true;
-    bool compute_tajima_d_        = true;
+    bool enable_theta_pi_        = true;
+    bool enable_theta_watterson_ = true;
+    bool enable_tajima_d_        = true;
 
     // Data Accumulation
     double theta_pi_sum_        = 0.0;
