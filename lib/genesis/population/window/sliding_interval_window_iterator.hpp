@@ -473,7 +473,7 @@ private:
     size_t width_ = 0;
     mutable size_t stride_ = 0;
 
-    bool emit_leading_empty_windows_ = true;
+    bool emit_leading_empty_windows_ = false;
 
     // bool emit empty_windows = true;
     // bool emit_unfinished_trailing_window = false;

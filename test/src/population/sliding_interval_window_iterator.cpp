@@ -177,7 +177,7 @@ void run_sliding_interval_window_view_variant_test_( VariantWindowIterator& win_
     for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
         ++window_cnt;
     }
-    EXPECT_EQ( 786, window_cnt );
+    EXPECT_EQ( 7, window_cnt );
 }
 
 TEST( WindowIterator, SlidingIntervalWindowView )
