@@ -344,6 +344,8 @@ private:
 /**
  * @brief Create a WindowViewIterator that iterates some underlying BaseWindowIterator.
  *
+ * The template parameter `T` is expected to be a BaseWindowIterator.
+ *
  * This serves as an abstraction to be able to use WindowViewIterator everywhere, instead
  * of having to switch between WindowViewIterator and WindowIterator depending on the type
  * of windowing that is being done. See WindowViewIterator for details.

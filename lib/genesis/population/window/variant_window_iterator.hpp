@@ -37,6 +37,8 @@
 #include "genesis/population/window/window_view.hpp"
 #include "genesis/population/window/window.hpp"
 
+#include <type_traits>
+
 namespace genesis {
 namespace population {
 
@@ -44,14 +46,36 @@ namespace population {
 //     Generic Variant Window Iterator
 // =================================================================================================
 
+// Quick check to avoid future bugs if we ever change that definition.
+static_assert(
+    std::is_same<VariantInputIterator::value_type, Variant>::value,
+    "VariantInputIterator::value_type != Variant"
+);
+
 /**
- * @brief Typedef for our uniform window iterator type.
+ * @brief Typedef for a uniform Window iterator type.
  *
- * This typedef is used for any window iterator over an VariantInputIterator. Because we want to
- * model different types of window iterators, some of which use Window, some of which use WindowView,
- * we here use the latter, and hence expect to use WindowViewIterator to wrap window iterators.
+ * This typedef is used for any Window iterator over an VariantInputIterator. It's simply a more
+ * convenient name that the full template specialization.
  */
 using VariantWindowIterator = BaseWindowIterator<
+    VariantInputIterator::Iterator,
+    VariantInputIterator::value_type,
+    Window<VariantInputIterator::value_type>
+>;
+
+/**
+ * @brief Typedef for our uniform WindowView iterator type.
+ *
+ * This typedef is used for any WindowView iterator over an VariantInputIterator. It's simply a more
+ * convenient name that the full template specialization.
+ *
+ * In particular, we use this type as an abstraction that captures iterators over both Window and
+ * WindowView, for instance when using make_window_view_iterator() to wrap a WindowIterator into
+ * a WindowViewIterator. as Because we want to model different types of window iterators, some of
+ * which use Window, some of which use WindowView, this abstraction allows us to have a single type.
+ */
+using VariantWindowViewIterator = BaseWindowIterator<
     VariantInputIterator::Iterator,
     VariantInputIterator::value_type,
     WindowView<VariantInputIterator::value_type>

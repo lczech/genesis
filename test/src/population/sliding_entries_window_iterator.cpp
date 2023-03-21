@@ -205,7 +205,7 @@ TEST( WindowIterator, SlidingEntriesLambda )
     test_window_iterator_sliding_entries_lambda( 10000 );
 }
 
-void run_sliding_entries_window_view_variant_test_( VariantWindowIterator& win_it )
+void run_sliding_entries_window_view_variant_test_( VariantWindowViewIterator& win_it )
 {
     size_t window_cnt = 0;
     for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
