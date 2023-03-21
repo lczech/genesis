@@ -33,12 +33,12 @@
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/formats/variant_input_iterator.hpp"
+#include "genesis/population/window/base_window.hpp"
 #include "genesis/population/window/base_window_iterator.hpp"
 #include "genesis/population/window/functions.hpp"
 #include "genesis/population/window/sliding_interval_window_iterator.hpp"
 #include "genesis/population/window/window_view_iterator.hpp"
 #include "genesis/population/window/window_view.hpp"
-#include "genesis/population/window/window.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/lambda_iterator.hpp"
 
@@ -79,4 +79,57 @@ TEST( WindowIterator, WindowViewIterator )
     }
     EXPECT_EQ( 7, window_cnt );
     EXPECT_EQ( 50000, total_cnt );
+}
+
+TEST( Window, Anchor )
+{
+    // Make some data.
+    Window<int> w;
+    w.first_position( 100 );
+    w.last_position( 400 );
+    w.entries().push_back( Window<int>::Entry( 0, 200, 42 ));
+    w.entries().push_back( Window<int>::Entry( 1, 300, 420 ));
+    WindowView<int> v{ w };
+
+    // Get anchors for the window.
+    EXPECT_EQ( 100, anchor_position( w, WindowAnchorType::kIntervalBegin ));
+    EXPECT_EQ( 400, anchor_position( w, WindowAnchorType::kIntervalEnd ));
+    EXPECT_EQ( 250, anchor_position( w, WindowAnchorType::kIntervalMidpoint ));
+    EXPECT_EQ( 200, anchor_position( w, WindowAnchorType::kVariantFirst ));
+    EXPECT_EQ( 300, anchor_position( w, WindowAnchorType::kVariantLast ));
+    EXPECT_EQ( 300, anchor_position( w, WindowAnchorType::kVariantMedian ));
+    EXPECT_EQ( 250, anchor_position( w, WindowAnchorType::kVariantMean ));
+    EXPECT_EQ( 250, anchor_position( w, WindowAnchorType::kVariantMidpoint ));
+
+    // Same for the window view. Some should fail.
+    EXPECT_EQ(   100, anchor_position( v, WindowAnchorType::kIntervalBegin ));
+    EXPECT_EQ(   400, anchor_position( v, WindowAnchorType::kIntervalEnd ));
+    EXPECT_EQ(   250, anchor_position( v, WindowAnchorType::kIntervalMidpoint ));
+    EXPECT_ANY_THROW( anchor_position( v, WindowAnchorType::kVariantFirst ));
+    EXPECT_ANY_THROW( anchor_position( v, WindowAnchorType::kVariantLast ));
+    EXPECT_ANY_THROW( anchor_position( v, WindowAnchorType::kVariantMedian ));
+    EXPECT_ANY_THROW( anchor_position( v, WindowAnchorType::kVariantMean ));
+    EXPECT_ANY_THROW( anchor_position( v, WindowAnchorType::kVariantMidpoint ));
+
+    // Access window through a base window and test again.
+    BaseWindow<int> const& bw = w;
+    EXPECT_EQ( 100, anchor_position( bw, WindowAnchorType::kIntervalBegin ));
+    EXPECT_EQ( 400, anchor_position( bw, WindowAnchorType::kIntervalEnd ));
+    EXPECT_EQ( 250, anchor_position( bw, WindowAnchorType::kIntervalMidpoint ));
+    EXPECT_EQ( 200, anchor_position( bw, WindowAnchorType::kVariantFirst ));
+    EXPECT_EQ( 300, anchor_position( bw, WindowAnchorType::kVariantLast ));
+    EXPECT_EQ( 300, anchor_position( bw, WindowAnchorType::kVariantMedian ));
+    EXPECT_EQ( 250, anchor_position( bw, WindowAnchorType::kVariantMean ));
+    EXPECT_EQ( 250, anchor_position( bw, WindowAnchorType::kVariantMidpoint ));
+
+    // Access window view through a base window and test again.
+    BaseWindow<int> const& bv = v;
+    EXPECT_EQ(   100, anchor_position( bv, WindowAnchorType::kIntervalBegin ));
+    EXPECT_EQ(   400, anchor_position( bv, WindowAnchorType::kIntervalEnd ));
+    EXPECT_EQ(   250, anchor_position( bv, WindowAnchorType::kIntervalMidpoint ));
+    EXPECT_ANY_THROW( anchor_position( bv, WindowAnchorType::kVariantFirst ));
+    EXPECT_ANY_THROW( anchor_position( bv, WindowAnchorType::kVariantLast ));
+    EXPECT_ANY_THROW( anchor_position( bv, WindowAnchorType::kVariantMedian ));
+    EXPECT_ANY_THROW( anchor_position( bv, WindowAnchorType::kVariantMean ));
+    EXPECT_ANY_THROW( anchor_position( bv, WindowAnchorType::kVariantMidpoint ));
 }
