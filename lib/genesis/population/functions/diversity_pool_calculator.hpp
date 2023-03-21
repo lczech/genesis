@@ -124,6 +124,7 @@ public:
      * @brief Data struct to collect all diversity statistics computed here.
      *
      * This is meant as a simple way to obtain all diversity measures at once. See get_result().
+     * The value of `processed_count` is the number of times that process() as been called.
      */
     struct Result
     {
@@ -132,6 +133,7 @@ public:
         double theta_watterson_absolute = 0.0;
         double theta_watterson_relative = 0.0;
         double tajima_d = 0.0;
+        size_t processed_count = 0;
     };
 
     // -------------------------------------------------------------------------
@@ -197,6 +199,7 @@ public:
     {
         theta_pi_sum_        = 0.0;
         theta_watterson_sum_ = 0.0;
+        processed_count_     = 0;
     }
 
     /**
@@ -219,6 +222,7 @@ public:
             tw = theta_watterson_pool( settings_, poolsize_, sample );
             theta_watterson_sum_ += tw;
         }
+        ++processed_count_;
         return std::make_pair( tp, tw );
     }
 
@@ -312,6 +316,7 @@ public:
             res.tajima_d = compute_tajima_d( snp_count );
         }
 
+        res.processed_count = processed_count_;
         return res;
     }
 
@@ -332,6 +337,7 @@ private:
     // Data Accumulation
     double theta_pi_sum_        = 0.0;
     double theta_watterson_sum_ = 0.0;
+    size_t processed_count_     = 0;
 };
 
 } // namespace population
