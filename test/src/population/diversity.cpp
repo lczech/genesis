@@ -210,6 +210,7 @@ TEST( Population, DiversityMeasuresGenerator )
         for( auto const& sample : covered_snps_range ) {
             calc.process( sample );
         }
+        EXPECT_EQ( snp_count, calc.get_processed_count() );
         auto const theta_pi_relative = calc.get_theta_pi_relative( coverage_count );
         auto const theta_watterson_relative = calc.get_theta_watterson_relative( coverage_count );
         auto const tajima_d = calc.compute_tajima_d( snp_count );
@@ -411,6 +412,8 @@ TEST( Population, DiversityMeasuresIterator )
         }
         size_t coverage_count = stats.passed + stats.not_snp;
         size_t snp_count      = stats.passed; // results.variant_count - stats.not_snp;
+        EXPECT_EQ( snp_count, calc.get_processed_count() );
+
         auto const theta_pi_relative = calc.get_theta_pi_relative( coverage_count );
         auto const theta_watterson_relative = calc.get_theta_watterson_relative( coverage_count );
         auto const tajima_d = calc.compute_tajima_d( snp_count );

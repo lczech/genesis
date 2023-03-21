@@ -277,12 +277,19 @@ public:
      * @brief Compute the value for Tajima's D, using the computed values for Theta Pi and Theta
      * Watterson.
      *
-     * This uses the sums of all values for all BaseCounts samples that have been given to process(),
-     * and needs to be given the total number of SNPs that have been processed.
-     * This can for example be obtained from BaseCountsFilterStats::passed
+     * This uses the sums of all values for all BaseCounts samples that have been given to process().
+     * By default, we use @p snp_count equal to the processed_count of positions that have been
+     * given to process(); providing a different number here can be useful in situations were
+     * some SNP positions were filtered externally for some reason, and can then for example
+     * be obtained from BaseCountsFilterStats::passed. Typically though, we would expect
+     * both numbers to be equal, that is, the get_processed_count() number here, and the
+     * BaseCountsFilterStats::passed number obtained from filtering for SNPs.
      */
-    double compute_tajima_d( size_t snp_count ) const
+    double compute_tajima_d( size_t snp_count = 0 ) const
     {
+        if( snp_count == 0 ) {
+            snp_count = processed_count_;
+        }
         return tajima_d_pool(
             settings_, poolsize_, theta_pi_sum_, theta_watterson_sum_, snp_count
         );
@@ -294,8 +301,7 @@ public:
      * The function fills the Result with both diversity statistics, depending on which of them
      * have been computed, according to enable_theta_pi(), enable_theta_watterson().
      * It further computes the relative variants of those statistics if `coverage_count > 0` is
-     * provided, and computes Tajima's D if enable_tajima_d() is set, and if `snp_count > 0` is
-     * provided.
+     * provided, and computes Tajima's D if enable_tajima_d() is set.
      */
     Result get_result( size_t coverage_count = 0, size_t snp_count = 0 ) const
     {
@@ -312,12 +318,17 @@ public:
                 res.theta_watterson_relative = get_theta_watterson_relative( coverage_count );
             }
         }
-        if( enable_tajima_d_ && snp_count > 0 ) {
+        if( enable_tajima_d_ ) {
             res.tajima_d = compute_tajima_d( snp_count );
         }
 
         res.processed_count = processed_count_;
         return res;
+    }
+
+    size_t get_processed_count() const
+    {
+        return processed_count_;
     }
 
     // -------------------------------------------------------------------------
