@@ -93,10 +93,11 @@ public:
         : futures_( n )
     {}
 
-    MultiFuture( MultiFuture const& ) = default;
+    // Copy construction deleted, as std::future cannot be copied
+    MultiFuture( MultiFuture const& ) = delete;
     MultiFuture( MultiFuture&& )      = default;
 
-    MultiFuture& operator= ( MultiFuture const& ) = default;
+    MultiFuture& operator= ( MultiFuture const& ) = delete;
     MultiFuture& operator= ( MultiFuture&& )      = default;
 
     ~MultiFuture() = default;
