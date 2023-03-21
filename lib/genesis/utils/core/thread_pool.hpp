@@ -462,6 +462,46 @@ public:
         );
     }
 
+    /**
+     * @brief Parallel `for each` over a container, processing it in blocks for which
+     * the @p body function is executed individually.
+     *
+     * Expects a random access container that supports `size()` as well as `operator[]` to access
+     * individual elements, and a @p body that takes one element of that container to process.
+     *
+     * ```
+     * std::vector<int> numbers( 100 );
+     * auto futures = pool->parallel_for_each(
+     *     numbers,
+     *     []( int& element )
+     *     {
+     *         element *= 2;
+     *     }
+     * );
+     * futures.get();
+     * ```
+     *
+     * This makes it a convenience function.
+     */
+    template<typename F, typename T>
+    MultiFuture<void> parallel_for_each( T& container, F&& body, size_t num_blocks = 0 )
+    {
+        // Boundary checks.
+        if( container.size() == 0 ) {
+            return MultiFuture<void>();
+        }
+
+        // Run the loop over elements in parallel blocks.
+        return parallel_block(
+            0, container.size(),
+            [&container, body]( size_t b, size_t e ) {
+                for( size_t i = b; i < e; ++i ) {
+                    body( container[ i ] );
+                }
+            }, num_blocks
+        );
+    }
+
     // -------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------

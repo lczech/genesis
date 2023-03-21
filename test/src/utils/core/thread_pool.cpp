@@ -252,7 +252,7 @@ TEST( ThreadPool, ParallelFor )
     test_thread_pool_parallel_for_( 100, 20 );
 }
 
-void test_thread_pool_parallel_for_each_( size_t num_tasks, size_t num_blocks )
+void test_thread_pool_parallel_for_each_( size_t num_tasks, size_t num_blocks, bool range )
 {
     // LOG_DBG << "--- num_tasks " << num_tasks << " num_blocks " << num_blocks;
 
@@ -265,15 +265,29 @@ void test_thread_pool_parallel_for_each_( size_t num_tasks, size_t num_blocks )
     auto pool = Options::get().global_thread_pool();
 
     // Do some parallel computation.
-    auto mult_fut = pool->parallel_for_each(
-        numbers.begin(), numbers.end(),
-        []( int& elem )
-        {
-            // LOG_DBG1 << "elem " << elem;
-            elem *= 2;
-        },
-        num_blocks
-    );
+    // We offer to use both version, the range and the container overload of the loop.
+    MultiFuture<void> mult_fut;
+    if( range ) {
+        mult_fut = pool->parallel_for_each(
+            numbers.begin(), numbers.end(),
+            []( int& elem )
+            {
+                // LOG_DBG1 << "elem " << elem;
+                elem *= 2;
+            },
+            num_blocks
+        );
+    } else {
+        mult_fut = pool->parallel_for_each(
+            numbers,
+            []( int& elem )
+            {
+                // LOG_DBG1 << "elem " << elem;
+                elem *= 2;
+            },
+            num_blocks
+        );
+    }
 
     // Aggregate the result per block.
     mult_fut.get();
@@ -286,46 +300,56 @@ void test_thread_pool_parallel_for_each_( size_t num_tasks, size_t num_blocks )
     // thread_pool_sleep_(100);
 }
 
-TEST( ThreadPool, ParallelForEach )
+void test_thread_pool_parallel_for_each_( bool range )
 {
     // Test the border cases
-    test_thread_pool_parallel_for_each_( 0, 0 );
-    test_thread_pool_parallel_for_each_( 0, 1 );
-    test_thread_pool_parallel_for_each_( 0, 2 );
-    test_thread_pool_parallel_for_each_( 0, 3 );
-    test_thread_pool_parallel_for_each_( 1, 0 );
-    test_thread_pool_parallel_for_each_( 1, 1 );
-    test_thread_pool_parallel_for_each_( 1, 2 );
-    test_thread_pool_parallel_for_each_( 1, 3 );
-    test_thread_pool_parallel_for_each_( 2, 0 );
-    test_thread_pool_parallel_for_each_( 2, 1 );
-    test_thread_pool_parallel_for_each_( 2, 2 );
-    test_thread_pool_parallel_for_each_( 2, 3 );
-    test_thread_pool_parallel_for_each_( 3, 0 );
-    test_thread_pool_parallel_for_each_( 3, 1 );
-    test_thread_pool_parallel_for_each_( 3, 2 );
-    test_thread_pool_parallel_for_each_( 3, 3 );
+    test_thread_pool_parallel_for_each_( 0, 0, range );
+    test_thread_pool_parallel_for_each_( 0, 1, range );
+    test_thread_pool_parallel_for_each_( 0, 2, range );
+    test_thread_pool_parallel_for_each_( 0, 3, range );
+    test_thread_pool_parallel_for_each_( 1, 0, range );
+    test_thread_pool_parallel_for_each_( 1, 1, range );
+    test_thread_pool_parallel_for_each_( 1, 2, range );
+    test_thread_pool_parallel_for_each_( 1, 3, range );
+    test_thread_pool_parallel_for_each_( 2, 0, range );
+    test_thread_pool_parallel_for_each_( 2, 1, range );
+    test_thread_pool_parallel_for_each_( 2, 2, range );
+    test_thread_pool_parallel_for_each_( 2, 3, range );
+    test_thread_pool_parallel_for_each_( 3, 0, range );
+    test_thread_pool_parallel_for_each_( 3, 1, range );
+    test_thread_pool_parallel_for_each_( 3, 2, range );
+    test_thread_pool_parallel_for_each_( 3, 3, range );
 
     // Test some extreme cases
-    test_thread_pool_parallel_for_each_( 0, 100 );
-    test_thread_pool_parallel_for_each_( 1, 100 );
-    test_thread_pool_parallel_for_each_( 2, 100 );
-    test_thread_pool_parallel_for_each_( 3, 100 );
-    test_thread_pool_parallel_for_each_( 100, 0 );
-    test_thread_pool_parallel_for_each_( 100, 1 );
-    test_thread_pool_parallel_for_each_( 100, 2 );
-    test_thread_pool_parallel_for_each_( 100, 3 );
+    test_thread_pool_parallel_for_each_( 0, 100, range );
+    test_thread_pool_parallel_for_each_( 1, 100, range );
+    test_thread_pool_parallel_for_each_( 2, 100, range );
+    test_thread_pool_parallel_for_each_( 3, 100, range );
+    test_thread_pool_parallel_for_each_( 100, 0, range );
+    test_thread_pool_parallel_for_each_( 100, 1, range );
+    test_thread_pool_parallel_for_each_( 100, 2, range );
+    test_thread_pool_parallel_for_each_( 100, 3, range );
 
     // Test for a good division of labor
-    test_thread_pool_parallel_for_each_( 100, 10 );
-    test_thread_pool_parallel_for_each_( 100, 11 );
-    test_thread_pool_parallel_for_each_( 100, 12 );
-    test_thread_pool_parallel_for_each_( 100, 13 );
-    test_thread_pool_parallel_for_each_( 100, 14 );
-    test_thread_pool_parallel_for_each_( 100, 15 );
-    test_thread_pool_parallel_for_each_( 100, 16 );
-    test_thread_pool_parallel_for_each_( 100, 17 );
-    test_thread_pool_parallel_for_each_( 100, 18 );
-    test_thread_pool_parallel_for_each_( 100, 19 );
-    test_thread_pool_parallel_for_each_( 100, 20 );
+    test_thread_pool_parallel_for_each_( 100, 10, range );
+    test_thread_pool_parallel_for_each_( 100, 11, range );
+    test_thread_pool_parallel_for_each_( 100, 12, range );
+    test_thread_pool_parallel_for_each_( 100, 13, range );
+    test_thread_pool_parallel_for_each_( 100, 14, range );
+    test_thread_pool_parallel_for_each_( 100, 15, range );
+    test_thread_pool_parallel_for_each_( 100, 16, range );
+    test_thread_pool_parallel_for_each_( 100, 17, range );
+    test_thread_pool_parallel_for_each_( 100, 18, range );
+    test_thread_pool_parallel_for_each_( 100, 19, range );
+    test_thread_pool_parallel_for_each_( 100, 20, range );
+}
+
+TEST( ThreadPool, ParallelForEachRange )
+{
+    test_thread_pool_parallel_for_each_( true );
+}
+
+TEST( ThreadPool, ParallelForEachContainer )
+{
+    test_thread_pool_parallel_for_each_( false );
 }
