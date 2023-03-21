@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not,  see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab,  Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35,  D-69118 Heidelberg,  Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -123,7 +123,7 @@ public:
             zstream_, compression_level, Z_DEFLATED, 15+16, 8, Z_DEFAULT_STRATEGY
         );
         if( ret != Z_OK ) {
-            throw except::GzipError( zstream_->msg, ret );
+            throw GzipError( zstream_->msg, ret );
         }
 
         // Prepare buffers. We use two times the block size for the output, in the hope that this
@@ -237,7 +237,7 @@ private:
             // Run the deflate algorithm, and check the result
             int ret = deflate( zstream_, flush );
             if( ret != Z_OK && ret != Z_STREAM_END && ret != Z_BUF_ERROR ) {
-                throw except::GzipError( zstream_->msg, ret );
+                throw GzipError( zstream_->msg, ret );
             }
 
             // Store the resulting end position in the output buffer after the deflation.
@@ -246,7 +246,7 @@ private:
             auto const old_pos = out_pos_;
             out_pos_ = reinterpret_cast<decltype( out_buff_ )>( zstream_->next_out ) - out_buff_;
             if( out_pos_ >= out_len_ ) {
-                throw except::GzipError( "Block compression ran out of buffer.", Z_MEM_ERROR );
+                throw GzipError( "Block compression ran out of buffer.", Z_MEM_ERROR );
             }
 
             // If we are done with the input, get out of here. The Z_BUF_ERROR error is not fatal,
