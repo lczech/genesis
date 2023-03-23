@@ -285,7 +285,7 @@ struct BaseCountsFilter
     /**
      * @brief Minimum coverage expected for a BaseCounts to be considered covered.
      *
-     * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) in the reads of a sample is less then
+     * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) in the reads of a sample is less than
      * the provided value, the BaseCounts is not considered sufficiently covered,
      * and all counts are set to zero.
      */
@@ -294,7 +294,7 @@ struct BaseCountsFilter
     /**
      * @brief Maximum coverage expected for a BaseCounts to be considered covered.
      *
-     * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) in the reads of a sample is greater then
+     * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) in the reads of a sample is greater than
      * the provided value, the BaseCounts is not considered properly covered,
      * and all counts are set to zero.
      */
@@ -490,7 +490,7 @@ struct VariantFilter
     /**
      * @brief Minimum coverage expected for the whole Variant to be considered covered.
      *
-     * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) across all samples is less then
+     * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) across all samples is less than
      * the provided value, the Variant is not considered sufficiently covered.
      */
     size_t min_coverage = 0;
@@ -498,7 +498,7 @@ struct VariantFilter
     /**
      * @brief Maximum coverage expected for the whole Variant to be considered covered.
      *
-     * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) across all samples is greater then
+     * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) across all samples is greater than
      * the provided value, the Variant is not considered properly covered.
      */
     size_t max_coverage = 0;
@@ -549,6 +549,11 @@ struct VariantFilterStats
      * @brief Number of Variant%s that passed all filters.
      */
     size_t passed = 0;
+
+    /**
+     * @brief Number of Variants that had zero nucleotide counts across all samples.
+     */
+    size_t empty = 0;
 
     /**
      * @brief Number of Variant%s whose sum of nucleotides was below VariantFilter::min_coverage.

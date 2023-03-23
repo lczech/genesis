@@ -401,17 +401,21 @@ bool filter_variant(
     // Needed for all below. Bit of overhead if we do no filtering at all...
     auto const total = merge_base_counts( variant );
 
+    // Empty variants where all samples have zero counts are not interesting and filtered.
+    auto const sum = nucleotide_sum( total );
+    if( sum == 0 ) {
+        ++stats.empty;
+        return false;
+    }
+
     // Coverage
-    if( filter.min_coverage > 0 || filter.max_coverage > 0 ) {
-        auto const sum = nucleotide_sum( total );
-        if( sum < filter.min_coverage ) {
-            ++stats.below_min_coverage;
-            return false;
-        }
-        if( filter.max_coverage > 0 && sum > filter.max_coverage ) {
-            ++stats.above_max_coverage;
-            return false;
-        }
+    if( filter.min_coverage > 0 && sum < filter.min_coverage ) {
+        ++stats.below_min_coverage;
+        return false;
+    }
+    if( filter.max_coverage > 0 && sum > filter.max_coverage ) {
+        ++stats.above_max_coverage;
+        return false;
     }
 
     // SNPs
