@@ -69,6 +69,14 @@ void test_sliding_interval_iterator_( WindowIterator& win_it )
         { 7850001, 247 }
     };
 
+    // Also test that the visitor functions get executed once per window.
+    size_t visit_cnt = 0;
+    using ValueType = typename WindowIterator::InputIteratorType::value_type;
+    win_it.add_visitor( [&visit_cnt]( Window<ValueType> const& ){
+        // LOG_DBG << "at " << visit_cnt;
+        ++visit_cnt;
+    });
+
     size_t window_cnt = 0;
     for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
         auto const& window = *it;
@@ -100,6 +108,7 @@ void test_sliding_interval_iterator_( WindowIterator& win_it )
         ++window_cnt;
     }
     EXPECT_EQ( 7, window_cnt );
+    EXPECT_EQ( 7, visit_cnt );
 
     EXPECT_TRUE( found_first_win );
     EXPECT_TRUE( found_last_win );
@@ -168,7 +177,6 @@ TEST( WindowIterator, SlidingIntervalLambda )
     win_it.emit_leading_empty_windows( false );
 
     test_sliding_interval_iterator_( win_it );
-
 }
 
 void run_sliding_interval_window_view_variant_test_( VariantWindowViewIterator& win_it )
@@ -200,8 +208,16 @@ TEST( WindowIterator, SlidingIntervalWindowView )
     );
     // win_it.emit_leading_empty_windows( false );
 
+    // Also test that the visitor functions get executed once per window.
+    size_t visit_cnt = 0;
+    win_it.add_visitor( [&visit_cnt]( WindowView<Variant> const& ){
+        // LOG_DBG << "at " << visit_cnt;
+        ++visit_cnt;
+    });
+
     // We use a test function that takes our abstract type, to see if we set this up correctly.
     run_sliding_interval_window_view_variant_test_( win_it );
+    EXPECT_EQ( 7, visit_cnt );
 
     // test_sliding_interval_iterator_( win_it );
     // size_t window_cnt = 0;
@@ -227,6 +243,13 @@ TEST( WindowIterator, SlidingIntervalEmpty )
         pileup_begin, pileup_end, 10000
     );
 
+    // Also test that the visitor functions get executed once per window.
+    size_t visit_cnt = 0;
+    win_it.add_visitor( [&visit_cnt]( Window<Variant> const& ){
+        // LOG_DBG << "at " << visit_cnt;
+        ++visit_cnt;
+    });
+
     size_t window_cnt = 0;
     for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
 
@@ -241,4 +264,5 @@ TEST( WindowIterator, SlidingIntervalEmpty )
         ++window_cnt;
     }
     EXPECT_EQ( 0, window_cnt );
+    EXPECT_EQ( 0, visit_cnt );
 }

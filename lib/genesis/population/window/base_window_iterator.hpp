@@ -42,6 +42,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace genesis {
 namespace population {
@@ -201,7 +202,11 @@ public:
 
         Iterator( std::unique_ptr<BaseIterator> base_iterator )
             : pimpl_( std::move( base_iterator ))
-        {}
+        {
+            // Visit the first element, if this is an active iterator.
+            assert( pimpl_ );
+            execute_visitors_();
+        }
 
     public:
 
@@ -295,8 +300,10 @@ public:
 
         self_type& operator ++()
         {
+            // Advance to the next element, and visit it.
             assert( pimpl_ );
             pimpl_->increment_();
+            execute_visitors_();
             return *this;
         }
 
@@ -329,6 +336,25 @@ public:
         bool operator!=( self_type const& other ) const
         {
             return !(*this == other);
+        }
+
+        // -------------------------------------------------------------------------
+        //     Internal and Virtual Members
+        // -------------------------------------------------------------------------
+
+    private:
+
+        void execute_visitors_()
+        {
+            // If there is still a parent, we are active,
+            // and execute all visitors for the element.
+            assert( pimpl_ );
+            if( pimpl_->get_parent_() ) {
+                auto& element = pimpl_->get_current_window_();
+                for( auto const& visitor : pimpl_->get_parent_()->visitors_ ) {
+                    visitor( element );
+                }
+            }
         }
 
         // -------------------------------------------------------------------------
@@ -512,6 +538,36 @@ public:
     friend Iterator;
 
     // -------------------------------------------------------------------------
+    //     Visitors
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Add a visitor function that is executed once for each window during the iteration.
+     *
+     * These functions are executed when starting and incrementing the iterator, once for each
+     * window, in the order in which they are added here. They take the window (typically of type
+     * window or WindowView) that the iterator just moved to as their argument, so that user code
+     * can react to the new window properties.
+     *
+     * They are a way of adding behaviour to the iteration loop that could also simply be placed
+     * in the beginning of the loop body of the user code. Still, offering this here can reduce
+     * redundant code, such as logging Windows during the iteration.
+     */
+    self_type& add_visitor( std::function<void(WindowType const&)> const& visitor )
+    {
+        visitors_.push_back( visitor );
+        return *this;
+    }
+
+    /**
+     * @brief Clear all functions that are executed on incrementing to the next element.
+     */
+    self_type& clear_visitors()
+    {
+        visitors_.clear();
+    }
+
+    // -------------------------------------------------------------------------
     //     Iteration
     // -------------------------------------------------------------------------
 
@@ -546,6 +602,9 @@ private:
     // Underlying iterator to the data that we want to put in windows.
     InputIterator begin_;
     InputIterator end_;
+
+    // Keep the visitors for each window view.
+    std::vector<std::function<void(WindowType const&)>> visitors_;
 
 };
 
