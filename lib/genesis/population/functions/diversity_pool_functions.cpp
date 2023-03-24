@@ -36,6 +36,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <limits>
 #include <mutex>
 #include <stdexcept>
 #include <unordered_map>
@@ -96,6 +97,11 @@ double amnm_( // get_aMnm_buffer
 
             // #pragma omp atomic
             result += partial;
+
+            // Early abort. No need to continue once we reach inf or nan.
+            if( ! std::isfinite( result )) {
+                break;
+            }
         }
         return result;
     }};
@@ -153,7 +159,7 @@ double theta_pi_pool_denominator(
         }
 
         // Iterate all allele frequencies in between the min and max-min boundaries.
-        double div = 0.0;
+        double denom = 0.0;
 
         // #pragma omp parallel for
         for( size_t m_it = min_count; m_it <= ( nucleotide_count - min_count ); ++m_it ) {
@@ -167,10 +173,21 @@ double theta_pi_pool_denominator(
             double const partial = term * amnm_( poolsize, nucleotide_count, m_it );
 
             // #pragma omp atomic
-            div += partial;
+            denom += partial;
+
+            // Early abort. No need to continue once we reach inf or nan.
+            if( ! std::isfinite( denom )) {
+                break;
+            }
         }
-        return div;
+        return denom;
     }};
+
+    // Right now, our binomial computation will yield nan for large n.
+    // No need to run an expensive loop that will result in nan anyway.
+    if( nucleotide_count >= utils::MAX_BINOMIAL_COEFFICIENT_N ) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
 
     // Simply return the cached value (which computes them first if not yet cached).
     return denom_cache_( settings.min_count, poolsize, nucleotide_count );
@@ -204,7 +221,7 @@ double theta_watterson_pool_denominator(
         }
 
         // Iterate all allele frequencies in between the min and max-min boundaries.
-        double div = 0.0;
+        double denom = 0.0;
 
         // #pragma omp parallel for
         for( size_t m_it = min_count; m_it <= ( nucleotide_count - min_count ); ++m_it ) {
@@ -213,10 +230,21 @@ double theta_watterson_pool_denominator(
             auto const anmn = amnm_( poolsize, nucleotide_count, m_it );
 
             // #pragma omp atomic
-            div += anmn;
+            denom += anmn;
+
+            // Early abort. No need to continue once we reach inf or nan.
+            if( ! std::isfinite( denom )) {
+                break;
+            }
         }
-        return div;
+        return denom;
     }};
+
+    // Right now, our binomial computation will yield nan for large n.
+    // No need to run an expensive loop that will result in nan anyway.
+    if( nucleotide_count >= utils::MAX_BINOMIAL_COEFFICIENT_N ) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
 
     // Simply return the cached value (which computes them first if not yet cached).
     return denom_cache_( settings.min_count, poolsize, nucleotide_count );

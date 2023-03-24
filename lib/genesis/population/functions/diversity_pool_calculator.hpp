@@ -216,11 +216,15 @@ public:
         double tw = 0.0;
         if( enable_theta_pi_ || enable_tajima_d_ ) {
             tp = theta_pi_pool( settings_, poolsize_, sample );
-            theta_pi_sum_ += tp;
+            if( std::isfinite( tp )) {
+                theta_pi_sum_ += tp;
+            }
         }
         if( enable_theta_watterson_ || enable_tajima_d_ ) {
             tw = theta_watterson_pool( settings_, poolsize_, sample );
-            theta_watterson_sum_ += tw;
+            if( std::isfinite( tw )) {
+                theta_watterson_sum_ += tw;
+            }
         }
         ++processed_count_;
         return std::make_pair( tp, tw );

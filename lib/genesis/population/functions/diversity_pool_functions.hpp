@@ -179,8 +179,12 @@ double theta_pi_pool( // get_pi_calculator
     double pi_sum = 0.0;
     for( auto& it = begin; it != end; ++it ) {
         double const pi_snp = heterozygosity( *it, true );
-        double const denom  = theta_pi_pool_denominator( settings, poolsize, nucleotide_sum( *it ));
-        pi_sum += ( pi_snp / denom );
+        double const denom  = theta_pi_pool_denominator(
+            settings, poolsize, nucleotide_sum( *it )
+        );
+        if( std::isfinite( pi_snp ) && std::isfinite( denom )) {
+            pi_sum += ( pi_snp / denom );
+        }
     }
     return pi_sum;
 }
@@ -242,7 +246,12 @@ double theta_watterson_pool( // get_theta_calculator
 
     double sum = 0.0;
     for( auto& it = begin; it != end; ++it ) {
-        sum += 1.0 / theta_watterson_pool_denominator( settings, poolsize, nucleotide_sum( *it ));
+        auto const denom = theta_watterson_pool_denominator(
+            settings, poolsize, nucleotide_sum( *it )
+        );
+        if( std::isfinite( denom )) {
+            sum += 1.0 / denom;
+        }
     }
     return sum;
 }

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -257,6 +257,19 @@ static const std::array<double, 1024> log_factorial_lookup_ = {{
     6015.8638924287789, 6022.7875210569173, 6029.7121334529656, 6036.6377286500765, 6043.5643056832996,
     6050.4918635895783, 6057.4204014077432, 6064.3499181785064, 6071.2804129444585
 }};
+
+// Make sure that the list and the magic number are the same.
+static_assert(
+    log_factorial_lookup_.size() == MAX_BINOMIAL_COEFFICIENT_N,
+    "log_factorial_lookup_.size() != MAX_BINOMIAL_COEFFICIENT_N"
+);
+
+// We also have that magic number in some doxygen comments,
+// so we'd need to update that as well if this number changes at some point.
+static_assert(
+    MAX_BINOMIAL_COEFFICIENT_N == 1024,
+    "Need to update documentation: MAX_BINOMIAL_COEFFICIENT_N != 1024"
+);
 
 // constexpr version to generate the above table. Does only work in C++ >14, but we use C++11 here.
 // We could probably rewrite this to use some template loop unrolling at compile time via

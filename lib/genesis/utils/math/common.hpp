@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -58,6 +58,18 @@ inline double circumference( double radius )
 {
     return 2.0 * PI * radius;
 }
+
+// =================================================================================================
+//     Binomial Functions
+// =================================================================================================
+
+/**
+ * @brief Largest value for `n` when computing binomial coefficients where no value of `k` causes
+ * the result to overflow.
+ *
+ * See binomial_coefficient_approx() for details.
+ */
+constexpr size_t MAX_BINOMIAL_COEFFICIENT_N = 1024;
 
 /**
  * @brief Return the logarithm (base e) of the factorial of @p n, that is `log(n!)`.
