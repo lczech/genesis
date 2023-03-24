@@ -32,6 +32,7 @@
 
 #include "genesis/utils/containers/function_cache.hpp"
 #include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/math/binomial.hpp"
 #include "genesis/utils/math/common.hpp"
 
 #include <cassert>

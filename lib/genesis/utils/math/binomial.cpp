@@ -28,6 +28,8 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/math/binomial.hpp"
+
 #include "genesis/utils/math/common.hpp"
 
 #include <array>
@@ -37,13 +39,14 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace genesis {
 namespace utils {
 
-// =============================================================================
-//     Binomial Coefficient
-// =============================================================================
+// =================================================================================================
+//     Helper Functions
+// =================================================================================================
 
 /**
  * @brief Log-factorial log(x!) lookup table for fast computation of binomial coefficients.
@@ -358,6 +361,27 @@ std::vector<double> log_factorial_lookup_generator_()
     return logf;
 }
 
+/**
+ * @brief Local helper function to check that n and k are valid for a binomial coefficient.
+ */
+void binomial_coefficient_check_n_k_( size_t n, size_t k )
+{
+    // Error cases.
+    if( n == 0 ) {
+        throw std::invalid_argument( "Cannot compute binomial coefficient with n == 0" );
+    }
+    if( k == 0 ) {
+        throw std::invalid_argument( "Cannot compute binomial coefficient with k == 0" );
+    }
+    if( k > n ) {
+        throw std::invalid_argument( "Cannot compute binomial coefficient with k > n" );
+    }
+}
+
+// =================================================================================================
+//     Binomial Functions
+// =================================================================================================
+
 double log_factorial( size_t n )
 {
     // For small numbers, use or precise lookup table.
@@ -373,16 +397,8 @@ double log_factorial( size_t n )
 
 size_t binomial_coefficient( size_t n, size_t k )
 {
-    // Error cases.
-    if( n == 0 ) {
-        throw std::invalid_argument( "Cannot compute binomial coefficient with n == 0" );
-    }
-    if( k == 0 ) {
-        throw std::invalid_argument( "Cannot compute binomial coefficient with k == 0" );
-    }
-    if( k > n ) {
-        throw std::invalid_argument( "Cannot compute binomial coefficient with k > n" );
-    }
+    // Check the error cases.
+    binomial_coefficient_check_n_k_( n, k );
 
     // Since C(n, k) = C(n, n-k), we can shortcut.
     if( k > n - k ) {
@@ -429,16 +445,10 @@ double binomial_coefficient_approx( size_t n, size_t k, bool lenient )
         "IEC 559/IEEE 754 floating-point types required (does not have infinity)."
     );
 
-    // Error cases.
-    if( n == 0 ) {
-        throw std::invalid_argument( "Cannot compute binomial coefficient with n == 0" );
-    }
-    if( k == 0 ) {
-        throw std::invalid_argument( "Cannot compute binomial coefficient with k == 0" );
-    }
-    if( k > n ) {
-        throw std::invalid_argument( "Cannot compute binomial coefficient with k > n" );
-    }
+    // Check the error cases.
+    binomial_coefficient_check_n_k_( n, k );
+
+    // Special cases.
     if( n >= logf.size() ) {
         if( lenient ) {
             return std::numeric_limits<double>::infinity();
