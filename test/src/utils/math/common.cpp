@@ -61,33 +61,33 @@ TEST( Math, IntPow )
 TEST( Math, BinomialCoefficient )
 {
     // Error cases
-    EXPECT_ANY_THROW( binomial_coefficient( 0, 0 ));
-    EXPECT_ANY_THROW( binomial_coefficient( 0, 5 ));
-    EXPECT_ANY_THROW( binomial_coefficient( 5, 0 ));
-    EXPECT_ANY_THROW( binomial_coefficient( 5, 7 ));
+    EXPECT_ANY_THROW( binomial_coefficient_int( 0, 0 ));
+    EXPECT_ANY_THROW( binomial_coefficient_int( 0, 5 ));
+    EXPECT_ANY_THROW( binomial_coefficient_int( 5, 0 ));
+    EXPECT_ANY_THROW( binomial_coefficient_int( 5, 7 ));
 
     // Overflow
-    EXPECT_ANY_THROW( binomial_coefficient( 1024, 512 ));
+    EXPECT_ANY_THROW( binomial_coefficient_int( 1024, 512 ));
 
     // Good cases
-    EXPECT_EQ( 1, binomial_coefficient( 1, 1 ));
-    EXPECT_EQ( 200, binomial_coefficient( 200, 1 ));
-    EXPECT_EQ( 200, binomial_coefficient( 200, 199 ));
-    EXPECT_EQ( 1, binomial_coefficient( 200, 200 ));
-    EXPECT_EQ( 3276, binomial_coefficient( 28, 3 ));
-    EXPECT_EQ( 3276, binomial_coefficient( 28, 25 ));
+    EXPECT_EQ( 1, binomial_coefficient_int( 1, 1 ));
+    EXPECT_EQ( 200, binomial_coefficient_int( 200, 1 ));
+    EXPECT_EQ( 200, binomial_coefficient_int( 200, 199 ));
+    EXPECT_EQ( 1, binomial_coefficient_int( 200, 200 ));
+    EXPECT_EQ( 3276, binomial_coefficient_int( 28, 3 ));
+    EXPECT_EQ( 3276, binomial_coefficient_int( 28, 25 ));
 
     static_assert( sizeof(size_t) == 8, "Expecting 64bit words." );
 
     // First case that overflows
-    EXPECT_NO_THROW( binomial_coefficient( 63, 28 ));
-    EXPECT_ANY_THROW( binomial_coefficient( 63, 29 ));
+    EXPECT_NO_THROW( binomial_coefficient_int( 63, 28 ));
+    EXPECT_ANY_THROW( binomial_coefficient_int( 63, 29 ));
 
     // Overflow test, and test that the approximation works as well.
     for( size_t n = 1; n < 63; ++n ) {
         for( size_t k = 1; k < n; ++k ) {
-            EXPECT_NO_THROW( binomial_coefficient(n,k) );
-            EXPECT_FLOAT_EQ( binomial_coefficient(n,k), binomial_coefficient_approx(n,k) );
+            EXPECT_NO_THROW( binomial_coefficient_int(n,k) );
+            EXPECT_FLOAT_EQ( binomial_coefficient_int(n,k), binomial_coefficient(n,k) );
         }
     }
 
@@ -96,34 +96,42 @@ TEST( Math, BinomialCoefficient )
         for( size_t k = 1; k < n; ++k ) {
             size_t b = 0;
             try {
-                b = binomial_coefficient(n,k);
+                b = binomial_coefficient_int(n,k);
             } catch(...) {
                 // From here on, we reached the point where precise does not work any more for
                 // this value of n. Skip the whole rest.
                 break;
             }
             // LOG_DBG << n << " " << k;
-            EXPECT_FLOAT_EQ( b, binomial_coefficient_approx(n,k) );
+            EXPECT_FLOAT_EQ( b, binomial_coefficient(n,k) );
         }
     }
 
     // Some explicit test cases for large numbers.
-    EXPECT_FLOAT_EQ( 6.3850511926305e139, binomial_coefficient_approx( 1000, 100 ));
-    EXPECT_FLOAT_EQ( 2.7028824094544e299, binomial_coefficient_approx( 1000, 500 ));
+    // We are not quite hitting the right numbers here, due to lack of precision...
+    // EXPECT_DOUBLE_EQ( 6.3850511926305e139, binomial_coefficient( 1000, 100 ));
+    // EXPECT_DOUBLE_EQ( 2.7028824094544e299, binomial_coefficient( 1000, 500 ));
+    EXPECT_DOUBLE_EQ( 6.3850511926560918e139, binomial_coefficient( 1000, 100 ));
+    EXPECT_DOUBLE_EQ( 2.7028824094562908e299, binomial_coefficient( 1000, 500 ));
 
     // Error cases
-    EXPECT_ANY_THROW( binomial_coefficient_approx( 0, 0 ));
-    EXPECT_ANY_THROW( binomial_coefficient_approx( 0, 5 ));
-    EXPECT_ANY_THROW( binomial_coefficient_approx( 5, 0 ));
-    EXPECT_ANY_THROW( binomial_coefficient_approx( 5, 7 ));
+    EXPECT_ANY_THROW( binomial_coefficient( 0, 0 ));
+    EXPECT_ANY_THROW( binomial_coefficient( 0, 5 ));
+    EXPECT_ANY_THROW( binomial_coefficient( 5, 0 ));
+    EXPECT_ANY_THROW( binomial_coefficient( 5, 7 ));
 
-    // Overflow or not
-    EXPECT_ANY_THROW( binomial_coefficient_approx( 1024, 512 ));
-    EXPECT_NO_THROW( binomial_coefficient_approx( 1024, 512, true ));
-    EXPECT_FLOAT_EQ(
-        std::numeric_limits<double>::infinity(),
-        binomial_coefficient_approx( 1024, 512, true )
-    );
+    // Overflow or not. 1029 is the last n for which all k yield finite results.
+    for( size_t k = 1; k < 1029; ++k ) {
+        EXPECT_TRUE( std::isfinite( binomial_coefficient( 1029, k )));
+    }
+
+    // At n=1030, we encounter the first overflow.
+    EXPECT_TRUE(  std::isfinite( binomial_coefficient( 1030, 499 )));
+    EXPECT_FALSE( std::isfinite( binomial_coefficient( 1030, 500 )));
+    EXPECT_TRUE(  std::isinf(    binomial_coefficient( 1030, 500 )));
+    // for( size_t k = 1; k < 1030; ++k ) {
+    //     EXPECT_TRUE( std::isfinite( binomial_coefficient( 1030, k ))) << k;
+    // }
 }
 
 TEST( Math, LogFactorial )

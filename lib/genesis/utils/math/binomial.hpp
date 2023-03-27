@@ -33,9 +33,6 @@
 
 #include <cmath>
 #include <cstdint>
-#include <limits>
-#include <stdexcept>
-#include <utility>
 
 namespace genesis {
 namespace utils {
@@ -43,14 +40,6 @@ namespace utils {
 // =================================================================================================
 //     Binomial Functions
 // =================================================================================================
-
-/**
- * @brief Largest value for `n` when computing binomial coefficients where no value of `k` causes
- * the result to overflow.
- *
- * See binomial_coefficient_approx() for details.
- */
-constexpr size_t MAX_BINOMIAL_COEFFICIENT_N = 1024;
 
 /**
  * @brief Return the logarithm (base e) of the factorial of @p n, that is `log(n!)`.
@@ -68,31 +57,56 @@ double log_factorial( size_t n );
  * The function throws for invalid arguments (n or k equal to 0, or k larger than n),
  * or on overflow. For all `n < 63`, this does not overflow with 64 bit numbers.
  */
-size_t binomial_coefficient( size_t n, size_t k );
+size_t binomial_coefficient_int( size_t n, size_t k );
+
+/**
+ * @brief Compute the logarithm (base e) of the binomial coefficient, that is @p n choose @p k,
+ * for two integer numbers, for large numbers.
+ *
+ * See binomial_coefficient() for details. This function here is used in the internal
+ * computatation, and offered for cases where working with binomials in log space is more
+ * convenient due to the handling of numbers with very large and very small exponents,
+ * such as in binomial_distribution().
+ */
+double log_binomial_coefficient( size_t n, size_t k );
 
 /**
  * @brief Compute the binomial coefficient, that is @p n choose @p k, for two integer numbers,
  * for large numbers.
  *
- * The precise integer function binomial_coefficient() can only handle values up to `n == 62`
+ * The precise integer function binomial_coefficient_int() can only handle values up to `n == 62`
  * (for non-small `k` at least). That is, at `n == 63, k == 29`, we have exhausted the range
  * of 64bit numbers.
  *
  * To also be able to work with larger @p n and @p k, we here offer an approximation that returns
- * a `double` value instead, and hence can compute binomial coefficients of up to `n == 1024`
- * (exclusive), which for `k == n/2` is about as large as double precision allows.
+ * a `double` value instead, and hence can compute binomial coefficients of up to `n == 1029`
+ * (exclusive) for all values of `k`, which for `k == n/2` is about as large as double precision
+ * allows. The approximation is not quite up to double precision, and returns values with an
+ * error roughly in the range of e-12 for large numbers.
  *
- * For `n > 1024`, either an exception is thrown, or, if `lenient == true`, positive infinity
- * is returned.
+ * For `n > 1029`, we attempt to compute this, which will work for smaller values of `k`. In case
+ * this overflows the `double` precision range, positive infinity is returned instead.
+ * The first such combination is `n==1030` and `k==500`, causing `inf` to be returned.
  *
  * The returned values for all @p n and @p k that are also valid with the integer version
- * binomial_coefficient() yield identical results (up to double precision). That is, in particular
+ * binomial_coefficient_int() yield identical results (up to float precision). That is, in particular
  * for all `n < 63`, as well as for larger `n` with small `k`.
- *
- * Note furthermore that we use a lookup table for the bulk of the computation here.
+ * Note furthermore that we use a lookup table of factorials for the bulk of the computation here.
  * Hence, for larger numbers, this function is also faster than explicity computing the values.
+ *
+ * See also log_binomial_coefficient() for the log-space variant of this function.
  */
-double binomial_coefficient_approx( size_t n, size_t k, bool lenient = false );
+inline double binomial_coefficient( size_t n, size_t k )
+{
+    return std::exp( log_binomial_coefficient( n, k ));
+}
+
+/**
+ * @brief Compute the logarithm (base e) of the probability mass function for a binomial distribution.
+ *
+ * See binomial_distribution() for details.
+ */
+double log_binomial_distribution( size_t k, size_t n, double p );
 
 /**
  * @brief Compute the probability mass function for a binomial distribution.
@@ -100,18 +114,13 @@ double binomial_coefficient_approx( size_t n, size_t k, bool lenient = false );
  * Note that we reverse the order of @p k and @p n here compared to binomial_coefficient() here,
  * in order to comply with common notation.
  *
- * For `n > 1024`, either an exception is thrown, or, if `lenient == true`, positive infinity
- * is returned. See binomial_coefficient_approx() for details.
+ * We are working in log-space for the main part of the computation, and only translate back
+ * at the very end. For large `n`, we are attempting to compute the distribution, but it might
+ * underflow. See binomial_coefficient() for details.
  */
-inline double binomial_distribution( size_t k, size_t n, double p, bool lenient = false )
+inline double binomial_distribution( size_t k, size_t n, double p )
 {
-    if( ! std::isfinite(p) || p < 0.0 || p > 1.0 ) {
-        throw std::invalid_argument(
-            "Cannot compute binomial distribution with p outside of [ 0, 1 ]"
-        );
-    }
-    double const coeff = binomial_coefficient_approx( n, k, lenient );
-    return coeff * std::pow( p, k ) * std::pow( 1.0 - p, n - k );
+    return std::exp( log_binomial_distribution( k, n, p ));
 }
 
 } // namespace utils

@@ -84,15 +84,11 @@ double amnm_( // get_aMnm_buffer
 
         // #pragma omp parallel for
         for( size_t r = 1; r <= poolsize - 1; ++r ) {
-            double const p = static_cast<double>( r ) / static_cast<double>( poolsize );
 
-            // We use the "lenient" flag of the binomial distribution, so that values of
-            // nucleotide_count = n > 1024 do not throw an exception, but return infinity instead.
-            // That is okay, because this will lead to the theta denominator being infinity as well,
-            // which is then inverted, so it becomes 0, and then added to the total theta of the
-            // window. So, it just vanishes in that case, which is okay.
+            // Compute the terms needed.
+            double const p = static_cast<double>( r ) / static_cast<double>( poolsize );
             double const binom = utils::binomial_distribution(
-                allele_frequency, nucleotide_count, p, true
+                allele_frequency, nucleotide_count, p
             );
             double const partial = binom / static_cast<double>( r );
 
@@ -186,9 +182,10 @@ double theta_pi_pool_denominator(
 
     // Right now, our binomial computation will yield nan for large n.
     // No need to run an expensive loop that will result in nan anyway.
-    if( nucleotide_count >= utils::MAX_BINOMIAL_COEFFICIENT_N ) {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
+    // --> Update: Changed our binomical computation to work in log space; can handle this now!
+    // if( nucleotide_count >= utils::MAX_BINOMIAL_COEFFICIENT_N ) {
+    //     return std::numeric_limits<double>::quiet_NaN();
+    // }
 
     // Simply return the cached value (which computes them first if not yet cached).
     return denom_cache_( settings.min_count, poolsize, nucleotide_count );
@@ -243,9 +240,10 @@ double theta_watterson_pool_denominator(
 
     // Right now, our binomial computation will yield nan for large n.
     // No need to run an expensive loop that will result in nan anyway.
-    if( nucleotide_count >= utils::MAX_BINOMIAL_COEFFICIENT_N ) {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
+    // --> Update: Changed our binomical computation to work in log space; can handle this now!
+    // if( nucleotide_count >= utils::MAX_BINOMIAL_COEFFICIENT_N ) {
+    //     return std::numeric_limits<double>::quiet_NaN();
+    // }
 
     // Simply return the cached value (which computes them first if not yet cached).
     return denom_cache_( settings.min_count, poolsize, nucleotide_count );
