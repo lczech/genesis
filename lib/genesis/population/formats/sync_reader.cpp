@@ -533,6 +533,36 @@ void SyncReader::parse_sample_(
         return;
     }
 
+    // If activated, allow the missing site notation `.:.:.:.:.:.` of Kapun.
+    if(
+        allow_missing_           &&
+        buff.second >= 12        &&
+        buff.first[  0 ] == '\t' &&
+        buff.first[  1 ] == '.'  &&
+        buff.first[  2 ] == ':'  &&
+        buff.first[  3 ] == '.'  &&
+        buff.first[  4 ] == ':'  &&
+        buff.first[  5 ] == '.'  &&
+        buff.first[  6 ] == ':'  &&
+        buff.first[  7 ] == '.'  &&
+        buff.first[  8 ] == ':'  &&
+        buff.first[  9 ] == '.'  &&
+        buff.first[ 10 ] == ':'  &&
+        buff.first[ 11 ] == '.'
+    ) {
+        // Set everything to zero to signal zero coverage or missing data.
+        sample.a_count = 0;
+        sample.t_count = 0;
+        sample.c_count = 0;
+        sample.g_count = 0;
+        sample.n_count = 0;
+        sample.d_count = 0;
+
+        // Jump to the position after the last entry.
+        it.jump_unchecked( 12 );
+        return;
+    }
+
     // If it's not the simply one-digit format, select the fastest alternative algorithm
     // available for the given compiler.
     #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)

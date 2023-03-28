@@ -71,6 +71,9 @@ namespace population {
  * See https://sourceforge.net/p/popoolation2/wiki/Tutorial/ for the original format description.
  * Unfortunately, the file format does not support sample names.
  *
+ * We furthermore allow a custom extension of the format, where `.:.:.:.:.:.` represents missing data.
+ * See allow_missing() and https://github.com/lczech/grenedalf/issues/4 for details.
+ *
  * Note on our internal data representation: The reader returns a Variant per line, where most of
  * the data is set based on the sync input content. However, the sync format does not have altnative
  * bases. By default, we leave it hence as 'N'. See however the guess_alt_base() setting
@@ -149,6 +152,26 @@ public:
         return *this;
     }
 
+    bool allow_missing() const
+    {
+        return allow_missing_;
+    }
+
+    /**
+     * @brief Set whether to allow missing data in the format suggested by Kapun et al.
+     *
+     * In order to distinguish missing/masked data from true zero-coverage positions, Kapun suggested
+     * to use the notation `.:.:.:.:.:.` for masked sites. When this is activate (default), we
+     * allow to read these, but still (as of now) produce zero-coverage sites, as we currently
+     * do not have an internal representation for denoting that.
+     * See https://github.com/lczech/grenedalf/issues/4 for details.
+     */
+    SyncReader& allow_missing( bool value )
+    {
+        allow_missing_ = value;
+        return *this;
+    }
+
     // -------------------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------------------
@@ -193,6 +216,7 @@ private:
 private:
 
     bool guess_alt_base_ = false;
+    bool allow_missing_ = true;
 
 };
 

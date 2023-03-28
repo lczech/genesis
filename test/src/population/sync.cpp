@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -255,6 +255,40 @@ TEST( Sync, SyncReaderLong )
     EXPECT_EQ( 100000003, data[4].samples[1].g_count );
     EXPECT_EQ( 100000004, data[4].samples[1].n_count );
     EXPECT_EQ( 100000005, data[4].samples[1].d_count );
+}
+
+TEST( Sync, SyncReaderMasked )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/masked.sync";
+
+    // The allele frequencies are stored in the order `A:T:C:G:N:del`
+
+    auto reader = SyncReader();
+    auto data = reader.read( from_file( infile ));
+    ASSERT_EQ( 1, data.size() );
+
+    // Line 1
+
+    EXPECT_EQ( "XYZ", data[0].chromosome );
+    EXPECT_EQ(    10, data[0].position );
+    EXPECT_EQ(   'T', data[0].reference_base );
+    ASSERT_EQ(     2, data[0].samples.size() );
+
+    EXPECT_EQ( 0, data[0].samples[0].a_count );
+    EXPECT_EQ( 0, data[0].samples[0].t_count );
+    EXPECT_EQ( 0, data[0].samples[0].c_count );
+    EXPECT_EQ( 0, data[0].samples[0].g_count );
+    EXPECT_EQ( 0, data[0].samples[0].n_count );
+    EXPECT_EQ( 0, data[0].samples[0].d_count );
+
+    EXPECT_EQ( 0, data[0].samples[1].a_count );
+    EXPECT_EQ( 0, data[0].samples[1].t_count );
+    EXPECT_EQ( 0, data[0].samples[1].c_count );
+    EXPECT_EQ( 0, data[0].samples[1].g_count );
+    EXPECT_EQ( 0, data[0].samples[1].n_count );
+    EXPECT_EQ( 0, data[0].samples[1].d_count );
 }
 
 TEST( Sync, SyncInputIterator )
