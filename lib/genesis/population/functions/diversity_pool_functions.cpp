@@ -82,16 +82,34 @@ double amnm_( // get_aMnm_buffer
     ) {
         double result = 0.0;
 
+        // We need a binomial distribution in the loop below for which the coefficient stays
+        // constant. So we pre-compute that here, and split the computation into its parts.
+        // Quick test on some real data reduced the runtime by 30% using this.
+        // Also, we are staying in log-space until the very end to allow large n and small p;
+        // see log_binomial_distribution() for the underlying implementation.
+        auto const k = allele_frequency;
+        auto const n = nucleotide_count;
+        auto const log_coeff = utils::log_binomial_coefficient( n, k );
+        assert( k <= n );
+
         // #pragma omp parallel for
         for( size_t r = 1; r <= poolsize - 1; ++r ) {
 
-            // Compute the terms needed.
+            // Get the probability that we are looking at in this loop iteration.
             double const p = static_cast<double>( r ) / static_cast<double>( poolsize );
-            double const binom = utils::binomial_distribution(
-                allele_frequency, nucleotide_count, p
-            );
-            double const partial = binom / static_cast<double>( r );
+            assert( std::isfinite( p ) && 0.0 < p && p < 1.0 );
 
+            // Compute the remaining parts of the binomial that depend on p.
+            // Below, we have the original full function for reference.
+            double const log_pow_1 = static_cast<double>(     k ) * std::log(       p );
+            double const log_pow_2 = static_cast<double>( n - k ) * std::log( 1.0 - p );
+            double const binom = std::exp( log_coeff + log_pow_1 + log_pow_2 );
+            // double const binom = utils::binomial_distribution(
+            //     allele_frequency, nucleotide_count, p
+            // );
+
+            // Sum up the term.
+            double const partial = binom / static_cast<double>( r );
             // #pragma omp atomic
             result += partial;
 
