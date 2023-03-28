@@ -217,13 +217,15 @@ private:
 /**
  * @brief Create an FstPoolProcessor for all-to-all computation of FST between all pairs of samples.
  *
- * The function expects the pool sizes of all samples. It then yields a processor that can be
+ * The function expects the pool sizes of all samples, as well as any additional @p args to be
+ * provided to each processor after the pair of pool sizes. It then yields a processor that can be
  * provided with all Variant%s of interest along the genome, and computes FST between all pairs
  * of their samples.
  */
-template<class Calculator>
+template<class Calculator, typename... Args>
 inline FstPoolProcessor make_fst_pool_processor(
-    std::vector<size_t> const& pool_sizes
+    std::vector<size_t> const& pool_sizes,
+    Args... args
 ) {
     FstPoolProcessor result;
     for( size_t i = 0; i < pool_sizes.size(); ++i ) {
@@ -232,7 +234,8 @@ inline FstPoolProcessor make_fst_pool_processor(
                 i, j,
                 ::genesis::utils::make_unique<Calculator>(
                     pool_sizes[i],
-                    pool_sizes[j]
+                    pool_sizes[j],
+                    args...
                 )
             );
         }
@@ -243,15 +246,17 @@ inline FstPoolProcessor make_fst_pool_processor(
 /**
  * @brief Create an FstPoolProcessor for computation of FST between specific pairs of samples.
  *
- * The function expects the pool sizes of all samples, as well as pairs of indices of the
- * Variant::samples BaseCounts between which FST shall be calculated.
+ * The function expects the the pool sizes of all samples, as well as the pairs of indices of the
+ * Variant::samples BaseCounts between which FST shall be calculated, and any additional @p args to
+ * be provided to each processor after the pair of pool sizes.
  * It then yields a processor that can be provided with all Variant%s of interest along the genome,
  * and computes FST between all provided pairs of their samples.
  */
-template<class Calculator>
+template<class Calculator, typename... Args>
 inline FstPoolProcessor make_fst_pool_processor(
+    std::vector<std::pair<size_t, size_t>> const& sample_pairs,
     std::vector<size_t> const& pool_sizes,
-    std::vector<std::pair<size_t, size_t>> const& sample_pairs
+    Args... args
 ) {
     FstPoolProcessor result;
     for( auto const& p : sample_pairs ) {
@@ -267,7 +272,8 @@ inline FstPoolProcessor make_fst_pool_processor(
             p.first, p.second,
             ::genesis::utils::make_unique<Calculator>(
                 pool_sizes[p.first],
-                pool_sizes[p.second]
+                pool_sizes[p.second],
+                args...
             )
         );
     }
@@ -278,14 +284,16 @@ inline FstPoolProcessor make_fst_pool_processor(
  * @brief Create an FstPoolProcessor for one-to-all FST computation between one sample and all others.
  *
  * The function expects the pool sizes of all samples, as well as the index of the
- * Variant::samples BaseCounts object between which FST to all other samples shall be calculated.
+ * Variant::samples BaseCounts object between which FST to all other samples shall be calculated,
+ * and any additional @p args to be provided to each processor after the pair of pool sizes.
  * It then yields a processor that can be provided with all Variant%s of interest along the genome,
  * and computes FST between the given index and all other samples.
  */
-template<class Calculator>
+template<class Calculator, typename... Args>
 inline FstPoolProcessor make_fst_pool_processor(
+    size_t index,
     std::vector<size_t> const& pool_sizes,
-    size_t index
+    Args... args
 ) {
     FstPoolProcessor result;
     for( size_t i = 0; i < pool_sizes.size(); ++i ) {
@@ -293,7 +301,8 @@ inline FstPoolProcessor make_fst_pool_processor(
             index, i,
             ::genesis::utils::make_unique<Calculator>(
                 pool_sizes[index],
-                pool_sizes[i]
+                pool_sizes[i],
+                args...
             )
         );
     }
@@ -304,21 +313,24 @@ inline FstPoolProcessor make_fst_pool_processor(
  * @brief Create an FstPoolProcessor for one-to-one FST computation between two samples.
  *
  * The function expects the pool sizes of all samples, as well as two indices of the
- * Variant::samples BaseCounts objects between which FST shall be calculated.
+ * Variant::samples BaseCounts objects between which FST shall be calculated,
+ * and any additional @p args to be provided to each processor after the pair of pool sizes.
  * It then yields a processor that can be provided with all Variant%s of interest along the genome,
  * and computes FST between the given pair of samples.
  */
-template<class Calculator>
+template<class Calculator, typename... Args>
 inline FstPoolProcessor make_fst_pool_processor(
+    size_t index_1, size_t index_2,
     std::vector<size_t> const& pool_sizes,
-    size_t index_1, size_t index_2
+    Args... args
 ) {
     FstPoolProcessor result;
     result.add_calculator(
         index_1, index_2,
         ::genesis::utils::make_unique<Calculator>(
             pool_sizes[index_1],
-            pool_sizes[index_2]
+            pool_sizes[index_2],
+            args...
         )
     );
     return result;
