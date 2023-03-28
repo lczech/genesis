@@ -33,6 +33,7 @@
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/math/binomial.hpp"
 #include "genesis/utils/math/common.hpp"
+#include "genesis/utils/math/kahan_sum.hpp"
 
 #include <limits>
 
@@ -161,4 +162,31 @@ TEST( Math, AlmostEqualRelative )
     EXPECT_TRUE(  almost_equal_relative( 1.0, 2.0, 0.50 ));
     EXPECT_TRUE(  almost_equal_relative( 1.0, 2.0, 0.51 ));
     EXPECT_TRUE(  almost_equal_relative( 1.0, 2.0, 1.00 ));
+}
+
+TEST( Math, KahanSum )
+{
+    size_t const k = 1000000;
+
+    // Simple, for comparison.
+    // double x = static_cast<double>(k) / 10.0;
+    // for( size_t i = 0; i < k; ++i ) {
+    //     x -= 0.1;
+    // }
+    // LOG_DBG << x;
+    // k = 1e6 -->  -1.33288e-06
+
+    // With Kahan.
+    KahanSum s{ static_cast<double>(k) / 10.0 };
+    for( size_t i = 0; i < k; ++i ) {
+        s += -0.1;
+    }
+    // LOG_DBG << s.get();
+    // k = 1e6 -->  -5.55112e-12
+
+    // It's still not perfect. But double the digits of precision of summing without Kahan.
+    // So let's check that we got better than that - say, 1e-11. Kinda arbitrary though.
+    // If this test fails at some point, it's likely due to a compiler optimizing Kahan out again.
+    // In that case, we need to activate the volatile implementation that is already in the class.
+    EXPECT_TRUE( s.get() < 1e-11 );
 }

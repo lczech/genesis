@@ -34,6 +34,7 @@
 #include "genesis/population/functions/diversity_pool_functions.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/population/variant.hpp"
+#include "genesis/utils/math/kahan_sum.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -197,8 +198,8 @@ public:
 
     void reset()
     {
-        theta_pi_sum_        = 0.0;
-        theta_watterson_sum_ = 0.0;
+        theta_pi_sum_.reset();
+        theta_watterson_sum_.reset();
         processed_count_     = 0;
     }
 
@@ -237,7 +238,7 @@ public:
      */
     double get_theta_pi_absolute() const
     {
-        return theta_pi_sum_;
+        return theta_pi_sum_.get();
     }
 
     /**
@@ -254,7 +255,7 @@ public:
      */
     double get_theta_pi_relative( size_t coverage_count ) const
     {
-        return theta_pi_sum_ / static_cast<double>( coverage_count );
+        return theta_pi_sum_.get() / static_cast<double>( coverage_count );
     }
 
     /**
@@ -264,7 +265,7 @@ public:
      */
     double get_theta_watterson_absolute() const
     {
-        return theta_watterson_sum_;
+        return theta_watterson_sum_.get();
     }
 
     /**
@@ -274,7 +275,7 @@ public:
      */
     double get_theta_watterson_relative( size_t coverage_count ) const
     {
-        return theta_watterson_sum_ / static_cast<double>( coverage_count );
+        return theta_watterson_sum_.get() / static_cast<double>( coverage_count );
     }
 
     /**
@@ -295,7 +296,7 @@ public:
             snp_count = processed_count_;
         }
         return tajima_d_pool(
-            settings_, poolsize_, theta_pi_sum_, theta_watterson_sum_, snp_count
+            settings_, poolsize_, theta_pi_sum_.get(), theta_watterson_sum_.get(), snp_count
         );
     }
 
@@ -350,8 +351,8 @@ private:
     bool enable_tajima_d_        = true;
 
     // Data Accumulation
-    double theta_pi_sum_        = 0.0;
-    double theta_watterson_sum_ = 0.0;
+    utils::KahanSum theta_pi_sum_;
+    utils::KahanSum theta_watterson_sum_;
     size_t processed_count_     = 0;
 };
 
