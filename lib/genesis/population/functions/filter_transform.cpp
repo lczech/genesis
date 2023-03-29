@@ -201,31 +201,31 @@ void reset( BaseCountsFilterStats& stats )
 std::ostream& print_base_counts_filter_stats( std::ostream& os, BaseCountsFilterStats const& stats )
 {
     if( stats.passed > 0 ) {
-        os << "Passed:               " << stats.passed;
+        os << "Passed:               " << stats.passed << "\n";
     }
-    if( stats.below_min_count > 0 ) {
-        os << "Below min count:      " << stats.below_min_count;
-    }
-    if( stats.above_max_count > 0 ) {
-        os << "Above max count:      " << stats.above_max_count;
-    }
+    // if( stats.below_min_count > 0 ) {
+    //     os << "Below min count:      " << stats.below_min_count << "\n";
+    // }
+    // if( stats.above_max_count > 0 ) {
+    //     os << "Above max count:      " << stats.above_max_count << "\n";
+    // }
     if( stats.empty > 0 ) {
-        os << "empty:                " << stats.empty;
+        os << "Empty (after counts): " << stats.empty << "\n";
     }
     if( stats.untolerated_deletion > 0 ) {
-        os << "Untolerated deletion: " << stats.untolerated_deletion;
+        os << "Untolerated deletion: " << stats.untolerated_deletion << "\n";
     }
     if( stats.below_min_coverage > 0 ) {
-        os << "Below min coverage:   " << stats.below_min_coverage;
+        os << "Below min coverage:   " << stats.below_min_coverage << "\n";
     }
     if( stats.above_max_coverage > 0 ) {
-        os << "Above max coverage:   " << stats.above_max_coverage;
+        os << "Above max coverage:   " << stats.above_max_coverage << "\n";
     }
     if( stats.not_snp > 0 ) {
-        os << "Not SNP:              " << stats.not_snp;
+        os << "Not SNP:              " << stats.not_snp << "\n";
     }
     if( stats.not_biallelic_snp > 0 ) {
-        os << "Not iallelic SNP:     " << stats.not_biallelic_snp;
+        os << "Not biallelic SNP:    " << stats.not_biallelic_snp << "\n";
     }
     return os;
 }
@@ -322,23 +322,30 @@ bool filter_base_counts(
 
 bool filter_base_counts(
     Variant& variant,
-    BaseCountsFilter const& filter
+    BaseCountsFilter const& filter,
+    bool all_need_pass
 ) {
     BaseCountsFilterStats stats;
-    return filter_base_counts( variant, filter, stats );
+    return filter_base_counts( variant, filter, stats, all_need_pass );
 }
 
 bool filter_base_counts(
     Variant& variant,
     BaseCountsFilter const& filter,
-    BaseCountsFilterStats& stats
+    BaseCountsFilterStats& stats,
+    bool all_need_pass
 ) {
     size_t passed_cnt = 0;
     for( auto& sample : variant.samples ) {
         auto const passed = filter_base_counts( sample, filter, stats );
         passed_cnt += static_cast<int>( passed );
     }
-    return passed_cnt == variant.samples.size();
+    if( all_need_pass ) {
+        return passed_cnt == variant.samples.size();
+    } else {
+        return passed_cnt > 0;
+    }
+    return false;
 }
 
 // =================================================================================================
@@ -358,22 +365,22 @@ void reset( VariantFilterStats& stats )
 std::ostream& print_variant_filter_stats( std::ostream& os, VariantFilterStats const& stats )
 {
     if( stats.passed > 0 ) {
-        os << "Passed:               " << stats.passed;
+        os << "Passed:               " << stats.passed << "\n";
     }
     if( stats.below_min_coverage > 0 ) {
-        os << "Below min coverage:   " << stats.below_min_coverage;
+        os << "Below min coverage:   " << stats.below_min_coverage << "\n";
     }
     if( stats.above_max_coverage > 0 ) {
-        os << "Above max coverage:   " << stats.above_max_coverage;
+        os << "Above max coverage:   " << stats.above_max_coverage << "\n";
     }
     if( stats.not_snp > 0 ) {
-        os << "Not SNP:              " << stats.not_snp;
+        os << "Not SNP:              " << stats.not_snp << "\n";
     }
     if( stats.not_biallelic_snp > 0 ) {
-        os << "Not biallelic SNP:    " << stats.not_biallelic_snp;
+        os << "Not biallelic SNP:    " << stats.not_biallelic_snp << "\n";
     }
     if( stats.not_min_frequency > 0 ) {
-        os << "Not min frequency:    " << stats.not_min_frequency;
+        os << "Not min frequency:    " << stats.not_min_frequency << "\n";
     }
     return os;
 }

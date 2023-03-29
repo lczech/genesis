@@ -428,12 +428,16 @@ bool filter_base_counts(
  * @brief Filter all BaseCounts of a given Variant.
  *
  * Simply applies the version of this function for BaseCounts to all Variant::samples.
- * Returns `true` iff all individual samples passed all filters, and `false` otherwise
- * (but always processes all samples).
+ * If @p all_need_pass is set, the function returns `true` iff all individual samples passed all
+ * filters, and `false` otherwise.
+ * If @p all_need_pass is not set, the function returns `true` if any sample passed the filters.
+ * In either case, all samples of the @p variant are always processed (no short-circuit, as we want
+ * all of them to have the count transformations applied to them).
  */
 bool filter_base_counts(
     Variant& variant,
-    BaseCountsFilter const& filter
+    BaseCountsFilter const& filter,
+    bool all_need_pass = false
 );
 
 /**
@@ -444,32 +448,61 @@ bool filter_base_counts(
 bool filter_base_counts(
     Variant& variant,
     BaseCountsFilter const& filter,
-    BaseCountsFilterStats& stats
+    BaseCountsFilterStats& stats,
+    bool all_need_pass = false
 );
+
+/**
+ * @brief Return a functional to transform all BaseCounts samples of a given Variant,
+ * so that the functional can be used as a transform with VariantInputIterator.
+ */
+inline std::function<void(Variant&)> make_transform_base_counts(
+    BaseCountsFilter const& filter
+) {
+    return [ filter ]( Variant& variant ){
+        filter_base_counts( variant, filter );
+    };
+}
+
+/**
+ * @copydoc make_transform_base_counts( BaseCountsFilter const& )
+ *
+ * This overload also includes the statistics of the failing or passing filters.
+ */
+inline std::function<void(Variant&)> make_transform_base_counts(
+    BaseCountsFilter const& filter,
+    BaseCountsFilterStats& stats
+) {
+    return [ filter, &stats ]( Variant& variant ){
+        filter_base_counts( variant, filter, stats );
+    };
+}
 
 /**
  * @brief Return a functional to filter all BaseCounts samples of a given Variant,
  * so that the functional can be used as a filter with VariantInputIterator.
  */
 inline std::function<bool(Variant&)> make_filter_base_counts(
-    BaseCountsFilter const& filter
+    BaseCountsFilter const& filter,
+    bool all_need_pass = false
 ) {
-    return [&]( Variant& variant ){
-        return filter_base_counts( variant, filter );
+    return [ filter, all_need_pass ]( Variant& variant ){
+        return filter_base_counts( variant, filter, all_need_pass );
     };
 }
 
 /**
  * @copydoc make_filter_base_counts( BaseCountsFilter const& )
  *
- * This overload also includes the statistics of the failing or passing filter.
+ * This overload also includes the statistics of the failing or passing filters.
  */
 inline std::function<bool(Variant&)> make_filter_base_counts(
     BaseCountsFilter const& filter,
-    BaseCountsFilterStats& stats
+    BaseCountsFilterStats& stats,
+    bool all_need_pass = false
 ) {
-    return [&]( Variant& variant ){
-        return filter_base_counts( variant, filter, stats );
+    return [ filter, &stats, all_need_pass ]( Variant& variant ){
+        return filter_base_counts( variant, filter, stats, all_need_pass );
     };
 }
 
