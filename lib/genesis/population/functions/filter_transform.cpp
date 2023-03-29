@@ -367,6 +367,9 @@ std::ostream& print_variant_filter_stats( std::ostream& os, VariantFilterStats c
     if( stats.passed > 0 ) {
         os << "Passed:               " << stats.passed << "\n";
     }
+    if( stats.empty > 0 ) {
+        os << "Empty (after counts): " << stats.empty << "\n";
+    }
     if( stats.below_min_coverage > 0 ) {
         os << "Below min coverage:   " << stats.below_min_coverage << "\n";
     }
