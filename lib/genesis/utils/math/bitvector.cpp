@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -241,19 +241,10 @@ bool Bitvector::operator != (const Bitvector &other) const
 
 size_t Bitvector::count() const
 {
+    // Use bit trickery to count quickly.
     size_t res = 0;
     for (IntType x : data_) {
-        // put count of each 2 bits into those 2 bits
-        x -= (x >> 1) & count_mask_[0];
-
-        // put count of each 4 bits into those 4 bits
-        x = (x & count_mask_[1]) + ((x >> 2) & count_mask_[1]);
-
-        // put count of each 8 bits into those 8 bits
-        x = (x + (x >> 4)) & count_mask_[2];
-
-        // take left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
-        res += (x * count_mask_[3]) >> 56;
+        res += count_(x);
     }
 
     // safe, but slow version...
@@ -266,6 +257,74 @@ size_t Bitvector::count() const
     //~ assert(tmp == res);
 
     return res;
+}
+
+size_t Bitvector::count( size_t first, size_t last ) const
+{
+    // Boundary checks.
+    if( first >= size_ || last > size_ || first > last ) {
+        throw std::invalid_argument(
+            "Cannot compute pop count for Bitvector of size " + std::to_string( size_ ) +
+            " within invalid range [" + std::to_string(first) + "," + std::to_string( last ) + ")"
+        );
+    }
+    assert( first <  size_ );
+    assert( last  <= size_ );
+    assert( first <= last );
+
+    // Check special case, as we might otherwise access invalid data at the boundaries.
+    if( first == last ) {
+        return 0;
+    }
+    assert( last > 0 );
+
+    // We need to mask the first bits of the first word and last bits of the last word
+    // before counting, and then can process the in-between words normally.
+    // If first and last are the same word, we need special treatment as well.
+
+    // Get word indices, and bit position indices within those words.
+    // The last word is the one where the bit before last is, as last is past-the-end.
+    // However, the bit index is still meant to be past-the-end, to use the proper mask.
+    auto const f_wrd_idx = first / IntSize;
+    auto const l_wrd_idx = (last - 1) / IntSize;
+    auto const f_bit_idx = first % IntSize;
+    auto const l_bit_idx = last % IntSize;
+    assert( f_wrd_idx < data_.size() );
+    assert( l_wrd_idx < data_.size() );
+    assert( f_bit_idx < ones_mask_.size() );
+    assert( l_bit_idx < ones_mask_.size() );
+
+    // Get the two words at the boundary. We later check if they are the same,
+    // so we do not repeat the code here, and treat the special case later.
+    auto f_word = data_[ f_wrd_idx ];
+    auto l_word = data_[ l_wrd_idx ];
+
+    // Mask out the beginning and end, respectively.
+    // Special case for the beginning: we only apply the mask if not all bits are needed.
+    if( f_bit_idx > 0 ) {
+        // Remove all bits before the first index.
+        f_word &= ~( ones_mask_[ f_bit_idx ]);
+    }
+    // Remove all bits after and including the last index.
+    // No special case needed here, as the 0th mask is idempotent.
+    // That's because it's the mask that we also use for unset_padding_(),
+    // we are basically doing the same here.
+    l_word &= ones_mask_[ l_bit_idx ];
+
+    // Finally, count up all the parts.
+    size_t result = 0;
+    if( f_wrd_idx == l_wrd_idx ) {
+        // Same word. Mask out the bits we don't want, using only the bits that remained after
+        // filtering both words (which are the same, just different ends of the word), then count.
+        result = count_( f_word & l_word );
+    } else {
+        // Count the first and last word, and then add everything in between the two.
+        result = count_( f_word ) + count_( l_word );
+        for( size_t i = f_wrd_idx + 1; i < l_wrd_idx; ++i ) {
+            result += count_( data_[i] );
+        }
+    }
+    return result;
 }
 
 size_t Bitvector::hash() const
@@ -318,6 +377,10 @@ void Bitvector::set_all( const bool value )
     }
 }
 
+// =============================================================================
+//     Internal Members
+// =============================================================================
+
 void Bitvector::unset_padding_()
 {
     // Only apply if there are actual padding bits.
@@ -337,6 +400,23 @@ void Bitvector::unset_padding_()
         //~ data_.back() &= ~bit_mask_[i];
     //~ }
     //~ data_.back() &= bit_mask_[size_ % IntSize] - 1;
+}
+
+size_t Bitvector::count_( IntType x )
+{
+    // Use some bit magic, see e.g., https://en.wikipedia.org/wiki/Hamming_weight
+
+    // put count of each 2 bits into those 2 bits
+    x -= (x >> 1) & count_mask_[0];
+
+    // put count of each 4 bits into those 4 bits
+    x = (x & count_mask_[1]) + ((x >> 2) & count_mask_[1]);
+
+    // put count of each 8 bits into those 8 bits
+    x = (x + (x >> 4)) & count_mask_[2];
+
+    // take left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
+    return (x * count_mask_[3]) >> 56;
 }
 
 // =============================================================================
