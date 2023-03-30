@@ -40,6 +40,7 @@
 #include <cmath>
 #include <cstdint>
 #include <iterator>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -144,7 +145,13 @@ public:
     DiversityPoolCalculator( DiversityPoolSettings const& settings, size_t poolsize )
         : settings_( settings )
         , poolsize_( poolsize )
-    {}
+    {
+        if( settings.min_count == 0 ) {
+            throw std::invalid_argument(
+                "In DiversityPoolCalculator, settings.min_count == 0 is not allowed."
+            );
+        }
+    }
     ~DiversityPoolCalculator() = default;
 
     DiversityPoolCalculator( DiversityPoolCalculator const& ) = default;

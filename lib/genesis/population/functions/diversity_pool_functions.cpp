@@ -121,6 +121,14 @@ double amnm_( // get_aMnm_buffer
         return result;
     }};
 
+    // Edge case check.
+    if( allele_frequency == 0 ) {
+        throw std::invalid_argument(
+            "In computing amnm_(), allele_frequency == 0 is not allowed. "
+            "This is likely caused by using DiversityPoolSettings.min_count == 0."
+        );
+    }
+
     return amnm_cache_( poolsize, nucleotide_count, allele_frequency );
 }
 
@@ -512,9 +520,15 @@ double tajima_d_pool_denominator( // get_ddivisor
             "we recommend to subsample the reads to a smaller coverage."
         );
     }
+    if( settings.min_coverage == 0 ) {
+        throw std::invalid_argument(
+            "Minimum coverage of 0 is not valid for calculating pool-corrected Tajima's D "
+            "with tajima_d_pool()."
+        );
+    }
     if( 3 * settings.min_coverage >= poolsize ) {
         throw std::invalid_argument(
-            "Invalid mincoverage >> poolsize (as internal aproximation we use: "
+            "Invalid minimum coverage >> poolsize (as internal aproximation we use: "
             "3 * minimumcoverage < poolsize) in tajima_d_pool()"
         );
     }
