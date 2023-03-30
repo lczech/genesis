@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -124,7 +124,7 @@ public:
         // Run basic checks. This throws if necessary.
         argument_checks_( data, k );
 
-        // Init assigments and centroids.
+        // Init assignments and centroids.
         initialize( data, k );
 
         // Call the hook.
@@ -136,7 +136,7 @@ public:
         runtime_checks_( data, k );
 
         size_t iteration = 0;
-        bool changed_assigment;
+        bool changed_assignment;
 
         do {
             // Start a new iteration.
@@ -144,7 +144,7 @@ public:
                 report_iteration( iteration + 1 );
             }
 
-            changed_assigment = lloyd_step( data, assignments_, centroids_ );
+            changed_assignment = lloyd_step( data, assignments_, centroids_ );
 
             // Check again.
             runtime_checks_( data, k );
@@ -153,13 +153,13 @@ public:
             auto const empty_centroids = get_empty_centroids_();
             if( ! empty_centroids.empty() ) {
                 LOG_INFO << "Empty centroid occurred: " << empty_centroids.size();
-                changed_assigment |= treat_empty_centroids(
+                changed_assignment |= treat_empty_centroids(
                     data, assignments_, centroids_, empty_centroids
                 );
             }
 
             ++iteration;
-        } while( changed_assigment && iteration < max_iterations_ );
+        } while( changed_assignment && iteration < max_iterations_ );
 
         // Call the hook.
         post_loop_hook( data, assignments_, centroids_ );
@@ -286,8 +286,8 @@ protected:
             init_with_random_centroids_( data, k );
 
         } else if( assignments_.size() == 0 && centroids_.size() > 0 ) {
-            // Centroids given, but no assigments: Nothing to do for now.
-            // We will calculate the proper assigments in the main loop.
+            // Centroids given, but no assignments: Nothing to do for now.
+            // We will calculate the proper assignments in the main loop.
 
         } else if( assignments_.size() > 0 && centroids_.size() == 0 ) {
             // Assignments given, but not centroids: Caculate the latter.
@@ -298,7 +298,7 @@ protected:
             assert( assignments_.size() > 0 && centroids_.size() > 0 );
         }
 
-        // If we do not have an assigment vector yet, make one. It will be assigned proper values
+        // If we do not have an assignment vector yet, make one. It will be assigned proper values
         // once we enter the main loop.
         if( assignments_.size() == 0 ) {
             assignments_ = std::vector<size_t>( data.size(), 0 );
@@ -327,12 +327,12 @@ protected:
         std::vector<Point>&        centroids
     ) {
         // Calculate new assignments and check whether they changed.
-        auto changed_assigment = assign_to_centroids( data, centroids, assignments );
+        auto changed_assignment = assign_to_centroids( data, centroids, assignments );
 
         // Recalculate the centroids.
         update_centroids( data, assignments, centroids );
 
-        return changed_assigment;
+        return changed_assignment;
     }
 
     virtual bool assign_to_centroids(
@@ -341,7 +341,7 @@ protected:
         std::vector<size_t>&      assignments
     ) {
         // Store whether anything changed.
-        bool changed_assigment = false;
+        bool changed_assignment = false;
 
         // Assign each Point to its nearest centroid.
         #pragma omp parallel for
@@ -352,14 +352,14 @@ protected:
                 // Update the assignment. No need for locking, as each thread works on its own i.
                 assignments[i] = new_idx;
 
-                // If we have a new assigment for this datum, we need to do another loop iteration.
+                // If we have a new assignment for this datum, we need to do another loop iteration.
                 // Do this atomically, as all threads use this variable.
                 #pragma omp atomic write
-                changed_assigment = true;
+                changed_assignment = true;
             }
         }
 
-        return changed_assigment;
+        return changed_assignment;
     }
 
     virtual std::pair<size_t, double> find_nearest_cluster(
@@ -393,7 +393,7 @@ protected:
         result.counts    = std::vector<size_t>( k, 0 );
         result.distances = std::vector<double>( data.size(), 0.0 );
 
-        // Work through the data and assigments and accumulate.
+        // Work through the data and assignments and accumulate.
         #pragma omp parallel for
         for( size_t i = 0; i < data.size(); ++i ) {
 

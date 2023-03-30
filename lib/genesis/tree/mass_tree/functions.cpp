@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -188,7 +188,7 @@ double mass_tree_center_masses_on_branches_averaged( MassTree& tree )
 
         // No masses on the edge. We need to skip the rest, otherwise we end up having a nan values
         // as mass centers, which leads to nan earth mover distance values, which leads to invalid
-        // kmeans cluster centroid assigments, which leads to crashes. What a stupid bug that was.
+        // kmeans cluster centroid assignments, which leads to crashes. What a stupid bug that was.
         if( edge_data.masses.empty() ) {
             continue;
         }

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -132,7 +132,7 @@ void MassTreeKmeans::update_centroids(
             auto& centroid = centroids[ c ];
             size_t count = 0;
 
-            // Work through the data and assigments and accumulate...
+            // Work through the data and assignments and accumulate...
             for( size_t d = 0; d < data.size(); ++d ) {
 
                 // ( Check correct assignments. )
@@ -170,7 +170,7 @@ void MassTreeKmeans::update_centroids(
         // Count how many mass trees are accumulated per centroid.
         auto counts = std::vector<size_t>( k, 0 );
 
-        // Work through the data and assigments and accumulate.
+        // Work through the data and assignments and accumulate.
         for( size_t d = 0; d < data.size(); ++d ) {
 
             // Check correct assignments.
