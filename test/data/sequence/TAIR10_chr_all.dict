@@ -1,0 +1,8 @@
+@HD	VN:1.6
+@SQ	SN:1	LN:30427671	M5:66bcd0ba0c2303c318cfa2742cfb4203	UR:file:/home/lucas/Dropbox/GitHub/grenepipe/test/reference/TAIR10_chr_all.fa
+@SQ	SN:2	LN:19698289	M5:837e6cf18d30dda428a08ac2cb4061f2	UR:file:/home/lucas/Dropbox/GitHub/grenepipe/test/reference/TAIR10_chr_all.fa
+@SQ	SN:3	LN:23459830	M5:bd4bc6259143f4b4f3921367c28d07ff	UR:file:/home/lucas/Dropbox/GitHub/grenepipe/test/reference/TAIR10_chr_all.fa
+@SQ	SN:4	LN:18585056	M5:21f56163f7e34510232448b14fce7578	UR:file:/home/lucas/Dropbox/GitHub/grenepipe/test/reference/TAIR10_chr_all.fa
+@SQ	SN:5	LN:26975502	M5:d6cb9d0b2cf3f54e5308adaa2af79e08	UR:file:/home/lucas/Dropbox/GitHub/grenepipe/test/reference/TAIR10_chr_all.fa
+@SQ	SN:mitochondria	LN:366924	M5:41eb7f2aefd77bd60d1d204a5e2aa876	UR:file:/home/lucas/Dropbox/GitHub/grenepipe/test/reference/TAIR10_chr_all.fa
+@SQ	SN:chloroplast	LN:154478	M5:23eeba58f0f2b65fcfaeb887856c8bfb	UR:file:/home/lucas/Dropbox/GitHub/grenepipe/test/reference/TAIR10_chr_all.fa

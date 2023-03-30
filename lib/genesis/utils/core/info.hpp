@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -177,12 +177,32 @@ size_t info_current_file_count();
 bool hyperthreads_enabled();
 
 /**
- * @brief Try to guess the number of hardware threads of the current system.
+ * @brief Make an educated guess on the number of threads to use for multi-threaded functionality.
  *
- * This function uses multiple sources and ways to try to guess the number of physical cores
- * of the system.
+ * This function uses multiple sources and ways to try to guess a reasonable number of threads:
+ *
+ *  - If @p use_openmp is set (and genesis was compiled with OpenMP support) we obtain
+ *    `omp_get_max_threads()` to get a number of threads from that. This itself considers for
+ *    instance the environment variable `OMP_NUM_THREADS` as a source.
+ *  - If @p use_slurm is set, we get a number of cores from the environment variable
+ *    `SLURM_CPUS_PER_TASK`.
+ *  - Lastly, we get the result of `std::thread::hardware_concurrency()` as another hint.
+ *    If furthermore @p physical_cores is set, and hyperthreads are enabled, we divide that hardware
+ *    concurrency number by two, in order to account for hyperthreads, resulting in the number
+ *    of physical cores available on the system (ideally). This avoids core oversubscription that
+ *    could otherwise be the result of using all threads instead of all physical cores.
+ *
+ * If the numbers disagree with each other, we prefer OpenMP over slurm over `std::thread`,
+ * that is, we are going from most specific to least. Furthermore, if the OpenMP based guess yields
+ * exactly the same number as the hardware concurrency, we also use the @p physical_cores setting,
+ * as this result usually indicates that OpenMP left at its default, in which case we also want
+ * to avoid core oversubscription due to hyperthreading.
  */
-unsigned int guess_number_of_threads( bool use_openmp = true );
+size_t guess_number_of_threads(
+    bool use_openmp = true,
+    bool use_slurm = true,
+    bool physical_cores = true
+);
 
 } // namespace utils
 } // namespace genesis

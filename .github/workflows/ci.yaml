@@ -323,6 +323,13 @@ jobs:
       - name: Test - gdb
         # If the regular test run failed, we repeat with gdb, to print the stack.
         # We are not using the `./test/run.sh gdb` here, to make it easier for MacOS.
+        # gdb on Mac needs to be code signed for executing without admin rights...
+        # See https://sourceware.org/gdb/wiki/PermissionsDarwin, which seems super compilcated.
+        # So we just run it via sudo instead ;-)
         if: ${{ failure() && steps.test.conclusion == 'failure' }}
         run: |
-          gdb -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests
+          GDBEXE="gdb"
+          # if [[ ${{ matrix.os }} == macos* ]] ; then
+          #   GDBEXE="sudo gdb"
+          # fi
+          ${GDBEXE} -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests

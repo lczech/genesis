@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 #include "genesis/utils/core/algorithm.hpp"
 
 #include <set>
+#include <unordered_map>
 
 using namespace genesis::population;
 using namespace genesis::utils;
@@ -88,7 +89,6 @@ void test_parallel_input_iterator_(
         );
 
     #endif
-
 
     // Add the addtional loci, if present. If all of the input sources are following, but
     // we have additional carrying loci, we do only visit those, and hence need to clear the
@@ -257,3 +257,29 @@ TEST( ParallelInputIterator, Basics )
     // LOG_DBG << "15, 32";
     test_parallel_input_iterator_all_({ 15, 32 });
 }
+
+// TEST( ParallelInputIterator, UnorderedChromosomes )
+// {
+//     // Skip test if no data availabe.
+//     NEEDS_TEST_DATA;
+//     std::string const s_infile = environment->data_dir + "population/parallel_chrs_1.sync";
+//
+//     // Init with the desired settings
+//     auto pit = VariantParallelInputIterator();
+//     pit.add_variant_input_iterator(
+//         make_variant_input_iterator_from_sync_file( s_infile ),
+//         VariantParallelInputIterator::ContributionType::kCarrying
+//     );
+//
+//     std::unordered_map<std::string, std::set<size_t>> expected_positions = {
+//         { "XYZ", { 10, 12, 17, 25, 28, 30 }},
+//         { "ABC", { 10, 12, 17, 25, 28, 30 }}
+//     };
+//
+//     std::unordered_map<std::string, std::set<size_t>> found_positions;
+//     for( auto it = pit.begin(); it != pit.end(); ++it ) {
+//         // LOG_DBG2 << it.locus().to_string();
+//         found_positions[ it.locus().chromosome ].insert( it.locus().position );
+//     }
+//     EXPECT_EQ( expected_positions, found_positions );
+// }

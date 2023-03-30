@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -136,7 +136,7 @@ void GzipInputSource::create_zstream_()
     // Init zlib
     auto ret = inflateInit2( &zstream, get_format_( format_ ));
     if( ret != Z_OK ) {
-        throw except::GzipError( zstream.msg, ret );
+        throw GzipError( zstream.msg, ret );
     }
 
     zlib_data_->initialized = true;
@@ -216,7 +216,7 @@ size_t GzipInputSource::read_( char* buffer, size_t size )
             if( ret == Z_NEED_DICT ) {
                 ret = Z_DATA_ERROR;
             }
-            throw except::GzipError( zstream.msg, ret );
+            throw GzipError( zstream.msg, ret );
         }
 
         // Update current positions.

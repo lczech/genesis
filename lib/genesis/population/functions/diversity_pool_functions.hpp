@@ -1,9 +1,9 @@
-#ifndef GENESIS_POPULATION_FUNCTIONS_DIVERSITY_H_
-#define GENESIS_POPULATION_FUNCTIONS_DIVERSITY_H_
+#ifndef GENESIS_POPULATION_FUNCTIONS_DIVERSITY_POOL_FUNCTIONS_H_
+#define GENESIS_POPULATION_FUNCTIONS_DIVERSITY_POOL_FUNCTIONS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,9 +34,6 @@
 #include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/population/variant.hpp"
-#include "genesis/utils/containers/filter_iterator.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/transform_iterator.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -50,14 +47,14 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Diversity Estimates
+//     Diversity Pool Settings
 // =================================================================================================
 
 /**
  * @brief Settings used by different pool-sequencing corrected diversity statistics.
  *
- * These settings are used for example by theta_pi_pool(), theta_watterson_pool(), and
- * tajima_d_pool(), as well as pool_diversity_measures(), in order to have them in a central place,
+ * These settings are used by DiversityPoolCalculator, and for example by theta_pi_pool(),
+ * theta_watterson_pool(), and tajima_d_pool(), in order to have them in a central place,
  * and avoid ordering confusion of function arguments, that would result from having to provide
  * them individually.
  *
@@ -71,57 +68,18 @@ namespace population {
  * Using this option, one can voluntarily activate these bugs here as well, in order to get
  * results that are comparable with PoPoolation results.
  */
-struct PoolDiversitySettings
+struct DiversityPoolSettings
 {
-    size_t poolsize = 0;
-
-    size_t min_allele_count = 0;
+    size_t min_count = 0;
     size_t min_coverage = 0;
     size_t max_coverage = 0;
 
     bool with_popoolation_bugs = false;
 };
 
-/**
- * @brief Data struct to collect all diversity statistics computed by pool_diversity_measures().
- *
- * This is meant as a simple way to obtain all diversity measures at once. It is slightly
- * inefficient, as the filtering of variants and the traversal of the input iterator is done
- * more than necessary. But it should still be fast enough for most applications.
- */
-struct PoolDiversityResults
-{
-    double theta_pi_absolute = 0;
-    double theta_pi_relative = 0;
-    double theta_watterson_absolute = 0;
-    double theta_watterson_relative = 0;
-    double tajima_d = 0;
-
-    /**
-     * @brief Count of variants in the iterator range that surpass the
-     * PoolDiversitySettings::min_allele_count setting.
-     */
-    size_t variant_count = 0;
-
-    /**
-     * @brief Out of the #variant_count many variants, how many are properly covered,
-     * that is, have coverage in between PoolDiversitySettings::min_coverage and
-     * PoolDiversitySettings::max_coverage (both inclusive).
-     *
-     * This is the count that is used to compute the relative versions of Theata Pi and
-     * Theta Watterson as well.
-     */
-    size_t coverage_count = 0;
-
-    /**
-     * @brief Out of the #variant_count and #coverage_count many variants, how many are SNPs,
-     * that is, have at least two different counts greater than zero.
-     *
-     * Variants that are not SNPs and do not have proper coverage are not considered in the
-     * computation of the diversity measures.
-     */
-    size_t snp_count = 0;
-};
+// =================================================================================================
+//     Theta Pi
+// =================================================================================================
 
 /**
  * @brief Compute classic heterozygosity.
@@ -139,34 +97,6 @@ struct PoolDiversityResults
  * for details.
  */
 double heterozygosity( BaseCounts const& sample, bool with_bessel = false );
-
-// =================================================================================================
-//     Theta Pi
-// =================================================================================================
-
-/**
- * @brief Compute the denominator for the pool-sequencing correction of theta pi according to
- * Kofler et al.
- *
- * We here compute the denominator for a given @p poolsize, with a fix @p min_allele_count,
- * which is identical for each given @p nucleotide_count, and henced cached internally for speedup.
- *
- * See
- *
- * > R. Kofler, P. Orozco-terWengel, N. De Maio, R. V. Pandey, V. Nolte,
- * > A. Futschik, C. Kosiol, C. Schlötterer.<br>
- * > PoPoolation: A Toolbox for Population Genetic Analysis of
- * > Next Generation Sequencing Data from Pooled Individuals.<br>
- * > (2011) PLoS ONE, 6(1), e15925. https://doi.org/10.1371/journal.pone.0015925
- *
- * for details. The paper unfortunately does not explain their equations, but there is a hidden
- * document in their code repository that illuminates the situation a bit. See
- * https://sourceforge.net/projects/popoolation/files/correction_equations.pdf
- */
-double theta_pi_pool_denominator(
-    PoolDiversitySettings const& settings,
-    size_t nucleotide_count
-);
 
 /**
  * @brief Compute classic theta pi, that is, the sum of heterozygosities.
@@ -187,48 +117,6 @@ double theta_pi(
 }
 
 /**
- * @brief Compute theta pi with pool-sequencing correction according to Kofler et al,
- * that is, the sum of heterozygosities divided by the correction denominator.
- *
- * The function sums heterozygosity() for all samples in the given range, including Bessel's
- * correction for the total nucleotide count at each position, and divides each by the respective
- * denominator to correct for error from pool sequencing.
- * See theta_pi_pool_denominator() for details.
- */
-template<class ForwardIterator>
-double theta_pi_pool( // get_pi_calculator
-    PoolDiversitySettings const& settings,
-    ForwardIterator begin,
-    ForwardIterator end
-) {
-    // PoPoolation variable names:
-    // poolsize:         n
-    // min_allele_count: b
-
-    double pi_sum = 0.0;
-    for( auto& it = begin; it != end; ++it ) {
-        double const pi_snp = heterozygosity( *it, true );
-        double const denom  = theta_pi_pool_denominator( settings, nucleotide_sum( *it ));
-        pi_sum += ( pi_snp / denom );
-    }
-    return pi_sum;
-}
-
-/**
- * @brief Compute theta pi with pool-sequencing correction according to Kofler et al,
- * for a single BaseCounts, that is, its heterozygosity() including Bessel's correction for the
- * total nucleotide count at each position, divided by the correction denominator.
- */
-inline double theta_pi_pool(
-    PoolDiversitySettings const& settings,
-    BaseCounts const& sample
-) {
-    auto const h = heterozygosity( sample, true );
-    auto const d = theta_pi_pool_denominator( settings, nucleotide_sum( sample ));
-    return h / d;
-}
-
-/**
  * @brief Compute classic theta pi (within a population), that is, the sum of heterozygosities
  * including Bessel's correction for total nucleotide sum at each position, and Bessel's correction
  * for the pool size.
@@ -238,8 +126,8 @@ inline double theta_pi_pool(
  */
 template<class ForwardIterator>
 double theta_pi_within_pool(
-    ForwardIterator begin, ForwardIterator end,
-    size_t poolsize
+    size_t poolsize,
+    ForwardIterator begin, ForwardIterator end
 ) {
     auto const psb = static_cast<double>( poolsize ) / ( static_cast<double>( poolsize ) - 1.0 );
     double pi_sum = 0.0;
@@ -248,6 +136,77 @@ double theta_pi_within_pool(
         pi_sum += heterozygosity( *it, true ) * psb;
     }
     return pi_sum;
+}
+
+/**
+ * @brief Compute the denominator for the pool-sequencing correction of theta pi according to
+ * Kofler et al.
+ *
+ * We here compute the denominator for a given @p poolsize, with a fix DiversityPoolSettings::min_count.
+ * Values are identical for each given @p nucleotide_count, and henced cached internally for speedup.
+ *
+ * @see theta_pi_pool()
+ * @see DiversityPoolCalculator
+ */
+double theta_pi_pool_denominator(
+    DiversityPoolSettings const& settings,
+    size_t poolsize,
+    size_t nucleotide_count
+);
+
+/**
+ * @brief Compute theta pi with pool-sequencing correction according to Kofler et al,
+ * that is, the sum of heterozygosities divided by the correction denominator.
+ *
+ * The function sums heterozygosity() for all samples in the given range, including Bessel's
+ * correction for the total nucleotide count at each position, and divides each by the respective
+ * theta_pi_pool_denominator() to correct for error from pool sequencing.
+ *
+ * The provided range between @p begin and @p end is expected to be already filtered and transformed
+ * as needed. See DiversityPoolCalculator for details on this.
+ */
+template<class ForwardIterator>
+double theta_pi_pool( // get_pi_calculator
+    DiversityPoolSettings const& settings,
+    size_t poolsize,
+    ForwardIterator begin,
+    ForwardIterator end
+) {
+    // PoPoolation variable names:
+    // poolsize:  n
+    // min_count: b
+
+    double pi_sum = 0.0;
+    for( auto& it = begin; it != end; ++it ) {
+        double const pi_snp = heterozygosity( *it, true );
+        double const denom  = theta_pi_pool_denominator(
+            settings, poolsize, nucleotide_sum( *it )
+        );
+        if( std::isfinite( pi_snp ) && std::isfinite( denom )) {
+            pi_sum += ( pi_snp / denom );
+        }
+    }
+    return pi_sum;
+}
+
+/**
+ * @brief Compute theta pi with pool-sequencing correction according to Kofler et al,
+ * for a single BaseCounts.
+ *
+ * The function computes the heterozygosity() for the given @p sample, including Bessel's
+ * correction for the total nucleotide count at each position, and divides it by the
+ * theta_pi_pool_denominator() to correct for error from pool sequencing.
+ *
+ * @see DiversityPoolCalculator
+ */
+inline double theta_pi_pool(
+    DiversityPoolSettings const& settings,
+    size_t poolsize,
+    BaseCounts const& sample
+) {
+    auto const h = heterozygosity( sample, true );
+    auto const d = theta_pi_pool_denominator( settings, poolsize, nucleotide_sum( sample ));
+    return h / d;
 }
 
 // =================================================================================================
@@ -259,34 +218,60 @@ double theta_pi_within_pool(
  * Kofler et al.
  *
  * @copydetails theta_pi_pool_denominator()
+ *
+ * @see theta_watterson_pool()
  */
 double theta_watterson_pool_denominator(
-    PoolDiversitySettings const& settings,
+    DiversityPoolSettings const& settings,
+    size_t poolsize,
     size_t nucleotide_count
 );
 
 /**
  * @brief Compute theta watterson with pool-sequencing correction according to Kofler et al.
+ *
+ * The provided range between @p begin and @p end is expected to be already filtered and transformed
+ * as needed. See DiversityPoolCalculator for details on this.
  */
 template<class ForwardIterator>
 double theta_watterson_pool( // get_theta_calculator
-    PoolDiversitySettings const& settings,
+    DiversityPoolSettings const& settings,
+    size_t poolsize,
     ForwardIterator begin,
     ForwardIterator end
 ) {
     // PoPoolation variable names:
-    // poolsize:         n
-    // min_allele_count: b
+    // poolsize:  n
+    // min_count: b
 
     double sum = 0.0;
     for( auto& it = begin; it != end; ++it ) {
-        sum += 1.0 / theta_watterson_pool_denominator( settings, nucleotide_sum( *it ));
+        auto const denom = theta_watterson_pool_denominator(
+            settings, poolsize, nucleotide_sum( *it )
+        );
+        if( std::isfinite( denom )) {
+            sum += 1.0 / denom;
+        }
     }
     return sum;
 }
 
+/**
+ * @brief Compute theta watterson with pool-sequencing correction according to Kofler et al,
+ * for a single BaseCounts sample.
+ *
+ * @see DiversityPoolCalculator
+ */
+inline double theta_watterson_pool(
+    DiversityPoolSettings const& settings,
+    size_t poolsize,
+    BaseCounts const& sample
+) {
+    return 1.0 / theta_watterson_pool_denominator( settings, poolsize, nucleotide_sum( sample ));
+}
+
 // =================================================================================================
-//     Tajima's D
+//     Tajima's D Helper Functions
 // =================================================================================================
 
 /**
@@ -303,6 +288,7 @@ double theta_watterson_pool( // get_theta_calculator
  * for details.
  *
  * @see b_n(), the sum of squared reciprocals.
+ * @see tajima_d_pool()
  */
 double a_n( size_t n );
 
@@ -325,6 +311,7 @@ double a_n( size_t n );
  * https://sourceforge.net/projects/popoolation/files/correction_equations.pdf
  *
  * @see a_n(), the sum of reciprocals.
+ * @see tajima_d_pool()
  */
 double b_n( size_t n );
 
@@ -339,6 +326,8 @@ double b_n( size_t n );
  * > (2008) Genetics, 179(3), 1409–1424. https://doi.org/10.1534/genetics.107.082198
  *
  * for the original equations.
+ *
+ * @see tajima_d_pool()
  */
 double f_star( double a_n, double n );
 
@@ -364,6 +353,8 @@ double f_star( double a_n, double n );
  * > (2008) Genetics, 179(3), 1409–1424. https://doi.org/10.1534/genetics.107.082198
  *
  * See there for details.
+ *
+ * @see tajima_d_pool()
  */
 double alpha_star( double n );
 
@@ -371,6 +362,8 @@ double alpha_star( double n );
  * @brief Compute `beta*` according to Achaz 2008 and Kofler et al. 2011.
  *
  * @copydetails alpha_star()
+ *
+ * @see tajima_d_pool()
  */
 double beta_star( double n );
 
@@ -396,6 +389,8 @@ double beta_star( double n );
  * The paper unfortunately does not explain their equations, but there is a hidden
  * document in their code repository that illuminates the situation a bit. See
  * https://sourceforge.net/projects/popoolation/files/correction_equations.pdf
+ *
+ * @see tajima_d_pool()
  */
 double n_base_matrix( size_t coverage, size_t poolsize );
 
@@ -409,15 +404,24 @@ double n_base_matrix( size_t coverage, size_t poolsize );
  * The computation in PoPoolation is slowm, see n_base_matrix(). We here instead use a closed
  * form expression following the reasoning of https://math.stackexchange.com/a/72351
  * See there for the derivation of the equation.
+ *
+ * @see tajima_d_pool()
  */
 double n_base( size_t coverage, size_t poolsize );
+
+// =================================================================================================
+//     Tajima's D
+// =================================================================================================
 
 /**
  * @brief Compute the denominator for the pool-sequencing correction of Tajima's D according to
  * Kofler et al.
+ *
+ * @see tajima_d_pool()
  */
 double tajima_d_pool_denominator(
-    PoolDiversitySettings const& settings,
+    DiversityPoolSettings const& settings,
+    size_t poolsize,
     size_t snp_count,
     double theta
 );
@@ -425,135 +429,71 @@ double tajima_d_pool_denominator(
 /**
  * @brief Compute the pool-sequencing corrected version of Tajima's D according to
  * Kofler et al.
+ *
+ * The argument @p snp_count is meant to be the total number of SNPs that have been
+ * processed to get the values for @p theta_pi and @p theta_watterson.
  */
-template<class ForwardIterator>
-double tajima_d_pool( // get_D_calculator
-    PoolDiversitySettings const& settings,
-    ForwardIterator begin,
-    ForwardIterator end,
+inline double tajima_d_pool(
+    DiversityPoolSettings const& settings,
+    size_t poolsize,
     double theta_pi,
-    double theta_watterson
+    double theta_watterson,
+    size_t snp_count
 ) {
     // Edge case, following what PoPoolation does in this situation.
-    if( begin == end ) {
+    if( snp_count == 0 ) {
         return 0.0;
     }
 
     // We already have the two theta statistics given here, but need to compute the
     // denominator according to Kofler et al for pooled sequences.
-    auto const snp_cnt = std::distance( begin, end );
-    auto const denom = tajima_d_pool_denominator( settings, snp_cnt, theta_watterson );
+    auto const denom = tajima_d_pool_denominator( settings, poolsize, snp_count, theta_watterson );
     return ( theta_pi - theta_watterson ) / denom;
 }
 
 /**
  * @brief Compute the pool-sequencing corrected version of Tajima's D according to
  * Kofler et al.
+ *
+ * The provided range between @p begin and @p end is expected to be already filtered and transformed
+ * as needed. We use the full size of that range as the number of SNPs; hence, when instead calling
+ * this function with a range that still contains non-SNP positions, the result might be wrong.
+ * See DiversityPoolCalculator for details on this.
  */
 template<class ForwardIterator>
 double tajima_d_pool( // get_D_calculator
-    PoolDiversitySettings const& settings,
+    DiversityPoolSettings const& settings,
+    size_t poolsize,
+    double theta_pi,
+    double theta_watterson,
+    ForwardIterator begin,
+    ForwardIterator end
+) {
+    auto const snp_count = std::distance( begin, end );
+    return tajima_d_pool( settings, poolsize, theta_pi, theta_watterson, snp_count );
+}
+
+/**
+ * @brief Compute the pool-sequencing corrected version of Tajima's D according to
+ * Kofler et al.
+ *
+ * This overload of the function is computing theta_pi and theta_watterson first, and hence
+ * inefficient in cases where those have already been computed elsewhere.
+ *
+ * Same as tajima_d_pool( DiversityPoolSettings const&, size_t, double, double, ForwardIterator, ForwardIterator ), we also expect the range to be filtered already. See there, and see
+ * DiversityPoolCalculator for details.
+ */
+template<class ForwardIterator>
+double tajima_d_pool( // get_D_calculator
+    DiversityPoolSettings const& settings,
+    size_t poolsize,
     ForwardIterator begin,
     ForwardIterator end
 ) {
     // First compute the two theta statistics, then call the other version of this function.
-    auto const pi = theta_pi_pool( settings, begin, end );
-    auto const tw = theta_watterson_pool( settings, begin, end );
-    return tajima_d_pool( settings, begin, end, pi, tw );
-}
-
-// =================================================================================================
-//     Diversity Measures
-// =================================================================================================
-
-/**
- * @brief Compute Theta Pi, Theta Watterson, and Tajia's D in their pool-sequencing corrected
- * versions according to Kofler et al.
- *
- * This is a high level function that is meant as a simple example of how to compute these
- * statistics. See theta_pi_pool(), theta_watterson_pool(), and tajima_d_pool() for details.
- * It takes care of most options offered by PoPoolation (as given by @p settings here),
- * except for the window width and stride and minimum phred quality score, which have to be
- * applied before filling the window (or whatever other range is used as input here) before
- * calling this function.
- *
- * Furthermore, results here are not filtered aftwards, so any filtering based on e.g.,
- * minimum covered fraction has to be done downstream.
- */
-template<class ForwardIterator>
-PoolDiversityResults pool_diversity_measures(
-    PoolDiversitySettings const& settings,
-    ForwardIterator begin,
-    ForwardIterator end
-) {
-    PoolDiversityResults results;
-
-    // Filter all counts that are below the given min count.
-    // The following is inefficient, as we do the transform multiple times in all the loops
-    // below (note that all statistics functions also loop at least once!). But this function
-    // here is meant as a high level function for simplicity, and we have to live with that.
-    // Better solution is to run transform_zero_out_by_min_count() already when adding the samples
-    // to the range that we loop over here.
-    auto min_filtered_range = utils::make_transform_range(
-        [&]( BaseCounts const& sample ){
-            auto copy = sample;
-            transform_zero_out_by_min_count( copy, settings.min_allele_count );
-            return copy;
-        },
-        begin, end
-    );
-
-    // Count how many SNPs there are in total, and how many sites have the needed coverage.
-    for( auto it = min_filtered_range.begin(); it != min_filtered_range.end(); ++it ) {
-        auto const stat = status(
-            *it, settings.min_coverage, settings.max_coverage, settings.min_allele_count
-        );
-
-        // Make sure that we are dealing with the correct types here.
-        // (Just in case we ever refactor the class where these values are stored.)
-        static_assert(
-            std::is_same<decltype(stat.is_snp), bool>::value,
-            "Expect bool type for BaseCountsStatus::is_snp"
-        );
-        static_assert(
-            std::is_same<decltype(stat.is_covered), bool>::value,
-            "Expect bool type for BaseCountsStatus::is_covered"
-        );
-        static_assert( static_cast<size_t>( true )  == 1, "Expect true == 1" );
-        static_assert( static_cast<size_t>( false ) == 0, "Expect false == 0" );
-
-        // Add them up.
-        ++results.variant_count;
-        results.coverage_count += static_cast<size_t>( stat.is_covered );
-        results.snp_count      += static_cast<size_t>( stat.is_snp );
-    }
-
-    // Make a filter that only allows samples that are SNPs and have the needed coverage.
-    auto covered_snps_range = utils::make_filter_range( [&]( BaseCounts const& sample ){
-        auto stat = status(
-            sample, settings.min_coverage, settings.max_coverage, settings.min_allele_count
-        );
-        return stat.is_covered && stat.is_snp;
-    }, min_filtered_range.begin(), min_filtered_range.end() );
-
-    // Compute all values.
-    results.theta_pi_absolute = theta_pi_pool(
-        settings, covered_snps_range.begin(), covered_snps_range.end()
-    );
-    results.theta_watterson_absolute = theta_watterson_pool(
-        settings, covered_snps_range.begin(), covered_snps_range.end()
-    );
-    results.tajima_d = tajima_d_pool(
-        settings, covered_snps_range.begin(), covered_snps_range.end(),
-        results.theta_pi_absolute, results.theta_watterson_absolute
-    );
-
-    // Compute the relative versions of the values.
-    auto const coverage = static_cast<double>( results.coverage_count );
-    results.theta_pi_relative        = results.theta_pi_absolute        / coverage;
-    results.theta_watterson_relative = results.theta_watterson_absolute / coverage;
-
-    return results;
+    auto const pi = theta_pi_pool( settings, poolsize, begin, end );
+    auto const tw = theta_watterson_pool( settings, poolsize, begin, end );
+    return tajima_d_pool( settings, poolsize, pi, tw, begin, end );
 }
 
 } // namespace population

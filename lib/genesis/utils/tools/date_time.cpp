@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -78,8 +78,8 @@ std::string current_date()
     }
 
     char out[12];
-    std::sprintf(
-        out, "%u-%02u-%02u",
+    std::snprintf(
+        out, 12, "%u-%02u-%02u",
         ltm->tm_year + 1900, ltm->tm_mon + 1, ltm->tm_mday
     );
     return out;
@@ -98,8 +98,8 @@ std::string current_time()
     }
 
     char out[10];
-    std::sprintf(
-        out, "%02u:%02u:%02u",
+    std::snprintf(
+        out, 10, "%02u:%02u:%02u",
         ltm->tm_hour, ltm->tm_min, ltm->tm_sec
     );
     return out;
@@ -248,7 +248,7 @@ bool convert_to_tm_(
     // Hence, to also support gcc < 5, we have to work around this limitation.
     // Still, it does not work with gcc 4.8, unfortunately.
 
-    #if !( defined(__GNUC__) && (__GNUC___ < 5) && !defined(__clang__) && !defined(__INTEL_COMPILER) )
+    #if !( defined(__GNUC__) && (__GNUC__ < 5) && !defined(__clang__) && !defined(__INTEL_COMPILER) )
 
     // Init the tm object to all zeros, see https://en.cppreference.com/w/cpp/io/manip/get_time
     // We are re-using the object when called from looping functions, so this is necessary.

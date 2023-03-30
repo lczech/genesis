@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -77,7 +77,7 @@ inline void file_output_stream(
 ) {
     // Make sure that we are only overwriting if we are allowed to.
     if( ! Options::get().allow_file_overwriting() && utils::path_exists( file_name ) ) {
-        throw except::ExistingFileError(
+        throw ExistingFileError(
             "Output path '" + file_name + "' already exists. If you want to allow overwriting of "
             "existing files, activate genesis::utils::Options::get().allow_file_overwriting() first.",
             file_name

@@ -500,7 +500,7 @@ SvgBox SvgPath::bounding_box() const
     // We check that these are values, and not new commands. In the check, we access the first
     // character of the current list element, which is valid, as our split function
     // does not output empty elements.
-    auto read_val_ = []( std::vector<std::string> const& list, size_t& i, double& val )
+    auto read_value_ = []( std::vector<std::string> const& list, size_t& i, double& value )
     {
         if( i >= list.size() ) {
             return false;
@@ -509,21 +509,22 @@ SvgBox SvgPath::bounding_box() const
         if( is_alpha( list[i][0] ) ) {
             return false;
         }
-        val = convert_to_double( list[i + 0] );
+        value = convert_to_double( list[i + 0] );
         ++i;
         return true;
     };
-    auto read_coord_pair_ = []( std::vector<std::string> const& list, size_t& i, SvgPoint& coord )
+    auto read_coord_ = []( std::vector<std::string> const& list, size_t& i, SvgPoint& coord )
     {
         if( i + 1 >= list.size() ) {
             return false;
         }
-        assert( ! list[i].empty() );
-        if( is_alpha( list[i][0] ) ) {
+        assert( ! list[ i + 0 ].empty() );
+        assert( ! list[ i + 1 ].empty() );
+        if( is_alpha( list[ i + 0 ][0] ) || is_alpha( list[ i + 1 ][0] )) {
             return false;
         }
-        coord.x = convert_to_double( list[i + 0] );
-        coord.y = convert_to_double( list[i + 1] );
+        coord.x = convert_to_double( list[ i + 0 ] );
+        coord.y = convert_to_double( list[ i + 1 ] );
         i += 2;
         return true;
     };
@@ -536,6 +537,9 @@ SvgBox SvgPath::bounding_box() const
         // We expect the commands to be separated from their values... That is not according
         // to the svg standard, where there does not need to be a delimiter, but it works for now,
         // where we have control over the path commands that we use.
+        // If we ever need to change that, we might be able to just replace the above split call
+        // by something that also splits at alpha char boundaries. Might be a bit tricky in case
+        // that doubles are printed with e or E for exponents... But something along those lines.
         for( size_t i = 0; i < list.size(); ) {
             auto const& tok = list[i];
             if( start && tok != "M" && tok != "m" ) {
@@ -544,16 +548,17 @@ SvgBox SvgPath::bounding_box() const
             start = false;
 
             // Start the token processing at the first value. Easier for all below code.
-            // We also define a coord helper, and some others to fill with data.
+            // We also define a value and a coord var, to fill with data by the helper functions.
             ++i;
-            double val;
+            double   value;
             SvgPoint coord;
 
             // moveto and lineto
             // https://svgwg.org/svg2-draft/paths.html#PathDataMovetoCommands
             // https://svgwg.org/svg2-draft/paths.html#PathDataLinetoCommands
-            if( tok == "M" || tok == "L" || tok == "m" || tok == "l" ) {
-                while( read_coord_pair_( list, i, coord )) {
+            if( tok == "M" || tok == "m" || tok == "L" || tok == "l" ) {
+                bool once = false;
+                while( read_coord_( list, i, coord )) {
                     if( tok == "M" || tok == "L" ) {
                         cur = coord;
                     }
@@ -561,6 +566,10 @@ SvgBox SvgPath::bounding_box() const
                         cur = cur + coord;
                     }
                     points.push_back( cur );
+                    once = true;
+                }
+                if( ! once ) {
+                    throw std::runtime_error( "Invalid SvgPath moveto or lineto command." );
                 }
                 continue;
             }
@@ -574,20 +583,25 @@ SvgBox SvgPath::bounding_box() const
             // lineto h and v
             // https://svgwg.org/svg2-draft/paths.html#PathDataLinetoCommands
             if( tok == "H" || tok == "h" || tok == "V" || tok == "v" ) {
-                while( read_val_( list, i, val )) {
+                bool once = false;
+                while( read_value_( list, i, value )) {
                     if( tok == "H" ) {
-                        cur.x = val;
+                        cur.x = value;
                     }
                     if( tok == "h" ) {
-                        cur.x += val;
+                        cur.x += value;
                     }
                     if( tok == "V" ) {
-                        cur.y = val;
+                        cur.y = value;
                     }
                     if( tok == "v" ) {
-                        cur.y += val;
+                        cur.y += value;
                     }
                     points.push_back( cur );
+                    once = true;
+                }
+                if( ! once ) {
+                    throw std::runtime_error( "Invalid SvgPath hor or ver line command." );
                 }
                 continue;
             }
@@ -599,7 +613,8 @@ SvgBox SvgPath::bounding_box() const
                 tok == "C" || tok == "c" || tok == "S" || tok == "s" ||
                 tok == "Q" || tok == "q" || tok == "T" || tok == "t"
             ) {
-                while( read_coord_pair_( list, i, coord )) {
+                bool once = false;
+                while( read_coord_( list, i, coord )) {
                     // We read extra coordinates as needed. Only the last pair is what we want.
                     bool good = true;
                     if(
@@ -607,10 +622,10 @@ SvgBox SvgPath::bounding_box() const
                         tok == "S" || tok == "s" ||
                         tok == "Q" || tok == "q"
                     ) {
-                        good &= read_coord_pair_( list, i, coord );
+                        good &= read_coord_( list, i, coord );
                     }
                     if( tok == "C" || tok == "c" ) {
-                        good &= read_coord_pair_( list, i, coord );
+                        good &= read_coord_( list, i, coord );
                     }
                     if( ! good ) {
                         throw std::runtime_error( "Invalid SvgPath Bezier command." );
@@ -624,6 +639,10 @@ SvgBox SvgPath::bounding_box() const
                         cur = cur + coord;
                     }
                     points.push_back( cur );
+                    once = true;
+                }
+                if( ! once ) {
+                    throw std::runtime_error( "Invalid SvgPath Beziercommand." );
                 }
                 continue;
             }
@@ -631,13 +650,14 @@ SvgBox SvgPath::bounding_box() const
             // elliptical arc curve
             // https://svgwg.org/svg2-draft/paths.html#PathDataEllipticalArcCommands
             if( tok == "A" || tok == "a" ) {
-                while( read_coord_pair_( list, i, coord )) {
+                bool once = false;
+                while( read_coord_( list, i, coord )) {
                     // We simplify our code here a bit, and read the flags as doubles...
                     // we ignore them anyway, so that should work.
                     bool good = true;
-                    good &= read_val_( list, i, val );
-                    good &= read_coord_pair_( list, i, coord );
-                    good &= read_coord_pair_( list, i, coord );
+                    good &= read_value_( list, i, value );
+                    good &= read_coord_( list, i, coord );
+                    good &= read_coord_( list, i, coord );
                     if( ! good ) {
                         throw std::runtime_error( "Invalid SvgPath elliptical arc curve command." );
                     }
@@ -650,15 +670,21 @@ SvgBox SvgPath::bounding_box() const
                         cur = cur + coord;
                     }
                     points.push_back( cur );
+                    once = true;
+                }
+                if( ! once ) {
+                    throw std::runtime_error( "Invalid SvgPath elliptical arc curve command." );
                 }
                 continue;
             }
 
-            // Reaching here means we did not find the token.
+            // Reaching here means we were not able to process the token.
             throw std::runtime_error( "Invalid SvgPath command '" + tok + "'." );
         }
     }
 
+    // Now we have all the raw points involved in the path. Send all of them through the
+    // list of transformations to get where they actually end up in the rendering.
     return svg_bounding_box( points, transform );
 }
 

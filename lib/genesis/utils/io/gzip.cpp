@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not,  see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab,  Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35,  D-69118 Heidelberg,  Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -103,13 +103,10 @@ bool is_gzip_compressed_file( std::string const& file_name )
 //     Gzip Exception Class
 // ================================================================================================
 
-} // namespace utils
-namespace except {
-
 #ifdef GENESIS_ZLIB
 
 GzipError::GzipError( std::string const& z_stream_message, int error_code )
-    : except::IOError("")
+    : IOError("")
 {
     // Need to have this method in the cpp file, so that we do not expose the zlib header
     // to the header file, which would include all its symbols to whichever class uses our headers...
@@ -145,12 +142,12 @@ GzipError::GzipError( std::string const& z_stream_message, int error_code )
 #else // GENESIS_ZLIB
 
 GzipError::GzipError( std::string const&, int )
-    : except::IOError("")
+    : IOError("")
 {
     message_ = "zlib: Genesis was not compiled with zlib support.";
 }
 
 #endif // GENESIS_ZLIB
 
-} // namespace except
+} // namespace utils
 } // namespace genesis

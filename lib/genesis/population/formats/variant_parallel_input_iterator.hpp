@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -219,7 +219,7 @@ public:
     private:
 
         Iterator() = default;
-        Iterator( VariantParallelInputIterator* generator );
+        Iterator( VariantParallelInputIterator* parent );
 
     public:
 
@@ -286,8 +286,8 @@ public:
         std::vector<VariantInputIterator> const& inputs() const
         {
             // We assume that the user only does this when the iterator is not an end() iterator.
-            assert( generator_ );
-            return generator_->inputs_;
+            assert( parent_ );
+            return parent_->inputs_;
         }
 
         /**
@@ -299,7 +299,7 @@ public:
          */
         VariantInputIterator const& input_at( size_t index ) const
         {
-            return generator_->inputs_[index];
+            return parent_->inputs_[index];
         }
 
         /**
@@ -384,7 +384,7 @@ public:
 
         operator bool() const
         {
-            return generator_ != nullptr;
+            return parent_ != nullptr;
         }
 
         /**
@@ -397,7 +397,7 @@ public:
          */
         bool operator==( self_type const& it ) const
         {
-            return generator_ == it.generator_;
+            return parent_ == it.parent_;
         }
 
         bool operator!=( self_type const& it ) const
@@ -417,13 +417,13 @@ public:
         void advance_()
         {
             // Some basic checks.
-            assert( generator_ );
-            assert( generator_->inputs_.size() == generator_->selections_.size() );
-            assert( generator_->inputs_.size() == iterators_.size() );
+            assert( parent_ );
+            assert( parent_->inputs_.size() == parent_->selections_.size() );
+            assert( parent_->inputs_.size() == iterators_.size() );
 
             // Depending on what type of inputs we have, we need two different algorithms
             // to find the next position to iterate to.
-            if( generator_->has_carrying_input_ ) {
+            if( parent_->has_carrying_input_ ) {
                 advance_using_carrying_();
             } else {
                 advance_using_only_following_();
@@ -465,14 +465,14 @@ public:
     private:
 
         // Parent
-        VariantParallelInputIterator* generator_ = nullptr;
+        VariantParallelInputIterator* parent_ = nullptr;
 
         // Keep track of the locus that the iterator currently is at.
         // Not all sources have to be there (if they don't have data for that locus), in which case
         // we want them to be at the next position in their data beyond the current locus.
         GenomeLocus current_locus_;
 
-        // Keep the iterators that we want to traverse. We only need the begin() iteratos,
+        // Keep the iterators that we want to traverse. We only need the begin() iterators,
         // as they are themselves able to tell us if they are still good (via their operator bool).
         std::vector<VariantInputIterator::Iterator> iterators_;
 

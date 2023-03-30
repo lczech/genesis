@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 
+#include "genesis/population/functions/functions.hpp"
 #include "genesis/sequence/functions/codes.hpp"
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
@@ -283,7 +284,7 @@ bool SimplePileupReader::parse_line_(
     // it has the value that we need it to have in absence of actual data.
     next_field_( it );
     auto rb = utils::to_upper( *it );
-    if( rb != 'A' && rb != 'C' && rb != 'G' && rb != 'T' && rb != 'N' ) {
+    if( ! is_valid_base_or_n( rb )) {
         if( strict_bases_ ) {
             throw std::runtime_error(
                 "Malformed pileup " + it.source_name() + " at " + it.at() +
@@ -724,7 +725,7 @@ void SimplePileupReader::process_ancestral_base_<SimplePileupReader::Sample>(
         // We can simply read in the char here. Even if the iterator is at its end, it will
         // simply return a null char, which will trigger the subsequent error check.
         char ab = utils::to_upper( *it );
-        if( !it || ( ab != 'A' && ab != 'C' && ab != 'G' && ab != 'T' && ab != 'N' )) {
+        if( !it || is_valid_base_or_n( ab )) {
             if( strict_bases_ ) {
                 throw std::runtime_error(
                     "Malformed pileup " + it.source_name() + " at " + it.at() +

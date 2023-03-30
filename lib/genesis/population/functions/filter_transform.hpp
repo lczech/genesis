@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 #include "genesis/population/variant.hpp"
 
 #include <functional>
+#include <iosfwd>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -47,222 +48,6 @@
 
 namespace genesis {
 namespace population {
-
-// =================================================================================================
-//     Filter Helpers
-// =================================================================================================
-
-/**
- * @brief Select how Variant filter functions that evaluate properties of the Variant::samples
- * (BaseCounts) objects behave when the filter is not `true` or `false` for all samples.
- */
-enum class SampleFilterType
-{
-    /**
-     * @brief The filter returns `true` only if _all_ of the BaseCounts samples in the Variant
-     * return `true` for a given predicate. This is logical AND.
-     */
-    kConjunction,
-
-    /**
-     * @brief The filter returns `true` if _any_ of the BaseCounts samples in the Variant return
-     * `true` for a given predicate. This is logical OR.
-     */
-    kDisjunction,
-
-    /**
-     * @brief The filter is applied to the merged BaseCounts of all samples in the Variant.
-     *
-     * In this special case, only one BaseCounts object is subjected to the filter function,
-     * and hence no logical compbination of the outcome is needed.
-     */
-    kMerge
-};
-
-// =================================================================================================
-//     Filter by Status
-// =================================================================================================
-
-/**
- * @brief Filter a Variant based on a @p predicate that is applied to the result of a status()
- * call on the BaseCounts of the @p variant.
- *
- * See status() for details on the data of type BaseCountsStatus that @p predicate can use.
- * This function applies the @p predicate to the BaseCounts samples of the @p variant
- * (or to the merged one, depending on @p type, see also below), and returns whether the filter
- * @p predicate passed or not.
- *
- * Note that different @p type values have a distinct effect here:
- * It might happen that all samples individually pass the @p predicate, but their merged counts
- * do not, or vice versa. Hence, this choice needs to be made depending on downstream needs.
- * For example, if we are filtering for Variants that are SNPs (where there exist at least two
- * counts in `[ACGT]` that are non-zero), individual samples might only have one base count greater
- * than zero, in which case they are not considered to be a SNP.
- * However, if those non-zero counts are not for the same base in all samples, their merged counts
- * will be non-zero for more than one base, and hence considered a SNP.
- */
-bool filter_by_status(
-    std::function<bool(BaseCountsStatus const&)> predicate,
-    Variant const& variant,
-    SampleFilterType type,
-    size_t min_coverage = 0,
-    size_t max_coverage = 0,
-    size_t min_count = 0,
-    bool tolerate_deletions = false
-);
-
-/**
- * @copybrief filter_by_status( std::function<bool(BaseCountsStatus const&)>, Variant const&, SampleFilterType, size_t, size_t, size_t, bool )
- *
- * Same as
- * @link
- *     filter_by_status( std::function<bool(BaseCountsStatus const&)>, Variant const&, SampleFilterType, size_t, size_t, size_t, bool )
- *     filter_by_status( std::function<...>, Variant const&, ... )
- * @endlink,
- * but returns a callback to be used as a filter, e.g., with VariantInputIterator::add_filter().
- */
-inline std::function<bool(Variant const&)> filter_by_status(
-    std::function<bool(BaseCountsStatus const&)> predicate,
-    SampleFilterType type,
-    size_t min_coverage = 0,
-    size_t max_coverage = 0,
-    size_t min_count = 0,
-    bool tolerate_deletions = false
-) {
-    return [=]( Variant const& variant ){
-        return filter_by_status(
-            predicate, variant, type, min_coverage, max_coverage, min_count, tolerate_deletions
-        );
-    };
-}
-
-/**
- * @brief Filter a Variant based on whether the sample counts are SNPs,
- * that is, more than one count in `[ACGT]` is non-zero.
- *
- * This function checks that the samples are covered (BaseCountsStatus::is_covered) and have more
- * than one non-zero count (BaseCountsStatus::is_snp).
- *
- * See status() for details, and see
- * @link
- *     filter_by_status( std::function<bool(BaseCountsStatus const&)>, Variant const&, SampleFilterType, size_t, size_t, size_t, bool )
- *     filter_by_status()
- * @endlink
- * for details on the processing, in particular the @p type argument.
- */
-inline bool filter_is_snp(
-    Variant const& variant,
-    SampleFilterType type,
-    size_t min_coverage = 0,
-    size_t max_coverage = 0,
-    size_t min_count = 0,
-    bool tolerate_deletions = false
-) {
-    return filter_by_status(
-        []( BaseCountsStatus const& stat ){
-            return stat.is_covered && stat.is_snp;
-        },
-        variant, type, min_coverage, max_coverage, min_count, tolerate_deletions
-    );
-}
-
-/**
- * @copybrief filter_is_snp( Variant const&, SampleFilterType, size_t, size_t, size_t, bool )
- *
- * Same as
- * @link
- *     filter_is_snp( Variant const&, SampleFilterType, size_t, size_t, size_t, bool )
- *     filter_is_snp( Variant const&, ... )
- * @endlink,
- * but returns a callback to be used as a filter, e.g., with VariantInputIterator::add_filter().
- */
-inline std::function<bool(Variant const&)> filter_is_snp(
-    SampleFilterType type,
-    size_t min_coverage = 0,
-    size_t max_coverage = 0,
-    size_t min_count = 0,
-    bool tolerate_deletions = false
-) {
-    return [=]( Variant const& variant ){
-        return filter_is_snp(
-            variant, type, min_coverage, max_coverage, min_count, tolerate_deletions
-        );
-    };
-}
-
-/**
- * @brief Filter a Variant based on whether the sample counts are biallelic SNPs,
- * that is, exactly two base counts in `[ACGT]` are non-zero.
- *
- * Same as
- * @link
- *     filter_is_snp( Variant const&, SampleFilterType, size_t, size_t, size_t, bool )
- *     filter_is_snp( Variant const&, ... )
- * @endlink,
- * but additionally checks that the SNP is biallelic (BaseCountsStatus::is_biallelic).
- * See there for more details.
- */
-inline bool filter_is_biallelic_snp(
-    Variant const& variant,
-    SampleFilterType type,
-    size_t min_coverage = 0,
-    size_t max_coverage = 0,
-    size_t min_count = 0,
-    bool tolerate_deletions = false
-) {
-    return filter_by_status(
-        []( BaseCountsStatus const& stat ){
-            return stat.is_covered && stat.is_snp && stat.is_biallelic;
-        },
-        variant, type, min_coverage, max_coverage, min_count, tolerate_deletions
-    );
-}
-
-/**
- * @copybrief filter_is_biallelic_snp( Variant const&, SampleFilterType, size_t, size_t, size_t, bool )
- *
- * Same as
- * @link
- *     filter_is_biallelic_snp( Variant const&, SampleFilterType, size_t, size_t, size_t, bool )
- *     filter_is_biallelic_snp( Variant const&, ... )
- * @endlink,
- * but returns a callback to be used as a filter, e.g., with VariantInputIterator::add_filter().
- */
-inline std::function<bool(Variant const&)> filter_is_biallelic_snp(
-    SampleFilterType type,
-    size_t min_coverage = 0,
-    size_t max_coverage = 0,
-    size_t min_count = 0,
-    bool tolerate_deletions = false
-) {
-    return [=]( Variant const& variant ){
-        return filter_is_biallelic_snp(
-            variant, type, min_coverage, max_coverage, min_count, tolerate_deletions
-        );
-    };
-}
-
-// =================================================================================================
-//     Filter by Count
-// =================================================================================================
-
-// TODO
-
-// variant_filter_min_coverage
-// variant_filter_max_coverage
-// variant_filter_min_max_coverage
-//
-// variant_filter_min_frequency
-// variant_filter_max_frequency
-// variant_filter_min_max_frequency
-
-// bool filter_by_min_maf_count( BaseCounts const& sample, size_t min_count );
-//
-// bool filter_by_min_maf_count( Variant const& variant, size_t min_count, SampleFilterType type );
-//
-// bool filter_by_max_count( BaseCounts const& sample, size_t max_count );
-//
-// bool filter_by_max_count( Variant const& variant, size_t max_count, SampleFilterType type );
 
 // =================================================================================================
 //     Filter by Region
@@ -275,7 +60,7 @@ inline std::function<bool(Variant const&)> filter_is_biallelic_snp(
  * to only iterate over Variant%s that are in the given @p region (if @p complement is `false`,
  * default), or only over Variant%s that are outside of the @p region (if @p complement is `true`).
  */
-inline std::function<bool(Variant const&)> filter_by_region(
+inline std::function<bool(Variant const&)> make_filter_by_region(
     GenomeRegion const& region,
     bool complement = false
 ) {
@@ -291,13 +76,13 @@ inline std::function<bool(Variant const&)> filter_by_region(
  * to only iterate over Variant%s that are in the given @p regions (if @p complement is `false`,
  * default), or only over Variant%s that are outside of the @p regions (if @p complement is `true`).
  */
-inline std::function<bool(Variant const&)> filter_by_region(
+inline std::function<bool(Variant const&)> make_filter_by_region(
     std::shared_ptr<GenomeRegionList> regions,
     bool complement = false
 ) {
     if( ! regions ) {
         throw std::invalid_argument(
-            "Can only used filter_by_region() with a valid shared pointer to a GenomeRegionList."
+            "Can only used make_filter_by_region() with a valid shared pointer to a GenomeRegionList."
         );
     }
     return [regions, complement]( Variant const& variant ){
@@ -306,15 +91,15 @@ inline std::function<bool(Variant const&)> filter_by_region(
 }
 
 /**
- * @copydoc filter_by_region( std::shared_ptr<GenomeRegionList>, bool )
+ * @copydoc make_filter_by_region( std::shared_ptr<GenomeRegionList>, bool )
  */
-inline std::function<bool(Variant const&)> filter_by_region(
+inline std::function<bool(Variant const&)> make_filter_by_region(
     std::shared_ptr<GenomeLocusSet> loci,
     bool complement = false
 ) {
     if( ! loci ) {
         throw std::invalid_argument(
-            "Can only used filter_by_region() with a valid shared pointer to a GenomeLocusSet."
+            "Can only used make_filter_by_region() with a valid shared pointer to a GenomeLocusSet."
         );
     }
     return [loci, complement]( Variant const& variant ){
@@ -322,60 +107,12 @@ inline std::function<bool(Variant const&)> filter_by_region(
     };
 }
 
-// /**
-//  * @copydoc filter_by_region( std::shared_ptr<GenomeRegionList>, bool )
-//  *
-//  * This version of the function can be used if the @p regions is not given as a `std::shared_ptr`.
-//  * The parameter @p copy_regions is an optimization. By default, the function stores a copy of the
-//  * @p regions, in order to make sure that it is available. However, if it is guaranteed that
-//  * the @p regions object stays in scope during the VariantInputIterator's lifetime, this copy
-//  * can be avoided.
-//  */
-// inline std::function<bool(Variant const&)> filter_by_region(
-//     GenomeRegionList const& regions,
-//     bool complement = false,
-//     bool copy_regions = false
-// ) {
-//     if( copy_regions ) {
-//         return [regions, complement]( Variant const& variant ){
-//             return complement ^ is_covered( regions, variant );
-//         };
-//     } else {
-//         return [&regions, complement]( Variant const& variant ){
-//             return complement ^ is_covered( regions, variant );
-//         };
-//     }
-// }
-
-// =================================================================================================
-//     Transformations
-// =================================================================================================
-
-// bascially, all of the above filters, but as transforms that set stuff to 0 intead of filtering
-//
-// inline std::functiom<void(Variant&)> variant_transform_min_counts( size_t min_count )
-// {
-//     return [min_count]( Variant& variant ){
-//         for( auto& sample : variant.samples ) {
-//             transform_min_count( sample, min_count );
-//             --> add this function for variants as well first, and use this
-//             (basically just a loop over the other one)
-//             -->> also make this for max and min max, and use these.
-//
-//             --->> then, these already have the function signature that is needed for the iterator~
-//             no need to do a lambda that just calles it!
-//             --> ah no, because we need to capture the min count setting....
-//         }
-//     };
-// }
-//
-// min count to 0
-// max count to 0
-// min max count to 0
-
 // =================================================================================================
 //     Transform by Count
 // =================================================================================================
+
+// Forward declaration
+struct BaseCountsFilterStats;
 
 /**
  * @brief Transform a BaseCounts @p sample by setting any nucleotide count (`A`, `C`, `G`, `T`)
@@ -384,14 +121,53 @@ inline std::function<bool(Variant const&)> filter_by_region(
  * This transformation is used as a type of quality control. All nucleotide counts (that is,
  * BaseCounts::a_count, BaseCounts::c_count, BaseCounts::g_count, and BaseCounts::t_count) that are
  * below the given @p min_count are set to zero.
+ *
+ * If @p also_n_and_d_counts is set (default), this filtering is also done for BaseCounts::n_count
+ * and BaseCounts::d_count, although they are not taken into account in the statistics.
  */
-void transform_zero_out_by_min_count( BaseCounts& sample, size_t min_count );
+void transform_zero_out_by_min_count(
+    BaseCounts& sample,
+    size_t min_count,
+    bool also_n_and_d_counts = true
+);
 
 /**
- * @brief Transform a @p variant by setting any nucleotide count (`A`, `C`, `G`, `T`)
- * of its samples to zero if @p min_count is not reached for that nucleotide.
+ * @copydoc transform_zero_out_by_min_count( BaseCounts&, size_t, bool )
+ *
+ * Additionally, this overload of the function also writes a statistic: When a count is set to zero,
+ * the @p stats value BaseCountsFilterStats::below_min_count is incremented.
  */
-void transform_zero_out_by_min_count( Variant& variant, size_t min_count );
+void transform_zero_out_by_min_count(
+    BaseCounts& sample,
+    size_t min_count,
+    BaseCountsFilterStats& stats,
+    bool also_n_and_d_counts = true
+);
+
+/**
+ * @copydoc transform_zero_out_by_min_count( BaseCounts&, size_t, bool )
+ *
+ * This overload acts on all Variant::samples in the given @p variant.
+ */
+void transform_zero_out_by_min_count(
+    Variant& variant,
+    size_t min_count,
+    bool also_n_and_d_counts = true
+);
+
+/**
+ * @copydoc transform_zero_out_by_min_count( BaseCounts&, size_t, bool )
+ *
+ * This overload acts on all Variant::samples in the given @p variant, and also writes a statistic:
+ * When a count is set to zero, the @p stats value BaseCountsFilterStats::below_min_count is
+ * incremented.
+ */
+void transform_zero_out_by_min_count(
+    Variant& variant,
+    size_t min_count,
+    BaseCountsFilterStats& stats,
+    bool also_n_and_d_counts = true
+);
 
 /**
  * @brief Transform a BaseCounts @p sample by setting any nucleotide count (`A`, `C`, `G`, `T`)
@@ -400,29 +176,511 @@ void transform_zero_out_by_min_count( Variant& variant, size_t min_count );
  * This transformation is used as a type of quality control. All nucleotide counts (that is,
  * BaseCounts::a_count, BaseCounts::c_count, BaseCounts::g_count, and BaseCounts::t_count) that are
  * above the given @p max_count are set to zero.
- */
-void transform_zero_out_by_max_count( BaseCounts& sample, size_t max_count );
-
-/**
- * @brief Transform a @p variant by setting any nucleotide count (`A`, `C`, `G`, `T`)
- * of its samples to zero if @p max_count is exceeded for that nucleotide.
- */
-void transform_zero_out_by_max_count( Variant& variant, size_t max_count );
-
-/**
- * @brief Transform a BaseCounts @p sample by setting any nucleotide count (`A`, `C`, `G`, `T`)
- * to zero if @p min_count is not reached or if @p max_count is exceeded for that nucleotide.
  *
- * This is the same as running transform_zero_out_by_min_count() and
- * transform_zero_out_by_max_count() individually.
+ * If @p also_n_and_d_counts is set (default), this filtering is also done for BaseCounts::n_count
+ * and BaseCounts::d_count, although they are not taken into account in the statistics.
  */
-void transform_zero_out_by_min_max_count( BaseCounts& sample, size_t min_count, size_t max_count );
+void transform_zero_out_by_max_count(
+    BaseCounts& sample,
+    size_t max_count,
+    bool also_n_and_d_counts = true
+);
 
 /**
- * @brief Transform a @p variant by setting any nucleotide count (`A`, `C`, `G`, `T`) of its samples
- * to zero if @p min_count is not reached or if @p max_count is exceeded for that nucleotide.
+ * @copydoc transform_zero_out_by_max_count( BaseCounts&, size_t, bool )
+ *
+ * Additionally, this overload of the function also writes a statistic: When a count is set to zero,
+ * the @p stats value BaseCountsFilterStats::below_min_count is incremented.
  */
-void transform_zero_out_by_min_max_count( Variant& variant, size_t min_count, size_t max_count );
+void transform_zero_out_by_max_count(
+    BaseCounts& sample,
+    size_t max_count,
+    BaseCountsFilterStats& stats,
+    bool also_n_and_d_counts = true
+);
+
+/**
+ * @copydoc transform_zero_out_by_max_count( BaseCounts&, size_t, bool )
+ *
+ * This overload acts on all Variant::samples in the given @p variant.
+ */
+void transform_zero_out_by_max_count(
+    Variant& variant,
+    size_t max_count,
+    bool also_n_and_d_counts = true
+);
+
+/**
+ * @copydoc transform_zero_out_by_max_count( BaseCounts&, size_t, bool )
+ *
+ * This overload acts on all Variant::samples in the given @p variant, and also writes a statistic:
+ * When a count is set to zero, the @p stats value BaseCountsFilterStats::below_min_count is
+ * incremented.
+ */
+void transform_zero_out_by_max_count(
+    Variant& variant,
+    size_t max_count,
+    BaseCountsFilterStats& stats,
+    bool also_n_and_d_counts = true
+);
+
+// =================================================================================================
+//     Filter Base Counts
+// =================================================================================================
+
+// --------------------------------------------------------------------------------------
+//     Base Counts Filter
+// --------------------------------------------------------------------------------------
+
+/**
+ * @brief Filter settings to filter and transform BaseCounts.
+ *
+ * These filters act on a single BaseCounts object, using the filter_base_counts() functions,
+ * or the make_filter_base_counts() when using a VariantInputIterator.
+ *
+ * When a filter fails, in addition to reporting this via returning `false` from the filter function,
+ * we also change the values in the object by setting counts to 0. This is our way of communication
+ * to downstream functions that this sample is filtered out. The reason for this behaviour is that
+ * typically, a Variant contains multiple BaseCounts in its Variant::samples vector; hence, when
+ * one of those samples is not passing the filters, we might still want to process the others,
+ * and so we need a way to signal a failing filter. We could add a bool to BaseCounts indicating
+ * whether we want to use or ignore it - but instead, we just reset all counts to 0, and use that
+ * as our indicator, with the same effect.
+ */
+struct BaseCountsFilter
+{
+    /**
+     * @brief If set, samples that fail any filter are reset by setting all counts to zero.
+     */
+    bool clear_filtered = true;
+
+    // -------------------------------------------
+    //     Counts
+    // -------------------------------------------
+
+    /**
+     * @brief Minimum count for each nucleotide to be considered. All counts below are set to zero.
+     */
+    size_t min_count = 0;
+
+    /**
+     * @brief Maximum count for each nucleotide to be considered. All counts above are set to zero.
+     */
+    size_t max_count = 0;
+
+    /**
+     * @brief Set whether we tolerate BaseCounts%s with a high amount of deletions.
+     *
+     * If set to `false` (default), we do not tolerate deletions. In that case, if the number of
+     * deletions in a sample (given by BaseCounts::d_count) is non-zero and above min_count, the
+     * counts will be set to zero, and BaseCountsFilterStats::untolerated_deletion is incremented.
+     * (We ignore max_count here, assuming that too many deletions are always bad.)
+     */
+    bool tolerate_deletions = false;
+
+    // -------------------------------------------
+    //     Coverage
+    // -------------------------------------------
+
+    /**
+     * @brief Minimum coverage expected for a BaseCounts to be considered covered.
+     *
+     * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) in the reads of a sample is less than
+     * the provided value, the BaseCounts is not considered sufficiently covered,
+     * and all counts are set to zero.
+     */
+    size_t min_coverage = 0;
+
+    /**
+     * @brief Maximum coverage expected for a BaseCounts to be considered covered.
+     *
+     * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) in the reads of a sample is greater than
+     * the provided value, the BaseCounts is not considered properly covered,
+     * and all counts are set to zero.
+     */
+    size_t max_coverage = 0;
+
+    // -------------------------------------------
+    //     SNPs
+    // -------------------------------------------
+
+    /**
+     * @brief Filter if the sample does not have two or more alleles.
+     *
+     * A sample is a SNP if at least two of the `A`, `C`, `G`, `T` counts (BaseCounts::a_count,
+     * BaseCounts::c_count, BaseCounts::g_count, and BaseCounts::t_count ) are above zero,
+     * after testing that they are between min_count and max_count and not deleted.
+     */
+    bool only_snps = false;
+
+    /**
+     * @brief Filter if the sample does not have exactly two alleles.
+     *
+     * This is closely related to only_snps, but filters for samples where the number of nucleotide
+     * counts above zero is exactly two - that is, if there are only reads of two of `A`, `C`,
+     * `G`, `T` in the sample.
+     */
+    bool only_biallelic_snps = false;
+};
+
+// --------------------------------------------------------------------------------------
+//     Base Counts Filter Stats
+// --------------------------------------------------------------------------------------
+
+struct BaseCountsFilterStats
+{
+    /**
+     * @brief Number of BaseCounts objects that passed all filters.
+     */
+    size_t passed = 0;
+
+    /**
+     * @brief Number of nucleotides (`ACGT`) in total across the samples that were below
+     * BaseCountsFilter::min_count and hence set to zero.
+     */
+    size_t below_min_count = 0;
+
+    /**
+     * @brief Number of nucleotides (`ACGT`) in total across the samples that were above
+     * BaseCountsFilter::max_count and hence set to zero.
+     */
+    size_t above_max_count = 0;
+
+    /**
+     * @brief Number of samples that had zero nucleotide counts, after the min_count and max_count.
+     */
+    size_t empty = 0;
+
+    /**
+    * @brief Number of samples that had too many deletions (between min_count and max_count, to
+    * be precise). Used when BaseCountsFilter::tolerate_deletions is set.
+    */
+    size_t untolerated_deletion = 0;
+
+    /**
+     * @brief Number of samples whose sum of nucleotides was below BaseCountsFilter::min_coverage,
+     * and hence all nucleotide counts were set to zero.
+     */
+    size_t below_min_coverage = 0;
+
+    /**
+     * @brief Number of samples whose sum of nucleotides was above BaseCountsFilter::max_coverage,
+     * and hence all nucleotide counts were set to zero.
+     */
+    size_t above_max_coverage = 0;
+
+    /**
+     * @brief Number of samples that were not SNPs, after applying all min_count and max_count
+     * filters.
+     */
+    size_t not_snp = 0;
+
+    /**
+     * @brief Number of samples that were not biallelic SNPs, after applying all min_count and
+     * max_count filters.
+     */
+    size_t not_biallelic_snp = 0;
+};
+
+/**
+ * @brief Reset all counts of a BaseCountsFilterStats @p stats to zero.
+ */
+void reset( BaseCountsFilterStats& stats );
+
+/**
+ * @brief Print a textual representation of the counts collected.
+ */
+std::ostream& print_base_counts_filter_stats( std::ostream& os, BaseCountsFilterStats const& stats );
+
+/**
+ * @brief Print a textual representation of the counts collected.
+ */
+std::string print_base_counts_filter_stats( BaseCountsFilterStats const& stats );
+
+// --------------------------------------------------------------------------------------
+//     filter_base_counts
+// --------------------------------------------------------------------------------------
+
+/**
+ * @brief Filter one BaseCounts instance.
+ *
+ * The provided settings are used to check which of the filters need to be applied. If any of them
+ * fails, the function returns `false`, and `true` otherwise. See BaseCountsFilter for all
+ * settings and filters.
+ */
+bool filter_base_counts(
+    BaseCounts& sample,
+    BaseCountsFilter const& filter
+);
+
+/**
+ * @copydoc filter_base_counts( BaseCounts&, BaseCountsFilter const& )
+ *
+ * This overload also increments the statistic of the failing or passing filter.
+ */
+bool filter_base_counts(
+    BaseCounts& sample,
+    BaseCountsFilter const& filter,
+    BaseCountsFilterStats& stats
+);
+
+/**
+ * @brief Filter all BaseCounts of a given Variant.
+ *
+ * Simply applies the version of this function for BaseCounts to all Variant::samples.
+ * If @p all_need_pass is set, the function returns `true` iff all individual samples passed all
+ * filters, and `false` otherwise.
+ * If @p all_need_pass is not set, the function returns `true` if any sample passed the filters.
+ * In either case, all samples of the @p variant are always processed (no short-circuit, as we want
+ * all of them to have the count transformations applied to them).
+ */
+bool filter_base_counts(
+    Variant& variant,
+    BaseCountsFilter const& filter,
+    bool all_need_pass = false
+);
+
+/**
+ * @copydoc filter_base_counts( Variant&, BaseCountsFilter const& )
+ *
+ * This overload also increments the statistic of the failing or passing filter.
+ */
+bool filter_base_counts(
+    Variant& variant,
+    BaseCountsFilter const& filter,
+    BaseCountsFilterStats& stats,
+    bool all_need_pass = false
+);
+
+/**
+ * @brief Return a functional to transform all BaseCounts samples of a given Variant,
+ * so that the functional can be used as a transform with VariantInputIterator.
+ */
+inline std::function<void(Variant&)> make_transform_base_counts(
+    BaseCountsFilter const& filter
+) {
+    return [ filter ]( Variant& variant ){
+        filter_base_counts( variant, filter );
+    };
+}
+
+/**
+ * @copydoc make_transform_base_counts( BaseCountsFilter const& )
+ *
+ * This overload also includes the statistics of the failing or passing filters.
+ */
+inline std::function<void(Variant&)> make_transform_base_counts(
+    BaseCountsFilter const& filter,
+    BaseCountsFilterStats& stats
+) {
+    return [ filter, &stats ]( Variant& variant ){
+        filter_base_counts( variant, filter, stats );
+    };
+}
+
+/**
+ * @brief Return a functional to filter all BaseCounts samples of a given Variant,
+ * so that the functional can be used as a filter with VariantInputIterator.
+ */
+inline std::function<bool(Variant&)> make_filter_base_counts(
+    BaseCountsFilter const& filter,
+    bool all_need_pass = false
+) {
+    return [ filter, all_need_pass ]( Variant& variant ){
+        return filter_base_counts( variant, filter, all_need_pass );
+    };
+}
+
+/**
+ * @copydoc make_filter_base_counts( BaseCountsFilter const& )
+ *
+ * This overload also includes the statistics of the failing or passing filters.
+ */
+inline std::function<bool(Variant&)> make_filter_base_counts(
+    BaseCountsFilter const& filter,
+    BaseCountsFilterStats& stats,
+    bool all_need_pass = false
+) {
+    return [ filter, &stats, all_need_pass ]( Variant& variant ){
+        return filter_base_counts( variant, filter, stats, all_need_pass );
+    };
+}
+
+// =================================================================================================
+//     Filter Variant
+// =================================================================================================
+
+// --------------------------------------------------------------------------------------
+//     Variant Filter
+// --------------------------------------------------------------------------------------
+
+struct VariantFilter
+{
+    // -------------------------------------------
+    //     Coverage
+    // -------------------------------------------
+
+    /**
+     * @brief Minimum coverage expected for the whole Variant to be considered covered.
+     *
+     * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) across all samples is less than
+     * the provided value, the Variant is not considered sufficiently covered.
+     */
+    size_t min_coverage = 0;
+
+    /**
+     * @brief Maximum coverage expected for the whole Variant to be considered covered.
+     *
+     * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) across all samples is greater than
+     * the provided value, the Variant is not considered properly covered.
+     */
+    size_t max_coverage = 0;
+
+    // -------------------------------------------
+    //     SNPs
+    // -------------------------------------------
+
+    /**
+     * @brief Filter if the Variant does not have two or more alleles.
+     *
+     * A Variant is a SNP if at least two of the `A`, `C`, `G`, `T` counts of the merged samples
+     * are above zero.
+     */
+    bool only_snps = false;
+
+    /**
+     * @brief Filter if the Variant does not have exactly two alleles.
+     *
+     * This is closely related to only_snps, but filters for Variants where the number of nucleotide
+     * counts above zero is exactly two - that is, if there are only reads of two of `A`, `C`,
+     * `G`, `T` in the Variant.
+     */
+    bool only_biallelic_snps = false;
+
+    // -------------------------------------------
+    //     Frequency
+    // -------------------------------------------
+
+    /**
+     * @brief Minimum allele frequency that needs to be achieved.
+     *
+     * If the Variant has a Variant::reference_base and Variant::alternative_base, those are used.
+     * If either the alternative or both bases are missing, the respective bases with the highest
+     * counts are used instead. Then, the allele frequency `af` is computed. If `af` or `1.0 - af`
+     * is below this min_frequency, the filter is considered failed.
+     */
+    double min_frequency = 0.0;
+};
+
+// --------------------------------------------------------------------------------------
+//     Variant Filter Stats
+// --------------------------------------------------------------------------------------
+
+struct VariantFilterStats
+{
+    /**
+     * @brief Number of Variant%s that passed all filters.
+     */
+    size_t passed = 0;
+
+    /**
+     * @brief Number of Variants that had zero nucleotide counts across all samples.
+     */
+    size_t empty = 0;
+
+    /**
+     * @brief Number of Variant%s whose sum of nucleotides was below VariantFilter::min_coverage.
+     */
+    size_t below_min_coverage = 0;
+
+    /**
+     * @brief Number of Variant%s whose sum of nucleotides was above VariantFilter::max_coverage.
+     */
+    size_t above_max_coverage = 0;
+
+    /**
+     * @brief Number of Variant%s that were not SNPs, i.e., that were invariants.
+     */
+    size_t not_snp = 0;
+
+    /**
+     * @brief Number of Variant%s that were not biallelic SNPs.
+     */
+    size_t not_biallelic_snp = 0;
+
+    /**
+     * @brief Number of Variant%s that did not have the minimum frequency.
+     */
+    size_t not_min_frequency = 0;
+};
+
+/**
+ * @brief Reset all counts of a VariantFilterStats @p stats to zero.
+ */
+void reset( VariantFilterStats& stats );
+
+/**
+ * @brief Print a textual representation of the counts collected.
+ */
+std::ostream& print_variant_filter_stats( std::ostream& os, VariantFilterStats const& stats );
+
+/**
+ * @brief Print a textual representation of the counts collected.
+ */
+std::string print_variant_filter_stats( VariantFilterStats const& stats );
+
+// --------------------------------------------------------------------------------------
+//     filter_variant
+// --------------------------------------------------------------------------------------
+
+/**
+ * @brief Filter a given Variant.
+ *
+ * The function applies the given @p filter settings, increments the @p stats for failing filters
+ * for the first filter that fails, and returns whether any filter failed (`false`),
+ * or all passed (`true`).
+ */
+bool filter_variant(
+    Variant const& variant,
+    VariantFilter const& filter
+);
+
+/**
+ * @copydoc filter_variant( Variant const&, VariantFilter const& )
+ *
+ * This overload also increments the statistic of the failing or passing filter.
+ */
+bool filter_variant(
+    Variant const& variant,
+    VariantFilter const& filter,
+    VariantFilterStats& stats
+);
+
+/**
+ * @brief Return a functional to filter Variant%s that can be used as a filter
+ * with VariantInputIterator.
+ */
+inline std::function<bool(Variant const&)> make_filter_variant(
+    VariantFilter const& filter
+) {
+    return [&]( Variant const& variant ){
+        return filter_variant( variant, filter );
+    };
+}
+
+/**
+ * @copydoc make_filter_variant( VariantFilter const& )
+ *
+ * This overload also includes the statistics of the failing or passing filter.
+ */
+inline std::function<bool(Variant const&)> make_filter_variant(
+    VariantFilter const& filter,
+    VariantFilterStats& stats
+) {
+    return [&]( Variant const& variant ){
+        return filter_variant( variant, filter, stats );
+    };
+}
 
 } // namespace population
 } // namespace genesis

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/math/binomial.hpp"
+
 #include "genesis/utils/math/common.hpp"
 
 #include <array>
@@ -37,13 +39,36 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace genesis {
 namespace utils {
 
-// =============================================================================
-//     Binomial Coefficient
-// =============================================================================
+// =================================================================================================
+//     Helper Functions
+// =================================================================================================
+
+// /**
+//  * @brief Largest value for `n` when computing binomial coefficients where no value of `k` causes
+//  * the result to overflow.
+//  *
+//  * See binomial_coefficient_approx() for details.
+//  */
+// constexpr size_t MAX_BINOMIAL_COEFFICIENT_N = 1029;
+//
+// // Make sure that the list and the magic number are the same.
+// static_assert(
+//     log_factorial_lookup_.size() == MAX_BINOMIAL_COEFFICIENT_N,
+//     "log_factorial_lookup_.size() != MAX_BINOMIAL_COEFFICIENT_N"
+// );
+//
+// // We also have that magic number in some doxygen comments,
+// // so we'd need to update that as well if this number changes at some point.
+// static_assert(
+//     MAX_BINOMIAL_COEFFICIENT_N == 1029,
+//     "Need to update documentation: MAX_BINOMIAL_COEFFICIENT_N != 1029"
+// );
 
 /**
  * @brief Log-factorial log(x!) lookup table for fast computation of binomial coefficients.
@@ -345,6 +370,27 @@ std::vector<double> log_factorial_lookup_generator_()
     return logf;
 }
 
+/**
+ * @brief Local helper function to check that n and k are valid for a binomial coefficient.
+ */
+void binomial_coefficient_check_n_k_( size_t n, size_t k )
+{
+    // Error cases.
+    if( n == 0 ) {
+        throw std::invalid_argument( "Cannot compute binomial coefficient with n == 0" );
+    }
+    if( k == 0 ) {
+        throw std::invalid_argument( "Cannot compute binomial coefficient with k == 0" );
+    }
+    if( k > n ) {
+        throw std::invalid_argument( "Cannot compute binomial coefficient with k > n" );
+    }
+}
+
+// =================================================================================================
+//     Binomial Functions
+// =================================================================================================
+
 double log_factorial( size_t n )
 {
     // For small numbers, use or precise lookup table.
@@ -358,18 +404,10 @@ double log_factorial( size_t n )
     return (x - 0.5) * std::log(x) - x + 0.5 * std::log(2 * PI) + 1.0 / (12.0 * x);
 }
 
-size_t binomial_coefficient( size_t n, size_t k )
+size_t binomial_coefficient_int( size_t n, size_t k )
 {
-    // Error cases.
-    if( n == 0 ) {
-        throw std::invalid_argument( "Cannot compute binomial coefficient with n == 0" );
-    }
-    if( k == 0 ) {
-        throw std::invalid_argument( "Cannot compute binomial coefficient with k == 0" );
-    }
-    if( k > n ) {
-        throw std::invalid_argument( "Cannot compute binomial coefficient with k > n" );
-    }
+    // Check the error cases.
+    binomial_coefficient_check_n_k_( n, k );
 
     // Since C(n, k) = C(n, n-k), we can shortcut.
     if( k > n - k ) {
@@ -405,46 +443,46 @@ size_t binomial_coefficient( size_t n, size_t k )
     return result;
 }
 
-double binomial_coefficient_approx( size_t n, size_t k, bool lenient )
+double log_binomial_coefficient( size_t n, size_t k )
 {
-    // Shorthand.
-    auto const& logf = log_factorial_lookup_;
-
     // Need that for the lenient case.
     static_assert(
         std::numeric_limits<double>::has_infinity,
         "IEC 559/IEEE 754 floating-point types required (does not have infinity)."
     );
 
-    // Error cases.
-    if( n == 0 ) {
-        throw std::invalid_argument( "Cannot compute binomial coefficient with n == 0" );
-    }
-    if( k == 0 ) {
-        throw std::invalid_argument( "Cannot compute binomial coefficient with k == 0" );
-    }
-    if( k > n ) {
-        throw std::invalid_argument( "Cannot compute binomial coefficient with k > n" );
-    }
-    if( n >= logf.size() ) {
-        if( lenient ) {
-            return std::numeric_limits<double>::infinity();
-        } else {
-            throw std::invalid_argument(
-                "Cannot compute binomial coefficient with n >= " + std::to_string( logf.size() ) +
-                " due to numerical overflow"
-            );
-        }
-    }
-    assert( n < logf.size() );
-    assert( k < logf.size() );
+    // Check the error cases.
+    binomial_coefficient_check_n_k_( n, k );
     assert( k <= n );
 
-    // We use a log factorial lookup table, see https://stackoverflow.com/a/37715980/4184258
+    // We use a log factorial for the computation, see https://stackoverflow.com/a/37715980/4184258
     // Basically, what we are computing is C(n, k) = n!/((n-k)! * k!), which in log form is
     // log(n!) - log((n-k)!) - log(k!). We use a lookup table for these log factorial values,
     // and then finally only need to exponentiate them back to get the result.
-    return std::exp( logf[n] - logf[n-k] - logf[k] );
+    auto const lbc = log_factorial( n ) - log_factorial( n-k ) - log_factorial( k );
+    assert( std::isfinite( lbc ) || std::isinf( lbc ));
+    return lbc;
+}
+
+double log_binomial_distribution( size_t k, size_t n, double p )
+{
+    if( ! std::isfinite(p) || p < 0.0 || p > 1.0 ) {
+        throw std::invalid_argument(
+            "Cannot compute binomial distribution with p outside of [ 0, 1 ]"
+        );
+    }
+
+    // We are computing coeff * std::pow( p, k ) * std::pow( 1.0 - p, n - k ).
+    // In log space, the powers become multiplications of the exponent with the log of the base,
+    // and multiplications become additions.
+
+    // Get the log-space binomial coefficient. This already checks that k <= n, so we here only
+    // assert, and then compute the two powers involved, also in log-space.
+    double const log_coeff = log_binomial_coefficient( n, k );
+    assert( k <= n );
+    double const log_pow_1 = static_cast<double>(     k ) * std::log(       p );
+    double const log_pow_2 = static_cast<double>( n - k ) * std::log( 1.0 - p );
+    return log_coeff + log_pow_1 + log_pow_2;
 }
 
 } // namespace utils

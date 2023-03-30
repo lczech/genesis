@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 #include "genesis/population/formats/variant_input_iterator.hpp"
 #include "genesis/population/window/functions.hpp"
 #include "genesis/population/window/sliding_entries_window_iterator.hpp"
+#include "genesis/population/window/variant_window_iterator.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/lambda_iterator.hpp"
 
@@ -48,6 +49,14 @@ void test_sliding_entries_iterator_( WindowIterator& win_it, size_t count )
 {
     bool found_first_win = false;
     bool found_last_win = false;
+
+    // Also test that the visitor functions get executed once per window.
+    size_t visit_cnt = 0;
+    using ValueType = typename WindowIterator::InputIteratorType::value_type;
+    win_it.add_visitor( [&visit_cnt]( Window<ValueType> const& ){
+        // LOG_DBG << "at " << visit_cnt;
+        ++visit_cnt;
+    });
 
     // DBG  2R : 7790001 7790001-7800000 # 1
     // DBG  2R : 7800001 7800001-7810000 # 9874
@@ -124,6 +133,7 @@ void test_sliding_entries_iterator_( WindowIterator& win_it, size_t count )
         ++window_cnt;
     }
     EXPECT_EQ( window_sizes.size(), window_cnt );
+    EXPECT_EQ( window_sizes.size(), visit_cnt );
 
     EXPECT_TRUE( found_first_win );
     EXPECT_TRUE( found_last_win );
@@ -204,6 +214,59 @@ TEST( WindowIterator, SlidingEntriesLambda )
     test_window_iterator_sliding_entries_lambda( 10000 );
 }
 
+void run_sliding_entries_window_view_variant_test_( VariantWindowViewIterator& win_it )
+{
+    size_t window_cnt = 0;
+    for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
+        auto const& window = *it;
+
+        EXPECT_TRUE( window.first_position() >= 7790001 );
+        EXPECT_TRUE( window.first_position() <= 7850001 );
+        EXPECT_TRUE( window.last_position() >= 7800000 );
+        EXPECT_TRUE( window.last_position() <= 7860000 );
+
+        ++window_cnt;
+    }
+    EXPECT_EQ( 6, window_cnt );
+}
+
+TEST( WindowIterator, SlidingEntriesWindowView )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/78.pileup.gz";
+    // std::string const infile = environment->data_dir + "population/example.pileup";
+
+    // Make a Lambda Iterator over the data stream.
+    auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
+    // data_gen.block_size( 1024 * 1024 );
+    data_gen.block_size(0);
+    auto pileup_begin = data_gen.begin();
+    auto pileup_end   = data_gen.end();
+
+    // Create a window iterator based on the lambda iterator.
+    auto win_it = make_default_sliding_entries_window_view_iterator(
+        pileup_begin, pileup_end, 9000
+    );
+
+    // Also test that the visitor functions get executed once per window.
+    size_t visit_cnt = 0;
+    win_it.add_visitor( [&visit_cnt]( WindowView<Variant> const& ){
+        // LOG_DBG << "at " << visit_cnt;
+        ++visit_cnt;
+    });
+
+    // We use a test function that takes our abstract type, to see if we set this up correctly.
+    run_sliding_entries_window_view_variant_test_( win_it );
+    EXPECT_EQ( 6, visit_cnt );
+
+    // size_t window_cnt = 0;
+    // for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
+    //     ++window_cnt;
+    // }
+    // EXPECT_EQ( 6, window_cnt );
+}
+
 TEST( WindowIterator, SlidingEntriesEmpty )
 {
     // Skip test if no data availabe.
@@ -220,6 +283,13 @@ TEST( WindowIterator, SlidingEntriesEmpty )
         pileup_begin, pileup_end, 10000
     );
 
+    // Also test that the visitor functions get executed once per window.
+    size_t visit_cnt = 0;
+    win_it.add_visitor( [&visit_cnt]( Window<Variant> const& ){
+        // LOG_DBG << "at " << visit_cnt;
+        ++visit_cnt;
+    });
+
     size_t window_cnt = 0;
     for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
 
@@ -234,4 +304,5 @@ TEST( WindowIterator, SlidingEntriesEmpty )
         ++window_cnt;
     }
     EXPECT_EQ( 0, window_cnt );
+    EXPECT_EQ( 0, visit_cnt );
 }

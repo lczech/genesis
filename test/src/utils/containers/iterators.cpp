@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -230,12 +230,21 @@ void test_lambda_iterator_( size_t num_elements, size_t block_size )
         }, {}, block_size
     );
 
+    // Also add a visitor, doing the same thing, to test their behaviour as well.
+    size_t visitor_sum = 0;
+    generator.add_visitor(
+        [&visitor_sum]( size_t elem ){
+            visitor_sum += elem;
+        }
+    );
+
     // Run the iteration and check that it matches our expectation.
-    size_t sum = 0;
+    size_t loop_sum = 0;
     for( auto const& it : generator ) {
-        sum += it;
+        loop_sum += it;
     }
-    EXPECT_EQ( expected_sum, sum );
+    EXPECT_EQ( expected_sum, loop_sum );
+    EXPECT_EQ( expected_sum, visitor_sum );
 }
 
 TEST( Containers, LambdaIterator )

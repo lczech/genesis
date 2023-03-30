@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -31,8 +31,12 @@
  * @ingroup sequence
  */
 
-#include "genesis/utils/tools/char_lookup.hpp"
+#include "genesis/sequence/reference_genome.hpp"
+#include "genesis/sequence/sequence_dict.hpp"
+#include "genesis/sequence/sequence_set.hpp"
+#include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/tools/char_lookup.hpp"
 
 #include <iosfwd>
 #include <memory>
@@ -46,11 +50,6 @@ namespace genesis {
 
 namespace utils {
     class InputStream;
-}
-
-namespace sequence {
-    class SequenceSet;
-    class Sequence;
 }
 
 // =================================================================================================
@@ -197,6 +196,23 @@ public:
      */
     void read( std::shared_ptr< utils::BaseInputSource > source, SequenceSet& sequence_set ) const;
 
+    /**
+     * @brief Read all Sequence%s from an input source in fasta format, but only return their
+     * names and lengths as a SequenceDict.
+     */
+    SequenceDict read_dict( std::shared_ptr<utils::BaseInputSource> source ) const;
+
+    /**
+     * @brief Read all Sequence%s from an input source in fasta format into a ReferenceGenome.
+     *
+     * This allows fast lookup of sequences by their name, while maintaining their order.
+     * See ReferenceGenome for details, and for the explanation of @p also_look_up_first_word.
+     */
+    ReferenceGenome read_reference_genome(
+        std::shared_ptr<utils::BaseInputSource> source,
+        bool also_look_up_first_word = true
+    ) const;
+
     // ---------------------------------------------------------------------
     //     Parsing
     // ---------------------------------------------------------------------
@@ -328,6 +344,37 @@ public:
      * valid_chars() function should suffice. See there for details.
      */
     utils::CharLookup<bool>& valid_char_lookup();
+
+    // ---------------------------------------------------------------------
+    //     Helper Functions
+    // ---------------------------------------------------------------------
+
+private:
+
+    /**
+     * @brief Helper function for the switching between the two parsing methods.
+     *
+     * Expects a result type `R` that has an `add` function taking a Sequence.
+     * Also takes additional @p args for the `add` function, if needed, but can be omitted
+     * if the `add` function does not need or take any extra arguments.
+     */
+    template<class R, typename... A>
+    void parse_document_( utils::InputStream& input_stream, R& result, A... args ) const
+    {
+        Sequence seq;
+        if( parsing_method_ == ParsingMethod::kDefault ) {
+            while( parse_sequence( input_stream, seq ) ) {
+                result.add( std::move(seq), args... );
+            }
+        } else if( parsing_method_ == ParsingMethod::kPedantic ) {
+            while( parse_sequence_pedantic( input_stream, seq ) ) {
+                result.add( std::move(seq), args... );
+            }
+        } else {
+            // There are no other methods currently implemented.
+            assert( false );
+        }
+    }
 
     // ---------------------------------------------------------------------
     //     Members

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,27 +55,37 @@
 #include "genesis/population/formats/vcf_header.hpp"
 #include "genesis/population/formats/vcf_input_iterator.hpp"
 #include "genesis/population/formats/vcf_record.hpp"
-#include "genesis/population/functions/diversity.hpp"
+#include "genesis/population/functions/diversity_pool_calculator.hpp"
+#include "genesis/population/functions/diversity_pool_functions.hpp"
 #include "genesis/population/functions/filter_transform.hpp"
+#include "genesis/population/functions/fst_pool_functions.hpp"
+#include "genesis/population/functions/fst_pool.hpp"
+#include "genesis/population/functions/fst_pool_karlsson.hpp"
+#include "genesis/population/functions/fst_pool_kofler.hpp"
+#include "genesis/population/functions/fst_pool_unbiased.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/population/functions/genome_heatmap.hpp"
 #include "genesis/population/functions/genome_locus.hpp"
 #include "genesis/population/functions/genome_region.hpp"
 #include "genesis/population/functions/heatmap_colorization.hpp"
-#include "genesis/population/functions/structure.hpp"
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/genome_region_list.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/population/window/af_spectrum.hpp"
+#include "genesis/population/window/base_window.hpp"
 #include "genesis/population/window/base_window_iterator.hpp"
+#include "genesis/population/window/chromosome_iterator.hpp"
 #include "genesis/population/window/functions.hpp"
 #include "genesis/population/window/region_window_iterator.hpp"
 #include "genesis/population/window/sliding_entries_window_iterator.hpp"
 #include "genesis/population/window/sliding_interval_window_iterator.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
+#include "genesis/population/window/variant_window_iterator.hpp"
 #include "genesis/population/window/vcf_window.hpp"
 #include "genesis/population/window/window.hpp"
+#include "genesis/population/window/window_view.hpp"
+#include "genesis/population/window/window_view_iterator.hpp"
 
 #endif // include guard

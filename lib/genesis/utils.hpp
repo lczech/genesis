@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,6 +62,7 @@
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/info.hpp"
 #include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/core/multi_future.hpp"
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/core/thread_pool.hpp"
@@ -120,6 +121,7 @@
 #include "genesis/utils/io/strict_fstream.hpp"
 #include "genesis/utils/io/string_input_source.hpp"
 #include "genesis/utils/io/string_output_target.hpp"
+#include "genesis/utils/math/binomial.hpp"
 #include "genesis/utils/math/bitvector/helper.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
@@ -132,6 +134,7 @@
 #include "genesis/utils/math/histogram/operations.hpp"
 #include "genesis/utils/math/histogram/operators.hpp"
 #include "genesis/utils/math/histogram/stats.hpp"
+#include "genesis/utils/math/kahan_sum.hpp"
 #include "genesis/utils/math/kmeans.hpp"
 #include "genesis/utils/math/matrix.hpp"
 #include "genesis/utils/math/mds.hpp"

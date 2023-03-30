@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -174,6 +174,14 @@ char normalize_amino_acid_code( char code, bool accept_degenerated = true );
  * `V = GCA`. If set to `false`, an exception is thrown when degenerated chars are found.
  */
 std::string reverse_complement( std::string const& sequence, bool accept_degenerated = true );
+
+/**
+ * @brief Return the transition base for the given base.
+ *
+ * This yields the transition bases, that is `A <-> G` and `C <-> T`, respecitvely.
+ * Any other char will throw an exception.
+ */
+char nucleic_acid_transition( char code );
 
 /**
  * @brief Compare two nucleic acid codes and check if they are equal, taking degenerated/ambiguous

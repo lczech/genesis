@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace genesis {
 namespace population {
@@ -60,8 +61,8 @@ namespace population {
  *     iterator from which the windows take their data). Needs to have a member type
  *     `value_type` that specifies the actual input type that the iterator produces, which we here
  *     call the `InputType` (and typedef it as that).
- *  * `DataType`: The data type of the Window::Data that is stored in Window::Entry. The functor
- *    #entry_input_function needs to be provided to convert from `InputType` to this `DataType`.
+ *  * `Data`: The data type of the Window::Data that is stored in Window::Entry. The functor
+ *    #entry_input_function needs to be provided to convert from `InputType` to this `Data`.
  *    By default, we take this to be the same as the `InputType`, meaning that the Window contains
  *    the same data type as the underlying iterator that we get our data from.
  *
@@ -81,13 +82,13 @@ namespace population {
  *     auto win_it = SlidingIntervalWindowIterator<InputIterator>( data_begin, data_end );
  *
  *     // Set functors to access the underlying data.
- *     win_it.entry_input_function = []( DataType const& variant ) {
+ *     win_it.entry_input_function = []( Data const& variant ) {
  *         return variant;
  *     };
- *     win_it.chromosome_function = []( DataType const& variant ) {
+ *     win_it.chromosome_function = []( Data const& variant ) {
  *         return variant.chromosome;
  *     };
- *     win_it.position_function = []( DataType const& variant ) {
+ *     win_it.position_function = []( Data const& variant ) {
  *         return variant.position;
  *     };
  *
@@ -104,8 +105,8 @@ namespace population {
  */
 template<
     class InputIterator,
-    class DataType   = typename InputIterator::value_type,
-    class WindowType = typename ::genesis::population::Window<DataType>
+    class Data       = typename InputIterator::value_type,
+    class WindowType = typename ::genesis::population::Window<Data>
 >
 class BaseWindowIterator
 {
@@ -114,6 +115,9 @@ public:
     // -------------------------------------------------------------------------
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
+
+    using InputIteratorType = InputIterator;
+    using DataType          = Data;
 
     using self_type         = BaseWindowIterator<InputIterator, DataType, WindowType>;
     using InputType         = typename InputIterator::value_type;
@@ -180,9 +184,9 @@ public:
         // -------------------------------------------------------------------------
 
         using self_type = typename BaseWindowIterator<
-            InputIterator, DataType, WindowType
+            InputIteratorType, DataType, WindowType
         >::Iterator;
-        using InputType = typename InputIterator::value_type;
+        using InputType = typename InputIteratorType::value_type;
 
         using iterator_category = std::input_iterator_tag;
         using value_type        = WindowType;
@@ -194,14 +198,19 @@ public:
 
     protected:
 
-        Iterator() = delete;
+        // Iterator() = delete;
 
         Iterator( std::unique_ptr<BaseIterator> base_iterator )
             : pimpl_( std::move( base_iterator ))
-        {}
+        {
+            // Visit the first element, if this is an active iterator.
+            assert( pimpl_ );
+            execute_visitors_();
+        }
 
     public:
 
+        Iterator() = default;
         ~Iterator() = default;
 
         Iterator( Iterator const& ) = delete;
@@ -291,8 +300,10 @@ public:
 
         self_type& operator ++()
         {
+            // Advance to the next element, and visit it.
             assert( pimpl_ );
             pimpl_->increment_();
+            execute_visitors_();
             return *this;
         }
 
@@ -328,6 +339,25 @@ public:
         }
 
         // -------------------------------------------------------------------------
+        //     Internal and Virtual Members
+        // -------------------------------------------------------------------------
+
+    private:
+
+        void execute_visitors_()
+        {
+            // If there is still a parent, we are active,
+            // and execute all visitors for the element.
+            assert( pimpl_ );
+            if( pimpl_->get_parent_() ) {
+                auto& element = pimpl_->get_current_window_();
+                for( auto const& visitor : pimpl_->get_parent_()->visitors_ ) {
+                    visitor( element );
+                }
+            }
+        }
+
+        // -------------------------------------------------------------------------
         //     PIMPL-like Implementation Abstraction
         // -------------------------------------------------------------------------
 
@@ -359,15 +389,17 @@ protected:
         // -------------------------------------------------------------------------
 
         using self_type = typename BaseWindowIterator<
-            InputIterator, DataType, WindowType
+            InputIteratorType, DataType, WindowType
         >::BaseIterator;
-        using InputType = typename InputIterator::value_type;
+        using InputType = typename InputIteratorType::value_type;
 
         using iterator_category = std::input_iterator_tag;
         using value_type        = WindowType;
         using pointer           = value_type*;
         using reference         = value_type&;
         using const_reference   = value_type const&;
+
+        static_assert( std::is_same<BaseIterator, self_type>::value, "BaseIterator != self_type" );
 
     protected:
 
@@ -506,6 +538,36 @@ public:
     friend Iterator;
 
     // -------------------------------------------------------------------------
+    //     Visitors
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Add a visitor function that is executed once for each window during the iteration.
+     *
+     * These functions are executed when starting and incrementing the iterator, once for each
+     * window, in the order in which they are added here. They take the window (typically of type
+     * window or WindowView) that the iterator just moved to as their argument, so that user code
+     * can react to the new window properties.
+     *
+     * They are a way of adding behaviour to the iteration loop that could also simply be placed
+     * in the beginning of the loop body of the user code. Still, offering this here can reduce
+     * redundant code, such as logging Windows during the iteration.
+     */
+    self_type& add_visitor( std::function<void(WindowType const&)> const& visitor )
+    {
+        visitors_.push_back( visitor );
+        return *this;
+    }
+
+    /**
+     * @brief Clear all functions that are executed on incrementing to the next element.
+     */
+    self_type& clear_visitors()
+    {
+        visitors_.clear();
+    }
+
+    // -------------------------------------------------------------------------
     //     Iteration
     // -------------------------------------------------------------------------
 
@@ -525,6 +587,9 @@ public:
 
 protected:
 
+    // Need a default for WindowViewIterator.
+    BaseWindowIterator() = default;
+
     virtual std::unique_ptr<BaseIterator> get_begin_iterator_() = 0;
     virtual std::unique_ptr<BaseIterator> get_end_iterator_() = 0;
 
@@ -537,6 +602,9 @@ private:
     // Underlying iterator to the data that we want to put in windows.
     InputIterator begin_;
     InputIterator end_;
+
+    // Keep the visitors for each window view.
+    std::vector<std::function<void(WindowType const&)>> visitors_;
 
 };
 

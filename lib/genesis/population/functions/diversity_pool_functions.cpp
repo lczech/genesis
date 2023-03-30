@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,21 +28,23 @@
  * @ingroup population
  */
 
-#include "genesis/population/functions/diversity.hpp"
+#include "genesis/population/functions/diversity_pool_functions.hpp"
 
-#include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/function_cache.hpp"
+#include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/math/binomial.hpp"
 #include "genesis/utils/math/common.hpp"
 
 #include <cassert>
 #include <cmath>
+#include <limits>
 #include <mutex>
 #include <stdexcept>
 #include <unordered_map>
 
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
+// #ifdef GENESIS_OPENMP
+// #   include <omp.h>
+// #endif
 
 namespace genesis {
 namespace population {
@@ -80,31 +82,58 @@ double amnm_( // get_aMnm_buffer
     ) {
         double result = 0.0;
 
+        // We need a binomial distribution in the loop below for which the coefficient stays
+        // constant. So we pre-compute that here, and split the computation into its parts.
+        // Quick test on some real data reduced the runtime by 30% using this.
+        // Also, we are staying in log-space until the very end to allow large n and small p;
+        // see log_binomial_distribution() for the underlying implementation.
+        auto const k = allele_frequency;
+        auto const n = nucleotide_count;
+        auto const log_coeff = utils::log_binomial_coefficient( n, k );
+        assert( k <= n );
+
         // #pragma omp parallel for
         for( size_t r = 1; r <= poolsize - 1; ++r ) {
+
+            // Get the probability that we are looking at in this loop iteration.
             double const p = static_cast<double>( r ) / static_cast<double>( poolsize );
+            assert( std::isfinite( p ) && 0.0 < p && p < 1.0 );
 
-            // We use the "lenient" flag of the binomial distribution, so that values of
-            // nucleotide_count = n > 1024 do not throw an exception, but return infinity instead.
-            // That is okay, because this will lead to the theta denominator being infinity as well,
-            // which is then inverted, so it becomes 0, and then added to the total theta of the
-            // window. So, it just vanishes in that case, which is okay.
-            double const binom = utils::binomial_distribution(
-                allele_frequency, nucleotide_count, p, true
-            );
+            // Compute the remaining parts of the binomial that depend on p.
+            // Below, we have the original full function for reference.
+            double const log_pow_1 = static_cast<double>(     k ) * std::log(       p );
+            double const log_pow_2 = static_cast<double>( n - k ) * std::log( 1.0 - p );
+            double const binom = std::exp( log_coeff + log_pow_1 + log_pow_2 );
+            // double const binom = utils::binomial_distribution(
+            //     allele_frequency, nucleotide_count, p
+            // );
+
+            // Sum up the term.
             double const partial = binom / static_cast<double>( r );
-
             // #pragma omp atomic
             result += partial;
+
+            // Early abort. No need to continue once we reach inf or nan.
+            if( ! std::isfinite( result )) {
+                break;
+            }
         }
         return result;
     }};
+
+    // Edge case check.
+    if( allele_frequency == 0 ) {
+        throw std::invalid_argument(
+            "In computing amnm_(), allele_frequency == 0 is not allowed. "
+            "This is likely caused by using DiversityPoolSettings.min_count == 0."
+        );
+    }
 
     return amnm_cache_( poolsize, nucleotide_count, allele_frequency );
 }
 
 // =================================================================================================
-//     Diversity Estimates
+//     Theta Pi
 // =================================================================================================
 
 double heterozygosity( BaseCounts const& sample, bool with_bessel )
@@ -129,37 +158,34 @@ double heterozygosity( BaseCounts const& sample, bool with_bessel )
     return h;
 }
 
-// =================================================================================================
-//     Theta Pi
-// =================================================================================================
-
 double theta_pi_pool_denominator(
-    PoolDiversitySettings const& settings,
+    DiversityPoolSettings const& settings,
+    size_t poolsize, // n
     size_t nucleotide_count  // M
 ) {
     // PoPoolation variable names:
+    // min_count:        b
     // poolsize:         n
-    // min_allele_count: b
     // nucleotide_count: M
 
     // Local cache for speed.
     static genesis::utils::FunctionCache<double, size_t, size_t, size_t> denom_cache_{ [](
-        size_t poolsize, size_t min_allele_count, size_t nucleotide_count
+        size_t min_count, size_t poolsize, size_t nucleotide_count
     ){
         // Boundary: if not held, we'd return zero, and that would not be a useful denominator.
-        if( 2 * min_allele_count > nucleotide_count ) {
+        if( 2 * min_count > nucleotide_count ) {
             throw std::invalid_argument(
-                "Cannot compute theta_pi_pool_denominator with min_allele_count = " +
-                std::to_string( min_allele_count ) + " and nucleotide_count = " +
+                "Cannot compute theta_pi_pool_denominator with min_count = " +
+                std::to_string( min_count ) + " and nucleotide_count = " +
                 std::to_string( nucleotide_count )
             );
         }
 
         // Iterate all allele frequencies in between the min and max-min boundaries.
-        double div = 0.0;
+        double denom = 0.0;
 
-        #pragma omp parallel for
-        for( size_t m_it = min_allele_count; m_it <= ( nucleotide_count - min_allele_count ); ++m_it ) {
+        // #pragma omp parallel for
+        for( size_t m_it = min_count; m_it <= ( nucleotide_count - min_count ); ++m_it ) {
             // We iterate from b to M-b (in PoPoolation terminology), inclusively.
             // Use double values however for the computations.
             double const m = static_cast<double>( m_it );
@@ -169,14 +195,26 @@ double theta_pi_pool_denominator(
             double const term = ( 2.0 * m * ( M - m )) / ( M * ( M - 1.0 ));
             double const partial = term * amnm_( poolsize, nucleotide_count, m_it );
 
-            #pragma omp atomic
-            div += partial;
+            // #pragma omp atomic
+            denom += partial;
+
+            // Early abort. No need to continue once we reach inf or nan.
+            if( ! std::isfinite( denom )) {
+                break;
+            }
         }
-        return div;
+        return denom;
     }};
 
+    // Right now, our binomial computation will yield nan for large n.
+    // No need to run an expensive loop that will result in nan anyway.
+    // --> Update: Changed our binomical computation to work in log space; can handle this now!
+    // if( nucleotide_count >= utils::MAX_BINOMIAL_COEFFICIENT_N ) {
+    //     return std::numeric_limits<double>::quiet_NaN();
+    // }
+
     // Simply return the cached value (which computes them first if not yet cached).
-    return denom_cache_( settings.poolsize, settings.min_allele_count, nucleotide_count );
+    return denom_cache_( settings.min_count, poolsize, nucleotide_count );
 }
 
 // =================================================================================================
@@ -184,48 +222,61 @@ double theta_pi_pool_denominator(
 // =================================================================================================
 
 double theta_watterson_pool_denominator(
-    PoolDiversitySettings const& settings,
+    DiversityPoolSettings const& settings,
+    size_t poolsize,
     size_t nucleotide_count  // M
 ) {
     // PoPoolation variable names:
+    // min_count:        b
     // poolsize:         n
-    // min_allele_count: b
     // nucleotide_count: M
 
     // Local cache for speed.
     static genesis::utils::FunctionCache<double, size_t, size_t, size_t> denom_cache_{ [](
-        size_t poolsize, size_t min_allele_count, size_t nucleotide_count
+        size_t min_count, size_t poolsize, size_t nucleotide_count
     ){
         // Boundary: if not held, we'd return zero, and that would not be a useful denominator.
-        if( 2 * min_allele_count > nucleotide_count ) {
+        if( 2 * min_count > nucleotide_count ) {
             throw std::invalid_argument(
-                "Cannot compute theta_watterson_pool_denominator with min_allele_count = " +
-                std::to_string( min_allele_count ) + " and nucleotide_count = " +
+                "Cannot compute theta_watterson_pool_denominator with min_count = " +
+                std::to_string( min_count ) + " and nucleotide_count = " +
                 std::to_string( nucleotide_count )
             );
         }
 
         // Iterate all allele frequencies in between the min and max-min boundaries.
-        double div = 0.0;
+        double denom = 0.0;
 
-        #pragma omp parallel for
-        for( size_t m_it = min_allele_count; m_it <= ( nucleotide_count - min_allele_count ); ++m_it ) {
+        // #pragma omp parallel for
+        for( size_t m_it = min_count; m_it <= ( nucleotide_count - min_count ); ++m_it ) {
 
             // Compute the term. We here use the cache, which also computes results if not yet cached.
             auto const anmn = amnm_( poolsize, nucleotide_count, m_it );
 
-            #pragma omp atomic
-            div += anmn;
+            // #pragma omp atomic
+            denom += anmn;
+
+            // Early abort. No need to continue once we reach inf or nan.
+            if( ! std::isfinite( denom )) {
+                break;
+            }
         }
-        return div;
+        return denom;
     }};
 
+    // Right now, our binomial computation will yield nan for large n.
+    // No need to run an expensive loop that will result in nan anyway.
+    // --> Update: Changed our binomical computation to work in log space; can handle this now!
+    // if( nucleotide_count >= utils::MAX_BINOMIAL_COEFFICIENT_N ) {
+    //     return std::numeric_limits<double>::quiet_NaN();
+    // }
+
     // Simply return the cached value (which computes them first if not yet cached).
-    return denom_cache_( settings.poolsize, settings.min_allele_count, nucleotide_count );
+    return denom_cache_( settings.min_count, poolsize, nucleotide_count );
 }
 
 // =================================================================================================
-//     Tajima's D Local Helpers
+//     Tajima's D Helper Functions
 // =================================================================================================
 
 double a_n( size_t n ) // get_an_buffer
@@ -449,28 +500,35 @@ double n_base( size_t coverage, size_t poolsize ) // get_nbase_buffer, but bette
 // =================================================================================================
 
 double tajima_d_pool_denominator( // get_ddivisor
-    PoolDiversitySettings const& settings,
+    DiversityPoolSettings const& settings,
+    size_t poolsize, // n
     size_t snp_count,
     double theta
 ) {
     // PoPoolation variable names:
+    // min_count:        b
     // poolsize:         n
-    // min_allele_count: b
     // nucleotide_count: M
 
     using namespace genesis::utils;
 
     // Edge cases.
-    if( settings.min_allele_count != 2 ) {
+    if( settings.min_count != 2 ) {
         throw std::invalid_argument(
             "Minimum allele count needs to be set to 2 for calculating pool-corrected Tajima's D "
             "with tajima_d_pool() according to Kofler et al. In case 2 is insufficient, "
             "we recommend to subsample the reads to a smaller coverage."
         );
     }
-    if( 3 * settings.min_coverage >= settings.poolsize ) {
+    if( settings.min_coverage == 0 ) {
         throw std::invalid_argument(
-            "Invalid mincoverage >> poolsize (as internal aproximation we use: "
+            "Minimum coverage of 0 is not valid for calculating pool-corrected Tajima's D "
+            "with tajima_d_pool()."
+        );
+    }
+    if( 3 * settings.min_coverage >= poolsize ) {
+        throw std::invalid_argument(
+            "Invalid minimum coverage >> poolsize (as internal aproximation we use: "
             "3 * minimumcoverage < poolsize) in tajima_d_pool()"
         );
     }
@@ -486,11 +544,11 @@ double tajima_d_pool_denominator( // get_ddivisor
     double alphastar;
     double betastar;
     if( settings.with_popoolation_bugs ) {
-        avg_n = n_base( settings.poolsize, settings.poolsize );
+        avg_n = n_base( poolsize, poolsize );
         alphastar = static_cast<double>( beta_star( avg_n ));
         betastar  = alphastar;
     } else {
-        avg_n = n_base( settings.min_coverage, settings.poolsize );
+        avg_n = n_base( settings.min_coverage, poolsize );
         alphastar = static_cast<double>( alpha_star( avg_n ));
         betastar  = static_cast<double>( beta_star( avg_n ));;
     }

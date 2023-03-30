@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2017 Lucas Czech
+# Copyright (C) 2014-2023 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,9 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Contact:
-# Lucas Czech <lucas.czech@h-its.org>
-# Exelixis Lab, Heidelberg Institute for Theoretical Studies
-# Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+# Lucas Czech <lczech@carnegiescience.edu>
+# Department of Plant Biology, Carnegie Institution For Science
+# 260 Panama Street, Stanford, CA 94305, USA
 
 ####################################################################################################
 #    This script checks whether the include guards of the headers in ./lib are what they
@@ -56,23 +56,36 @@ for header in `find . -name "*.hpp"`; do
 
     # Check first line (ifndef).
     # We skip the (all-including) genesis header, because it is special.
-    if [[ ${line_ifn} != ${guard} && ${header} != "./genesis.hpp" ]]; then
+    if [[ "${line_ifn}" != "${guard}" && "${header}" != "./genesis.hpp" ]]; then
         echo "Wrong guard in ${header}:"
         echo "   Actual: ${line_ifn}"
         echo "   Wanted: ${guard}"
     fi
 
     # Check second line (define)
-    if [[ ${line_ifn} != ${line_def} ]]; then
+    if [[ "${line_ifn}" != "${line_def}" ]]; then
         echo "Wrong guard in ${header}:"
         echo "   Condition:  ${line_ifn}"
         echo "   Definition: ${line_def}"
     fi
 
+    # Check uniqueness of header guards
     contains_element "${guard}" "${unique_guards[@]}"
     result=$?
     if [[ ${result} == 0 ]]; then
         echo "Header guard '${guard}' is not unique!"
     fi
     unique_guards+=("${guard}")
+
+    # Check that the doxygen @ingroup tag is correct
+    line_ingroup=`grep "@ingroup" ${header}`
+    if [[ ! -z "${line_ingroup}" ]]; then
+        namespace=`echo "${header/.\//}" | cut -d "/" -f 1`
+        ingroup=" * @ingroup ${namespace}"
+        if [[ "${line_ingroup}" != "${ingroup}" ]]; then
+            echo "Wrong @ingroup in ${header}:"
+            echo "   Actual: ${line_ingroup}"
+            echo "   Wanted: ${ingroup}"
+        fi
+    fi
 done

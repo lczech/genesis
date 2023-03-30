@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
+#include <iterator>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -72,6 +73,11 @@ public:
     Bitvector( size_t size, bool initial_value = false)
         : size_(size)
     {
+        // Edge case.
+        if( size == 0 ) {
+            return;
+        }
+
         // reserve enough bits, and init them.
         data_.resize( (size / IntSize) + (size % IntSize == 0 ? 0 : 1) );
         set_all(initial_value);
@@ -83,8 +89,25 @@ public:
     Bitvector( size_t size, std::initializer_list<size_t> list)
         : Bitvector(size, false)
     {
-        for (size_t e : list) {
+        for( size_t e : list ) {
             set(e);
+        }
+    }
+
+    /**
+     * @brief Construct a Bitvector using a range of bools.
+     *
+     * The given iterator pair @p first to @p last needs to dereference to values
+     * that are convertible to `bool`.
+     */
+    template<class It>
+    Bitvector( It first, It last )
+        : Bitvector( std::distance( first,last ), false )
+    {
+        size_t i = 0;
+        for( auto it = first; it != last; ++it ) {
+            set( i, *it );
+            ++i;
         }
     }
 
@@ -259,6 +282,24 @@ public:
     size_t count() const;
 
     /**
+     * @brief Count the number of set bits between a range of indices in the Bitvector,
+     * that is, its Hamming weight, or population count (popcnt), for that range.
+     *
+     * The range @p first to @p last is zero-based, with last being the past-the-end index.
+     * Hence, this is the same as
+     *
+     *     size_t count = 0;
+     *     for( size_t i = first; i < last; ++i ) {
+     *         if( bitvector.get( i )) {
+     *             ++count;
+     *         }
+     *     }
+     *
+     * but faster, as we use whole-word counting internally.
+     */
+    size_t count( size_t first, size_t last ) const;
+
+    /**
      * @brief Return an std::hash value for the Bitvector.
      */
     size_t hash()  const;
@@ -313,6 +354,11 @@ private:
      */
     void unset_padding_();
 
+    /**
+     * @brief Internal helper to count the number of bits set in a word.
+     */
+    static size_t count_( IntType x );
+
     static const IntType all_0_;
     static const IntType all_1_;
 
@@ -332,7 +378,7 @@ private:
      *     ones_mask_[ 0] -->  n ones: 1111...1111
      *     ones_mask_[ 1] -->  1 one:  0000...0001
      *     ones_mask_[ 2] -->  2 ones: 0000...0011
-     *     ones_mask_[ 3] -->  2 ones: 0000...0111
+     *     ones_mask_[ 3] -->  3 ones: 0000...0111
      *     ...
      *     ones_mask_[63] --> 63 ones: 0111...1111
      *
@@ -341,7 +387,10 @@ private:
     static const std::array<IntType, IntSize> ones_mask_;
 
     /**
-     * @brief Special mask used for quickly counting the number of set bits, see count().
+     * @brief Special masks used for quickly counting the number of set bits.
+     *
+     * See count_() for our usage, and see https://en.wikipedia.org/wiki/Hamming_weight for
+     * the underlying algorithm.
      */
     static const std::array<IntType, 4> count_mask_;
 

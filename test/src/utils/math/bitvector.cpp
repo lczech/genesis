@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -205,4 +205,111 @@ TEST( Bitvector, Operators )
     EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_l, bv_s, true ));
     EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_s, bv_l, true ));
     EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, true ));
+}
+
+TEST( Bitvector, CountRange )
+{
+    // 0 word
+    Bitvector const bv_0( 0, true );
+    EXPECT_ANY_THROW( bv_0.count(  0,  0 ));
+    EXPECT_ANY_THROW( bv_0.count(  0,  1 ));
+    EXPECT_ANY_THROW( bv_0.count(  1,  1 ));
+    EXPECT_ANY_THROW( bv_0.count(  1,  0 ));
+
+    // 0.5 word
+    Bitvector const bv_32( 32, true );
+    EXPECT_EQ( 0, bv_32.count( 0, 0 ));
+    EXPECT_EQ( 0, bv_32.count( 1, 1 ));
+    EXPECT_EQ( 1, bv_32.count( 0, 1 ));
+    EXPECT_EQ( 1, bv_32.count( 31, 32 ));
+    EXPECT_EQ( 32, bv_32.count( 0, 32 ));
+
+    EXPECT_ANY_THROW( bv_32.count(  1,  0 ));
+    EXPECT_ANY_THROW( bv_32.count(  0, 33 ));
+    EXPECT_ANY_THROW( bv_32.count( 33, 33 ));
+
+    // 1 word
+    Bitvector const bv_64( 64, true );
+    EXPECT_EQ( 0, bv_64.count( 0, 0 ));
+    EXPECT_EQ( 0, bv_64.count( 1, 1 ));
+    EXPECT_EQ( 1, bv_64.count( 0, 1 ));
+    EXPECT_EQ( 1, bv_64.count( 63, 64 ));
+    EXPECT_EQ( 64, bv_64.count( 0, 64 ));
+
+    EXPECT_ANY_THROW( bv_64.count(  1,  0 ));
+    EXPECT_ANY_THROW( bv_64.count(  0, 65 ));
+    EXPECT_ANY_THROW( bv_64.count( 65, 64 ));
+
+    // 1.5 word
+    Bitvector const bv_96( 96, true );
+    EXPECT_EQ( 0, bv_96.count( 0, 0 ));
+    EXPECT_EQ( 0, bv_96.count( 1, 1 ));
+    EXPECT_EQ( 1, bv_96.count( 0, 1 ));
+    EXPECT_EQ( 1, bv_96.count( 95, 96 ));
+    EXPECT_EQ( 96, bv_96.count( 0, 96 ));
+
+    EXPECT_ANY_THROW( bv_96.count(  1,  0 ));
+    EXPECT_ANY_THROW( bv_96.count(  0, 97 ));
+    EXPECT_ANY_THROW( bv_96.count( 97, 97 ));
+
+    // 2.5 word
+    Bitvector const bv_160( 160, true );
+    EXPECT_EQ( 0, bv_160.count( 0, 0 ));
+    EXPECT_EQ( 0, bv_160.count( 1, 1 ));
+    EXPECT_EQ( 1, bv_160.count( 0, 1 ));
+    EXPECT_EQ( 1, bv_160.count( 159, 160 ));
+    EXPECT_EQ( 160, bv_160.count( 0, 160 ));
+
+    EXPECT_ANY_THROW( bv_160.count(   1,  0 ));
+    EXPECT_ANY_THROW( bv_160.count(   0, 161 ));
+    EXPECT_ANY_THROW( bv_160.count( 161, 161 ));
+}
+
+TEST( Bitvector, CountRangeFuzzy )
+{
+    std::srand(std::time(nullptr));
+
+    size_t const max_size = 1024;
+    for( size_t n = 0; n < 50000; ++n ) {
+
+        // Size of the bitvector
+        size_t const size = std::rand() % max_size;
+        auto bv = Bitvector( size );
+
+        // Edge case. Nothing to test.
+        if( size == 0 ) {
+            continue;
+        }
+
+        // Set some random bits
+        for( size_t i = 0; i < size; ++i ) {
+            auto const p = ( std::rand() % size );
+            bv.flip( p );
+        }
+        // LOG_DBG << bv;
+
+        // Get random positions between which to count.
+        size_t s = std::rand() % size;
+        size_t e = std::rand() % (size + 1);
+        if( s > e ) {
+            std::swap( s, e );
+        }
+        ASSERT_LT( s, size );
+        ASSERT_LE( e, size );
+        ASSERT_LE( s, e );
+
+        // Get the count of bits between the two.
+        auto const cnt = bv.count( s, e );
+
+        // Same, but slow, for comparison.
+        size_t exp = 0;
+        for( size_t i = s; i < e; ++i ) {
+            if( bv.get( i )) {
+                ++exp;
+            }
+        }
+
+        EXPECT_EQ( exp, cnt ) << "first: " << s << ", last: " << e << ", bv: " << bv;
+        // LOG_DBG << "first: " << s << ", last: " << e << ", count: " << cnt << ", bv: " << bv;
+    }
 }

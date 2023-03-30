@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,31 +44,31 @@ namespace population {
 // =================================================================================================
 
 VariantParallelInputIterator::Iterator::Iterator(
-    VariantParallelInputIterator* generator
+    VariantParallelInputIterator* parent
 )
-    : generator_(generator)
+    : parent_(parent)
 {
-    // We use the generator as a check if this Iterator is intended
+    // We use the parent as a check if this Iterator is intended
     // to be a begin() or end() iterator.
     // We could also just use the default constructor to create end() iterators,
     // this would have the same effect.
-    if( ! generator_ ) {
+    if( ! parent_ ) {
         return;
     }
 
-    // If the generator is valid, initialize our input sources and start iterating them.
+    // If the parent is valid, initialize our input sources and start iterating them.
     // Init the iterators and variant storage.
-    iterators_.reserve( generator_->inputs_.size() );
-    variant_sizes_.reserve( generator_->inputs_.size() );
-    for( size_t i = 0; i < generator_->inputs_.size(); ++i ) {
-        iterators_.emplace_back( generator_->inputs_[i].begin() );
+    iterators_.reserve( parent_->inputs_.size() );
+    variant_sizes_.reserve( parent_->inputs_.size() );
+    for( size_t i = 0; i < parent_->inputs_.size(); ++i ) {
+        iterators_.emplace_back( parent_->inputs_[i].begin() );
 
         // We now have stored the iterator and called its begin() function,
         // which in the LambdaIterator already obtains the first element.
         // We use this to get the number of BaseCounts objects in the Variant.
         // We will later need this to default-construct that many BaseCounts
         // for positions where this iterator does not have data.
-        auto const sample_name_count = generator_->inputs_[i].data().sample_names.size();
+        auto const sample_name_count = parent_->inputs_[i].data().sample_names.size();
         if( iterators_[i] ) {
             variant_sizes_.push_back( iterators_[i]->samples.size() );
 
@@ -104,15 +104,15 @@ VariantParallelInputIterator::Iterator::Iterator(
     );
 
     // Init with default constructed Variants.
-    variants_.resize( generator_->inputs_.size() );
+    variants_.resize( parent_->inputs_.size() );
 
     // Make sure all have the same size.
-    assert( iterators_.size() == generator_->inputs_.size() );
+    assert( iterators_.size() == parent_->inputs_.size() );
     assert( iterators_.size() == variants_.size() );
     assert( iterators_.size() == variant_sizes_.size() );
 
     // Lastly, start with the additional carrying loci.
-    carrying_locus_it_ = generator_->carrying_loci_.cbegin();
+    carrying_locus_it_ = parent_->carrying_loci_.cbegin();
 
     // Now go to the first locus we want.
     advance_();
@@ -129,7 +129,7 @@ Variant VariantParallelInputIterator::Iterator::joined_variant(
 ) {
     assert( iterators_.size() == variants_.size() );
     assert( iterators_.size() == variant_sizes_.size() );
-    assert( iterators_.size() == generator_->inputs_.size() );
+    assert( iterators_.size() == parent_->inputs_.size() );
 
     // Prepare the result.
     Variant res;
@@ -237,7 +237,7 @@ Variant VariantParallelInputIterator::Iterator::joined_variant(
     assert(
         bases_init ||
         (
-            carrying_locus_it_ != generator_->carrying_loci_.cend() &&
+            carrying_locus_it_ != parent_->carrying_loci_.cend() &&
             locus_equal( *carrying_locus_it_, current_locus_ )
         )
     );
@@ -265,10 +265,10 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
     GenomeLocus cand_loc;
 
     // Go through all carrying iterators and find the earliest next position of any of them.
-    assert( iterators_.size() == generator_->selections_.size() );
+    assert( iterators_.size() == parent_->selections_.size() );
     for( size_t i = 0; i < iterators_.size(); ++i ) {
         auto& iterator = iterators_[i];
-        if( ! iterator || generator_->selections_[i] != ContributionType::kCarrying ) {
+        if( ! iterator || parent_->selections_[i] != ContributionType::kCarrying ) {
             continue;
         }
 
@@ -307,8 +307,8 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
     }
 
     // If there are additional carrying loci, use them to find the candidate as well.
-    assert( generator_ );
-    if( carrying_locus_it_ != generator_->carrying_loci_.cend() ) {
+    assert( parent_ );
+    if( carrying_locus_it_ != parent_->carrying_loci_.cend() ) {
         // All the assertions from above apply here as well.
         assert( ! carrying_locus_it_->empty() );
         assert( locus_greater_or_equal( *carrying_locus_it_, current_locus_ ) );
@@ -324,7 +324,7 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
         // is empty, which for example happens if all input sources are following, or if all
         // inputs have already reached their end).
         if(
-            carrying_locus_it_ != generator_->carrying_loci_.cend() &&
+            carrying_locus_it_ != parent_->carrying_loci_.cend() &&
             (
                 cand_loc.empty() ||
                 locus_less( *carrying_locus_it_, cand_loc )
@@ -337,13 +337,13 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
     // If we have not set any candidate locus, that means that all carrying iterators
     // are at their end. Time to wrap up then.
     if( cand_loc.empty() ) {
-        assert( generator_ );
-        assert( generator_->has_carrying_input_ );
+        assert( parent_ );
+        assert( parent_->has_carrying_input_ );
 
         // Assert that indeed all carrying iterators are at their end.
         assert( [&](){
             for( size_t i = 0; i < iterators_.size(); ++i ) {
-                if( generator_->selections_[i] == ContributionType::kCarrying && iterators_[i] ) {
+                if( parent_->selections_[i] == ContributionType::kCarrying && iterators_[i] ) {
                     return false;
                 }
             }
@@ -352,10 +352,10 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
 
         // Also, we must have reached the end of the additional carrying loci,
         // otherwise we would have found a candidate from there.
-        assert( carrying_locus_it_ == generator_->carrying_loci_.cend() );
+        assert( carrying_locus_it_ == parent_->carrying_loci_.cend() );
 
         // We are done here.
-        generator_ = nullptr;
+        parent_ = nullptr;
         return;
     }
 
@@ -388,7 +388,7 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
             ++cnt;
         }
         (void) cnt;
-        assert( generator_->selections_[i] != ContributionType::kCarrying || cnt <= 1 );
+        assert( parent_->selections_[i] != ContributionType::kCarrying || cnt <= 1 );
     }
 
     // Finally, update the current locus, and set the variants according to the iterators.
@@ -405,8 +405,8 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
 {
     // If this function is called, we only have following iterators,
     // so there are no addtional carrying loci given.
-    assert( carrying_locus_it_ == generator_->carrying_loci_.cend() );
-    assert( generator_->carrying_loci_.empty() );
+    assert( carrying_locus_it_ == parent_->carrying_loci_.cend() );
+    assert( parent_->carrying_loci_.empty() );
 
     // Once one of the iterators reaches its end, we are done, as then there cannot
     // be any more intersections.
@@ -414,13 +414,13 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
 
     // If this is not the first call of this function (the one that is done in the constructor
     // of the iterator), move all iterators at least once, to get away from the current locus.
-    assert( iterators_.size() == generator_->selections_.size() );
+    assert( iterators_.size() == parent_->selections_.size() );
     if( ! current_locus_.empty() ) {
         for( size_t i = 0; i < iterators_.size(); ++i ) {
             auto& iterator = iterators_[i];
 
             // This function is only ever called if all inputs are of type following.
-            assert( generator_->selections_[i] == ContributionType::kFollowing );
+            assert( parent_->selections_[i] == ContributionType::kFollowing );
 
             // As we are doing the intersection of all iterators here, none of them can be at the
             // end right now. If one were, we would already have reached the end of our
@@ -459,7 +459,7 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
             auto& iterator = iterators_[i];
 
             // This function is only ever called if all inputs are of type following.
-            assert( generator_->selections_[i] == ContributionType::kFollowing );
+            assert( parent_->selections_[i] == ContributionType::kFollowing );
 
             // If the iterator is already at its end, we are done here.
             // This case can here only occur if we have an empty input source,
@@ -515,8 +515,8 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
     // If we have not found any locus, that means that at least one of the iterators is at its end.
     // No more intersections can occur. Time to wrap up then.
     if( one_at_end ) {
-        assert( ! generator_->has_carrying_input_ );
-        generator_ = nullptr;
+        assert( ! parent_->has_carrying_input_ );
+        parent_ = nullptr;
 
         // Assert that exactly one is at its end. Theoretically, in our search, other iterators
         // might also have been about to reach their end, but as we immediately exit the above
@@ -531,7 +531,7 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
             return at_end_cnt == 1;
         }() );
 
-        // We have indicated our end by nulling generator_. Nothing more to do.
+        // We have indicated our end by nulling parent_. Nothing more to do.
         return;
     }
 

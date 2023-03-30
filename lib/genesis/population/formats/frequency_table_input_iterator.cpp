@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,11 +31,11 @@
 #include "genesis/population/formats/frequency_table_input_iterator.hpp"
 
 #include "genesis/population/functions/functions.hpp"
+#include "genesis/sequence/functions/codes.hpp"
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
 #include "genesis/utils/math/common.hpp"
-#include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/convert.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -191,7 +191,8 @@ void FrequencyTableInputIterator::Iterator::check_header_fields_(
         if( sample_flags != flag ) {
             LOG_WARN << "Frequency table samples contain different types of data "
                      << "(reference or alternative counts, frequencies, or coverage). "
-                     << "We can handle this, but it might indicate that something is wrong.";
+                     << "We can handle this, but it might indicate that something went wrong "
+                     << "when parsing and interpreting the header fields to obtain sample names.";
             break;
         }
     }
@@ -379,7 +380,7 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_ref_(
         // Read the single char base, and check it.
         // This even works when we are at the end of the data already.
         auto const b = utils::to_upper( *it );
-        if( !( b == 'A' || b == 'C' || b == 'G' || b == 'T' || b == 'N' )) {
+        if( ! is_valid_base_or_n( b )) {
             throw std::runtime_error(
                 "Malformed frequency table with reference base not in [ACGTN] in line " + it.at()
             );
@@ -416,7 +417,7 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_alt_(
     column_processors_.push_back( [cur_var]( genesis::utils::InputStream& it ){
         // Same as above for the ref base.
         auto const b = utils::to_upper( *it );
-        if( !( b == 'A' || b == 'C' || b == 'G' || b == 'T' || b == 'N' )) {
+        if( ! is_valid_base_or_n( b )) {
             throw std::runtime_error(
                 "Malformed frequency table with alternative base not in [ACGTN] in line " + it.at()
             );
@@ -796,6 +797,7 @@ void FrequencyTableInputIterator::Iterator::increment_()
 {
     using namespace genesis::utils;
     assert( input_stream_ );
+    assert( parent_ );
     auto& it = *input_stream_;
 
     // The previous iteration reached the end. We only set the iterator to end now, so that the
@@ -851,10 +853,55 @@ void FrequencyTableInputIterator::Iterator::increment_()
         );
     }
 
-    // If we do not have columns for ref and/or alt base, they should have been left at 'N'.
-    // We use short-circuit or here: If it has ref/alt, the second part is not evaluated.
-    assert( header_info_.has_ref || current_variant_->reference_base == 'N' );
-    assert( header_info_.has_alt || current_variant_->alternative_base == 'N' );
+    // Process the ref and alt bases, with and without a given ref genome.
+    if( parent_->ref_genome_ ) {
+        // Get the current ref genome base.
+        assert( current_variant_->chromosome.size() > 0 );
+        assert( current_variant_->position > 0 );
+        auto const ref_gen_base = parent_->ref_genome_->get_base(
+            current_variant_->chromosome, current_variant_->position
+        );
+
+        // Both ref genome and ref column are given and have a usable value. Try to match them.
+        if( header_info_.has_ref && current_variant_->reference_base != 'N' ) {
+            // Get a shorthand, and check the bases that the processor allows.
+            auto const ref_base = current_variant_->reference_base;
+            assert( is_valid_base( ref_base ));
+
+            // Both are given and the base from the file is not 'N', so let's see if they agree.
+            // If not, that indicates some issue, so better be careful.
+            // We allow the ref genome to use ambiguity bases though.
+            if( ! sequence::nucleic_acid_code_containment( ref_gen_base, ref_base )) {
+                throw std::runtime_error(
+                    "At chromosome \"" + current_variant_->chromosome + "\" position " +
+                    std::to_string( current_variant_->position ) +
+                    ", the provided reference genome has base '" +
+                    std::string( 1, ref_gen_base ) +
+                    "', while the reference base column in the frequency file is '" +
+                    std::string( 1, ref_base ) +
+                    "', which is not contained in the referenge genome, " +
+                    "and hence likely indicates an issue with the data"
+                );
+            }
+        } else {
+            assert( header_info_.has_ref || current_variant_->reference_base == 'N' );
+
+            // Here, we have the case where either there is no ref base from the input file,
+            // or it's 'N', so that we might want to replace it by the ref genome. Both cases are
+            // treated the same here: Check that we can use the genome base, or use N if not.
+            if( is_valid_base( ref_gen_base )) {
+                current_variant_->reference_base = ref_gen_base;
+            } else {
+                current_variant_->reference_base = 'N';
+            }
+        }
+    } else {
+        // If we do not have columns for ref and/or alt base, and no reference genome,
+        // they should have been left at 'N'.
+        // We use short-circuit or here: If it has ref/alt, the second part is not evaluated.
+        assert( header_info_.has_ref || current_variant_->reference_base == 'N' );
+        assert( header_info_.has_alt || current_variant_->alternative_base == 'N' );
+    }
 
     // Make sure all sizes of the involved data are in sync.
     assert( sample_data_ );
@@ -1029,24 +1076,24 @@ void FrequencyTableInputIterator::Iterator::process_sample_data_(
     // or fixed bases if ref and/or alt are not available.
     char ref_base = variant.reference_base;
     char alt_base = variant.alternative_base;
+    assert( is_valid_base_or_n( ref_base ));
+    assert( is_valid_base_or_n( alt_base ));
     if( utils::char_match_ci( ref_base, 'N' )) {
         ref_base = 'A';
-        alt_base = 'C';
+        alt_base = 'G';
     } else if( utils::char_match_ci( alt_base, 'N' )) {
-        // Only ref base is given.
-        assert( ! utils::char_match_ci( ref_base, 'N' ) );
-        if( utils::char_match_ci( ref_base, 'C' )) {
-            alt_base = 'A';
-        } else {
-            alt_base = 'C';
-        }
+        // Only ref base is given. Use its transition base as the most likely alternative.
+        assert( is_valid_base( ref_base ));
+        alt_base = ::genesis::sequence::nucleic_acid_transition( ref_base );
     }
     assert( sample_index < variant.samples.size() );
     assert( ref_base != 'N' && ref_base != 'n' );
     assert( alt_base != 'N' && alt_base != 'n' );
     if( ref_base == alt_base ) {
         throw std::runtime_error(
-            "Invalid reference and alternative base that are both '" +
+            "At chromosome \"" + variant.chromosome + "\" position " +
+            std::to_string( variant.position ) +
+            ": Invalid reference and alternative base that are both '" +
             std::string( 1, ref_base ) + "' in frequency table."
         );
     }

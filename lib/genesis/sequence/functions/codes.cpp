@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -567,6 +567,30 @@ std::string reverse_complement( std::string const& sequence, bool accept_degener
         result[ sequence.size() - i - 1 ] = rev_comp( c );
     }
     return result;
+}
+
+char nucleic_acid_transition( char code )
+{
+    switch( code ) {
+        case 'a':
+        case 'A':
+            return 'G';
+        case 'c':
+        case 'C':
+            return 'T';
+        case 'g':
+        case 'G':
+            return 'A';
+        case 'u':
+        case 'U':
+        case 't':
+        case 'T':
+            return 'C';
+        default:
+            throw std::invalid_argument(
+                "No transition base for nucleic acid code: " + std::string( 1, code )
+            );
+    }
 }
 
 bool nucleic_acid_code_containment( char a, char b, bool undetermined_matches_all )

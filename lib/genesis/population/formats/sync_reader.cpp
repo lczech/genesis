@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -160,9 +160,9 @@ bool SyncReader::parse_line_(
         );
     }
 
-    // Read and check fixed column for the refererence base.
+    // Read and check fixed column for the reference base.
     auto const rb = to_upper( *it );
-    if( rb != 'A' && rb != 'C' && rb != 'G' && rb != 'T' && rb != 'N' && rb != '.' && rb != '*' ) {
+    if( ! is_valid_base_or_n( rb ) && rb != '.' && rb != '*' ) {
         throw std::runtime_error(
             std::string("In ") + it.source_name() + ": Invalid reference base char " +
             char_to_hex(rb) + " at " + it.at()
@@ -224,7 +224,11 @@ bool SyncReader::parse_line_(
     // Excluding the ref base, we use the base of the remaining three that has the highest total
     // count across all samples, unless all of them are zero, in which case we do not set the
     // alt base. We also skip cases where the ref is not in ACGT, as then alt is also meaningless.
-    variant.alternative_base = guess_alternative_base( variant, true );
+    if( guess_alt_base_ ) {
+        variant.alternative_base = guess_alternative_base( variant, true );
+    } else {
+        variant.alternative_base = 'N';
+    }
 
     assert( !it || *it == '\n' );
     ++it;
@@ -523,6 +527,36 @@ void SyncReader::parse_sample_(
         sample.g_count = buff.first[  7 ] - '0';
         sample.n_count = buff.first[  9 ] - '0';
         sample.d_count = buff.first[ 11 ] - '0';
+
+        // Jump to the position after the last entry.
+        it.jump_unchecked( 12 );
+        return;
+    }
+
+    // If activated, allow the missing site notation `.:.:.:.:.:.` of Kapun.
+    if(
+        allow_missing_           &&
+        buff.second >= 12        &&
+        buff.first[  0 ] == '\t' &&
+        buff.first[  1 ] == '.'  &&
+        buff.first[  2 ] == ':'  &&
+        buff.first[  3 ] == '.'  &&
+        buff.first[  4 ] == ':'  &&
+        buff.first[  5 ] == '.'  &&
+        buff.first[  6 ] == ':'  &&
+        buff.first[  7 ] == '.'  &&
+        buff.first[  8 ] == ':'  &&
+        buff.first[  9 ] == '.'  &&
+        buff.first[ 10 ] == ':'  &&
+        buff.first[ 11 ] == '.'
+    ) {
+        // Set everything to zero to signal zero coverage or missing data.
+        sample.a_count = 0;
+        sample.t_count = 0;
+        sample.c_count = 0;
+        sample.g_count = 0;
+        sample.n_count = 0;
+        sample.d_count = 0;
 
         // Jump to the position after the last entry.
         it.jump_unchecked( 12 );
