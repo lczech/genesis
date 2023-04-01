@@ -207,7 +207,7 @@ public:
     {
         theta_pi_sum_.reset();
         theta_watterson_sum_.reset();
-        processed_count_     = 0;
+        processed_count_ = 0;
     }
 
     /**

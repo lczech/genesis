@@ -59,13 +59,18 @@ void process_sync_correct_input_order_(
         ( new_var.chromosome == cur_chr && new_var.position <= cur_pos )
     ) {
         throw std::runtime_error(
-            "Malformed pileup " + it.source_name() + " at " + it.at() +
+            "Malformed sync " + it.source_name() + " at " + it.at() +
             ": unordered chromosomes and positions"
         );
     }
     cur_chr = new_var.chromosome;
     cur_pos = new_var.position;
 }
+
+// -------------------------------------------------------------------------
+//     read
+// -------------------------------------------------------------------------
+
 std::vector<Variant> SyncReader::read(
     std::shared_ptr< utils::BaseInputSource > source
 ) const {
@@ -103,6 +108,10 @@ std::vector<Variant> SyncReader::read(
     return result;
 }
 
+// -------------------------------------------------------------------------
+//     parse_line
+// -------------------------------------------------------------------------
+
 bool SyncReader::parse_line(
     utils::InputStream& input_stream,
     Variant&            variant
@@ -121,6 +130,10 @@ bool SyncReader::parse_line(
 // =================================================================================================
 //     Internal Parsing
 // =================================================================================================
+
+// -------------------------------------------------------------------------
+//     parse_line_
+// -------------------------------------------------------------------------
 
 bool SyncReader::parse_line_(
     utils::InputStream&      input_stream,
@@ -234,6 +247,10 @@ bool SyncReader::parse_line_(
     ++it;
     return true;
 }
+
+// -------------------------------------------------------------------------
+//     parse_sample_gcc_intrinsic_
+// -------------------------------------------------------------------------
 
 // Only use intrinsics version for the compilers that support them!
 #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
@@ -467,6 +484,10 @@ void SyncReader::parse_sample_gcc_intrinsic_(
 
 #endif // defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
 
+// -------------------------------------------------------------------------
+//     parse_sample_simple_
+// -------------------------------------------------------------------------
+
 void SyncReader::parse_sample_simple_(
     utils::InputStream& input_stream,
     BaseCounts&         sample
@@ -489,6 +510,10 @@ void SyncReader::parse_sample_simple_(
     it.read_char_or_throw( ':' );
     sample.d_count = it.parse_unsigned_integer<size_t>();
 }
+
+// -------------------------------------------------------------------------
+//     parse_sample_
+// -------------------------------------------------------------------------
 
 void SyncReader::parse_sample_(
     utils::InputStream& input_stream,
@@ -575,6 +600,10 @@ void SyncReader::parse_sample_(
 
     #endif
 }
+
+// -------------------------------------------------------------------------
+//     skip_sample_
+// -------------------------------------------------------------------------
 
 void SyncReader::skip_sample_(
     utils::InputStream& input_stream

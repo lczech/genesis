@@ -206,13 +206,6 @@ double theta_pi_pool_denominator(
         return denom;
     }};
 
-    // Right now, our binomial computation will yield nan for large n.
-    // No need to run an expensive loop that will result in nan anyway.
-    // --> Update: Changed our binomical computation to work in log space; can handle this now!
-    // if( nucleotide_count >= utils::MAX_BINOMIAL_COEFFICIENT_N ) {
-    //     return std::numeric_limits<double>::quiet_NaN();
-    // }
-
     // Simply return the cached value (which computes them first if not yet cached).
     return denom_cache_( settings.min_count, poolsize, nucleotide_count );
 }
@@ -263,13 +256,6 @@ double theta_watterson_pool_denominator(
         }
         return denom;
     }};
-
-    // Right now, our binomial computation will yield nan for large n.
-    // No need to run an expensive loop that will result in nan anyway.
-    // --> Update: Changed our binomical computation to work in log space; can handle this now!
-    // if( nucleotide_count >= utils::MAX_BINOMIAL_COEFFICIENT_N ) {
-    //     return std::numeric_limits<double>::quiet_NaN();
-    // }
 
     // Simply return the cached value (which computes them first if not yet cached).
     return denom_cache_( settings.min_count, poolsize, nucleotide_count );

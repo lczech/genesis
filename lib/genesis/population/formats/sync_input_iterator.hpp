@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Simple Pileup Input Iterator
+//     Sync Input Iterator
 // =================================================================================================
 
 /**
@@ -225,7 +225,7 @@ public:
             )
         ) {
             throw std::runtime_error(
-                "Malformed pileup " + input_stream_->source_name() + " at " + input_stream_->at() +
+                "Malformed sync " + input_stream_->source_name() + " at " + input_stream_->at() +
                 ": unordered chromosomes and positions"
             );
         }
