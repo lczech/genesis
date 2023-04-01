@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -539,8 +539,9 @@ public:
      * when using this - but it is highly dangerous to use if you do not know what you are doing!
      *
      * The idea is as follows: With access to the buffer, parse data as needed, keeping track of
-     * how many chars have been processed. Then, use the jump() function to update this stream to
-     * the new position of the stream (the char after the last one being processed by the parsing).
+     * how many chars have been processed. Then, use the jump_unchecked() function to update this
+     * stream to the new position of the stream (the char after the last one being processed by
+     * the parsing).
      *
      * Caveat: Never parse and jump across new line characters (or, for that matter, carriage return
      * characters, which won't be automatically converted when using the buffer directly)! This

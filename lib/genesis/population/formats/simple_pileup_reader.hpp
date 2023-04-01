@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -448,6 +448,16 @@ private:
     void set_sample_read_coverage_(
         size_t read_coverage,
         S& sample
+    ) const;
+
+    bool process_sample_read_bases_buffer_(
+        utils::InputStream& input_stream,
+        char reference_base
+    ) const;
+
+    void process_sample_read_bases_stream_(
+        utils::InputStream& input_stream,
+        char reference_base
     ) const;
 
     template<class S>

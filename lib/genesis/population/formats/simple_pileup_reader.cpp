@@ -78,7 +78,9 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
     size_t      cur_pos = 0;
     Record rec;
     while( parse_line_( it, rec, {}, false )) {
-        process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, rec.chromosome, rec.position );
+        process_pileup_correct_input_order_check_(
+            it, cur_chr, cur_pos, rec.chromosome, rec.position
+        );
         result.push_back( rec );
     }
     return result;
@@ -99,7 +101,9 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
 //     size_t      cur_pos = 0;
 //     Record rec;
 //     while( parse_line_( it, rec, sample_filter, true )) {
-//         process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, rec.chromosome, rec.position );
+//         process_pileup_correct_input_order_check_(
+//             it, cur_chr, cur_pos, rec.chromosome, rec.position
+//         );
 //         result.push_back( rec );
 //     }
 //     return result;
@@ -117,7 +121,9 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
     size_t      cur_pos = 0;
     Record rec;
     while( parse_line_( it, rec, sample_filter, true )) {
-        process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, rec.chromosome, rec.position );
+        process_pileup_correct_input_order_check_(
+            it, cur_chr, cur_pos, rec.chromosome, rec.position
+        );
         result.push_back( rec );
     }
     return result;
@@ -138,7 +144,9 @@ std::vector<Variant> SimplePileupReader::read_variants(
     size_t      cur_pos = 0;
     Variant var;
     while( parse_line_( it, var, {}, false )) {
-        process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, var.chromosome, var.position );
+        process_pileup_correct_input_order_check_(
+            it, cur_chr, cur_pos, var.chromosome, var.position
+        );
         result.push_back( var );
     }
     return result;
@@ -177,7 +185,9 @@ std::vector<Variant> SimplePileupReader::read_variants(
     size_t      cur_pos = 0;
     Variant var;
     while( parse_line_( it, var, sample_filter, true )) {
-        process_pileup_correct_input_order_check_( it, cur_chr, cur_pos, var.chromosome, var.position );
+        process_pileup_correct_input_order_check_(
+            it, cur_chr, cur_pos, var.chromosome, var.position
+        );
         result.push_back( var );
     }
     return result;
@@ -372,7 +382,6 @@ void SimplePileupReader::process_sample_(
 
     // Reset the sample.
     sample = S();
-    base_buffer_.clear();
 
     // Read the total read count / coverage.
     next_field_( it );
@@ -384,7 +393,232 @@ void SimplePileupReader::process_sample_(
     // in a string first, as we want to do quality checks. Bit unfortunate, and maybe there
     // is a smart way to avoid this for cases without quality string (without code duplication).
     // Goot enough for now though.
+    // We use two processing methods, a fast one based on the input buffer if possible,
+    // and if that failes (because the end of the bases is beyond the buffer end),
+    // we run a slower version again that does not work on the buffer, but that should be rare.
     next_field_( it );
+    auto const done_reading_bases = process_sample_read_bases_buffer_( it, target.reference_base );
+    if( ! done_reading_bases ) {
+        // Try again with the slow method.
+        process_sample_read_bases_stream_( it, target.reference_base );
+    }
+    set_sample_read_bases_( base_buffer_, sample );
+
+    // Read coverage count error check. We here allow for the same weird special case of a deletion
+    // that does not count for the coverage, as described in convert_to_base_counts().
+    if(
+        base_buffer_.size() != read_coverage &&
+        !( read_coverage == 0 && base_buffer_.size() == 1 )
+    ) {
+        throw std::runtime_error(
+            "Malformed pileup " + it.source_name() + " at " + it.at() +
+            ": Given read count (" + std::to_string( read_coverage ) +
+            ") does not match the number of bases found in the sample (" +
+            std::to_string( base_buffer_.size() ) + ")."
+        );
+    }
+
+    // Now read the quality codes, if present.
+    process_quality_string_( it, sample );
+
+    // Also check if we want to read the ancestral base, if present.
+    process_ancestral_base_( it, sample );
+
+    // Final file sanity checks.
+    if( it && !( utils::is_blank( *it ) || utils::is_newline( *it ))) {
+        throw std::runtime_error(
+            "Malformed pileup " + it.source_name() + " at " + it.at() +
+            ": Invalid characters."
+        );
+    }
+}
+
+// -------------------------------------------------------------------------
+//     set_target_alternative_base_
+// -------------------------------------------------------------------------
+
+template<>
+void SimplePileupReader::set_target_alternative_base_<SimplePileupReader::Record>(
+    SimplePileupReader::Record& target
+) const {
+    // The pileup format does not have an alterantive base, so we do nothing here.
+    (void) target;
+}
+
+template<>
+void SimplePileupReader::set_target_alternative_base_<Variant>(
+    Variant& target
+) const {
+    // The format does not have an ancestral base,
+    // but we want to make sure that it is set to a defined value in the Variant.
+    target.alternative_base = 'N';
+}
+
+// -------------------------------------------------------------------------
+//     set_sample_read_coverage_
+// -------------------------------------------------------------------------
+
+template<>
+void SimplePileupReader::set_sample_read_coverage_<SimplePileupReader::Sample>(
+    size_t read_coverage,
+    SimplePileupReader::Sample& sample
+) const {
+    sample.read_coverage = read_coverage;
+}
+
+template<>
+void SimplePileupReader::set_sample_read_coverage_<BaseCounts>(
+    size_t read_coverage,
+    BaseCounts& sample
+) const {
+    // Variant BaseCounts don't use read coverage
+    (void) read_coverage;
+    (void) sample;
+}
+
+// -------------------------------------------------------------------------
+//     process_sample_read_bases_buffer_ / process_sample_read_bases_stream_
+// -------------------------------------------------------------------------
+
+bool SimplePileupReader::process_sample_read_bases_buffer_(
+    utils::InputStream& input_stream,
+    char reference_base
+) const {
+    // Shorthand.
+    auto& it = input_stream;
+    auto const in_buff = input_stream.buffer();
+    base_buffer_.clear();
+
+    // Go through the bases and store them in the buffer,
+    // keeping track of the position (pos) in the buffer.
+    size_t pos = 0;
+    while( pos < in_buff.second ) {
+
+        // Stop when we reach the end of the bases.
+        if( ! utils::is_graph( in_buff.first[pos] )) {
+            break;
+        }
+
+        // Process the char. This is some code duplication with process_sample_read_bases_stream_(),
+        // but the methods process the stream/buffer differently for each of those choices here,
+        // so not much we can do here without too much effort...
+        switch( in_buff.first[pos] ) {
+            case '+':
+            case '-': {
+                // A sequence matching `[+-][0-9]+[ACGTNacgtn]+` is an insertion or deletion.
+                // We skip/ignore those, following the format definition to get the valid chars.
+                // See http://www.htslib.org/doc/samtools-mpileup.html
+                static const std::string allowed_codes = "ACGTN*#";
+
+                // First, we need to get how many chars there are in this indel.
+                ++pos;
+                if( pos >= in_buff.second ) {
+                    throw std::runtime_error(
+                        "Malformed pileup " + it.source_name() + " near " + it.at() +
+                        ": Line with missing indel characters count after +/-."
+                    );
+                }
+                errno = 0;
+                char* endptr;
+                auto const indel_cnt = std::strtoul( &in_buff.first[pos], &endptr, 10 );
+                if( errno == ERANGE || &in_buff.first[pos] == endptr ) {
+                    throw std::runtime_error(
+                        "Malformed pileup " + it.source_name() + " near " + it.at() +
+                        ": Line with invalid indel characters count that is not a valid number."
+                    );
+                }
+
+                // We have read a number. Go to the next char in the buffer after that.
+                pos += endptr - &in_buff.first[pos];
+                if( pos >= in_buff.second ) {
+                    // If we reached the end of the buffer here, we do not have enough chars
+                    // in the buffer to continue here... use the slow method instead.
+                    return false;
+                }
+
+                // Now, we skip as many chars as the number we read, making sure that all is in order.
+                for( size_t i = 0; i < indel_cnt; ++i ) {
+                    if( pos >= in_buff.second ) {
+                        throw std::runtime_error(
+                            "Malformed pileup " + it.source_name() + " near " + it.at() +
+                            ": Line with missing indel characters."
+                        );
+                    }
+                    if(
+                        strict_bases_ &&
+                        !std::strchr( allowed_codes.c_str(), utils::to_upper( in_buff.first[pos]))
+                    ) {
+                        throw std::runtime_error(
+                            "Malformed pileup " + it.source_name() + " near " + it.at() +
+                            ": Line with invalid indel character " +
+                            utils::char_to_hex( in_buff.first[pos])
+                        );
+                    }
+                    ++pos;
+                }
+                break;
+            }
+            case '^': {
+                // Caret marks the start of a read segment, followed by a char for the mapping
+                // quality. We skip both of these.
+                ++pos;
+                if( pos >= in_buff.second ) {
+                    throw std::runtime_error(
+                        "Malformed pileup " + it.source_name() + " near " + it.at() +
+                        ": Line with invalid start of read segment marker"
+                    );
+                }
+                ++pos;
+                break;
+            }
+            case '$': {
+                // Dollar marks the end of a read segment. Skip.
+                ++pos;
+                break;
+            }
+            case '.': {
+                // pileup wants '.' to be the ref base in upper case...
+                base_buffer_ += utils::to_upper( reference_base );
+                ++pos;
+                break;
+            }
+            case ',': {
+                // ...and ',' to be the ref base in lower case
+                base_buffer_ += utils::to_lower( reference_base );
+                ++pos;
+                break;
+            }
+            default: {
+                // Everything else we simply add as-is.
+                base_buffer_ += in_buff.first[pos];
+                ++pos;
+                break;
+            }
+        }
+    }
+    assert( pos == in_buff.second || !utils::is_graph( in_buff.first[pos] ) );
+
+    // Now we have reached the end of the buffer-based approach.
+    // If that worked, that is, if we are not at the end of the buffer, and so have found
+    // the end of the bases, we are good and can move to the end of what we just read.
+    // If not, we return false in order to do a second, slower pass, to catch everything.
+    if( pos < in_buff.second ) {
+        // We stopped the above loop on any non-graph char, such as new lines,
+        // so this jump never goes across one, which is important.
+        it.jump_unchecked( pos );
+        return true;
+    }
+    return false;
+}
+
+void SimplePileupReader::process_sample_read_bases_stream_(
+    utils::InputStream& input_stream,
+    char reference_base
+) const {
+    // Shorthand.
+    auto& it = input_stream;
+    base_buffer_.clear();
+
     while( it && utils::is_graph( *it )) {
         auto const c = *it;
         switch( c ) {
@@ -446,13 +680,13 @@ void SimplePileupReader::process_sample_(
             }
             case '.': {
                 // pileup wants '.' to be the ref base in upper case...
-                base_buffer_ += utils::to_upper( target.reference_base );
+                base_buffer_ += utils::to_upper( reference_base );
                 ++it;
                 break;
             }
             case ',': {
                 // ...and ',' to be the ref base in lower case
-                base_buffer_ += utils::to_lower( target.reference_base );
+                base_buffer_ += utils::to_lower( reference_base );
                 ++it;
                 break;
             }
@@ -465,82 +699,10 @@ void SimplePileupReader::process_sample_(
         }
     }
     assert( !it || !utils::is_graph( *it ) );
-    set_sample_read_bases_( base_buffer_, sample );
-
-    // Read coverage count error check. We here allow for the same weird special case of a deletion
-    // that does not count for the coverage, as described in convert_to_base_counts().
-    if(
-        base_buffer_.size() != read_coverage &&
-        !( read_coverage == 0 && base_buffer_.size() == 1 )
-    ) {
-        throw std::runtime_error(
-            "Malformed pileup " + it.source_name() + " at " + it.at() +
-            ": Given read count (" + std::to_string( read_coverage ) +
-            ") does not match the number of bases found in the sample (" +
-            std::to_string( base_buffer_.size() ) + ")."
-        );
-    }
-
-    // Now read the quality codes, if present.
-    process_quality_string_( it, sample );
-
-    // Also check if we want to read the ancestral base, if present.
-    process_ancestral_base_( it, sample );
-
-    // Final file sanity checks.
-    if( it && !( utils::is_blank( *it ) || utils::is_newline( *it ))) {
-        throw std::runtime_error(
-            "Malformed pileup " + it.source_name() + " at " + it.at() +
-            ": Invalid characters."
-        );
-    }
 }
 
 // -------------------------------------------------------------------------
-//     Helper for alternative base
-// -------------------------------------------------------------------------
-
-template<>
-void SimplePileupReader::set_target_alternative_base_<SimplePileupReader::Record>(
-    SimplePileupReader::Record& target
-) const {
-    // The pileup format does not have an alterantive base, so we do nothing here.
-    (void) target;
-}
-
-template<>
-void SimplePileupReader::set_target_alternative_base_<Variant>(
-    Variant& target
-) const {
-    // The format does not have an ancestral base,
-    // but we want to make sure that it is set to a defined value in the Variant.
-    target.alternative_base = 'N';
-}
-
-// -------------------------------------------------------------------------
-//     Helper for read coverage
-// -------------------------------------------------------------------------
-
-template<>
-void SimplePileupReader::set_sample_read_coverage_<SimplePileupReader::Sample>(
-    size_t read_coverage,
-    SimplePileupReader::Sample& sample
-) const {
-    sample.read_coverage = read_coverage;
-}
-
-template<>
-void SimplePileupReader::set_sample_read_coverage_<BaseCounts>(
-    size_t read_coverage,
-    BaseCounts& sample
-) const {
-    // Variant BaseCounts don't use read coverage
-    (void) read_coverage;
-    (void) sample;
-}
-
-// -------------------------------------------------------------------------
-//     Helper for read bases
+//     set_sample_read_bases_
 // -------------------------------------------------------------------------
 
 template<>
@@ -562,7 +724,7 @@ void SimplePileupReader::set_sample_read_bases_<BaseCounts>(
 }
 
 // -------------------------------------------------------------------------
-//     Helper for quality strings
+//     process_quality_string_
 // -------------------------------------------------------------------------
 
 template<>
@@ -619,10 +781,28 @@ void SimplePileupReader::process_quality_string_<BaseCounts>(
     if( with_quality_string_ ) {
         next_field_( it );
 
+        // We use the internal buffer of the input stream for speed.
+        // If that failes, because we reach the end of it before finishing the field here,
+        // we do a slow pass, but that should be rare.
+        auto const in_buff = it.buffer();
+
+        // The counts should not have been touched yet. We started with a fresh BaseCount sample,
+        // and this function is the only one that calls tally_base_(), so all counts should be 0.
+        assert(
+            sample.a_count == 0 && sample.c_count == 0 && sample.g_count == 0 &&
+            sample.t_count == 0 && sample.n_count == 0 && sample.d_count == 0
+        );
+
         // Go through the quality scores, and tally up the bases that have a high enough quality,
         // keeping track of the position (pos) in the buffer.
         size_t pos = 0;
-        while( it && utils::is_graph( *it )) {
+        for( ; pos < in_buff.second; ++pos ) {
+            // Stop when we reach the end of the quality scores.
+            if( ! utils::is_graph( in_buff.first[pos] )) {
+                break;
+            }
+
+            // Check that we do not read more quality than we have bases.
             if( pos >= base_buffer_.size() ) {
                 throw std::runtime_error(
                     "Malformed pileup " + it.source_name() + " at " + it.at() +
@@ -632,16 +812,58 @@ void SimplePileupReader::process_quality_string_<BaseCounts>(
             }
 
             // Process the score, and tally up its base if the score is high enough.
-            auto const score = sequence::quality_decode_to_phred_score( *it, quality_encoding_ );
-            if( score >= min_base_quality_ ) {
+            if( min_base_quality_ > 0 ) {
+                auto const score = sequence::quality_decode_to_phred_score(
+                    in_buff.first[pos], quality_encoding_
+                );
+                if( score >= min_base_quality_ ) {
+                    tally_base_( it, sample, base_buffer_[pos] );
+                }
+            } else {
+                // If the min qual is 0, we do not need to check and convert the score,
+                // as it will pass that threshold anyway.
                 tally_base_( it, sample, base_buffer_[pos] );
             }
-
-            ++pos;
-            ++it;
         }
-        assert( !it || !utils::is_graph( *it ) );
+        assert( pos == in_buff.second || !utils::is_graph( in_buff.first[pos] ) );
 
+        // Now we have reached the end of the buffer-based approach.
+        // If that worked, that is, if we are not at the end of the buffer, and so have found
+        // the end of the quality scores, we are good and can move to the end of what we just read.
+        // If not, we reset the counts and do a second, slower pass, to catch everything.
+        if( pos < in_buff.second ) {
+            // We stopped the above loop on any non-graph char, such as new lines,
+            // so this jump never goes across one, which is important.
+            it.jump_unchecked( pos );
+        } else {
+            // Reset
+            pos = 0;
+            sample.clear();
+
+            // Go through the quality scores, and tally up the bases that have a high enough quality,
+            // keeping track of the position (pos) in the buffer.
+            while( it && utils::is_graph( *it )) {
+                if( pos >= base_buffer_.size() ) {
+                    throw std::runtime_error(
+                        "Malformed pileup " + it.source_name() + " at " + it.at() +
+                        ": Line contains " + std::to_string( base_buffer_.size() ) + " bases, but " +
+                        std::to_string( pos ) + " or more quality score codes."
+                    );
+                }
+
+                // Process the score, and tally up its base if the score is high enough.
+                auto const score = sequence::quality_decode_to_phred_score( *it, quality_encoding_ );
+                if( score >= min_base_quality_ ) {
+                    tally_base_( it, sample, base_buffer_[pos] );
+                }
+
+                ++pos;
+                ++it;
+            }
+            assert( !it || !utils::is_graph( *it ) );
+        }
+
+        // Last check: Did we reach exactly as many quality codes as we have bases?
         if( pos != base_buffer_.size() ) {
             throw std::runtime_error(
                 "Malformed pileup " + it.source_name() + " at " + it.at() +
@@ -659,7 +881,7 @@ void SimplePileupReader::process_quality_string_<BaseCounts>(
     assert( !it || !utils::is_graph( *it ) );
 }
 
-void SimplePileupReader::tally_base_(
+inline void SimplePileupReader::tally_base_(
     utils::InputStream& input_stream,
     BaseCounts& base_count,
     char b
@@ -701,7 +923,7 @@ void SimplePileupReader::tally_base_(
         }
         default: {
             throw std::runtime_error(
-                "Malformed pileup " + input_stream.source_name() + " at " + input_stream.at() +
+                "Malformed pileup " + input_stream.source_name() + " near " + input_stream.at() +
                 ": Invalid allele character " + utils::char_to_hex( b )
             );
         }
@@ -709,7 +931,7 @@ void SimplePileupReader::tally_base_(
 }
 
 // -------------------------------------------------------------------------
-//     Helper for ancestral base
+//     process_ancestral_base_
 // -------------------------------------------------------------------------
 
 template<>
@@ -766,7 +988,7 @@ void SimplePileupReader::process_ancestral_base_<BaseCounts>(
 }
 
 // -------------------------------------------------------------------------
-//     Skip Sample
+//     skip_sample_
 // -------------------------------------------------------------------------
 
 void SimplePileupReader::skip_sample_(
@@ -809,7 +1031,7 @@ void SimplePileupReader::skip_sample_(
 }
 
 // -------------------------------------------------------------------------
-//     Next Field
+//     next_field_
 // -------------------------------------------------------------------------
 
 void SimplePileupReader::next_field_( utils::InputStream& input_stream ) const
