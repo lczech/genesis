@@ -285,7 +285,7 @@ bool SimplePileupReader::parse_line_(
     if( target.position == 0 ) {
         throw std::runtime_error(
             "Malformed pileup " + it.source_name() + " at " + it.at() +
-            ": chromosome position == 0"
+            ": chromosome position == 0, while pileup demands 1-based positions"
         );
     }
     assert( !it || !utils::is_digit( *it ));
@@ -489,6 +489,10 @@ bool SimplePileupReader::process_sample_read_bases_buffer_(
     auto const in_buff = input_stream.buffer();
     base_buffer_.clear();
 
+    // No need to compute upper and lower case again and again here.
+    auto const u_ref_base = utils::to_upper( reference_base );
+    auto const l_ref_base = utils::to_lower( reference_base );
+
     // Go through the bases and store them in the buffer,
     // keeping track of the position (pos) in the buffer.
     size_t pos = 0;
@@ -513,10 +517,11 @@ bool SimplePileupReader::process_sample_read_bases_buffer_(
                 // First, we need to get how many chars there are in this indel.
                 ++pos;
                 if( pos >= in_buff.second ) {
-                    throw std::runtime_error(
-                        "Malformed pileup " + it.source_name() + " near " + it.at() +
-                        ": Line with missing indel characters count after +/-."
-                    );
+                    // If we reached the end of the buffer here, we do not have enough chars
+                    // in the buffer to continue here... use the slow method instead.
+                    // This means that we will go to the next buffer block there, and hence will
+                    // likely return to this faster method for the next sample again then.
+                    return false;
                 }
                 errno = 0;
                 char* endptr;
@@ -531,18 +536,17 @@ bool SimplePileupReader::process_sample_read_bases_buffer_(
                 // We have read a number. Go to the next char in the buffer after that.
                 pos += endptr - &in_buff.first[pos];
                 if( pos >= in_buff.second ) {
-                    // If we reached the end of the buffer here, we do not have enough chars
-                    // in the buffer to continue here... use the slow method instead.
+                    // Same as before: Buffer not large enough,
+                    // need to do slow method for this sample.
                     return false;
                 }
 
                 // Now, we skip as many chars as the number we read, making sure that all is in order.
                 for( size_t i = 0; i < indel_cnt; ++i ) {
                     if( pos >= in_buff.second ) {
-                        throw std::runtime_error(
-                            "Malformed pileup " + it.source_name() + " near " + it.at() +
-                            ": Line with missing indel characters."
-                        );
+                        // Same as before: Buffer not large enough,
+                        // need to do slow method for this sample.
+                        return false;
                     }
                     if(
                         strict_bases_ &&
@@ -563,10 +567,9 @@ bool SimplePileupReader::process_sample_read_bases_buffer_(
                 // quality. We skip both of these.
                 ++pos;
                 if( pos >= in_buff.second ) {
-                    throw std::runtime_error(
-                        "Malformed pileup " + it.source_name() + " near " + it.at() +
-                        ": Line with invalid start of read segment marker"
-                    );
+                    // Same as above: Buffer not large enough,
+                    // need to do slow method for this sample.
+                    return false;
                 }
                 ++pos;
                 break;
@@ -578,13 +581,13 @@ bool SimplePileupReader::process_sample_read_bases_buffer_(
             }
             case '.': {
                 // pileup wants '.' to be the ref base in upper case...
-                base_buffer_ += utils::to_upper( reference_base );
+                base_buffer_ += u_ref_base;
                 ++pos;
                 break;
             }
             case ',': {
                 // ...and ',' to be the ref base in lower case
-                base_buffer_ += utils::to_lower( reference_base );
+                base_buffer_ += l_ref_base;
                 ++pos;
                 break;
             }
