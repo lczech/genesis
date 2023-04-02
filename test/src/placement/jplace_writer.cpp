@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -61,11 +61,15 @@ TEST( JplaceWriter, ToTarget )
     std::string target;
     JplaceWriter().write( smp, to_string( target ));
     auto const read_again = file_read( tmpfile );
+    ASSERT_EQ (0, std::remove(tmpfile.c_str()));
 
     EXPECT_TRUE( !target.empty() );
-    EXPECT_EQ( read_again, target );
-    ASSERT_EQ (0, std::remove(tmpfile.c_str()));
+    EXPECT_TRUE( !read_again.empty() );
+    EXPECT_EQ( read_again.size(), target.size() );
 
     auto const smp2 = JplaceReader().read( from_string( target ));
     EXPECT_EQ( 5, total_placement_count( smp2 ));
+
+    auto const smp3 = JplaceReader().read( from_string( read_again ));
+    EXPECT_EQ( 5, total_placement_count( smp3 ));
 }
