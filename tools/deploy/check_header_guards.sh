@@ -78,13 +78,13 @@ for header in `find . -name "*.hpp"`; do
     unique_guards+=("${guard}")
 
     # Check that the doxygen @ingroup tag is correct
-    line_ingroup=`grep "@ingroup" ${header}`
-    if [[ ! -z "${line_ingroup}" ]]; then
-        namespace=`echo "${header/.\//}" | cut -d "/" -f 1`
-        ingroup=" * @ingroup ${namespace}"
-        if [[ "${line_ingroup}" != "${ingroup}" ]]; then
+    line_ing=`grep "@ingroup" ${header}`
+    if [[ ! -z "${line_ing}" ]]; then
+        namespc=`echo "${header/.\//}" | cut -d "/" -f 1`
+        ingroup=" * @ingroup ${namespc}"
+        if [[ "${line_ing}" != "${ingroup}" ]]; then
             echo "Wrong @ingroup in ${header}:"
-            echo "   Actual: ${line_ingroup}"
+            echo "   Actual: ${line_ing}"
             echo "   Wanted: ${ingroup}"
         fi
     fi
