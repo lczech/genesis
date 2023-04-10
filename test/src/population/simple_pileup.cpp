@@ -35,6 +35,7 @@
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/functions.hpp"
+#include "genesis/sequence/functions/quality.hpp"
 #include "genesis/utils/text/string.hpp"
 
 using namespace genesis::population;
@@ -361,4 +362,36 @@ TEST( Pileup, SimpleReader4 )
     EXPECT_ANY_THROW(
         reader.read_records( from_file( infile ), std::vector<bool>{ false, true, false })
     );
+}
+
+TEST( Pileup, QualityEncoding )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    using namespace genesis::sequence;
+
+    {
+        std::string const infile = environment->data_dir + "population/example.pileup";
+        auto const enc = guess_pileup_quality_encoding( from_file( infile ));
+        EXPECT_TRUE( compatible_quality_encodings(
+            QualityEncoding::kSanger,
+            enc
+        )) << quality_encoding_name( enc );
+    }
+    {
+        std::string const infile = environment->data_dir + "population/example2.pileup";
+        auto const enc = guess_pileup_quality_encoding( from_file( infile ));
+        EXPECT_TRUE( compatible_quality_encodings(
+            QualityEncoding::kIllumina13,
+            enc
+        )) << quality_encoding_name( enc );
+    }
+    {
+        std::string const infile = environment->data_dir + "population/example3.pileup";
+        auto const enc = guess_pileup_quality_encoding( from_file( infile ));
+        EXPECT_TRUE( compatible_quality_encodings(
+            QualityEncoding::kIllumina13,
+            enc
+        )) << quality_encoding_name( enc );
+    }
 }

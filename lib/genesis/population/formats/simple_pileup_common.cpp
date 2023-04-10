@@ -31,6 +31,7 @@
 #include "genesis/population/formats/simple_pileup_common.hpp"
 
 #include "genesis/population/functions/functions.hpp"
+#include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 
 #include <cassert>
 #include <stdexcept>
@@ -172,6 +173,29 @@ Variant convert_to_variant(
     }
 
     return result;
+}
+
+genesis::sequence::QualityEncoding guess_pileup_quality_encoding(
+    std::shared_ptr< utils::BaseInputSource > source,
+    size_t max_lines
+) {
+    // Make a reader that uses quality scores.
+    SimplePileupReader reader;
+    reader.with_quality_string( true );
+
+    // Start an iterator over the input.
+    size_t line_cnt = 0;
+    auto iter = SimplePileupInputIterator<SimplePileupReader::Record>( source );
+    while( iter ) {
+        ++iter;
+        ++line_cnt;
+        if( max_lines > 0 && line_cnt >= max_lines ) {
+            break;
+        }
+    }
+
+    // Now get the accumulated counts of all quality codes, and guess the encoding.
+    return genesis::sequence::guess_quality_encoding( iter.reader().quality_code_counts() );
 }
 
 } // namespace population

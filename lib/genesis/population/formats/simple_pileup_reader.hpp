@@ -36,6 +36,7 @@
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -353,6 +354,21 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Return the counts for all quality base codes found so far when parsing an input.
+     *
+     * Only available when read_records() or parse_line_record() are used;
+     * not availablef or the Variant-based reading functions.
+     *
+     * While parsing with_quality_string(), we keep track of the counts of each quality code found,
+     * so that we can check that the right encoding was used (for user friendliness).
+     * Counts here are simply indexed by their ASCII values.
+     */
+    std::array<size_t, 128> const& quality_code_counts() const
+    {
+        return quality_code_counts_;
+    }
+
     bool with_ancestral_base() const
     {
         return with_ancestral_base_;
@@ -506,6 +522,9 @@ private:
     bool with_quality_string_ = true;
     sequence::QualityEncoding quality_encoding_ = sequence::QualityEncoding::kSanger;
     size_t min_base_quality_ = 0;
+
+    // We also keep track of the base codes found, to check that we have the right encoding.
+    mutable std::array<size_t, 128> quality_code_counts_;
 
     // Set whether the last part of the sample line contains the base of the ancestral allele.
     bool with_ancestral_base_ = false;

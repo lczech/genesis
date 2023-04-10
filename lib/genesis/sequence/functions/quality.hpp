@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -81,9 +81,10 @@ enum class QualityEncoding
 /**
  * @brief Return a readable name for each of the encoding types.
  *
- * See QualityEncoding for the names being used here.
+ * See QualityEncoding for the names being used here. If @p with_offset is set, the offset of the
+ * encoding is also reported in parenthesis (e.g., "Illumina 1.8+ (ASCII offset 33)").
  */
-std::string quality_encoding_name( QualityEncoding encoding );
+std::string quality_encoding_name( QualityEncoding encoding, bool with_offset = false );
 
 /**
  * @brief Guess the QualityEncoding type, given its description name.
@@ -174,6 +175,18 @@ inline std::string quality_encode_from_phred_score(
 // =================================================================================================
 
 /**
+ * @brief Return whether two quality encodings are compatible with each other.
+ *
+ * This is the case when both have the same ASCII offset, except for Solexa, which is not compatible
+ * with any of the others. This function is meant as a check when for example the user specified
+ * one encoding, but functions such as guess_quality_encoding() and guess_fastq_quality_encoding()
+ * return a different one - the two encodings might be indistinguishable for that function, because
+ * the have the same offset. That also means that one can be used to decode the other - they are
+ * compatible.
+ */
+bool compatible_quality_encodings( QualityEncoding lhs, QualityEncoding rhs );
+
+/**
  * @brief Guess the quality score encoding, based on counts of how often each char appeared
  * in the quality string (of a fastq file for example).
  *
@@ -182,6 +195,8 @@ inline std::string quality_encode_from_phred_score(
  * to 127) are non-zero in the @p char_counts, the function throws, as these are invaliv qualiy
  * encodings. Otherwise, it guesses which QualityEncoding was used for the data, based on
  * which chars appear in it.
+ *
+ * @see guess_fastq_quality_encoding()
  */
 QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_counts );
 
@@ -191,8 +206,16 @@ QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_coun
  *
  * The function reads and parses the input source as a fastq file, counts all quality score chars
  * as they appear in there, and then guesses the encoding that was used.
+ * If @p max_lines is set to a value greater than 0, only that many lines are read.
+ * If @p max_chars is set to a value greater than 0, only that many quality score charaters are read.
+ *
+ * @see guess_quality_encoding()
  */
-QualityEncoding guess_fastq_quality_encoding( std::shared_ptr< utils::BaseInputSource > source );
+QualityEncoding guess_fastq_quality_encoding(
+    std::shared_ptr< utils::BaseInputSource > source,
+    size_t max_lines = 0,
+    size_t max_chars = 0
+);
 
 // =================================================================================================
 //     Quality Computations

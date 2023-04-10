@@ -73,6 +73,9 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
     std::vector<SimplePileupReader::Record> result;
     utils::InputStream it( source );
 
+    // Reset quality code counts.
+    quality_code_counts_ = std::array<size_t, 128>{};
+
     // Read, with correct order check, just in case.
     std::string cur_chr = "";
     size_t      cur_pos = 0;
@@ -115,6 +118,9 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
 ) const {
     std::vector<SimplePileupReader::Record> result;
     utils::InputStream it( source );
+
+    // Reset quality code counts.
+    quality_code_counts_ = std::array<size_t, 128>{};
 
     // Read, with correct order check, just in case.
     std::string cur_chr = "";
@@ -477,7 +483,7 @@ void SimplePileupReader::set_sample_read_coverage_<BaseCounts>(
 }
 
 // -------------------------------------------------------------------------
-//     process_sample_read_bases_buffer_ / process_sample_read_bases_stream_
+//     process_sample_read_bases_buffer_
 // -------------------------------------------------------------------------
 
 bool SimplePileupReader::process_sample_read_bases_buffer_(
@@ -614,6 +620,10 @@ bool SimplePileupReader::process_sample_read_bases_buffer_(
     return false;
 }
 
+// -------------------------------------------------------------------------
+//     process_sample_read_bases_stream_
+// -------------------------------------------------------------------------
+
 void SimplePileupReader::process_sample_read_bases_stream_(
     utils::InputStream& input_stream,
     char reference_base
@@ -743,6 +753,7 @@ void SimplePileupReader::process_quality_string_<SimplePileupReader::Sample>(
         next_field_( it );
         sample.phred_scores.reserve( sample.read_coverage );
         while( it && utils::is_graph( *it )) {
+            ++quality_code_counts_[*it];
             sample.phred_scores.push_back( sequence::quality_decode_to_phred_score(
                 *it, quality_encoding_
             ));
