@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -127,6 +127,24 @@ using VariantInputIterator = utils::LambdaIterator<Variant, VariantInputIterator
 // =================================================================================================
 //     Input Sources
 // =================================================================================================
+
+// -------------------------------------------------------------------------
+//     vector
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Create a VariantInputIterator to iterate the contents of `std::vector` containing Variant%s.
+ *
+ * This is a simple wrapper to bring a vector of in-memory Variant%s into the input iterator
+ * format that we use for file streaming as well. Meant as a speed-up for small files that fit into
+ * memory, in cases where they for example have to processed multiple times.
+ *
+ * The user needs to make sure that the lifetime of the given input @p variants vector is longer
+ * than the iterator returned here, and that the vector is not modified after calling this function.
+ */
+VariantInputIterator make_variant_input_iterator_from_vector(
+    std::vector<Variant> const& variants
+);
 
 // -------------------------------------------------------------------------
 //     SAM/BAM/CRAM

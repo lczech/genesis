@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -117,6 +117,47 @@ std::shared_ptr<T> make_input_iterator_with_sample_filter_(
     }
     assert( input );
     return input;
+}
+
+// =================================================================================================
+//     vector
+// =================================================================================================
+
+VariantInputIterator make_variant_input_iterator_from_vector(
+    std::vector<Variant> const& variants
+) {
+
+    // Prepare the iterator data.
+    VariantInputIteratorData data;
+    data.source_name = "std::vector";
+
+    // No sample names in a vector...
+    // so we just fill with empty names to indicate the number of samples.
+    if( ! variants.empty() ) {
+        for( size_t i = 0; i < variants[0].samples.size(); ++i ) {
+            data.sample_names.push_back( "" );
+        }
+    }
+
+    // Get iterators to the data.
+    auto cur = variants.begin();
+    auto end = variants.end();
+
+    // The iterators are copied over to the lambda,
+    // and those copies are kept alive when returning from this function.
+    return VariantInputIterator(
+        [ cur, end ]( Variant& variant ) mutable {
+            if( cur != end ) {
+                // We make copies of the data here, as we do not want to modify the vector.
+                variant = *cur;
+                ++cur;
+                return true;
+            } else {
+                return false;
+            }
+        },
+        std::move( data )
+    );
 }
 
 // =================================================================================================
