@@ -100,12 +100,30 @@ public:
     //     Additional Members
     // -------------------------------------------------------------------------
 
-    std::pair<double, double> get_result_pair()
+    /**
+     * @brief Get both variants of FST, following Nei, and following Hudson, as a pair.
+     */
+    std::pair<double, double> get_result_pair() const
     {
         // Final computation of our two FST estimators, using Nei and Hudson, respectively.
         double const fst_nei = 1.0 - ( pi_w_sum_ / pi_t_sum_ );
         double const fst_hud = 1.0 - ( pi_w_sum_ / pi_b_sum_ );
         return { fst_nei, fst_hud };
+    }
+
+    double get_pi_within() const
+    {
+        return pi_w_sum_;
+    }
+
+    double get_pi_between() const
+    {
+        return pi_b_sum_;
+    }
+
+    double get_pi_total() const
+    {
+        return pi_t_sum_;
     }
 
     // -------------------------------------------------------------------------
