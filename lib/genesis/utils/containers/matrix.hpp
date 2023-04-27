@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -34,6 +34,7 @@
 #include "genesis/utils/containers/matrix/col.hpp"
 #include "genesis/utils/containers/matrix/row.hpp"
 
+#include <cassert>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -206,11 +207,15 @@ public:
 
     T& operator () (const size_t row, const size_t col)
     {
+        assert( row < rows_ );
+        assert( col < cols_ );
         return data_[row * cols_ + col];
     }
 
     T const& operator () (const size_t row, const size_t col) const
     {
+        assert( row < rows_ );
+        assert( col < cols_ );
         return data_[row * cols_ + col];
     }
 
