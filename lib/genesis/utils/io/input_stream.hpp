@@ -568,8 +568,22 @@ public:
      */
     void jump_unchecked( size_t n )
     {
-        // Safety first!
+        // Safety first! We do a single check here, so that in the default case,
+        // we only branch once - assuming that the compiler doesn't optimize that even better anway.
         if( data_pos_ + n >= data_end_ ) {
+            if( data_pos_ + n == data_end_ ) {
+                // Lazy approach to make sure that all functions are called as expected
+                // when reaching the end of the input data.
+                assert( data_pos_ < data_end_ );
+                assert( n > 0 );
+                data_pos_ += n - 1;
+                column_   += n - 1;
+                advance();
+                return;
+            }
+
+            // We try to jump past the end
+            assert( data_pos_ + n > data_end_ );
             throw std::runtime_error(
                 "Invalid InputStream jump to position after buffer end."
             );

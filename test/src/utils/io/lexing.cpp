@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -37,6 +37,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <limits>
 #include <fstream>
 #include <string>
 #include <sstream>
@@ -132,13 +133,21 @@ TEST(Parser, SignedInteger)
 //     Float
 // -------------------------------------------------------------------------
 
-void test_float( std::string str, float val, size_t col )
+void test_float( std::string str, double val, size_t col )
 {
     std::istringstream iss ( str );
     InputStream iit( utils::make_unique< StreamInputSource >( iss ));
 
+    // LOG_DBG << "str=" << str;
     auto res = parse_float<double>( iit );
-    EXPECT_FLOAT_EQ( val, res ) << "Input string: '" << str << "'";
+    if( std::isfinite( val )) {
+        EXPECT_DOUBLE_EQ( val, res ) << "Input string: '" << str << "'";
+    } else if( std::isnan( val )) {
+        EXPECT_TRUE( std::isnan( res )) << "Input string: '" << str << "'";
+    } else if( std::isinf( val )) {
+        EXPECT_TRUE( std::isinf( res )) << "Input string: '" << str << "'";
+        EXPECT_DOUBLE_EQ( val, res ) << "Input string: '" << str << "'";
+    }
     EXPECT_EQ( iit.column(), col ) << "Input string: '" << str << "'";
 }
 
@@ -148,6 +157,7 @@ TEST(Parser, Float)
 
     // Valid input.
     test_float( "+0",           0.0, 3 );
+    test_float( "-0",           0.0, 3 );
     test_float( "0",            0.0, 2 );
     test_float( "1",            1.0, 2 );
     test_float( "12345",    12345.0, 6 );
@@ -186,6 +196,23 @@ TEST(Parser, Float)
     // test_float( "123,456E-2",    1.23456, 11 );
     // test_float( "-123,456e-2",   -1.23456, 12 );
 
+    // Long numbers
+    test_float(  "123456789101121314151617181920",  123456789101121314151617181920.0, 31 );
+    test_float( "-123456789101121314151617181920", -123456789101121314151617181920.0, 32 );
+
+    // Special values
+    auto const nan = std::numeric_limits<double>::quiet_NaN();
+    auto const inf = std::numeric_limits<double>::infinity();
+    test_float( "nan", nan, 4 );
+    test_float( "-nan", -nan, 5 );
+    test_float( "nan x", nan, 4 );
+    test_float( "inf", inf, 4 );
+    test_float( "-inf", -inf, 5 );
+    test_float( "inf x", inf, 4 );
+    test_float( "INFINITY", inf, 9 );
+    test_float( "-INFINITY", -inf, 10 );
+    test_float( "INFINITY x", inf, 9 );
+
     // Invalid input.
     EXPECT_ANY_THROW( test_float( "",   0.0, 0));
     EXPECT_ANY_THROW( test_float( " ",  0.0, 1));
@@ -195,6 +222,8 @@ TEST(Parser, Float)
     EXPECT_ANY_THROW( test_float( ".",  0.0, 2 ));
     EXPECT_ANY_THROW( test_float( ".x",  0.0, 2 ));
     EXPECT_ANY_THROW( test_float( "1.",  0.0, 2 ));
+    EXPECT_ANY_THROW( test_float( "nana", 0.0, 3 ));
+    EXPECT_ANY_THROW( test_float( "infi", 0.0, 3 ));
 
     EXPECT_ANY_THROW( test_float( "123.45e",          123.45, 8 ));
     EXPECT_ANY_THROW( test_float( "-123.45E",        -123.45, 9 ));

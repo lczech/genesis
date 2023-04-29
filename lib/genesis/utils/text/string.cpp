@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -77,6 +77,36 @@ bool contains_ci_alnum( std::vector<std::string> const& haystack, std::string co
         }
     }
     return false;
+}
+
+int strcasecmp( char const* s1, char const* s2 )
+{
+    // Avoid code duplication at minimal runtime cost.
+    return strncasecmp( s1, s2, std::numeric_limits<size_t>::max() );
+}
+
+int strncasecmp( char const* s1, char const* s2, size_t n )
+{
+    // Fast edge case
+    if( s1 == s2 ) {
+        return 0;
+    }
+
+    // Need to convert to unsigned, https://stackoverflow.com/a/51992138
+    auto ucs1 = reinterpret_cast<unsigned char const*>( s1 );
+    auto ucs2 = reinterpret_cast<unsigned char const*>( s2 );
+
+    // Run the comparison
+    int d = 0;
+    for( ; n != 0; n-- ) {
+        int const c1 = tolower( *ucs1++ );
+        int const c2 = tolower( *ucs2++ );
+        d = c1 - c2;
+        if(( d != 0 ) || ( c1 == '\0' )) {
+            break;
+        }
+    }
+    return d;
 }
 
 bool equals_ci( std::string const& lhs, std::string const& rhs)
