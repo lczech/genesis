@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <typeinfo>
 #include <vector>
 
 namespace genesis {
@@ -73,13 +74,15 @@ T convert_from_string( std::string const& str, bool trim = false )
     // If we are here, either the string stream conversion itself failed (that's what the catch
     // is for), or there was more data in the stream that we could convert. Either way, throw.
     if( !good ) {
-        throw std::invalid_argument( "Cannot convert string '" + str + "' to specified type." );
+        throw std::invalid_argument(
+            "Cannot convert string \"" + str + "\" to type " + std::string( typeid(T).name() )
+        );
     }
     return value;
 }
 
 /**
- * @brief Specialization of the generic conversion function for for `std::string`.
+ * @brief Specialization of the generic conversion function for `std::string`.
  */
 template <>
 inline std::string convert_from_string<std::string>( std::string const& str, bool trim )
@@ -87,6 +90,25 @@ inline std::string convert_from_string<std::string>( std::string const& str, boo
     // We need special treatment of strings here, as the stringstream would only give
     // us the first word of the input otherwise.
     return (trim ? utils::trim(str) : str);
+}
+
+/**
+ * @brief Specialization of the generic conversion function for `double`, which also takes
+ * `nan` and `inf` into account.
+ */
+template <>
+inline double convert_from_string<double>( std::string const& str, bool trim )
+{
+    // For double, we use a more fitting function that also parses inf and nan.
+    auto const input = (trim ? utils::trim(str) : str);
+    char* end = nullptr;
+    auto const value = std::strtod( input.c_str(), &end );
+    if( end == nullptr || *end != '\0' || end - input.c_str() != static_cast<long>( input.size() )) {
+        throw std::runtime_error(
+            "Cannot convert string \"" + input + "\" to type double"
+        );
+    }
+    return value;
 }
 
 // =================================================================================================

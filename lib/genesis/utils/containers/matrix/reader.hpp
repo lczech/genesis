@@ -36,6 +36,7 @@
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/text/convert.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <cstdlib>
@@ -43,7 +44,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <typeinfo>
 #include <vector>
 
 namespace genesis {
@@ -186,7 +186,15 @@ private:
                 }
             } else {
                 for( size_t i = first; i < line.size(); ++i ) {
-                    table.push_back( parse_value_stringstream_( line[i] ) );
+                    try {
+                        table.push_back( convert_from_string<T>( line[i] ));
+                    } catch(...) {
+                        throw std::runtime_error(
+                            "In " + input_stream.source_name() + " line " +
+                            std::to_string( input_stream.line() - 1 ) + ": "
+                            "Cannot parse value \"" + line[i] + "\" into Matrix. "
+                        );
+                    }
                 }
             }
         }
@@ -207,46 +215,6 @@ private:
         // Make a proper Matrix.
         size_t const rows = table.size() / cols;
         return Matrix<T>( rows, cols, std::move(table) );
-    }
-
-    template <typename U = T, typename std::enable_if<!std::is_same<U, double>::value>::type* = nullptr>
-    inline T parse_value_stringstream_( std::string const& cell ) const
-    {
-        // Internal check to see if we got the SFINAE right...
-        static_assert(
-            ! std::is_same<T, double>::value, "Function is meant for T != double"
-        );
-
-        // Default function for general data for which string input exists.
-        std::stringstream ss( cell );
-        T value;
-        ss >> value;
-        if( ss ) {
-            throw std::runtime_error(
-                "In MatrixReader: Cannot convert cell value \"" + cell + "\" to type " +
-                std::string( typeid(T).name() )
-            );
-        }
-        return value;
-    }
-
-    template <typename U = T, typename std::enable_if<std::is_same<U, double>::value>::type* = nullptr>
-    inline T parse_value_stringstream_( std::string const& cell ) const
-    {
-        // Internal check to see if we got the SFINAE right...
-        static_assert(
-            std::is_same<T, double>::value, "Function is meant for T == double"
-        );
-
-        // For double, we use a more fitting function that also parses inf and nan.
-        char* end = nullptr;
-        auto const value = std::strtod( cell.c_str(), &end );
-        if( end == nullptr || *end != '\0' || end - cell.c_str() != static_cast<long>( cell.size() )) {
-            throw std::runtime_error(
-                "In MatrixReader: Cannot convert cell value \"" + cell + "\" to type double"
-            );
-        }
-        return value;
     }
 
     // -------------------------------------------------------------
