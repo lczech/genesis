@@ -6,5 +6,5 @@
 1 10 5.3
 1 10 5.3
 1 8 5.3
-1 1 5.3
-0 0 5
+inf INFINITY nan
+-inf -INFINITY -nan
