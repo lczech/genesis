@@ -1,9 +1,9 @@
-#ifndef GENESIS_POPULATION_FUNCTIONS_GENOME_HEATMAP_H_
-#define GENESIS_POPULATION_FUNCTIONS_GENOME_HEATMAP_H_
+#ifndef GENESIS_POPULATION_PLOTTING_GENOME_HEATMAP_H_
+#define GENESIS_POPULATION_PLOTTING_GENOME_HEATMAP_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -120,7 +120,13 @@ public:
     //     Drawing
     // -------------------------------------------------------------------------
 
-    void add( std::string const& label, utils::Matrix<utils::Color> const& heatmap );
+    void add(
+        std::string const& label,
+        utils::Matrix<utils::Color> const& heatmap,
+        utils::SvgGroup x_axis = utils::SvgGroup{},
+        utils::SvgGroup y_axis = utils::SvgGroup{},
+        std::pair<utils::SvgGradientLinear, utils::SvgGroup> color_bar = std::pair<utils::SvgGradientLinear, utils::SvgGroup>{}
+    );
 
     void write( std::shared_ptr<utils::BaseOutputTarget> target ) const;
 
