@@ -32,6 +32,7 @@
  */
 
 #include "genesis/population/variant.hpp"
+#include "genesis/utils/core/thread_pool.hpp"
 
 #include <cassert>
 #include <memory>
@@ -130,7 +131,14 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    FstPoolProcessor() = default;
+    FstPoolProcessor(
+        std::shared_ptr<utils::ThreadPool> thread_pool = {},
+        size_t threading_threshold = 4096
+    )
+        : thread_pool_( thread_pool )
+        , threading_threshold_( threading_threshold )
+    {}
+
     ~FstPoolProcessor() = default;
 
     FstPoolProcessor( FstPoolProcessor const& ) = default;
@@ -142,6 +150,46 @@ public:
     // -------------------------------------------------------------------------
     //     Setup
     // -------------------------------------------------------------------------
+
+    /**
+     * @brief Get the thread pool used for processing, if enough sample pairs are being processed.
+     */
+    std::shared_ptr<utils::ThreadPool> thread_pool() const
+    {
+        return thread_pool_;
+    }
+
+    /**
+     * @brief Set the thread pool used for processing, if enough sample pairs are being processed.
+     *
+     * See threading_threshold() for details on when we use the thread pool.
+     * Shall not be changed after calling process().
+     */
+    FstPoolProcessor& thread_pool( std::shared_ptr<utils::ThreadPool> value )
+    {
+        thread_pool_ = value;
+        return *this;
+    }
+
+    size_t threading_threshold() const
+    {
+        return threading_threshold_;
+    }
+
+    /**
+     * @brief Set the threshold of calculators after which the processing is done in threads.
+     *
+     * For small numbers of processors (small number of sample pairs), starting threads for each
+     * call of process() is more expensive than just doing the computation directly in the main
+     * thread. Hence, we only want to use the thread pool if the overhead is justified.
+     *
+     * With this setting the number of sample pairs can be set after which we use the thread pool.
+     */
+    FstPoolProcessor& threading_threshold( size_t value )
+    {
+        threading_threshold_ = value;
+        return *this;
+    }
 
     void add_calculator(
         size_t index_p1, size_t index_p2,
@@ -158,6 +206,13 @@ public:
     //     Calculator Functions
     // -------------------------------------------------------------------------
 
+    size_t size() const
+    {
+        assert( calculators_.size() == sample_pairs_.size() );
+        assert( calculators_.size() == results_.size() );
+        return calculators_.size();
+    }
+
     void reset()
     {
         for( auto& calc : calculators_ ) {
@@ -169,8 +224,10 @@ public:
     void process( Variant const& variant )
     {
         assert( sample_pairs_.size() == calculators_.size() );
-        for( size_t i = 0; i < sample_pairs_.size(); ++i ) {
-            auto const& indices = sample_pairs_[i];
+
+        // Helper function for the processing.
+        auto process_ = [&]( size_t index ) {
+            auto const& indices = sample_pairs_[index];
             if(
                 indices.first >= variant.samples.size() ||
                 indices.second >= variant.samples.size()
@@ -182,10 +239,21 @@ public:
                     " have been requested."
                 );
             }
-            calculators_[i]->process(
+            calculators_[index]->process(
                 variant.samples[indices.first],
                 variant.samples[indices.second]
             );
+        };
+
+        // Switch dynamically between threading and no threading for the processing.
+        if( thread_pool_ && calculators_.size() >= threading_threshold_ ) {
+            thread_pool_->parallel_for(
+                0, sample_pairs_.size(), process_
+            ).wait();
+        } else {
+            for( size_t i = 0; i < sample_pairs_.size(); ++i ) {
+                process_(i);
+            }
         }
     }
 
@@ -204,10 +272,16 @@ public:
 
 private:
 
+    // The pairs of sample indices of the variant between which we want to compute FST,
+    // the processors to use for these computations, as well as the resulting values for caching.
     std::vector<std::pair<size_t, size_t>> sample_pairs_;
     std::vector<std::unique_ptr<BaseFstPoolCalculator>> calculators_;
     std::vector<double> results_;
 
+    // Thread pool to run the buffering in the background, and the size (number of sample pairs)
+    // at which we start using the thread pool.
+    std::shared_ptr<utils::ThreadPool> thread_pool_;
+    size_t threading_threshold_ = 0;
 };
 
 // =================================================================================================

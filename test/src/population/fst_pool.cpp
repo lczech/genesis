@@ -37,11 +37,13 @@
 #include "genesis/population/formats/variant_input_iterator.hpp"
 #include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/fst_pool_functions.hpp"
+#include "genesis/population/functions/fst_pool.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/population/window/sliding_interval_window_iterator.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/transform_iterator.hpp"
+#include "genesis/utils/core/options.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;
@@ -376,6 +378,29 @@ TEST( Structure, FstPoolIterator )
         EXPECT_FLOAT_EQ( exp_unbiased_hudson[cnt], fst_unbiased.second );
         ++cnt;
     }
+}
+
+TEST( Structure, FstPoolProcessor )
+{
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/p1_p2.sync.gz";
+
+    // Make an FST processor for the two samples.
+    std::vector<size_t> const poolsizes{ 100, 100 };
+    auto processor = make_fst_pool_processor<FstPoolCalculatorUnbiased>( poolsizes );
+    ASSERT_EQ( 1, processor.size() );
+    processor.thread_pool( Options::get().global_thread_pool() );
+    processor.threading_threshold( 0 );
+
+    // Make a Lambda Iterator over the data stream, and go through
+    auto data_gen = make_variant_input_iterator_from_sync_file( infile );
+    for( auto const& variant : data_gen ) {
+        processor.process( variant );
+    }
+
+    auto const result = processor.get_result();
+    EXPECT_EQ( 1, result.size() );
+    EXPECT_FLOAT_EQ( -0.0041116024, result[0] );
 }
 
 // Test the C++14 helper functions that compute FST for all pairs of input.
