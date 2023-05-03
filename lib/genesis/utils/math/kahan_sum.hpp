@@ -94,14 +94,43 @@ public:
     //     Operators
     // ---------------------------------------------------------
 
+    /**
+     * @brief Add a @p value to the sum.
+     */
     inline void operator += ( double value )
     {
         add( value );
     }
 
+    /**
+     * @brief Subtract a @p value from the sum.
+     *
+     * This is identical to addting the negative of the @p value.
+     */
     inline void operator -= ( double value )
     {
         add( -value );
+    }
+
+    /**
+     * @brief Set the sum to the given @p value.
+     *
+     * This will also reset the correction term, as we assume that assining a new value
+     * is meant to start a new summation.
+     */
+    inline KahanSum& operator= ( double value )
+    {
+        sum_ = value;
+        cor_ = 0.0;
+        return *this;
+    }
+
+    /**
+     * @brief Return the current sum.
+     */
+    inline operator double() const
+    {
+        return sum_;
     }
 
     // ---------------------------------------------------------

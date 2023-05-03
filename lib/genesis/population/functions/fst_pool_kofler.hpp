@@ -34,6 +34,7 @@
 #include "genesis/population/functions/fst_pool.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/common.hpp"
+#include "genesis/utils/math/kahan_sum.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -75,8 +76,8 @@ public:
     // -------------------------------------------------------------------------
 
     FstPoolCalculatorKofler( size_t p1_poolsize, size_t p2_poolsize )
-        : p1_poolsize_( p1_poolsize )
-        , p2_poolsize_( p2_poolsize )
+        : p1_poolsize_( static_cast<double>( p1_poolsize ))
+        , p2_poolsize_( static_cast<double>( p2_poolsize ))
     {}
 
     ~FstPoolCalculatorKofler() = default;
@@ -105,7 +106,7 @@ private:
     {
         // Edge and error cases. We will return nan anyway when finializing,
         // so we can skip all the computation here.
-        if( p1_poolsize_ <= 1 || p2_poolsize_ <= 1 ) {
+        if( p1_poolsize_ <= 1.0 || p2_poolsize_ <= 1.0 ) {
             return;
         }
 
@@ -140,21 +141,21 @@ private:
     double get_result_() override
     {
         // Edge and error cases.
-        if( p1_poolsize_ <= 1 || p2_poolsize_ <= 1 ) {
+        if( p1_poolsize_ <= 1.0 || p2_poolsize_ <= 1.0 ) {
             return std::numeric_limits<double>::quiet_NaN();
             // throw std::invalid_argument( "Cannot run f_st_pool_kofler() with poolsizes <= 1" );
         }
 
         // Normalize by poolsize
-        assert( p1_poolsize_ > 1 && p2_poolsize_ > 1 );
-        size_t const pp_poolsizem = std::min( p1_poolsize_, p2_poolsize_ );
-        p1_pi_sum_ *= static_cast<double>( p1_poolsize_ ) / static_cast<double>( p1_poolsize_ - 1 );
-        p2_pi_sum_ *= static_cast<double>( p2_poolsize_ ) / static_cast<double>( p2_poolsize_ - 1 );
-        pp_pi_sum_ *= static_cast<double>( pp_poolsizem ) / static_cast<double>( pp_poolsizem - 1 );
+        assert( p1_poolsize_ > 1.0 && p2_poolsize_ > 1.0 );
+        double const pp_poolsizem = std::min( p1_poolsize_, p2_poolsize_ );
+        auto const p1 = static_cast<double>( p1_pi_sum_ ) * p1_poolsize_ / ( p1_poolsize_ - 1.0 );
+        auto const p2 = static_cast<double>( p2_pi_sum_ ) * p2_poolsize_ / ( p2_poolsize_ - 1.0 );
+        auto const pp = static_cast<double>( pp_pi_sum_ ) * pp_poolsizem / ( pp_poolsizem - 1.0 );
 
         // _calculateFstValues
-        double const pp_avg = ( p1_pi_sum_ + p2_pi_sum_ ) / 2.0;
-        return ( pp_pi_sum_ - pp_avg ) / pp_pi_sum_;
+        double const pp_avg = ( p1 + p2 ) / 2.0;
+        return ( pp - pp_avg ) / pp;
     }
 
     // -------------------------------------------------------------------------
@@ -228,13 +229,13 @@ public:
 private:
 
     // Pool sizes
-    size_t p1_poolsize_ = 0;
-    size_t p2_poolsize_ = 0;
+    double p1_poolsize_ = 0;
+    double p2_poolsize_ = 0;
 
     // Theta Pi values for the two populations and their combination
-    double p1_pi_sum_ = 0.0;
-    double p2_pi_sum_ = 0.0;
-    double pp_pi_sum_ = 0.0;
+    utils::KahanSum p1_pi_sum_ = 0.0;
+    utils::KahanSum p2_pi_sum_ = 0.0;
+    utils::KahanSum pp_pi_sum_ = 0.0;
 
 };
 
