@@ -34,7 +34,10 @@
 #include "genesis/sequence/sequence.hpp"
 
 #include <algorithm>
+#include <cassert>
+#include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace genesis {
@@ -95,22 +98,36 @@ public:
         Entry e;
         e.name = name;
         e.length = length;
-        entries_.push_back( std::move( e ));
+        add( std::move( e ));
     }
 
     void add( Entry const& entry )
     {
-        entries_.push_back( entry );
+        add( Entry{ entry });
     }
 
     void add( Entry&& entry )
     {
+        // Check for duplicates. As we are using the unordered map for indicies anyway,
+        // we can just rely on that, and do not have to check the vector again.
+        if( indices_.count( entry.name ) > 0 ) {
+            throw std::runtime_error(
+                "Cannot add duplicate sequence name \"" + entry.name + "\" to SequenceDict."
+            );
+        }
+
+        // We first create the index map entry, making a copy of the name key (which the map needs
+        // to make anyway), but then can move the string to the entries, for efficiency.
+        // In that order, the index that we want to store in the map is the current size of the
+        // vector pre insertion.
+        indices_[ entry.name ] = entries_.size();
         entries_.push_back( std::move( entry ));
     }
 
     void clear()
     {
         entries_.clear();
+        indices_.clear();
     }
 
     // -------------------------------------------------------------------------
@@ -132,19 +149,38 @@ public:
         return entries_.at(index);
     }
 
+    Entry const& get( std::string const& name ) const
+    {
+        auto const idx = index_of( name );
+        assert( idx < entries_.size() );
+        return entries_[ idx ];
+    }
+
+    size_t index_of( std::string const& name ) const
+    {
+        auto const it = indices_.find( name );
+        if( it == indices_.end() ) {
+            throw std::runtime_error(
+                "Sequence name \"" + name + "\" not found in SequenceDict."
+            );
+        }
+        assert( entries_[it->second].name == name );
+        return it->second;
+    }
+
     bool contains( std::string const& name ) const
     {
-        return find( name ) != entries_.end();
+        return indices_.count( name ) > 0;
     }
 
     const_iterator find( std::string const& name ) const
     {
-        return std::find_if(
-            entries_.begin(), entries_.end(),
-            [&name]( Entry const& entry ) {
-                return entry.name == name;
-            }
-        );
+        auto const it = indices_.find( name );
+        if( it == indices_.end() ) {
+            return entries_.end();
+        }
+        assert( entries_[it->second].name == name );
+        return entries_.begin() + it->second;
     }
 
     // -------------------------------------------------------------------------
@@ -167,7 +203,9 @@ public:
 
 private:
 
+    // vector of entries, and a fast-ish lookup from names to the index in the vector.
     std::vector<Entry> entries_;
+    std::unordered_map<std::string, size_t> indices_;
 
 };
 

@@ -66,10 +66,22 @@ void test_tair10_dict_file( SequenceDict const& dict )
     EXPECT_EQ(  "chloroplast", dict[6].name );
     EXPECT_EQ(         154478, dict[6].length );
 
+    // Check access functions.
     EXPECT_NE(    dict.end(), dict.find( "1" ));
     EXPECT_EQ(    dict.end(), dict.find( "X" ));
     EXPECT_TRUE(  dict.contains( "1" ));
     EXPECT_FALSE( dict.contains( "X" ));
+    EXPECT_EQ( "1", dict.get("1").name );
+
+    // Check index lookup.
+    EXPECT_EQ( 0, dict.index_of( "1" ));
+    EXPECT_EQ( 1, dict.index_of( "2" ));
+    EXPECT_EQ( 2, dict.index_of( "3" ));
+    EXPECT_EQ( 3, dict.index_of( "4" ));
+    EXPECT_EQ( 4, dict.index_of( "5" ));
+    EXPECT_EQ( 5, dict.index_of( "mitochondria" ));
+    EXPECT_EQ( 6, dict.index_of( "chloroplast" ));
+    EXPECT_ANY_THROW( dict.index_of( "X" ));
 }
 
 TEST( SequenceDict, DictReader )
