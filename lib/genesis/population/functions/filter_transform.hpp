@@ -441,7 +441,7 @@ bool filter_base_counts(
 );
 
 /**
- * @copydoc filter_base_counts( Variant&, BaseCountsFilter const& )
+ * @copydoc filter_base_counts( Variant&, BaseCountsFilter const&, bool )
  *
  * This overload also increments the statistic of the failing or passing filter.
  */
@@ -492,7 +492,7 @@ inline std::function<bool(Variant&)> make_filter_base_counts(
 }
 
 /**
- * @copydoc make_filter_base_counts( BaseCountsFilter const& )
+ * @copydoc make_filter_base_counts( BaseCountsFilter const&, bool )
  *
  * This overload also includes the statistics of the failing or passing filters.
  */
