@@ -208,7 +208,7 @@ inline std::ostream& operator << ( std::ostream& os, GenomeLocus const& locus )
  *     overloads for every combination of those two ways of specifying loci.
  *   - Furthermore, in overloads that do not provide a
  *     @link ::genesis::sequence::SequenceDict SequenceDict@endlink,
- *     chromosome names are expected to besorted in lexicographical order, hence, two loci on
+ *     chromosome names are expected to be sorted in lexicographical order, hence, two loci on
  *     different chromosomes will first compare the ordering of their chromosome names
  *     lexicographically, and then (if identical) compare the positions.
  *   - In overloads that take a @link ::genesis::sequence::SequenceDict SequenceDict@endlink,
@@ -219,7 +219,11 @@ inline std::ostream& operator << ( std::ostream& os, GenomeLocus const& locus )
  *     SequenceDict is used instead. This is meant as a simplification for situations where
  *     one might or might not have a SequenceDict to work with.
  *
- * The latter type of overloads
+ * The latter type of overloads allow to be more flexible with the sorting orders of chromosomes.
+ *
+ * @see There are several related comparison functions for genomic loci. See locus_compare(),
+ * locus_equal(), locus_inequal(), locus_less(), locus_greater(), locus_less_or_equal(), and
+ * locus_greater_or_equal().
  */
 inline int locus_compare(
     std::string const& l_chromosome, size_t l_position,
@@ -296,6 +300,10 @@ inline int operator <=> ( GenomeLocus const& l, GenomeLocus const& r )
 
 /**
  * @brief Equality comparison (`==`) for two loci in a genome.
+ *
+ * @see There are several related comparison functions for genomic loci. See locus_compare(),
+ * locus_equal(), locus_inequal(), locus_less(), locus_greater(), locus_less_or_equal(), and
+ * locus_greater_or_equal().
  */
 inline bool locus_equal(
     std::string const& l_chromosome, size_t l_position,
@@ -348,6 +356,10 @@ inline bool operator == ( GenomeLocus const& l, GenomeLocus const& r )
 
 /**
  * @brief Inequality comparison (`!=`) for two loci in a genome.
+ *
+ * @see There are several related comparison functions for genomic loci. See locus_compare(),
+ * locus_equal(), locus_inequal(), locus_less(), locus_greater(), locus_less_or_equal(), and
+ * locus_greater_or_equal().
  */
 inline bool locus_inequal(
     std::string const& l_chromosome, size_t l_position,
@@ -402,6 +414,10 @@ inline bool operator != ( GenomeLocus const& l, GenomeLocus const& r )
  * @brief Less than comparison (`<`) for two loci in a genome.
  *
  * See locus_compare() for notes on the chromosome comparison order and the available overloads.
+ *
+ * @see There are several related comparison functions for genomic loci. See locus_compare(),
+ * locus_equal(), locus_inequal(), locus_less(), locus_greater(), locus_less_or_equal(), and
+ * locus_greater_or_equal().
  */
 inline bool locus_less(
     std::string const& l_chromosome, size_t l_position,
