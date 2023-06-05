@@ -36,10 +36,12 @@
 #include "genesis/population/functions/genome_locus.hpp"
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/population/variant.hpp"
+#include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/utils/containers/optional.hpp"
 
 #include <cassert>
 #include <functional>
+#include <memory>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -57,7 +59,7 @@ namespace population {
  * @brief Iterate multiple input sources that yield Variant%s in parallel.
  *
  * This iterator allows to traverse multiple sources of data in parallel, where each stop of the
- * traversal is a Locus in the input sources.
+ * traversal is a locus in the input sources.
  * Using @link VariantParallelInputIterator::ContributionType ContributionType@endlink,
  * one can select the contribution of loci of each input, that is, whether all its loci get used,
  * or just the ones that also overlap with other input sources. See also
@@ -77,7 +79,8 @@ namespace population {
  * also available from the iterator itself, one can access additional information about the
  * underlying iterators, such as the file name and sample names that are being read.
  * This is particularly useful if input sources are added as in the example below, where we use
- * functions such as make_variant_input_iterator_from_pileup_file() to get access to the files,
+ * functions such as make_variant_input_iterator_from_pileup_file(), and the related
+ * `make_variant_input_iterator_from_...()` set of functions, to get access to the files,
  * which encapsulate and hence would otherwise hide this information from us.
  * See VariantInputIteratorData for the data structure that is used to store these
  * additional information, and see VariantInputIterator for details on the underlying iterator.
@@ -127,6 +130,17 @@ namespace population {
  *
  * See the VariantParallelInputIterator::Iterator class for details on access to the data
  * during traversal.
+ *
+ * By default, we expect the chromosomes of the underlying input sources to be sorted
+ * lexicographically. However, this might not always be the case. In order to allow any (fixed)
+ * order, a @link ::genesis::sequence::SequenceDict SequenceDict@endlink can be provided via
+ * sequence_dict(). When provided, the chromosomes of the input sources are expected to follow
+ * the order as specificied by that dictionary. See also locus_compare() and related locus
+ * comparison functions for more details on locus sorting order.
+ *
+ * Note also that we allow input sources to not contain data at all chromosomes. That is, as long as
+ * they are in the correct order (either lexicographical, or according to the sequence dictionary),
+ * input sources do not need to contain all chromsomes.
  */
 class VariantParallelInputIterator
 {
@@ -705,6 +719,38 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Sequence Dict
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Get the currently set sequence dictionary used for the chromosome sorting order.
+     */
+    std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict() const
+    {
+        return sequence_dict_;
+    }
+
+    /**
+     * @brief Set a sequence dictionary to be used for the chromosome order.
+     *
+     * By default, we assume chromosomes to be sorted in lexicographical order. This might not
+     * always be the case with input data.
+     * When setting a @link ::genesis::sequence::SequenceDict SequenceDict@endlink here, the order
+     * as given by that dictionary is used instead. Then, chromosomes in the underlying input
+     * sources have to be sorted with respect to that.
+     *
+     * To un-set the dictionary, simply call this function with a `nullptr`.
+     *
+     * @see See also locus_compare() and the related locus comparison functions for more details
+     * on locus sorting order.
+     */
+    self_type& sequence_dict( std::shared_ptr<genesis::sequence::SequenceDict> value )
+    {
+        sequence_dict_ = value;
+        return *this;
+    }
+
+    // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
@@ -723,6 +769,11 @@ private:
     // always results in a sorted container, without having to re-sort every time.
     // This again has a bit of a higher memory impact, but that should be okay for now.
     std::set<GenomeLocus> carrying_loci_;
+
+    // Keep a sequence dictionary for the order of chromosomes. If not provided, we assume
+    // chromosomes are sorted lexicographically. If provided however, the order as specified
+    // by the dictionary is expected of the input sources instead.
+    std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict_;
 
 };
 

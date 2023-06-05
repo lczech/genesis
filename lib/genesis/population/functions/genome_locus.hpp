@@ -251,17 +251,21 @@ inline int locus_compare(
     std::string const& r_chromosome, size_t r_position,
     ::genesis::sequence::SequenceDict const& sequence_dict
 ) {
-    // Here, we do not want to compare chromosome names directly, but instead their order
-    // in the given dict. So, we get their indices, and compare those.
+    // Here, we want to compare chromosome names order based on the given dict.
+    // However, string lookup is a bit expensive, so we first do a quick check for equality,
+    // and only if they are not equal, we get their indices, and compare those.
+    if( l_chromosome == r_chromosome ) {
+        // For identical chromosomes, we compare the positions.
+        return utils::compare_threeway( l_position, r_position );
+    }
+
+    // Here, we know the chromosomes are different, so we compare their indices.
+    // No need to compare the positions here again. We assert that they are indeed different.
     auto const l_chr_idx = sequence_dict.index_of( l_chromosome );
     auto const r_chr_idx = sequence_dict.index_of( r_chromosome );
     auto const chr_cmp = utils::compare_threeway( l_chr_idx, r_chr_idx );
-    if( chr_cmp != 0 ) {
-        return chr_cmp;
-    }
-    assert( l_chromosome == r_chromosome );
-    assert( l_chr_idx == r_chr_idx );
-    return utils::compare_threeway( l_position, r_position );
+    assert( chr_cmp != 0 );
+    return chr_cmp;
 }
 
 // Add all other overloads for GenomeLocus and SequenceDict combinations.
@@ -423,9 +427,19 @@ inline bool locus_less(
     ::genesis::sequence::SequenceDict const& sequence_dict
 ) {
     // Same logic as above, but using chromosome indices in the dict, instead of their names.
+    // We also apply the speedup of the locus_compare(), by first checking the strings for
+    // equality, before doing the expensive index lookup in the dict.
+    if( l_chromosome == r_chromosome ) {
+        // For identical chromosomes, we compare the positions.
+        return l_position < r_position;
+    }
+
+    // Here, we know the chromosomes are different, so we compare their indices.
+    // No need to compare the positions here again. We assert that they are indeed different.
     auto const l_chr_idx = sequence_dict.index_of( l_chromosome );
     auto const r_chr_idx = sequence_dict.index_of( r_chromosome );
-    return l_chr_idx < r_chr_idx || ( l_chr_idx == r_chr_idx && l_position < r_position );
+    assert( l_chr_idx != r_chr_idx );
+    return l_chr_idx < r_chr_idx;
 }
 
 // Add all other overloads for GenomeLocus and SequenceDict combinations.
@@ -505,10 +519,14 @@ inline bool locus_less_or_equal(
     std::string const& r_chromosome, size_t r_position,
     ::genesis::sequence::SequenceDict const& sequence_dict
 ) {
-    // Same logic as above, but using chromosome indices in the dict, instead of their names.
+    // Same logic as in locus_less. See there for details.
+    if( l_chromosome == r_chromosome ) {
+        return l_position <= r_position;
+    }
     auto const l_chr_idx = sequence_dict.index_of( l_chromosome );
     auto const r_chr_idx = sequence_dict.index_of( r_chromosome );
-    return l_chr_idx < r_chr_idx || ( l_chr_idx == r_chr_idx && l_position <= r_position );
+    assert( l_chr_idx != r_chr_idx );
+    return l_chr_idx < r_chr_idx;
 }
 
 // Add all other overloads for GenomeLocus and SequenceDict combinations.
