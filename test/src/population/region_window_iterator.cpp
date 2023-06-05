@@ -40,6 +40,7 @@
 #include "genesis/utils/math/random.hpp"
 #include "genesis/utils/text/string.hpp"
 
+#include <cassert>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
