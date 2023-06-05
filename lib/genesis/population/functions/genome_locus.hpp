@@ -33,8 +33,10 @@
 
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
+#include "genesis/utils/math/common.hpp"
 
 #include <cassert>
+#include <cstring>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -197,23 +199,25 @@ inline std::ostream& operator << ( std::ostream& os, GenomeLocus const& locus )
  * @brief Three-way comparison (spaceship operator `<=>`) for two loci in a genome.
  *
  * We generally compare loci based on their chromosome first, and then,
- * if both chromosomes are identicaly, based on their position within that chromosome.
- * The comparison returns `-1` if the left locus is before the right locus,
- * `+1` for the opposite, and `0` if the two loci are equal.
+ * if both chromosomes are identical, based on their position within that chromosome.
+ * The comparison returns a value `< 0` if the left locus is before the right locus,
+ * a value `> 0` if the right locus is before the left locus, and `0` if the two loci are equal.
  *
  * We offer several overloads of this function:
  *
  *   - The two loci that we want to compare can be provided either as GenomeLocus instances,
  *     or as a `std::string` for the chromosome, and a `size_t` for the position. There are
  *     overloads for every combination of those two ways of specifying loci.
- *   - Furthermore, in overloads that do not provide a
- *     @link ::genesis::sequence::SequenceDict SequenceDict@endlink,
- *     chromosome names are expected to be sorted in lexicographical order, hence, two loci on
- *     different chromosomes will first compare the ordering of their chromosome names
- *     lexicographically, and then (if identical) compare the positions.
+ *     This makes the functions convenient to use in algorithms where not all loci are stored as
+ *     a GenomeLocus instance.
+ *   - The basic overloads simply take the two loci. In these, chromosome names are expected
+ *     to be sorted in lexicographical order, hence, two loci on different chromosomes will
+ *     first compare the ordering of their chromosome names lexicographically, and then
+ *     (if identical) compare the positions.
  *   - In overloads that take a @link ::genesis::sequence::SequenceDict SequenceDict@endlink,
- *     chromosome names are not compared lexicographically, but instead by the order as given by
- *     the SequenceDict.
+ *     chromosome names are not compared lexicographically however, but instead by the order as
+ *     given by the SequenceDict. This allows custom ordering of chromosomes, in siutations where
+ *     an ordering of loci is needed that differs from lexicographical.
  *   - The SequenceDict can either be provided by reference, or as a `std::shared_ptr`. In the
  *     latter case, it is only used when the pointer is valid; otherwise, the overload without
  *     SequenceDict is used instead. This is meant as a simplification for situations where
@@ -229,22 +233,14 @@ inline int locus_compare(
     std::string const& l_chromosome, size_t l_position,
     std::string const& r_chromosome, size_t r_position
 ) {
-    // This is a lot of branching. Maybe there is a smarter way. Good enough for now though,
-    // and let's hope the compiler optimizes this for us a little bit.
-    if( l_chromosome < r_chromosome ) {
-        return -1;
-    } else if( l_chromosome > r_chromosome ) {
-        return +1;
-    } else {
-        assert( l_chromosome == r_chromosome );
-        if( l_position < r_position ) {
-            return -1;
-        } else if( l_position > r_position ) {
-            return +1;
-        }
+    // We compare the chromsomes with strcmp, so that we only run the relatively expensive string
+    // comparison once, and then check the result - if equal, do the threeway position comparison.
+    auto const chr_cmp = std::strcmp( l_chromosome.c_str(), r_chromosome.c_str() );
+    if( chr_cmp != 0 ) {
+        return chr_cmp;
     }
-    assert( l_position == r_position );
-    return 0;
+    assert( l_chromosome == r_chromosome );
+    return utils::compare_threeway( l_position, r_position );
 }
 
 /**
@@ -259,21 +255,13 @@ inline int locus_compare(
     // in the given dict. So, we get their indices, and compare those.
     auto const l_chr_idx = sequence_dict.index_of( l_chromosome );
     auto const r_chr_idx = sequence_dict.index_of( r_chromosome );
-    if( l_chr_idx < r_chr_idx ) {
-        return -1;
-    } else if( l_chr_idx > r_chr_idx ) {
-        return +1;
-    } else {
-        assert( l_chromosome == r_chromosome );
-        assert( l_chr_idx == r_chr_idx );
-        if( l_position < r_position ) {
-            return -1;
-        } else if( l_position > r_position ) {
-            return +1;
-        }
+    auto const chr_cmp = utils::compare_threeway( l_chr_idx, r_chr_idx );
+    if( chr_cmp != 0 ) {
+        return chr_cmp;
     }
-    assert( l_position == r_position );
-    return 0;
+    assert( l_chromosome == r_chromosome );
+    assert( l_chr_idx == r_chr_idx );
+    return utils::compare_threeway( l_position, r_position );
 }
 
 // Add all other overloads for GenomeLocus and SequenceDict combinations.
