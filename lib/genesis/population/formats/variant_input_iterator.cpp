@@ -468,10 +468,15 @@ VariantInputIterator make_variant_input_iterator_from_vcf_file_(
     bool only_biallelic,
     bool only_filter_pass
 ) {
+    // We do not expect order by default here. Just to keep it simple. If needed, activate again.
+    const bool expect_ordered = false;
+
     // Make an iterator over vcf, and check that the necessary format field AD is present
     // and of the correct form. We wrap this in a shared pointer so that this very instance
     // can stay alive when being copied over to the lambda that we return from this function.
-    auto input = std::make_shared<VcfInputIterator>( filename, sample_names, inverse_sample_names );
+    auto input = std::make_shared<VcfInputIterator>(
+        filename, sample_names, inverse_sample_names, expect_ordered
+    );
     if(
         use_allelic_depth &&
         ! input->header().has_format( "AD", VcfValueType::kInteger, VcfValueSpecial::kReference )

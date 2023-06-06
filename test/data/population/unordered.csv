@@ -1,0 +1,9 @@
+chr	pos	ref	alt	S1.ref_cnt	S1.alt_cnt	S2.ref_cnt	S2.alt_cnt
+XYZ	1	T	C	5	0	10	5
+XYZ	5	C	G	8	2	12	6
+XYZ	10	T	C	0	0	10	5
+XYZ	15	T	C	1	0	0	4
+ABC	1	T	C	5	0	10	5
+ABC	5	C	G	8	2	12	6
+ABC	10	T	C	0	0	10	5
+ABC	15	T	C	1	0	0	4
