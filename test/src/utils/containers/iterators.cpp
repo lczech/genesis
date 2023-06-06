@@ -208,17 +208,20 @@ TEST( Containers, FilterIterator )
 
 void test_lambda_iterator_( size_t num_elements, size_t block_size )
 {
-    // LOG_DBG << "num_elements " << num_elements << ", block_size " << block_size;
+    LOG_DBG << "num_elements " << num_elements << ", block_size " << block_size;
 
-    // Create data and get correct sum. Could be done with Gauss. Too lazy to look it up now.
+    // Create data as sequence of numbers, and get their sum.
+    // Could be done with Gauss. Too lazy to look it up now.
     std::vector<size_t> data( num_elements );
     std::iota( data.begin(), data.end(), 0 );
     auto expected_sum = std::accumulate( data.begin(), data.end(), size_t{0} );
 
+    using NumberLambdaIterator = LambdaIterator<size_t>;
+
     // Set up the LambdaIterator.
     auto beg = data.begin();
     auto end = data.end();
-    auto generator = LambdaIterator<size_t>(
+    auto generator = NumberLambdaIterator(
         [beg, end]( size_t& value ) mutable {
             if( beg != end ) {
                 value = *beg;
@@ -230,17 +233,37 @@ void test_lambda_iterator_( size_t num_elements, size_t block_size )
         }, {}, block_size
     );
 
-    // Also add a visitor, doing the same thing, to test their behaviour as well.
+    // Result variables.
     size_t visitor_sum = 0;
+    size_t loop_sum = 0;
+
+    // Also add a visitor, doing the same thing, to test their behaviour as well.
     generator.add_visitor(
         [&visitor_sum]( size_t elem ){
             visitor_sum += elem;
         }
     );
 
+    // Add begin and end callbacks, in which we test that the calcuated sums are 0 in the beginning,
+    // and the correct sum in the end.
+    generator.add_begin_callback(
+        [&]( NumberLambdaIterator const& ){
+            LOG_DBG << "begin";
+            EXPECT_EQ( 0, loop_sum );
+            EXPECT_EQ( 0, visitor_sum );
+        }
+    );
+        generator.add_end_callback(
+        [&]( NumberLambdaIterator const& ){
+            LOG_DBG << "end";
+            EXPECT_EQ( expected_sum, loop_sum );
+            EXPECT_EQ( expected_sum, visitor_sum );
+        }
+    );
+
     // Run the iteration and check that it matches our expectation.
-    size_t loop_sum = 0;
     for( auto const& it : generator ) {
+        LOG_DBG << "at " << it;
         loop_sum += it;
     }
     EXPECT_EQ( expected_sum, loop_sum );
@@ -251,6 +274,10 @@ TEST( Containers, LambdaIterator )
 {
     // We test several cases here, for example where the block size is exactly the number of
     // elements, or a divisor of it, or off by one, or more than the number, etc...
+
+    // For the duration of the test, we deactivate debug logging.
+    // But if needed, comment this line out, and each test will report its input.
+    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
 
     // No elements
     test_lambda_iterator_( 0, 0 );
