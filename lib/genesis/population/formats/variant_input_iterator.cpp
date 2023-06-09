@@ -329,10 +329,14 @@ VariantInputIterator make_variant_input_iterator_from_sync_file_(
     data.file_path = filename;
     data.source_name = utils::file_basename( filename, { ".gz", ".sync" });
 
-    // No sample names in sync...
-    // so we just fill with empty names to indicate the number of samples.
-    for( size_t i = 0; i < (*input)->samples.size(); ++i ) {
-        data.sample_names.push_back( "" );
+    if( input->get_sample_names().size() > 0 ) {
+        // If we have sample names, using our ad-hoc extension, use these.
+        data.sample_names = input->get_sample_names();
+    } else {
+        // No sample names given, so we just fill with empty names to indicate the number of samples.
+        for( size_t i = 0; i < (*input)->samples.size(); ++i ) {
+            data.sample_names.push_back( "" );
+        }
     }
 
     // The input is copied over to the lambda, and that copy is kept alive

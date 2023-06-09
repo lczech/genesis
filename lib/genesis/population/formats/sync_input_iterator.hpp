@@ -107,6 +107,14 @@ public:
         : input_stream_( std::make_shared<utils::InputStream>( source ))
         , reader_( reader )
     {
+        // Read the header line, if present. If not, this does nothing.
+        // Then, we use the number of sample names that we found to resize the variant that
+        // we read into. If there was no header, this will not do anything, so that the sync reader
+        // will resize by using the size of the first line instead.
+        // We init the size here with the header, which could also be 0, which would be okay.
+        sample_names_ = reader_.read_header( *input_stream_ );
+        sample_size_ = sample_names_.size();
+
         // Read the first record of the file.
         increment();
     }
@@ -126,7 +134,9 @@ public:
         , sample_filter_( sample_filter )
         , use_sample_filter_( true )
     {
-        // Read the first record of the file.
+        // Same as above.
+        sample_names_ = reader_.read_header( *input_stream_, sample_filter_ );
+        sample_size_ = sample_names_.size();
         increment();
     }
 
@@ -158,6 +168,11 @@ public:
     // -------------------------------------------------------------------------
     //     Accessors
     // -------------------------------------------------------------------------
+
+    std::vector<std::string> const& get_sample_names() const
+    {
+        return sample_names_;
+    }
 
     Variant const& variant() const
     {
@@ -207,29 +222,29 @@ public:
 
     void increment()
     {
-        // Read into temp object, so that we have the previous one still available.
-        // Same logic as SimplePileupInputIterator<Variant>::increment_(), see there for details.
-        Variant tmp;
-        tmp.samples.resize( variant_.samples.size() );
-        if( use_sample_filter_ ) {
-            good_ = reader_.parse_line( *input_stream_, tmp, sample_filter_ );
-        } else {
-            good_ = reader_.parse_line( *input_stream_, tmp );
-        }
+        // We don't do any order checks here (for example, on the order of the input),
+        // and leave that to downstream checkers that might want to add this on top.
+        // NB: We used to have a check here, by reading into a temp instance first,
+        // and checking if the chromosome and position order was working.
+        // But this did not work as intended when this iterator/reader here was used with
+        // make_variant_input_iterator_from_sync_file(), as in that case, the chromosome name
+        // is moved out of the Variant, so that we would always test against an empty moved-from
+        // chromosome name, which would just never fail, and so completely miss its purpose.
+        // Now, we don't do that check any more, but if we bring back that step from old commits,
+        // be aware that it did not work as intended.
 
-        // Make sure that the input is sorted.
-        if( good_ &&
-            (
-                ( tmp.chromosome  < variant_.chromosome ) ||
-                ( tmp.chromosome == variant_.chromosome && tmp.position <= variant_.position )
-            )
-        ) {
-            throw std::runtime_error(
-                "Malformed sync " + input_stream_->source_name() + " at " + input_stream_->at() +
-                ": unordered chromosomes and positions"
-            );
+        // We set the size here, so that the reader checks the correct sample size every time.
+        // We need to reset, as the Variant might be moved-from when we get here,
+        // as for example the make_variant_input_iterator_from_sync_file() iterator does that.
+        // We then also set that size again after we are done - as a means of initializing
+        // it in the first iteration, in case that there was no header that already did that.
+        variant_.samples.resize( sample_size_ );
+        if( use_sample_filter_ ) {
+            good_ = reader_.parse_line( *input_stream_, variant_, sample_filter_ );
+        } else {
+            good_ = reader_.parse_line( *input_stream_, variant_ );
         }
-        variant_ = std::move( tmp );
+        sample_size_ = variant_.samples.size();
     }
 
     bool operator==( self_type const& it ) const
@@ -253,8 +268,10 @@ private:
     std::shared_ptr<utils::InputStream> input_stream_;
 
     // Reading into variants
-    Variant variant_;
     SyncReader reader_;
+    std::vector<std::string> sample_names_;
+    size_t sample_size_ = 0;
+    Variant variant_;
 
     // Sample filtering
     std::vector<bool> sample_filter_;

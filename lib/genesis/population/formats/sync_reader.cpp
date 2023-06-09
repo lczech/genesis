@@ -34,6 +34,7 @@
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
 #include "genesis/utils/text/char.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <cassert>
 #include <cstdint>
@@ -46,25 +47,68 @@ namespace population {
 //     Reading & Parsing
 // =================================================================================================
 
-/**
- * @brief Local helper function to remove code duplication for the correct input order check.
- */
-void process_sync_correct_input_order_(
-    utils::InputStream const& it,
-    std::string& cur_chr, size_t& cur_pos,
-    Variant const& new_var
-) {
-    if(
-        ( new_var.chromosome  < cur_chr ) ||
-        ( new_var.chromosome == cur_chr && new_var.position <= cur_pos )
-    ) {
+// -------------------------------------------------------------------------
+//     read_header
+// -------------------------------------------------------------------------
+
+std::vector<std::string> SyncReader::read_header(
+    utils::InputStream& input_stream
+) const {
+    // Check that there is a header; if not, we just leave again, without any sample names.
+    std::vector<std::string> result;
+    auto& it = input_stream;
+    if( !it || *it != '#' ) {
+        return result;
+    }
+
+    // Move to the content, potentially skipping a tab there.
+    ++it;
+    if( it && *it == '\t' ) {
+        ++it;
+    }
+
+    // Now we can read the rest of the line, and for simplicity just split later.
+    // Check that the fixed columns are there as expected.
+    result = utils::split( it.get_line() );
+    if( result.size() < 3 || result[0] != "chr" || result[1] != "pos" || result[2] != "ref" ) {
         throw std::runtime_error(
-            "Malformed sync " + it.source_name() + " at " + it.at() +
-            ": unordered chromosomes and positions"
+            "Malformed sync " + it.source_name() + ": Header row provided (starting with '#'), " +
+            "but the first three entries are not \"chr\", \"pos\", \"ref\"."
         );
     }
-    cur_chr = new_var.chromosome;
-    cur_pos = new_var.position;
+    result.erase( result.begin(), result.begin() + 3 );
+    return result;
+}
+
+std::vector<std::string> SyncReader::read_header(
+    utils::InputStream& input_stream,
+    std::vector<bool> const& sample_filter
+) const {
+    // The header only has to be read once, so we do not need to be overly efficient here.
+    // Simply call the unfiltered function, and then subset later;
+    // no need to replicate the parsing code here.
+    std::vector<std::string> result;
+    auto all_sample_names = read_header( input_stream );
+    if( all_sample_names.empty() ) {
+        return result;
+    }
+
+    // Now subset to the entries that we actually want.
+    if( sample_filter.size() != all_sample_names.size() ) {
+        throw std::runtime_error(
+            "Malformed sync " + input_stream.source_name() +
+            ": Number of sample names in header (" +
+            std::to_string( all_sample_names.size() ) +
+            ") does not match number of samples in filter (" +
+            std::to_string( sample_filter.size() ) + ")"
+        );
+    }
+    for( size_t i = 0; i < sample_filter.size(); ++i ) {
+        if( sample_filter[i] ) {
+            result.push_back( all_sample_names[i] );
+        }
+    }
+    return result;
 }
 
 // -------------------------------------------------------------------------
@@ -77,14 +121,14 @@ std::vector<Variant> SyncReader::read(
     std::vector<Variant> result;
     utils::InputStream it( source );
 
-    // Read, with correct order check, just in case.
-    std::string cur_chr = "";
-    size_t      cur_pos = 0;
+    // Potentially read the header (and discard it, as our Variant does not store sample names).
+    read_header( it );
+
+    // Read until end of input, pushing copies into the result
+    // (moving would not reduce the number of times that we need to allocate memory here).
     Variant variant;
     while( parse_line_( it, variant, {}, false )) {
-        process_sync_correct_input_order_( it, cur_chr, cur_pos, variant );
-        result.push_back( std::move( variant ));
-        variant = Variant{};
+        result.push_back( variant );
     }
     return result;
 }
@@ -96,14 +140,13 @@ std::vector<Variant> SyncReader::read(
     std::vector<Variant> result;
     utils::InputStream it( source );
 
-    // Read, with correct order check, just in case.
-    std::string cur_chr = "";
-    size_t      cur_pos = 0;
+    // Potentially read the header (and discard it, as our Variant does not store sample names).
+    read_header( it, sample_filter );
+
+    // Read until end of input
     Variant variant;
     while( parse_line_( it, variant, sample_filter, true )) {
-        process_sync_correct_input_order_( it, cur_chr, cur_pos, variant );
-        result.push_back( std::move( variant ));
-        variant = Variant{};
+        result.push_back( variant );
     }
     return result;
 }
@@ -202,13 +245,15 @@ bool SyncReader::parse_line_(
         // and one for the samples that we are writing in our Variant (destination).
         size_t dst_index = 0;
         while( it && *it != '\n' ) {
-            // If the numbers do not match, go straight to the error check and throw.
-            if( dst_index >= variant.samples.size() ) {
-                break;
-            }
-
             // Parse or skip, depending on filter.
-            if( !use_sample_filter || ( src_index < sample_filter.size() && sample_filter[src_index] )) {
+            if(
+                ( ! use_sample_filter ) ||
+                ( src_index < sample_filter.size() && sample_filter[src_index] )
+            ) {
+                // If the numbers do not match, go straight to the error check and throw.
+                if( dst_index >= variant.samples.size() ) {
+                    break;
+                }
                 assert( dst_index < variant.samples.size() );
                 parse_sample_( it, variant.samples[dst_index] );
                 ++dst_index;
@@ -222,14 +267,18 @@ bool SyncReader::parse_line_(
         if( dst_index != variant.samples.size() ) {
             throw std::runtime_error(
                 "Malformed sync " + it.source_name() + " at " + it.at() +
-                ": Line with different number of samples."
+                ": Line with different number of samples. Expecting " +
+                std::to_string( variant.samples.size() ) + " samples based on previous lines, "
+                "but found " + std::to_string( dst_index ) + " (non-filtered) samples."
             );
         }
     }
     if( use_sample_filter && src_index != sample_filter.size() ) {
         throw std::runtime_error(
             "Malformed sync " + it.source_name() + " at " + it.at() +
-            ": Number of samples in the line does not match the number of filter entries."
+            ": Number of samples in the line (" + std::to_string( src_index ) +
+            ") does not match the number of filter entries (" +
+            std::to_string( sample_filter.size() ) + ")."
         );
     }
 
@@ -316,16 +365,16 @@ void SyncReader::parse_sample_gcc_intrinsic_(
         // http://graphics.stanford.edu/~seander/bithacks.html#HasLessInWord
         // http://graphics.stanford.edu/~seander/bithacks.html#HasMoreInWord
         auto const zero = static_cast<uint64_t>(0);
-        #define hasless(x,n) (((x)-~zero/255*(n))&~(x)&~zero/255*128)
-        #define hasmore(x,n) ((((x)+~zero/255*(127-(n)))|(x))&~zero/255*128)
+        #define genesis_sync_reader_hasless(x,n) (((x)-~zero/255*(n))&~(x)&~zero/255*128)
+        #define genesis_sync_reader_hasmore(x,n) ((((x)+~zero/255*(127-(n)))|(x))&~zero/255*128)
 
         // Get all positions that are not digits, by marking a bit in their respective byte.
-        auto const l = hasless( chunk.data, '0' );
-        auto const m = hasmore( chunk.data, '9' );
+        auto const l = genesis_sync_reader_hasless( chunk.data, '0' );
+        auto const m = genesis_sync_reader_hasmore( chunk.data, '9' );
         auto const p = l | m;
 
-        #undef hasless
-        #undef hasmore
+        #undef genesis_sync_reader_hasless
+        #undef genesis_sync_reader_hasmore
 
         // Find the index of the first byte that is not a digit.
         // The length is stored plus one here, due to how __builtin_ffs works. We need this later
