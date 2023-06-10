@@ -33,6 +33,9 @@
 
 #include "genesis/sequence/sequence.hpp"
 
+#include "genesis/utils/text/char.hpp"
+#include "genesis/utils/text/string.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <stdexcept>
@@ -54,6 +57,8 @@ namespace sequence {
  * Currently, we only store the sequence names and their lengths, in the order as provided in the
  * input file. We might add further information such as offset in the fasta file in the future,
  * once we offer to read with jumps in fasta files.
+ *
+ * @see ReferenceGenome
  */
 class SequenceDict
 {
@@ -88,25 +93,50 @@ public:
     //     Modifiers
     // -------------------------------------------------------------------------
 
-    void add( Sequence const& sequence )
+    /**
+     * @brief Add a Sequence to the dictionary.
+     *
+     * @copydetails add( Entry&&, bool )
+     */
+    void add( Sequence const& sequence, bool also_look_up_first_word = true )
     {
-        add( sequence.label(), sequence.length() );
+        add( sequence.label(), sequence.length(), also_look_up_first_word );
     }
 
-    void add( std::string const& name, size_t length )
+    /**
+     * @brief Add an entry to the dictionary, given its name and length.
+     *
+     * @copydetails add( Entry&&, bool )
+     */
+    void add( std::string const& name, size_t length, bool also_look_up_first_word = true )
     {
         Entry e;
         e.name = name;
         e.length = length;
-        add( std::move( e ));
+        add( std::move( e ), also_look_up_first_word );
     }
 
-    void add( Entry const& entry )
+    /**
+     * @brief Add an entry to the dictionary.
+     *
+     * @copydetails add( Entry&&, bool )
+     */
+    void add( Entry const& entry, bool also_look_up_first_word = true )
     {
-        add( Entry{ entry });
+        add( Entry{ entry }, also_look_up_first_word);
     }
 
-    void add( Entry&& entry )
+    /**
+     * @brief Add an entry to the dictionary.
+     *
+     * If @p also_look_up_first_word is set (true by default), we add an additional look up name for
+     * the added sequence:
+     * In addition to its full name, it can also be looked up with just the first word, that is,
+     * until the first tab or space character, in case there are any, as this is what typical fasta
+     * indexing tools also seem to do. The sequence is still stored with its original name though,
+     * and just that additional lookup is added for using find() or get().
+     */
+    void add( Entry&& entry, bool also_look_up_first_word = true )
     {
         // Check for duplicates. As we are using the unordered map for indicies anyway,
         // we can just rely on that, and do not have to check the vector again.
@@ -115,13 +145,32 @@ public:
                 "Cannot add duplicate sequence name \"" + entry.name + "\" to SequenceDict."
             );
         }
+        assert( indices_.count( entry.name ) == 0 );
 
-        // We first create the index map entry, making a copy of the name key (which the map needs
-        // to make anyway), but then can move the string to the entries, for efficiency.
+        // Do the same for the first-word form as well. We always compute the label here,
+        // even if not used later, so that we can do the check before actually modifying our content.
+        // Slightly cleaner that way.
+        auto const label2 = utils::split( entry.name, "\t " )[0];
+        if( also_look_up_first_word && indices_.count( label2 ) > 0 ) {
+            throw std::runtime_error(
+                "Cannot add duplicate sequence name \"" + label2 + "\" to SequenceDict, "
+                "which is the shortened version of the original name \"" + entry.name + "\"."
+            );
+        }
+
+        // We first create the index map entry, before adding the entry to the dict.
         // In that order, the index that we want to store in the map is the current size of the
-        // vector pre insertion.
+        // vector pre insertion. We do the same for the shortened name as well, if wanted.
         indices_[ entry.name ] = entries_.size();
-        entries_.push_back( std::move( entry ));
+        if( also_look_up_first_word ) {
+            indices_[ label2 ] = entries_.size();
+        }
+        entries_.push_back( entry );
+        assert( indices_.count( entry.name ) == 1 && indices_[ entry.name ] == entries_.size() - 1 );
+        assert(
+            ! also_look_up_first_word ||
+            ( indices_.count( label2 ) == 1 && indices_[ label2 ] == entries_.size() - 1 )
+        );
     }
 
     void clear()
