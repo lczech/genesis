@@ -34,6 +34,7 @@
 #include "genesis/population/variant.hpp"
 #include "genesis/utils/core/thread_pool.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <memory>
 #include <stdexcept>
@@ -219,6 +220,8 @@ public:
             assert( calc );
             calc->reset();
         }
+        std::fill( results_.begin(), results_.end(), 0 );
+        processed_count_ = 0;
     }
 
     void process( Variant const& variant )
@@ -255,6 +258,7 @@ public:
                 process_(i);
             }
         }
+        ++processed_count_;
     }
 
     std::vector<double> const& get_result()
@@ -264,6 +268,16 @@ public:
             results_[i] = calculators_[i]->get_result();
         }
         return results_;
+    }
+
+    size_t processed_count() const
+    {
+        return processed_count_;
+    }
+
+    std::vector<std::unique_ptr<BaseFstPoolCalculator>> const& calculators() const
+    {
+        return calculators_;
     }
 
     // -------------------------------------------------------------------------
@@ -277,6 +291,9 @@ private:
     std::vector<std::pair<size_t, size_t>> sample_pairs_;
     std::vector<std::unique_ptr<BaseFstPoolCalculator>> calculators_;
     std::vector<double> results_;
+
+    // Count how many Variants were processed in this processor.
+    size_t processed_count_ = 0;
 
     // Thread pool to run the buffering in the background, and the size (number of sample pairs)
     // at which we start using the thread pool.
