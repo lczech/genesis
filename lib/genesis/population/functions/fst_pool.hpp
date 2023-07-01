@@ -261,7 +261,7 @@ public:
         ++processed_count_;
     }
 
-    std::vector<double> const& get_result()
+    std::vector<double> const& get_result() const
     {
         assert( results_.size() == calculators_.size() );
         for( size_t i = 0; i < results_.size(); ++i ) {
@@ -290,7 +290,7 @@ private:
     // the processors to use for these computations, as well as the resulting values for caching.
     std::vector<std::pair<size_t, size_t>> sample_pairs_;
     std::vector<std::unique_ptr<BaseFstPoolCalculator>> calculators_;
-    std::vector<double> results_;
+    mutable std::vector<double> results_;
 
     // Count how many Variants were processed in this processor.
     size_t processed_count_ = 0;
