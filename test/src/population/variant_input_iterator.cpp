@@ -845,6 +845,8 @@ TEST( VariantInputIterator, MakeSampleFilter )
     EXPECT_ANY_THROW( make_sample_filter({ "A", "B" }, { "A", "A" }));
 }
 
+#ifdef GENESIS_HTSLIB
+
 TEST( VariantInputIterator, SampleFilter )
 {
     // Skip test if no data availabe.
@@ -919,3 +921,5 @@ TEST( VariantInputIterator, SampleFilter )
         );
     }
 }
+
+#endif // GENESIS_HTSLIB
