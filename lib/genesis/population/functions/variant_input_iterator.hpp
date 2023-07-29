@@ -48,7 +48,46 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Variant Input Interator Helper Functions
+//     Transforms & Filters
+// =================================================================================================
+
+/**
+ * @brief Create a filter for samples, indicating which to keep.
+ *
+ * The resulting bool vector has the same length as the input @p sample_names vector,
+ * and is `true` for all samples that are meant to be kept, and `false` otherwise.
+ * By default, with `inverse_filter == false`, sample names that are in the @p names_filter are
+ * kept, and those that are not are not kept. With `inverse_filter == true`, this is reversed.
+ *
+ * The function also checks that @p sample_names and @p names_filter are unique (as otherwise
+ * the filtering might be wrong), and that the names in the @p names_filter actually appear in the
+ * @p sample_names.
+ */
+std::vector<bool> make_sample_filter(
+    std::vector<std::string> const& sample_names,
+    std::vector<std::string> const& names_filter,
+    bool inverse_filter = false
+);
+
+/**
+ * @brief Helper function to create a Variant transform to filter out samples.
+ *
+ * The function expects a bool vector indicating which samples within a Variant to keep.
+ * The vector needs to have the same length as the Variant has samples. It can be created for instance
+ * with make_sample_filter() based on sample names. However, as Variant does not store the names
+ * itself, those might need to be accessed from the VariantInputIterator data() function,
+ * which yields a VariantInputIteratorData object.
+ *
+ * Using this to filter samples by their name is likely somewhat slower than doing it direclty
+ * in the parsers, which we also offer. However, this way offers a unified and simple way to achieve
+ * the filtering, as it is applied down the line, and hence can be used on any VariantInputIterator.
+ */
+std::function<void(Variant&)> make_variant_input_iterator_sample_name_filter_transform(
+    std::vector<bool> const& sample_filter
+);
+
+// =================================================================================================
+//     Visitors
 // =================================================================================================
 
 /**
@@ -108,59 +147,10 @@ namespace population {
  * make_variant_input_iterator_from_individual_vcf_file(),
  * make_variant_input_iterator_from_variant_parallel_input_iterator()
  */
-inline std::function<void(Variant const&)> make_variant_input_iterator_sequence_order_visitor(
+std::function<void(Variant const&)> make_variant_input_iterator_sequence_order_visitor(
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = {},
     bool check_sequence_lengths = true
-) {
-    // We create copies of stuff here using lambda capture.
-    // Those will then live on once the lambda is in use.
-    GenomeLocus current_locus;
-    return [ sequence_dict, check_sequence_lengths, current_locus ]( Variant const& variant ) mutable {
-        // When a dict is provided, we need to take care of the special empty case for the chromosome
-        // name, which will happen in the very first time that this callback is used.
-        // The empty string won't be part of the dict chromosomes. For simplicity,
-        // we here always check that case. We later check that the variant itself does not have
-        // an empty chromsome name, in order to not regress to this starting condition.
-        if( ! current_locus.empty() ) {
-
-            // If a dict is provided, but the chromosome is not in there, the following check throws.
-            if( ! locus_greater( variant.chromosome, variant.position, current_locus, sequence_dict )) {
-                throw std::runtime_error(
-                    "Invalid sorting order of input Variants. By default, we expect lexicographical "
-                    "sorting of chromosomes, and then sorting by position within chromosomes. "
-                    "Alternatively, when a sequence dictionary is specified (such as from a .dict "
-                    "or .fai file, or from a reference genome .fasta file), we expect the order of "
-                    "chromosomes as specified there. "
-                    "Offending input going from " + to_string( current_locus ) + " to " +
-                    to_string( GenomeLocus{ variant.chromosome, variant.position })
-                );
-            }
-        }
-
-        // Now also check the length, potentially.
-        if( check_sequence_lengths && sequence_dict ) {
-            auto const& entry = sequence_dict->get( variant.chromosome );
-            if( variant.position > entry.length ) {
-                throw std::runtime_error(
-                    "The current position " +
-                    to_string( GenomeLocus{ variant.chromosome, variant.position }) +
-                    " of the input Variant is greater than the length of the chromosome "
-                    "as specified by the SequenceDict, which is " + std::to_string( entry.length )
-                );
-            }
-        }
-
-        // Finally, update the current locus according to the variant.
-        // We also check that the current variant is a valid, so that we do not run into
-        // the initial condition of an empty chromosome again.
-        current_locus = GenomeLocus( variant.chromosome, variant.position );
-        if( current_locus.chromosome.empty() || current_locus.position == 0 ) {
-            throw std::runtime_error(
-                "Invalid empty chromosome or position 0 found in input Variant."
-            );
-        }
-    };
-}
+);
 
 /**
  * @brief Helper function to check that some Variant input has positions that agree with those
@@ -172,22 +162,9 @@ inline std::function<void(Variant const&)> make_variant_input_iterator_sequence_
  *
  * See make_variant_input_iterator_sequence_order_visitor() for details on usage.
  */
-inline std::function<void(Variant const&)> make_variant_input_iterator_sequence_length_visitor(
+std::function<void(Variant const&)> make_variant_input_iterator_sequence_length_visitor(
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict
-) {
-    return [ sequence_dict ]( Variant const& variant ) {
-        // Assumes the chromosome is in the dict. If not, the get function throws.
-        auto const& entry = sequence_dict->get( variant.chromosome );
-        if( variant.position > entry.length ) {
-            throw std::runtime_error(
-                "The current position " +
-                to_string( GenomeLocus{ variant.chromosome, variant.position }) +
-                " of the input Variant is greater than the length of the chromosome "
-                "as specified by the SequenceDict, which is " + std::to_string( entry.length )
-            );
-        }
-    };
-}
+);
 
 } // namespace population
 } // namespace genesis

@@ -804,3 +804,118 @@ TEST( VariantInputIterator, UnorderedChromosomesVcf )
 }
 
 #endif // GENESIS_HTSLIB
+
+// =================================================================================================
+//     Sample Filter
+// =================================================================================================
+
+TEST( VariantInputIterator, MakeSampleFilter )
+{
+    auto sample_names = std::vector<std::string>{
+        "A", "B", "C", "D", "E", "F", "G", "H"
+    };
+    auto names_filter = std::vector<std::string>{
+        "C", "D", "G"
+    };
+
+    auto const f1 = make_sample_filter( sample_names, names_filter, false );
+    ASSERT_EQ( 8, f1.size() );
+    EXPECT_FALSE( f1[0] );
+    EXPECT_FALSE( f1[1] );
+    EXPECT_TRUE(  f1[2] );
+    EXPECT_TRUE(  f1[3] );
+    EXPECT_FALSE( f1[4] );
+    EXPECT_FALSE( f1[5] );
+    EXPECT_TRUE(  f1[6] );
+    EXPECT_FALSE( f1[7] );
+
+    auto const f2 = make_sample_filter( sample_names, names_filter, true );
+    ASSERT_EQ( 8, f2.size() );
+    EXPECT_TRUE(  f2[0] );
+    EXPECT_TRUE(  f2[1] );
+    EXPECT_FALSE( f2[2] );
+    EXPECT_FALSE( f2[3] );
+    EXPECT_TRUE(  f2[4] );
+    EXPECT_TRUE(  f2[5] );
+    EXPECT_FALSE( f2[6] );
+    EXPECT_TRUE(  f2[7] );
+
+    EXPECT_ANY_THROW( make_sample_filter({ "A", "B" }, { "X" }));
+    EXPECT_ANY_THROW( make_sample_filter({ "A", "A" }, { "A" }));
+    EXPECT_ANY_THROW( make_sample_filter({ "A", "B" }, { "A", "A" }));
+}
+
+TEST( VariantInputIterator, SampleFilter )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/example_ad.vcf";
+
+    // Sample names: NA00001 NA00002 NA00003
+
+    // Filter empty. No samples are there.
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        it.add_transform(
+            make_variant_input_iterator_sample_name_filter_transform(
+                make_sample_filter( it.data().sample_names, {}, false )
+            )
+        );
+        EXPECT_EQ( 0, it.begin()->samples.size() );
+    }
+
+    // Filter empty, inversed. All samples are there, as this is equivalent to no filtering.
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        it.add_transform(
+            make_variant_input_iterator_sample_name_filter_transform(
+                make_sample_filter( it.data().sample_names, {}, true )
+            )
+        );
+        EXPECT_EQ( 3, it.begin()->samples.size() );
+    }
+
+    // Filter NA00002.
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        it.add_transform(
+            make_variant_input_iterator_sample_name_filter_transform(
+                make_sample_filter( it.data().sample_names, { "NA00002" }, false )
+            )
+        );
+        EXPECT_EQ( 1, it.begin()->samples.size() );
+    }
+
+    // Filter NA00002, inversed. Two samples remain.
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        it.add_transform(
+            make_variant_input_iterator_sample_name_filter_transform(
+                make_sample_filter( it.data().sample_names, { "NA00002" }, true )
+            )
+        );
+        EXPECT_EQ( 2, it.begin()->samples.size() );
+    }
+
+    // Filter invalid.
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        EXPECT_ANY_THROW(
+            it.add_transform(
+                make_variant_input_iterator_sample_name_filter_transform(
+                    make_sample_filter( it.data().sample_names, { "XYZ" }, false )
+                )
+            );
+        );
+    }
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        EXPECT_ANY_THROW(
+            it.add_transform(
+                make_variant_input_iterator_sample_name_filter_transform(
+                    make_sample_filter( it.data().sample_names, { "XYZ" }, true )
+                )
+            );
+        );
+    }
+}
