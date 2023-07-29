@@ -95,9 +95,12 @@ struct VariantInputIteratorData
     /**
      * @brief Sample names, for example as found in the file header.
      *
-     * Not all input file formats contain sample names. In that case, this field is left empty,
-     * independent of the number of samples contained in the file. That means that downstream
-     * processing needs to check this if sample names are going to be used (e.g., for output).
+     * Not all input file formats contain sample names. In that case, this field might be left empty,
+     * or filled with names based on the source name and the number of samples contained in the file.
+     * That means that downstream processing needs to check this if sample names are going to be
+     * used (e.g., for output). The `make_variant_input_iterator_from_...()` functions for instance
+     * fill this list with names based on the source name, and a numbered list of samples, such as
+     * `file-1`.
      */
     std::vector<std::string> sample_names;
 };
@@ -400,15 +403,13 @@ VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
  *
  * As this is iterating multiple files, we leave the VariantInputIteratorData::file_path and
  * VariantInputIteratorData::source_name empty, and fill the VariantInputIteratorData::sample_names
- * with the sample names of the underlying input sources of the parallel iterator, using
- * their respective `source_name` as a prefix, separated by @p source_sample_separator,
- * for example `my_bam:S1` for a source file `/path/to/my_bam.bam` with a RG read group tag `S1`.
+ * with the sample names of the underlying input sources of the parallel iterator, checking
+ * for duplicates to avoid downstream trouble.
  */
 VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_iterator(
     VariantParallelInputIterator const& parallel_input,
     bool allow_ref_base_mismatches = false,
-    bool allow_alt_base_mismatches = true,
-    std::string const& source_sample_separator = ":"
+    bool allow_alt_base_mismatches = true
 );
 
 } // namespace population
