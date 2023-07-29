@@ -120,6 +120,22 @@ std::shared_ptr<T> make_input_iterator_with_sample_filter_(
     return input;
 }
 
+/**
+ * @brief Local helper to fill the sample names of file formats without sample names.
+ *
+ * We want to use a standardized format for that: the file base name, followed by consecutive
+ * numbers for each sample, separated by a character.
+ */
+std::vector<std::string> make_sample_name_list_( std::string const& source_name, size_t size )
+{
+    std::vector<std::string> result;
+    result.reserve( size );
+    for( size_t i = 0; i < size; ++i ) {
+        result.push_back( source_name + "." + std::to_string( i + 1 ));
+    }
+    return result;
+}
+
 // =================================================================================================
 //     vector
 // =================================================================================================
@@ -132,12 +148,9 @@ VariantInputIterator make_variant_input_iterator_from_vector(
     VariantInputIteratorData data;
     data.source_name = "std::vector";
 
-    // No sample names in a vector...
-    // so we just fill with empty names to indicate the number of samples.
+    // No sample names in a vector... so we just use numbered entries.
     if( ! variants.empty() ) {
-        for( size_t i = 0; i < variants[0].samples.size(); ++i ) {
-            data.sample_names.push_back( data.source_name + "-" + std::to_string( i + 1 ));
-        }
+        data.sample_names = make_sample_name_list_( data.source_name, variants[0].samples.size() );
     }
 
     // Get iterators to the data.
@@ -199,9 +212,7 @@ VariantInputIterator make_variant_input_iterator_from_sam_file(
         // Take this into account, and create as many empty (unnamed) samples as needed.
         // This cannot be more than one though, as it can be the unaccounted or none,
         // or, if we do not split by RG at all, just the one sample were every read ends up in.
-        for( size_t i = 0; i < cur.sample_size(); ++i ) {
-            data.sample_names.push_back( data.source_name + "-" + std::to_string( i + 1 ));
-        }
+        data.sample_names = make_sample_name_list_( data.source_name, cur.sample_size() );
         assert( data.sample_names.size() <= 1 );
     } else {
         assert( reader.split_by_rg() == true );
@@ -253,11 +264,8 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file_(
         filename, { ".gz", ".plp", ".mplp", ".pileup", ".mpileup" }
     );
 
-    // No sample names in pileup...
-    // so we just fill with empty names to indicate the number of samples.
-    for( size_t i = 0; i < (*input)->samples.size(); ++i ) {
-        data.sample_names.push_back( data.source_name + "-" + std::to_string( i + 1 ));
-    }
+    // No sample names in pileup, use numbers instead.
+    data.sample_names = make_sample_name_list_( data.source_name, (*input)->samples.size() );
 
     // The input is copied over to the lambda, and that copy is kept alive
     // when returning from this function.
@@ -334,10 +342,8 @@ VariantInputIterator make_variant_input_iterator_from_sync_file_(
         // If we have sample names, using our ad-hoc extension, use these.
         data.sample_names = input->get_sample_names();
     } else {
-        // No sample names given, so we just fill with empty names to indicate the number of samples.
-        for( size_t i = 0; i < (*input)->samples.size(); ++i ) {
-            data.sample_names.push_back( data.source_name + "-" + std::to_string( i + 1 ));
-        }
+        // No sample names given, so we use numbers instead.
+        data.sample_names = make_sample_name_list_( data.source_name, (*input)->samples.size() );
     }
 
     // The input is copied over to the lambda, and that copy is kept alive
