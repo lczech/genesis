@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/functions/fst_pool.hpp"
+#include "genesis/population/functions/fst_pool_calculator.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/kahan_sum.hpp"

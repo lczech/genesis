@@ -37,7 +37,7 @@
 #include "genesis/population/formats/variant_input_iterator.hpp"
 #include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/fst_pool_functions.hpp"
-#include "genesis/population/functions/fst_pool.hpp"
+#include "genesis/population/functions/fst_pool_processor.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/population/window/sliding_interval_window_iterator.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
