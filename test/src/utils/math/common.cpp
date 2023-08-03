@@ -187,6 +187,6 @@ TEST( Math, KahanSum )
     // It's still not perfect. But double the digits of precision of summing without Kahan.
     // So let's check that we got better than that - say, 1e-11. Kinda arbitrary though.
     // If this test fails at some point, it's likely due to a compiler optimizing Kahan out again.
-    // In that case, we need to activate the volatile implementation that is already in the class.
+    // We have activated the volatile implementation that is already in the class, but still...
     EXPECT_TRUE( s.get() < 1e-11 );
 }

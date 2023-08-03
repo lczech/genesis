@@ -145,17 +145,18 @@ public:
 
     inline void add( double value )
     {
-        auto const y = value - cor_;
-        auto const t = sum_ + y;
-        cor_ = ( t - sum_ ) - y;
-        sum_ = t;
+        // Base calculation for reference.
+        // auto const y = value - cor_;
+        // auto const t = sum_ + y;
+        // cor_ = ( t - sum_ ) - y;
+        // sum_ = t;
 
         // Use volatile registers to avoid aggressive compiler optimization.
-        // auto const y = value - cor_;
-        // volatile auto const t = sum_ + y;
-        // volatile auto const z = t - sum_;
-        // cor_ = z - y;
-        // sum_ = t;
+        auto const y = value - cor_;
+        volatile auto const t = sum_ + y;
+        volatile auto const z = t - sum_;
+        cor_ = z - y;
+        sum_ = t;
     }
 
     inline double get() const
