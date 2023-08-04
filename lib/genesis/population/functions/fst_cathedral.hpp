@@ -37,6 +37,7 @@
 #include "genesis/population/plotting/cathedral_plot.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/math/compensated_sum.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -73,6 +74,14 @@ struct FstCathedralData
         double pi_within  = 0.0;
         double pi_between = 0.0;
         double pi_total   = 0.0;
+
+        bool all_finite() const
+        {
+            auto const pi_w_fininite = std::isfinite( pi_within );
+            auto const pi_b_fininite = std::isfinite( pi_between );
+            auto const pi_t_fininite = std::isfinite( pi_total );
+            return pi_w_fininite && pi_b_fininite && pi_t_fininite;
+        }
     };
 
     // General data for bookkeeping
@@ -84,6 +93,10 @@ struct FstCathedralData
     // The actual components of FST values per position
     std::vector<Entry> entries;
 };
+
+// =================================================================================================
+//     Fst Cathedral Accumulator
+// =================================================================================================
 
 /**
  * @brief Accumulate the partial pi values for a given window to produce a cathedral plot.
@@ -99,22 +112,43 @@ struct FstCathedralAccumulator
 
     void accumulate( FstCathedralData::Entry const& entry )
     {
-        if(
-            ! std::isfinite( entry.pi_within )  ||
-            ! std::isfinite( entry.pi_between ) ||
-            ! std::isfinite( entry.pi_total )
-        ) {
+        if( ! entry.all_finite() ) {
             return;
         }
-
         pi_within_sum  += entry.pi_within;
         pi_between_sum += entry.pi_between;
         pi_total_sum   += entry.pi_total;
+        ++value_count;
+    }
+
+    void dissipate( FstCathedralData::Entry const& entry )
+    {
+        // Boundary cases.
+        if( ! entry.all_finite() ) {
+            return;
+        }
+        if( value_count == 0 ) {
+            throw std::runtime_error(
+                "FstCathedralAccumulator: Cannot dissipate with value_count==0"
+            );
+        }
+
+        // Remove the values from the accumulator.
+        pi_within_sum  -= entry.pi_within;
+        pi_between_sum -= entry.pi_between;
+        pi_total_sum   -= entry.pi_total;
+        --value_count;
+
+        // Special case: all was removed. Even though we are using compensated summation,
+        // this serves as a small additional hard reset for cases where we know the state.
+        if( value_count == 0 ) {
+            reset();
+        }
     }
 
     double get_result() const
     {
-        double result;
+        double result = 0.0;
         switch( fst_estimator ) {
             case FstPoolCalculatorUnbiased::Estimator::kNei: {
                 result = 1.0 - ( pi_within_sum / pi_total_sum );
@@ -140,10 +174,16 @@ struct FstCathedralAccumulator
         pi_total_sum   = 0.0;
     }
 
+    // Type of accumulator.
     FstPoolCalculatorUnbiased::Estimator fst_estimator;
-    double pi_within_sum  = 0.0;
-    double pi_between_sum = 0.0;
-    double pi_total_sum   = 0.0;
+
+    // Store our accumualted values. We are using a Neumaier summation here,
+    // as we might be adding and subtracting values of different orders of magnitude,
+    // which would lead to large errors with the standard Kahan sum.
+    utils::NeumaierSum pi_within_sum  = 0.0;
+    utils::NeumaierSum pi_between_sum = 0.0;
+    utils::NeumaierSum pi_total_sum   = 0.0;
+    size_t value_count = 0;
 };
 
 // =================================================================================================
