@@ -34,7 +34,7 @@
 #include "genesis/population/functions/fst_pool_calculator.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/kahan_sum.hpp"
+#include "genesis/utils/math/compensated_sum.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -233,9 +233,9 @@ private:
     double p2_poolsize_ = 0;
 
     // Theta Pi values for the two populations and their combination
-    utils::KahanSum p1_pi_sum_ = 0.0;
-    utils::KahanSum p2_pi_sum_ = 0.0;
-    utils::KahanSum pp_pi_sum_ = 0.0;
+    utils::NeumaierSum p1_pi_sum_ = 0.0;
+    utils::NeumaierSum p2_pi_sum_ = 0.0;
+    utils::NeumaierSum pp_pi_sum_ = 0.0;
 
 };
 

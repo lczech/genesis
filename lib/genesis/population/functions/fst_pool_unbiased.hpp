@@ -35,7 +35,7 @@
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/kahan_sum.hpp"
+#include "genesis/utils/math/compensated_sum.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -264,9 +264,9 @@ private:
     Estimator estimator_ = Estimator::kNei;
 
     // Sums over the window of pi within, between, total.
-    utils::KahanSum pi_w_sum_ = 0.0;
-    utils::KahanSum pi_b_sum_ = 0.0;
-    utils::KahanSum pi_t_sum_ = 0.0;
+    utils::NeumaierSum pi_w_sum_ = 0.0;
+    utils::NeumaierSum pi_b_sum_ = 0.0;
+    utils::NeumaierSum pi_t_sum_ = 0.0;
 
 };
 

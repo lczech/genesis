@@ -35,7 +35,7 @@
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/kahan_sum.hpp"
+#include "genesis/utils/math/compensated_sum.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -205,8 +205,8 @@ public:
 private:
 
     // Result values.
-    utils::KahanSum sum_nk_ = 0.0;
-    utils::KahanSum sum_dk_ = 0.0;
+    utils::NeumaierSum sum_nk_ = 0.0;
+    utils::NeumaierSum sum_dk_ = 0.0;
 
 };
 
