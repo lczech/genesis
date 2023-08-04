@@ -64,13 +64,13 @@ struct FstCathedralData
     struct Entry
     {
         Entry( size_t pos_, double pi_w_, double pi_b_, double pi_t_ )
-            : pos( pos_ )
+            : position( pos_ )
             , pi_within( pi_w_ )
             , pi_between( pi_b_ )
             , pi_total( pi_t_ )
         {}
 
-        size_t pos   = 0;
+        size_t position   = 0;
         double pi_within  = 0.0;
         double pi_between = 0.0;
         double pi_total   = 0.0;
@@ -104,8 +104,7 @@ struct FstCathedralData
 struct FstCathedralAccumulator
 {
     FstCathedralAccumulator(
-        FstPoolCalculatorUnbiased::Estimator fst_estimator_ =
-        FstPoolCalculatorUnbiased::Estimator::kNei
+        FstPoolCalculatorUnbiased::Estimator fst_estimator_
     )
         : fst_estimator( fst_estimator_ )
     {}
@@ -212,11 +211,18 @@ std::vector<FstCathedralData> compute_fst_cathedral_data(
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = nullptr
 );
 
+/**
+ * @brief Compute the matrix of values that represents the cathedral plot for FST.
+ *
+ * This is merely a shortcut to call compute_cathedral_matrix() with the arguments for a cathedral
+ * plot of FST, using the result of compute_fst_cathedral_data().
+ * The returned matrix can then be plotted as a heatmap.
+ */
 genesis::utils::Matrix<double> compute_fst_cathedral_matrix(
+    FstPoolCalculatorUnbiased::Estimator fst_estimator,
     FstCathedralData const& data,
     size_t width, size_t height,
-    CathedralWindowWidthMethod window_width_method = CathedralWindowWidthMethod::kExponential,
-    FstPoolCalculatorUnbiased::Estimator fst_estimator = FstPoolCalculatorUnbiased::Estimator::kNei
+    CathedralWindowWidthMethod window_width_method = CathedralWindowWidthMethod::kExponential
 ) {
     auto accu = FstCathedralAccumulator( fst_estimator );
     return compute_cathedral_matrix<FstCathedralData, FstCathedralAccumulator>(
