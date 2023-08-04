@@ -204,6 +204,11 @@ public:
         return processed_count_;
     }
 
+    std::vector<std::pair<size_t, size_t>> const& sample_pairs() const
+    {
+        return sample_pairs_;
+    }
+
     std::vector<std::unique_ptr<BaseFstPoolCalculator>> const& calculators() const
     {
         return calculators_;
