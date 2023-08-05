@@ -31,6 +31,7 @@
 #include "genesis/population/plotting/cathedral_plot.hpp"
 
 #include "genesis/utils/formats/bmp/writer.hpp"
+#include "genesis/utils/formats/json/document.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -40,28 +41,27 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Helper Functions
+//     Cathedral Plot Properties
 // =================================================================================================
 
 double cathedral_window_width(
-    size_t chromosome_length, size_t width, size_t height, size_t row,
-    CathedralWindowWidthMethod method
+    CathedralPlotRecord const& record, size_t row
 ) {
-    if( width < 2 || height < 2 ) {
+    if( record.properties.width < 2 || record.properties.height < 2 ) {
         throw std::invalid_argument( "cathedral_window_width invalid: width < 2 || height < 2" );
     }
-    if( row >= height ) {
+    if( row >= record.properties.height ) {
         throw std::invalid_argument( "cathedral_window_width invalid: row >= height" );
     }
 
     // We need the values as doubles. Do this once here, for conciseness.
-    double const chr_len  = static_cast<double>( chromosome_length );
+    double const chr_len  = static_cast<double>( record.chromosome_length );
+    double const width_d  = static_cast<double>( record.properties.width );
+    double const height_d = static_cast<double>( record.properties.height );
     double const row_d    = static_cast<double>( row );
-    double const width_d  = static_cast<double>( width );
-    double const height_d = static_cast<double>( height );
 
     double window_width = 0.0;
-    switch( method ) {
+    switch( record.properties.window_width_method ) {
         case CathedralWindowWidthMethod::kExponential: {
             auto const decay = - std::log( 1.0 / width_d ) / ( height_d - 1.0 );
             window_width = chr_len * std::exp( -decay * row_d);
@@ -92,6 +92,57 @@ double cathedral_window_width(
         }
     }
     return window_width;
+}
+
+std::string cathedral_window_width_method_to_string( CathedralWindowWidthMethod method )
+{
+    switch( method ) {
+        case CathedralWindowWidthMethod::kExponential: {
+            return "exponential";
+        }
+        case CathedralWindowWidthMethod::kGeometric: {
+            return "geometric";
+        }
+        case CathedralWindowWidthMethod::kLinear: {
+            return "linear";
+        }
+    }
+    throw std::runtime_error( "Invalid CathedralWindowWidthMethod" );
+}
+
+// =================================================================================================
+//     Json Storage Functions
+// =================================================================================================
+
+void add_cathedral_plot_properties_to_json_document(
+    CathedralPlotProperties const& properties, genesis::utils::JsonDocument& document
+) {
+    using namespace genesis::utils;
+    if( document.is_null() ) {
+        document = JsonDocument::object();
+    }
+    auto& obj = document.get_object();
+    obj["width"]  = JsonDocument::number_unsigned( properties.width );
+    obj["height"] = JsonDocument::number_unsigned( properties.height );
+    obj["windowWidthMethod"] = JsonDocument::string(
+        cathedral_window_width_method_to_string( properties.window_width_method )
+    );
+}
+
+void add_cathedral_plot_record_to_json_document(
+    CathedralPlotRecord const& record, genesis::utils::JsonDocument& document
+) {
+    using namespace genesis::utils;
+    if( document.is_null() ) {
+        document = JsonDocument::object();
+    }
+    auto& obj = document.get_object();
+    obj["chromosomeName"]   = JsonDocument::string( record.chromosome_name );
+    obj["chromosomeLength"] = JsonDocument::number_unsigned( record.chromosome_length );
+    obj["windowWidths"]     = JsonDocument( record.window_widths );
+
+    // Also add the properties, for user convenience.
+    add_cathedral_plot_properties_to_json_document( record.properties, document );
 }
 
 } // namespace population

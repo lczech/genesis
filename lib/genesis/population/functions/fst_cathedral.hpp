@@ -45,11 +45,23 @@
 #include <string>
 #include <vector>
 
+// =================================================================================================
+//     Forward declacations
+// =================================================================================================
+
+namespace genesis {
+namespace utils {
+
+    class JsonDocument;
+
+} // namespace utils
+} // namespace genesis
+
 namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Fst Cathedral Data
+//     Fst Cathedral Plot Record
 // =================================================================================================
 
 /**
@@ -59,7 +71,7 @@ namespace population {
  * estimators. Hence, we keep the per position pi values here, so that they can then be accumulated
  * into the per-pixel values for the plot later.
  */
-struct FstCathedralData
+struct FstCathedralPlotRecord : public CathedralPlotRecord
 {
     struct Entry
     {
@@ -84,14 +96,17 @@ struct FstCathedralData
         }
     };
 
-    // General data for bookkeeping
+    // The actual components of FST values per position.
+    std::vector<Entry> entries;
+
+    // Data-derived properties.
     std::string sample_name_1;
     std::string sample_name_2;
-    std::string chromosome;
-    size_t chromosome_length = 0;
 
-    // The actual components of FST values per position
-    std::vector<Entry> entries;
+    // User-provided properties.
+    // Type of accumulator. We store all three pi values here independently though,
+    // to keep it simple, but use this to know what estimator was used for the data.
+    FstPoolCalculatorUnbiased::Estimator fst_estimator;
 };
 
 // =================================================================================================
@@ -101,88 +116,53 @@ struct FstCathedralData
 /**
  * @brief Accumulate the partial pi values for a given window to produce a cathedral plot.
  */
-struct FstCathedralAccumulator
+class FstCathedralAccumulator
 {
+public:
+
+    // -------------------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------------------
+
     FstCathedralAccumulator(
-        FstPoolCalculatorUnbiased::Estimator fst_estimator_
+        FstPoolCalculatorUnbiased::Estimator fst_estimator
     )
-        : fst_estimator( fst_estimator_ )
+        : fst_estimator_( fst_estimator )
     {}
 
-    void accumulate( FstCathedralData::Entry const& entry )
-    {
-        if( ! entry.all_finite() ) {
-            return;
-        }
-        pi_within_sum  += entry.pi_within;
-        pi_between_sum += entry.pi_between;
-        pi_total_sum   += entry.pi_total;
-        ++value_count;
-    }
+    ~FstCathedralAccumulator() = default;
 
-    void dissipate( FstCathedralData::Entry const& entry )
-    {
-        // Boundary cases.
-        if( ! entry.all_finite() ) {
-            return;
-        }
-        if( value_count == 0 ) {
-            throw std::runtime_error(
-                "FstCathedralAccumulator: Cannot dissipate with value_count==0"
-            );
-        }
+    FstCathedralAccumulator( FstCathedralAccumulator const& ) = default;
+    FstCathedralAccumulator( FstCathedralAccumulator&& )      = default;
 
-        // Remove the values from the accumulator.
-        pi_within_sum  -= entry.pi_within;
-        pi_between_sum -= entry.pi_between;
-        pi_total_sum   -= entry.pi_total;
-        --value_count;
+    FstCathedralAccumulator& operator= ( FstCathedralAccumulator const& ) = default;
+    FstCathedralAccumulator& operator= ( FstCathedralAccumulator&& )      = default;
 
-        // Special case: all was removed. Even though we are using compensated summation,
-        // this serves as a small additional hard reset for cases where we know the state.
-        if( value_count == 0 ) {
-            reset();
-        }
-    }
+    // -------------------------------------------------------------------------
+    //     Accumulator Functions
+    // -------------------------------------------------------------------------
 
-    double get_result() const
-    {
-        double result = 0.0;
-        switch( fst_estimator ) {
-            case FstPoolCalculatorUnbiased::Estimator::kNei: {
-                result = 1.0 - ( pi_within_sum / pi_total_sum );
-                break;
-            }
-            case FstPoolCalculatorUnbiased::Estimator::kHudson: {
-                result = 1.0 - ( pi_within_sum / pi_between_sum );
-                break;
-            }
-            default: {
-                throw std::invalid_argument(
-                    "FstCathedralAccumulator: Invalid FstPoolCalculatorUnbiased::Estimator"
-                );
-            }
-        }
-        return result;
-    }
+    void accumulate( FstCathedralPlotRecord::Entry const& entry );
+    void dissipate( FstCathedralPlotRecord::Entry const& entry );
+    double aggregate() const;
+    void reset();
 
-    void reset()
-    {
-        pi_within_sum  = 0.0;
-        pi_between_sum = 0.0;
-        pi_total_sum   = 0.0;
-    }
+    // -------------------------------------------------------------------------
+    //     Private Member Variables
+    // -------------------------------------------------------------------------
+
+private:
 
     // Type of accumulator.
-    FstPoolCalculatorUnbiased::Estimator fst_estimator;
+    FstPoolCalculatorUnbiased::Estimator fst_estimator_;
 
     // Store our accumualted values. We are using a Neumaier summation here,
     // as we might be adding and subtracting values of different orders of magnitude,
     // which would lead to large errors with the standard Kahan sum.
-    utils::NeumaierSum pi_within_sum  = 0.0;
-    utils::NeumaierSum pi_between_sum = 0.0;
-    utils::NeumaierSum pi_total_sum   = 0.0;
-    size_t value_count = 0;
+    utils::NeumaierSum pi_within_sum_  = 0.0;
+    utils::NeumaierSum pi_between_sum_ = 0.0;
+    utils::NeumaierSum pi_total_sum_   = 0.0;
+    size_t value_count_ = 0;
 };
 
 // =================================================================================================
@@ -198,15 +178,16 @@ struct FstCathedralAccumulator
  * This expects the processor to only contain FstPoolCalculatorUnbiased calculators, as those
  * are the only ones for which we can compute cathedral plots with our current implementation.
  *
- * If given @p sample_names, we use those to set the sample names in the resulting FstCathedralData
- * objects, so that downstream we can keep track of them.
+ * If given @p sample_names, we use those to set the sample names in the resulting
+ * FstCathedralPlotRecord objects, so that downstream we can keep track of them.
  *
  * If given a @p sequence_dict, we use the information in there to set the chromosome length;
  * otherwise, we use the last position found in the data for that.
  */
-std::vector<FstCathedralData> compute_fst_cathedral_data(
+std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data(
     VariantInputIterator& iterator,
     FstPoolProcessor& processor,
+    FstPoolCalculatorUnbiased::Estimator fst_estimator,
     std::vector<std::string> const& sample_names = std::vector<std::string>{},
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = nullptr
 );
@@ -218,17 +199,27 @@ std::vector<FstCathedralData> compute_fst_cathedral_data(
  * plot of FST, using the result of compute_fst_cathedral_data().
  * The returned matrix can then be plotted as a heatmap.
  */
-genesis::utils::Matrix<double> compute_fst_cathedral_matrix(
-    FstPoolCalculatorUnbiased::Estimator fst_estimator,
-    FstCathedralData const& data,
-    size_t width, size_t height,
-    CathedralWindowWidthMethod window_width_method = CathedralWindowWidthMethod::kExponential
+void compute_fst_cathedral_matrix(
+    CathedralPlotProperties const& properties,
+    FstCathedralPlotRecord& record
 ) {
-    auto accu = FstCathedralAccumulator( fst_estimator );
-    return compute_cathedral_matrix<FstCathedralData, FstCathedralAccumulator>(
-        data, accu, width, height, window_width_method
+    auto accu = FstCathedralAccumulator( record.fst_estimator );
+    return compute_cathedral_matrix<FstCathedralPlotRecord, FstCathedralAccumulator>(
+        properties, record, accu
     );
 }
+
+/**
+ * @brief Add a user-readable description of the properties of a FstCathedralPlotRecord to a
+ * @link genesis::utils::JsonDocument JsonDocument@endlink.
+ *
+ * This is meant for user output, so that cathedral plots can be generated from a data matrix,
+ * without having to recompute the matrix. The @p document is expected to be a Json object,
+ * so that we can add key value pairs to it.
+ */
+void add_fst_cathedral_plot_record_to_json_document(
+    FstCathedralPlotRecord const& record, genesis::utils::JsonDocument& document
+);
 
 } // namespace population
 } // namespace genesis

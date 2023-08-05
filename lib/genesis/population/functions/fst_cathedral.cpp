@@ -30,6 +30,8 @@
 
 #include "genesis/population/functions/fst_cathedral.hpp"
 
+#include "genesis/utils/formats/json/document.hpp"
+
 #include <cassert>
 #include <cmath>
 #include <cstdint>
@@ -40,10 +42,78 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
+//     Fst Cathedral Accumulator
+// =================================================================================================
+
+void FstCathedralAccumulator::accumulate( FstCathedralPlotRecord::Entry const& entry )
+{
+    if( ! entry.all_finite() ) {
+        return;
+    }
+    pi_within_sum_  += entry.pi_within;
+    pi_between_sum_ += entry.pi_between;
+    pi_total_sum_   += entry.pi_total;
+    ++value_count_;
+}
+
+void FstCathedralAccumulator::dissipate( FstCathedralPlotRecord::Entry const& entry )
+{
+    // Boundary cases.
+    if( ! entry.all_finite() ) {
+        return;
+    }
+    if( value_count_ == 0 ) {
+        throw std::runtime_error(
+            "FstCathedralAccumulator: Cannot dissipate with value_count_==0"
+        );
+    }
+
+    // Remove the values from the accumulator.
+    pi_within_sum_  -= entry.pi_within;
+    pi_between_sum_ -= entry.pi_between;
+    pi_total_sum_   -= entry.pi_total;
+    --value_count_;
+
+    // Special case: all was removed. Even though we are using compensated summation,
+    // this serves as a small additional hard reset for cases where we know the state.
+    if( value_count_ == 0 ) {
+        reset();
+    }
+}
+
+double FstCathedralAccumulator::aggregate() const
+{
+    double result = 0.0;
+    switch( fst_estimator_ ) {
+        case FstPoolCalculatorUnbiased::Estimator::kNei: {
+            result = 1.0 - ( pi_within_sum_ / pi_total_sum_ );
+            break;
+        }
+        case FstPoolCalculatorUnbiased::Estimator::kHudson: {
+            result = 1.0 - ( pi_within_sum_ / pi_between_sum_ );
+            break;
+        }
+        default: {
+            throw std::invalid_argument(
+                "FstCathedralAccumulator: Invalid FstPoolCalculatorUnbiased::Estimator"
+            );
+        }
+    }
+    return result;
+}
+
+void FstCathedralAccumulator::reset()
+{
+    pi_within_sum_  = 0.0;
+    pi_between_sum_ = 0.0;
+    pi_total_sum_   = 0.0;
+}
+
+// =================================================================================================
 //     Compute Data Functions
 // =================================================================================================
 
-std::vector<FstCathedralData> compute_fst_cathedral_data_chromosome_(
+std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data_chromosome_(
     VariantInputIterator::Iterator& iterator,
     FstPoolProcessor& processor,
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict
@@ -57,7 +127,7 @@ std::vector<FstCathedralData> compute_fst_cathedral_data_chromosome_(
     // Each item in the vector is one pair of samples, contaning their per-position partial fst data.
     // We cannot resize the value field inside the results, as we do not know how large the
     // chromosome is that we are using beforehand.
-    std::vector<FstCathedralData> result;
+    std::vector<FstCathedralPlotRecord> result;
     result.resize( processor.size() );
     assert( processor.size() == processor.calculators().size() );
 
@@ -67,7 +137,7 @@ std::vector<FstCathedralData> compute_fst_cathedral_data_chromosome_(
     // positions will be filtered out beforehand in the input iterator. So we don't do that.
     std::string const chromosome = iterator->chromosome;
     for( auto& data : result ) {
-        data.chromosome = chromosome;
+        data.chromosome_name = chromosome;
     }
 
     // Process all variants in the input as long as we are on the same chromosome,
@@ -159,14 +229,15 @@ std::pair<std::string, std::string> get_processor_sample_names_(
     return { sample_names[ idx_pair.first ], sample_names[ idx_pair.second ] };
 }
 
-std::vector<FstCathedralData> compute_fst_cathedral_data(
+std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data(
     VariantInputIterator& iterator,
     FstPoolProcessor& processor,
+    FstPoolCalculatorUnbiased::Estimator fst_estimator,
     std::vector<std::string> const& sample_names,
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict
 ) {
     // We make one big result vector with all entries from all pairs of samples and chromosomes.
-    std::vector<FstCathedralData> result;
+    std::vector<FstCathedralPlotRecord> result;
 
     // Start the iteration, process each chromosome, and move over the results.
     auto it = iterator.begin();
@@ -181,6 +252,7 @@ std::vector<FstCathedralData> compute_fst_cathedral_data(
             auto names = get_processor_sample_names_( processor, sample_names, i );
             chr_result[i].sample_name_1 = std::move( names.first );
             chr_result[i].sample_name_2 = std::move( names.second );
+            chr_result[i].fst_estimator = fst_estimator;
 
             // Now move it to our result vecor.
             result.push_back( std::move( chr_result[i] ));
@@ -189,6 +261,43 @@ std::vector<FstCathedralData> compute_fst_cathedral_data(
     assert( it == iterator.end() );
 
     return result;
+}
+
+void add_fst_cathedral_plot_record_to_json_document(
+    FstCathedralPlotRecord const& record, genesis::utils::JsonDocument& document
+) {
+    using namespace genesis::utils;
+
+    // Add the base class fields as well, for convenience.
+    add_cathedral_plot_record_to_json_document( record, document );
+
+    // We expect this to be of type object. Null also works (empty default constructed).
+    if( document.is_null() ) {
+        document = JsonDocument::object();
+    }
+    auto& obj = document.get_object();
+    auto const fst_name = fst_pool_unbiased_estimator_to_string( record.fst_estimator );
+
+    // For simplicity, we just write (or overwrite) the entries that we are interested in here.
+    // We could add a check for their existence, but for now we declare that as a user error.
+    // Not a use case that we will have within the library for now.
+    // We use camelCase for the properties, as recommended by https://jsonapi.org/recommendations/
+    // as well as the Google JSON Style Guide.
+    obj["sampleName1"]  = JsonDocument::string( record.sample_name_1 );
+    obj["sampleName2"]  = JsonDocument::string( record.sample_name_2 );
+    obj["fstEstimator"] = JsonDocument::string( fst_name );
+    obj["entryCount"]   = JsonDocument::number_unsigned( record.entries.size() );
+
+    // We also make a title, for user convenience, to be used in the plot by default.
+    // Could make that configurable, but good enough for now.
+    std::string title = "Fst (" + fst_name + ")";
+    if( !record.sample_name_1.empty() && !record.sample_name_2.empty() ) {
+        title += " " + record.sample_name_1 + " vs " + record.sample_name_2;
+    }
+    if( !record.chromosome_name.empty() ) {
+        title += ", chromosome \"" + record.chromosome_name + "\"";
+    }
+    obj["title"] = JsonDocument::string( title );
 }
 
 } // namespace population

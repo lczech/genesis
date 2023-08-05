@@ -38,14 +38,27 @@
 #include <cstdint>
 #include <deque>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <vector>
+
+// =================================================================================================
+//     Forward declacations
+// =================================================================================================
+
+namespace genesis {
+namespace utils {
+
+    class JsonDocument;
+
+} // namespace utils
+} // namespace genesis
 
 namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Helper Functions
+//     Cathedral Plot Properties
 // =================================================================================================
 
 /**
@@ -68,19 +81,77 @@ enum class CathedralWindowWidthMethod
 };
 
 /**
+ * @brief Plot properties to make a cathedral plot.
+ *
+ * Meant for the user-provided properties for making a cathedral plot, such as the image dimensions.
+ *
+ * @see compute_cathedral_matrix()
+ */
+struct CathedralPlotProperties
+{
+    // Plot properties
+    size_t width = 0;
+    size_t height = 0;
+    CathedralWindowWidthMethod window_width_method = CathedralWindowWidthMethod::kExponential;
+};
+
+/**
+ * @brief Collection of the data used for making for a cathedral plot.
+ *
+ * Base class that contains the data-derived properties, such as chromsome name.
+ * In each of the steps during the creating of a cathedral plot, it receives more data,
+ * resulting from what the step did.
+ *
+ * Meant to be derived from to add more properties for specific types of cathedral plots,
+ * as well as the data needed by compute_cathedral_matrix() and its accumulator to compute the
+ * data matrix. In particular, the derived class shall add a `std::vector<Entry> entries` that
+ * contains the per-position entries that are the data to compute the per-window (per-pixel) values.
+ *
+ * @see compute_cathedral_matrix()
+ */
+struct CathedralPlotRecord
+{
+    // Data-derived properties from the initial input.
+    std::string chromosome_name;
+    size_t chromosome_length = 0;
+
+    // User-provided properties, added here to keep track of the record.
+    CathedralPlotProperties properties;
+
+    // Data matrix containing per-pixel values.
+    genesis::utils::Matrix<double> value_matrix;
+    std::vector<double> window_widths;
+};
+
+/**
  * @brief Compute the window width for a row in a cathedral plot.
  *
  * This uses the chromosome length and the intended plot dimensions to compute window widths
  * where the first row of the image has a width corresponding to the whole image width,
  * the last row has a window width corresponding to a single pixel, and the rows in between
- * are interpolated using one of the CathedralWindowWidthMethod methods, with exponential being
- * the default.
+ * are interpolated using one of the CathedralWindowWidthMethod methods.
  *
  * @see compute_cathedral_matrix()
  */
 double cathedral_window_width(
-    size_t chromosome_length, size_t width, size_t height, size_t row,
-    CathedralWindowWidthMethod window_width_method = CathedralWindowWidthMethod::kExponential
+    CathedralPlotRecord const& record, size_t row
+);
+
+/**
+ * @brief Helper function to return a textual representation of the @p method
+ */
+std::string cathedral_window_width_method_to_string( CathedralWindowWidthMethod method );
+
+// =================================================================================================
+//     Json Storage Functions
+// =================================================================================================
+
+void add_cathedral_plot_properties_to_json_document(
+    CathedralPlotProperties const& properties, genesis::utils::JsonDocument& document
+);
+
+void add_cathedral_plot_record_to_json_document(
+    CathedralPlotRecord const& record, genesis::utils::JsonDocument& document
 );
 
 // =================================================================================================
@@ -88,53 +159,55 @@ double cathedral_window_width(
 // =================================================================================================
 
 /**
- * @brief Template function to compute the value matrix for a cathedral plot, given per-position
- * data.
+ * @brief Template function to compute the value matrix for a cathedral plot, given a recored
+ * with plot properties and per-position data to accumulate per window.
  *
- * The function computes the values for each pixel in a cathedral plot, which can then be visualized
- * as a heat map.
+ * The function computes the accumulated values across windows for each pixel in a cathedral plot,
+ * which can then be visualized as a heat map.
  *
- * It expects @p data to be a type that has a member `size_t chromosome_length`, as well as a member
- * `std::vector<Entry> entries` of some type that itself contains a member `position`.
- * See FstCathedralData for an example.
+ * The function expects a cathedral plot @p record, containing data needed to compute the values
+ * per pixel. It expects @p record to contain an iterable container `std::vector<Entry> entries`
+ * whose contained elements have a member `position`, and also contain the data that is needed
+ * by the @p accumulator. See FstCathedralPlotRecord for an example.
  *
- * Furthermore, it expects @p accu to be an "accumulator" for data of the `Entry` type above, which
- * needs to have functions `accumulate()` and `dissipate()` that each take an `Entry`. These
- * functions are meant to accumulate values, and then un-do this again, which is what we use to
- * speed up the computation here. Lastly, the @p accu needs to have a `get_result()` function
- * that uses the currently accumulated data to compute the value for a given window.
- * See FstCathedralAccumulator for an example.
- *
- * Lastly, the function expects the indended image dimensions @p width and @p height, as well
- * as the @p window_width_method to use for the cathedral plot.
+ * The @p accumulator needs to have functions `accumulate()` and `dissipate()` that each take an
+ * element of the @p record entries.
+ * These functions are meant to accumulate values, and then un-do this again, which is what we use
+ * to speed up the computation here. Also, the @p accumulator needs to have a `aggregate()`
+ * function that uses the currently accumulated data to compute the value for a given window.
+ * See FstCathedralAccumulator for an example. We take this as an (optional) argument, so
+ * that it can be set up with other properties as needed.
  *
  * @see See compute_fst_cathedral_matrix() for an applied version of this function,
- * and see compute_fst_cathedral_data() for a function to compute @p data for that case.
+ * and see compute_fst_cathedral_data() for a function to compute @p record for that case.
  */
-template<class CathedralData, class CathedralAccumulator>
-genesis::utils::Matrix<double> compute_cathedral_matrix(
-    CathedralData const& data,
-    CathedralAccumulator& accu,
-    size_t width, size_t height,
-    CathedralWindowWidthMethod window_width_method = CathedralWindowWidthMethod::kExponential
+template<class Record, class Accumulator>
+void compute_cathedral_matrix(
+    CathedralPlotProperties const& properties,
+    Record& record,
+    Accumulator accumulator = Accumulator{}
 ) {
-    auto result = genesis::utils::Matrix<double>( height, width );
+    // Prepare a result matrix for the values, of the desired dimensions.
+    record.value_matrix = genesis::utils::Matrix<double>( properties.height, properties.width );
+    record.window_widths = std::vector<double>( properties.height );
+
+    // Also store the properties in the record, for later reference to have them in one place.
+    record.properties = properties;
 
     // How far (in genome coordinates) do we advance between windows?
-    double const chr_len  = static_cast<double>( data.chromosome_length );
-    auto const advance = chr_len / static_cast<double>( width );
+    double const chr_len  = static_cast<double>( record.chromosome_length );
+    auto const advance = chr_len / static_cast<double>( properties.width );
 
     // Compute each cell of the result. We experimented with parallelizing this loop across threads,
     // but the computation seems to be memory bound, and even when trying to avoid false sharing
     // (of writing to individual cells of the matrix in each iteration), the result was never faster
     // (and often way slower) than the single threaded code here. So let's keep it simple.
-    for( size_t row = 0; row < height; ++row ) {
+    for( size_t row = 0; row < properties.height; ++row ) {
 
         // How wide (in genome coordinates) is each window in the current row?
-        auto const window_width = cathedral_window_width(
-            data.chromosome_length, width, height, row, window_width_method
-        );
+        auto const window_width = cathedral_window_width( record, row );
         assert( std::isfinite( window_width ) && window_width > 0.0 );
+        record.window_widths[row] = window_width;
 
         // Per row, we have a lot of overlap between the windows, up until the very last few
         // rows where windows tend to overlap less. Using this gives massive speedup,
@@ -142,11 +215,11 @@ genesis::utils::Matrix<double> compute_cathedral_matrix(
         // instead of computing their accumulated sums over and over again.
         // We use a deque for the entries that are in the current window,
         // and keep track of the next index in the entry vector that needs to be enqueued.
-        std::deque<typename CathedralData::Entry> queue;
+        std::deque<typename Record::Entry> queue;
         size_t entry_idx = 0;
 
         // Start a new accumulation of values for the row.
-        accu.reset();
+        accumulator.reset();
 
         // Assert that for one row, we accumulate and dissipate each value exactly once.
         size_t accu_cnt = 0;
@@ -160,28 +233,28 @@ genesis::utils::Matrix<double> compute_cathedral_matrix(
         double cur_gen_pos = - window_width / 2.0;
 
         // Iterate the pixels of the columns, computing a window for each of them,
-        for( size_t col = 0; col < width; ++col ) {
+        for( size_t col = 0; col < properties.width; ++col ) {
             assert( cur_gen_pos + window_width >= 0.0 );
-            assert( cur_gen_pos <= static_cast<double>( data.chromosome_length ));
+            assert( cur_gen_pos <= static_cast<double>( record.chromosome_length ));
 
             // Find the genome positions that correspond to the boundaries of the current window,
             // limited to their possible ranges, and making sure to include the last one
             // (can be a bit off due to rounding?! might need to check).
             auto l_gen_pos = static_cast<size_t>( std::max( cur_gen_pos, 0.0 ));
             auto r_gen_pos = static_cast<size_t>( std::min( cur_gen_pos + window_width, chr_len ));
-            if( col == width - 1 ) {
-                r_gen_pos = data.chromosome_length;
+            if( col == properties.width - 1 ) {
+                r_gen_pos = record.chromosome_length;
             }
             cur_gen_pos += advance;
 
             // Some checks that hold true if this function is called with correct data.
             assert( l_gen_pos <= r_gen_pos );
-            assert( r_gen_pos <= data.chromosome_length );
+            assert( r_gen_pos <= record.chromosome_length );
 
             // Remove entries in the beginning of the queue that are not part of the window any more.
             while( ! queue.empty() && queue.front().position < l_gen_pos ) {
                 ++diss_cnt;
-                accu.dissipate( queue.front() );
+                accumulator.dissipate( queue.front() );
                 queue.pop_front();
             }
 
@@ -189,36 +262,42 @@ genesis::utils::Matrix<double> compute_cathedral_matrix(
             // In cases where due to rounding the windows do not overlap and leave entries
             // between their boundaries, this here also incluse those entries in the later window.
             // This is good, as that way, every entry is used at least once.
-            while( entry_idx < data.entries.size() && data.entries[entry_idx].position <= r_gen_pos ) {
+            while(
+                entry_idx < record.entries.size() &&
+                record.entries[ entry_idx ].position <= r_gen_pos
+            ) {
 
                 // Assert that the entries are in order.
-                assert( queue.empty() || queue.back().position < data.entries[entry_idx].position );
+                assert( queue.empty() || queue.back().position < record.entries[entry_idx].position );
+                assert( record.entries[entry_idx].position <= record.chromosome_length );
 
                 // Accumulate the values and add the entry to the queue.
                 ++accu_cnt;
-                accu.accumulate( data.entries[entry_idx] );
-                queue.push_back( data.entries[entry_idx] );
+                accumulator.accumulate( record.entries[entry_idx] );
+                queue.push_back( record.entries[entry_idx] );
 
                 // Move to the next entry to be enqueued.
                 ++entry_idx;
             }
-            assert( entry_idx == data.entries.size() || data.entries[entry_idx].position > r_gen_pos );
+            assert(
+                entry_idx == record.entries.size() ||
+                record.entries[entry_idx].position > r_gen_pos
+            );
 
             // The queue contains entries that are exactly within the window.
             assert( queue.empty() || queue.front().position >= l_gen_pos );
             assert( queue.empty() || queue.back().position  <= r_gen_pos );
 
             // Now we have processed everything for this pixel, and can store the result.
-            result( row, col ) = accu.get_result();
+            record.value_matrix( row, col ) = accumulator.aggregate();
         }
 
         // Assert that for one row, we accumulate and dissipate each value exactly once.
         // The dissipated ones are not including the remainder of the queue in the last window,
         // so we need to account for those here.
-        assert( data.entries.size() == accu_cnt );
-        assert( data.entries.size() == diss_cnt + queue.size() );
+        assert( record.entries.size() == accu_cnt );
+        assert( record.entries.size() == diss_cnt + queue.size() );
     }
-    return result;
 }
 
 } // namespace population
