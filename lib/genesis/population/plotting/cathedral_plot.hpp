@@ -168,7 +168,7 @@ std::string cathedral_window_width_method_to_string( CathedralWindowWidthMethod 
  * that it can be set up with other properties as needed.
  *
  * @see See compute_fst_cathedral_matrix() for an applied version of this function,
- * and see compute_fst_cathedral_data() for a function to compute @p record for that case.
+ * and see compute_fst_cathedral_records() for a function to compute @p record for that case.
  */
 template<class Record, class Accumulator>
 void compute_cathedral_matrix(

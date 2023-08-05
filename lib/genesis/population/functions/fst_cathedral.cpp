@@ -113,18 +113,12 @@ void FstCathedralAccumulator::reset()
 //     Compute Data Functions
 // =================================================================================================
 
-std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data_chromosome(
-    VariantInputIterator::Iterator& iterator,
-    FstPoolProcessor& processor,
+std::vector<FstCathedralPlotRecord> prepare_fst_cathedral_records_for_chromosome_(
+    std::string const& chromosome,
+    FstPoolProcessor const& processor,
     FstPoolCalculatorUnbiased::Estimator fst_estimator,
-    std::vector<std::string> const& sample_names,
-    std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict
+    std::vector<std::string> const& sample_names
 ) {
-    // Boundary check.
-    if( ! iterator ) {
-        return {};
-    }
-
     // Make as many fst data objects as we have pairs of samples in the processor.
     // Each item in the vector is one pair of samples, contaning their per-position partial fst data.
     // We cannot resize the value field inside the results, as we do not know how large the
@@ -141,7 +135,6 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data_chromosome(
     // We have a seq dict, so we know the length of the chromosome. First thought was to use that
     // to pre-allocate the value vectors, but that might waaay over-allocate, as likely non-snp
     // positions will be filtered out beforehand in the input iterator. So we don't do that.
-    std::string const chromosome = iterator->chromosome;
     auto const fst_name = fst_pool_unbiased_estimator_to_string( fst_estimator );
     for( size_t i = 0; i < result.size(); ++i ) {
         auto& record = result[i];
@@ -166,16 +159,70 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data_chromosome(
             record.title += ", chromosome \"" + record.chromosome_name + "\"";
         }
     }
+    return result;
+}
+
+void fill_fst_cathedral_records_from_processor_(
+    FstPoolProcessor const& processor,
+    std::vector<FstCathedralPlotRecord>& records,
+    size_t position
+) {
+    // We need to cast the calculators in the processor to get the correct derived type,
+    // so that we can access the partial pi values from there.
+    // Bit hacky, but good enough for now. Then, store the results.
+    assert( processor.size() == records.size() );
+    for( size_t i = 0; i < processor.size(); ++i ) {
+        auto& raw_calc = processor.calculators()[i];
+        auto fst_calc = dynamic_cast<FstPoolCalculatorUnbiased const*>( raw_calc.get() );
+        if( ! fst_calc ) {
+            throw std::runtime_error(
+                "In compute_fst_cathedral_records_for_chromosome(): "
+                "Invalid FstPoolCalculator that is not FstPoolCalculatorUnbiased"
+            );
+        }
+
+        // Now add the entry for the current calculator to its respective records entry.
+        // We rely on the amortized complexity here - cannot pre-allocate the size,
+        // as we do not know how many positions will actually be in the input beforehand.
+        records[i].entries.emplace_back(
+            position,
+            fst_calc->get_pi_within(),
+            fst_calc->get_pi_between(),
+            fst_calc->get_pi_total()
+        );
+    }
+}
+
+std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records_for_chromosome(
+    VariantInputIterator::Iterator& iterator,
+    FstPoolProcessor& processor,
+    FstPoolCalculatorUnbiased::Estimator fst_estimator,
+    std::vector<std::string> const& sample_names,
+    std::shared_ptr<genesis::sequence::SequenceDict> const& sequence_dict
+) {
+    // Boundary check.
+    if( ! iterator ) {
+        return {};
+    }
+
+    // Prepare a vector of records, one for each fst calculator, with their respective meta-data.
+    std::string const chromosome = iterator->chromosome;
+    auto result = prepare_fst_cathedral_records_for_chromosome_(
+        chromosome, processor, fst_estimator, sample_names
+    );
+    assert( result.size() == processor.size() );
 
     // Process all variants in the input as long as we are on the same chromosome,
     // and run them through the processor, storing all results in the result.
     size_t cur_pos = 0;
     while( iterator && iterator->chromosome == chromosome ) {
+
+        // Process a single Variant, so reset at every step.
         auto const& variant = *iterator;
         processor.reset();
         processor.process( variant );
 
-        // Make sure that we are in order. Otherwise the whole compuation fails.
+        // Make sure that we are in order. Otherwise the whole downstream approach fails.
         if( variant.position <= cur_pos ) {
             throw std::runtime_error(
                 "Unsorted positions in input: On chromosome \"" + chromosome + "\", position " +
@@ -185,31 +232,8 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data_chromosome(
         }
         cur_pos = variant.position;
 
-        // We need to cast the calculators in the processor to get the correct derived type,
-        // so that we can access the partial pi values from there.
-        // Bit hacky, but good enough for now. Then, store the results.
-        assert( processor.size() == result.size() );
-        for( size_t i = 0; i < processor.size(); ++i ) {
-            auto& raw_calc = processor.calculators()[i];
-            auto fst_calc = dynamic_cast<FstPoolCalculatorUnbiased const*>( raw_calc.get() );
-            if( ! fst_calc ) {
-                throw std::runtime_error(
-                    "In compute_fst_cathedral_data_chromosome(): Invalid FstPoolCalculatorUnbiased"
-                );
-            }
-
-            // Now add the entry for the current calculator to its respective result entry.
-            // We rely on the amortized complexity here - cannot pre-allocate the size,
-            // as we do not know how many positions will actually be in the input beforehand.
-            result[i].entries.emplace_back(
-                variant.position,
-                fst_calc->get_pi_within(),
-                fst_calc->get_pi_between(),
-                fst_calc->get_pi_total()
-            );
-        }
-
-        // Done with the position. Move to the next.
+        // Create entries in the records of each processor, and move to next position.
+        fill_fst_cathedral_records_from_processor_( processor, result, variant.position );
         ++iterator;
     }
 
@@ -225,12 +249,12 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data_chromosome(
     return result;
 }
 
-std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data(
+std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records(
     VariantInputIterator& iterator,
     FstPoolProcessor& processor,
     FstPoolCalculatorUnbiased::Estimator fst_estimator,
     std::vector<std::string> const& sample_names,
-    std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict
+    std::shared_ptr<genesis::sequence::SequenceDict> const& sequence_dict
 ) {
     // We make one big result vector with all entries from all pairs of samples and chromosomes.
     std::vector<FstCathedralPlotRecord> result;
@@ -238,7 +262,7 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data(
     // Start the iteration, process each chromosome, and move over the results.
     auto it = iterator.begin();
     while( it ) {
-        auto chr_result = compute_fst_cathedral_data_chromosome(
+        auto chr_result = compute_fst_cathedral_records_for_chromosome(
             it, processor, fst_estimator, sample_names, sequence_dict
         );
         assert( chr_result.size() == processor.size() );

@@ -175,7 +175,7 @@ private:
  *
  * The result contains entries for all pairs of samples. The computation starts at the current
  * position in @p iterator, uses that chromosome, and iterates until its end or until the next
- * chromosome is found, and stops there. See compute_fst_cathedral_data() for a helper function
+ * chromosome is found, and stops there. See compute_fst_cathedral_records() for a helper function
  * that does this for all chromsomes in the input.
  *
  * This expects the processor to only contain FstPoolCalculatorUnbiased calculators, as those
@@ -187,12 +187,12 @@ private:
  * If given a @p sequence_dict, we use the information in there to set the chromosome length;
  * otherwise, we use the last position found in the data for that.
  */
-std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data_chromosome(
+std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records_for_chromosome(
     VariantInputIterator::Iterator& iterator,
     FstPoolProcessor& processor,
     FstPoolCalculatorUnbiased::Estimator fst_estimator,
     std::vector<std::string> const& sample_names = std::vector<std::string>{},
-    std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = nullptr
+    std::shared_ptr<genesis::sequence::SequenceDict> const& sequence_dict = nullptr
 );
 
 /**
@@ -200,25 +200,25 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data_chromosome(
  * @p processor, for the chromsomes in the given input @p iterator.
  *
  * The result contains entries for all pairs of samples and all chromosomes, in one vector.
- * This is a convenience function that calls compute_fst_cathedral_data_chromosome() for each
+ * This is a convenience function that calls compute_fst_cathedral_records_for_chromosome() for each
  * chromosome.
  * We however do not recommend this for larger datasets, as the resulting data can be quite
  * memory-intense. It might hence be better to use this per-chromosome function instead,
  * and process the returned data before starting with the next chromosome.
  */
-std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data(
+std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records(
     VariantInputIterator& iterator,
     FstPoolProcessor& processor,
     FstPoolCalculatorUnbiased::Estimator fst_estimator,
     std::vector<std::string> const& sample_names = std::vector<std::string>{},
-    std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = nullptr
+    std::shared_ptr<genesis::sequence::SequenceDict> const& sequence_dict = nullptr
 );
 
 /**
  * @brief Compute the matrix of values that represents the cathedral plot for FST.
  *
  * This is merely a shortcut to call compute_cathedral_matrix() with the arguments for a cathedral
- * plot of FST, using the result of compute_fst_cathedral_data().
+ * plot of FST, using the result of compute_fst_cathedral_records().
  * The returned matrix can then be plotted as a heatmap.
  */
 void compute_fst_cathedral_matrix(
