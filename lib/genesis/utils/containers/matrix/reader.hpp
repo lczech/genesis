@@ -62,9 +62,9 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    explicit MatrixReader( char separator_char = '\t' )
+    explicit MatrixReader( std::string const& separator = "\t" )
     {
-        reader_.separator_chars( std::string( 1, separator_char ));
+        reader_.separator_chars( separator );
     }
 
     explicit MatrixReader( CsvReader const& reader )

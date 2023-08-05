@@ -64,7 +64,7 @@ TEST( Matrix, Reader )
     });
 
     // Read simple matrix.
-    auto reader = MatrixReader<double>( ' ' );
+    auto reader = MatrixReader<double>( " " );
     auto const simple = reader.read( from_file( environment->data_dir + "utils/matrix/simple.mat" ));
 
     // Change settings and read matrix with tabs, headers, ec.
