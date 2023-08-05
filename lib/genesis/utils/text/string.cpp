@@ -925,13 +925,29 @@ std::string to_upper_ascii( std::string const& str )
 
 std::string escape( std::string const& text )
 {
-    // This is slow-ish, because the string is iterated multiple times. Could be done faster.
+    static_assert( CHAR_BIT == 8, "CHAR_BIT != 8" );
     std::string tmp;
-    tmp = replace_all( text, "\r", "\\r"  );
-    tmp = replace_all( tmp,  "\n", "\\n"  );
-    tmp = replace_all( tmp,  "\t", "\\t"  );
-    tmp = replace_all( tmp,  "\"", "\\\"" );
-    tmp = replace_all( tmp,  "\\", "\\\\" );
+    for( auto c : text ) {
+        if( ' ' <= c && c <= '~' && c != '\\' && c != '"') {
+            tmp += c;
+        } else {
+            tmp += '\\';
+            switch( c ) {
+                case '"':  tmp += '"';  break;
+                case '\\': tmp += '\\'; break;
+                case '\t': tmp += 't';  break;
+                case '\r': tmp += 'r';  break;
+                case '\n': tmp += 'n';  break;
+                default: {
+                    // Without any encoding, we simply opt for a hex representation of the value.
+                    char const* const hexdig = "0123456789ABCDEF";
+                    tmp += 'x';
+                    tmp += hexdig[c >> 4];
+                    tmp += hexdig[c & 0xF];
+                }
+            }
+        }
+    }
     return tmp;
 }
 
