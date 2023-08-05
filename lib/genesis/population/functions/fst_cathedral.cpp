@@ -113,9 +113,11 @@ void FstCathedralAccumulator::reset()
 //     Compute Data Functions
 // =================================================================================================
 
-std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data_chromosome_(
+std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data_chromosome(
     VariantInputIterator::Iterator& iterator,
     FstPoolProcessor& processor,
+    FstPoolCalculatorUnbiased::Estimator fst_estimator,
+    std::vector<std::string> const& sample_names,
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict
 ) {
     // Boundary check.
@@ -131,13 +133,38 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data_chromosome_(
     result.resize( processor.size() );
     assert( processor.size() == processor.calculators().size() );
 
+    // If sample names are given, use those to name the results.
+    auto sample_name_pairs = fst_pool_processor_sample_names( processor, sample_names );
+    assert( sample_name_pairs.empty() || sample_name_pairs.size() == processor.size() );
+
     // We are at some chromosome now. We want to iterate while on that chromosome.
     // We have a seq dict, so we know the length of the chromosome. First thought was to use that
     // to pre-allocate the value vectors, but that might waaay over-allocate, as likely non-snp
     // positions will be filtered out beforehand in the input iterator. So we don't do that.
     std::string const chromosome = iterator->chromosome;
-    for( auto& data : result ) {
-        data.chromosome_name = chromosome;
+    auto const fst_name = fst_pool_unbiased_estimator_to_string( fst_estimator );
+    for( size_t i = 0; i < result.size(); ++i ) {
+        auto& record = result[i];
+
+        record.chromosome_name = chromosome;
+        record.fst_estimator = fst_estimator;
+
+        // If we have sample names, use them.
+        if( !sample_name_pairs.empty() ) {
+            assert( sample_name_pairs.size() == result.size() );
+            record.sample_name_1 = std::move( sample_name_pairs[i].first );
+            record.sample_name_2 = std::move( sample_name_pairs[i].second );
+        }
+
+        // We also make a title, for user convenience, to be used in the plot by default.
+        // Could make that configurable, but good enough for now.
+        record.title = "Fst (" + fst_name + ")";
+        if( !record.sample_name_1.empty() && !record.sample_name_2.empty() ) {
+            record.title += " " + record.sample_name_1 + " vs " + record.sample_name_2;
+        }
+        if( !record.chromosome_name.empty() ) {
+            record.title += ", chromosome \"" + record.chromosome_name + "\"";
+        }
     }
 
     // Process all variants in the input as long as we are on the same chromosome,
@@ -167,7 +194,7 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data_chromosome_(
             auto fst_calc = dynamic_cast<FstPoolCalculatorUnbiased const*>( raw_calc.get() );
             if( ! fst_calc ) {
                 throw std::runtime_error(
-                    "In compute_fst_cathedral_data_chromosome_(): Invalid FstPoolCalculatorUnbiased"
+                    "In compute_fst_cathedral_data_chromosome(): Invalid FstPoolCalculatorUnbiased"
                 );
             }
 
@@ -198,37 +225,6 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data_chromosome_(
     return result;
 }
 
-std::pair<std::string, std::string> get_processor_sample_names_(
-    FstPoolProcessor& processor,
-    std::vector<std::string> const& sample_names,
-    size_t processor_index
-) {
-    // This function is only called locally, so we can just assert that the index is correct.
-    // No need for an exception here.
-    assert( processor_index < processor.size() );
-
-    // Without sample names given, we just return an empty pair.
-    if( sample_names.empty() ) {
-        return {};
-    }
-
-    assert( processor.sample_pairs().size() == processor.size() );
-    auto& idx_pair = processor.sample_pairs()[processor_index];
-    if(
-        idx_pair.first  >= sample_names.size() ||
-        idx_pair.second >= sample_names.size()
-    ) {
-        throw std::invalid_argument(
-            "In compute_fst_cathedral_data(): sample names at indices " +
-            std::to_string( idx_pair.first ) + " and " + std::to_string( idx_pair.second ) +
-            " requested, but sample names with " + std::to_string( sample_names.size() ) +
-            " entries given."
-        );
-    }
-
-    return { sample_names[ idx_pair.first ], sample_names[ idx_pair.second ] };
-}
-
 std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data(
     VariantInputIterator& iterator,
     FstPoolProcessor& processor,
@@ -242,62 +238,42 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data(
     // Start the iteration, process each chromosome, and move over the results.
     auto it = iterator.begin();
     while( it ) {
-        auto chr_result = compute_fst_cathedral_data_chromosome_( it, processor, sequence_dict );
+        auto chr_result = compute_fst_cathedral_data_chromosome(
+            it, processor, fst_estimator, sample_names, sequence_dict
+        );
         assert( chr_result.size() == processor.size() );
 
         // Move the data for one chromsome (for each pair of samples) to the result.
         result.reserve( result.size() + chr_result.size() );
         for( size_t i = 0; i < chr_result.size(); ++i ) {
-            // If sample names are given, use those to name the results.
-            auto names = get_processor_sample_names_( processor, sample_names, i );
-            chr_result[i].sample_name_1 = std::move( names.first );
-            chr_result[i].sample_name_2 = std::move( names.second );
-            chr_result[i].fst_estimator = fst_estimator;
-
-            // Now move it to our result vecor.
             result.push_back( std::move( chr_result[i] ));
         }
     }
     assert( it == iterator.end() );
-
     return result;
 }
 
-void add_fst_cathedral_plot_record_to_json_document(
-    FstCathedralPlotRecord const& record, genesis::utils::JsonDocument& document
+// =================================================================================================
+//     Storage Functions
+// =================================================================================================
+
+genesis::utils::JsonDocument fst_cathedral_plot_record_to_json_document(
+    FstCathedralPlotRecord const& record
 ) {
     using namespace genesis::utils;
 
-    // Add the base class fields as well, for convenience.
-    add_cathedral_plot_record_to_json_document( record, document );
+    // Get the base class fields. This also sets up the document.
+    auto document = cathedral_plot_record_to_json_document( record );
 
-    // We expect this to be of type object. Null also works (empty default constructed).
-    if( document.is_null() ) {
-        document = JsonDocument::object();
-    }
+    // We expect a top-level Json object, to be filled with our data.
     auto& obj = document.get_object();
     auto const fst_name = fst_pool_unbiased_estimator_to_string( record.fst_estimator );
-
-    // For simplicity, we just write (or overwrite) the entries that we are interested in here.
-    // We could add a check for their existence, but for now we declare that as a user error.
-    // Not a use case that we will have within the library for now.
-    // We use camelCase for the properties, as recommended by https://jsonapi.org/recommendations/
-    // as well as the Google JSON Style Guide.
     obj["sampleName1"]  = JsonDocument::string( record.sample_name_1 );
     obj["sampleName2"]  = JsonDocument::string( record.sample_name_2 );
     obj["fstEstimator"] = JsonDocument::string( fst_name );
     obj["entryCount"]   = JsonDocument::number_unsigned( record.entries.size() );
 
-    // We also make a title, for user convenience, to be used in the plot by default.
-    // Could make that configurable, but good enough for now.
-    std::string title = "Fst (" + fst_name + ")";
-    if( !record.sample_name_1.empty() && !record.sample_name_2.empty() ) {
-        title += " " + record.sample_name_1 + " vs " + record.sample_name_2;
-    }
-    if( !record.chromosome_name.empty() ) {
-        title += ", chromosome \"" + record.chromosome_name + "\"";
-    }
-    obj["title"] = JsonDocument::string( title );
+    return document;
 }
 
 } // namespace population

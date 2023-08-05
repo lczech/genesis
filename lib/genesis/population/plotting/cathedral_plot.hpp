@@ -112,6 +112,7 @@ struct CathedralPlotProperties
 struct CathedralPlotRecord
 {
     // Data-derived properties from the initial input.
+    std::string title;
     std::string chromosome_name;
     size_t chromosome_length = 0;
 
@@ -141,18 +142,6 @@ double cathedral_window_width(
  * @brief Helper function to return a textual representation of the @p method
  */
 std::string cathedral_window_width_method_to_string( CathedralWindowWidthMethod method );
-
-// =================================================================================================
-//     Json Storage Functions
-// =================================================================================================
-
-void add_cathedral_plot_properties_to_json_document(
-    CathedralPlotProperties const& properties, genesis::utils::JsonDocument& document
-);
-
-void add_cathedral_plot_record_to_json_document(
-    CathedralPlotRecord const& record, genesis::utils::JsonDocument& document
-);
 
 // =================================================================================================
 //     Compute Matrix Functions
@@ -299,6 +288,63 @@ void compute_cathedral_matrix(
         assert( record.entries.size() == diss_cnt + queue.size() );
     }
 }
+
+// =================================================================================================
+//     Storage Functions
+// =================================================================================================
+
+/**
+ * @brief Get a user-readable description of a CathedralPlotProperties as a
+ * @link genesis::utils::JsonDocument JsonDocument@endlink.
+ *
+ * @see cathedral_plot_properties_to_json_document()
+ */
+genesis::utils::JsonDocument cathedral_plot_properties_to_json_document(
+    CathedralPlotProperties const& properties
+);
+
+/**
+ * @brief Get a user-readable description of the data of a CathedralPlotRecord as a
+ * @link genesis::utils::JsonDocument JsonDocument@endlink.
+ *
+ * This is meant for user output, so that cathedral plots can be generated from a data matrix,
+ * without having to recompute the matrix.
+ *
+ * @see fst_cathedral_plot_record_to_json_document(), cathedral_plot_properties_to_json_document(),
+ * save_cathedral_plot_record_to_files(), load_cathedral_plot_record_from_files()
+ */
+genesis::utils::JsonDocument cathedral_plot_record_to_json_document(
+    CathedralPlotRecord const& record
+);
+
+/**
+ * @brief Save the record of a cathedral plot in a set of files.
+ *
+ * To allow for flexibility, the CathedralPlotRecord, or its derived classes such as
+ * FstCathedralPlotRecord, are expected to be converted to a Json document first, with
+ * cathedral_plot_record_to_json_document() and related functions.
+ *
+ * We then store that meta-data, as well as the value matrix computed with compute_cathedral_matrix()
+ * in two files, which use the given @p base_path, and append extensions `.json` and `.csv`,
+ * respectively. The resulting files can be loaded again with
+ * load_cathedral_plot_record_from_files().
+ */
+void save_cathedral_plot_record_to_files(
+    genesis::utils::JsonDocument const& record_document,
+    genesis::utils::Matrix<double> const& record_value_matrix,
+    std::string const& base_path
+);
+
+/**
+ * @brief Load the record of a cathedral plot from a set of files.
+ *
+ * See save_cathedral_plot_record_to_files(). This reads a json and a csv file using the
+ * @p base_path with the extensions `.json` and `.csv`.
+ */
+std::pair<genesis::utils::JsonDocument, genesis::utils::Matrix<double>>
+load_cathedral_plot_record_from_files(
+    std::string const& base_path
+);
 
 } // namespace population
 } // namespace genesis

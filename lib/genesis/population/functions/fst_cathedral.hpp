@@ -171,9 +171,12 @@ private:
 
 /**
  * @brief Compute the components of per-position FST data for all pairs of samples in the given
- * @p processor, for the chromsomes in the given input @p iterator.
+ * @p processor, for the current chromsome in the given input @p iterator.
  *
- * The result contains entries for all pairs of samples and all chromosomes, in one vector.
+ * The result contains entries for all pairs of samples. The computation starts at the current
+ * position in @p iterator, uses that chromosome, and iterates until its end or until the next
+ * chromosome is found, and stops there. See compute_fst_cathedral_data() for a helper function
+ * that does this for all chromsomes in the input.
  *
  * This expects the processor to only contain FstPoolCalculatorUnbiased calculators, as those
  * are the only ones for which we can compute cathedral plots with our current implementation.
@@ -183,6 +186,25 @@ private:
  *
  * If given a @p sequence_dict, we use the information in there to set the chromosome length;
  * otherwise, we use the last position found in the data for that.
+ */
+std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data_chromosome(
+    VariantInputIterator::Iterator& iterator,
+    FstPoolProcessor& processor,
+    FstPoolCalculatorUnbiased::Estimator fst_estimator,
+    std::vector<std::string> const& sample_names = std::vector<std::string>{},
+    std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = nullptr
+);
+
+/**
+ * @brief Compute the components of per-position FST data for all pairs of samples in the given
+ * @p processor, for the chromsomes in the given input @p iterator.
+ *
+ * The result contains entries for all pairs of samples and all chromosomes, in one vector.
+ * This is a convenience function that calls compute_fst_cathedral_data_chromosome() for each
+ * chromosome.
+ * We however do not recommend this for larger datasets, as the resulting data can be quite
+ * memory-intense. It might hence be better to use this per-chromosome function instead,
+ * and process the returned data before starting with the next chromosome.
  */
 std::vector<FstCathedralPlotRecord> compute_fst_cathedral_data(
     VariantInputIterator& iterator,
@@ -209,16 +231,19 @@ void compute_fst_cathedral_matrix(
     );
 }
 
+// =================================================================================================
+//     Storage Functions
+// =================================================================================================
+
 /**
- * @brief Add a user-readable description of the properties of a FstCathedralPlotRecord to a
+ * @brief Get a user-readable description of the data of a FstCathedralPlotRecord as a
  * @link genesis::utils::JsonDocument JsonDocument@endlink.
  *
- * This is meant for user output, so that cathedral plots can be generated from a data matrix,
- * without having to recompute the matrix. The @p document is expected to be a Json object,
- * so that we can add key value pairs to it.
+ * @see cathedral_plot_record_to_json_document(), cathedral_plot_properties_to_json_document(),
+ * save_cathedral_plot_record_to_files(), load_cathedral_plot_record_from_files()
  */
-void add_fst_cathedral_plot_record_to_json_document(
-    FstCathedralPlotRecord const& record, genesis::utils::JsonDocument& document
+genesis::utils::JsonDocument fst_cathedral_plot_record_to_json_document(
+    FstCathedralPlotRecord const& record
 );
 
 } // namespace population

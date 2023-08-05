@@ -30,8 +30,14 @@
 
 #include "genesis/population/plotting/cathedral_plot.hpp"
 
+#include "genesis/utils/containers/matrix/reader.hpp"
+#include "genesis/utils/containers/matrix/writer.hpp"
+#include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/formats/bmp/writer.hpp"
 #include "genesis/utils/formats/json/document.hpp"
+#include "genesis/utils/formats/json/reader.hpp"
+#include "genesis/utils/formats/json/writer.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -111,38 +117,97 @@ std::string cathedral_window_width_method_to_string( CathedralWindowWidthMethod 
 }
 
 // =================================================================================================
-//     Json Storage Functions
+//     Storage Functions
 // =================================================================================================
 
-void add_cathedral_plot_properties_to_json_document(
-    CathedralPlotProperties const& properties, genesis::utils::JsonDocument& document
+genesis::utils::JsonDocument cathedral_plot_properties_to_json_document(
+    CathedralPlotProperties const& properties
 ) {
     using namespace genesis::utils;
-    if( document.is_null() ) {
-        document = JsonDocument::object();
-    }
+
+    // Create a top-level object Json document.
+    auto document = JsonDocument::object();
     auto& obj = document.get_object();
+
+    // For simplicity, we just write (or overwrite) the entries that we are interested in here.
+    // We could add a check for their existence, but for now we declare that as a user error.
+    // Not a use case that we will have within the library for now.
+    // We use camelCase for the properties, as recommended by https://jsonapi.org/recommendations/
+    // as well as the Google JSON Style Guide.
     obj["width"]  = JsonDocument::number_unsigned( properties.width );
     obj["height"] = JsonDocument::number_unsigned( properties.height );
     obj["windowWidthMethod"] = JsonDocument::string(
         cathedral_window_width_method_to_string( properties.window_width_method )
     );
+
+    return document;
 }
 
-void add_cathedral_plot_record_to_json_document(
-    CathedralPlotRecord const& record, genesis::utils::JsonDocument& document
+genesis::utils::JsonDocument cathedral_plot_record_to_json_document(
+    CathedralPlotRecord const& record
 ) {
     using namespace genesis::utils;
-    if( document.is_null() ) {
-        document = JsonDocument::object();
-    }
+
+    // First we add the properties, so that those are also part of the document.
+    // This also sets up the document to be a Json object, in case it was null (default constructed).
+    auto document = cathedral_plot_properties_to_json_document( record.properties );
+
+    // Now fill the object with our data.
     auto& obj = document.get_object();
+    obj["title"]            = JsonDocument::string( record.title );
     obj["chromosomeName"]   = JsonDocument::string( record.chromosome_name );
     obj["chromosomeLength"] = JsonDocument::number_unsigned( record.chromosome_length );
     obj["windowWidths"]     = JsonDocument( record.window_widths );
 
-    // Also add the properties, for user convenience.
-    add_cathedral_plot_properties_to_json_document( record.properties, document );
+    return document;
+}
+
+void save_cathedral_plot_record_to_files(
+    genesis::utils::JsonDocument const& record_document,
+    genesis::utils::Matrix<double> const& record_value_matrix,
+    std::string const& base_path
+) {
+    using namespace genesis::utils;
+
+    // Write both files, using their respective readers.
+    JsonWriter().write( record_document, to_file( base_path + ".json" ));
+    MatrixWriter<double>( "," ).write( record_value_matrix, to_file( base_path + ".csv" ));
+}
+
+std::pair<genesis::utils::JsonDocument, genesis::utils::Matrix<double>>
+load_cathedral_plot_record_from_files(
+    std::string const& base_path
+) {
+    using namespace genesis::utils;
+
+    // We want to be lenient here, and allow to either specify the base path,
+    // or either of the two actual files that we want to read.
+    // Init with just the base path. If this works, we are good.
+    auto json_file = base_path + ".json";
+    auto csv_file  = base_path + ".csv";
+
+    // If either file does not exist, we examine further.
+    if( !file_exists( json_file ) || !file_exists( csv_file )) {
+        if( ends_with( base_path, ".json" )) {
+            json_file = base_path;
+            csv_file  = file_filename( base_path ) + ".csv";
+        } else if( ends_with( base_path, ".csv" )) {
+            json_file = file_filename( base_path ) + ".json";
+            csv_file  = base_path;
+        }
+        if( !file_exists( json_file ) || !file_exists( csv_file )) {
+            throw std::invalid_argument(
+                "load_cathedral_plot_record_from_files(): Cannot find json/csv files "
+                "for base path \"" + base_path + "\""
+            );
+        }
+    }
+
+    // Now we have two files that exist. Read them, and return their contents.
+    return std::make_pair(
+        JsonReader().read( from_file( json_file )),
+        MatrixReader<double>( "," ).read( from_file( csv_file ))
+    );
 }
 
 } // namespace population

@@ -39,6 +39,7 @@
 #include <cassert>
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -358,6 +359,40 @@ inline FstPoolProcessor make_fst_pool_processor(
             args...
         )
     );
+    return result;
+}
+
+/**
+ * @brief Return a list of sample name pairs for each calculator in an FstPoolProcessor.
+ */
+std::vector<std::pair<std::string, std::string>> fst_pool_processor_sample_names(
+    FstPoolProcessor const& processor,
+    std::vector<std::string> const& sample_names
+) {
+    // Without sample names given, we just return an empty pair.
+    if( sample_names.empty() ) {
+        return {};
+    }
+
+    // Prepare the actual result vector.
+    std::vector<std::pair<std::string, std::string>> result;
+    result.reserve( processor.size() );
+
+    // Make a list of sample name pairs, one for each calculator in the processor.
+    assert( processor.sample_pairs().size() == processor.size() );
+    for( auto const& sample_pair : processor.sample_pairs() ) {
+        if( sample_pair.first >= sample_names.size() || sample_pair.second >= sample_names.size() ) {
+            throw std::invalid_argument(
+                "In fst_pool_processor_sample_names(): sample names at indices " +
+                std::to_string( sample_pair.first ) + " and " + std::to_string( sample_pair.second ) +
+                " requested, but sample names with " + std::to_string( sample_names.size() ) +
+                " entries given."
+            );
+        }
+        result.push_back( std::make_pair(
+            sample_names[ sample_pair.first ], sample_names[ sample_pair.second ]
+        ));
+    }
     return result;
 }
 
