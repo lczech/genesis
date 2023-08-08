@@ -169,6 +169,21 @@ void save_cathedral_plot_record_to_files(
 ) {
     using namespace genesis::utils;
 
+    // Error checking, to avoid user error. Would be better to have that also coded into
+    // the functions, but well, refactor later...
+    if( record_document.empty() ) {
+        throw std::invalid_argument(
+            "save_cathedral_plot_record_to_files(): Empty JSON document provided. "
+            "Call cathedral_plot_record_to_json_document() or related functions first."
+        );
+    }
+    if( record_value_matrix.empty() ) {
+        throw std::invalid_argument(
+            "save_cathedral_plot_record_to_files(): Empty value matrix provided. "
+            "Call compute_cathedral_matrix() or related functions first."
+        );
+    }
+
     // Write both files, using their respective readers.
     JsonWriter().write( record_document, to_file( base_path + ".json" ));
     MatrixWriter<double>( "," ).write( record_value_matrix, to_file( base_path + ".csv" ));
