@@ -214,12 +214,12 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records(
  * The returned matrix can then be plotted as a heatmap.
  */
 void compute_fst_cathedral_matrix(
-    CathedralPlotProperties const& properties,
+    CathedralPlotParameters const& parameters,
     FstCathedralPlotRecord& record
 ) {
     auto accu = FstCathedralAccumulator( record.fst_estimator );
     return compute_cathedral_matrix<FstCathedralPlotRecord, FstCathedralAccumulator>(
-        properties, record, accu
+        parameters, record, accu
     );
 }
 
@@ -231,7 +231,7 @@ void compute_fst_cathedral_matrix(
  * @brief Get a user-readable description of the data of a FstCathedralPlotRecord as a
  * @link genesis::utils::JsonDocument JsonDocument@endlink.
  *
- * @see cathedral_plot_record_to_json_document(), cathedral_plot_properties_to_json_document(),
+ * @see cathedral_plot_record_to_json_document(), cathedral_plot_parameters_to_json_document(),
  * save_cathedral_plot_record_to_files(), load_cathedral_plot_record_from_files()
  */
 genesis::utils::JsonDocument fst_cathedral_plot_record_to_json_document(

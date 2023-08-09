@@ -58,7 +58,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Cathedral Plot Properties
+//     Cathedral Plot Parameters
 // =================================================================================================
 
 /**
@@ -81,15 +81,15 @@ enum class CathedralWindowWidthMethod
 };
 
 /**
- * @brief Plot properties to make a cathedral plot.
+ * @brief Plot parameters to make a cathedral plot.
  *
- * Meant for the user-provided properties for making a cathedral plot, such as the image dimensions.
+ * Meant for the user-provided parameters for making a cathedral plot, such as the image dimensions.
  *
  * @see compute_cathedral_matrix()
  */
-struct CathedralPlotProperties
+struct CathedralPlotParameters
 {
-    // Plot properties
+    // Plot parameters
     size_t width = 0;
     size_t height = 0;
     CathedralWindowWidthMethod window_width_method = CathedralWindowWidthMethod::kExponential;
@@ -98,11 +98,11 @@ struct CathedralPlotProperties
 /**
  * @brief Collection of the data used for making for a cathedral plot.
  *
- * Base class that contains the data-derived properties, such as chromsome name.
+ * Base class that contains the data-derived parameters, such as chromsome name.
  * In each of the steps during the creating of a cathedral plot, it receives more data,
  * resulting from what the step did.
  *
- * Meant to be derived from to add more properties for specific types of cathedral plots,
+ * Meant to be derived from to add more parameters for specific types of cathedral plots,
  * as well as the data needed by compute_cathedral_matrix() and its accumulator to compute the
  * data matrix. In particular, the derived class shall add a `std::vector<Entry> entries` that
  * contains the per-position entries that are the data to compute the per-window (per-pixel) values.
@@ -115,13 +115,13 @@ struct CathedralPlotRecord
     // through a pointer to base in our use case, but one never knows...
     virtual ~CathedralPlotRecord() = default;
 
-    // Data-derived properties from the initial input.
+    // Data-derived parameters from the initial input.
     std::string title;
     std::string chromosome_name;
     size_t chromosome_length = 0;
 
-    // User-provided properties, added here to keep track of the record.
-    CathedralPlotProperties properties;
+    // User-provided parameters, added here to keep track of the record.
+    CathedralPlotParameters parameters;
 
     // Data matrix containing per-pixel values.
     genesis::utils::Matrix<double> value_matrix;
@@ -153,7 +153,7 @@ std::string cathedral_window_width_method_to_string( CathedralWindowWidthMethod 
 
 /**
  * @brief Template function to compute the value matrix for a cathedral plot, given a recored
- * with plot properties and per-position data to accumulate per window.
+ * with plot parameters and per-position data to accumulate per window.
  *
  * The function computes the accumulated values across windows for each pixel in a cathedral plot,
  * which can then be visualized as a heat map.
@@ -169,33 +169,33 @@ std::string cathedral_window_width_method_to_string( CathedralWindowWidthMethod 
  * to speed up the computation here. Also, the @p accumulator needs to have a `aggregate()`
  * function that uses the currently accumulated data to compute the value for a given window.
  * See FstCathedralAccumulator for an example. We take this as an (optional) argument, so
- * that it can be set up with other properties as needed.
+ * that it can be set up with other parameters as needed.
  *
  * @see See compute_fst_cathedral_matrix() for an applied version of this function,
  * and see compute_fst_cathedral_records() for a function to compute @p record for that case.
  */
 template<class Record, class Accumulator>
 void compute_cathedral_matrix(
-    CathedralPlotProperties const& properties,
+    CathedralPlotParameters const& parameters,
     Record& record,
     Accumulator accumulator = Accumulator{}
 ) {
     // Prepare a result matrix for the values, of the desired dimensions.
-    record.value_matrix = genesis::utils::Matrix<double>( properties.height, properties.width );
-    record.window_widths = std::vector<double>( properties.height );
+    record.value_matrix = genesis::utils::Matrix<double>( parameters.height, parameters.width );
+    record.window_widths = std::vector<double>( parameters.height );
 
-    // Also store the properties in the record, for later reference to have them in one place.
-    record.properties = properties;
+    // Also store the parameters in the record, for later reference to have them in one place.
+    record.parameters = parameters;
 
     // How far (in genome coordinates) do we advance between windows?
     double const chr_len  = static_cast<double>( record.chromosome_length );
-    auto const advance = chr_len / static_cast<double>( properties.width );
+    auto const advance = chr_len / static_cast<double>( parameters.width );
 
     // Compute each cell of the result. We experimented with parallelizing this loop across threads,
     // but the computation seems to be memory bound, and even when trying to avoid false sharing
     // (of writing to individual cells of the matrix in each iteration), the result was never faster
     // (and often way slower) than the single threaded code here. So let's keep it simple.
-    for( size_t row = 0; row < properties.height; ++row ) {
+    for( size_t row = 0; row < parameters.height; ++row ) {
 
         // How wide (in genome coordinates) is each window in the current row?
         auto const window_width = cathedral_window_width( record, row );
@@ -226,7 +226,7 @@ void compute_cathedral_matrix(
         double cur_gen_pos = - window_width / 2.0;
 
         // Iterate the pixels of the columns, computing a window for each of them,
-        for( size_t col = 0; col < properties.width; ++col ) {
+        for( size_t col = 0; col < parameters.width; ++col ) {
             assert( cur_gen_pos + window_width >= 0.0 );
             assert( cur_gen_pos <= static_cast<double>( record.chromosome_length ));
 
@@ -235,7 +235,7 @@ void compute_cathedral_matrix(
             // (can be a bit off due to rounding?! might need to check).
             auto l_gen_pos = static_cast<size_t>( std::max( cur_gen_pos, 0.0 ));
             auto r_gen_pos = static_cast<size_t>( std::min( cur_gen_pos + window_width, chr_len ));
-            if( col == properties.width - 1 ) {
+            if( col == parameters.width - 1 ) {
                 r_gen_pos = record.chromosome_length;
             }
             cur_gen_pos += advance;
@@ -298,13 +298,13 @@ void compute_cathedral_matrix(
 // =================================================================================================
 
 /**
- * @brief Get a user-readable description of a CathedralPlotProperties as a
+ * @brief Get a user-readable description of a CathedralPlotParameters as a
  * @link genesis::utils::JsonDocument JsonDocument@endlink.
  *
- * @see cathedral_plot_properties_to_json_document()
+ * @see cathedral_plot_parameters_to_json_document()
  */
-genesis::utils::JsonDocument cathedral_plot_properties_to_json_document(
-    CathedralPlotProperties const& properties
+genesis::utils::JsonDocument cathedral_plot_parameters_to_json_document(
+    CathedralPlotParameters const& parameters
 );
 
 /**
@@ -314,7 +314,7 @@ genesis::utils::JsonDocument cathedral_plot_properties_to_json_document(
  * This is meant for user output, so that cathedral plots can be generated from a data matrix,
  * without having to recompute the matrix.
  *
- * @see fst_cathedral_plot_record_to_json_document(), cathedral_plot_properties_to_json_document(),
+ * @see fst_cathedral_plot_record_to_json_document(), cathedral_plot_parameters_to_json_document(),
  * save_cathedral_plot_record_to_files(), load_cathedral_plot_record_from_files()
  */
 genesis::utils::JsonDocument cathedral_plot_record_to_json_document(

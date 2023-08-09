@@ -47,27 +47,27 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Cathedral Plot Properties
+//     Cathedral Plot Parameters
 // =================================================================================================
 
 double cathedral_window_width(
     CathedralPlotRecord const& record, size_t row
 ) {
-    if( record.properties.width < 2 || record.properties.height < 2 ) {
+    if( record.parameters.width < 2 || record.parameters.height < 2 ) {
         throw std::invalid_argument( "cathedral_window_width invalid: width < 2 || height < 2" );
     }
-    if( row >= record.properties.height ) {
+    if( row >= record.parameters.height ) {
         throw std::invalid_argument( "cathedral_window_width invalid: row >= height" );
     }
 
     // We need the values as doubles. Do this once here, for conciseness.
     double const chr_len  = static_cast<double>( record.chromosome_length );
-    double const width_d  = static_cast<double>( record.properties.width );
-    double const height_d = static_cast<double>( record.properties.height );
+    double const width_d  = static_cast<double>( record.parameters.width );
+    double const height_d = static_cast<double>( record.parameters.height );
     double const row_d    = static_cast<double>( row );
 
     double window_width = 0.0;
-    switch( record.properties.window_width_method ) {
+    switch( record.parameters.window_width_method ) {
         case CathedralWindowWidthMethod::kExponential: {
             auto const decay = - std::log( 1.0 / width_d ) / ( height_d - 1.0 );
             window_width = chr_len * std::exp( -decay * row_d);
@@ -120,8 +120,8 @@ std::string cathedral_window_width_method_to_string( CathedralWindowWidthMethod 
 //     Storage Functions
 // =================================================================================================
 
-genesis::utils::JsonDocument cathedral_plot_properties_to_json_document(
-    CathedralPlotProperties const& properties
+genesis::utils::JsonDocument cathedral_plot_parameters_to_json_document(
+    CathedralPlotParameters const& parameters
 ) {
     using namespace genesis::utils;
 
@@ -132,12 +132,12 @@ genesis::utils::JsonDocument cathedral_plot_properties_to_json_document(
     // For simplicity, we just write (or overwrite) the entries that we are interested in here.
     // We could add a check for their existence, but for now we declare that as a user error.
     // Not a use case that we will have within the library for now.
-    // We use camelCase for the properties, as recommended by https://jsonapi.org/recommendations/
+    // We use camelCase for the parameters, as recommended by https://jsonapi.org/recommendations/
     // as well as the Google JSON Style Guide.
-    obj["width"]  = JsonDocument::number_unsigned( properties.width );
-    obj["height"] = JsonDocument::number_unsigned( properties.height );
+    obj["width"]  = JsonDocument::number_unsigned( parameters.width );
+    obj["height"] = JsonDocument::number_unsigned( parameters.height );
     obj["windowWidthMethod"] = JsonDocument::string(
-        cathedral_window_width_method_to_string( properties.window_width_method )
+        cathedral_window_width_method_to_string( parameters.window_width_method )
     );
 
     return document;
@@ -148,9 +148,9 @@ genesis::utils::JsonDocument cathedral_plot_record_to_json_document(
 ) {
     using namespace genesis::utils;
 
-    // First we add the properties, so that those are also part of the document.
+    // First we add the parameters, so that those are also part of the document.
     // This also sets up the document to be a Json object, in case it was null (default constructed).
-    auto document = cathedral_plot_properties_to_json_document( record.properties );
+    auto document = cathedral_plot_parameters_to_json_document( record.parameters );
 
     // Now fill the object with our data.
     auto& obj = document.get_object();
