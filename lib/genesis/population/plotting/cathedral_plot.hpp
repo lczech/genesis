@@ -111,6 +111,10 @@ struct CathedralPlotProperties
  */
 struct CathedralPlotRecord
 {
+    // Virtual destructor, just in case. We are problably not going to delete the derived class
+    // through a pointer to base in our use case, but one never knows...
+    virtual ~CathedralPlotRecord() = default;
+
     // Data-derived properties from the initial input.
     std::string title;
     std::string chromosome_name;
@@ -339,7 +343,8 @@ void save_cathedral_plot_record_to_files(
  * @brief Load the record of a cathedral plot from a set of files.
  *
  * See save_cathedral_plot_record_to_files(). This reads a json and a csv file using the
- * @p base_path with the extensions `.json` and `.csv`.
+ * @p base_path with the extensions `.json` and `.csv`. For convenience, it is also possible to
+ * specify one of the two file paths directly, and the respective other will be inferred.
  */
 std::pair<genesis::utils::JsonDocument, genesis::utils::Matrix<double>>
 load_cathedral_plot_record_from_files(

@@ -364,6 +364,10 @@ inline FstPoolProcessor make_fst_pool_processor(
 
 /**
  * @brief Return a list of sample name pairs for each calculator in an FstPoolProcessor.
+ *
+ * The function takes a @p processor, and the original list of @p sample_names of the samples in the
+ * calculators in the @p processor, and uses their indices (as stored in the @p processor) to get
+ * pairs of sample names.
  */
 std::vector<std::pair<std::string, std::string>> fst_pool_processor_sample_names(
     FstPoolProcessor const& processor,

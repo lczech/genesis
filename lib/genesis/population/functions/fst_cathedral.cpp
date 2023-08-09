@@ -45,9 +45,17 @@ namespace population {
 //     Fst Cathedral Accumulator
 // =================================================================================================
 
+bool all_finite_( FstCathedralPlotRecord::Entry const& entry )
+{
+    auto const pi_w_finite = std::isfinite( entry.pi_within );
+    auto const pi_b_finite = std::isfinite( entry.pi_between );
+    auto const pi_t_finite = std::isfinite( entry.pi_total );
+    return pi_w_finite && pi_b_finite && pi_t_finite;
+}
+
 void FstCathedralAccumulator::accumulate( FstCathedralPlotRecord::Entry const& entry )
 {
-    if( ! entry.all_finite() ) {
+    if( ! all_finite_( entry )) {
         return;
     }
     pi_within_sum_  += entry.pi_within;
@@ -59,7 +67,7 @@ void FstCathedralAccumulator::accumulate( FstCathedralPlotRecord::Entry const& e
 void FstCathedralAccumulator::dissipate( FstCathedralPlotRecord::Entry const& entry )
 {
     // Boundary cases.
-    if( ! entry.all_finite() ) {
+    if( ! all_finite_( entry )) {
         return;
     }
     if( value_count_ == 0 ) {

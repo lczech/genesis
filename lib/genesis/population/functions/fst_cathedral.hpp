@@ -71,7 +71,7 @@ namespace population {
  * estimators. Hence, we keep the per position pi values here, so that they can then be accumulated
  * into the per-pixel values for the plot later.
  */
-struct FstCathedralPlotRecord : public CathedralPlotRecord
+struct FstCathedralPlotRecord final : public CathedralPlotRecord
 {
     struct Entry
     {
@@ -86,14 +86,6 @@ struct FstCathedralPlotRecord : public CathedralPlotRecord
         double pi_within  = 0.0;
         double pi_between = 0.0;
         double pi_total   = 0.0;
-
-        bool all_finite() const
-        {
-            auto const pi_w_fininite = std::isfinite( pi_within );
-            auto const pi_b_fininite = std::isfinite( pi_between );
-            auto const pi_t_fininite = std::isfinite( pi_total );
-            return pi_w_fininite && pi_b_fininite && pi_t_fininite;
-        }
     };
 
     // The actual components of FST values per position.
