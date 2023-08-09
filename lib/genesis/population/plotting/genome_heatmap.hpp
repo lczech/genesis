@@ -34,8 +34,8 @@
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/formats/svg/svg.hpp"
 #include "genesis/utils/io/output_target.hpp"
-#include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/map.hpp"
+#include "genesis/utils/color/color.hpp"
+#include "genesis/utils/color/map.hpp"
 
 #include <string>
 

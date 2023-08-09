@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_TOOLS_COLOR_NORM_DIVERGING_H_
-#define GENESIS_UTILS_TOOLS_COLOR_NORM_DIVERGING_H_
+#ifndef GENESIS_UTILS_COLOR_NORM_DIVERGING_H_
+#define GENESIS_UTILS_COLOR_NORM_DIVERGING_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,9 +31,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/functions.hpp"
-#include "genesis/utils/tools/color/norm_linear.hpp"
+#include "genesis/utils/color/color.hpp"
+#include "genesis/utils/color/functions.hpp"
+#include "genesis/utils/color/norm_linear.hpp"
 
 #include <cmath>
 #include <limits>

@@ -28,17 +28,17 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/tools/color/helpers.hpp"
+#include "genesis/utils/color/helpers.hpp"
 
 #include "genesis/utils/text/string.hpp"
-#include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/functions.hpp"
-#include "genesis/utils/tools/color/map.hpp"
-#include "genesis/utils/tools/color/norm_boundary.hpp"
-#include "genesis/utils/tools/color/norm_diverging.hpp"
-#include "genesis/utils/tools/color/norm_linear.hpp"
-#include "genesis/utils/tools/color/norm_logarithmic.hpp"
-#include "genesis/utils/tools/color/normalization.hpp"
+#include "genesis/utils/color/color.hpp"
+#include "genesis/utils/color/functions.hpp"
+#include "genesis/utils/color/map.hpp"
+#include "genesis/utils/color/norm_boundary.hpp"
+#include "genesis/utils/color/norm_diverging.hpp"
+#include "genesis/utils/color/norm_linear.hpp"
+#include "genesis/utils/color/norm_logarithmic.hpp"
+#include "genesis/utils/color/normalization.hpp"
 
 #include <cassert>
 #include <stdexcept>
