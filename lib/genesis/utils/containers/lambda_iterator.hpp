@@ -914,6 +914,7 @@ public:
             );
         }
         transforms_and_filters_.clear();
+        return *this;
     }
 
     // -------------------------------------------------------------------------
@@ -954,6 +955,7 @@ public:
             );
         }
         visitors_.clear();
+        return *this;
     }
 
     /**
@@ -1012,6 +1014,7 @@ public:
         }
         begin_callbacks_.clear();
         end_callbacks_.clear();
+        return *this;
     }
 
     // -------------------------------------------------------------------------

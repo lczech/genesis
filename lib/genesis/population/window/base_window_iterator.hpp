@@ -565,6 +565,7 @@ public:
     self_type& clear_visitors()
     {
         visitors_.clear();
+        return *this;
     }
 
     // -------------------------------------------------------------------------
