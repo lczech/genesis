@@ -143,6 +143,12 @@ void SvgDocument::write( std::ostream& out ) const
     out << "</svg>\n";
 }
 
+void SvgDocument::write( std::shared_ptr<utils::BaseOutputTarget> target ) const
+{
+    auto& os = target->ostream();
+    write( os );
+}
+
 SvgDocument& SvgDocument::add( SvgObject const& object )
 {
     content_.push_back( object );

@@ -116,10 +116,19 @@ SvgGroup make_svg_axis(
     std::string const& name = ""
 );
 
+/**
+ * @brief Simple helper to make an axis.
+ *
+ * This overload of the function takes the result of the Tickmarks class when creating labels,
+ * and forwards it to the other overload that takes string labeles instead, for convenience.
+ * When using @p round_labels (default `true`), `std::round` is called on the label values first,
+ * in order to print integer numbers.
+ */
 SvgGroup make_svg_axis(
     SvgAxisSettings const& settings,
     std::vector<Tickmarks::LabeledTick> const& labels,
-    std::string const& name = ""
+    std::string const& name = "",
+    bool round_labels = true
 );
 
 } // namespace utils

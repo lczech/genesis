@@ -39,6 +39,7 @@
 #include "genesis/utils/tools/tickmarks.hpp"
 
 #include <cassert>
+#include <cmath>
 #include <stdexcept>
 
 namespace genesis {
@@ -200,11 +201,14 @@ SvgGroup make_svg_axis(
 SvgGroup make_svg_axis(
     SvgAxisSettings const& settings,
     std::vector<Tickmarks::LabeledTick> const& labels,
-    std::string const& name
+    std::string const& name,
+    bool round_labels
 ) {
     std::map<double, std::string> ticks;
     for( auto const& tick : labels ) {
-        ticks[ tick.relative_position ] = to_string_nice( tick.label );
+        ticks[ tick.relative_position ] = to_string_nice(
+            round_labels ? std::round( tick.label ) : tick.label
+        );
     }
     return make_svg_axis( settings, ticks, name );
 }

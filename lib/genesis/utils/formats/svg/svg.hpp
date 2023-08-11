@@ -35,8 +35,8 @@
 //     Svg Headers
 // =================================================================================================
 
-#include "genesis/utils/formats/svg/axis.hpp"
 #include "genesis/utils/formats/svg/attributes.hpp"
+#include "genesis/utils/formats/svg/axis.hpp"
 #include "genesis/utils/formats/svg/color_bar.hpp"
 #include "genesis/utils/formats/svg/definitions.hpp"
 #include "genesis/utils/formats/svg/document.hpp"
