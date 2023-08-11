@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,9 +32,13 @@
  */
 
 #include "genesis/population/genome_locus.hpp"
+#include "genesis/sequence/sequence_dict.hpp"
+#include "genesis/utils/math/common.hpp"
 
 #include <cassert>
+#include <cstring>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <stdexcept>
 
@@ -73,10 +77,119 @@ inline std::ostream& operator << ( std::ostream& os, GenomeLocus const& locus )
 
 // Really good example of the claim that C++ needs a lot of boilerplate code...
 // We here provide all comparison operators for GenomeLocus, but also comparing loci given
-// as chromosome (`std::string`) and position (`size_t`) separately.
-// Maybe there is a smarter way to generate this, probably using macros, but then again,
-// most operators are optimized, and macros are ugly...
-// So, we live with the boilerplate for clarity - this also works better with code documentation!
+// as chromosome (`std::string`) and position (`size_t`) separately,
+// and then also overload all of those for using references and shared pointers to a SequenceDict.
+//
+// Previously (before also offering overloads that take SequenceDict), we just spelled out all
+// overloads manually, but that became too cumbersome with the extra overloads. So now we use a
+// macro that defines all of them for us. It is not super nice for the doxygen code documentation,
+// as the doxygen preprocessor does not fully seem to be able to expand the macro. Hence, we cannot
+// use copydoc to refer to specific functions, and have re-written the doc blocks of the main
+// functions (the ones that the macro-expanded functions call) so that they work for all overloads.
+
+#define ADD_LOCUS_COMPARISON_OVERLOADS( CMP_FUNC ) \
+    /** @copydoc CMP_FUNC */ \
+    inline int CMP_FUNC( \
+        GenomeLocus const& l, \
+        std::string const& r_chromosome, size_t r_position \
+    ) { \
+        return CMP_FUNC( l.chromosome, l.position, r_chromosome, r_position ); \
+    } \
+    \
+    /** @copydoc CMP_FUNC */ \
+    inline int CMP_FUNC( \
+        std::string const& l_chromosome, size_t l_position, \
+        GenomeLocus const& r \
+    ) { \
+        return CMP_FUNC( l_chromosome, l_position, r.chromosome, r.position ); \
+    } \
+    \
+    /** @copydoc CMP_FUNC */ \
+    inline int CMP_FUNC( \
+        GenomeLocus const& l, \
+        GenomeLocus const& r \
+    ) { \
+        return CMP_FUNC( l.chromosome, l.position, r.chromosome, r.position ); \
+    } \
+    \
+    /** @copydoc CMP_FUNC */ \
+    inline int CMP_FUNC( \
+        GenomeLocus const& l, \
+        std::string const& r_chromosome, size_t r_position, \
+        genesis::sequence::SequenceDict const& sequence_dict \
+    ) { \
+        return CMP_FUNC( l.chromosome, l.position, r_chromosome, r_position, sequence_dict ); \
+    } \
+    \
+    /** @copydoc CMP_FUNC */ \
+    inline int CMP_FUNC( \
+        std::string const& l_chromosome, size_t l_position, \
+        GenomeLocus const& r, \
+        genesis::sequence::SequenceDict const& sequence_dict \
+    ) { \
+        return CMP_FUNC( l_chromosome, l_position, r.chromosome, r.position, sequence_dict ); \
+    } \
+    \
+    /** @copydoc CMP_FUNC */ \
+    inline int CMP_FUNC( \
+        GenomeLocus const& l, \
+        GenomeLocus const& r, \
+        genesis::sequence::SequenceDict const& sequence_dict \
+    ) { \
+        return CMP_FUNC( l.chromosome, l.position, r.chromosome, r.position, sequence_dict ); \
+    } \
+    \
+    /** @copydoc CMP_FUNC */ \
+    inline int CMP_FUNC( \
+        std::string const& l_chromosome, size_t l_position, \
+        std::string const& r_chromosome, size_t r_position, \
+        std::shared_ptr<genesis::sequence::SequenceDict> const& sequence_dict \
+    ) { \
+        if( sequence_dict ) { \
+            return CMP_FUNC( l_chromosome, l_position, r_chromosome, r_position, *sequence_dict ); \
+        } else { \
+            return CMP_FUNC( l_chromosome, l_position, r_chromosome, r_position ); \
+        } \
+    } \
+    \
+    /** @copydoc CMP_FUNC */ \
+    inline int CMP_FUNC( \
+        GenomeLocus const& l, \
+        std::string const& r_chromosome, size_t r_position, \
+        std::shared_ptr<genesis::sequence::SequenceDict> const& sequence_dict \
+    ) { \
+        if( sequence_dict ) { \
+            return CMP_FUNC( l.chromosome, l.position, r_chromosome, r_position, *sequence_dict ); \
+        } else { \
+            return CMP_FUNC( l.chromosome, l.position, r_chromosome, r_position ); \
+        } \
+    } \
+    \
+    /** @copydoc CMP_FUNC */ \
+    inline int CMP_FUNC( \
+        std::string const& l_chromosome, size_t l_position, \
+        GenomeLocus const& r, \
+        std::shared_ptr<genesis::sequence::SequenceDict> const& sequence_dict \
+    ) { \
+        if( sequence_dict ) { \
+            return CMP_FUNC( l_chromosome, l_position, r.chromosome, r.position, *sequence_dict ); \
+        } else { \
+            return CMP_FUNC( l_chromosome, l_position, r.chromosome, r.position ); \
+        } \
+    } \
+    \
+    /** @copydoc CMP_FUNC */ \
+    inline int CMP_FUNC( \
+        GenomeLocus const& l, \
+        GenomeLocus const& r, \
+        std::shared_ptr<genesis::sequence::SequenceDict> const& sequence_dict \
+    ) { \
+        if( sequence_dict ) { \
+            return CMP_FUNC( l.chromosome, l.position, r.chromosome, r.position, *sequence_dict ); \
+        } else { \
+            return CMP_FUNC( l.chromosome, l.position, r.chromosome, r.position ); \
+        } \
+    }
 
 // -------------------------------------------------------------------------
 //     Spaceship <=>
@@ -85,64 +198,78 @@ inline std::ostream& operator << ( std::ostream& os, GenomeLocus const& locus )
 /**
  * @brief Three-way comparison (spaceship operator `<=>`) for two loci in a genome.
  *
- * The comparison returns `-1` if the left locus is before the right locus,
- * `+1` for the opposite, and `0` if the two loci are equal.
+ * We generally compare loci based on their chromosome first, and then,
+ * if both chromosomes are identical, based on their position within that chromosome.
+ * The comparison returns a value `< 0` if the left locus is before the right locus,
+ * a value `> 0` if the right locus is before the left locus, and `0` if the two loci are equal.
  *
- * Note that for our purposes, chromosome names are also sorted in lexicographical order,
- * hence, two loci on different chromosomes will first compare the ordering of their chromosome
- * names.
+ * We offer several overloads of this function:
+ *
+ *   - The two loci that we want to compare can be provided either as GenomeLocus instances,
+ *     or as a `std::string` for the chromosome, and a `size_t` for the position. There are
+ *     overloads for every combination of those two ways of specifying loci.
+ *     This makes the functions convenient to use in algorithms where not all loci are stored as
+ *     a GenomeLocus instance.
+ *   - The basic overloads simply take the two loci. In these, chromosome names are expected
+ *     to be sorted in lexicographical order, hence, two loci on different chromosomes will
+ *     first compare the ordering of their chromosome names lexicographically, and then
+ *     (if identical) compare the positions.
+ *   - In overloads that take a @link ::genesis::sequence::SequenceDict SequenceDict@endlink,
+ *     chromosome names are not compared lexicographically however, but instead by the order as
+ *     given by the SequenceDict. This allows custom ordering of chromosomes, in siutations where
+ *     an ordering of loci is needed that differs from lexicographical.
+ *   - The SequenceDict can either be provided by reference, or as a `std::shared_ptr`. In the
+ *     latter case, it is only used when the pointer is valid; otherwise, the overload without
+ *     SequenceDict is used instead. This is meant as a simplification for situations where
+ *     one might or might not have a SequenceDict to work with.
+ *
+ * The latter type of overloads allow to be more flexible with the sorting orders of chromosomes.
+ *
+ * @see There are several related comparison functions for genomic loci. See locus_compare(),
+ * locus_equal(), locus_inequal(), locus_less(), locus_greater(), locus_less_or_equal(), and
+ * locus_greater_or_equal().
  */
 inline int locus_compare(
     std::string const& l_chromosome, size_t l_position,
     std::string const& r_chromosome, size_t r_position
 ) {
-    // This is a lot of branching. Maybe there is a smarter way. Good enough for now though.
-    if( l_chromosome < r_chromosome ) {
-        return -1;
-    } else if( l_chromosome > r_chromosome ) {
-        return +1;
-    } else {
-        assert( l_chromosome == r_chromosome );
-        if( l_position < r_position ) {
-            return -1;
-        } else if( l_position > r_position ) {
-            return +1;
-        }
+    // We compare the chromsomes with strcmp, so that we only run the relatively expensive string
+    // comparison once, and then check the result - if equal, do the threeway position comparison.
+    auto const chr_cmp = std::strcmp( l_chromosome.c_str(), r_chromosome.c_str() );
+    if( chr_cmp != 0 ) {
+        return chr_cmp;
     }
     assert( l_chromosome == r_chromosome );
-    assert( l_position == r_position );
-    return 0;
+    return utils::compare_threeway( l_position, r_position );
 }
 
 /**
- * @copydoc locus_compare( std::string const&, size_t, std::string const&, size_t )
- */
-inline int locus_compare(
-    GenomeLocus const& l,
-    std::string const& r_chromosome, size_t r_position
-) {
-    return locus_compare( l.chromosome, l.position, r_chromosome, r_position );
-}
-
-/**
- * @copydoc locus_compare( std::string const&, size_t, std::string const&, size_t )
+ * @copydoc locus_compare()
  */
 inline int locus_compare(
     std::string const& l_chromosome, size_t l_position,
-    GenomeLocus const& r
+    std::string const& r_chromosome, size_t r_position,
+    ::genesis::sequence::SequenceDict const& sequence_dict
 ) {
-    return locus_compare( l_chromosome, l_position, r.chromosome, r.position );
+    // Here, we want to compare chromosome names order based on the given dict.
+    // However, string lookup is a bit expensive, so we first do a quick check for equality,
+    // and only if they are not equal, we get their indices, and compare those.
+    if( l_chromosome == r_chromosome ) {
+        // For identical chromosomes, we compare the positions.
+        return utils::compare_threeway( l_position, r_position );
+    }
+
+    // Here, we know the chromosomes are different, so we compare their indices.
+    // No need to compare the positions here again. We assert that they are indeed different.
+    auto const l_chr_idx = sequence_dict.index_of( l_chromosome );
+    auto const r_chr_idx = sequence_dict.index_of( r_chromosome );
+    auto const chr_cmp = utils::compare_threeway( l_chr_idx, r_chr_idx );
+    assert( chr_cmp != 0 );
+    return chr_cmp;
 }
 
-/**
- * @copydoc locus_compare( std::string const&, size_t, std::string const&, size_t )
- */
-inline int locus_compare(
-    GenomeLocus const& l,
-    GenomeLocus const& r
-) {
-    return locus_compare( l.chromosome, l.position, r.chromosome, r.position );
-}
+// Add all other overloads for GenomeLocus and SequenceDict combinations.
+ADD_LOCUS_COMPARISON_OVERLOADS( locus_compare )
 
 // Let's be cool and add the actual spaceship, even if genesis is currently using C++11.
 // Users might compile with later versions, so this might be useful to have.
@@ -165,6 +292,10 @@ inline int operator <=> ( GenomeLocus const& l, GenomeLocus const& r )
 
 /**
  * @brief Equality comparison (`==`) for two loci in a genome.
+ *
+ * @see There are several related comparison functions for genomic loci. See locus_compare(),
+ * locus_equal(), locus_inequal(), locus_less(), locus_greater(), locus_less_or_equal(), and
+ * locus_greater_or_equal().
  */
 inline bool locus_equal(
     std::string const& l_chromosome, size_t l_position,
@@ -217,6 +348,10 @@ inline bool operator == ( GenomeLocus const& l, GenomeLocus const& r )
 
 /**
  * @brief Inequality comparison (`!=`) for two loci in a genome.
+ *
+ * @see There are several related comparison functions for genomic loci. See locus_compare(),
+ * locus_equal(), locus_inequal(), locus_less(), locus_greater(), locus_less_or_equal(), and
+ * locus_greater_or_equal().
  */
 inline bool locus_inequal(
     std::string const& l_chromosome, size_t l_position,
@@ -270,9 +405,11 @@ inline bool operator != ( GenomeLocus const& l, GenomeLocus const& r )
 /**
  * @brief Less than comparison (`<`) for two loci in a genome.
  *
- * Note that for our purposes, chromosome names are also sorted in lexicographical order,
- * hence, two loci on different chromosomes will first compare the ordering of their chromosome
- * names.
+ * See locus_compare() for notes on the chromosome comparison order and the available overloads.
+ *
+ * @see There are several related comparison functions for genomic loci. See locus_compare(),
+ * locus_equal(), locus_inequal(), locus_less(), locus_greater(), locus_less_or_equal(), and
+ * locus_greater_or_equal().
  */
 inline bool locus_less(
     std::string const& l_chromosome, size_t l_position,
@@ -282,34 +419,31 @@ inline bool locus_less(
 }
 
 /**
- * @copydoc locus_less( std::string const&, size_t, std::string const&, size_t )
- */
-inline bool locus_less(
-    GenomeLocus const& l,
-    std::string const& r_chromosome, size_t r_position
-) {
-    return locus_less( l.chromosome, l.position, r_chromosome, r_position );
-}
-
-/**
- * @copydoc locus_less( std::string const&, size_t, std::string const&, size_t )
+ * @copydoc locus_less()
  */
 inline bool locus_less(
     std::string const& l_chromosome, size_t l_position,
-    GenomeLocus const& r
+    std::string const& r_chromosome, size_t r_position,
+    ::genesis::sequence::SequenceDict const& sequence_dict
 ) {
-    return locus_less( l_chromosome, l_position, r.chromosome, r.position );
+    // Same logic as above, but using chromosome indices in the dict, instead of their names.
+    // We also apply the speedup of the locus_compare(), by first checking the strings for
+    // equality, before doing the expensive index lookup in the dict.
+    if( l_chromosome == r_chromosome ) {
+        // For identical chromosomes, we compare the positions.
+        return l_position < r_position;
+    }
+
+    // Here, we know the chromosomes are different, so we compare their indices.
+    // No need to compare the positions here again. We assert that they are indeed different.
+    auto const l_chr_idx = sequence_dict.index_of( l_chromosome );
+    auto const r_chr_idx = sequence_dict.index_of( r_chromosome );
+    assert( l_chr_idx != r_chr_idx );
+    return l_chr_idx < r_chr_idx;
 }
 
-/**
- * @copydoc locus_less( std::string const&, size_t, std::string const&, size_t )
- */
-inline bool locus_less(
-    GenomeLocus const& l,
-    GenomeLocus const& r
-) {
-    return locus_less( l.chromosome, l.position, r.chromosome, r.position );
-}
+// Add all other overloads for GenomeLocus and SequenceDict combinations.
+ADD_LOCUS_COMPARISON_OVERLOADS( locus_less )
 
 /**
  * @copydoc locus_less( std::string const&, size_t, std::string const&, size_t )
@@ -332,6 +466,7 @@ inline bool locus_greater(
     std::string const& l_chromosome, size_t l_position,
     std::string const& r_chromosome, size_t r_position
 ) {
+    // Just use the existing function, but with reverse l and r.
     return locus_less( r_chromosome, r_position, l_chromosome, l_position );
 }
 
@@ -339,31 +474,16 @@ inline bool locus_greater(
  * @copydoc locus_greater( std::string const&, size_t, std::string const&, size_t )
  */
 inline bool locus_greater(
-    GenomeLocus const& l,
-    std::string const& r_chromosome, size_t r_position
-) {
-    return locus_greater( l.chromosome, l.position, r_chromosome, r_position );
-}
-
-/**
- * @copydoc locus_greater( std::string const&, size_t, std::string const&, size_t )
- */
-inline bool locus_greater(
     std::string const& l_chromosome, size_t l_position,
-    GenomeLocus const& r
+    std::string const& r_chromosome, size_t r_position,
+    ::genesis::sequence::SequenceDict const& sequence_dict
 ) {
-    return locus_greater( l_chromosome, l_position, r.chromosome, r.position );
+    // Just use the existing function, but with reverse l and r.
+    return locus_less( r_chromosome, r_position, l_chromosome, l_position, sequence_dict );
 }
 
-/**
- * @copydoc locus_greater( std::string const&, size_t, std::string const&, size_t )
- */
-inline bool locus_greater(
-    GenomeLocus const& l,
-    GenomeLocus const& r
-) {
-    return locus_greater( l.chromosome, l.position, r.chromosome, r.position );
-}
+// Add all other overloads for GenomeLocus and SequenceDict combinations.
+ADD_LOCUS_COMPARISON_OVERLOADS( locus_greater )
 
 /**
  * @copydoc locus_greater( std::string const&, size_t, std::string const&, size_t )
@@ -395,31 +515,22 @@ inline bool locus_less_or_equal(
  * @copydoc locus_less_or_equal( std::string const&, size_t, std::string const&, size_t )
  */
 inline bool locus_less_or_equal(
-    GenomeLocus const& l,
-    std::string const& r_chromosome, size_t r_position
-) {
-    return locus_less_or_equal( l.chromosome, l.position, r_chromosome, r_position );
-}
-
-/**
- * @copydoc locus_less_or_equal( std::string const&, size_t, std::string const&, size_t )
- */
-inline bool locus_less_or_equal(
     std::string const& l_chromosome, size_t l_position,
-    GenomeLocus const& r
+    std::string const& r_chromosome, size_t r_position,
+    ::genesis::sequence::SequenceDict const& sequence_dict
 ) {
-    return locus_less_or_equal( l_chromosome, l_position, r.chromosome, r.position );
+    // Same logic as in locus_less. See there for details.
+    if( l_chromosome == r_chromosome ) {
+        return l_position <= r_position;
+    }
+    auto const l_chr_idx = sequence_dict.index_of( l_chromosome );
+    auto const r_chr_idx = sequence_dict.index_of( r_chromosome );
+    assert( l_chr_idx != r_chr_idx );
+    return l_chr_idx < r_chr_idx;
 }
 
-/**
- * @copydoc locus_less_or_equal( std::string const&, size_t, std::string const&, size_t )
- */
-inline bool locus_less_or_equal(
-    GenomeLocus const& l,
-    GenomeLocus const& r
-) {
-    return locus_less_or_equal( l.chromosome, l.position, r.chromosome, r.position );
-}
+// Add all other overloads for GenomeLocus and SequenceDict combinations.
+ADD_LOCUS_COMPARISON_OVERLOADS( locus_less_or_equal )
 
 /**
  * @copydoc locus_less_or_equal( std::string const&, size_t, std::string const&, size_t )
@@ -442,6 +553,7 @@ inline bool locus_greater_or_equal(
     std::string const& l_chromosome, size_t l_position,
     std::string const& r_chromosome, size_t r_position
 ) {
+    // Just use the existing function, but with reverse l and r.
     return locus_less_or_equal( r_chromosome, r_position, l_chromosome, l_position );
 }
 
@@ -449,31 +561,16 @@ inline bool locus_greater_or_equal(
  * @copydoc locus_greater_or_equal( std::string const&, size_t, std::string const&, size_t )
  */
 inline bool locus_greater_or_equal(
-    GenomeLocus const& l,
-    std::string const& r_chromosome, size_t r_position
-) {
-    return locus_greater_or_equal( l.chromosome, l.position, r_chromosome, r_position );
-}
-
-/**
- * @copydoc locus_greater_or_equal( std::string const&, size_t, std::string const&, size_t )
- */
-inline bool locus_greater_or_equal(
     std::string const& l_chromosome, size_t l_position,
-    GenomeLocus const& r
+    std::string const& r_chromosome, size_t r_position,
+    ::genesis::sequence::SequenceDict const& sequence_dict
 ) {
-    return locus_greater_or_equal( l_chromosome, l_position, r.chromosome, r.position );
+    // Just use the existing function, but with reverse l and r.
+    return locus_less_or_equal( r_chromosome, r_position, l_chromosome, l_position, sequence_dict );
 }
 
-/**
- * @copydoc locus_greater_or_equal( std::string const&, size_t, std::string const&, size_t )
- */
-inline bool locus_greater_or_equal(
-    GenomeLocus const& l,
-    GenomeLocus const& r
-) {
-    return locus_greater_or_equal( l.chromosome, l.position, r.chromosome, r.position );
-}
+// Add all other overloads for GenomeLocus and SequenceDict combinations.
+ADD_LOCUS_COMPARISON_OVERLOADS( locus_greater_or_equal )
 
 /**
  * @copydoc locus_greater_or_equal( std::string const&, size_t, std::string const&, size_t )
@@ -482,6 +579,13 @@ inline bool operator >= ( GenomeLocus const& l, GenomeLocus const& r )
 {
     return locus_greater_or_equal( l.chromosome, l.position, r.chromosome, r.position );
 }
+
+// -------------------------------------------------------------------------
+//     Clean Up
+// -------------------------------------------------------------------------
+
+// We do not need to propagate this macro throughout our code base.
+#undef ADD_LOCUS_COMPARISON_OVERLOADS
 
 } // namespace population
 } // namespace genesis

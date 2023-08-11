@@ -136,6 +136,22 @@ int signum(T x)
 }
 
 /**
+ * @brief Three-way comparison (spaceship operator) for C++ <20.
+ *
+ * Return `-1` if `lhs < rhs`, return `+1` if `lhs > rhs`, return `0` if `lhs == rhs`,
+ * for arithmetic types.
+ */
+template <typename T, typename U>
+inline constexpr int compare_threeway( T lhs, U rhs )
+{
+    // Branchless comparison of the values
+    // https://stackoverflow.com/a/10997428/4184258
+    static_assert( static_cast<int>( false ) == 0, "static_cast<int>( false ) != 0" );
+    static_assert( static_cast<int>( true ) == 1,  "static_cast<int>( true ) != 1" );
+    return static_cast<int>( lhs > rhs ) - static_cast<int>( lhs < rhs );
+}
+
+/**
  * @brief Check whether two doubles are almost equal, using a relative epsilon to compare them.
  */
 inline bool almost_equal_relative(

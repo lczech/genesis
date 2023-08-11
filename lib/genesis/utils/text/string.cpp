@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -77,6 +77,36 @@ bool contains_ci_alnum( std::vector<std::string> const& haystack, std::string co
         }
     }
     return false;
+}
+
+int strcasecmp( char const* s1, char const* s2 )
+{
+    // Avoid code duplication at minimal runtime cost.
+    return strncasecmp( s1, s2, std::numeric_limits<size_t>::max() );
+}
+
+int strncasecmp( char const* s1, char const* s2, size_t n )
+{
+    // Fast edge case
+    if( s1 == s2 ) {
+        return 0;
+    }
+
+    // Need to convert to unsigned, https://stackoverflow.com/a/51992138
+    auto ucs1 = reinterpret_cast<unsigned char const*>( s1 );
+    auto ucs2 = reinterpret_cast<unsigned char const*>( s2 );
+
+    // Run the comparison
+    int d = 0;
+    for( ; n != 0; n-- ) {
+        int const c1 = tolower( *ucs1++ );
+        int const c2 = tolower( *ucs2++ );
+        d = c1 - c2;
+        if(( d != 0 ) || ( c1 == '\0' )) {
+            break;
+        }
+    }
+    return d;
 }
 
 bool equals_ci( std::string const& lhs, std::string const& rhs)
@@ -895,13 +925,29 @@ std::string to_upper_ascii( std::string const& str )
 
 std::string escape( std::string const& text )
 {
-    // This is slow-ish, because the string is iterated multiple times. Could be done faster.
+    static_assert( CHAR_BIT == 8, "CHAR_BIT != 8" );
     std::string tmp;
-    tmp = replace_all( text, "\r", "\\r"  );
-    tmp = replace_all( tmp,  "\n", "\\n"  );
-    tmp = replace_all( tmp,  "\t", "\\t"  );
-    tmp = replace_all( tmp,  "\"", "\\\"" );
-    tmp = replace_all( tmp,  "\\", "\\\\" );
+    for( auto c : text ) {
+        if( ' ' <= c && c <= '~' && c != '\\' && c != '"') {
+            tmp += c;
+        } else {
+            tmp += '\\';
+            switch( c ) {
+                case '"':  tmp += '"';  break;
+                case '\\': tmp += '\\'; break;
+                case '\t': tmp += 't';  break;
+                case '\r': tmp += 'r';  break;
+                case '\n': tmp += 'n';  break;
+                default: {
+                    // Without any encoding, we simply opt for a hex representation of the value.
+                    char const* const hexdig = "0123456789ABCDEF";
+                    tmp += 'x';
+                    tmp += hexdig[c >> 4];
+                    tmp += hexdig[c & 0xF];
+                }
+            }
+        }
+    }
     return tmp;
 }
 

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -36,10 +36,13 @@
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/text/convert.hpp"
+#include "genesis/utils/text/string.hpp"
 
+#include <cstdlib>
 #include <functional>
-#include <stdexcept>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -59,9 +62,9 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    explicit MatrixReader( char separator_char = '\t' )
+    explicit MatrixReader( std::string const& separator = "\t" )
     {
-        reader_.separator_chars( std::string( 1, separator_char ));
+        reader_.separator_chars( separator );
     }
 
     explicit MatrixReader( CsvReader const& reader )
@@ -183,7 +186,15 @@ private:
                 }
             } else {
                 for( size_t i = first; i < line.size(); ++i ) {
-                    table.push_back( parse_value_stringstream_( line[i] ) );
+                    try {
+                        table.push_back( convert_from_string<T>( line[i] ));
+                    } catch(...) {
+                        throw std::runtime_error(
+                            "In " + input_stream.source_name() + " line " +
+                            std::to_string( input_stream.line() - 1 ) + ": "
+                            "Cannot parse value \"" + line[i] + "\" into Matrix. "
+                        );
+                    }
                 }
             }
         }
@@ -204,14 +215,6 @@ private:
         // Make a proper Matrix.
         size_t const rows = table.size() / cols;
         return Matrix<T>( rows, cols, std::move(table) );
-    }
-
-    inline T parse_value_stringstream_( std::string const& cell ) const
-    {
-        std::stringstream ss( cell );
-        T value;
-        ss >> value;
-        return value;
     }
 
     // -------------------------------------------------------------

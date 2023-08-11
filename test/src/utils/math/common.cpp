@@ -33,7 +33,7 @@
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/math/binomial.hpp"
 #include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/kahan_sum.hpp"
+#include "genesis/utils/math/compensated_sum.hpp"
 
 #include <limits>
 
@@ -187,6 +187,60 @@ TEST( Math, KahanSum )
     // It's still not perfect. But double the digits of precision of summing without Kahan.
     // So let's check that we got better than that - say, 1e-11. Kinda arbitrary though.
     // If this test fails at some point, it's likely due to a compiler optimizing Kahan out again.
-    // In that case, we need to activate the volatile implementation that is already in the class.
+    // We have activated the volatile implementation that is already in the class, but still...
     EXPECT_TRUE( s.get() < 1e-11 );
+}
+
+TEST( Math, NeumaierSum )
+{
+    size_t const k = 1000000;
+    NeumaierSum s{ static_cast<double>(k) / 10.0 };
+    for( size_t i = 0; i < k; ++i ) {
+        s += -0.1;
+    }
+    // LOG_DBG << s.get();
+    EXPECT_TRUE( s.get() < 1e-11 );
+}
+
+TEST( Math, KleinSum )
+{
+    size_t const k = 1000000;
+    KleinSum s{ static_cast<double>(k) / 10.0 };
+    for( size_t i = 0; i < k; ++i ) {
+        s += -0.1;
+    }
+    // LOG_DBG << s.get();
+    EXPECT_TRUE( s.get() < 1e-11 );
+}
+
+TEST( Math, KahanSumFail )
+{
+    // Example from https://en.wikipedia.org/wiki/Kahan_summation_algorithm
+    // Supposed to yield 2.0, but fails with standard Kahan sum, so we use the other two algorithms
+    // to test whether they do better. Also, this tests the tag dispatch of the Kahan Sum class.
+
+    {
+        KahanSum s;
+        s += 1.0;
+        s += 1.0e100;
+        s += 1.0;
+        s -= 1.0e100;
+        EXPECT_DOUBLE_EQ( 0.0, s );
+    }
+    {
+        NeumaierSum s;
+        s += 1.0;
+        s += 1.0e100;
+        s += 1.0;
+        s -= 1.0e100;
+        EXPECT_DOUBLE_EQ( 2.0, s );
+    }
+    {
+        KleinSum s;
+        s += 1.0;
+        s += 1.0e100;
+        s += 1.0;
+        s -= 1.0e100;
+        EXPECT_DOUBLE_EQ( 2.0, s );
+    }
 }

@@ -360,6 +360,7 @@ public:
             auto const l = block_size + ( i < remainder ? 1 : 0 );
             auto const b = begin_t + static_cast<T>( current_start );
             auto const e = begin_t + static_cast<T>( current_start + l );
+            assert( l > 0 );
             assert( b < e );
             result[i] = enqueue( std::forward<F>( body ), b, e );
 

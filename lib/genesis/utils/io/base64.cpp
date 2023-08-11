@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -93,8 +93,11 @@ std::string base64_encode_( T const& input, size_t line_length )
         // byte value works, and then to the temp type, so that we can do the shifting properly.
         // We cannot immediately cast to uint32_t here, as that has different module/casting
         // behaviour that char to unsigned char casting. Hope that I got this right...
+        assert( it != input.end() );
         temp  = static_cast<std::uint32_t>( static_cast<unsigned char>( *it++ )) << 16;
+        assert( it != input.end() );
         temp += static_cast<std::uint32_t>( static_cast<unsigned char>( *it++ )) << 8;
+        assert( it != input.end() );
         temp += static_cast<std::uint32_t>( static_cast<unsigned char>( *it++ ));
 
         // Add to output
@@ -107,8 +110,11 @@ std::string base64_encode_( T const& input, size_t line_length )
     // Process remaining part and add padding
     switch( input.size() % 3 ) {
         case 2: {
+            // assert not end
             // Convert to big endian. See above for an explanation of the double cast.
+            assert( it != input.end() );
             temp  = static_cast<std::uint32_t>( static_cast<unsigned char>( *it++ )) << 16;
+            assert( it != input.end() );
             temp += static_cast<std::uint32_t>( static_cast<unsigned char>( *it++ )) << 8;
 
             // Add to output
@@ -120,6 +126,8 @@ std::string base64_encode_( T const& input, size_t line_length )
         }
         case 1: {
             // Convert to big endian
+            // assert not end
+            assert( it != input.end() );
             temp = (*it++) << 16;
 
             // Add to output
@@ -130,6 +138,7 @@ std::string base64_encode_( T const& input, size_t line_length )
             break;
         }
     }
+    assert( it == input.end() );
 
     // If our initial reservation was correct, we have reached exactly capacity;
     // however, we cannot reliably compare against the actual capacity here, as the stupid

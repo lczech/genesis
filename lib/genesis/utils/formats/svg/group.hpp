@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -87,8 +87,8 @@ public:
      *
      * Returns the SvgDocument in order to allow for a fluent interface.
      */
-    self_type& add(          SvgObject const& object );
-    self_type& add(          SvgObject&&      object );
+    self_type& add( SvgObject const& object );
+    self_type& add( SvgObject&&      object );
 
     /**
      * @brief Reverse the order to the stored SvgObject%s.
@@ -135,6 +135,11 @@ public:
     bool empty() const
     {
         return content_.empty();
+    }
+
+    operator bool() const
+    {
+        return ! content_.empty();
     }
 
     void clear()

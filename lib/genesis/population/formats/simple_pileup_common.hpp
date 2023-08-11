@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
  */
 
 #include "genesis/population/formats/simple_pileup_reader.hpp"
+#include "genesis/sequence/functions/quality.hpp"
 
 #include <string>
 #include <vector>
@@ -51,6 +52,22 @@ BaseCounts convert_to_base_counts(
 Variant convert_to_variant(
     SimplePileupReader::Record const& record,
     unsigned char min_phred_score = 0
+);
+
+/**
+ * @brief Guess the quality score encoding for an (m)pileup input, based on counts of how often each
+ * char appeared in the quality string (of the input pileup file for example).
+ *
+ * The function reads and parses the input source as a pileup file, counts all quality score chars
+ * as they appear in there, and then guesses the encoding that was used.
+ * If @p max_lines is set to a value greater than 0, only that many lines are read.
+ * If @p max_chars is set to a value greater than 0, only that many quality score charaters are read.
+ *
+ * @see guess_quality_encoding()
+ */
+genesis::sequence::QualityEncoding guess_pileup_quality_encoding(
+    std::shared_ptr< utils::BaseInputSource > source,
+    size_t max_lines = 0
 );
 
 } // namespace population

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -147,7 +147,7 @@ double pquery_distance(
 );
 
 /**
- * @brief Calculate the distance between two PqueryPlacement%s, using their positin on the
+ * @brief Calculate the distance between two PqueryPlacement%s, using their position on the
  * tree::TreeEdge%s, measured in branch length units.
  *
  * The Matrix @p node_distances has to come from tree::node_branch_length_distance_matrix().
@@ -172,7 +172,7 @@ double pquery_path_length_distance(
 );
 
 /**
- * brief Calculate the discrete distance between two PqueryPlacement%s, using their positin on the
+ * brief Calculate the discrete distance between two PqueryPlacement%s, using their position on the
  * tree::TreeEdge%s, measured in number of nodes between the placement locations.
  *
  * That is, two PqueryPlacement%s on the same edge have a distance of zero, on neighbouring edges

@@ -398,3 +398,22 @@ TEST( Sync, SampleFilter )
     EXPECT_ANY_THROW( SyncInputIterator( from_file( infile ), std::vector<bool>{ true } ));
     EXPECT_ANY_THROW( SyncInputIterator( from_file( infile ), std::vector<bool>{ true, false, false } ));
 }
+
+TEST( Sync, Header )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/test_header.sync";
+    auto sample_names = std::vector<std::string>{ "S1", "S2" };
+
+    // Test the while() approach
+    size_t cnt_while = 0;
+    auto it = SyncInputIterator( from_file( infile ));
+    EXPECT_EQ( sample_names, it.get_sample_names() );
+    while( it ) {
+        EXPECT_EQ( 2, it->samples.size() );
+        ++cnt_while;
+        ++it;
+    }
+    EXPECT_EQ( 4, cnt_while );
+}

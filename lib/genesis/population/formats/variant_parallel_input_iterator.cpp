@@ -30,6 +30,8 @@
 
 #include "genesis/population/formats/variant_parallel_input_iterator.hpp"
 
+#include "genesis/utils/core/logging.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <iterator>
@@ -111,8 +113,20 @@ VariantParallelInputIterator::Iterator::Iterator(
     assert( iterators_.size() == variants_.size() );
     assert( iterators_.size() == variant_sizes_.size() );
 
-    // Lastly, start with the additional carrying loci.
+    // Lastly, start with the additional carrying loci. We have currently not implemented
+    // to use additional carrying loci in combination with sequence dict, as this would require
+    // to match the order of the additional loci... This seems to be a very specific use case,
+    // that we currently do not have, and so for now, we simply throw an exception in that case.
     carrying_locus_it_ = parent_->carrying_loci_.cbegin();
+    if( parent_->sequence_dict_ && ! parent_->carrying_loci_.empty() ) {
+        assert( carrying_locus_it_ != parent_->carrying_loci_.cend() );
+        throw std::invalid_argument(
+            "VariantParallelInputIterator was provided with a SequenceDict, and with additional "
+            "carrying loci to iterate over. This specific combination is currently not implemented "
+            "(as we did not have need for it so far). If you need this, please open an issue at "
+            "https://github.com/lczech/genesis/issues and we will see what we can do."
+        );
+    }
 
     // Now go to the first locus we want.
     advance_();
@@ -275,12 +289,14 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
         // In all iterators, we already have moved on to at least the current position.
         // This assumes that all of the inputs are properly sorted. We check this in
         // increment_iterator_()
-        // This also works for the very first time this function is called (in the iterator
-        // constructor), as the iterator will then also compare greater than the
-        // current_locus_, which is empty at this point.
-        assert( locus_greater_or_equal(
-            iterator->chromosome, iterator->position, current_locus_
-        ));
+        // For the very first time this function is called (in the iterator constructor),
+        // current_locus_ is empty at this point, so we need to check this extra.
+        assert(
+            current_locus_.empty() ||
+            locus_greater_or_equal(
+                iterator->chromosome, iterator->position, current_locus_, parent_->sequence_dict_
+            )
+        );
 
         // If this iterator is currently one of the ones that contain the current
         // position, it's time to move on now. If not, we already asserted that it is
@@ -299,9 +315,10 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
         // need to be included), or if we are in the first iteration of the loop.
         if(
             cand_loc.empty() ||
-            locus_less( iterator->chromosome, iterator->position, cand_loc )
+            locus_less(
+                iterator->chromosome, iterator->position, cand_loc, parent_->sequence_dict_
+            )
         ) {
-
             cand_loc = GenomeLocus{ iterator->chromosome, iterator->position };
         }
     }
@@ -311,7 +328,12 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
     if( carrying_locus_it_ != parent_->carrying_loci_.cend() ) {
         // All the assertions from above apply here as well.
         assert( ! carrying_locus_it_->empty() );
-        assert( locus_greater_or_equal( *carrying_locus_it_, current_locus_ ) );
+        assert(
+            current_locus_.empty() ||
+            locus_greater_or_equal(
+                *carrying_locus_it_, current_locus_, parent_->sequence_dict_
+            )
+        );
 
         // If the carrying locus is at the current locus, we need to move it forward,
         // same as above.
@@ -327,7 +349,7 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
             carrying_locus_it_ != parent_->carrying_loci_.cend() &&
             (
                 cand_loc.empty() ||
-                locus_less( *carrying_locus_it_, cand_loc )
+                locus_less( *carrying_locus_it_, cand_loc, parent_->sequence_dict_ )
             )
         ) {
             cand_loc = *carrying_locus_it_;
@@ -360,8 +382,12 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
     }
 
     // We have found a new locus. It needs to be further down from the current
-    // (again this also works in the first call of this function, when current is empty).
-    assert( cand_loc > current_locus_ );
+    // (again we need an extra check in the first call of this function, when current is empty).
+    assert( ! cand_loc.empty() );
+    assert(
+        current_locus_.empty() ||
+        locus_greater( cand_loc, current_locus_, parent_->sequence_dict_ )
+    );
 
     // Now that we found the next position to go to, move _all_ iterators to it
     // (or the next one beyond, if it does not have that position).
@@ -374,16 +400,23 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
         }
 
         // Same assertion as above, this time for all of them, just to be sure.
-        assert( locus_greater_or_equal(
-            iterator->chromosome, iterator->position, current_locus_
-        ));
+        assert(
+            current_locus_.empty() ||
+            locus_greater_or_equal(
+                iterator->chromosome, iterator->position, current_locus_, parent_->sequence_dict_
+            )
+        );
 
         // Now move the iterator until we reach the candidate, or one beyond.
         // For carrying iterators, this loop can only get called once at max (or not at all,
         // if this source is already at or beyond the candidate from the loop above),
         // as we never want to skip anything in a carrying iterator. Assert this.
+        assert( ! cand_loc.empty() );
         size_t cnt = 0;
-        while( iterator && locus_less( iterator->chromosome, iterator->position, cand_loc )) {
+        while(
+            iterator &&
+            locus_less( iterator->chromosome, iterator->position, cand_loc, parent_->sequence_dict_ )
+        ) {
             increment_iterator_( iterator );
             ++cnt;
         }
@@ -410,7 +443,7 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
 
     // Once one of the iterators reaches its end, we are done, as then there cannot
     // be any more intersections.
-    bool one_at_end  = false;
+    bool at_least_one_input_is_at_end  = false;
 
     // If this is not the first call of this function (the one that is done in the constructor
     // of the iterator), move all iterators at least once, to get away from the current locus.
@@ -436,7 +469,7 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
             // Check if we are done with this iterator. If so, we are completely done,
             // no need to do anything else here.
             if( ! iterator ) {
-                one_at_end = true;
+                at_least_one_input_is_at_end = true;
                 break;
             }
         }
@@ -449,7 +482,7 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
     // or until one of them is at the end (in which case, there won't be any more intersections
     // and we are done with the parallel iteration).
     bool found_locus = false;
-    while( ! found_locus && ! one_at_end ) {
+    while( ! found_locus && ! at_least_one_input_is_at_end ) {
 
         // Assume that we are done. Below, we will reset these if we are not in fact done.
         found_locus = true;
@@ -468,7 +501,8 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
             // current_element_ as a check.
             if( ! iterator ) {
                 assert( current_locus_.empty() );
-                one_at_end = true;
+                at_least_one_input_is_at_end = true;
+                found_locus = false;
                 break;
             }
 
@@ -480,14 +514,20 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
 
             // If the iterator is behind the candidate, move it forward until it either catches
             // up, or overshoots the locus, or reaches its end.
-            while( iterator && locus_less( iterator->chromosome, iterator->position, cand_loc )) {
+            while(
+                iterator &&
+                locus_less(
+                    iterator->chromosome, iterator->position, cand_loc, parent_->sequence_dict_
+                )
+            ) {
                 increment_iterator_( iterator );
             }
 
             // If the iterator reached its end now, we are done here.
             // No more intersections can occur, we can leave the whole thing.
             if( ! iterator ) {
-                one_at_end = true;
+                at_least_one_input_is_at_end = true;
+                found_locus = false;
                 break;
             }
 
@@ -497,7 +537,10 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
             // if we go on to the next input, or just start the whole outer loop again.
             // Let's keep the pace and continue with the next input.
             assert( iterator );
-            if( locus_greater( iterator->chromosome, iterator->position, cand_loc )) {
+            assert( ! cand_loc.empty() );
+            if( locus_greater(
+                iterator->chromosome, iterator->position, cand_loc, parent_->sequence_dict_
+            )) {
                 cand_loc = GenomeLocus{ iterator->chromosome, iterator->position };
                 found_locus = false;
                 continue; // or break for the alternative loop order
@@ -510,34 +553,40 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
     }
 
     // Only one of the exit conditions can be true (unless there is no input at all).
-    assert( iterators_.size() == 0 || ( found_locus ^ one_at_end ));
+    assert( iterators_.size() == 0 || ( found_locus ^ at_least_one_input_is_at_end ));
 
     // If we have not found any locus, that means that at least one of the iterators is at its end.
     // No more intersections can occur. Time to wrap up then.
-    if( one_at_end ) {
+    if( at_least_one_input_is_at_end ) {
         assert( ! parent_->has_carrying_input_ );
         parent_ = nullptr;
 
         // Assert that exactly one is at its end. Theoretically, in our search, other iterators
         // might also have been about to reach their end, but as we immediately exit the above
         // loop once we find an end, these are not incremented to their end yet.
-        assert( [&](){
-            size_t at_end_cnt = 0;
-            for( size_t i = 0; i < iterators_.size(); ++i ) {
-                if( ! iterators_[i] ) {
-                    ++at_end_cnt;
-                }
-            }
-            return at_end_cnt == 1;
-        }() );
+        // Nope, cannot assert that: We might have started with multiple empty sources...
+        // In that case, we are just done. All good.
+        // assert( [&](){
+        //     size_t at_end_cnt = 0;
+        //     for( size_t i = 0; i < iterators_.size(); ++i ) {
+        //         if( ! iterators_[i] ) {
+        //             ++at_end_cnt;
+        //         }
+        //     }
+        //     return at_end_cnt == 1;
+        // }() );
 
         // We have indicated our end by nulling parent_. Nothing more to do.
         return;
     }
 
     // If we are here, we have found a good new locus. It needs to be further down from the current
-    // (again this also works in the first call of this function, when current is empty).
-    assert( iterators_.size() == 0 || cand_loc > current_locus_ );
+    // (again this needs a special check in the first call of this function, when current is empty).
+    assert(
+        iterators_.size() == 0 ||
+        current_locus_.empty() ||
+        locus_greater( cand_loc, current_locus_, parent_->sequence_dict_ )
+    );
 
     // Assert that all are at the given locus, and not at their end.
     assert( iterators_.size() == 0 || found_locus );
@@ -572,11 +621,10 @@ void VariantParallelInputIterator::Iterator::increment_iterator_(
     // Nope, this function should never be called on a finished iterator.
     assert( iterator );
 
-    // We here check that the iterator is in chrom/pos order. This is also already done
-    // by default in most of our file format iterators, and we here need an expensive
-    // string copy just for this one check, but it feels like this is necessary to be
-    // on the safe side. After all, this parallel iterator here is a bit tricky anyway,
-    // so we have to live with that cost.
+    // We here check that the iterator is in chrom/pos order. This is potentially also already done
+    // in some of our file format iterators, and we here need an expensive string copy just for
+    // this one check, but it feels like this is necessary to be on the safe side. After all,
+    // this parallel iterator here is a bit tricky anyway, so we have to live with that cost.
     auto const prev_loc = GenomeLocus{ iterator->chromosome, iterator->position };
 
     // Now do the increment and check whether we are done with this source.
@@ -588,12 +636,20 @@ void VariantParallelInputIterator::Iterator::increment_iterator_(
     // Check that it is has a valid chromosome and position, and
     // make sure that the input is sorted.
     assert_correct_chr_and_pos_( iterator );
-    if( locus_less_or_equal( iterator->chromosome, iterator->position, prev_loc )) {
+    if( locus_less_or_equal(
+        iterator->chromosome, iterator->position, prev_loc, parent_->sequence_dict_
+    )) {
         throw std::runtime_error(
             "Cannot iterate multiple input sources in parallel, as (at least) "
-            "one of them is not sorted by chromosome and position. "
-            "Offending input source: " + iterator.data().source_name + " at " +
-            iterator->chromosome + ":" + std::to_string( iterator->position )
+            "one of them is not in the correct sorting order. "
+            "By default, we expect lexicographical sorting of chromosomes, and then sorting by "
+            "position within chromosomes. "
+            "Alternatively, when a sequence dictionary is specified (such as from a .dict or .fai "
+            "file, or from a reference genome .fasta file), we expect the order of chromosomes "
+            "as specified there. "
+            "Offending input source: " + iterator.data().source_name + ", going from " +
+            to_string( prev_loc ) + " to " +
+            to_string( GenomeLocus{ iterator->chromosome, iterator->position } )
         );
     }
 }
@@ -626,6 +682,7 @@ void VariantParallelInputIterator::Iterator::assert_correct_chr_and_pos_(
 void VariantParallelInputIterator::Iterator::update_variants_()
 {
     assert( iterators_.size() == variants_.size() );
+    assert( ! current_locus_.empty() );
     for( size_t i = 0; i < iterators_.size(); ++i ) {
         auto& iterator = iterators_[i];
 
@@ -680,7 +737,7 @@ void VariantParallelInputIterator::Iterator::update_variants_()
             // The iterator is not at our current locus. We already checked that it is
             // however still valid, so it must be beyond the current one. Assert this.
             assert( locus_greater(
-                iterator->chromosome, iterator->position, current_locus_
+                iterator->chromosome, iterator->position, current_locus_, parent_->sequence_dict_
             ));
 
             variants_[i] = utils::nullopt;

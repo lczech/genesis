@@ -53,7 +53,9 @@ namespace sequence {
  * @brief Lookup of Sequence%s of a reference genome.
  *
  * The class stores Sequence%s in the order they are added, but also stores a hash map for quickly
- * finding a Sequence given its name/label.
+ * finding a Sequence given its name/label, as well as a lookup of bases at positions in the genome.
+ *
+ * @see SequenceDict
  */
 class ReferenceGenome
 {
@@ -223,7 +225,6 @@ public:
                 "which is the shortened version of the original name \"" + label1 + "\"."
             );
         }
-        assert( lookup_.count( label2 ) == 0 );
 
         // Add the sequence to the list.
         // We also need to reset the cache, to point to the new end of the list,

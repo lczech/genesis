@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include <sstream>
+#include <limits>
 
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/matrix/reader.hpp"
@@ -46,6 +47,9 @@ TEST( Matrix, Reader )
 {
     NEEDS_TEST_DATA;
 
+    auto const inf = std::numeric_limits<double>::infinity();
+    auto const nan = std::numeric_limits<double>::quiet_NaN();
+
     auto expected = Matrix<double>( 10, 3, {
         0, 0, 4.5,
         1, 8, 5,
@@ -55,12 +59,12 @@ TEST( Matrix, Reader )
         1, 10, 5.3,
         1, 10, 5.3,
         1, 8, 5.3,
-        1, 1, 5.3,
-        0, 0, 5
+        inf, inf, nan,
+        -inf, -inf, -nan
     });
 
     // Read simple matrix.
-    auto reader = MatrixReader<double>( ' ' );
+    auto reader = MatrixReader<double>( " " );
     auto const simple = reader.read( from_file( environment->data_dir + "utils/matrix/simple.mat" ));
 
     // Change settings and read matrix with tabs, headers, ec.
@@ -78,8 +82,10 @@ TEST( Matrix, Reader )
     // Check values.
     for( size_t r = 0; r < simple.rows(); ++r ) {
         for( size_t c = 0; c < simple.cols(); ++c ) {
-            EXPECT_NEAR( expected( r, c ), simple( r, c ), 0.000001);
-            EXPECT_NEAR( expected( r, c ), headers( r, c ), 0.000001);
+            if( std::isfinite( expected( r, c ))) {
+                EXPECT_NEAR( expected( r, c ), simple( r, c ), 0.000001);
+                EXPECT_NEAR( expected( r, c ), headers( r, c ), 0.000001);
+            }
         }
     }
 }

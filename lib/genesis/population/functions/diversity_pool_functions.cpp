@@ -422,7 +422,7 @@ genesis::utils::Matrix<double> const& pij_matrix_resolver_( // get_nbase_matrix_
         poolsize + 1 != pij_matrix_cache_.at( poolsize ).cols()
     ) {
         // Get a bit of leeway to reduce recomputation. Or maybe this is about the approximation
-        // that PoPollation does. Not sure. We just copied their approach here...
+        // that PoPoolation does. Not sure. We just copied their approach here...
         pij_matrix_cache_[ poolsize ] = pij_matrix_( 3 * max_coverage, poolsize );
     }
 

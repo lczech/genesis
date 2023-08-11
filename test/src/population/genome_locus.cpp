@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -150,4 +150,125 @@ TEST( Population, GenomeLocus )
 
     // LOG_DBG << "a " << a;
     // std::string t = "a " + a.to_string();
+}
+
+TEST( Population, GenomeLocusWithSequenceDict )
+{
+    // Some cases with identical positions.
+    // We here simply flip the order from above, and then define that order in the SequenceDict.
+    // This makes sure that we are using the dict for the order comparison, and not accidentally
+    // the string comparison as above.
+    GenomeLocus a{ "2", 5 };
+    GenomeLocus b{ "2", 8 };
+    GenomeLocus c{ "1", 5 };
+    GenomeLocus d{ "1", 8 };
+
+    // Now make a dict that defines the order of chromosomes as used above.
+    genesis::sequence::SequenceDict dict;
+    dict.add( "2", 10 );
+    dict.add( "1", 10 );
+
+    // Equality. Simple cases should suffice here.
+    EXPECT_TRUE( a == a );
+    EXPECT_TRUE( a != b );
+
+    // Now, we do every combination of comparisons.
+
+    // Spaceship
+    EXPECT_EQ(  0, locus_compare( a, a, dict ));
+    EXPECT_EQ( -1, locus_compare( a, b, dict ));
+    EXPECT_EQ( -1, locus_compare( a, c, dict ));
+    EXPECT_EQ( -1, locus_compare( a, d, dict ));
+    EXPECT_EQ( +1, locus_compare( b, a, dict ));
+    EXPECT_EQ(  0, locus_compare( b, b, dict ));
+    EXPECT_EQ( -1, locus_compare( b, c, dict ));
+    EXPECT_EQ( -1, locus_compare( b, d, dict ));
+    EXPECT_EQ( +1, locus_compare( c, a, dict ));
+    EXPECT_EQ( +1, locus_compare( c, b, dict ));
+    EXPECT_EQ(  0, locus_compare( c, c, dict ));
+    EXPECT_EQ( -1, locus_compare( c, d, dict ));
+    EXPECT_EQ( +1, locus_compare( d, a, dict ));
+    EXPECT_EQ( +1, locus_compare( d, b, dict ));
+    EXPECT_EQ( +1, locus_compare( d, c, dict ));
+    EXPECT_EQ(  0, locus_compare( d, d, dict ));
+
+    // Less than, true
+    EXPECT_TRUE( locus_less( a, b, dict ));
+    EXPECT_TRUE( locus_less( a, c, dict ));
+    EXPECT_TRUE( locus_less( a, d, dict ));
+    EXPECT_TRUE( locus_less( b, c, dict ));
+    EXPECT_TRUE( locus_less( b, d, dict ));
+    EXPECT_TRUE( locus_less( c, d, dict ));
+
+    // Less than, false
+    EXPECT_FALSE( locus_less( a, a, dict ));
+    EXPECT_FALSE( locus_less( b, a, dict ));
+    EXPECT_FALSE( locus_less( b, b, dict ));
+    EXPECT_FALSE( locus_less( c, a, dict ));
+    EXPECT_FALSE( locus_less( c, b, dict ));
+    EXPECT_FALSE( locus_less( c, c, dict ));
+    EXPECT_FALSE( locus_less( d, a, dict ));
+    EXPECT_FALSE( locus_less( d, b, dict ));
+    EXPECT_FALSE( locus_less( d, c, dict ));
+    EXPECT_FALSE( locus_less( d, d, dict ));
+
+    // Greater than, true
+    EXPECT_TRUE( locus_greater( b, a, dict ));
+    EXPECT_TRUE( locus_greater( c, a, dict ));
+    EXPECT_TRUE( locus_greater( c, b, dict ));
+    EXPECT_TRUE( locus_greater( d, a, dict ));
+    EXPECT_TRUE( locus_greater( d, b, dict ));
+    EXPECT_TRUE( locus_greater( d, c, dict ));
+
+    // Greater than, false
+    EXPECT_FALSE( locus_greater( a, a, dict ));
+    EXPECT_FALSE( locus_greater( a, b, dict ));
+    EXPECT_FALSE( locus_greater( a, c, dict ));
+    EXPECT_FALSE( locus_greater( a, d, dict ));
+    EXPECT_FALSE( locus_greater( b, b, dict ));
+    EXPECT_FALSE( locus_greater( b, c, dict ));
+    EXPECT_FALSE( locus_greater( b, d, dict ));
+    EXPECT_FALSE( locus_greater( c, c, dict ));
+    EXPECT_FALSE( locus_greater( c, d, dict ));
+    EXPECT_FALSE( locus_greater( d, d, dict ));
+
+    // Less than or equal, true
+    EXPECT_TRUE( locus_less_or_equal( a, a, dict ));
+    EXPECT_TRUE( locus_less_or_equal( a, b, dict ));
+    EXPECT_TRUE( locus_less_or_equal( a, c, dict ));
+    EXPECT_TRUE( locus_less_or_equal( a, d, dict ));
+    EXPECT_TRUE( locus_less_or_equal( b, b, dict ));
+    EXPECT_TRUE( locus_less_or_equal( b, c, dict ));
+    EXPECT_TRUE( locus_less_or_equal( b, d, dict ));
+    EXPECT_TRUE( locus_less_or_equal( c, c, dict ));
+    EXPECT_TRUE( locus_less_or_equal( c, d, dict ));
+    EXPECT_TRUE( locus_less_or_equal( d, d, dict ));
+
+    // Less than or equal, false
+    EXPECT_FALSE( locus_less_or_equal( b, a, dict ));
+    EXPECT_FALSE( locus_less_or_equal( c, a, dict ));
+    EXPECT_FALSE( locus_less_or_equal( c, b, dict ));
+    EXPECT_FALSE( locus_less_or_equal( d, a, dict ));
+    EXPECT_FALSE( locus_less_or_equal( d, b, dict ));
+    EXPECT_FALSE( locus_less_or_equal( d, c, dict ));
+
+    // Greater than or equal, true
+    EXPECT_TRUE( locus_greater_or_equal( a, a, dict ));
+    EXPECT_TRUE( locus_greater_or_equal( b, a, dict ));
+    EXPECT_TRUE( locus_greater_or_equal( b, b, dict ));
+    EXPECT_TRUE( locus_greater_or_equal( c, a, dict ));
+    EXPECT_TRUE( locus_greater_or_equal( c, b, dict ));
+    EXPECT_TRUE( locus_greater_or_equal( c, c, dict ));
+    EXPECT_TRUE( locus_greater_or_equal( d, a, dict ));
+    EXPECT_TRUE( locus_greater_or_equal( d, b, dict ));
+    EXPECT_TRUE( locus_greater_or_equal( d, c, dict ));
+    EXPECT_TRUE( locus_greater_or_equal( d, d, dict ));
+
+    // Greater than or equal, false
+    EXPECT_FALSE( locus_greater_or_equal( a, b, dict ));
+    EXPECT_FALSE( locus_greater_or_equal( a, c, dict ));
+    EXPECT_FALSE( locus_greater_or_equal( a, d, dict ));
+    EXPECT_FALSE( locus_greater_or_equal( b, c, dict ));
+    EXPECT_FALSE( locus_greater_or_equal( b, d, dict ));
+    EXPECT_FALSE( locus_greater_or_equal( c, d, dict ));
 }

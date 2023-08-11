@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -33,6 +33,7 @@
 
 #include "genesis/utils/core/fs.hpp"
 
+#include <ostream>
 #include <string>
 
 namespace genesis {
@@ -44,6 +45,16 @@ namespace utils {
 
 /**
  * @brief Abstract base class for writing data to an output target.
+ *
+ * The class is an interface that allows writing to different targets, and adds a layer of abstraction
+ * around using simple `std::ostream` functionality. In particular, we want to add some checks,
+ * naming of the streams, etc. Internally however, the derived classes of this base class use
+ * `std::ostream`, and make it accessible.
+ *
+ * @see FileOutputTarget, GzipOutputTarget, StreamOutputTarget, StringOutputTarget for our derived
+ * output target classes.
+ * @see to_file(), to_gzip_block_file(), to_stream(), to_string() for helper functions to create
+ * these classes, to add some syntactic sugar and make it easy to use.
  */
 class BaseOutputTarget
 {
@@ -75,6 +86,10 @@ public:
      * that wants to write some output, comared to standard write-to-stream functions.
      * The only change necessary is the initial setup of the output object: Instead of
      * an std::ostream, one has to initialize this class. From then on, usage is identical.
+     *
+     * Alternatively, the ostream() function can be used to obtain the underlying stream that is
+     * internally used to write the data. Also, see flush() to synchronize the writing with the
+     * actual target of the stream.
      */
     template<typename T>
     BaseOutputTarget& operator << ( T const& content )
@@ -93,7 +108,22 @@ public:
     }
 
     /**
+     * @brief Flush output stream buffer.
+     *
+     * Internally, the different output target derived classes use some variant of `std::ostream`
+     * to do the writing. Hence, the target might need flushing in cases where we want to synchronize
+     * it while writing, before closing the stream.
+     */
+    std::ostream& flush()
+    {
+        return out_stream_().flush();
+    }
+
+    /**
      * @brief Get a name of the output target. This is intended for user output.
+     *
+     * This will for example return something like "output file (/path/to/file.txt)", so that
+     * users know what type of output stream it is, and where it streams to.
      */
     std::string target_name() const
     {
@@ -102,8 +132,10 @@ public:
     }
 
     /**
-     * @brief Get a string representing the output target. This is intended for the writer classes,
-     * which for example might want to examine the output file name.
+     * @brief Get a string representing the output target.
+     *
+     * This is intended for the writer classes, which for example might want to examine the output
+     * file name. Hence, this function is meant to return just the file path (for a file target).
      */
     std::string target_string() const
     {
@@ -117,8 +149,8 @@ public:
 
 private:
 
+    // Non-virtual interface.
     virtual std::ostream& out_stream_() = 0;
-
     virtual std::string target_name_() const = 0;
     virtual std::string target_string_() const = 0;
 

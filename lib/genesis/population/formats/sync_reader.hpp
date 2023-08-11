@@ -75,8 +75,8 @@ namespace population {
  * See allow_missing() and https://github.com/lczech/grenedalf/issues/4 for details.
  *
  * Note on our internal data representation: The reader returns a Variant per line, where most of
- * the data is set based on the sync input content. However, the sync format does not have altnative
- * bases. By default, we leave it hence as 'N'. See however the guess_alt_base() setting
+ * the data is set based on the sync input content. However, the sync format does not have
+ * alternative bases. By default, we leave it hence as 'N'. See however the guess_alt_base() setting
  * to instead estimate the alternative base from the data.
  */
 class SyncReader
@@ -97,13 +97,68 @@ public:
     SyncReader& operator= ( SyncReader&& )      = default;
 
     // ---------------------------------------------------------------------
+    //     Read Header
+    // ---------------------------------------------------------------------
+
+    /**
+     * @brief Read the header line, if there is one. Do nothing if there is not.
+     *
+     * Has to be called at the start of reading a @p source file, as otherwise the reading will
+     * have already moved on from the header line.
+     *
+     * This is support for an ad-hoc extension of the `sync` format that offers a header line
+     * to store sample names, which are usually not available in the `sync` format. We currently
+     * expect a fixed format:
+     *
+     *     #chr	pos	ref	S1 S2...
+     *
+     * starting with a number sign (hashtag) `#` symbol, optionally followed by a tab character,
+     * and then listing the fixed columns `chr`, `pos`, and `ref`, followed by the sample name
+     * columns, all tab-delimited.
+     *
+     * The return value of the function are the values of the sample name columns, i.e., the
+     * sample names.
+     */
+    std::vector<std::string> read_header(
+        utils::InputStream& input_stream
+    ) const;
+
+    /**
+     * @brief Read the header line, if there is one, only reading specific columns.
+     * Do nothing if there is not.
+     *
+     * This overload of the function additionally takes a vector indicating which sample names
+     * to read and return (where @p sample_filter is `true`), and ignores the rest (where
+     * @p sample_filter is `false`). The size of @p sample_filter has to match the number of
+     * sample name columns; an exception is thrown otherwise.
+     *
+     * This function hence is meant to match the read() and parse_line() overloads that also
+     * take this type of filter.
+     */
+    std::vector<std::string> read_header(
+        utils::InputStream& input_stream,
+        std::vector<bool> const& sample_filter
+    ) const;
+
+    // ---------------------------------------------------------------------
     //     Reading
     // ---------------------------------------------------------------------
 
+    /**
+     * @brief Read the whole input into a vector of Variant%s.
+     */
     std::vector<Variant> read(
         std::shared_ptr< utils::BaseInputSource > source
     ) const;
 
+    /**
+     * brief Read the whole input into a vector of Variant%s, using a subset of the sample columns.
+     *
+     * The overload expects a vector indicating which columns to read and which to skip.
+     * The Variant%s produced for each line of input only contain as many entries as there are
+     * `true` values in the provided @p sample_filter. If the size of the @p sample_filter does
+     * not match the number of sample columns, an exception is thrown.
+     */
     std::vector<Variant> read(
         std::shared_ptr< utils::BaseInputSource > source,
         std::vector<bool> const&                  sample_filter
@@ -113,11 +168,21 @@ public:
     //     Parsing
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Read a single line into the provided @p Variant.
+     *
+     * Returns wheather the reading was successful, or not, i.e., wheather the input is at its end.
+     */
     bool parse_line(
         utils::InputStream& input_stream,
         Variant&            sample_set
     ) const;
 
+    /**
+     * @brief Read a single line into the provided @p Variant, using a subset of the sample columns.
+     *
+     * This is an equivalent overload as described in the read() functions. See there for details.
+     */
     bool parse_line(
         utils::InputStream&      input_stream,
         Variant&                 sample_set,

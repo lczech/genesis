@@ -34,12 +34,13 @@
 #include "genesis/population/functions/diversity_pool_functions.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/population/variant.hpp"
-#include "genesis/utils/math/kahan_sum.hpp"
+#include "genesis/utils/math/compensated_sum.hpp"
 
 #include <cassert>
 #include <cmath>
 #include <cstdint>
 #include <iterator>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -358,9 +359,9 @@ private:
     bool enable_tajima_d_        = true;
 
     // Data Accumulation
-    utils::KahanSum theta_pi_sum_;
-    utils::KahanSum theta_watterson_sum_;
-    size_t processed_count_     = 0;
+    utils::NeumaierSum theta_pi_sum_;
+    utils::NeumaierSum theta_watterson_sum_;
+    size_t processed_count_ = 0;
 };
 
 } // namespace population

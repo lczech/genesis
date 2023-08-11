@@ -34,7 +34,7 @@
 #include "genesis/population/functions/fst_pool_karlsson.hpp"
 #include "genesis/population/functions/fst_pool_kofler.hpp"
 #include "genesis/population/functions/fst_pool_unbiased.hpp"
-#include "genesis/population/functions/fst_pool.hpp"
+#include "genesis/population/functions/fst_pool_processor.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/utils/containers/matrix.hpp"

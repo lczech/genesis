@@ -45,7 +45,7 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Compare anf Find
+//     Compare and Find
 // =================================================================================================
 
 /**
@@ -58,6 +58,30 @@ bool contains_ci( std::vector<std::string> const& haystack, std::string const& n
  * and ignoring all non-alphanumerical characters.
  */
 bool contains_ci_alnum( std::vector<std::string> const& haystack, std::string const& needle );
+
+/**
+ * @brief Compares two strings, ignoring case differences.
+ *
+ * Compares the null-terminated strings @p s1 and @p s2, returning -1, 0, or 1
+ * if @p s1 is lexicographically less than, equal to, or greater than @p s2 over those characters,
+ * respectively.
+ *
+ * This is equivalent to the POSIX function of the same name, found in `strings.h`,
+ * but included here for portability.
+ */
+int strcasecmp( char const* s1, char const* s2 );
+
+/**
+ * @brief Compares up to @p n chars of two strings, ignoring case differences.
+ *
+ * Compares up to @p n chars of the null-terminated strings @p s1 and @p s2, returning -1, 0, or 1
+ * if @p s1 is lexicographically less than, equal to, or greater than @p s2 over those characters,
+ * respectively.
+ *
+ * This is equivalent to the POSIX function of the same name, found in `strings.h`,
+ * but included here for portability.
+ */
+int strncasecmp( char const* s1, char const* s2, size_t n );
 
 /**
  * @brief Compare two strings, case insensitive.

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -38,16 +38,16 @@
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/tools/tickmarks.hpp"
 
-#include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/functions.hpp"
-#include "genesis/utils/tools/color/functions.hpp"
-#include "genesis/utils/tools/color/helpers.hpp"
-#include "genesis/utils/tools/color/map.hpp"
-#include "genesis/utils/tools/color/norm_boundary.hpp"
-#include "genesis/utils/tools/color/norm_diverging.hpp"
-#include "genesis/utils/tools/color/norm_linear.hpp"
-#include "genesis/utils/tools/color/norm_logarithmic.hpp"
-#include "genesis/utils/tools/color/normalization.hpp"
+#include "genesis/utils/color/color.hpp"
+#include "genesis/utils/color/functions.hpp"
+#include "genesis/utils/color/functions.hpp"
+#include "genesis/utils/color/helpers.hpp"
+#include "genesis/utils/color/map.hpp"
+#include "genesis/utils/color/norm_boundary.hpp"
+#include "genesis/utils/color/norm_diverging.hpp"
+#include "genesis/utils/color/norm_linear.hpp"
+#include "genesis/utils/color/norm_logarithmic.hpp"
+#include "genesis/utils/color/normalization.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -137,7 +137,7 @@ static std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_discrete_(
         // Get and check iterator values.
         auto const& pos = it->first;
         auto const& color = it->second;
-        if( pos < 0.0 || pos > 1.0 ) {
+        if( !std::isfinite(pos) || pos < 0.0 || pos > 1.0 ) {
             throw std::runtime_error( "Color Normalization stops out of [ 0.0, 1.0 ]" );
         }
 
@@ -217,7 +217,7 @@ static void make_svg_color_bar_tickmarks_(
     // Helper function to make a tick mark with line and text
     // at a relative position [ 0.0, 1.0 ] along the rect.
     auto make_tick = [&]( double rel_pos, std::string label ){
-        assert( 0.0 <= rel_pos && rel_pos <= 1.0 );
+        assert( std::isfinite(rel_pos) && 0.0 <= rel_pos && rel_pos <= 1.0 );
 
         // Get positions for needed elements.
         double v = -1.0;
@@ -294,7 +294,8 @@ static void make_svg_color_bar_tickmarks_(
             text_s.transform.append( SvgTransform::Translate( text_p ));
             text_s.font.size = settings.text_size;
             if(
-                settings.direction == SvgColorBarSettings::Direction::kLeftToRight || settings.direction == SvgColorBarSettings::Direction::kRightToLeft
+                settings.direction == SvgColorBarSettings::Direction::kLeftToRight ||
+                settings.direction == SvgColorBarSettings::Direction::kRightToLeft
             ) {
                 text_s.transform.append( SvgTransform::Rotate( 90.0 ));
             }
@@ -309,7 +310,7 @@ static void make_svg_color_bar_tickmarks_(
     if( settings.with_tickmarks ) {
         auto const tickmarks = color_tickmarks( norm, settings.num_ticks );
         for( auto const& tick : tickmarks ) {
-            if( tick.first < 0.0 || tick.first > 1.0 ) {
+            if( !std::isfinite(tick.first) || tick.first < 0.0 || tick.first > 1.0 ) {
                 throw std::runtime_error( "Color Normalization tickmark out of [ 0.0, 1.0 ]" );
             }
             make_tick( tick.first, tick.second );

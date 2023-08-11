@@ -30,23 +30,38 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/formats/variant_parallel_input_iterator.hpp"
 #include "genesis/population/formats/variant_input_iterator.hpp"
+#include "genesis/population/formats/variant_parallel_input_iterator.hpp"
+#include "genesis/population/functions/genome_locus.hpp"
 #include "genesis/population/genome_region.hpp"
+#include "genesis/population/variant.hpp"
+#include "genesis/utils/containers/lambda_iterator.hpp"
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/math/common.hpp"
+#include "genesis/utils/math/random.hpp"
+#include "genesis/utils/text/string.hpp"
 
+#include <algorithm>
+#include <cassert>
+#include <ctime>
 #include <set>
 #include <unordered_map>
+#include <vector>
 
 using namespace genesis::population;
 using namespace genesis::utils;
+
+// =================================================================================================
+//     Simple Tests
+// =================================================================================================
 
 void test_parallel_input_iterator_(
     VariantParallelInputIterator::ContributionType p_sel,
     VariantParallelInputIterator::ContributionType s_sel,
     VariantParallelInputIterator::ContributionType v_sel,
     std::set<size_t> expected_positions,
-    std::set<size_t> additional_loci = {}
+    std::set<size_t> additional_loci = {},
+    std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = {}
 ) {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -106,6 +121,9 @@ void test_parallel_input_iterator_(
         expected_positions.insert( al );
     }
 
+    // Set the seq dict. If nullptr, this works as well
+    pit.sequence_dict( sequence_dict );
+
     std::set<size_t> found_positions;
     for( auto it = pit.begin(); it != pit.end(); ++it ) {
         // LOG_DBG2 << it.locus().to_string();
@@ -153,7 +171,8 @@ void test_parallel_input_iterator_(
 }
 
 void test_parallel_input_iterator_all_(
-    std::set<size_t> additional_loci = {}
+    std::set<size_t> additional_loci = {},
+    std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = {}
 ) {
     //  Key to which input file has which positions
     //  Pos   P   S   V
@@ -177,7 +196,8 @@ void test_parallel_input_iterator_all_(
         VariantParallelInputIterator::ContributionType::kCarrying,
         VariantParallelInputIterator::ContributionType::kCarrying,
         std::set<size_t>{ 5, 8, 10, 12, 15, 17, 20, 22, 25, 28, 30 },
-        additional_loci
+        additional_loci,
+        sequence_dict
     );
     // LOG_DBG1 << "UUI";
     test_parallel_input_iterator_(
@@ -185,7 +205,8 @@ void test_parallel_input_iterator_all_(
         VariantParallelInputIterator::ContributionType::kCarrying,
         VariantParallelInputIterator::ContributionType::kFollowing,
         std::set<size_t>{ 5, 8, 10, 12, 15, 17, 22, 25, 28, 30 },
-        additional_loci
+        additional_loci,
+        sequence_dict
     );
     // LOG_DBG1 << "UIU";
     test_parallel_input_iterator_(
@@ -193,7 +214,8 @@ void test_parallel_input_iterator_all_(
         VariantParallelInputIterator::ContributionType::kFollowing,
         VariantParallelInputIterator::ContributionType::kCarrying,
         std::set<size_t>{ 5, 8, 10, 15, 17, 20, 22, 25, 28 },
-        additional_loci
+        additional_loci,
+        sequence_dict
     );
     // LOG_DBG1 << "IUU";
     test_parallel_input_iterator_(
@@ -201,7 +223,8 @@ void test_parallel_input_iterator_all_(
         VariantParallelInputIterator::ContributionType::kCarrying,
         VariantParallelInputIterator::ContributionType::kCarrying,
         std::set<size_t>{ 5, 10, 12, 15, 17, 20, 25, 28, 30 },
-        additional_loci
+        additional_loci,
+        sequence_dict
     );
     // LOG_DBG1 << "UII";
     test_parallel_input_iterator_(
@@ -209,7 +232,8 @@ void test_parallel_input_iterator_all_(
         VariantParallelInputIterator::ContributionType::kFollowing,
         VariantParallelInputIterator::ContributionType::kFollowing,
         std::set<size_t>{ 5, 8, 10, 15, 17, 22, 28 },
-        additional_loci
+        additional_loci,
+        sequence_dict
     );
     // LOG_DBG1 << "IUI";
     test_parallel_input_iterator_(
@@ -217,7 +241,8 @@ void test_parallel_input_iterator_all_(
         VariantParallelInputIterator::ContributionType::kCarrying,
         VariantParallelInputIterator::ContributionType::kFollowing,
         std::set<size_t>{ 10, 12, 17, 25, 28, 30 },
-        additional_loci
+        additional_loci,
+        sequence_dict
     );
     // LOG_DBG1 << "IIU";
     test_parallel_input_iterator_(
@@ -225,7 +250,8 @@ void test_parallel_input_iterator_all_(
         VariantParallelInputIterator::ContributionType::kFollowing,
         VariantParallelInputIterator::ContributionType::kCarrying,
         std::set<size_t>{ 5, 10, 15, 20, 25 },
-        additional_loci
+        additional_loci,
+        sequence_dict
     );
     // LOG_DBG1 << "III";
     test_parallel_input_iterator_(
@@ -233,7 +259,8 @@ void test_parallel_input_iterator_all_(
         VariantParallelInputIterator::ContributionType::kFollowing,
         VariantParallelInputIterator::ContributionType::kFollowing,
         std::set<size_t>{ 10 },
-        additional_loci
+        additional_loci,
+        sequence_dict
     );
 }
 
@@ -258,28 +285,269 @@ TEST( ParallelInputIterator, Basics )
     test_parallel_input_iterator_all_({ 15, 32 });
 }
 
-// TEST( ParallelInputIterator, UnorderedChromosomes )
-// {
-//     // Skip test if no data availabe.
-//     NEEDS_TEST_DATA;
-//     std::string const s_infile = environment->data_dir + "population/parallel_chrs_1.sync";
-//
-//     // Init with the desired settings
-//     auto pit = VariantParallelInputIterator();
-//     pit.add_variant_input_iterator(
-//         make_variant_input_iterator_from_sync_file( s_infile ),
-//         VariantParallelInputIterator::ContributionType::kCarrying
-//     );
-//
-//     std::unordered_map<std::string, std::set<size_t>> expected_positions = {
-//         { "XYZ", { 10, 12, 17, 25, 28, 30 }},
-//         { "ABC", { 10, 12, 17, 25, 28, 30 }}
-//     };
-//
-//     std::unordered_map<std::string, std::set<size_t>> found_positions;
-//     for( auto it = pit.begin(); it != pit.end(); ++it ) {
-//         // LOG_DBG2 << it.locus().to_string();
-//         found_positions[ it.locus().chromosome ].insert( it.locus().position );
-//     }
-//     EXPECT_EQ( expected_positions, found_positions );
-// }
+TEST( ParallelInputIterator, SequenceDict )
+{
+    auto seq_dict = std::make_shared<genesis::sequence::SequenceDict>();
+    seq_dict->add( "XYZ", 50 );
+    seq_dict->add( "ABC", 50 );
+
+    // Test without additional loci.
+    // LOG_DBG << "Normal";
+    test_parallel_input_iterator_all_({}, seq_dict );
+
+    // // Test with different positions and numbers of additional loci.
+    // // LOG_DBG << "1";
+    // test_parallel_input_iterator_all_({ 1 }, seq_dict );
+    // // LOG_DBG << "15";
+    // test_parallel_input_iterator_all_({ 15 }, seq_dict );
+    // // LOG_DBG << "16";
+    // test_parallel_input_iterator_all_({ 16 }, seq_dict );
+    // // LOG_DBG << "32";
+    // test_parallel_input_iterator_all_({ 32 }, seq_dict );
+    // // LOG_DBG << "1, 15, 32";
+    // test_parallel_input_iterator_all_({ 1, 15, 32 }, seq_dict );
+    // // LOG_DBG << "15, 32";
+    // test_parallel_input_iterator_all_({ 15, 32 }, seq_dict );
+}
+
+TEST( ParallelInputIterator, UnorderedChromosomes )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const s_infile = environment->data_dir + "population/parallel_chrs_1.sync";
+
+    // Init with the desired settings
+    auto pit = VariantParallelInputIterator();
+    pit.add_variant_input_iterator(
+        make_variant_input_iterator_from_sync_file( s_infile ),
+        VariantParallelInputIterator::ContributionType::kCarrying
+    );
+
+    // Get the expected list of positions per chromosome.
+    std::unordered_map<std::string, std::set<size_t>> expected_positions = {
+        { "XYZ", { 10, 12, 17, 25, 28, 30 }},
+        { "ABC", { 10, 12, 17, 25, 28, 30 }}
+    };
+
+    // Get the expected order of chromsomes.
+    auto seq_dict = std::make_shared<genesis::sequence::SequenceDict>();
+    seq_dict->add( "XYZ", 50 );
+    seq_dict->add( "ABC", 50 );
+    pit.sequence_dict( seq_dict );
+
+    // Execute the test.
+    std::unordered_map<std::string, std::set<size_t>> found_positions;
+    for( auto it = pit.begin(); it != pit.end(); ++it ) {
+        // LOG_DBG2 << it.locus();
+        found_positions[ it.locus().chromosome ].insert( it.locus().position );
+    }
+    EXPECT_EQ( expected_positions, found_positions );
+}
+
+// =================================================================================================
+//     Randomized Tests
+// =================================================================================================
+
+void test_parallel_input_iterator_random_() {
+
+    // While building the test case, we keep track of which chr:pos we expect to see.
+    std::unordered_map<std::string, std::set<size_t>> expected_chr_pos;
+
+    // Per chromsome, we generate random positions up to a max position (not their count).
+    size_t const max_positions = 100;
+
+    // Generate a random number of sources, between 1 and 5 inclusive.
+    auto const num_sources = 1 + permuted_congruential_generator() % 5;
+    assert( 1 <= num_sources && num_sources <= 5 );
+    auto variants = std::vector<std::vector<Variant>>( num_sources );
+
+    // We also randomly decide which ones are carrying (1) and which ones are following (0).
+    auto carrying = std::vector<bool>( num_sources );
+    size_t carrying_cnt = 0;
+    for( size_t si = 0; si < num_sources; ++si ) {
+        carrying[si] = permuted_congruential_generator() % 2;
+        carrying_cnt += carrying[si];
+        // LOG_DBG1 << "Source " << si << " carry " << std::boolalpha << carrying[si];
+    }
+
+    // Generate a random number of chromosomes, between 1 and 5 inclusive.
+    // We name them A-E, for simplicity.
+    auto const num_chroms = 1 + permuted_congruential_generator() % 5;
+    std::vector<std::string> chrs;
+    for( size_t ci = 0; ci < num_chroms; ++ci ) {
+        chrs.push_back( std::string( 1, 'A' + ci ));
+    }
+
+    // We randomly decide whether to use a seq dict, or not.
+    // When using a seq dict, we do reverse order, just to test that.
+    bool const use_seq_dict = permuted_congruential_generator() % 2;
+    auto seq_dict = std::make_shared<genesis::sequence::SequenceDict>();
+    if( use_seq_dict ) {
+        std::reverse( chrs.begin(), chrs.end() );
+        for( auto const& chr : chrs ) {
+            seq_dict->add( chr, max_positions );
+        }
+    }
+
+    // Generate data for the sources
+    assert( 1 <= num_chroms && num_chroms <= 5 );
+    for( size_t ci = 0; ci < num_chroms; ++ci ) {
+
+        // For following sources, we need to make sure to know the positions where they all
+        // just happen to have the same position, so that we still count them.
+        // We mark all of them as true for now, and then set to false unless there is a following
+        // locus. Whatever remains is a position shared by all following sources.
+        auto following_pos = std::vector<bool>( max_positions + 1, true );
+        following_pos[0] = false;
+
+        for( size_t si = 0; si < num_sources; ++si ) {
+            // We randomly decide wheather to add the chromosome to a variant or not,
+            // to test absences.
+            if( permuted_congruential_generator() % 2 == 0 ) {
+                // If a source is following, and skipped, there will be no visited loci on the chr.
+                if( ! carrying[si] ) {
+                    following_pos = std::vector<bool>( max_positions + 1, false );
+                }
+                continue;
+            }
+            // LOG_DBG1 << "Source " << si << " add " << chrs[ci];
+
+            // Randomly (0.5 chance, to maximize coverage of cases) add positions
+            for( size_t pos = 1; pos <= max_positions; ++pos ) {
+                if( permuted_congruential_generator() % 2 == 0 ) {
+                    if( ! carrying[si] ) {
+                        following_pos[pos] = false;
+                    }
+                    continue;
+                }
+
+                // Make the variant
+                auto var = Variant();
+                var.chromosome = chrs[ci];
+                var.position = pos;
+                variants[si].push_back(var);
+
+                // For carrying sources, we expect the position to be in the output.
+                if( carrying[si] ) {
+                    expected_chr_pos[chrs[ci]].insert(pos);
+                }
+            }
+        }
+
+        // Now add all psoitions that were not reset
+        if( carrying_cnt == 0 ) {
+            for( size_t fi = 1; fi < following_pos.size(); ++fi ) {
+                if( following_pos[fi] ) {
+                    expected_chr_pos[chrs[ci]].insert(fi);
+                }
+            }
+        }
+    }
+
+    // Set up the iterator
+    auto parallel_it = VariantParallelInputIterator();
+    for( size_t si = 0; si < num_sources; ++si ) {
+        parallel_it.add_variant_input_iterator(
+            make_variant_input_iterator_from_vector( variants[si] ),
+            carrying[si]
+                ? VariantParallelInputIterator::ContributionType::kCarrying
+                : VariantParallelInputIterator::ContributionType::kFollowing
+        );
+    }
+    if( use_seq_dict ) {
+        parallel_it.sequence_dict( seq_dict );
+    }
+
+    // Additional loci.
+    size_t added_chrs = 0;
+    bool have_cleared_following_only_loci = false;
+    for( size_t ci = 0; ci < num_chroms; ++ci ) {
+        // Currenlty, we cannot have extra carrying loci with a dict,
+        // as the ordering of chromsomes gets out of control...
+        if( use_seq_dict ) {
+            break;
+        }
+
+        // Make a random 0.5 selection of chromosomes.
+        if( permuted_congruential_generator() % 2 == 0 ) {
+            continue;
+        }
+        ++added_chrs;
+        // LOG_DBG1 << "Chr " << chrs[ci] << " add";
+
+        // We add ~10 random positions on the chr.
+        for( size_t pos = 1; pos <= max_positions; ++pos ) {
+            if( permuted_congruential_generator() % 10 != 0 ) {
+                continue;
+            }
+
+            // We have a complicated extra condition: if we add additional loci to an iterator
+            // that only contains following sources, but no carrying ones, then these additional loci
+            // will be the ones visited. So in case of that, we first need to clear all the following
+            // loci. But only if we are actually adding at least one additional locus...
+            // So here, we are at the point where we are about to do that.
+            // We only clear the list on the first chr where we add loci, of course.
+            if( carrying_cnt == 0 && ! have_cleared_following_only_loci ) {
+                expected_chr_pos.clear();
+                have_cleared_following_only_loci = true;
+            }
+
+            parallel_it.add_carrying_locus( GenomeLocus( chrs[ci], pos ));
+            expected_chr_pos[chrs[ci]].insert(pos);
+            // LOG_DBG1 << chrs[ci] << ":" << pos;
+        }
+    }
+
+    // Now turn this into an exact list of loci that we want to visit.
+    std::vector<GenomeLocus> expected_list;
+    for( size_t ci = 0; ci < num_chroms; ++ci ) {
+        if( expected_chr_pos.count( chrs[ci] ) == 0 ) {
+            continue;
+        }
+        for( auto pos : expected_chr_pos[ chrs[ci] ] ) {
+            expected_list.emplace_back( chrs[ci], pos );
+            // LOG_DBG1 << "Exp " <<  chrs[ci] << ":" << pos;
+        }
+    }
+
+    // Reporting
+    LOG_DBG << "Test:" << std::boolalpha
+            << " num_sources=" << num_sources
+            << " num_chroms=" << num_chroms
+            << " carrying_cnt=" << carrying_cnt
+            << " added_chrs=" << added_chrs
+            << " use_seq_dict=" << use_seq_dict
+            << " expected_list.size()=" << expected_list.size()
+    ;
+
+    // Execute the test.
+    size_t it_cnt = 0;
+    for( auto it = parallel_it.begin(); it != parallel_it.end(); ++it ) {
+        // LOG_DBG2 << it.locus();
+        ASSERT_LT( it_cnt, expected_list.size() );
+        EXPECT_EQ( expected_list[it_cnt], it.locus() );
+        ++it_cnt;
+    }
+    EXPECT_EQ( it_cnt, expected_list.size() );
+}
+
+TEST( ParallelInputIterator, Random )
+{
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    // For the duration of the test, we deactivate debug logging.
+    // But if needed, comment this line out, and each test will report its input.
+    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+
+    // 0.5s runtime, our default for normal tests.
+    size_t const max_tests = 1000;
+
+    // Run tests while we have time.
+    for( size_t test_num = 0; test_num < max_tests; ++test_num ) {
+        // LOG_DBG << "Test " << test_num;
+        test_parallel_input_iterator_random_();
+    }
+}

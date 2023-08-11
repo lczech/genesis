@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 #include "genesis/utils/text/char.hpp"
 
 #include <cassert>
+#include <cmath>
 #include <cctype>
 #include <limits>
 #include <stdexcept>
@@ -148,7 +149,8 @@ T parse_integer( utils::InputStream& source )
  *
  *     [+-][123][.456][eE[+-]789]
  *
- * The function stops reading at the first non-fitting digit.
+ * It furthermore supports signed `nan`, `inf`, and `infinity` as special strings, case insensitive.
+ * The function stops reading at the first non-fitting character.
  * It throws an `std::overflow_error` or `underflow_error` in case that the exponent (the part
  * after the 'E') does not fit into integer value range.
  */
@@ -188,7 +190,7 @@ T parse_float( utils::InputStream& source )
 
         if( ! source || ! utils::is_digit( *source ) ) {
             throw std::runtime_error(
-                "Invalid float number in " + source.source_name() + " at " + source.at() + "."
+                "Invalid number in " + source.source_name() + " at " + source.at() + "."
             );
         }
 
@@ -202,10 +204,44 @@ T parse_float( utils::InputStream& source )
         }
     }
 
+    // Special cases.
+    if( ! found_mantisse && source ) {
+        static_assert(
+            std::numeric_limits<double>::is_iec559,
+            "Compiler does not use ISO IEC559 / IEEE754 standard."
+        );
+
+        // Check against usual special cases. We use value == 0.0 to indicate the default case
+        // (no match), and any other value will be what we found then.
+        double const sign = is_neg ? -1.0 : 1.0;
+        double value = 0.0;
+        auto const buffer = source.buffer();
+        if( buffer.second >= 8 && strncasecmp( buffer.first, "infinity", 8 ) == 0 ) {
+            source.jump_unchecked( 8 );
+            value = sign * std::numeric_limits<double>::infinity();
+        } else if( buffer.second >= 3 && strncasecmp( buffer.first, "inf", 3 ) == 0 ) {
+            source.jump_unchecked( 3 );
+            value = sign * std::numeric_limits<double>::infinity();
+        }
+        if( buffer.second >= 3 && strncasecmp( buffer.first, "nan", 3 ) == 0 ) {
+            source.jump_unchecked( 3 );
+            value = sign * std::numeric_limits<double>::quiet_NaN();
+        }
+
+        // If we found something, we need to check that this is not part of some other
+        // random longer string. The next char needs to be something non-alnum.
+        // Bit stricter than usual double parsing, but should cover all cases except for
+        // the `nanCHAR` notation. If this check fails, we instead continue,
+        // which will throw in the next check below.
+        if( value != 0.0 && ( !source || ! is_alnum( *source ))) {
+            return value;
+        }
+    }
+
     // We need to have some digits before the exponential part.
     if( ! found_mantisse ) {
         throw std::runtime_error(
-            "Invalid float number in " + source.source_name() + " at " + source.at() + "."
+            "Invalid number in " + source.source_name() + " at " + source.at() + "."
         );
     }
 

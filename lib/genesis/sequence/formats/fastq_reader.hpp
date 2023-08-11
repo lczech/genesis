@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -122,7 +122,7 @@ namespace sequence {
  * as well, by setting the quality_string_plugin() function. This is for example useful if the
  * quality scores are not needed at all (simply provide an empty function in this case), or if
  * the file is first parsed once to detect the most probably encoding - see
- * @link guess_fastq_quality_encoding( std::shared_ptr<utils::BaseInputSource> ) guess_fastq_quality_encoding()@endlink for an example.
+ * guess_fastq_quality_encoding() for an example.
  *
  * To set the the quality_string_plugin(), use for example the following:
  *

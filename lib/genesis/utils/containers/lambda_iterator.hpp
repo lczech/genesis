@@ -126,6 +126,18 @@ struct EmptyLambdaIteratorData
  * This allows to easily skip elements of the underlying iterator without the need to add an
  * additional layer of abstraction.
  *
+ * As an additional layer of convenience, the class offers visitors for each element, as well as
+ * callbacks for the beginning and end of the iteration. Those are meant as simplifications to
+ * reduce code duplcation in user code, and can be used in combination with each other. For example,
+ * a visitor can be added that (via a lambda capture) counts statistics of the elements beging
+ * processed, and those can then be reported at the end of the iteration. This could of course also
+ * be achieved by adding this functionatlity in the loop body and at the loop end when running
+ * this iterator. However, for example in our tool https://github.com/lczech/grenedalf, we have
+ * setup functions for a LambdaIterator (of type VariantInputIterator) that are re-used across
+ * commands. Then, instead of having to have code duplication or repeated function calls in those
+ * commands, we only need to add the callbacks when creating the iterator, and they are used in
+ * every command automatically.
+ *
  * Lastly, the class offers block buffering in a separate thread, for speed up. This capability
  * takes care of the underlying iterator processing (including potential file parsing etc),
  * and buffers blocks of elements, so that the user of this class has faster access to it.
@@ -238,7 +250,7 @@ public:
 
                 // Initialize the current_block_ and buffer_block_,
                 // and read the first block(s) of the file.
-                init_();
+                begin_iteration_();
             }
         }
 
@@ -385,23 +397,36 @@ public:
 
     private:
 
-        void init_()
+        void begin_iteration_()
         {
             // Check that they are set up from the constructor.
             assert( generator_ );
             assert( current_block_ );
             assert( buffer_block_ );
 
+            // Before starting to init anything, call the callbacks.
+            execute_begin_callbacks_();
+
+            // Run the correct init function depending on buffering.
+            if( generator_->block_size_ == 0 ) {
+                begin_iteration_without_buffer_();
+            } else {
+                begin_iteration_with_buffer_();
+            }
+        }
+
+        void begin_iteration_without_buffer_()
+        {
             // Edge case: no buffering.
             // Block size zero indicates to use no buffering, so we just use a single element.
-            if( generator_->block_size_ == 0 ) {
-                // Make space for it, read the first element, and then we are done here.
-                current_block_->resize( 1 );
-                end_pos_ = 1;
-                increment_();
-                return;
-            }
+            // Make space for it, read the first element, and then we are done here.
+            current_block_->resize( 1 );
+            end_pos_ = 1;
+            increment_();
+        }
 
+        void begin_iteration_with_buffer_()
+        {
             // Init the records and create empty VcfRecord to read into.
             // The blocks have been initialized in the contructor already; assert this.
             current_block_->resize( generator_->block_size_ );
@@ -422,7 +447,7 @@ public:
                 fill_buffer_block_();
             } else if( end_pos_ == 0 ) {
                 // Edge case: zero elements read. We are already done then.
-                generator_ = nullptr;
+                end_iteration_();
                 return;
             }
             assert( end_pos_ > 0 );
@@ -450,19 +475,29 @@ public:
             );
             assert( buffer_block_->size()  == generator_->block_size_ );
 
+            // Run the actual increment implementation.
+            if( generator_->block_size_ == 0 ) {
+                increment_without_buffer_();
+            } else {
+                increment_with_buffer_();
+            }
+        }
+
+        void increment_without_buffer_()
+        {
             // Edge case: no buffering.
             // Read the next element. If there is none, we are done.
-            if( generator_->block_size_ == 0 ) {
-                assert( current_pos_ == 0 );
-                assert( current_block_->size() == 1 );
-                if( get_next_element_( generator_, (*current_block_)[0] )) {
-                    execute_visitors_( (*current_block_)[current_pos_] );
-                } else {
-                    generator_ = nullptr;
-                }
-                return;
+            assert( current_pos_ == 0 );
+            assert( current_block_->size() == 1 );
+            if( get_next_element_( generator_, (*current_block_)[0] )) {
+                execute_visitors_( (*current_block_)[current_pos_] );
+            } else {
+                end_iteration_();
             }
+        }
 
+        void increment_with_buffer_()
+        {
             // Finish the reading (potentially waiting if not yet finished in the worker thread).
             // The future returns how much data there was to be read, which we use as our status.
             // After that, swap the buffer and start a new reading operation in the worker thread.
@@ -478,7 +513,7 @@ public:
                 // If we did not get a full block size when reading, we are done iterating.
                 // Indicate this by unsetting the generator_ pointer.
                 if( end_pos_ < generator_->block_size_ ) {
-                    generator_ = nullptr;
+                    end_iteration_();
                     return;
                 }
 
@@ -496,7 +531,7 @@ public:
                 // case... but good enough for now.
                 end_pos_ = future_->get();
                 if( end_pos_ == 0 ) {
-                    generator_ = nullptr;
+                    end_iteration_();
                     return;
                 }
 
@@ -543,8 +578,8 @@ public:
             auto buffer_block = buffer_block_;
             auto block_size   = generator_->block_size_;
 
-            // The lambda returns the result of read_block_ call, that is, the number of records
-            // that have been read, and which we later (in the future_) use to see how much data we got.
+            // The lambda returns the result of read_block_ call, that is, the number of records that
+            // have been read, and which we later (in the future_) use to see how much data we got.
             *future_ = generator_->thread_pool_->enqueue(
                 [ generator, buffer_block, block_size ](){
                     return read_block_( generator, buffer_block, block_size );
@@ -636,11 +671,39 @@ public:
             return usable_element;
         }
 
-        void execute_visitors_( T const& element )
+        void end_iteration_()
+        {
+            // This function is called at any point when we reach the end of the input source.
+            // We first need to call all end callbacks, before unsetting the generator pointer.
+            // Doing so is our signal that we have reached the end, and is used for example
+            // in the equality comparison of this iterator to test whether an iterator is valid
+            // or not (or equal to the past-the-end iterator).
+            assert( generator_ );
+            execute_end_callbacks_();
+            generator_ = nullptr;
+        }
+
+        void execute_visitors_( T const& element ) const
         {
             assert( generator_ );
             for( auto const& visitor : generator_->visitors_ ) {
                 visitor( element );
+            }
+        }
+
+        void execute_begin_callbacks_() const
+        {
+            assert( generator_ );
+            for( auto const& cb : generator_->begin_callbacks_ ) {
+                cb( *generator_ );
+            }
+        }
+
+        void execute_end_callbacks_() const
+        {
+            assert( generator_ );
+            for( auto const& cb : generator_->end_callbacks_ ) {
+                cb( *generator_ );
             }
         }
 
@@ -851,10 +914,11 @@ public:
             );
         }
         transforms_and_filters_.clear();
+        return *this;
     }
 
     // -------------------------------------------------------------------------
-    //     Visitors
+    //     Visitors and Callbacks
     // -------------------------------------------------------------------------
 
     /**
@@ -891,6 +955,66 @@ public:
             );
         }
         visitors_.clear();
+        return *this;
+    }
+
+    /**
+     * @brief Add a callback function that is executed when the begin() function is called.
+     *
+     * The callback needs to accept the LambdaIterator object itself, as a means to, for example,
+     * access its data(), and is meant as a reporting mechanism. For example, callbacks can be added
+     * that write properties of the underlying data sources to log. They are executed in the order
+     * added.
+     *
+     * Similar to the functionality offered by add_visitor(), this could also be achieved by
+     * executing these functions direclty where needed, but having it as a callback here might help
+     * to reduce code duplication.
+     *
+     * See also add_end_callback().
+     */
+    self_type& add_begin_callback( std::function<void(LambdaIterator const&)> const& callback )
+    {
+        if( has_started_ ) {
+            throw std::runtime_error(
+                "LambdaIterator: Cannot change callbacks after iteration has started."
+            );
+        }
+        begin_callbacks_.push_back( callback );
+        return *this;
+    }
+
+    /**
+     * @brief Add a callback function that is executed when the end() of the iteration is reached.
+     *
+     * This is similar to the add_begin_callback() functionality, but instead of executing the
+     * callback when starting the iteration, it is called when ending it. Again, this is meant
+     * as a means to reduce user code duplication, for example for logging needs.
+     */
+    self_type& add_end_callback( std::function<void(LambdaIterator const&)> const& callback )
+    {
+        if( has_started_ ) {
+            throw std::runtime_error(
+                "LambdaIterator: Cannot change callbacks after iteration has started."
+            );
+        }
+        end_callbacks_.push_back( callback );
+        return *this;
+    }
+
+    /**
+     * @brief Clear all functions that have been added via add_begin_callback() and
+     * add_end_callback().
+     */
+    self_type& clear_callbacks()
+    {
+        if( has_started_ ) {
+            throw std::runtime_error(
+                "LambdaIterator: Cannot change callbacks after iteration has started."
+            );
+        }
+        begin_callbacks_.clear();
+        end_callbacks_.clear();
+        return *this;
     }
 
     // -------------------------------------------------------------------------
@@ -960,6 +1084,10 @@ private:
     // while the visits are executed once the iteration reaches the respective element.
     std::vector<std::function<bool(T&)>> transforms_and_filters_;
     std::vector<std::function<void(T const&)>> visitors_;
+
+    // We furthermore allow callbacks for the beginning and and of the iteration.
+    std::vector<std::function<void(self_type const&)>> begin_callbacks_;
+    std::vector<std::function<void(self_type const&)>> end_callbacks_;
 
     // Underlying iterator and associated data.
     std::function<bool( value_type& )> get_element_;

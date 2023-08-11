@@ -31,10 +31,11 @@
  * @ingroup population
  */
 
-#include "genesis/population/functions/fst_pool.hpp"
+#include "genesis/population/functions/fst_pool_calculator.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/common.hpp"
+#include "genesis/utils/math/compensated_sum.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -120,7 +121,7 @@ private:
 
     double get_result_() override
     {
-        return sum_nk_ / sum_dk_;
+        return static_cast<double>( sum_nk_ ) / static_cast<double>( sum_dk_ );
     }
 
     // -------------------------------------------------------------------------
@@ -204,8 +205,8 @@ public:
 private:
 
     // Result values.
-    double sum_nk_ = 0.0;
-    double sum_dk_ = 0.0;
+    utils::NeumaierSum sum_nk_ = 0.0;
+    utils::NeumaierSum sum_dk_ = 0.0;
 
 };
 

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -172,19 +172,20 @@ inline void throw_invalid_quality_code_( char quality_code, QualityEncoding enco
     );
 }
 
-std::string quality_encoding_name( QualityEncoding encoding )
+std::string quality_encoding_name( QualityEncoding encoding, bool with_offset )
 {
+    auto const wo = with_offset;
     switch( encoding ) {
         case QualityEncoding::kSanger:
-            return "Sanger";
+            return std::string( "Sanger" )        + std::string( wo ? " (ASCII offset 33)" : "" );
         case QualityEncoding::kIllumina13:
-            return "Illumina 1.3+";
+            return std::string( "Illumina 1.3+" ) + std::string( wo ? " (ASCII offset 64)" : "" );
         case QualityEncoding::kIllumina15:
-            return "Illumina 1.5+";
+            return std::string( "Illumina 1.5+" ) + std::string( wo ? " (ASCII offset 64)" : "" );
         case QualityEncoding::kIllumina18:
-            return "Illumina 1.8+";
+            return std::string( "Illumina 1.8+" ) + std::string( wo ? " (ASCII offset 33)" : "" );
         case QualityEncoding::kSolexa:
-            return "Solexa";
+            return std::string( "Solexa" )        + std::string( wo ? " (ASCII offset 64)" : "" );
 
         default:
             throw std::invalid_argument( "Invalid quality encoding type." );
@@ -243,7 +244,7 @@ unsigned char quality_decode_to_phred_score( char quality_code, QualityEncoding 
             if( quality_code < 59 || quality_code >= 127 ) {
                 throw_invalid_quality_code_( quality_code, encoding );
             }
-            return solexa_score_to_phred_score( static_cast<unsigned char>( quality_code ) - 64 );
+            return solexa_score_to_phred_score( static_cast<signed char>( quality_code ) - 64 );
 
         default:
             throw std::invalid_argument( "Invalid quality encoding type." );
@@ -395,6 +396,38 @@ std::vector<unsigned char> quality_decode_to_phred_score(
 //     Guess Quality Encoding Type
 // =================================================================================================
 
+bool compatible_quality_encodings( QualityEncoding lhs, QualityEncoding rhs )
+{
+    // Check rhs.
+    if(
+        rhs != QualityEncoding::kSanger     &&
+        rhs != QualityEncoding::kIllumina13 &&
+        rhs != QualityEncoding::kIllumina15 &&
+        rhs != QualityEncoding::kIllumina18 &&
+        rhs != QualityEncoding::kSolexa
+    ) {
+        throw std::invalid_argument( "Invalid quality encoding type." );
+    }
+
+    // Check lhs, and return compatibility.
+    switch( lhs ) {
+        case QualityEncoding::kSanger:
+        case QualityEncoding::kIllumina18:
+            return rhs == QualityEncoding::kSanger || rhs ==  QualityEncoding::kIllumina18;
+
+        case QualityEncoding::kIllumina13:
+        case QualityEncoding::kIllumina15:
+            return rhs == QualityEncoding::kIllumina13 || rhs ==  QualityEncoding::kIllumina15;
+
+        case QualityEncoding::kSolexa:
+            return rhs == QualityEncoding::kSolexa;
+
+        default:
+            throw std::invalid_argument( "Invalid quality encoding type." );
+    };
+    return false;
+}
+
 QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_counts )
 {
     // Find the first entry that is not 0
@@ -416,6 +449,12 @@ QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_coun
     }
 
     // Some checks.
+    if( min == char_counts.size() ) {
+        assert( max == 0 );
+        throw std::runtime_error(
+            "Cannot guess quality encoding, as all quality code counts are zero."
+        );
+    }
     if( min < 33 || max >= 127 ) {
         throw std::runtime_error(
             "Invalid char counts provided to guess quality score encoding. Only printable "
@@ -454,10 +493,15 @@ QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_coun
     return QualityEncoding::kIllumina15;
 }
 
-QualityEncoding guess_fastq_quality_encoding( std::shared_ptr< utils::BaseInputSource > source )
-{
+QualityEncoding guess_fastq_quality_encoding(
+    std::shared_ptr< utils::BaseInputSource > source,
+    size_t max_lines,
+    size_t max_chars
+) {
     // Init a counting array for each char, use value-initialization to 0
     auto char_counts = std::array<size_t, 128>();
+    size_t lines_cnt = 0;
+    size_t chars_cnt = 0;
 
     // Prepare a reader that simply increments all char counts for the quality chars
     // that are found in the sequences.
@@ -477,9 +521,16 @@ QualityEncoding guess_fastq_quality_encoding( std::shared_ptr< utils::BaseInputS
                     );
                 }
 
+                // Increment the count for the given character.
                 // assert( (qu & ~0x7f) == 0 );
                 assert( qu < char_counts.size() );
                 ++char_counts[ qu ];
+
+                // Only count up to a limit of chars, if provided.
+                ++chars_cnt;
+                if( max_chars > 0 && chars_cnt > max_chars ) {
+                    break;
+                }
             }
         }
     );
@@ -488,7 +539,17 @@ QualityEncoding guess_fastq_quality_encoding( std::shared_ptr< utils::BaseInputS
     utils::InputStream input_stream( source );
     Sequence seq;
     while( reader.parse_sequence( input_stream, seq ) ) {
-        // Do nothing. All the work is done in the plugin function above.
+        // Here, we check the limits, if used.
+        if( max_chars > 0 && chars_cnt > max_chars ) {
+            break;
+        }
+
+        // For lines, we need to stop once we have reached the limit, not one after,
+        // as the counting is dont in the preprocessing of the reader iterator already.
+        ++lines_cnt;
+        if( max_lines > 0 && lines_cnt >= max_lines ) {
+            break;
+        }
     }
 
     // Return our guess based on the quality characters that were found in the sequences.

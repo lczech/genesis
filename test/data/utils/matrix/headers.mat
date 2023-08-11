@@ -7,5 +7,5 @@ epsilon	1	10	5.5
 zeta	1	10	5.3
 eta	1	10	5.3
 theta	1	8	5.3
-iota	1	1	5.3
-kappa	0	0	5
+iota	inf	INFINITY	nan
+kappa	-inf	-INFINITY	-nan

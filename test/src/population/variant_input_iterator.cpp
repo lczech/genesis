@@ -35,6 +35,7 @@
 #include "genesis/population/formats/variant_parallel_input_iterator.hpp"
 #include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/functions.hpp"
+#include "genesis/population/functions/variant_input_iterator.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <unordered_set>
@@ -454,7 +455,6 @@ TEST( VariantInputIterator, VcfInputIterator )
     EXPECT_ANY_THROW( make_variant_input_iterator_from_pool_vcf_file( "/path/to/nowhere.vcf" ));
 }
 
-
 TEST( VariantInputIterator, VcfInputIteratorSampleFilter )
 {
     // Skip test if no data availabe.
@@ -610,6 +610,316 @@ TEST( VariantInputIterator, ParallelInputIterator2 )
         // LOG_DBG << variant.chromosome << ":" << variant.position;
     }
     EXPECT_EQ( exp_chromosomes, tst_chromosomes );
+}
+
+#endif // GENESIS_HTSLIB
+
+// =================================================================================================
+//     Unordered Chromosomes
+// =================================================================================================
+
+void test_variant_input_iterator_unordered_chromosomes_(
+    VariantInputIterator& it,
+    size_t expected_positions,
+    bool with_visitor,
+    bool with_dict,
+    bool good_sequence_lengths
+) {
+    // All files are named the same, for simplicity.
+    EXPECT_EQ( "unordered", it.data().source_name );
+
+    // Make a sequence dict, or not.
+    std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict;
+    if( with_dict ) {
+        sequence_dict = std::make_shared<genesis::sequence::SequenceDict>();
+        if( good_sequence_lengths ) {
+            sequence_dict->add( "XYZ", 2000 );
+            sequence_dict->add( "ABC", 2000 );
+        } else {
+            sequence_dict->add( "XYZ", 10 );
+            sequence_dict->add( "ABC", 10 );
+        }
+    }
+
+    // Add a check visitor to the iterator.
+    if( with_visitor ) {
+        it.add_visitor(
+            make_variant_input_iterator_sequence_order_visitor( sequence_dict )
+        );
+    }
+
+    // Just test the number of positions
+    size_t cnt = 0;
+    for( auto const& variant : it ) {
+        (void) variant;
+        ++cnt;
+    }
+    EXPECT_EQ( expected_positions, cnt );
+}
+
+#ifdef GENESIS_HTSLIB
+
+TEST( VariantInputIterator, UnorderedChromosomesSam )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/unordered.sam.gz";
+
+    {
+        auto it = make_variant_input_iterator_from_sam_file( infile );
+        EXPECT_ANY_THROW(
+            test_variant_input_iterator_unordered_chromosomes_( it, 3136, true, false, false )
+        );
+    }
+    {
+        auto it = make_variant_input_iterator_from_sam_file( infile );
+        EXPECT_ANY_THROW(
+            test_variant_input_iterator_unordered_chromosomes_( it, 3136, true, true, false )
+        );
+    }
+    {
+        auto it = make_variant_input_iterator_from_sam_file( infile );
+        test_variant_input_iterator_unordered_chromosomes_( it, 3136, true, true, true );
+    }
+    {
+        auto it = make_variant_input_iterator_from_sam_file( infile );
+        test_variant_input_iterator_unordered_chromosomes_( it, 3136, false, false, false );
+    }
+}
+
+#endif // GENESIS_HTSLIB
+
+TEST( VariantInputIterator, UnorderedChromosomesPileup )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/unordered.pileup";
+
+    {
+        auto it = make_variant_input_iterator_from_pileup_file( infile );
+        EXPECT_ANY_THROW(
+            test_variant_input_iterator_unordered_chromosomes_( it, 16, true, false, false )
+        );
+    }
+    {
+        auto it = make_variant_input_iterator_from_pileup_file( infile );
+        EXPECT_ANY_THROW(
+            test_variant_input_iterator_unordered_chromosomes_( it, 16, true, true, false )
+        );
+    }
+    {
+        auto it = make_variant_input_iterator_from_pileup_file( infile );
+        test_variant_input_iterator_unordered_chromosomes_( it, 16, true, true, true );
+    }
+    {
+        auto it = make_variant_input_iterator_from_pileup_file( infile );
+        test_variant_input_iterator_unordered_chromosomes_( it, 16, false, false, false );
+    }
+}
+
+TEST( VariantInputIterator, UnorderedChromosomesSync )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/unordered.sync";
+
+    {
+        auto it = make_variant_input_iterator_from_sync_file( infile );
+        EXPECT_ANY_THROW(
+            test_variant_input_iterator_unordered_chromosomes_( it, 12, true, false, false )
+        );
+    }
+    {
+        auto it = make_variant_input_iterator_from_sync_file( infile );
+        EXPECT_ANY_THROW(
+            test_variant_input_iterator_unordered_chromosomes_( it, 12, true, true, false )
+        );
+    }
+    {
+        auto it = make_variant_input_iterator_from_sync_file( infile );
+        test_variant_input_iterator_unordered_chromosomes_( it, 12, true, true, true );
+    }
+    {
+        auto it = make_variant_input_iterator_from_sync_file( infile );
+        test_variant_input_iterator_unordered_chromosomes_( it, 12, false, false, false );
+    }
+}
+
+TEST( VariantInputIterator, UnorderedChromosomesFrequencyTable )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/unordered.csv";
+
+    {
+        auto it = make_variant_input_iterator_from_frequency_table_file( infile );
+        EXPECT_ANY_THROW(
+            test_variant_input_iterator_unordered_chromosomes_( it, 8, true, false, false )
+        );
+    }
+    {
+        auto it = make_variant_input_iterator_from_frequency_table_file( infile );
+        EXPECT_ANY_THROW(
+            test_variant_input_iterator_unordered_chromosomes_( it, 8, true, true, false )
+        );
+    }
+    {
+        auto it = make_variant_input_iterator_from_frequency_table_file( infile );
+        test_variant_input_iterator_unordered_chromosomes_( it, 8, true, true, true );
+    }
+    {
+        auto it = make_variant_input_iterator_from_frequency_table_file( infile );
+        test_variant_input_iterator_unordered_chromosomes_( it, 8, false, false, false );
+    }
+}
+
+#ifdef GENESIS_HTSLIB
+
+TEST( VariantInputIterator, UnorderedChromosomesVcf )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/unordered.vcf";
+
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        EXPECT_ANY_THROW(
+            test_variant_input_iterator_unordered_chromosomes_( it, 10, true, false, false )
+        );
+    }
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        EXPECT_ANY_THROW(
+            test_variant_input_iterator_unordered_chromosomes_( it, 10, true, true, false )
+        );
+    }
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        test_variant_input_iterator_unordered_chromosomes_( it, 10, true, true, true );
+    }
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        test_variant_input_iterator_unordered_chromosomes_( it, 10, false, false, false );
+    }
+}
+
+#endif // GENESIS_HTSLIB
+
+// =================================================================================================
+//     Sample Filter
+// =================================================================================================
+
+TEST( VariantInputIterator, MakeSampleFilter )
+{
+    auto sample_names = std::vector<std::string>{
+        "A", "B", "C", "D", "E", "F", "G", "H"
+    };
+    auto names_filter = std::vector<std::string>{
+        "C", "D", "G"
+    };
+
+    auto const f1 = make_sample_filter( sample_names, names_filter, false );
+    ASSERT_EQ( 8, f1.size() );
+    EXPECT_FALSE( f1[0] );
+    EXPECT_FALSE( f1[1] );
+    EXPECT_TRUE(  f1[2] );
+    EXPECT_TRUE(  f1[3] );
+    EXPECT_FALSE( f1[4] );
+    EXPECT_FALSE( f1[5] );
+    EXPECT_TRUE(  f1[6] );
+    EXPECT_FALSE( f1[7] );
+
+    auto const f2 = make_sample_filter( sample_names, names_filter, true );
+    ASSERT_EQ( 8, f2.size() );
+    EXPECT_TRUE(  f2[0] );
+    EXPECT_TRUE(  f2[1] );
+    EXPECT_FALSE( f2[2] );
+    EXPECT_FALSE( f2[3] );
+    EXPECT_TRUE(  f2[4] );
+    EXPECT_TRUE(  f2[5] );
+    EXPECT_FALSE( f2[6] );
+    EXPECT_TRUE(  f2[7] );
+
+    EXPECT_ANY_THROW( make_sample_filter({ "A", "B" }, { "X" }));
+    EXPECT_ANY_THROW( make_sample_filter({ "A", "A" }, { "A" }));
+    EXPECT_ANY_THROW( make_sample_filter({ "A", "B" }, { "A", "A" }));
+}
+
+#ifdef GENESIS_HTSLIB
+
+TEST( VariantInputIterator, SampleFilter )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/example_ad.vcf";
+
+    // Sample names: NA00001 NA00002 NA00003
+
+    // Filter empty. No samples are there.
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        it.add_transform(
+            make_variant_input_iterator_sample_name_filter_transform(
+                make_sample_filter( it.data().sample_names, {}, false )
+            )
+        );
+        EXPECT_EQ( 0, it.begin()->samples.size() );
+    }
+
+    // Filter empty, inversed. All samples are there, as this is equivalent to no filtering.
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        it.add_transform(
+            make_variant_input_iterator_sample_name_filter_transform(
+                make_sample_filter( it.data().sample_names, {}, true )
+            )
+        );
+        EXPECT_EQ( 3, it.begin()->samples.size() );
+    }
+
+    // Filter NA00002.
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        it.add_transform(
+            make_variant_input_iterator_sample_name_filter_transform(
+                make_sample_filter( it.data().sample_names, { "NA00002" }, false )
+            )
+        );
+        EXPECT_EQ( 1, it.begin()->samples.size() );
+    }
+
+    // Filter NA00002, inversed. Two samples remain.
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        it.add_transform(
+            make_variant_input_iterator_sample_name_filter_transform(
+                make_sample_filter( it.data().sample_names, { "NA00002" }, true )
+            )
+        );
+        EXPECT_EQ( 2, it.begin()->samples.size() );
+    }
+
+    // Filter invalid.
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        EXPECT_ANY_THROW(
+            it.add_transform(
+                make_variant_input_iterator_sample_name_filter_transform(
+                    make_sample_filter( it.data().sample_names, { "XYZ" }, false )
+                )
+            );
+        );
+    }
+    {
+        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        EXPECT_ANY_THROW(
+            it.add_transform(
+                make_variant_input_iterator_sample_name_filter_transform(
+                    make_sample_filter( it.data().sample_names, { "XYZ" }, true )
+                )
+            );
+        );
+    }
 }
 
 #endif // GENESIS_HTSLIB

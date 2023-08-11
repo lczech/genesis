@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -54,17 +54,17 @@ TEST( Containers, DataframeMatrix )
 
     // Index access
     EXPECT_EQ( 4.5, dynamic_cast<Dataframe::Column<double>&>(df[2])[0]);
-    EXPECT_EQ( 1.0, dynamic_cast<Dataframe::Column<double>&>(df[0])[8]);
+    EXPECT_EQ( 1.0, dynamic_cast<Dataframe::Column<double>&>(df[0])[7]);
 
     EXPECT_EQ( 4.5, df[2].as<double>()[0]);
-    EXPECT_EQ( 1.0, df[0].as<double>()[8]);
+    EXPECT_EQ( 1.0, df[0].as<double>()[7]);
 
     EXPECT_EQ( 4.5, df[2].get<double>(0));
-    EXPECT_EQ( 1.0, df[0].get<double>(8));
+    EXPECT_EQ( 1.0, df[0].get<double>(7));
 
     // Name acces
     EXPECT_EQ( 4.7, df["Third"].as<double>()["gamma"] );
-    EXPECT_EQ( 0.0, df["First"].as<double>()["kappa"] );
+    EXPECT_EQ( 1.0, df["First"].as<double>()["theta"] );
 
     EXPECT_TRUE( df.has_row_name( "gamma" ) );
     EXPECT_TRUE( df.has_col_name( "Second" ) );

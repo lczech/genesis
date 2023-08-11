@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -185,6 +185,11 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
+    SimplePileupReader const& reader() const
+    {
+        return reader_;
+    }
+
     T const& record() const
     {
         return record_;
@@ -265,8 +270,9 @@ private:
     std::shared_ptr<utils::InputStream> input_stream_;
 
     // Reading into records
-    T record_;
     SimplePileupReader reader_;
+    size_t sample_size_ = 0;
+    T record_;
 
     // Sample filtering
     std::vector<bool> sample_filter_;
@@ -280,62 +286,29 @@ private:
 template<>
 inline void SimplePileupInputIterator<SimplePileupReader::Record>::increment_()
 {
-    // Read into temp object, so that we have the previous one still available.
-    SimplePileupReader::Record tmp;
+    // We resize to the size that we had before (or 0 if we are just starting),
+    // so that the parser can check the correct sample size.
+    // We cannot rely on the samples keeping their size, as the user might have moved the data.
+    record_.samples.resize( sample_size_ );
     if( use_sample_filter_ ) {
-        good_ = reader_.parse_line_record( *input_stream_, tmp, sample_filter_ );
+        good_ = reader_.parse_line_record( *input_stream_, record_, sample_filter_ );
     } else {
-        good_ = reader_.parse_line_record( *input_stream_, tmp );
+        good_ = reader_.parse_line_record( *input_stream_, record_ );
     }
-
-    // Make sure that the input is sorted.
-    if( good_ &&
-        (
-            ( tmp.chromosome  < record_.chromosome ) ||
-            ( tmp.chromosome == record_.chromosome && tmp.position <= record_.position )
-        )
-    ) {
-        throw std::runtime_error(
-            "Malformed pileup " + input_stream_->source_name() + " at " + input_stream_->at() +
-            ": unordered chromosomes and positions"
-        );
-    }
-    record_ = std::move( tmp );
+    sample_size_ = record_.samples.size();
 }
 
 template<>
 inline void SimplePileupInputIterator<Variant>::increment_()
 {
-    // Read into temp object, so that we have the previous one still available for the order
-    // comparison downstream. We want to make some form of copy or renewal anyway, as the iterator
-    // might have been used to obtain the Variant by move, in which case we in particular need
-    // to properly reset the BaseCount sample field of the Variant. To do that efficiently,
-    // and also tap into the error check for correct consistent number of samples per line,
-    // we resize to what the current record is. That way, the check in SimplePileupReader will
-    // kick in, while at the same time providing speed improvemetns due to not having to add
-    // BaseCounts one by one when reading.
-    // Initially, the record has sample size 0, which also works, as this is how the reader starts.
-    Variant tmp;
-    tmp.samples.resize( record_.samples.size() );
+    // Same as above
+    record_.samples.resize( sample_size_ );
     if( use_sample_filter_ ) {
-        good_ = reader_.parse_line_variant( *input_stream_, tmp, sample_filter_ );
+        good_ = reader_.parse_line_variant( *input_stream_, record_, sample_filter_ );
     } else {
-        good_ = reader_.parse_line_variant( *input_stream_, tmp );
+        good_ = reader_.parse_line_variant( *input_stream_, record_ );
     }
-
-    // Make sure that the input is sorted.
-    if( good_ &&
-        (
-            ( tmp.chromosome  < record_.chromosome ) ||
-            ( tmp.chromosome == record_.chromosome && tmp.position <= record_.position )
-        )
-    ) {
-        throw std::runtime_error(
-            "Malformed pileup " + input_stream_->source_name() + " at " + input_stream_->at() +
-            ": unordered chromosomes and positions"
-        );
-    }
-    record_ = std::move( tmp );
+    sample_size_ = record_.samples.size();
 }
 
 } // namespace population
