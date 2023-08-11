@@ -164,7 +164,7 @@ std::vector<FstCathedralPlotRecord> prepare_fst_cathedral_records_for_chromosome
             record.title += " " + record.sample_name_1 + " vs " + record.sample_name_2;
         }
         if( !record.chromosome_name.empty() ) {
-            record.title += ", chromosome \"" + record.chromosome_name + "\"";
+            record.title += ", chromosome: " + record.chromosome_name;
         }
     }
     return result;

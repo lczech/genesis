@@ -31,6 +31,8 @@
  * @ingroup population
  */
 
+#include "genesis/utils/color/color.hpp"
+#include "genesis/utils/color/heat_map.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 
 #include <cassert>
@@ -50,6 +52,7 @@ namespace genesis {
 namespace utils {
 
     class JsonDocument;
+    class SvgDocument;
 
 } // namespace utils
 } // namespace genesis
@@ -129,6 +132,15 @@ struct CathedralPlotRecord
 };
 
 /**
+ * @brief Check a Cathedral Plot @p record for internal consistency.
+ *
+ * This checks that if a CathedralPlotRecord::value_matrix is given, that its
+ * dimension are the same as the ones provided in the CathedralPlotParameters,
+ * and that the number of window widths matches the matrix height.
+ */
+void validate_cathedral_plot_record( CathedralPlotRecord const& record );
+
+/**
  * @brief Compute the window width for a row in a cathedral plot.
  *
  * This uses the chromosome length and the intended plot dimensions to compute window widths
@@ -146,6 +158,11 @@ double cathedral_window_width(
  * @brief Helper function to return a textual representation of the @p method
  */
 std::string cathedral_window_width_method_to_string( CathedralWindowWidthMethod method );
+
+/**
+ * @brief Helper function to return a CathedralWindowWidthMethod from its textual representation
+ */
+CathedralWindowWidthMethod cathedral_window_width_method_from_string( std::string const& method );
 
 // =================================================================================================
 //     Compute Matrix Functions
@@ -340,15 +357,88 @@ void save_cathedral_plot_record_to_files(
 );
 
 /**
+ * @brief Convenience function to save the record of a cathedral plot in a set of files.
+ *
+ * This overload wrapper simply calls cathedral_plot_record_to_json_document() to obtain a Json
+ * representation of the given @p record, and uses that to save the files. This however only uses
+ * the basic fields of CathedralPlotRecord, and omits other fields that might be interesting for
+ * users. See for instance fst_cathedral_plot_record_to_json_document() for a function that also
+ * stores specialized fields.
+ *
+ * Note however that when loading files again via load_cathedral_plot_record_from_files(), we only
+ * load the fields of CathedralPlotRecord, and omit those extra ones anyway, as they are not used
+ * in the plotting routines anyway.
+ */
+void save_cathedral_plot_record_to_files(
+    CathedralPlotRecord const& record,
+    std::string const& base_path
+);
+
+/**
+ * @brief Load the parts of a cathedral plot from a set of files.
+ *
+ * Reverse of save_cathedral_plot_record_to_files(), returning the files as a Json document,
+ * and a Matrix of values for the heatmap. See load_cathedral_plot_record_from_files() for the
+ * convenience function that actually loads and fills the CathedralPlotRecord from that.
+ */
+std::pair<genesis::utils::JsonDocument, genesis::utils::Matrix<double>>
+load_cathedral_plot_record_components_from_files(
+    std::string const& base_path
+);
+
+/**
  * @brief Load the record of a cathedral plot from a set of files.
  *
  * See save_cathedral_plot_record_to_files(). This reads a json and a csv file using the
  * @p base_path with the extensions `.json` and `.csv`. For convenience, it is also possible to
  * specify one of the two file paths directly, and the respective other will be inferred.
  */
-std::pair<genesis::utils::JsonDocument, genesis::utils::Matrix<double>>
-load_cathedral_plot_record_from_files(
+CathedralPlotRecord load_cathedral_plot_record_from_files(
     std::string const& base_path
+);
+
+// =================================================================================================
+//     Plotting Functions
+// =================================================================================================
+
+/**
+ * @brief Make a cathedral plot heat map as a color matrix.
+ *
+ * This uses the data from a @p record, and the color heat map @p parameters.
+ *
+ * This is meant as a high level function for convenience, and to show how such a heat map can
+ * be made. See also make_cathedral_plot_svg().
+ */
+genesis::utils::Matrix<genesis::utils::Color> make_cathedral_plot_heatmap(
+    CathedralPlotRecord const& record,
+    genesis::utils::HeatmapParameters const& heatmap_parameters
+);
+
+/**
+ * @brief Make a cathedral plot heat map and add it into an SVG document with legend and axes.
+ *
+ * This uses the data from a @p record, and the color heat map @p parameters.
+ *
+ * This is meant as a high level function for convenience, and to show how such a heat map can
+ * be made. See also make_cathedral_plot_heatmap().
+ */
+genesis::utils::SvgDocument make_cathedral_plot_svg(
+    CathedralPlotRecord const& record,
+    genesis::utils::HeatmapParameters const& heatmap_parameters,
+    genesis::utils::Matrix<genesis::utils::Color> const& image
+);
+
+/**
+ * @brief Make a cathedral plot heat map and add it into an SVG document with legend and axes.
+ *
+ * This uses the data from a @p record, and the color heat map @p parameters.
+ *
+ * This is meant as a high level function for convenience, and to show how such a heat map can
+ * be made. See also make_cathedral_plot_heatmap().
+ */
+genesis::utils::SvgDocument make_cathedral_plot_svg(
+    CathedralPlotRecord const& record,
+    genesis::utils::HeatmapParameters const& heatmap_parameters
 );
 
 } // namespace population

@@ -30,6 +30,9 @@
 
 #include "genesis/population/plotting/cathedral_plot.hpp"
 
+#include "genesis/population/plotting/genome_heatmap.hpp"
+#include "genesis/utils/color/heat_map.hpp"
+#include "genesis/utils/color/normalization.hpp"
 #include "genesis/utils/containers/matrix/reader.hpp"
 #include "genesis/utils/containers/matrix/writer.hpp"
 #include "genesis/utils/core/fs.hpp"
@@ -37,10 +40,13 @@
 #include "genesis/utils/formats/json/document.hpp"
 #include "genesis/utils/formats/json/reader.hpp"
 #include "genesis/utils/formats/json/writer.hpp"
+#include "genesis/utils/formats/svg/svg.hpp"
+#include "genesis/utils/math/statistics.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <cassert>
 #include <cmath>
+#include <memory>
 #include <stdexcept>
 
 namespace genesis {
@@ -49,6 +55,33 @@ namespace population {
 // =================================================================================================
 //     Cathedral Plot Parameters
 // =================================================================================================
+
+void validate_cathedral_plot_record( CathedralPlotRecord const& record )
+{
+    if( record.value_matrix.empty() ) {
+        return;
+    }
+    auto const cols_good = ( record.value_matrix.cols() == record.parameters.width );
+    auto const rows_good = ( record.value_matrix.rows() == record.parameters.height );
+    if( !cols_good || !rows_good ) {
+        throw std::domain_error(
+            "Invalid Cathedral Plot Record, where the parameters specify a width and height of " +
+            std::to_string( record.parameters.width ) + "x" +
+            std::to_string( record.parameters.height ) +
+            " pixels, but the contained value matrix has dimensions " +
+            std::to_string( record.value_matrix.cols() ) + "x" +
+            std::to_string( record.value_matrix.rows() )
+        );
+    }
+    if( record.value_matrix.rows() != record.window_widths.size() ) {
+        throw std::domain_error(
+            "Invalid Cathedral Plot Record, where the value matrix has " +
+            std::to_string( record.value_matrix.rows() ) +
+            " rows, but the window widths list contains " +
+            std::to_string( record.window_widths.size() ) + " entries"
+        );
+    }
+}
 
 double cathedral_window_width(
     CathedralPlotRecord const& record, size_t row
@@ -116,6 +149,23 @@ std::string cathedral_window_width_method_to_string( CathedralWindowWidthMethod 
     throw std::runtime_error( "Invalid CathedralWindowWidthMethod" );
 }
 
+CathedralWindowWidthMethod cathedral_window_width_method_from_string( std::string const& method )
+{
+    auto const lower = utils::to_lower( method );
+    if( lower == "exponential" ) {
+        return CathedralWindowWidthMethod::kExponential;
+    }
+    if( lower == "geometric" ) {
+        return CathedralWindowWidthMethod::kGeometric;
+    }
+    if( lower == "linear" ) {
+        return CathedralWindowWidthMethod::kLinear;
+    }
+    throw std::invalid_argument(
+        "cathedral_window_width_method_from_string(): Invalid method name \"" + method + "\""
+    );
+}
+
 // =================================================================================================
 //     Storage Functions
 // =================================================================================================
@@ -147,6 +197,7 @@ genesis::utils::JsonDocument cathedral_plot_record_to_json_document(
     CathedralPlotRecord const& record
 ) {
     using namespace genesis::utils;
+    validate_cathedral_plot_record( record );
 
     // First we add the parameters, so that those are also part of the document.
     // This also sets up the document to be a Json object, in case it was null (default constructed).
@@ -158,6 +209,14 @@ genesis::utils::JsonDocument cathedral_plot_record_to_json_document(
     obj["chromosomeName"]   = JsonDocument::string( record.chromosome_name );
     obj["chromosomeLength"] = JsonDocument::number_unsigned( record.chromosome_length );
     obj["windowWidths"]     = JsonDocument( record.window_widths );
+
+    // For user convenience, we also store the min and max values,
+    // so that downstream plots can be adjusted more easily.
+    auto const min_max = finite_minimum_maximum(
+        record.value_matrix.begin(), record.value_matrix.end()
+    );
+    obj["minValue"] = JsonDocument::number_float( min_max.min );
+    obj["maxValue"] = JsonDocument::number_float( min_max.max );
 
     return document;
 }
@@ -189,8 +248,16 @@ void save_cathedral_plot_record_to_files(
     MatrixWriter<double>( "," ).write( record_value_matrix, to_file( base_path + ".csv" ));
 }
 
+void save_cathedral_plot_record_to_files(
+    CathedralPlotRecord const& record,
+    std::string const& base_path
+) {
+    auto const document = cathedral_plot_record_to_json_document( record );
+    save_cathedral_plot_record_to_files( document, record.value_matrix, base_path );
+}
+
 std::pair<genesis::utils::JsonDocument, genesis::utils::Matrix<double>>
-load_cathedral_plot_record_from_files(
+load_cathedral_plot_record_components_from_files(
     std::string const& base_path
 ) {
     using namespace genesis::utils;
@@ -212,7 +279,7 @@ load_cathedral_plot_record_from_files(
         }
         if( !file_exists( json_file ) || !file_exists( csv_file )) {
             throw std::invalid_argument(
-                "load_cathedral_plot_record_from_files(): Cannot find json/csv files "
+                "load_cathedral_plot_record_components_from_files(): Cannot find json/csv files "
                 "for base path \"" + base_path + "\""
             );
         }
@@ -223,6 +290,137 @@ load_cathedral_plot_record_from_files(
         JsonReader().read( from_file( json_file )),
         MatrixReader<double>( "," ).read( from_file( csv_file ))
     );
+}
+
+CathedralPlotRecord load_cathedral_plot_record_from_files(
+    std::string const& base_path
+) {
+    // Read the data.
+    auto const components = load_cathedral_plot_record_components_from_files( base_path );
+    auto const& json = components.first;
+
+    // Fill the record. We currently only read the fields that we are actually using downstream.
+    // Might need amendment if we make use of other fields as well, such as the window widths vec.
+    CathedralPlotRecord result;
+    result.title             = json[ "title" ].get_string();
+    result.chromosome_name   = json[ "chromosomeName" ].get_string();
+    result.chromosome_length = json[ "chromosomeLength" ].get_number_unsigned();
+    result.parameters.width  = json[ "width" ].get_number_unsigned();
+    result.parameters.height = json[ "height" ].get_number_unsigned();
+    result.parameters.window_width_method = cathedral_window_width_method_from_string(
+        json[ "windowWidthMethod" ].get_string()
+    );
+    for( auto const& elem : json[ "windowWidths" ].get_array() ) {
+        result.window_widths.push_back( elem.get_number_float() );
+    }
+
+    // Also get the value data.
+    result.value_matrix = components.second;
+
+    // Now check internal consistency, and return the result.
+    validate_cathedral_plot_record( result );
+    return result;
+}
+
+// =================================================================================================
+//     Plotting Functions
+// =================================================================================================
+
+genesis::utils::Matrix<genesis::utils::Color> make_cathedral_plot_heatmap(
+    CathedralPlotRecord const& record,
+    genesis::utils::HeatmapParameters const& heatmap_parameters
+) {
+    validate_cathedral_plot_record( record );
+    return utils::make_heatmap_matrix( record.value_matrix, heatmap_parameters );
+}
+
+genesis::utils::SvgDocument make_cathedral_plot_svg(
+    CathedralPlotRecord const& record,
+    genesis::utils::HeatmapParameters const& heatmap_parameters,
+    genesis::utils::Matrix<genesis::utils::Color> const& image
+) {
+    using namespace genesis::utils;
+
+    // Error and boundary checks
+    validate_cathedral_plot_record( record );
+    if( record.value_matrix.rows() != image.rows() || record.value_matrix.cols() != image.cols() ) {
+        throw std::invalid_argument(
+            "Invalid call to make_cathedral_plot_svg() with image dimensions not fitting "
+            "with the data dimensions of the plot record."
+        );
+    }
+    if( record.window_widths.empty() ) {
+        throw std::invalid_argument(
+            "Invalid call to make_cathedral_plot_svg() with empty window widths list."
+        );
+    }
+
+    // Recompute window widths.
+    // auto const max_win_width = static_cast<double>( record.chromosome_length );
+    // auto const min_win_width = max_win_width / static_cast<double>( record.parameters.width );
+    // Nope, future proof, we just use the actual entries from the list.
+    assert( record.window_widths.size() > 0 );
+    auto const min_win_width = record.window_widths.back();
+    auto const max_win_width = record.window_widths.front();
+
+    // Make the x-axis.
+    auto x_axis_settings = SvgAxisSettings();
+    x_axis_settings.position = SvgAxisSettings::Position::kBottom;
+    x_axis_settings.length = record.parameters.width;
+    auto const x_ticks = Tickmarks().linear_labels( 1, record.chromosome_length, 5 );
+    auto const x_axis = make_svg_axis( x_axis_settings, x_ticks, "Genome position" );
+
+    // Make the y-axis ticks, depending on the type of window scaling.
+    std::vector<utils::Tickmarks::LabeledTick> y_ticks;
+    switch( record.parameters.window_width_method ) {
+        case CathedralWindowWidthMethod::kExponential: {
+            y_ticks = Tickmarks().logarithmic_labels( min_win_width, max_win_width );
+            break;
+        }
+        case CathedralWindowWidthMethod::kGeometric: {
+            // Not implemented in Tickmarks, so we just do the max and min window size instead.
+            y_ticks.emplace_back( 0.0, min_win_width );
+            y_ticks.emplace_back( 1.0, max_win_width );
+            break;
+        }
+        case CathedralWindowWidthMethod::kLinear: {
+            y_ticks = Tickmarks().linear_labels( min_win_width, max_win_width, 5 );
+            break;
+        }
+        default: {
+            throw std::invalid_argument(
+                "make_cathedral_plot_svg(): Invalid CathedralWindowWidthMethod"
+            );
+        }
+    }
+
+    // Make the y-axis.
+    auto y_axis_settings = SvgAxisSettings();
+    y_axis_settings.position = SvgAxisSettings::Position::kLeft;
+    y_axis_settings.length = record.parameters.height;
+    auto const y_axis = make_svg_axis( y_axis_settings, y_ticks, "Window size" );
+
+    // Make a color bar, using the color params.
+    auto color_norm = make_heatmap_color_norm( record.value_matrix, heatmap_parameters );
+    assert( color_norm );
+    auto color_bar_settings = SvgColorBarSettings();
+    color_bar_settings.height = record.parameters.height;
+    auto const color_bar = make_svg_color_bar(
+        color_bar_settings, heatmap_parameters.color_map, *color_norm
+    );
+
+    // Make an svg doc from the above elements, and return it.
+    auto svg = GenomeHeatmap();
+    svg.add( record.title, image, x_axis, y_axis, color_bar );
+    return svg.document();
+}
+
+genesis::utils::SvgDocument make_cathedral_plot_svg(
+    CathedralPlotRecord const& record,
+    genesis::utils::HeatmapParameters const& heatmap_parameters
+) {
+    auto const image = make_cathedral_plot_heatmap( record, heatmap_parameters );
+    return make_cathedral_plot_svg( record, heatmap_parameters, image );
 }
 
 } // namespace population
