@@ -33,9 +33,11 @@
 
 #include "genesis/population/window/base_window_iterator.hpp"
 #include "genesis/population/window/window_view.hpp"
+#include "genesis/sequence/sequence_dict.hpp"
 
 #include <cassert>
 #include <functional>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -240,6 +242,7 @@ public:
                 parent_ = nullptr;
                 return;
             }
+            assert( parent_ );
 
             // Now we know there is still data, but it belongs to a different chromsome.
             assert( base_iterator_type::current_ != base_iterator_type::end_ );
@@ -249,7 +252,7 @@ public:
 
             // We need pointer variables to the iterators and other elements,
             // which can be used as copy-inits for the lambda below.
-            // We need to access the underlying iterator throw the self type of the class,
+            // We need to access the underlying iterator through the self type of the class,
             // see here https://stackoverflow.com/a/28623297/4184258
             // (we could do this in all other instances as well, but it only matters here).
             bool is_first = true;
@@ -257,6 +260,7 @@ public:
             auto& end = self_type::end_;
             auto const par = parent_;
             auto const chr = parent_->chromosome_function( *base_iterator_type::current_ );
+            auto const seq_dict = parent_->sequence_dict_;
 
             // Check that we do not have invalid data where chromosomes are repeated.
             if( processed_chromosomes_.count( chr ) > 0 ) {
@@ -266,11 +270,30 @@ public:
             }
             processed_chromosomes_.insert( chr );
 
-            // We reset the window view, so that it's a new iterator for the new chromosome,
-            // starting from the first position, with a fitting increment function.
+            // We reset the window view, so that it's a new iterator for the new chromosome.
             window_ = WindowViewType();
             window_.chromosome( chr );
-            window_.get_element = [ is_first, &cur, &end, par, chr ]() mutable -> DataType* {
+            if( parent_->sequence_dict_ ) {
+                auto const dict_entry = parent_->sequence_dict_->find( chr );
+                if( dict_entry == parent_->sequence_dict_->end() ) {
+                    throw std::invalid_argument(
+                        "In ChromosomeIterator: Cannot iterate chromosome \"" + chr +
+                        "\", as the provided sequence dictionary or reference genome "
+                        "does not contain the chromosome."
+                    );
+                }
+                window_.first_position( 1 );
+                window_.last_position( dict_entry->length );
+            } else {
+                window_.first_position( 1 );
+                window_.last_position(  1 );
+            }
+            auto& window = window_;
+
+            // Iterate starting from the first position, with a fitting increment function.
+            window_.get_element = [
+                is_first, &cur, &end, par, chr, seq_dict, &window
+            ]() mutable -> DataType* {
                 // If this is the first call of the function, we are initializing the WindowView
                 // with the current entry of the underlying iterator. If not, we first move to the
                 // next position (if there is any), before getting the data.
@@ -281,12 +304,44 @@ public:
                 }
 
                 // Now we are in the case that we want to move to the next position first.
-                // Move to the next position, and check that it is in the correct order.
+                // Move to the next position.
                 assert( cur != end );
                 auto const old_pos = par->position_function( *cur );
                 ++cur;
+
+                // Check whether we are done with the chromosome.
+                // If not, we update the last position to be the one that we just found,
+                // and return the current element that we just moved to.
+                if( cur == end || par->chromosome_function( *cur ) != chr ) {
+
+                    // If we reach the end of a chromosome, we check that its length is within
+                    // the dict limits, just as a safety measure. Only check once, to avoid
+                    // looking up the chromosome in the dict in every iteration.
+                    if( seq_dict && old_pos > seq_dict->get( chr ).length ) {
+                        throw std::invalid_argument(
+                            "In ChromosomeIterator: Chromosome \"" + chr + "\" has length " +
+                            std::to_string( seq_dict->get( chr ).length ) +
+                            " in the provided sequence dictionary or reference genome, "
+                            "but the input data contains positions up to " +
+                            std::to_string( old_pos ) + " for that chromosome."
+                        );
+                    }
+
+                    // If we have a ref genome, we use that for the window positions.
+                    // If not (here), we use the last position we found in the input.
+                    if( ! seq_dict ) {
+                        window.last_position( old_pos );
+                    }
+
+                    // We are done with the chromosome (or whole input), and signal this via nullptr.
+                    return nullptr;
+                }
+                assert( cur != end );
+                assert( par->chromosome_function( *cur ) == chr );
+
+                // Check that it is in the correct order.
                 auto const new_pos = par->position_function( *cur );
-                if( cur != end && par->chromosome_function( *cur ) == chr && old_pos >= new_pos ) {
+                if( old_pos >= new_pos ) {
                     throw std::runtime_error(
                         "Invalid order on chromosome " + chr + " with position " +
                         std::to_string( old_pos ) + " followed by position " +
@@ -294,11 +349,7 @@ public:
                     );
                 }
 
-                // Now check whether we are done with the chromosome.
-                // If not, we return the current element that we just moved to.
-                if( cur == end || par->chromosome_function( *cur ) != chr ) {
-                    return nullptr;
-                }
+                // Return a pointer to the element.
                 return &*cur;
             };
         }
@@ -415,6 +466,31 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Get the currently set sequence dictionary used for the chromosome lengths.
+     */
+    std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict() const
+    {
+        return sequence_dict_;
+    }
+
+    /**
+     * @brief Set a sequence dictionary to be used for the chromosome lengths.
+     *
+     * By default, we use the chromosome positions as given in the data to set the Window
+     * first and last positions.
+     * When setting a @link ::genesis::sequence::SequenceDict SequenceDict@endlink here, we use
+     * lengths as provided instead, throwing an exception should the dict not contain a chromosome
+     * of the input.
+     *
+     * To un-set the dictionary, simply call this function with a `nullptr`.
+     */
+    self_type& sequence_dict( std::shared_ptr<genesis::sequence::SequenceDict> value )
+    {
+        sequence_dict_ = value;
+        return *this;
+    }
+
     // -------------------------------------------------------------------------
     //     Virtual Members
     // -------------------------------------------------------------------------
@@ -443,7 +519,13 @@ protected:
 
 private:
 
+    // The class models both types of iterator, whole individual chromsomes,
+    // or the whole genome as one large window. Here, we switch between the two.
     bool whole_genome_ = false;
+
+    // When iterating chromosomes, we might want to look up their lengths,
+    // in order to properly set the window start and end. Otherwise we use what's in the data.
+    std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict_;
 
 };
 
