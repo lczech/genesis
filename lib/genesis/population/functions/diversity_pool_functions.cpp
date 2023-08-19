@@ -265,7 +265,7 @@ double theta_watterson_pool_denominator(
 //     Tajima's D Helper Functions
 // =================================================================================================
 
-double a_n( size_t n ) // get_an_buffer
+double a_n( double n ) // get_an_buffer
 {
     // Local cache for speed.
     static genesis::utils::FunctionCache<double, size_t> a_n_cache_{ []( size_t n ){
@@ -275,10 +275,19 @@ double a_n( size_t n ) // get_an_buffer
         }
         return sum;
     }};
-    return a_n_cache_( n );
+
+    // The n value that we get here is a double, because following PoPoolation, we compute it
+    // as n_tilde, which is not integer... but we need to use it as an integer here,
+    // and the way that PoPoolation computes n_tilde, it is around 1.99,
+    // so we want to make sure to round to the nearest number, I think.
+    // We do that here, before the cache function call, so that the cache function does not
+    // get affected by close but non-identical doubles that round to the same int.
+    assert( std::isfinite(n) && n >= 0.0 );
+    auto const ni = static_cast<size_t>( std::round( n ));
+    return a_n_cache_( ni );
 }
 
-double b_n( size_t n ) // get_bn_buffer
+double b_n( double n ) // get_bn_buffer
 {
     // Local cache for speed.
     static genesis::utils::FunctionCache<double, size_t> b_n_cache_{ []( size_t n ){
@@ -288,7 +297,11 @@ double b_n( size_t n ) // get_bn_buffer
         }
         return sum;
     }};
-    return b_n_cache_( n );
+
+    // Same logic as in a_n(), see there for details.
+    assert( std::isfinite(n) && n >= 0.0 );
+    auto const ni = static_cast<size_t>( std::round( n ));
+    return b_n_cache_( ni );
 }
 
 double f_star( double a_n, double n ) // calculate_fstar
@@ -342,7 +355,9 @@ double beta_star( double n ) // get_betastar_calculator
         double const fs = f_star( an, n );
 
         // Calculate individual terms (t) and subterms (ts).
-        auto const t1 = squared( fs ) * ( bn - (( 2.0 * ( nd - 1.0 )) / squared( nd - 1.0 )));
+        // The first term t1 has a mistake in PoPoolation, where they use 2 * ( n - 1 )
+        // instead of ( 2 * n ) - 1, which we have fixed here.
+        auto const t1 = squared( fs ) * ( bn - ((( 2.0 * nd ) - 1.0 ) / squared( nd - 1.0 )));
         auto const t2s1 = bn * ( 8.0 / ( nd - 1.0 ));
         auto const t2s2 = an * ( 4.0 / ( nd * ( nd - 1.0 )));
         auto const t2s3n = cubed( nd ) + 12.0 * squared( nd ) - 35.0 * nd + 18.0;

@@ -287,10 +287,17 @@ inline double theta_watterson_pool(
  *
  * for details.
  *
+ * Note that we are implementing this for `double` @p n, instead of an unsigned integer type,
+ * as some variants of the tajima_d() computation actually use n_base() to get an "effective"
+ * pool size. That is kind of wrong, but we have implemented it here for comparability with
+ * PoPoolation. In these cases, we round `n` to the nearest integer first.
+ * For any actual integer numbers of pool sizes, `double` has enough precision to accurately
+ * stor that integer value, so there is no loss of accuracy in those cases.
+ *
  * @see b_n(), the sum of squared reciprocals.
  * @see tajima_d_pool()
  */
-double a_n( size_t n );
+double a_n( double n );
 
 /**
  * @brief Compute `b_n`, the sum of squared reciprocals.
@@ -310,10 +317,12 @@ double a_n( size_t n );
  * document in their code repository that illuminates the situation a bit. See
  * https://sourceforge.net/projects/popoolation/files/correction_equations.pdf
  *
+ * See also tne note in a_n() about the usage of `double` here for the argument.
+ *
  * @see a_n(), the sum of reciprocals.
  * @see tajima_d_pool()
  */
-double b_n( size_t n );
+double b_n( double n );
 
 /**
  * @brief Compute `f*` according to Achaz 2008 and Kofler et al. 2011.
