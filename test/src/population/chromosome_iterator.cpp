@@ -124,6 +124,9 @@ void test_window_iterator_chromosome_iterator_chromosome_single_(
 void test_window_iterator_chromosome_iterator_chromosome_multi_(
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = nullptr
 ) {
+    // Avoid compiler complaints about unused variable.
+    (void) sequence_dict;
+
     // Multiple chromosomes
     #ifdef GENESIS_HTSLIB
 
