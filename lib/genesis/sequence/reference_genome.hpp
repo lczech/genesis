@@ -33,11 +33,14 @@
 
 #include "genesis/sequence/sequence.hpp"
 
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <cassert>
 #include <list>
+#include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <unordered_map>
 #include <utility>
@@ -75,7 +78,11 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    ReferenceGenome() = default;
+    ReferenceGenome()
+    {
+        guard_ = genesis::utils::make_unique<std::mutex>();
+    }
+
     ~ReferenceGenome() = default;
 
     ReferenceGenome( ReferenceGenome const& ) = delete;
@@ -121,6 +128,9 @@ public:
      */
     const_iterator find( std::string const& label ) const
     {
+        // Lock access to the cache. Released at the end of the scope.
+        std::lock_guard<std::mutex> lock( *guard_ );
+
         // Try to get the sequence from the cache, for speed.
         if( cache_ != sequences_.cend() && cache_->label() == label ) {
             return cache_;
@@ -226,6 +236,11 @@ public:
             );
         }
 
+        // Lock access to the cache. Probably not needed here, as adding sequences from
+        // mutliple threads is unlikely, but doesn't hurt to have it here.
+        // Released at the end of the scope.
+        std::lock_guard<std::mutex> lock( *guard_ );
+
         // Add the sequence to the list.
         // We also need to reset the cache, to point to the new end of the list,
         // so that our lookup cache always points to a valid element.
@@ -294,7 +309,9 @@ private:
 
     // We keep a cache of the last sequence name that was requested,
     // for speeding up lookups on the same chromosome, which is the most typical case.
+    // Needs to be mutexed, as otherwise multiple threads might clash when accessing the cache.
     mutable const_iterator cache_;
+    mutable std::unique_ptr<std::mutex> guard_;
 
 };
 
