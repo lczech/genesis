@@ -42,6 +42,7 @@
 #include <memory>
 #include <mutex>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
 #include <utility>
 
@@ -129,6 +130,7 @@ public:
     const_iterator find( std::string const& label ) const
     {
         // Lock access to the cache. Released at the end of the scope.
+        assert( guard_ );
         std::lock_guard<std::mutex> lock( *guard_ );
 
         // Try to get the sequence from the cache, for speed.
@@ -239,6 +241,7 @@ public:
         // Lock access to the cache. Probably not needed here, as adding sequences from
         // mutliple threads is unlikely, but doesn't hurt to have it here.
         // Released at the end of the scope.
+        assert( guard_ );
         std::lock_guard<std::mutex> lock( *guard_ );
 
         // Add the sequence to the list.
@@ -268,8 +271,11 @@ public:
      */
     void clear()
     {
+        assert( guard_ );
+        std::lock_guard<std::mutex> lock( *guard_ );
         sequences_.clear();
         lookup_.clear();
+        cache_ = sequences_.cend();
     }
 
     // -------------------------------------------------------------------------
