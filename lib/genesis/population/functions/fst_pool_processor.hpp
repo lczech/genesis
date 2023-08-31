@@ -369,7 +369,7 @@ inline FstPoolProcessor make_fst_pool_processor(
  * calculators in the @p processor, and uses their indices (as stored in the @p processor) to get
  * pairs of sample names.
  */
-std::vector<std::pair<std::string, std::string>> fst_pool_processor_sample_names(
+inline std::vector<std::pair<std::string, std::string>> fst_pool_processor_sample_names(
     FstPoolProcessor const& processor,
     std::vector<std::string> const& sample_names
 ) {
