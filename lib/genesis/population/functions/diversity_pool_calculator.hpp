@@ -208,6 +208,7 @@ public:
     {
         theta_pi_sum_.reset();
         theta_watterson_sum_.reset();
+        empirical_min_coverage_ = std::numeric_limits<size_t>::max();
         processed_count_ = 0;
     }
 
@@ -233,6 +234,17 @@ public:
             tw = theta_watterson_pool( settings_, poolsize_, sample );
             if( std::isfinite( tw )) {
                 theta_watterson_sum_ += tw;
+            }
+        }
+        if(
+            enable_tajima_d_ &&
+            settings_.tajima_denominator_policy == TajimaDenominatorPolicy::kEmpiricalMinCoverage
+        ) {
+            // Only needed when we use the empirical coverage for the tajima d correction.
+            // We want to find the minimum coverage of the data that we are processing.
+            auto const cov = nucleotide_sum( sample );
+            if( cov > 0 && cov < empirical_min_coverage_ ) {
+                empirical_min_coverage_ = cov;
             }
         }
         ++processed_count_;
@@ -304,7 +316,9 @@ public:
             snp_count = processed_count_;
         }
         return tajima_d_pool(
-            settings_, poolsize_, theta_pi_sum_.get(), theta_watterson_sum_.get(), snp_count
+            settings_,
+            theta_pi_sum_.get(), theta_watterson_sum_.get(),
+            poolsize_, snp_count, empirical_min_coverage_
         );
     }
 
@@ -362,6 +376,9 @@ private:
     utils::NeumaierSum theta_pi_sum_;
     utils::NeumaierSum theta_watterson_sum_;
     size_t processed_count_ = 0;
+
+    // Find the minimum empirical coverage that we see in the processed data.
+    size_t empirical_min_coverage_ = std::numeric_limits<size_t>::max();
 };
 
 } // namespace population
