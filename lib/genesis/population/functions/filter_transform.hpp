@@ -557,6 +557,14 @@ struct VariantFilter
      */
     bool only_biallelic_snps = false;
 
+    /**
+     * @brief Minimum count for each nucleotide to be considered a SNP for the whole Variant.
+     *
+     * If `only_snps` is given, the bases that are considered for that need to have at least
+     * `min_count_for_snp` count.
+     */
+    size_t min_count_for_snp = 0;
+
     // -------------------------------------------
     //     Frequency
     // -------------------------------------------
@@ -587,6 +595,16 @@ struct VariantFilterStats
      * @brief Number of Variants that had zero nucleotide counts across all samples.
      */
     size_t empty = 0;
+
+    /**
+     * @brief Number of Variant%s whose sum of nucleotides was below VariantFilter::min_count.
+     */
+    size_t below_min_count = 0;
+
+    /**
+     * @brief Number of Variant%s whose sum of nucleotides was above VariantFilter::max_count.
+     */
+    size_t above_max_count = 0;
 
     /**
      * @brief Number of Variant%s whose sum of nucleotides was below VariantFilter::min_coverage.

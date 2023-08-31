@@ -431,8 +431,10 @@ bool filter_variant(
     // SNPs
     if( filter.only_snps || filter.only_biallelic_snps ) {
 
-        // Determine type of SNP.
-        auto const al_count = allele_count( total );
+        // Determine type of SNP. We always use the min_count_for_snp here,
+        // but the allele_count() function determines whether to use it.
+        // When it's 0, it is used, as that would make every allele count...
+        auto const al_count = allele_count( total, filter.min_count_for_snp );
         if( filter.only_snps && al_count < 2 ) {
             ++stats.not_snp;
             return false;

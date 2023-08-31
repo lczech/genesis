@@ -369,6 +369,26 @@ size_t allele_count( BaseCounts const& sample )
     return al_count;
 }
 
+size_t allele_count( BaseCounts const& sample, size_t min_count )
+{
+    // Edge case check.
+    if( min_count == 0 ) {
+        return allele_count( sample );
+    }
+
+    // Sum up the number of different ACGT counts that are at least the min count,
+    // to determine whether this is a SNP, and whether it's biallelic.
+    size_t al_count = 0;
+    al_count += static_cast<int>( sample.a_count >= min_count );
+    al_count += static_cast<int>( sample.c_count >= min_count );
+    al_count += static_cast<int>( sample.g_count >= min_count );
+    al_count += static_cast<int>( sample.t_count >= min_count );
+
+    // Check and return the result.
+    assert( al_count <= 4 );
+    return al_count;
+}
+
 void merge_inplace( BaseCounts& p1, BaseCounts const& p2 )
 {
     // Make sure that we do not forget any fields in case of later refactoring of the struct.
