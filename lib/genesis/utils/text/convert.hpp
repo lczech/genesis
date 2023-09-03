@@ -66,6 +66,7 @@ T convert_from_string( std::string const& str, bool trim = false )
     try {
         std::stringstream ss( trim ? utils::trim(str) : str );
         ss >> std::noskipws >> value;
+        ss.peek();
         good = ss.eof();
     } catch(...) {
         good = false;
