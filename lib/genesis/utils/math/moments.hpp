@@ -59,7 +59,46 @@ public:
     //     Constructor and Rule of Five
     // ---------------------------------------------------------
 
-    Moments() = default;
+    /**
+     * @brief Construct empty Moments.
+     *
+     * Takes the @p ddof "Delta Degrees of Freedom": the divisor used in the calculation of the
+     * variance is N - ddof, where N represents the number of elements. By default @p ddof is zero,
+     * meaning that we are computing the population variance (and standard deviation), instead of
+     * the sample variance.
+     * See for instance https://numpy.org/doc/stable/reference/generated/numpy.var.html for details.
+     */
+    explicit Moments( size_t ddof = 0 )
+        : ddof_(ddof)
+    {}
+
+    /**
+     * @brief Compute Momemnts by iteration over a range of `double`.
+     *
+     * The given iterator pair @p first to @p last needs to dereference to values
+     * that are convertible to `double`.
+     */
+    template<class It>
+    Moments( It first, It last, size_t ddof = 0 )
+        : ddof_(ddof)
+    {
+        while( first != last ) {
+            push( *first );
+            ++first;
+        }
+    }
+
+    /**
+     * @brief Compute Moments, over an initializer list of values.
+     */
+    Moments( std::initializer_list<double> list, size_t ddof = 0 )
+        : ddof_(ddof)
+    {
+        for( auto const e : list ) {
+            push( e );
+        }
+    }
+
     ~Moments() = default;
 
     Moments(Moments const&) = default;
@@ -93,12 +132,17 @@ public:
 
     double mean() const
     {
-        return (count_ > 0) ? m_new_ : 0.0;
+        return m_new_;
     }
 
     double variance() const
     {
-        return (( count_ > 1 ) ? s_new_ / ( static_cast<double>( count_ ) - 1.0 ) : 0.0 );
+        return (( count_ > 1 ) ? s_new_ / ( static_cast<double>( count_ - ddof_ )) : 0.0 );
+    }
+
+    double stddev() const
+    {
+        return std::sqrt( variance() );
     }
 
     double standard_deviation() const
@@ -117,6 +161,8 @@ private:
     double m_new_ = 0.0;
     double s_old_ = 0.0;
     double s_new_ = 0.0;
+    size_t ddof_  = 0.0;
+
 };
 
 
