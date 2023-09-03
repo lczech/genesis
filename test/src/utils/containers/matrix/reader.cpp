@@ -35,6 +35,7 @@
 
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/matrix/reader.hpp"
+#include "genesis/utils/containers/matrix/simple_reader.hpp"
 
 using namespace genesis;
 using namespace utils;
@@ -43,10 +44,9 @@ using namespace utils;
 //     Reader
 // ================================================================================================
 
-TEST( Matrix, Reader )
+template<class Reader>
+void test_matrix_reader_( Reader const& reader, std::string const& infile )
 {
-    NEEDS_TEST_DATA;
-
     auto const inf = std::numeric_limits<double>::infinity();
     auto const nan = std::numeric_limits<double>::quiet_NaN();
 
@@ -63,29 +63,54 @@ TEST( Matrix, Reader )
         -inf, -inf, -nan
     });
 
+    auto const matrix = reader.read( from_file( infile ));
+
+    // Basic checks.
+    ASSERT_EQ( expected.rows(), matrix.rows() );
+    ASSERT_EQ( expected.cols(), matrix.cols() );
+
+    // Check values.
+    for( size_t r = 0; r < matrix.rows(); ++r ) {
+        for( size_t c = 0; c < matrix.cols(); ++c ) {
+            if( std::isfinite( expected( r, c ))) {
+                EXPECT_NEAR( expected( r, c ), matrix( r, c ), 0.000001);
+            }
+            if( std::isinf( expected( r, c ))) {
+                EXPECT_TRUE( std::isinf( matrix( r, c )));
+            }
+            if( std::isnan( expected( r, c ))) {
+                EXPECT_TRUE( std::isnan( matrix( r, c )));
+            }
+        }
+    }
+}
+
+TEST( Matrix, Reader )
+{
+    NEEDS_TEST_DATA;
+
     // Read simple matrix.
     auto reader = MatrixReader<double>( " " );
-    auto const simple = reader.read( from_file( environment->data_dir + "utils/matrix/simple.mat" ));
+    test_matrix_reader_( reader, environment->data_dir + "utils/matrix/simple.mat" );
 
     // Change settings and read matrix with tabs, headers, ec.
     reader.csv_reader().separator_chars("\t");
     reader.skip_first_col(true);
     reader.skip_first_row(true);
-    auto const headers = reader.read( from_file( environment->data_dir + "utils/matrix/headers.mat" ));
+    test_matrix_reader_( reader, environment->data_dir + "utils/matrix/headers.mat" );
+}
 
-    // Basic checks.
-    ASSERT_EQ( expected.rows(), simple.rows() );
-    ASSERT_EQ( expected.cols(), simple.cols() );
-    ASSERT_EQ( expected.rows(), headers.rows() );
-    ASSERT_EQ( expected.cols(), headers.cols() );
+TEST( Matrix, SimpleReader )
+{
+    NEEDS_TEST_DATA;
 
-    // Check values.
-    for( size_t r = 0; r < simple.rows(); ++r ) {
-        for( size_t c = 0; c < simple.cols(); ++c ) {
-            if( std::isfinite( expected( r, c ))) {
-                EXPECT_NEAR( expected( r, c ), simple( r, c ), 0.000001);
-                EXPECT_NEAR( expected( r, c ), headers( r, c ), 0.000001);
-            }
-        }
-    }
+    // Read simple matrix.
+    auto reader = MatrixSimpleReader<double>( ' ' );
+    test_matrix_reader_( reader, environment->data_dir + "utils/matrix/simple.mat" );
+
+    // Change settings and read matrix with tabs, headers, ec.
+    reader.separator_char( '\t' );
+    reader.skip_first_col( true );
+    reader.skip_first_row( true );
+    test_matrix_reader_( reader, environment->data_dir + "utils/matrix/headers.mat" );
 }
