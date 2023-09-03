@@ -179,9 +179,9 @@ std::ostream& operator<< (std::ostream& os, const Matrix<T>& matrix)
         for (size_t j = 0; j < matrix.cols(); ++j) {
             // We need some special printing for int char types...
             if( std::is_same<T, signed char>::value || std::is_same<T, unsigned char>::value ) {
-                out << static_cast<int>( matrix( i, j ));
+                os << static_cast<int>( matrix( i, j ));
             } else {
-                out << matrix(i, j);
+                os << matrix(i, j);
             }
             if (j < matrix.cols() - 1) {
                 os << " ";
