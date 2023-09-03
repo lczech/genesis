@@ -38,13 +38,14 @@
 #include "genesis/utils/text/string.hpp"
 
 #include <cassert>
-#include <list>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 namespace genesis {
 namespace sequence {
@@ -69,8 +70,8 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using       iterator = typename std::list<Sequence>::iterator;
-    using const_iterator = typename std::list<Sequence>::const_iterator;
+    using       iterator = typename std::vector<Sequence>::iterator;
+    using const_iterator = typename std::vector<Sequence>::const_iterator;
 
     using       reference = Sequence&;
     using const_reference = Sequence const&;
@@ -91,12 +92,6 @@ public:
 
     ReferenceGenome& operator= ( ReferenceGenome const& ) = delete;
     ReferenceGenome& operator= ( ReferenceGenome&& )      = default;
-
-    friend void swap( ReferenceGenome& lhs, ReferenceGenome& rhs )
-    {
-        using std::swap;
-        swap( lhs.sequences_, rhs.sequences_ );
-    }
 
     // -------------------------------------------------------------------------
     //     Accessors
@@ -134,8 +129,10 @@ public:
         std::lock_guard<std::mutex> lock( *guard_ );
 
         // Try to get the sequence from the cache, for speed.
-        if( cache_ != sequences_.cend() && cache_->label() == label ) {
-            return cache_;
+        assert( cache_ == std::numeric_limits<size_t>::max() || cache_ < sequences_.size() );
+        if( cache_ != std::numeric_limits<size_t>::max() && sequences_[cache_].label() == label ) {
+            assert( cache_ < sequences_.size() );
+            return sequences_.begin() + cache_;
         }
 
         // If not cached, do a normal lookup, and set the cache.
@@ -144,8 +141,9 @@ public:
             return sequences_.end();
         }
         assert( lit->first == label );
+        assert( lit->second < sequences_.size() );
         cache_ = lit->second;
-        return lit->second;
+        return sequences_.begin() + lit->second;
     }
 
     /**
@@ -244,21 +242,19 @@ public:
         assert( guard_ );
         std::lock_guard<std::mutex> lock( *guard_ );
 
-        // Add the sequence to the list.
-        // We also need to reset the cache, to point to the new end of the list,
-        // so that our lookup cache always points to a valid element.
+        // Add the sequence to the list. We also need to reset the cache.
         sequences_.push_back( std::move(seq) );
-        cache_ = sequences_.cend();
-        assert( sequences_.size() > 0 );
+        cache_ = std::numeric_limits<size_t>::max();
 
         // Also add the sequence name to the lookup. If we also add a first-word-only version of it,
         // we might have cases where this is the same as the original (when the name does not
         // contain any tabs or spaces), but that doesn't matter; we'd just add the same label
         // twice (which would overwrite it in the map), pointing to the same sequence either way.
-        lookup_[ label1 ] = std::prev( sequences_.cend() );
+        assert( sequences_.size() > 0 );
+        lookup_[ label1 ] = sequences_.size() - 1;
         assert( lookup_.count( label1 ) > 0 );
         if( also_look_up_first_word ) {
-            lookup_[ label2 ] = std::prev( sequences_.cend() );
+            lookup_[ label2 ] = sequences_.size() - 1;
             assert( lookup_.count( label2 ) > 0 );
         }
 
@@ -275,7 +271,7 @@ public:
         std::lock_guard<std::mutex> lock( *guard_ );
         sequences_.clear();
         lookup_.clear();
-        cache_ = sequences_.cend();
+        cache_ = std::numeric_limits<size_t>::max();
     }
 
     // -------------------------------------------------------------------------
@@ -308,15 +304,14 @@ public:
 
 private:
 
-    // Using a list here to get stable iterators to be used in the map below.
-    // We don't need random access (I think...), so that's fine.
-    std::list<Sequence> sequences_;
-    std::unordered_map<std::string, const_iterator> lookup_;
+    // Keep the sequences, as well as a lookup from names to indices in the vector.
+    std::vector<Sequence> sequences_;
+    std::unordered_map<std::string, size_t> lookup_;
 
     // We keep a cache of the last sequence name that was requested,
     // for speeding up lookups on the same chromosome, which is the most typical case.
     // Needs to be mutexed, as otherwise multiple threads might clash when accessing the cache.
-    mutable const_iterator cache_;
+    mutable size_t cache_;
     mutable std::unique_ptr<std::mutex> guard_;
 
 };
