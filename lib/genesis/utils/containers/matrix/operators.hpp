@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -36,6 +36,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -176,7 +177,12 @@ std::ostream& operator<< (std::ostream& os, const Matrix<T>& matrix)
 {
     for (size_t i = 0; i < matrix.rows(); ++i) {
         for (size_t j = 0; j < matrix.cols(); ++j) {
-            os << matrix(i, j);
+            // We need some special printing for int char types...
+            if( std::is_same<T, signed char>::value || std::is_same<T, unsigned char>::value ) {
+                out << static_cast<int>( matrix( i, j ));
+            } else {
+                out << matrix(i, j);
+            }
             if (j < matrix.cols() - 1) {
                 os << " ";
             }
@@ -216,7 +222,13 @@ void print( std::ostream& out, Matrix<T> const& matrix, size_t rows = 10, size_t
     // Print as many rows and cols as wanted.
     for (size_t i = 0; i < rows; ++i) {
         for (size_t j = 0; j < cols; ++j) {
-            out << matrix(i, j);
+
+            // We need some special printing for int char types...
+            if( std::is_same<T, signed char>::value || std::is_same<T, unsigned char>::value ) {
+                out << static_cast<int>( matrix( i, j ));
+            } else {
+                out << matrix(i, j);
+            }
             if (j < matrix.cols() - 1) {
                 out << " ";
             }
