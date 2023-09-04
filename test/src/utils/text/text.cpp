@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -133,3 +133,18 @@ TEST( Text, Style )
     // LOG_DBG << wrap( text, 15 );
     // LOG_DBG << wrap( text, 5 );
 // }
+
+TEST( Text, Join )
+{
+    auto vec_i = std::vector<int>{ 1, 2, 3 };
+    auto vec_c = std::vector<char>{ 'a', 'b', 'c' };
+    auto vec_u = std::vector<unsigned char>{ 1, 2, 3 };
+    auto vec_s = std::vector<signed char>{ 1, 2, 3 };
+    auto vec_t = std::vector<std::string>{ "a", "b", "c" };
+
+    EXPECT_EQ( "1, 2, 3", join( vec_i ));
+    EXPECT_EQ( "a, b, c", join( vec_c ));
+    EXPECT_EQ( "1, 2, 3", join( vec_u ));
+    EXPECT_EQ( "1, 2, 3", join( vec_s ));
+    EXPECT_EQ( "a, b, c", join( vec_t ));
+}
