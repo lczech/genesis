@@ -124,15 +124,50 @@ size_t triangular_size( size_t n );
  * @brief Transpose a Matrix.
  */
 template <typename T>
-Matrix<T> transpose( Matrix<T> const& data )
+Matrix<T> transpose( Matrix<T> const& mat )
 {
-    auto res = Matrix<T>( data.cols(), data.rows() );
-    for( size_t r = 0; r < data.rows(); ++r ) {
-        for( size_t c = 0; c < data.cols(); ++c ) {
-            res( c, r ) = data( r, c );
+    auto res = Matrix<T>( mat.cols(), mat.rows() );
+    for( size_t r = 0; r < mat.rows(); ++r ) {
+        for( size_t c = 0; c < mat.cols(); ++c ) {
+            res( c, r ) = mat( r, c );
         }
     }
     return res;
+}
+
+/**
+ * @brief Transpose a Matrix inplace, without allocating a new Matrix.
+ *
+ * Only needs additional storage for 1 bit per element of the matrix,
+ * compared to the full reallocation of the transpose() function.
+ * It is however somewhat slower (4-5x more time in our debug build).
+ */
+template <typename T>
+void transpose_inplace( Matrix<T>& mat )
+{
+    // We use a follow-the-cycles implementation inspired by https://stackoverflow.com/a/9320349
+    // That description seems to use a flipped notation by expecting n x m matrix.
+
+    // Need additional storage to see which entries have been cycled already.
+    std::vector<bool> visited( mat.data().size() );
+    size_t const div = mat.data().size() - 1;
+
+    // Cycle through the matrix until we have moved every entry to its destination.
+    size_t cycle = 0;
+    while( ++cycle < mat.data().size() ) {
+        if( visited[cycle] ){
+            continue;
+        }
+        size_t cur = cycle;
+        do {
+            cur = cur == div ? div : (mat.rows() * cur) % div;
+            std::swap( mat.data_[cur], mat.data_[cycle]);
+            visited[cur] = true;
+        } while( cur != cycle );
+    }
+
+    // Finally we need to update the dimensions of the matrix.
+    std::swap( mat.rows_, mat.cols_ );
 }
 
 /**

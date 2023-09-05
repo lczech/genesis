@@ -43,6 +43,16 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//     Forward declarations
+// =================================================================================================
+
+template <typename T>
+class Matrix;
+
+template <typename T>
+void transpose_inplace( Matrix<T>& mat );
+
+// =================================================================================================
 //     Matrix
 // =================================================================================================
 
@@ -156,6 +166,9 @@ public:
         lhs.swap( rhs );
     }
 
+    // Transpose inplace needs access to our internals.
+    friend void transpose_inplace<>( Matrix<T>& );
+
     // -------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------
@@ -192,7 +205,11 @@ public:
     T& at (const size_t row, const size_t col)
     {
         if (row >= rows_ || col >= cols_) {
-            throw std::out_of_range( "Matrix index out of range." );
+            throw std::out_of_range(
+                "Matrix index out of range. Accessing [" + std::to_string(row) + "," +
+                std::to_string( col ) + "] of a Matrix with dimensions [" +
+                std::to_string( rows_ ) + "," + std::to_string( cols_ ) + "]"
+            );
         }
         return data_[row * cols_ + col];
     }
@@ -200,7 +217,11 @@ public:
     T const& at (const size_t row, const size_t col) const
     {
         if (row >= rows_ || col >= cols_) {
-            throw std::out_of_range( "Matrix index out of range." );
+            throw std::out_of_range(
+                "Matrix index out of range. Accessing [" + std::to_string(row) + "," +
+                std::to_string( col ) + "] of a Matrix with dimensions [" +
+                std::to_string( rows_ ) + "," + std::to_string( cols_ ) + "]"
+            );
         }
         return data_[row * cols_ + col];
     }
@@ -226,7 +247,10 @@ public:
     MatrixRow<self_type, value_type> row( size_t row )
     {
         if( row >= rows_ ) {
-            throw std::out_of_range( "Matrix row index out of range." );
+            throw std::out_of_range(
+                "Matrix row index out of range. Accessing row " + std::to_string( row ) +
+                " of a Matrix with " + std::to_string( rows_ ) + " rows."
+            );
         }
 
         return MatrixRow<self_type, value_type>( *this, row );
@@ -235,7 +259,10 @@ public:
     MatrixRow<const self_type, const value_type> row( size_t row ) const
     {
         if( row >= rows_ ) {
-            throw std::out_of_range( "Matrix row index out of range." );
+            throw std::out_of_range(
+                "Matrix row index out of range. Accessing row " + std::to_string( row ) +
+                " of a Matrix with " + std::to_string( rows_ ) + " rows."
+            );
         }
 
         return MatrixRow<const self_type, const value_type>( *this, row );
@@ -244,7 +271,10 @@ public:
     MatrixCol<self_type, value_type> col( size_t col )
     {
         if( col >= cols_ ) {
-            throw std::out_of_range( "Matrix column index out of range." );
+            throw std::out_of_range(
+                "Matrix column index out of range. Accessing column " + std::to_string( col ) +
+                " of a Matrix with " + std::to_string( cols_ ) + " columns."
+            );
         }
 
         return MatrixCol<self_type, value_type>( *this, col );
@@ -253,7 +283,10 @@ public:
     MatrixCol<const self_type, const value_type> col( size_t col ) const
     {
         if( col >= cols_ ) {
-            throw std::out_of_range( "Matrix column index out of range." );
+            throw std::out_of_range(
+                "Matrix column index out of range. Accessing column " + std::to_string( col ) +
+                " of a Matrix with " + std::to_string( cols_ ) + " columns."
+            );
         }
 
         return MatrixCol<const self_type, const value_type>( *this, col );
