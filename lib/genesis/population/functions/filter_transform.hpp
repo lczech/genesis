@@ -560,17 +560,17 @@ struct VariantFilter
     /**
      * @brief Minimum count for each nucleotide to be considered a SNP for the whole Variant.
      *
-     * If `only_snps` is given, the bases that are considered for that need to have at least
-     * `min_count_for_snp` count.
+     * If `only_snps` or `only_biallelic_snps` is given, the bases that are considered for
+     * that need to have at least `min_count_for_snp` count.
      */
     size_t min_count_for_snp = 0;
 
     /**
      * @brief Maximum count for each nucleotide to be considered a SNP for the whole Variant.
      *
-     * If `only_snps` is given, the bases that are considered for that need to have at most
-     * `max_count_for_snp` count. This is probably not really needed in practice, but included
-     * here for completeness.
+     * If `only_snps` or `only_biallelic_snps` is given, the bases that are considered for
+     * that need to have at most `max_count_for_snp` count. This is probably not really needed
+     * in practice, but included here for completeness.
      */
     size_t max_count_for_snp = 0;
 
