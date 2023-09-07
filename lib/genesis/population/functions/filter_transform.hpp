@@ -565,6 +565,15 @@ struct VariantFilter
      */
     size_t min_count_for_snp = 0;
 
+    /**
+     * @brief Maximum count for each nucleotide to be considered a SNP for the whole Variant.
+     *
+     * If `only_snps` is given, the bases that are considered for that need to have at most
+     * `max_count_for_snp` count. This is probably not really needed in practice, but included
+     * here for completeness.
+     */
+    size_t max_count_for_snp = 0;
+
     // -------------------------------------------
     //     Frequency
     // -------------------------------------------
@@ -595,17 +604,6 @@ struct VariantFilterStats
      * @brief Number of Variants that had zero nucleotide counts across all samples.
      */
     size_t empty = 0;
-
-    /**
-     * @brief Number of Variant%s whose sum of nucleotides was below VariantFilter::min_count.
-     */
-    size_t below_min_count = 0;
-
-    /**
-     * @brief Number of Variant%s whose sum of nucleotides was above VariantFilter::max_count.
-     */
-    size_t above_max_count = 0;
-
     /**
      * @brief Number of Variant%s whose sum of nucleotides was below VariantFilter::min_coverage.
      */
@@ -618,13 +616,39 @@ struct VariantFilterStats
 
     /**
      * @brief Number of Variant%s that were not SNPs, i.e., that were invariants.
+     *
+     * This counts the number of Variants that passed the other SNP-related filters, such as
+     * min_count_for_snp and max_count_for_snp
      */
     size_t not_snp = 0;
 
     /**
      * @brief Number of Variant%s that were not biallelic SNPs.
+     *
+     * This counts how many Variants were SNPs but not biallelic. It hence indicates how many
+     * Variants were filtered out because of the only_biallelic_snps filter setting.
      */
     size_t not_biallelic_snp = 0;
+
+    /**
+     * @brief Number of Variant%s whose sum of nucleotides was below VariantFilter::min_count_for_snp.
+     *
+     * That is, those Variant%s would have counted as a SNP if the min_count_for_snp setting
+     * wasn't used. This is hence useful to see how many Variants were filtered out because of
+     * that setting.
+     *
+     * Note though that we do not make a distinction between biallelic and multialleleic SNPs here
+     * any more for simplicity. This counts any position that was filtered out for not being a
+     * SNP according to the only_snps and/or only_biallelic_snps after considering min_count_for_snp.
+     */
+    size_t below_min_count_for_snp = 0;
+
+    /**
+     * @brief Number of Variant%s whose sum of nucleotides was above VariantFilter::max_count_for_snp.
+     *
+     * Same as below_min_count_for_snp, but for the max_count_for_snp setting instead.
+     */
+    size_t above_max_count_for_snp = 0;
 
     /**
      * @brief Number of Variant%s that did not have the minimum frequency.
