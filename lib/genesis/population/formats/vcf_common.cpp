@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -263,7 +263,8 @@ std::pair<std::array<char, 6>, size_t> get_vcf_record_snp_ref_alt_chars_( VcfRec
             throw std::runtime_error(
                 "Cannot convert VcfRecord to Variant, as one of the VcfRecord REF or ALT "
                 "sequences/alleles is not a single nucleotide (it is not a SNP), at " +
-                record.get_chromosome() + ":" + std::to_string( record.get_position() )
+                record.get_chromosome() + ":" + std::to_string( record.get_position() ) +
+                ". At the time being, we are not supporting indels and other such variants."
             );
         }
         vars[i] = *rec_data->d.allele[i];
