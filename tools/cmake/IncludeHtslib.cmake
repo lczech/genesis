@@ -179,7 +179,7 @@ if(
     ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
     (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9"))
 )
-    message (STATUS "Deactivate -Wmaybe-uninitialized for htslib binary.")
+    # message (STATUS "Deactivate -Wmaybe-uninitialized for htslib binary.")
 
     # We set the warning deactivation flags here, but unfortunately also need to set the -fPIC flag
     # here already, as it's otherwise not used... https://github.com/samtools/htslib/issues/1527
@@ -228,8 +228,9 @@ ExternalProject_Add(
         # Didn't get these to work in the above configure... So we amend them here...
         # I think it's because htslib does some internal flag stuff as well that is not
         # cleanly implemented, see https://github.com/samtools/htslib/issues/1527
-        $(MAKE) CFLAGS+=${HTSLIB_COMPILER_FLAGS} CXXFLAGS+=${HTSLIB_COMPILER_FLAGS}
-        # $(MAKE)
+        # $(MAKE) CFLAGS+=${HTSLIB_COMPILER_FLAGS} CXXFLAGS+=${HTSLIB_COMPILER_FLAGS}
+        # Nope... the above failes under clang?! Let's just deactivate for now.
+        $(MAKE)
 
     # Install Step
     INSTALL_COMMAND $(MAKE) install
