@@ -59,7 +59,7 @@ jobs:
           - gcc-10
           - gcc-11
           - gcc-12
-          # - gcc-13
+          - gcc-13
           - llvm-5
           - llvm-6
           - llvm-7
@@ -86,6 +86,8 @@ jobs:
           # Newer GCC versions are not available on all Ubuntu
           - os: ubuntu-20.04
             compiler: gcc-12
+          - os: ubuntu-20.04
+            compiler: gcc-13
           - os: ubuntu-20.04
             compiler: llvm-13
 
