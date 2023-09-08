@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,30 +37,14 @@
 
 #include "genesis/utils/io/input_buffer.hpp"
 
-// Apparently, for some compilers, the folllowing definition has to be set in order for <cinttypes>
-// to include the scanf format types, see https://stackoverflow.com/a/30851225/4184258
-#define __STDC_FORMAT_MACROS
-
 #include <algorithm>
-#include <cinttypes>
+#include <cstdlib>
 #include <cstdio>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-
-// In the case that the above inclusion of <cinttypes> still did not give us the scanf format types
-// that we need, we define it ourselves, see https://helpmanual.io/man3/SCNx32-avr/
-// but also emit a message to show that this is the case, as a hint for debugging.
-#ifndef SCNx32
-    // hexadecimal scanf format for uint32_t
-    #define SCNx32 'lx'
-    #pragma message ( \
-        "<inttypes.h> did not provide a definition of `SCNx32`, " \
-        "which we hence define here as `lx`" \
-    )
-#endif
 
 namespace genesis {
 namespace utils {
@@ -114,25 +98,20 @@ SHA1::DigestType SHA1::hex_to_digest( std::string const& hex )
         throw std::runtime_error( "Invalid SHA1 hex string." );
     }
 
-    // The following test was introduced to check the scanf format "%8x",
-    // which just is an "unsigned int", which is not a fixed size.
-    // We now use the SCNxN typedefs that offer fixed width replacements, see
-    // http://pubs.opengroup.org/onlinepubs/009604599/basedefs/inttypes.h.html
-
-    // Make sure that the scan works! Need to have 32 bit type.
-    // static_assert(
-    //     sizeof( unsigned int ) == 4,
-    //     "Cannot compile SHA1::hex_to_digest() with sizeof( unsigned int ) != 4"
-    // );
-
     // Convert.
     SHA1::DigestType result;
     for (size_t i = 0; i < result.size(); ++i) {
-        // auto const n = sscanf( &hex[ 8 * i ], "%8x", &(result[i]) );
-        auto const n = sscanf( &hex[ 8 * i ], "%8" SCNx32, &(result[i]) );
-        if( n != 1 ) {
-            throw std::runtime_error( "Invalid SHA1 hex string." );
+
+        // Read the symbols into the digest. We tried this before using sscanf(), but that got quite
+        // messy, as the int widths of the hex format macros are not consistent across compilers...
+        // So now we copy the individual fragements to a string. Bit expensive, but a digest is short.
+        std::string const sub = hex.substr( 8*i, 8 );
+        char* endptr;
+        auto const  res = strtoul( sub.c_str(), &endptr, 16 );
+        if( *endptr != 0 ) {
+            throw std::runtime_error( "Invalid SHA1 hex string: \"" + hex + "\"" );
         }
+        result[i] = static_cast<uint32_t>(res);
     }
 
     return result;
