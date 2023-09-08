@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2022 Lucas Czech
+# Copyright (C) 2014-2023 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -39,9 +39,18 @@ if (NOT WIN32)
 endif()
 
 # Some very first output, so that CMake projects which use us as a dependency cleary see where
-# the Genesis configuration starts.
+# the Genesis configuration starts, and we have some system info for debugging.
 message (STATUS "${ColorBlue}Configuring Genesis${ColorEnd}")
 message (STATUS "CMake version ${CMAKE_VERSION}")
+if( CMAKE_VERSION VERSION_LESS 3.10 )
+    cmake_host_system_information(RESULT GENSIS_HOST_INFO QUERY HOSTNAME FQDN)
+    SET(GENSIS_SYST_INFO "")
+else()
+    cmake_host_system_information(RESULT GENSIS_HOST_INFO QUERY HOSTNAME FQDN)
+    cmake_host_system_information(RESULT GENSIS_SYST_INFO QUERY OS_NAME OS_RELEASE OS_VERSION OS_PLATFORM)
+endif()
+message (STATUS "Host: ${GENSIS_HOST_INFO}")
+message (STATUS "System: ${GENSIS_SYST_INFO}")
 
 # Important settings.
 set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
