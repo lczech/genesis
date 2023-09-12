@@ -113,7 +113,7 @@ TEST( Pileup, VariantReader )
     EXPECT_EQ( 'N', consensus( pool_2, false ).first );
     EXPECT_FLOAT_EQ( 0.0, consensus( pool_2, false ).second );
     EXPECT_FALSE( filter_base_counts( pool_2, filter, stats ));
-    EXPECT_EQ( 1, stats.untolerated_deletion );
+    EXPECT_EQ( 0, stats.untolerated_deletion );
     // EXPECT_FALSE(   status( pool_2 ).is_covered );
     // EXPECT_FALSE(   status( pool_2 ).is_snp );
     // EXPECT_FALSE(   status( pool_2 ).is_biallelic );

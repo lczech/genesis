@@ -258,9 +258,12 @@ bool filter_base_counts(
         transform_zero_out_by_max_count( sample, filter.max_count, stats );
     }
     if(
-        ! filter.tolerate_deletions &&
-        sample.d_count > 0 && sample.d_count >= filter.min_count // &&
-        // filter.max_count > 0 && sample.d_count <= filter.max_count
+        ! filter.tolerate_deletions
+        && sample.d_count > 0
+        && filter.min_count > 0
+        && sample.d_count >= filter.min_count
+        // && filter.max_count > 0
+        // && sample.d_count <= filter.max_count
     ) {
         if( filter.clear_filtered ) {
             sample.clear();
@@ -360,39 +363,42 @@ void reset( VariantFilterStats& stats )
     stats.above_max_coverage = 0;
     stats.not_snp = 0;
     stats.not_biallelic_snp = 0;
-    stats.below_min_count_for_snp = 0;
-    stats.above_max_count_for_snp = 0;
+    stats.below_min_count = 0;
+    stats.above_max_count = 0;
     stats.not_min_frequency = 0;
 }
 
 std::ostream& print_variant_filter_stats( std::ostream& os, VariantFilterStats const& stats )
 {
     if( stats.passed > 0 ) {
-        os << "Passed:               " << stats.passed << "\n";
+        os << "Passed:                  " << stats.passed << "\n";
     }
     if( stats.empty > 0 ) {
-        os << "Empty (after counts): " << stats.empty << "\n";
+        os << "Empty (after counts):    " << stats.empty << "\n";
     }
     if( stats.below_min_coverage > 0 ) {
-        os << "Below min coverage:   " << stats.below_min_coverage << "\n";
+        os << "Below min coverage:      " << stats.below_min_coverage << "\n";
     }
     if( stats.above_max_coverage > 0 ) {
-        os << "Above max coverage:   " << stats.above_max_coverage << "\n";
+        os << "Above max coverage:      " << stats.above_max_coverage << "\n";
+    }
+    if( stats.untolerated_deletion > 0 ) {
+        os << "Untolerated deletion:    " << stats.untolerated_deletion << "\n";
     }
     if( stats.not_snp > 0 ) {
-        os << "Not SNP:              " << stats.not_snp << "\n";
+        os << "Not SNP:                 " << stats.not_snp << "\n";
     }
     if( stats.not_biallelic_snp > 0 ) {
-        os << "Not biallelic SNP:    " << stats.not_biallelic_snp << "\n";
+        os << "Not biallelic SNP:       " << stats.not_biallelic_snp << "\n";
     }
-    if( stats.below_min_count_for_snp > 0 ) {
-        os << "Below min count for SNP: " << stats.below_min_count_for_snp << "\n";
+    if( stats.below_min_count > 0 ) {
+        os << "Below min count for SNP: " << stats.below_min_count << "\n";
     }
-    if( stats.above_max_count_for_snp > 0 ) {
-        os << "Above max count for SNP: " << stats.above_max_count_for_snp << "\n";
+    if( stats.above_max_count > 0 ) {
+        os << "Above max count for SNP: " << stats.above_max_count << "\n";
     }
     if( stats.not_min_frequency > 0 ) {
-        os << "Not min frequency:    " << stats.not_min_frequency << "\n";
+        os << "Not min frequency:       " << stats.not_min_frequency << "\n";
     }
     return os;
 }
@@ -437,51 +443,59 @@ bool filter_variant(
         return false;
     }
 
+    // Check deletions, independently of the SNP status.
+    if(
+        ! filter.tolerate_deletions
+        && total.d_count > 0
+        && filter.min_count > 0
+        && total.d_count >= filter.min_count
+    ) {
+        ++stats.untolerated_deletion;
+        return false;
+    }
+
     // SNPs
     if( filter.only_snps || filter.only_biallelic_snps ) {
-        // Determine type of SNP. In order to get stat counts of positions where min and max counts
-        // where not fulfilled, we unfortunately need to compute the allele_count() multiple times.
-        // But we only do that when necessary, to keep the overhead as small as we can.
-        // Those are rather fast functions anyway, so it should not matter much either way.
-
-        // If it does not even pass the basic snp count without any min/max, we are done.
-        // We check the two filters separately here, to be able to increment the correct counter.
-        auto const al_count = allele_count( total );
-        if( filter.only_snps && al_count < 2 ) {
-            ++stats.not_snp;
-            return false;
-        }
-        if( filter.only_biallelic_snps && al_count != 2 ) {
-            ++stats.not_biallelic_snp;
-            return false;
-        }
-
-        // Now we run the min/max count based filters. Bit of duplication, but necessary.
-        assert( filter.only_snps || filter.only_biallelic_snps );
-        if( filter.min_count_for_snp > 0 || filter.max_count_for_snp > 0 ) {
+        if( filter.min_count == 0 && filter.max_count == 0 ) {
+            // Check without any min or max counts. Just look for pure SNPs.
+            // Has to be separated from the min/max count cases, as we might have minor allele
+            // snps that we want to ignore, but which would be considered here,
+            // for instance when deciding if a position is biallelic.
+            auto const al_count = allele_count( total );
+            if( filter.only_snps && al_count < 2 ) {
+                ++stats.not_snp;
+                return false;
+            }
+            if( filter.only_biallelic_snps && al_count != 2 ) {
+                ++stats.not_biallelic_snp;
+                return false;
+            }
+        } else {
+            // Check with just the min count applied.
+            // We check the two filters separately here, to be able to increment the correct counter.
             auto const al_count_min = allele_count(
-                total, filter.min_count_for_snp
+                total, filter.min_count
             );
             if( filter.only_snps && al_count_min < 2 ) {
-                ++stats.below_min_count_for_snp;
+                ++stats.below_min_count;
                 return false;
             }
             if( filter.only_biallelic_snps && al_count_min != 2 ) {
-                ++stats.below_min_count_for_snp;
+                ++stats.below_min_count;
                 return false;
             }
 
             // And again, this time also considering the max count setting.
-            if( filter.max_count_for_snp > 0 ) {
+            if( filter.max_count > 0 ) {
                 auto const al_count_min_max = allele_count(
-                    total, filter.min_count_for_snp, filter.max_count_for_snp
+                    total, filter.min_count, filter.max_count
                 );
                 if( filter.only_snps && al_count_min_max < 2 ) {
-                    ++stats.above_max_count_for_snp;
+                    ++stats.above_max_count;
                     return false;
                 }
                 if( filter.only_biallelic_snps && al_count_min_max != 2 ) {
-                    ++stats.above_max_count_for_snp;
+                    ++stats.above_max_count;
                     return false;
                 }
             }
