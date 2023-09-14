@@ -136,6 +136,16 @@ public:
         }
     }
 
+    /**
+     * @brief Construct a CompensatedSum, summing over an initializer list of values.
+     */
+    CompensatedSum( std::initializer_list<double> list )
+    {
+        for( auto const e : list ) {
+            add( e );
+        }
+    }
+
     ~CompensatedSum() = default;
 
     CompensatedSum(CompensatedSum const&) = default;

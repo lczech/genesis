@@ -318,7 +318,7 @@ VariantInputIterator make_variant_input_iterator_from_frequency_table_file(
  * to convert the samples to Variant%s. All records without that field are skipped.
  * Only SNP records are processed; that is, all non-SNPs (indels and others) are ignord.
  *
- * If @p only_biallelic is set to `true` (default), this is further restricted to only contain
+ * If @p only_biallelic is set to `true`, this is further restricted to only contain
  * biallelic SNPs, that is, only positions with exactly one alternative allele.
  *
  * If @p only_filter_pass is set to `true` (default), only those positions are considered that
@@ -330,7 +330,7 @@ VariantInputIterator make_variant_input_iterator_from_frequency_table_file(
  */
 VariantInputIterator make_variant_input_iterator_from_pool_vcf_file(
     std::string const& filename,
-    bool only_biallelic = true,
+    bool only_biallelic   = false,
     bool only_filter_pass = true
 );
 
@@ -345,8 +345,8 @@ VariantInputIterator make_variant_input_iterator_from_pool_vcf_file(
     std::string const& filename,
     std::vector<std::string> const& sample_names,
     bool inverse_sample_names = false,
-    bool only_biallelic = true,
-    bool only_filter_pass = true
+    bool only_biallelic       = false,
+    bool only_filter_pass     = true
 );
 
 /**
@@ -366,8 +366,8 @@ VariantInputIterator make_variant_input_iterator_from_pool_vcf_file(
 VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
     std::string const& filename,
     bool use_allelic_depth = false,
-    bool only_biallelic = true,
-    bool only_filter_pass = true
+    bool only_biallelic    = false,
+    bool only_filter_pass  = true
 );
 
 /**
@@ -381,9 +381,9 @@ VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
     std::string const& filename,
     std::vector<std::string> const& sample_names,
     bool inverse_sample_names = false,
-    bool use_allelic_depth = false,
-    bool only_biallelic = true,
-    bool only_filter_pass = true
+    bool use_allelic_depth    = false,
+    bool only_biallelic       = false,
+    bool only_filter_pass     = true
 );
 
 #endif // GENESIS_HTSLIB

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -36,6 +36,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -123,15 +124,50 @@ size_t triangular_size( size_t n );
  * @brief Transpose a Matrix.
  */
 template <typename T>
-Matrix<T> transpose( Matrix<T> const& data )
+Matrix<T> transpose( Matrix<T> const& mat )
 {
-    auto res = Matrix<T>( data.cols(), data.rows() );
-    for( size_t r = 0; r < data.rows(); ++r ) {
-        for( size_t c = 0; c < data.cols(); ++c ) {
-            res( c, r ) = data( r, c );
+    auto res = Matrix<T>( mat.cols(), mat.rows() );
+    for( size_t r = 0; r < mat.rows(); ++r ) {
+        for( size_t c = 0; c < mat.cols(); ++c ) {
+            res( c, r ) = mat( r, c );
         }
     }
     return res;
+}
+
+/**
+ * @brief Transpose a Matrix inplace, without allocating a new Matrix.
+ *
+ * Only needs additional storage for 1 bit per element of the matrix,
+ * compared to the full reallocation of the transpose() function.
+ * It is however somewhat slower (4-5x more time in our debug build).
+ */
+template <typename T>
+void transpose_inplace( Matrix<T>& mat )
+{
+    // We use a follow-the-cycles implementation inspired by https://stackoverflow.com/a/9320349
+    // That description seems to use a flipped notation by expecting n x m matrix.
+
+    // Need additional storage to see which entries have been cycled already.
+    std::vector<bool> visited( mat.data().size() );
+    size_t const div = mat.data().size() - 1;
+
+    // Cycle through the matrix until we have moved every entry to its destination.
+    size_t cycle = 0;
+    while( ++cycle < mat.data().size() ) {
+        if( visited[cycle] ){
+            continue;
+        }
+        size_t cur = cycle;
+        do {
+            cur = cur == div ? div : (mat.rows() * cur) % div;
+            std::swap( mat.data_[cur], mat.data_[cycle]);
+            visited[cur] = true;
+        } while( cur != cycle );
+    }
+
+    // Finally we need to update the dimensions of the matrix.
+    std::swap( mat.rows_, mat.cols_ );
 }
 
 /**
@@ -176,7 +212,12 @@ std::ostream& operator<< (std::ostream& os, const Matrix<T>& matrix)
 {
     for (size_t i = 0; i < matrix.rows(); ++i) {
         for (size_t j = 0; j < matrix.cols(); ++j) {
-            os << matrix(i, j);
+            // We need some special printing for int char types...
+            if( std::is_same<T, signed char>::value || std::is_same<T, unsigned char>::value ) {
+                os << static_cast<int>( matrix( i, j ));
+            } else {
+                os << matrix(i, j);
+            }
             if (j < matrix.cols() - 1) {
                 os << " ";
             }
@@ -216,7 +257,13 @@ void print( std::ostream& out, Matrix<T> const& matrix, size_t rows = 10, size_t
     // Print as many rows and cols as wanted.
     for (size_t i = 0; i < rows; ++i) {
         for (size_t j = 0; j < cols; ++j) {
-            out << matrix(i, j);
+
+            // We need some special printing for int char types...
+            if( std::is_same<T, signed char>::value || std::is_same<T, unsigned char>::value ) {
+                out << static_cast<int>( matrix( i, j ));
+            } else {
+                out << matrix(i, j);
+            }
             if (j < matrix.cols() - 1) {
                 out << " ";
             }

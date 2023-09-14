@@ -39,6 +39,7 @@
 #include <cmath>
 #include <cstdint>
 #include <iterator>
+#include <limits>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -51,6 +52,74 @@ namespace population {
 // =================================================================================================
 
 /**
+ * @brief Select how to compute the denominator for the pool sequencing correction of Tajima's D.
+ */
+enum class TajimaDenominatorPolicy
+{
+    /**
+     * @brief Do not correct Tajima's D at all.
+     *
+     * Deriving a valid correction for Tajima's D in the context of pool sequencing is very tricky,
+     * and coming up with estimators that correct for all biases and noises is hard.
+     * It involves knowing about the covariance of frequencies across sites, which again
+     * has a demographic component (How has the randomness from pool sequencing affected the
+     * sites?), and a pool sequencing component (How does the randomness in the allele
+     * frequencies at the sites vary?), which seems rather complicated to derive and use.
+     *
+     * So instead, we here simply use _no_ correction at all. Hence, values cannot be interpreted
+     * absolutely, and are not comparable to values of classic (non-pool-sequence) Tajima's D.
+     * Still, knowing their sign, and comparing them relative to each other across windows,
+     * might yield valuable insight.
+     */
+    kUncorrected,
+
+    /**
+     * @brief Replicate the original behaviour of PoPoolation <= 1.2.2.
+     *
+     * There are two major bugs (as far as we are aware) in the PoPoolation implementation
+     * up until (and including) version 1.2.2:
+     *
+     *  1. They compute the empirical pool size (expeted number of individuals sequenced) as
+     *     n_base(), based on poolsize alone, and do not take the coverage into account at all.
+     *  2. They do not use alpha star, but set it to be equal to beta star instead.
+     *
+     * Using this option, one can voluntarily activate these bugs here as well, in order to get
+     * results that are comparable with PoPoolation results.
+     */
+    kWithPopoolatioBugs,
+
+    /**
+     * @brief Fix the bugs of the original PoPoolation, but still use their way of computing
+     * the empirical pool size via n_base().
+     *
+     * With the two bugs of PoPoolation fixed, they still use the user-provided min_coverage
+     * (also a setting here) as input for the n_base() function to compute the empirical pool size.
+     * We think that this is not ideal, and gives wrong estimates of the number of individuals
+     * sequenced. Still, we offer this behaviour here, as a means to compute what we think
+     * PoPoolation _intended_ to compute without their more obvious bugs.
+     */
+    kWithoutPopoolatioBugs,
+
+    /**
+     * @brief Use the empirical minimum coverage found in each window for the empirical pool size
+     * instead of n_base().
+     *
+     * This is a conservative estimator that in our assessment makes more sense to use than
+     * the user-provided minimum coverage setting.
+     */
+    kEmpiricalMinCoverage,
+
+    /**
+     * @brief Instead of using n_base() to obtain the number of individuals sequenced (empirical
+     * pool size), simply use the poolsize directly.
+     *
+     * This is another estimator, that does not use n_base() at all, and just assumes that
+     * the number of individuals sequenced is equal to the pool size.
+     */
+    kPoolsize
+};
+
+/**
  * @brief Settings used by different pool-sequencing corrected diversity statistics.
  *
  * These settings are used by DiversityPoolCalculator, and for example by theta_pi_pool(),
@@ -58,15 +127,8 @@ namespace population {
  * and avoid ordering confusion of function arguments, that would result from having to provide
  * them individually.
  *
- * Note in particular the setting `with_popoolation_bugs`: There are two major bugs (as far as
- * we are aware) in the PoPoolation implementation:
- *
- *  1. They compute the `n_base` term based on poolsize alone, and do not take the coverage into
- *     account at all.
- *  2. They do not use alpha star, but set it to be equal to beta star instead.
- *
- * Using this option, one can voluntarily activate these bugs here as well, in order to get
- * results that are comparable with PoPoolation results.
+ * Note in particular the setting tajima_denominator_policy, which controls how we correct
+ * the denominator the computation of Tajima's D.
  */
 struct DiversityPoolSettings
 {
@@ -74,7 +136,7 @@ struct DiversityPoolSettings
     size_t min_coverage = 0;
     size_t max_coverage = 0;
 
-    bool with_popoolation_bugs = false;
+    TajimaDenominatorPolicy tajima_denominator_policy = TajimaDenominatorPolicy::kUncorrected;
 };
 
 // =================================================================================================
@@ -287,10 +349,17 @@ inline double theta_watterson_pool(
  *
  * for details.
  *
+ * Note that we are implementing this for `double` @p n, instead of an unsigned integer type,
+ * as some variants of the tajima_d() computation actually use n_base() to get an "effective"
+ * pool size. That is kind of wrong, but we have implemented it here for comparability with
+ * PoPoolation. In these cases, we round `n` to the nearest integer first.
+ * For any actual integer numbers of pool sizes, `double` has enough precision to accurately
+ * stor that integer value, so there is no loss of accuracy in those cases.
+ *
  * @see b_n(), the sum of squared reciprocals.
  * @see tajima_d_pool()
  */
-double a_n( size_t n );
+double a_n( double n );
 
 /**
  * @brief Compute `b_n`, the sum of squared reciprocals.
@@ -310,10 +379,12 @@ double a_n( size_t n );
  * document in their code repository that illuminates the situation a bit. See
  * https://sourceforge.net/projects/popoolation/files/correction_equations.pdf
  *
+ * See also tne note in a_n() about the usage of `double` here for the argument.
+ *
  * @see a_n(), the sum of reciprocals.
  * @see tajima_d_pool()
  */
-double b_n( size_t n );
+double b_n( double n );
 
 /**
  * @brief Compute `f*` according to Achaz 2008 and Kofler et al. 2011.
@@ -421,9 +492,10 @@ double n_base( size_t coverage, size_t poolsize );
  */
 double tajima_d_pool_denominator(
     DiversityPoolSettings const& settings,
+    double theta,
     size_t poolsize,
     size_t snp_count,
-    double theta
+    size_t empirical_min_coverage = 0
 );
 
 /**
@@ -432,13 +504,17 @@ double tajima_d_pool_denominator(
  *
  * The argument @p snp_count is meant to be the total number of SNPs that have been
  * processed to get the values for @p theta_pi and @p theta_watterson.
+ *
+ * The argument @p empirical_min_coverage is only needed when using @p settings
+ * with TajimaDenominatorPolicy::kEmpiricalMinCoverage
  */
 inline double tajima_d_pool(
     DiversityPoolSettings const& settings,
-    size_t poolsize,
     double theta_pi,
     double theta_watterson,
-    size_t snp_count
+    size_t poolsize,
+    size_t snp_count,
+    size_t empirical_min_coverage = 0
 ) {
     // Edge case, following what PoPoolation does in this situation.
     if( snp_count == 0 ) {
@@ -447,7 +523,9 @@ inline double tajima_d_pool(
 
     // We already have the two theta statistics given here, but need to compute the
     // denominator according to Kofler et al for pooled sequences.
-    auto const denom = tajima_d_pool_denominator( settings, poolsize, snp_count, theta_watterson );
+    auto const denom = tajima_d_pool_denominator(
+        settings, theta_watterson, poolsize, snp_count, empirical_min_coverage
+    );
     return ( theta_pi - theta_watterson ) / denom;
 }
 
@@ -463,14 +541,28 @@ inline double tajima_d_pool(
 template<class ForwardIterator>
 double tajima_d_pool( // get_D_calculator
     DiversityPoolSettings const& settings,
-    size_t poolsize,
     double theta_pi,
     double theta_watterson,
+    size_t poolsize,
     ForwardIterator begin,
     ForwardIterator end
 ) {
+    // If we need the empirical min coverage, compute it.
+    // If not, we can skip this step.
+    size_t empirical_min_coverage = std::numeric_limits<size_t>::max();
+    if( settings.tajima_denominator_policy == TajimaDenominatorPolicy::kEmpiricalMinCoverage ) {
+        for( auto& it = begin; it != end; ++it ) {
+            auto const cov = nucleotide_sum( *it );
+            if( cov < empirical_min_coverage ) {
+                empirical_min_coverage = cov;
+            }
+        }
+    }
+
     auto const snp_count = std::distance( begin, end );
-    return tajima_d_pool( settings, poolsize, theta_pi, theta_watterson, snp_count );
+    return tajima_d_pool(
+        settings, theta_pi, theta_watterson, poolsize, snp_count, empirical_min_coverage
+    );
 }
 
 /**
@@ -493,7 +585,7 @@ double tajima_d_pool( // get_D_calculator
     // First compute the two theta statistics, then call the other version of this function.
     auto const pi = theta_pi_pool( settings, poolsize, begin, end );
     auto const tw = theta_watterson_pool( settings, poolsize, begin, end );
-    return tajima_d_pool( settings, poolsize, pi, tw, begin, end );
+    return tajima_d_pool( settings, pi, tw, poolsize, begin, end );
 }
 
 } // namespace population

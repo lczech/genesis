@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2022 Lucas Czech
+# Copyright (C) 2014-2023 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -45,17 +45,25 @@ IF(
         NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13"
     )
 )
-    message (STATUS "Deactivate -Wdeprecated-copy for test binary.")
+    message (STATUS "Deactivate -Wdeprecated-copy for building gtest.")
     SET( GTEST_NO_WARN_DEPRECATED_COPY ON )
 ENDIF()
 # message (STATUS "GTEST_NO_WARN_DEPRECATED_COPY: ${GTEST_NO_WARN_DEPRECATED_COPY}")
 
-# Without any optimization, gtest causes some errors:
+# Without any optimization, and with recent gcc, gtest causes some errors:
 # error: 'dummy' may be used uninitialized [-Werror=maybe-uninitialized]
 # Let's stop that from messing with our build - not our problem to fix!
 SET( GTEST_NO_WARN_MAYBE_UNINITIALIZED OFF )
-if("${CMAKE_CXX_FLAGS}" MATCHES "-O0" OR "${CMAKE_CXX_FLAGS_DEBUG}" MATCHES "-O0" )
-    message (STATUS "Deactivate -Wmaybe-uninitialized for test binary.")
+if(
+    "${CMAKE_CXX_FLAGS}" MATCHES "-O0" OR
+    "${CMAKE_CXX_FLAGS_DEBUG}" MATCHES "-O0" OR
+    (
+        (CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
+        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
+        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9"))
+    )
+)
+    message (STATUS "Deactivate -Wmaybe-uninitialized for building gtest.")
     SET( GTEST_NO_WARN_MAYBE_UNINITIALIZED ON )
 endif()
 

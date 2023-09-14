@@ -39,6 +39,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace genesis {
@@ -641,45 +642,66 @@ std::string to_string_nice( T const& v )
 }
 
 /**
- * @brief Return a string where the elements of a container `v` are joined using the string
- * `delimiter` in between them.
+ * @brief Print elements of the given @p container to the output @p stream, joining them
+ * with the @p delimiter.
  *
+ * The @p delimiter is only printed in between elements, but not after the last.
  * The container is iterated via its range based for loop, thus it needs to have begin() and end()
- * functions.
- *
- * For turning the elements of the container into a string, their operator << is used.
+ * functions. For turning the elements of the container into a string, their operator << is used.
  * Thus, this function can used with all types that support this operator.
  */
-template <typename T>
-std::string join( T const& v, std::string const& delimiter = ", " )
+template <
+    typename C,
+    typename std::enable_if<
+        ! std::is_same<typename C::value_type, unsigned char>::value &&
+        ! std::is_same<typename C::value_type,   signed char>::value
+    >::type* = nullptr
+>
+std::ostream& join( std::ostream& stream, C const& container, std::string const& delimiter = ", " )
 {
-    std::ostringstream s;
-    for( auto const& i : v ) {
-        if( &i != &(*v.begin()) ) {
-            s << delimiter;
+    for( auto const& element : container ) {
+        if( &element != &(*container.begin()) ) {
+            stream << delimiter;
         }
-        s << i;
+        stream << element;
     }
-    return s.str();
+    return stream;
 }
 
 /**
- * @brief Template specialization of join() for vector of unsigned char.
+ * @brief Print elements of the given @p container to the output @p stream, joining them
+ * with the @p delimiter, for a container of signed or unsigned char.
  *
  * We need this specialization, as the unsigned chars are otherwise turned into their char (ASCII)
  * equivalent, which we do not want. Instead, we want to output them here as plain numbers.
  */
-template <>
-inline std::string join<std::vector<unsigned char>>(
-    std::vector<unsigned char> const& v, std::string const& delimiter
-) {
-    std::ostringstream s;
-    for( auto const& i : v ) {
-        if( &i != &(*v.begin()) ) {
-            s << delimiter;
+template <
+    typename C,
+    typename std::enable_if<
+        std::is_same<typename C::value_type, unsigned char>::value ||
+        std::is_same<typename C::value_type,   signed char>::value
+    >::type* = nullptr
+>
+std::ostream& join( std::ostream& stream, C const& container, std::string const& delimiter = ", " )
+{
+    for( auto const& element : container ) {
+        if( &element != &(*container.begin()) ) {
+            stream << delimiter;
         }
-        s << static_cast<int>( i );
+        stream << static_cast<int>( element );
     }
+    return stream;
+}
+
+/**
+ * @brief Return a string where the elements of a container `v` are joined using the string
+ * `delimiter` in between them.
+ */
+template <typename C>
+std::string join( C const& container, std::string const& delimiter = ", " )
+{
+    std::ostringstream s;
+    join( s, container, delimiter );
     return s.str();
 }
 
@@ -691,7 +713,7 @@ inline std::string join<std::vector<unsigned char>>(
  * to put spaces in between individual bytes of the output.
  */
 template<typename T>
-std::string to_bit_string(
+inline std::string to_bit_string(
     T const x, char const zero = '0', char const one = '1', bool const byte_space = true
 ) {
     static_assert(

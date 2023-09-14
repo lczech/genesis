@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2022 Lucas Czech
+# Copyright (C) 2014-2023 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -171,6 +171,21 @@ ENDIF()
 #   Add htslib
 # ==================================================================================================
 
+# With recent gcc, we get a couple of warnings about unused variables. Nothing too bad though.
+# Still, let's stop that from spamming our build output - not our problem to fix!
+SET( HTSLIB_COMPILER_FLAGS "" )
+if(
+    (CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
+    ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
+    (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9"))
+)
+    # message (STATUS "Deactivate -Wmaybe-uninitialized for htslib binary.")
+
+    # We set the warning deactivation flags here, but unfortunately also need to set the -fPIC flag
+    # here already, as it's otherwise not used... https://github.com/samtools/htslib/issues/1527
+    SET( HTSLIB_COMPILER_FLAGS "-fPIC -Wno-unused-but-set-variable -Wno-unused-result" )
+endif()
+
 # URL timestamp extraction, see https://cmake.org/cmake/help/latest/policy/CMP0135.html
 # Introduced in CMake 3.24, but older CMake versions fail if present, so we need to check first...
 # Why is that so complicated? Can't CMake just ignore unknown policies?!
@@ -198,17 +213,23 @@ ExternalProject_Add(
     SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-source
     CONFIGURE_COMMAND
         autoreconf -i
-        COMMAND
+        # COMMAND
         # autoheader
         # COMMAND
         # autoconf
         # COMMAND
+        COMMAND
         ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --disable-libcurl ${HTSLIB_Deflate_configure}
 
     # Build Step
     # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
     BUILD_IN_SOURCE true
     BUILD_COMMAND
+        # Didn't get these to work in the above configure... So we amend them here...
+        # I think it's because htslib does some internal flag stuff as well that is not
+        # cleanly implemented, see https://github.com/samtools/htslib/issues/1527
+        # $(MAKE) CFLAGS+=${HTSLIB_COMPILER_FLAGS} CXXFLAGS+=${HTSLIB_COMPILER_FLAGS}
+        # Nope... the above failes under clang?! Let's just deactivate for now.
         $(MAKE)
 
     # Install Step

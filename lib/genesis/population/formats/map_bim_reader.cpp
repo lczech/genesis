@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2023 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -134,7 +134,7 @@ void MapBimReader::read_(
         if( !( feat.coordinate < 0 && skip_negative_coordinates_ )) {
             callback( std::move( feat ));
         }
-        feat = Feature{};
+        feat = Feature();
     }
 }
 

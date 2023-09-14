@@ -265,7 +265,7 @@ double theta_watterson_pool_denominator(
 //     Tajima's D Helper Functions
 // =================================================================================================
 
-double a_n( size_t n ) // get_an_buffer
+double a_n( double n ) // get_an_buffer
 {
     // Local cache for speed.
     static genesis::utils::FunctionCache<double, size_t> a_n_cache_{ []( size_t n ){
@@ -275,10 +275,19 @@ double a_n( size_t n ) // get_an_buffer
         }
         return sum;
     }};
-    return a_n_cache_( n );
+
+    // The n value that we get here is a double, because following PoPoolation, we compute it
+    // as n_tilde, which is not integer... but we need to use it as an integer here,
+    // and the way that PoPoolation computes n_tilde, it is around 1.99,
+    // so we want to make sure to round to the nearest number, I think.
+    // We do that here, before the cache function call, so that the cache function does not
+    // get affected by close but non-identical doubles that round to the same int.
+    assert( std::isfinite(n) && n >= 0.0 );
+    auto const ni = static_cast<size_t>( std::round( n ));
+    return a_n_cache_( ni );
 }
 
-double b_n( size_t n ) // get_bn_buffer
+double b_n( double n ) // get_bn_buffer
 {
     // Local cache for speed.
     static genesis::utils::FunctionCache<double, size_t> b_n_cache_{ []( size_t n ){
@@ -288,7 +297,11 @@ double b_n( size_t n ) // get_bn_buffer
         }
         return sum;
     }};
-    return b_n_cache_( n );
+
+    // Same logic as in a_n(), see there for details.
+    assert( std::isfinite(n) && n >= 0.0 );
+    auto const ni = static_cast<size_t>( std::round( n ));
+    return b_n_cache_( ni );
 }
 
 double f_star( double a_n, double n ) // calculate_fstar
@@ -342,7 +355,9 @@ double beta_star( double n ) // get_betastar_calculator
         double const fs = f_star( an, n );
 
         // Calculate individual terms (t) and subterms (ts).
-        auto const t1 = squared( fs ) * ( bn - (( 2.0 * ( nd - 1.0 )) / squared( nd - 1.0 )));
+        // The first term t1 has a mistake in PoPoolation, where they use 2 * ( n - 1 )
+        // instead of ( 2 * n ) - 1, which we have fixed here.
+        auto const t1 = squared( fs ) * ( bn - ((( 2.0 * nd ) - 1.0 ) / squared( nd - 1.0 )));
         auto const t2s1 = bn * ( 8.0 / ( nd - 1.0 ));
         auto const t2s2 = an * ( 4.0 / ( nd * ( nd - 1.0 )));
         auto const t2s3n = cubed( nd ) + 12.0 * squared( nd ) - 35.0 * nd + 18.0;
@@ -487,9 +502,10 @@ double n_base( size_t coverage, size_t poolsize ) // get_nbase_buffer, but bette
 
 double tajima_d_pool_denominator( // get_ddivisor
     DiversityPoolSettings const& settings,
+    double theta,
     size_t poolsize, // n
     size_t snp_count,
-    double theta
+    size_t empirical_min_coverage
 ) {
     // PoPoolation variable names:
     // min_count:        b
@@ -498,45 +514,76 @@ double tajima_d_pool_denominator( // get_ddivisor
 
     using namespace genesis::utils;
 
-    // Edge cases.
-    if( settings.min_count != 2 ) {
-        throw std::invalid_argument(
-            "Minimum allele count needs to be set to 2 for calculating pool-corrected Tajima's D "
-            "with tajima_d_pool() according to Kofler et al. In case 2 is insufficient, "
-            "we recommend to subsample the reads to a smaller coverage."
-        );
-    }
-    if( settings.min_coverage == 0 ) {
-        throw std::invalid_argument(
-            "Minimum coverage of 0 is not valid for calculating pool-corrected Tajima's D "
-            "with tajima_d_pool()."
-        );
-    }
-    if( 3 * settings.min_coverage >= poolsize ) {
-        throw std::invalid_argument(
-            "Invalid minimum coverage >> poolsize (as internal aproximation we use: "
-            "3 * minimumcoverage < poolsize) in tajima_d_pool()"
-        );
+    // Edge cases, only relevant for the Kofler-based correction denomiator variants.
+    if(
+        settings.tajima_denominator_policy == TajimaDenominatorPolicy::kWithPopoolatioBugs ||
+        settings.tajima_denominator_policy == TajimaDenominatorPolicy::kWithoutPopoolatioBugs
+    ) {
+        if( settings.min_count != 2 ) {
+            throw std::invalid_argument(
+                "Minimum allele count needs to be set to 2 for calculating pool-corrected Tajima's D "
+                "with tajima_d_pool() according to Kofler et al. In case 2 is insufficient, "
+                "we recommend to subsample the reads to a smaller coverage."
+            );
+        }
+        if( settings.min_coverage == 0 ) {
+            throw std::invalid_argument(
+                "Minimum coverage of 0 is not valid for calculating pool-corrected Tajima's D "
+                "with tajima_d_pool()."
+            );
+        }
+        if( 3 * settings.min_coverage >= poolsize ) {
+            throw std::invalid_argument(
+                "Invalid minimum coverage >> poolsize (as internal aproximation we use: "
+                "3 * minimumcoverage < poolsize) in tajima_d_pool()"
+            );
+        }
     }
 
-    // TODO The average of n seems to be calcualted as the expected value of picking distinct
-    // individuals from a pool. This value is however not an integer. But the alpha star and
-    // beta star computations assume integers. Not sure what to make of this...
-
-    // We here re-implement two bugs from PoPoolation that massively change the results.
-    // We do this in order to be able to ensure that these are the only differences between
-    // our code and PoPoolation. It is weird and freaky though to conciously implement bugs...
-    double avg_n;
     double alphastar;
     double betastar;
-    if( settings.with_popoolation_bugs ) {
-        avg_n = n_base( poolsize, poolsize );
-        alphastar = static_cast<double>( beta_star( avg_n ));
-        betastar  = alphastar;
-    } else {
-        avg_n = n_base( settings.min_coverage, poolsize );
-        alphastar = static_cast<double>( alpha_star( avg_n ));
-        betastar  = static_cast<double>( beta_star( avg_n ));;
+    switch( settings.tajima_denominator_policy ) {
+        case TajimaDenominatorPolicy::kUncorrected:
+        {
+            // No correction at all.
+            return 1.0;
+        }
+        case TajimaDenominatorPolicy::kWithPopoolatioBugs:
+        {
+            // We here re-implement two bugs from PoPoolation that massively change the results.
+            // We do this in order to be able to ensure that these are the only differences between
+            // our code and PoPoolation. It is weird and freaky though to conciously implement bugs...
+            auto const avg_n = n_base( poolsize, poolsize );
+            alphastar = beta_star( avg_n );
+            betastar  = alphastar;
+            break;
+        }
+        case TajimaDenominatorPolicy::kWithoutPopoolatioBugs:
+        {
+            // Fix the bugs from above, but still use the user min cov for n_base.
+            auto const avg_n = n_base( settings.min_coverage, poolsize );
+            alphastar = alpha_star( avg_n );
+            betastar  = beta_star( avg_n );
+            break;
+        }
+        case TajimaDenominatorPolicy::kEmpiricalMinCoverage:
+        {
+            // Use the emprical minimum coverage to get the value.
+            auto const avg_n = n_base( empirical_min_coverage, poolsize );
+            alphastar = alpha_star( avg_n );
+            betastar  = beta_star( avg_n );
+            break;
+        }
+        case TajimaDenominatorPolicy::kPoolsize:
+        {
+            // Use the pool size instead of anything n_base based.
+            alphastar = alpha_star( poolsize );
+            betastar  = beta_star( poolsize );
+            break;
+        }
+        default: {
+            throw std::invalid_argument( "Invalid enum value for TajimaDenominatorPolicy" );
+        }
     }
 
     return std::sqrt(

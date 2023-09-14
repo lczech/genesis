@@ -125,9 +125,10 @@ public:
         return reader_;
     }
 
-    MatrixReader& parse_value_functor( std::function<T( std::string const& )> functor )
+    MatrixReader& convert_value_functor( std::function<T( std::string const& )> functor )
     {
-        parse_value_ = functor;
+        convert_value_ = functor;
+        return *this;
     }
 
     // -------------------------------------------------------------
@@ -180,9 +181,9 @@ private:
             }
 
             // Parse and transfer the data. User specified parser or default one.
-            if( parse_value_ ) {
+            if( convert_value_ ) {
                 for( size_t i = first; i < line.size(); ++i ) {
-                    table.push_back( parse_value_( line[i] ) );
+                    table.push_back( convert_value_( line[i] ) );
                 }
             } else {
                 for( size_t i = first; i < line.size(); ++i ) {
@@ -228,7 +229,7 @@ private:
 
     CsvReader reader_;
 
-    std::function<T( std::string const& )> parse_value_;
+    std::function<T( std::string const& )> convert_value_;
 
 };
 

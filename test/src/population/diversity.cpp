@@ -90,7 +90,7 @@ TEST( Population, DiversityMeasuresGenerator )
     settings.min_coverage = 4;
     settings.max_coverage = 70;
     // settings.min_coverage_fraction = 0.6;
-    settings.with_popoolation_bugs = true;
+    settings.tajima_denominator_policy = TajimaDenominatorPolicy::kWithPopoolatioBugs;
 
     // Expected values for SNP count, coverage fraction,
     // theta pi, theta watterson, and tajimas d, as computed by PoPoolation.
@@ -124,16 +124,32 @@ TEST( Population, DiversityMeasuresGenerator )
         0.003946841, 0.005920627, 0.002920130, 0.004690126, 0.002902389, 0.006156112, 0.004224226,
         0.005681248, 0.011799121 // that last value is na in PoPoolation due to low coverage fraction
     };
+    // We are rounding a_n and b_n instead of truncating, and fix a bug of PoPoolation in beta_star,
+    // so our results differ from PoPoolation.
+    // Below are their original values commented out, and then the ones that we are producing.
+    // std::vector<double> const exp_td = {
+    //     0.284578106, 0.192582068, -0.194060545, 0.487758589, 0.001285058, 0.127948564,
+    //     -0.449156140, 0.430526340, -0.033356987, -0.141493584, -0.048408427, -0.225182587,
+    //     -0.178297114, -0.0003157667, // <-- slightly different from popoolation,
+    //     // due to float rounding output
+    //     -0.048518386, 0.399560639, 0.298089456, 0.038457024, -0.330034295, -0.502740128,
+    //     -0.114750045, 0.672276818, 0.655962019, -0.073510112, -0.267143845, -0.737907021,
+    //     -0.945516711, -0.730646287, -0.530233394, -0.507613275, 0.148039558, 0.316135303,
+    //     0.270556455, 0.212712696, -0.083788817, -0.032937101, 0.043877175, 0.204396945,
+    //     0.190020150, -0.268953530, 0.941026912, 0.325990577, 0.223266340, -0.214392335,
+    //     0.324062971, -0.301804585, -0.023170726, -0.014957651, 0.299195764, 0.489457710,
+    //     -0.080335423 // that last value is na in PoPoolation due to low coverage fraction
+    // };
     std::vector<double> const exp_td = {
-        0.284578106, 0.192582068, -0.194060545, 0.487758589, 0.001285058, 0.127948564, -0.449156140,
-        0.430526340, -0.033356987, -0.141493584, -0.048408427, -0.225182587, -0.178297114,
-        -0.0003157667, // <-- slightly different from popoolation, due to float rounding output
-        -0.048518386, 0.399560639, 0.298089456, 0.038457024, -0.330034295, -0.502740128, -0.114750045,
-        0.672276818, 0.655962019, -0.073510112, -0.267143845, -0.737907021, -0.945516711, -0.730646287,
-        -0.530233394, -0.507613275, 0.148039558, 0.316135303, 0.270556455, 0.212712696, -0.083788817,
-        -0.032937101, 0.043877175, 0.204396945, 0.190020150, -0.268953530, 0.941026912, 0.325990577,
-        0.223266340, -0.214392335, 0.324062971, -0.301804585, -0.023170726, -0.014957651, 0.299195764,
-        0.489457710, -0.080335423 // that last value is na in PoPoolation due to low coverage fraction
+        0.284578639, 0.192582429, -0.194060908, 0.487759502, 0.00128506003, 0.127948803,
+        -0.44915698, 0.430527146, -0.0333570499, -0.141493849, -0.0484085175, -0.225183008,
+        -0.178297448, -0.000315767304, -0.0485184769, 0.399561386, 0.298090014, 0.0384570959,
+        -0.330034913, -0.502741069, -0.11475026, 0.672278076, 0.655963247, -0.0735102492,
+        -0.267144345, -0.737908402, -0.945518481, -0.730647654, -0.530234387, -0.507614226,
+        0.148039835, 0.316135895, 0.270556962, 0.212713095, -0.0837889736, -0.0329371631,
+        0.0438772568, 0.204397327, 0.190020506, -0.268954033, 0.941028673, 0.325991188,
+        0.223266758, -0.214392736, 0.324063577, -0.30180515, -0.0231707691, -0.0149576789,
+        0.299196324, 0.489458626, -0.0803355768
     };
 
     using VariantWindow = Window<genesis::population::Variant>;
@@ -236,6 +252,7 @@ TEST( Population, DiversityMeasuresGenerator )
         EXPECT_FLOAT_EQ( exp_pi[value_count], theta_pi_relative );
         EXPECT_FLOAT_EQ( exp_tw[value_count], theta_watterson_relative );
         EXPECT_FLOAT_EQ( exp_td[value_count], tajima_d );
+        // std::cout << std::setprecision (9) << tajima_d << ", ";
         ++iteration_count;
         ++value_count;
     });
@@ -273,7 +290,7 @@ TEST( Population, DiversityMeasuresIterator )
     settings.min_coverage = 4;
     settings.max_coverage = 70;
     // settings.min_coverage_fraction = 0.6;
-    settings.with_popoolation_bugs = true;
+    settings.tajima_denominator_policy = TajimaDenominatorPolicy::kWithPopoolatioBugs;
 
     // Expected values for SNP count, coverage fraction,
     // theta pi, theta watterson, and tajimas d, as computed by PoPoolation.
@@ -315,15 +332,29 @@ TEST( Population, DiversityMeasuresIterator )
         0.003946841, 0.005920627, 0.002920130, 0.004690126, 0.002902389, 0.006156112, 0.004224226,
         0.005681248, 0.011882802
     };
+    // std::vector<double> const exp_td = {
+    //     0.284578639, 0.192582429, -0.194060908, 0.487759502, 0.00128506003, 0.127948803,
+    //     -0.44915698, 0.430527146, -0.0333570499, -0.141493849, -0.0484085175, -0.225183008,
+    //     -0.178297448, -0.000315767304, -0.0485184769, 0.399561386, 0.298090014, 0.0384570959,
+    //     -0.330034913, -0.502741069, -0.11475026, 0.672278076, 0.655963247, -0.0735102492,
+    //     -0.267144345, -0.737908402, -0.945518481, -0.730647654, -0.530234387, -0.507614226,
+    //     0.148039835, 0.316135895, 0.270556962, 0.212713095, -0.0837889736, -0.0329371631,
+    //     0.0438772568, 0.204397327, 0.190020506, -0.268954033, 0.941028673, 0.325991188,
+    //     0.223266758, -0.214392736, 0.324063577, -0.30180515, -0.0231707691, -0.0149576789,
+    //     0.299196324, 0.489458626, -0.0803355768
+    // };
+    // We have a few values that deviate a bit, marked with x. Need to investigate.
+    // Likely a filter setting that changed a bit.
     std::vector<double> const exp_td = {
-        0.284578106, 0.192582068, -0.194060545, 0.487758589, 0.001285058, 0.127948564, -0.449156140,
-        0.430526340, -0.033356987, -0.141493584, -0.048408427, -0.225182587, -0.178297114, -0.0003157667,
-        -0.048518386, 0.399560639, 0.298089456, 0.038457024, -0.330034295, -0.502740128, -0.114750045,
-        0.672276818, 0.655962019, -0.073510112, -0.267143845, -0.737907021, -0.945516711, -0.730646287,
-        -0.44273502, -0.71878332, 0.148039558, 0.316135303, 0.21832839, 0.26017737, -0.083788817,
-        -0.032937101, 0.043877175, 0.204396945, 0.190020150, -0.268953530, 0.941026912, 0.325990577,
-        0.223266340, -0.214392335, 0.324062971, -0.301804585, -0.023170726, -0.014957651, 0.299195764,
-        0.489457710, -0.080335423
+        0.284578639, 0.192582429, -0.194060908, 0.487759502, 0.00128506003, 0.127948803,
+        -0.44915698, 0.430527146, -0.0333570499, -0.141493849, -0.0484085175, -0.225183008,
+        -0.178297448, -0.000315767304, -0.0485184769, 0.399561386, 0.298090014, 0.0384570959,
+        -0.330034913, -0.502741069, -0.11475026, 0.672278076, 0.655963247, -0.0735102492,
+        -0.267144345, -0.737908402, -0.945518481, -0.730647654, -0.44273585 /*x*/, -0.71878463 /*x*/,
+        0.148039835, 0.316135895, 0.2183288 /*x*/, 0.26017785 /*x*/, -0.0837889736, -0.0329371631,
+        0.0438772568, 0.204397327, 0.190020506, -0.268954033, 0.941028673, 0.325991188,
+        0.223266758, -0.214392736, 0.324063577, -0.30180515, -0.0231707691, -0.0149576789,
+        0.299196324, 0.489458626, -0.0803355768
     };
 
     using VariantWindow = Window<genesis::population::Variant>;
@@ -345,9 +376,9 @@ TEST( Population, DiversityMeasuresIterator )
     auto win_it = make_default_sliding_interval_window_iterator(
         pileup_begin, pileup_end, window_width, window_stride
     );
+    win_it.emit_leading_empty_windows( true );
 
     // LOG_DBG << "for()";
-    size_t value_count = 0;
     size_t window_cnt = 0;
     size_t iteration_count = 0;
     for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
@@ -421,7 +452,7 @@ TEST( Population, DiversityMeasuresIterator )
         // LOG_DBG << "coverage_count " << coverage_count;
         // LOG_DBG << "snp_count " << snp_count;
 
-        // LOG_DBG1 << iteration_count << "\t" << value_count << "\t"
+        // LOG_DBG1 << iteration_count << "\t" << window_cnt << "\t"
         //          << window.first_position() << "\t" << window.last_position() << "\t"
         //          << window.entries().front().position << "\t" << window.entries().back().position << "\t"
         //          << stats.snp_count << "\t" << stats.coverage_count << "\t"
@@ -431,20 +462,25 @@ TEST( Population, DiversityMeasuresIterator )
         // ;
 
         // Compare counts
-        EXPECT_EQ( exp_snp_cnt[value_count], snp_count );
-        // EXPECT_FLOAT_EQ( exp_cov[value_count], stats.coverage_fraction );
+        EXPECT_EQ( exp_snp_cnt[window_cnt], snp_count );
+        // EXPECT_FLOAT_EQ( exp_cov[window_cnt], stats.coverage_fraction );
         EXPECT_FLOAT_EQ(
-            exp_cov[value_count],
+            exp_cov[window_cnt],
             static_cast<double>( coverage_count ) / window_width
         );
 
         // Compare statistic measures
-        EXPECT_FLOAT_EQ( exp_pi[value_count], theta_pi_relative );
-        EXPECT_FLOAT_EQ( exp_tw[value_count], theta_watterson_relative );
-        EXPECT_FLOAT_EQ( exp_td[value_count], tajima_d );
-        ++value_count;
+        EXPECT_FLOAT_EQ( exp_pi[window_cnt], theta_pi_relative );
+        EXPECT_FLOAT_EQ( exp_tw[window_cnt], theta_watterson_relative );
+        EXPECT_FLOAT_EQ( exp_td[window_cnt], tajima_d );
 
         ++window_cnt;
         ++iteration_count;
     }
+
+    EXPECT_EQ( window_cnt, exp_snp_cnt.size() );
+    EXPECT_EQ( window_cnt, exp_cov.size() );
+    EXPECT_EQ( window_cnt, exp_pi.size() );
+    EXPECT_EQ( window_cnt, exp_tw.size() );
+    EXPECT_EQ( window_cnt, exp_td.size() );
 }

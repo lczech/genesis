@@ -35,6 +35,7 @@
 
 #include "genesis/utils/color/color.hpp"
 #include "genesis/utils/color/functions.hpp"
+#include "genesis/utils/color/heat_map.hpp"
 #include "genesis/utils/color/helpers.hpp"
 #include "genesis/utils/color/list_diverging.hpp"
 #include "genesis/utils/color/list_misc.hpp"
@@ -66,6 +67,7 @@
 #include "genesis/utils/containers/matrix/operators.hpp"
 #include "genesis/utils/containers/matrix/reader.hpp"
 #include "genesis/utils/containers/matrix/row.hpp"
+#include "genesis/utils/containers/matrix/simple_reader.hpp"
 #include "genesis/utils/containers/matrix/writer.hpp"
 #include "genesis/utils/containers/mru_cache.hpp"
 #include "genesis/utils/containers/optional.hpp"
@@ -153,6 +155,7 @@
 #include "genesis/utils/math/kmeans.hpp"
 #include "genesis/utils/math/matrix.hpp"
 #include "genesis/utils/math/mds.hpp"
+#include "genesis/utils/math/moments.hpp"
 #include "genesis/utils/math/pca.hpp"
 #include "genesis/utils/math/random.hpp"
 #include "genesis/utils/math/range_minimum_query.hpp"

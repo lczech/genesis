@@ -143,22 +143,25 @@ public:
         // PoPoolation2 function: calculate_nk_dk
         using namespace genesis::utils;
 
-        // Error check. We only want biallelic SNPs, so we check that the smallesst two values
+        // Error check. We only want biallelic SNPs, so we check that the smallest two values
         // here are actually zero.
-        if(
-            sample_counts.first[2].count  != 0 || sample_counts.first[3].count  != 0 ||
-            sample_counts.second[2].count != 0 || sample_counts.second[3].count != 0
-        ) {
-            throw std::runtime_error(
-                "In f_st_pool_karlsson(): Expecting biallelic SNPs where only "
-                "two nucleotide counts are > 0, but found more non-zero counts."
-            );
-        }
+        // Update: That does not quite work corrctly if we want to filter by min counts,
+        // in which cases we might have minor third and fourth alleles that are below the min count.
+        // We can safely ignore this here, as those are not taken into account below anyway.
+        // This is also now how PoPoolation2 handles this situation.
+        // if(
+        //     sample_counts.first[2].count  != 0 || sample_counts.first[3].count  != 0 ||
+        //     sample_counts.second[2].count != 0 || sample_counts.second[3].count != 0
+        // ) {
+        //     throw std::runtime_error(
+        //         "In f_st_pool_karlsson(): Expecting biallelic SNPs where only "
+        //         "two nucleotide counts are > 0, but found more non-zero counts."
+        //     );
+        // }
+        // assert( sample_counts.first[2].count  == 0 && sample_counts.first[3].count  == 0 );
+        // assert( sample_counts.second[2].count == 0 && sample_counts.second[3].count == 0 );
 
-        // We checked that we have biallelic counts here. Assert this again.
-        // Also assert that the bases are in the same order in both samples.
-        assert( sample_counts.first[2].count  == 0 && sample_counts.first[3].count  == 0 );
-        assert( sample_counts.second[2].count == 0 && sample_counts.second[3].count == 0 );
+        // Assert that the bases are in the same order in both samples.
         assert(
             sample_counts.first[0].base == sample_counts.second[0].base &&
             sample_counts.first[1].base == sample_counts.second[1].base &&

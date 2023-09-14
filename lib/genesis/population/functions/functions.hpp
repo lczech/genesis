@@ -134,9 +134,31 @@ SortedBaseCounts sorted_base_counts(
  * @brief Return the number of alleles, that is, of non-zero nucleotide counts of the @p sample.
  *
  * This looks at all four nucleotide counts (`ACGT`), and returns the number of them that are
- * non zero, which hence is between 0 and 4.
+ * non zero. The result hence is between 0 and 4, with 0 = no allele had any counts and 4 = all
+ * alleles have a non-zero count.
  */
 size_t allele_count( BaseCounts const& sample );
+
+/**
+ * @brief Return the number of alleles, taking a @p min_count into consideration, that is,
+ * we compute the number of nucleotide counts of the @p sample that are at least the @p min_count.
+ *
+ * This looks at all four nucleotide counts (`ACGT`), and returns the number of them that are
+ * at least the @p min_count. If `min_count == 0`, we instead call the allele_count(BaseCounts const&)
+ * overload of this function that does not consider minimum counts.
+ */
+size_t allele_count( BaseCounts const& sample, size_t min_count );
+
+/**
+ * @brief Return the number of alleles, taking a @p min_count and @p max_count into consideration,
+ * that is, we compute the number of nucleotide counts of the @p sample that are at least
+ * @p min_count and at most @p max_count.
+ *
+ * This looks at all four nucleotide counts (`ACGT`), and returns the number of them that are
+ * at least the @p min_count and at most @p max_count. If either of them is zero, they are not
+ * taken into account though.
+ */
+size_t allele_count( BaseCounts const& sample, size_t min_count, size_t max_count );
 
 /**
  * @brief Merge the counts of two BaseCounts%s, by adding the counts of the second (@p p2)

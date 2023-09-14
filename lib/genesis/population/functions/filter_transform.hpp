@@ -352,8 +352,8 @@ struct BaseCountsFilterStats
     size_t empty = 0;
 
     /**
-    * @brief Number of samples that had too many deletions (between min_count and max_count, to
-    * be precise). Used when BaseCountsFilter::tolerate_deletions is set.
+    * @brief Number of samples that had too many deletions (above min_count, to be precise).
+    * Used when BaseCountsFilter::tolerate_deletions is set.
     */
     size_t untolerated_deletion = 0;
 
@@ -537,6 +537,39 @@ struct VariantFilter
     size_t max_coverage = 0;
 
     // -------------------------------------------
+    //     Counts
+    // -------------------------------------------
+
+    /**
+     * @brief Minimum count for each nucleotide to be considered a SNP for the whole Variant.
+     *
+     * If `only_snps` or `only_biallelic_snps` is given, the bases that are considered for
+     * that need to have at least `min_count` count. Furthermore, if `tolerate_deletions == false`
+     * (default), this min count is used to determine when the number of delections
+     * (BaseCounts::d_count) is too high, and hence needs to be filtered out.
+     */
+    size_t min_count = 0;
+
+    /**
+     * @brief Maximum count for each nucleotide to be considered a SNP for the whole Variant.
+     *
+     * If `only_snps` or `only_biallelic_snps` is given, the bases that are considered for
+     * that need to have at most `max_count` count. This is probably not really needed
+     * in practice, but included here for completeness.
+     */
+    size_t max_count = 0;
+
+    /**
+     * @brief Set whether we tolerate Variant%s with a high amount of deletions.
+     *
+     * If set to `false` (default), we do not tolerate deletions. In that case, if the number of
+     * deletions in the sum of samples (given by their BaseCounts::d_count) is non-zero and above
+     * min_count, the Variant is filtered out, and VariantFilterStats::untolerated_deletion is
+     * incremented. (We ignore max_count here, assuming that too many deletions are always bad.)
+     */
+    bool tolerate_deletions = false;
+
+    // -------------------------------------------
     //     SNPs
     // -------------------------------------------
 
@@ -587,7 +620,6 @@ struct VariantFilterStats
      * @brief Number of Variants that had zero nucleotide counts across all samples.
      */
     size_t empty = 0;
-
     /**
      * @brief Number of Variant%s whose sum of nucleotides was below VariantFilter::min_coverage.
      */
@@ -600,13 +632,45 @@ struct VariantFilterStats
 
     /**
      * @brief Number of Variant%s that were not SNPs, i.e., that were invariants.
+     *
+     * This counts the number of Variants that passed the other SNP-related filters, such as
+     * min_count and max_count
      */
     size_t not_snp = 0;
 
     /**
      * @brief Number of Variant%s that were not biallelic SNPs.
+     *
+     * This counts how many Variants were SNPs but not biallelic. It hence indicates how many
+     * Variants were filtered out because of the only_biallelic_snps filter setting.
      */
     size_t not_biallelic_snp = 0;
+
+    /**
+     * @brief Number of Variant%s whose sum of nucleotides was below VariantFilter::min_count.
+     *
+     * That is, those Variant%s would have counted as a SNP if the min_count setting
+     * wasn't used. This is hence useful to see how many Variants were filtered out because of
+     * that setting.
+     *
+     * Note though that we do not make a distinction between biallelic and multialleleic SNPs here
+     * any more for simplicity. This counts any position that was filtered out for not being a
+     * SNP according to the only_snps and/or only_biallelic_snps after considering min_count.
+     */
+    size_t below_min_count = 0;
+
+    /**
+     * @brief Number of Variant%s whose sum of nucleotides was above VariantFilter::max_count.
+     *
+     * Same as below_min_count, but for the max_count setting instead.
+     */
+    size_t above_max_count = 0;
+
+    /**
+    * @brief Number of Variant%s that had too many deletions (above min_count, to be precise).
+    * Used when VariantFilter::tolerate_deletions is set.
+    */
+    size_t untolerated_deletion = 0;
 
     /**
      * @brief Number of Variant%s that did not have the minimum frequency.

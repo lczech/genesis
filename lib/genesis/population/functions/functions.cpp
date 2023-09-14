@@ -369,6 +369,56 @@ size_t allele_count( BaseCounts const& sample )
     return al_count;
 }
 
+size_t allele_count( BaseCounts const& sample, size_t min_count )
+{
+    // We need to separate out the min_count == 0 case,
+    // as we do not want to count alelles that are exactly 0...
+    // We do this by setting min_count to 1, so that only true alelles are counted.
+    if( min_count == 0 ) {
+        min_count = 1;
+    }
+
+    // Sum up the number of different ACGT counts that are at least the min count,
+    // to determine whether this is a SNP, and whether it's biallelic.
+    size_t al_count = 0;
+    al_count += static_cast<int>( sample.a_count >= min_count );
+    al_count += static_cast<int>( sample.c_count >= min_count );
+    al_count += static_cast<int>( sample.g_count >= min_count );
+    al_count += static_cast<int>( sample.t_count >= min_count );
+
+    // Check and return the result.
+    assert( al_count <= 4 );
+    return al_count;
+}
+
+size_t allele_count( BaseCounts const& sample, size_t min_count, size_t max_count )
+{
+    // Edge cases checks.
+    if( max_count == 0 ) {
+        return allele_count( sample, min_count );
+    }
+    if( max_count < min_count ) {
+        throw std::invalid_argument(
+            "Cannot compute allele_count() with max_count < min_count. "
+            "min_count == " + std::to_string( min_count ) + ", "
+            "max_count == " + std::to_string( max_count )
+        );
+    }
+
+    // Same edge case as above.
+    if( min_count == 0 ) {
+        min_count = 1;
+    }
+
+    // Similar to the other functions above.
+    size_t al_count = 0;
+    al_count += static_cast<int>( sample.a_count >= min_count && sample.a_count <= max_count );
+    al_count += static_cast<int>( sample.c_count >= min_count && sample.c_count <= max_count );
+    al_count += static_cast<int>( sample.g_count >= min_count && sample.g_count <= max_count );
+    al_count += static_cast<int>( sample.t_count >= min_count && sample.t_count <= max_count );
+    return al_count;
+}
+
 void merge_inplace( BaseCounts& p1, BaseCounts const& p2 )
 {
     // Make sure that we do not forget any fields in case of later refactoring of the struct.
