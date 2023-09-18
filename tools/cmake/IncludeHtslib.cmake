@@ -199,6 +199,13 @@ ExternalProject_Add(
     htslib
     PREFIX ""
 
+    # Activate logging for better user debugging
+    LOG_DOWNLOAD  TRUE
+    LOG_CONFIGURE TRUE
+    LOG_BUILD     TRUE
+    LOG_INSTALL   TRUE
+    STAMP_DIR     ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-stamp
+
     # Download and Update Steps
     # DOWNLOAD_COMMAND  ""
     # GIT_REPOSITORY https://github.com/samtools/htslib.git
