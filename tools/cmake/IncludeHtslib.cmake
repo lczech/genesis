@@ -225,8 +225,10 @@ ExternalProject_Add(
         # COMMAND
         # autoconf
         # COMMAND
+        # Need some special care to fix https://github.com/lczech/grenedalf/issues/12,
+        # see https://stackoverflow.com/a/59536947 for the solution
         COMMAND
-        ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --libdir=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib/lib --disable-libcurl ${HTSLIB_Deflate_configure}
+        ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --libdir=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib/lib --disable-multi-os-directory --disable-libcurl ${HTSLIB_Deflate_configure}
 
     # Build Step
     # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
