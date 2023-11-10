@@ -207,17 +207,12 @@ bool is_symmetric( Matrix<T> const& data )
 /**
  * @brief Print the elements of a Matrix to a stream, using `operator <<` for each element.
  */
-template <typename T>
-std::ostream& operator<< (std::ostream& os, const Matrix<T>& matrix)
+template<typename T>
+std::ostream& operator<< ( std::ostream& os, const Matrix<T>& matrix )
 {
     for (size_t i = 0; i < matrix.rows(); ++i) {
         for (size_t j = 0; j < matrix.cols(); ++j) {
-            // We need some special printing for int char types...
-            if( std::is_same<T, signed char>::value || std::is_same<T, unsigned char>::value ) {
-                os << static_cast<int>( matrix( i, j ));
-            } else {
-                os << matrix(i, j);
-            }
+            os << matrix(i, j);
             if (j < matrix.cols() - 1) {
                 os << " ";
             }

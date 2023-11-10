@@ -134,3 +134,32 @@ TEST(Matrix, TransposeFuzzy)
         // LOG_TIME << "comp 2";
     }
 }
+
+TEST(Matrix, Print)
+{
+    // unsigned char
+    {
+        auto m = Matrix<unsigned char>(2, 2);
+        m(0,0) = 1;
+        m(0,1) = 2;
+        m(1,0) = 3;
+        m(1,1) = 4;
+
+        std::ostringstream s;
+        s << m;
+        EXPECT_EQ( "  1   2\n  3   4\n", s.str() );
+    }
+
+    // signed char
+    {
+        auto m = Matrix<signed char>(2, 2);
+        m(0,0) = 1;
+        m(0,1) = 2;
+        m(1,0) = 3;
+        m(1,1) = 4;
+
+        std::ostringstream s;
+        s << m;
+        EXPECT_EQ( "   1    2\n   3    4\n", s.str() );
+    }
+}
