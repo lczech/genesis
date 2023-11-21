@@ -238,7 +238,7 @@ void test_lambda_iterator_( size_t num_elements, size_t block_size )
     size_t loop_sum = 0;
 
     // Also add a visitor, doing the same thing, to test their behaviour as well.
-    generator.add_visitor(
+    generator.add_observer(
         [&visitor_sum]( size_t elem ){
             visitor_sum += elem;
         }

@@ -67,6 +67,7 @@
 #include "genesis/utils/io/input_buffer.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -200,7 +201,7 @@ void MD5::update( char const* input, MD5::size_type length )
 {
     // Ugly conversion, but still better than the silent one used in the original code.
     auto const* in_uchar = reinterpret_cast<unsigned char const*>( input );
-    update_( in_uchar, length);
+    update_( in_uchar, length );
 }
 
 std::string MD5::final_hex()
@@ -262,23 +263,24 @@ void MD5::update_( unsigned char const* input, size_type length )
     MD5::size_type index = count_[0] / 8 % MD5::BlockSize;
 
     // Update number of bits
-    if ((count_[0] += (length << 3)) < (length << 3)) {
+    if( (count_[0] += (length << 3)) < (length << 3) ) {
         count_[1]++;
     }
     count_[1] += (length >> 29);
 
     // number of bytes we need to fill in buffer
+    assert( index < 64 );
     MD5::size_type firstpart = 64 - index;
     MD5::size_type i;
 
     // transform as many times as possible.
-    if (length >= firstpart) {
+    if( length >= firstpart ) {
         // fill buffer first, transform
         memcpy( &buffer_[index], input, firstpart );
         transform_(buffer_);
 
         // transform chunks of MD5::BlockSize (64 bytes)
-        for (i = firstpart; i + MD5::BlockSize <= length; i += MD5::BlockSize) {
+        for( i = firstpart; i + MD5::BlockSize <= length; i += MD5::BlockSize ) {
             transform_( &input[i] );
         }
         index = 0;
@@ -287,6 +289,8 @@ void MD5::update_( unsigned char const* input, size_type length )
     }
 
     // buffer remaining input
+    assert( index < MD5::BlockSize );
+    assert( i <= length );
     memcpy( &buffer_[index], &input[i], length-i );
 }
 

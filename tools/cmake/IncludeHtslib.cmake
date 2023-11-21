@@ -173,18 +173,18 @@ ENDIF()
 
 # With recent gcc, we get a couple of warnings about unused variables. Nothing too bad though.
 # Still, let's stop that from spamming our build output - not our problem to fix!
-SET( HTSLIB_COMPILER_FLAGS "" )
-if(
-    (CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
-    ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
-    (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9"))
-)
-    # message (STATUS "Deactivate -Wmaybe-uninitialized for htslib binary.")
-
-    # We set the warning deactivation flags here, but unfortunately also need to set the -fPIC flag
-    # here already, as it's otherwise not used... https://github.com/samtools/htslib/issues/1527
-    SET( HTSLIB_COMPILER_FLAGS "-fPIC -Wno-unused-but-set-variable -Wno-unused-result" )
-endif()
+# SET( HTSLIB_COMPILER_FLAGS "" )
+# if(
+#     (CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
+#     ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
+#     (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9"))
+# )
+#     # message (STATUS "Deactivate -Wmaybe-uninitialized for htslib binary.")
+#
+#     # We set the warning deactivation flags here, but unfortunately also need to set the -fPIC flag
+#     # here already, as it's otherwise not used... https://github.com/samtools/htslib/issues/1527
+#     SET( HTSLIB_COMPILER_FLAGS "-fPIC -Wno-unused-but-set-variable -Wno-unused-result" )
+# endif()
 
 # URL timestamp extraction, see https://cmake.org/cmake/help/latest/policy/CMP0135.html
 # Introduced in CMake 3.24, but older CMake versions fail if present, so we need to check first...
@@ -198,6 +198,13 @@ endif()
 ExternalProject_Add(
     htslib
     PREFIX ""
+
+    # Activate logging for better user debugging
+    LOG_DOWNLOAD  TRUE
+    LOG_CONFIGURE TRUE
+    LOG_BUILD     TRUE
+    LOG_INSTALL   TRUE
+    STAMP_DIR     ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-stamp
 
     # Download and Update Steps
     # DOWNLOAD_COMMAND  ""
@@ -218,8 +225,10 @@ ExternalProject_Add(
         # COMMAND
         # autoconf
         # COMMAND
+        # Need some special care to fix https://github.com/lczech/grenedalf/issues/12,
+        # see https://stackoverflow.com/a/59536947 for the solution
         COMMAND
-        ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --disable-libcurl ${HTSLIB_Deflate_configure}
+        ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --libdir=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib/lib --disable-multi-os-directory --disable-libcurl ${HTSLIB_Deflate_configure}
 
     # Build Step
     # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib

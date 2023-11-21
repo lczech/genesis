@@ -51,6 +51,7 @@ else()
 endif()
 message (STATUS "Host: ${GENSIS_HOST_INFO}")
 message (STATUS "System: ${GENSIS_SYST_INFO}")
+message (STATUS "OS: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION}")
 
 # Important settings.
 set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
@@ -151,7 +152,6 @@ if( ${GENESIS_VERSION_LINE} MATCHES ".*\"(.*)\".*" )
 endif()
 
 # Report what we found so far.
-message (STATUS "OS: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION}")
 message (STATUS
     "${ColorBlue}Genesis version: ${GENESIS_VERSION} -- \"${GENESIS_VERSION_NAME}\"${ColorEnd}"
 )
