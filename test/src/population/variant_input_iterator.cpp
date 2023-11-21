@@ -643,7 +643,7 @@ void test_variant_input_iterator_unordered_chromosomes_(
 
     // Add a check visitor to the iterator.
     if( with_visitor ) {
-        it.add_visitor(
+        it.add_observer(
             make_variant_input_iterator_sequence_order_visitor( sequence_dict )
         );
     }

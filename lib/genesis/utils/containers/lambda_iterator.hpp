@@ -126,10 +126,10 @@ struct EmptyLambdaIteratorData
  * This allows to easily skip elements of the underlying iterator without the need to add an
  * additional layer of abstraction.
  *
- * As an additional layer of convenience, the class offers visitors for each element, as well as
+ * As an additional layer of convenience, the class offers observers for each element, as well as
  * callbacks for the beginning and end of the iteration. Those are meant as simplifications to
  * reduce code duplcation in user code, and can be used in combination with each other. For example,
- * a visitor can be added that (via a lambda capture) counts statistics of the elements beging
+ * a observer can be added that (via a lambda capture) counts statistics of the elements beging
  * processed, and those can then be reported at the end of the iteration. This could of course also
  * be achieved by adding this functionatlity in the loop body and at the loop end when running
  * this iterator. However, for example in our tool https://github.com/lczech/grenedalf, we have
@@ -454,9 +454,9 @@ public:
             assert( end_pos_ <= generator_->block_size_ );
 
             // Now we have an element, which will be the first one of the iteration,
-            // and so we execute the visitors for it.
+            // and so we execute the observers for it.
             assert( current_pos_ == 0 );
-            execute_visitors_( (*current_block_)[current_pos_] );
+            execute_observers_( (*current_block_)[current_pos_] );
         }
 
         void increment_()
@@ -490,7 +490,7 @@ public:
             assert( current_pos_ == 0 );
             assert( current_block_->size() == 1 );
             if( get_next_element_( generator_, (*current_block_)[0] )) {
-                execute_visitors_( (*current_block_)[current_pos_] );
+                execute_observers_( (*current_block_)[current_pos_] );
             } else {
                 end_iteration_();
             }
@@ -545,8 +545,8 @@ public:
             }
 
             // Now we have moved to the next element, and potentially the next block,
-            // so we are ready to call the visitors for that element.
-            execute_visitors_( (*current_block_)[current_pos_] );
+            // so we are ready to call the observers for that element.
+            execute_observers_( (*current_block_)[current_pos_] );
         }
 
         void fill_buffer_block_()
@@ -683,11 +683,11 @@ public:
             generator_ = nullptr;
         }
 
-        void execute_visitors_( T const& element ) const
+        void execute_observers_( T const& element ) const
         {
             assert( generator_ );
-            for( auto const& visitor : generator_->visitors_ ) {
-                visitor( element );
+            for( auto const& observer : generator_->observers_ ) {
+                observer( element );
             }
         }
 
@@ -922,7 +922,7 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Add a visitor function that is executed when the iterator moves to a new element
+     * @brief Add a observer function that is executed when the iterator moves to a new element
      * during the iteration.
      *
      * These functions are executed when starting and incrementing the iterator, once for each
@@ -933,28 +933,28 @@ public:
      * in the beginning of the loop body of the user code. Still, offering this here can reduce
      * redundant code, such as logging elements during the iteration.
      */
-    self_type& add_visitor( std::function<void(T const&)> const& visitor )
+    self_type& add_observer( std::function<void(T const&)> const& observer )
     {
         if( has_started_ ) {
             throw std::runtime_error(
-                "LambdaIterator: Cannot change visitors after iteration has started."
+                "LambdaIterator: Cannot change observers after iteration has started."
             );
         }
-        visitors_.push_back( visitor );
+        observers_.push_back( observer );
         return *this;
     }
 
     /**
      * @brief Clear all functions that are executed on incrementing to the next element.
      */
-    self_type& clear_visitors()
+    self_type& clear_observers()
     {
         if( has_started_ ) {
             throw std::runtime_error(
-                "LambdaIterator: Cannot change visitors after iteration has started."
+                "LambdaIterator: Cannot change observers after iteration has started."
             );
         }
-        visitors_.clear();
+        observers_.clear();
         return *this;
     }
 
@@ -966,8 +966,8 @@ public:
      * that write properties of the underlying data sources to log. They are executed in the order
      * added.
      *
-     * Similar to the functionality offered by add_visitor(), this could also be achieved by
-     * executing these functions direclty where needed, but having it as a callback here might help
+     * Similar to the functionality offered by add_observer(), this could also be achieved by
+     * executing these functions direclty where needed, but having it as a callback here helps
      * to reduce code duplication.
      *
      * See also add_end_callback().
@@ -1083,7 +1083,7 @@ private:
     // the transforms and filters are executed when filling the buffers,
     // while the visits are executed once the iteration reaches the respective element.
     std::vector<std::function<bool(T&)>> transforms_and_filters_;
-    std::vector<std::function<void(T const&)>> visitors_;
+    std::vector<std::function<void(T const&)>> observers_;
 
     // We furthermore allow callbacks for the beginning and and of the iteration.
     std::vector<std::function<void(self_type const&)>> begin_callbacks_;
