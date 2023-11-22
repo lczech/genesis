@@ -58,3 +58,74 @@ TEST( Math, Moments )
     EXPECT_DOUBLE_EQ( 7.0,                Moments({ 4.0, 6.0, 11.0 }).mean() );
     EXPECT_DOUBLE_EQ( 2.9439202887759488, Moments({ 4.0, 6.0, 11.0 }).stddev() );
 }
+
+TEST( Math, MomentsDefaultConstructor )
+{
+    Moments m;
+    EXPECT_EQ(m.count(), 0);
+    EXPECT_DOUBLE_EQ(m.mean(), 0.0);
+    EXPECT_DOUBLE_EQ(m.variance(), 0.0);
+}
+
+TEST( Math, MomentsConstructorWithRange )
+{
+    std::vector<double> values = {1.0, 2.0, 3.0, 4.0, 5.0};
+    Moments m(values.begin(), values.end());
+
+    EXPECT_EQ(m.count(), values.size());
+    EXPECT_DOUBLE_EQ(m.mean(), 3.0);
+}
+
+TEST( Math, MomentsConstructorWithInitializerList )
+{
+    Moments m({1.0, 2.0, 3.0, 4.0, 5.0});
+
+    EXPECT_EQ(m.count(), 5);
+    EXPECT_DOUBLE_EQ(m.mean(), 3.0);
+}
+
+TEST( Math, MomentsPushFunction )
+{
+    Moments m;
+    m.push(1.0);
+    m.push(2.0);
+
+    EXPECT_EQ(m.count(), 2);
+    EXPECT_DOUBLE_EQ(m.mean(), 1.5);
+}
+
+TEST( Math, MomentsMeanCalculation )
+{
+    Moments m;
+    m.push(10.0);
+    m.push(20.0);
+    m.push(30.0);
+
+    EXPECT_DOUBLE_EQ(m.mean(), 20.0);
+}
+
+TEST( Math, MomentsVarianceCalculation )
+{
+    Moments m;
+    m.push(1.0);
+    m.push(2.0);
+    m.push(3.0);
+    m.push(4.0);
+    m.push(5.0);
+
+    double expected_variance = 2.0;
+    EXPECT_DOUBLE_EQ(m.variance(), expected_variance);
+}
+
+TEST( Math, MomentsStandardDeviationCalculation )
+{
+    Moments m;
+    m.push(1.0);
+    m.push(2.0);
+    m.push(3.0);
+    m.push(4.0);
+    m.push(5.0);
+
+    double expected_stddev = sqrt(2.0);
+    EXPECT_DOUBLE_EQ(m.standard_deviation(), expected_stddev);
+}
