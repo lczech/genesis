@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -134,10 +134,10 @@ std::function<void(Variant&)> make_variant_input_iterator_sample_name_filter_tra
 }
 
 // =================================================================================================
-//     Visitors
+//     Observers
 // =================================================================================================
 
-std::function<void(Variant const&)> make_variant_input_iterator_sequence_order_visitor(
+std::function<void(Variant const&)> make_variant_input_iterator_sequence_order_observer(
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict,
     bool check_sequence_lengths
 ) {
@@ -191,7 +191,7 @@ std::function<void(Variant const&)> make_variant_input_iterator_sequence_order_v
     };
 }
 
-std::function<void(Variant const&)> make_variant_input_iterator_sequence_length_visitor(
+std::function<void(Variant const&)> make_variant_input_iterator_sequence_length_observer(
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict
 ) {
     return [ sequence_dict ]( Variant const& variant ) {

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -66,11 +66,11 @@ TEST( WindowIterator, WindowViewIterator )
         ).emit_leading_empty_windows( false )
     );
 
-    // Also test that the visitor functions get executed once per window.
-    size_t visit_cnt = 0;
-    win_it.add_visitor( [&visit_cnt]( WindowView<Variant> const& ){
-        // LOG_DBG << "at " << visit_cnt;
-        ++visit_cnt;
+    // Also test that the observer functions get executed once per window.
+    size_t observe_cnt = 0;
+    win_it.add_observer( [&observe_cnt]( WindowView<Variant> const& ){
+        // LOG_DBG << "at " << observe_cnt;
+        ++observe_cnt;
     });
 
     size_t window_cnt = 0;
@@ -85,7 +85,7 @@ TEST( WindowIterator, WindowViewIterator )
         ++window_cnt;
     }
     EXPECT_EQ( 7, window_cnt );
-    EXPECT_EQ( 7, visit_cnt );
+    EXPECT_EQ( 7, observe_cnt );
     EXPECT_EQ( 50000, total_cnt );
 }
 

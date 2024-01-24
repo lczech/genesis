@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -203,9 +203,9 @@ public:
         Iterator( std::unique_ptr<BaseIterator> base_iterator )
             : pimpl_( std::move( base_iterator ))
         {
-            // Visit the first element, if this is an active iterator.
+            // Observe the first element, if this is an active iterator.
             assert( pimpl_ );
-            execute_visitors_();
+            execute_observers_();
         }
 
     public:
@@ -300,10 +300,10 @@ public:
 
         self_type& operator ++()
         {
-            // Advance to the next element, and visit it.
+            // Advance to the next element, and observe it.
             assert( pimpl_ );
             pimpl_->increment_();
-            execute_visitors_();
+            execute_observers_();
             return *this;
         }
 
@@ -344,15 +344,15 @@ public:
 
     private:
 
-        void execute_visitors_()
+        void execute_observers_()
         {
             // If there is still a parent, we are active,
-            // and execute all visitors for the element.
+            // and execute all observers for the element.
             assert( pimpl_ );
             if( pimpl_->get_parent_() ) {
                 auto& element = pimpl_->get_current_window_();
-                for( auto const& visitor : pimpl_->get_parent_()->visitors_ ) {
-                    visitor( element );
+                for( auto const& observer : pimpl_->get_parent_()->observers_ ) {
+                    observer( element );
                 }
             }
         }
@@ -538,11 +538,11 @@ public:
     friend Iterator;
 
     // -------------------------------------------------------------------------
-    //     Visitors
+    //     Observers
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Add a visitor function that is executed once for each window during the iteration.
+     * @brief Add a observer function that is executed once for each window during the iteration.
      *
      * These functions are executed when starting and incrementing the iterator, once for each
      * window, in the order in which they are added here. They take the window (typically of type
@@ -553,18 +553,18 @@ public:
      * in the beginning of the loop body of the user code. Still, offering this here can reduce
      * redundant code, such as logging Windows during the iteration.
      */
-    self_type& add_visitor( std::function<void(WindowType const&)> const& visitor )
+    self_type& add_observer( std::function<void(WindowType const&)> const& observer )
     {
-        visitors_.push_back( visitor );
+        observers_.push_back( observer );
         return *this;
     }
 
     /**
      * @brief Clear all functions that are executed on incrementing to the next element.
      */
-    self_type& clear_visitors()
+    self_type& clear_observers()
     {
-        visitors_.clear();
+        observers_.clear();
         return *this;
     }
 
@@ -604,8 +604,8 @@ private:
     InputIterator begin_;
     InputIterator end_;
 
-    // Keep the visitors for each window view.
-    std::vector<std::function<void(WindowType const&)>> visitors_;
+    // Keep the observers for each window view.
+    std::vector<std::function<void(WindowType const&)>> observers_;
 
 };
 

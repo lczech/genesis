@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -918,7 +918,7 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Visitors and Callbacks
+    //     Observers and Callbacks
     // -------------------------------------------------------------------------
 
     /**
@@ -1081,7 +1081,7 @@ private:
 
     // We have two different types of functions that we accept to operate on the data:
     // the transforms and filters are executed when filling the buffers,
-    // while the visits are executed once the iteration reaches the respective element.
+    // while the observers are executed once the iteration reaches the respective element.
     std::vector<std::function<bool(T&)>> transforms_and_filters_;
     std::vector<std::function<void(T const&)>> observers_;
 

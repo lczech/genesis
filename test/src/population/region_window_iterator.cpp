@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -186,11 +186,11 @@ void run_region_window_test_(
         variants.begin(), variants.end(), region_list
     );
 
-    // Also test that the visitor functions get executed once per window.
-    size_t visit_cnt = 0;
-    win_it.add_visitor( [&visit_cnt]( Window<Variant> const& ){
-        // LOG_DBG << "at " << visit_cnt;
-        ++visit_cnt;
+    // Also test that the observer functions get executed once per window.
+    size_t observe_cnt = 0;
+    win_it.add_observer( [&observe_cnt]( Window<Variant> const& ){
+        // LOG_DBG << "at " << observe_cnt;
+        ++observe_cnt;
     });
 
     // ...and go through it.
@@ -382,7 +382,7 @@ void run_region_window_test_(
     EXPECT_EQ( exp_var_total_cnt_2, var_total_cnt );
     EXPECT_EQ( regions_with_vars, window_var_cnt );
     EXPECT_EQ( window_cnt_target, window_tot_cnt );
-    EXPECT_EQ( window_cnt_target, visit_cnt );
+    EXPECT_EQ( window_cnt_target, observe_cnt );
     if( ! skip_empty_regions ) {
         EXPECT_EQ( region_list->total_region_count(), window_tot_cnt );
     }

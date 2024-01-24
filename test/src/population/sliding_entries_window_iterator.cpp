@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,12 +50,12 @@ void test_sliding_entries_iterator_( WindowIterator& win_it, size_t count )
     bool found_first_win = false;
     bool found_last_win = false;
 
-    // Also test that the visitor functions get executed once per window.
-    size_t visit_cnt = 0;
+    // Also test that the observer functions get executed once per window.
+    size_t observe_cnt = 0;
     using ValueType = typename WindowIterator::InputIteratorType::value_type;
-    win_it.add_visitor( [&visit_cnt]( Window<ValueType> const& ){
-        // LOG_DBG << "at " << visit_cnt;
-        ++visit_cnt;
+    win_it.add_observer( [&observe_cnt]( Window<ValueType> const& ){
+        // LOG_DBG << "at " << observe_cnt;
+        ++observe_cnt;
     });
 
     // DBG  2R : 7790001 7790001-7800000 # 1
@@ -133,7 +133,7 @@ void test_sliding_entries_iterator_( WindowIterator& win_it, size_t count )
         ++window_cnt;
     }
     EXPECT_EQ( window_sizes.size(), window_cnt );
-    EXPECT_EQ( window_sizes.size(), visit_cnt );
+    EXPECT_EQ( window_sizes.size(), observe_cnt );
 
     EXPECT_TRUE( found_first_win );
     EXPECT_TRUE( found_last_win );
@@ -249,16 +249,16 @@ TEST( WindowIterator, SlidingEntriesWindowView )
         pileup_begin, pileup_end, 9000
     );
 
-    // Also test that the visitor functions get executed once per window.
-    size_t visit_cnt = 0;
-    win_it.add_visitor( [&visit_cnt]( WindowView<Variant> const& ){
-        // LOG_DBG << "at " << visit_cnt;
-        ++visit_cnt;
+    // Also test that the observer functions get executed once per window.
+    size_t observe_cnt = 0;
+    win_it.add_observer( [&observe_cnt]( WindowView<Variant> const& ){
+        // LOG_DBG << "at " << observe_cnt;
+        ++observe_cnt;
     });
 
     // We use a test function that takes our abstract type, to see if we set this up correctly.
     run_sliding_entries_window_view_variant_test_( win_it );
-    EXPECT_EQ( 6, visit_cnt );
+    EXPECT_EQ( 6, observe_cnt );
 
     // size_t window_cnt = 0;
     // for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
@@ -283,11 +283,11 @@ TEST( WindowIterator, SlidingEntriesEmpty )
         pileup_begin, pileup_end, 10000
     );
 
-    // Also test that the visitor functions get executed once per window.
-    size_t visit_cnt = 0;
-    win_it.add_visitor( [&visit_cnt]( Window<Variant> const& ){
-        // LOG_DBG << "at " << visit_cnt;
-        ++visit_cnt;
+    // Also test that the observer functions get executed once per window.
+    size_t observe_cnt = 0;
+    win_it.add_observer( [&observe_cnt]( Window<Variant> const& ){
+        // LOG_DBG << "at " << observe_cnt;
+        ++observe_cnt;
     });
 
     size_t window_cnt = 0;
@@ -304,5 +304,5 @@ TEST( WindowIterator, SlidingEntriesEmpty )
         ++window_cnt;
     }
     EXPECT_EQ( 0, window_cnt );
-    EXPECT_EQ( 0, visit_cnt );
+    EXPECT_EQ( 0, observe_cnt );
 }

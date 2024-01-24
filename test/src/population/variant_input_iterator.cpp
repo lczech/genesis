@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -621,7 +621,7 @@ TEST( VariantInputIterator, ParallelInputIterator2 )
 void test_variant_input_iterator_unordered_chromosomes_(
     VariantInputIterator& it,
     size_t expected_positions,
-    bool with_visitor,
+    bool with_observer,
     bool with_dict,
     bool good_sequence_lengths
 ) {
@@ -641,10 +641,10 @@ void test_variant_input_iterator_unordered_chromosomes_(
         }
     }
 
-    // Add a check visitor to the iterator.
-    if( with_visitor ) {
+    // Add a check observer to the iterator.
+    if( with_observer ) {
         it.add_observer(
-            make_variant_input_iterator_sequence_order_visitor( sequence_dict )
+            make_variant_input_iterator_sequence_order_observer( sequence_dict )
         );
     }
 

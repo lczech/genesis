@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -87,7 +87,7 @@ std::function<void(Variant&)> make_variant_input_iterator_sample_name_filter_tra
 );
 
 // =================================================================================================
-//     Visitors
+//     Observers
 // =================================================================================================
 
 /**
@@ -123,9 +123,9 @@ std::function<void(Variant&)> make_variant_input_iterator_sample_name_filter_tra
  *     // Create a VariantInputIterator, for example from a sync file
  *     auto variant_iterator = make_variant_input_iterator_from_sync_file( sync_file );
  *
- *     // Add the visitor that checks order, using a
- *     variant_iterator.add_visitor(
- *         make_variant_input_iterator_sequence_order_visitor(
+ *     // Add the observer that checks order, using a
+ *     variant_iterator.add_observer(
+ *         make_variant_input_iterator_sequence_order_observer(
  *             sequence_dict, true
  *         )
  *     );
@@ -135,7 +135,7 @@ std::function<void(Variant&)> make_variant_input_iterator_sample_name_filter_tra
  *         // ...
  *     }
  *
- * @see See @link ::genesis::utils::LambdaIterator::add_visitor() LambdaIterator::add_visitor()@endlink
+ * @see See @link ::genesis::utils::LambdaIterator::add_observer() LambdaIterator::add_observer()@endlink
  * for the function of the underlying iterator that accepts the returned function from here.
  *
  * @see make_variant_input_iterator_from_vector(),
@@ -147,7 +147,7 @@ std::function<void(Variant&)> make_variant_input_iterator_sample_name_filter_tra
  * make_variant_input_iterator_from_individual_vcf_file(),
  * make_variant_input_iterator_from_variant_parallel_input_iterator()
  */
-std::function<void(Variant const&)> make_variant_input_iterator_sequence_order_visitor(
+std::function<void(Variant const&)> make_variant_input_iterator_sequence_order_observer(
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = {},
     bool check_sequence_lengths = true
 );
@@ -156,13 +156,13 @@ std::function<void(Variant const&)> make_variant_input_iterator_sequence_order_v
  * @brief Helper function to check that some Variant input has positions that agree with those
  * reported in a SequenceDict.
  *
- * Similar to make_variant_input_iterator_sequence_order_visitor(), but without the sequence order
+ * Similar to make_variant_input_iterator_sequence_order_observer(), but without the sequence order
  * check. Meant for situations where this order check is either not necessary, or already done in
  * some other way, for example in a VariantParallelInputIterator.
  *
- * See make_variant_input_iterator_sequence_order_visitor() for details on usage.
+ * See make_variant_input_iterator_sequence_order_observer() for details on usage.
  */
-std::function<void(Variant const&)> make_variant_input_iterator_sequence_length_visitor(
+std::function<void(Variant const&)> make_variant_input_iterator_sequence_length_observer(
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict
 );
 
