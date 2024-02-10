@@ -64,6 +64,7 @@
 #    endif
 #    include <stdio.h>
 #    include <sys/ioctl.h>
+#    include <sys/types.h>
 #    include <unistd.h>
 #endif
 
@@ -251,6 +252,17 @@ bool info_using_htslib()
 // =================================================================================================
 //     Run Time Environment
 // =================================================================================================
+
+size_t info_get_pid()
+{
+    // The return type `pid_t` of getpid() is an `int`, guaranteed to be non-negative:
+    // https://ftp.gnu.org/old-gnu/Manuals/glibc-2.2.3/html_node/libc_554.html
+    // https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_300
+    // We hence simply convert to `size_t` here.
+    auto const pid = ::getpid();
+    assert( pid > 0 );
+    return static_cast<size_t>( pid );
+}
 
 bool info_stdin_is_terminal()
 {

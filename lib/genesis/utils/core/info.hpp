@@ -128,6 +128,17 @@ bool info_using_htslib();
 // =================================================================================================
 
 /**
+ * @brief Get the process ID of the current process.
+ *
+ * This is a POSIX system call, using `getpid()`. See https://man7.org/linux/man-pages/man2/getpid.2.html
+ * and https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/getpid.2.html
+ * for details. We wrap this here to avoid having the system headers included. Furthermore, we
+ * convert to a size_t for convenience, although typically, the pid is an `int` (guaranteed to be
+ * non-negative for an actual process).
+ */
+size_t info_get_pid();
+
+/**
  * @brief Return true iff the standard input stream is a terminal, and false if not, i.e., if
  * it is a file or a pipe.
  */
