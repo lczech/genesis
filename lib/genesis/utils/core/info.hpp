@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -172,18 +172,13 @@ size_t info_current_file_count();
 // =================================================================================================
 
 /**
- * @brief Try to get whether hyperthreads are enabled in the current system.
- */
-bool hyperthreads_enabled();
-
-/**
  * @brief Make an educated guess on the number of threads to use for multi-threaded functionality.
  *
  * This function uses multiple sources and ways to try to guess a reasonable number of threads:
  *
- *  - If @p use_openmp is set (and genesis was compiled with OpenMP support) we obtain
- *    `omp_get_max_threads()` to get a number of threads from that. This itself considers for
- *    instance the environment variable `OMP_NUM_THREADS` as a source.
+ *  - If @p use_openmp is set, we use the `omp_get_max_threads()` function or the `OMP_NUM_THREADS`
+ *    environment variable to get a number of threads, using the info_number_of_threads_openmp()
+ *    function. For details, see there.
  *  - If @p use_slurm is set, we get a number of cores from the environment variable
  *    `SLURM_CPUS_PER_TASK`.
  *  - Lastly, we get the result of `std::thread::hardware_concurrency()` as another hint.
@@ -203,6 +198,30 @@ size_t guess_number_of_threads(
     bool use_slurm = true,
     bool physical_cores = true
 );
+
+/**
+ * @brief Try to get whether hyperthreads are enabled in the current system.
+ */
+bool info_hyperthreads_enabled();
+
+/**
+ * @brief Get the number of threads as indicated by the OpenMP environment.
+ *
+ * If genesis was compiled with OpenMP support (that is, if `GENESIS_OPENMP` is defined, which is
+ * done via the CMake script), we use `omp_get_max_threads()` to get a number of threads from that.
+ * If however genesis was compiled without OpenMP support, we instead consider the environment
+ * variable `OMP_NUM_THREADS` as a source for the OpenMP threads.
+ *
+ * If unsuccessful, 0 is returned.
+ */
+size_t info_number_of_threads_openmp();
+
+/**
+ * @brief Get the number of threads as indicated by the SLURM environment.
+ *
+ * This uses the environment variable `SLURM_CPUS_PER_TASK`. If unsuccessful, 0 is returned.
+ */
+size_t info_number_of_threads_slurm();
 
 } // namespace utils
 } // namespace genesis
