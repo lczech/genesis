@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -144,6 +144,7 @@
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/compensated_sum.hpp"
+#include "genesis/utils/math/correlation.hpp"
 #include "genesis/utils/math/distance.hpp"
 #include "genesis/utils/math/euclidean_kmeans.hpp"
 #include "genesis/utils/math/histogram/accumulator.hpp"
