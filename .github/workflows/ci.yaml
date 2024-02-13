@@ -192,7 +192,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.1.0
+        uses: actions/checkout@v4.0.0
 
       # -------------------------------------------------------
       #     Setup
@@ -200,7 +200,7 @@ jobs:
 
       - name: Setup C++
         # Reference: https://github.com/marketplace/actions/setup-cpp-c-c
-        uses: aminya/setup-cpp@v0.22.0
+        uses: aminya/setup-cpp@v0.36.1
         if: matrix.compiler != 'apple'
         with:
           compiler: ${{ matrix.compiler }}
