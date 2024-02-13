@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -107,23 +107,24 @@ private:
     T t;
 };
 
-template <typename T>
-inline constexpr std::size_t hash_combine_32( std::size_t seed, T const& value )
+// =================================================================================================
+//     Hash Helpers
+// =================================================================================================
+
+inline constexpr std::size_t combine_hashes_32( std::size_t h1, std::size_t h2 )
 {
-    return seed ^ ( std::hash<T>()( value ) + 0x9e3779b9 + ( seed << 6 ) + ( seed >> 2 ));
+    return h1 ^ ( h2 + 0x9e3779b9 + ( h1 << 6 ) + ( h1 >> 2 ));
 }
 
-template <typename T>
-inline constexpr std::size_t hash_combine_64( std::size_t seed, T const& value )
+inline constexpr std::size_t combine_hashes_64( std::size_t h1, std::size_t h2 )
 {
-    return seed ^ ( std::hash<T>()( value ) + 0x9e3779b97f4a7c16 + ( seed << 12 ) + ( seed >> 4 ));
+    return h1 ^ ( h2 + 0x9e3779b97f4a7c16 + ( h1 << 12 ) + ( h1 >> 4 ));
 }
 
 /**
- * @brief Combine a seed value (e.g., another hash) with the hash of a given type.
+ * @brief Combine two hash values.
  */
-template <typename T>
-inline constexpr std::size_t hash_combine( std::size_t seed, T const& value )
+inline constexpr std::size_t combine_hashes( std::size_t h1, std::size_t h2 )
 {
     // We use a run-time check for the size of size_t,
     // which however most likely is already resolved at compile time.
@@ -138,18 +139,27 @@ inline constexpr std::size_t hash_combine( std::size_t seed, T const& value )
         "Need sizeof( std::size_t ) to be 4 or 8 (32bit or 64bit integer)"
     );
     return ( sizeof( std::size_t ) == 4 )
-        ? hash_combine_32( seed, value )
-        : hash_combine_64( seed, value )
+        ? combine_hashes_32( h1, h2 )
+        : combine_hashes_64( h1, h2 )
     ;
 
     // constexpr in C++11 cannot have multiple return values
     // if( sizeof( std::size_t ) == 4 ) {
-    //     return hash_combine_32( seed, value );
+    //     return combine_hashes_32( seed, value );
     // } else if( sizeof( std::size_t ) == 8 ) {
-    //     return hash_combine_64( seed, value );
+    //     return combine_hashes_64( seed, value );
     // } else {
     //     throw std::runtime_error( "Invalid std::size_t size." );
     // }
+}
+
+/**
+ * @brief Combine a seed value (e.g., another hash) with the hash of a given type.
+ */
+template <typename T>
+inline constexpr std::size_t hash_combine( std::size_t seed, T const& value )
+{
+    return combine_hashes( seed, std::hash<T>()( value ));
 }
 
 } // namespace utils

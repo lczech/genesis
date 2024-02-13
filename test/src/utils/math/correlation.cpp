@@ -33,6 +33,7 @@
 #include "genesis/utils/math/correlation.hpp"
 #include "genesis/utils/text/string.hpp"
 
+#include <cmath>
 #include <ctime>
 #include <limits>
 #include <random>
@@ -162,32 +163,95 @@ TEST( Math, KendallsTauCorrelationCoeffcient )
 
 TEST( Math, KendallsTauCorrelationCoeffcientFuzzy )
 {
-    // Setup
+    // Number and size of tests
     size_t const num_fuzzy_tests = 100;
     size_t const num_elem = 100;
-    double const rand_min = 0.0;
-    double const rand_max = 1000.0;
+
+    // Setup random generator
     auto const seed = std::time(nullptr);
-    std::default_random_engine re( seed );
-    std::uniform_real_distribution<double> rand_dbl( rand_min, rand_max );
+    std::default_random_engine engine( seed );
+    std::uniform_int_distribution<> rand_bool(0,1);
+    std::uniform_int_distribution<> rand_nan(0,10);
 
-    // Run
-    for( size_t i = 0; i < num_fuzzy_tests; ++i ) {
+    // Run with different maxima, and rounding or not,
+    // so that we test ties more thoroughly.
+    std::vector<double> max_vals{ 10.0, 1000.0 };
+    for( auto rand_max : max_vals ) {
+        for( size_t n = 0; n < num_fuzzy_tests; ++n ) {
+            std::uniform_real_distribution<double> rand_double( 0.0, rand_max );
+            bool const do_round = rand_bool(engine);
+            bool const with_nans = rand_bool(engine);
 
-        // Data vectors
-        std::vector<double> x( num_elem );
-        std::vector<double> y( num_elem );
+            // Data vectors
+            std::vector<double> x( num_elem );
+            std::vector<double> y( num_elem );
 
-        // Generate random numbers for fuzzy testing
-        for( size_t i = 0; i < num_elem; ++i ) {
-            x[i] = rand_dbl(re);
-            y[i] = rand_dbl(re);
+            // Generate random numbers for fuzzy testing
+            for( size_t i = 0; i < num_elem; ++i ) {
+                x[i] = rand_double(engine);
+                y[i] = rand_double(engine);
+                if( do_round ) {
+                    x[i] = std::round(x[i]);
+                    y[i] = std::round(y[i]);
+                }
+                if( with_nans && rand_nan(engine) == 0 ) {
+                    x[i] = std::numeric_limits<double>::quiet_NaN();
+                }
+                if( with_nans && rand_nan(engine) == 0 ) {
+                    y[i] = std::numeric_limits<double>::quiet_NaN();
+                }
+            }
+
+            // LOG_DBG << "rand_max " << rand_max;
+            // LOG_DBG << " do_round " << do_round;
+            // LOG_DBG << " with_nans " << with_nans;
+            // LOG_DBG << "x " << genesis::utils::join( x );
+            // LOG_DBG << "y " << genesis::utils::join( y );
+            // LOG_BOLD;
+
+            // Test the naive (slow) algorithm against Knight's algorithm, for all adjustments.
+            auto const result_xy = compute_all_taus_( x, y );
+            EXPECT_FLOAT_EQ( result_xy[0], result_xy[1] ) << "seed: " << seed;
+            EXPECT_FLOAT_EQ( result_xy[2], result_xy[3] ) << "seed: " << seed;
+            EXPECT_FLOAT_EQ( result_xy[4], result_xy[5] ) << "seed: " << seed;
+
+            // Also test symmetry.
+            auto const result_yx = compute_all_taus_( y, x );
+            for( size_t i = 0; i < result_xy.size(); ++i ) {
+                EXPECT_FLOAT_EQ( result_xy[i], result_yx[i] ) << "seed: " << seed;
+            }
         }
-
-        // Test the naive (slow) algorithm against Knight's algorithm, for all adjustments.
-        auto const result = compute_all_taus_( x, y );
-        EXPECT_FLOAT_EQ( result[0], result[1] ) << "seed: " << seed;
-        EXPECT_FLOAT_EQ( result[2], result[3] ) << "seed: " << seed;
-        EXPECT_FLOAT_EQ( result[4], result[5] ) << "seed: " << seed;
     }
+}
+
+TEST( Math, KendallsTauCorrelationCoeffcientTies )
+{
+    // Real world data with a lot of ties...
+    std::vector<double> meta{
+        0, 8, 8, 8, 10, 10, 10, 8, 1, 0, 8, 8, 0, 8, 9, 9, 8, 0, 8, 10, 6, 10, 8, 8, 8, 8, 0, 10, 8,
+        1, 7, 8, 8, 8, 7, 8, 0, 0, 0, 8, 8, 3, 0, 8, 1, 0, 0, 2, 8, 8, 0, 8, 0, 8, 8, 0, 0, 0, 10,
+        0, 0, 1, 0, 0, 0, 0, 8, 7, 8, 0, 8, 8, 10, 8, 8, 2, 7, 0, 8, 8, 8, 8, 8, 0, 0, 0, 0, 8, 8,
+        10, 8, 8, 0, 8, 10, 0, 0, 6, 4, 10, 0, 8, 8, 10, 0, 1, 8, 0, 8, 0, 1, 0, 0, 2, 6, 4, 0, 1,
+        10, 8, 0, 7, 8, 8, 8, 0, 9, 0, 1, 10, 8, 8, 0, 8, 8, 4, 5, 8, 0, 0, 10, 8, 0, 8, 7, 8, 8, 8,
+        9, 8, 5, 8, 0, 2, 7, 10, 8, 0, 0, 8, 0, 0, 8, 10, 8, 8, 0, 8, 0, 8, 0, 10, 8, 8, 4, 6, 8, 8,
+        0, 8, 8, 4, 0, 0, 9, 0, 0, 4, 7, 5, 8, 10, 8, 0, 0, 8, 0, 0, 0, 0, 0, 0, 8, 0, 9, 0, 0, 0,
+        0, 8, 0, 0, 8, 8, 3, 8, 0, 3, 0, 8
+    };
+    std::vector<double> edge{
+        -1, -0.96, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -0.99, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -0.99, -1, -1, -1, -1, -1,
+        -0.98, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -0.97, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
+    };
+
+    auto const result = compute_all_taus_( meta, edge );
+    EXPECT_FLOAT_EQ( result[0], result[1] );
+    EXPECT_FLOAT_EQ( result[2], result[3] );
+    EXPECT_FLOAT_EQ( result[4], result[5] );
 }
