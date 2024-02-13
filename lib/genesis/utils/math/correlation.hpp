@@ -150,8 +150,8 @@ double spearmans_rank_correlation_coefficient(
     auto const cleaned = finite_pairs( first_a, last_a, first_b, last_b );
 
     // Get the ranking of both vectors.
-    auto ranks_a = ranking_fractional( cleaned.first );
-    auto ranks_b = ranking_fractional( cleaned.second );
+    auto const ranks_a = ranking_fractional( cleaned.first );
+    auto const ranks_b = ranking_fractional( cleaned.second );
     assert( ranks_a.size() == ranks_b.size() );
 
     return pearson_correlation_coefficient( ranks_a, ranks_b );
@@ -170,6 +170,83 @@ inline double spearmans_rank_correlation_coefficient(
         vec_a.begin(), vec_a.end(), vec_b.begin(), vec_b.end()
     );
 }
+
+// =================================================================================================
+//     Kendall Tau Correlation Coefficient
+// =================================================================================================
+
+/**
+ * @brief Method for computing Kendall's Tau.
+ *
+ * See kendalls_tau_correlation_coefficient() for the function that uses this.
+ * See https://en.wikipedia.org/wiki/Kendall_rank_correlation_coefficient and
+ * https://docs.scipy.org/doc/scipy-1.12.0/reference/generated/scipy.stats.kendalltau.html#scipy.stats.kendalltau
+ * for details on the different methods.
+ */
+enum class KendallsTauMethod
+{
+    /**
+     * @brief Compute Tau-a, which does not make any adjustment for ties.
+     */
+    kTauA,
+
+    /**
+     * @brief Compute Tau-b, which _does_ adjustments for ties.
+     */
+    kTauB,
+
+    /**
+     * @brief Compute Tau-c, (also called Stuart-Kendall Tau-c).
+     */
+    kTauC,
+};
+
+/**
+ * @brief Compute Kendall's Tau Correlation Coefficient.
+ *
+ * This function computes Kendall's tau, if requested accounting for ties,
+ * and using Knight's algorithm for speed.
+ *
+ * >  Knight, W. (1966). "A Computer Method for Calculating Kendall's Tau with Ungrouped Data".
+ * > Journal of the American Statistical Association. 61 (314): 436–439.
+ * > doi:10.2307/2282833. JSTOR 2282833.
+ *
+ * See kendalls_tau_correlation_coefficient_naive() for the naive, slow version.
+ */
+double kendalls_tau_correlation_coefficient(
+    std::vector<double> const& x,
+    std::vector<double> const& y,
+    KendallsTauMethod method = KendallsTauMethod::kTauB
+);
+
+/**
+ * @copydoc kendalls_tau_correlation_coefficient(
+ *     std::vector<double> const&, std::vector<double> const&, KendallsTauMethod
+ * )
+ */
+template <class InputIteratorA, class InputIteratorB>
+double kendalls_tau_correlation_coefficient(
+    InputIteratorA first_a, InputIteratorA last_a,
+    InputIteratorB first_b, InputIteratorB last_b,
+    KendallsTauMethod method = KendallsTauMethod::kTauB
+) {
+    std::vector<double> const x( first_a, last_a );
+    std::vector<double> const y( first_b, last_b );
+    return kendalls_tau_correlation_coefficient( x, y, method );
+}
+
+/**
+ * @brief Compute a simple version of Kendall's Tau Correlation Coefficient.
+ *
+ * This version uses a naive nested loop over the elements.
+ * It is mainly provided for testing the more advanced implementation,
+ * see kendalls_tau_correlation_coefficient() for details.
+ */
+double kendalls_tau_correlation_coefficient_naive(
+    std::vector<double> const& x,
+    std::vector<double> const& y,
+    KendallsTauMethod method = KendallsTauMethod::kTauB
+);
 
 // =================================================================================================
 //     Fisher z-transformation
