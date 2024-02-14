@@ -255,3 +255,33 @@ TEST( Math, KendallsTauCorrelationCoeffcientTies )
     EXPECT_FLOAT_EQ( result[2], result[3] );
     EXPECT_FLOAT_EQ( result[4], result[5] );
 }
+
+// TEST( Math, KendallsTauCorrelationCoeffcientMem )
+// {
+//     // Number and size of tests
+//     size_t const num_elem = 1000000;
+//
+//     // Setup random generator
+//     auto const seed = std::time(nullptr);
+//     std::default_random_engine engine( seed );
+//     std::uniform_int_distribution<> rand_nan(0,10);
+//     std::uniform_real_distribution<double> rand_double( 0.0, 1000.0 );
+//
+//     // Data vectors
+//     std::vector<double> x( num_elem );
+//     std::vector<double> y( num_elem );
+//
+//     // Generate random numbers for fuzzy testing
+//     for( size_t i = 0; i < num_elem; ++i ) {
+//         x[i] = rand_double(engine);
+//         y[i] = rand_double(engine);
+//         if( rand_nan(engine) == 0 ) {
+//             x[i] = std::numeric_limits<double>::quiet_NaN();
+//         }
+//         if( rand_nan(engine) == 0 ) {
+//             y[i] = std::numeric_limits<double>::quiet_NaN();
+//         }
+//     }
+//
+//     LOG_DBG << kendalls_tau_correlation_coefficient( x, y );
+// }

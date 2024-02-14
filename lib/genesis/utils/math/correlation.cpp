@@ -208,6 +208,13 @@ size_t kendalls_tau_sort_and_count_(
  * @brief Helper for computing hashes of pairs.
  */
 struct kendalls_tau_pair_hash_ {
+    // Simple hash for non-pair types
+    template <class T>
+    std::size_t operator () ( T const& value ) const {
+        return std::hash<T>{}(value);
+    }
+
+    // Hash for pairs of other types
     template <class T1, class T2>
     std::size_t operator () ( std::pair<T1,T2> const& value ) const {
         auto h1 = std::hash<T1>{}(value.first);
@@ -219,40 +226,14 @@ struct kendalls_tau_pair_hash_ {
 /**
  * @brief Helper function to count the number of pairs that have ties.
  */
-size_t kendalls_tau_count_tied_pairs_(
-    std::vector<std::pair<double, double>> const& pairs
-) {
-    // Collect all unique values, counting how often each of them occurs.
-    // We need to skip nan values here, as we also omit them in all other calculations.
-    std::unordered_map<std::pair<double, double>, size_t, kendalls_tau_pair_hash_> unique_counts;
-    for( auto val : pairs ) {
-        ++unique_counts[val];
-    }
-
-    // The number of ties for the purposes of the algorithm needs to account for the duplicates
-    // occurring in all combinations of pairs, so we use a triangular number.
-    size_t tie_sum = 0;
-    for( auto const& pair : unique_counts ) {
-        if( pair.second > 1 ) {
-            tie_sum += pair.second * (pair.second - 1) / 2;
-        }
-    }
-    return tie_sum;
-}
-
-/**
- * @brief Helper function to count the number of tied pairs.
- */
+template<typename T>
 size_t kendalls_tau_count_ties_(
-    std::vector<double> const& data
+    std::vector<T> const& values
 ) {
     // Collect all unique values, counting how often each of them occurs.
-    // We need to skip nan values here, as we also omit them in all other calculations.
-    std::unordered_map<double, size_t> unique_counts;
-    for( auto val : data ) {
-        if( std::isfinite(val) ) {
-            ++unique_counts[val];
-        }
+    std::unordered_map<T, size_t, kendalls_tau_pair_hash_> unique_counts;
+    for( auto const& val : values ) {
+        ++unique_counts[val];
     }
 
     // The number of ties for the purposes of the algorithm needs to account for the duplicates
@@ -295,13 +276,15 @@ double kendalls_tau_correlation_coefficient_clean_(
     for( size_t i = 0; i < n; ++i ) {
         sorted_y[i] = y[rank_x[i]];
     }
+    rank_x.clear();
 
     // Use merge sort to count inversions in sorted_y, which are discordant pairs.
     // We use a temporary vector for merge sort, to avoid re-allocating memory in each step.
     std::vector<double> temp(n);
     size_t const discordant = kendalls_tau_sort_and_count_( sorted_y, temp, 0, n - 1 );
-    assert( std::is_sorted( temp.begin(), temp.end() ));
+    assert( std::is_sorted( sorted_y.begin(), sorted_y.end() ));
     temp.clear();
+    sorted_y.clear();
 
     // We only count the discordant pairs as the number of inversions made in the merge sort above.
     // To get the correct number of concordant pairs, we need to know the ties, including the pairs
@@ -316,7 +299,7 @@ double kendalls_tau_correlation_coefficient_clean_(
 
         pairs.emplace_back( x[i], y[i] );
     }
-    size_t const n3 = kendalls_tau_count_tied_pairs_( pairs );
+    size_t const n3 = kendalls_tau_count_ties_( pairs );
     pairs.clear();
 
     // We also compute n0 = number of pairs, n1 and n2 = number of ties in x and y, respectively.
@@ -408,14 +391,13 @@ double kendalls_tau_correlation_coefficient_naive(
     for( size_t i = 0; i < x.size(); ++i ) {
         if( std::isfinite(x[i]) && std::isfinite(y[i]) ) {
             ++n;
+        } else {
+            continue;
         }
 
         for( size_t j = i + 1; j < x.size(); ++j ) {
             // Skip any pair with non-finite values.
-            if(
-                !std::isfinite(x[i]) || !std::isfinite(y[i]) ||
-                !std::isfinite(x[j]) || !std::isfinite(y[j])
-            ) {
+            if( !std::isfinite(x[j]) || !std::isfinite(y[j]) ) {
                 continue;
             }
 
