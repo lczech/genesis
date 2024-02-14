@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/formats/variant_input_iterator.hpp"
+#include "genesis/population/iterators/variant_input_iterator.hpp"
 #include "genesis/population/functions/genome_locus.hpp"
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/population/variant.hpp"

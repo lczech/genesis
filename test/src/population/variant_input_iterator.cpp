@@ -31,8 +31,8 @@
 #include "src/common.hpp"
 
 #include "genesis/population/base_counts.hpp"
-#include "genesis/population/formats/variant_input_iterator.hpp"
-#include "genesis/population/formats/variant_parallel_input_iterator.hpp"
+#include "genesis/population/iterators/variant_input_iterator.hpp"
+#include "genesis/population/iterators/variant_parallel_input_iterator.hpp"
 #include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/population/functions/variant_input_iterator.hpp"

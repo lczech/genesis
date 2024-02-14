@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@
 #include "genesis/population/formats/simple_pileup_input_iterator.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/formats/sync_reader.hpp"
-#include "genesis/population/formats/variant_input_iterator.hpp"
+#include "genesis/population/iterators/variant_input_iterator.hpp"
 #include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/fst_pool_functions.hpp"
 #include "genesis/population/functions/fst_pool_processor.hpp"
