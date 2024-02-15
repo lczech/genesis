@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -268,6 +268,20 @@ TEST( Math, GlmGaussSimple )
     EXPECT_NEAR( 0.0, result.which[0], delta );
     EXPECT_NEAR( 0.6748299, result.betaQ[0], delta );
     EXPECT_NEAR( 27.7548, result.tri[0], 0.0001 );
+}
+
+TEST( Math, GlmGaussInteraction )
+{
+    std::vector<double> const response{ 0, 36, 64, 84, 96, 100, 96, 84, 64, 36, 0 };
+    auto const predictor = Matrix<double>(11, 2, {
+        // 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000,
+        // 0, 10000, 40000, 90000, 160000, 250000, 360000, 490000, 640000, 810000, 1000000
+        0, 0, 100, 10000, 200, 40000, 300, 90000, 400, 160000, 500, 250000, 600, 360000, 700, 490000, 800, 640000, 900, 810000, 1000, 1000000
+    });
+
+    // Run the model. As the data is created to be perfect, we expect a perfect fit.
+    auto const result = glm_fit( predictor, response );
+    EXPECT_FLOAT_EQ( 0.0, result.deviance );
 }
 
 TEST( Math, GlmGaussNoIntercept )
