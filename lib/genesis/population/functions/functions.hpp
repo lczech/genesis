@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -270,17 +270,33 @@ void guess_and_set_ref_and_alt_bases( Variant& variant, bool force = false );
 
 /**
  * @brief Guess the reference and alternative bases for a Variant, and set them,
- * using a ReferenceGenome to get the reference base where possible.
+ * using a given reference base.
  *
  * This uses the same approach as guess_and_set_ref_and_alt_bases( Variant&, bool ), but
- * additionally consideres the given @p ref_genome. If the reference genome contains a value
+ * additionally consideres the given @p ref_base. If the reference base contains a value
  * in `ACGT` (case insensitive) at the position of the @p variant, it is used as the reference.
  * Note that the function throws an exception should the reference base already be set to a different
- * value, in order to notify users that something is off.
+ * value that is not code for the base of the Variant, in order to notify users that something is off.
+ * That is, we do check for ambiguity codes, and if the reference base is an ambiguous base that
+ * contains the one already set in the Variant, this is okay. An exception is thrown on mismatch
+ * only.
  *
- * If the reference genome is `N` though, the function behaves the same as its reference-free
- * alternative. For the alternative base, it always uses the most abundant base that is not the
- * reference, same as its alternative function.
+ * If the reference base is `N` though, the function behaves the same as its reference-free
+ * overload of the function. For the alternative base, it always uses the most abundant base
+ * that is not the reference, same as its alternative function.
+ */
+void guess_and_set_ref_and_alt_bases(
+    Variant& variant,
+    char ref_base,
+    bool force = false
+);
+
+/**
+ * @brief Guess the reference and alternative bases for a Variant, and set them,
+ * using a given reference genme to obtain the base.
+ *
+ * This simply calls guess_and_set_ref_and_alt_bases( Variant&, char, bool ) with the base given
+ * by the @p ref_genome. See there for details.
  */
 void guess_and_set_ref_and_alt_bases(
     Variant& variant,

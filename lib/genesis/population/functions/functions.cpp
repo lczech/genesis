@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -598,17 +598,13 @@ void guess_and_set_ref_and_alt_bases( Variant& variant, bool force )
 
 void guess_and_set_ref_and_alt_bases(
     Variant& variant,
-    genesis::sequence::ReferenceGenome const& ref_genome,
+    char ref_base,
     bool force
 ) {
     // Shouldn't happen from our parsing etc, but better safe than sorry.
     if( variant.position == 0 ) {
         throw std::runtime_error( "Invalid position 0 in Variant." );
     }
-
-    // Get the reference sequence, and see if it is long enough. Throws if seq or base not present.
-    assert( variant.position > 0 );
-    auto const ref_base = ref_genome.get_base( variant.chromosome, variant.position );
 
     // Now use that reference base. If it is in ACGT, we use it as ref; if not, we check against
     // ambiguity codes to see if it fits with our count-based ref and alt bases instead.
@@ -661,6 +657,16 @@ void guess_and_set_ref_and_alt_bases(
             );
         }
     }
+}
+
+void guess_and_set_ref_and_alt_bases(
+    Variant& variant,
+    genesis::sequence::ReferenceGenome const& ref_genome,
+    bool force
+) {
+    // Get the reference base. Throws if seq or base not present.
+    auto const ref_base = ref_genome.get_base( variant.chromosome, variant.position );
+    return guess_and_set_ref_and_alt_bases( variant, ref_base, force );
 }
 
 // =================================================================================================

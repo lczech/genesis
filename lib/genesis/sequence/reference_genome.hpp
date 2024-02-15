@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -173,13 +173,29 @@ public:
      */
     inline char get_base( std::string const& chromosome, size_t position, bool to_upper = true ) const
     {
-        auto const& ref_seq = get( chromosome );
+        return get_base( find( chromosome ), position, to_upper );
+    }
+
+    /**
+     * @brief Get a particular base at the given sequence iterator and position.
+     *
+     * This is intended as an optimization, when an iterator returned from find() is cached.
+     * That way, the lookup does not have to be performed for every position in the genome.
+     */
+    inline char get_base( const_iterator it, size_t position, bool to_upper = true ) const
+    {
+        // We assume that the given iterator is valid. Everything else is a user error.
+        assert( it != sequences_.end() );
+
+        // Get the base at the given position.
+        auto const& ref_seq = *it;
         if( position == 0 || position - 1 >= ref_seq.length() ) {
             throw std::runtime_error(
-                "Reference Genome sequence \"" + chromosome + "\" is " +
+                "Reference Genome sequence \"" + ref_seq.label() + "\" is " +
                 std::to_string( ref_seq.length() ) +
                 " bases long, which is shorter than then requested (1-based) position " +
-                std::to_string( position )
+                std::to_string( position ) + ". This likely means that some input data contains " +
+                "positions beyond the length of the reference genome, which is invalid."
             );
         }
         assert( position - 1 < ref_seq.length() );
