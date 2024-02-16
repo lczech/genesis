@@ -224,7 +224,7 @@ struct kendalls_tau_pair_hash_ {
 };
 
 /**
- * @brief Helper function to count the number of pairs that have ties.
+ * @brief Helper function to count the number of tied pairs induced by equal values.
  */
 template<typename T>
 size_t kendalls_tau_count_ties_(
@@ -248,6 +248,112 @@ size_t kendalls_tau_count_ties_(
 }
 
 /**
+ * @brief Helper function to count the number of tied pairs induced by equal values,
+ * on a sorted input list
+ */
+size_t kendalls_tau_count_ties_sorted_(
+    std::vector<double> const& values
+) {
+    assert( values.size() > 1 );
+
+    // Find runs of equal numbers, and sum up the number of tied pairs that these correspond to.
+    size_t tie_sum = 0;
+    double cur_val = values[0];
+    size_t cur_cnt = 0;
+    for( size_t i = 0; i < values.size(); ++i ) {
+        assert( std::isfinite( values[i] ));
+        if( values[i] != cur_val ) {
+            assert( values[i] > cur_val );
+
+            // We finished a range of equal numbers (or are at the end of the iteration).
+            // The number of ties for the purposes of the algorithm needs to account for the duplicates
+            // occurring in all combinations of pairs of tied numbers, so we use a triangular number.
+            tie_sum += cur_cnt * (cur_cnt - 1) / 2;
+
+            // Reset count for the next value.
+            cur_val = values[i];
+            cur_cnt = 1;
+        } else {
+            // Otherwise, we are still in a range of equal numbers, so keep incrementing the counter.
+            ++cur_cnt;
+        }
+    }
+
+    // We need a last addition for the last range of numbers.
+    tie_sum += cur_cnt * (cur_cnt - 1) / 2;
+    return tie_sum;
+}
+
+/**
+ * @brief Helper function to count the number of tied pairs induced by equal values,
+ * on a sorted input list with the sorting provided via a rank indexing list.
+ */
+size_t kendalls_tau_count_ties_sorted_rank_(
+    std::vector<double> const& values,
+    std::vector<size_t> const& ranks
+) {
+    assert( values.size() == ranks.size() );
+    assert( values.size() > 1 );
+
+    // Same algorithm as kendalls_tau_count_ties_sorted_(), see there for details.
+    // We unfortunatley have this bit of code duplication, as we here need to access the values
+    // through the sorting order given by the ranks. Doing that in a template or something would
+    // mean more levels of indication and all - and as this function was written as an optimization,
+    // that would kinda defy the purpose... So, code duplication it is.
+    size_t tie_sum = 0;
+    double cur_val = values[ranks[0]];
+    size_t cur_cnt = 0;
+    for( size_t i = 0; i < values.size(); ++i ) {
+        assert( std::isfinite( values[ranks[i]] ));
+        if( values[ranks[i]] != cur_val ) {
+            assert( values[ranks[i]] > cur_val );\
+            tie_sum += cur_cnt * (cur_cnt - 1) / 2;
+            cur_val = values[ranks[i]];
+            cur_cnt = 1;
+        } else {
+            ++cur_cnt;
+        }
+    }
+    tie_sum += cur_cnt * (cur_cnt - 1) / 2;
+    return tie_sum;
+}
+
+/**
+ * @brief Helper function to count the number of tied pairs induced by equal values,
+ * on two input list with the sorting provided via a rank indexing list.
+ */
+size_t kendalls_tau_count_ties_sorted_pairs_rank_(
+    std::vector<double> const& x,
+    std::vector<double> const& y,
+    std::vector<size_t> const& ranks
+) {
+    assert( x.size() == y.size() );
+    assert( x.size() == ranks.size() );
+    assert( x.size() > 1 );
+
+    // Same algorithm again, see kendalls_tau_count_ties_sorted_rank_().
+    size_t tie_sum = 0;
+    double cur_val_x = x[ranks[0]];
+    double cur_val_y = y[ranks[0]];
+    size_t cur_cnt = 0;
+    for( size_t i = 0; i < x.size(); ++i ) {
+        assert( std::isfinite( x[ranks[i]] ));
+        assert( std::isfinite( y[ranks[i]] ));
+        if( x[ranks[i]] != cur_val_x || y[ranks[i]] != cur_val_y ) {
+            assert( x[ranks[i]] > cur_val_x || ( x[ranks[i]] == cur_val_x && y[ranks[i]] > cur_val_y ));
+            tie_sum += cur_cnt * (cur_cnt - 1) / 2;
+            cur_val_x = x[ranks[i]];
+            cur_val_y = y[ranks[i]];
+            cur_cnt = 1;
+        } else {
+            ++cur_cnt;
+        }
+    }
+    tie_sum += cur_cnt * (cur_cnt - 1) / 2;
+    return tie_sum;
+}
+
+/**
  * @brief Compute Kendall's Tau, expecting clean input without nan values, using Knight's algorithm.
  */
 double kendalls_tau_correlation_coefficient_clean_(
@@ -255,10 +361,17 @@ double kendalls_tau_correlation_coefficient_clean_(
     std::vector<double> const& y,
     KendallsTauMethod method
 ) {
+    // Basic checks.
     assert( x.size() == y.size() );
     if( x.size() < 2 ) {
         return std::numeric_limits<double>::quiet_NaN();
     }
+
+    // We only count the discordant pairs as the number of inversions made in the merge sort above.
+    // To get the correct number of concordant pairs, we need to know the ties in x (called n1),
+    // the number of ties in y (called n2), and the number of ties in x _and_ y, called n3.
+    // We calculate all of them at different stages of this function, making use of the fact
+    // that our data is sorted by x and by y at points.
 
     // Create a vector of indices sorted by the corresponding values in x,
     // breaking ties in x by secondary sort on y.
@@ -270,6 +383,11 @@ double kendalls_tau_correlation_coefficient_clean_(
             return x[i] == x[j] ? y[i] < y[j] : x[i] < x[j];
         }
     );
+
+    // The above raking means we have a sorting of x, which also serves as a sorting of pairs!
+    // We use this to compute n1 and n3 here.
+    auto const n1 = kendalls_tau_count_ties_sorted_rank_( x, rank_x );
+    auto const n3 = kendalls_tau_count_ties_sorted_pairs_rank_( x, y, rank_x );
 
     // Create a vector of y values sorted according to x
     std::vector<double> sorted_y(n);
@@ -284,28 +402,13 @@ double kendalls_tau_correlation_coefficient_clean_(
     size_t const discordant = kendalls_tau_sort_and_count_( sorted_y, temp, 0, n - 1 );
     assert( std::is_sorted( sorted_y.begin(), sorted_y.end() ));
     temp.clear();
+
+    // Now we have the list sorted by y, which we can use to compute n2.
+    auto const n2 = kendalls_tau_count_ties_sorted_( sorted_y );
     sorted_y.clear();
 
-    // We only count the discordant pairs as the number of inversions made in the merge sort above.
-    // To get the correct number of concordant pairs, we need to know the ties, including the pairs
-    // that are tied in x _and_ y, called n3. This could potentially be inferred from the above
-    // sorted lists, but we already have a hash-map based function for this above, and so use that
-    // here for simplicity. If this function needs to be more optimized in the future,
-    // this is a good place to start.
-    std::vector<std::pair<double, double>> pairs;
-    for( size_t i = 0; i < x.size(); ++i ) {
-        assert( std::isfinite(x[i]) );
-        assert( std::isfinite(y[i]) );
-
-        pairs.emplace_back( x[i], y[i] );
-    }
-    size_t const n3 = kendalls_tau_count_ties_( pairs );
-    pairs.clear();
-
-    // We also compute n0 = number of pairs, n1 and n2 = number of ties in x and y, respectively.
+    // We also compute n0 = total number of pairs.
     size_t const n0 = n * (n - 1) / 2;
-    size_t const n1 = kendalls_tau_count_ties_(x);
-    size_t const n2 = kendalls_tau_count_ties_(y);
     assert( n0 >= n1 && n0 >= n2 );
 
     // Now we can compute the number of concordant pairs.

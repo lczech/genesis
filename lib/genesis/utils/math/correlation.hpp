@@ -231,9 +231,10 @@ double kendalls_tau_correlation_coefficient(
     InputIteratorB first_b, InputIteratorB last_b,
     KendallsTauMethod method = KendallsTauMethod::kTauB
 ) {
-    std::vector<double> const x( first_a, last_a );
-    std::vector<double> const y( first_b, last_b );
-    return kendalls_tau_correlation_coefficient( x, y, method );
+    // Use cleaned results with only finite values. We need those internally anyway to get proper
+    // ranking, and by doing it here already, we can save another copy of the data internally.
+    auto const cleaned = finite_pairs( first_a, last_a, first_b, last_b );
+    return kendalls_tau_correlation_coefficient( cleaned.first, cleaned.second, method );
 }
 
 /**
