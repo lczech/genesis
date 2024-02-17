@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,6 +49,34 @@ namespace utils {
  * See permuted_congruential_generator_init() to set the seed.
  */
 uint32_t permuted_congruential_generator();
+
+/**
+ * @brief Fast random number generator for 32bit integers, for numbers in the range `[0, max]`.
+ *
+ * Note that the interval is closed, i.e., @p max is inclusive.
+ */
+uint32_t permuted_congruential_generator( uint32_t max );
+
+/**
+ * @brief Fast random number generator for 32bit integers, for numbers in the range `[min, max]`.
+ *
+ * Note that the interval is closed, i.e., @p max is inclusive.
+ */
+uint32_t permuted_congruential_generator( uint32_t min, uint32_t max );
+
+/**
+ * @brief Fast random number generator for 32bit integers, for bool with 0.5 probability.
+ */
+bool permuted_congruential_generator_bool();
+
+/**
+ * @brief Fast random number generator for 32bit integers, for bool with a given chance.
+ *
+ * This is returning a random bool, with a 1 in @p chance_one_in possibility to be `true`.
+ * For instance, calling the function with `chance_one_in == 5` means a 1 in 5 chance,
+ * or probability of 0.2 for a `true` result.
+ */
+bool permuted_congruential_generator_bool( uint32_t chance_one_in );
 
 /**
  * @brief Set the seed for permuted_congruential_generator().

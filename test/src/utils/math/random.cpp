@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,12 +30,36 @@
 
 #include "src/common.hpp"
 
+#include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/math/random.hpp"
 
 using namespace genesis;
 using namespace utils;
 
 TEST( Math, SelectWithoutReplacement )
+{
+    // Repeated tests, because of randomness
+    size_t const num_tests = 1000;
+    for( size_t i = 0; i < num_tests; ++i ) {
+
+        // Test all combinations of k and n for some range.
+        for( size_t n = 0; n < 10; ++n ) {
+            for( size_t k = 0; k <= n; ++k ) {
+                // Make the numbers
+                auto const sel = select_without_replacement( k, n );
+
+                // Test the numbers
+                EXPECT_EQ( k, sel.size() );
+                for( auto e : sel ) {
+                    EXPECT_LT( e, n );
+                }
+                EXPECT_FALSE( contains_duplicates( sel ));
+            }
+        }
+    }
+}
+
+TEST( Math, SelectWithoutReplacementRand )
 {
     size_t const k = 2; // sample size
     size_t const n = 5; // population size
@@ -58,4 +82,41 @@ TEST( Math, SelectWithoutReplacement )
         sum += histogram[ i ];
     }
     EXPECT_EQ( k * r, sum );
+}
+
+TEST( Math, PermutedCongruentialGenerator )
+{
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    size_t const num_tests = 1000000;
+    // size_t cnt_bool = 0;
+
+    for( size_t i = 0; i < num_tests; ++i ) {
+        // Test max
+        EXPECT_GE( 100, permuted_congruential_generator( 100 ));
+
+
+        // Test min max
+        auto const min_max = permuted_congruential_generator( 10, 100 );
+        EXPECT_LE( 10, min_max );
+        EXPECT_GE( 100, min_max );
+
+        // cnt_bool += permuted_congruential_generator_bool( 10 );
+
+        // Always true cases
+        EXPECT_EQ( 0, permuted_congruential_generator( 0 ));
+        EXPECT_EQ( 0, permuted_congruential_generator( 0, 0 ));
+        EXPECT_EQ( 1, permuted_congruential_generator( 1, 1 ));
+        EXPECT_EQ( 3, permuted_congruential_generator( 3, 3 ));
+        EXPECT_TRUE( permuted_congruential_generator_bool( 1 ));
+    }
+
+    // LOG_DBG << "cnt_bool " << cnt_bool;
+
+    // Error cases
+    EXPECT_ANY_THROW( permuted_congruential_generator( 5, 3 ));
+    EXPECT_ANY_THROW( permuted_congruential_generator_bool( 0 ));
 }
