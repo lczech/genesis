@@ -30,6 +30,7 @@
 
 #include "genesis/population/iterators/variant_input_iterator.hpp"
 
+#include "genesis/population/iterators/variant_gapless_input_iterator.hpp"
 #include "genesis/population/iterators/variant_parallel_input_iterator.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
@@ -623,7 +624,7 @@ VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_ite
     auto end = input->end();
 
     // We do not have a single file here, so let's put the file names into the sample names...
-    // for now at least. Might change the interface in the future to better accommodate for ath.
+    // for now at least. Might change the interface in the future to better accommodate for that.
     // Leave file_path and source_name at their empty defaults.
     VariantInputIteratorData data;
     std::unordered_set<std::string> uniq_names;
@@ -661,6 +662,65 @@ VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_ite
             }
         },
         std::move( data )
+    );
+}
+
+// =================================================================================================
+//     Variant Gapless Input Iterator
+// =================================================================================================
+
+VariantInputIterator make_variant_gapless_input_iterator(
+    VariantInputIterator const& input
+) {
+    auto gapless_input = VariantGaplessInputIterator( input );
+    return make_variant_input_iterator_from_variant_gapless_input_iterator( gapless_input );
+}
+
+VariantInputIterator make_variant_gapless_input_iterator(
+    VariantInputIterator const& input,
+    std::shared_ptr<::genesis::sequence::ReferenceGenome> ref_genome
+) {
+    auto gapless_input = VariantGaplessInputIterator( input );
+    gapless_input.reference_genome( ref_genome );
+    return make_variant_input_iterator_from_variant_gapless_input_iterator( gapless_input );
+}
+
+VariantInputIterator make_variant_gapless_input_iterator(
+    VariantInputIterator const& input,
+    std::shared_ptr<::genesis::sequence::SequenceDict> seq_dict
+) {
+    auto gapless_input = VariantGaplessInputIterator( input );
+    gapless_input.sequence_dict( seq_dict );
+    return make_variant_input_iterator_from_variant_gapless_input_iterator( gapless_input );
+}
+
+VariantInputIterator make_variant_input_iterator_from_variant_gapless_input_iterator(
+    VariantGaplessInputIterator const& gapless_input
+) {
+    // As before, make a shared pointer (with a copy of the input) that stays alive.
+    auto input = std::make_shared<VariantGaplessInputIterator>( gapless_input );
+
+    // Get the iterators.
+    assert( input );
+    auto cur = input->begin();
+    auto end = input->end();
+
+    // The input is copied over to the lambda, and that copy is kept alive.
+    // The VariantInputIteratorData is simply copied over.
+    return VariantInputIterator(
+        [ input, cur, end ]
+        ( Variant& variant ) mutable {
+            if( cur != end ) {
+                // Cannt move here, as we would destroy the missing variant dummy in the iterator.
+                // variant = std::move( *cur );
+                variant = *cur;
+                ++cur;
+                return true;
+            } else {
+                return false;
+            }
+        },
+        input->input().data()
     );
 }
 

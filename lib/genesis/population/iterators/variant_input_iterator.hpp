@@ -39,6 +39,8 @@
 #include "genesis/population/formats/vcf_input_iterator.hpp"
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/variant.hpp"
+#include "genesis/sequence/reference_genome.hpp"
+#include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/utils/containers/lambda_iterator.hpp"
 
 #include <cassert>
@@ -54,11 +56,12 @@ namespace population {
 //     Forward Declarations
 // =================================================================================================
 
-// Cannot include the header, as it itself needs the VariantInputIterator to be defined first.
+// Cannot include the headers, as it itself needs the VariantInputIterator to be defined first.
 // We could split this whole file into two, one for the VariantInputIterator definition,
 // and one for the functions to create it from sources... Maybe do that in the future.
 // As of now, this forward declaration means that the VariantParallelInputIterator header
 // needs to be included by the user at some point themselves... which they probably do anyway.
+class VariantGaplessInputIterator;
 class VariantParallelInputIterator;
 
 // =================================================================================================
@@ -410,6 +413,45 @@ VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_ite
     VariantParallelInputIterator const& parallel_input,
     bool allow_ref_base_mismatches = false,
     bool allow_alt_base_mismatches = true
+);
+
+// -------------------------------------------------------------------------
+//     Variant Gapless Input Iterator
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Create a VariantGaplessInputIterator from a VariantInputIterator @p input, and wrap it
+ * agian in a VariantInputIterator.
+ */
+VariantInputIterator make_variant_gapless_input_iterator(
+    VariantInputIterator const& input
+);
+
+/**
+ * @copybrief make_variant_gapless_input_iterator( VariantInputIterator const& )
+ *
+ * This overload additionally sets the reference genome for the gapless iteration.
+ */
+VariantInputIterator make_variant_gapless_input_iterator(
+    VariantInputIterator const& input,
+    std::shared_ptr<::genesis::sequence::ReferenceGenome> ref_genome
+);
+
+/**
+ * @copybrief make_variant_gapless_input_iterator( VariantInputIterator const& )
+ *
+ * This overload additionally sets the sequence dictionary for the gapless iteration.
+ */
+VariantInputIterator make_variant_gapless_input_iterator(
+    VariantInputIterator const& input,
+    std::shared_ptr<::genesis::sequence::SequenceDict> seq_dict
+);
+
+/**
+ * @brief Create a VariantInputIterator that wraps a VariantGaplessInputIterator.
+ */
+VariantInputIterator make_variant_input_iterator_from_variant_gapless_input_iterator(
+    VariantGaplessInputIterator const& gapless_input
 );
 
 } // namespace population
