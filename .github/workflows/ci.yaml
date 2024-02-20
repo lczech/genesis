@@ -200,7 +200,7 @@ jobs:
 
       - name: Setup C++
         # Reference: https://github.com/marketplace/actions/setup-cpp-c-c
-        uses: aminya/setup-cpp@v0.36.1
+        uses: aminya/setup-cpp@v0.37.0
         if: matrix.compiler != 'apple'
         with:
           compiler: ${{ matrix.compiler }}
@@ -292,7 +292,7 @@ jobs:
       #     fi
 
       # -------------------------------------------------------
-      #     Build & Test
+      #     Build
       # -------------------------------------------------------
 
       - name: Build
@@ -312,6 +312,10 @@ jobs:
           fi
 
           cmake --build ./build -- -j 2
+
+      # -------------------------------------------------------
+      #     Test
+      # -------------------------------------------------------
 
       - name: Tests
         id: test
@@ -335,3 +339,15 @@ jobs:
           #   GDBEXE="sudo gdb"
           # fi
           ${GDBEXE} -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests
+
+      # -------------------------------------------------------
+      #     Logs
+      # -------------------------------------------------------
+
+      - name: Upload Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}-htslib-${{ matrix.htslib }}
+          path: |
+            build/**/*.log
