@@ -194,6 +194,19 @@ if( NOT ( CMAKE_VERSION VERSION_LESS 3.24 ))
     cmake_policy(SET CMP0135 NEW)
 endif()
 
+# We construct the command for configuring htslib here, so that in the ExternalProject_Add call
+# below, we do not have commands with more than one argument. That seems to cause trouble in
+# some weird interaction of cmake, autotools, and clang, and fails in our GitHub Actions builds...
+#
+# We need to manually add -fPIC here, as somehow otherwise the local installation
+# won't link properly. Linking will always remain a mystery to me...
+# Need some special care to fix https://github.com/lczech/grenedalf/issues/12,
+# see https://stackoverflow.com/a/59536947 for the solution.
+SET(
+    HTSLIB_CONFIGURE_COMMAND
+    ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --libdir=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib/lib --disable-multi-os-directory --disable-libcurl ${HTSLIB_Deflate_configure}
+)
+
 # We download and built on our own, using the correct commit hash to get our exact desired
 # version, and install locally to the build directory.
 ExternalProject_Add(
@@ -216,8 +229,6 @@ ExternalProject_Add(
     UPDATE_COMMAND    ""
 
     # Configure Step. See htslib/INSTALL
-    # We need to manually add -fPIC here, as somehow otherwise the local installation
-    # won't link properly. Linking will always remain a mystery to me...
     SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-source
     CONFIGURE_COMMAND
         autoreconf -i
@@ -226,12 +237,8 @@ ExternalProject_Add(
         # COMMAND
         # autoconf
         # COMMAND
-        # Need some special care to fix https://github.com/lczech/grenedalf/issues/12,
-        # see https://stackoverflow.com/a/59536947 for the solution.
-        # Furthermore, we are testing to put every arugment here in quotes, in the hope that
-        # it fixes some weird interaction of autotools, cmake, and clang that does not compile.
         COMMAND
-        "./configure" "CFLAGS=-fPIC" "CXXFLAGS=-fPIC" "--prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib" "--libdir=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib/lib" "--disable-multi-os-directory" "--disable-libcurl" "${HTSLIB_Deflate_configure}"
+        ${HTSLIB_CONFIGURE_COMMAND}
 
     # Build Step
     # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
