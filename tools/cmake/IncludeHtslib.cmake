@@ -239,8 +239,7 @@ ExternalProject_Add(
         # cleanly implemented, see https://github.com/samtools/htslib/issues/1527
         # $(MAKE) CFLAGS+=${HTSLIB_COMPILER_FLAGS} CXXFLAGS+=${HTSLIB_COMPILER_FLAGS}
         # Nope... the above failes under clang?! Let's just deactivate for now.
-        # $(MAKE)
-        make
+        $(MAKE)
 
     # Install Step
     INSTALL_COMMAND $(MAKE) install
