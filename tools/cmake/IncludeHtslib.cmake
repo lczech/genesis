@@ -227,9 +227,11 @@ ExternalProject_Add(
         # autoconf
         # COMMAND
         # Need some special care to fix https://github.com/lczech/grenedalf/issues/12,
-        # see https://stackoverflow.com/a/59536947 for the solution
+        # see https://stackoverflow.com/a/59536947 for the solution.
+        # Furthermore, we are testing to put every arugment here in quotes, in the hope that
+        # it fixes some weird interaction of autotools, cmake, and clang that does not compile.
         COMMAND
-        ./configure "CFLAGS=-fPIC" "CXXFLAGS=-fPIC" "--prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib" "--libdir=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib/lib" "--disable-multi-os-directory" "--disable-libcurl" "${HTSLIB_Deflate_configure}"
+        "./configure" "CFLAGS=-fPIC" "CXXFLAGS=-fPIC" "--prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib" "--libdir=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib/lib" "--disable-multi-os-directory" "--disable-libcurl" "${HTSLIB_Deflate_configure}"
 
     # Build Step
     # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
