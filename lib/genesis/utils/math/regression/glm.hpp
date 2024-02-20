@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,13 +35,14 @@
 #include "genesis/utils/math/regression/family.hpp"
 #include "genesis/utils/math/regression/link.hpp"
 
+#include <utility>
 #include <vector>
 
 namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Generalized Linear Model
+//     GLM Data Structures
 // =================================================================================================
 
 struct GlmExtras
@@ -143,6 +144,8 @@ struct GlmOutput
 
     /**
      * @brief Vector of parameter estimates (in terms of basis matrix, Xb) (size `M`).
+     *
+     * Use glm_estimate_betas() to transform this back into the basis of the original predictors.
      */
     std::vector<double> betaQ;
 
@@ -155,6 +158,10 @@ struct GlmOutput
     double null_deviance = 0.0;
     double deviance = 0.0;
 };
+
+// =================================================================================================
+//     GLM Fit
+// =================================================================================================
 
 /**
  * @brief Fit a Generalized Linear Model (GLM).
@@ -198,6 +205,46 @@ GlmOutput glm_fit(
     std::vector<double> const& y_response,
     GlmExtras const&           extras = {},
     GlmControl const&          control = {}
+);
+
+// =================================================================================================
+//     GLM Output
+// =================================================================================================
+
+/**
+ * @brief Compute the beta estimates resulting from a glm_fit().
+ *
+ * The GlmOutput::betaQ result expresses the betas in terms of the GlmOutput::Xb basis space,
+ * which is an orthogonal representaton of the original predictor matrix. To turn this into betas
+ * expressed in the original predictor column space, this function inverts the triangular
+ * transformation matrix GlmOutput::tri, and uses this to transform the betaQ into betas.
+ */
+std::vector<double> glm_estimate_betas( GlmOutput const& output );
+
+// /**
+//  * @brief Obtain beta estimates and variance covariance matrix of estimates from output the output
+//  * of glm_fit().
+//  *
+//  * The resulting variance covariance matrix is a packed symmetric matrix with the size of the
+//  * number of predictor variables (which is the size of the betas).
+//  * Robust variance is calculated if the "meat" matrix for the information sandwich is supplied.
+//  */
+// std::pair<std::vector<double>, std::vector<double>> glm_estimate_betas_and_var_covar(
+//     GlmOutput const& output,
+//     std::vector<double> const& meat = std::vector<double>{}
+// );
+
+/**
+ * @brief Compute the intercept resulting from a glm_fit().
+ *
+ * This takes the input and output of the glm_fit(), as well as the list of @p betas in the original
+ * predictor column space, which is computed by glm_estimate_betas().
+ */
+double glm_estimate_intercept(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmOutput const&           output,
+    std::vector<double> const& betas
 );
 
 } // namespace utils

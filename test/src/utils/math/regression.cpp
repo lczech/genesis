@@ -272,7 +272,12 @@ TEST( Math, GlmGaussSimple )
 
 TEST( Math, GlmGaussInteraction )
 {
-    std::vector<double> const response{ 0, 36, 64, 84, 96, 100, 96, 84, 64, 36, 0 };
+    // Input x predictor: 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1,000
+    // Function applied to get y response: 0.4 * x - 0.0004 * x^2 + 20
+    // GLM fitted with x and x^2 as the predictor variables.
+
+    // std::vector<double> const response{ 0, 36, 64, 84, 96, 100, 96, 84, 64, 36, 0 };
+    std::vector<double> const response{ 20, 56, 84, 104, 116, 120, 116, 104, 84, 56, 20 };
     auto const predictor = Matrix<double>(11, 2, {
         // 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000,
         // 0, 10000, 40000, 90000, 160000, 250000, 360000, 490000, 640000, 810000, 1000000
@@ -282,6 +287,30 @@ TEST( Math, GlmGaussInteraction )
     // Run the model. As the data is created to be perfect, we expect a perfect fit.
     auto const result = glm_fit( predictor, response );
     EXPECT_FLOAT_EQ( 0.0, result.deviance );
+
+    // LOG_DBG << "scale " << result.scale;
+    // LOG_DBG << "fitted " << join(result.fitted);
+    // LOG_DBG << "resid " << join(result.resid);
+    // LOG_DBG << "weights " << join(result.weights);
+    // LOG_DBG << "which " << join(result.which);
+    // LOG_DBG << "Xb " << result.Xb;
+    // LOG_DBG << "betaQ " << join(result.betaQ);
+    // LOG_DBG << "tri " << join(result.tri);
+
+    auto const betas = glm_estimate_betas( result );
+    // LOG_DBG << "betas " << join(betas);
+    ASSERT_EQ( 2, betas.size() );
+    EXPECT_FLOAT_EQ( 0.4, betas[0] );
+    EXPECT_FLOAT_EQ( -0.0004, betas[1] );
+
+    auto const intercept = glm_estimate_intercept( predictor, response, result, betas );
+    // LOG_DBG << "intercept " << intercept;
+    EXPECT_FLOAT_EQ( 20.0, intercept );
+
+    // Currently not correctly implemented:
+    // auto const beta_covar = glm_estimate_betas_and_var_covar( result );
+    // LOG_DBG << "betas " << join(beta_covar.first);
+    // LOG_DBG << "covar " << join(beta_covar.second);
 }
 
 TEST( Math, GlmGaussNoIntercept )
