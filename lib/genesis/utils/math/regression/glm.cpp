@@ -754,5 +754,16 @@ double glm_estimate_intercept(
     return result;
 }
 
+std::vector<double> glm_coefficients(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmOutput const&           output
+) {
+    auto coeffs = glm_estimate_betas( output );
+    auto intercept = glm_estimate_intercept( x_predictors, y_response, output, coeffs );
+    coeffs.insert( coeffs.begin(), intercept );
+    return coeffs;
+}
+
 } // namespace utils
 } // namespace genesis

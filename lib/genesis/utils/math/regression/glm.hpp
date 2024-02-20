@@ -247,6 +247,19 @@ double glm_estimate_intercept(
     std::vector<double> const& betas
 );
 
+/**
+ * @brief Compute the model coefficients of a glm_fit().
+ *
+ * This simply calls glm_estimate_intercept() and glm_estimate_betas(), and stores the results
+ * in a vector, i.e., the intercept, followed by the beta coefficients. This is hence a convenience
+ * function for cases where all coefficients are needed.
+ */
+std::vector<double> glm_coefficients(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmOutput const&           output
+);
+
 } // namespace utils
 } // namespace genesis
 
