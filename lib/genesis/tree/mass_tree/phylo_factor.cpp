@@ -181,9 +181,10 @@ std::unordered_set<size_t> phylo_factor_subtree_indices(
 }
 
 PhyloFactor phylo_factor_find_best_edge(
+    size_t iteration,
     BalanceData const& data,
     std::unordered_set<size_t> const& candidate_edges,
-    std::function<double( std::vector<double> const& balances, size_t edge_index )> objective
+    PhyloFactorObjectiveFunction objective
 ) {
     assert( ! data.tree.empty() );
 
@@ -242,7 +243,7 @@ PhyloFactor phylo_factor_find_best_edge(
         auto const balances = mass_balance( data, s_indices, p_indices );
 
         // Calculate the objective function, and store it in the result.
-        auto const ov = objective( balances, ce_idx );
+        auto const ov = objective( iteration, ce_idx, balances );
         result.all_objective_values[ ce_idx ] = ov;
         if( ! std::isfinite( ov )) {
             continue;
@@ -272,7 +273,7 @@ std::vector<PhyloFactor> phylogenetic_factorization(
 ) {
     return phylogenetic_factorization(
         data,
-        [&objective]( std::vector<double> const& balances, size_t ){
+        [&objective]( size_t, size_t, std::vector<double> const& balances ){
             return objective( balances );
         },
         max_iterations,
@@ -282,7 +283,7 @@ std::vector<PhyloFactor> phylogenetic_factorization(
 
 std::vector<PhyloFactor> phylogenetic_factorization(
     BalanceData const& data,
-    std::function<double( std::vector<double> const& balances, size_t edge_index )> objective,
+    PhyloFactorObjectiveFunction objective,
     size_t max_iterations,
     std::function<void( size_t iteration, size_t max_iterations )> log_progress
 ) {
@@ -312,11 +313,11 @@ std::vector<PhyloFactor> phylogenetic_factorization(
 
         // Log the progress, if needed.
         if( log_progress ) {
-            log_progress( it + 1, max_iterations );
+            log_progress( it, max_iterations );
         }
 
         // Find and store the next (greedy) phylo factor.
-        result.push_back( phylo_factor_find_best_edge( data, candidate_edges, objective ));
+        result.push_back( phylo_factor_find_best_edge( it, data, candidate_edges, objective ));
 
         // Remove its edge from the candiate list.
         assert( candidate_edges.count( result.back().edge_index ) > 0 );

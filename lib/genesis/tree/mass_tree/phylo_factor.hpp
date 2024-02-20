@@ -54,6 +54,13 @@ using MassTree = Tree;
 // =================================================================================================
 
 /**
+ * @brief Function type used as the objective function in phylogenetic_factorization().
+ */
+using PhyloFactorObjectiveFunction = std::function<
+    double( size_t iteration, size_t edge_index, std::vector<double> const& balances )
+>;
+
+/**
  * @brief A single phylogenetic factor.
  *
  * @see phylogenetic_factorization()
@@ -118,9 +125,10 @@ std::unordered_set<size_t> phylo_factor_subtree_indices(
  * to find the one that maximizes the objective function.
  */
 PhyloFactor phylo_factor_find_best_edge(
+    size_t iteration,
     BalanceData const& data,
     std::unordered_set<size_t> const& candidate_edges,
-    std::function<double( std::vector<double> const& balances, size_t edge_index )> objective
+    PhyloFactorObjectiveFunction objective
 );
 
 /**
@@ -140,10 +148,10 @@ PhyloFactor phylo_factor_find_best_edge(
  * reasonable value here.
  *
  * Lastly, a functional for logging the progress can be set, which needs to take the current and
- * the maximal iteration counter (1-based) and can produce some logging for this:
+ * the maximal iteration counter (0-based) and can produce some logging for this:
  *
  *     []( size_t iteration, size_t max_iterations ){
- *         LOG_DBG1 << "iteration " << iteration << " of " << max_iterations;
+ *         LOG_DBG1 << "iteration " << (iteration + 1) << " of " << max_iterations;
  *     }
  *
  * More details on the method can be found in
@@ -166,17 +174,17 @@ std::vector<PhyloFactor> phylogenetic_factorization(
 /**
  * @brief Calculate the Phylogenetic Factorization (PhyloFactor) of a set of MassTree%s.
  *
- * This overload also provides the edge index of the current edge when computing the @p objective
- * function. This is useful when some aspect of the computation in the objective function needs
- * to be stored for later: In that case, the objective function can be provided as a lambda that
- * uses the additional @p edge_index to store the results of some objective computation.
- * The intended use case is for instance the computation of
+ * This overload also provides the iteration and edge index of the current edge when computing the
+ * @p objective function. This is useful when some aspect of the computation in the objective
+ * function needs to be stored for later: In that case, the objective function can be provided
+ * as a lambda that uses the additional @p edge_index to store the results of some objective
+ * computation. The intended use case is for instance the computation of
  * @link genesis::utils::glm_fit() glm_fit()@endlink in the objective function, and subsequent
  * storage of the model output, such has deviance or beta estimates, for later inspection.
  */
 std::vector<PhyloFactor> phylogenetic_factorization(
     BalanceData const& data,
-    std::function<double( std::vector<double> const& balances, size_t edge_index )> objective,
+    PhyloFactorObjectiveFunction objective,
     size_t max_iterations = 0,
     std::function<void( size_t iteration, size_t max_iterations )> log_progress = {}
 );
