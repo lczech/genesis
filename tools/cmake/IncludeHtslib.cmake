@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2023 Lucas Czech
+# Copyright (C) 2014-2024 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,7 +40,8 @@ if( AUTOCONF_RUNTIME STREQUAL "AUTOCONF_RUNTIME-NOTFOUND" )
 
     message (
         STATUS "${ColorRed}You are trying to compile with htslib, which needs autotools/autoconf. "
-        "This does not seem to to be availabe on your system. To instead build without htslib "
+        "This does not seem to to be availabe on your system. Try installing "
+        "`autoconf automake autotools-dev` first. To instead build without htslib "
         "support, call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
     )
     message( FATAL_ERROR "Required autotools for building htslib not found.")
@@ -228,7 +229,7 @@ ExternalProject_Add(
         # Need some special care to fix https://github.com/lczech/grenedalf/issues/12,
         # see https://stackoverflow.com/a/59536947 for the solution
         COMMAND
-        ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --libdir=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib/lib --disable-multi-os-directory --disable-libcurl ${HTSLIB_Deflate_configure}
+        ./configure "CFLAGS=-fPIC" "CXXFLAGS=-fPIC" "--prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib" "--libdir=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib/lib" "--disable-multi-os-directory" "--disable-libcurl" "${HTSLIB_Deflate_configure}"
 
     # Build Step
     # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib

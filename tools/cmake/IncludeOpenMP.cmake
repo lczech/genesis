@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2022 Lucas Czech
+# Copyright (C) 2014-2024 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -124,8 +124,8 @@ else()
         message (
             STATUS
             "${ColorYellow}You are trying to compile with Clang and OpenMP. "
-            "This does not seem to work right now. Try installing `libiomp-dev` first, "
-            "or the equivalent for your system.${ColorEnd}"
+            "This does not seem to work right now. Try installing `libomp-dev` or `libiomp-dev` "
+            "first, or the equivalent for your system.${ColorEnd}"
         )
     endif()
 
