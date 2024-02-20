@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -120,7 +120,7 @@ std::unordered_set<size_t> phylo_factor_subtree_indices(
 PhyloFactor phylo_factor_find_best_edge(
     BalanceData const& data,
     std::unordered_set<size_t> const& candidate_edges,
-    std::function<double( std::vector<double> const& balances )> objective
+    std::function<double( std::vector<double> const& balances, size_t edge_index )> objective
 );
 
 /**
@@ -159,6 +159,24 @@ PhyloFactor phylo_factor_find_best_edge(
 std::vector<PhyloFactor> phylogenetic_factorization(
     BalanceData const& data,
     std::function<double( std::vector<double> const& balances )> objective,
+    size_t max_iterations = 0,
+    std::function<void( size_t iteration, size_t max_iterations )> log_progress = {}
+);
+
+/**
+ * @brief Calculate the Phylogenetic Factorization (PhyloFactor) of a set of MassTree%s.
+ *
+ * This overload also provides the edge index of the current edge when computing the @p objective
+ * function. This is useful when some aspect of the computation in the objective function needs
+ * to be stored for later: In that case, the objective function can be provided as a lambda that
+ * uses the additional @p edge_index to store the results of some objective computation.
+ * The intended use case is for instance the computation of
+ * @link genesis::utils::glm_fit() glm_fit()@endlink in the objective function, and subsequent
+ * storage of the model output, such has deviance or beta estimates, for later inspection.
+ */
+std::vector<PhyloFactor> phylogenetic_factorization(
+    BalanceData const& data,
+    std::function<double( std::vector<double> const& balances, size_t edge_index )> objective,
     size_t max_iterations = 0,
     std::function<void( size_t iteration, size_t max_iterations )> log_progress = {}
 );

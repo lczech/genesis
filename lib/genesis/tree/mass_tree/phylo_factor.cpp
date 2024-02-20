@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -183,7 +183,7 @@ std::unordered_set<size_t> phylo_factor_subtree_indices(
 PhyloFactor phylo_factor_find_best_edge(
     BalanceData const& data,
     std::unordered_set<size_t> const& candidate_edges,
-    std::function<double( std::vector<double> const& balances )> objective
+    std::function<double( std::vector<double> const& balances, size_t edge_index )> objective
 ) {
     assert( ! data.tree.empty() );
 
@@ -206,6 +206,7 @@ PhyloFactor phylo_factor_find_best_edge(
 
         assert( ce_idx < data.tree.edge_count() );
         auto const& edge = data.tree.edge_at( ce_idx );
+        assert( edge.index() == ce_idx );
 
         // The calling function already leaves out edges that lead to a leaf.
         assert( ! is_leaf( edge ));
@@ -241,8 +242,11 @@ PhyloFactor phylo_factor_find_best_edge(
         auto const balances = mass_balance( data, s_indices, p_indices );
 
         // Calculate the objective function, and store it in the result.
-        auto const ov = objective( balances );
+        auto const ov = objective( balances, ce_idx );
         result.all_objective_values[ ce_idx ] = ov;
+        if( ! std::isfinite( ov )) {
+            continue;
+        }
 
         // Update our greedy best hit if needed.
         #pragma omp critical( GENESIS_TREE_MASS_TREE_PHYLO_FACTOR_OBJECTIVE_UPDATE )
@@ -263,6 +267,22 @@ PhyloFactor phylo_factor_find_best_edge(
 std::vector<PhyloFactor> phylogenetic_factorization(
     BalanceData const& data,
     std::function<double( std::vector<double> const& balances )> objective,
+    size_t max_iterations,
+    std::function<void( size_t iteration, size_t max_iterations )> log_progress
+) {
+    return phylogenetic_factorization(
+        data,
+        [&objective]( std::vector<double> const& balances, size_t ){
+            return objective( balances );
+        },
+        max_iterations,
+        log_progress
+    );
+}
+
+std::vector<PhyloFactor> phylogenetic_factorization(
+    BalanceData const& data,
+    std::function<double( std::vector<double> const& balances, size_t edge_index )> objective,
     size_t max_iterations,
     std::function<void( size_t iteration, size_t max_iterations )> log_progress
 ) {
