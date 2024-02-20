@@ -207,6 +207,12 @@ SET(
     ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --libdir=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib/lib --disable-multi-os-directory --disable-libcurl ${HTSLIB_Deflate_configure}
 )
 
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/configure-htslib.sh
+"#!/bin/bash" \n
+"cd $(dirname $0)/genesis-htslib-source" \n
+"./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --libdir=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib/lib --disable-multi-os-directory --disable-libcurl ${HTSLIB_Deflate_configure}"
+)
+
 # We download and built on our own, using the correct commit hash to get our exact desired
 # version, and install locally to the build directory.
 ExternalProject_Add(
@@ -237,8 +243,12 @@ ExternalProject_Add(
         # COMMAND
         # autoconf
         # COMMAND
+        # For whatever reason, CMake can't make the script executable, so we do that manually...
+        # We tried file(COPY) and simiar, nothing worked :-(
         COMMAND
-        ${HTSLIB_CONFIGURE_COMMAND}
+        chmod +x ${CMAKE_CURRENT_BINARY_DIR}/configure-htslib.sh
+        COMMAND
+        ${CMAKE_CURRENT_BINARY_DIR}/configure-htslib.sh
 
     # Build Step
     # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
