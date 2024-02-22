@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 
 #include "genesis/population/functions/fst_pool_calculator.hpp"
 #include "genesis/population/variant.hpp"
+#include "genesis/utils/core/thread_functions.hpp"
 #include "genesis/utils/core/thread_pool.hpp"
 
 #include <algorithm>
@@ -180,8 +181,8 @@ public:
 
         // Switch dynamically between threading and no threading for the processing.
         if( thread_pool_ && calculators_.size() >= threading_threshold_ ) {
-            thread_pool_->parallel_for(
-                0, sample_pairs_.size(), process_
+            parallel_for(
+                0, sample_pairs_.size(), process_, thread_pool_
             ).wait();
         } else {
             for( size_t i = 0; i < sample_pairs_.size(); ++i ) {

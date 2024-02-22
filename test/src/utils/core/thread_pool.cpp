@@ -112,10 +112,10 @@ void test_thread_pool_parallel_block_( size_t num_threads, size_t num_tasks, siz
     auto const exp = std::accumulate( numbers.begin(), numbers.end(), 0 );
 
     // Prepare the pool
-    ThreadPool pool( num_threads );
+    auto pool = std::make_shared<ThreadPool>( num_threads );
 
     // Do some parallel computation.
-    auto mult_fut = pool.parallel_block(
+    auto mult_fut = parallel_block(
         0, num_tasks,
         [&numbers]( size_t b, size_t e )
         {
@@ -126,6 +126,7 @@ void test_thread_pool_parallel_block_( size_t num_threads, size_t num_tasks, siz
             }
             return sum;
         },
+        pool,
         num_blocks
     );
 
@@ -203,16 +204,17 @@ void test_thread_pool_parallel_for_( size_t num_threads, size_t num_tasks, size_
     auto const exp = 2 * std::accumulate( numbers.begin(), numbers.end(), 0 );
 
     // Prepare the pool
-    ThreadPool pool( num_threads );
+    auto pool = std::make_shared<ThreadPool>( num_threads );
 
     // Do some parallel computation.
-    auto mult_fut = pool.parallel_for(
+    auto mult_fut = parallel_for(
         0, num_tasks,
         [&numbers]( size_t i )
         {
             // LOG_DBG1 << "i " << i << " s " << numbers.size();
             numbers[i] *= 2;
         },
+        pool,
         num_blocks
     );
 
@@ -288,29 +290,31 @@ void test_thread_pool_parallel_for_each_(
     auto const exp = 2 * std::accumulate( numbers.begin(), numbers.end(), 0 );
 
     // Prepare the pool
-    ThreadPool pool( num_threads );
+    auto pool = std::make_shared<ThreadPool>( num_threads );
 
     // Do some parallel computation.
     // We offer to use both version, the range and the container overload of the loop.
     MultiFuture<void> mult_fut;
     if( range ) {
-        mult_fut = pool.parallel_for_each(
+        mult_fut = parallel_for_each(
             numbers.begin(), numbers.end(),
             []( int& elem )
             {
                 // LOG_DBG1 << "elem " << elem;
                 elem *= 2;
             },
+            pool,
             num_blocks
         );
     } else {
-        mult_fut = pool.parallel_for_each(
+        mult_fut = parallel_for_each(
             numbers,
             []( int& elem )
             {
                 // LOG_DBG1 << "elem " << elem;
                 elem *= 2;
             },
+            pool,
             num_blocks
         );
     }
@@ -404,7 +408,7 @@ void thread_pool_for_loop_fuzzy_work_()
     // We do not use the global thread pool here, but instead create one
     // with a random number of threads, to test that it works for all of them.
     auto const num_threads = 1 + permuted_congruential_generator() % 100;
-    ThreadPool pool( num_threads );
+    auto pool = std::make_shared<ThreadPool>( num_threads );
 
     // Debug output
     LOG_DBG
@@ -414,7 +418,7 @@ void thread_pool_for_loop_fuzzy_work_()
     ;
 
     // Do the parallel computation.
-    auto mult_fut = pool.parallel_for(
+    auto mult_fut = parallel_for(
         0, num_tasks,
         [&numbers]( size_t i )
         {
@@ -422,6 +426,7 @@ void thread_pool_for_loop_fuzzy_work_()
             EXPECT_EQ( -1, numbers[i] );
             numbers[i] = i;
         },
+        pool,
         num_blocks
     );
     mult_fut.get();
@@ -457,7 +462,7 @@ TEST( ThreadPool, ParallelForFuzzy )
 // =================================================================================================
 
 void thread_pool_compute_nested_fuzzy_work_(
-    ThreadPool& pool, std::vector<int>& numbers, size_t begin, size_t end
+    std::shared_ptr<ThreadPool> pool, std::vector<int>& numbers, size_t begin, size_t end
 ) {
     ASSERT_LE( begin, end );
     ASSERT_LE( begin, numbers.size() );
@@ -474,7 +479,7 @@ void thread_pool_compute_nested_fuzzy_work_(
     LOG_DBG1 << "begin=" << begin << " end=" << end << " num_blocks=" << num_blocks;
 
     // Submit tasks.
-    auto mult_fut = pool.parallel_block(
+    auto mult_fut = parallel_block(
         begin, end,
         [&]( size_t begin, size_t end )
         {
@@ -495,6 +500,7 @@ void thread_pool_compute_nested_fuzzy_work_(
                 }
             }
         },
+        pool,
         num_blocks
     );
     mult_fut.get();
@@ -510,7 +516,7 @@ void thread_pool_nested_fuzzy_work_()
     // We do not use the global thread pool here, but instead create one
     // with a random number of threads, to test that it works for all of them.
     auto const num_threads = 1 + permuted_congruential_generator() % 10;
-    ThreadPool pool( num_threads );
+    auto pool = std::make_shared<ThreadPool>( num_threads );
 
     // Debug output
     LOG_DBG << "num_tasks=" << num_tasks << " num_threads=" << num_threads;
