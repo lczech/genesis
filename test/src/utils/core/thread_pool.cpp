@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
  * @ingroup test
  */
 
+#include <atomic>
 #include <functional>
 #include <numeric>
 #include <vector>
@@ -36,6 +37,7 @@
 
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/thread_pool.hpp"
+#include "genesis/utils/core/thread_functions.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/random.hpp"
 
@@ -532,5 +534,92 @@ TEST( ThreadPool, NestedFuzzy )
     size_t const max_tests = 300;
     for( size_t test_num = 0; test_num < max_tests; ++test_num ) {
         thread_pool_nested_fuzzy_work_();
+    }
+}
+
+// =================================================================================================
+//     Critical Section
+// =================================================================================================
+
+std::atomic<size_t> test_thread_pool_critical_section_shared_data_{0};
+
+void test_thread_pool_critical_section_work_( int increments )
+{
+    for (int i = 0; i < increments; ++i) {
+        GENESIS_THREAD_CRITICAL_SECTION(Test)
+
+        // Race condition! Stuff can happen in between the two operations!
+        // (But doesn't, because we use the above critical section lock!)
+        test_thread_pool_critical_section_shared_data_ += 1;
+        test_thread_pool_critical_section_shared_data_.store(
+            test_thread_pool_critical_section_shared_data_.load() * 2
+        );
+
+        // CPU-intensive operation to increase the chance of context switching
+        // for (int j = 0; j < 100; ++j) {
+        //     // Volatile to prevent optimization
+        //     volatile int dummy = j * j * j;
+        //     (void) dummy;
+        // }
+    }
+}
+
+void test_thread_pool_critical_section_()
+{
+    test_thread_pool_critical_section_shared_data_.store(0);
+    const int num_threads = 10;
+    const int increments_per_thread = 5;
+
+    std::atomic<int> worker_ready{0};
+    std::promise<void> go;
+    std::shared_future<void> ready(go.get_future());
+    auto worker_done = std::vector<std::future<void>>(num_threads);
+
+    size_t expected = 0;
+    for( size_t i = 0; i < num_threads * increments_per_thread; ++i ) {
+        expected += 1;
+        expected *= 2;
+        // LOG_DBG << i << " expected " << expected;
+    }
+
+    try
+    {
+        // Run workers, all waiting for the signal to start,
+        // then running in parallel.
+        for( size_t i = 0; i < num_threads; ++i ) {
+            worker_done[i] = std::async(
+                std::launch::async,
+                [ready, &worker_ready]() {
+                    ++worker_ready;
+                    ready.wait();
+                    test_thread_pool_critical_section_work_( increments_per_thread );
+                }
+            );
+        }
+
+        // Set up all threads to wait for the signal, then go!
+        // Busy wait is okay here for test purposes
+        while( worker_ready.load() != num_threads ) {
+            std::this_thread::yield();
+        }
+        go.set_value();
+
+        // Signal was given, now we wait for results
+        for( size_t i = 0; i < num_threads; ++i ) {
+            worker_done[i].get();
+        }
+        EXPECT_EQ( expected, test_thread_pool_critical_section_shared_data_.load() );
+    }
+    catch(...)
+    {
+        go.set_value();
+        throw;
+    }
+}
+
+TEST( ThreadPool, CriticalSection )
+{
+    for( size_t i = 0; i < 1000; ++i ) {
+        test_thread_pool_critical_section_();
     }
 }

@@ -72,6 +72,7 @@
 #include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/genome_region_list.hpp"
+#include "genesis/population/iterators/variant_gapless_input_iterator.hpp"
 #include "genesis/population/iterators/variant_input_iterator.hpp"
 #include "genesis/population/iterators/variant_parallel_input_iterator.hpp"
 #include "genesis/population/plotting/af_spectrum.hpp"
