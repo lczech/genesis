@@ -24,12 +24,46 @@
     260 Panama Street, Stanford, CA 94305, USA
 */
 
+/*
+    The parallel block/for functionality is inspired by BS::thread_pool,
+    see https://github.com/bshoshany/thread-pool, but adapted to fit into our contex,
+    and improved for a more even distribution of the workload, and usage convenience.
+
+    We here still need to include the following original license of BS::thread_pool:
+
+    MIT License
+
+    Copyright (c) 2022 Barak Shoshany
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+*/
+
 /**
  * @brief
  *
  * @file
  * @ingroup utils
  */
+
+#include "genesis/utils/core/multi_future.hpp"
+#include "genesis/utils/core/options.hpp"
+#include "genesis/utils/core/thread_pool.hpp"
 
 #include <atomic>
 #include <cassert>
@@ -42,10 +76,6 @@
 #include <thread>
 #include <utility>
 #include <vector>
-
-#include "genesis/utils/core/multi_future.hpp"
-#include "genesis/utils/core/options.hpp"
-#include "genesis/utils/core/thread_pool.hpp"
 
 namespace genesis {
 namespace utils {
@@ -127,12 +157,15 @@ MultiFuture<R> parallel_block(
         return MultiFuture<R>();
     }
 
-    // Default block size is the number of threads, unless there are not even that many tasks,
-    // in which case we can use fewer blocks.
+    // Default block size is the number of threads in the pool plus one.
+    // We implement a mechanism where the future returned from the pool is proactively processing
+    // other tasks while waiting, so that the calling thread of this function here would be able
+    // to do work as well when waiting, so we make a block for it.
     if( num_blocks == 0 ) {
-        assert( thread_pool->size() > 0 );
-        num_blocks = thread_pool->size();
+        num_blocks = thread_pool->size() + 1;
     }
+    // If there are more blocks than actual items to process, we can adjust, so that we actually
+    // have one block per item. Empty blocks would not make sense.
     if( num_blocks > total_size ) {
         num_blocks = total_size;
     }

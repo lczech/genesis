@@ -232,7 +232,7 @@ public:
             : generator_(     generator )
             , current_block_( std::make_shared<std::vector<T>>() )
             , buffer_block_(  std::make_shared<std::vector<T>>() )
-            , future_(        std::make_shared<std::future<size_t>>() )
+            , future_(        std::make_shared<ProactiveFuture<size_t>>() )
         {
             // We use the generator as a check if this Iterator is intended to be a begin()
             // or end() iterator. If its the former, init and get the first element block.
@@ -720,7 +720,7 @@ public:
 
         // Store the future_ used to keep track of the background task. It returns the number of
         // elements that have been read into the buffer (block_size_, or less at the end of the file).
-        std::shared_ptr<std::future<size_t>> future_;
+        std::shared_ptr<ProactiveFuture<size_t>> future_;
 
     };
 

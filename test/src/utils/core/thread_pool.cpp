@@ -74,7 +74,7 @@ void thread_pool_work_(size_t i)
 TEST( ThreadPool, Nested )
 {
     // LOG_DBG << "---";
-    std::vector<std::future<bool>> tasks;
+    std::vector<ProactiveFuture<bool>> tasks;
 
     for (size_t i = 0; i < 4; ++i) {
         // LOG_DBG << "sub A " << i;
@@ -146,7 +146,7 @@ void test_thread_pool_parallel_block_( size_t num_threads, size_t num_tasks, siz
 
 TEST( ThreadPool, ParallelBlock )
 {
-    for( size_t num_threads = 1; num_threads < 10; ++num_threads ) {
+    for( size_t num_threads = 0; num_threads < 10; ++num_threads ) {
         // Test the border cases
         test_thread_pool_parallel_block_( num_threads, 0, 0 );
         test_thread_pool_parallel_block_( num_threads, 0, 1 );
@@ -231,7 +231,7 @@ void test_thread_pool_parallel_for_( size_t num_threads, size_t num_tasks, size_
 
 TEST( ThreadPool, ParallelFor )
 {
-    for( size_t num_threads = 1; num_threads < 10; ++num_threads ) {
+    for( size_t num_threads = 0; num_threads < 10; ++num_threads ) {
         // Test the border cases
         test_thread_pool_parallel_for_( num_threads, 0, 0 );
         test_thread_pool_parallel_for_( num_threads, 0, 1 );
@@ -332,7 +332,7 @@ void test_thread_pool_parallel_for_each_(
 
 void test_thread_pool_parallel_for_each_( bool range )
 {
-    for( size_t num_threads = 1; num_threads < 10; ++num_threads ) {
+    for( size_t num_threads = 0; num_threads < 10; ++num_threads ) {
         // Test the border cases
         test_thread_pool_parallel_for_each_( num_threads, 0, 0, range );
         test_thread_pool_parallel_for_each_( num_threads, 0, 1, range );
@@ -407,7 +407,7 @@ void thread_pool_for_loop_fuzzy_work_()
 
     // We do not use the global thread pool here, but instead create one
     // with a random number of threads, to test that it works for all of them.
-    auto const num_threads = 1 + permuted_congruential_generator() % 100;
+    auto const num_threads = permuted_congruential_generator() % 100;
     auto pool = std::make_shared<ThreadPool>( num_threads );
 
     // Debug output
@@ -434,6 +434,9 @@ void thread_pool_for_loop_fuzzy_work_()
     // Aggregate the result and check that we got the correct sum.
     auto const total = std::accumulate( numbers.begin(), numbers.end(), 0 );
     EXPECT_EQ( num_tasks * (num_tasks-1) / 2, total );
+    for( size_t i = 0; i < numbers.size(); ++i ) {
+        EXPECT_EQ( i, numbers[i] );
+    }
 }
 
 TEST( ThreadPool, ParallelForFuzzy )
@@ -483,12 +486,12 @@ void thread_pool_compute_nested_fuzzy_work_(
         begin, end,
         [&]( size_t begin, size_t end )
         {
-            // We split half the blocks further.
-            // For the other half, we compute the values here.
+            // We split some of the blocks further.
+            // For the others, we compute the values here.
             // That gives us some nesting, and nested nesting, etc,
             // without degrading into computing each element individually.
-            auto const split = permuted_congruential_generator() % 2;
-            if( split ) {
+            auto const split = permuted_congruential_generator() % 3;
+            if( split < 2 ) {
                 LOG_DBG2 << "split begin=" << begin << " end=" << end;
                 thread_pool_compute_nested_fuzzy_work_( pool, numbers, begin, end );
             } else {
@@ -515,7 +518,7 @@ void thread_pool_nested_fuzzy_work_()
 
     // We do not use the global thread pool here, but instead create one
     // with a random number of threads, to test that it works for all of them.
-    auto const num_threads = 1 + permuted_congruential_generator() % 10;
+    auto const num_threads = permuted_congruential_generator() % 10;
     auto pool = std::make_shared<ThreadPool>( num_threads );
 
     // Debug output

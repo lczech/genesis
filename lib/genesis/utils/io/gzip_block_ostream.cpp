@@ -326,7 +326,7 @@ private:
         {}
 
         GzipBlockCompressor block;
-        std::future<void> future;
+        ProactiveFuture<void> future;
     };
 
     // -------------------------------------------------------------

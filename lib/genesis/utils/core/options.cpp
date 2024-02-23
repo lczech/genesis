@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -146,7 +146,7 @@ void Options::init_global_thread_pool( size_t num_threads )
 
 std::shared_ptr<ThreadPool> Options::global_thread_pool() const
 {
-    if( ! thread_pool_ || thread_pool_->size() == 0 ) {
+    if( ! thread_pool_ ) {
         throw std::runtime_error(
             "Global thread pool has not been properly initialized. "
             "Call init_global_thread_pool() first."

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -127,7 +127,6 @@ public:
     {
         if( thread_pool ) {
             thread_pool_ = thread_pool;
-            assert( thread_pool_->size() > 0 );
         } else {
             thread_pool_ = std::make_shared<utils::ThreadPool>( 1 );
         }
@@ -217,7 +216,7 @@ private:
 
     // Future that stores the achieved size of how many bytes were red.
     // If we ever want to make this class moveable, this probably needs to live in a shared_ptr.
-    std::future<size_t> future_;
+    ProactiveFuture<size_t> future_;
 
 };
 
