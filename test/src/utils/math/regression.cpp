@@ -272,6 +272,8 @@ TEST( Math, GlmGaussSimple )
 
 TEST( Math, GlmGaussInteraction )
 {
+    double delta = 0.00001;
+
     // Input x predictor: 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1,000
     // Function applied to get y response: 0.4 * x - 0.0004 * x^2 + 20
     // GLM fitted with x and x^2 as the predictor variables.
@@ -296,6 +298,13 @@ TEST( Math, GlmGaussInteraction )
     // LOG_DBG << "Xb " << result.Xb;
     // LOG_DBG << "betaQ " << join(result.betaQ);
     // LOG_DBG << "tri " << join(result.tri);
+
+    // Some extra stats
+    double sum_y_fitted = 0.0;
+    for( size_t i = 0; i < response.size(); ++i ) {
+        sum_y_fitted += response[i] - result.fitted[i];
+    }
+    EXPECT_NEAR( 0.0, sum_y_fitted, delta );
 
     auto const betas = glm_estimate_betas( result );
     // LOG_DBG << "betas " << join(betas);
