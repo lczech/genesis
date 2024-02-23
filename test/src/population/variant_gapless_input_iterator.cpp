@@ -68,8 +68,10 @@ Variant test_gapless_input_iterator_make_variant_( std::string const& chr, size_
 
     // Set the samples to known numbers for testing.
     // This sums to 10 counts per sample, and 30 in total for three samples.
+    LOG_DBG1 << "resize";
     var.samples.resize( 3 );
     for( size_t s = 0; s < 3; ++s ) {
+        LOG_DBG1 << "add";
         var.samples[s].a_count = 1;
         var.samples[s].c_count = 2;
         var.samples[s].g_count = 3;
@@ -83,23 +85,30 @@ void test_gapless_input_iterator_basic_(
     size_t exp_positions,
     std::shared_ptr<ReferenceGenome> ref_genome = std::shared_ptr<ReferenceGenome>{}
 ) {
+    LOG_DBG1 << "A";
     // Make the basis iterators that we want. The underlying data is coming from the given vector;
     // then, wrap this in the gapless iterator that we want to test.
     auto var_it = make_variant_input_iterator_from_vector( vars );
+    LOG_DBG1 << "B";
     auto gapless_it = VariantGaplessInputIterator( var_it );
+    LOG_DBG1 << "C";
     gapless_it.reference_genome( ref_genome );
 
     // Now we could already iterate over the gapless iterator with
     //     for( auto const& var : gapless_it )
     // but we want to test our wrapper function for a lambda iterator as well, so we wrap again.
+    LOG_DBG1 << "D";
     auto lambda_it = make_variant_input_iterator_from_variant_gapless_input_iterator( gapless_it );
 
     // Simply test that we get the expected number of variants in the iteration.
+    LOG_DBG1 << "E";
     size_t cnt = 0;
     for( auto const& var : lambda_it ) {
+        LOG_DBG1 << "it " << var.chromosome << ":" << var.position;
         (void) var;
         ++cnt;
     }
+    LOG_DBG1 << "done";
     EXPECT_EQ( exp_positions, cnt );
 }
 
@@ -107,12 +116,14 @@ TEST( GaplessInputIterator, Basics )
 {
     // Empty input
     {
+        LOG_DBG << "Empty input";
         std::vector<Variant> vars;
         test_gapless_input_iterator_basic_( vars, 0 );
     }
 
     // Single at first position
     {
+        LOG_DBG << "Single at first position";
         std::vector<Variant> vars;
         vars.push_back( test_gapless_input_iterator_make_variant_( "A", 1 ));
         test_gapless_input_iterator_basic_( vars, 1 );
@@ -120,24 +131,28 @@ TEST( GaplessInputIterator, Basics )
 
     // Single at second position
     {
+        LOG_DBG << "Single at second position";
         std::vector<Variant> vars;
         vars.push_back( test_gapless_input_iterator_make_variant_( "A", 2 ));
         test_gapless_input_iterator_basic_( vars, 2 );
     }
 
     // Make a ref genome to be used.
+    LOG_DBG << "Ref genome prep";
     auto ref_genome = std::make_shared<ReferenceGenome>();
     ref_genome->add( Sequence( "A", "ACGT" ));
     ref_genome->add( Sequence( "B", "ACGT" ));
 
     // Empty input, but ref genome
     {
+        LOG_DBG << "Empty input, but ref genome";
         std::vector<Variant> vars;
         test_gapless_input_iterator_basic_( vars, 8, ref_genome );
     }
 
     // Ref genome with extra chromosomes.
     {
+        LOG_DBG << "Ref genome with extra chromosomes";
         std::vector<Variant> vars;
         vars.push_back( test_gapless_input_iterator_make_variant_( "A", 2 ));
         test_gapless_input_iterator_basic_( vars, 8, ref_genome );
