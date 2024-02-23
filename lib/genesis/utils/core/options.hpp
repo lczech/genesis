@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -96,32 +96,36 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Returns the number of threads.
-     */
-    inline unsigned int number_of_threads() const
-    {
-        return number_of_threads_;
-    }
-
-    /**
-     * @brief Overwrite the system given number of threads.
+     * @brief Initialize the global thread pool to be used for parallel computations.
      *
-     * When the Options class is first instanciated, the value is initialized with the actual
-     * number of cores available in the system using std::thread::hardware_concurrency().
-     * This method overwrites this value.
+     * This overload uses the result of guess_number_of_threads() to get the overall number of
+     * threads to use, and initializes the pool to use one fewer than that, to account for the
+     * main thread also doing work. As our ThreadPool implementation uses what we call a
+     * ProactiveFuture, the main thread will start processing tasks from the pool queue while
+     * it is waiting for results to get ready.
      *
-     * If @p number is 0, the number of threads is set again to hardware concurrency.
+     * After calling this function, global_thread_pool() can be used to obtain the global thread
+     * pool to enqueue work.
      */
-    void number_of_threads( unsigned int number );
+    void init_global_thread_pool();
 
     /**
      * @brief Initialize the global thread pool to be used for parallel computations.
      *
-     * If @p num_threads is not provided (i.e., left at 0), we use the result of
-     * guess_number_of_threads() to initialize the number of threads to use in the pool.
-     * After this, global_thread_pool() can be used to obtain the pool to enqueue work.
+     * This initializes the pool to have exactly as many threads as provided by @p num_threads here.
+     * Note that the main thread will also do work, so it is recommended to keep the @p num_threads
+     * at at least one fewer than the hardware concurrency (or other upper limit of threads, such as
+     * OpenMP or Slum limits, that you might want to keep). Use the overload init_global_thread_pool()
+     * without any arguments to do this automatically.
+     *
+     * If @p num_threads is `0`, the thread pool is initialized with no threads at all, meaning that
+     * all enqueued work will instead be processed by the main thread once it wants to obtain the
+     * results of tasks. This essentially renders the thread pool into a lazy evaluating task queue.
+     *
+     * After calling this function, global_thread_pool() can be used to obtain the global thread
+     * pool to enqueue work.
      */
-    void init_global_thread_pool( size_t num_threads = 0 );
+    void init_global_thread_pool( size_t num_threads );
 
     /**
      * @brief Return a global thread pool to be used for parallel computations.
@@ -310,8 +314,7 @@ private:
     // CLI
     std::vector<std::string> command_line_;
 
-    // Multi-threading
-    unsigned int number_of_threads_;
+    // Global thread pool
     std::shared_ptr<ThreadPool> thread_pool_;
 
     // Random

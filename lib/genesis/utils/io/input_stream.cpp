@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -697,7 +697,7 @@ void InputStream::init_( std::shared_ptr<BaseInputSource> input_source )
         }
 
         // If there is more data after the two blocks that we just read, start the
-        // reading process (possibly async, if pthreads is available).
+        // reading process (possibly async).
         if( data_end_ == 2 * BlockLength ) {
 
             // Create the reader. We need to do this explictily,

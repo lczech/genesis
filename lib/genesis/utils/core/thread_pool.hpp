@@ -541,19 +541,22 @@ template<class T>
 void ProactiveFuture<T>::wait() const
 {
     // Let's be thorough. The standard encourages the check for validity.
-    // Also, check that we have a valid thread pool.
     throw_if_invalid_();
-    if( !thread_pool_ ) {
-        throw std::runtime_error( "Invalid call to ProactiveFuture::wait() without a ThreadPool" );
-    }
+
+    // Also, check that we have a valid thread pool.
+    assert( thread_pool_ );
+    // if( !thread_pool_ ) {
+    //     throw std::runtime_error( "Invalid call to ProactiveFuture::wait() without a ThreadPool" );
+    // }
 
     // If we have a deferred future, something is off - this was not created by us.
     // We do not do any busy work while waiting, as otherwise, it won't ever get ready.
     // As this might deadlock the thread pool, and was not done by us, we throw.
-    if( deferred() ) {
-        throw std::runtime_error( "Invalid call to ProactiveFuture::wait() with a deferred future" );
+    assert( !deferred() );
+    // if( deferred() ) {
+        // throw std::runtime_error( "Invalid call to ProactiveFuture::wait() with a deferred future" );
         // return future_.wait();
-    }
+    // }
 
     // Otherwise, we use the waiting time to process other tasks from the thread pool
     // that created this future in the first place.
@@ -575,7 +578,7 @@ void ProactiveFuture<T>::wait() const
 
     // We call wait just in case here again, to make sure that everything is all right.
     // Probably not necessary, as it's already ready, but won't hurt either.
-    future_.wait();
+    // future_.wait();
 }
 
 } // namespace utils

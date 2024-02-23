@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,12 +33,9 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
 #include <stdexcept>
 #include <string>
-
-#if defined(GENESIS_PTHREADS) || defined(GENESIS_OPENMP)
-#    include <mutex>
-#endif
 
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/output_stream.hpp"
@@ -52,9 +49,9 @@ namespace utils {
 //     Settings
 // =============================================================================
 
-#if defined(GENESIS_PTHREADS) || defined(GENESIS_OPENMP)
-    static std::mutex log_mutex;
-#endif
+// We use a global mutex to ensure that output streams are synchronized,
+// and avoid garbled output should multiple threads try log things concurrently.
+static std::mutex genesis_log_mutex_;
 
 // TODO use different init for log details depending on DEBUG
 
@@ -248,20 +245,13 @@ Logging::~Logging()
     msg = utils::trim_right(msg);
 
     // output the message to every stream, thread safe!
-#   if defined(GENESIS_PTHREADS) || defined(GENESIS_OPENMP)
-    log_mutex.lock();
-#   endif
-
+    std::lock_guard<std::mutex> lock( genesis_log_mutex_ );
     for( auto& out : ostreams_ ) {
         (*out) << msg << std::endl << std::flush;
     }
     for( auto& out : fstreams_ ) {
         (*out) << msg << std::endl << std::flush;
     }
-
-#   if defined(GENESIS_PTHREADS) || defined(GENESIS_OPENMP)
-    log_mutex.unlock();
-#   endif
 
     // inc log message counter
     count_++;

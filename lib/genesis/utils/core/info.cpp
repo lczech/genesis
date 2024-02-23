@@ -39,6 +39,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <stdexcept>
+#include <thread>
 
 #include <errno.h>
 #include <stdio.h>
@@ -70,10 +71,6 @@
 
 #ifdef GENESIS_OPENMP
 #    include <omp.h>
-#endif
-
-#ifdef GENESIS_PTHREADS
-#     include <thread>
 #endif
 
 namespace genesis {
@@ -211,15 +208,6 @@ std::string info_cpp_version()
 std::string info_compile_date_time()
 {
     return std::string( __DATE__ " " __TIME__ );
-}
-
-bool info_using_pthreads()
-{
-    #ifdef GENESIS_PTHREADS
-        return true;
-    #else
-        return false;
-    #endif
 }
 
 bool info_using_openmp()

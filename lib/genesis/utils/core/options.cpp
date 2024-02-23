@@ -58,14 +58,6 @@
 #   include <unistd.h>
 #endif
 
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
-
-#ifdef GENESIS_PTHREADS
-#    include <thread>
-#endif
-
 namespace genesis {
 namespace utils {
 
@@ -75,9 +67,6 @@ namespace utils {
 
 Options::Options()
 {
-    // Initialize number of threads to hardware cores.
-    number_of_threads( guess_number_of_threads() );
-
     // Initialize random seed with time.
     random_seed( std::chrono::system_clock::now().time_since_epoch().count() );
 }
@@ -109,26 +98,13 @@ void Options::command_line( int const argc, char const* const* argv )
 //     Multi-Threading
 // =================================================================================================
 
-void Options::number_of_threads( unsigned int number )
+void Options::init_global_thread_pool()
 {
-    if( number == 0 ) {
-        #ifdef GENESIS_PTHREADS
-            number = std::thread::hardware_concurrency();
-            if( number == 0 ) {
-                number = 1;
-            }
-        #else
-            number = 1;
-        #endif
-    }
-    number_of_threads_ = number;
-
-    #if defined( GENESIS_OPENMP )
-
-        // If we use OpenMp, set the thread number there, too.
-        omp_set_num_threads( number );
-
-    #endif
+    // Automatic guessing of the correct number of threads.
+    // We then reduce it by one to account for the main thread doing work as well.
+    auto const num_threads = guess_number_of_threads();
+    assert( num_threads > 0 );
+    init_global_thread_pool( num_threads - 1 );
 }
 
 void Options::init_global_thread_pool( size_t num_threads )
@@ -138,9 +114,6 @@ void Options::init_global_thread_pool( size_t num_threads )
             "Global thread pool has already been initialized."
         );
     }
-    if( num_threads == 0 ) {
-        num_threads = guess_number_of_threads();
-    }
     thread_pool_ = std::make_shared<utils::ThreadPool>( num_threads );
 }
 
@@ -148,8 +121,7 @@ std::shared_ptr<ThreadPool> Options::global_thread_pool() const
 {
     if( ! thread_pool_ ) {
         throw std::runtime_error(
-            "Global thread pool has not been properly initialized. "
-            "Call init_global_thread_pool() first."
+            "Global thread pool has not been initialized. Call init_global_thread_pool() first."
         );
     }
     return thread_pool_;
@@ -190,7 +162,6 @@ std::string Options::info_compile_time() const
     res += "Endianness:        " + std::string(
         info_is_little_endian() ? "little endian" : "big endian"
     ) + "\n";
-    res += "Using Pthreads:    " + std::string( info_using_pthreads() ? "true" : "false" ) + "\n";
     res += "Using OpenMP:      " + std::string( info_using_openmp() ? "true" : "false" ) + "\n";
     return res;
 }
@@ -202,7 +173,13 @@ std::string Options::info_run_time() const
     res += "=============================================\n\n";
     auto const cli_str = command_line_string();
     res += "Command line:      " + ( cli_str.size() > 0 ? cli_str : "(not available)" ) + "\n";
-    res += "Number of threads: " + std::to_string( number_of_threads() ) + "\n";
+    size_t num_threads = 1;
+    if( thread_pool_ ) {
+        // Need to account for the main thread doing work as well.
+        // We init the global thread pool with one fewer, so we need to add it back here.
+        num_threads = thread_pool_->size() + 1;
+    }
+    res += "Number of threads: " + std::to_string( num_threads ) + "\n";
     res += "Random seed:       " + std::to_string( random_seed_ ) + "\n";
     return res;
 }

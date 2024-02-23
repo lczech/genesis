@@ -242,7 +242,7 @@ MultiFuture<void> parallel_for(
     return parallel_block(
         begin, end,
         [body]( T b, T e ){
-            for( size_t i = b; i < e; ++i ) {
+            for( T i = b; i < e; ++i ) {
                 body(i);
             }
         },

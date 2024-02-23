@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2021 Lucas Czech
+# Copyright (C) 2014-2024 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,8 +23,10 @@
 #   Use PThreads
 # ------------------------------------------------------------------------------
 
-# This file is included from the main CMakeLists.txt in order to figure out
+# This file can be included from the main CMakeLists.txt in order to figure out
 # if Pthreads are available, and if so, set its paths and flags.
+# We curently do not use this any more, as we have switched to just using
+# the plain C++11 threading model instead. We keep this here for reference only.
 
 message (STATUS "Looking for Threads")
 set (CMAKE_THREAD_PREFER_PTHREAD ON)

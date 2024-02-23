@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2017 Lucas Czech
+# Copyright (C) 2014-2024 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -167,5 +167,5 @@ set_target_properties (genesis_python_module PROPERTIES SUFFIX "${PYTHON_MODULE_
 #     touch ${PROJECT_SOURCE_DIR}/bin/python/__init__.py
 # )
 
-# Link against any external libraries, e.g. Pthreads.
+# Link against any external libraries.
 target_link_libraries (genesis_python_module PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})

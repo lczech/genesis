@@ -2147,8 +2147,7 @@ INCLUDE_FILE_PATTERNS  =
 # recursively expanded use the := operator instead of the = operator.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-PREDEFINED             = GENESIS_PTHREADS \
-                         GENESIS_ZLIB \
+PREDEFINED             = GENESIS_ZLIB \
                          GENESIS_HTSLIB
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this

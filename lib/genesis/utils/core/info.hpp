@@ -104,11 +104,6 @@ std::string info_cpp_version();
 std::string info_compile_date_time();
 
 /**
- * @brief Return whether the binary was compiled using Pthreads.
- */
-bool info_using_pthreads();
-
-/**
  * @brief Return whether the binary was compiled using OpenMP.
  */
 bool info_using_openmp();
@@ -198,11 +193,15 @@ size_t info_current_file_count();
  *    of physical cores available on the system (ideally). This avoids core oversubscription that
  *    could otherwise be the result of using all threads instead of all physical cores.
  *
- * If the numbers disagree with each other, we prefer OpenMP over slurm over `std::thread`,
+ * If the numbers disagree with each other, we prefer OpenMP over slurm over `hardware_concurrency()`,
  * that is, we are going from most specific to least. Furthermore, if the OpenMP based guess yields
  * exactly the same number as the hardware concurrency, we also use the @p physical_cores setting,
  * as this result usually indicates that OpenMP left at its default, in which case we also want
  * to avoid core oversubscription due to hyperthreading.
+ *
+ * The function is guaranteed to return a non-zero value, meaning that at least the main thread
+ * is always accounted for. This is important for Options::get().init_global_thread_pool(), which
+ * will account for that, and initialize the number of additional threads to one fewer than this.
  */
 size_t guess_number_of_threads(
     bool use_openmp = true,

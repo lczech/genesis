@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -288,7 +288,7 @@ private:
             data_end_ = input_source->read( buffer_, 2 * BlockLength );
 
             // If there is more data after the two blocks that we just read, start the
-            // reading process (possibly async, if pthreads is available), into the third block.
+            // reading process (possibly async), into the third block.
             if( data_end_ == 2 * BlockLength ) {
 
                 // Create the reader. We need to do this explictily,

@@ -108,7 +108,7 @@ set( GENESIS_SHARED_LIBRARY "" )
 # This is exported to the parent scope, but only usable if GENESIS_BUILD_STATIC_LIB is ON.
 set( GENESIS_STATIC_LIBRARY "" )
 
-# Prepare variable that collects libraries that Genesis needs to be linked against, e.g. Pthreads.
+# Prepare variable that collects libraries that Genesis needs to be linked against, e.g. htslib.
 # This is used internally, and also added to the Genesis library exports, so that in parent scope,
 # only one target needs to be linked against.
 set( GENESIS_INTERNAL_LINK_LIBRARIES "" )
@@ -191,9 +191,6 @@ option (GENESIS_BUILD_TESTS         "Build the Genesis test suites."            
 
 # If available, use external dependencies.
 option (GENESIS_USE_ZLIB            "Use zlib."                                          ON)
-
-# We default to using threads (if available, which will be checked later).
-option (GENESIS_USE_THREADS         "Use a threading library (mainly, pthreads)."        ON)
 option (GENESIS_USE_OPENMP          "Use OpenMP."                                        ON)
 
 # Additional dependencies: htslib
@@ -345,15 +342,6 @@ IF(GENESIS_USE_ZLIB)
 ENDIF()
 
 # ----------------------------------------------------------
-#     (p)threads
-# ----------------------------------------------------------
-
-IF(GENESIS_USE_THREADS)
-    # Included from modules dir tools/cmake
-    include( IncludePthreads )
-ENDIF()
-
-# ----------------------------------------------------------
 #     OpenMP
 # ----------------------------------------------------------
 
@@ -465,11 +453,11 @@ IF( GENESIS_HAS_PARENT_DIR )
 
     # Set the libraries to be used for `target_link_libraries()` in the parent scope.
     # This is a combination of our own internal libraries (shared and static lib), as well as
-    # any needed other external libraries, e.g., Pthreads.
+    # any needed other external libraries, e.g., htslib.
     set( GENESIS_LINK_LIBRARIES        ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_LIBRARY} PARENT_SCOPE )
 
     # We also offer explicit targets for the shared and static library, in case both were build.
-    # They also include our internal dependencies (Pthreads etc), just to be sure.
+    # They also include our internal dependencies (htslib etc), just to be sure.
     set( GENESIS_LINK_SHARED_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_SHARED_LIBRARY} PARENT_SCOPE )
     set( GENESIS_LINK_STATIC_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_STATIC_LIBRARY} PARENT_SCOPE )
 
@@ -477,9 +465,6 @@ IF( GENESIS_HAS_PARENT_DIR )
     # so that it can easily check whether those are available (and used by Genesis).
     if(ZLIB_FOUND)
         set( ZLIB_FOUND ${ZLIB_FOUND} PARENT_SCOPE )
-    endif()
-    if(THREADS_FOUND)
-        set( THREADS_FOUND ${THREADS_FOUND} PARENT_SCOPE )
     endif()
     if(OPENMP_FOUND)
         set( OPENMP_FOUND ${OPENMP_FOUND} PARENT_SCOPE )
