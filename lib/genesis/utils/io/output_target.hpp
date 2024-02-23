@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -137,7 +137,7 @@ inline std::shared_ptr<BaseOutputTarget> to_gzip_block_file(
     std::string const& file_name,
     std::size_t block_size = GzipBlockOStream::GZIP_DEFAULT_BLOCK_SIZE,
     GzipCompressionLevel compression_level = GzipCompressionLevel::kDefaultCompression,
-    std::size_t num_threads = 0,
+    std::shared_ptr<ThreadPool> thread_pool = nullptr,
     bool auto_adjust_filename = true
 ) {
     if( compression_level == GzipCompressionLevel::kNoCompression ) {
@@ -158,7 +158,7 @@ inline std::shared_ptr<BaseOutputTarget> to_gzip_block_file(
         std::make_shared< FileOutputTarget >( fn, std::ios_base::out | std::ios_base::binary ),
         block_size,
         compression_level,
-        num_threads
+        thread_pool
     );
 }
 

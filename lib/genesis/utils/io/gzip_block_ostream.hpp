@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,10 +31,11 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/thread_pool.hpp"
 #include "genesis/utils/io/gzip.hpp"
 #include "genesis/utils/io/gzip_stream.hpp"
 
-#include <fstream>
+#include <memory>
 #include <sstream>
 #include <string>
 
@@ -72,10 +73,8 @@ namespace utils {
  *     // Write data to stream
  *     ostr << "some data\n";
  *
- * By default, the number of threads is determined using the number of available threads in an
- * OpenMP parallel region. If set manually via @p num_threads to a value other than 0, we recommend
- * to use not more than the hardware concurrency, or fewer, if at the same time compressed data is
- * read in some other part of the program, or other computation-heavy work is done.
+ * By default, the global thread pool of Options::get().global_thread_pool() is used for compressing
+ * gzip blocks in parallel. An alternative pool can be provided instead if needed.
  *
  * Furthermore, note that some file managers might not display the original (uncompressed) file size
  * correctly when viewing the resulting gz file, as they might use only the size of one block
@@ -96,14 +95,14 @@ public:
         std::ostream& os,
         std::size_t block_size = GZIP_DEFAULT_BLOCK_SIZE,
         GzipCompressionLevel compression_level = GzipCompressionLevel::kDefaultCompression,
-        std::size_t num_threads = 0
+        std::shared_ptr<ThreadPool> thread_pool = nullptr
     );
 
     explicit GzipBlockOStream(
         std::streambuf* sbuf_p,
         std::size_t block_size = GZIP_DEFAULT_BLOCK_SIZE,
         GzipCompressionLevel compression_level = GzipCompressionLevel::kDefaultCompression,
-        std::size_t num_threads = 0
+        std::shared_ptr<ThreadPool> thread_pool = nullptr
     );
 
     virtual ~GzipBlockOStream();
