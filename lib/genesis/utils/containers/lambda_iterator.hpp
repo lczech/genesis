@@ -448,7 +448,7 @@ public:
             // However, if the first block was fully read, we start the async worker thread
             // to fill the buffer with the next block of data.
             if( end_pos_ == generator_->block_size_ ) {
-                enqueue_buffer_block_filling_();
+                enqueue_filling_of_buffer_block_();
             } else if( end_pos_ == 0 ) {
                 // Edge case: zero elements read. We are already done then.
                 end_iteration_();
@@ -553,7 +553,9 @@ public:
                 assert( end_pos_ > 0 && end_pos_ <= generator_->block_size_ );
                 std::swap( buffer_block_, current_block_ );
                 if( end_pos_ == generator_->block_size_ ) {
-                    enqueue_buffer_block_filling_();
+                    assert( !future_->valid() );
+                    enqueue_filling_of_buffer_block_();
+                    assert( future_->valid() );
                 }
                 current_pos_ = 0;
             }
@@ -564,7 +566,7 @@ public:
             execute_observers_( (*current_block_)[current_pos_] );
         }
 
-        void enqueue_buffer_block_filling_()
+        void enqueue_filling_of_buffer_block_()
         {
             // Those shared pointers have been initialized in the constructor; let's assert this.
             assert( generator_ );
@@ -698,6 +700,7 @@ public:
             // in the equality comparison of this iterator to test whether an iterator is valid
             // or not (or equal to the past-the-end iterator).
             assert( generator_ );
+            assert( ! future_->valid() );
             execute_end_callbacks_();
             generator_ = nullptr;
         }

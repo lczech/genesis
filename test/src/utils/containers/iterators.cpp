@@ -219,21 +219,23 @@ void test_lambda_iterator_( size_t num_elements, size_t block_size )
     auto expected_sum = std::accumulate( data.begin(), data.end(), size_t{0} );
 
     // The input is a sequence of numbers. We use a counter while looping to check every element.
-    std::atomic<size_t> read_counter{0};
+    std::atomic<size_t> called_counter{0};
+    std::atomic<size_t> value_counter{0};
 
     // Set up the LambdaIterator.
     using NumberLambdaIterator = LambdaIterator<size_t>;
     auto beg = data.begin();
     auto end = data.end();
     auto generator = NumberLambdaIterator(
-        [beg, end, &read_counter]( size_t& value ) mutable {
+        [beg, end, &called_counter, &value_counter]( size_t& value ) mutable {
+            ++called_counter;
             if( beg != end ) {
                 value = *beg;
 
                 // Check that the series is complete
-                auto const lc = read_counter.load();
+                auto const lc = value_counter.load();
                 EXPECT_EQ( lc, value );
-                ++read_counter;
+                ++value_counter;
 
                 ++beg;
                 return true;
@@ -284,6 +286,10 @@ void test_lambda_iterator_( size_t num_elements, size_t block_size )
     // We are only using the global thread pool sequentially in the tests here, so there
     // cannot be anything left from other places once we are done with the iteration.
     EXPECT_EQ( 0, Options::get().global_thread_pool()->currently_enqueued_tasks() );
+
+    // We called the get element function in the lambda exactly one per data item,
+    // and one last time at the end to indicate that ther is no more data.
+    EXPECT_EQ( data.size() + 1, called_counter.load() );
 
     // Check the numerical outputs as well
     EXPECT_EQ( expected_sum, loop_sum );
