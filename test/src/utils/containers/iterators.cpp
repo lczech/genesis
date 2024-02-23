@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 #include "genesis/utils/containers/transform_iterator.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <numeric>
 #include <utility>
 #include <vector>
@@ -208,6 +209,7 @@ TEST( Containers, FilterIterator )
 
 void test_lambda_iterator_( size_t num_elements, size_t block_size )
 {
+    LOG_DBG << "====================================";
     LOG_DBG << "num_elements " << num_elements << ", block_size " << block_size;
 
     // Create data as sequence of numbers, and get their sum.
@@ -216,21 +218,29 @@ void test_lambda_iterator_( size_t num_elements, size_t block_size )
     std::iota( data.begin(), data.end(), 0 );
     auto expected_sum = std::accumulate( data.begin(), data.end(), size_t{0} );
 
-    using NumberLambdaIterator = LambdaIterator<size_t>;
+    // The input is a sequence of numbers. We use a counter while looping to check every element.
+    std::atomic<size_t> read_counter{0};
 
     // Set up the LambdaIterator.
+    using NumberLambdaIterator = LambdaIterator<size_t>;
     auto beg = data.begin();
     auto end = data.end();
     auto generator = NumberLambdaIterator(
-        [beg, end]( size_t& value ) mutable {
+        [beg, end, &read_counter]( size_t& value ) mutable {
             if( beg != end ) {
                 value = *beg;
+
+                // Check that the series is complete
+                auto const lc = read_counter.load();
+                EXPECT_EQ( lc, value );
+                ++read_counter;
+
                 ++beg;
                 return true;
             } else {
                 return false;
             }
-        }, {}, block_size
+        }, nullptr, block_size
     );
 
     // Result variables.
@@ -266,6 +276,16 @@ void test_lambda_iterator_( size_t num_elements, size_t block_size )
         LOG_DBG << "at " << it;
         loop_sum += it;
     }
+
+    // Regression test.
+    // We had a bug where the lambda iterator would not check for the end of the input correctly.
+    // This test makes sure that after the loop is done, there is nothing in the thread pool
+    // any more - the iterator should have waited for the end of everything before finishing.
+    // We are only using the global thread pool sequentially in the tests here, so there
+    // cannot be anything left from other places once we are done with the iteration.
+    EXPECT_EQ( 0, Options::get().global_thread_pool()->currently_enqueued_tasks() );
+
+    // Check the numerical outputs as well
     EXPECT_EQ( expected_sum, loop_sum );
     EXPECT_EQ( expected_sum, visitor_sum );
 }
@@ -279,45 +299,49 @@ TEST( Containers, LambdaIterator )
     // But if needed, comment this line out, and each test will report its input.
     LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
 
-    // No elements
-    test_lambda_iterator_( 0, 0 );
-    test_lambda_iterator_( 0, 1 );
-    test_lambda_iterator_( 0, 2 );
-    test_lambda_iterator_( 0, 3 );
+    // Loop a few times, to have a higher chance of finding race conditions etc in the threading.
+    for( size_t i = 0; i < 250; ++i ) {
 
-    // Single element
-    test_lambda_iterator_( 1, 0 );
-    test_lambda_iterator_( 1, 1 );
-    test_lambda_iterator_( 1, 2 );
-    test_lambda_iterator_( 1, 3 );
+        // No elements
+        test_lambda_iterator_( 0, 0 );
+        test_lambda_iterator_( 0, 1 );
+        test_lambda_iterator_( 0, 2 );
+        test_lambda_iterator_( 0, 3 );
 
-    // Two elements
-    test_lambda_iterator_( 2, 0 );
-    test_lambda_iterator_( 2, 1 );
-    test_lambda_iterator_( 2, 2 );
-    test_lambda_iterator_( 2, 3 );
+        // Single element
+        test_lambda_iterator_( 1, 0 );
+        test_lambda_iterator_( 1, 1 );
+        test_lambda_iterator_( 1, 2 );
+        test_lambda_iterator_( 1, 3 );
 
-    // Three elements
-    test_lambda_iterator_( 3, 0 );
-    test_lambda_iterator_( 3, 1 );
-    test_lambda_iterator_( 3, 2 );
-    test_lambda_iterator_( 3, 3 );
+        // Two elements
+        test_lambda_iterator_( 2, 0 );
+        test_lambda_iterator_( 2, 1 );
+        test_lambda_iterator_( 2, 2 );
+        test_lambda_iterator_( 2, 3 );
 
-    // Four elements
-    test_lambda_iterator_( 4, 0 );
-    test_lambda_iterator_( 4, 1 );
-    test_lambda_iterator_( 4, 2 );
-    test_lambda_iterator_( 4, 3 );
+        // Three elements
+        test_lambda_iterator_( 3, 0 );
+        test_lambda_iterator_( 3, 1 );
+        test_lambda_iterator_( 3, 2 );
+        test_lambda_iterator_( 3, 3 );
 
-    // Many elements
-    test_lambda_iterator_( 100, 0 );
-    test_lambda_iterator_( 100, 1 );
-    test_lambda_iterator_( 100, 2 );
-    test_lambda_iterator_( 100, 3 );
+        // Four elements
+        test_lambda_iterator_( 4, 0 );
+        test_lambda_iterator_( 4, 1 );
+        test_lambda_iterator_( 4, 2 );
+        test_lambda_iterator_( 4, 3 );
 
-    // Long buffer block
-    test_lambda_iterator_( 0, 100 );
-    test_lambda_iterator_( 1, 100 );
-    test_lambda_iterator_( 2, 100 );
-    test_lambda_iterator_( 3, 100 );
+        // Many elements
+        test_lambda_iterator_( 100, 0 );
+        test_lambda_iterator_( 100, 1 );
+        test_lambda_iterator_( 100, 2 );
+        test_lambda_iterator_( 100, 3 );
+
+        // Long buffer block
+        test_lambda_iterator_( 0, 100 );
+        test_lambda_iterator_( 1, 100 );
+        test_lambda_iterator_( 2, 100 );
+        test_lambda_iterator_( 3, 100 );
+    }
 }

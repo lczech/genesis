@@ -24,6 +24,7 @@
     260 Panama Street, Stanford, CA 94305, USA
 */
 
+#include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/thread_pool.hpp"
 
 #include <cassert>
@@ -427,6 +428,9 @@ public:
 
         void begin_iteration_with_buffer_()
         {
+            // The main class makes sure that we have a thread pool when we want to use the buffer
+            assert( generator_->thread_pool_ );
+
             // Init the records and create empty VcfRecord to read into.
             // The blocks have been initialized in the contructor already; assert this.
             current_block_->resize( generator_->block_size_ );
@@ -444,7 +448,7 @@ public:
             // However, if the first block was fully read, we start the async worker thread
             // to fill the buffer with the next block of data.
             if( end_pos_ == generator_->block_size_ ) {
-                fill_buffer_block_();
+                enqueue_buffer_block_filling_();
             } else if( end_pos_ == 0 ) {
                 // Edge case: zero elements read. We are already done then.
                 end_iteration_();
@@ -473,7 +477,7 @@ public:
                     current_block_->size()  == 1
                 )
             );
-            assert( buffer_block_->size()  == generator_->block_size_ );
+            assert( buffer_block_->size() == generator_->block_size_ );
 
             // Run the actual increment implementation.
             if( generator_->block_size_ == 0 ) {
@@ -535,21 +539,32 @@ public:
                     return;
                 }
 
-                // Here, we know that there is more data, so we can swap the buffer,
-                // start reading again, and set or internal current location
-                // to the first element of the vector again.
+                // Here, we know that there is more data buffered, so we can swap the buffer.
+                // If that last read returned with less than a full block of items, we have reached
+                // the end of the input, and do not want to start reading more (that condition was
+                // missing before - nasty bug that only showed up in consequetive concurrent tests,
+                // so that a thread was started even after there was no more input. That thread
+                // would then access data from the next test case, which of course happened to
+                // occupy the same stack space. This never showed up in read data, as that
+                // stray thread would not communicate with anything, and somehow did not throw
+                // or segfault either. Super nasty to find.
+                // Anyway, if we had read a full block before, we need to start reading again.
+                // Finally, set or internal current location to the first element of the vector again.
                 assert( end_pos_ > 0 && end_pos_ <= generator_->block_size_ );
                 std::swap( buffer_block_, current_block_ );
-                fill_buffer_block_();
+                if( end_pos_ == generator_->block_size_ ) {
+                    enqueue_buffer_block_filling_();
+                }
                 current_pos_ = 0;
             }
 
             // Now we have moved to the next element, and potentially the next block,
             // so we are ready to call the observers for that element.
+            assert( current_pos_ < end_pos_ );
             execute_observers_( (*current_block_)[current_pos_] );
         }
 
-        void fill_buffer_block_()
+        void enqueue_buffer_block_filling_()
         {
             // Those shared pointers have been initialized in the constructor; let's assert this.
             assert( generator_ );
@@ -569,7 +584,7 @@ public:
                     current_block_->size()  == 1
                 )
             );
-            assert( buffer_block_->size()  == generator_->block_size_ );
+            assert( buffer_block_->size() == generator_->block_size_ );
 
             // In order to use lambda captures by copy for class member variables in C++11, we first
             // have to make local copies, and then capture those. Capturing the class members direclty
@@ -580,6 +595,10 @@ public:
 
             // The lambda returns the result of read_block_ call, that is, the number of records that
             // have been read, and which we later (in the future_) use to see how much data we got.
+            // It is of course important that the input is read in the correct order of elements.
+            // Despite its parallel nature, we can use a thread pool here, as we are only ever
+            // submitting a single read task to it, so there cannot be two reads of the same lambda
+            // iterator in the pool.
             *future_ = generator_->thread_pool_->enqueue(
                 [ generator, buffer_block, block_size ](){
                     return read_block_( generator, buffer_block, block_size );
@@ -743,17 +762,16 @@ public:
      */
     LambdaIterator(
         std::function<bool(value_type&)> get_element,
-        std::shared_ptr<utils::ThreadPool> thread_pool = {},
+        std::shared_ptr<utils::ThreadPool> thread_pool = nullptr,
         size_t block_size = DEFAULT_BLOCK_SIZE
     )
         : get_element_(get_element)
-        , thread_pool_( thread_pool )
         , block_size_( block_size )
     {
-        if( ! thread_pool ) {
-            thread_pool = std::make_shared<utils::ThreadPool>( 1 );
+        // We only need to set the thread pool if we are going to use buffering.
+        if( block_size > 0 ) {
+            thread_pool_ = thread_pool ? thread_pool : Options::get().global_thread_pool();
         }
-        thread_pool_ = thread_pool;
     }
 
     /**
@@ -766,7 +784,7 @@ public:
     LambdaIterator(
         std::function<bool(value_type&)> get_element,
         Data const& data,
-        std::shared_ptr<utils::ThreadPool> thread_pool = {},
+        std::shared_ptr<utils::ThreadPool> thread_pool = nullptr,
         size_t block_size = DEFAULT_BLOCK_SIZE
     )
         : LambdaIterator( get_element, thread_pool, block_size )
@@ -782,7 +800,7 @@ public:
     LambdaIterator(
         std::function<bool(value_type&)> get_element,
         Data&& data,
-        std::shared_ptr<utils::ThreadPool> thread_pool = {},
+        std::shared_ptr<utils::ThreadPool> thread_pool = nullptr,
         size_t block_size = DEFAULT_BLOCK_SIZE
     )
         : LambdaIterator( get_element, thread_pool, block_size )
@@ -1039,6 +1057,11 @@ public:
         if( has_started_ ) {
             throw std::runtime_error(
                 "LambdaIterator: Cannot change thread pool after iteration has started."
+            );
+        }
+        if( !value ) {
+            throw std::runtime_error(
+                "LambdaIterator: Cannot change thread pool to empty object."
             );
         }
         thread_pool_ = value;
