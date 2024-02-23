@@ -110,7 +110,15 @@ namespace utils {
  * The @p num_blocks determines the number of blocks to split the loop body into. Default is
  * to use the number of threads in the pool.
  *
- * The function returns a MultiFuture that can be used to wait for all the blocks to finish.
+ * By default, @p auto_wait is set to `true`, meaning that the function blocks until the results
+ * are ready. This is meant as a convenience and safety mechanism, as otherwise the user might
+ * forget to wait, and continue with other things while the thread pool is still working on the
+ * blocks.
+ *
+ * The function returns a MultiFuture that can be used to obtian the results for all the blocks.
+ * If `auto_wait == false`, this also can be used to call wait() on the returned MultiFuture to
+ * wait for all blocks to finish.
+ *
  * If the loop body returns a value, the MultiFuture can also be used to obtain the values
  * returned by each block, for example:
  *
@@ -135,7 +143,8 @@ template<
 MultiFuture<R> parallel_block(
     T1 begin, T2 end, F&& body,
     std::shared_ptr<ThreadPool> thread_pool = nullptr,
-    size_t num_blocks = 0
+    size_t num_blocks = 0,
+    bool auto_wait = true
 ) {
     // If no thread pool was provided, we use the global one.
     if( !thread_pool ) {
@@ -205,6 +214,13 @@ MultiFuture<R> parallel_block(
     // Check this, then return the future.
     assert( current_start == total_size );
     assert( begin_t + static_cast<T>( current_start ) == end_t );
+
+    // If requested, we block here until everything is ready.
+    // This is a proactive waiting, meaning the calling thread will process tasks from the
+    // thread pool while waiting here.
+    if( auto_wait ) {
+        result.wait();
+    }
     return result;
 }
 
@@ -229,6 +245,11 @@ MultiFuture<R> parallel_block(
  * ```
  *
  * This makes it a convenience function; see also parallel_for_each() for container-based data.
+ *
+ * By default, @p auto_wait is set to `true`, meaning that the function first waits for all results
+ * to be ready, and only returns afterwards. Then, the returned future is ready immediately.
+ * This ensures that the user cannot accidentally forget to wait for the result, making this
+ * function behave more intuitively like an `#pragma omp parallel for` or the like.
  */
 template<
     typename F,
@@ -237,7 +258,8 @@ template<
 MultiFuture<void> parallel_for(
     T1 begin, T2 end, F&& body,
     std::shared_ptr<ThreadPool> thread_pool = nullptr,
-    size_t num_blocks = 0
+    size_t num_blocks = 0,
+    bool auto_wait = true
 ) {
     return parallel_block(
         begin, end,
@@ -247,7 +269,8 @@ MultiFuture<void> parallel_for(
             }
         },
         thread_pool,
-        num_blocks
+        num_blocks,
+        auto_wait
     );
 }
 
@@ -272,12 +295,18 @@ MultiFuture<void> parallel_for(
  * ```
  *
  * This makes it a convenience function.
+ *
+ * By default, @p auto_wait is set to `true`, meaning that the function first waits for all results
+ * to be ready, and only returns afterwards. Then, the returned future is ready immediately.
+ * This ensures that the user cannot accidentally forget to wait for the result, making this
+ * function behave more intuitively like an `#pragma omp parallel for` or the like.
  */
 template<typename F, typename T>
 MultiFuture<void> parallel_for_each(
     T const begin, T const end, F&& body,
     std::shared_ptr<ThreadPool> thread_pool = nullptr,
-    size_t num_blocks = 0
+    size_t num_blocks = 0,
+    bool auto_wait = true
 ) {
     // Boundary checks.
     auto const total = std::distance( begin, end );
@@ -301,7 +330,8 @@ MultiFuture<void> parallel_for_each(
             }
         },
         thread_pool,
-        num_blocks
+        num_blocks,
+        auto_wait
     );
 }
 
@@ -325,12 +355,18 @@ MultiFuture<void> parallel_for_each(
  * ```
  *
  * This makes it a convenience function.
+ *
+ * By default, @p auto_wait is set to `true`, meaning that the function first waits for all results
+ * to be ready, and only returns afterwards. Then, the returned future is ready immediately.
+ * This ensures that the user cannot accidentally forget to wait for the result, making this
+ * function behave more intuitively like an `#pragma omp parallel for` or the like.
  */
 template<typename F, typename T>
 MultiFuture<void> parallel_for_each(
     T& container, F&& body,
     std::shared_ptr<ThreadPool> thread_pool = nullptr,
-    size_t num_blocks = 0
+    size_t num_blocks = 0,
+    bool auto_wait = true
 ) {
     // Boundary checks.
     if( container.size() == 0 ) {
@@ -346,7 +382,8 @@ MultiFuture<void> parallel_for_each(
             }
         },
         thread_pool,
-        num_blocks
+        num_blocks,
+        auto_wait
     );
 }
 

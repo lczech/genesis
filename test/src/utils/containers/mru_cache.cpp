@@ -301,7 +301,7 @@ TEST( Containers, MruCacheThreading )
         size_t num = 2 + ( std::rand() % 11 );
 
         cache.fetch_copy( "fail" + std::to_string( num ) + ".jtest" );
-    }).wait();
+    });
 
     // We must have loaded at least one element (which would mean that _all_ 100 calls loaded
     // the same file... very much unlikely, but still, it's enough to test this here).
