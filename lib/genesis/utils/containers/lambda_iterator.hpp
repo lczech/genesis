@@ -492,9 +492,10 @@ public:
             // Edge case: no buffering.
             // Read the next element. If there is none, we are done.
             assert( current_pos_ == 0 );
+            assert( current_block_ );
             assert( current_block_->size() == 1 );
             if( get_next_element_( generator_, (*current_block_)[0] )) {
-                execute_observers_( (*current_block_)[current_pos_] );
+                execute_observers_( (*current_block_)[0] );
             } else {
                 end_iteration_();
             }
@@ -550,6 +551,8 @@ public:
                 // or segfault either. Super nasty to find.
                 // Anyway, if we had read a full block before, we need to start reading again.
                 // Finally, set or internal current location to the first element of the vector again.
+                assert( current_block_ );
+                assert( buffer_block_ );
                 assert( end_pos_ > 0 && end_pos_ <= generator_->block_size_ );
                 std::swap( buffer_block_, current_block_ );
                 if( end_pos_ == generator_->block_size_ ) {
@@ -586,6 +589,7 @@ public:
                     current_block_->size()  == 1
                 )
             );
+            assert( buffer_block_ );
             assert( buffer_block_->size() == generator_->block_size_ );
 
             // In order to use lambda captures by copy for class member variables in C++11, we first
@@ -627,6 +631,7 @@ public:
             // pointer from freeing its memory indefinitely.
 
             assert( generator );
+            assert( buffer_block );
             assert( buffer_block->size() == block_size );
 
             // Read as long as there is data. Return number of read records.

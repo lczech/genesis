@@ -138,25 +138,23 @@ public:
 
         Variant const * operator->() const
         {
-            return current_variant_;
+            return &current_variant_();
         }
 
-        Variant * operator->()
-        {
-            return current_variant_;
-        }
+        // Variant * operator->()
+        // {
+        //     return &current_variant_();
+        // }
 
         Variant const & operator*() const
         {
-            assert( current_variant_ );
-            return *current_variant_;
+            return current_variant_();
         }
 
-        Variant & operator*()
-        {
-            assert( current_variant_ );
-            return *current_variant_;
-        }
+        // Variant & operator*()
+        // {
+        //     return current_variant_();
+        // }
 
         /**
          * @brief Return the current locus where the iteration is at.
@@ -316,7 +314,37 @@ public:
         /**
          * @brief Check the iterator for validity, that is, not empty. Throw otherwise.
          */
-        void check_iterator_();
+        void check_input_iterator_();
+
+        /**
+         * @brief Get the Variant at the current position.
+         *
+         * Either points to the input iterator Variant, or our missing variant.
+         */
+        Variant& current_variant_()
+        {
+            if( current_variant_is_missing_ ) {
+                return missing_variant_;
+            } else {
+                assert( iterator_ );
+                return *iterator_;
+            }
+        }
+
+        /**
+         * @brief Get the Variant at the current position.
+         *
+         * Either points to the input iterator Variant, or our missing variant.
+         */
+        Variant const& current_variant_() const
+        {
+            if( current_variant_is_missing_ ) {
+                return missing_variant_;
+            } else {
+                assert( iterator_ );
+                return *iterator_;
+            }
+        }
 
     private:
 
@@ -326,20 +354,19 @@ public:
         // Keep track of the locus that the iterator currently is at.
         GenomeLocus current_locus_;
 
-        // Pointer to the current variant. This either points into the iterator_,
-        // or, if this is a missing position where the iterator does not have data,
-        // points to the dummy missing_variant_ instead.
-        Variant* current_variant_ = nullptr;
-
-        // Keep the iterators that we want to traverse. We only need the begin() iterators,
-        // as they are themselves able to tell us if they are still good (via their operator bool).
-        VariantInputIterator::Iterator iterator_;
+        // Is the current variant missing? If so, we are using the dummy missing_variant_,
+        // otherwise the one of the input iterator.
+        bool current_variant_is_missing_ = false;
 
         // Storage for the missing variants of the iterators. This serves as a dummy variant
         // for all positions of the input without data, so that we do not need to re-allocate
         // every time for this. It is initialized to zero counts for all base counts,
         // and only the position and refrence base are updated.
         Variant missing_variant_;
+
+        // Keep the iterators that we want to traverse. We only need the begin() iterators,
+        // as they are themselves able to tell us if they are still good (via their operator bool).
+        VariantInputIterator::Iterator iterator_;
 
         // Cache for the ref genome and seq dict sequences, so that we do not have to find them
         // on every iteration here.
@@ -407,6 +434,10 @@ public:
      */
     Iterator begin()
     {
+        if( started_ ) {
+            throw std::runtime_error( "Cannot start VariantGaplessInputIterator multiple times" );
+        }
+        started_ = true;
         return Iterator( this );
     }
 
@@ -508,6 +539,7 @@ public:
 private:
 
     VariantInputIterator input_;
+    bool started_ = false;
 
     // We offer two ways of specifying chromosome lengths.
     // With ref genome, we additionally gain access to the bases.

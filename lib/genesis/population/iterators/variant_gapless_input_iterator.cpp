@@ -63,7 +63,7 @@ VariantGaplessInputIterator::Iterator::Iterator( VariantGaplessInputIterator* pa
     // for missing positions where this iterator does not have data.
     auto const sample_name_count = parent_->input_.data().sample_names.size();
     if( iterator_ ) {
-        check_iterator_();
+        check_input_iterator_();
         missing_variant_.samples.resize( iterator_->samples.size() );
 
         // We assume that the sample_names are of the correct size, if given.
@@ -119,7 +119,7 @@ void VariantGaplessInputIterator::Iterator::start_chromosome_()
     // Check that we are indeed at the beginning of a new chromosome.
     assert( current_locus_.chromosome != "" );
     assert( current_locus_.position == 1 );
-     std::string const& chr = current_locus_.chromosome;
+    std::string const& chr = current_locus_.chromosome;
 
     // Check that we do not accidentally duplicate any chromosomes.
     if( processed_chromosomes_.count( chr ) > 0 ) {
@@ -179,7 +179,7 @@ void VariantGaplessInputIterator::Iterator::advance_current_locus_()
                 advance_current_locus_beyond_input_();
                 return;
             }
-            check_iterator_();
+            check_input_iterator_();
         }
     }
     assert( iterator_ );
@@ -373,7 +373,7 @@ void VariantGaplessInputIterator::Iterator::prepare_current_variant_()
     // Check if the current locus has data. If so, we point our data to the input data.
     // If not, we point to our internal "missing" variant dummy, and reset it from prev iterations.
     if( iterator_ && locus_equal( iterator_->chromosome, iterator_->position, current_locus_ )) {
-        current_variant_ = &*iterator_;
+        current_variant_is_missing_ = false;
 
         // Error check for consistent sample size.
         if( iterator_->samples.size() != missing_variant_.samples.size() ) {
@@ -386,7 +386,7 @@ void VariantGaplessInputIterator::Iterator::prepare_current_variant_()
             );
         }
     } else {
-        current_variant_ = &missing_variant_;
+        current_variant_is_missing_ = true;
         missing_variant_.chromosome = current_locus_.chromosome;
         missing_variant_.position   = current_locus_.position;
         missing_variant_.reference_base   = 'N';
@@ -402,12 +402,15 @@ void VariantGaplessInputIterator::Iterator::prepare_current_variant_()
 
 void VariantGaplessInputIterator::Iterator::prepare_current_variant_ref_base_()
 {
-    // This function expects current_variant_ to be set up for the locus already.
+    // Shorthand. Points to either the missing variant or the input iterator variant.
+    auto& cur_var = current_variant_();
+
+    // This function expects current_variant to be set up for the locus already,
+    // and only be missing the ref base setup.
     assert( parent_ );
-    assert( current_variant_ );
     assert( !current_locus_.chromosome.empty() && current_locus_.position > 0 );
     assert( locus_equal(
-        current_variant_->chromosome, current_variant_->position, current_locus_
+        cur_var.chromosome, cur_var.position, current_locus_
     ));
 
     // If we have a ref genome, we use it to get or check the reference base.
@@ -428,13 +431,13 @@ void VariantGaplessInputIterator::Iterator::prepare_current_variant_ref_base_()
         current_locus_.position <= ref_genome_it_->length()
     );
     auto const ref_base = ref_genome_it_->site_at( current_locus_.position - 1 );
-    // guess_and_set_ref_and_alt_bases( *current_variant_, ref_base, true );
-    if( is_valid_base( current_variant_->reference_base )) {
+    // guess_and_set_ref_and_alt_bases( cur_var, ref_base, true );
+    if( is_valid_base( cur_var.reference_base )) {
         bool contains = false;
         try {
             using genesis::sequence::nucleic_acid_code_containment;
             contains = nucleic_acid_code_containment(
-                ref_base, current_variant_->reference_base
+                ref_base, cur_var.reference_base
             );
         } catch(...) {
             // The above throws an error if the given bases are not valid.
@@ -450,22 +453,22 @@ void VariantGaplessInputIterator::Iterator::prepare_current_variant_ref_base_()
                 "At chromosome \"" + current_locus_.chromosome + "\" position " +
                 std::to_string( current_locus_.position ) +
                 ", the reference base in the data is '" +
-                std::string( 1, current_variant_->reference_base ) + "'. " +
+                std::string( 1, cur_var.reference_base ) + "'. " +
                 "However, the reference genome has base '" + std::string( 1, ref_base ) +
                 "', which does not code for that base, and hence likely points to "
                 "some kind of mismatch"
             );
         }
     } else {
-        current_variant_->reference_base = ref_base;
+        cur_var.reference_base = ref_base;
     }
 }
 
 // -------------------------------------------------------------------------
-//     check_iterator_
+//     check_input_iterator_
 // -------------------------------------------------------------------------
 
-void VariantGaplessInputIterator::Iterator::check_iterator_()
+void VariantGaplessInputIterator::Iterator::check_input_iterator_()
 {
     if( iterator_->chromosome.empty() || iterator_->position == 0 ) {
         throw std::runtime_error(
