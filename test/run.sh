@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2022 Lucas Czech
+# Copyright (C) 2014-2024 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -157,9 +157,9 @@ if [[ $mode == "debug" ]] ; then
     # When we are on GitHub Actions, we want a fully automated debugging, print the stack, then exit.
     if [[ `whoami` == "runner" ]] ; then
         echo "Running gdb auto"
-        gdb -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "bt" -ex "q" --args ${test_exe} --gtest_filter="${filter}"
+        gdb -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "bt" -ex "q" --args ${test_exe} --gtest_catch_exceptions=0 --gtest_filter="${filter}"
     else
-        gdb -ex "run" -ex "bt" --args ${test_exe} --gtest_filter="${filter}"
+        gdb -ex "run" -ex "bt" --args ${test_exe} --gtest_catch_exceptions=0 --gtest_filter="${filter}"
     fi
     exit
 fi
