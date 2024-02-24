@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -976,7 +976,9 @@ inline int VcfFormatIterator<int32_t, int32_t>::construct_values_(
         header, record, id.c_str(), reinterpret_cast<void**>( &tmp_ptr ),
         &values_reserved_, static_cast<int>( ht_type )
     );
-    value_buffer_ = std::shared_ptr<int32_t>( tmp_ptr, std::default_delete<int32_t[]>());
+
+    // We need a custom deleter that calls free() to match the malloc() of the htslib API
+    value_buffer_ = std::shared_ptr<int32_t>( tmp_ptr, [](int32_t* p) { ::free(p); });
     return values_total_;
 }
 
@@ -991,7 +993,7 @@ inline int VcfFormatIterator<float, double>::construct_values_(
         header, record, id.c_str(), reinterpret_cast<void**>( &tmp_ptr ),
         &values_reserved_, static_cast<int>( ht_type )
     );
-    value_buffer_ = std::shared_ptr<float>( tmp_ptr, std::default_delete<float[]>());
+    value_buffer_ = std::shared_ptr<float>( tmp_ptr, [](float* p) { ::free(p); });
     return values_total_;
 }
 
@@ -1060,7 +1062,7 @@ inline int VcfFormatIterator<int32_t, VcfGenotype>::construct_values_(
     values_total_ = VcfFormatHelper::bcf_get_genotypes_(
         header, record, reinterpret_cast<void**>( &tmp_ptr ), &values_reserved_
     );
-    value_buffer_ = std::shared_ptr<int32_t>( tmp_ptr, std::default_delete<int32_t[]>());
+    value_buffer_ = std::shared_ptr<int32_t>( tmp_ptr, [](int32_t* p) { ::free(p); });
     return values_total_;
 }
 
