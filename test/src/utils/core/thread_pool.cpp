@@ -490,8 +490,8 @@ void thread_pool_compute_nested_fuzzy_work_(
             // For the others, we compute the values here.
             // That gives us some nesting, and nested nesting, etc,
             // without degrading into computing each element individually.
-            auto const split = permuted_congruential_generator() % 3;
-            if( split < 2 ) {
+            auto const split = permuted_congruential_generator() % 2;
+            if( split < 1 ) {
                 LOG_DBG2 << "split begin=" << begin << " end=" << end;
                 thread_pool_compute_nested_fuzzy_work_( pool, numbers, begin, end );
             } else {
