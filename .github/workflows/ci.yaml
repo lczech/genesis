@@ -331,13 +331,29 @@ jobs:
         # If the regular test run failed, we repeat with gdb, to print the stack.
         # We are not using the `./test/run.sh gdb` here, to make it easier for MacOS.
         # gdb on Mac needs to be code signed for executing without admin rights...
-        # See https://sourceware.org/gdb/wiki/PermissionsDarwin, which seems super compilcated.
-        # So we just run it via sudo instead ;-)
+        # See https://sourceware.org/gdb/wiki/PermissionsDarwin for the details.
+        # We tried running it via sudo instead, but that just hangs indefinitely.
         if: ${{ failure() && steps.test.conclusion == 'failure' }}
         run: |
-          GDBEXE="gdb"
+          GDBEXE=$(which gdb)
           if [[ ${{ matrix.os }} == macos* ]] ; then
-            GDBEXE="sudo gdb"
+            # GDBEXE="sudo gdb"
+
+            # Create a certificate in the System Keychain, and trust the certificate for code signing
+            bash ./test/macos-codesign/macos-setup-codesign.sh
+            security find-certificate -c gdb-cert
+            security find-certificate -p -c gdb-cert | openssl x509 -checkend 0
+            security dump-trust-settings -d
+
+            # Sign and entitle the gdb binary
+            sudo codesign --entitlements ./test/macos-codesign/gdb-entitlement.xml -fs gdb-cert $(which gdb)
+            codesign -vv $(which gdb)
+            codesign -d --entitlements :- $(which gdb)
+
+            # Refresh the system's certificates and code-signing data
+            sudo killall taskgated
+            sleep 10
+            ps $(pgrep -f taskgated)
           fi
           ${GDBEXE} -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests
 
@@ -351,4 +367,4 @@ jobs:
         with:
           name: logs-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}-htslib-${{ matrix.htslib }}
           path: |
-            build/**/*.log
+            ./build/**/*.log
