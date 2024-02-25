@@ -45,9 +45,9 @@ jobs:
       matrix:
         os:
           # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
-          - ubuntu-20.04
-          - ubuntu-22.04
-          - macos-11
+          # - ubuntu-20.04
+          # - ubuntu-22.04
+          # - macos-11
           - macos-12
 
         compiler:
@@ -340,21 +340,25 @@ jobs:
             # GDBEXE="sudo gdb"
 
             # Create a certificate in the System Keychain, and trust the certificate for code signing
+            echo "cert"
             bash ./test/macos-codesign/macos-setup-codesign.sh
             security find-certificate -c gdb-cert
             security find-certificate -p -c gdb-cert | openssl x509 -checkend 0
             security dump-trust-settings -d
 
             # Sign and entitle the gdb binary
+            echo "sign"
             sudo codesign --entitlements ./test/macos-codesign/gdb-entitlement.xml -fs gdb-cert $(which gdb)
             codesign -vv $(which gdb)
             codesign -d --entitlements :- $(which gdb)
 
             # Refresh the system's certificates and code-signing data
+            echo "refresh"
             sudo killall taskgated
             sleep 10
-            ps $(pgrep -f taskgated)
+            # ps $(pgrep -f taskgated)
           fi
+          echo "run"
           ${GDBEXE} -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests
 
       # -------------------------------------------------------

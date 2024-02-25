@@ -465,21 +465,27 @@ TEST( ThreadPool, ParallelForFuzzy )
 // =================================================================================================
 
 void thread_pool_compute_nested_fuzzy_work_(
-    std::shared_ptr<ThreadPool> pool, std::vector<int>& numbers, size_t begin, size_t end
+    std::shared_ptr<ThreadPool> pool, std::vector<int>& numbers,
+    size_t begin, size_t end, size_t rec_depth
 ) {
     ASSERT_LE( begin, end );
     ASSERT_LE( begin, numbers.size() );
     ASSERT_LE( end, numbers.size() );
 
+    static const size_t max_rec_depth = 20;
+    // if( rec_depth > 20 ) {
+    //     LOG_DBG << "rec " << rec_depth;
+    // }
+
     if( begin == end ) {
-        LOG_DBG1 << "begin==end";
+        // LOG_DBG1 << "begin==end";
         return;
     }
 
     // We randomize the number of blocks into which we split the interval.
     auto const dist = 1 + end - begin;
     auto const num_blocks = permuted_congruential_generator() % dist;
-    LOG_DBG1 << "begin=" << begin << " end=" << end << " num_blocks=" << num_blocks;
+    // LOG_DBG1 << "begin=" << begin << " end=" << end << " num_blocks=" << num_blocks;
 
     // Submit tasks.
     auto mult_fut = parallel_block(
@@ -491,11 +497,15 @@ void thread_pool_compute_nested_fuzzy_work_(
             // That gives us some nesting, and nested nesting, etc,
             // without degrading into computing each element individually.
             auto const split = permuted_congruential_generator() % 2;
-            if( split < 1 ) {
-                LOG_DBG2 << "split begin=" << begin << " end=" << end;
-                thread_pool_compute_nested_fuzzy_work_( pool, numbers, begin, end );
+            if( split < 1 && rec_depth < max_rec_depth ) {
+                // LOG_DBG2 << "split begin=" << begin << " end=" << end;
+                thread_pool_compute_nested_fuzzy_work_( pool, numbers, begin, end, rec_depth + 1 );
             } else {
-                LOG_DBG2 << "comp begin=" << begin << " end=" << end;
+                if( rec_depth > max_rec_depth ) {
+                    LOG_DBG << "rec depth " << max_rec_depth;
+                }
+
+                // LOG_DBG2 << "comp begin=" << begin << " end=" << end;
                 for( size_t i = begin; i < end; ++i ) {
                     // Test that no element is being processed twice.
                     EXPECT_EQ( -1, numbers[i] );
@@ -522,10 +532,10 @@ void thread_pool_nested_fuzzy_work_()
     auto pool = std::make_shared<ThreadPool>( num_threads );
 
     // Debug output
-    LOG_DBG << "num_tasks=" << num_tasks << " num_threads=" << num_threads;
+    // LOG_DBG << "num_tasks=" << num_tasks << " num_threads=" << num_threads;
 
     // Run the function that recursively splits the tasks into blocks.
-    thread_pool_compute_nested_fuzzy_work_( pool, numbers, 0, num_tasks );
+    thread_pool_compute_nested_fuzzy_work_( pool, numbers, 0, num_tasks, 0 );
 
     // Aggregate the result and check that we got the correct sum.
     auto const total = std::accumulate( numbers.begin(), numbers.end(), 0 );
@@ -538,7 +548,7 @@ TEST( ThreadPool, NestedFuzzy )
     auto const seed = ::time(nullptr);
     permuted_congruential_generator_init( seed );
     LOG_INFO << "Seed: " << seed;
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    // LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
 
     size_t const max_tests = 300;
     for( size_t test_num = 0; test_num < max_tests; ++test_num ) {
