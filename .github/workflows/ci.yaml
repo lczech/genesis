@@ -45,9 +45,9 @@ jobs:
       matrix:
         os:
           # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
-          # - ubuntu-20.04
-          # - ubuntu-22.04
-          # - macos-11
+          - ubuntu-20.04
+          - ubuntu-22.04
+          - macos-11
           - macos-12
 
         compiler:
@@ -303,8 +303,9 @@ jobs:
         # https://github.com/aminya/setup-cpp/issues/145
         run: |
           if [[ ! -z "${LLVM_PATH}" ]]; then
-            export LDFLAGS=`echo ${LDFLAGS} | sed 's/"//g'`
-            export CPPFLAGS=`echo ${CPPFLAGS} | sed 's/"//g'`
+            # export LDFLAGS=`echo ${LDFLAGS} | sed 's/"//g'`
+            # export CPPFLAGS=`echo ${CPPFLAGS} | sed 's/"//g'`
+            sudo ln -s /usr/bin/make /usr/bin/gmake
           fi
 
           # Need to set the xcode patch here as well, as job steps don't keep status.
