@@ -225,18 +225,18 @@ ExternalProject_Add(
         # which is mentioned in the release notes for v0.23.0.
         # We try to patch this here by having the commands in a script, so that here we just
         # have a single command to provide. Let's see if that works.
-        ${CMAKE_CURRENT_BINARY_DIR}/../tools/cmake/configure-htslib.sh
-        # autoreconf -i
+        # ${CMAKE_CURRENT_BINARY_DIR}/../tools/cmake/configure-htslib.sh
+        autoreconf -i
         # COMMAND
         # autoheader
         # COMMAND
         # autoconf
-        # COMMAND
+        COMMAND
         # We need to manually add -fPIC here, as somehow otherwise the local installation
         # won't link properly. Linking will always remain a mystery to me...
         # Need some special care to fix https://github.com/lczech/grenedalf/issues/12,
         # see https://stackoverflow.com/a/59536947 for the solution.
-        # ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --libdir=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib/lib --disable-multi-os-directory --disable-libcurl ${HTSLIB_Deflate_configure}
+        ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --libdir=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib/lib --disable-multi-os-directory --disable-libcurl ${HTSLIB_Deflate_configure}
 
     # Build Step
     # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
