@@ -308,7 +308,7 @@ jobs:
           # fi
 
           # More weird workarounds. On some CI builds, this is needed somehow...
-          if [ ! -f /tmp/foo.txt ]; then
+          if [ ! -f /usr/bin/gmake ]; then
             sudo ln -s /usr/bin/make /usr/bin/gmake
           fi
 
