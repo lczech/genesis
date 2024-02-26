@@ -298,13 +298,17 @@ jobs:
       # -------------------------------------------------------
 
       - name: Build
-        # Below we use a workaround for LLVM as configured by setup-cpp, which clashes with htslib:
-        # https://github.com/samtools/htslib/issues/1527 and
-        # https://github.com/aminya/setup-cpp/issues/145
         run: |
+          # Below we use a workaround for LLVM as configured by setup-cpp, which clashes with htslib:
+          # https://github.com/samtools/htslib/issues/1527 and
+          # https://github.com/aminya/setup-cpp/issues/145
           if [[ ! -z "${LLVM_PATH}" ]]; then
             # export LDFLAGS=`echo ${LDFLAGS} | sed 's/"//g'`
             # export CPPFLAGS=`echo ${CPPFLAGS} | sed 's/"//g'`
+          fi
+
+          # More weird workarounds. On some CI builds, this is needed somehow...
+          if [ ! -f /tmp/foo.txt ]; then
             sudo ln -s /usr/bin/make /usr/bin/gmake
           fi
 
