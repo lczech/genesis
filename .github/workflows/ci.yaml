@@ -312,7 +312,7 @@ jobs:
             sudo xcode-select --switch /Library/Developer/CommandLineTools
           fi
 
-          cmake --build ./build
+          cmake --build ./build -- -j 2
 
       # -------------------------------------------------------
       #     Test
@@ -357,6 +357,13 @@ jobs:
             sudo killall taskgated
             sleep 10
             # ps $(pgrep -f taskgated)
+
+            # Also make sure that some other stuff is set up correctly. Might help.
+            # See https://timnash.co.uk/getting-gdb-to-semi-reliably-work-on-mojave-macos/
+            echo "extra"
+            touch ~/.gdbinit
+            sed -i '.bak' '/set startup-with-shell enable/d' ~/.gdbinit
+            sudo DevToolsSecurity -disable
           fi
           echo "run"
           ${GDBEXE} -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests
@@ -372,3 +379,4 @@ jobs:
           name: logs-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}-htslib-${{ matrix.htslib }}
           path: |
             ./build/**/*.log
+            ./test/out

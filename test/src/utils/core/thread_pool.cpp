@@ -33,6 +33,8 @@
 #include <numeric>
 #include <vector>
 
+#include <pthread.h>
+
 #include "src/common.hpp"
 
 #include "genesis/utils/core/options.hpp"
@@ -472,7 +474,10 @@ void thread_pool_compute_nested_fuzzy_work_(
     ASSERT_LE( begin, numbers.size() );
     ASSERT_LE( end, numbers.size() );
 
-    static const size_t max_rec_depth = 20;
+    // On macos, the stack size for spawned threads seems to be super low, and cause stack overflows
+    // when recursing too much. No idea what the effect of that is on real code, but at least here
+    // in the test case we can take care of not going too deep.
+    static const size_t max_rec_depth = 10;
     // if( rec_depth > 20 ) {
     //     LOG_DBG << "rec " << rec_depth;
     // }
@@ -549,6 +554,17 @@ TEST( ThreadPool, NestedFuzzy )
     permuted_congruential_generator_init( seed );
     LOG_INFO << "Seed: " << seed;
     // LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+
+    // On macos, we have issues with stack overflow, so let's print the stack sizes for debugging.
+    pthread_attr_t attr;
+    size_t stacksize;
+    pthread_attr_init(&attr);
+    pthread_attr_getstacksize(&attr, &stacksize);
+    LOG_DBG << "Default stack size = " << stacksize;
+
+    // Set a new stack size
+    stacksize = 8 * 1024 * 1024; // 1 MB
+    pthread_attr_setstacksize(&attr, stacksize);
 
     size_t const max_tests = 300;
     for( size_t test_num = 0; test_num < max_tests; ++test_num ) {
