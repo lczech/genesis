@@ -565,7 +565,7 @@ TEST( ThreadPool, NestedFuzzy )
     auto const seed = ::time(nullptr);
     permuted_congruential_generator_init( seed );
     LOG_INFO << "Seed: " << seed;
-    // LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
 
     // On macos, we have issues with stack overflow, so let's print the stack sizes for debugging.
     pthread_attr_t attr;
