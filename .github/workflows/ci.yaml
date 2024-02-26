@@ -200,12 +200,12 @@ jobs:
 
       - name: Setup C++
         # Reference: https://github.com/marketplace/actions/setup-cpp-c-c
-        # uses: aminya/setup-cpp@v0.37.0
-        uses: aminya/setup-cpp@v0.23.0
+        uses: aminya/setup-cpp@v0.37.0
         if: matrix.compiler != 'apple'
         with:
           compiler: ${{ matrix.compiler }}
           cmake: true
+          make: true
 
       - name: Setup C++ - AppleClang
         if: matrix.compiler == 'apple'
