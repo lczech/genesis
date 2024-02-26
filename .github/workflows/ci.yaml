@@ -60,7 +60,7 @@ jobs:
           - gcc-11
           - gcc-12
           - gcc-13
-          - llvm-5
+          # - llvm-5
           - llvm-6
           - llvm-7
           - llvm-8
@@ -69,6 +69,10 @@ jobs:
           - llvm-11
           - llvm-12
           - llvm-13
+          - llvm-14
+          - llvm-15
+          - llvm-16
+          - llvm-17
 
         build_type:
           - DEBUG
@@ -83,13 +87,21 @@ jobs:
         # -------------------------------------------------------
 
         exclude:
-          # Newer GCC versions are not available on all Ubuntu
+          # Newer compiler versions are not available on all Ubuntu
           - os: ubuntu-20.04
             compiler: gcc-12
           - os: ubuntu-20.04
             compiler: gcc-13
           - os: ubuntu-20.04
             compiler: llvm-13
+          - os: ubuntu-20.04
+            compiler: llvm-14
+          - os: ubuntu-20.04
+            compiler: llvm-15
+          - os: ubuntu-20.04
+            compiler: llvm-16
+          - os: ubuntu-20.04
+            compiler: llvm-17
 
           # Older GCC versions are not supported by Ubuntu any more
           - os: ubuntu-22.04
@@ -299,15 +311,7 @@ jobs:
 
       - name: Build
         run: |
-          # Below we use a workaround for LLVM as configured by setup-cpp, which clashes with htslib:
-          # https://github.com/samtools/htslib/issues/1527 and
-          # https://github.com/aminya/setup-cpp/issues/145
-          # if [[ ! -z "${LLVM_PATH}" ]]; then
-          #   export LDFLAGS=`echo ${LDFLAGS} | sed 's/"//g'`
-          #   export CPPFLAGS=`echo ${CPPFLAGS} | sed 's/"//g'`
-          # fi
-
-          # More weird workarounds. On some CI builds, this is needed somehow for LLVM under Ubuntu
+          # Weird workarounds. On some CI builds, this is needed somehow for LLVM under Ubuntu.
           if [[ "${RUNNER_OS}" != "macOS" ]] && [[ ! -f /usr/bin/gmake ]]; then
             sudo ln -s /usr/bin/make /usr/bin/gmake
           fi
@@ -341,64 +345,8 @@ jobs:
           # gdb on Mac needs to be code signed for executing without admin rights...
           # See https://sourceware.org/gdb/wiki/PermissionsDarwin for the details.
           if [[ ${{ matrix.os }} == macos* ]] ; then
-
-            # On macOS< we first try to debug with lldb, as gdb is having issues...
-            echo "lldb"
-            if command -v lldb >/dev/null 2>&1; then
               lldb --batch -o "run" -o "thread backtrace all" -o "quit" -- ./bin/test/genesis_tests
-              return 0
-            fi
-
-            # Create a certificate in the System Keychain, and trust the certificate for code signing
-            echo "cert"
-            bash ./test/macos-codesign/macos-setup-codesign.sh
-            security find-certificate -c gdb-cert
-            security find-certificate -p -c gdb-cert | openssl x509 -checkend 0
-            security dump-trust-settings -d
-
-            # Sign and entitle the gdb binary
-            echo "sign"
-            sudo codesign --entitlements ./test/macos-codesign/gdb-entitlement.xml -fs gdb-cert $(which gdb)
-            codesign -vv $(which gdb)
-            codesign -d --entitlements :- $(which gdb)
-
-            # Refresh the system's certificates and code-signing data
-            echo "refresh"
-            sudo killall taskgated
-            sleep 10
-            # ps $(pgrep -f taskgated)
-
-            # Also make sure that some other stuff is set up correctly. Might help.
-            # See https://timnash.co.uk/getting-gdb-to-semi-reliably-work-on-mojave-macos/
-            echo "extra"
-            touch ~/.gdbinit
-            sed -i '.bak' '/set startup-with-shell enable/d' ~/.gdbinit
-            sudo DevToolsSecurity -disable
-
-            # We tried running it via sudo instead, but that just hangs indefinitely.
-            # So now, we just run in a loop with timeout, and hope that one of the attempts works.
-            # That seems to be what's recommended in this case... oh macOS...
-            echo "install timeout"
-            brew install coreutils
-            echo "run"
-            ATTEMPT=1
-            MAX_ATTEMPTS=10
-            TIMEOUT=120
-            while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-                echo "Attempt $ATTEMPT of $MAX_ATTEMPTS"
-                gtimeout ${TIMEOUT} gdb -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests
-                if [ $? -eq 0 ]; then
-                    break
-                fi
-                ((attempt++))
-                if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
-                    break
-                fi
-                sleep 1
-            done
-
           else
-            # If we are not on macOS, things just work fine.
             gdb -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests
           fi
 

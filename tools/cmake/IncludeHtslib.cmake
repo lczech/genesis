@@ -218,14 +218,6 @@ ExternalProject_Add(
     # Configure Step. See htslib/INSTALL
     SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-source
     CONFIGURE_COMMAND
-        # Some super weird stuff is going on in the GitHub Actions env, where under clang, the
-        # commands here somehow cannot have arguments any more.
-        # This happens with aminya/setup-cpp v0.23.0, but not with v0.22.0, and is hence likely
-        # related to  https://github.com/aminya/setup-cpp/issues/145
-        # which is mentioned in the release notes for v0.23.0.
-        # We try to patch this here by having the commands in a script, so that here we just
-        # have a single command to provide. Let's see if that works.
-        # ${CMAKE_CURRENT_BINARY_DIR}/../tools/cmake/configure-htslib.sh
         autoreconf -i
         # COMMAND
         # autoheader
