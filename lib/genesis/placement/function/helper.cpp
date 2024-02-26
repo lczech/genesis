@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -371,7 +371,6 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
     }
 
     // check pqueries
-    size_t pqry_place_count = 0;
     for( auto const& pqry : smp.pqueries() ) {
         // use this name for reporting invalid placements.
         std::string name;
@@ -409,7 +408,6 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
             // now we know that all references between placements and edges are correct, so this
             // assertion breaks only if we forgot to check some sort of weird inconsistency.
             assert( edge_num_map.count( p.edge_num() ) > 0 );
-            ++pqry_place_count;
 
             // check numerical values
             if (!check_values) {
