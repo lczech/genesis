@@ -201,7 +201,7 @@ jobs:
       - name: Setup C++
         # Reference: https://github.com/marketplace/actions/setup-cpp-c-c
         # uses: aminya/setup-cpp@v0.37.0
-        uses: aminya/setup-cpp@v0.26.2
+        uses: aminya/setup-cpp@v0.24.0
         if: matrix.compiler != 'apple'
         with:
           compiler: ${{ matrix.compiler }}
@@ -340,6 +340,7 @@ jobs:
             echo "lldb"
             if command -v lldb >/dev/null 2>&1; then
               lldb --batch -o "run" -o "thread backtrace all" -o "quit" -- ./bin/test/genesis_tests
+              return 0
             fi
 
             # Create a certificate in the System Keychain, and trust the certificate for code signing
