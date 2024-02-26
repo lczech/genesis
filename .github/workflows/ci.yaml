@@ -329,15 +329,12 @@ jobs:
 
       - name: Test - gdb
         # If the regular test run failed, we repeat with gdb, to print the stack.
-        # We are not using the `./test/run.sh gdb` here, to make it easier for MacOS.
-        # gdb on Mac needs to be code signed for executing without admin rights...
-        # See https://sourceware.org/gdb/wiki/PermissionsDarwin for the details.
-        # We tried running it via sudo instead, but that just hangs indefinitely.
         if: ${{ failure() && steps.test.conclusion == 'failure' }}
         run: |
-          GDBEXE=$(which gdb)
+          # We are not using the `./test/run.sh gdb` here, to make it easier for MacOS.
+          # gdb on Mac needs to be code signed for executing without admin rights...
+          # See https://sourceware.org/gdb/wiki/PermissionsDarwin for the details.
           if [[ ${{ matrix.os }} == macos* ]] ; then
-            # GDBEXE="sudo gdb"
 
             # Create a certificate in the System Keychain, and trust the certificate for code signing
             echo "cert"
@@ -364,9 +361,31 @@ jobs:
             touch ~/.gdbinit
             sed -i '.bak' '/set startup-with-shell enable/d' ~/.gdbinit
             sudo DevToolsSecurity -disable
+
+            # We tried running it via sudo instead, but that just hangs indefinitely.
+            # So now, we just run in a loop with timeout, and hope that one of the attempts works.
+            # That seems to be what's recommended in this case... oh macOS...
+            echo "run"
+            ATTEMPT=1
+            MAX_ATTEMPTS=10
+            TIMEOUT=120
+            while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+                echo "Attempt $ATTEMPT of $MAX_ATTEMPTS"
+                gtimeout ${TIMEOUT} gdb -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests
+                if [ $? -eq 0 ]; then
+                    break
+                fi
+                ((attempt++))
+                if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
+                    break
+                fi
+                sleep 1
+            done
+
+          else
+            # If we are not on macOS, things just work fine.
+            gdb -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests
           fi
-          echo "run"
-          ${GDBEXE} -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests
 
       # -------------------------------------------------------
       #     Logs

@@ -477,7 +477,7 @@ void thread_pool_compute_nested_fuzzy_work_(
     // On macos, the stack size for spawned threads seems to be super low, and cause stack overflows
     // when recursing too much. No idea what the effect of that is on real code, but at least here
     // in the test case we can take care of not going too deep.
-    static const size_t max_rec_depth = 10;
+    static const size_t max_rec_depth = 5;
     // if( rec_depth > 20 ) {
     //     LOG_DBG << "rec " << rec_depth;
     // }
@@ -562,9 +562,11 @@ TEST( ThreadPool, NestedFuzzy )
     pthread_attr_getstacksize(&attr, &stacksize);
     LOG_DBG << "Default stack size = " << stacksize;
 
-    // Set a new stack size
+    // Set a new stack size, and check it
     stacksize = 8 * 1024 * 1024; // 1 MB
     pthread_attr_setstacksize(&attr, stacksize);
+    pthread_attr_getstacksize(&attr, &stacksize);
+    LOG_DBG << "New stack size = " << stacksize;
 
     size_t const max_tests = 300;
     for( size_t test_num = 0; test_num < max_tests; ++test_num ) {
