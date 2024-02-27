@@ -717,6 +717,18 @@ double glm_estimate_intercept(
     GlmOutput const&           output,
     std::vector<double> const& betas
 ) {
+    return glm_estimate_intercept(
+        x_predictors, y_response, glm_link_identity(), output, betas
+    );
+}
+
+double glm_estimate_intercept(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmLink const&             link,
+    GlmOutput const&           output,
+    std::vector<double> const& betas
+) {
     if( betas.size() != x_predictors.cols() ) {
         throw std::invalid_argument(
             "Invalid size of betas for computing glm_estimate_intercept()"
@@ -738,13 +750,19 @@ double glm_estimate_intercept(
     auto const weight_sum = weighted_sum( output.weights );
     assert( std::isfinite( weight_sum ));
 
-    // Now compute the weighted sum of the y_response, and divide by the weight sum,
+    // We first need to translate our response into the link space.
+    auto y_response_transformed = y_response;
+    for( auto& y : y_response_transformed ) {
+        y = link.link(y);
+    }
+
+    // Now compute the weighted sum of the y_response_transformed, and divide by the weight sum,
     // i.e., compute the weighted average of the response.
-    auto const y_avg = weighted_sum( y_response, output.weights ) / weight_sum;
+    auto const y_avg = weighted_sum( y_response_transformed, output.weights ) / weight_sum;
     assert( std::isfinite( y_avg ));
 
     // Compute our final result by subtracting product of the beta values with the sum of the
-    // weighted average of each column of x_predictors from the y_response average.
+    // weighted average of each column of x_predictors from the y_response_transformed average.
     double result = y_avg;
     for( size_t i = 0; i < x_predictors.cols(); ++i ) {
         auto const x_col_avg = weighted_sum( x_predictors.col(i), output.weights ) / weight_sum;
@@ -759,8 +777,17 @@ std::vector<double> glm_coefficients(
     std::vector<double> const& y_response,
     GlmOutput const&           output
 ) {
+    return glm_coefficients( x_predictors, y_response, glm_link_identity(), output );
+}
+
+std::vector<double> glm_coefficients(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmLink const&             link,
+    GlmOutput const&           output
+) {
     auto coeffs = glm_estimate_betas( output );
-    auto intercept = glm_estimate_intercept( x_predictors, y_response, output, coeffs );
+    auto intercept = glm_estimate_intercept( x_predictors, y_response, link, output, coeffs );
     coeffs.insert( coeffs.begin(), intercept );
     return coeffs;
 }

@@ -272,8 +272,6 @@ TEST( Math, GlmGaussSimple )
 
 TEST( Math, GlmGaussInteraction )
 {
-    double delta = 0.00001;
-
     // Input x predictor: 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1,000
     // Function applied to get y response: 0.4 * x - 0.0004 * x^2 + 20
     // GLM fitted with x and x^2 as the predictor variables.
@@ -283,43 +281,77 @@ TEST( Math, GlmGaussInteraction )
     auto const predictor = Matrix<double>(11, 2, {
         // 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000,
         // 0, 10000, 40000, 90000, 160000, 250000, 360000, 490000, 640000, 810000, 1000000
-        0, 0, 100, 10000, 200, 40000, 300, 90000, 400, 160000, 500, 250000, 600, 360000, 700, 490000, 800, 640000, 900, 810000, 1000, 1000000
+        0, 0, 100, 10000, 200, 40000, 300, 90000, 400, 160000, 500, 250000,
+        600, 360000, 700, 490000, 800, 640000, 900, 810000, 1000, 1000000
     });
 
     // Run the model. As the data is created to be perfect, we expect a perfect fit.
-    auto const result = glm_fit( predictor, response );
-    EXPECT_FLOAT_EQ( 0.0, result.deviance );
+    auto const output = glm_fit( predictor, response );
+    EXPECT_FLOAT_EQ( 0.0, output.deviance );
 
-    // LOG_DBG << "scale " << result.scale;
-    // LOG_DBG << "fitted " << join(result.fitted);
-    // LOG_DBG << "resid " << join(result.resid);
-    // LOG_DBG << "weights " << join(result.weights);
-    // LOG_DBG << "which " << join(result.which);
-    // LOG_DBG << "Xb " << result.Xb;
-    // LOG_DBG << "betaQ " << join(result.betaQ);
-    // LOG_DBG << "tri " << join(result.tri);
+    // LOG_DBG << "scale " << output.scale;
+    // LOG_DBG << "fitted " << join(output.fitted);
+    // LOG_DBG << "resid " << join(output.resid);
+    // LOG_DBG << "weights " << join(output.weights);
+    // LOG_DBG << "which " << join(output.which);
+    // LOG_DBG << "Xb " << output.Xb;
+    // LOG_DBG << "betaQ " << join(output.betaQ);
+    // LOG_DBG << "tri " << join(output.tri);
 
     // Some extra stats
     double sum_y_fitted = 0.0;
     for( size_t i = 0; i < response.size(); ++i ) {
-        sum_y_fitted += response[i] - result.fitted[i];
+        sum_y_fitted += response[i] - output.fitted[i];
     }
+    double const delta = 0.00001;
     EXPECT_NEAR( 0.0, sum_y_fitted, delta );
 
-    auto const betas = glm_estimate_betas( result );
+    auto const betas = glm_estimate_betas( output );
     // LOG_DBG << "betas " << join(betas);
     ASSERT_EQ( 2, betas.size() );
     EXPECT_FLOAT_EQ( 0.4, betas[0] );
     EXPECT_FLOAT_EQ( -0.0004, betas[1] );
 
-    auto const intercept = glm_estimate_intercept( predictor, response, result, betas );
+    auto const intercept = glm_estimate_intercept( predictor, response, output, betas );
     // LOG_DBG << "intercept " << intercept;
     EXPECT_FLOAT_EQ( 20.0, intercept );
 
     // Currently not correctly implemented:
-    // auto const beta_covar = glm_estimate_betas_and_var_covar( result );
+    // auto const beta_covar = glm_estimate_betas_and_var_covar( output );
     // LOG_DBG << "betas " << join(beta_covar.first);
     // LOG_DBG << "covar " << join(beta_covar.second);
+}
+
+TEST( Math, GlmGaussInterceptLog )
+{
+    // Input x predictor: X = np.linspace(start=1, stop=10, num=10)
+    // Function applied to get y response: Y = np.exp(0.5 + 0.3 * X)
+    // GLM fitted with x as the predictor variable.
+
+    std::vector<double> const response{
+        2.225541, 3.004166, 4.055200, 5.473947, 7.389056,
+        9.974182, 13.463738, 18.174145, 24.532530, 33.115452
+    };
+    auto const predictor = Matrix<double>(10, 1, {
+        1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0
+    });
+
+    // Run the model. As the data is created to be perfect, we expect a perfect fit.
+    auto const output = glm_fit( predictor, response, glm_family_poisson() );
+    double const delta = 0.000001;
+    EXPECT_NEAR( 0.0, output.deviance, delta );
+
+    // Some extra stats
+    double sum_y_fitted = 0.0;
+    for( size_t i = 0; i < response.size(); ++i ) {
+        sum_y_fitted += response[i] - output.fitted[i];
+    }
+    EXPECT_NEAR( 0.0, sum_y_fitted, delta );
+
+    auto const coeffs = glm_coefficients( predictor, response, glm_link_log(), output );
+    ASSERT_EQ( 2, coeffs.size() );
+    EXPECT_FLOAT_EQ( 0.5, coeffs[0] );
+    EXPECT_FLOAT_EQ( 0.3, coeffs[1] );
 }
 
 TEST( Math, GlmGaussNoIntercept )
