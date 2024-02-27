@@ -47,6 +47,7 @@
 #include <functional>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace genesis {
@@ -391,6 +392,10 @@ VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
 
 #endif // GENESIS_HTSLIB
 
+// =================================================================================================
+//     Input Processing Iterators
+// =================================================================================================
+
 // -------------------------------------------------------------------------
 //     Variant Parallel Input Iterator
 // -------------------------------------------------------------------------
@@ -452,6 +457,27 @@ VariantInputIterator make_variant_gapless_input_iterator(
  */
 VariantInputIterator make_variant_input_iterator_from_variant_gapless_input_iterator(
     VariantGaplessInputIterator const& gapless_input
+);
+
+// -------------------------------------------------------------------------
+//     Merging Input Iterator
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Create a VariantInputIterator that merges samples from its underlying @p input.
+ *
+ * This provides an on-the-fly merging of input samples by simply summing out their BaseCounts.
+ * It takes a mapping of sample names to group names, and creates a VariantInputIterator with
+ * the group names as new sample names, which then merge the input of their respective samples.
+ *
+ * If @p allow_ungrouped_samples is set to `true`, any sample that does not occur in the map
+ * will be added as-is, with its original sample name, and as its own "group". By default,
+ * we throw an exception in this case, in order to make sure that the behavior is intended.
+ */
+VariantInputIterator make_variant_merging_input_iterator(
+    VariantInputIterator const& input,
+    std::unordered_map<std::string, std::string> const& sample_name_to_group,
+    bool allow_ungrouped_samples = false
 );
 
 } // namespace population

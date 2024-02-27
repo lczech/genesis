@@ -923,3 +923,40 @@ TEST( VariantInputIterator, SampleFilter )
 }
 
 #endif // GENESIS_HTSLIB
+
+// =================================================================================================
+//     Sample Group Merging
+// =================================================================================================
+
+TEST( VariantInputIterator, SampleGroupMerging )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "population/sample-names.sync";
+
+    auto sync_it = make_variant_input_iterator_from_sync_file( infile );
+
+    // Sample names: sample_1	sample_2	sample_3	sample_4
+    auto const group_assignment = std::unordered_map<std::string, std::string>{
+        { "sample_1", "group_a" },
+        { "sample_2", "group_a" },
+        { "sample_3", "group_b" },
+        { "sample_4", "group_b" },
+        // { "sample_5", "group_c" }
+    };
+
+    auto merged_it = make_variant_merging_input_iterator( sync_it, group_assignment );
+    auto const exp_group_names = std::vector<std::string>{ "group_a", "group_b" };
+    EXPECT_EQ( exp_group_names, merged_it.data().sample_names );
+
+    size_t cnt = 0;
+    for( auto const& var : merged_it ) {
+        ASSERT_EQ( 2, var.samples.size() );
+        EXPECT_EQ( 1, var.samples[0].a_count );
+        EXPECT_EQ( 2, var.samples[0].t_count );
+        EXPECT_EQ( 3, var.samples[1].c_count );
+        EXPECT_EQ( 4, var.samples[1].g_count );
+        ++cnt;
+    }
+    EXPECT_EQ( 6, cnt );
+}
