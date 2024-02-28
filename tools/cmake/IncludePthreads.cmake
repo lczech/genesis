@@ -23,10 +23,11 @@
 #   Use PThreads
 # ------------------------------------------------------------------------------
 
-# This file can be included from the main CMakeLists.txt in order to figure out
+# This file is included from the main CMakeLists.txt in order to figure out
 # if Pthreads are available, and if so, set its paths and flags.
-# We curently do not use this any more, as we have switched to just using
-# the plain C++11 threading model instead. We keep this here for reference only.
+# We curently do not use pthreads internally any more, as we have switched to just using
+# the plain C++11 threading model instead. However, they seem to be needed for properly
+# linking htslib... So we have to keep this around.
 
 message (STATUS "Looking for Threads")
 set (CMAKE_THREAD_PREFER_PTHREAD ON)

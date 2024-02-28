@@ -367,6 +367,8 @@ if(GENESIS_USE_HTSLIB)
     SET( GENESIS_HTSLIB_VERSION "1.16" ) #GENESIS_HTSLIB_VERSION#
 
     # Included from modules dir tools/cmake
+    # htslib needs pthreads to be linked, so we include this here as well
+    include( IncludePthreads )
     include( IncludeHtslib )
 
 endif()
@@ -467,6 +469,9 @@ IF( GENESIS_HAS_PARENT_DIR )
     # so that it can easily check whether those are available (and used by Genesis).
     if(ZLIB_FOUND)
         set( ZLIB_FOUND ${ZLIB_FOUND} PARENT_SCOPE )
+    endif()
+    if(THREADS_FOUND)
+        set( THREADS_FOUND ${THREADS_FOUND} PARENT_SCOPE )
     endif()
     if(OPENMP_FOUND)
         set( OPENMP_FOUND ${OPENMP_FOUND} PARENT_SCOPE )
