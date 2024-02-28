@@ -1,9 +1,9 @@
-#ifndef GENESIS_POPULATION_WINDOW_WINDOW_VIEW_ITERATOR_H_
-#define GENESIS_POPULATION_WINDOW_WINDOW_VIEW_ITERATOR_H_
+#ifndef GENESIS_POPULATION_WINDOW_WINDOW_VIEW_STREAM_H_
+#define GENESIS_POPULATION_WINDOW_WINDOW_VIEW_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/window/base_window_iterator.hpp"
+#include "genesis/population/window/base_window_stream.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/population/window/window_view.hpp"
 
@@ -45,34 +45,34 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Window View Iterator
+//     Window View Stream
 // =================================================================================================
 
 /**
- * @brief Iterator wrapper that turns a BaseWindowIterator over Window into a BaseWindowIterator
+ * @brief Stream wrapper that turns a BaseWindowStream over Window into a BaseWindowStream
  * over WindowView.
  *
- * This serves as an abstraction to be able to use WindowViewIterator everywhere, instead
- * of having to switch between WindowViewIterator and WindowIterator depending on the type
- * of windowing that is being done. For example, SlidingIntervalWindowIterator,
- * SlidingEntriesWindowIterator, and RegionWindowIterator yield iterators over Window%s,
- * while the ChromosomeIterator (and the whole genome iterator that can be created with it as well)
- * yield iterators over WindowView%s instead. This makes it cumbersome to switch between the two
+ * This serves as an abstraction to be able to use WindowViewStream everywhere, instead
+ * of having to switch between WindowViewStream and WindowStream depending on the type
+ * of windowing that is being done. For example, SlidingIntervalWindowStream,
+ * SlidingEntriesWindowStream, and RegionWindowStream yield streams over Window%s,
+ * while the ChromosomeStream (and the whole genome stream that can be created with it as well)
+ * yield streams over WindowView%s instead. This makes it cumbersome to switch between the two
  * types downstream. Hence, yet another abstraction.
  *
- * In more technical terms, some of our window iterators are inheriting from
- * `BaseWindowIterator<InputIterator, Data, Window>`, while others are inheriting from
- * `BaseWindowIterator<InputIterator, Data, WindowView>`, making their base clases incompatible,
+ * In more technical terms, some of our window streams are inheriting from
+ * `BaseWindowStream<InputStreamIterator, Data, Window>`, while others are inheriting from
+ * `BaseWindowStream<InputStreamIterator, Data, WindowView>`, making their base classes incompatible,
  * so that they cannot be assigned to the same pointer variable. This class here solves this,
  * by wrapping the former into a class derived from the latter, and hence using the latter type
- * as the one that we can use for uniform access to window iterators.
+ * as the one that we can use for uniform access to window streams.
  *
- * The class takes the BaseWindowIterator to be iterated over as input, and iteraters its windows,
+ * The class takes the BaseWindowStream to be iterated over as input, and iteraters its windows,
  * and then simply wraps them into a WindowView whose elements point to these windows.
  */
-template<class InputIterator, class Data = typename InputIterator::value_type>
-class WindowViewIterator final : public BaseWindowIterator<
-    InputIterator, Data, ::genesis::population::WindowView<Data>
+template<class InputStreamIterator, class Data = typename InputStreamIterator::value_type>
+class WindowViewStream final : public BaseWindowStream<
+    InputStreamIterator, Data, ::genesis::population::WindowView<Data>
 >
 {
 public:
@@ -81,24 +81,24 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using InputIteratorType = InputIterator;
+    using InputStreamType = InputStreamIterator;
     using DataType          = Data;
     using WindowType        = ::genesis::population::WindowView<DataType>;
     using WindowViewType    = WindowType;
 
-    using base_type = BaseWindowIterator<InputIteratorType, DataType, WindowViewType>;
-    using self_type = WindowViewIterator<InputIteratorType, DataType>;
+    using base_type = BaseWindowStream<InputStreamType, DataType, WindowViewType>;
+    using self_type = WindowViewStream<InputStreamType, DataType>;
 
-    using WrappedWindowIterator = BaseWindowIterator<InputIteratorType, DataType>;
+    using WrappedWindowStream = BaseWindowStream<InputStreamType, DataType>;
 
     static_assert(
-        std::is_same<WindowViewIterator, self_type>::value, "WindowViewIterator != self_type"
+        std::is_same<WindowViewStream, self_type>::value, "WindowViewStream != self_type"
     );
 
     // The input types that we take from the underlying iterator over genome positions.
-    using InputType         = typename InputIterator::value_type;
+    using InputType         = typename InputStreamIterator::value_type;
     // using Entry             = typename Window::Entry;
-    using WrappedWindowIteratorIterator = typename WrappedWindowIterator::Iterator;
+    using WrappedWindowStreamIterator = typename WrappedWindowStream::Iterator;
 
     // This class produces an iterator of type WindowView.
     // That WindowView then iterates over the actual values of the input.
@@ -115,8 +115,8 @@ public:
     /**
      * @brief Internal iterator that produces WindowView%s.
      */
-    class DerivedIterator final : public BaseWindowIterator<
-        InputIterator, DataType, WindowViewType
+    class DerivedIterator final : public BaseWindowStream<
+        InputStreamIterator, DataType, WindowViewType
     >::BaseIterator
     {
     public:
@@ -125,19 +125,19 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type = typename WindowViewIterator<
-            InputIterator, DataType
+        using self_type = typename WindowViewStream<
+            InputStreamIterator, DataType
         >::DerivedIterator;
 
         // using base_iterator_type = typename base_type::BaseIterator;
-        using base_iterator_type = typename BaseWindowIterator<
-            InputIterator, DataType, WindowViewType
+        using base_iterator_type = typename BaseWindowStream<
+            InputStreamIterator, DataType, WindowViewType
         >::BaseIterator;
 
         // using WindowViewType    = WindowViewType;
         // using Window            = ::genesis::population::Window<DataType>;
         // using Entry             = typename Window::Entry;
-        using InputType         = typename InputIterator::value_type;
+        using InputType         = typename InputStreamIterator::value_type;
 
         using iterator_category = std::input_iterator_tag;
         using value_type        = WindowViewType;
@@ -154,7 +154,7 @@ public:
         DerivedIterator() = default;
 
         DerivedIterator(
-            WindowViewIterator const* parent
+            WindowViewStream const* parent
         )
             // We here call the base class constructor without arguments,
             // in order to not trigger the full setup of the base class, which we don't want here.
@@ -168,8 +168,8 @@ public:
             }
 
             // Store the underlying window iterators.
-            current_ = parent_->window_iterator_->begin();
-            end_     = parent_->window_iterator_->end();
+            current_ = parent_->window_stream_->begin();
+            end_     = parent_->window_stream_->end();
 
             // Start a view into the first window. This creates a view that mirrors the underlying
             // window, and iteratres through it, using the WindowView constructor that takes a Window.
@@ -186,7 +186,7 @@ public:
         DerivedIterator& operator= ( self_type const& ) = default;
         DerivedIterator& operator= ( self_type&& )      = default;
 
-        friend WindowViewIterator;
+        friend WindowViewStream;
 
         // -------------------------------------------------------------------------
         //     Internal and Virtual Members
@@ -225,11 +225,11 @@ public:
     private:
 
         // Parent. Needs to live here to have the correct derived type.
-        WindowViewIterator const* parent_ = nullptr;
+        WindowViewStream const* parent_ = nullptr;
 
         // Base window iterators
-        WrappedWindowIteratorIterator current_;
-        WrappedWindowIteratorIterator end_;
+        WrappedWindowStreamIterator current_;
+        WrappedWindowStreamIterator end_;
 
         // Store the iterator for the window.
         WindowViewType window_view_;
@@ -244,19 +244,19 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    WindowViewIterator(
-        std::unique_ptr<WrappedWindowIterator> window_iterator
+    WindowViewStream(
+        std::unique_ptr<WrappedWindowStream> window_iterator
     )
-        : window_iterator_( std::move( window_iterator ))
+        : window_stream_( std::move( window_iterator ))
     {}
 
-    virtual ~WindowViewIterator() = default;
+    virtual ~WindowViewStream() = default;
 
-    WindowViewIterator( WindowViewIterator const& ) = default;
-    WindowViewIterator( WindowViewIterator&& )      = default;
+    WindowViewStream( WindowViewStream const& ) = default;
+    WindowViewStream( WindowViewStream&& )      = default;
 
-    WindowViewIterator& operator= ( WindowViewIterator const& ) = default;
-    WindowViewIterator& operator= ( WindowViewIterator&& )      = default;
+    WindowViewStream& operator= ( WindowViewStream const& ) = default;
+    WindowViewStream& operator= ( WindowViewStream&& )      = default;
 
     friend DerivedIterator;
 
@@ -289,7 +289,7 @@ protected:
 private:
 
     // Need a pointer here, in order to allow to take derived classes.
-    std::unique_ptr<WrappedWindowIterator> window_iterator_;
+    std::unique_ptr<WrappedWindowStream> window_stream_;
 
 };
 
@@ -298,45 +298,45 @@ private:
 // =================================================================================================
 
 /**
- * @brief Create a WindowViewIterator that iterates some underlying BaseWindowIterator.
+ * @brief Create a WindowViewStream that iterates some underlying BaseWindowStream.
  *
- * The template parameter `T` is expected to be a BaseWindowIterator.
+ * The template parameter `T` is expected to be a BaseWindowStream.
  *
- * This serves as an abstraction to be able to use WindowViewIterator everywhere, instead
- * of having to switch between WindowViewIterator and WindowIterator depending on the type
- * of windowing that is being done. See WindowViewIterator for details.
+ * This serves as an abstraction to be able to use WindowViewStream everywhere, instead
+ * of having to switch between WindowViewStream and WindowStream depending on the type
+ * of windowing that is being done. See WindowViewStream for details.
  */
 template<class T>
-WindowViewIterator<typename T::InputIteratorType, typename T::DataType>
-make_window_view_iterator(
+WindowViewStream<typename T::InputStreamType, typename T::DataType>
+make_window_view_stream(
     T const& window_iterator
 ) {
-    using InputIteratorType = typename T::InputIteratorType;
+    using InputStreamType = typename T::InputStreamType;
     using DataType          = typename T::DataType;
-    using BaseWindowIteratorType = BaseWindowIterator<InputIteratorType, DataType>;
+    using BaseWindowStreamType = BaseWindowStream<InputStreamType, DataType>;
 
-    return WindowViewIterator<InputIteratorType, DataType>(
-        std::unique_ptr<BaseWindowIteratorType>( new T{ window_iterator })
+    return WindowViewStream<InputStreamType, DataType>(
+        std::unique_ptr<BaseWindowStreamType>( new T{ window_iterator })
     );
 }
 
 /**
- * @copydoc make_window_view_iterator( T const& )
+ * @copydoc make_window_view_stream( T const& )
  *
  * This overload of the function takes the underlying iterator by r-value ref,
  * so that it can be provided directly without copy.
  */
 template<class T>
-WindowViewIterator<typename T::InputIteratorType, typename T::DataType>
-make_window_view_iterator(
+WindowViewStream<typename T::InputStreamType, typename T::DataType>
+make_window_view_stream(
     T&& window_iterator
 ) {
-    using InputIteratorType = typename T::InputIteratorType;
+    using InputStreamType = typename T::InputStreamType;
     using DataType          = typename T::DataType;
-    using BaseWindowIteratorType = BaseWindowIterator<InputIteratorType, DataType>;
+    using BaseWindowStreamType = BaseWindowStream<InputStreamType, DataType>;
 
-    return WindowViewIterator<InputIteratorType, DataType>(
-        std::unique_ptr<BaseWindowIteratorType>( new T{ std::move( window_iterator )})
+    return WindowViewStream<InputStreamType, DataType>(
+        std::unique_ptr<BaseWindowStreamType>( new T{ std::move( window_iterator )})
     );
 }
 

@@ -32,7 +32,7 @@
 
 #include "genesis/population/variant.hpp"
 #include "genesis/population/window/functions.hpp"
-#include "genesis/population/window/region_window_iterator.hpp"
+#include "genesis/population/window/region_window_stream.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/generic_input_stream.hpp"
 #include "genesis/utils/math/bitvector.hpp"
@@ -182,7 +182,7 @@ void run_region_window_test_(
     size_t var_total_cnt = 0;
 
     // Make the iterator
-    auto win_it = make_default_region_window_iterator(
+    auto win_it = make_default_region_window_stream(
         variants.begin(), variants.end(), region_list
     );
 
@@ -519,7 +519,7 @@ std::string test_get_target_representation_( size_t target )
 //     Main test functions
 // -------------------------------------------------------------------------
 
-TEST( WindowIterator, RegionWindowIterator )
+TEST( WindowStream, RegionWindowStream )
 {
     // We want all kinds of combinations:
     //

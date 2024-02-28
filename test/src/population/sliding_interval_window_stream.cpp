@@ -34,8 +34,8 @@
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/window/functions.hpp"
-#include "genesis/population/window/sliding_entries_window_iterator.hpp"
-#include "genesis/population/window/variant_window_iterator.hpp"
+#include "genesis/population/window/sliding_interval_window_stream.hpp"
+#include "genesis/population/window/variant_window_stream.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/generic_input_stream.hpp"
 
@@ -44,19 +44,11 @@
 using namespace genesis::population;
 using namespace genesis::utils;
 
-template<class WindowIterator>
-void test_sliding_entries_iterator_( WindowIterator& win_it, size_t count )
+template<class WindowStream>
+void test_sliding_interval_stream_( WindowStream& win_it )
 {
     bool found_first_win = false;
     bool found_last_win = false;
-
-    // Also test that the observer functions get executed once per window.
-    size_t observe_cnt = 0;
-    using ValueType = typename WindowIterator::InputIteratorType::value_type;
-    win_it.add_observer( [&observe_cnt]( Window<ValueType> const& ){
-        // LOG_DBG << "at " << observe_cnt;
-        ++observe_cnt;
-    });
 
     // DBG  2R : 7790001 7790001-7800000 # 1
     // DBG  2R : 7800001 7800001-7810000 # 9874
@@ -66,35 +58,24 @@ void test_sliding_entries_iterator_( WindowIterator& win_it, size_t count )
     // DBG  2R : 7840001 7840001-7850000 # 9997
     // DBG  2R : 7850001 7850001-7860000 # 247
 
-    std::vector<size_t> window_first_positions;
-    std::vector<size_t> window_last_positions;
-    std::vector<size_t> window_sizes;
+    // Map from starting positions to sizes of the windows.
+    std::unordered_map<size_t, size_t> const window_sizes = {
+        { 7790001, 1 },
+        { 7800001, 9874 },
+        { 7810001, 9972 },
+        { 7820001, 9909 },
+        { 7830001, 10000 },
+        { 7840001, 9997 },
+        { 7850001, 247 }
+    };
 
-    if( count == 9000 ) {
-        window_first_positions = std::vector<size_t>{
-            7800000, 7809126, 7818154, 7827245, 7836245, 7845248
-        };
-        window_last_positions = std::vector<size_t>{
-            7809125, 7818153, 7827244, 7836244, 7845247, 7850275
-        };
-        window_sizes = std::vector<size_t>{
-            9000, 9000, 9000, 9000, 9000, 5000
-        };
-    } else if( count == 10000 ) {
-        window_first_positions = std::vector<size_t>{
-            7800000, 7810126, 7820154, 7830245, 7840245
-        };
-        window_last_positions = std::vector<size_t>{
-            7810125, 7820153, 7830244, 7840244, 7850275
-        };
-        window_sizes = std::vector<size_t>{
-            10000, 10000, 10000, 10000, 10000
-        };
-    } else {
-        ASSERT_TRUE( false );
-    }
-    ASSERT_EQ( window_sizes.size(), window_first_positions.size() );
-    ASSERT_EQ( window_sizes.size(), window_last_positions.size() );
+    // Also test that the observer functions get executed once per window.
+    size_t observe_cnt = 0;
+    using ValueType = typename WindowStream::InputStreamType::value_type;
+    win_it.add_observer( [&observe_cnt]( Window<ValueType> const& ){
+        // LOG_DBG << "at " << observe_cnt;
+        ++observe_cnt;
+    });
 
     size_t window_cnt = 0;
     for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
@@ -105,41 +86,35 @@ void test_sliding_entries_iterator_( WindowIterator& win_it, size_t count )
         //         << window.first_position() << "-" << window.last_position()
         //         << " # " << window.entry_count();
 
-        // LOG_DBG << "first " << window.first_position()
-        //         << " last " << window.last_position()
-        //         << " size " << window.size();
-
         if( it.is_first_window() ) {
+            EXPECT_EQ( 7790001, window.first_position() );
             EXPECT_FALSE( found_first_win );
             found_first_win = true;
         }
         if( it.is_last_window() ) {
+            EXPECT_EQ( 7850001, window.first_position() );
             EXPECT_FALSE( found_last_win );
             found_last_win = true;
         }
-
-        EXPECT_TRUE( window_cnt < window_first_positions.size() );
-        EXPECT_TRUE( window_cnt < window_last_positions.size() );
-        EXPECT_TRUE( window_cnt < window_sizes.size() );
-        EXPECT_EQ( window_first_positions[window_cnt], window.first_position() );
-        EXPECT_EQ( window_last_positions[window_cnt], window.last_position() );
-        EXPECT_EQ( window_sizes[window_cnt], window.size() );
 
         EXPECT_TRUE( window.first_position() >= 7790001 );
         EXPECT_TRUE( window.first_position() <= 7850001 );
         EXPECT_TRUE( window.last_position() >= 7800000 );
         EXPECT_TRUE( window.last_position() <= 7860000 );
 
+        EXPECT_TRUE( window_sizes.count( window.first_position() ));
+        EXPECT_EQ( window_sizes.at( window.first_position() ), window.size() );
+
         ++window_cnt;
     }
-    EXPECT_EQ( window_sizes.size(), window_cnt );
-    EXPECT_EQ( window_sizes.size(), observe_cnt );
+    EXPECT_EQ( 7, window_cnt );
+    EXPECT_EQ( 7, observe_cnt );
 
     EXPECT_TRUE( found_first_win );
     EXPECT_TRUE( found_last_win );
 }
 
-void test_window_iterator_sliding_entries_direct( size_t count )
+TEST( WindowStream, SlidingIntervalDirect )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -151,12 +126,13 @@ void test_window_iterator_sliding_entries_direct( size_t count )
     auto pileup_end = SimplePileupInputStream<>();
 
     // Set up the window iterator. Rename to `win_it` to use it with the below test code.
-    auto win_it = make_default_sliding_entries_window_iterator(
-        pileup_begin, pileup_end, count
+    auto win_it = make_default_sliding_interval_window_stream(
+        pileup_begin, pileup_end, 10000
     );
+    win_it.emit_leading_empty_windows( false );
 
     // Run the tests.
-    test_sliding_entries_iterator_( win_it, count );
+    test_sliding_interval_stream_( win_it );
 
     // auto window_range = make_sliding_window_range(
     // auto win_it = make_sliding_window_iterator<SimplePileupReader::Record>(
@@ -180,13 +156,7 @@ void test_window_iterator_sliding_entries_direct( size_t count )
     // }
 }
 
-TEST( WindowIterator, SlidingEntriesDirect )
-{
-    test_window_iterator_sliding_entries_direct(  9000 );
-    test_window_iterator_sliding_entries_direct( 10000 );
-}
-
-void test_window_iterator_sliding_entries_lambda( size_t count )
+TEST( WindowStream, SlidingIntervalLambda )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -201,36 +171,24 @@ void test_window_iterator_sliding_entries_lambda( size_t count )
     auto pileup_end   = data_gen.end();
 
     // Create a window iterator based on the Generic Input Stream.
-    auto win_it = make_default_sliding_entries_window_iterator(
-        pileup_begin, pileup_end, count
+    auto win_it = make_default_sliding_interval_window_stream(
+        pileup_begin, pileup_end, 10000
     );
+    win_it.emit_leading_empty_windows( false );
 
-    test_sliding_entries_iterator_( win_it, count );
+    test_sliding_interval_stream_( win_it );
 }
 
-TEST( WindowIterator, SlidingEntriesLambda )
-{
-    test_window_iterator_sliding_entries_lambda(  9000 );
-    test_window_iterator_sliding_entries_lambda( 10000 );
-}
-
-void run_sliding_entries_window_view_variant_test_( VariantWindowViewIterator& win_it )
+void run_sliding_interval_window_view_variant_test_( VariantWindowViewStream& win_it )
 {
     size_t window_cnt = 0;
     for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
-        auto const& window = *it;
-
-        EXPECT_TRUE( window.first_position() >= 7790001 );
-        EXPECT_TRUE( window.first_position() <= 7850001 );
-        EXPECT_TRUE( window.last_position() >= 7800000 );
-        EXPECT_TRUE( window.last_position() <= 7860000 );
-
         ++window_cnt;
     }
-    EXPECT_EQ( 6, window_cnt );
+    EXPECT_EQ( 7, window_cnt );
 }
 
-TEST( WindowIterator, SlidingEntriesWindowView )
+TEST( WindowStream, SlidingIntervalWindowView )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -245,9 +203,10 @@ TEST( WindowIterator, SlidingEntriesWindowView )
     auto pileup_end   = data_gen.end();
 
     // Create a window iterator based on the Generic Input Stream.
-    auto win_it = make_default_sliding_entries_window_view_iterator(
-        pileup_begin, pileup_end, 9000
+    auto win_it = make_default_sliding_interval_window_view_stream(
+        pileup_begin, pileup_end, 10000
     );
+    // win_it.emit_leading_empty_windows( false );
 
     // Also test that the observer functions get executed once per window.
     size_t observe_cnt = 0;
@@ -257,17 +216,18 @@ TEST( WindowIterator, SlidingEntriesWindowView )
     });
 
     // We use a test function that takes our abstract type, to see if we set this up correctly.
-    run_sliding_entries_window_view_variant_test_( win_it );
-    EXPECT_EQ( 6, observe_cnt );
+    run_sliding_interval_window_view_variant_test_( win_it );
+    EXPECT_EQ( 7, observe_cnt );
 
+    // test_sliding_interval_stream_( win_it );
     // size_t window_cnt = 0;
     // for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
     //     ++window_cnt;
     // }
-    // EXPECT_EQ( 6, window_cnt );
+    // EXPECT_EQ( 786, window_cnt );
 }
 
-TEST( WindowIterator, SlidingEntriesEmpty )
+TEST( WindowStream, SlidingIntervalEmpty )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -279,7 +239,7 @@ TEST( WindowIterator, SlidingEntriesEmpty )
     auto pileup_end   = data_gen.end();
 
     // Create a window iterator based on the Generic Input Stream.
-    auto win_it = make_default_sliding_entries_window_iterator(
+    auto win_it = make_default_sliding_interval_window_stream(
         pileup_begin, pileup_end, 10000
     );
 

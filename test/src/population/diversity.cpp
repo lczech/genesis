@@ -36,7 +36,7 @@
 #include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/functions/diversity_pool_calculator.hpp"
 #include "genesis/population/functions/diversity_pool_functions.hpp"
-#include "genesis/population/window/sliding_interval_window_iterator.hpp"
+#include "genesis/population/window/sliding_interval_window_stream.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/filter_iterator.hpp"
@@ -372,8 +372,8 @@ TEST( Population, DiversityMeasuresIterator )
     auto pileup_end   = data_gen.end();
 
     // Create a window iterator based on the Generic Input Stream.
-    // LOG_DBG << "make_default_sliding_interval_window_iterator()";
-    auto win_it = make_default_sliding_interval_window_iterator(
+    // LOG_DBG << "make_default_sliding_interval_window_stream()";
+    auto win_it = make_default_sliding_interval_window_stream(
         pileup_begin, pileup_end, window_width, window_stride
     );
     win_it.emit_leading_empty_windows( true );

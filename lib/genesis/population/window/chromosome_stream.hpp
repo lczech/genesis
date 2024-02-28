@@ -1,9 +1,9 @@
-#ifndef GENESIS_POPULATION_WINDOW_CHROMOSOME_ITERATOR_H_
-#define GENESIS_POPULATION_WINDOW_CHROMOSOME_ITERATOR_H_
+#ifndef GENESIS_POPULATION_WINDOW_CHROMOSOME_STREAM_H_
+#define GENESIS_POPULATION_WINDOW_CHROMOSOME_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/window/base_window_iterator.hpp"
+#include "genesis/population/window/base_window_stream.hpp"
 #include "genesis/population/window/window_view.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
 
@@ -48,11 +48,11 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Chromosome Iterator
+//     Chromosome Stream
 // =================================================================================================
 
 /**
- * @brief Iterator for traversing each chromosome as a whole, or the entire genome,
+ * @brief Stream for traversing each chromosome as a whole, or the entire genome,
  * with an inner WindowView iterator over the positions of each chromosome.
  *
  * With each step of the iteration, an inner WindowView iterator is yielded that traverses all
@@ -78,23 +78,23 @@ namespace population {
  * have to be set in the class prior to starting the iteration for the chromosome iterator.
  * For the whole genome case, only the first of them has to be set, as we internally do not need
  * access to the chromosome and position information of the underlying data iterator.
- * See make_chromosome_iterator() and make_default_chromosome_iterator()
+ * See make_chromosome_stream() and make_default_chromosome_stream()
  * for helper functions that take care of this for most of our data types.
  *
- * See BaseWindowIterator for more details on the three functors, the template parameters.
- * This class here however does not derive from the BaseWindowIterator over normal Window%s,
+ * See BaseWindowStream for more details on the three functors, the template parameters.
+ * This class here however does not derive from the BaseWindowStream over normal Window%s,
  * but behaves in a similar way - with the exception that it does not produce Window%s in each
  * step of the iteration, as we do not want to keep the positions of a whole chromosome in memory.
  * Hence, instead, it yields a WindowView iterator, directly streaming over the positions of the
  * chromosome, without keeping all data in memory.
  *
  *
- * @see make_chromosome_iterator()
- * @see make_default_chromosome_iterator()
+ * @see make_chromosome_stream()
+ * @see make_default_chromosome_stream()
  */
-template<class InputIterator, class DataType = typename InputIterator::value_type>
-class ChromosomeIterator final : public BaseWindowIterator<
-    InputIterator, DataType, ::genesis::population::WindowView<DataType>
+template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
+class ChromosomeStream final : public BaseWindowStream<
+    InputStreamIterator, DataType, ::genesis::population::WindowView<DataType>
 >
 {
 public:
@@ -104,11 +104,11 @@ public:
     // -------------------------------------------------------------------------
 
     using WindowViewType = ::genesis::population::WindowView<DataType>;
-    using self_type = ChromosomeIterator<InputIterator, DataType>;
-    using base_type = BaseWindowIterator<InputIterator, DataType, WindowViewType>;
+    using self_type = ChromosomeStream<InputStreamIterator, DataType>;
+    using base_type = BaseWindowStream<InputStreamIterator, DataType, WindowViewType>;
 
-    // The input types that we take from the underlying iterator over genome positions.
-    using InputType         = typename InputIterator::value_type;
+    // The input types that we take from the underlying stream over genome positions.
+    using InputType         = typename InputStreamIterator::value_type;
     // using Entry             = typename Window::Entry;
 
     // This class produces an iterator of type WindowView.
@@ -126,8 +126,8 @@ public:
     /**
      * @brief Internal iterator that produces WindowView%s.
      */
-    class DerivedIterator final : public BaseWindowIterator<
-        InputIterator, DataType, WindowViewType
+    class DerivedIterator final : public BaseWindowStream<
+        InputStreamIterator, DataType, WindowViewType
     >::BaseIterator
     {
     public:
@@ -136,19 +136,19 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type = typename ChromosomeIterator<
-            InputIterator, DataType
+        using self_type = typename ChromosomeStream<
+            InputStreamIterator, DataType
         >::DerivedIterator;
 
         // using base_iterator_type = typename base_type::BaseIterator;
-        using base_iterator_type = typename BaseWindowIterator<
-            InputIterator, DataType, WindowViewType
+        using base_iterator_type = typename BaseWindowStream<
+            InputStreamIterator, DataType, WindowViewType
         >::BaseIterator;
 
         // using WindowViewType    = WindowViewType;
         // using Window            = ::genesis::population::Window<DataType>;
         // using Entry             = typename Window::Entry;
-        using InputType         = typename InputIterator::value_type;
+        using InputType         = typename InputStreamIterator::value_type;
 
         using iterator_category = std::input_iterator_tag;
         using value_type        = WindowViewType;
@@ -161,7 +161,7 @@ public:
         DerivedIterator() = default;
 
         DerivedIterator(
-            ChromosomeIterator const* parent
+            ChromosomeStream const* parent
         )
             : base_iterator_type( parent )
             , parent_( parent )
@@ -198,7 +198,7 @@ public:
         DerivedIterator& operator= ( self_type const& ) = default;
         DerivedIterator& operator= ( self_type&& )      = default;
 
-        friend ChromosomeIterator;
+        friend ChromosomeStream;
 
         // -------------------------------------------------------------------------
         //     Internal and Virtual Members
@@ -277,7 +277,7 @@ public:
                 auto const dict_entry = parent_->sequence_dict_->find( chr );
                 if( dict_entry == parent_->sequence_dict_->end() ) {
                     throw std::invalid_argument(
-                        "In ChromosomeIterator: Cannot iterate chromosome \"" + chr +
+                        "In ChromosomeStream: Cannot iterate chromosome \"" + chr +
                         "\", as the provided sequence dictionary or reference genome "
                         "does not contain the chromosome."
                     );
@@ -319,7 +319,7 @@ public:
                     // looking up the chromosome in the dict in every iteration.
                     if( seq_dict && old_pos > seq_dict->get( chr ).length ) {
                         throw std::invalid_argument(
-                            "In ChromosomeIterator: Chromosome \"" + chr + "\" has length " +
+                            "In ChromosomeStream: Chromosome \"" + chr + "\" has length " +
                             std::to_string( seq_dict->get( chr ).length ) +
                             " in the provided sequence dictionary or reference genome, "
                             "but the input data contains positions up to " +
@@ -409,7 +409,7 @@ public:
     private:
 
         // Parent. Needs to live here to have the correct derived type.
-        ChromosomeIterator const* parent_ = nullptr;
+        ChromosomeStream const* parent_ = nullptr;
 
         // Store the iterator for the window.
         WindowViewType window_;
@@ -428,19 +428,19 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    ChromosomeIterator(
-        InputIterator begin, InputIterator end
+    ChromosomeStream(
+        InputStreamIterator begin, InputStreamIterator end
     )
         : base_type( begin, end )
     {}
 
-    virtual ~ChromosomeIterator() = default;
+    virtual ~ChromosomeStream() = default;
 
-    ChromosomeIterator( ChromosomeIterator const& ) = default;
-    ChromosomeIterator( ChromosomeIterator&& )      = default;
+    ChromosomeStream( ChromosomeStream const& ) = default;
+    ChromosomeStream( ChromosomeStream&& )      = default;
 
-    ChromosomeIterator& operator= ( ChromosomeIterator const& ) = default;
-    ChromosomeIterator& operator= ( ChromosomeIterator&& )      = default;
+    ChromosomeStream& operator= ( ChromosomeStream const& ) = default;
+    ChromosomeStream& operator= ( ChromosomeStream&& )      = default;
 
     friend DerivedIterator;
 
@@ -534,37 +534,37 @@ private:
 // =================================================================================================
 
 /**
- * @brief Helper function to instantiate a ChromosomeIterator for each chromosome,
+ * @brief Helper function to instantiate a ChromosomeStream for each chromosome,
  * without the need to specify the template parameters manually.
  */
-template<class InputIterator, class DataType = typename InputIterator::value_type>
-ChromosomeIterator<InputIterator, DataType>
-make_chromosome_iterator(
-    InputIterator begin, InputIterator end
+template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
+ChromosomeStream<InputStreamIterator, DataType>
+make_chromosome_stream(
+    InputStreamIterator begin, InputStreamIterator end
 ) {
-    return ChromosomeIterator<InputIterator, DataType>( begin, end );
+    return ChromosomeStream<InputStreamIterator, DataType>( begin, end );
 }
 
 /**
- * @brief Helper function to instantiate a ChromosomeIterator for each chromosome,
+ * @brief Helper function to instantiate a ChromosomeStream for each chromosome,
  * for a default use case.
  *
  * This helper assumes that the underlying type of the input data stream and of the data
  * that we are sliding over are of the same type, that is, we do no conversion in the
- * `entry_input_function` functor of the ChromosomeIterator. It further assumes that this
+ * `entry_input_function` functor of the ChromosomeStream. It further assumes that this
  * data type has public member variables `chromosome` and `position` that are accessed by the
- * `chromosome_function` and `position_function` functors of the ChromosomeIterator.
+ * `chromosome_function` and `position_function` functors of the ChromosomeStream.
  * For example, a data type that this works for is Variant data.
  */
-template<class InputIterator>
-ChromosomeIterator<InputIterator>
-make_default_chromosome_iterator(
-    InputIterator begin, InputIterator end
+template<class InputStreamIterator>
+ChromosomeStream<InputStreamIterator>
+make_default_chromosome_stream(
+    InputStreamIterator begin, InputStreamIterator end
 ) {
-    using DataType = typename InputIterator::value_type;
+    using DataType = typename InputStreamIterator::value_type;
 
     // Set functors.
-    auto it = ChromosomeIterator<InputIterator>( begin, end );
+    auto it = ChromosomeStream<InputStreamIterator>( begin, end );
     it.entry_input_function = []( DataType const& variant ) {
         return variant;
     };
@@ -584,39 +584,39 @@ make_default_chromosome_iterator(
 // =================================================================================================
 
 /**
- * @brief Helper function to instantiate a ChromosomeIterator for the whole genome,
+ * @brief Helper function to instantiate a ChromosomeStream for the whole genome,
  * without the need to specify the template parameters manually.
  *
- * This helper function creates a ChromosomeIterator from the given pair of iterators,
- * and sets ChromosomeIterator::whole_genome() to `true`, so that the whole genome is traversed
+ * This helper function creates a ChromosomeStream from the given pair of iterators,
+ * and sets ChromosomeStream::whole_genome() to `true`, so that the whole genome is traversed
  * without stopping at individual chromosomes in each iteration.
  */
-template<class InputIterator, class DataType = typename InputIterator::value_type>
-ChromosomeIterator<InputIterator, DataType>
-make_genome_iterator(
-    InputIterator begin, InputIterator end
+template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
+ChromosomeStream<InputStreamIterator, DataType>
+make_genome_stream(
+    InputStreamIterator begin, InputStreamIterator end
 ) {
-    auto it = ChromosomeIterator<InputIterator, DataType>( begin, end );
+    auto it = ChromosomeStream<InputStreamIterator, DataType>( begin, end );
     it.whole_genome( true );
     return it;
 }
 
 /**
- * @brief Helper function to instantiate a ChromosomeIterator for the whole genome,
+ * @brief Helper function to instantiate a ChromosomeStream for the whole genome,
  * for a default use case.
  *
- * @copydetails make_default_chromosome_iterator
+ * @copydetails make_default_chromosome_stream
  *
- * This helper function creates a ChromosomeIterator from the given pair of iterators,
- * and sets ChromosomeIterator::whole_genome() to `true`, so that the whole genome is traversed
+ * This helper function creates a ChromosomeStream from the given pair of iterators,
+ * and sets ChromosomeStream::whole_genome() to `true`, so that the whole genome is traversed
  * without stopping at individual chromosomes in each iteration.
  */
-template<class InputIterator>
-ChromosomeIterator<InputIterator>
-make_default_genome_iterator(
-    InputIterator begin, InputIterator end
+template<class InputStreamIterator>
+ChromosomeStream<InputStreamIterator>
+make_default_genome_stream(
+    InputStreamIterator begin, InputStreamIterator end
 ) {
-    auto it = make_default_chromosome_iterator( begin, end );
+    auto it = make_default_chromosome_stream( begin, end );
     it.whole_genome( true );
     return it;
 }

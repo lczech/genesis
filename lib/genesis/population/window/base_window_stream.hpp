@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_WINDOW_BASE_WINDOW_ITERATOR_H_
-#define GENESIS_POPULATION_WINDOW_BASE_WINDOW_ITERATOR_H_
+#ifndef GENESIS_POPULATION_WINDOW_BASE_WINDOW_STREAM_H_
+#define GENESIS_POPULATION_WINDOW_BASE_WINDOW_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -48,23 +48,23 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Base Window Iterator
+//     Base Window Stream
 // =================================================================================================
 
 /**
- * @brief Base iterator class for Window%s over the chromosomes of a genome.
+ * @brief Base class for streams of Window%s over the chromosomes of a genome.
  *
  * This base class serves for sliding windows, windows over regions of a genome, etc.
  *
  * The template parameters are:
- *  * `InputIterator`: The type of the underlying iterator over the genome data (that is, the input
- *     iterator from which the windows take their data). Needs to have a member type
- *     `value_type` that specifies the actual input type that the iterator produces, which we here
+ *  * `InputStreamIterator`: The type of the underlying stream over the genome data (that is, the input
+ *     stream from which the windows take their data). Needs to have a member type
+ *     `value_type` that specifies the actual input type that the stream produces, which we here
  *     call the `InputType` (and typedef it as that).
  *  * `Data`: The data type of the Window::Data that is stored in Window::Entry. The functor
  *    #entry_input_function needs to be provided to convert from `InputType` to this `Data`.
  *    By default, we take this to be the same as the `InputType`, meaning that the Window contains
- *    the same data type as the underlying iterator that we get our data from.
+ *    the same data type as the underlying stream that we get our data from.
  *
  * The three functors
  *
@@ -74,12 +74,12 @@ namespace population {
  *
  * have to be set in the class prior to starting the iteration.
  *
- * The general usage of the derived classes that actually implement this iterator is as follows,
- * on the example of the SlidingIntervalWindowIterator:
+ * The general usage of the derived classes that actually implement this stream is as follows,
+ * on the example of the SlidingIntervalWindowStream:
  *
- *     // Make an iterator using some underlying data iterator
+ *     // Make a window stream using some underlying data stream
  *     // that yields data for one position in the genome at a time.
- *     auto win_it = SlidingIntervalWindowIterator<InputIterator>( data_begin, data_end );
+ *     auto win_it = SlidingIntervalWindowStream<InputStreamIterator>( data_begin, data_end );
  *
  *     // Set functors to access the underlying data.
  *     win_it.entry_input_function = []( Data const& variant ) {
@@ -104,11 +104,11 @@ namespace population {
  * Other derived classes work accordingly.
  */
 template<
-    class InputIterator,
-    class Data       = typename InputIterator::value_type,
+    class InputStreamIterator,
+    class Data       = typename InputStreamIterator::value_type,
     class WindowType = typename ::genesis::population::Window<Data>
 >
-class BaseWindowIterator
+class BaseWindowStream
 {
 public:
 
@@ -116,11 +116,11 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using InputIteratorType = InputIterator;
+    using InputStreamType   = InputStreamIterator;
     using DataType          = Data;
 
-    using self_type         = BaseWindowIterator<InputIterator, DataType, WindowType>;
-    using InputType         = typename InputIterator::value_type;
+    using self_type         = BaseWindowStream<InputStreamIterator, DataType, WindowType>;
+    using InputType         = typename InputStreamIterator::value_type;
 
     using iterator_category = std::input_iterator_tag;
     using value_type        = WindowType;
@@ -133,19 +133,19 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Functor to convert from the underlying input iterator that provides the data
+     * @brief Functor to convert from the underlying input stream that provides the data
      * to fill the windows to the data that is stored per window.
      */
     std::function<DataType( InputType const& )> entry_input_function;
 
     /**
-     * @brief Functor that yields the current chromosome, given the input iterator data.
+     * @brief Functor that yields the current chromosome, given the input stream data.
      */
     std::function<std::string( InputType const& )> chromosome_function;
 
     /**
      * @brief Functor that yields the current position on the chromosome,
-     * given the input iterator data.
+     * given the input stream data.
      */
     std::function<size_t( InputType const& )> position_function;
 
@@ -183,10 +183,10 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type = typename BaseWindowIterator<
-            InputIteratorType, DataType, WindowType
+        using self_type = typename BaseWindowStream<
+            InputStreamType, DataType, WindowType
         >::Iterator;
-        using InputType = typename InputIteratorType::value_type;
+        using InputType = typename InputStreamType::value_type;
 
         using iterator_category = std::input_iterator_tag;
         using value_type        = WindowType;
@@ -228,7 +228,7 @@ public:
             return *this;
         }
 
-        friend BaseWindowIterator;
+        friend BaseWindowStream;
 
         // -------------------------------------------------------------------------
         //     Properties
@@ -320,7 +320,7 @@ public:
          * Any two iterators that are copies of each other or started from the same parent
          * will compare equal, as long as neither of them is past-the-end.
          * A valid (not past-the-end) iterator and an end() iterator will not compare equal,
-         * no matter from which BaseWindowIterator they were created.
+         * no matter from which BaseWindowStream they were created.
          * Two past-the-end iterators compare equal.
          */
         bool operator==( self_type const& other ) const
@@ -388,10 +388,10 @@ protected:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type = typename BaseWindowIterator<
-            InputIteratorType, DataType, WindowType
+        using self_type = typename BaseWindowStream<
+            InputStreamType, DataType, WindowType
         >::BaseIterator;
-        using InputType = typename InputIteratorType::value_type;
+        using InputType = typename InputStreamType::value_type;
 
         using iterator_category = std::input_iterator_tag;
         using value_type        = WindowType;
@@ -409,7 +409,7 @@ protected:
          * @brief Construct the base class, which does initialization checks on its member
          * variables to ensure that the user has set up the functors correctly.
          */
-        BaseIterator( BaseWindowIterator const* parent )
+        BaseIterator( BaseWindowStream const* parent )
         {
             init_( parent );
         }
@@ -426,7 +426,7 @@ protected:
         // BaseIterator& operator= ( self_type const& ) = default;
         // BaseIterator& operator= ( self_type&& )      = default;
 
-        friend BaseWindowIterator;
+        friend BaseWindowStream;
         friend Iterator;
 
         // -------------------------------------------------------------------------
@@ -438,7 +438,7 @@ protected:
         /**
          * @brief Initialize the base iterator class and check that it is set up correctly.
          */
-        void init_( BaseWindowIterator const* parent )
+        void init_( BaseWindowStream const* parent )
         {
             // We use the parent as a check if this Iterator is intended to be a begin()
             // or end() iterator. If its the former, init. If the latter, we are done here.
@@ -454,19 +454,19 @@ protected:
             // Check that the functors are set up.
             if( ! parent->entry_input_function ) {
                 throw std::runtime_error(
-                    "Need to set BaseWindowIterator::entry_input_function "
+                    "Need to set BaseWindowStream::entry_input_function "
                     "before iterating over Windows with a Window Iterator."
                 );
             }
             if( ! parent->chromosome_function ) {
                 throw std::runtime_error(
-                    "Need to set BaseWindowIterator::chromosome_function "
+                    "Need to set BaseWindowStream::chromosome_function "
                     "before iterating over Windows with a Window Iterator."
                 );
             }
             if( ! parent->position_function ) {
                 throw std::runtime_error(
-                    "Need to set BaseWindowIterator::position_function "
+                    "Need to set BaseWindowStream::position_function "
                     "before iterating over Windows with a Window Iterator."
                 );
             }
@@ -498,7 +498,7 @@ protected:
          * In the derived class implementation, this should be a pointer to the _derived_ parent
          * class, to make sure that it contains the correct settings etc needed for the iteration.
          */
-        virtual BaseWindowIterator const* get_parent_() const = 0;
+        virtual BaseWindowStream const* get_parent_() const = 0;
 
     protected:
 
@@ -506,9 +506,9 @@ protected:
         bool is_first_window_ = true;
         bool is_last_window_ = false;
 
-        // Underlying iterator
-        InputIterator current_;
-        InputIterator end_;
+        // Underlying data stream
+        InputStreamIterator current_;
+        InputStreamIterator end_;
 
     };
 
@@ -522,18 +522,18 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    BaseWindowIterator( InputIterator begin, InputIterator end )
+    BaseWindowStream( InputStreamIterator begin, InputStreamIterator end )
         : begin_(begin)
         , end_(end)
     {}
 
-    virtual ~BaseWindowIterator() = default;
+    virtual ~BaseWindowStream() = default;
 
-    BaseWindowIterator( BaseWindowIterator const& ) = default;
-    BaseWindowIterator( BaseWindowIterator&& )      = default;
+    BaseWindowStream( BaseWindowStream const& ) = default;
+    BaseWindowStream( BaseWindowStream&& )      = default;
 
-    BaseWindowIterator& operator= ( BaseWindowIterator const& ) = default;
-    BaseWindowIterator& operator= ( BaseWindowIterator&& )      = default;
+    BaseWindowStream& operator= ( BaseWindowStream const& ) = default;
+    BaseWindowStream& operator= ( BaseWindowStream&& )      = default;
 
     friend Iterator;
 
@@ -588,8 +588,8 @@ public:
 
 protected:
 
-    // Need a default for WindowViewIterator.
-    BaseWindowIterator() = default;
+    // Need a default for WindowViewStream.
+    BaseWindowStream() = default;
 
     virtual std::unique_ptr<BaseIterator> get_begin_iterator_() = 0;
     virtual std::unique_ptr<BaseIterator> get_end_iterator_() = 0;
@@ -601,8 +601,8 @@ protected:
 private:
 
     // Underlying iterator to the data that we want to put in windows.
-    InputIterator begin_;
-    InputIterator end_;
+    InputStreamIterator begin_;
+    InputStreamIterator end_;
 
     // Keep the observers for each window view.
     std::vector<std::function<void(WindowType const&)>> observers_;

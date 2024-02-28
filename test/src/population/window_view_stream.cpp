@@ -34,10 +34,10 @@
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/window/base_window.hpp"
-#include "genesis/population/window/base_window_iterator.hpp"
+#include "genesis/population/window/base_window_stream.hpp"
 #include "genesis/population/window/functions.hpp"
-#include "genesis/population/window/sliding_interval_window_iterator.hpp"
-#include "genesis/population/window/window_view_iterator.hpp"
+#include "genesis/population/window/sliding_interval_window_stream.hpp"
+#include "genesis/population/window/window_view_stream.hpp"
 #include "genesis/population/window/window_view.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/generic_input_stream.hpp"
@@ -45,7 +45,7 @@
 using namespace genesis::population;
 using namespace genesis::utils;
 
-TEST( WindowIterator, WindowViewIterator )
+TEST( WindowStream, WindowViewStream )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -60,8 +60,8 @@ TEST( WindowIterator, WindowViewIterator )
     auto pileup_end   = data_gen.end();
 
     // Create a window iterator based on the Generic Input Stream.
-    auto win_it = make_window_view_iterator(
-        make_default_sliding_interval_window_iterator(
+    auto win_it = make_window_view_stream(
+        make_default_sliding_interval_window_stream(
             pileup_begin, pileup_end, 10000
         ).emit_leading_empty_windows( false )
     );

@@ -39,7 +39,7 @@
 #include "genesis/population/functions/fst_pool_functions.hpp"
 #include "genesis/population/functions/fst_pool_processor.hpp"
 #include "genesis/population/functions/functions.hpp"
-#include "genesis/population/window/sliding_interval_window_iterator.hpp"
+#include "genesis/population/window/sliding_interval_window_stream.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/transform_iterator.hpp"
@@ -296,7 +296,7 @@ TEST( Structure, FstPoolIterator )
     });
 
     // Create a window iterator based on the Generic Input Stream.
-    auto win_it = make_default_sliding_interval_window_iterator(
+    auto win_it = make_default_sliding_interval_window_stream(
         data_gen.begin(), data_gen.end(), window_width, window_stride
     );
 
@@ -425,7 +425,7 @@ TEST( Structure, FstPoolAllPairs )
     auto sync_end   = data_gen.end();
 
     // Create a window iterator based on the Generic Input Stream.
-    auto win_it = make_default_sliding_interval_window_iterator(
+    auto win_it = make_default_sliding_interval_window_stream(
         sync_begin, sync_end, window_width
     );
 

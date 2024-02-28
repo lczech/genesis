@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_WINDOW_VARIANT_WINDOW_ITERATOR_H_
-#define GENESIS_POPULATION_WINDOW_VARIANT_WINDOW_ITERATOR_H_
+#ifndef GENESIS_POPULATION_WINDOW_VARIANT_WINDOW_STREAM_H_
+#define GENESIS_POPULATION_WINDOW_VARIANT_WINDOW_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -32,8 +32,8 @@
  */
 
 #include "genesis/population/streams/variant_input_stream.hpp"
-#include "genesis/population/window/base_window_iterator.hpp"
-#include "genesis/population/window/window_view_iterator.hpp"
+#include "genesis/population/window/base_window_stream.hpp"
+#include "genesis/population/window/window_view_stream.hpp"
 #include "genesis/population/window/window_view.hpp"
 #include "genesis/population/window/window.hpp"
 
@@ -43,7 +43,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Generic Variant Window Iterator
+//     Generic Variant Window Stream
 // =================================================================================================
 
 // Quick check to avoid future bugs if we ever change that definition.
@@ -53,29 +53,29 @@ static_assert(
 );
 
 /**
- * @brief Typedef for a uniform Window iterator type.
+ * @brief Typedef for a uniform Window stream type.
  *
- * This typedef is used for any Window iterator over an VariantInputStream. It's simply a more
+ * This typedef is used for any Window stream over an VariantInputStream. It's simply a more
  * convenient name that the full template specialization.
  */
-using VariantWindowIterator = BaseWindowIterator<
+using VariantWindowStream = BaseWindowStream<
     VariantInputStream::Iterator,
     VariantInputStream::value_type,
     Window<VariantInputStream::value_type>
 >;
 
 /**
- * @brief Typedef for our uniform WindowView iterator type.
+ * @brief Typedef for our uniform WindowView stream type.
  *
- * This typedef is used for any WindowView iterator over an VariantInputStream. It's simply a more
+ * This typedef is used for any WindowView stream over an VariantInputStream. It's simply a more
  * convenient name that the full template specialization.
  *
- * In particular, we use this type as an abstraction that captures iterators over both Window and
- * WindowView, for instance when using make_window_view_iterator() to wrap a WindowIterator into
- * a WindowViewIterator. as Because we want to model different types of window iterators, some of
+ * In particular, we use this type as an abstraction that captures streams over both Window and
+ * WindowView, for instance when using make_window_view_stream() to wrap a WindowStream into
+ * a WindowViewStream. as Because we want to model different types of window streams, some of
  * which use Window, some of which use WindowView, this abstraction allows us to have a single type.
  */
-using VariantWindowViewIterator = BaseWindowIterator<
+using VariantWindowViewStream = BaseWindowStream<
     VariantInputStream::Iterator,
     VariantInputStream::value_type,
     WindowView<VariantInputStream::value_type>

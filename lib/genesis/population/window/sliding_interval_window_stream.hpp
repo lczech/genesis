@@ -1,9 +1,9 @@
-#ifndef GENESIS_POPULATION_WINDOW_SLIDING_ENTRIES_WINDOW_ITERATOR_H_
-#define GENESIS_POPULATION_WINDOW_SLIDING_ENTRIES_WINDOW_ITERATOR_H_
+#ifndef GENESIS_POPULATION_WINDOW_SLIDING_INTERVAL_WINDOW_STREAM_H_
+#define GENESIS_POPULATION_WINDOW_SLIDING_INTERVAL_WINDOW_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,8 +31,8 @@
  * @ingroup population
  */
 
-#include "genesis/population/window/base_window_iterator.hpp"
-#include "genesis/population/window/window_view_iterator.hpp"
+#include "genesis/population/window/base_window_stream.hpp"
+#include "genesis/population/window/window_view_stream.hpp"
 #include "genesis/population/window/window_view.hpp"
 #include "genesis/population/window/window.hpp"
 
@@ -47,18 +47,11 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Sliding Entries Window Iterator
+//     Sliding Interval Window Stream
 // =================================================================================================
 
 /**
- * @brief Iterator for sliding Window%s of a fixed number of (variant) positions in a genome.
- *
- * With each step of the iteration, a window consisting of count() many entries of the underlying
- * input iterator is yielded. Then, when incrementing, we move forward stride() many entries,
- * which can correspond to an arbitrary number of positions in the genome, depending on how far
- * the entries are spread out. Hence, any filterin on positions in the genome should be done
- * beforehand on the inputs, so that only those entries are used by this iterator that are
- * meant to be considered.
+ * @brief Stream for sliding Window%s of fixed sized intervals over the chromosomes of a genome.
  *
  * The three functors
  *
@@ -66,20 +59,19 @@ namespace population {
  *  * #chromosome_function, and
  *  * #position_function
  *
- * have to be set in the class prior to starting the iteration, as well as the count() of how many
- * entries shall be used in each iteration.
+ * have to be set in the class prior to starting the iteration, as well as the width().
  * All other settings are optional and/or defaulted to reasonable values.
- * See make_sliding_entries_window_iterator() and make_default_sliding_entries_window_iterator()
+ * See make_sliding_interval_window_stream() and make_default_sliding_interval_window_stream()
  * for helper functions that take care of this for most of our data types.
  *
- * See BaseWindowIterator for more details on the three functors, the template parameters,
+ * See BaseWindowStream for more details on the three functors, the template parameters,
  * and general usage examples of the class.
  *
- * @see make_sliding_entries_window_iterator()
- * @see make_default_sliding_entries_window_iterator()
+ * @see make_sliding_interval_window_stream()
+ * @see make_default_sliding_interval_window_stream()
  */
-template<class InputIterator, class DataType = typename InputIterator::value_type>
-class SlidingEntriesWindowIterator final : public BaseWindowIterator<InputIterator, DataType>
+template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
+class SlidingIntervalWindowStream final : public BaseWindowStream<InputStreamIterator, DataType>
 {
 public:
 
@@ -87,12 +79,12 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using self_type = SlidingEntriesWindowIterator<InputIterator, DataType>;
-    using base_type = BaseWindowIterator<InputIterator, DataType>;
+    using self_type = SlidingIntervalWindowStream<InputStreamIterator, DataType>;
+    using base_type = BaseWindowStream<InputStreamIterator, DataType>;
 
     using Window            = ::genesis::population::Window<DataType>;
     using Entry             = typename Window::Entry;
-    using InputType         = typename InputIterator::value_type;
+    using InputType         = typename InputStreamIterator::value_type;
 
     using iterator_category = std::input_iterator_tag;
     using value_type        = Window;
@@ -107,7 +99,7 @@ public:
     /**
      * @brief Internal iterator that produces Window%s.
      */
-    class DerivedIterator final : public BaseWindowIterator<InputIterator, DataType>::BaseIterator
+    class DerivedIterator final : public BaseWindowStream<InputStreamIterator, DataType>::BaseIterator
     {
     public:
 
@@ -115,17 +107,17 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type = typename SlidingEntriesWindowIterator<
-            InputIterator, DataType
+        using self_type = typename SlidingIntervalWindowStream<
+            InputStreamIterator, DataType
         >::DerivedIterator;
 
-        using base_iterator_type = typename BaseWindowIterator<
-            InputIterator, DataType
+        using base_iterator_type = typename BaseWindowStream<
+            InputStreamIterator, DataType
         >::BaseIterator;
 
         using Window            = ::genesis::population::Window<DataType>;
         using Entry             = typename Window::Entry;
-        using InputType         = typename InputIterator::value_type;
+        using InputType         = typename InputStreamIterator::value_type;
 
         using iterator_category = std::input_iterator_tag;
         using value_type        = Window;
@@ -138,7 +130,7 @@ public:
         DerivedIterator() = default;
 
         DerivedIterator(
-            SlidingEntriesWindowIterator const* parent
+            SlidingIntervalWindowStream const* parent
         )
             : base_iterator_type( parent )
             , parent_( parent )
@@ -152,17 +144,15 @@ public:
             // base_iterator_type::init_( parent_ );
 
             // Check our own the settings.
-            if( parent_->count_ == 0 ) {
-                throw std::runtime_error(
-                    "Cannot use SlidingEntriesWindowIterator with count == 0."
-                );
+            if( parent_->width_ == 0 ) {
+                throw std::runtime_error( "Cannot use SlidingIntervalWindowStream of width 0." );
             }
             if( parent_->stride_ == 0 ) {
-                parent_->stride_ = parent_->count_;
+                parent_->stride_ = parent_->width_;
             }
-            if( parent_->stride_ > parent_->count_ ) {
+            if( parent_->stride_ > parent_->width_ ) {
                 throw std::runtime_error(
-                    "Cannot use SlidingEntriesWindowIterator with stride > count."
+                    "Cannot use SlidingIntervalWindowStream with stride > width."
                 );
             }
 
@@ -186,7 +176,7 @@ public:
         DerivedIterator& operator= ( self_type const& ) = default;
         DerivedIterator& operator= ( self_type&& )      = default;
 
-        friend SlidingEntriesWindowIterator;
+        friend SlidingIntervalWindowStream;
 
         // -------------------------------------------------------------------------
         //     Internal and Virtual Members
@@ -212,6 +202,15 @@ public:
             base_iterator_type::is_first_window_ = true;
             base_iterator_type::is_last_window_ = false;
             next_index_ = 0;
+
+            if( parent_->emit_leading_empty_windows_ ) {
+                current_start_ = 1;
+            } else {
+                // Set the start to the window position that we would get after going through all
+                // the previous windows if they were emitted.
+                auto const pos = parent_->position_function( *base_iterator_type::current_ );
+                current_start_ = pos - (( pos - 1 ) % parent_->stride_ );
+            }
         }
 
         void increment_() override final
@@ -229,7 +228,7 @@ public:
                 // reset, so that this is an iteration past the end.
                 if( ! base_iterator_type::is_last_window_ ) {
                     throw std::runtime_error(
-                        "SlidingIntervalWindowIterator: Incrementing past the end"
+                        "SlidingIntervalWindowStream: Incrementing past the end"
                     );
                 }
 
@@ -239,10 +238,13 @@ public:
             }
 
             // Check if this call moves to the next chromosome.
-            auto const cur_chr = parent_->chromosome_function( *base_iterator_type::current_ );
-            if( cur_chr != window_.chromosome() ) {
+            if(
+                parent_->chromosome_function( *base_iterator_type::current_ ) != window_.chromosome()
+            ) {
                 init_chromosome_();
             } else {
+                // Update positions.
+                current_start_ += parent_->stride_;
                 base_iterator_type::is_first_window_ = false;
             }
 
@@ -252,39 +254,54 @@ public:
 
         void update_()
         {
-            // Dequeue everything that we do not want to keep. If stride == count (default case),
-            // we can simply remove everything at once, for speed.
-            if( parent_->stride_ == parent_->count_ ) {
+            // Basic check again.
+            assert( parent_ );
+
+            // Dequeue everything that is not part of the current interval any more.
+            // We can speed up by clearing the whole window if its last entry is before the current
+            // start, as in that case, all its entries are, so we want to pop them all anyway.
+            // That is the default case when moving with stride = width, so that's nice.
+            if(
+                window_.entries().size() > 0 &&
+                window_.entries().back().position < current_start_
+            ) {
                 window_.entries().clear();
             } else {
-                for( size_t i = 0; i < parent_->stride_; ++i ) {
-                    if( window_.empty() ) {
-                        // Edge case when we start with a new empty window.
-                        break;
-                    }
+                while(
+                    window_.entries().size() > 0 &&
+                    window_.entries().front().position < current_start_
+                ) {
                     window_.entries().pop_front();
                 }
             }
 
             // Now enqueue new entries.
-            size_t add_cnt = 0;
-            (void) add_cnt;
-            while( window_.size() < parent_->count_ ) {
-                if( base_iterator_type::current_ == base_iterator_type::end_ ) {
-                    break;
-                }
-                auto const cur_chr = parent_->chromosome_function( *base_iterator_type::current_ );
+            while( base_iterator_type::current_ != base_iterator_type::end_ ) {
                 auto const cur_pos = parent_->position_function( *base_iterator_type::current_ );
 
-                // If we are at the next chromosome, we are done with this window.
-                if( cur_chr != window_.chromosome() ) {
+                // Get the chromosome and position of the current entry, and see if it belongs
+                // into the current window. If not, we are done here with this window.
+                if(
+                    parent_->chromosome_function(
+                        *base_iterator_type::current_
+                    ) != window_.chromosome() ||
+                    cur_pos >= current_start_ + parent_->width_
+                ) {
                     break;
                 }
-                assert( cur_chr == window_.chromosome() );
+                assert(
+                    parent_->chromosome_function( *base_iterator_type::current_ ) ==
+                    window_.chromosome()
+                );
+                assert( cur_pos >= current_start_ );
+                assert( cur_pos <  current_start_ + parent_->width_ );
 
                 // Check that we are not going backwards in the chromosome,
                 // i.e., if we got unsorted data. That would lead to unwanted behaviour.
-                if( window_.size() > 0 && window_.entries().back().position >= cur_pos ) {
+                if(
+                    window_.size() > 0 &&
+                    window_.entries().back().position >= cur_pos
+                ) {
                     throw std::runtime_error(
                         "Invalid entry in sliding window that not in sequence with other entries. "
                         "Previous entry is " + window_.chromosome() + ":" +
@@ -300,29 +317,9 @@ public:
                     cur_pos,
                     parent_->entry_input_function( *base_iterator_type::current_ )
                 );
-                ++add_cnt;
                 ++next_index_;
                 ++base_iterator_type::current_;
             }
-
-            // Either we have added as many new entries as the stride tells us, or, if this
-            // was a new empty window, we have added a full count of entries,
-            // or we reached the end of the data or the end of the chromosome.
-            // Also, we can never have _more_ entries in the window, and we cannot have an empty
-            // window, as in that case this update function should not have been called at all.
-            assert(
-                add_cnt == parent_->stride_ ||
-                add_cnt == parent_->count_ ||
-                base_iterator_type::current_ == base_iterator_type::end_ ||
-                parent_->chromosome_function( *base_iterator_type::current_ ) != window_.chromosome()
-            );
-            assert(
-                window_.size() == parent_->count_ ||
-                base_iterator_type::current_ == base_iterator_type::end_ ||
-                parent_->chromosome_function( *base_iterator_type::current_ ) != window_.chromosome()
-            );
-            assert( window_.size() <= parent_->count_ );
-            assert( window_.size() > 0 );
 
             // Cases in which we are at the last window: Either we reached the end of the input,
             // or the end of the current chromosome.
@@ -334,8 +331,8 @@ public:
             }
 
             // Update the window positions.
-            window_.first_position( window_.entries().front().position );
-            window_.last_position( window_.entries().back().position );
+            window_.first_position( current_start_ );
+            window_.last_position( current_start_ + parent_->width_ - 1 );
         }
 
         value_type& get_current_window_() const override final
@@ -343,7 +340,7 @@ public:
             return const_cast<value_type&>( window_ );
         }
 
-        BaseWindowIterator<InputIterator, DataType> const* get_parent_() const override final
+        BaseWindowStream<InputStreamIterator, DataType> const* get_parent_() const override final
         {
             return parent_;
         }
@@ -351,10 +348,11 @@ public:
     private:
 
         // Parent. Needs to live here to have the correct derived type.
-        SlidingEntriesWindowIterator const* parent_ = nullptr;
+        SlidingIntervalWindowStream const* parent_ = nullptr;
 
         // Current window and its position
         Window window_;
+        size_t current_start_ = 1;
         size_t next_index_ = 0;
 
     };
@@ -367,19 +365,19 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    SlidingEntriesWindowIterator(
-        InputIterator begin, InputIterator end
+    SlidingIntervalWindowStream(
+        InputStreamIterator begin, InputStreamIterator end
     )
         : base_type( begin, end )
     {}
 
-    virtual ~SlidingEntriesWindowIterator() = default;
+    virtual ~SlidingIntervalWindowStream() = default;
 
-    SlidingEntriesWindowIterator( SlidingEntriesWindowIterator const& ) = default;
-    SlidingEntriesWindowIterator( SlidingEntriesWindowIterator&& )      = default;
+    SlidingIntervalWindowStream( SlidingIntervalWindowStream const& ) = default;
+    SlidingIntervalWindowStream( SlidingIntervalWindowStream&& )      = default;
 
-    SlidingEntriesWindowIterator& operator= ( SlidingEntriesWindowIterator const& ) = default;
-    SlidingEntriesWindowIterator& operator= ( SlidingEntriesWindowIterator&& )      = default;
+    SlidingIntervalWindowStream& operator= ( SlidingIntervalWindowStream const& ) = default;
+    SlidingIntervalWindowStream& operator= ( SlidingIntervalWindowStream&& )      = default;
 
     friend DerivedIterator;
 
@@ -388,31 +386,28 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Number of entries in each Window.
+     * @brief Width of the Window, that is, the fixed length along the chromosome.
      *
-     * The count has to be `> 0`. This is the number of entries that are put into each Window.
-     * Typically, we process, e.g., variant positions only - in that case, the count() is the number
-     * of Variant%s in each Window.
+     * The width has to be `> 0`. This is the length of the interval, determining the first and
+     * last position in each Window.
      */
-    self_type& count( size_t value )
+    self_type& width( size_t value )
     {
-        count_ = value;
+        width_ = value;
         return *this;
     }
 
-    size_t count() const
+    size_t width() const
     {
-        return count_;
+        return width_;
     }
 
     /**
-     * @brief Stride of the Window, that is, how many entries to move forward with each iteration.
+     * @brief Stride of the Window, that is, how many positions to move forward with each iteration.
      *
-     * The stride his is the shift towards the next interval, determining how many entries are
-     * dropped from the beginning and added to the end of each Window when iterating.
-     * It has to be `<= count`. If stride is set to 0 (default), it is set automatically to the
-     * count() when starting the iteration, meaning that each Window contains the next count()
-     * many new entries from the underlying input iterator.
+     * The stride his is the shift towards the next interval, determining how the first and last
+     * position in each Window change. It has to be `<= width`. If stride is set to 0 (default),
+     * it is set automatically to the width when starting the iteration.
      */
     self_type& stride( size_t value )
     {
@@ -425,13 +420,34 @@ public:
         return stride_;
     }
 
+    /**
+     * @brief Select whether the iterator produces empty windows in the beginning of each
+     * chromosome, before the first actual position that is reported by the underlying data.
+     *
+     * Say the underlying iterator has the first Variant (or whatever datatype it iterates over)
+     * at position 1020 for a chromosome, and we use a window size of 100. If this setting is set
+     * to `true`, the iterator will emit 10 empty windows before reaching this position.
+     * If set to `false`, it will skip these, and start at position 1001, which is the first one
+     * that would have been reached by striding along the chromosome.
+     */
+    self_type& emit_leading_empty_windows( bool value )
+    {
+        emit_leading_empty_windows_ = value;
+        return *this;
+    }
+
+    bool emit_leading_empty_windows() const
+    {
+        return emit_leading_empty_windows_;
+    }
+
     // -------------------------------------------------------------------------
     //     Virtual Members
     // -------------------------------------------------------------------------
 
 protected:
 
-    std::unique_ptr<typename BaseWindowIterator<InputIterator, DataType>::BaseIterator>
+    std::unique_ptr<typename BaseWindowStream<InputStreamIterator, DataType>::BaseIterator>
     get_begin_iterator_() override final
     {
         // Cannot use make_unique here, as the Iterator constructor is private,
@@ -440,10 +456,10 @@ protected:
         // return utils::make_unique<DerivedIterator>( this );
     }
 
-    std::unique_ptr<typename BaseWindowIterator<InputIterator, DataType>::BaseIterator>
+    std::unique_ptr<typename BaseWindowStream<InputStreamIterator, DataType>::BaseIterator>
     get_end_iterator_() override final
     {
-        return std::unique_ptr<DerivedIterator>( new DerivedIterator( nullptr ));
+        return std::unique_ptr<DerivedIterator>( new DerivedIterator() );
         // return utils::make_unique<DerivedIterator>( nullptr );
     }
 
@@ -453,50 +469,60 @@ protected:
 
 private:
 
-    // Settings. We make stride_ mutable so that the iterator can set it to the count.
-    size_t count_ = 0;
+    // Settings. We make stride_ mutable so that the iterator can set it to the width.
+    size_t width_ = 0;
     mutable size_t stride_ = 0;
+
+    bool emit_leading_empty_windows_ = false;
+
+    // bool emit empty_windows = true;
+    // bool emit_unfinished_trailing_window = false;
 
 };
 
 // =================================================================================================
-//     Make Sliding Window Iterator
+//     Make Sliding Window Stream
 // =================================================================================================
 
 /**
- * @brief Helper function to instantiate a SlidingEntriesWindowIterator
+ * @brief Helper function to instantiate a SlidingIntervalWindowStream
  * without the need to specify the template parameters manually.
+ *
+ * The three functors `entry_input_function`, `chromosome_function`, and `position_function`
+ * of the SlidingIntervalWindowStream have to be set in the returned stream before using it.
+ * See make_default_sliding_interval_window_stream() for an alternative make function
+ * that sets these three functors to reasonable defaults that work for the Variant data type.
  */
-template<class InputIterator, class DataType = typename InputIterator::value_type>
-SlidingEntriesWindowIterator<InputIterator, DataType>
-make_sliding_entries_window_iterator(
-    InputIterator begin, InputIterator end, size_t count = 0, size_t stride = 0
+template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
+SlidingIntervalWindowStream<InputStreamIterator, DataType>
+make_sliding_interval_window_stream(
+    InputStreamIterator begin, InputStreamIterator end, size_t width = 0, size_t stride = 0
 ) {
-    auto it = SlidingEntriesWindowIterator<InputIterator, DataType>( begin, end );
-    it.count( count );
+    auto it = SlidingIntervalWindowStream<InputStreamIterator, DataType>( begin, end );
+    it.width( width );
     it.stride( stride );
     return it;
 }
 
 /**
- * @brief Helper function to instantiate a SlidingEntriesWindowIterator for a default use case.
+ * @brief Helper function to instantiate a SlidingIntervalWindowStream for a default use case.
  *
  * This helper assumes that the underlying type of the input data stream and of the Window%s
  * that we are sliding over are of the same type, that is, we do no conversion in the
- * `entry_input_function` functor of the SlidingEntriesWindowIterator. It further assumes that this
+ * `entry_input_function` functor of the SlidingIntervalWindowStream. It further assumes that this
  * data type has public member variables `chromosome` and `position` that are accessed by the
- * `chromosome_function` and `position_function` functors of the SlidingEntriesWindowIterator.
+ * `chromosome_function` and `position_function` functors of the SlidingIntervalWindowStream.
  * For example, a data type that this works for is Variant data.
  */
-template<class InputIterator>
-SlidingEntriesWindowIterator<InputIterator>
-make_default_sliding_entries_window_iterator(
-    InputIterator begin, InputIterator end, size_t count = 0, size_t stride = 0
+template<class InputStreamIterator>
+SlidingIntervalWindowStream<InputStreamIterator>
+make_default_sliding_interval_window_stream(
+    InputStreamIterator begin, InputStreamIterator end, size_t width = 0, size_t stride = 0
 ) {
-    using DataType = typename InputIterator::value_type;
+    using DataType = typename InputStreamIterator::value_type;
 
     // Set functors.
-    auto it = SlidingEntriesWindowIterator<InputIterator>( begin, end );
+    auto it = SlidingIntervalWindowStream<InputStreamIterator>( begin, end );
     it.entry_input_function = []( DataType const& variant ) {
         return variant;
     };
@@ -508,29 +534,29 @@ make_default_sliding_entries_window_iterator(
     };
 
     // Set properties.
-    it.count( count );
+    it.width( width );
     it.stride( stride );
     return it;
 }
 
 /**
- * @brief Helper class that creates a SlidingEntriesWindowIterator
- * and wraps it in a WindowViewIterator.
+ * @brief Helper class that creates a SlidingIntervalWindowStream
+ * and wraps it in a WindowViewStream.
  *
- * See make_default_sliding_entries_window_iterator() for the base functionality,
- * and see make_window_view_iterator() for the wrapping behaviour.
+ * See make_default_sliding_interval_window_stream() for the base functionality,
+ * and see make_window_view_stream() for the wrapping behaviour.
  *
- * Note that because this is a simple wrapper around the constructor of SlidingEntriesWindowIterator,
+ * Note that because this is a simple wrapper around the constructor of SlidingIntervalWindowStream,
  * we lose access to that class itself, so that its more specialized member functions cannot be called
  * any more. If this is needed, use the two aforementioned `make_...()` functions individually.
  */
-template<class InputIterator>
-WindowViewIterator<InputIterator>
-make_default_sliding_entries_window_view_iterator(
-    InputIterator begin, InputIterator end, size_t count = 0, size_t stride = 0
+template<class InputStreamIterator>
+WindowViewStream<InputStreamIterator>
+make_default_sliding_interval_window_view_stream(
+    InputStreamIterator begin, InputStreamIterator end, size_t width = 0, size_t stride = 0
 ) {
-    return make_window_view_iterator(
-        make_default_sliding_entries_window_iterator( begin, end, count, stride )
+    return make_window_view_stream(
+        make_default_sliding_interval_window_stream( begin, end, width, stride )
     );
 }
 

@@ -34,7 +34,7 @@
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/window/functions.hpp"
-#include "genesis/population/window/chromosome_iterator.hpp"
+#include "genesis/population/window/chromosome_stream.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/population/window/window_view.hpp"
 #include "genesis/utils/containers/generic_input_stream.hpp"
@@ -42,7 +42,7 @@
 using namespace genesis::population;
 using namespace genesis::utils;
 
-void test_window_iterator_chromosome_iterator_chromosome_empty_()
+void test_window_stream_chromosome_stream_chromosome_empty_()
 {
     // LOG_DBG << "empty";
     std::string const infile = environment->data_dir + "population/empty.pileup";
@@ -51,7 +51,7 @@ void test_window_iterator_chromosome_iterator_chromosome_empty_()
     // Make a generic input stream over the data stream,
     // and set up the window iterator. Rename to `win_it` to use it with the below test code.
     auto data_gen = make_variant_input_stream_from_pileup_file( infile );
-    auto win_it = make_default_chromosome_iterator( data_gen.begin(), data_gen.end() );
+    auto win_it = make_default_chromosome_stream( data_gen.begin(), data_gen.end() );
 
     // Run the tests.
     std::vector<size_t> pos_per_chr;
@@ -76,7 +76,7 @@ void test_window_iterator_chromosome_iterator_chromosome_empty_()
     EXPECT_EQ( 0, pos_per_chr.size() );
 }
 
-void test_window_iterator_chromosome_iterator_chromosome_single_(
+void test_window_stream_chromosome_stream_chromosome_single_(
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = nullptr
 ) {
     // LOG_DBG << "single";
@@ -86,7 +86,7 @@ void test_window_iterator_chromosome_iterator_chromosome_single_(
     // Make a generic input stream over the data stream,
     // and set up the window iterator. Rename to `win_it` to use it with the below test code.
     auto data_gen = make_variant_input_stream_from_pileup_file( infile );
-    auto win_it = make_default_chromosome_iterator( data_gen.begin(), data_gen.end() );
+    auto win_it = make_default_chromosome_stream( data_gen.begin(), data_gen.end() );
     win_it.sequence_dict( sequence_dict );
 
     // Run the tests.
@@ -121,7 +121,7 @@ void test_window_iterator_chromosome_iterator_chromosome_single_(
     EXPECT_EQ( 50000, pos_per_chr[0] );
 }
 
-void test_window_iterator_chromosome_iterator_chromosome_multi_(
+void test_window_stream_chromosome_stream_chromosome_multi_(
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = nullptr
 ) {
     // Avoid compiler complaints about unused variable.
@@ -136,7 +136,7 @@ void test_window_iterator_chromosome_iterator_chromosome_multi_(
     // Make a generic input stream over the data stream,
     // and set up the window iterator. Rename to `win_it` to use it with the below test code.
     auto data_gen = make_variant_input_stream_from_sam_file( infile );
-    auto win_it = make_default_chromosome_iterator( data_gen.begin(), data_gen.end() );
+    auto win_it = make_default_chromosome_stream( data_gen.begin(), data_gen.end() );
     win_it.sequence_dict( sequence_dict );
 
     // Run the tests.
@@ -180,7 +180,7 @@ void test_window_iterator_chromosome_iterator_chromosome_multi_(
     #endif
 }
 
-TEST( WindowIterator, ChromosomeIteratorChromosome )
+TEST( WindowStream, ChromosomeStreamChromosome )
 {
     using namespace genesis::sequence;
 
@@ -188,23 +188,23 @@ TEST( WindowIterator, ChromosomeIteratorChromosome )
     NEEDS_TEST_DATA;
 
     // Without sequence dict.
-    test_window_iterator_chromosome_iterator_chromosome_empty_();
-    test_window_iterator_chromosome_iterator_chromosome_single_();
-    test_window_iterator_chromosome_iterator_chromosome_multi_();
+    test_window_stream_chromosome_stream_chromosome_empty_();
+    test_window_stream_chromosome_stream_chromosome_single_();
+    test_window_stream_chromosome_stream_chromosome_multi_();
 
     // Repeat single with sequence dict.
     auto single_dict = std::make_shared<SequenceDict>();
     single_dict->add( "2R", 8000000 );
-    test_window_iterator_chromosome_iterator_chromosome_single_( single_dict );
+    test_window_stream_chromosome_stream_chromosome_single_( single_dict );
 
     // Repeat multi with sequence dict.
     auto multi_dict = std::make_shared<SequenceDict>();
     multi_dict->add( "seq1", 2000 );
     multi_dict->add( "seq2", 3000 );
-    test_window_iterator_chromosome_iterator_chromosome_multi_( multi_dict );
+    test_window_stream_chromosome_stream_chromosome_multi_( multi_dict );
 }
 
-TEST( WindowIterator, ChromosomeIteratorWholeGenome )
+TEST( WindowStream, ChromosomeStreamWholeGenome )
 {
     // Almost exactly the same as above... we could refactor this to avoid the duplication...
     // Good enough for now, fix later.
@@ -220,7 +220,7 @@ TEST( WindowIterator, ChromosomeIteratorWholeGenome )
         // Make a generic input stream over the data stream,
         // and set up the window iterator. Rename to `win_it` to use it with the below test code.
         auto data_gen = make_variant_input_stream_from_pileup_file( infile );
-        auto win_it = make_default_genome_iterator( data_gen.begin(), data_gen.end() );
+        auto win_it = make_default_genome_stream( data_gen.begin(), data_gen.end() );
 
         // Run the tests.
         std::vector<size_t> pos_per_chr;
@@ -247,7 +247,7 @@ TEST( WindowIterator, ChromosomeIteratorWholeGenome )
         // Make a generic input stream over the data stream,
         // and set up the window iterator. Rename to `win_it` to use it with the below test code.
         auto data_gen = make_variant_input_stream_from_pileup_file( infile );
-        auto win_it = make_default_genome_iterator( data_gen.begin(), data_gen.end() );
+        auto win_it = make_default_genome_stream( data_gen.begin(), data_gen.end() );
 
         // Run the tests.
         std::vector<size_t> pos_per_chr;
@@ -275,7 +275,7 @@ TEST( WindowIterator, ChromosomeIteratorWholeGenome )
         // Make a generic input stream over the data stream,
         // and set up the window iterator. Rename to `win_it` to use it with the below test code.
         auto data_gen = make_variant_input_stream_from_sam_file( infile );
-        auto win_it = make_default_genome_iterator( data_gen.begin(), data_gen.end() );
+        auto win_it = make_default_genome_stream( data_gen.begin(), data_gen.end() );
 
         // Run the tests.
         std::vector<size_t> pos_per_chr;

@@ -1,9 +1,9 @@
-#ifndef GENESIS_POPULATION_WINDOW_REGION_WINDOW_ITERATOR_H_
-#define GENESIS_POPULATION_WINDOW_REGION_WINDOW_ITERATOR_H_
+#ifndef GENESIS_POPULATION_WINDOW_REGION_WINDOW_STREAM_H_
+#define GENESIS_POPULATION_WINDOW_REGION_WINDOW_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,8 +34,8 @@
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/population/genome_region_list.hpp"
 #include "genesis/population/genome_region.hpp"
-#include "genesis/population/window/base_window_iterator.hpp"
-#include "genesis/population/window/window_view_iterator.hpp"
+#include "genesis/population/window/base_window_stream.hpp"
+#include "genesis/population/window/window_view_stream.hpp"
 #include "genesis/population/window/window_view.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/range.hpp"
@@ -55,15 +55,15 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Region Window Iterator
+//     Region Window Stream
 // =================================================================================================
 
 /**
- * @brief Iterator for Window%s representing regions of a genome.
+ * @brief Stream for Window%s representing regions of a genome.
  *
  * This class allows to iterate a set of regions, each yielded to the caller as a Window.
  * That is, with each step of the iteration of this class, one region (interval) of the input
- * region list is yielded as a Window, containing the data of the input `InputIterator`
+ * region list is yielded as a Window, containing the data of the input `InputStreamIterator`
  * (which is of type `DataType`). These regions can for example be genes, linkage blocks, or
  * other genomic intervals of interest. Each can have an arbitrary length, and the can potentially
  * be overlapping or be nested.
@@ -76,17 +76,17 @@ namespace population {
  *
  * have to be set prior to the iteration.
  * All other settings are option and/or defaulted to reasonable values.
- * See make_region_window_iterator() and make_default_region_window_iterator()
+ * See make_region_window_stream() and make_default_region_window_stream()
  * for helper functions that take care of this for most of our data types.
  *
- * See BaseWindowIterator for more details on the three functors, the template parameters,
+ * See BaseWindowStream for more details on the three functors, the template parameters,
  * and general usage examples of the class.
  *
- * @see make_region_window_iterator()
- * @see make_default_region_window_iterator()
+ * @see make_region_window_stream()
+ * @see make_default_region_window_stream()
  */
-template<class InputIterator, class DataType = typename InputIterator::value_type>
-class RegionWindowIterator final : public BaseWindowIterator<InputIterator, DataType>
+template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
+class RegionWindowStream final : public BaseWindowStream<InputStreamIterator, DataType>
 {
 public:
 
@@ -94,12 +94,12 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using self_type = RegionWindowIterator<InputIterator, DataType>;
-    using base_type = BaseWindowIterator<InputIterator, DataType>;
+    using self_type = RegionWindowStream<InputStreamIterator, DataType>;
+    using base_type = BaseWindowStream<InputStreamIterator, DataType>;
 
     using Window            = ::genesis::population::Window<DataType>;
     using Entry             = typename Window::Entry;
-    using InputType         = typename InputIterator::value_type;
+    using InputType         = typename InputStreamIterator::value_type;
 
     using iterator_category = std::input_iterator_tag;
     using value_type        = Window;
@@ -114,7 +114,7 @@ public:
     /**
      * @brief Internal iterator that produces Window%s.
      */
-    class DerivedIterator final : public BaseWindowIterator<InputIterator, DataType>::BaseIterator
+    class DerivedIterator final : public BaseWindowStream<InputStreamIterator, DataType>::BaseIterator
     {
     public:
 
@@ -122,17 +122,17 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type = typename RegionWindowIterator<
-            InputIterator, DataType
+        using self_type = typename RegionWindowStream<
+            InputStreamIterator, DataType
         >::DerivedIterator;
 
-        using base_iterator_type = typename BaseWindowIterator<
-            InputIterator, DataType
+        using base_iterator_type = typename BaseWindowStream<
+            InputStreamIterator, DataType
         >::BaseIterator;
 
         using Window            = ::genesis::population::Window<DataType>;
         using Entry             = typename Window::Entry;
-        using InputType         = typename InputIterator::value_type;
+        using InputType         = typename InputStreamIterator::value_type;
 
         using iterator_category = std::input_iterator_tag;
         using value_type        = Window;
@@ -145,7 +145,7 @@ public:
         DerivedIterator() = default;
 
         DerivedIterator(
-            RegionWindowIterator const* parent
+            RegionWindowStream const* parent
         )
             : base_iterator_type( parent )
             , parent_( parent )
@@ -200,7 +200,7 @@ public:
         DerivedIterator& operator= ( self_type const& ) = default;
         DerivedIterator& operator= ( self_type&& )      = default;
 
-        friend RegionWindowIterator;
+        friend RegionWindowStream;
 
         // -------------------------------------------------------------------------
         //     Internal and Virtual Members
@@ -667,7 +667,7 @@ public:
             for( auto const& region : region_list.chromosome_regions( chromosome ) ) {
                 if( region.low() == 0 || region.high() == 0 ) {
                     throw std::runtime_error(
-                        "Cannot process whole chromosomes with RegionWindowIterator"
+                        "Cannot process whole chromosomes with RegionWindowStream"
                     );
                 };
 
@@ -699,7 +699,7 @@ public:
             return const_cast<value_type&>( windows_.front() );
         }
 
-        BaseWindowIterator<InputIterator, DataType> const* get_parent_() const override final
+        BaseWindowStream<InputStreamIterator, DataType> const* get_parent_() const override final
         {
             return parent_;
         }
@@ -707,7 +707,7 @@ public:
     private:
 
         // Parent. Needs to live here to have the correct derived type.
-        RegionWindowIterator const* parent_ = nullptr;
+        RegionWindowStream const* parent_ = nullptr;
 
         // We store the chromosome names from the region list that we already processed,
         // as a double check so that we don't start multiple times, but allow chromosomes
@@ -729,8 +729,8 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    RegionWindowIterator(
-        InputIterator begin, InputIterator end,
+    RegionWindowStream(
+        InputStreamIterator begin, InputStreamIterator end,
         std::shared_ptr<GenomeRegionList> region_list
     )
         : base_type( begin, end )
@@ -738,18 +738,18 @@ public:
     {
         if( ! region_list ) {
             throw std::invalid_argument(
-                "No GenomeRegionList provided for creating RegionWindowIterator"
+                "No GenomeRegionList provided for creating RegionWindowStream"
             );
         }
     }
 
-    virtual ~RegionWindowIterator() = default;
+    virtual ~RegionWindowStream() = default;
 
-    RegionWindowIterator( RegionWindowIterator const& ) = default;
-    RegionWindowIterator( RegionWindowIterator&& )      = default;
+    RegionWindowStream( RegionWindowStream const& ) = default;
+    RegionWindowStream( RegionWindowStream&& )      = default;
 
-    RegionWindowIterator& operator= ( RegionWindowIterator const& ) = default;
-    RegionWindowIterator& operator= ( RegionWindowIterator&& )      = default;
+    RegionWindowStream& operator= ( RegionWindowStream const& ) = default;
+    RegionWindowStream& operator= ( RegionWindowStream&& )      = default;
 
     friend DerivedIterator;
 
@@ -774,7 +774,7 @@ public:
 
 protected:
 
-    std::unique_ptr<typename BaseWindowIterator<InputIterator, DataType>::BaseIterator>
+    std::unique_ptr<typename BaseWindowStream<InputStreamIterator, DataType>::BaseIterator>
     get_begin_iterator_() override final
     {
         // Cannot use make_unique here, as the Iterator constructor is private,
@@ -783,7 +783,7 @@ protected:
         // return utils::make_unique<DerivedIterator>( this );
     }
 
-    std::unique_ptr<typename BaseWindowIterator<InputIterator, DataType>::BaseIterator>
+    std::unique_ptr<typename BaseWindowStream<InputStreamIterator, DataType>::BaseIterator>
     get_end_iterator_() override final
     {
         return std::unique_ptr<DerivedIterator>( new DerivedIterator() );
@@ -805,48 +805,48 @@ private:
 };
 
 // =================================================================================================
-//     Make Region Window Iterator
+//     Make Region Window Stream
 // =================================================================================================
 
 /**
- * @brief Helper function to instantiate a RegionWindowIterator
+ * @brief Helper function to instantiate a RegionWindowStream
  * without the need to specify the template parameters manually.
  *
  * The three functors `entry_input_function`, `chromosome_function`, and `position_function`
- * of the RegionWindowIterator have to be set in the returned iterator before using it.
- * See make_default_region_window_iterator() for an alternative make function
+ * of the RegionWindowStream have to be set in the returned stream before using it.
+ * See make_default_region_window_stream() for an alternative make function
  * that sets these three functors to reasonable defaults that work for the Variant data type.
  */
-template<class InputIterator, class DataType = typename InputIterator::value_type>
-RegionWindowIterator<InputIterator, DataType>
-make_region_window_iterator(
-    InputIterator begin, InputIterator end,
+template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
+RegionWindowStream<InputStreamIterator, DataType>
+make_region_window_stream(
+    InputStreamIterator begin, InputStreamIterator end,
     std::shared_ptr<GenomeRegionList> region_list
 ) {
-    auto it = RegionWindowIterator<InputIterator, DataType>( begin, end, region_list );
+    auto it = RegionWindowStream<InputStreamIterator, DataType>( begin, end, region_list );
     return it;
 }
 
 /**
- * @brief Helper function to instantiate a RegionWindowIterator for a default use case.
+ * @brief Helper function to instantiate a RegionWindowStream for a default use case.
  *
  * This helper assumes that the underlying type of the input data stream and of the Window%s
  * that we are iterating over are of the same type, that is, we do no conversion in the
- * `entry_input_function` functor of the RegionWindowIterator. It further assumes that this
+ * `entry_input_function` functor of the RegionWindowStream. It further assumes that this
  * data type has public member variables `chromosome` and `position` that are accessed by the
- * `chromosome_function` and `position_function` functors of the RegionWindowIterator.
+ * `chromosome_function` and `position_function` functors of the RegionWindowStream.
  * For example, a data type that this works for is Variant data.
  */
-template<class InputIterator>
-RegionWindowIterator<InputIterator>
-make_default_region_window_iterator(
-    InputIterator begin, InputIterator end,
+template<class InputStreamIterator>
+RegionWindowStream<InputStreamIterator>
+make_default_region_window_stream(
+    InputStreamIterator begin, InputStreamIterator end,
     std::shared_ptr<GenomeRegionList> region_list
 ) {
-    using DataType = typename InputIterator::value_type;
+    using DataType = typename InputStreamIterator::value_type;
 
     // Set functors.
-    auto it = RegionWindowIterator<InputIterator>( begin, end, region_list );
+    auto it = RegionWindowStream<InputStreamIterator>( begin, end, region_list );
     it.entry_input_function = []( DataType const& variant ) {
         return variant;
     };
@@ -862,24 +862,24 @@ make_default_region_window_iterator(
 }
 
 /**
- * @brief Helper class that creates a RegionWindowIterator
- * and wraps it in a WindowViewIterator.
+ * @brief Helper class that creates a RegionWindowStream
+ * and wraps it in a WindowViewStream.
  *
- * See make_default_region_window_iterator() for the base functionality,
- * and see make_window_view_iterator() for the wrapping behaviour.
+ * See make_default_region_window_stream() for the base functionality,
+ * and see make_window_view_stream() for the wrapping behaviour.
  *
- * Note that because this is a simple wrapper around the constructor of RegionWindowIterator,
+ * Note that because this is a simple wrapper around the constructor of RegionWindowStream,
  * we lose access to that class itself, so that its more specialized member functions cannot be called
  * any more. If this is needed, use the two aforementioned `make_...()` functions individually.
  */
-template<class InputIterator>
-WindowViewIterator<InputIterator>
-make_default_region_window_view_iterator(
-    InputIterator begin, InputIterator end,
+template<class InputStreamIterator>
+WindowViewStream<InputStreamIterator>
+make_default_region_window_view_stream(
+    InputStreamIterator begin, InputStreamIterator end,
     std::shared_ptr<GenomeRegionList> region_list
 ) {
-    return make_window_view_iterator(
-        make_default_region_window_iterator( begin, end, region_list )
+    return make_window_view_stream(
+        make_default_region_window_stream( begin, end, region_list )
     );
 }
 
