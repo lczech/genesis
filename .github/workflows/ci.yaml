@@ -138,6 +138,10 @@ jobs:
             compiler: llvm-12
           - os: macos-11
             compiler: llvm-13
+          - os: macos-11
+            compiler: llvm-16
+          - os: macos-11
+            compiler: llvm-17
           - os: macos-12
             compiler: llvm-5
           - os: macos-12
@@ -220,7 +224,6 @@ jobs:
 
       - name: Setup C++
         # Reference: https://github.com/marketplace/actions/setup-cpp-c-c
-        # uses: aminya/setup-cpp@v0.37.0
         uses: aminya/setup-cpp@v0.37.0
         if: matrix.compiler != 'apple'
         with:
