@@ -156,6 +156,14 @@ jobs:
             compiler: llvm-12
           - os: macos-12
             compiler: llvm-13
+          # - os: macos-12
+          #   compiler: llvm-14
+          # - os: macos-12
+          #   compiler: llvm-15
+          - os: macos-12
+            compiler: llvm-16
+          - os: macos-12
+            compiler: llvm-17
 
         # -------------------------------------------------------
         #     include
