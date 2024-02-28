@@ -196,7 +196,10 @@ VariantInputIterator make_variant_input_iterator_from_sam_file(
     input->input_file( filename );
 
     // Get the iterators. We store them by copy in the lambda, and these copies are kept alive
-    // when returning from this function.
+    // when returning from this function. Unfortunately, at the moment, we need to open the file
+    // here already and start the iteration, as we need access to some information from the file
+    // content itself, namely, the rg tags. The way that the sam reading is currently implemented,
+    // we have to do this. Might fix in the future, to avoid starting the iteration here already.
     assert( input );
     auto cur = input->begin();
     auto end = input->end();
@@ -427,7 +430,8 @@ VariantInputIterator make_variant_input_iterator_from_frequency_table_file(
     input->separator_char( separator_char );
 
     // Get the iterators. We store them by copy in the lambda, and these copies are kept alive
-    // when returning from this function.
+    // when returning from this function. Similar to the sam function above, we here already need
+    // to start the iteration, to have access to data from the file. Might fix in the future.
     assert( input );
     auto cur = input->begin();
     auto end = input->end();
@@ -622,9 +626,9 @@ VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_ite
     auto input = std::make_shared<VariantParallelInputIterator>( parallel_input );
 
     // Get the iterators.
-    assert( input );
-    auto cur = input->begin();
-    auto end = input->end();
+    VariantParallelInputIterator::Iterator cur;
+    VariantParallelInputIterator::Iterator end;
+    bool has_started = false;
 
     // We do not have a single file here, so make a list of all sample names from the inputs.
     // Leave file_path and source_name at their empty defaults.
@@ -651,8 +655,14 @@ VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_ite
 
     // The input is copied over to the lambda, and that copy is kept alive.
     return VariantInputIterator(
-        [ input, cur, end, allow_ref_base_mismatches, allow_alt_base_mismatches ]
+        [ input, cur, end, has_started, allow_ref_base_mismatches, allow_alt_base_mismatches ]
         ( Variant& variant ) mutable {
+            if( ! has_started ) {
+                assert( input );
+                cur = input->begin();
+                end = input->end();
+                has_started = true;
+            }
             if( cur != end ) {
                 variant = cur.joined_variant(
                     allow_ref_base_mismatches, allow_alt_base_mismatches, true
@@ -703,15 +713,21 @@ VariantInputIterator make_variant_input_iterator_from_variant_gapless_input_iter
     auto input = std::make_shared<VariantGaplessInputIterator>( gapless_input );
 
     // Get the iterators.
-    assert( input );
-    auto cur = input->begin();
-    auto end = input->end();
+    VariantGaplessInputIterator::Iterator cur;
+    VariantGaplessInputIterator::Iterator end;
+    bool has_started = false;
 
     // The input is copied over to the lambda, and that copy is kept alive.
     // The VariantInputIteratorData is simply copied over.
     return VariantInputIterator(
-        [ input, cur, end ]
+        [ input, cur, end, has_started ]
         ( Variant& variant ) mutable {
+            if( ! has_started ) {
+                assert( input );
+                cur = input->begin();
+                end = input->end();
+                has_started = true;
+            }
             if( cur != end ) {
                 // Cannt move here, as we would destroy the missing variant dummy in the iterator.
                 // variant = std::move( *cur );
@@ -864,8 +880,9 @@ VariantInputIterator make_variant_merging_input_iterator(
     auto input = std::make_shared<VariantInputIterator>( variant_input );
 
     // Get iterators to the data.
-    auto cur = input->begin();
-    auto end = input->end();
+    VariantInputIterator::Iterator cur;
+    VariantInputIterator::Iterator end;
+    bool has_started = false;
 
     // We copy the original variant data, but replace the sample names by our group names.
     auto data = variant_input.data();
@@ -874,7 +891,14 @@ VariantInputIterator make_variant_merging_input_iterator(
     // Now we can create our iterator. As before, the iterators are copied over to the lambda,
     // and those copies are kept alive when returning from this function.
     return VariantInputIterator(
-        [ input, cur, end, grouping ]( Variant& variant ) mutable {
+        [ input, cur, end, has_started, grouping ]( Variant& variant ) mutable {
+            if( ! has_started ) {
+                assert( input );
+                cur = input->begin();
+                end = input->end();
+                has_started = true;
+            }
+
             // Nothing to do if we are at the end. Indicate that to the caller.
             if( cur == end ) {
                 return false;

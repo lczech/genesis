@@ -115,9 +115,12 @@ public:
         using reference         = value_type const&;
         using iterator_category = std::input_iterator_tag;
 
-    private:
+    public:
 
         Iterator() = default;
+
+    private:
+
         Iterator( VariantGaplessInputIterator* parent );
 
     public:
