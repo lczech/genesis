@@ -1,9 +1,9 @@
-#ifndef GENESIS_POPULATION_FORMATS_VCF_INPUT_ITERATOR_H_
-#define GENESIS_POPULATION_FORMATS_VCF_INPUT_ITERATOR_H_
+#ifndef GENESIS_POPULATION_FORMATS_VCF_INPUT_STREAM_H_
+#define GENESIS_POPULATION_FORMATS_VCF_INPUT_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     VCF/BCF Input Iterator
+//     VCF/BCF Input Stream
 // =================================================================================================
 
 /**
@@ -59,7 +59,7 @@ namespace population {
  *
  * Basic usage:
  *
- *     auto it = VcfInputIterator( infile );
+ *     auto it = VcfInputStream( infile );
  *     while( it ) {
  *         // work with it.record() or it->...
  *         ++it;
@@ -67,13 +67,13 @@ namespace population {
  *
  * or
  *
- *     for( auto it = VcfInputIterator( infile );  it; ++it ) {
+ *     for( auto it = VcfInputStream( infile );  it; ++it ) {
  *         // work with it
  *     }
  *
  * For details on working with the records/lines, see VcfRecord and VcfFormatIterator.
  */
-class VcfInputIterator
+class VcfInputStream
 {
 public:
 
@@ -81,7 +81,7 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using self_type         = VcfInputIterator;
+    using self_type         = VcfInputStream;
     using value_type        = VcfRecord;
     using pointer           = value_type const*;
     using reference         = value_type const&;
@@ -95,7 +95,7 @@ public:
     /**
      * @brief Create a default instance, with no input. This is also the past-the-end iterator.
      */
-    VcfInputIterator() = default;
+    VcfInputStream() = default;
 
     /**
      * @brief Create an instance that reads from an input file name.
@@ -104,12 +104,12 @@ public:
      * exception if this is not the case. Set @p expect_ordered to `false` to deactivate this check,
      * and instead allow VcfRecord%s to appear in any order of chromosomes and positions.
      */
-    explicit VcfInputIterator(
+    explicit VcfInputStream(
         std::string const& filename,
         bool expect_ordered = true
     )
         // Call the other constuctor, to avoid code duplication.
-        : VcfInputIterator( filename, std::vector<std::string>{}, false, expect_ordered )
+        : VcfInputStream( filename, std::vector<std::string>{}, false, expect_ordered )
     {}
 
     /**
@@ -119,9 +119,9 @@ public:
      * that only those samples (columns of the VCF records) are evaluated and accessible - or,
      * if @p inverse_sample_names is set to `true`, instead all <i>but</i> those samples.
      *
-     * @copydetails VcfInputIterator( std::string const&, bool )
+     * @copydetails VcfInputStream( std::string const&, bool )
      */
-    VcfInputIterator(
+    VcfInputStream(
         std::string const& filename,
         std::vector<std::string> const& sample_names,
         bool inverse_sample_names = false,
@@ -142,10 +142,10 @@ public:
         increment_();
     }
 
-    ~VcfInputIterator() = default;
+    ~VcfInputStream() = default;
 
-    VcfInputIterator( self_type const& ) = default;
-    VcfInputIterator( self_type&& )      = default;
+    VcfInputStream( self_type const& ) = default;
+    VcfInputStream( self_type&& )      = default;
 
     self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 #include "genesis/population/formats/vcf_common.hpp"
 
 #include "genesis/population/base_counts.hpp"
-#include "genesis/population/formats/vcf_input_iterator.hpp"
+#include "genesis/population/formats/vcf_input_stream.hpp"
 #include "genesis/population/formats/vcf_record.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/population/variant.hpp"
@@ -491,7 +491,7 @@ GenomeLocusSet genome_locus_set_from_vcf_file( std::string const& file )
     GenomeLocusSet result;
 
     // Open and read file, without expecting it to be sorted.
-    auto it = VcfInputIterator( file, false );
+    auto it = VcfInputStream( file, false );
     while( it ) {
         result.add( it.record().get_chromosome(), it.record().get_position() );
         ++it;
@@ -527,7 +527,7 @@ void genome_region_list_from_vcf_file( std::string const& file, GenomeRegionList
     };
 
     // Open and read file, without expecting it to be sorted.
-    auto it = VcfInputIterator( file, false );
+    auto it = VcfInputStream( file, false );
     while( it ) {
         if( it.record().get_chromosome() == cur_chr ) {
             // We are still within the same chromosome.

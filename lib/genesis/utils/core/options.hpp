@@ -132,10 +132,6 @@ public:
      *
      * The thread pool has to be initialized with init_global_thread_pool() first.
      *
-     * Ideally, we want to use this pool for every CPU-heavy computation. Hopefully, we can at some
-     * point use this instead of OpenMP, but that will require some refactoring.
-     * So for now, we use this pool to limit parallel file reading operations with LambdaIterator.
-     *
      * Note: In cases where we need to limit our number of spawned threads to some maximum amount,
      * we might even want to use this pool for our readers, which often use AsynchronousReader,
      * thus spawning threads to  minimize i/o wait times; but this is not recommended, as the

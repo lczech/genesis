@@ -214,7 +214,7 @@ private:
  *         }
  *     }
  *
- * See also VcfInputIterator for a wrapper around the basic loop over records/lines.
+ * See also VcfInputStream for a wrapper around the basic loop over records/lines.
  *
  * The above example relies on the implicit notion of a "current" value per sample,
  * as we move between values via the next_value() function. Note that the next_value() function

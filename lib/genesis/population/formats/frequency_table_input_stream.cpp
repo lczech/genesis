@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/formats/frequency_table_input_iterator.hpp"
+#include "genesis/population/formats/frequency_table_input_stream.hpp"
 
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/sequence/functions/codes.hpp"
@@ -56,7 +56,7 @@ namespace population {
 //     sample_names
 // -------------------------------------------------------------------------
 
-std::vector<std::string> FrequencyTableInputIterator::Iterator::sample_names() const
+std::vector<std::string> FrequencyTableInputStream::Iterator::sample_names() const
 {
     // We only need this rarely, so we don't need an efficient algorithm for this.
     // Could be done by storing a vector in the first place, but that would mean that we need to
@@ -74,7 +74,7 @@ std::vector<std::string> FrequencyTableInputIterator::Iterator::sample_names() c
 //     parse_header_
 // -------------------------------------------------------------------------
 
-void FrequencyTableInputIterator::Iterator::parse_header_()
+void FrequencyTableInputStream::Iterator::parse_header_()
 {
     // Only called when we have a parent.
     assert( parent_ );
@@ -132,7 +132,7 @@ void FrequencyTableInputIterator::Iterator::parse_header_()
 //     check_header_fields_
 // -------------------------------------------------------------------------
 
-void FrequencyTableInputIterator::Iterator::check_header_fields_(
+void FrequencyTableInputStream::Iterator::check_header_fields_(
     std::unordered_set<std::string> const& all_samplenames
 ) const {
     // Check that chr and pos are there.
@@ -216,7 +216,7 @@ void FrequencyTableInputIterator::Iterator::check_header_fields_(
 //     parse_header_field_
 // -------------------------------------------------------------------------
 
-void FrequencyTableInputIterator::Iterator::parse_header_field_(
+void FrequencyTableInputStream::Iterator::parse_header_field_(
     std::string const& field,
     std::unordered_set<std::string>& all_samplenames
 ) {
@@ -272,7 +272,7 @@ void FrequencyTableInputIterator::Iterator::parse_header_field_(
 //     evaluate_field_as_chr_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputIterator::Iterator::evaluate_field_as_chr_(
+int FrequencyTableInputStream::Iterator::evaluate_field_as_chr_(
     std::string const& field
 ) {
     assert( parent_ );
@@ -323,7 +323,7 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_chr_(
 //     evaluate_field_as_pos_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputIterator::Iterator::evaluate_field_as_pos_(
+int FrequencyTableInputStream::Iterator::evaluate_field_as_pos_(
     std::string const& field
 ) {
     // Same setup as in evaluate_field_as_chr_(). See there for comments.
@@ -357,7 +357,7 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_pos_(
 //     evaluate_field_as_ref_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputIterator::Iterator::evaluate_field_as_ref_(
+int FrequencyTableInputStream::Iterator::evaluate_field_as_ref_(
     std::string const& field
 ) {
     // Same setup as in evaluate_field_as_chr_(). See there for comments.
@@ -395,7 +395,7 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_ref_(
 //     evaluate_field_as_alt_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputIterator::Iterator::evaluate_field_as_alt_(
+int FrequencyTableInputStream::Iterator::evaluate_field_as_alt_(
     std::string const& field
 ) {
     // Same setup as in evaluate_field_as_chr_(). See there for comments.
@@ -432,7 +432,7 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_alt_(
 //     evaluate_field_as_sample_ref_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputIterator::Iterator::evaluate_field_as_sample_ref_(
+int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_ref_(
     std::string const& field,
     std::unordered_set<std::string>& all_samplenames
 ) {
@@ -498,7 +498,7 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_sample_ref_(
 //     evaluate_field_as_sample_alt_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputIterator::Iterator::evaluate_field_as_sample_alt_(
+int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_alt_(
     std::string const& field,
     std::unordered_set<std::string>& all_samplenames
 ) {
@@ -545,7 +545,7 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_sample_alt_(
 //     evaluate_field_as_sample_frq_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputIterator::Iterator::evaluate_field_as_sample_frq_(
+int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_frq_(
     std::string const& field,
     std::unordered_set<std::string>& all_samplenames
 ) {
@@ -589,7 +589,7 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_sample_frq_(
 //     evaluate_field_as_sample_cov_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputIterator::Iterator::evaluate_field_as_sample_cov_(
+int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_cov_(
     std::string const& field,
     std::unordered_set<std::string>& all_samplenames
 ) {
@@ -633,8 +633,8 @@ int FrequencyTableInputIterator::Iterator::evaluate_field_as_sample_cov_(
 //     Sample Helpers
 // -------------------------------------------------------------------------
 
-FrequencyTableInputIterator::Iterator::SampleInfo&
-FrequencyTableInputIterator::Iterator::get_sample_info_(
+FrequencyTableInputStream::Iterator::SampleInfo&
+FrequencyTableInputStream::Iterator::get_sample_info_(
     std::string const& samplename
 ) {
     // Get the sample type object for a given sample name from the header info.
@@ -653,7 +653,7 @@ FrequencyTableInputIterator::Iterator::get_sample_info_(
     return header_info_.sample_infos[ samplename ];
 }
 
-bool FrequencyTableInputIterator::Iterator::is_ignored_sample_(
+bool FrequencyTableInputStream::Iterator::is_ignored_sample_(
     std::string const& samplename
 ) const {
     // We only use the filtering if it has been set to an actual list of names.
@@ -671,7 +671,7 @@ bool FrequencyTableInputIterator::Iterator::is_ignored_sample_(
 //     String Matching Helpers
 // -------------------------------------------------------------------------
 
-bool FrequencyTableInputIterator::Iterator::match_header_field_(
+bool FrequencyTableInputStream::Iterator::match_header_field_(
     std::string const& field,
     std::string const& user_string,
     std::vector<std::string> const& predefined_list
@@ -688,7 +688,7 @@ bool FrequencyTableInputIterator::Iterator::match_header_field_(
     return utils::contains_ci_alnum( predefined_list, field );
 }
 
-bool FrequencyTableInputIterator::Iterator::match_header_sample_(
+bool FrequencyTableInputStream::Iterator::match_header_sample_(
     std::string const& field,
     std::string const& user_substring,
     std::vector<std::string> const& predefined_list,
@@ -713,7 +713,7 @@ bool FrequencyTableInputIterator::Iterator::match_header_sample_(
     return false;
 }
 
-bool FrequencyTableInputIterator::Iterator::match_header_sample_(
+bool FrequencyTableInputStream::Iterator::match_header_sample_(
     std::string const& field,
     std::string const& user_substring,
     std::vector<std::string> const& predefined_list1,
@@ -752,7 +752,7 @@ bool FrequencyTableInputIterator::Iterator::match_header_sample_(
     return false;
 }
 
-bool FrequencyTableInputIterator::Iterator::match_header_sample_user_partial_(
+bool FrequencyTableInputStream::Iterator::match_header_sample_user_partial_(
     std::string const& field,
     std::string const& substring,
     std::string& samplename
@@ -768,7 +768,7 @@ bool FrequencyTableInputIterator::Iterator::match_header_sample_user_partial_(
     return false;
 }
 
-bool FrequencyTableInputIterator::Iterator::match_header_sample_predefined_partial_(
+bool FrequencyTableInputStream::Iterator::match_header_sample_predefined_partial_(
     std::string const& field,
     std::string const& substring,
     std::string& samplename
@@ -793,7 +793,7 @@ bool FrequencyTableInputIterator::Iterator::match_header_sample_predefined_parti
 //     increment_
 // -------------------------------------------------------------------------
 
-void FrequencyTableInputIterator::Iterator::increment_()
+void FrequencyTableInputStream::Iterator::increment_()
 {
     using namespace genesis::utils;
     assert( input_stream_ );
@@ -924,9 +924,9 @@ void FrequencyTableInputIterator::Iterator::increment_()
 //     process_sample_data_
 // -------------------------------------------------------------------------
 
-void FrequencyTableInputIterator::Iterator::process_sample_data_(
-    FrequencyTableInputIterator::Iterator::SampleInfo const& sample_info,
-    FrequencyTableInputIterator::Iterator::SampleData const& sample_data,
+void FrequencyTableInputStream::Iterator::process_sample_data_(
+    FrequencyTableInputStream::Iterator::SampleInfo const& sample_info,
+    FrequencyTableInputStream::Iterator::SampleData const& sample_data,
     Variant& variant,
     size_t sample_index
 ) {

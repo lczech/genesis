@@ -1,9 +1,9 @@
-#ifndef GENESIS_POPULATION_FORMATS_SAM_VARIANT_INPUT_ITERATOR_H_
-#define GENESIS_POPULATION_FORMATS_SAM_VARIANT_INPUT_ITERATOR_H_
+#ifndef GENESIS_POPULATION_FORMATS_SAM_VARIANT_INPUT_STREAM_H_
+#define GENESIS_POPULATION_FORMATS_SAM_VARIANT_INPUT_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -69,18 +69,18 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     SAM/BAM/CRAM File Input iterator
+//     SAM/BAM/CRAM File Input Stream
 // =================================================================================================
 
 /**
- * @brief Input iterator for SAM/BAM/CRAM files that produces a Variant per genome position.
+ * @brief Input stream for SAM/BAM/CRAM files that produces a Variant per genome position.
  *
  * We expect the input file to be sorted by position.
  * Positions with no reads overlapping are skipped.
  *
  * Exemplary usage:
  *
- *     auto sam_it = SamVariantInputIterator( "/path/to/file.sam" );
+ *     auto sam_it = SamVariantInputStream( "/path/to/file.sam" );
  *     sam_it.min_map_qual( 40 );
  *     for( auto const& var : sam_it ) {
  *         std::cout << var.chromosome << "\t" << var.position << "\t";
@@ -100,7 +100,7 @@ namespace population {
  * This can further be filtered by setting rg_tag_filter(), to only consider certain RG tags
  * as samples to be produced.
  */
-class SamVariantInputIterator
+class SamVariantInputStream
 {
 public:
 
@@ -108,7 +108,7 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using self_type         = SamVariantInputIterator;
+    using self_type         = SamVariantInputStream;
     using value_type        = Variant;
     using pointer           = value_type const*;
     using reference         = value_type const&;
@@ -162,7 +162,7 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type         = SamVariantInputIterator::Iterator;
+        using self_type         = SamVariantInputStream::Iterator;
         using value_type        = Variant;
         using pointer           = value_type const*;
         using reference         = value_type const&;
@@ -171,7 +171,7 @@ public:
     private:
 
         Iterator() = default;
-        Iterator( SamVariantInputIterator const* parent );
+        Iterator( SamVariantInputStream const* parent );
 
     public:
 
@@ -183,7 +183,7 @@ public:
         Iterator& operator= ( self_type const& ) = default;
         Iterator& operator= ( self_type&& )      = default;
 
-        friend SamVariantInputIterator;
+        friend SamVariantInputStream;
         friend SamFileHandle;
 
         // -------------------------------------------------------------------------
@@ -230,7 +230,7 @@ public:
         /**
          * @brief Compare two iterators for equality.
          *
-         * Any two iterators that are created by calling begin() on the same SamVariantInputIterator
+         * Any two iterators that are created by calling begin() on the same SamVariantInputStream
          * instance will compare equal, as long as neither of them is past-the-end.
          * A valid (not past-the-end) iterator and an end() iterator will not compare equal.
          */
@@ -253,13 +253,13 @@ public:
          * or as found in the SAM/BAM/CRAM file.
          *
          * This function is useful when
-         * @link SamVariantInputIterator::split_by_rg( bool ) split_by_rg()@endlink is set to `true`,
+         * @link SamVariantInputStream::split_by_rg( bool ) split_by_rg()@endlink is set to `true`,
          * so that the reads are split by their read group tags. The function then returns
          * the RG read group tag names, in the same order that the BaseCounts objects are stored
          * in the resulting Variant of this iterator.
          *
          * When additionally
-         * @link SamVariantInputIterator::with_unaccounted_rg( bool ) with_unaccounted_rg()@endlink
+         * @link SamVariantInputStream::with_unaccounted_rg( bool ) with_unaccounted_rg()@endlink
          * is set to `true`, an additional RG tag "unaccounted" is added to the result as a last
          * element, which is the same position that the unaccounted reads go in the Variant.
          *
@@ -268,7 +268,7 @@ public:
          * final BaseCounts samples of the resulting Variant when iterating the data
          * (and potentially including the "unaccounted" group).
          *
-         * If @link SamVariantInputIterator::split_by_rg( bool ) split_by_rg()@endlink is `false`,
+         * If @link SamVariantInputStream::split_by_rg( bool ) split_by_rg()@endlink is `false`,
          * we are not splitting by read group tags, so then this function returns an empty vector.
          * Note that the Variant that is produced during iteration still contains one BaseCounts
          * sample, which collects all counts from all reads.
@@ -320,7 +320,7 @@ public:
     private:
 
         // Parent.
-        SamVariantInputIterator const* parent_ = nullptr;
+        SamVariantInputStream const* parent_ = nullptr;
 
         // htslib specific file handling pointers during iteration.
         // We put this in a shared ptr so that the iterator can be copied,
@@ -344,29 +344,29 @@ public:
     /**
      * @brief Create a default instance, with no input. This is also the past-the-end iterator.
      */
-    SamVariantInputIterator()
-        : SamVariantInputIterator( std::string{} )
+    SamVariantInputStream()
+        : SamVariantInputStream( std::string{} )
     {}
 
-    explicit SamVariantInputIterator(
+    explicit SamVariantInputStream(
         std::string const& input_file
     )
-        : SamVariantInputIterator( input_file, std::unordered_set<std::string>{}, false )
+        : SamVariantInputStream( input_file, std::unordered_set<std::string>{}, false )
     {}
 
-    SamVariantInputIterator(
+    SamVariantInputStream(
         std::string const& input_file,
         std::unordered_set<std::string> const& rg_tag_filter,
         bool inverse_rg_tag_filter = false
     );
 
-    ~SamVariantInputIterator() = default;
+    ~SamVariantInputStream() = default;
 
-    SamVariantInputIterator( SamVariantInputIterator const& ) = default;
-    SamVariantInputIterator( SamVariantInputIterator&& )      = default;
+    SamVariantInputStream( SamVariantInputStream const& ) = default;
+    SamVariantInputStream( SamVariantInputStream&& )      = default;
 
-    SamVariantInputIterator& operator= ( SamVariantInputIterator const& ) = default;
-    SamVariantInputIterator& operator= ( SamVariantInputIterator&& )      = default;
+    SamVariantInputStream& operator= ( SamVariantInputStream const& ) = default;
+    SamVariantInputStream& operator= ( SamVariantInputStream&& )      = default;
 
     // -------------------------------------------------------------------------
     //     Iteration

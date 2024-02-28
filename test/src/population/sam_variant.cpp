@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/formats/sam_flags.hpp"
-#include "genesis/population/formats/sam_variant_input_iterator.hpp"
+#include "genesis/population/formats/sam_variant_input_stream.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -52,7 +52,7 @@ void run_sam_bam_cram_test_(
     bool filter_high_map_qual = false
 ) {
     // We just use any file that comes in here, no matter what the format.
-    auto sam_it = SamVariantInputIterator( infile );
+    auto sam_it = SamVariantInputStream( infile );
     size_t exp_smp_size = 1;
     std::vector<std::string> exp_rg_tags;
     sam_it.min_map_qual( filter_high_map_qual ? 200 : 40 );
@@ -206,7 +206,7 @@ void run_sam_bam_cram_test_(
     }
 }
 
-TEST( SamBamCram, InputIteratorSam )
+TEST( SamBamCram, InputStreamSam )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -227,12 +227,12 @@ TEST( SamBamCram, InputIteratorSam )
     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.sam.gz", true, true, true, true );
 }
 
-TEST( SamBamCram, InputIteratorBam )
+TEST( SamBamCram, InputStreamBam )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
 
-    // Same as InputIteratorSam, see there.
+    // Same as InputStreamSam, see there.
     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.bam", false, false, false );
     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.bam", true, false, false );
     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.bam", true, true, false );
@@ -246,7 +246,7 @@ TEST( SamBamCram, InputIteratorBam )
 // Revision: We can use MD5 hashed reference sequences, and need to set the env path
 // for those to be found. See genesis/test/data/population/README.txt for creating the MD5 files.
 
-TEST( SamBamCram, InputIteratorCram )
+TEST( SamBamCram, InputStreamCram )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -260,7 +260,7 @@ TEST( SamBamCram, InputIteratorCram )
     std::string const env_value = real_path( environment->data_dir + "/population/cram_cache/" );
     setenv( env_name.c_str(), env_value.c_str(), true );
 
-    // Same as InputIteratorSam, see there.
+    // Same as InputStreamSam, see there.
     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", false, false, false );
     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", true, false, false );
     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", true, true, false );
@@ -268,14 +268,14 @@ TEST( SamBamCram, InputIteratorCram )
     run_sam_bam_cram_test_( environment->data_dir + "population/ex1.cram", true, true, true );
 }
 
-TEST( SamBamCram, InputIteratorRGFail )
+TEST( SamBamCram, InputStreamRGFail )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     auto const infile = environment->data_dir + "population/ex1.sam.gz";
 
     // We just use any file that comes in here, no matter what the format.
-    auto sam_it = SamVariantInputIterator( infile );
+    auto sam_it = SamVariantInputStream( infile );
     sam_it.split_by_rg( true );
 
     // Use an RG tag that does not appear in the file.

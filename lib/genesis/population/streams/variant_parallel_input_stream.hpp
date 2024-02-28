@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_ITERATORS_VARIANT_PARALLEL_INPUT_ITERATOR_H_
-#define GENESIS_POPULATION_ITERATORS_VARIANT_PARALLEL_INPUT_ITERATOR_H_
+#ifndef GENESIS_POPULATION_STREAMS_VARIANT_PARALLEL_INPUT_STREAM_H_
+#define GENESIS_POPULATION_STREAMS_VARIANT_PARALLEL_INPUT_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -34,7 +34,7 @@
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/functions/genome_locus.hpp"
 #include "genesis/population/genome_locus.hpp"
-#include "genesis/population/iterators/variant_input_iterator.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/utils/containers/optional.hpp"
@@ -52,21 +52,21 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//      Variant Parallel Input Iterator
+//      Variant Parallel Input Stream
 // =================================================================================================
 
 /**
  * @brief Iterate multiple input sources that yield Variant%s in parallel.
  *
- * This iterator allows to traverse multiple sources of data in parallel, where each stop of the
+ * This stream allows to traverse multiple sources of data in parallel, where each stop of the
  * traversal is a locus in the input sources.
- * Using @link VariantParallelInputIterator::ContributionType ContributionType@endlink,
+ * Using @link VariantParallelInputStream::ContributionType ContributionType@endlink,
  * one can select the contribution of loci of each input, that is, whether all its loci get used,
  * or just the ones that also overlap with other input sources. See also
- * @link VariantParallelInputIterator::add_carrying_locus() add_carrying_locus()@endlink for
+ * @link VariantParallelInputStream::add_carrying_locus() add_carrying_locus()@endlink for
  * other ways to specify the loci to iterate over.
  *
- * At each visited locus, the iterator yields the data of the underlying input sources as a vector
+ * At each visited locus, the stream yields the data of the underlying input sources as a vector
  * of @link genesis::utils::Optional Optional@endlink Variant%s, with one Variant per input source.
  * If a source does not have data at the current locus,
  * the @link genesis::utils::Optional Optional@endlink is empty.
@@ -74,35 +74,35 @@ namespace population {
  * variants() and variant_at() to get the set of variants at the current locus() of the iteration,
  * or use joined_variant() to get one Variant that has all sample BaseCounts joined into it.
  *
- * Furthermore, using the @link VariantParallelInputIterator::inputs() inputs()@endlink and
- * @link VariantParallelInputIterator::input_at( size_t ) input_at()@endlink functions, which are
+ * Furthermore, using the @link VariantParallelInputStream::inputs() inputs()@endlink and
+ * @link VariantParallelInputStream::input_at( size_t ) input_at()@endlink functions, which are
  * also available from the iterator itself, one can access additional information about the
- * underlying iterators, such as the file name and sample names that are being read.
+ * underlying streams, such as the file name and sample names that are being read.
  * This is particularly useful if input sources are added as in the example below, where we use
- * functions such as make_variant_input_iterator_from_pileup_file(), and the related
- * `make_variant_input_iterator_from_...()` set of functions, to get access to the files,
+ * functions such as make_variant_input_stream_from_pileup_file(), and the related
+ * `make_variant_input_stream_from_...()` set of functions, to get access to the files,
  * which encapsulate and hence would otherwise hide this information from us.
- * See VariantInputIteratorData for the data structure that is used to store these
- * additional information, and see VariantInputIterator for details on the underlying iterator.
+ * See VariantInputStreamData for the data structure that is used to store these
+ * additional information, and see VariantInputStream for details on the underlying stream type.
  *
  * Example:
  *
  * ~~~{.cpp}
- *     // Add input sources to a parallel iterator, one carrying, so that all its loci are visited,
+ *     // Add input sources to a parallel stream, one carrying, so that all its loci are visited,
  *     // and one following, meaning that its loci are only visited if the first one also
  *     // as those loci.
- *     auto parallel = VariantParallelInputIterator();
- *     parallel.add_variant_input_iterator(
- *         make_variant_input_iterator_from_pileup_file( "path/to/file.pileup.gz" ),
- *         VariantParallelInputIterator::ContributionType::kCarrying
+ *     auto parallel = VariantParallelInputStream();
+ *     parallel.add_variant_input_stream(
+ *         make_variant_input_stream_from_pileup_file( "path/to/file.pileup.gz" ),
+ *         VariantParallelInputStream::ContributionType::kCarrying
  *     );
- *     parallel.add_variant_input_iterator(
- *         make_variant_input_iterator_from_sync_file( "path/to/file.sync" ),
- *         VariantParallelInputIterator::ContributionType::kFollowing
+ *     parallel.add_variant_input_stream(
+ *         make_variant_input_stream_from_sync_file( "path/to/file.sync" ),
+ *         VariantParallelInputStream::ContributionType::kFollowing
  *     );
  *
  *     for( auto it = parallel.begin(); it != parallel.end(); ++it ) {
- *         // Work with the iterator, which stops at every locus of the first input source.
+ *         // Work with the stream, which stops at every locus of the first input source.
  *         std::cout << "At: " << it.locus() << "\n";
  *         for( auto const& var : *it ) {
  *             if( var ) {
@@ -128,7 +128,7 @@ namespace population {
  *     }
  * ~~~
  *
- * See the VariantParallelInputIterator::Iterator class for details on access to the data
+ * See the VariantParallelInputStream::Iterator class for details on access to the data
  * during traversal.
  *
  * By default, we expect the chromosomes of the underlying input sources to be sorted
@@ -142,7 +142,7 @@ namespace population {
  * they are in the correct order (either lexicographical, or according to the sequence dictionary),
  * input sources do not need to contain all chromsomes.
  */
-class VariantParallelInputIterator
+class VariantParallelInputStream
 {
 public:
 
@@ -201,7 +201,7 @@ public:
         kFollowing
     };
 
-    using self_type  = VariantParallelInputIterator;
+    using self_type  = VariantParallelInputStream;
     using value_type = Variant;
 
     // ======================================================================================
@@ -224,7 +224,7 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type         = VariantParallelInputIterator::Iterator;
+        using self_type         = VariantParallelInputStream::Iterator;
         using value_type        = std::vector<utils::Optional<Variant>>;
         using pointer           = value_type const*;
         using reference         = value_type const&;
@@ -236,7 +236,7 @@ public:
 
     private:
 
-        Iterator( VariantParallelInputIterator* parent );
+        Iterator( VariantParallelInputStream* parent );
 
     public:
 
@@ -248,7 +248,7 @@ public:
         Iterator& operator= ( self_type const& ) = default;
         Iterator& operator= ( self_type&& )      = default;
 
-        friend VariantParallelInputIterator;
+        friend VariantParallelInputStream;
 
         // -------------------------------------------------------------------------
         //     Accessors
@@ -275,7 +275,7 @@ public:
         }
 
         /**
-         * @brief Return the data of all input iterators at the current locus.
+         * @brief Return the data of all input streams at the current locus.
          *
          * Any input sources that do not have data at the current locus() have an empty
          * optional in the vector.
@@ -286,7 +286,7 @@ public:
         }
 
         /**
-         * @copydoc ::genesis::population::VariantParallelInputIterator::Iterator::variants() const
+         * @copydoc ::genesis::population::VariantParallelInputStream::Iterator::variants() const
          */
         std::vector<utils::Optional<Variant>>& variants()
         {
@@ -294,13 +294,13 @@ public:
         }
 
         /**
-         * @brief Get access to the input iterators that have been added to this parallel iterator.
+         * @brief Get access to the input streams that have been added to this parallel stream.
          *
          * This is just a concenience function that forwards the
-         * @link VariantParallelInputIterator::inputs() inputs()@endlink function of
-         * VariantParallelInputIterator. See there for details.
+         * @link VariantParallelInputStream::inputs() inputs()@endlink function of
+         * VariantParallelInputStream. See there for details.
          */
-        std::vector<VariantInputIterator> const& inputs() const
+        std::vector<VariantInputStream> const& inputs() const
         {
             // We assume that the user only does this when the iterator is not an end() iterator.
             assert( parent_ );
@@ -308,23 +308,23 @@ public:
         }
 
         /**
-         * @brief Get access to an input iterator that has been added to this parallel iterator.
+         * @brief Get access to an input stream that has been added to this parallel stream.
          *
          * This is just a concenience function that forwards the
-         * @link VariantParallelInputIterator::input_at() input_at()@endlink function of
-         * VariantParallelInputIterator. See there for details.
+         * @link VariantParallelInputStream::input_at() input_at()@endlink function of
+         * VariantParallelInputStream. See there for details.
          */
-        VariantInputIterator const& input_at( size_t index ) const
+        VariantInputStream const& input_at( size_t index ) const
         {
             return parent_->inputs_[index];
         }
 
         /**
-         * @brief Return the data of the input iterators at the given @p index at the current locus.
+         * @brief Return the data of the input streams at the given @p index at the current locus.
          *
          * The indexing follows the order in which inputs have been added to the
-         * VariantParallelInputIterator.
-         * See also VariantParallelInputIterator::input_size() to get their count.
+         * VariantParallelInputStream.
+         * See also VariantParallelInputStream::input_size() to get their count.
          *
          * An input source that do not have data at the current locus() has an empty optional.
          */
@@ -335,7 +335,7 @@ public:
         }
 
         /**
-         * @copydoc ::genesis::population::VariantParallelInputIterator::Iterator::variant_at( size_t ) const
+         * @copydoc ::genesis::population::VariantParallelInputStream::Iterator::variant_at( size_t ) const
          */
         utils::Optional<Variant>& variant_at( size_t index )
         {
@@ -407,10 +407,10 @@ public:
         /**
          * @brief Compare two iterators for equality.
          *
-         * Any two iterators that are created by calling begin() on the same LambdaIterator
+         * Any two iterators that are created by calling begin() on the same GenericInputStream
          * instance will compare equal, as long as neither of them is past-the-end.
          * A valid (not past-the-end) iterator and an end() iterator will not compare equal,
-         * no matter from which LambdaIterator they were created.
+         * no matter from which GenericInputStream they were created.
          */
         bool operator==( self_type const& it ) const
         {
@@ -464,13 +464,13 @@ public:
          * @brief Increment an iterator by one position,
          * and check that the chromosome and position are good and their order is correct.
          */
-        void increment_iterator_( VariantInputIterator::Iterator& iterator );
+        void increment_iterator_( VariantInputStream::Iterator& iterator );
 
         /**
          * @brief Helper function to assert that each iterator at each position has a valid
          * chromosome name and position value.
          */
-        void assert_correct_chr_and_pos_( VariantInputIterator::Iterator const& iterator );
+        void assert_correct_chr_and_pos_( VariantInputStream::Iterator const& iterator );
 
         /**
          * @brief Set the variants_ to the data of their iterator variants
@@ -482,7 +482,7 @@ public:
     private:
 
         // Parent
-        VariantParallelInputIterator* parent_ = nullptr;
+        VariantParallelInputStream* parent_ = nullptr;
 
         // Keep track of the locus that the iterator currently is at.
         // Not all sources have to be there (if they don't have data for that locus), in which case
@@ -491,7 +491,7 @@ public:
 
         // Keep the iterators that we want to traverse. We only need the begin() iterators,
         // as they are themselves able to tell us if they are still good (via their operator bool).
-        std::vector<VariantInputIterator::Iterator> iterators_;
+        std::vector<VariantInputStream::Iterator> iterators_;
 
         // We need to store how many samples (BaseCounts objects) the Variant of each iterator has,
         // in order to fill in the empty ones at the iterator positions where they don't have data.
@@ -523,11 +523,11 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    VariantParallelInputIterator() = default;
-    ~VariantParallelInputIterator() = default;
+    VariantParallelInputStream() = default;
+    ~VariantParallelInputStream() = default;
 
-    VariantParallelInputIterator( self_type const& ) = default;
-    VariantParallelInputIterator( self_type&& )      = default;
+    VariantParallelInputStream( self_type const& ) = default;
+    VariantParallelInputStream( self_type&& )      = default;
 
     self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
@@ -541,7 +541,7 @@ public:
     /**
      * @brief Begin the iteration.
      *
-     * Use this to obtain an VariantParallelInputIterator::Iterator that starts traversing
+     * Use this to obtain an VariantParallelInputStream::Iterator that starts traversing
      * the input sources.
      */
     Iterator begin()
@@ -562,10 +562,10 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Add an input to the parallel iterator.
+     * @brief Add an input to the parallel stream.
      */
-    self_type& add_variant_input_iterator(
-        VariantInputIterator const& input,
+    self_type& add_variant_input_stream(
+        VariantInputStream const& input,
         ContributionType selection
     ) {
         inputs_.emplace_back( input );
@@ -579,54 +579,54 @@ public:
     }
 
     /**
-     * @brief Add an input to the parallel iterator.
+     * @brief Add an input to the parallel stream.
      *
      * This version of the function takes the function to obtain elements from the underlying
-     * data iterator, same as VariantInputIterator. See there and LambdaIterator for details.
+     * data iterator, same as VariantInputStream. See there and GenericInputStream for details.
      */
     self_type& add_variant_input(
         std::function<bool(Variant&)> input_element_generator,
         ContributionType selection
     ) {
-        add_variant_input_iterator( VariantInputIterator( input_element_generator ), selection );
+        add_variant_input_stream( VariantInputStream( input_element_generator ), selection );
         return *this;
     }
 
     /**
-     * @brief Get access to the input iterators that have been added to this parallel iterator.
+     * @brief Get access to the input streams that have been added to this parallel stream.
      */
-    std::vector<VariantInputIterator> const& inputs() const
+    std::vector<VariantInputStream> const& inputs() const
     {
         return inputs_;
     }
 
     /**
-     * @brief Get access to the input iterators that have been added to this parallel iterator.
+     * @brief Get access to the input streams that have been added to this parallel stream.
      *
      * This non-const version of the function can for exmple be used to bulk-add filters
      * and transformations to the iterators, using their functions
-     * @link utils::LambdaIterator::add_transform() add_transform()@endlink,
-     * @link utils::LambdaIterator::add_filter() add_filter()@endlink, and
-     * @link utils::LambdaIterator::add_transform_filter() add_transform_filter()@endlink;
-     * see utils::LambdaIterator for details.
+     * @link utils::GenericInputStream::add_transform() add_transform()@endlink,
+     * @link utils::GenericInputStream::add_filter() add_filter()@endlink, and
+     * @link utils::GenericInputStream::add_transform_filter() add_transform_filter()@endlink;
+     * see utils::GenericInputStream for details.
      */
-    std::vector<VariantInputIterator>& inputs()
+    std::vector<VariantInputStream>& inputs()
     {
         return inputs_;
     }
 
     /**
-     * @brief Get access to an input iterator that has been added to this parallel iterator.
+     * @brief Get access to an input stream that has been added to this parallel stream.
      */
-    VariantInputIterator const& input_at( size_t index ) const
+    VariantInputStream const& input_at( size_t index ) const
     {
         return inputs_[index];
     }
 
     /**
-     * @brief Get access to an input iterator that has been added to this parallel iterator.
+     * @brief Get access to an input stream that has been added to this parallel stream.
      */
-    VariantInputIterator& input_at( size_t index )
+    VariantInputStream& input_at( size_t index )
     {
         return inputs_[index];
     }
@@ -671,7 +671,7 @@ public:
         if( locus.chromosome.empty() || locus.position == 0 ) {
             throw std::invalid_argument(
                 "Cannot add a carrying locus with empty chromosome or position 0 "
-                "to VariantParallelInputIterator"
+                "to VariantParallelInputStream"
             );
         }
 
@@ -687,7 +687,7 @@ public:
      * @brief Add a set of @link GenomeLocus GenomeLoci@endlink that are used as carrying loci
      * in the iteration.
      *
-     * @see VariantParallelInputIterator::add_carrying_locus( GenomeLocus const& )
+     * @see VariantParallelInputStream::add_carrying_locus( GenomeLocus const& )
      */
     self_type& add_carrying_loci( std::vector<GenomeLocus> const& loci )
     {
@@ -762,7 +762,7 @@ private:
     // Store all input sources, as well as the type (carrying or following) of how we want
     // to traverse them. We keep track whether at least one of them is of type carrying.
     // If not (all following), the advance function of the iterator needs to be special.
-    std::vector<VariantInputIterator> inputs_;
+    std::vector<VariantInputStream> inputs_;
     std::vector<ContributionType> selections_;
     bool has_carrying_input_ = false;
 

@@ -28,7 +28,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/iterators/variant_gapless_input_iterator.hpp"
+#include "genesis/population/streams/variant_gapless_input_stream.hpp"
 
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/sequence/functions/codes.hpp"
@@ -46,7 +46,7 @@ namespace population {
 //     Iterator Constructors and Rule of Five
 // =================================================================================================
 
-VariantGaplessInputIterator::Iterator::Iterator( VariantGaplessInputIterator* parent )
+VariantGaplessInputStream::Iterator::Iterator( VariantGaplessInputStream* parent )
     : parent_(parent)
 {
     // We use the parent as a check if this Iterator is intended to be a begin() or end()
@@ -69,7 +69,7 @@ VariantGaplessInputIterator::Iterator::Iterator( VariantGaplessInputIterator* pa
         // We assume that the sample_names are of the correct size, if given.
         if( sample_name_count > 0 && iterator_->samples.size() != sample_name_count ) {
             throw std::runtime_error(
-                "Input source for VariantGaplessInputIterator contains " +
+                "Input source for VariantGaplessInputStream contains " +
                 std::to_string( iterator_->samples.size() ) + " samples, but its sample " +
                 "name list contains " + std::to_string( sample_name_count ) + " names."
             );
@@ -109,7 +109,7 @@ VariantGaplessInputIterator::Iterator::Iterator( VariantGaplessInputIterator* pa
 //     start_chromosome_
 // -------------------------------------------------------------------------
 
-void VariantGaplessInputIterator::Iterator::start_chromosome_()
+void VariantGaplessInputStream::Iterator::start_chromosome_()
 {
     // Check that we are not done yet (parent still valid), and that we have either
     // a ref genome or a seq dict, but not both (neither is also fine).
@@ -124,7 +124,7 @@ void VariantGaplessInputIterator::Iterator::start_chromosome_()
     // Check that we do not accidentally duplicate any chromosomes.
     if( processed_chromosomes_.count( chr ) > 0 ) {
         throw std::runtime_error(
-            "In VariantGaplessInputIterator: Chromosome \"" + chr + "\" occurs multiple times. "
+            "In VariantGaplessInputStream: Chromosome \"" + chr + "\" occurs multiple times. "
             "Likely, this means that the input is not sorted by chromosome and position."
         );
     }
@@ -135,7 +135,7 @@ void VariantGaplessInputIterator::Iterator::start_chromosome_()
         ref_genome_it_ = parent_->ref_genome_->find( chr );
         if( ref_genome_it_ == parent_->ref_genome_->end() ) {
             throw std::runtime_error(
-                "In VariantGaplessInputIterator: Chromosome \"" + chr + "\" requested "
+                "In VariantGaplessInputStream: Chromosome \"" + chr + "\" requested "
                 "in the input data, which does not occur in the reference genome."
             );
         }
@@ -146,7 +146,7 @@ void VariantGaplessInputIterator::Iterator::start_chromosome_()
         seq_dict_it_ = parent_->seq_dict_->find( chr );
         if( seq_dict_it_ == parent_->seq_dict_->end() ) {
             throw std::runtime_error(
-                "In VariantGaplessInputIterator: Chromosome \"" + chr + "\" requested "
+                "In VariantGaplessInputStream: Chromosome \"" + chr + "\" requested "
                 "in the input data, which does not occur in the sequence dictionary."
             );
         }
@@ -157,7 +157,7 @@ void VariantGaplessInputIterator::Iterator::start_chromosome_()
 //     advance_current_locus_
 // -------------------------------------------------------------------------
 
-void VariantGaplessInputIterator::Iterator::advance_current_locus_()
+void VariantGaplessInputStream::Iterator::advance_current_locus_()
 {
     // If we have no more input data, we are processing positions (and potential extra chromsomes)
     // as provided by the ref genome or seq dict.
@@ -203,7 +203,7 @@ void VariantGaplessInputIterator::Iterator::advance_current_locus_()
 //     advance_current_locus_beyond_input_
 // -------------------------------------------------------------------------
 
-void VariantGaplessInputIterator::Iterator::advance_current_locus_beyond_input_()
+void VariantGaplessInputStream::Iterator::advance_current_locus_beyond_input_()
 {
     // Assumptions about the caller. We only get called when there is no more data in the iterator,
     // but we are not yet fully done with the ref genome or seq dict extra chromosomes.
@@ -241,7 +241,7 @@ void VariantGaplessInputIterator::Iterator::advance_current_locus_beyond_input_(
 //     has_more_ref_loci_on_current_chromosome_
 // -------------------------------------------------------------------------
 
-bool VariantGaplessInputIterator::Iterator::has_more_ref_loci_on_current_chromosome_()
+bool VariantGaplessInputStream::Iterator::has_more_ref_loci_on_current_chromosome_()
 {
     assert( parent_ );
     assert( !( parent_->ref_genome_ && parent_->seq_dict_ ));
@@ -270,7 +270,7 @@ bool VariantGaplessInputIterator::Iterator::has_more_ref_loci_on_current_chromos
 //     find_next_extra_chromosome_
 // -------------------------------------------------------------------------
 
-std::string VariantGaplessInputIterator::Iterator::find_next_extra_chromosome_()
+std::string VariantGaplessInputStream::Iterator::find_next_extra_chromosome_()
 {
     assert( parent_ );
 
@@ -340,7 +340,7 @@ std::string VariantGaplessInputIterator::Iterator::find_next_extra_chromosome_()
 //     prepare_current_variant_
 // -------------------------------------------------------------------------
 
-void VariantGaplessInputIterator::Iterator::prepare_current_variant_()
+void VariantGaplessInputStream::Iterator::prepare_current_variant_()
 {
     // We expect to be at a valid current locus.
     assert( parent_ );
@@ -354,7 +354,7 @@ void VariantGaplessInputIterator::Iterator::prepare_current_variant_()
         // We use 1-based positions here, hence the greater-than comparison.
         if( current_locus_.position > ref_genome_it_->length() ) {
             throw std::runtime_error(
-                "In VariantGaplessInputIterator: Invalid input data, which has data "
+                "In VariantGaplessInputStream: Invalid input data, which has data "
                 "beyond the reference genome at " + to_string( current_locus_ )
             );
         }
@@ -364,7 +364,7 @@ void VariantGaplessInputIterator::Iterator::prepare_current_variant_()
         assert( seq_dict_it_->name == current_locus_.chromosome );
         if( current_locus_.position > seq_dict_it_->length ) {
             throw std::runtime_error(
-                "In VariantGaplessInputIterator: Invalid input data, which has data "
+                "In VariantGaplessInputStream: Invalid input data, which has data "
                 "beyond the reference genome at " + to_string( current_locus_ )
             );
         }
@@ -378,7 +378,7 @@ void VariantGaplessInputIterator::Iterator::prepare_current_variant_()
         // Error check for consistent sample size.
         if( iterator_->samples.size() != missing_variant_.samples.size() ) {
             throw std::runtime_error(
-                "In VariantGaplessInputIterator: Invalid input data that has an inconsistent "
+                "In VariantGaplessInputStream: Invalid input data that has an inconsistent "
                 "number of samples throughout, first occurring at " + to_string( current_locus_ ) +
                 ". Expected " + std::to_string( missing_variant_.samples.size() ) +
                 " samples based on first iteration, but found " +
@@ -400,7 +400,7 @@ void VariantGaplessInputIterator::Iterator::prepare_current_variant_()
 //     prepare_current_variant_ref_base_
 // -------------------------------------------------------------------------
 
-void VariantGaplessInputIterator::Iterator::prepare_current_variant_ref_base_()
+void VariantGaplessInputStream::Iterator::prepare_current_variant_ref_base_()
 {
     // Shorthand. Points to either the missing variant or the input iterator variant.
     auto& cur_var = current_variant_();
@@ -468,11 +468,11 @@ void VariantGaplessInputIterator::Iterator::prepare_current_variant_ref_base_()
 //     check_input_iterator_
 // -------------------------------------------------------------------------
 
-void VariantGaplessInputIterator::Iterator::check_input_iterator_()
+void VariantGaplessInputStream::Iterator::check_input_iterator_()
 {
     if( iterator_->chromosome.empty() || iterator_->position == 0 ) {
         throw std::runtime_error(
-            "In VariantGaplessInputIterator: Invalid position "
+            "In VariantGaplessInputStream: Invalid position "
             "with empty chromosome name or zero position."
         );
     }

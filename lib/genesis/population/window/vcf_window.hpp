@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@
 #include <string>
 #include <vector>
 
-#include "genesis/population/formats/vcf_input_iterator.hpp"
+#include "genesis/population/formats/vcf_input_stream.hpp"
 #include "genesis/population/formats/vcf_record.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"
@@ -77,7 +77,7 @@ void run_vcf_window(
     std::function<bool( VcfRecord const& )> condition = {}
 ) {
     size_t current_chr_len = 0;
-    for( auto record = VcfInputIterator( vcf_file ); record; ++record ) {
+    for( auto record = VcfInputStream( vcf_file ); record; ++record ) {
 
         // Check if we want to process this record at all.
         if( condition && ! condition( *record )) {

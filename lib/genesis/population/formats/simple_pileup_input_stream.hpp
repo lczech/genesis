@@ -1,9 +1,9 @@
-#ifndef GENESIS_POPULATION_FORMATS_SIMPLE_PILEUP_INPUT_ITERATOR_H_
-#define GENESIS_POPULATION_FORMATS_SIMPLE_PILEUP_INPUT_ITERATOR_H_
+#ifndef GENESIS_POPULATION_FORMATS_SIMPLE_PILEUP_INPUT_STREAM_H_
+#define GENESIS_POPULATION_FORMATS_SIMPLE_PILEUP_INPUT_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Simple Pileup Input Iterator
+//     Simple Pileup Input Stream
 // =================================================================================================
 
 /**
@@ -54,7 +54,7 @@ namespace population {
  *
  * Basic usage:
  *
- *     auto it = SimplePileupInputIterator<>( utils::from_file( infile ));
+ *     auto it = SimplePileupInputStream<>( utils::from_file( infile ));
  *     while( it ) {
  *         // work with it.record() or it->...
  *         ++it;
@@ -62,7 +62,7 @@ namespace population {
  *
  * or
  *
- *     for( auto it = SimplePileupInputIterator<Variant>( utils::from_file( infile )); it; ++it ) {
+ *     for( auto it = SimplePileupInputStream<Variant>( utils::from_file( infile )); it; ++it ) {
  *         // work with it
  *     }
  *
@@ -76,7 +76,7 @@ namespace population {
  * the remaining entries are not used as a filter.
  */
 template<class T = SimplePileupReader::Record>
-class SimplePileupInputIterator
+class SimplePileupInputStream
 {
 public:
 
@@ -84,7 +84,7 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using self_type         = SimplePileupInputIterator;
+    using self_type         = SimplePileupInputStream;
     using value_type        = T;
     using pointer           = value_type*;
     using reference         = value_type&;
@@ -99,13 +99,13 @@ public:
     /**
      * @brief Create a default instance, with no input.
      */
-    SimplePileupInputIterator() = default;
+    SimplePileupInputStream() = default;
 
     /**
      * @brief Create an instance that reads from an input source, and optionally take
      * a SimplePileupReader with settings to be used.
      */
-    explicit SimplePileupInputIterator(
+    explicit SimplePileupInputStream(
         std::shared_ptr< utils::BaseInputSource > source,
         SimplePileupReader const&                 reader = {}
     )
@@ -121,7 +121,7 @@ public:
     //  * indices given in the @p sample_indices, and optionally take a SimplePileupReader with
     //  * settings to be used.
     //  */
-    // SimplePileupInputIterator(
+    // SimplePileupInputStream(
     //     std::shared_ptr< utils::BaseInputSource > source,
     //     std::vector<size_t> const&                sample_indices,
     //     SimplePileupReader const&                 reader = {}
@@ -142,7 +142,7 @@ public:
      * indices where the @p sample_filter is true, and optionally take a SimplePileupReader with
      * settings to be used.
      */
-    SimplePileupInputIterator(
+    SimplePileupInputStream(
         std::shared_ptr< utils::BaseInputSource > source,
         std::vector<bool> const&                  sample_filter,
         SimplePileupReader const&                 reader = {}
@@ -156,10 +156,10 @@ public:
         increment();
     }
 
-    ~SimplePileupInputIterator() = default;
+    ~SimplePileupInputStream() = default;
 
-    SimplePileupInputIterator( self_type const& ) = default;
-    SimplePileupInputIterator( self_type&& )      = default;
+    SimplePileupInputStream( self_type const& ) = default;
+    SimplePileupInputStream( self_type&& )      = default;
 
     self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
@@ -284,7 +284,7 @@ private:
 // -------------------------------------------------------------------------
 
 template<>
-inline void SimplePileupInputIterator<SimplePileupReader::Record>::increment_()
+inline void SimplePileupInputStream<SimplePileupReader::Record>::increment_()
 {
     // We resize to the size that we had before (or 0 if we are just starting),
     // so that the parser can check the correct sample size.
@@ -299,7 +299,7 @@ inline void SimplePileupInputIterator<SimplePileupReader::Record>::increment_()
 }
 
 template<>
-inline void SimplePileupInputIterator<Variant>::increment_()
+inline void SimplePileupInputStream<Variant>::increment_()
 {
     // Same as above
     record_.samples.resize( sample_size_ );

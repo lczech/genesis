@@ -30,12 +30,12 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/iterators/variant_input_iterator.hpp"
-#include "genesis/population/iterators/variant_parallel_input_iterator.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
+#include "genesis/population/streams/variant_parallel_input_stream.hpp"
 #include "genesis/population/functions/genome_locus.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/variant.hpp"
-#include "genesis/utils/containers/lambda_iterator.hpp"
+#include "genesis/utils/containers/generic_input_stream.hpp"
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/random.hpp"
@@ -55,10 +55,10 @@ using namespace genesis::utils;
 //     Simple Tests
 // =================================================================================================
 
-void test_parallel_input_iterator_(
-    VariantParallelInputIterator::ContributionType p_sel,
-    VariantParallelInputIterator::ContributionType s_sel,
-    VariantParallelInputIterator::ContributionType v_sel,
+void test_parallel_input_stream_(
+    VariantParallelInputStream::ContributionType p_sel,
+    VariantParallelInputStream::ContributionType s_sel,
+    VariantParallelInputStream::ContributionType v_sel,
     std::set<size_t> expected_positions,
     std::set<size_t> additional_loci = {},
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = {}
@@ -79,27 +79,27 @@ void test_parallel_input_iterator_(
     #endif
 
     // Init with the desired settings
-    auto pit = VariantParallelInputIterator();
-    pit.add_variant_input_iterator(
-        make_variant_input_iterator_from_pileup_file( p_infile ),
+    auto pit = VariantParallelInputStream();
+    pit.add_variant_input_stream(
+        make_variant_input_stream_from_pileup_file( p_infile ),
         p_sel
     );
-    pit.add_variant_input_iterator(
-        make_variant_input_iterator_from_sync_file( s_infile ),
+    pit.add_variant_input_stream(
+        make_variant_input_stream_from_sync_file( s_infile ),
         s_sel
     );
 
     #ifdef GENESIS_HTSLIB
 
-        pit.add_variant_input_iterator(
-            make_variant_input_iterator_from_pool_vcf_file( v_infile ),
+        pit.add_variant_input_stream(
+            make_variant_input_stream_from_pool_vcf_file( v_infile ),
             v_sel
         );
 
     #else
 
-        pit.add_variant_input_iterator(
-            make_variant_input_iterator_from_sync_file( v_infile ),
+        pit.add_variant_input_stream(
+            make_variant_input_stream_from_sync_file( v_infile ),
             v_sel
         );
 
@@ -109,9 +109,9 @@ void test_parallel_input_iterator_(
     // we have additional carrying loci, we do only visit those, and hence need to clear the
     // list of expected postions from the intersection of the input sources first.
     if(
-        p_sel == VariantParallelInputIterator::ContributionType::kFollowing &&
-        s_sel == VariantParallelInputIterator::ContributionType::kFollowing &&
-        v_sel == VariantParallelInputIterator::ContributionType::kFollowing &&
+        p_sel == VariantParallelInputStream::ContributionType::kFollowing &&
+        s_sel == VariantParallelInputStream::ContributionType::kFollowing &&
+        v_sel == VariantParallelInputStream::ContributionType::kFollowing &&
         ! additional_loci.empty()
     ) {
         expected_positions.clear();
@@ -142,13 +142,13 @@ void test_parallel_input_iterator_(
         // // Yet another way. Here we test that if the iterator is type following,
         // // we must have data, as otherwise we would not have stopped here.
         // // Nope, not true, all can have all.
-        // if( p_sel == VariantParallelInputIterator::ContributionType::kFollowing ) {
+        // if( p_sel == VariantParallelInputStream::ContributionType::kFollowing ) {
         //     EXPECT_TRUE( it.variant_at(0) );
         // }
-        // if( s_sel == VariantParallelInputIterator::ContributionType::kFollowing ) {
+        // if( s_sel == VariantParallelInputStream::ContributionType::kFollowing ) {
         //     EXPECT_TRUE( it.variant_at(1) );
         // }
-        // if( v_sel == VariantParallelInputIterator::ContributionType::kFollowing ) {
+        // if( v_sel == VariantParallelInputStream::ContributionType::kFollowing ) {
         //     EXPECT_TRUE( it.variant_at(2) );
         // }
 
@@ -170,7 +170,7 @@ void test_parallel_input_iterator_(
     EXPECT_EQ( expected_positions, found_positions );
 }
 
-void test_parallel_input_iterator_all_(
+void test_parallel_input_stream_all_(
     std::set<size_t> additional_loci = {},
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = {}
 ) {
@@ -191,101 +191,101 @@ void test_parallel_input_iterator_all_(
     // Test out all compbinations of carrying and following iterators.
 
     // LOG_DBG1 << "UUU";
-    test_parallel_input_iterator_(
-        VariantParallelInputIterator::ContributionType::kCarrying,
-        VariantParallelInputIterator::ContributionType::kCarrying,
-        VariantParallelInputIterator::ContributionType::kCarrying,
+    test_parallel_input_stream_(
+        VariantParallelInputStream::ContributionType::kCarrying,
+        VariantParallelInputStream::ContributionType::kCarrying,
+        VariantParallelInputStream::ContributionType::kCarrying,
         std::set<size_t>{ 5, 8, 10, 12, 15, 17, 20, 22, 25, 28, 30 },
         additional_loci,
         sequence_dict
     );
     // LOG_DBG1 << "UUI";
-    test_parallel_input_iterator_(
-        VariantParallelInputIterator::ContributionType::kCarrying,
-        VariantParallelInputIterator::ContributionType::kCarrying,
-        VariantParallelInputIterator::ContributionType::kFollowing,
+    test_parallel_input_stream_(
+        VariantParallelInputStream::ContributionType::kCarrying,
+        VariantParallelInputStream::ContributionType::kCarrying,
+        VariantParallelInputStream::ContributionType::kFollowing,
         std::set<size_t>{ 5, 8, 10, 12, 15, 17, 22, 25, 28, 30 },
         additional_loci,
         sequence_dict
     );
     // LOG_DBG1 << "UIU";
-    test_parallel_input_iterator_(
-        VariantParallelInputIterator::ContributionType::kCarrying,
-        VariantParallelInputIterator::ContributionType::kFollowing,
-        VariantParallelInputIterator::ContributionType::kCarrying,
+    test_parallel_input_stream_(
+        VariantParallelInputStream::ContributionType::kCarrying,
+        VariantParallelInputStream::ContributionType::kFollowing,
+        VariantParallelInputStream::ContributionType::kCarrying,
         std::set<size_t>{ 5, 8, 10, 15, 17, 20, 22, 25, 28 },
         additional_loci,
         sequence_dict
     );
     // LOG_DBG1 << "IUU";
-    test_parallel_input_iterator_(
-        VariantParallelInputIterator::ContributionType::kFollowing,
-        VariantParallelInputIterator::ContributionType::kCarrying,
-        VariantParallelInputIterator::ContributionType::kCarrying,
+    test_parallel_input_stream_(
+        VariantParallelInputStream::ContributionType::kFollowing,
+        VariantParallelInputStream::ContributionType::kCarrying,
+        VariantParallelInputStream::ContributionType::kCarrying,
         std::set<size_t>{ 5, 10, 12, 15, 17, 20, 25, 28, 30 },
         additional_loci,
         sequence_dict
     );
     // LOG_DBG1 << "UII";
-    test_parallel_input_iterator_(
-        VariantParallelInputIterator::ContributionType::kCarrying,
-        VariantParallelInputIterator::ContributionType::kFollowing,
-        VariantParallelInputIterator::ContributionType::kFollowing,
+    test_parallel_input_stream_(
+        VariantParallelInputStream::ContributionType::kCarrying,
+        VariantParallelInputStream::ContributionType::kFollowing,
+        VariantParallelInputStream::ContributionType::kFollowing,
         std::set<size_t>{ 5, 8, 10, 15, 17, 22, 28 },
         additional_loci,
         sequence_dict
     );
     // LOG_DBG1 << "IUI";
-    test_parallel_input_iterator_(
-        VariantParallelInputIterator::ContributionType::kFollowing,
-        VariantParallelInputIterator::ContributionType::kCarrying,
-        VariantParallelInputIterator::ContributionType::kFollowing,
+    test_parallel_input_stream_(
+        VariantParallelInputStream::ContributionType::kFollowing,
+        VariantParallelInputStream::ContributionType::kCarrying,
+        VariantParallelInputStream::ContributionType::kFollowing,
         std::set<size_t>{ 10, 12, 17, 25, 28, 30 },
         additional_loci,
         sequence_dict
     );
     // LOG_DBG1 << "IIU";
-    test_parallel_input_iterator_(
-        VariantParallelInputIterator::ContributionType::kFollowing,
-        VariantParallelInputIterator::ContributionType::kFollowing,
-        VariantParallelInputIterator::ContributionType::kCarrying,
+    test_parallel_input_stream_(
+        VariantParallelInputStream::ContributionType::kFollowing,
+        VariantParallelInputStream::ContributionType::kFollowing,
+        VariantParallelInputStream::ContributionType::kCarrying,
         std::set<size_t>{ 5, 10, 15, 20, 25 },
         additional_loci,
         sequence_dict
     );
     // LOG_DBG1 << "III";
-    test_parallel_input_iterator_(
-        VariantParallelInputIterator::ContributionType::kFollowing,
-        VariantParallelInputIterator::ContributionType::kFollowing,
-        VariantParallelInputIterator::ContributionType::kFollowing,
+    test_parallel_input_stream_(
+        VariantParallelInputStream::ContributionType::kFollowing,
+        VariantParallelInputStream::ContributionType::kFollowing,
+        VariantParallelInputStream::ContributionType::kFollowing,
         std::set<size_t>{ 10 },
         additional_loci,
         sequence_dict
     );
 }
 
-TEST( ParallelInputIterator, Basics )
+TEST( ParallelInputStream, Basics )
 {
     // Test without additional loci.
     // LOG_DBG << "Normal";
-    test_parallel_input_iterator_all_();
+    test_parallel_input_stream_all_();
 
     // Test with different positions and numbers of additional loci.
     // LOG_DBG << "1";
-    test_parallel_input_iterator_all_({ 1 });
+    test_parallel_input_stream_all_({ 1 });
     // LOG_DBG << "15";
-    test_parallel_input_iterator_all_({ 15 });
+    test_parallel_input_stream_all_({ 15 });
     // LOG_DBG << "16";
-    test_parallel_input_iterator_all_({ 16 });
+    test_parallel_input_stream_all_({ 16 });
     // LOG_DBG << "32";
-    test_parallel_input_iterator_all_({ 32 });
+    test_parallel_input_stream_all_({ 32 });
     // LOG_DBG << "1, 15, 32";
-    test_parallel_input_iterator_all_({ 1, 15, 32 });
+    test_parallel_input_stream_all_({ 1, 15, 32 });
     // LOG_DBG << "15, 32";
-    test_parallel_input_iterator_all_({ 15, 32 });
+    test_parallel_input_stream_all_({ 15, 32 });
 }
 
-TEST( ParallelInputIterator, SequenceDict )
+TEST( ParallelInputStream, SequenceDict )
 {
     auto seq_dict = std::make_shared<genesis::sequence::SequenceDict>();
     seq_dict->add( "XYZ", 50 );
@@ -293,34 +293,34 @@ TEST( ParallelInputIterator, SequenceDict )
 
     // Test without additional loci.
     // LOG_DBG << "Normal";
-    test_parallel_input_iterator_all_({}, seq_dict );
+    test_parallel_input_stream_all_({}, seq_dict );
 
     // // Test with different positions and numbers of additional loci.
     // // LOG_DBG << "1";
-    // test_parallel_input_iterator_all_({ 1 }, seq_dict );
+    // test_parallel_input_stream_all_({ 1 }, seq_dict );
     // // LOG_DBG << "15";
-    // test_parallel_input_iterator_all_({ 15 }, seq_dict );
+    // test_parallel_input_stream_all_({ 15 }, seq_dict );
     // // LOG_DBG << "16";
-    // test_parallel_input_iterator_all_({ 16 }, seq_dict );
+    // test_parallel_input_stream_all_({ 16 }, seq_dict );
     // // LOG_DBG << "32";
-    // test_parallel_input_iterator_all_({ 32 }, seq_dict );
+    // test_parallel_input_stream_all_({ 32 }, seq_dict );
     // // LOG_DBG << "1, 15, 32";
-    // test_parallel_input_iterator_all_({ 1, 15, 32 }, seq_dict );
+    // test_parallel_input_stream_all_({ 1, 15, 32 }, seq_dict );
     // // LOG_DBG << "15, 32";
-    // test_parallel_input_iterator_all_({ 15, 32 }, seq_dict );
+    // test_parallel_input_stream_all_({ 15, 32 }, seq_dict );
 }
 
-TEST( ParallelInputIterator, UnorderedChromosomes )
+TEST( ParallelInputStream, UnorderedChromosomes )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const s_infile = environment->data_dir + "population/parallel_chrs_1.sync";
 
     // Init with the desired settings
-    auto pit = VariantParallelInputIterator();
-    pit.add_variant_input_iterator(
-        make_variant_input_iterator_from_sync_file( s_infile ),
-        VariantParallelInputIterator::ContributionType::kCarrying
+    auto pit = VariantParallelInputStream();
+    pit.add_variant_input_stream(
+        make_variant_input_stream_from_sync_file( s_infile ),
+        VariantParallelInputStream::ContributionType::kCarrying
     );
 
     // Get the expected list of positions per chromosome.
@@ -348,7 +348,7 @@ TEST( ParallelInputIterator, UnorderedChromosomes )
 //     Randomized Tests
 // =================================================================================================
 
-void test_parallel_input_iterator_random_() {
+void test_parallel_input_stream_random_() {
 
     // While building the test case, we keep track of which chr:pos we expect to see.
     std::unordered_map<std::string, std::set<size_t>> expected_chr_pos;
@@ -445,13 +445,13 @@ void test_parallel_input_iterator_random_() {
     }
 
     // Set up the iterator
-    auto parallel_it = VariantParallelInputIterator();
+    auto parallel_it = VariantParallelInputStream();
     for( size_t si = 0; si < num_sources; ++si ) {
-        parallel_it.add_variant_input_iterator(
-            make_variant_input_iterator_from_vector( variants[si] ),
+        parallel_it.add_variant_input_stream(
+            make_variant_input_stream_from_vector( variants[si] ),
             carrying[si]
-                ? VariantParallelInputIterator::ContributionType::kCarrying
-                : VariantParallelInputIterator::ContributionType::kFollowing
+                ? VariantParallelInputStream::ContributionType::kCarrying
+                : VariantParallelInputStream::ContributionType::kFollowing
         );
     }
     if( use_seq_dict ) {
@@ -531,7 +531,7 @@ void test_parallel_input_iterator_random_() {
     EXPECT_EQ( it_cnt, expected_list.size() );
 }
 
-TEST( ParallelInputIterator, Random )
+TEST( ParallelInputStream, Random )
 {
     // Random seed. Report it, so that in an error case, we can reproduce.
     auto const seed = ::time(nullptr);
@@ -548,6 +548,6 @@ TEST( ParallelInputIterator, Random )
     // Run tests while we have time.
     for( size_t test_num = 0; test_num < max_tests; ++test_num ) {
         // LOG_DBG << "Test " << test_num;
-        test_parallel_input_iterator_random_();
+        test_parallel_input_stream_random_();
     }
 }

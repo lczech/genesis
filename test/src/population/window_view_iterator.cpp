@@ -30,9 +30,9 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/formats/simple_pileup_input_iterator.hpp"
+#include "genesis/population/formats/simple_pileup_input_stream.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
-#include "genesis/population/iterators/variant_input_iterator.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/window/base_window.hpp"
 #include "genesis/population/window/base_window_iterator.hpp"
 #include "genesis/population/window/functions.hpp"
@@ -40,7 +40,7 @@
 #include "genesis/population/window/window_view_iterator.hpp"
 #include "genesis/population/window/window_view.hpp"
 #include "genesis/population/window/window.hpp"
-#include "genesis/utils/containers/lambda_iterator.hpp"
+#include "genesis/utils/containers/generic_input_stream.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;
@@ -52,14 +52,14 @@ TEST( WindowIterator, WindowViewIterator )
     std::string const infile = environment->data_dir + "population/78.pileup.gz";
     // std::string const infile = environment->data_dir + "population/example.pileup";
 
-    // Make a Lambda Iterator over the data stream.
-    auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
+    // Make a Generic Input Stream over the data stream.
+    auto data_gen = make_variant_input_stream_from_pileup_file( infile );
     // data_gen.block_size( 1024 * 1024 );
     data_gen.block_size(0);
     auto pileup_begin = data_gen.begin();
     auto pileup_end   = data_gen.end();
 
-    // Create a window iterator based on the lambda iterator.
+    // Create a window iterator based on the Generic Input Stream.
     auto win_it = make_window_view_iterator(
         make_default_sliding_interval_window_iterator(
             pileup_begin, pileup_end, 10000

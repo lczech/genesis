@@ -1,9 +1,9 @@
-#ifndef GENESIS_POPULATION_FORMATS_SYNC_INPUT_ITERATOR_H_
-#define GENESIS_POPULATION_FORMATS_SYNC_INPUT_ITERATOR_H_
+#ifndef GENESIS_POPULATION_FORMATS_SYNC_INPUT_STREAM_H_
+#define GENESIS_POPULATION_FORMATS_SYNC_INPUT_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Sync Input Iterator
+//     Sync Input Stream
 // =================================================================================================
 
 /**
@@ -52,7 +52,7 @@ namespace population {
  *
  * Basic usage:
  *
- *     auto it = SyncInputIterator( utils::from_file( infile ));
+ *     auto it = SyncInputStream( utils::from_file( infile ));
  *     while( it ) {
  *         // work with it->...
  *         ++it;
@@ -60,7 +60,7 @@ namespace population {
  *
  * or
  *
- *     for( auto it = SyncInputIterator( utils::from_file( infile )); it; ++it ) {
+ *     for( auto it = SyncInputStream( utils::from_file( infile )); it; ++it ) {
  *         // work with it->...
  *     }
  *
@@ -71,7 +71,7 @@ namespace population {
  * of values as the Variant/line has samples. If it is shorter, all samples after its last index
  * will be ignored. If it is longer, the remaining entries are not used as a filter.
  */
-class SyncInputIterator
+class SyncInputStream
 {
 public:
 
@@ -79,7 +79,7 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using self_type         = SyncInputIterator;
+    using self_type         = SyncInputStream;
     using value_type        = Variant;
     using pointer           = value_type*;
     using reference         = value_type&;
@@ -94,13 +94,13 @@ public:
     /**
      * @brief Create a default instance, with no input.
      */
-    SyncInputIterator() = default;
+    SyncInputStream() = default;
 
     /**
      * @brief Create an instance that reads from an input source, and optionally take
      * a SyncReader with settings to be used.
      */
-    explicit SyncInputIterator(
+    explicit SyncInputStream(
         std::shared_ptr< utils::BaseInputSource > source,
         SyncReader const&                         reader = {}
     )
@@ -124,7 +124,7 @@ public:
      * indices where the @p sample_filter is true, and optionally take a SyncReader with
      * settings to be used.
      */
-    SyncInputIterator(
+    SyncInputStream(
         std::shared_ptr< utils::BaseInputSource > source,
         std::vector<bool> const&                  sample_filter,
         SyncReader const&                         reader = {}
@@ -140,10 +140,10 @@ public:
         increment();
     }
 
-    ~SyncInputIterator() = default;
+    ~SyncInputStream() = default;
 
-    SyncInputIterator( self_type const& ) = default;
-    SyncInputIterator( self_type&& )      = default;
+    SyncInputStream( self_type const& ) = default;
+    SyncInputStream( self_type&& )      = default;
 
     self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
@@ -227,7 +227,7 @@ public:
         // NB: We used to have a check here, by reading into a temp instance first,
         // and checking if the chromosome and position order was working.
         // But this did not work as intended when this iterator/reader here was used with
-        // make_variant_input_iterator_from_sync_file(), as in that case, the chromosome name
+        // make_variant_input_stream_from_sync_file(), as in that case, the chromosome name
         // is moved out of the Variant, so that we would always test against an empty moved-from
         // chromosome name, which would just never fail, and so completely miss its purpose.
         // Now, we don't do that check any more, but if we bring back that step from old commits,
@@ -235,7 +235,7 @@ public:
 
         // We set the size here, so that the reader checks the correct sample size every time.
         // We need to reset, as the Variant might be moved-from when we get here,
-        // as for example the make_variant_input_iterator_from_sync_file() iterator does that.
+        // as for example the make_variant_input_stream_from_sync_file() iterator does that.
         // We then also set that size again after we are done - as a means of initializing
         // it in the first iteration, in case that there was no header that already did that.
         variant_.samples.resize( sample_size_ );

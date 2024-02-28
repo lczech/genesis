@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 #include "genesis/population/formats/simple_pileup_common.hpp"
 
 #include "genesis/population/functions/functions.hpp"
-#include "genesis/population/formats/simple_pileup_input_iterator.hpp"
+#include "genesis/population/formats/simple_pileup_input_stream.hpp"
 
 #include <cassert>
 #include <stdexcept>
@@ -185,7 +185,7 @@ genesis::sequence::QualityEncoding guess_pileup_quality_encoding(
 
     // Start an iterator over the input.
     size_t line_cnt = 0;
-    auto iter = SimplePileupInputIterator<SimplePileupReader::Record>( source );
+    auto iter = SimplePileupInputStream<SimplePileupReader::Record>( source );
     while( iter ) {
         ++iter;
         ++line_cnt;

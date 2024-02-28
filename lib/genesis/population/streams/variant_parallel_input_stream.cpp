@@ -28,7 +28,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/iterators/variant_parallel_input_iterator.hpp"
+#include "genesis/population/streams/variant_parallel_input_stream.hpp"
 
 #include "genesis/utils/core/logging.hpp"
 
@@ -45,8 +45,8 @@ namespace population {
 //     Iterator Constructors and Rule of Five
 // =================================================================================================
 
-VariantParallelInputIterator::Iterator::Iterator(
-    VariantParallelInputIterator* parent
+VariantParallelInputStream::Iterator::Iterator(
+    VariantParallelInputStream* parent
 )
     : parent_(parent)
 {
@@ -66,7 +66,7 @@ VariantParallelInputIterator::Iterator::Iterator(
         iterators_.emplace_back( parent_->inputs_[i].begin() );
 
         // We now have stored the iterator and called its begin() function,
-        // which in the LambdaIterator already obtains the first element.
+        // which in the GenericInputStream already obtains the first element.
         // We use this to get the number of BaseCounts objects in the Variant.
         // We will later need this to default-construct that many BaseCounts
         // for positions where this iterator does not have data.
@@ -77,7 +77,7 @@ VariantParallelInputIterator::Iterator::Iterator(
             // We assume that the sample_names are of the correct size, if given.
             if( sample_name_count > 0 && iterators_[i]->samples.size() != sample_name_count ) {
                 throw std::runtime_error(
-                    "Input source for VariantParallelInputIterator contains " +
+                    "Input source for VariantParallelInputStream contains " +
                     std::to_string( iterators_[i]->samples.size() ) + " samples, but its sample " +
                     "name list contains " + std::to_string( sample_name_count ) + " names."
                 );
@@ -121,7 +121,7 @@ VariantParallelInputIterator::Iterator::Iterator(
     if( parent_->sequence_dict_ && ! parent_->carrying_loci_.empty() ) {
         assert( carrying_locus_it_ != parent_->carrying_loci_.cend() );
         throw std::invalid_argument(
-            "VariantParallelInputIterator was provided with a SequenceDict, and with additional "
+            "VariantParallelInputStream was provided with a SequenceDict, and with additional "
             "carrying loci to iterate over. This specific combination is currently not implemented "
             "(as we did not have need for it so far). If you need this, please open an issue at "
             "https://github.com/lczech/genesis/issues and we will see what we can do."
@@ -136,7 +136,7 @@ VariantParallelInputIterator::Iterator::Iterator(
 //     Iterator Accessors
 // =================================================================================================
 
-Variant VariantParallelInputIterator::Iterator::joined_variant(
+Variant VariantParallelInputStream::Iterator::joined_variant(
     bool allow_ref_base_mismatches,
     bool allow_alt_base_mismatches,
     bool move_samples
@@ -272,7 +272,7 @@ Variant VariantParallelInputIterator::Iterator::joined_variant(
 //     advance_using_carrying_()
 // -------------------------------------------------------------------------
 
-void VariantParallelInputIterator::Iterator::advance_using_carrying_()
+void VariantParallelInputStream::Iterator::advance_using_carrying_()
 {
     // Candidate locus. We look for the earliest position of the carrying iterators,
     // as this is the next one we want to go to.
@@ -434,7 +434,7 @@ void VariantParallelInputIterator::Iterator::advance_using_carrying_()
 //     advance_using_only_following_()
 // -------------------------------------------------------------------------
 
-void VariantParallelInputIterator::Iterator::advance_using_only_following_()
+void VariantParallelInputStream::Iterator::advance_using_only_following_()
 {
     // If this function is called, we only have following iterators,
     // so there are no addtional carrying loci given.
@@ -610,8 +610,8 @@ void VariantParallelInputIterator::Iterator::advance_using_only_following_()
 //     increment_iterator_()
 // -------------------------------------------------------------------------
 
-void VariantParallelInputIterator::Iterator::increment_iterator_(
-    VariantInputIterator::Iterator& iterator
+void VariantParallelInputStream::Iterator::increment_iterator_(
+    VariantInputStream::Iterator& iterator
 ) {
     // If we already reached the end, do nothing.
     // if( ! iterator ) {
@@ -658,8 +658,8 @@ void VariantParallelInputIterator::Iterator::increment_iterator_(
 //     assert_correct_chr_and_pos_()
 // -------------------------------------------------------------------------
 
-void VariantParallelInputIterator::Iterator::assert_correct_chr_and_pos_(
-    VariantInputIterator::Iterator const& iterator
+void VariantParallelInputStream::Iterator::assert_correct_chr_and_pos_(
+    VariantInputStream::Iterator const& iterator
 ) {
     assert( iterator );
 
@@ -679,7 +679,7 @@ void VariantParallelInputIterator::Iterator::assert_correct_chr_and_pos_(
 //     update_variants_()
 // -------------------------------------------------------------------------
 
-void VariantParallelInputIterator::Iterator::update_variants_()
+void VariantParallelInputStream::Iterator::update_variants_()
 {
     assert( iterators_.size() == variants_.size() );
     assert( ! current_locus_.empty() );

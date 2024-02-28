@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@
 #include <stdexcept>
 
 #include "genesis/population/plotting/af_spectrum.hpp"
-#include "genesis/population/formats/vcf_input_iterator.hpp"
+#include "genesis/population/formats/vcf_input_stream.hpp"
 
 #include "genesis/utils/formats/bmp/writer.hpp"
 
@@ -78,7 +78,7 @@ AlleleFrequencyWindow::~AlleleFrequencyWindow()
 
 void AlleleFrequencyWindow::run_vcf( std::string const& vcf_file )
 {
-    for( auto record = VcfInputIterator( vcf_file ); record; ++record ) {
+    for( auto record = VcfInputStream( vcf_file ); record; ++record ) {
         enqueue( *record );
     }
 }

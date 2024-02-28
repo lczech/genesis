@@ -217,8 +217,8 @@ public:
      * alternative base is also meaningless. In these cases, the alternative will be `N`.
      *
      * Note though that this can lead to conflicts between different files, if the second most
-     * abundant nucleotide differs between them, e.g., in non-biallelic positions. Usually we can
-     * deal with this, see for example VariantParallelInputIterator::Iterator::joined_variant().
+     * abundant nucleotide differs between them, e.g., in non-bia   llelic positions. Usually we can
+     * deal with this, see for example VariantParallelInputStream::Iterator::joined_variant().
      * Still, it is important to keep this in mind.
      */
     SyncReader& guess_alt_base( bool value )

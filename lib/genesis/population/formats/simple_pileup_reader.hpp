@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -240,7 +240,7 @@ public:
      * Note that this only handles a single line, and hence cannot check that the correct order
      * of chromosomes and positions in the input is kept. A well-formed (m)pileup file will have
      * the correct order, so that should not be an issue. Use the `read_...` functions, or
-     * the SimplePileupInputIterator for ways to read in (m)pileup data that have this check.
+     * the SimplePileupInputStream for ways to read in (m)pileup data that have this check.
      */
     bool parse_line_record(
         utils::InputStream& input_stream,

@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/iterators/variant_input_iterator.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/functions/fst_pool_processor.hpp"
 #include "genesis/population/functions/fst_pool_unbiased.hpp"
 #include "genesis/population/plotting/cathedral_plot.hpp"
@@ -180,7 +180,7 @@ private:
  * otherwise, we use the last position found in the data for that.
  */
 std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records_for_chromosome(
-    VariantInputIterator::Iterator& iterator,
+    VariantInputStream::Iterator& iterator,
     FstPoolProcessor& processor,
     FstPoolCalculatorUnbiased::Estimator fst_estimator,
     std::vector<std::string> const& sample_names = std::vector<std::string>{},
@@ -199,7 +199,7 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records_for_chromosome
  * and process the returned data before starting with the next chromosome.
  */
 std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records(
-    VariantInputIterator& iterator,
+    VariantInputStream& iterator,
     FstPoolProcessor& processor,
     FstPoolCalculatorUnbiased::Estimator fst_estimator,
     std::vector<std::string> const& sample_names = std::vector<std::string>{},

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -191,7 +191,7 @@ std::string vcf_hl_type_to_string( int hl_type );
  *
  * Only SNP data (no indels) are allowed in this function; use VcfRecord::is_snp() to test this.
  *
- * @see See make_variant_input_iterator_from_pool_vcf_file() for an example where this is used.
+ * @see See make_variant_input_stream_from_pool_vcf_file() for an example where this is used.
  * @see See convert_to_variant_as_individuals() for the function that instead
  * interprets the VCF as usual as a set of individuals.
  */
@@ -219,7 +219,7 @@ Variant convert_to_variant_as_pool(
  *      obtain the actual counts for the reference and alterantive allele, and use these to
  *      sum up the BaseCounts data.
  *
- * @see See make_variant_input_iterator_from_individual_vcf_file() for an example where this is used.
+ * @see See make_variant_input_stream_from_individual_vcf_file() for an example where this is used.
  * @see See convert_to_variant_as_pool() for the alterantive function that instead
  * interprets each sample (column) as a pool of individuals, e.g., from pool sequencing.
  */

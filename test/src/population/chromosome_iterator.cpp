@@ -30,14 +30,14 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/formats/simple_pileup_input_iterator.hpp"
+#include "genesis/population/formats/simple_pileup_input_stream.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
-#include "genesis/population/iterators/variant_input_iterator.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/window/functions.hpp"
 #include "genesis/population/window/chromosome_iterator.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/population/window/window_view.hpp"
-#include "genesis/utils/containers/lambda_iterator.hpp"
+#include "genesis/utils/containers/generic_input_stream.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;
@@ -48,9 +48,9 @@ void test_window_iterator_chromosome_iterator_chromosome_empty_()
     std::string const infile = environment->data_dir + "population/empty.pileup";
     // std::string const infile = environment->data_dir + "population/example.pileup";
 
-    // Make a Lambda Iterator over the data stream,
+    // Make a generic input stream over the data stream,
     // and set up the window iterator. Rename to `win_it` to use it with the below test code.
-    auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
+    auto data_gen = make_variant_input_stream_from_pileup_file( infile );
     auto win_it = make_default_chromosome_iterator( data_gen.begin(), data_gen.end() );
 
     // Run the tests.
@@ -83,9 +83,9 @@ void test_window_iterator_chromosome_iterator_chromosome_single_(
     std::string const infile = environment->data_dir + "population/78.pileup.gz";
     // std::string const infile = environment->data_dir + "population/example.pileup";
 
-    // Make a Lambda Iterator over the data stream,
+    // Make a generic input stream over the data stream,
     // and set up the window iterator. Rename to `win_it` to use it with the below test code.
-    auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
+    auto data_gen = make_variant_input_stream_from_pileup_file( infile );
     auto win_it = make_default_chromosome_iterator( data_gen.begin(), data_gen.end() );
     win_it.sequence_dict( sequence_dict );
 
@@ -133,9 +133,9 @@ void test_window_iterator_chromosome_iterator_chromosome_multi_(
     // LOG_DBG << "multi";
     std::string const infile = environment->data_dir + "population/ex1.bam";
 
-    // Make a Lambda Iterator over the data stream,
+    // Make a generic input stream over the data stream,
     // and set up the window iterator. Rename to `win_it` to use it with the below test code.
-    auto data_gen = make_variant_input_iterator_from_sam_file( infile );
+    auto data_gen = make_variant_input_stream_from_sam_file( infile );
     auto win_it = make_default_chromosome_iterator( data_gen.begin(), data_gen.end() );
     win_it.sequence_dict( sequence_dict );
 
@@ -217,9 +217,9 @@ TEST( WindowIterator, ChromosomeIteratorWholeGenome )
         std::string const infile = environment->data_dir + "population/empty.pileup";
         // std::string const infile = environment->data_dir + "population/example.pileup";
 
-        // Make a Lambda Iterator over the data stream,
+        // Make a generic input stream over the data stream,
         // and set up the window iterator. Rename to `win_it` to use it with the below test code.
-        auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
+        auto data_gen = make_variant_input_stream_from_pileup_file( infile );
         auto win_it = make_default_genome_iterator( data_gen.begin(), data_gen.end() );
 
         // Run the tests.
@@ -244,9 +244,9 @@ TEST( WindowIterator, ChromosomeIteratorWholeGenome )
         std::string const infile = environment->data_dir + "population/78.pileup.gz";
         // std::string const infile = environment->data_dir + "population/example.pileup";
 
-        // Make a Lambda Iterator over the data stream,
+        // Make a generic input stream over the data stream,
         // and set up the window iterator. Rename to `win_it` to use it with the below test code.
-        auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
+        auto data_gen = make_variant_input_stream_from_pileup_file( infile );
         auto win_it = make_default_genome_iterator( data_gen.begin(), data_gen.end() );
 
         // Run the tests.
@@ -272,9 +272,9 @@ TEST( WindowIterator, ChromosomeIteratorWholeGenome )
     {
         std::string const infile = environment->data_dir + "population/ex1.bam";
 
-        // Make a Lambda Iterator over the data stream,
+        // Make a generic input stream over the data stream,
         // and set up the window iterator. Rename to `win_it` to use it with the below test code.
-        auto data_gen = make_variant_input_iterator_from_sam_file( infile );
+        auto data_gen = make_variant_input_stream_from_sam_file( infile );
         auto win_it = make_default_genome_iterator( data_gen.begin(), data_gen.end() );
 
         // Run the tests.

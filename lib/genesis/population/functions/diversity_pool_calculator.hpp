@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -79,10 +79,10 @@ namespace population {
  * coming from a file, in order to remove base counts and samples that do not match these filters.
  *
  * There are multiple ways that this filtering can be applied. Typically for example, we want
- * to process a VariantInputIterator, which allows us to use input from a variety of input
+ * to process a VariantInputStream, which allows us to use input from a variety of input
  * file formats, all converted into Variant%s at each position in the genome. This internally
- * is a genesis::utils::LambdaIterator, which offers to add
- * @link genesis::utils::LambdaIterator::add_transform_filter() add_transform_filter()@endlink
+ * is a genesis::utils::GenericInputStream, which offers to add
+ * @link genesis::utils::GenericInputStream::add_transform_filter() add_transform_filter()@endlink
  * functions for this purpose. The make_filter_base_counts() is a convenience function that creates
  * such a filter/transform function given a BaseCountsFilter settings instance.
  *
@@ -91,7 +91,7 @@ namespace population {
  * that BaseCountsFilterStats can be provided, e.g., per window of the analysis, to capture the
  * number of sites that pass coverage filters etc. These numbers can then be used for
  * get_theta_pi_relative() and get_theta_watterson_relative(), respectively. Otherwise (when instead
- * filtering directly in the VariantInputIterator), these numbers are lost, and instead the relative
+ * filtering directly in the VariantInputStream), these numbers are lost, and instead the relative
  * values would need to be computed, e.g., using the full window sizes, instead of taking only
  * sufficiently covered positions into account for the normalization.
  *

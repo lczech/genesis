@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@
 #include "genesis/population/formats/hts_file.hpp"
 #include "genesis/population/formats/vcf_common.hpp"
 #include "genesis/population/formats/vcf_header.hpp"
-#include "genesis/population/formats/vcf_input_iterator.hpp"
+#include "genesis/population/formats/vcf_input_stream.hpp"
 #include "genesis/population/formats/vcf_record.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -772,7 +772,7 @@ TEST( Vcf, FormatIteratorDoc )
     }
 }
 
-TEST( Vcf, InputIterator )
+TEST( Vcf, InputStream )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -781,7 +781,7 @@ TEST( Vcf, InputIterator )
     std::string at;
     size_t cnt = 0;
 
-    auto it = VcfInputIterator( infile, std::vector<std::string>{ "NA00002" }, false, true );
+    auto it = VcfInputStream( infile, std::vector<std::string>{ "NA00002" }, false, true );
     while( it ) {
         at += it.record().at() + " ";
 
@@ -804,14 +804,14 @@ TEST( Vcf, InputIterator )
     EXPECT_EQ( 5, cnt );
 }
 
-TEST( Vcf, InputIteratorFailFilter )
+TEST( Vcf, InputStreamFailFilter )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/example.vcf";
 
     // Try to filter by a name that does not exist.
-    EXPECT_ANY_THROW( VcfInputIterator( infile, std::vector<std::string>{ "XYZ" }) );
+    EXPECT_ANY_THROW( VcfInputStream( infile, std::vector<std::string>{ "XYZ" }) );
 }
 
 TEST( Vcf, GenomeRegionList )

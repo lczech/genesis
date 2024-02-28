@@ -34,7 +34,7 @@
 #include "genesis/population/window/functions.hpp"
 #include "genesis/population/window/region_window_iterator.hpp"
 #include "genesis/population/window/window.hpp"
-#include "genesis/utils/containers/lambda_iterator.hpp"
+#include "genesis/utils/containers/generic_input_stream.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/random.hpp"

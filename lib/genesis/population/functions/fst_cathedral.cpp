@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -202,7 +202,7 @@ void fill_fst_cathedral_records_from_processor_(
 }
 
 std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records_for_chromosome(
-    VariantInputIterator::Iterator& iterator,
+    VariantInputStream::Iterator& iterator,
     FstPoolProcessor& processor,
     FstPoolCalculatorUnbiased::Estimator fst_estimator,
     std::vector<std::string> const& sample_names,
@@ -258,7 +258,7 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records_for_chromosome
 }
 
 std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records(
-    VariantInputIterator& iterator,
+    VariantInputStream& iterator,
     FstPoolProcessor& processor,
     FstPoolCalculatorUnbiased::Estimator fst_estimator,
     std::vector<std::string> const& sample_names,

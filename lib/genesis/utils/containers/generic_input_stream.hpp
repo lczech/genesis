@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_CONTAINERS_LAMBDA_ITERATOR_H_
-#define GENESIS_UTILS_CONTAINERS_LAMBDA_ITERATOR_H_
+#ifndef GENESIS_UTILS_CONTAINERS_GENERIC_INPUT_STREAM_H_
+#define GENESIS_UTILS_CONTAINERS_GENERIC_INPUT_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -44,17 +44,17 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief Empty helper data struct to serve as a dummy for LambdaIterator.
+ * @brief Empty helper data struct to serve as a dummy for GenericInputStream.
  *
- * By default, the LambdaIterator::Data type does not do anything.
+ * By default, the GenericInputStream::Data type does not do anything.
  * This class here serves as the empty dummy class, so that the user does not have to
- * provide one when using LambdaIterator without an extra data type.
+ * provide one when using GenericInputStream without an extra data type.
  */
-struct EmptyLambdaIteratorData
+struct EmptyGenericInputStreamData
 {};
 
 // =================================================================================================
-//      Lambda Iterator
+//      Generic Input Stream
 // =================================================================================================
 
 /**
@@ -74,7 +74,7 @@ struct EmptyLambdaIteratorData
  *     auto end = vcf_range.end();
  *
  *     // Create the conversion with type erasure via the lambda function.
- *     auto generator = LambdaIterator<Variant>(
+ *     auto generator = GenericInputStream<Variant>(
  *         [beg, end]( Variant& var ) mutable {
  *             if( beg != end ) {
  *                 var =  convert_to_variant(*beg);
@@ -95,7 +95,7 @@ struct EmptyLambdaIteratorData
  * ~~~{.cpp}
  *     // Use a pileup iterator, which does not offer begin and end.
  *     auto it = SimplePileupInputIterator( utils::from_file( pileup_file_.value ), reader );
- *     auto generator = LambdaIterator<Variant>(
+ *     auto generator = GenericInputStream<Variant>(
  *         [it]( Variant& var ) mutable {
  *             if( it ) {
  *                 var = *it;
@@ -111,11 +111,11 @@ struct EmptyLambdaIteratorData
  * And accordingly for other underlying iterator types.
  *
  * In addition to the type `T` that we iterate over, for user convenience, we also offer to use
- * a data storage variable of the template type `D` (typedef'd as LambdaIterator::Data).
- * This data is provided at construction of the LambdaIterator, and can be accessed via the
- * @link LambdaIterator::data() data()@endlink functions.
+ * a data storage variable of the template type `D` (typedef'd as GenericInputStream::Data).
+ * This data is provided at construction of the GenericInputStream, and can be accessed via the
+ * @link GenericInputStream::data() data()@endlink functions.
  * it is a generic extra variable to store iterator-specific information.
- * As the LambdaIterator is intended to be initializable with just a lambda function that yields
+ * As the GenericInputStream is intended to be initializable with just a lambda function that yields
  * the elements to traverse over, there is otherwise no convenient way to access related information
  * of the underlying iterator. For example, when iterating over a file, one might want to store
  * the file name or other characteristics of the input in the data().
@@ -134,7 +134,7 @@ struct EmptyLambdaIteratorData
  * processed, and those can then be reported at the end of the iteration. This could of course also
  * be achieved by adding this functionatlity in the loop body and at the loop end when running
  * this iterator. However, for example in our tool https://github.com/lczech/grenedalf, we have
- * setup functions for a LambdaIterator (of type VariantInputIterator) that are re-used across
+ * setup functions for a GenericInputStream (of type VariantInputStream) that are re-used across
  * commands. Then, instead of having to have code duplication or repeated function calls in those
  * commands, we only need to add the callbacks when creating the iterator, and they are used in
  * every command automatically.
@@ -153,14 +153,14 @@ struct EmptyLambdaIteratorData
  * the filters and the block buffering would typically go in separate classes for modularity.
  * However, we are taking user convenience and speed into account here: Instead of having to add
  * filters or a block buffer wrapper around each input iterator that is then wrapped in a
- * LambdaIterator anyway, we rather take care of this in one place; this also reduces levels of
+ * GenericInputStream anyway, we rather take care of this in one place; this also reduces levels of
  * abstraction, and hence (hopefully) increases processing speed.
  *
- * @see VariantInputIterator for a use case of this iterator that allows to traverse different
+ * @see VariantInputStream for a use case of this iterator that allows to traverse different
  * input file types that all are convertible to @link genesis::population::Variant Variant@endlink.
  */
-template<class T, class D = EmptyLambdaIteratorData>
-class LambdaIterator
+template<class T, class D = EmptyGenericInputStreamData>
+class GenericInputStream
 {
 public:
 
@@ -168,7 +168,7 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using self_type         = LambdaIterator;
+    using self_type         = GenericInputStream;
     using value_type        = T;
     using pointer           = value_type const*;
     using reference         = value_type const&;
@@ -201,7 +201,7 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type         = LambdaIterator<T, D>::Iterator;
+        using self_type         = GenericInputStream<T, D>::Iterator;
         using value_type        = T;
         using pointer           = value_type const*;
         using reference         = value_type const&;
@@ -215,7 +215,7 @@ public:
          *
          * Public, so that an empty default instance can be used in a (placeholder) variable
          * before assining it a value (e.g., when default-constructing an object that holds a
-         * LambdaIterator instance).
+         * GenericInputStream instance).
          */
         Iterator() = default;
 
@@ -228,7 +228,7 @@ public:
          * to have the data generator functor available.
          */
         Iterator(
-            LambdaIterator const* generator
+            GenericInputStream const* generator
         )
             : generator_(     generator )
             , current_block_( std::make_shared<std::vector<T>>() )
@@ -245,7 +245,7 @@ public:
             if( generator_ ) {
                 if( ! generator_->get_element_ ) {
                     throw std::invalid_argument(
-                        "Cannot use LambdaIterator without a function to get elements."
+                        "Cannot use GenericInputStream without a function to get elements."
                     );
                 }
 
@@ -265,7 +265,7 @@ public:
         Iterator& operator= ( self_type const& ) = default;
         Iterator& operator= ( self_type&& )      = default;
 
-        friend LambdaIterator;
+        friend GenericInputStream;
 
         // -------------------------------------------------------------------------
         //     Accessors
@@ -310,7 +310,7 @@ public:
         {
             if( ! generator_ ) {
                 throw std::runtime_error(
-                    "Cannot access default constructed or past-the-end LambdaIterator content."
+                    "Cannot access default constructed or past-the-end GenericInputStream content."
                 );
             }
             assert( generator_ );
@@ -327,7 +327,7 @@ public:
         // {
         //     if( ! generator_ ) {
         //         throw std::runtime_error(
-        //             "Cannot access default constructed or past-the-end LambdaIterator content."
+        //             "Cannot access default constructed or past-the-end GenericInputStream content."
         //         );
         //     }
         //     assert( generator_ );
@@ -368,7 +368,7 @@ public:
          * Any two iterators that are copies of each other without having moved will compare equal,
          * as long as neither of them is past-the-end.
          * A valid (not past-the-end) iterator and an end() iterator will not compare equal,
-         * no matter from which LambdaIterator they were created.
+         * no matter from which GenericInputStream they were created.
          * Two past-the-end iterators compare equal.
          */
         bool operator==( self_type const& other ) const
@@ -616,7 +616,7 @@ public:
          * @brief Read a block of data into a buffer, and return the number of elements read.
          */
         static size_t read_block_(
-            LambdaIterator const* generator,
+            GenericInputStream const* generator,
             std::shared_ptr<std::vector<T>> buffer_block,
             size_t block_size
         ) {
@@ -652,7 +652,7 @@ public:
          * so that it can be called asynchronously without the iterator going out of scope.
          */
         static bool get_next_element_(
-            LambdaIterator const* generator,
+            GenericInputStream const* generator,
             T& target
         ) {
             assert( generator );
@@ -737,7 +737,7 @@ public:
     private:
 
         // Parent.
-        LambdaIterator const* generator_ = nullptr;
+        GenericInputStream const* generator_ = nullptr;
 
         // Buffer buffering data, and positions in it.
         std::shared_ptr<std::vector<T>> current_block_;
@@ -759,7 +759,7 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    LambdaIterator() = default;
+    GenericInputStream() = default;
 
     /**
      * @brief Create an iterator over some underlying content.
@@ -768,7 +768,7 @@ public:
      * new value at each iteration, and returns `true` if there was an element (iteration still
      * ongoing), or `false` once the end of the underlying iterator is reached.
      */
-    LambdaIterator(
+    GenericInputStream(
         std::function<bool(value_type&)> get_element,
         std::shared_ptr<utils::ThreadPool> thread_pool = nullptr,
         size_t block_size = DEFAULT_BLOCK_SIZE
@@ -783,43 +783,43 @@ public:
     }
 
     /**
-     * @copydoc LambdaIterator( std::function<bool(value_type&)>, std::shared_ptr<utils::ThreadPool>, size_t )
+     * @copydoc GenericInputStream( std::function<bool(value_type&)>, std::shared_ptr<utils::ThreadPool>, size_t )
      *
      * Additionally, @p data can be given here, which we simply store and make accessible
      * via data(). This is a convenience so that iterators generated via a `make` function
      * can for example forward their input source name for user output.
      */
-    LambdaIterator(
+    GenericInputStream(
         std::function<bool(value_type&)> get_element,
         Data const& data,
         std::shared_ptr<utils::ThreadPool> thread_pool = nullptr,
         size_t block_size = DEFAULT_BLOCK_SIZE
     )
-        : LambdaIterator( get_element, thread_pool, block_size )
+        : GenericInputStream( get_element, thread_pool, block_size )
     {
         data_ = data;
     }
 
     /**
-     * @copydoc LambdaIterator( std::function<bool(value_type&)>, Data const&, std::shared_ptr<utils::ThreadPool>, size_t )
+     * @copydoc GenericInputStream( std::function<bool(value_type&)>, Data const&, std::shared_ptr<utils::ThreadPool>, size_t )
      *
      * This version of the constructor takes the data by r-value reference, for moving it.
      */
-    LambdaIterator(
+    GenericInputStream(
         std::function<bool(value_type&)> get_element,
         Data&& data,
         std::shared_ptr<utils::ThreadPool> thread_pool = nullptr,
         size_t block_size = DEFAULT_BLOCK_SIZE
     )
-        : LambdaIterator( get_element, thread_pool, block_size )
+        : GenericInputStream( get_element, thread_pool, block_size )
     {
         data_ = std::move( data );
     }
 
-    ~LambdaIterator() = default;
+    ~GenericInputStream() = default;
 
-    LambdaIterator( self_type const& ) = default;
-    LambdaIterator( self_type&& )      = default;
+    GenericInputStream( self_type const& ) = default;
+    GenericInputStream( self_type&& )      = default;
 
     self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
@@ -833,7 +833,7 @@ public:
     Iterator begin()
     {
         if( has_started_ ) {
-            throw std::runtime_error( "LambdaIterator: Cannot call begin() multiple times." );
+            throw std::runtime_error( "GenericInputStream: Cannot call begin() multiple times." );
         }
         has_started_ = true;
         return Iterator( this );
@@ -922,7 +922,7 @@ public:
         // Sanity check.
         if( has_started_ ) {
             throw std::runtime_error(
-                "LambdaIterator: Cannot change filters/transformations after iteration has started."
+                "GenericInputStream: Cannot change filters/transformations after iteration has started."
             );
         }
         transforms_and_filters_.push_back( filter );
@@ -936,7 +936,7 @@ public:
     {
         if( has_started_ ) {
             throw std::runtime_error(
-                "LambdaIterator: Cannot change filters/transformations after iteration has started."
+                "GenericInputStream: Cannot change filters/transformations after iteration has started."
             );
         }
         transforms_and_filters_.clear();
@@ -963,7 +963,7 @@ public:
     {
         if( has_started_ ) {
             throw std::runtime_error(
-                "LambdaIterator: Cannot change observers after iteration has started."
+                "GenericInputStream: Cannot change observers after iteration has started."
             );
         }
         observers_.push_back( observer );
@@ -977,7 +977,7 @@ public:
     {
         if( has_started_ ) {
             throw std::runtime_error(
-                "LambdaIterator: Cannot change observers after iteration has started."
+                "GenericInputStream: Cannot change observers after iteration has started."
             );
         }
         observers_.clear();
@@ -987,7 +987,7 @@ public:
     /**
      * @brief Add a callback function that is executed when the begin() function is called.
      *
-     * The callback needs to accept the LambdaIterator object itself, as a means to, for example,
+     * The callback needs to accept the GenericInputStream object itself, as a means to, for example,
      * access its data(), and is meant as a reporting mechanism. For example, callbacks can be added
      * that write properties of the underlying data sources to log. They are executed in the order
      * added.
@@ -998,11 +998,11 @@ public:
      *
      * See also add_end_callback().
      */
-    self_type& add_begin_callback( std::function<void(LambdaIterator const&)> const& callback )
+    self_type& add_begin_callback( std::function<void(GenericInputStream const&)> const& callback )
     {
         if( has_started_ ) {
             throw std::runtime_error(
-                "LambdaIterator: Cannot change callbacks after iteration has started."
+                "GenericInputStream: Cannot change callbacks after iteration has started."
             );
         }
         begin_callbacks_.push_back( callback );
@@ -1016,11 +1016,11 @@ public:
      * callback when starting the iteration, it is called when ending it. Again, this is meant
      * as a means to reduce user code duplication, for example for logging needs.
      */
-    self_type& add_end_callback( std::function<void(LambdaIterator const&)> const& callback )
+    self_type& add_end_callback( std::function<void(GenericInputStream const&)> const& callback )
     {
         if( has_started_ ) {
             throw std::runtime_error(
-                "LambdaIterator: Cannot change callbacks after iteration has started."
+                "GenericInputStream: Cannot change callbacks after iteration has started."
             );
         }
         end_callbacks_.push_back( callback );
@@ -1035,7 +1035,7 @@ public:
     {
         if( has_started_ ) {
             throw std::runtime_error(
-                "LambdaIterator: Cannot change callbacks after iteration has started."
+                "GenericInputStream: Cannot change callbacks after iteration has started."
             );
         }
         begin_callbacks_.clear();
@@ -1064,12 +1064,12 @@ public:
     {
         if( has_started_ ) {
             throw std::runtime_error(
-                "LambdaIterator: Cannot change thread pool after iteration has started."
+                "GenericInputStream: Cannot change thread pool after iteration has started."
             );
         }
         if( !value ) {
             throw std::runtime_error(
-                "LambdaIterator: Cannot change thread pool to empty object."
+                "GenericInputStream: Cannot change thread pool to empty object."
             );
         }
         thread_pool_ = value;
@@ -1097,7 +1097,7 @@ public:
     {
         if( has_started_ ) {
             throw std::runtime_error(
-                "LambdaIterator: Cannot change thread pool block size after iteration has started."
+                "GenericInputStream: Cannot change thread pool block size after iteration has started."
             );
         }
         block_size_ = value;

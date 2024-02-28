@@ -30,9 +30,9 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/formats/frequency_table_input_iterator.hpp"
+#include "genesis/population/formats/frequency_table_input_stream.hpp"
 #include "genesis/population/functions/functions.hpp"
-#include "genesis/population/iterators/variant_input_iterator.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
 
 #include <cmath>
 #include <limits>
@@ -40,7 +40,7 @@
 using namespace genesis::population;
 using namespace genesis::utils;
 
-TEST( FrequencyTableInputIterator, Read )
+TEST( FrequencyTableInputStream, Read )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -49,7 +49,7 @@ TEST( FrequencyTableInputIterator, Read )
     auto const exp_names = std::vector<std::string>{ "Smp1", "SmpA", "SmpC", "smp2" };
     std::vector<Variant> variants;
 
-    // auto reader = FrequencyTableInputIterator( from_file( infile ));
+    // auto reader = FrequencyTableInputStream( from_file( infile ));
     // auto beg = reader.begin();
     // auto end = reader.end();
     //
@@ -59,7 +59,7 @@ TEST( FrequencyTableInputIterator, Read )
     // EXPECT_EQ( exp_names, beg.sample_names() );
 
     // Test custom header field names.
-    auto reader = FrequencyTableInputIterator();
+    auto reader = FrequencyTableInputStream();
     reader.header_chromosome_string( "chr" );
     reader.header_position_string( "pos" );
     reader.header_reference_base_string( "ref" );
@@ -71,7 +71,7 @@ TEST( FrequencyTableInputIterator, Read )
     // reader.header_sample_alternative_count_substring( "altcount" );
     // reader.header_sample_frequency_substring( ".freq" );
     // reader.header_sample_coverage_substring( "coverage-" );
-    auto it = make_variant_input_iterator_from_frequency_table_file( infile, '\t', reader );
+    auto it = make_variant_input_stream_from_frequency_table_file( infile, '\t', reader );
     for( auto const& var : it ) {
         variants.emplace_back( var );
     }

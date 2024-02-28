@@ -30,14 +30,14 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/formats/simple_pileup_input_iterator.hpp"
+#include "genesis/population/formats/simple_pileup_input_stream.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
-#include "genesis/population/iterators/variant_input_iterator.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/window/functions.hpp"
 #include "genesis/population/window/sliding_interval_window_iterator.hpp"
 #include "genesis/population/window/variant_window_iterator.hpp"
 #include "genesis/population/window/window.hpp"
-#include "genesis/utils/containers/lambda_iterator.hpp"
+#include "genesis/utils/containers/generic_input_stream.hpp"
 
 #include <unordered_map>
 
@@ -122,8 +122,8 @@ TEST( WindowIterator, SlidingIntervalDirect )
     // std::string const infile = environment->data_dir + "population/example.pileup";
 
     // Make an underlying data iterator over some variants.
-    auto pileup_begin = SimplePileupInputIterator<>( from_file( infile ));
-    auto pileup_end = SimplePileupInputIterator<>();
+    auto pileup_begin = SimplePileupInputStream<>( from_file( infile ));
+    auto pileup_end = SimplePileupInputStream<>();
 
     // Set up the window iterator. Rename to `win_it` to use it with the below test code.
     auto win_it = make_default_sliding_interval_window_iterator(
@@ -163,14 +163,14 @@ TEST( WindowIterator, SlidingIntervalLambda )
     std::string const infile = environment->data_dir + "population/78.pileup.gz";
     // std::string const infile = environment->data_dir + "population/example.pileup";
 
-    // Make a Lambda Iterator over the data stream.
-    auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
+    // Make a Generic Input Stream over the data stream.
+    auto data_gen = make_variant_input_stream_from_pileup_file( infile );
     // data_gen.block_size( 1024 * 1024 );
     data_gen.block_size(0);
     auto pileup_begin = data_gen.begin();
     auto pileup_end   = data_gen.end();
 
-    // Create a window iterator based on the lambda iterator.
+    // Create a window iterator based on the Generic Input Stream.
     auto win_it = make_default_sliding_interval_window_iterator(
         pileup_begin, pileup_end, 10000
     );
@@ -195,14 +195,14 @@ TEST( WindowIterator, SlidingIntervalWindowView )
     std::string const infile = environment->data_dir + "population/78.pileup.gz";
     // std::string const infile = environment->data_dir + "population/example.pileup";
 
-    // Make a Lambda Iterator over the data stream.
-    auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
+    // Make a Generic Input Stream over the data stream.
+    auto data_gen = make_variant_input_stream_from_pileup_file( infile );
     // data_gen.block_size( 1024 * 1024 );
     data_gen.block_size(0);
     auto pileup_begin = data_gen.begin();
     auto pileup_end   = data_gen.end();
 
-    // Create a window iterator based on the lambda iterator.
+    // Create a window iterator based on the Generic Input Stream.
     auto win_it = make_default_sliding_interval_window_view_iterator(
         pileup_begin, pileup_end, 10000
     );
@@ -233,12 +233,12 @@ TEST( WindowIterator, SlidingIntervalEmpty )
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/empty.pileup";
 
-    // Make a Lambda Iterator over the data stream.
-    auto data_gen = make_variant_input_iterator_from_pileup_file( infile );
+    // Make a Generic Input Stream over the data stream.
+    auto data_gen = make_variant_input_stream_from_pileup_file( infile );
     auto pileup_begin = data_gen.begin();
     auto pileup_end   = data_gen.end();
 
-    // Create a window iterator based on the lambda iterator.
+    // Create a window iterator based on the Generic Input Stream.
     auto win_it = make_default_sliding_interval_window_iterator(
         pileup_begin, pileup_end, 10000
     );

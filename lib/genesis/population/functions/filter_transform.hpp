@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -54,9 +54,9 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief Filter function to be used with VariantInputIterator to filter by a genome region.
+ * @brief Filter function to be used with VariantInputStream to filter by a genome region.
  *
- * This function can be used as a filter with VariantInputIterator::add_filter(), in order
+ * This function can be used as a filter with VariantInputStream::add_filter(), in order
  * to only iterate over Variant%s that are in the given @p region (if @p complement is `false`,
  * default), or only over Variant%s that are outside of the @p region (if @p complement is `true`).
  */
@@ -70,9 +70,9 @@ inline std::function<bool(Variant const&)> make_filter_by_region(
 }
 
 /**
- * @brief Filter function to be used with VariantInputIterator to filter by a list of genome regions.
+ * @brief Filter function to be used with VariantInputStream to filter by a list of genome regions.
  *
- * This function can be used as a filter with VariantInputIterator::add_filter(), in order
+ * This function can be used as a filter with VariantInputStream::add_filter(), in order
  * to only iterate over Variant%s that are in the given @p regions (if @p complement is `false`,
  * default), or only over Variant%s that are outside of the @p regions (if @p complement is `true`).
  */
@@ -236,7 +236,7 @@ void transform_zero_out_by_max_count(
  * @brief Filter settings to filter and transform BaseCounts.
  *
  * These filters act on a single BaseCounts object, using the filter_base_counts() functions,
- * or the make_filter_base_counts() when using a VariantInputIterator.
+ * or the make_filter_base_counts() when using a VariantInputStream.
  *
  * When a filter fails, in addition to reporting this via returning `false` from the filter function,
  * we also change the values in the object by setting counts to 0. This is our way of communication
@@ -454,7 +454,7 @@ bool filter_base_counts(
 
 /**
  * @brief Return a functional to transform all BaseCounts samples of a given Variant,
- * so that the functional can be used as a transform with VariantInputIterator.
+ * so that the functional can be used as a transform with VariantInputStream.
  */
 inline std::function<void(Variant&)> make_transform_base_counts(
     BaseCountsFilter const& filter
@@ -480,7 +480,7 @@ inline std::function<void(Variant&)> make_transform_base_counts(
 
 /**
  * @brief Return a functional to filter all BaseCounts samples of a given Variant,
- * so that the functional can be used as a filter with VariantInputIterator.
+ * so that the functional can be used as a filter with VariantInputStream.
  */
 inline std::function<bool(Variant&)> make_filter_base_counts(
     BaseCountsFilter const& filter,
@@ -722,7 +722,7 @@ bool filter_variant(
 
 /**
  * @brief Return a functional to filter Variant%s that can be used as a filter
- * with VariantInputIterator.
+ * with VariantInputStream.
  */
 inline std::function<bool(Variant const&)> make_filter_variant(
     VariantFilter const& filter

@@ -1,9 +1,9 @@
-#ifndef GENESIS_POPULATION_FORMATS_FREQUENCY_TABLE_INPUT_ITERATOR_H_
-#define GENESIS_POPULATION_FORMATS_FREQUENCY_TABLE_INPUT_ITERATOR_H_
+#ifndef GENESIS_POPULATION_FORMATS_FREQUENCY_TABLE_INPUT_STREAM_H_
+#define GENESIS_POPULATION_FORMATS_FREQUENCY_TABLE_INPUT_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Frequency Table Input Iterator
+//     Frequency Table Input Stream
 // =================================================================================================
 
 /**
@@ -76,7 +76,7 @@ namespace population {
  * to `G`, respectively. If only the ref base is given, but no alt base, we again use the transition
  * base, as explained above.
  */
-class FrequencyTableInputIterator
+class FrequencyTableInputStream
 {
 public:
 
@@ -84,7 +84,7 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using self_type         = FrequencyTableInputIterator;
+    using self_type         = FrequencyTableInputStream;
     using value_type        = Variant;
     using pointer           = value_type const*;
     using reference         = value_type const&;
@@ -112,7 +112,7 @@ public:
 
     public:
 
-        using self_type         = FrequencyTableInputIterator::Iterator;
+        using self_type         = FrequencyTableInputStream::Iterator;
         using value_type        = Variant;
         using pointer           = value_type const*;
         using reference         = value_type const&;
@@ -168,7 +168,7 @@ public:
     private:
 
         Iterator() = default;
-        Iterator( FrequencyTableInputIterator const* parent )
+        Iterator( FrequencyTableInputStream const* parent )
             : parent_( parent )
             , input_stream_(    std::make_shared<utils::InputStream>( parent_->input_source_ ))
             , sample_data_(     std::make_shared<std::vector<SampleData>>() )
@@ -198,7 +198,7 @@ public:
         Iterator& operator= ( self_type const& ) = default;
         Iterator& operator= ( self_type&& )      = default;
 
-        friend FrequencyTableInputIterator;
+        friend FrequencyTableInputStream;
 
         // -------------------------------------------------------------------------
         //     Accessors
@@ -247,7 +247,7 @@ public:
          * @brief Compare two iterators for equality.
          *
          * Any two iterators that are created by calling begin() on the same
-         * FrequencyTableInputIterator instance will compare equal, as long as neither of them is
+         * FrequencyTableInputStream instance will compare equal, as long as neither of them is
          * past-the-end. A valid (not past-the-end) iterator and an end() iterator will not compare
          * equal; all past-the-end iterators compare equal, independently from which parent they
          * were created.
@@ -383,7 +383,7 @@ public:
     private:
 
         // Parent. If null, this indicates the end of the input and that we are done iterating.
-        FrequencyTableInputIterator const* parent_ = nullptr;
+        FrequencyTableInputStream const* parent_ = nullptr;
 
         // Data stream to read from.
         std::shared_ptr<utils::InputStream> input_stream_;
@@ -423,16 +423,16 @@ public:
      *
      * Use input_source() to assign an input afterwards.
      */
-    FrequencyTableInputIterator() = default;
+    FrequencyTableInputStream() = default;
 
     /**
      * @brief Create an instance that reads from an @p input_source.
      */
-    explicit FrequencyTableInputIterator(
+    explicit FrequencyTableInputStream(
         std::shared_ptr<utils::BaseInputSource> input_source
     )
         // Call the other constuctor, to avoid code duplication.
-        : FrequencyTableInputIterator( input_source, std::unordered_set<std::string>{}, false )
+        : FrequencyTableInputStream( input_source, std::unordered_set<std::string>{}, false )
     {}
 
     /**
@@ -442,7 +442,7 @@ public:
      * that only those samples are evaluated and accessible - or,
      * if @p inverse_sample_names is set to `true` - instead all <i>but</i> those samples.
      */
-    FrequencyTableInputIterator(
+    FrequencyTableInputStream(
         std::shared_ptr<utils::BaseInputSource> input_source,
         std::unordered_set<std::string> const& sample_names_filter,
         bool inverse_sample_names_filter = false
@@ -452,10 +452,10 @@ public:
         , inverse_sample_names_filter_( inverse_sample_names_filter )
     {}
 
-    ~FrequencyTableInputIterator() = default;
+    ~FrequencyTableInputStream() = default;
 
-    FrequencyTableInputIterator( self_type const& ) = default;
-    FrequencyTableInputIterator( self_type&& )      = default;
+    FrequencyTableInputStream( self_type const& ) = default;
+    FrequencyTableInputStream( self_type&& )      = default;
 
     self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
@@ -899,7 +899,7 @@ private:
     // Make sure that this actually fits into the BaseCounts values.
     static_assert(
         static_cast<double>( static_cast<BaseCounts::size_type>( max_int_factor_ )) == max_int_factor_,
-        "Numeric type for BaseCounts does not fit for FrequencyTableInputIterator::max_int_factor_"
+        "Numeric type for BaseCounts does not fit for FrequencyTableInputStream::max_int_factor_"
     );
 
     // The above is the max that we can use, but we allow users to set the used int factor that is

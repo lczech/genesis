@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/iterators/variant_input_iterator.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/window/base_window_iterator.hpp"
 #include "genesis/population/window/window_view_iterator.hpp"
 #include "genesis/population/window/window_view.hpp"
@@ -48,26 +48,26 @@ namespace population {
 
 // Quick check to avoid future bugs if we ever change that definition.
 static_assert(
-    std::is_same<VariantInputIterator::value_type, Variant>::value,
-    "VariantInputIterator::value_type != Variant"
+    std::is_same<VariantInputStream::value_type, Variant>::value,
+    "VariantInputStream::value_type != Variant"
 );
 
 /**
  * @brief Typedef for a uniform Window iterator type.
  *
- * This typedef is used for any Window iterator over an VariantInputIterator. It's simply a more
+ * This typedef is used for any Window iterator over an VariantInputStream. It's simply a more
  * convenient name that the full template specialization.
  */
 using VariantWindowIterator = BaseWindowIterator<
-    VariantInputIterator::Iterator,
-    VariantInputIterator::value_type,
-    Window<VariantInputIterator::value_type>
+    VariantInputStream::Iterator,
+    VariantInputStream::value_type,
+    Window<VariantInputStream::value_type>
 >;
 
 /**
  * @brief Typedef for our uniform WindowView iterator type.
  *
- * This typedef is used for any WindowView iterator over an VariantInputIterator. It's simply a more
+ * This typedef is used for any WindowView iterator over an VariantInputStream. It's simply a more
  * convenient name that the full template specialization.
  *
  * In particular, we use this type as an abstraction that captures iterators over both Window and
@@ -76,9 +76,9 @@ using VariantWindowIterator = BaseWindowIterator<
  * which use Window, some of which use WindowView, this abstraction allows us to have a single type.
  */
 using VariantWindowViewIterator = BaseWindowIterator<
-    VariantInputIterator::Iterator,
-    VariantInputIterator::value_type,
-    WindowView<VariantInputIterator::value_type>
+    VariantInputStream::Iterator,
+    VariantInputStream::value_type,
+    WindowView<VariantInputStream::value_type>
 >;
 
 } // namespace population

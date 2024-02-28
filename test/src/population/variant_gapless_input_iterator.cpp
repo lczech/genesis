@@ -33,11 +33,11 @@
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/population/functions/genome_locus.hpp"
 #include "genesis/population/genome_region.hpp"
-#include "genesis/population/iterators/variant_gapless_input_iterator.hpp"
-#include "genesis/population/iterators/variant_input_iterator.hpp"
+#include "genesis/population/streams/variant_gapless_input_stream.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/sequence/functions/dict.hpp"
-#include "genesis/utils/containers/lambda_iterator.hpp"
+#include "genesis/utils/containers/generic_input_stream.hpp"
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/bitvector.hpp"
@@ -60,7 +60,7 @@ using namespace genesis::utils;
 //     Basic Tests
 // =================================================================================================
 
-Variant test_gapless_input_iterator_make_variant_( std::string const& chr, size_t pos )
+Variant test_gapless_input_stream_make_variant_( std::string const& chr, size_t pos )
 {
     Variant var;
     var.chromosome = chr;
@@ -78,21 +78,21 @@ Variant test_gapless_input_iterator_make_variant_( std::string const& chr, size_
     return var;
 }
 
-void test_gapless_input_iterator_basic_(
+void test_gapless_input_stream_basic_(
     std::vector<Variant> const& vars,
     size_t exp_positions,
     std::shared_ptr<ReferenceGenome> ref_genome = std::shared_ptr<ReferenceGenome>{}
 ) {
     // Make the basis iterators that we want. The underlying data is coming from the given vector;
     // then, wrap this in the gapless iterator that we want to test.
-    auto var_it = make_variant_input_iterator_from_vector( vars );
-    auto gapless_it = VariantGaplessInputIterator( var_it );
+    auto var_it = make_variant_input_stream_from_vector( vars );
+    auto gapless_it = VariantGaplessInputStream( var_it );
     gapless_it.reference_genome( ref_genome );
 
     // Now we could already iterate over the gapless iterator with
     //     for( auto const& var : gapless_it )
-    // but we want to test our wrapper function for a lambda iterator as well, so we wrap again.
-    auto lambda_it = make_variant_input_iterator_from_variant_gapless_input_iterator( gapless_it );
+    // but we want to test our wrapper function for a Generic Input Stream as well, so we wrap again.
+    auto lambda_it = make_variant_input_stream_from_variant_gapless_input_stream( gapless_it );
 
     // Simply test that we get the expected number of variants in the iteration.
     size_t cnt = 0;
@@ -103,26 +103,26 @@ void test_gapless_input_iterator_basic_(
     EXPECT_EQ( exp_positions, cnt );
 }
 
-TEST( GaplessInputIterator, Basics )
+TEST( GaplessInputStream, Basics )
 {
     // Empty input
     {
         std::vector<Variant> vars;
-        test_gapless_input_iterator_basic_( vars, 0 );
+        test_gapless_input_stream_basic_( vars, 0 );
     }
 
     // Single at first position
     {
         std::vector<Variant> vars;
-        vars.push_back( test_gapless_input_iterator_make_variant_( "A", 1 ));
-        test_gapless_input_iterator_basic_( vars, 1 );
+        vars.push_back( test_gapless_input_stream_make_variant_( "A", 1 ));
+        test_gapless_input_stream_basic_( vars, 1 );
     }
 
     // Single at second position
     {
         std::vector<Variant> vars;
-        vars.push_back( test_gapless_input_iterator_make_variant_( "A", 2 ));
-        test_gapless_input_iterator_basic_( vars, 2 );
+        vars.push_back( test_gapless_input_stream_make_variant_( "A", 2 ));
+        test_gapless_input_stream_basic_( vars, 2 );
     }
 
     // Make a ref genome to be used.
@@ -133,14 +133,14 @@ TEST( GaplessInputIterator, Basics )
     // Empty input, but ref genome
     {
         std::vector<Variant> vars;
-        test_gapless_input_iterator_basic_( vars, 8, ref_genome );
+        test_gapless_input_stream_basic_( vars, 8, ref_genome );
     }
 
     // Ref genome with extra chromosomes.
     {
         std::vector<Variant> vars;
-        vars.push_back( test_gapless_input_iterator_make_variant_( "A", 2 ));
-        test_gapless_input_iterator_basic_( vars, 8, ref_genome );
+        vars.push_back( test_gapless_input_stream_make_variant_( "A", 2 ));
+        test_gapless_input_stream_basic_( vars, 8, ref_genome );
     }
 }
 
@@ -148,7 +148,7 @@ TEST( GaplessInputIterator, Basics )
 //     Random Tests
 // =================================================================================================
 
-std::shared_ptr<ReferenceGenome> test_gapless_input_iterator_make_reference_genome_(
+std::shared_ptr<ReferenceGenome> test_gapless_input_stream_make_reference_genome_(
     size_t num_reg_chrs, size_t num_ext_chrs
 ) {
     auto result = std::make_shared<ReferenceGenome>();
@@ -195,7 +195,7 @@ std::shared_ptr<ReferenceGenome> test_gapless_input_iterator_make_reference_geno
     return result;
 }
 
-std::shared_ptr<SequenceDict> test_gapless_input_iterator_make_sequence_dict_(
+std::shared_ptr<SequenceDict> test_gapless_input_stream_make_sequence_dict_(
     std::shared_ptr<ReferenceGenome> ref_genome
 ) {
     auto result = std::make_shared<SequenceDict>(
@@ -205,7 +205,7 @@ std::shared_ptr<SequenceDict> test_gapless_input_iterator_make_sequence_dict_(
     return result;
 }
 
-std::map<std::string, Bitvector> test_gapless_input_iterator_make_variant_bitvectors_(
+std::map<std::string, Bitvector> test_gapless_input_stream_make_variant_bitvectors_(
     size_t num_reg_chrs
 ) {
     // Make random bitvectors for each chromosome, with random positions being set
@@ -227,7 +227,7 @@ std::map<std::string, Bitvector> test_gapless_input_iterator_make_variant_bitvec
     return result;
 }
 
-std::vector<Variant> test_gapless_input_iterator_make_variants_(
+std::vector<Variant> test_gapless_input_stream_make_variants_(
     std::map<std::string, Bitvector> const& bitvectors,
     std::shared_ptr<ReferenceGenome> ref_genome
 ) {
@@ -243,7 +243,7 @@ std::vector<Variant> test_gapless_input_iterator_make_variants_(
                 continue;
             }
 
-            auto var = test_gapless_input_iterator_make_variant_( bv.first, i + 1 );
+            auto var = test_gapless_input_stream_make_variant_( bv.first, i + 1 );
             var.reference_base = ref_genome->get_base( var.chromosome, var.position );
             result.push_back( var );
         }
@@ -266,7 +266,7 @@ size_t find_position_past_last_true_( Bitvector const& bv )
     return 0;
 }
 
-void test_gapless_input_iterator_random_()
+void test_gapless_input_stream_random_()
 {
     // How many chromosomes as part of the iterator and as part of the ref genome / seq dict?
     // We are using up to three chrs, so that we test having a "middle" one, which might be
@@ -277,10 +277,10 @@ void test_gapless_input_iterator_random_()
     // We now make a ref genome, which we always use to have random sequences for our variants.
     // We also make a seq dict from it, just to have that available as well.
     // We make extras here, just in case to test this, even if they are not used in the end.
-    auto const ref_genome = test_gapless_input_iterator_make_reference_genome_(
+    auto const ref_genome = test_gapless_input_stream_make_reference_genome_(
         num_reg_chrs, num_ext_chrs
     );
-    auto const seq_dict = test_gapless_input_iterator_make_sequence_dict_( ref_genome );
+    auto const seq_dict = test_gapless_input_stream_make_sequence_dict_( ref_genome );
 
     // Are we actually using a ref genome or seq dict at all?
     bool use_ref_gen = false;
@@ -304,8 +304,8 @@ void test_gapless_input_iterator_random_()
     // Now make variants for all chrs that we want. We do this via a set of bitvectors,
     // randomly set and indicating for which positions we want to have varians, with all
     // others missing, so that we can actually test the behavior of the iterator.
-    auto const var_bvs = test_gapless_input_iterator_make_variant_bitvectors_( num_reg_chrs );
-    auto const vars = test_gapless_input_iterator_make_variants_( var_bvs, ref_genome );
+    auto const var_bvs = test_gapless_input_stream_make_variant_bitvectors_( num_reg_chrs );
+    auto const vars = test_gapless_input_stream_make_variants_( var_bvs, ref_genome );
 
     // Debug output
     LOG_DBG << "num_reg_chrs " << num_reg_chrs;
@@ -335,8 +335,8 @@ void test_gapless_input_iterator_random_()
     }
 
     // Now we are ready for the iteration. Set up everything.
-    auto var_it = make_variant_input_iterator_from_vector( vars );
-    auto gapless_it = VariantGaplessInputIterator( var_it );
+    auto var_it = make_variant_input_stream_from_vector( vars );
+    auto gapless_it = VariantGaplessInputStream( var_it );
     if( use_ref_gen ) {
         gapless_it.reference_genome( ref_genome );
     }
@@ -458,7 +458,7 @@ void test_gapless_input_iterator_random_()
     EXPECT_EQ( exp_present_variants, present_variants );
 }
 
-TEST( GaplessInputIterator, Random )
+TEST( GaplessInputStream, Random )
 {
     // Random seed. Report it, so that in an error case, we can reproduce.
     // auto const seed = ::time(nullptr);
@@ -477,6 +477,6 @@ TEST( GaplessInputIterator, Random )
     for( size_t test_num = 0; test_num < max_tests; ++test_num ) {
         LOG_DBG << "=================================";
         LOG_DBG << "Test " << test_num;
-        test_gapless_input_iterator_random_();
+        test_gapless_input_stream_random_();
     }
 }

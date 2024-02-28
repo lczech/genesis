@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ namespace population {
  * Variant%s along a genome, computing FST along the way.
  *
  * The idea of using classes here instead of simple iterators over Variant%s, such as
- * VariantInputIterator, is that we want to be able to compute FST for many pairs of samples in
+ * VariantInputStream, is that we want to be able to compute FST for many pairs of samples in
  * some input. With input iterators that just read the input files once however, we cannot iterate
  * multiple times over the same input. Hence we would have to keep all Variant%s in memory to be
  * able to compute FST for multiple pairs - which is not desirable when, e.g., computing FST

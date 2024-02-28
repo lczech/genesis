@@ -28,10 +28,10 @@
  * @ingroup population
  */
 
-#include "genesis/population/iterators/variant_input_iterator.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
 
-#include "genesis/population/iterators/variant_gapless_input_iterator.hpp"
-#include "genesis/population/iterators/variant_parallel_input_iterator.hpp"
+#include "genesis/population/streams/variant_gapless_input_stream.hpp"
+#include "genesis/population/streams/variant_parallel_input_stream.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/logging.hpp"
@@ -54,17 +54,17 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief Local helper function template that takes care of intilizing an input iterator,
- * and setting the sample filters, for those iterators for which we do not know the number
+ * @brief Local helper function template that takes care of intilizing an input stream,
+ * and setting the sample filters, for those streams for which we do not know the number
  * of samples prior to starting the file iteration.
  *
- * The template arguments are: `T` the returned type of input iterator, and `R` the underlying
+ * The template arguments are: `T` the returned type of input stream, and `R` the underlying
  * reader type. This is very specific for the use case here, and currently is only meant for how
- * we work with the SimplePileupReader and the SyncReader and their iterators. Both their
- * iterators accept a reader to take settings from.
+ * we work with the SimplePileupReader and the SyncReader and their streams. Both their
+ * streams accept a reader to take settings from.
  */
 template<class T, class R>
-std::shared_ptr<T> make_input_iterator_with_sample_filter_(
+std::shared_ptr<T> make_input_stream_with_sample_filter_(
     std::string const& filename,
     R const& reader,
     std::vector<size_t> const& sample_indices,
@@ -144,12 +144,12 @@ std::vector<std::string> make_sample_name_list_( std::string const& source_name,
 //     vector
 // =================================================================================================
 
-VariantInputIterator make_variant_input_iterator_from_vector(
+VariantInputStream make_variant_input_stream_from_vector(
     std::vector<Variant> const& variants
 ) {
 
     // Prepare the iterator data.
-    VariantInputIteratorData data;
+    VariantInputStreamData data;
     data.source_name = "std::vector";
 
     // No sample names in a vector... so we just use numbered entries.
@@ -163,7 +163,7 @@ VariantInputIterator make_variant_input_iterator_from_vector(
 
     // The iterators are copied over to the lambda,
     // and those copies are kept alive when returning from this function.
-    return VariantInputIterator(
+    return VariantInputStream(
         [ cur, end ]( Variant& variant ) mutable {
             if( cur != end ) {
                 // We make copies of the data here, as we do not want to modify the vector.
@@ -185,14 +185,14 @@ VariantInputIterator make_variant_input_iterator_from_vector(
 // Only available if compiled with htslib
 #ifdef GENESIS_HTSLIB
 
-VariantInputIterator make_variant_input_iterator_from_sam_file(
+VariantInputStream make_variant_input_stream_from_sam_file(
     std::string const& filename,
-    SamVariantInputIterator const& reader
+    SamVariantInputStream const& reader
 ) {
     // Make an iterator over sam/bam/cram, using the given reader to take over its settings.
     // We wrap this in a shared pointer so that this very instance can stay alive
     // when being copied over to the lambda that we return from this function.
-    auto input = std::make_shared<SamVariantInputIterator>( reader );
+    auto input = std::make_shared<SamVariantInputStream>( reader );
     input->input_file( filename );
 
     // Get the iterators. We store them by copy in the lambda, and these copies are kept alive
@@ -205,7 +205,7 @@ VariantInputIterator make_variant_input_iterator_from_sam_file(
     auto end = input->end();
 
     // Get the data, using the file base name without path and potential extensions as source.
-    VariantInputIteratorData data;
+    VariantInputStreamData data;
     data.file_path = filename;
     data.source_name = utils::file_basename( filename, { ".sam", ".sam.gz", ".bam", ".cram" });
 
@@ -227,7 +227,7 @@ VariantInputIterator make_variant_input_iterator_from_sam_file(
 
     // The input is copied over to the lambda, and that copy is kept alive
     // when returning from this function.
-    return VariantInputIterator(
+    return VariantInputStream(
         [ input, cur, end ]( Variant& variant ) mutable {
             if( cur != end ) {
                 variant = std::move( *cur );
@@ -250,7 +250,7 @@ VariantInputIterator make_variant_input_iterator_from_sam_file(
 /**
  * @brief Local helper function that takes care of the three functions below.
  */
-VariantInputIterator make_variant_input_iterator_from_pileup_file_(
+VariantInputStream make_variant_input_stream_from_pileup_file_(
     std::string const& filename,
     SimplePileupReader const& reader,
     std::vector<size_t> const& sample_indices,
@@ -258,14 +258,14 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file_(
     std::vector<bool> const& sample_filter
 ) {
     // Get the input, taking care of the filters.
-    auto input = make_input_iterator_with_sample_filter_<
-        SimplePileupInputIterator<Variant>, SimplePileupReader
+    auto input = make_input_stream_with_sample_filter_<
+        SimplePileupInputStream<Variant>, SimplePileupReader
     >(
         filename, reader, sample_indices, inverse_sample_indices, sample_filter
     );
 
     // Get the data, using the file base name without path and potential extensions as source.
-    VariantInputIteratorData data;
+    VariantInputStreamData data;
     data.file_path = filename;
     data.source_name = utils::file_basename(
         filename, { ".gz", ".plp", ".mplp", ".pileup", ".mpileup" }
@@ -276,7 +276,7 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file_(
 
     // The input is copied over to the lambda, and that copy is kept alive
     // when returning from this function.
-    return VariantInputIterator(
+    return VariantInputStream(
         [ input ]( Variant& variant ) mutable -> bool {
             auto& it = *input;
             if( it ) {
@@ -291,32 +291,32 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file_(
     );
 }
 
-VariantInputIterator make_variant_input_iterator_from_pileup_file(
+VariantInputStream make_variant_input_stream_from_pileup_file(
     std::string const& filename,
     SimplePileupReader const& reader
 ) {
-    return make_variant_input_iterator_from_pileup_file_(
+    return make_variant_input_stream_from_pileup_file_(
         filename, reader, std::vector<size_t>{}, false, std::vector<bool>{}
     );
 }
 
-VariantInputIterator make_variant_input_iterator_from_pileup_file(
+VariantInputStream make_variant_input_stream_from_pileup_file(
     std::string const& filename,
     std::vector<size_t> const& sample_indices,
     bool inverse_sample_indices,
     SimplePileupReader const& reader
 ) {
-    return make_variant_input_iterator_from_pileup_file_(
+    return make_variant_input_stream_from_pileup_file_(
         filename, reader, sample_indices, inverse_sample_indices, std::vector<bool>{}
     );
 }
 
-VariantInputIterator make_variant_input_iterator_from_pileup_file(
+VariantInputStream make_variant_input_stream_from_pileup_file(
     std::string const& filename,
     std::vector<bool> const& sample_filter,
     SimplePileupReader const& reader
 ) {
-    return make_variant_input_iterator_from_pileup_file_(
+    return make_variant_input_stream_from_pileup_file_(
         filename, reader, std::vector<size_t>{}, false, sample_filter
     );
 }
@@ -325,7 +325,7 @@ VariantInputIterator make_variant_input_iterator_from_pileup_file(
 //     Sync
 // =================================================================================================
 
-VariantInputIterator make_variant_input_iterator_from_sync_file_(
+VariantInputStream make_variant_input_stream_from_sync_file_(
     std::string const& filename,
     std::vector<size_t> const& sample_indices,
     bool inverse_sample_indices,
@@ -333,15 +333,15 @@ VariantInputIterator make_variant_input_iterator_from_sync_file_(
 ) {
     // Get the input, taking care of the filters. We use a default reader here,
     // as sync currently does not have any settings that a reader would neeed to take care of.
-    auto input = make_input_iterator_with_sample_filter_<
-        SyncInputIterator, SyncReader
+    auto input = make_input_stream_with_sample_filter_<
+        SyncInputStream, SyncReader
     >(
         filename, SyncReader(), sample_indices, inverse_sample_indices, sample_filter
     );
-    // auto input = std::make_shared<SyncInputIterator>( utils::from_file( filename ));
+    // auto input = std::make_shared<SyncInputStream>( utils::from_file( filename ));
 
     // Get the data, using the file base name without path and potential extensions as source.
-    VariantInputIteratorData data;
+    VariantInputStreamData data;
     data.file_path = filename;
     data.source_name = utils::file_basename( filename, { ".gz", ".sync" });
 
@@ -355,7 +355,7 @@ VariantInputIterator make_variant_input_iterator_from_sync_file_(
 
     // The input is copied over to the lambda, and that copy is kept alive
     // when returning from this function.
-    return VariantInputIterator(
+    return VariantInputStream(
         [ input ]( Variant& variant ) mutable {
             auto& sync_it = *input;
             if( sync_it ) {
@@ -370,29 +370,29 @@ VariantInputIterator make_variant_input_iterator_from_sync_file_(
     );
 }
 
-VariantInputIterator make_variant_input_iterator_from_sync_file(
+VariantInputStream make_variant_input_stream_from_sync_file(
     std::string const& filename
 ) {
-    return make_variant_input_iterator_from_sync_file_(
+    return make_variant_input_stream_from_sync_file_(
         filename, std::vector<size_t>{}, false, std::vector<bool>{}
     );
 }
 
-VariantInputIterator make_variant_input_iterator_from_sync_file(
+VariantInputStream make_variant_input_stream_from_sync_file(
     std::string const& filename,
     std::vector<size_t> const& sample_indices,
     bool inverse_sample_indices
 ) {
-    return make_variant_input_iterator_from_sync_file_(
+    return make_variant_input_stream_from_sync_file_(
         filename, sample_indices, inverse_sample_indices, std::vector<bool>{}
     );
 }
 
-VariantInputIterator make_variant_input_iterator_from_sync_file(
+VariantInputStream make_variant_input_stream_from_sync_file(
     std::string const& filename,
     std::vector<bool> const& sample_filter
 ) {
-    return make_variant_input_iterator_from_sync_file_(
+    return make_variant_input_stream_from_sync_file_(
         filename, std::vector<size_t>{}, false, sample_filter
     );
 }
@@ -401,27 +401,27 @@ VariantInputIterator make_variant_input_iterator_from_sync_file(
 //     Frequency Table
 // =================================================================================================
 
-VariantInputIterator make_variant_input_iterator_from_frequency_table_file(
+VariantInputStream make_variant_input_stream_from_frequency_table_file(
     std::string const& filename,
     char separator_char,
-    FrequencyTableInputIterator const& reader
+    FrequencyTableInputStream const& reader
 ) {
-    return make_variant_input_iterator_from_frequency_table_file(
+    return make_variant_input_stream_from_frequency_table_file(
         filename, std::vector<std::string>{}, false, separator_char, reader
     );
 }
 
-VariantInputIterator make_variant_input_iterator_from_frequency_table_file(
+VariantInputStream make_variant_input_stream_from_frequency_table_file(
     std::string const& filename,
     std::vector<std::string> const& sample_names_filter,
     bool inverse_sample_names_filter,
     char separator_char,
-    FrequencyTableInputIterator const& reader
+    FrequencyTableInputStream const& reader
 ) {
     // Make an iterator over, using the given reader to take over its settings.
     // We wrap this in a shared pointer so that this very instance can stay alive
     // when being copied over to the lambda that we return from this function.
-    auto input = std::make_shared<FrequencyTableInputIterator>( reader );
+    auto input = std::make_shared<FrequencyTableInputStream>( reader );
     input->input_source( utils::from_file( filename ));
     input->sample_names_filter(
         std::unordered_set<std::string>( sample_names_filter.begin(), sample_names_filter.end() )
@@ -437,7 +437,7 @@ VariantInputIterator make_variant_input_iterator_from_frequency_table_file(
     auto end = input->end();
 
     // Get the data, using the file base name without path and potential extensions as source.
-    VariantInputIteratorData data;
+    VariantInputStreamData data;
     data.file_path = filename;
     data.source_name = utils::file_basename(
         filename, { ".csv", ".csv.gz", ".tsv", ".tsv.gz", ".txt" }
@@ -448,7 +448,7 @@ VariantInputIterator make_variant_input_iterator_from_frequency_table_file(
 
     // The input is copied over to the lambda, and that copy is kept alive
     // when returning from this function.
-    return VariantInputIterator(
+    return VariantInputStream(
         [ input, cur, end ]( Variant& variant ) mutable {
             if( cur != end ) {
                 // The deref operator of the iterator is const, so this falls back to copy ctor.
@@ -475,7 +475,7 @@ VariantInputIterator make_variant_input_iterator_from_frequency_table_file(
 /**
  * @brief Local helper function that takes care of both main functions below.
  */
-VariantInputIterator make_variant_input_iterator_from_vcf_file_(
+VariantInputStream make_variant_input_stream_from_vcf_file_(
     // File input
     std::string const& filename,
     std::vector<std::string> const& sample_names,
@@ -493,7 +493,7 @@ VariantInputIterator make_variant_input_iterator_from_vcf_file_(
     // Make an iterator over vcf, and check that the necessary format field AD is present
     // and of the correct form. We wrap this in a shared pointer so that this very instance
     // can stay alive when being copied over to the lambda that we return from this function.
-    auto input = std::make_shared<VcfInputIterator>(
+    auto input = std::make_shared<VcfInputStream>(
         filename, sample_names, inverse_sample_names, expect_ordered
     );
     if(
@@ -507,14 +507,14 @@ VariantInputIterator make_variant_input_iterator_from_vcf_file_(
     }
 
     // Get the data, using the file base name without path and potential extensions as source.
-    VariantInputIteratorData data;
+    VariantInputStreamData data;
     data.file_path = filename;
     data.source_name = utils::file_basename( filename, { ".gz", ".vcf", ".bcf" });
     data.sample_names = input->header().get_sample_names();
 
     // The input is copied over to the lambda, and that copy is kept alive
     // when returning from this function.
-    return VariantInputIterator(
+    return VariantInputStream(
         [ input, pool_samples, use_allelic_depth, only_biallelic, only_filter_pass ]
         ( Variant& variant ) mutable {
             auto& vcf_it = *input;
@@ -561,43 +561,43 @@ VariantInputIterator make_variant_input_iterator_from_vcf_file_(
     );
 }
 
-VariantInputIterator make_variant_input_iterator_from_pool_vcf_file(
+VariantInputStream make_variant_input_stream_from_pool_vcf_file(
     std::string const& filename,
     bool only_biallelic,
     bool only_filter_pass
 ) {
-    return make_variant_input_iterator_from_pool_vcf_file(
+    return make_variant_input_stream_from_pool_vcf_file(
         filename, std::vector<std::string>{}, false,
         only_biallelic, only_filter_pass
     );
 }
 
-VariantInputIterator make_variant_input_iterator_from_pool_vcf_file(
+VariantInputStream make_variant_input_stream_from_pool_vcf_file(
     std::string const& filename,
     std::vector<std::string> const& sample_names,
     bool inverse_sample_names,
     bool only_biallelic,
     bool only_filter_pass
 ) {
-    return make_variant_input_iterator_from_vcf_file_(
+    return make_variant_input_stream_from_vcf_file_(
         filename, sample_names, inverse_sample_names,
         true, true, only_biallelic, only_filter_pass
     );
 }
 
-VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
+VariantInputStream make_variant_input_stream_from_individual_vcf_file(
     std::string const& filename,
     bool use_allelic_depth,
     bool only_biallelic,
     bool only_filter_pass
 ) {
-    return make_variant_input_iterator_from_individual_vcf_file(
+    return make_variant_input_stream_from_individual_vcf_file(
         filename, std::vector<std::string>{}, false,
         use_allelic_depth, only_biallelic, only_filter_pass
     );
 }
 
-VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
+VariantInputStream make_variant_input_stream_from_individual_vcf_file(
     std::string const& filename,
     std::vector<std::string> const& sample_names,
     bool inverse_sample_names,
@@ -605,7 +605,7 @@ VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
     bool only_biallelic,
     bool only_filter_pass
 ) {
-    return make_variant_input_iterator_from_vcf_file_(
+    return make_variant_input_stream_from_vcf_file_(
         filename, sample_names, inverse_sample_names,
         false, use_allelic_depth, only_biallelic, only_filter_pass
     );
@@ -614,25 +614,25 @@ VariantInputIterator make_variant_input_iterator_from_individual_vcf_file(
 #endif // GENESIS_HTSLIB
 
 // =================================================================================================
-//     Variant Parallel Input Iterator
+//     Variant Parallel Input Stream
 // =================================================================================================
 
-VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_iterator(
-    VariantParallelInputIterator const& parallel_input,
+VariantInputStream make_variant_input_stream_from_variant_parallel_input_stream(
+    VariantParallelInputStream const& parallel_input,
     bool allow_ref_base_mismatches,
     bool allow_alt_base_mismatches
 ) {
     // As before, make a shared pointer (with a copy of the input) that stays alive.
-    auto input = std::make_shared<VariantParallelInputIterator>( parallel_input );
+    auto input = std::make_shared<VariantParallelInputStream>( parallel_input );
 
     // Get the iterators.
-    VariantParallelInputIterator::Iterator cur;
-    VariantParallelInputIterator::Iterator end;
+    VariantParallelInputStream::Iterator cur;
+    VariantParallelInputStream::Iterator end;
     bool has_started = false;
 
     // We do not have a single file here, so make a list of all sample names from the inputs.
     // Leave file_path and source_name at their empty defaults.
-    VariantInputIteratorData data;
+    VariantInputStreamData data;
     std::unordered_set<std::string> uniq_names;
     for( auto const& source : input->inputs() ) {
         // auto const& source_name = source.data().source_name;
@@ -654,7 +654,7 @@ VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_ite
     assert( uniq_names.size() == data.sample_names.size() );
 
     // The input is copied over to the lambda, and that copy is kept alive.
-    return VariantInputIterator(
+    return VariantInputStream(
         [ input, cur, end, has_started, allow_ref_base_mismatches, allow_alt_base_mismatches ]
         ( Variant& variant ) mutable {
             if( ! has_started ) {
@@ -678,48 +678,48 @@ VariantInputIterator make_variant_input_iterator_from_variant_parallel_input_ite
 }
 
 // =================================================================================================
-//     Variant Gapless Input Iterator
+//     Variant Gapless Input Stream
 // =================================================================================================
 
-VariantInputIterator make_variant_gapless_input_iterator(
-    VariantInputIterator const& input
+VariantInputStream make_variant_gapless_input_stream(
+    VariantInputStream const& input
 ) {
-    auto gapless_input = VariantGaplessInputIterator( input );
-    return make_variant_input_iterator_from_variant_gapless_input_iterator( gapless_input );
+    auto gapless_input = VariantGaplessInputStream( input );
+    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
 }
 
-VariantInputIterator make_variant_gapless_input_iterator(
-    VariantInputIterator const& input,
+VariantInputStream make_variant_gapless_input_stream(
+    VariantInputStream const& input,
     std::shared_ptr<::genesis::sequence::ReferenceGenome> ref_genome
 ) {
-    auto gapless_input = VariantGaplessInputIterator( input );
+    auto gapless_input = VariantGaplessInputStream( input );
     gapless_input.reference_genome( ref_genome );
-    return make_variant_input_iterator_from_variant_gapless_input_iterator( gapless_input );
+    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
 }
 
-VariantInputIterator make_variant_gapless_input_iterator(
-    VariantInputIterator const& input,
+VariantInputStream make_variant_gapless_input_stream(
+    VariantInputStream const& input,
     std::shared_ptr<::genesis::sequence::SequenceDict> seq_dict
 ) {
-    auto gapless_input = VariantGaplessInputIterator( input );
+    auto gapless_input = VariantGaplessInputStream( input );
     gapless_input.sequence_dict( seq_dict );
-    return make_variant_input_iterator_from_variant_gapless_input_iterator( gapless_input );
+    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
 }
 
-VariantInputIterator make_variant_input_iterator_from_variant_gapless_input_iterator(
-    VariantGaplessInputIterator const& gapless_input
+VariantInputStream make_variant_input_stream_from_variant_gapless_input_stream(
+    VariantGaplessInputStream const& gapless_input
 ) {
     // As before, make a shared pointer (with a copy of the input) that stays alive.
-    auto input = std::make_shared<VariantGaplessInputIterator>( gapless_input );
+    auto input = std::make_shared<VariantGaplessInputStream>( gapless_input );
 
     // Get the iterators.
-    VariantGaplessInputIterator::Iterator cur;
-    VariantGaplessInputIterator::Iterator end;
+    VariantGaplessInputStream::Iterator cur;
+    VariantGaplessInputStream::Iterator end;
     bool has_started = false;
 
     // The input is copied over to the lambda, and that copy is kept alive.
-    // The VariantInputIteratorData is simply copied over.
-    return VariantInputIterator(
+    // The VariantInputStreamData is simply copied over.
+    return VariantInputStream(
         [ input, cur, end, has_started ]
         ( Variant& variant ) mutable {
             if( ! has_started ) {
@@ -743,11 +743,11 @@ VariantInputIterator make_variant_input_iterator_from_variant_gapless_input_iter
 }
 
 // =================================================================================================
-//     Merging Input Iterator
+//     Merging Input Stream
 // =================================================================================================
 
 /**
- * @brief Internal helper to keep information needed for make_variant_merging_input_iterator()
+ * @brief Internal helper to keep information needed for make_variant_merging_input_stream()
  */
 struct VariantMergeGroupAssignment
 {
@@ -767,8 +767,8 @@ struct VariantMergeGroupAssignment
 /**
  * @brief Helper function to create a mapping from sample indices to group indices.
  */
-VariantMergeGroupAssignment make_variant_merging_input_iterator_group_assignment_(
-    VariantInputIterator const& variant_input,
+VariantMergeGroupAssignment make_variant_merging_input_stream_group_assignment_(
+    VariantInputStream const& variant_input,
     std::unordered_map<std::string, std::string> const& sample_name_to_group,
     bool allow_ungrouped_samples
 ) {
@@ -863,8 +863,8 @@ VariantMergeGroupAssignment make_variant_merging_input_iterator_group_assignment
     return grouping;
 }
 
-VariantInputIterator make_variant_merging_input_iterator(
-    VariantInputIterator const& variant_input,
+VariantInputStream make_variant_merging_input_stream(
+    VariantInputStream const& variant_input,
     std::unordered_map<std::string, std::string> const& sample_name_to_group,
     bool allow_ungrouped_samples
 ) {
@@ -872,16 +872,16 @@ VariantInputIterator make_variant_merging_input_iterator(
     // Make a mapping from sample indices to group indices. That is, each entry in the returned
     // vector corresponds to a sample (by its index) of the input, and the value at each entry
     // is the group number we assign to this.
-    auto const grouping = make_variant_merging_input_iterator_group_assignment_(
+    auto const grouping = make_variant_merging_input_stream_group_assignment_(
         variant_input, sample_name_to_group, allow_ungrouped_samples
     );
 
     // As before, make a shared pointer (with a copy of the input) that stays alive.
-    auto input = std::make_shared<VariantInputIterator>( variant_input );
+    auto input = std::make_shared<VariantInputStream>( variant_input );
 
     // Get iterators to the data.
-    VariantInputIterator::Iterator cur;
-    VariantInputIterator::Iterator end;
+    VariantInputStream::Iterator cur;
+    VariantInputStream::Iterator end;
     bool has_started = false;
 
     // We copy the original variant data, but replace the sample names by our group names.
@@ -890,7 +890,7 @@ VariantInputIterator make_variant_merging_input_iterator(
 
     // Now we can create our iterator. As before, the iterators are copied over to the lambda,
     // and those copies are kept alive when returning from this function.
-    return VariantInputIterator(
+    return VariantInputStream(
         [ input, cur, end, has_started, grouping ]( Variant& variant ) mutable {
             if( ! has_started ) {
                 assert( input );

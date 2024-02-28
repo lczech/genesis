@@ -28,7 +28,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/functions/variant_input_iterator.hpp"
+#include "genesis/population/functions/variant_input_stream.hpp"
 
 #include <cassert>
 #include <unordered_set>
@@ -97,7 +97,7 @@ std::vector<bool> make_sample_filter(
     return result;
 }
 
-std::function<void(Variant&)> make_variant_input_iterator_sample_name_filter_transform(
+std::function<void(Variant&)> make_variant_input_stream_sample_name_filter_transform(
     std::vector<bool> const& sample_filter
 ) {
     // We do a pop count once, and store that result in the lambda, so that we do not need
@@ -137,7 +137,7 @@ std::function<void(Variant&)> make_variant_input_iterator_sample_name_filter_tra
 //     Observers
 // =================================================================================================
 
-std::function<void(Variant const&)> make_variant_input_iterator_sequence_order_observer(
+std::function<void(Variant const&)> make_variant_input_stream_sequence_order_observer(
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict,
     bool check_sequence_lengths
 ) {
@@ -191,7 +191,7 @@ std::function<void(Variant const&)> make_variant_input_iterator_sequence_order_o
     };
 }
 
-std::function<void(Variant const&)> make_variant_input_iterator_sequence_length_observer(
+std::function<void(Variant const&)> make_variant_input_stream_sequence_length_observer(
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict
 ) {
     return [ sequence_dict ]( Variant const& variant ) {

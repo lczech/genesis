@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_ITERATORS_VARIANT_GAPLESS_INPUT_ITERATOR_H_
-#define GENESIS_POPULATION_ITERATORS_VARIANT_GAPLESS_INPUT_ITERATOR_H_
+#ifndef GENESIS_POPULATION_STREAMS_VARIANT_GAPLESS_INPUT_STREAM_H_
+#define GENESIS_POPULATION_STREAMS_VARIANT_GAPLESS_INPUT_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -34,7 +34,7 @@
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/population/functions/genome_locus.hpp"
 #include "genesis/population/genome_locus.hpp"
-#include "genesis/population/iterators/variant_input_iterator.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/sequence/reference_genome.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
@@ -52,13 +52,13 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Variant Gapless Input Iterator
+//     Variant Gapless Input Stream
 // =================================================================================================
 
 /**
- * @brief Iterator adapter that visits every position in the genome.
+ * @brief Stream adapter that visits every position in the genome.
  *
- * The iterator takes some other VariantInputIterator as input. It then iterates _all_ positions
+ * The iterator takes some other VariantInputStream as input. It then iterates _all_ positions
  * in the chromosomes of that input, starting at 1, and until the last position per chromosome
  * of the input. All positions where the input does not have data (missing) instead dereference to
  * a dummy Variant that is set up with the same number of samples as the input.
@@ -79,7 +79,7 @@ namespace population {
  * For instance, when writing a sync file, this can be used to make a "gsync" file that contains
  * all positions, instead of skipping missing data positions.
  */
-class VariantGaplessInputIterator
+class VariantGaplessInputStream
 {
 public:
 
@@ -87,7 +87,7 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using self_type         = VariantGaplessInputIterator;
+    using self_type         = VariantGaplessInputStream;
     using value_type        = Variant;
     using pointer           = value_type const*;
     using reference         = value_type const&;
@@ -109,7 +109,7 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type         = VariantGaplessInputIterator::Iterator;
+        using self_type         = VariantGaplessInputStream::Iterator;
         using value_type        = Variant;
         using pointer           = value_type const*;
         using reference         = value_type const&;
@@ -121,7 +121,7 @@ public:
 
     private:
 
-        Iterator( VariantGaplessInputIterator* parent );
+        Iterator( VariantGaplessInputStream* parent );
 
     public:
 
@@ -133,7 +133,7 @@ public:
         Iterator& operator= ( self_type const& ) = default;
         Iterator& operator= ( self_type&& )      = default;
 
-        friend VariantGaplessInputIterator;
+        friend VariantGaplessInputStream;
 
         // -------------------------------------------------------------------------
         //     Accessors
@@ -192,10 +192,10 @@ public:
         /**
          * @brief Compare two iterators for equality.
          *
-         * Any two iterators that are created by calling begin() on the same LambdaIterator
+         * Any two iterators that are created by calling begin() on the same LambdaStream
          * instance will compare equal, as long as neither of them is past-the-end.
          * A valid (not past-the-end) iterator and an end() iterator will not compare equal,
-         * no matter from which LambdaIterator they were created.
+         * no matter from which LambdaStream they were created.
          */
         bool operator==( self_type const& it ) const
         {
@@ -352,7 +352,7 @@ public:
     private:
 
         // Parent
-        VariantGaplessInputIterator* parent_ = nullptr;
+        VariantGaplessInputStream* parent_ = nullptr;
 
         // Keep track of the locus that the iterator currently is at.
         GenomeLocus current_locus_;
@@ -369,7 +369,7 @@ public:
 
         // Keep the iterators that we want to traverse. We only need the begin() iterators,
         // as they are themselves able to tell us if they are still good (via their operator bool).
-        VariantInputIterator::Iterator iterator_;
+        VariantInputStream::Iterator iterator_;
 
         // Cache for the ref genome and seq dict sequences, so that we do not have to find them
         // on every iteration here.
@@ -390,27 +390,27 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    VariantGaplessInputIterator() = default;
+    VariantGaplessInputStream() = default;
 
-    VariantGaplessInputIterator(
-        VariantInputIterator const& input
+    VariantGaplessInputStream(
+        VariantInputStream const& input
     )
         : input_( input )
     {}
 
-    VariantGaplessInputIterator(
-        VariantInputIterator&& input
+    VariantGaplessInputStream(
+        VariantInputStream&& input
     )
         : input_( std::move( input ))
     {}
 
-    ~VariantGaplessInputIterator() = default;
+    ~VariantGaplessInputStream() = default;
 
-    VariantGaplessInputIterator( VariantGaplessInputIterator const& ) = default;
-    VariantGaplessInputIterator( VariantGaplessInputIterator&& )      = default;
+    VariantGaplessInputStream( VariantGaplessInputStream const& ) = default;
+    VariantGaplessInputStream( VariantGaplessInputStream&& )      = default;
 
-    VariantGaplessInputIterator& operator= ( VariantGaplessInputIterator const& ) = default;
-    VariantGaplessInputIterator& operator= ( VariantGaplessInputIterator&& )      = default;
+    VariantGaplessInputStream& operator= ( VariantGaplessInputStream const& ) = default;
+    VariantGaplessInputStream& operator= ( VariantGaplessInputStream&& )      = default;
 
     friend Iterator;
 
@@ -418,12 +418,12 @@ public:
     //     Input
     // -------------------------------------------------------------------------
 
-    VariantInputIterator const& input() const
+    VariantInputStream const& input() const
     {
         return input_;
     }
 
-    VariantInputIterator& input()
+    VariantInputStream& input()
     {
         return input_;
     }
@@ -438,7 +438,7 @@ public:
     Iterator begin()
     {
         if( started_ ) {
-            throw std::runtime_error( "Cannot start VariantGaplessInputIterator multiple times" );
+            throw std::runtime_error( "Cannot start VariantGaplessInputStream multiple times" );
         }
         started_ = true;
         return Iterator( this );
@@ -499,7 +499,7 @@ public:
     {
         if( value && seq_dict_ ) {
             throw std::invalid_argument(
-                "Cannot set reference_genome() in VariantGaplessInputIterator "
+                "Cannot set reference_genome() in VariantGaplessInputStream "
                 "when sequence_dict() is already provided."
             );
         }
@@ -527,7 +527,7 @@ public:
     {
         if( value && ref_genome_ ) {
             throw std::invalid_argument(
-                "Cannot set sequence_dict() in VariantGaplessInputIterator "
+                "Cannot set sequence_dict() in VariantGaplessInputStream "
                 "when reference_genome() is already provided."
             );
         }
@@ -541,7 +541,7 @@ public:
 
 private:
 
-    VariantInputIterator input_;
+    VariantInputStream input_;
     bool started_ = false;
 
     // We offer two ways of specifying chromosome lengths.

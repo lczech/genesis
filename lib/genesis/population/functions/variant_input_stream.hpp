@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_FUNCTIONS_VARIANT_INPUT_ITERATOR_H_
-#define GENESIS_POPULATION_FUNCTIONS_VARIANT_INPUT_ITERATOR_H_
+#ifndef GENESIS_POPULATION_FUNCTIONS_VARIANT_INPUT_STREAM_H_
+#define GENESIS_POPULATION_FUNCTIONS_VARIANT_INPUT_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/iterators/variant_input_iterator.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/functions/genome_locus.hpp"
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/population/variant.hpp"
@@ -75,14 +75,14 @@ std::vector<bool> make_sample_filter(
  * The function expects a bool vector indicating which samples within a Variant to keep.
  * The vector needs to have the same length as the Variant has samples. It can be created for instance
  * with make_sample_filter() based on sample names. However, as Variant does not store the names
- * itself, those might need to be accessed from the VariantInputIterator data() function,
- * which yields a VariantInputIteratorData object.
+ * itself, those might need to be accessed from the VariantInputStream data() function,
+ * which yields a VariantInputStreamData object.
  *
  * Using this to filter samples by their name is likely somewhat slower than doing it direclty
  * in the parsers, which we also offer. However, this way offers a unified and simple way to achieve
- * the filtering, as it is applied down the line, and hence can be used on any VariantInputIterator.
+ * the filtering, as it is applied down the line, and hence can be used on any VariantInputStream.
  */
-std::function<void(Variant&)> make_variant_input_iterator_sample_name_filter_transform(
+std::function<void(Variant&)> make_variant_input_stream_sample_name_filter_transform(
     std::vector<bool> const& sample_filter
 );
 
@@ -93,11 +93,11 @@ std::function<void(Variant&)> make_variant_input_iterator_sample_name_filter_tra
 /**
  * @brief Helper function to check that some Variant input is sorted properly.
  *
- * The function creates a `std::function` that can be used with a VariantInputIterator to check
+ * The function creates a `std::function` that can be used with a VariantInputStream to check
  * the order (and length) of the Variant%s being processed.
  *
- * By default, the different types of VariantInputIterator%s that we create for different file types
- * with the `make_variant_input_iterator_from_...()` simply iterate over their respective input
+ * By default, the different types of VariantInputStream%s that we create for different file types
+ * with the `make_variant_input_stream_from_...()` simply iterate over their respective input
  * files as they are. However, we might want to check that their order is correct, or that their
  * lengths fit our expectation.
  *
@@ -120,34 +120,36 @@ std::function<void(Variant&)> make_variant_input_iterator_sample_name_filter_tra
  *     // Get a sequence dict from a fai file
  *     auto sequence_dict = read_sequence_fai( from_file( fai_file ));
  *
- *     // Create a VariantInputIterator, for example from a sync file
- *     auto variant_iterator = make_variant_input_iterator_from_sync_file( sync_file );
+ *     // Create a VariantInputStream, for example from a sync file
+ *     auto variant_stream = make_variant_input_stream_from_sync_file( sync_file );
  *
  *     // Add the observer that checks order, using a
- *     variant_iterator.add_observer(
- *         make_variant_input_iterator_sequence_order_observer(
+ *     variant_stream.add_observer(
+ *         make_variant_input_stream_sequence_order_observer(
  *             sequence_dict, true
  *         )
  *     );
  *
  *     // Use the iterator as usual.
- *     for( auto const& variant : variant_iterator ) {
+ *     for( auto const& variant : variant_stream ) {
  *         // ...
  *     }
  *
- * @see See @link ::genesis::utils::LambdaIterator::add_observer() LambdaIterator::add_observer()@endlink
+ * @see See @link ::genesis::utils::GenericInputStream::add_observer() GenericInputStream::add_observer()@endlink
  * for the function of the underlying iterator that accepts the returned function from here.
  *
- * @see make_variant_input_iterator_from_vector(),
- * make_variant_input_iterator_from_sam_file(),
- * make_variant_input_iterator_from_pileup_file(),
- * make_variant_input_iterator_from_sync_file(),
- * make_variant_input_iterator_from_frequency_table_file(),
- * make_variant_input_iterator_from_pool_vcf_file(),
- * make_variant_input_iterator_from_individual_vcf_file(),
- * make_variant_input_iterator_from_variant_parallel_input_iterator()
+ * @see make_variant_input_stream_from_vector(),
+ * make_variant_input_stream_from_sam_file(),
+ * make_variant_input_stream_from_pileup_file(),
+ * make_variant_input_stream_from_sync_file(),
+ * make_variant_input_stream_from_frequency_table_file(),
+ * make_variant_input_stream_from_pool_vcf_file(),
+ * make_variant_input_stream_from_individual_vcf_file(),
+ * make_variant_input_stream_from_variant_parallel_input_stream(),
+ * make_variant_input_stream_from_variant_gapless_input_stream(),
+ * make_variant_merging_input_stream()
  */
-std::function<void(Variant const&)> make_variant_input_iterator_sequence_order_observer(
+std::function<void(Variant const&)> make_variant_input_stream_sequence_order_observer(
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict = {},
     bool check_sequence_lengths = true
 );
@@ -156,13 +158,13 @@ std::function<void(Variant const&)> make_variant_input_iterator_sequence_order_o
  * @brief Helper function to check that some Variant input has positions that agree with those
  * reported in a SequenceDict.
  *
- * Similar to make_variant_input_iterator_sequence_order_observer(), but without the sequence order
+ * Similar to make_variant_input_stream_sequence_order_observer(), but without the sequence order
  * check. Meant for situations where this order check is either not necessary, or already done in
- * some other way, for example in a VariantParallelInputIterator.
+ * some other way, for example in a VariantParallelInputStream.
  *
- * See make_variant_input_iterator_sequence_order_observer() for details on usage.
+ * See make_variant_input_stream_sequence_order_observer() for details on usage.
  */
-std::function<void(Variant const&)> make_variant_input_iterator_sequence_length_observer(
+std::function<void(Variant const&)> make_variant_input_stream_sequence_length_observer(
     std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict
 );
 

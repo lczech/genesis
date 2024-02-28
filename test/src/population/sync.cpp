@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/formats/sync_input_iterator.hpp"
+#include "genesis/population/formats/sync_input_stream.hpp"
 #include "genesis/population/formats/sync_reader.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/population/variant.hpp"
@@ -291,7 +291,7 @@ TEST( Sync, SyncReaderMasked )
     EXPECT_EQ( 0, data[0].samples[1].d_count );
 }
 
-TEST( Sync, SyncInputIterator )
+TEST( Sync, SyncInputStream )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -300,7 +300,7 @@ TEST( Sync, SyncInputIterator )
     // Test the while() approach
     size_t cnt_while = 0;
     BaseCounts sum_while[2];
-    auto it = SyncInputIterator( from_file( infile ));
+    auto it = SyncInputStream( from_file( infile ));
     while( it ) {
         EXPECT_EQ( 2, it->samples.size() );
         merge_inplace( sum_while[0], it->samples[0] );
@@ -330,7 +330,7 @@ TEST( Sync, SyncInputIterator )
     // Test the for() approach
     size_t cnt_for = 0;
     BaseCounts sum_for[2];
-    for( auto it = SyncInputIterator( from_file( infile )); it; ++it ) {
+    for( auto it = SyncInputStream( from_file( infile )); it; ++it ) {
         EXPECT_EQ( 2, it->samples.size() );
         merge_inplace( sum_for[0], it->samples[0] );
         merge_inplace( sum_for[1], it->samples[1] );
@@ -365,14 +365,14 @@ TEST( Sync, SampleFilter )
     // Working, no samples.
     {
         // Just testing first position, as this is enough for here.
-        auto it = SyncInputIterator( from_file( infile ), std::vector<bool>{ false, false } );
+        auto it = SyncInputStream( from_file( infile ), std::vector<bool>{ false, false } );
         EXPECT_EQ( 0, it->samples.size() );
     }
 
     // Working, sample 1.
     {
         // Just testing first position, as this is enough for here.
-        auto it = SyncInputIterator( from_file( infile ), std::vector<bool>{ true, false } );
+        auto it = SyncInputStream( from_file( infile ), std::vector<bool>{ true, false } );
         EXPECT_EQ( 1, it->samples.size() );
         EXPECT_EQ( 7, it->samples[0].t_count );
     }
@@ -380,7 +380,7 @@ TEST( Sync, SampleFilter )
     // Working, sample 2.
     {
         // Just testing first position, as this is enough for here.
-        auto it = SyncInputIterator( from_file( infile ), std::vector<bool>{ false, true } );
+        auto it = SyncInputStream( from_file( infile ), std::vector<bool>{ false, true } );
         EXPECT_EQ( 1, it->samples.size() );
         EXPECT_EQ( 6, it->samples[0].t_count );
     }
@@ -388,15 +388,15 @@ TEST( Sync, SampleFilter )
     // Working, both samples.
     {
         // Just testing first position, as this is enough for here.
-        auto it = SyncInputIterator( from_file( infile ), std::vector<bool>{ true, true } );
+        auto it = SyncInputStream( from_file( infile ), std::vector<bool>{ true, true } );
         EXPECT_EQ( 2, it->samples.size() );
         EXPECT_EQ( 7, it->samples[0].t_count );
         EXPECT_EQ( 6, it->samples[1].t_count );
     }
 
     // Throwing as number of samples is wrong.
-    EXPECT_ANY_THROW( SyncInputIterator( from_file( infile ), std::vector<bool>{ true } ));
-    EXPECT_ANY_THROW( SyncInputIterator( from_file( infile ), std::vector<bool>{ true, false, false } ));
+    EXPECT_ANY_THROW( SyncInputStream( from_file( infile ), std::vector<bool>{ true } ));
+    EXPECT_ANY_THROW( SyncInputStream( from_file( infile ), std::vector<bool>{ true, false, false } ));
 }
 
 TEST( Sync, Header )
@@ -408,7 +408,7 @@ TEST( Sync, Header )
 
     // Test the while() approach
     size_t cnt_while = 0;
-    auto it = SyncInputIterator( from_file( infile ));
+    auto it = SyncInputStream( from_file( infile ));
     EXPECT_EQ( sample_names, it.get_sample_names() );
     while( it ) {
         EXPECT_EQ( 2, it->samples.size() );

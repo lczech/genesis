@@ -31,11 +31,11 @@
 #include "src/common.hpp"
 
 #include "genesis/population/base_counts.hpp"
-#include "genesis/population/iterators/variant_input_iterator.hpp"
-#include "genesis/population/iterators/variant_parallel_input_iterator.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
+#include "genesis/population/streams/variant_parallel_input_stream.hpp"
 #include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/functions.hpp"
-#include "genesis/population/functions/variant_input_iterator.hpp"
+#include "genesis/population/functions/variant_input_stream.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <unordered_set>
@@ -49,12 +49,12 @@ using namespace genesis::utils;
 
 #ifdef GENESIS_HTSLIB
 
-TEST( VariantInputIterator, SamInputIterator )
+TEST( VariantInputStream, SamInputStream )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/ex1.sam.gz";
-    auto it = make_variant_input_iterator_from_sam_file( infile );
+    auto it = make_variant_input_stream_from_sam_file( infile );
     EXPECT_EQ( "ex1", it.data().source_name );
 
     // Add a filter that limits it to a region, and then skips a region inside.
@@ -79,11 +79,11 @@ TEST( VariantInputIterator, SamInputIterator )
     EXPECT_EQ( " 272 273 278 279", result );
 
     // Test cases for missing file.
-    EXPECT_ANY_THROW( make_variant_input_iterator_from_sam_file( "" ));
-    EXPECT_ANY_THROW( make_variant_input_iterator_from_sam_file( "/path/to/nowhere.sam.gz" ));
+    EXPECT_ANY_THROW( make_variant_input_stream_from_sam_file( "" ));
+    EXPECT_ANY_THROW( make_variant_input_stream_from_sam_file( "/path/to/nowhere.sam.gz" ));
 }
 
-TEST( VariantInputIterator, SamInputIteratorSampleFilter )
+TEST( VariantInputStream, SamInputStreamSampleFilter )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -91,37 +91,37 @@ TEST( VariantInputIterator, SamInputIteratorSampleFilter )
 
     // Filter empty. Both samples are there, as this is equivalent to no filtering.
     {
-        SamVariantInputIterator sam_it;
+        SamVariantInputStream sam_it;
         sam_it.split_by_rg( true );
         sam_it.rg_tag_filter({  });
-        auto it = make_variant_input_iterator_from_sam_file( infile, sam_it );
+        auto it = make_variant_input_stream_from_sam_file( infile, sam_it );
         EXPECT_EQ( 2, it.begin()->samples.size() );
     }
 
     // Filter S1.
     {
-        SamVariantInputIterator sam_it;
+        SamVariantInputStream sam_it;
         sam_it.split_by_rg( true );
         sam_it.rg_tag_filter({ "S1" });
-        auto it = make_variant_input_iterator_from_sam_file( infile, sam_it );
+        auto it = make_variant_input_stream_from_sam_file( infile, sam_it );
         EXPECT_EQ( 1, it.begin()->samples.size() );
     }
 
     // Filter S2.
     {
-        SamVariantInputIterator sam_it;
+        SamVariantInputStream sam_it;
         sam_it.split_by_rg( true );
         sam_it.rg_tag_filter({ "S2" });
-        auto it = make_variant_input_iterator_from_sam_file( infile, sam_it );
+        auto it = make_variant_input_stream_from_sam_file( infile, sam_it );
         EXPECT_EQ( 1, it.begin()->samples.size() );
     }
 
     // Filter invalid.
     {
-        SamVariantInputIterator sam_it;
+        SamVariantInputStream sam_it;
         sam_it.split_by_rg( true );
         sam_it.rg_tag_filter({ "XYZ" });
-        EXPECT_ANY_THROW( make_variant_input_iterator_from_sam_file( infile, sam_it ));
+        EXPECT_ANY_THROW( make_variant_input_stream_from_sam_file( infile, sam_it ));
     }
 }
 
@@ -131,12 +131,12 @@ TEST( VariantInputIterator, SamInputIteratorSampleFilter )
 //     Pileup
 // =================================================================================================
 
-TEST( VariantInputIterator, PileupInputIterator )
+TEST( VariantInputStream, PileupInputStream )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/example.pileup";
-    auto it = make_variant_input_iterator_from_pileup_file( infile );
+    auto it = make_variant_input_stream_from_pileup_file( infile );
     EXPECT_EQ( "example", it.data().source_name );
 
     // Add a filter that skips the specified region.
@@ -161,20 +161,20 @@ TEST( VariantInputIterator, PileupInputIterator )
     EXPECT_EQ( " 272 273 278 279", result );
 
     // Test cases for missing file.
-    EXPECT_ANY_THROW( make_variant_input_iterator_from_pileup_file( "" ));
-    EXPECT_ANY_THROW( make_variant_input_iterator_from_pileup_file( "/path/to/nowhere.pileup" ));
+    EXPECT_ANY_THROW( make_variant_input_stream_from_pileup_file( "" ));
+    EXPECT_ANY_THROW( make_variant_input_stream_from_pileup_file( "/path/to/nowhere.pileup" ));
 
     // Test case for wrong number of filter indices: file only contains one sample, with index zero.
     // So, first works, second does not.
     EXPECT_NO_THROW(
-        make_variant_input_iterator_from_pileup_file( infile, std::vector<size_t>{ 0 })
+        make_variant_input_stream_from_pileup_file( infile, std::vector<size_t>{ 0 })
     );
     EXPECT_ANY_THROW(
-        make_variant_input_iterator_from_pileup_file( infile, std::vector<size_t>{ 1 })
+        make_variant_input_stream_from_pileup_file( infile, std::vector<size_t>{ 1 })
     );
 }
 
-TEST( VariantInputIterator, PileupInputIteratorSampleFilter )
+TEST( VariantInputStream, PileupInputStreamSampleFilter )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -185,7 +185,7 @@ TEST( VariantInputIterator, PileupInputIteratorSampleFilter )
 
     // No samples. This shall result in no filtering.
     {
-        auto it = make_variant_input_iterator_from_pileup_file(
+        auto it = make_variant_input_stream_from_pileup_file(
             infile, std::vector<size_t>{}
         );
         for( auto const& variant : it ) {
@@ -195,7 +195,7 @@ TEST( VariantInputIterator, PileupInputIteratorSampleFilter )
 
     // Flipped, no samples. This shall result in no filtering.
     {
-        auto it = make_variant_input_iterator_from_pileup_file(
+        auto it = make_variant_input_stream_from_pileup_file(
             infile, std::vector<size_t>{}, true
         );
         for( auto const& variant : it ) {
@@ -205,7 +205,7 @@ TEST( VariantInputIterator, PileupInputIteratorSampleFilter )
 
     // Normal, sample 1.
     {
-        auto it = make_variant_input_iterator_from_pileup_file(
+        auto it = make_variant_input_stream_from_pileup_file(
             infile, std::vector<size_t>{ 0 }
         );
         for( auto const& variant : it ) {
@@ -217,7 +217,7 @@ TEST( VariantInputIterator, PileupInputIteratorSampleFilter )
 
     // Normal, sample 2.
     {
-        auto it = make_variant_input_iterator_from_pileup_file(
+        auto it = make_variant_input_stream_from_pileup_file(
             infile, std::vector<size_t>{ 1 }
         );
         for( auto const& variant : it ) {
@@ -229,7 +229,7 @@ TEST( VariantInputIterator, PileupInputIteratorSampleFilter )
 
     // Flipped, sample 1.
     {
-        auto it = make_variant_input_iterator_from_pileup_file(
+        auto it = make_variant_input_stream_from_pileup_file(
             infile, std::vector<size_t>{ 1 }, true
         );
         for( auto const& variant : it ) {
@@ -241,7 +241,7 @@ TEST( VariantInputIterator, PileupInputIteratorSampleFilter )
 
     // Flipped, sample 2.
     {
-        auto it = make_variant_input_iterator_from_pileup_file(
+        auto it = make_variant_input_stream_from_pileup_file(
             infile, std::vector<size_t>{ 0 }, true
         );
         for( auto const& variant : it ) {
@@ -253,7 +253,7 @@ TEST( VariantInputIterator, PileupInputIteratorSampleFilter )
 
     // Both samples.
     {
-        auto it = make_variant_input_iterator_from_pileup_file(
+        auto it = make_variant_input_stream_from_pileup_file(
             infile, std::vector<size_t>{ 0, 1 }
         );
         for( auto const& variant : it ) {
@@ -264,7 +264,7 @@ TEST( VariantInputIterator, PileupInputIteratorSampleFilter )
     // Flipped, both samples. This is a special case, as clearly a sample filter is given,
     // so we take this into account, and so it results in no samples at all.
     {
-        auto it = make_variant_input_iterator_from_pileup_file(
+        auto it = make_variant_input_stream_from_pileup_file(
             infile, std::vector<size_t>{ 0, 1 }, true
         );
         for( auto const& variant : it ) {
@@ -274,10 +274,10 @@ TEST( VariantInputIterator, PileupInputIteratorSampleFilter )
 
     // Fail due to asking for indices that are larger that the number of samples in the file.
     {
-        EXPECT_ANY_THROW( make_variant_input_iterator_from_pileup_file(
+        EXPECT_ANY_THROW( make_variant_input_stream_from_pileup_file(
             infile, std::vector<size_t>{ 2 }, false
         ));
-        EXPECT_ANY_THROW( make_variant_input_iterator_from_pileup_file(
+        EXPECT_ANY_THROW( make_variant_input_stream_from_pileup_file(
             infile, std::vector<size_t>{ 2 }, true
         ));
     }
@@ -287,12 +287,12 @@ TEST( VariantInputIterator, PileupInputIteratorSampleFilter )
 //     Sync
 // =================================================================================================
 
-TEST( VariantInputIterator, SyncInputIterator )
+TEST( VariantInputStream, SyncInputStream )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/test.sync";
-    auto it = make_variant_input_iterator_from_sync_file( infile );
+    auto it = make_variant_input_stream_from_sync_file( infile );
     EXPECT_EQ( "test", it.data().source_name );
 
     // Add a filter that skips the specified region.
@@ -314,11 +314,11 @@ TEST( VariantInputIterator, SyncInputIterator )
     EXPECT_EQ( " 2303 2304 2305", result );
 
     // Test cases for missing file.
-    EXPECT_ANY_THROW( make_variant_input_iterator_from_sync_file( "" ));
-    EXPECT_ANY_THROW( make_variant_input_iterator_from_sync_file( "/path/to/nowhere.sync" ));
+    EXPECT_ANY_THROW( make_variant_input_stream_from_sync_file( "" ));
+    EXPECT_ANY_THROW( make_variant_input_stream_from_sync_file( "/path/to/nowhere.sync" ));
 }
 
-TEST( VariantInputIterator, SyncInputIteratorSampleFilter )
+TEST( VariantInputStream, SyncInputStreamSampleFilter )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -326,7 +326,7 @@ TEST( VariantInputIterator, SyncInputIteratorSampleFilter )
 
     // No samples. This shall result in no filtering.
     {
-        auto it = make_variant_input_iterator_from_sync_file(
+        auto it = make_variant_input_stream_from_sync_file(
             infile, std::vector<size_t>{}
         );
         auto beg = it.begin();
@@ -337,7 +337,7 @@ TEST( VariantInputIterator, SyncInputIteratorSampleFilter )
 
     // Flipped, No samples. This shall result in no filtering.
     {
-        auto it = make_variant_input_iterator_from_sync_file(
+        auto it = make_variant_input_stream_from_sync_file(
             infile, std::vector<size_t>{}, true
         );
         auto beg = it.begin();
@@ -348,7 +348,7 @@ TEST( VariantInputIterator, SyncInputIteratorSampleFilter )
 
     // Normal, sample 1.
     {
-        auto it = make_variant_input_iterator_from_sync_file(
+        auto it = make_variant_input_stream_from_sync_file(
             infile, std::vector<size_t>{ 0 }
         );
         auto beg = it.begin();
@@ -358,7 +358,7 @@ TEST( VariantInputIterator, SyncInputIteratorSampleFilter )
 
     // Normal, sample 2.
     {
-        auto it = make_variant_input_iterator_from_sync_file(
+        auto it = make_variant_input_stream_from_sync_file(
             infile, std::vector<size_t>{ 1 }
         );
         auto beg = it.begin();
@@ -368,7 +368,7 @@ TEST( VariantInputIterator, SyncInputIteratorSampleFilter )
 
     // Flipped, sample 1.
     {
-        auto it = make_variant_input_iterator_from_sync_file(
+        auto it = make_variant_input_stream_from_sync_file(
             infile, std::vector<size_t>{ 1 }, true
         );
         auto beg = it.begin();
@@ -378,7 +378,7 @@ TEST( VariantInputIterator, SyncInputIteratorSampleFilter )
 
     // Flipped, sample 2.
     {
-        auto it = make_variant_input_iterator_from_sync_file(
+        auto it = make_variant_input_stream_from_sync_file(
             infile, std::vector<size_t>{ 0 }, true
         );
         auto beg = it.begin();
@@ -388,7 +388,7 @@ TEST( VariantInputIterator, SyncInputIteratorSampleFilter )
 
     // Both samples.
     {
-        auto it = make_variant_input_iterator_from_sync_file(
+        auto it = make_variant_input_stream_from_sync_file(
             infile, std::vector<size_t>{ 0, 1 }
         );
         auto beg = it.begin();
@@ -400,7 +400,7 @@ TEST( VariantInputIterator, SyncInputIteratorSampleFilter )
     // Flipped, both samples. This is a special case, as clearly a sample filter is given,
     // so we take this into account, and so it results in no samples at all.
     {
-        auto it = make_variant_input_iterator_from_sync_file(
+        auto it = make_variant_input_stream_from_sync_file(
             infile, std::vector<size_t>{ 0, 1 }, true
         );
         auto beg = it.begin();
@@ -409,10 +409,10 @@ TEST( VariantInputIterator, SyncInputIteratorSampleFilter )
 
     // Fail due to asking for indices that are larger that the number of samples in the file.
     {
-        EXPECT_ANY_THROW( make_variant_input_iterator_from_sync_file(
+        EXPECT_ANY_THROW( make_variant_input_stream_from_sync_file(
             infile, std::vector<size_t>{ 2 }, false
         ));
-        EXPECT_ANY_THROW( make_variant_input_iterator_from_sync_file(
+        EXPECT_ANY_THROW( make_variant_input_stream_from_sync_file(
             infile, std::vector<size_t>{ 2 }, true
         ));
     }
@@ -424,12 +424,12 @@ TEST( VariantInputIterator, SyncInputIteratorSampleFilter )
 
 #ifdef GENESIS_HTSLIB
 
-TEST( VariantInputIterator, VcfInputIterator )
+TEST( VariantInputStream, VcfInputStream )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/example_ad.vcf";
-    auto it = make_variant_input_iterator_from_pool_vcf_file( infile, false, false );
+    auto it = make_variant_input_stream_from_pool_vcf_file( infile, false, false );
     EXPECT_EQ( "example_ad", it.data().source_name );
 
     // Add a filter that skips the specified region.
@@ -451,11 +451,11 @@ TEST( VariantInputIterator, VcfInputIterator )
     EXPECT_EQ( " 14370 1230237", result );
 
     // Test cases for missing file.
-    EXPECT_ANY_THROW( make_variant_input_iterator_from_pool_vcf_file( "" ));
-    EXPECT_ANY_THROW( make_variant_input_iterator_from_pool_vcf_file( "/path/to/nowhere.vcf" ));
+    EXPECT_ANY_THROW( make_variant_input_stream_from_pool_vcf_file( "" ));
+    EXPECT_ANY_THROW( make_variant_input_stream_from_pool_vcf_file( "/path/to/nowhere.vcf" ));
 }
 
-TEST( VariantInputIterator, VcfInputIteratorSampleFilter )
+TEST( VariantInputStream, VcfInputStreamSampleFilter )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -463,7 +463,7 @@ TEST( VariantInputIterator, VcfInputIteratorSampleFilter )
 
     // Filter empty. All samples are there, as this is equivalent to no filtering.
     {
-        auto it = make_variant_input_iterator_from_pool_vcf_file(
+        auto it = make_variant_input_stream_from_pool_vcf_file(
             infile, std::vector<std::string>{}
         );
         EXPECT_EQ( 3, it.begin()->samples.size() );
@@ -471,7 +471,7 @@ TEST( VariantInputIterator, VcfInputIteratorSampleFilter )
 
     // Filter empty, inversed. All samples are there, as this is equivalent to no filtering.
     {
-        auto it = make_variant_input_iterator_from_pool_vcf_file(
+        auto it = make_variant_input_stream_from_pool_vcf_file(
             infile, std::vector<std::string>{}, true
         );
         EXPECT_EQ( 3, it.begin()->samples.size() );
@@ -479,7 +479,7 @@ TEST( VariantInputIterator, VcfInputIteratorSampleFilter )
 
     // Filter NA00002.
     {
-        auto it = make_variant_input_iterator_from_pool_vcf_file(
+        auto it = make_variant_input_stream_from_pool_vcf_file(
             infile, std::vector<std::string>{ "NA00002" }
         );
         EXPECT_EQ( 1, it.begin()->samples.size() );
@@ -487,7 +487,7 @@ TEST( VariantInputIterator, VcfInputIteratorSampleFilter )
 
     // Filter NA00002, inversed. Two samples remain.
     {
-        auto it = make_variant_input_iterator_from_pool_vcf_file(
+        auto it = make_variant_input_stream_from_pool_vcf_file(
             infile, std::vector<std::string>{ "NA00002" }, true
         );
         EXPECT_EQ( 2, it.begin()->samples.size() );
@@ -496,12 +496,12 @@ TEST( VariantInputIterator, VcfInputIteratorSampleFilter )
     // Filter invalid.
     {
         EXPECT_ANY_THROW(
-             make_variant_input_iterator_from_pool_vcf_file(
+             make_variant_input_stream_from_pool_vcf_file(
                 infile, std::vector<std::string>{ "XYZ" }
             )
         );
         EXPECT_ANY_THROW(
-             make_variant_input_iterator_from_pool_vcf_file(
+             make_variant_input_stream_from_pool_vcf_file(
                 infile, std::vector<std::string>{ "XYZ" }, true
             )
         );
@@ -514,7 +514,7 @@ TEST( VariantInputIterator, VcfInputIteratorSampleFilter )
 //     Parallel Input
 // =================================================================================================
 
-TEST( VariantInputIterator, ParallelInputIterator1 )
+TEST( VariantInputStream, ParallelInputStream1 )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -524,23 +524,23 @@ TEST( VariantInputIterator, ParallelInputIterator1 )
 
     // Sync in.
     std::string const snc_infile = environment->data_dir + "population/test.sync";
-    auto snc_it = make_variant_input_iterator_from_sync_file( snc_infile );
+    auto snc_it = make_variant_input_stream_from_sync_file( snc_infile );
 
     // Pileup in.
     std::string const plp_infile = environment->data_dir + "population/example.pileup";
-    auto plp_it = make_variant_input_iterator_from_pileup_file( plp_infile );
+    auto plp_it = make_variant_input_stream_from_pileup_file( plp_infile );
 
     // Make parallel iterator from all source.
-    VariantParallelInputIterator parallel;
-    parallel.add_variant_input_iterator(
-        snc_it, VariantParallelInputIterator::ContributionType::kCarrying
+    VariantParallelInputStream parallel;
+    parallel.add_variant_input_stream(
+        snc_it, VariantParallelInputStream::ContributionType::kCarrying
     );
-    parallel.add_variant_input_iterator(
-        plp_it, VariantParallelInputIterator::ContributionType::kCarrying
+    parallel.add_variant_input_stream(
+        plp_it, VariantParallelInputStream::ContributionType::kCarrying
     );
 
     // Make the iterator.
-    auto it = make_variant_input_iterator_from_variant_parallel_input_iterator( parallel );
+    auto it = make_variant_input_stream_from_variant_parallel_input_stream( parallel );
     EXPECT_EQ( "", it.data().source_name );
 
     // We expect to find all chromosomes that appear in all of the input files.
@@ -559,44 +559,44 @@ TEST( VariantInputIterator, ParallelInputIterator1 )
 
 #ifdef GENESIS_HTSLIB
 
-TEST( VariantInputIterator, ParallelInputIterator2 )
+TEST( VariantInputStream, ParallelInputStream2 )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
 
     // SAM in.
     std::string const sam_infile = environment->data_dir + "population/ex1.sam.gz";
-    auto sam_it = make_variant_input_iterator_from_sam_file( sam_infile );
+    auto sam_it = make_variant_input_stream_from_sam_file( sam_infile );
 
     // Sync in.
     std::string const snc_infile = environment->data_dir + "population/test.sync";
-    auto snc_it = make_variant_input_iterator_from_sync_file( snc_infile );
+    auto snc_it = make_variant_input_stream_from_sync_file( snc_infile );
 
     // Pileup in.
     std::string const plp_infile = environment->data_dir + "population/example.pileup";
-    auto plp_it = make_variant_input_iterator_from_pileup_file( plp_infile );
+    auto plp_it = make_variant_input_stream_from_pileup_file( plp_infile );
 
     // VCF in.
     std::string const vcf_infile = environment->data_dir + "population/example_ad.vcf";
-    auto vcf_it = make_variant_input_iterator_from_pool_vcf_file( vcf_infile, false, false );
+    auto vcf_it = make_variant_input_stream_from_pool_vcf_file( vcf_infile, false, false );
 
     // Make parallel iterator from all source.
-    VariantParallelInputIterator parallel;
-    parallel.add_variant_input_iterator(
-        sam_it, VariantParallelInputIterator::ContributionType::kCarrying
+    VariantParallelInputStream parallel;
+    parallel.add_variant_input_stream(
+        sam_it, VariantParallelInputStream::ContributionType::kCarrying
     );
-    parallel.add_variant_input_iterator(
-        snc_it, VariantParallelInputIterator::ContributionType::kCarrying
+    parallel.add_variant_input_stream(
+        snc_it, VariantParallelInputStream::ContributionType::kCarrying
     );
-    parallel.add_variant_input_iterator(
-        plp_it, VariantParallelInputIterator::ContributionType::kCarrying
+    parallel.add_variant_input_stream(
+        plp_it, VariantParallelInputStream::ContributionType::kCarrying
     );
-    parallel.add_variant_input_iterator(
-        vcf_it, VariantParallelInputIterator::ContributionType::kCarrying
+    parallel.add_variant_input_stream(
+        vcf_it, VariantParallelInputStream::ContributionType::kCarrying
     );
 
     // Make the iterator.
-    auto it = make_variant_input_iterator_from_variant_parallel_input_iterator( parallel );
+    auto it = make_variant_input_stream_from_variant_parallel_input_stream( parallel );
 
     // We expect to find all chromosomes that appear in all of the input files.
     std::unordered_set<std::string> exp_chromosomes = {
@@ -618,8 +618,8 @@ TEST( VariantInputIterator, ParallelInputIterator2 )
 //     Unordered Chromosomes
 // =================================================================================================
 
-void test_variant_input_iterator_unordered_chromosomes_(
-    VariantInputIterator& it,
+void test_variant_input_stream_unordered_chromosomes_(
+    VariantInputStream& it,
     size_t expected_positions,
     bool with_observer,
     bool with_dict,
@@ -644,7 +644,7 @@ void test_variant_input_iterator_unordered_chromosomes_(
     // Add a check observer to the iterator.
     if( with_observer ) {
         it.add_observer(
-            make_variant_input_iterator_sequence_order_observer( sequence_dict )
+            make_variant_input_stream_sequence_order_observer( sequence_dict )
         );
     }
 
@@ -659,147 +659,147 @@ void test_variant_input_iterator_unordered_chromosomes_(
 
 #ifdef GENESIS_HTSLIB
 
-TEST( VariantInputIterator, UnorderedChromosomesSam )
+TEST( VariantInputStream, UnorderedChromosomesSam )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/unordered.sam.gz";
 
     {
-        auto it = make_variant_input_iterator_from_sam_file( infile );
+        auto it = make_variant_input_stream_from_sam_file( infile );
         EXPECT_ANY_THROW(
-            test_variant_input_iterator_unordered_chromosomes_( it, 3136, true, false, false )
+            test_variant_input_stream_unordered_chromosomes_( it, 3136, true, false, false )
         );
     }
     {
-        auto it = make_variant_input_iterator_from_sam_file( infile );
+        auto it = make_variant_input_stream_from_sam_file( infile );
         EXPECT_ANY_THROW(
-            test_variant_input_iterator_unordered_chromosomes_( it, 3136, true, true, false )
+            test_variant_input_stream_unordered_chromosomes_( it, 3136, true, true, false )
         );
     }
     {
-        auto it = make_variant_input_iterator_from_sam_file( infile );
-        test_variant_input_iterator_unordered_chromosomes_( it, 3136, true, true, true );
+        auto it = make_variant_input_stream_from_sam_file( infile );
+        test_variant_input_stream_unordered_chromosomes_( it, 3136, true, true, true );
     }
     {
-        auto it = make_variant_input_iterator_from_sam_file( infile );
-        test_variant_input_iterator_unordered_chromosomes_( it, 3136, false, false, false );
+        auto it = make_variant_input_stream_from_sam_file( infile );
+        test_variant_input_stream_unordered_chromosomes_( it, 3136, false, false, false );
     }
 }
 
 #endif // GENESIS_HTSLIB
 
-TEST( VariantInputIterator, UnorderedChromosomesPileup )
+TEST( VariantInputStream, UnorderedChromosomesPileup )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/unordered.pileup";
 
     {
-        auto it = make_variant_input_iterator_from_pileup_file( infile );
+        auto it = make_variant_input_stream_from_pileup_file( infile );
         EXPECT_ANY_THROW(
-            test_variant_input_iterator_unordered_chromosomes_( it, 16, true, false, false )
+            test_variant_input_stream_unordered_chromosomes_( it, 16, true, false, false )
         );
     }
     {
-        auto it = make_variant_input_iterator_from_pileup_file( infile );
+        auto it = make_variant_input_stream_from_pileup_file( infile );
         EXPECT_ANY_THROW(
-            test_variant_input_iterator_unordered_chromosomes_( it, 16, true, true, false )
+            test_variant_input_stream_unordered_chromosomes_( it, 16, true, true, false )
         );
     }
     {
-        auto it = make_variant_input_iterator_from_pileup_file( infile );
-        test_variant_input_iterator_unordered_chromosomes_( it, 16, true, true, true );
+        auto it = make_variant_input_stream_from_pileup_file( infile );
+        test_variant_input_stream_unordered_chromosomes_( it, 16, true, true, true );
     }
     {
-        auto it = make_variant_input_iterator_from_pileup_file( infile );
-        test_variant_input_iterator_unordered_chromosomes_( it, 16, false, false, false );
+        auto it = make_variant_input_stream_from_pileup_file( infile );
+        test_variant_input_stream_unordered_chromosomes_( it, 16, false, false, false );
     }
 }
 
-TEST( VariantInputIterator, UnorderedChromosomesSync )
+TEST( VariantInputStream, UnorderedChromosomesSync )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/unordered.sync";
 
     {
-        auto it = make_variant_input_iterator_from_sync_file( infile );
+        auto it = make_variant_input_stream_from_sync_file( infile );
         EXPECT_ANY_THROW(
-            test_variant_input_iterator_unordered_chromosomes_( it, 12, true, false, false )
+            test_variant_input_stream_unordered_chromosomes_( it, 12, true, false, false )
         );
     }
     {
-        auto it = make_variant_input_iterator_from_sync_file( infile );
+        auto it = make_variant_input_stream_from_sync_file( infile );
         EXPECT_ANY_THROW(
-            test_variant_input_iterator_unordered_chromosomes_( it, 12, true, true, false )
+            test_variant_input_stream_unordered_chromosomes_( it, 12, true, true, false )
         );
     }
     {
-        auto it = make_variant_input_iterator_from_sync_file( infile );
-        test_variant_input_iterator_unordered_chromosomes_( it, 12, true, true, true );
+        auto it = make_variant_input_stream_from_sync_file( infile );
+        test_variant_input_stream_unordered_chromosomes_( it, 12, true, true, true );
     }
     {
-        auto it = make_variant_input_iterator_from_sync_file( infile );
-        test_variant_input_iterator_unordered_chromosomes_( it, 12, false, false, false );
+        auto it = make_variant_input_stream_from_sync_file( infile );
+        test_variant_input_stream_unordered_chromosomes_( it, 12, false, false, false );
     }
 }
 
-TEST( VariantInputIterator, UnorderedChromosomesFrequencyTable )
+TEST( VariantInputStream, UnorderedChromosomesFrequencyTable )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/unordered.csv";
 
     {
-        auto it = make_variant_input_iterator_from_frequency_table_file( infile );
+        auto it = make_variant_input_stream_from_frequency_table_file( infile );
         EXPECT_ANY_THROW(
-            test_variant_input_iterator_unordered_chromosomes_( it, 8, true, false, false )
+            test_variant_input_stream_unordered_chromosomes_( it, 8, true, false, false )
         );
     }
     {
-        auto it = make_variant_input_iterator_from_frequency_table_file( infile );
+        auto it = make_variant_input_stream_from_frequency_table_file( infile );
         EXPECT_ANY_THROW(
-            test_variant_input_iterator_unordered_chromosomes_( it, 8, true, true, false )
+            test_variant_input_stream_unordered_chromosomes_( it, 8, true, true, false )
         );
     }
     {
-        auto it = make_variant_input_iterator_from_frequency_table_file( infile );
-        test_variant_input_iterator_unordered_chromosomes_( it, 8, true, true, true );
+        auto it = make_variant_input_stream_from_frequency_table_file( infile );
+        test_variant_input_stream_unordered_chromosomes_( it, 8, true, true, true );
     }
     {
-        auto it = make_variant_input_iterator_from_frequency_table_file( infile );
-        test_variant_input_iterator_unordered_chromosomes_( it, 8, false, false, false );
+        auto it = make_variant_input_stream_from_frequency_table_file( infile );
+        test_variant_input_stream_unordered_chromosomes_( it, 8, false, false, false );
     }
 }
 
 #ifdef GENESIS_HTSLIB
 
-TEST( VariantInputIterator, UnorderedChromosomesVcf )
+TEST( VariantInputStream, UnorderedChromosomesVcf )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/unordered.vcf";
 
     {
-        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        auto it = make_variant_input_stream_from_pool_vcf_file( infile );
         EXPECT_ANY_THROW(
-            test_variant_input_iterator_unordered_chromosomes_( it, 10, true, false, false )
+            test_variant_input_stream_unordered_chromosomes_( it, 10, true, false, false )
         );
     }
     {
-        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        auto it = make_variant_input_stream_from_pool_vcf_file( infile );
         EXPECT_ANY_THROW(
-            test_variant_input_iterator_unordered_chromosomes_( it, 10, true, true, false )
+            test_variant_input_stream_unordered_chromosomes_( it, 10, true, true, false )
         );
     }
     {
-        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
-        test_variant_input_iterator_unordered_chromosomes_( it, 10, true, true, true );
+        auto it = make_variant_input_stream_from_pool_vcf_file( infile );
+        test_variant_input_stream_unordered_chromosomes_( it, 10, true, true, true );
     }
     {
-        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
-        test_variant_input_iterator_unordered_chromosomes_( it, 10, false, false, false );
+        auto it = make_variant_input_stream_from_pool_vcf_file( infile );
+        test_variant_input_stream_unordered_chromosomes_( it, 10, false, false, false );
     }
 }
 
@@ -809,7 +809,7 @@ TEST( VariantInputIterator, UnorderedChromosomesVcf )
 //     Sample Filter
 // =================================================================================================
 
-TEST( VariantInputIterator, MakeSampleFilter )
+TEST( VariantInputStream, MakeSampleFilter )
 {
     auto sample_names = std::vector<std::string>{
         "A", "B", "C", "D", "E", "F", "G", "H"
@@ -847,7 +847,7 @@ TEST( VariantInputIterator, MakeSampleFilter )
 
 #ifdef GENESIS_HTSLIB
 
-TEST( VariantInputIterator, SampleFilter )
+TEST( VariantInputStream, SampleFilter )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -857,9 +857,9 @@ TEST( VariantInputIterator, SampleFilter )
 
     // Filter empty. No samples are there.
     {
-        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        auto it = make_variant_input_stream_from_pool_vcf_file( infile );
         it.add_transform(
-            make_variant_input_iterator_sample_name_filter_transform(
+            make_variant_input_stream_sample_name_filter_transform(
                 make_sample_filter( it.data().sample_names, {}, false )
             )
         );
@@ -868,9 +868,9 @@ TEST( VariantInputIterator, SampleFilter )
 
     // Filter empty, inversed. All samples are there, as this is equivalent to no filtering.
     {
-        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        auto it = make_variant_input_stream_from_pool_vcf_file( infile );
         it.add_transform(
-            make_variant_input_iterator_sample_name_filter_transform(
+            make_variant_input_stream_sample_name_filter_transform(
                 make_sample_filter( it.data().sample_names, {}, true )
             )
         );
@@ -879,9 +879,9 @@ TEST( VariantInputIterator, SampleFilter )
 
     // Filter NA00002.
     {
-        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        auto it = make_variant_input_stream_from_pool_vcf_file( infile );
         it.add_transform(
-            make_variant_input_iterator_sample_name_filter_transform(
+            make_variant_input_stream_sample_name_filter_transform(
                 make_sample_filter( it.data().sample_names, { "NA00002" }, false )
             )
         );
@@ -890,9 +890,9 @@ TEST( VariantInputIterator, SampleFilter )
 
     // Filter NA00002, inversed. Two samples remain.
     {
-        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        auto it = make_variant_input_stream_from_pool_vcf_file( infile );
         it.add_transform(
-            make_variant_input_iterator_sample_name_filter_transform(
+            make_variant_input_stream_sample_name_filter_transform(
                 make_sample_filter( it.data().sample_names, { "NA00002" }, true )
             )
         );
@@ -901,20 +901,20 @@ TEST( VariantInputIterator, SampleFilter )
 
     // Filter invalid.
     {
-        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        auto it = make_variant_input_stream_from_pool_vcf_file( infile );
         EXPECT_ANY_THROW(
             it.add_transform(
-                make_variant_input_iterator_sample_name_filter_transform(
+                make_variant_input_stream_sample_name_filter_transform(
                     make_sample_filter( it.data().sample_names, { "XYZ" }, false )
                 )
             );
         );
     }
     {
-        auto it = make_variant_input_iterator_from_pool_vcf_file( infile );
+        auto it = make_variant_input_stream_from_pool_vcf_file( infile );
         EXPECT_ANY_THROW(
             it.add_transform(
-                make_variant_input_iterator_sample_name_filter_transform(
+                make_variant_input_stream_sample_name_filter_transform(
                     make_sample_filter( it.data().sample_names, { "XYZ" }, true )
                 )
             );
@@ -928,13 +928,13 @@ TEST( VariantInputIterator, SampleFilter )
 //     Sample Group Merging
 // =================================================================================================
 
-TEST( VariantInputIterator, SampleGroupMerging )
+TEST( VariantInputStream, SampleGroupMerging )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/sample-names.sync";
 
-    auto sync_it = make_variant_input_iterator_from_sync_file( infile );
+    auto sync_it = make_variant_input_stream_from_sync_file( infile );
 
     // Sample names: sample_1	sample_2	sample_3	sample_4
     auto const group_assignment = std::unordered_map<std::string, std::string>{
@@ -945,7 +945,7 @@ TEST( VariantInputIterator, SampleGroupMerging )
         // { "sample_5", "group_c" }
     };
 
-    auto merged_it = make_variant_merging_input_iterator( sync_it, group_assignment );
+    auto merged_it = make_variant_merging_input_stream( sync_it, group_assignment );
     auto const exp_group_names = std::vector<std::string>{ "group_a", "group_b" };
     EXPECT_EQ( exp_group_names, merged_it.data().sample_names );
 

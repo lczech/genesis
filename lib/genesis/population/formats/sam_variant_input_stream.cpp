@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/formats/sam_variant_input_iterator.hpp"
+#include "genesis/population/formats/sam_variant_input_stream.hpp"
 
 #include "genesis/population/functions/functions.hpp"
 
@@ -55,7 +55,7 @@ namespace population {
 //     Sam File Handle
 // =================================================================================================
 
-struct SamVariantInputIterator::SamFileHandle
+struct SamVariantInputStream::SamFileHandle
 {
 public:
 
@@ -68,7 +68,7 @@ public:
     // -------------------------------------------------------------------------
 
     // Our main class, for access to settings.
-    SamVariantInputIterator const* parent_;
+    SamVariantInputStream const* parent_;
 
     // File handle.
     ::htsFile* hts_file_ = nullptr;
@@ -115,7 +115,7 @@ public:
      * and their index in the RG list of the input file as values. This makes it possible
      * to do a fast index lookup for each read, given its RG tag in the file.
      */
-    void init_( SamVariantInputIterator const* parent );
+    void init_( SamVariantInputStream const* parent );
 
     /**
      * @brief Get all `@RG` read group tags that are present in the header of the input file.
@@ -171,7 +171,7 @@ public:
 //     init_
 // -------------------------------------------------------------------------
 
-void SamVariantInputIterator::SamFileHandle::init_( SamVariantInputIterator const* parent )
+void SamVariantInputStream::SamFileHandle::init_( SamVariantInputStream const* parent )
 {
     // ----------------------------------
     //     General Setup
@@ -355,7 +355,7 @@ void SamVariantInputIterator::SamFileHandle::init_( SamVariantInputIterator cons
 //     get_header_rg_tags_
 // -------------------------------------------------------------------------
 
-std::vector<std::string> SamVariantInputIterator::SamFileHandle::get_header_rg_tags_() const
+std::vector<std::string> SamVariantInputStream::SamFileHandle::get_header_rg_tags_() const
 {
     // Inspired by https://github.com/samtools/samtools/blob/2ece68ef9d0bd302a74c952b55df1badf9e61aae/bam_split.c#L217
 
@@ -399,7 +399,7 @@ std::vector<std::string> SamVariantInputIterator::SamFileHandle::get_header_rg_t
 //     Destructor
 // -------------------------------------------------------------------------
 
-SamVariantInputIterator::SamFileHandle::~SamFileHandle()
+SamVariantInputStream::SamFileHandle::~SamFileHandle()
 {
     // if( mpileup_ ) {
     //     bam_mplp_destroy( mpileup_ );
@@ -433,7 +433,7 @@ SamVariantInputIterator::SamFileHandle::~SamFileHandle()
 // -------------------------------------------------------------------------
 
 // static
-int SamVariantInputIterator::SamFileHandle::read_sam_(
+int SamVariantInputStream::SamFileHandle::read_sam_(
     void* data, bam1_t* bam
 ) {
     // The function processes a single mapped read. Reads that make it through here are then
@@ -442,7 +442,7 @@ int SamVariantInputIterator::SamFileHandle::read_sam_(
     // Comment from bam2depth: read level filters better go here to avoid pileup.
 
     // Data in fact is a pointer to our handle.
-    auto handle = static_cast<SamVariantInputIterator::SamFileHandle*>( data );
+    auto handle = static_cast<SamVariantInputStream::SamFileHandle*>( data );
     assert( handle );
     assert( handle->parent_ );
     assert( handle->hts_file_ );
@@ -535,11 +535,11 @@ int SamVariantInputIterator::SamFileHandle::read_sam_(
 // -------------------------------------------------------------------------
 
 // static
-int SamVariantInputIterator::SamFileHandle::pileup_cd_create_(
+int SamVariantInputStream::SamFileHandle::pileup_cd_create_(
     void* data, bam1_t const* b, bam_pileup_cd* cd
 ) {
     // Data in fact is a pointer to our handle, same as for the read function above.
-    auto handle = static_cast<SamVariantInputIterator::SamFileHandle*>( data );
+    auto handle = static_cast<SamVariantInputStream::SamFileHandle*>( data );
 
     // Only called when splitting by read groups.
     assert( handle );
@@ -645,7 +645,7 @@ int SamVariantInputIterator::SamFileHandle::pileup_cd_create_(
 // -------------------------------------------------------------------------
 
 // static
-int SamVariantInputIterator::SamFileHandle::pileup_cd_destroy_(
+int SamVariantInputStream::SamFileHandle::pileup_cd_destroy_(
     void* data, bam1_t const* b, bam_pileup_cd* cd
 ) {
     // Nothing to do, as we only use bam_pileup_cd::i, which does not need freeing.
@@ -664,7 +664,7 @@ int SamVariantInputIterator::SamFileHandle::pileup_cd_destroy_(
 //     Concstructor
 // -------------------------------------------------------------------------
 
-SamVariantInputIterator::Iterator::Iterator( SamVariantInputIterator const* parent )
+SamVariantInputStream::Iterator::Iterator( SamVariantInputStream const* parent )
     : parent_( parent )
     , handle_( std::make_shared<SamFileHandle>() )
 {
@@ -695,10 +695,10 @@ SamVariantInputIterator::Iterator::Iterator( SamVariantInputIterator const* pare
 //     rg_tags
 // -------------------------------------------------------------------------
 
-std::vector<std::string> SamVariantInputIterator::Iterator::rg_tags( bool all_header_tags ) const
+std::vector<std::string> SamVariantInputStream::Iterator::rg_tags( bool all_header_tags ) const
 {
     // Previously, this function used to rely on a re-filling of the list of tags, using
-    // the settings of the parent_ SamVariantInputIterator. However, in cases where the per-read
+    // the settings of the parent_ SamVariantInputStream. However, in cases where the per-read
     // filter settings would fitler out _all_ reads (e.g., super high min map qual filter),
     // the iterator would already reach its end when being intitialized, as no read would ever be
     // used, and hence parent_ would already be nullptr when this function here was called from
@@ -729,7 +729,7 @@ std::vector<std::string> SamVariantInputIterator::Iterator::rg_tags( bool all_he
 //     sample_size
 // -------------------------------------------------------------------------
 
-size_t SamVariantInputIterator::Iterator::sample_size() const
+size_t SamVariantInputStream::Iterator::sample_size() const
 {
     assert( handle_ );
     return handle_->target_sample_count_;
@@ -743,7 +743,7 @@ size_t SamVariantInputIterator::Iterator::sample_size() const
 //     increment_
 // -------------------------------------------------------------------------
 
-void SamVariantInputIterator::Iterator::increment_()
+void SamVariantInputStream::Iterator::increment_()
 {
     // Only to be called when the iterator is still valid (not past-the-end).
     assert( parent_ );
@@ -838,7 +838,7 @@ void SamVariantInputIterator::Iterator::increment_()
 //     process_base_
 // -------------------------------------------------------------------------
 
-void SamVariantInputIterator::Iterator::process_base_( bam_pileup1_t const* p )
+void SamVariantInputStream::Iterator::process_base_( bam_pileup1_t const* p )
 {
     assert( parent_ );
     assert( handle_ );
@@ -912,7 +912,7 @@ void SamVariantInputIterator::Iterator::process_base_( bam_pileup1_t const* p )
 //     get_sample_index_
 // -------------------------------------------------------------------------
 
-size_t SamVariantInputIterator::Iterator::get_sample_index_( bam_pileup1_t const* p ) const
+size_t SamVariantInputStream::Iterator::get_sample_index_( bam_pileup1_t const* p ) const
 {
     assert( parent_ );
     assert( handle_ );
@@ -942,7 +942,7 @@ size_t SamVariantInputIterator::Iterator::get_sample_index_( bam_pileup1_t const
 //     Sam Variant Input Iterator
 // =================================================================================================
 
-SamVariantInputIterator::SamVariantInputIterator(
+SamVariantInputStream::SamVariantInputStream(
     std::string const& infile,
     std::unordered_set<std::string> const& rg_tag_filter,
     bool inverse_rg_tag_filter

@@ -31,10 +31,10 @@
 #include "src/common.hpp"
 
 #include "genesis/population/base_counts.hpp"
-#include "genesis/population/formats/simple_pileup_input_iterator.hpp"
+#include "genesis/population/formats/simple_pileup_input_stream.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/formats/sync_reader.hpp"
-#include "genesis/population/iterators/variant_input_iterator.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/fst_pool_functions.hpp"
 #include "genesis/population/functions/fst_pool_processor.hpp"
@@ -273,8 +273,8 @@ TEST( Structure, FstPoolIterator )
 
     using VariantWindow = Window<genesis::population::Variant>;
 
-    // Make a Lambda Iterator over the data stream.
-    auto data_gen = make_variant_input_iterator_from_sync_file( infile );
+    // Make a Generic Input Stream over the data stream.
+    auto data_gen = make_variant_input_stream_from_sync_file( infile );
     data_gen.add_filter([&]( Variant const& variant ){
         // transform_by_min_count( sample_set.samples[0], min_allele_count );
         // transform_by_min_count( sample_set.samples[1], min_allele_count );
@@ -295,7 +295,7 @@ TEST( Structure, FstPoolIterator )
         // ).is_biallelic;
     });
 
-    // Create a window iterator based on the lambda iterator.
+    // Create a window iterator based on the Generic Input Stream.
     auto win_it = make_default_sliding_interval_window_iterator(
         data_gen.begin(), data_gen.end(), window_width, window_stride
     );
@@ -392,8 +392,8 @@ TEST( Structure, FstPoolProcessor )
     processor.thread_pool( Options::get().global_thread_pool() );
     processor.threading_threshold( 0 );
 
-    // Make a Lambda Iterator over the data stream, and go through
-    auto data_gen = make_variant_input_iterator_from_sync_file( infile );
+    // Make a Generic Input Stream over the data stream, and go through
+    auto data_gen = make_variant_input_stream_from_sync_file( infile );
     for( auto const& variant : data_gen ) {
         processor.process( variant );
     }
@@ -419,12 +419,12 @@ TEST( Structure, FstPoolAllPairs )
     size_t const min_allele_count = 6;
     std::vector<size_t> const poolsizes{ 100, 100 };
 
-    // Make a Lambda Iterator over the data stream.
-    auto data_gen = make_variant_input_iterator_from_sync_file( infile );
+    // Make a Generic Input Stream over the data stream.
+    auto data_gen = make_variant_input_stream_from_sync_file( infile );
     auto sync_begin = data_gen.begin();
     auto sync_end   = data_gen.end();
 
-    // Create a window iterator based on the lambda iterator.
+    // Create a window iterator based on the Generic Input Stream.
     auto win_it = make_default_sliding_interval_window_iterator(
         sync_begin, sync_end, window_width
     );
