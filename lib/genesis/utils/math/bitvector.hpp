@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -86,7 +86,7 @@ public:
     /**
      * @brief Constructor that takes a size and a list of values (positions) to be set to true.
      */
-    Bitvector( size_t size, std::initializer_list<size_t> list)
+    Bitvector( size_t size, std::initializer_list<size_t> list )
         : Bitvector(size, false)
     {
         for( size_t e : list ) {
@@ -298,6 +298,15 @@ public:
      * but faster, as we use whole-word counting internally.
      */
     size_t count( size_t first, size_t last ) const;
+
+    /**
+     * @brief Return the index of the next position in the Bitvector that is set.
+     *
+     * This returns the first position after @p start, including @p start itself, that is set.
+     * If no such position exists (because all following bits are `false`), or if @p start is beyond
+     * the length of the vector `std::numeric_limits<size_t>::max()` is returned instead.
+     */
+    size_t find_next_set( size_t start ) const;
 
     /**
      * @brief Return an std::hash value for the Bitvector.

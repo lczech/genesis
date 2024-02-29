@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,7 +33,9 @@
 #include "genesis/utils/core/std.hpp"
 
 #include <algorithm>
+#include <cstring>
 #include <functional>
+#include <limits>
 #include <stdexcept>
 
 namespace genesis {
@@ -325,6 +327,79 @@ size_t Bitvector::count( size_t first, size_t last ) const
         }
     }
     return result;
+}
+
+size_t Bitvector::find_next_set( size_t start ) const
+{
+    // Boundary check
+    if( start >= size_ ) {
+        // We mimic the behaviour of std::string::find(), which just never finds anything
+        // when used beyond the string, but also does not throw an exception in such cases.
+        return std::numeric_limits<size_t>::max();
+        // throw std::invalid_argument(
+        //     "Invalid call to find_next_set() with start==" + std::to_string(start) +
+        //     " and a Bitvector of size " + std::to_string( size_ )
+        // );
+    }
+
+    // Helper function to find the index of the first set bit in a non-zero word.
+    auto find_next_set_in_word_ = []( IntType word ) {
+        assert( word != 0 );
+
+        // We use ffs here, see https://man7.org/linux/man-pages/man3/ffs.3.html
+        // It returns the _position_ of the bit, so we need to subtract 1 to get the index.
+        // Alternatively, we could use __builtin_ctz, which returns the number of trailing
+        // zeros in the given word, but is a compiler intrinsic, so let's stay with POSIX.
+
+        // Check the size of the input and call the appropriate ffs function.
+        // Any good compiler will see through this and make this constexpr.
+        // In C++17, we could do this ourselves ;-)
+        if( sizeof(word) <= sizeof(unsigned int) ) {
+            return ffs( static_cast<unsigned int>( word )) - 1;
+        } else if( sizeof(word) <= sizeof(unsigned long) ) {
+            return ffsl( static_cast<unsigned long>( word )) - 1;
+        } else {
+            return ffsll(word) - 1;
+        }
+    };
+
+    // First see if there is anything in the word at the start position.
+    // We assume that this function might be called on a dense bitvector,
+    // where the given position is already set, so we check that as a shortcut.
+    if( get( start )) {
+        return start;
+    }
+
+    // If that did not work, we see if there is anything in the current word.
+    auto wrd_idx = start / IntSize;
+    auto bit_idx = start % IntSize;
+    assert( wrd_idx < data_.size() );
+    assert( bit_idx < ones_mask_.size() );
+    auto word = data_[wrd_idx];
+
+    // For this, we remove the bits before start, and then test the rest.
+    // Mask out the beginning of the word, and find the next bit on the remainder.
+    // Special case for the beginning: we only apply the mask if not all bits are needed.
+    if( bit_idx > 0 ) {
+        // Remove all bits before the first index.
+        word &= ~( ones_mask_[ bit_idx ]);
+    }
+    if( word != 0 ) {
+        return wrd_idx * IntSize + find_next_set_in_word_( word );
+    }
+
+    // We did not find a bit in the word of the start. So now we look for the first word
+    // after the start one that has bits set, and return its first set bit position.
+    ++wrd_idx;
+    while( wrd_idx < data_.size() && data_[wrd_idx] == 0 ) {
+        ++wrd_idx;
+    }
+    if( wrd_idx == data_.size() ) {
+        return std::numeric_limits<size_t>::max();
+    }
+    assert( wrd_idx < data_.size() );
+    assert( data_[wrd_idx] != 0 );
+    return wrd_idx * IntSize + find_next_set_in_word_( data_[wrd_idx] );
 }
 
 size_t Bitvector::hash() const
