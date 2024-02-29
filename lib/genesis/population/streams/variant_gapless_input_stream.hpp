@@ -363,9 +363,12 @@ public:
 
         // Storage for the missing variants of the iterators. This serves as a dummy variant
         // for all positions of the input without data, so that we do not need to re-allocate
-        // every time for this. It is initialized to zero counts for all base counts,
-        // and only the position and refrence base are updated.
+        // every time for this. It is initialized to zero counts for all base counts.
+        // In each iteration step, the position and refrence base are updated.
+        // To allow manupulation or move-from, we reset the whole Variant each time though.
+        // To this end, we store the number of samples here as well.
         Variant missing_variant_;
+        size_t num_samples_;
 
         // Keep the iterators that we want to traverse. We only need the begin() iterators,
         // as they are themselves able to tell us if they are still good (via their operator bool).

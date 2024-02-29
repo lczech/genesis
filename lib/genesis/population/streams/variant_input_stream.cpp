@@ -729,9 +729,7 @@ VariantInputStream make_variant_input_stream_from_variant_gapless_input_stream(
                 has_started = true;
             }
             if( cur != end ) {
-                // Cannt move here, as we would destroy the missing variant dummy in the iterator.
-                // variant = std::move( *cur );
-                variant = *cur;
+                variant = std::move( *cur );
                 ++cur;
                 return true;
             } else {

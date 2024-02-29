@@ -64,7 +64,7 @@ VariantGaplessInputStream::Iterator::Iterator( VariantGaplessInputStream* parent
     auto const sample_name_count = parent_->input_.data().sample_names.size();
     if( iterator_ ) {
         check_input_iterator_();
-        missing_variant_.samples.resize( iterator_->samples.size() );
+        num_samples_ = iterator_->samples.size();
 
         // We assume that the sample_names are of the correct size, if given.
         if( sample_name_count > 0 && iterator_->samples.size() != sample_name_count ) {
@@ -82,7 +82,7 @@ VariantGaplessInputStream::Iterator::Iterator( VariantGaplessInputStream* parent
         // filter settings), we use the sample names as an indicator for the number of dummy
         // samples to create. This might still be needed when we want to iterator genome
         // positions from the ref genome or sequence dict.
-        missing_variant_.samples.resize( sample_name_count );
+        num_samples_ = sample_name_count;
 
         // We have no actual input data. Still let's see if there are extra chromsomes we want.
         // We might not have anything, in which case we are done already.
@@ -376,11 +376,11 @@ void VariantGaplessInputStream::Iterator::prepare_current_variant_()
         current_variant_is_missing_ = false;
 
         // Error check for consistent sample size.
-        if( iterator_->samples.size() != missing_variant_.samples.size() ) {
+        if( iterator_->samples.size() != num_samples_ ) {
             throw std::runtime_error(
                 "In VariantGaplessInputStream: Invalid input data that has an inconsistent "
                 "number of samples throughout, first occurring at " + to_string( current_locus_ ) +
-                ". Expected " + std::to_string( missing_variant_.samples.size() ) +
+                ". Expected " + std::to_string( num_samples_ ) +
                 " samples based on first iteration, but found " +
                 std::to_string( iterator_->samples.size() ) + " samples instead."
             );
@@ -391,6 +391,13 @@ void VariantGaplessInputStream::Iterator::prepare_current_variant_()
         missing_variant_.position   = current_locus_.position;
         missing_variant_.reference_base   = 'N';
         missing_variant_.alternative_base = 'N';
+
+        // In case that the Variant is moved-from, we need to reset the sample size. In case it was
+        // modified (by some filter or transformation), we also need to reset the counts.
+        missing_variant_.samples.resize( num_samples_ );
+        for( auto& sample : missing_variant_.samples ) {
+            sample.clear();
+        }
     }
 
     prepare_current_variant_ref_base_();
