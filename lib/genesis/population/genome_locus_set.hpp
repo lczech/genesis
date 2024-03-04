@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,10 +33,9 @@
 
 #include <cassert>
 #include <cstdint>
-#include <map>
 #include <stdexcept>
 #include <string>
-#include <unordered_set>
+#include <unordered_map>
 #include <vector>
 
 #include "genesis/population/genome_locus.hpp"
@@ -61,9 +60,9 @@ namespace population {
  *
  * Positions are 1-based. We also offer the special case to add a whole chromosome, in which case
  * the is_covered() function will return `true` for all positions on that chromosome (without
- * checking that the position is in fact part of the chromosome - as we do not use information
- * on the lengths of chromosomes in this class). We use position `0` to mark this special
- * whole-chromosome case - be aware of that when adding positions to the list.
+ * checking that the position is in fact within the length of the chromosome - as we do not use
+ * information on the lengths of chromosomes in this class). We use position `0` to mark this
+ * special whole-chromosome case - be aware of that when adding positions to the list.
  * See also GenomeRegionList, GenomeLocus and GenomeRegion for related classes that have the same
  * special cases.
  *
@@ -74,6 +73,20 @@ namespace population {
 class GenomeLocusSet
 {
 public:
+
+    // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    using key_type    = std::string;
+    using mapped_type = utils::Bitvector;
+    using value_type  = std::pair<std::string const, utils::Bitvector>;
+
+    using reference       = value_type&;
+    using const_reference = value_type const&;
+
+    using iterator       = typename std::unordered_map<std::string, utils::Bitvector>::iterator;
+    using const_iterator = typename std::unordered_map<std::string, utils::Bitvector>::const_iterator;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -198,6 +211,11 @@ public:
      */
     void add( std::string const& chromosome, utils::Bitvector const& values );
 
+    /**
+     * @copydoc add( std::string const&, utils::Bitvector const& )
+     */
+    void add( std::string const& chromosome, utils::Bitvector&& values );
+
     // -------------------------------------------
     //         Clear
     // -------------------------------------------
@@ -244,6 +262,50 @@ public:
     // -------------------------------------------------------------------------
 
     /**
+     * @brief Return whether a given position on the provided @p bitvector is covered.
+     *
+     * This overload of the function accepts a Bitvector directly, without checking that it
+     * belongs to any of the chromosomes stored (hence, it is a static function). The Bitvector
+     * is expected to follow the convention of that class, that is, bit 0 is used to indicate that
+     * the whole chromsome is covered, and all other bits correspond to 1-based positions.
+     * This can for instance be used in combination with chromosome_positions().
+     */
+    static bool is_covered( utils::Bitvector const& bitvector, size_t position )
+    {
+        // Boundary check.
+        if( bitvector.empty() ) {
+            throw std::invalid_argument(
+                "GenomeLocusSet::is_covered( Bitvector const&, size_t ) called with empty Bitvector"
+            );
+        }
+
+        // If the chromosome in our interval tree has the 0th bit set,
+        // we consider that as having the whole chromosome covered.
+        if( bitvector.get( 0 ) ) {
+            return true;
+        }
+
+        // If the above is not the case, check the actual position.
+        // If the position is outside of the bitvector, it is not covered, obviously.
+        if( position >= bitvector.size() ) {
+            return false;
+        }
+        return bitvector.get( position );
+    }
+
+    /**
+     * @brief Return whether a given position on the provided iterator is covered.
+     *
+     * This overload is meant to work in combination with find(), to avoid having to look up
+     * the chromosome every time, in cases where this does not change. The function does not check
+     * that the iterator is valid - in fact, it is static, and hence not tied to any object.
+     */
+    static bool is_covered( const_iterator const& it, size_t position )
+    {
+        return is_covered( it->second, position );
+    }
+
+    /**
      * @brief Return whether a given position on a chromosome is part of any of the regions stored.
      *
      * Note that @p position is 1-based.
@@ -257,19 +319,7 @@ public:
         }
         auto const& bv = it->second;
         assert( ! bv.empty() );
-
-        // If the chromosome in our interval tree has the 0th bit set,
-        // we consider that as having the whole chromosome covered.
-        if( bv.get( 0 ) ) {
-            return true;
-        }
-
-        // If the above is not the case, check the actual position.
-        // If the position is outside of the bitvector, it is not covered, obviously.
-        if( position >= bv.size() ) {
-            return false;
-        }
-        return bv.get( position );
+        return is_covered( bv, position );
     }
 
     /**
@@ -284,6 +334,26 @@ public:
         auto const& bv = it->second;
         assert( ! bv.empty() );
         return bv.get( 0 );
+    }
+
+    // -------------------------------------------------------------------------
+    //     Chromosome Iterators
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return an iterator to the beginning of the map of chromosome names to Bitvectors.
+     */
+    const_iterator begin() const
+    {
+        return locus_map_.begin();
+    }
+
+    /**
+     * @brief Return an iterator to the end of the map of chromosome names to Bitvectors.
+     */
+    const_iterator end() const
+    {
+        return locus_map_.end();
     }
 
     // -------------------------------------------------------------------------
@@ -327,6 +397,16 @@ public:
     }
 
     /**
+     * @brief Find a chromosome in the map.
+     *
+     * Return an iterator to the entry, or to end() if the chromosome is not part of the set.
+     */
+    const_iterator find( std::string const& chromosome )
+    {
+        return locus_map_.find( chromosome );
+    }
+
+    /**
      * @brief For a given chromosome, return the
      * @link genesis::utils::Bitvector Bitvector@endlink that stores its positions.
      */
@@ -357,7 +437,7 @@ private:
     // Map from chromosome names to bitvectors representing which positions are in (true)
     // and out (false). Note that position 0 is special; if set, it means that we consider
     // the whole chromsome as covered.
-    std::map<std::string, utils::Bitvector> locus_map_;
+    std::unordered_map<std::string, utils::Bitvector> locus_map_;
 
 };
 
