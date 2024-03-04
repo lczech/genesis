@@ -211,6 +211,64 @@ TEST( Bitvector, Operators )
     EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, true ));
 }
 
+TEST( Bitvector, SetRange )
+{
+    // We do an exhaustive test, because why not.
+    // We tested up to 1024, which takes some minutes,
+    // but in the normal case, it should suffice to test fewer,
+    // as long as we have cases across word boundaries, with words in the middle, etc
+    for( size_t s = 0; s < 256; ++s ) {
+        // if( s % 100 == 0 ) {
+        //     LOG_DBG << "at " << s;
+        // }
+        for( size_t f = 0; f < s; ++f ) {
+            for( size_t l = f; l <= s; ++l ) {
+                // Set true
+                {
+                    // Use the function to test
+                    auto bv = Bitvector( s, false );
+                    bv.set( f, l, true );
+
+                    // Make expected version using slow setter
+                    auto ex = Bitvector( s, false );
+                    for( size_t i = f; i < l; ++i ) {
+                        ex.set( i, true );
+                    }
+
+                    // Now test
+                    if( ex != bv ) {
+                        LOG_DBG << "s==" << s << " f==" << f << " l==" << l;
+                        LOG_DBG << "bv==" << bv;
+                        LOG_DBG << "ex==" << ex;
+                    }
+                    EXPECT_EQ( ex, bv );
+                }
+
+                // Set false
+                {
+                    // Use the function to test
+                    auto bv = Bitvector( s, true );
+                    bv.set( f, l, false );
+
+                    // Make expected version using slow setter
+                    auto ex = Bitvector( s, true );
+                    for( size_t i = f; i < l; ++i ) {
+                        ex.set( i, false );
+                    }
+
+                    // Now test
+                    if( ex != bv ) {
+                        LOG_DBG << "s==" << s << " f==" << f << " l==" << l;
+                        LOG_DBG << "bv==" << bv;
+                        LOG_DBG << "ex==" << ex;
+                    }
+                    EXPECT_EQ( ex, bv );
+                }
+            }
+        }
+    }
+}
+
 TEST( Bitvector, CountRange )
 {
     // 0 word
