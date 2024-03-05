@@ -67,6 +67,7 @@
 #include "genesis/population/functions/genome_locus.hpp"
 #include "genesis/population/functions/genome_locus_set.hpp"
 #include "genesis/population/functions/genome_region.hpp"
+#include "genesis/population/functions/subsample.hpp"
 #include "genesis/population/functions/variant_input_stream.hpp"
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/population/genome_locus_set.hpp"

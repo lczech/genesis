@@ -99,6 +99,49 @@ void set_base_count( BaseCounts& sample, char base, BaseCounts::size_type value 
 // =================================================================================================
 
 /**
+ * @brief Helper function that runs a sorting network to sort four values,
+ * coming from the four nucleotides.
+ *
+ * The input are four values, either counts or frequencies. The output are the indices into this
+ * array that are sorted so that the largest one comes first:
+ *
+ *     auto const data = std::array<T, 4>{ 15, 10, 20, 5 };
+ *     auto const order = nucleotide_sorting_order( data );
+ *
+ * yields `{ 2, 0, 1, 3 }`, so that `data[order[0]] = data[2] = 20` is the largest value,
+ * `data[order[1]] = data[0] = 15` the second largest, and so forth.
+ */
+template<typename T>
+std::array<size_t, 4> nucleotide_sorting_order( std::array<T, 4> const& values )
+{
+    // Sort quickly via sorting network, putting large values first.
+    // See https://stackoverflow.com/a/25070688/4184258
+    auto indices = std::array<size_t, 4>{{ 0, 1, 2, 3 }};
+    if( values[indices[0]] < values[indices[1]] ) {
+        std::swap( indices[0], indices[1] );
+    }
+    if( values[indices[2]] < values[indices[3]] ) {
+        std::swap( indices[2], indices[3] );
+    }
+    if( values[indices[0]] < values[indices[2]] ) {
+        std::swap( indices[0], indices[2] );
+    }
+    if( values[indices[1]] < values[indices[3]] ) {
+        std::swap( indices[1], indices[3] );
+    }
+    if( values[indices[1]] < values[indices[2]] ) {
+        std::swap( indices[1], indices[2] );
+    }
+
+    // Now they are sorted, largest ones first.
+    assert( values[indices[0]] >= values[indices[1]] );
+    assert( values[indices[1]] >= values[indices[2]] );
+    assert( values[indices[2]] >= values[indices[3]] );
+
+    return indices;
+}
+
+/**
  * @brief Return the order of base counts (nucleotides), largest one first.
  */
 SortedBaseCounts sorted_base_counts( BaseCounts const& sample );
