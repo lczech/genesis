@@ -53,18 +53,77 @@ namespace population {
  * This is for instance useful when computing diversity estimators, which have a runtime and memory
  * cost that depends on the coverage. Hence, subscaling can reduce the overall runtime and memory
  * usage, without significantly altering the results.
+ *
+ * @see transform_subsample_with_replacement()
+ * @see transform_subsample_without_replacement()
  */
-void transform_subscale_max_coverage(
+void transform_subscale(
     BaseCounts& sample,
     size_t max_coverage
 );
 
 /**
- * @copydoc transform_subscale_max_coverage( BaseCounts&, size_t, bool )
+ * @copydoc transform_subscale( BaseCounts&, size_t )
  *
  * This overload acts on all Variant::samples in the given @p variant.
  */
-void transform_subscale_max_coverage(
+void transform_subscale(
+    Variant& variant,
+    size_t max_coverage
+);
+
+/**
+ * @brief Transform a BaseCounts @p sample by subsampling the nucleotide counts (`A`, `C`, `G`, `T`)
+ * _with_ replacement to sum up to @p max if @p max_coverage is exceeded for the sample.
+ *
+ * If the sum of nucleotide counts (that is, BaseCounts::a_count, BaseCounts::c_count,
+ * BaseCounts::g_count, and BaseCounts::t_count) exceeds the given @p max_coverage, the counts
+ * are resampled _with_ replacement so that their sum is the given @p max_coverage. This uses
+ * @link ::genesis::utils::multinomial_distribution() multinomial_distribution()@endlink
+ * for the sampling. If the count sum is below, nothing is done.
+ *
+ * @see transform_subscale()
+ * @see transform_subsample_without_replacement()
+ */
+void transform_subsample_with_replacement(
+    BaseCounts& sample,
+    size_t max_coverage
+);
+
+/**
+ * @copydoc transform_subsample_with_replacement( BaseCounts&, size_t )
+ *
+ * This overload acts on all Variant::samples in the given @p variant.
+ */
+void transform_subsample_with_replacement(
+    Variant& variant,
+    size_t max_coverage
+);
+
+/**
+ * @brief Transform a BaseCounts @p sample by subsampling the nucleotide counts (`A`, `C`, `G`, `T`)
+ * _without_ replacement to sum up to @p max if @p max_coverage is exceeded for the sample.
+ *
+ * If the sum of nucleotide counts (that is, BaseCounts::a_count, BaseCounts::c_count,
+ * BaseCounts::g_count, and BaseCounts::t_count) exceeds the given @p max_coverage, the counts
+ * are resampled _without_ replacement so that their sum is the given @p max_coverage. This uses
+ * @link ::genesis::utils::multivariate_hypergeometric_distribution() multivariate_hypergeometric_distribution()@endlink
+ * for the sampling. If the count sum is below, nothing is done.
+ *
+ * @see transform_subscale()
+ * @see transform_subsample_with_replacement()
+ */
+void transform_subsample_without_replacement(
+    BaseCounts& sample,
+    size_t max_coverage
+);
+
+/**
+ * @copydoc transform_subsample_without_replacement( BaseCounts&, size_t )
+ *
+ * This overload acts on all Variant::samples in the given @p variant.
+ */
+void transform_subsample_without_replacement(
     Variant& variant,
     size_t max_coverage
 );

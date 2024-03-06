@@ -31,6 +31,7 @@
 #include "genesis/population/functions/subsample.hpp"
 
 #include "genesis/population/functions/functions.hpp"
+#include "genesis/utils/math/distribution.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -43,7 +44,7 @@ namespace population {
 //     Subscaling
 // =================================================================================================
 
-void transform_subscale_max_coverage(
+void transform_subscale(
     BaseCounts& sample,
     size_t max_coverage
 ) {
@@ -60,6 +61,11 @@ void transform_subscale_max_coverage(
     size_t c_count = sample.c_count * scale;
     size_t g_count = sample.g_count * scale;
     size_t t_count = sample.t_count * scale;
+
+    // For completeness, we also scale the n and d counts, but they do not influence our counts,
+    // as we do not want them to dominate.
+    sample.n_count *= scale;
+    sample.d_count *= scale;
 
     // Now we might have some remainder due to the integer rounding, which we want to proportionally
     // distribute across the numbers, so that the largest count gets most. We only processed four
@@ -138,18 +144,105 @@ void transform_subscale_max_coverage(
     }
 
     // Now set the values of the sample to our computed counts.
+    assert( a_count + c_count + g_count + t_count == max_coverage );
     sample.a_count = a_count;
     sample.c_count = c_count;
     sample.g_count = g_count;
     sample.t_count = t_count;
 }
 
-void transform_subscale_max_coverage(
+void transform_subscale(
     Variant& variant,
     size_t max_coverage
 ) {
+    // Call the transformation for each sample in the variant.
     for( auto& sample : variant.samples ) {
-        transform_subscale_max_coverage( sample, max_coverage );
+        transform_subscale( sample, max_coverage );
+    }
+}
+
+// =================================================================================================
+//     Subsampling
+// =================================================================================================
+
+/**
+ * @brief Local helper function to avoid code duplication. Takes the sampler (with or without
+ * replacement) and performs the resampling of base counts.
+ */
+template<typename Sampler>
+void transform_subsample_(
+    BaseCounts& sample,
+    size_t max_coverage,
+    Sampler sampler
+) {
+    // Get the total sum. If this does not exceed the max, we are done already.
+    // We do not want the n and d counts to influce the total coverage here.
+    size_t const total_sum = sample.a_count + sample.c_count + sample.g_count + sample.t_count;
+    if( total_sum <= max_coverage ) {
+        return;
+    }
+
+    // Make a random draw from a multinomial distrubiton with the counts.
+    // Here, we also take n and d into account for the resampling.
+    auto const new_counts = sampler(
+        std::vector<size_t>{{
+            sample.a_count,
+            sample.c_count,
+            sample.g_count,
+            sample.t_count,
+            sample.n_count,
+            sample.d_count
+        }},
+        max_coverage
+    );
+    assert( new_counts.size() == 6 );
+
+    // Set the sample counts
+    sample.a_count = new_counts[0];
+    sample.c_count = new_counts[1];
+    sample.g_count = new_counts[2];
+    sample.t_count = new_counts[3];
+    sample.n_count = new_counts[4];
+    sample.d_count = new_counts[5];
+}
+
+void transform_subsample_with_replacement(
+    BaseCounts& sample,
+    size_t max_coverage
+) {
+    // Call the local helper function template, to avoid code duplication.
+    return transform_subsample_<std::vector<size_t>(*)(std::vector<size_t> const&, size_t)>(
+        sample, max_coverage, utils::multinomial_distribution
+    );
+}
+
+void transform_subsample_with_replacement(
+    Variant& variant,
+    size_t max_coverage
+) {
+    // Call the transformation for each sample in the variant.
+    for( auto& sample : variant.samples ) {
+        transform_subsample_with_replacement( sample, max_coverage );
+    }
+}
+
+void transform_subsample_without_replacement(
+    BaseCounts& sample,
+    size_t max_coverage
+) {
+    // Call the local helper function template, to avoid code duplication.
+    return transform_subsample_<std::vector<size_t>(*)(std::vector<size_t> const&, size_t)>(
+        sample, max_coverage, utils::multivariate_hypergeometric_distribution
+    );
+}
+
+void transform_subsample_without_replacement(
+    Variant& variant,
+    size_t max_coverage
+) {
+    // Call the transformation for each sample in the variant.
+    for( auto& sample : variant.samples ) {
+        transform_subsample_without_replacement( sample, max_coverage );
     }
 }
 

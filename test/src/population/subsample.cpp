@@ -40,29 +40,31 @@ using namespace genesis::population;
 using namespace genesis::sequence;
 using namespace genesis::utils;
 
-TEST( BaseCounts, SubscaleRandom )
-{
+template<typename Transformer>
+void test_base_counts_subsampling_(
+    Transformer transformer
+) {
     // Random seed. Report it, so that in an error case, we can reproduce.
     auto const seed = ::time(nullptr);
     permuted_congruential_generator_init( seed );
     LOG_INFO << "Seed: " << seed;
 
-    auto const n = 100000;
+    auto const n = 50000;
     for( size_t i = 0; i < n; ++i ) {
         BaseCounts sample;
-        sample.a_count = permuted_congruential_generator( 100 );
-        sample.c_count = permuted_congruential_generator( 100 );
-        sample.g_count = permuted_congruential_generator( 100 );
-        sample.t_count = permuted_congruential_generator( 100 );
+        sample.a_count = permuted_congruential_generator( 1000 );
+        sample.c_count = permuted_congruential_generator( 1000 );
+        sample.g_count = permuted_congruential_generator( 1000 );
+        sample.t_count = permuted_congruential_generator( 1000 );
         auto const old_sum = nucleotide_sum( sample );
 
         // Some cases will be below the max sum, but that's okay and needs testing as well.
-        auto const max = permuted_congruential_generator( 100 );
+        auto const max = permuted_congruential_generator( 1000 );
 
         // LOG_DBG << sample.a_count << ":" << sample.c_count << ":" << sample.g_count << ":" << sample.t_count << " --> " << max;
 
         // Run the function and its tests
-        transform_subscale_max_coverage( sample, max );
+        transformer( sample, max );
         auto const new_sum = nucleotide_sum( sample );
         EXPECT_LE( new_sum, old_sum );
         EXPECT_LE( new_sum, max );
@@ -74,4 +76,19 @@ TEST( BaseCounts, SubscaleRandom )
 
         // LOG_DBG << sample.a_count << ":" << sample.c_count << ":" << sample.g_count << ":" << sample.t_count;
     }
+}
+
+TEST( BaseCounts, Subscale )
+{
+    test_base_counts_subsampling_<void(*)(BaseCounts&, size_t)>( transform_subscale );
+}
+
+TEST( BaseCounts, SubsampleWithReplacement )
+{
+    test_base_counts_subsampling_<void(*)(BaseCounts&, size_t)>( transform_subsample_with_replacement );
+}
+
+TEST( BaseCounts, SubsampleWithoutReplacement )
+{
+    test_base_counts_subsampling_<void(*)(BaseCounts&, size_t)>( transform_subsample_without_replacement );
 }

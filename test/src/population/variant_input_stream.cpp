@@ -818,7 +818,7 @@ TEST( VariantInputStream, MakeSampleFilter )
         "C", "D", "G"
     };
 
-    auto const f1 = make_sample_filter( sample_names, names_filter, false );
+    auto const f1 = make_sample_name_filter( sample_names, names_filter, false );
     ASSERT_EQ( 8, f1.size() );
     EXPECT_FALSE( f1[0] );
     EXPECT_FALSE( f1[1] );
@@ -829,7 +829,7 @@ TEST( VariantInputStream, MakeSampleFilter )
     EXPECT_TRUE(  f1[6] );
     EXPECT_FALSE( f1[7] );
 
-    auto const f2 = make_sample_filter( sample_names, names_filter, true );
+    auto const f2 = make_sample_name_filter( sample_names, names_filter, true );
     ASSERT_EQ( 8, f2.size() );
     EXPECT_TRUE(  f2[0] );
     EXPECT_TRUE(  f2[1] );
@@ -840,9 +840,9 @@ TEST( VariantInputStream, MakeSampleFilter )
     EXPECT_FALSE( f2[6] );
     EXPECT_TRUE(  f2[7] );
 
-    EXPECT_ANY_THROW( make_sample_filter({ "A", "B" }, { "X" }));
-    EXPECT_ANY_THROW( make_sample_filter({ "A", "A" }, { "A" }));
-    EXPECT_ANY_THROW( make_sample_filter({ "A", "B" }, { "A", "A" }));
+    EXPECT_ANY_THROW( make_sample_name_filter({ "A", "B" }, { "X" }));
+    EXPECT_ANY_THROW( make_sample_name_filter({ "A", "A" }, { "A" }));
+    EXPECT_ANY_THROW( make_sample_name_filter({ "A", "B" }, { "A", "A" }));
 }
 
 #ifdef GENESIS_HTSLIB
@@ -860,7 +860,7 @@ TEST( VariantInputStream, SampleFilter )
         auto it = make_variant_input_stream_from_pool_vcf_file( infile );
         it.add_transform(
             make_variant_input_stream_sample_name_filter_transform(
-                make_sample_filter( it.data().sample_names, {}, false )
+                make_sample_name_filter( it.data().sample_names, {}, false )
             )
         );
         EXPECT_EQ( 0, it.begin()->samples.size() );
@@ -871,7 +871,7 @@ TEST( VariantInputStream, SampleFilter )
         auto it = make_variant_input_stream_from_pool_vcf_file( infile );
         it.add_transform(
             make_variant_input_stream_sample_name_filter_transform(
-                make_sample_filter( it.data().sample_names, {}, true )
+                make_sample_name_filter( it.data().sample_names, {}, true )
             )
         );
         EXPECT_EQ( 3, it.begin()->samples.size() );
@@ -882,7 +882,7 @@ TEST( VariantInputStream, SampleFilter )
         auto it = make_variant_input_stream_from_pool_vcf_file( infile );
         it.add_transform(
             make_variant_input_stream_sample_name_filter_transform(
-                make_sample_filter( it.data().sample_names, { "NA00002" }, false )
+                make_sample_name_filter( it.data().sample_names, { "NA00002" }, false )
             )
         );
         EXPECT_EQ( 1, it.begin()->samples.size() );
@@ -893,7 +893,7 @@ TEST( VariantInputStream, SampleFilter )
         auto it = make_variant_input_stream_from_pool_vcf_file( infile );
         it.add_transform(
             make_variant_input_stream_sample_name_filter_transform(
-                make_sample_filter( it.data().sample_names, { "NA00002" }, true )
+                make_sample_name_filter( it.data().sample_names, { "NA00002" }, true )
             )
         );
         EXPECT_EQ( 2, it.begin()->samples.size() );
@@ -905,7 +905,7 @@ TEST( VariantInputStream, SampleFilter )
         EXPECT_ANY_THROW(
             it.add_transform(
                 make_variant_input_stream_sample_name_filter_transform(
-                    make_sample_filter( it.data().sample_names, { "XYZ" }, false )
+                    make_sample_name_filter( it.data().sample_names, { "XYZ" }, false )
                 )
             );
         );
@@ -915,7 +915,7 @@ TEST( VariantInputStream, SampleFilter )
         EXPECT_ANY_THROW(
             it.add_transform(
                 make_variant_input_stream_sample_name_filter_transform(
-                    make_sample_filter( it.data().sample_names, { "XYZ" }, true )
+                    make_sample_name_filter( it.data().sample_names, { "XYZ" }, true )
                 )
             );
         );

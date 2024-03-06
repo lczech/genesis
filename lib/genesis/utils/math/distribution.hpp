@@ -57,6 +57,14 @@ namespace utils {
  * details on the distribution and the used algorithm, which follows C.S. Davis, "The computer
  * generation of multinomial random variates", Comp. Stat. Data Anal. 16 (1993) 205–217.
  */
+std::vector<size_t> multinomial_distribution( std::vector<size_t> const& p, size_t n );
+
+/**
+ * @brief Select a random sample following a multinomial distribution.
+ *
+ * This overload accepts a `std::vector<double>`, and checks that all values are finite and
+ * non-negative. Otherwise the same.
+ */
 std::vector<size_t> multinomial_distribution( std::vector<double> const& p, size_t n );
 
 /**

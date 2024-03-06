@@ -30,17 +30,20 @@
 
 #include "genesis/population/functions/variant_input_stream.hpp"
 
+#include "genesis/population/functions/subsample.hpp"
+
 #include <cassert>
+#include <stdexcept>
 #include <unordered_set>
 
 namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Transforms & Filters
+//     Sample Name Filter
 // =================================================================================================
 
-std::vector<bool> make_sample_filter(
+std::vector<bool> make_sample_name_filter(
     std::vector<std::string> const& sample_names,
     std::vector<std::string> const& names_filter,
     bool inverse_filter
@@ -131,6 +134,38 @@ std::function<void(Variant&)> make_variant_input_stream_sample_name_filter_trans
         assert( samples.size() == pop_count );
         variant.samples = std::move( samples );
     };
+}
+
+// =================================================================================================
+//     Sample Subsetting / Subsampling
+// =================================================================================================
+
+std::function<void(Variant&)> make_variant_input_stream_sample_subsampling_transform(
+    size_t max_coverage,
+    SubsamplingMethod method
+) {
+    // Simply return a function object that applies the transformation.
+    switch( method ) {
+        case SubsamplingMethod::kSubscale: {
+            return [ max_coverage ]( Variant& variant ){
+                transform_subscale( variant, max_coverage );
+            };
+        }
+        case SubsamplingMethod::kSubsampleWithReplacement: {
+            return [ max_coverage ]( Variant& variant ){
+                transform_subsample_with_replacement( variant, max_coverage );
+            };
+        }
+        case SubsamplingMethod::kSubsampleWithoutReplacement: {
+            return [ max_coverage ]( Variant& variant ){
+                transform_subsample_without_replacement( variant, max_coverage );
+            };
+        }
+    }
+
+    throw std::invalid_argument(
+        "Invalid method provided for make_variant_input_stream_sample_subsampling_transform()"
+    );
 }
 
 // =================================================================================================

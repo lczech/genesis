@@ -48,7 +48,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Transforms & Filters
+//     Sample Name Filter
 // =================================================================================================
 
 /**
@@ -63,7 +63,7 @@ namespace population {
  * the filtering might be wrong), and that the names in the @p names_filter actually appear in the
  * @p sample_names.
  */
-std::vector<bool> make_sample_filter(
+std::vector<bool> make_sample_name_filter(
     std::vector<std::string> const& sample_names,
     std::vector<std::string> const& names_filter,
     bool inverse_filter = false
@@ -74,7 +74,7 @@ std::vector<bool> make_sample_filter(
  *
  * The function expects a bool vector indicating which samples within a Variant to keep.
  * The vector needs to have the same length as the Variant has samples. It can be created for instance
- * with make_sample_filter() based on sample names. However, as Variant does not store the names
+ * with make_sample_name_filter() based on sample names. However, as Variant does not store the names
  * itself, those might need to be accessed from the VariantInputStream data() function,
  * which yields a VariantInputStreamData object.
  *
@@ -84,6 +84,56 @@ std::vector<bool> make_sample_filter(
  */
 std::function<void(Variant&)> make_variant_input_stream_sample_name_filter_transform(
     std::vector<bool> const& sample_filter
+);
+
+// =================================================================================================
+//     Sample Subsetting / Subsampling
+// =================================================================================================
+
+/**
+ * @brief Select which method to use for reducing the max coverage of a BaseCounts sample or a
+ * Variant.
+ *
+ * See make_variant_input_stream_sample_subsampling_transform() for usage.
+ */
+enum class SubsamplingMethod
+{
+    /**
+     * @brief Use transform_subscale()
+     */
+    kSubscale,
+
+    /**
+     * @brief Use transform_subsample_with_replacement()
+     */
+    kSubsampleWithReplacement,
+
+    /**
+     * @brief Use transform_subsample_without_replacement()
+     */
+    kSubsampleWithoutReplacement
+};
+
+/**
+ * @brief Create a Variant transformation function that subscales or subsamples the base counts
+ * to be below a given @p max_coverage.
+ *
+ * This is intended to be used as a transformation on a VariantInputStream, see
+ * @link ::genesis::utils::GenericInputStream::add_transform() add_transform()@endlink for details.
+ * The function creates a transformation function to be used on a stream, and subsamples or
+ * subscales the BaseCounts of each Variant in the stream, so that @p max_coverage is not
+ * exceeded. This is useful for instance when computing the pool sequencing diversity estimators,
+ * which have computational terms depending on coverage; reducing high coverage can hence help
+ * to improve computational time.
+ *
+ * By default, we use SubsamplingMethod::kSubscale, which is the closest to a lossless reduction
+ * of the coverage that can be achieved with integer counts. The two other methods instead
+ * resample from a distribution based on the given counts of the Variant, and can hence also be
+ * used to create in-silico alternative populations based on the original sample.
+ */
+std::function<void(Variant&)> make_variant_input_stream_sample_subsampling_transform(
+    size_t max_coverage,
+    SubsamplingMethod method = SubsamplingMethod::kSubscale
 );
 
 // =================================================================================================

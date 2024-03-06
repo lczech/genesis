@@ -110,35 +110,35 @@ namespace utils {
 //     Multinomial Distribution
 // =================================================================================================
 
-std::vector<size_t> multinomial_distribution( std::vector<double> const& p, size_t n )
+template<class T>
+std::vector<size_t> multinomial_distribution_( std::vector<T> const& p, size_t n )
 {
     // The implementation follows the GSL function gsl_ran_multinomial(), under GPL 3
     // https://www.gnu.org/software/gsl/doc/html/randist.html#the-multinomial-distribution
     // See file gsl-2.7.1/randist/multinomial.c
 
-    // Get the sum of all weights, and check them for validity.
-	double norm  = 0.0;
+    // Get the sum of all weights.
+    T norm = 0;
     for( auto e : p ) {
-        if( !std::isfinite(e) || e < 0.0 ) {
-            throw std::invalid_argument(
-                "Cannot compute multinomial distribution "
-                "if weights are not non-negative numbers: " + std::to_string( e )
-            );
-        }
         norm += e;
     }
 
-	// For now, we use a global random engine. Not thread safe, needs fixing.
-	auto& engine = Options::get().random_engine();
+    // For now, we use a global random engine. Not thread safe, needs fixing.
+    auto& engine = Options::get().random_engine();
 
     // Do the drawing, filling a result vector x.
-	auto x = std::vector<size_t>( p.size() );
-	double sum_p = 0.0;
-	size_t sum_n = 0;
+    auto x = std::vector<size_t>( p.size() );
+    T sum_p = 0;
+    size_t sum_n = 0;
     for( size_t k = 0; k < p.size(); ++k ) {
         if( p[k] > 0.0 ) {
-			assert( n >= sum_n );
-            std::binomial_distribution<size_t> distrib( n - sum_n, p[k] / (norm - sum_p) );
+            assert( n >= sum_n );
+            assert( norm >= sum_p );
+
+            // Need to cast to double here, so that this works with p of type size_t.
+            auto const binom_t = n - sum_n;
+            auto const binom_p = static_cast<double>( p[k] ) / static_cast<double>(norm - sum_p);
+            std::binomial_distribution<size_t> distrib( binom_t, binom_p );
             x[k] = distrib( engine );
         } else {
             x[k] = 0;
@@ -148,6 +148,25 @@ std::vector<size_t> multinomial_distribution( std::vector<double> const& p, size
     }
 
     return x;
+}
+
+std::vector<size_t> multinomial_distribution( std::vector<size_t> const& p, size_t n )
+{
+    return multinomial_distribution_( p, n );
+}
+
+std::vector<size_t> multinomial_distribution( std::vector<double> const& p, size_t n )
+{
+    // Check the weights for validity.
+    for( auto e : p ) {
+        if( !std::isfinite(e) || e < 0.0 ) {
+            throw std::invalid_argument(
+                "Cannot compute multinomial distribution "
+                "if weights are not non-negative numbers: " + std::to_string( e )
+            );
+        }
+    }
+    return multinomial_distribution_( p, n );
 }
 
 // =================================================================================================
@@ -457,8 +476,8 @@ size_t hypergeometric_distribution_gsl( size_t n1, size_t n2, size_t t )
         t = n;
     }
 
-	// For now, we use a global random engine. Not thread safe, needs fixing.
-	auto& engine = Options::get().random_engine();
+    // For now, we use a global random engine. Not thread safe, needs fixing.
+    auto& engine = Options::get().random_engine();
     std::uniform_real_distribution<double> distrib( 0.0, 1.0 );
 
     size_t a = n1;
