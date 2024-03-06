@@ -33,6 +33,8 @@
 
 #include "genesis/utils/core/thread_pool.hpp"
 
+#include <atomic>
+#include <chrono>
 #include <memory>
 #include <random>
 #include <string>
@@ -60,10 +62,11 @@ public:
     /**
      * @brief Returns a single instance of this class.
      */
-    inline static Options& get() {
-            // Meyers-Singleton
-            static Options instance;
-            return instance;
+    inline static Options& get()
+    {
+        // Meyers-Singleton
+        static Options instance;
+        return instance;
     }
 
     // -------------------------------------------------------------------------
@@ -147,6 +150,8 @@ public:
 
     /**
      * @brief Returns the random seed that was used to initialize the engine.
+     *
+     * This is the global seed that is used as a basis for all thread-local seeding.
      */
     inline unsigned long random_seed() const
     {
@@ -154,28 +159,57 @@ public:
     }
 
     /**
-     * @brief Set a specific seed for the random engine.
+     * @brief Set a specific global seed for the random engine initialization.
      *
-     * On startup, the random engine is initialized using the current system time. This value can
-     * be overwritten using this method.
+     * This sets the global seed for the thread-local random engines. Each engine
+     * is initialized using this seed plus a counter based on the number of spawned threads.
+     * On startup, the seed is initialized using the current system time. This value can
+     * be overwritten using this method. This should hence be done prior to spawning threads,
+     * for instance, before calling the init_global_thread_pool() functions.
      */
-    void random_seed (const unsigned long seed);
+    inline void random_seed( unsigned long const seed )
+    {
+        random_seed_ = seed;
+        // thread_local_random_engine_().seed( seed );
+    }
 
     /**
-     * @brief Returns the default engine for random number generation.
+     * @brief Returns a thread-local engine for random number generation.
      *
-     * Caveat: This is not intended for the use in more than one thread. As the order of execution in
-     * threads is not deterministic, results would not be reproducible, even when using a fixed seed.
-     * Furthermore, it might be a speed bottleneck to add a mutex to this method.
-     *
-     * If in the future there is need for multi-threaded random engines, they needed to be outfitted
-     * with separate seeds each (otherwise they would all produce the same results). Thus, for now we
-     * simply assume single-threaded use.
+     * Caveat: The engines are thread-local, and hence thread-safe. However, generally, in a
+     * multi-threaded setting, the order of execution in not deterministic, and hence results might
+     * not be reproducible, even when using a fixed seed.
      */
     inline std::default_random_engine& random_engine()
     {
-        return random_engine_;
+        return thread_local_random_engine_();
     }
+
+    /**
+     * @brief Return the number of seeds used to initialize thread-local random engines.
+     *
+     * This corresponds to the number of threads that have called random_engine().
+     */
+    inline size_t seed_counter() const
+    {
+        return seed_counter_.load();
+    }
+
+private:
+
+    unsigned long generate_thread_seed_()
+    {
+        return random_seed_ + seed_counter_.fetch_add( 1, std::memory_order_relaxed );
+    }
+
+    std::default_random_engine& thread_local_random_engine_()
+    {
+        // Private method to access the thread-local engine
+        thread_local std::default_random_engine engine( generate_thread_seed_() );
+        return engine;
+    }
+
+public:
 
     // -------------------------------------------------------------------------
     //     File Options
@@ -313,9 +347,9 @@ private:
     // Global thread pool
     std::shared_ptr<ThreadPool> thread_pool_;
 
-    // Random
+    // Random engine seeding
     unsigned long random_seed_;
-    std::default_random_engine random_engine_;
+    std::atomic<size_t> seed_counter_{0};
 
     // File handling
     bool allow_file_overwriting_ = false;
@@ -335,7 +369,11 @@ private:
     /**
      * @brief Constructor, which initializes the options with reasonable defaults.
      */
-    Options();
+    Options()
+    {
+        // Initialize random seed with time.
+        random_seed( std::chrono::system_clock::now().time_since_epoch().count() );
+    }
 
     ~Options() = default;
 

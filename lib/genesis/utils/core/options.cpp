@@ -34,7 +34,6 @@
 #include "genesis/utils/core/version.hpp"
 
 #include <cassert>
-#include <chrono>
 #include <cstdint>
 #include <cstdio>
 #include <stdexcept>
@@ -60,16 +59,6 @@
 
 namespace genesis {
 namespace utils {
-
-// =================================================================================================
-//     Initialization
-// =================================================================================================
-
-Options::Options()
-{
-    // Initialize random seed with time.
-    random_seed( std::chrono::system_clock::now().time_since_epoch().count() );
-}
 
 // =================================================================================================
 //     Command Line
@@ -125,16 +114,6 @@ std::shared_ptr<ThreadPool> Options::global_thread_pool() const
         );
     }
     return thread_pool_;
-}
-
-// =================================================================================================
-//     Random Seed & Engine
-// =================================================================================================
-
-void Options::random_seed(const unsigned long seed)
-{
-    random_seed_ = seed;
-    random_engine_.seed( seed );
 }
 
 // =================================================================================================
