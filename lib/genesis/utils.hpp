@@ -148,6 +148,7 @@
 #include "genesis/utils/math/compensated_sum.hpp"
 #include "genesis/utils/math/correlation.hpp"
 #include "genesis/utils/math/distance.hpp"
+#include "genesis/utils/math/distribution.hpp"
 #include "genesis/utils/math/euclidean_kmeans.hpp"
 #include "genesis/utils/math/histogram/accumulator.hpp"
 #include "genesis/utils/math/histogram/distances.hpp"

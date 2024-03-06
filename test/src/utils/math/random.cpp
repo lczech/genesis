@@ -31,7 +31,11 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/math/distribution.hpp"
 #include "genesis/utils/math/random.hpp"
+#include "genesis/utils/text/string.hpp"
+
+#include <algorithm>
 
 using namespace genesis;
 using namespace utils;
@@ -119,4 +123,70 @@ TEST( Math, PermutedCongruentialGenerator )
     // Error cases
     EXPECT_ANY_THROW( permuted_congruential_generator( 5, 3 ));
     EXPECT_ANY_THROW( permuted_congruential_generator_bool( 0 ));
+}
+
+TEST( Math, SelectMultinomial )
+{
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    size_t const num_tests = 10000;
+    for( size_t i = 0; i < num_tests; ++i ) {
+
+        // Make some weights. We use ints for simplicty.
+        auto const p_size = 5;
+        auto p = std::vector<double>( p_size );
+        for( size_t j = 0; j < p_size; ++j ) {
+            p[j] = permuted_congruential_generator( 0, 10000 );
+        }
+
+        // Draw some values.
+        auto const n = permuted_congruential_generator( 0, 12500 );
+        auto const x = multinomial_distribution( p, n );
+
+        // LOG_DBG << join(p) << " -(" << n << ")-> " << join(x);
+
+        // Some static tests for invariants of the result.
+        auto const sum_x = std::accumulate( x.begin(), x.end(), static_cast<size_t>(0) );
+        EXPECT_EQ( p_size, x.size() );
+        EXPECT_EQ( sum_x, n );
+    }
+}
+
+TEST( Math, SelectMultivariateHypergeometric )
+{
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    size_t const num_tests = 10000;
+    for( size_t i = 0; i < num_tests; ++i ) {
+
+        // Make some weights. We use ints for simplicty.
+        auto const p_size = permuted_congruential_generator( 1, 10 );
+        auto p = std::vector<size_t>( p_size );
+        size_t sum_p = 0;
+        for( size_t j = 0; j < p_size; ++j ) {
+            p[j] = permuted_congruential_generator( 0, 1000 );
+            sum_p += p[j];
+        }
+
+        // Draw some values. We draw without replacement, so we need to make sure
+        // to not draw more than there are items in the set.
+        size_t n;
+        do {
+            n = permuted_congruential_generator( 0, 1250 );
+        } while( n > sum_p );
+        auto const x = multivariate_hypergeometric_distribution( p, n );
+
+        // LOG_DBG << join(p) << " -(" << n << ")-> " << join(x);
+
+        // Some static tests for invariants of the result.
+        auto const sum_x = std::accumulate( x.begin(), x.end(), static_cast<size_t>(0) );
+        EXPECT_EQ( p_size, x.size() );
+        EXPECT_EQ( sum_x, n );
+    }
 }
