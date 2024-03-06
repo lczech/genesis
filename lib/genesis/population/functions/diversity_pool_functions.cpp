@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -77,49 +77,23 @@ double amnm_( // get_aMnm_buffer
     // using the r from the below loop (which confusingly is also called k in PoPoolation).
     // What a mess.
 
-    static genesis::utils::FunctionCache<double, size_t, size_t, size_t> amnm_cache_{ [](
-        size_t poolsize, size_t nucleotide_count, size_t allele_frequency
-    ) {
-        double result = 0.0;
+    // PoPoolation uses a function caching mechanism here, which we also initially did:
+    // We used to have the following function cache here, but it turned out that this actually
+    // was doing more harm than good. It uses a lot of memory (prohibitively so for datasets
+    // with large unfiltered/un-subsampled coverage), and even adds a little bit of extra runtime
+    // due to the cache lookups. At the same time, there is not really a upside here, as the
+    // values computed here are only used locally in theta_pi_pool_denominator() and
+    // theta_watterson_pool_denominator(), which already do their own caching. Due to that,
+    // I think that each value computed here was only requested once exactly by each of those
+    // two functions, so at maximum re-used once, which kind of defies the purpose of caching.
+    // So, deactivated. Way less memory, and a slight improvement in runtim in our tests at least.
 
-        // We need a binomial distribution in the loop below for which the coefficient stays
-        // constant. So we pre-compute that here, and split the computation into its parts.
-        // Quick test on some real data reduced the runtime by 30% using this.
-        // Also, we are staying in log-space until the very end to allow large n and small p;
-        // see log_binomial_distribution() for the underlying implementation.
-        auto const k = allele_frequency;
-        auto const n = nucleotide_count;
-        auto const log_coeff = utils::log_binomial_coefficient( n, k );
-        assert( k <= n );
-
-        // #pragma omp parallel for
-        for( size_t r = 1; r <= poolsize - 1; ++r ) {
-
-            // Get the probability that we are looking at in this loop iteration.
-            double const p = static_cast<double>( r ) / static_cast<double>( poolsize );
-            assert( std::isfinite( p ) && 0.0 < p && p < 1.0 );
-
-            // Compute the remaining parts of the binomial that depend on p.
-            // Below, we have the original full function for reference.
-            double const log_pow_1 = static_cast<double>(     k ) * std::log(       p );
-            double const log_pow_2 = static_cast<double>( n - k ) * std::log( 1.0 - p );
-            double const binom = std::exp( log_coeff + log_pow_1 + log_pow_2 );
-            // double const binom = utils::binomial_distribution(
-            //     allele_frequency, nucleotide_count, p
-            // );
-
-            // Sum up the term.
-            double const partial = binom / static_cast<double>( r );
-            // #pragma omp atomic
-            result += partial;
-
-            // Early abort. No need to continue once we reach inf or nan.
-            if( ! std::isfinite( result )) {
-                break;
-            }
-        }
-        return result;
-    }};
+    // static genesis::utils::FunctionCache<double, size_t, size_t, size_t> amnm_cache_{ [](
+    //     size_t poolsize, size_t nucleotide_count, size_t allele_frequency
+    // ) {
+    //     // ...
+    // }};
+    // return amnm_cache_( poolsize, nucleotide_count, allele_frequency );
 
     // Edge case check.
     if( allele_frequency == 0 ) {
@@ -129,7 +103,44 @@ double amnm_( // get_aMnm_buffer
         );
     }
 
-    return amnm_cache_( poolsize, nucleotide_count, allele_frequency );
+    // We need a binomial distribution in the loop below for which the coefficient stays
+    // constant. So we pre-compute that here, and split the computation into its parts.
+    // Quick test on some real data reduced the runtime by 30% using this.
+    // Also, we are staying in log-space until the very end to allow large n and small p;
+    // see log_binomial_distribution() for the underlying implementation.
+    auto const k = allele_frequency;
+    auto const n = nucleotide_count;
+    auto const log_coeff = utils::log_binomial_coefficient( n, k );
+    assert( k <= n );
+
+    // #pragma omp parallel for
+    double result = 0.0;
+    for( size_t r = 1; r <= poolsize - 1; ++r ) {
+
+        // Get the probability that we are looking at in this loop iteration.
+        double const p = static_cast<double>( r ) / static_cast<double>( poolsize );
+        assert( std::isfinite( p ) && 0.0 < p && p < 1.0 );
+
+        // Compute the remaining parts of the binomial that depend on p.
+        // Below, we have the original full function for reference.
+        double const log_pow_1 = static_cast<double>(     k ) * std::log(       p );
+        double const log_pow_2 = static_cast<double>( n - k ) * std::log( 1.0 - p );
+        double const binom = std::exp( log_coeff + log_pow_1 + log_pow_2 );
+        // double const binom = utils::binomial_distribution(
+        //     allele_frequency, nucleotide_count, p
+        // );
+
+        // Sum up the term.
+        double const partial = binom / static_cast<double>( r );
+        // #pragma omp atomic
+        result += partial;
+
+        // Early abort. No need to continue once we reach inf or nan.
+        if( ! std::isfinite( result )) {
+            break;
+        }
+    }
+    return result;
 }
 
 // =================================================================================================
