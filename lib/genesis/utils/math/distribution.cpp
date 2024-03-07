@@ -123,7 +123,7 @@ std::vector<size_t> multinomial_distribution_( std::vector<T> const& p, size_t n
         norm += e;
     }
 
-    // For now, we use a global random engine. Not thread safe, needs fixing.
+    // For now, we use a global random engine (thread safe).
     auto& engine = Options::get().random_engine();
 
     // Do the drawing, filling a result vector x.
@@ -411,9 +411,11 @@ size_t hypergeometric_distribution( size_t n1, size_t n2, size_t t )
     size_t N = n1 + n2;
 
     // Validity check
-    if( n > N || m > N ) {
+    if( n > N ) {
         throw std::invalid_argument(
-            "Invalid arguments for hypergeometric_distribution(), called with n > N || m > N"
+            "Invalid arguments for hypergeometric_distribution(), called with t == " +
+			std::to_string(t) + " > n1 + n2 == " + std::to_string( N ) +
+			", as we cannot draw more values without replacement than there are values."
         );
     }
 
@@ -476,7 +478,7 @@ size_t hypergeometric_distribution_gsl( size_t n1, size_t n2, size_t t )
         t = n;
     }
 
-    // For now, we use a global random engine. Not thread safe, needs fixing.
+	// For now, we use a global random engine (thread safe).
     auto& engine = Options::get().random_engine();
     std::uniform_real_distribution<double> distrib( 0.0, 1.0 );
 
@@ -537,7 +539,8 @@ std::vector<size_t> multivariate_hypergeometric_distribution( std::vector<size_t
     if( n > sum ) {
         throw std::invalid_argument(
             "Cannot compute multivariate hypergeometric distribution "
-            "with n==" + std::to_string( n ) + " > sum==" + std::to_string( sum )
+            "with n==" + std::to_string( n ) + " > sum(p)==" + std::to_string( sum ) +
+			", as we cannot draw more values without replacement than there are values to draw."
         );
     }
 
