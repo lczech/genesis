@@ -546,6 +546,13 @@ public:
      */
     Iterator begin()
     {
+        if( started_ ) {
+            throw std::runtime_error(
+                "VariantParallelInputStream implements an input iterator (single pass); "
+                "begin() can hence not be called multiple times."
+            );
+        }
+        started_ = true;
         return Iterator( this );
     }
 
@@ -568,6 +575,13 @@ public:
         VariantInputStream const& input,
         ContributionType selection
     ) {
+        if( started_ ) {
+            throw std::runtime_error(
+                "VariantParallelInputStream::add_variant_input_stream() cannot be called "
+                "once the iteration has been started with begin()."
+            );
+        }
+
         inputs_.emplace_back( input );
         selections_.emplace_back( selection );
         assert( inputs_.size() == selections_.size() );
@@ -667,6 +681,13 @@ public:
      */
     self_type& add_carrying_locus( GenomeLocus const& locus )
     {
+        if( started_ ) {
+            throw std::runtime_error(
+                "VariantParallelInputStream::add_carrying_locus() cannot be called "
+                "once the iteration has been started with begin()."
+            );
+        }
+
         // Error check.
         if( locus.chromosome.empty() || locus.position == 0 ) {
             throw std::invalid_argument(
@@ -749,6 +770,12 @@ public:
      */
     self_type& sequence_dict( std::shared_ptr<genesis::sequence::SequenceDict> value )
     {
+        if( started_ ) {
+            throw std::runtime_error(
+                "VariantParallelInputStream::sequence_dict() cannot be called "
+                "once the iteration has been started with begin()."
+            );
+        }
         sequence_dict_ = value;
         return *this;
     }
@@ -765,6 +792,7 @@ private:
     std::vector<VariantInputStream> inputs_;
     std::vector<ContributionType> selections_;
     bool has_carrying_input_ = false;
+    bool started_ = false;
 
     // Store all additional loci that we want to include as stops in the iterator.
     // Memory-wise, this is highly inefficient, as we store the chromosome name for each of them.

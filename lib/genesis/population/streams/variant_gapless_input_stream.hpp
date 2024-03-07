@@ -61,7 +61,7 @@ namespace population {
  * The iterator takes some other VariantInputStream as input. It then iterates _all_ positions
  * in the chromosomes of that input, starting at 1, and until the last position per chromosome
  * of the input. All positions where the input does not have data (missing) instead dereference to
- * a dummy Variant that is set up with the same number of samples as the input.
+ * a dummy Variant that is set up with the same number of samples as the input, but zero counts.
  *
  * If additionally a reference genome or sequence dictionary is provided, the chromosomes are further
  * iterated for the full length as specified in these references. This expects that the input data
@@ -216,31 +216,7 @@ public:
         /**
          * @brief Move to the next locus.
          */
-        void advance_()
-        {
-            // Some basic checks.
-            assert( parent_ );
-
-            // Move the current_locus_, and potentially the input iterator,
-            // to the next position we want to process.
-            advance_current_locus_();
-
-            // If there is no next position, we are done.
-            if( current_locus_.empty() ) {
-                parent_ = nullptr;
-                return;
-            }
-            assert( current_locus_.chromosome != "" && current_locus_.position != 0 );
-
-            // If the next position is the start of a chromosome,
-            // we need to set it up correctly first.
-            if( current_locus_.position == 1 ) {
-                start_chromosome_();
-            }
-
-            // Now we have everything to populate our variant as needed.
-            prepare_current_variant_();
-        }
+        void advance_();
 
         /**
          * @brief Set up everything at the beginning of a new chromosome.
@@ -441,7 +417,10 @@ public:
     Iterator begin()
     {
         if( started_ ) {
-            throw std::runtime_error( "Cannot start VariantGaplessInputStream multiple times" );
+            throw std::runtime_error(
+                "VariantGaplessInputStream implements an input iterator (single pass); "
+                "begin() can hence not be called multiple times."
+            );
         }
         started_ = true;
         return Iterator( this );
@@ -474,6 +453,12 @@ public:
      */
     self_type& iterate_extra_chromosomes( bool value )
     {
+        if( started_ ) {
+            throw std::runtime_error(
+                "VariantGaplessInputStream::iterate_extra_chromosomes() cannot be called "
+                "once the iteration has been started with begin()."
+            );
+        }
         iterate_extra_chromosomes_ = value;
         return *this;
     }
@@ -500,6 +485,12 @@ public:
      */
     self_type& reference_genome( std::shared_ptr<::genesis::sequence::ReferenceGenome> value )
     {
+        if( started_ ) {
+            throw std::runtime_error(
+                "VariantGaplessInputStream::reference_genome() cannot be called "
+                "once the iteration has been started with begin()."
+            );
+        }
         if( value && seq_dict_ ) {
             throw std::invalid_argument(
                 "Cannot set reference_genome() in VariantGaplessInputStream "
@@ -528,6 +519,12 @@ public:
      */
     self_type& sequence_dict( std::shared_ptr<genesis::sequence::SequenceDict> value )
     {
+        if( started_ ) {
+            throw std::runtime_error(
+                "VariantGaplessInputStream::sequence_dict() cannot be called "
+                "once the iteration has been started with begin()."
+            );
+        }
         if( value && ref_genome_ ) {
             throw std::invalid_argument(
                 "Cannot set sequence_dict() in VariantGaplessInputStream "
@@ -545,13 +542,14 @@ public:
 private:
 
     VariantInputStream input_;
+    bool iterate_extra_chromosomes_ = true;
     bool started_ = false;
 
     // We offer two ways of specifying chromosome lengths.
     // With ref genome, we additionally gain access to the bases.
+    // Also, we here subset to regions if needed, to avoid unnecessary work later.
     std::shared_ptr<::genesis::sequence::ReferenceGenome> ref_genome_;
     std::shared_ptr<::genesis::sequence::SequenceDict> seq_dict_;
-    bool iterate_extra_chromosomes_ = true;
 
 };
 

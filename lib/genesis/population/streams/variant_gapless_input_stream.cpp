@@ -106,6 +106,36 @@ VariantGaplessInputStream::Iterator::Iterator( VariantGaplessInputStream* parent
 // =================================================================================================
 
 // -------------------------------------------------------------------------
+//     advance_
+// -------------------------------------------------------------------------
+
+void VariantGaplessInputStream::Iterator::advance_()
+{
+    // Some basic checks.
+    assert( parent_ );
+
+    // Move the current_locus_, and potentially the input iterator,
+    // to the next position we want to process.
+    advance_current_locus_();
+
+    // If there is no next position, we are done.
+    if( current_locus_.empty() ) {
+        parent_ = nullptr;
+        return;
+    }
+    assert( current_locus_.chromosome != "" && current_locus_.position != 0 );
+
+    // If the next position is the start of a chromosome,
+    // we need to set it up correctly first.
+    if( current_locus_.position == 1 ) {
+        start_chromosome_();
+    }
+
+    // Now we have everything to populate our variant as needed.
+    prepare_current_variant_();
+}
+
+// -------------------------------------------------------------------------
 //     start_chromosome_
 // -------------------------------------------------------------------------
 
