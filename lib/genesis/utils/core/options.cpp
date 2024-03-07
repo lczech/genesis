@@ -93,14 +93,19 @@ void Options::init_global_thread_pool()
     // We then reduce it by one to account for the main thread doing work as well.
     auto const num_threads = guess_number_of_threads();
     assert( num_threads > 0 );
-    init_global_thread_pool( num_threads - 1 );
+    if( num_threads == 0 ) {
+        init_global_thread_pool( 1 );
+    } else {
+        init_global_thread_pool( num_threads - 1 );
+    }
 }
 
 void Options::init_global_thread_pool( size_t num_threads )
 {
     if( thread_pool_ ) {
         throw std::runtime_error(
-            "Global thread pool has already been initialized."
+            "Global thread pool has already been initialized. "
+            "Cannot call Options::get().init_global_thread_pool() multiple times."
         );
     }
     thread_pool_ = std::make_shared<utils::ThreadPool>( num_threads );
@@ -110,7 +115,8 @@ std::shared_ptr<ThreadPool> Options::global_thread_pool() const
 {
     if( ! thread_pool_ ) {
         throw std::runtime_error(
-            "Global thread pool has not been initialized. Call init_global_thread_pool() first."
+            "Global thread pool has not been initialized. "
+            "Call Options::get().init_global_thread_pool() first."
         );
     }
     return thread_pool_;

@@ -37,6 +37,7 @@
 #include <chrono>
 #include <memory>
 #include <random>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -95,6 +96,90 @@ public:
     void command_line( int const argc, char const* const* argv );
 
     // -------------------------------------------------------------------------
+    //     Random Seed & Engine
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Returns the random seed that was used to initialize the engine.
+     *
+     * This is the global seed that is used as a basis for all thread-local seeding.
+     */
+    inline unsigned long random_seed() const
+    {
+        return random_seed_;
+    }
+
+    /**
+     * @brief Set a specific global seed for the random engine initialization.
+     *
+     * This (re)sets the global seed for the thread-local random engines. The engine of the thread
+     * where this function is called from, as well as any thread spawned after, is reseeded using
+     * this seed plus a counter based on the number of spawned threads.
+     *
+     * On startup, the seed is initialized using the current system time, and that exact seed is
+     * used for the main thead. The seed can be reset using this function, but this will only affect
+     * the thread where the function is called from, as well as any threads spawned later. If a
+     * fixed seed is needed, this function hence needs to be called prior to spawning threads,
+     * and in particlar, before calling the init_global_thread_pool() functions. Otherwise,
+     * this function throws an exception, in order to avoid potential bugs that would be hard
+     * to track down.
+     *
+     * In a single threaded environment, this behaves identical to the usual way of (re)seeding
+     * a random engine.
+     */
+    inline void random_seed( unsigned long const seed )
+    {
+        if( thread_pool_ ) {
+            throw std::domain_error(
+                "Cannot re-seed global random engine after having spawned the global thread pool, "
+                "as the threads would not be aware of the re-seeding. "
+                "Call Options::get().random_seed() before Options::get().init_global_thread_pool() "
+                "to fix this."
+            );
+        }
+        random_seed_ = seed;
+        thread_local_random_engine_().seed( seed );
+    }
+
+    /**
+     * @brief Return a thread-local engine for random number generation.
+     *
+     * Caveat: The engines are thread-local, and hence thread-safe. However, generally, in a
+     * multi-threaded setting, the order of execution in not deterministic, and hence results might
+     * not be reproducible, even when using a fixed seed.
+     */
+    inline std::default_random_engine& random_engine()
+    {
+        return thread_local_random_engine_();
+    }
+
+    /**
+     * @brief Return the number of seeds used to initialize thread-local random engines.
+     *
+     * This corresponds to the number of threads that have called random_engine().
+     */
+    inline size_t seed_counter() const
+    {
+        return seed_counter_.load();
+    }
+
+private:
+
+    inline unsigned long generate_thread_seed_()
+    {
+        return random_seed_ + seed_counter_.fetch_add( 1, std::memory_order_relaxed );
+    }
+
+    inline std::default_random_engine& thread_local_random_engine_()
+    {
+        // Private method to access the thread-local engine
+        thread_local std::default_random_engine engine( generate_thread_seed_() );
+        return engine;
+    }
+
+public:
+
+    // -------------------------------------------------------------------------
     //     Multi-Threading
     // -------------------------------------------------------------------------
 
@@ -143,73 +228,6 @@ public:
      * their disk operation.
      */
     std::shared_ptr<ThreadPool> global_thread_pool() const;
-
-    // -------------------------------------------------------------------------
-    //     Random Seed & Engine
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Returns the random seed that was used to initialize the engine.
-     *
-     * This is the global seed that is used as a basis for all thread-local seeding.
-     */
-    inline unsigned long random_seed() const
-    {
-        return random_seed_;
-    }
-
-    /**
-     * @brief Set a specific global seed for the random engine initialization.
-     *
-     * This sets the global seed for the thread-local random engines. Each engine
-     * is initialized using this seed plus a counter based on the number of spawned threads.
-     * On startup, the seed is initialized using the current system time. This value can
-     * be overwritten using this method. This should hence be done prior to spawning threads,
-     * for instance, before calling the init_global_thread_pool() functions.
-     */
-    inline void random_seed( unsigned long const seed )
-    {
-        random_seed_ = seed;
-        // thread_local_random_engine_().seed( seed );
-    }
-
-    /**
-     * @brief Returns a thread-local engine for random number generation.
-     *
-     * Caveat: The engines are thread-local, and hence thread-safe. However, generally, in a
-     * multi-threaded setting, the order of execution in not deterministic, and hence results might
-     * not be reproducible, even when using a fixed seed.
-     */
-    inline std::default_random_engine& random_engine()
-    {
-        return thread_local_random_engine_();
-    }
-
-    /**
-     * @brief Return the number of seeds used to initialize thread-local random engines.
-     *
-     * This corresponds to the number of threads that have called random_engine().
-     */
-    inline size_t seed_counter() const
-    {
-        return seed_counter_.load();
-    }
-
-private:
-
-    unsigned long generate_thread_seed_()
-    {
-        return random_seed_ + seed_counter_.fetch_add( 1, std::memory_order_relaxed );
-    }
-
-    std::default_random_engine& thread_local_random_engine_()
-    {
-        // Private method to access the thread-local engine
-        thread_local std::default_random_engine engine( generate_thread_seed_() );
-        return engine;
-    }
-
-public:
 
     // -------------------------------------------------------------------------
     //     File Options
@@ -344,12 +362,12 @@ private:
     // CLI
     std::vector<std::string> command_line_;
 
-    // Global thread pool
-    std::shared_ptr<ThreadPool> thread_pool_;
-
     // Random engine seeding
     unsigned long random_seed_;
     std::atomic<size_t> seed_counter_{0};
+
+    // Global thread pool
+    std::shared_ptr<ThreadPool> thread_pool_;
 
     // File handling
     bool allow_file_overwriting_ = false;
