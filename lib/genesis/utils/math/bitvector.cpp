@@ -225,7 +225,7 @@ Bitvector& Bitvector::operator &= (Bitvector const& rhs)
         );
     }
 
-    for (size_t i = 0; i < data_.size(); ++i) {
+    for( size_t i = 0; i < data_.size(); ++i ) {
         data_[i] &= rhs.data_[i];
     }
     return *this;
@@ -240,7 +240,7 @@ Bitvector& Bitvector::operator |= (Bitvector const& rhs)
         );
     }
 
-    for (size_t i = 0; i < data_.size(); ++i) {
+    for( size_t i = 0; i < data_.size(); ++i ) {
         data_[i] |= rhs.data_[i];
     }
     return *this;
@@ -255,7 +255,7 @@ Bitvector& Bitvector::operator ^= (Bitvector const& rhs)
         );
     }
 
-    for (size_t i = 0; i < data_.size(); ++i) {
+    for( size_t i = 0; i < data_.size(); ++i ) {
         data_[i] ^= rhs.data_[i];
     }
     return *this;
@@ -294,7 +294,7 @@ bool Bitvector::operator == (const Bitvector &other) const
     if (size_ != other.size_) {
         return false;
     }
-    for (size_t i = 0; i < data_.size(); ++i) {
+    for( size_t i = 0; i < data_.size(); ++i ) {
         if (data_[i] != other.data_[i]) {
             return false;
         }
@@ -315,13 +315,13 @@ size_t Bitvector::count() const
 {
     // Use bit trickery to count quickly.
     size_t res = 0;
-    for (IntType x : data_) {
+    for( auto x : data_ ) {
         res += count_(x);
     }
 
     // safe, but slow version...
     //~ size_t tmp = 0;
-    //~ for (size_t i = 0; i < size_; ++i) {
+    //~ for( size_t i = 0; i < size_; ++i ) {
         //~ if (get(i)) {
             //~ ++tmp;
         //~ }
@@ -397,13 +397,25 @@ size_t Bitvector::count( size_t first, size_t last ) const
     return result;
 }
 
+bool Bitvector::any_set() const
+{
+    for( auto word : data_ ) {
+        if( word > 0 ) {
+            return true;
+        }
+    }
+    return false;
+}
+
 size_t Bitvector::find_next_set( size_t start ) const
 {
     // Boundary check
     if( start >= size_ ) {
         // We mimic the behaviour of std::string::find(), which just never finds anything
         // when used beyond the string, but also does not throw an exception in such cases.
-        return std::numeric_limits<size_t>::max();
+        return Bitvector::npos;
+
+        // Alternative: Throw an exception.
         // throw std::invalid_argument(
         //     "Invalid call to find_next_set() with start==" + std::to_string(start) +
         //     " and a Bitvector of size " + std::to_string( size_ )
@@ -460,7 +472,8 @@ size_t Bitvector::find_next_set( size_t start ) const
         ++wrd_idx;
     }
     if( wrd_idx == data_.size() ) {
-        return std::numeric_limits<size_t>::max();
+        return Bitvector::npos;
+
     }
     assert( wrd_idx < data_.size() );
     assert( data_[wrd_idx] != 0 );
@@ -470,8 +483,8 @@ size_t Bitvector::find_next_set( size_t start ) const
 size_t Bitvector::hash() const
 {
     std::size_t res = 0;
-    for( auto const& d : data_ ) {
-        res = hash_combine( res, d );
+    for( auto word : data_ ) {
+        res = hash_combine( res, word );
     }
     return res;
 }
@@ -479,8 +492,8 @@ size_t Bitvector::hash() const
 Bitvector::IntType Bitvector::x_hash() const
 {
     IntType res = 0;
-    for( auto const& d : data_ ) {
-        res ^= d;
+    for( auto word : data_ ) {
+        res ^= word;
     }
     return res;
 }
@@ -488,7 +501,7 @@ Bitvector::IntType Bitvector::x_hash() const
 void Bitvector::negate()
 {
     // flip all bits.
-    for (size_t i = 0; i < data_.size(); ++i) {
+    for( size_t i = 0; i < data_.size(); ++i ) {
         data_[i] = ~ data_[i];
     }
 
@@ -498,7 +511,7 @@ void Bitvector::negate()
 
 void Bitvector::normalize()
 {
-    if (size_ > 0 && get(0)) {
+    if( size_ > 0 && get(0) ) {
         negate();
     }
 }
@@ -537,7 +550,7 @@ void Bitvector::unset_padding_()
     // other versions that might be helpful if i messed up with this little/big endian stuff...
     // first one is slow but definitely works, second one is fast, but might have the same
     // issue as the used version above (which currently works perfectly).
-    //~ for (size_t i = size_ % IntSize; i < IntSize; ++i) {
+    //~ for( size_t i = size_ % IntSize; i < IntSize; ++i ) {
         //~ data_.back() &= ~bit_mask_[i];
     //~ }
     //~ data_.back() &= bit_mask_[size_ % IntSize] - 1;
@@ -567,11 +580,11 @@ size_t Bitvector::count_( IntType x )
 std::string Bitvector::dump() const
 {
     std::string res = "[" + std::to_string(size_) + "]\n";
-    for (size_t i = 0; i < size_; ++i) {
+    for( size_t i = 0; i < size_; ++i ) {
         res += (*this)[i] ? "1" : "0";
-        if ((i+1) % 64 == 0) {
+        if( (i+1) % 64 == 0 ) {
             res += "\n";
-        } else if ((i+1) % 8 == 0) {
+        } else if( (i+1) % 8 == 0 ) {
             res += " ";
         }
     }
@@ -581,9 +594,9 @@ std::string Bitvector::dump() const
 std::string Bitvector::dump_int(IntType x) const
 {
     std::string res = "";
-    for (size_t i = 0; i < IntSize; ++i) {
+    for( size_t i = 0; i < IntSize; ++i ) {
         res += (x & bit_mask_[i] ? "1" : "0");
-        if ((i+1) % 8 == 0) {
+        if( (i+1) % 8 == 0 ) {
             res += " ";
         }
     }

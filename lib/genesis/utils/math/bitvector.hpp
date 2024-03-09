@@ -35,6 +35,7 @@
 #include <cassert>
 #include <cstdint>
 #include <iterator>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -56,6 +57,11 @@ public:
 
     using IntType = uint64_t;
     static const size_t IntSize = sizeof(IntType) * 8;
+
+    /**
+     * @brief Value to indicate that find_next_set() did not find any set bits.
+     */
+    static const size_t npos = std::numeric_limits<size_t>::max();
 
     // ---------------------------------------------------------
     //     Constructor and Rule of Five
@@ -325,11 +331,16 @@ public:
     size_t count( size_t first, size_t last ) const;
 
     /**
+     * @brief Return if any bits are set at all.
+     */
+    bool any_set() const;
+
+    /**
      * @brief Return the index of the next position in the Bitvector that is set.
      *
      * This returns the first position after @p start, including @p start itself, that is set.
      * If no such position exists (because all following bits are `false`), or if @p start is beyond
-     * the length of the vector `std::numeric_limits<size_t>::max()` is returned instead.
+     * the length of the vector, Bitvector::npos is returned instead.
      */
     size_t find_next_set( size_t start ) const;
 

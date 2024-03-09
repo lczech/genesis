@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -72,6 +72,38 @@ public:
     {
         std::string name;
         size_t length = 0;
+
+        // /**
+        // * @brief Alias to get the @p name of the Entry.
+        // */
+        // inline std::string const& name() const
+        // {
+        //     return name;
+        // }
+
+        /**
+         * @brief Alias to get the @p name of the Entry.
+         */
+        inline std::string const& label() const
+        {
+            return name;
+        }
+
+        // /**
+        //  * @brief Alias to get the @p length of the Entry.
+        //  */
+        // inline size_t length() const
+        // {
+        //     return length;
+        // }
+
+        /**
+         * @brief Alias to get the @p length of the Entry.
+         */
+        inline size_t size() const
+        {
+            return length;
+        }
     };
 
     using const_iterator = std::vector<Entry>::const_iterator;

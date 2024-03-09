@@ -33,6 +33,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -87,6 +88,15 @@ public:
 
     using iterator       = typename std::unordered_map<std::string, utils::Bitvector>::iterator;
     using const_iterator = typename std::unordered_map<std::string, utils::Bitvector>::const_iterator;
+
+    /**
+     * @brief Position value to indicate that next_covered did not find any covered position.
+     */
+    static const size_t npos = std::numeric_limits<size_t>::max();
+    static_assert(
+        npos == utils::Bitvector::npos,
+        "Differing definitions of GenomeLocusSet::npos and Bitvector::npos"
+    );
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -258,11 +268,13 @@ public:
     void set_union( GenomeLocusSet const& rhs );
 
     // -------------------------------------------------------------------------
-    //     Locus Queries
+    //     Locus Covered
     // -------------------------------------------------------------------------
 
     /**
      * @brief Return whether a given position on the provided @p bitvector is covered.
+     *
+     * @see is_covered( std::string const& chromosome, size_t position ) const
      *
      * This overload of the function accepts a Bitvector directly, without checking that it
      * belongs to any of the chromosomes stored (hence, it is a static function). The Bitvector
@@ -278,9 +290,13 @@ public:
                 "GenomeLocusSet::is_covered( Bitvector const&, size_t ) called with empty Bitvector"
             );
         }
+        if( position == 0 ) {
+            throw std::invalid_argument(
+                "GenomeLocusSet::is_covered( Bitvector const&, size_t ) called with position==0"
+            );
+        }
 
-        // If the chromosome in our interval tree has the 0th bit set,
-        // we consider that as having the whole chromosome covered.
+        // If the chromosome has the 0th bit set, the whole chromosome is covered.
         if( bitvector.get( 0 ) ) {
             return true;
         }
@@ -295,6 +311,8 @@ public:
 
     /**
      * @brief Return whether a given position on the provided iterator is covered.
+     *
+     * @see is_covered( std::string const& chromosome, size_t position ) const
      *
      * This overload is meant to work in combination with find(), to avoid having to look up
      * the chromosome every time, in cases where this does not change. The function does not check
@@ -324,6 +342,9 @@ public:
 
     /**
      * @brief Return whether a whole chromosome is covered.
+     *
+     * If the special 0th bit is set, we take that as the whole chromosome being covered, i.e.,
+     * in cases where no individual positions were specified.
      */
     bool is_covered( std::string const& chromosome ) const
     {
@@ -334,6 +355,95 @@ public:
         auto const& bv = it->second;
         assert( ! bv.empty() );
         return bv.get( 0 );
+    }
+
+    // -------------------------------------------------------------------------
+    //     Any Covered Locus
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return if the given @p chromosome has any loci covered.
+     */
+    bool any_covered( std::string const& chromosome ) const
+    {
+        auto const it = locus_map_.find( chromosome );
+        if( it == locus_map_.end() ) {
+            return false;
+        }
+        auto const& bv = it->second;
+        assert( ! bv.empty() );
+
+        // We do not need to to an extra check for position 0 here.
+        // If it is true, then so will be the result.
+        return bv.any_set();
+    }
+
+    // -------------------------------------------------------------------------
+    //     Next Covered Locus
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return the next position (including the @p start_position) that is covered.
+     *
+     * @see next_covered( std::string const& chromosome, size_t start_position ) const
+     *
+     * @copydetails is_covered( utils::Bitvector const&, size_t )
+     */
+    static size_t next_covered( utils::Bitvector const& bitvector, size_t start_position )
+    {
+        // Boundary check.
+        if( bitvector.empty() ) {
+            throw std::invalid_argument(
+                "GenomeLocusSet::next_covered() called with empty Bitvector"
+            );
+        }
+        if( start_position == 0 ) {
+            throw std::invalid_argument(
+                "GenomeLocusSet::next_covered() called with start_position==0"
+            );
+        }
+
+        // If the chromosome has the 0th bit set, the whole chromosome is covered,
+        // so that the start_position we are at is also covered.
+        if( bitvector.get( 0 ) ) {
+            return start_position;
+        }
+
+        // If the above is not the case, check the actual start_position.
+        // If the start_position is outside of the bitvector, it is not covered, obviously.
+        return bitvector.find_next_set( start_position );
+    }
+
+    /**
+     * @brief Return the next position (including the @p start_position) that is covered.
+     *
+     * @see next_covered( std::string const& chromosome, size_t start_position ) const
+     *
+     * @copydetails is_covered( const_iterator const&, size_t )
+     */
+    static size_t next_covered( const_iterator const& it, size_t start_position )
+    {
+        return next_covered( it->second, start_position );
+    }
+
+    /**
+     * @brief Return the next position (including the @p start_position) that is covered.
+     *
+     * The function finds the next position after or including the @p start_position that is covered.
+     * If the whole chromosome is covered (the 0th bit being true as the indicator for that),
+     * then the @p start_position is returned. If no position after the @p start_position is covered
+     * on the chromosome at all, or the chromosome is not in the set, then
+     * GenomeLocusSet::npos is returned.
+     */
+    size_t next_covered( std::string const& chromosome, size_t start_position ) const
+    {
+        auto const it = locus_map_.find( chromosome );
+        if( it == locus_map_.end() ) {
+            return GenomeLocusSet::npos;
+        }
+        auto const& bv = it->second;
+        assert( ! bv.empty() );
+        return next_covered( bv, start_position );
     }
 
     // -------------------------------------------------------------------------
