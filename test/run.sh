@@ -98,6 +98,14 @@ if [[ $1 == "heap" || $1 == "massif" ]] ; then
         exit 1
     fi
 fi
+if [[ $1 == "call" || $1 == "callgrind" || $1 == "cachegrind" ]] ; then
+    mode="call"
+    shift
+    if [ -z "`which valgrind`" ] ; then
+        echo "Program 'valgrind' not found. Cannot run memory tests."
+        exit 1
+    fi
+fi
 if [[ $1 == "speed" ]] ; then
     mode="speed"
     shift
@@ -221,6 +229,16 @@ function run_memory() {
 function run_heap() {
     outfile=${valgrind_out_file}
     valgrind --tool=massif --log-file=${outfile} ${test_exe} --gtest_filter=${1} > /dev/null
+
+    # Return 0 only if nothing bad happend.
+    return 0
+}
+
+# Run a valgrind callgrind.
+# Takes the test case as input, returns 0 if successfull.
+function run_call() {
+    outfile=${valgrind_out_file}
+    valgrind --tool=callgrind --log-file=${outfile} ${test_exe} --gtest_filter=${1} > /dev/null
 
     # Return 0 only if nothing bad happend.
     return 0
@@ -354,6 +372,10 @@ for line in `${test_exe} --gtest_list_tests --gtest_filter="${filter}"` ; do
     fi
     if [[ ${mode} == "heap" ]] ; then
         run_heap $test_id 2>> ${valgrind_out_file}
+        success=$?
+    fi
+    if [[ ${mode} == "call" ]] ; then
+        run_call $test_id 2>> ${valgrind_out_file}
         success=$?
     fi
     if [[ ${mode} == "speed" ]] ; then
