@@ -99,8 +99,8 @@ void set_base_count( BaseCounts& sample, char base, BaseCounts::size_type value 
 // =================================================================================================
 
 /**
- * @brief Helper function that runs a sorting network to sort four values,
- * coming from the four nucleotides.
+ * @brief Return the sorting order of four values, for instance of the four nucleotides `ACGT`,
+ * in descending order (largest first).
  *
  * The input are four values, either counts or frequencies. The output are the indices into this
  * array that are sorted so that the largest one comes first:
@@ -110,6 +110,18 @@ void set_base_count( BaseCounts& sample, char base, BaseCounts::size_type value 
  *
  * yields `{ 2, 0, 1, 3 }`, so that `data[order[0]] = data[2] = 20` is the largest value,
  * `data[order[1]] = data[0] = 15` the second largest, and so forth.
+ *
+ * Usage with actual data might be as follows:
+ *
+ *     BaseCounts sample = ...;
+ *     auto const data = std::array<T, 4>{
+ *         sample.a_count, sample.c_count, sample.g_count, sample.t_count
+ *     };
+ *     auto const order = nucleotide_sorting_order( data );
+ *     // ...
+ *
+ * See also base_counts_sorting_order() for an equivalent function that also considers the
+ * "any" (`N`) and "deletion" (`D`) counts of a BaseCounts object.
  */
 template<typename T>
 std::array<size_t, 4> nucleotide_sorting_order( std::array<T, 4> const& values )
@@ -139,6 +151,46 @@ std::array<size_t, 4> nucleotide_sorting_order( std::array<T, 4> const& values )
     assert( values[indices[2]] >= values[indices[3]] );
 
     return indices;
+}
+
+/**
+ * @brief Return the sorting order of six values, for instance of the four nucleotides `ACGT` and
+ * the `N` and `D` counts of a BaseCounts object, in descending order (largest first).
+ *
+ * Same as nucleotide_sorting_order(), but also taking `N` and `D` into account.
+ * See there for details.
+ */
+template<typename T>
+std::array<size_t, 6> base_counts_sorting_order( std::array<T, 6> const& v )
+{
+    // Implementation inspired by https://stackoverflow.com/a/2792216/4184258
+    // We did not test if this is faster than a sorting network here. Fast enough for now anyway.
+
+    // Obtain the index at which each value ends up in the sorting order, largest one first.
+    int i0 = (v[0] <  v[1]) + (v[0] <  v[2]) + (v[0] <  v[3]) + (v[0] <  v[4]) + (v[0] <  v[5]);
+    int i1 = (v[1] <= v[0]) + (v[1] <  v[2]) + (v[1] <  v[3]) + (v[1] <  v[4]) + (v[1] <  v[5]);
+    int i2 = (v[2] <= v[0]) + (v[2] <= v[1]) + (v[2] <  v[3]) + (v[2] <  v[4]) + (v[2] <  v[5]);
+    int i3 = (v[3] <= v[0]) + (v[3] <= v[1]) + (v[3] <= v[2]) + (v[3] <  v[4]) + (v[3] <  v[5]);
+    int i4 = (v[4] <= v[0]) + (v[4] <= v[1]) + (v[4] <= v[2]) + (v[4] <= v[3]) + (v[4] <  v[5]);
+    int i5 = (v[5] <= v[0]) + (v[5] <= v[1]) + (v[5] <= v[2]) + (v[5] <= v[3]) + (v[5] <= v[4]);
+    assert( i0 + i1 + i2 + i3 + i4 + i5 == 15 );
+
+    // At those indices in the result, set the position that they need to point to.
+    std::array<size_t, 6> order;
+    order[i0] = 0;
+    order[i1] = 1;
+    order[i2] = 2;
+    order[i3] = 3;
+    order[i4] = 4;
+    order[i5] = 5;
+
+    // Now everything is sorted.
+    assert( v[order[0]] >= v[order[1]] );
+    assert( v[order[1]] >= v[order[2]] );
+    assert( v[order[2]] >= v[order[3]] );
+    assert( v[order[3]] >= v[order[4]] );
+    assert( v[order[4]] >= v[order[5]] );
+    return order;
 }
 
 /**
@@ -249,6 +301,35 @@ inline constexpr size_t nucleotide_sum( BaseCounts const& sample )
 inline size_t total_nucleotide_sum( Variant const& variant )
 {
     return nucleotide_sum( merge_base_counts( variant ));
+}
+
+/**
+ * @brief Sum up all the base counts at this @p sample, that is, the sum of all `A`, `C`, `G`, `T`,
+ * as well as the `N` and `D` count for indetermined and deleted counts.
+ *
+ * This is simply the sum of `a_count + c_count + g_count + t_count + n_count + d_count`, of the
+ * BaseCounts object. See nucleotide_sum() for a function that only sums `ACGT`, but not `N` and `D`.
+ */
+inline constexpr size_t base_counts_sum( BaseCounts const& sample )
+{
+    return
+        sample.a_count +
+        sample.c_count +
+        sample.g_count +
+        sample.t_count +
+        sample.n_count +
+        sample.d_count
+    ;
+}
+
+/**
+ * @copybrief base_counts_sum( BaseCounts const& )
+ *
+ * See base_counts_sum() for details. This function gives the sum over all samples in the Variant.
+ */
+inline size_t total_base_counts_sum( Variant const& variant )
+{
+    return base_counts_sum( merge_base_counts( variant ));
 }
 
 // =================================================================================================

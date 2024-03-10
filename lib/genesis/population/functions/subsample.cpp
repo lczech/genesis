@@ -31,6 +31,8 @@
 #include "genesis/population/functions/subsample.hpp"
 
 #include "genesis/population/functions/functions.hpp"
+#include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/math/distribution.hpp"
 
 #include <cassert>
@@ -41,150 +43,166 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Subscaling
+//     Scaling
 // =================================================================================================
 
-void transform_subscale(
+void rescale_counts_(
     BaseCounts& sample,
-    size_t max_coverage
+    size_t target_coverage,
+    bool skip_if_below_target_coverage
 ) {
     // Get the total sum. If this does not exceed the max, we are done already.
-    size_t const total_sum = sample.a_count + sample.c_count + sample.g_count + sample.t_count;
-    if( total_sum <= max_coverage ) {
+    size_t const total_sum = base_counts_sum(sample);
+    if( skip_if_below_target_coverage && total_sum <= target_coverage ) {
         return;
     }
 
-    // Scale down the numbers, which rounds to the lower integer.
+    // Scale the numbers, which rounds to the lower integer.
     // We store the result in intermediate values first, as we might need the originals later.
-    double const scale = static_cast<double>(max_coverage) / static_cast<double>(total_sum);
-    size_t a_count = sample.a_count * scale;
-    size_t c_count = sample.c_count * scale;
-    size_t g_count = sample.g_count * scale;
-    size_t t_count = sample.t_count * scale;
-
-    // For completeness, we also scale the n and d counts, but they do not influence our counts,
-    // as we do not want them to dominate.
-    sample.n_count *= scale;
-    sample.d_count *= scale;
+    double const scale = static_cast<double>(target_coverage) / static_cast<double>(total_sum);
+    size_t a_count = static_cast<double>( sample.a_count ) * scale;
+    size_t c_count = static_cast<double>( sample.c_count ) * scale;
+    size_t g_count = static_cast<double>( sample.g_count ) * scale;
+    size_t t_count = static_cast<double>( sample.t_count ) * scale;
+    size_t n_count = static_cast<double>( sample.n_count ) * scale;
+    size_t d_count = static_cast<double>( sample.d_count ) * scale;
 
     // Now we might have some remainder due to the integer rounding, which we want to proportionally
-    // distribute across the numbers, so that the largest count gets most. We only processed four
-    // numbers, so the remainder of the rounding is less than 4.
-    size_t const new_sum = a_count + c_count + g_count + t_count;
-    size_t remainder = max_coverage - new_sum;
-    assert( remainder < 4 );
+    // distribute across the numbers, so that the largest count gets most. We only processed 6
+    // numbers, so the remainder of the rounding is less than 6.
+    size_t const new_sum = a_count + c_count + g_count + t_count + n_count + d_count;
+    assert( new_sum <= target_coverage );
+    size_t const remainder = target_coverage - new_sum;
+    assert( remainder < 6 );
 
     // Now we distribute the remainder across the counts, starting at the highest, to stay
     // as close as possible to proportional scaling. This is a bit expensive, but should be okay.
-    // Well okay, we can run 10k calls of this function in 1ms. Probalby okay.
+    // Well yes, quick test shows that 1000 calls of this function take about 1ms... fast enough!
     if( remainder > 0 ) {
 
         // First we compute the fractions of each nucleotide, and get a sorting order of this,
         // based on the original counts. We also get pointers to the values for index access.
-        auto const frac = std::array<double, 4>{{
+        auto frac = std::array<double, 6>{{
             static_cast<double>( sample.a_count ) / static_cast<double>( total_sum ),
             static_cast<double>( sample.c_count ) / static_cast<double>( total_sum ),
             static_cast<double>( sample.g_count ) / static_cast<double>( total_sum ),
-            static_cast<double>( sample.t_count ) / static_cast<double>( total_sum )
+            static_cast<double>( sample.t_count ) / static_cast<double>( total_sum ),
+            static_cast<double>( sample.n_count ) / static_cast<double>( total_sum ),
+            static_cast<double>( sample.d_count ) / static_cast<double>( total_sum )
         }};
-        auto const order = nucleotide_sorting_order( frac );
-        auto const count_refs = std::array<size_t*, 4>{{ &a_count, &c_count, &g_count, &t_count }};
 
-        // Now we distribute, so that the remainder is split proportionally. We have 1-3 counts
-        // to distribute. We can think of this as splitting the unit interval into 1-3 intervals,
-        // and give extra counts to whichever nucleotide "dominates" that interval, i.e., holds
-        // the majority range in the interval, as determined by the interval midpoint.
-        switch( remainder ) {
-            case 1: {
-                // Only a single count to distribute. Goes to the highest.
-                ++(*count_refs[order[0]]);
-                break;
-            }
-            case 2: {
-                // Two counts to distribute. First to the highest, and second goes to whoever has
-                // the majority in the interval [0.5, 1.0], which depends on whether the highest
-                // count is more than 75%, in which case it also has the majority in the second
-                // interval. If so, it gets another count; otherwise, the second highest gets it.
-                ++(*count_refs[order[0]]);
-                if( frac[order[0]] > 0.75 ) {
-                    ++(*count_refs[order[0]]);
-                } else {
-                    ++(*count_refs[order[1]]);
+        // We use a fixed length sorting algorithm here, as the standard sort is orders of magnitue
+        // slower, which would add significant runtime to using this function for every position
+        // in the genome.
+        // auto const sorting_order = utils::sort_indices( frac.begin(), frac.end() );
+        auto const sorting_order = base_counts_sorting_order( frac );
+
+        // We need index-based access to the counts, so we make a list of pointers.
+        auto const count_refs = std::array<size_t*, 6>{{
+            &a_count, &c_count, &g_count, &t_count, &n_count, &d_count
+        }};
+
+        // Now we distribute, so that the remainder is split proportionally. We have 1-5 counts
+        // to distribute. We can think of this as splitting the unit interval into 1-5 intervals,
+        // and distribute one additional count per interval. To this end, we give extra counts
+        // to whichever nucleotide "dominates" that interval, i.e., holds the majority (more than
+        // half of the interval range). That can be done by simply checking which one has the
+        // largest fraction still, and reducing every time we use the fraction.
+        double const interval_len = 1.0 / static_cast<double>( remainder );
+        for( size_t i = 0; i < remainder; ++i ) {
+
+            // Find the count that has the largest fraction still.
+            // We can stop early if the fraction is more than a whole interval, as in that case,
+            // it for sure will be the majority in the interval, as the fractions are sorted.
+            double max_f = 0.0;
+            size_t max_k = 0;
+            for( size_t k = 0; k < 6; ++k ) {
+                if( frac[sorting_order[k]] > max_f ) {
+                    max_f = frac[sorting_order[k]];
+                    max_k = k;
                 }
-                break;
-            }
-            case 3: {
-                // With three remaining counts, we again give one to the highest nucleotide either way.
-                // Then, the "middle" interval [0.333, 0.666] is dominated by the highest again
-                // if it has more than 50% of the counts. Otherwise, the second highest nucleotide
-                // gets the count. This interval can never be domonated by the third or fourth
-                // nucleotide, as that would imply that they have a higher fraction, and wouldn't
-                // be third or fourth then. Lastly, the third interval [0.666, 1.0] can be dominated
-                // by either the first, second, or third nucleotide. THis is again decided by
-                // who has the majority at the interval midpoint.
-                ++(*count_refs[order[0]]);
-                if( frac[order[0]] > 0.5 ) {
-                    ++(*count_refs[order[0]]);
-                } else  {
-                    ++(*count_refs[order[1]]);
+                if( frac[sorting_order[k]] >= interval_len ) {
+                    break;
                 }
-                if( frac[order[0]] > 5.0 / 6.0 ) {
-                    ++(*count_refs[order[0]]);
-                } else if( frac[order[0]] + frac[order[1]] > 5.0 / 6.0 ) {
-                    ++(*count_refs[order[1]]);
-                } else {
-                    ++(*count_refs[order[2]]);
-                }
-                break;
             }
-            default: {
-                assert( false );
-            }
+
+            // Assign one of the remainder to that count, and reduce its fraction, so that in the
+            // next iteration, it does not contribute as much any more. This can set the fraction
+            // below zero, but that doesn't matter for the comparisons above. Any fraction that is
+            // reduced to below zero here had less than one intervals worth of range anyway, so
+            // it cannot be the majority in any further intervals later any more.
+            frac[sorting_order[max_k]] -= interval_len;
+            ++(*count_refs[sorting_order[max_k]]);
         }
     }
 
     // Now set the values of the sample to our computed counts.
-    assert( a_count + c_count + g_count + t_count == max_coverage );
     sample.a_count = a_count;
     sample.c_count = c_count;
     sample.g_count = g_count;
     sample.t_count = t_count;
+    sample.n_count = n_count;
+    sample.d_count = d_count;
+    assert( base_counts_sum( sample ) == target_coverage );
 }
 
-void transform_subscale(
+void subscale_counts(
+    BaseCounts& sample,
+    size_t max_coverage
+) {
+    rescale_counts_( sample, max_coverage, true );
+}
+
+void subscale_counts(
     Variant& variant,
     size_t max_coverage
 ) {
     // Call the transformation for each sample in the variant.
     for( auto& sample : variant.samples ) {
-        transform_subscale( sample, max_coverage );
+        rescale_counts_( sample, max_coverage, true );
+    }
+}
+
+void rescale_counts(
+    BaseCounts& sample,
+    size_t target_coverage
+) {
+    rescale_counts_( sample, target_coverage, false );
+}
+
+void rescale_counts(
+    Variant& variant,
+    size_t target_coverage
+) {
+    // Call the transformation for each sample in the variant.
+    for( auto& sample : variant.samples ) {
+        rescale_counts_( sample, target_coverage, false );
     }
 }
 
 // =================================================================================================
-//     Subsampling
+//     Sampling
 // =================================================================================================
 
 /**
- * @brief Local helper function to avoid code duplication. Takes the sampler (with or without
+ * @brief Local helper function to avoid code duplication. Takes the distribution (with or without
  * replacement) and performs the resampling of base counts.
  */
-template<typename Sampler>
-void transform_subsample_(
+template<typename Distribution>
+void resample_counts_(
     BaseCounts& sample,
     size_t max_coverage,
-    Sampler sampler
+    Distribution distribution,
+    bool skip_if_below_target_coverage
 ) {
     // Get the total sum. If this does not exceed the max, we are done already.
-    // We do not want the n and d counts to influce the total coverage here.
-    size_t const total_sum = sample.a_count + sample.c_count + sample.g_count + sample.t_count;
-    if( total_sum <= max_coverage ) {
+    size_t const total_sum = base_counts_sum(sample);
+    if( skip_if_below_target_coverage && total_sum <= max_coverage ) {
         return;
     }
 
-    // Make a random draw from a multinomial distrubiton with the counts.
-    // Here, we also take n and d into account for the resampling.
-    auto const new_counts = sampler(
+    // Make a random draw from a multivariate distrubiton with the counts.
+    auto const new_counts = distribution(
         std::vector<size_t>{{
             sample.a_count,
             sample.c_count,
@@ -204,45 +222,66 @@ void transform_subsample_(
     sample.t_count = new_counts[3];
     sample.n_count = new_counts[4];
     sample.d_count = new_counts[5];
+    assert( base_counts_sum( sample ) == max_coverage );
 }
 
-void transform_subsample_with_replacement(
+void subsample_counts_with_replacement(
     BaseCounts& sample,
     size_t max_coverage
 ) {
     // Call the local helper function template, to avoid code duplication.
-    return transform_subsample_<std::vector<size_t>(*)(std::vector<size_t> const&, size_t)>(
-        sample, max_coverage, utils::multinomial_distribution
+    return resample_counts_<std::vector<size_t>(*)(std::vector<size_t> const&, size_t)>(
+        sample, max_coverage, utils::multinomial_distribution, true
     );
 }
 
-void transform_subsample_with_replacement(
+void subsample_counts_with_replacement(
     Variant& variant,
     size_t max_coverage
 ) {
     // Call the transformation for each sample in the variant.
     for( auto& sample : variant.samples ) {
-        transform_subsample_with_replacement( sample, max_coverage );
+        subsample_counts_with_replacement( sample, max_coverage );
     }
 }
 
-void transform_subsample_without_replacement(
+void resample_counts(
+    BaseCounts& sample,
+    size_t target_coverage
+) {
+    // Call the local helper function template, to avoid code duplication.
+    return resample_counts_<std::vector<size_t>(*)(std::vector<size_t> const&, size_t)>(
+        sample, target_coverage, utils::multinomial_distribution, false
+    );
+}
+
+void resample_counts(
+    Variant& variant,
+    size_t target_coverage
+) {
+    // Call the transformation for each sample in the variant.
+    for( auto& sample : variant.samples ) {
+        resample_counts( sample, target_coverage );
+    }
+}
+
+void subsample_counts_without_replacement(
     BaseCounts& sample,
     size_t max_coverage
 ) {
     // Call the local helper function template, to avoid code duplication.
-    return transform_subsample_<std::vector<size_t>(*)(std::vector<size_t> const&, size_t)>(
-        sample, max_coverage, utils::multivariate_hypergeometric_distribution
+    return resample_counts_<std::vector<size_t>(*)(std::vector<size_t> const&, size_t)>(
+        sample, max_coverage, utils::multivariate_hypergeometric_distribution, true
     );
 }
 
-void transform_subsample_without_replacement(
+void subsample_counts_without_replacement(
     Variant& variant,
     size_t max_coverage
 ) {
     // Call the transformation for each sample in the variant.
     for( auto& sample : variant.samples ) {
-        transform_subsample_without_replacement( sample, max_coverage );
+        subsample_counts_without_replacement( sample, max_coverage );
     }
 }
 

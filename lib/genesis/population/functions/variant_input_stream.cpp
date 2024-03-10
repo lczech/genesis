@@ -148,17 +148,17 @@ std::function<void(Variant&)> make_variant_input_stream_sample_subsampling_trans
     switch( method ) {
         case SubsamplingMethod::kSubscale: {
             return [ max_coverage ]( Variant& variant ){
-                transform_subscale( variant, max_coverage );
+                subscale_counts( variant, max_coverage );
             };
         }
         case SubsamplingMethod::kSubsampleWithReplacement: {
             return [ max_coverage ]( Variant& variant ){
-                transform_subsample_with_replacement( variant, max_coverage );
+                subsample_counts_with_replacement( variant, max_coverage );
             };
         }
         case SubsamplingMethod::kSubsampleWithoutReplacement: {
             return [ max_coverage ]( Variant& variant ){
-                transform_subsample_without_replacement( variant, max_coverage );
+                subsample_counts_without_replacement( variant, max_coverage );
             };
         }
     }
