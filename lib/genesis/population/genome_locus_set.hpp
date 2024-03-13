@@ -290,11 +290,11 @@ public:
                 "GenomeLocusSet::is_covered( Bitvector const&, size_t ) called with empty Bitvector"
             );
         }
-        if( position == 0 ) {
-            throw std::invalid_argument(
-                "GenomeLocusSet::is_covered( Bitvector const&, size_t ) called with position==0"
-            );
-        }
+        // if( position == 0 ) {
+        //     throw std::invalid_argument(
+        //         "GenomeLocusSet::is_covered( Bitvector const&, size_t ) called with position==0"
+        //     );
+        // }
 
         // If the chromosome has the 0th bit set, the whole chromosome is covered.
         if( bitvector.get( 0 ) ) {
