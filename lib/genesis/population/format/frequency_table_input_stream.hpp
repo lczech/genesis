@@ -155,10 +155,11 @@ public:
         // Store the data that is parsed per sample, before processing it into our final Variant.
         struct SampleData
         {
-            size_t ref_cnt;
-            size_t alt_cnt;
-            size_t cov;
-            double frq;
+            bool   is_missing = false;
+            size_t ref_cnt    = 0;
+            size_t alt_cnt    = 0;
+            size_t cov        = 0;
+            double frq        = 0.0;
         };
 
         // -------------------------------------------------------------------------
@@ -297,24 +298,24 @@ public:
             std::unordered_set<std::string>& all_samplenames
         );
 
-        int evaluate_field_as_chr_( std::string const& field );
-        int evaluate_field_as_pos_( std::string const& field );
-        int evaluate_field_as_ref_( std::string const& field );
-        int evaluate_field_as_alt_( std::string const& field );
+        int evaluate_if_field_is_chr_( std::string const& field );
+        int evaluate_if_field_is_pos_( std::string const& field );
+        int evaluate_if_field_is_ref_( std::string const& field );
+        int evaluate_if_field_is_alt_( std::string const& field );
 
-        int evaluate_field_as_sample_ref_(
+        int evaluate_if_field_is_sample_ref_(
             std::string const& field,
             std::unordered_set<std::string>& all_samplenames
         );
-        int evaluate_field_as_sample_alt_(
+        int evaluate_if_field_is_sample_alt_(
             std::string const& field,
             std::unordered_set<std::string>& all_samplenames
         );
-        int evaluate_field_as_sample_frq_(
+        int evaluate_if_field_is_sample_frq_(
             std::string const& field,
             std::unordered_set<std::string>& all_samplenames
         );
-        int evaluate_field_as_sample_cov_(
+        int evaluate_if_field_is_sample_cov_(
             std::string const& field,
             std::unordered_set<std::string>& all_samplenames
         );
@@ -325,6 +326,10 @@ public:
 
         SampleInfo& get_sample_info_( std::string const& samplename );
         bool is_ignored_sample_( std::string const& samplename ) const;
+        static bool parse_if_missing_(
+            FrequencyTableInputStream const* parent,
+            genesis::utils::InputStream& input_stream
+        );
 
         // ---------------------------------------------
         //     String Matching Helpers
@@ -782,6 +787,24 @@ public:
         return *this;
     }
 
+    std::string const& missing_value() const
+    {
+        return usr_missing_;
+    }
+
+    /**
+     * @brief Set the string that indicates missing data.
+     *
+     * By default, we use `.`, `na`, and `nan` as indicators of missing data, in which case the
+     * SampleCounts will be set to missing when any of these values is involved in the parsing.
+     * With this setting, instead, the given @p value will be used to indicate missing data.
+     */
+    self_type& missing_value( std::string const& value )
+    {
+        usr_missing_ = value;
+        return *this;
+    }
+
     double int_factor() const
     {
         return int_factor_;
@@ -813,7 +836,10 @@ public:
      */
     self_type& int_factor( double value )
     {
-        if( static_cast<double>( static_cast<SampleCounts::size_type>( value )) != value ) {
+        if(
+            value > max_int_factor_ ||
+            static_cast<double>( static_cast<SampleCounts::size_type>( value )) != value
+        ) {
             throw std::runtime_error(
                 "Cannot set int_factor to " + std::to_string( value ) + " as this is out of range "
                 "of the int type used for storing base counts."
@@ -885,6 +911,12 @@ private:
     std::shared_ptr<::genesis::sequence::ReferenceGenome> ref_genome_;
     char separator_char_ = '\t';
 
+    // Missing data indicators. We have a default set that we use, and a user-provided one.
+    // Both are used case-insensitive. Need to be sorted so that `nan` comes before `na`,
+    // as otherwise, `na` would match already when its actually `nan`, leading to an error.
+    std::vector<std::string> missing_ = { ".", "nan", "na" };
+    std::string usr_missing_;
+
     // When reading frequencies, for now, we want to turn them into counts, as this is what
     // our data infrastructure of Variant expects. To lose as little precision as possible, we
     // multiply the frequency [ 0.0, 1.0 ] by the largest integer for which itself and all
@@ -896,6 +928,13 @@ private:
     // See https://stackoverflow.com/q/1848700/4184258 for the exact double value used here.
     static constexpr double max_int_factor_ = 9007199254740992.0;
 
+    // We use a smaller factor by default, to make sure that we can add numbers without reaching
+    // the max int precesion point of double, just in case. We are internally using size_t for
+    // counts, so that should not happen, but prevents accidents. Also, using a power of ten here
+    // it makes numbers converted from data nicer for users and potentially easier to understand,
+    // as they more clearly correspond to the frequencies actually specified in the input data.
+    static constexpr double default_int_factor_ = 1000000.0;
+
     // Make sure that this actually fits into the SampleCounts values.
     static_assert(
         static_cast<double>( static_cast<SampleCounts::size_type>( max_int_factor_ )) == max_int_factor_,
@@ -905,7 +944,8 @@ private:
     // The above is the max that we can use, but we allow users to set the used int factor that is
     // used for frequency-based computations, so that they can for example use the expected
     // coverage information from HAF-pipe, or similar values instead.
-    double int_factor_ = max_int_factor_;
+    // double int_factor_ = max_int_factor_;
+    double int_factor_ = default_int_factor_;
 
     // When we have multiple pieces of information for a sample, we do cross checks, to make
     // sure that everything is in order. This relative value here is used for frequencies.

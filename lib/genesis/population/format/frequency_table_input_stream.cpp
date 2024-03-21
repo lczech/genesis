@@ -30,6 +30,8 @@
 
 #include "genesis/population/format/frequency_table_input_stream.hpp"
 
+#include "genesis/population/filter/sample_counts_filter.hpp"
+#include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/function/functions.hpp"
 #include "genesis/sequence/functions/codes.hpp"
 #include "genesis/utils/core/logging.hpp"
@@ -42,6 +44,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstring>
 #include <limits>
 #include <stdexcept>
 
@@ -236,14 +239,14 @@ void FrequencyTableInputStream::Iterator::parse_header_field_(
     // While matching, the functions also set up the respective parsers for the columns,
     // so that after this, we have a parser for all columns set up.
     int matches = 0;
-    matches += evaluate_field_as_chr_( field );
-    matches += evaluate_field_as_pos_( field );
-    matches += evaluate_field_as_ref_( field );
-    matches += evaluate_field_as_alt_( field );
-    matches += evaluate_field_as_sample_ref_( field, all_samplenames );
-    matches += evaluate_field_as_sample_alt_( field, all_samplenames );
-    matches += evaluate_field_as_sample_frq_( field, all_samplenames );
-    matches += evaluate_field_as_sample_cov_( field, all_samplenames );
+    matches += evaluate_if_field_is_chr_( field );
+    matches += evaluate_if_field_is_pos_( field );
+    matches += evaluate_if_field_is_ref_( field );
+    matches += evaluate_if_field_is_alt_( field );
+    matches += evaluate_if_field_is_sample_ref_( field, all_samplenames );
+    matches += evaluate_if_field_is_sample_alt_( field, all_samplenames );
+    matches += evaluate_if_field_is_sample_frq_( field, all_samplenames );
+    matches += evaluate_if_field_is_sample_cov_( field, all_samplenames );
 
     if( matches == 0 ) {
         // Field that we could not make sense of. Ignored for now; might add warning later.
@@ -269,10 +272,10 @@ void FrequencyTableInputStream::Iterator::parse_header_field_(
 }
 
 // -------------------------------------------------------------------------
-//     evaluate_field_as_chr_
+//     evaluate_if_field_is_chr_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputStream::Iterator::evaluate_field_as_chr_(
+int FrequencyTableInputStream::Iterator::evaluate_if_field_is_chr_(
     std::string const& field
 ) {
     assert( parent_ );
@@ -320,13 +323,13 @@ int FrequencyTableInputStream::Iterator::evaluate_field_as_chr_(
 }
 
 // -------------------------------------------------------------------------
-//     evaluate_field_as_pos_
+//     evaluate_if_field_is_pos_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputStream::Iterator::evaluate_field_as_pos_(
+int FrequencyTableInputStream::Iterator::evaluate_if_field_is_pos_(
     std::string const& field
 ) {
-    // Same setup as in evaluate_field_as_chr_(). See there for comments.
+    // Same setup as in evaluate_if_field_is_chr_(). See there for comments.
     // Only difference is the parsing function in the processor lambda.
 
     assert( parent_ );
@@ -354,13 +357,13 @@ int FrequencyTableInputStream::Iterator::evaluate_field_as_pos_(
 }
 
 // -------------------------------------------------------------------------
-//     evaluate_field_as_ref_
+//     evaluate_if_field_is_ref_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputStream::Iterator::evaluate_field_as_ref_(
+int FrequencyTableInputStream::Iterator::evaluate_if_field_is_ref_(
     std::string const& field
 ) {
-    // Same setup as in evaluate_field_as_chr_(). See there for comments.
+    // Same setup as in evaluate_if_field_is_chr_(). See there for comments.
     // Only difference is the parsing function in the processor lambda.
 
     assert( parent_ );
@@ -392,13 +395,13 @@ int FrequencyTableInputStream::Iterator::evaluate_field_as_ref_(
 }
 
 // -------------------------------------------------------------------------
-//     evaluate_field_as_alt_
+//     evaluate_if_field_is_alt_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputStream::Iterator::evaluate_field_as_alt_(
+int FrequencyTableInputStream::Iterator::evaluate_if_field_is_alt_(
     std::string const& field
 ) {
-    // Same setup as in evaluate_field_as_chr_(). See there for comments.
+    // Same setup as in evaluate_if_field_is_chr_(). See there for comments.
     // Only difference is the parsing function in the processor lambda.
 
     assert( parent_ );
@@ -429,10 +432,10 @@ int FrequencyTableInputStream::Iterator::evaluate_field_as_alt_(
 }
 
 // -------------------------------------------------------------------------
-//     evaluate_field_as_sample_ref_
+//     evaluate_if_field_is_sample_ref_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_ref_(
+int FrequencyTableInputStream::Iterator::evaluate_if_field_is_sample_ref_(
     std::string const& field,
     std::unordered_set<std::string>& all_samplenames
 ) {
@@ -458,8 +461,14 @@ int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_ref_(
     // We still read the value, to make sure that it's good data, but don't do anything with it.
     // We return 1 here to indicate that we matched with a pattern successfully.
     if( is_ignored_sample_( samplename )) {
-        column_processors_.push_back( []( genesis::utils::InputStream& it ){
-            utils::parse_unsigned_integer<size_t>( it );
+        // Local copy of the parent pointer, so that we can capture it in the lambda in C++11...
+        auto parent = parent_;
+        column_processors_.push_back( [parent]( genesis::utils::InputStream& it ){
+            // If the filed is missing data, we parse it in the function to check that.
+            // If it isn't, we parese it as an int, but discard the value.
+            if( ! parse_if_missing_( parent, it ) ) {
+                utils::parse_unsigned_integer<size_t>( it );
+            }
         });
         return 1;
     }
@@ -483,11 +492,16 @@ int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_ref_(
     // (using a vector of pointers, or only added the lambdas later once we know how many samples
     // there are), but that does neither seem faster nor simpler, so we stick with this approach.
     assert( sample_info.index < std::numeric_limits<size_t>::max() );
+    auto parent = parent_;
     auto sample_data = sample_data_;
     auto index = sample_info.index;
-    column_processors_.push_back( [sample_data, index]( genesis::utils::InputStream& it ){
+    column_processors_.push_back( [parent, sample_data, index]( genesis::utils::InputStream& it ){
         assert( index < sample_data->size() );
-        sample_data->at(index).ref_cnt = utils::parse_unsigned_integer<size_t>( it );
+        if( parse_if_missing_( parent, it ) ) {
+            sample_data->at(index).is_missing = true;
+        } else {
+            sample_data->at(index).ref_cnt = utils::parse_unsigned_integer<size_t>( it );
+        }
     });
 
     // Indicate that we found a matching header name.
@@ -495,14 +509,14 @@ int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_ref_(
 }
 
 // -------------------------------------------------------------------------
-//     evaluate_field_as_sample_alt_
+//     evaluate_if_field_is_sample_alt_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_alt_(
+int FrequencyTableInputStream::Iterator::evaluate_if_field_is_sample_alt_(
     std::string const& field,
     std::unordered_set<std::string>& all_samplenames
 ) {
-    // Same as above in evaluate_field_as_sample_ref_(), but without comments here
+    // Same as above in evaluate_if_field_is_sample_ref_(), but without comments here
     // to keep it shorter. See there for explanations.
     // This is quite some code duplication, but we have this intermixed with variable access
     // of the data that we are writing to, etc, and would be quite the cumbersone template
@@ -518,8 +532,11 @@ int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_alt_(
     }
     all_samplenames.insert( samplename );
     if( is_ignored_sample_( samplename )) {
-        column_processors_.push_back( []( genesis::utils::InputStream& it ){
-            utils::parse_unsigned_integer<size_t>( it );
+        auto parent = parent_;
+        column_processors_.push_back( [parent]( genesis::utils::InputStream& it ){
+            if( ! parse_if_missing_( parent, it ) ) {
+                utils::parse_unsigned_integer<size_t>( it );
+            }
         });
         return 1;
     }
@@ -532,24 +549,29 @@ int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_alt_(
     }
     sample_info.has_alt = true;
     assert( sample_info.index < std::numeric_limits<size_t>::max() );
+    auto parent = parent_;
     auto sample_data = sample_data_;
     auto index = sample_info.index;
-    column_processors_.push_back( [sample_data, index]( genesis::utils::InputStream& it ){
+    column_processors_.push_back( [parent, sample_data, index]( genesis::utils::InputStream& it ){
         assert( index < sample_data->size() );
-        sample_data->at(index).alt_cnt = utils::parse_unsigned_integer<size_t>( it );
+        if( parse_if_missing_( parent, it ) ) {
+            sample_data->at(index).is_missing = true;
+        } else {
+            sample_data->at(index).alt_cnt = utils::parse_unsigned_integer<size_t>( it );
+        }
     });
     return 1;
 }
 
 // -------------------------------------------------------------------------
-//     evaluate_field_as_sample_frq_
+//     evaluate_if_field_is_sample_frq_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_frq_(
+int FrequencyTableInputStream::Iterator::evaluate_if_field_is_sample_frq_(
     std::string const& field,
     std::unordered_set<std::string>& all_samplenames
 ) {
-    // Same as above in evaluate_field_as_sample_ref_(), but without comments here
+    // Same as above in evaluate_if_field_is_sample_ref_(), but without comments here
     // to keep it shorter. See there for explanations.
 
     assert( parent_ );
@@ -562,8 +584,11 @@ int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_frq_(
     }
     all_samplenames.insert( samplename );
     if( is_ignored_sample_( samplename )) {
-        column_processors_.push_back( []( genesis::utils::InputStream& it ){
-            utils::parse_float<double>( it );
+        auto parent = parent_;
+        column_processors_.push_back( [parent]( genesis::utils::InputStream& it ){
+            if( ! parse_if_missing_( parent, it ) ) {
+                utils::parse_float<double>( it );
+            }
         });
         return 1;
     }
@@ -576,24 +601,29 @@ int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_frq_(
     }
     sample_info.has_frq = true;
     assert( sample_info.index < std::numeric_limits<size_t>::max() );
+    auto parent = parent_;
     auto sample_data = sample_data_;
     auto index = sample_info.index;
-    column_processors_.push_back( [sample_data, index]( genesis::utils::InputStream& it ){
+    column_processors_.push_back( [parent, sample_data, index]( genesis::utils::InputStream& it ){
         assert( index < sample_data->size() );
-        sample_data->at(index).frq = utils::parse_float<double>( it );
+        if( parse_if_missing_( parent, it ) ) {
+            sample_data->at(index).is_missing = true;
+        } else {
+            sample_data->at(index).frq = utils::parse_float<double>( it );
+        }
     });
     return 1;
 }
 
 // -------------------------------------------------------------------------
-//     evaluate_field_as_sample_cov_
+//     evaluate_if_field_is_sample_cov_
 // -------------------------------------------------------------------------
 
-int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_cov_(
+int FrequencyTableInputStream::Iterator::evaluate_if_field_is_sample_cov_(
     std::string const& field,
     std::unordered_set<std::string>& all_samplenames
 ) {
-    // Same as above in evaluate_field_as_sample_ref_(), but without comments here
+    // Same as above in evaluate_if_field_is_sample_ref_(), but without comments here
     // to keep it shorter. See there for explanations.
 
     assert( parent_ );
@@ -606,8 +636,11 @@ int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_cov_(
     }
     all_samplenames.insert( samplename );
     if( is_ignored_sample_( samplename )) {
-        column_processors_.push_back( []( genesis::utils::InputStream& it ){
-            utils::parse_unsigned_integer<size_t>( it );
+        auto parent = parent_;
+        column_processors_.push_back( [parent]( genesis::utils::InputStream& it ){
+            if( ! parse_if_missing_( parent, it ) ) {
+                utils::parse_unsigned_integer<size_t>( it );
+            }
         });
         return 1;
     }
@@ -620,11 +653,16 @@ int FrequencyTableInputStream::Iterator::evaluate_field_as_sample_cov_(
     }
     sample_info.has_cov = true;
     assert( sample_info.index < std::numeric_limits<size_t>::max() );
+    auto parent = parent_;
     auto sample_data = sample_data_;
     auto index = sample_info.index;
-    column_processors_.push_back( [sample_data, index]( genesis::utils::InputStream& it ){
+    column_processors_.push_back( [parent, sample_data, index]( genesis::utils::InputStream& it ){
         assert( index < sample_data->size() );
-        sample_data->at(index).cov = utils::parse_unsigned_integer<size_t>( it );
+        if( parse_if_missing_( parent, it ) ) {
+            sample_data->at(index).is_missing = true;
+        } else {
+            sample_data->at(index).cov = utils::parse_unsigned_integer<size_t>( it );
+        }
     });
     return 1;
 }
@@ -665,6 +703,53 @@ bool FrequencyTableInputStream::Iterator::is_ignored_sample_(
     // Return whether that sample shall be ignored.
     auto const found = ( parent_->sample_names_filter_.count( samplename ) > 0 );
     return !( found ^ parent_->inverse_sample_names_filter_ );
+}
+
+bool FrequencyTableInputStream::Iterator::parse_if_missing_(
+    FrequencyTableInputStream const* parent,
+    genesis::utils::InputStream& input_stream
+) {
+    auto const buffer = input_stream.buffer();
+
+    // Do a case insentive comparison of two char arrays.
+    // The comparison functions are short circuited so that they are only called when
+    // the buffer actually has sufficient data.
+    auto check_missing_and_skip_ = [&input_stream](
+        char const* lhs, size_t lhs_len, char const* rhs, size_t rhs_len
+    ) {
+        if(
+            lhs_len >= rhs_len &&
+            strncasecmp( lhs, rhs, rhs_len ) == 0
+        ) {
+            input_stream.jump_unchecked( rhs_len );
+            return true;
+        }
+        return false;
+    };
+
+    // If user-provided missing string is given, use that. Otherwise, try all defaults.
+    // If we find any of the missing indicators, we move the input forward beyond it,
+    // and return true. Otherwise, we do nothing to the stream, and return false.
+    if( parent->usr_missing_.empty() ) {
+        for( auto const& missing_word : parent->missing_ ) {
+            auto const is_missing = check_missing_and_skip_(
+                buffer.first, buffer.second,
+                missing_word.c_str(), missing_word.size()
+            );
+            if( is_missing ) {
+                return true;
+            }
+        }
+    } else {
+        auto const is_missing = check_missing_and_skip_(
+            buffer.first, buffer.second,
+            parent->usr_missing_.c_str(), parent->usr_missing_.size()
+        );
+        if( is_missing ) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // -------------------------------------------------------------------------
@@ -807,6 +892,13 @@ void FrequencyTableInputStream::Iterator::increment_()
         return;
     }
 
+    // We need to reset the internal sample data, so that any remnants of a previous iteration
+    // are removed. In particular, we need to reset the is_missing information here.
+    assert( sample_data_ );
+    for( auto& data : *sample_data_ ) {
+        data = SampleData();
+    }
+
     // Process all columns, using the processor lambda functions one after another
     // in the order that we expect the columns to be in.
     size_t processor_index = 0;
@@ -918,6 +1010,18 @@ void FrequencyTableInputStream::Iterator::increment_()
         assert( index < current_variant_->samples.size() );
         process_sample_data_( sample_info.second, sample_data_->at(index), *current_variant_, index );
     }
+
+    // Set the status of the Variant. If all samples are missing, so is this Variant.
+    current_variant_->status.reset();
+    size_t missing_count = 0;
+    for( auto const& sample : current_variant_->samples ) {
+        if( sample.status.is( SampleCountsFilterTag::kMissing )) {
+            ++missing_count;
+        }
+    }
+    if( missing_count == current_variant_->samples.size() ) {
+        current_variant_->status.set( VariantFilterTag::kMissing );
+    }
 }
 
 // -------------------------------------------------------------------------
@@ -936,6 +1040,15 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
     SampleCounts::size_type alt_cnt = 0;
     bool do_frq_check = false;
 
+    // Reset the sample, and skip everything else if this is missing data.
+    variant.samples[sample_index] = SampleCounts();
+    if( sample_data.is_missing ) {
+        variant.samples[sample_index].status.set( SampleCountsFilterTag::kMissing );
+        return;
+    }
+
+    // Check which of all combinations of input column types that we offer is given for this sample,
+    // and process it accordingly.
     if( sample_info.has_ref && sample_info.has_alt ) {
 
         // Simple case, just use the counts.
@@ -1012,7 +1125,9 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
         // ways of computing the counts (see above) would already have kicked in, and we
         // would not have ended up here.
         if( ! std::isfinite( frq )) {
-            // Nothing to do, we keep the counts at 0.
+            // Non-finite frequencies are invalid data. Nothing else to do.
+            variant.samples[sample_index].status.set( SampleCountsFilterTag::kInvalid );
+            return;
         } else if( sample_info.has_cov ) {
             // Avoid rounding errors by doing the second number directly on integers.
             ref_cnt = static_cast<SampleCounts::size_type>( sample_data.cov * frq );
@@ -1079,8 +1194,10 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
     assert( is_valid_base_or_n( ref_base ));
     assert( is_valid_base_or_n( alt_base ));
     if( utils::char_match_ci( ref_base, 'N' )) {
+        // Neither base is given. We do not change the base assignment of the variant,
+        // but we need positions to use for setting the values. Arbitrarily choose A and T.
         ref_base = 'A';
-        alt_base = 'G';
+        alt_base = 'T';
     } else if( utils::char_match_ci( alt_base, 'N' )) {
         // Only ref base is given. Use its transition base as the most likely alternative.
         assert( is_valid_base( ref_base ));
@@ -1098,8 +1215,7 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
         );
     }
 
-    // (Re-)set the base counts
-    variant.samples[sample_index] = SampleCounts();
+    // Set the base counts
     set_base_count( variant.samples[sample_index], ref_base, ref_cnt );
     set_base_count( variant.samples[sample_index], alt_base, alt_cnt );
 }

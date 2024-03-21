@@ -82,9 +82,9 @@ public:
     }
 
     template<typename Enum>
-    void is( Enum value )
+    bool is( Enum value ) const
     {
-        is( static_cast<IntType>( value ));
+        return is( static_cast<IntType>( value ));
     }
 
     IntType get() const
