@@ -42,7 +42,7 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief Tag class to assign a filter status to a Variant or BaseCount.
+ * @brief Tag class to assign a filter status to a Variant or SampleCounts.
  *
  * This class provides a 32bit uint as a status tag or indicator to keep track of whether a sample
  * or a position passed all filters, or, if not, which filter failed. It is initialized to 0,

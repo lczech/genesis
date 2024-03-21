@@ -490,7 +490,7 @@ private:
 
     void tally_base_(
         utils::InputStream& input_stream,
-        SampleCounts& base_count,
+        SampleCounts& sample,
         char b
     ) const;
 

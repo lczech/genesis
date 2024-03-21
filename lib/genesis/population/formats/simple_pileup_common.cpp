@@ -125,12 +125,12 @@ SampleCounts convert_to_sample_counts(
     // We account for this here by allowing exactly one such base that is either a deletion
     // or a skip due to low phred score. There is no information that we know of about how
     // "empty" lines should be treated in pileip, so we have to guess, and that here seems to work.
-    auto const base_count =
+    auto const count_sum =
         result.a_count + result.c_count + result.g_count + result.t_count + result.n_count
     ;
     if(
         sample.read_bases.size() != sample.read_coverage &&
-        !( base_count == 0 && result.d_count + skip_count == 1 )
+        !( count_sum == 0 && result.d_count + skip_count == 1 )
     ) {
 
         throw std::runtime_error(

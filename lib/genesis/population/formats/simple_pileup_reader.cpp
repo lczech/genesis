@@ -853,38 +853,38 @@ void SimplePileupReader::process_quality_string_<SampleCounts>(
 
 inline void SimplePileupReader::tally_base_(
     utils::InputStream& input_stream,
-    SampleCounts& base_count,
+    SampleCounts& sample,
     char b
 ) const {
     switch( b ) {
         case 'a':
         case 'A': {
-            ++base_count.a_count;
+            ++sample.a_count;
             break;
         }
         case 'c':
         case 'C': {
-            ++base_count.c_count;
+            ++sample.c_count;
             break;
         }
         case 'g':
         case 'G': {
-            ++base_count.g_count;
+            ++sample.g_count;
             break;
         }
         case 't':
         case 'T': {
-            ++base_count.t_count;
+            ++sample.t_count;
             break;
         }
         case 'n':
         case 'N': {
-            ++base_count.n_count;
+            ++sample.n_count;
             break;
         }
         case '*':
         case '#': {
-            ++base_count.d_count;
+            ++sample.d_count;
             break;
         }
         case '<':
