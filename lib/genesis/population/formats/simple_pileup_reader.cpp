@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -808,7 +808,7 @@ void SimplePileupReader::process_quality_string_<BaseCounts>(
         } else {
             // Reset
             pos = 0;
-            sample.clear();
+            sample = BaseCounts();
 
             // Go through the quality scores, and tally up the bases that have a high enough quality,
             // keeping track of the position (pos) in the buffer.

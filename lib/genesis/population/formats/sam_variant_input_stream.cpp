@@ -821,7 +821,7 @@ void SamVariantInputStream::Iterator::increment_()
     // but the vector might be empty or of the wrong size afterwards.
     current_variant_.samples.resize( handle_->target_sample_count_ );
     for( auto& sample : current_variant_.samples ) {
-        sample.clear();
+        sample = BaseCounts();
     }
 
     // Go through the read data at the current position and tally up their base counts.

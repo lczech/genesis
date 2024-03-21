@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,8 @@
  * @file
  * @ingroup population
  */
+
+#include "genesis/population/filter/filter_status.hpp"
 
 #include <array>
 #include <string>
@@ -89,17 +91,10 @@ struct BaseCounts
     size_type d_count = 0;
 
     /**
-     * @brief Reset all counts to 0.
+     * @brief Status to indicate whether any applied filters failed to pass.
      */
-    void clear()
-    {
-        a_count = 0;
-        c_count = 0;
-        g_count = 0;
-        t_count = 0;
-        n_count = 0;
-        d_count = 0;
-    }
+    FilterStatus status;
+
 };
 
 // =================================================================================================

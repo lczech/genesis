@@ -33,7 +33,9 @@
 #include "genesis/population/base_counts.hpp"
 #include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/streams/variant_parallel_input_stream.hpp"
-#include "genesis/population/functions/filter_transform.hpp"
+#include "genesis/population/filter/variant_filter_numerical.hpp"
+#include "genesis/population/filter/variant_filter_positional.hpp"
+#include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/population/functions/variant_input_stream.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -59,15 +61,15 @@ TEST( VariantInputStream, SamInputStream )
 
     // Add a filter that limits it to a region, and then skips a region inside.
     it.add_filter(
-        make_filter_by_region( GenomeRegion( "seq1", 272, 279 ))
+        make_variant_filter_by_region_excluding( GenomeRegion( "seq1", 272, 279 ))
     );
     it.add_filter(
-        make_filter_by_region( GenomeRegion( "seq1", 274, 277 ), true )
+        make_variant_filter_by_region_excluding( GenomeRegion( "seq1", 274, 277 ), true )
     );
 
     // Add a filter that doesn't do anything
     it.add_filter(
-        make_filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
+        make_variant_filter_by_region_excluding( GenomeRegion("not_a_chr", 100, 200), true )
     );
 
     // Simple test that the correct region is filtered out.
@@ -142,15 +144,15 @@ TEST( VariantInputStream, PileupInputStream )
     // Add a filter that skips the specified region.
     auto region = GenomeRegion( "seq1", 274, 277 );
     // it.add_filter(
-    //     make_filter_by_region( region )
+    //     make_variant_filter_by_region_excluding( region )
     // );
     it.add_filter(
-        make_filter_by_region( region, true )
+        make_variant_filter_by_region_excluding( region, true )
     );
 
     // Add a filter that doesn't do anything
     it.add_filter(
-        make_filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
+        make_variant_filter_by_region_excluding( GenomeRegion("not_a_chr", 100, 200), true )
     );
 
     // Simple test that the correct region is filtered out.
@@ -298,12 +300,12 @@ TEST( VariantInputStream, SyncInputStream )
     // Add a filter that skips the specified region.
     auto region = GenomeRegion( "2R", 2302, 2302 );
     it.add_filter(
-        make_filter_by_region( region, true )
+        make_variant_filter_by_region_excluding( region, true )
     );
 
     // Add a filter that doesn't do anything
     it.add_filter(
-        make_filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
+        make_variant_filter_by_region_excluding( GenomeRegion("not_a_chr", 100, 200), true )
     );
 
     // Simple test that the correct region is filtered out.
@@ -435,12 +437,12 @@ TEST( VariantInputStream, VcfInputStream )
     // Add a filter that skips the specified region.
     auto region = GenomeRegion( "20", 17000, 1120000 );
     it.add_filter(
-        make_filter_by_region( region, true )
+        make_variant_filter_by_region_excluding( region, true )
     );
 
     // Add a filter that doesn't do anything
     it.add_filter(
-        make_filter_by_region( GenomeRegion("not_a_chr", 100, 200), true )
+        make_variant_filter_by_region_excluding( GenomeRegion("not_a_chr", 100, 200), true )
     );
 
     // Simple test that the correct region is filtered out.

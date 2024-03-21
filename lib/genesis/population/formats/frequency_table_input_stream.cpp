@@ -1098,8 +1098,8 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
         );
     }
 
-    // Set the base counts
-    variant.samples[sample_index].clear();
+    // (Re-)set the base counts
+    variant.samples[sample_index] = BaseCounts();
     set_base_count( variant.samples[sample_index], ref_base, ref_cnt );
     set_base_count( variant.samples[sample_index], alt_base, alt_cnt );
 }

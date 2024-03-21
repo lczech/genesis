@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
  */
 
 #include "genesis/population/base_counts.hpp"
+#include "genesis/population/filter/filter_status.hpp"
 
 #include <string>
 #include <vector>
@@ -58,12 +59,24 @@ namespace population {
  *   * A set of BaseCounts%s, that is, information on the counts of nucleotide bases of thereads
  *     of a set of pool samples or individuals that cover this variants/SNPs at that position.
  *     See BaseCounts for details on the latter.
+ *   * A filter status to indicate whether this Variant is to be considered in analyses or not.
+ *     See FilterStatus for details.
  */
 struct Variant
 {
+    // Internal memory layout: The status is 4 bytes, which we put next to the two one-byte members,
+    // so that we do not get extra alignment padding here, to keep the data structure small.
+    // Unfortunately, in release buiild, we are still a bit bigger than a cache line of 64 byte,
+    // but short of making position a 32 bit number, there is nothing we can do about that.
+    // Not sure if that would improve performance in our case anyway. Could be tested.
+
     std::string chromosome;
     size_t      position = 0;
-    char        reference_base = 'N';
+
+    FilterStatus status;
+    static_assert( sizeof(FilterStatus) == 4, "sizeof(FilterStatus) != 4" );
+
+    char        reference_base   = 'N';
     char        alternative_base = 'N';
 
     std::vector<BaseCounts> samples;

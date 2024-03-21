@@ -35,7 +35,10 @@
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/formats/sync_reader.hpp"
 #include "genesis/population/streams/variant_input_stream.hpp"
-#include "genesis/population/functions/filter_transform.hpp"
+#include "genesis/population/filter/sample_counts_filter_numerical.hpp"
+#include "genesis/population/filter/sample_counts_filter.hpp"
+#include "genesis/population/filter/variant_filter_numerical.hpp"
+#include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/functions/fst_pool_functions.hpp"
 #include "genesis/population/functions/fst_pool_processor.hpp"
 #include "genesis/population/functions/functions.hpp"
@@ -198,12 +201,12 @@ TEST( Structure, FstPoolGenerator )
 
         // Ugly relic of many refactorings to do it this way... but good enough for now.
         auto merged = merge( sample_set.samples );
-        BaseCountsFilter filter;
+        BaseCountsFilterNumericalParams filter;
         filter.min_count = min_allele_count;
         filter.min_coverage = min_coverage;
         filter.max_coverage = max_coverage;
         filter.only_biallelic_snps = true;
-        if( filter_base_counts( merged, filter )) {
+        if( apply_sample_counts_filter_numerical( merged, filter )) {
             window_gen.enqueue( sample_set.chromosome, sample_set.position, sample_set.samples );
         }
 
@@ -281,12 +284,12 @@ TEST( Structure, FstPoolIterator )
 
         // Ugly relic of many refactorings to do it this way... but good enough for now.
         auto merged = merge( variant.samples );
-        BaseCountsFilter filter;
+        BaseCountsFilterNumericalParams filter;
         filter.min_count = min_allele_count;
         filter.min_coverage = min_coverage;
         filter.max_coverage = max_coverage;
         filter.only_biallelic_snps = true;
-        return filter_base_counts( merged, filter );
+        return apply_sample_counts_filter_numerical( merged, filter );
 
         // Old way of checking the status directly
         // return status(

@@ -34,6 +34,13 @@
  */
 
 #include "genesis/population/base_counts.hpp"
+#include "genesis/population/filter/filter_stats.hpp"
+#include "genesis/population/filter/filter_status.hpp"
+#include "genesis/population/filter/sample_counts_filter.hpp"
+#include "genesis/population/filter/sample_counts_filter_numerical.hpp"
+#include "genesis/population/filter/variant_filter.hpp"
+#include "genesis/population/filter/variant_filter_numerical.hpp"
+#include "genesis/population/filter/variant_filter_positional.hpp"
 #include "genesis/population/formats/bed_reader.hpp"
 #include "genesis/population/formats/frequency_table_input_stream.hpp"
 #include "genesis/population/formats/genome_region_reader.hpp"
@@ -55,7 +62,6 @@
 #include "genesis/population/formats/vcf_record.hpp"
 #include "genesis/population/functions/diversity_pool_calculator.hpp"
 #include "genesis/population/functions/diversity_pool_functions.hpp"
-#include "genesis/population/functions/filter_transform.hpp"
 #include "genesis/population/functions/fst_cathedral.hpp"
 #include "genesis/population/functions/fst_pool_calculator.hpp"
 #include "genesis/population/functions/fst_pool_functions.hpp"

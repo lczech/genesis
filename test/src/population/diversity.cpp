@@ -33,9 +33,13 @@
 #include "genesis/population/formats/simple_pileup_common.hpp"
 #include "genesis/population/formats/simple_pileup_input_stream.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
-#include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/functions/diversity_pool_calculator.hpp"
 #include "genesis/population/functions/diversity_pool_functions.hpp"
+#include "genesis/population/filter/sample_counts_filter_numerical.hpp"
+#include "genesis/population/filter/sample_counts_filter.hpp"
+#include "genesis/population/filter/variant_filter_numerical.hpp"
+#include "genesis/population/filter/variant_filter.hpp"
+#include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/window/sliding_interval_window_stream.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"
@@ -190,10 +194,11 @@ TEST( Population, DiversityMeasuresGenerator )
         // Make a filter.
         // We do a lot of copies and back and forth here, due to historic reasons
         // (lots of refactoring...). It's okay for the test cases here though.
-        BaseCountsFilter filter;
+        BaseCountsFilterNumericalParams filter;
         filter.min_coverage = settings.min_coverage;
         filter.max_coverage = settings.max_coverage;
         filter.min_count = settings.min_count;
+        filter.deletions_count_limit = settings.min_count;
         filter.only_snps = true;
 
         // Count how many SNPs there are in total, and how many sites have the needed coverage.
@@ -203,20 +208,21 @@ TEST( Population, DiversityMeasuresGenerator )
 
             // Filter, and gather stats.
             auto copy = *it;
-            filter_base_counts( copy, filter, stats );
+            apply_sample_counts_filter_numerical( copy, filter, stats );
 
             // Add them up.
             ++variant_count;
         }
-        size_t coverage_count = stats.passed + stats.not_snp;
-        size_t snp_count      = stats.passed; // results.variant_count - stats.not_snp;
+        size_t coverage_count = variant_count - stats.sum() + stats[BaseCountsFilterTag::kNotSnp];
+        size_t snp_count      = variant_count - stats.sum();
+        // results.variant_count - stats.not_snp;
         // LOG_DBG << "vc " << variant_count;
         (void) variant_count;
 
         // Make a filter that only allows samples that are SNPs and have the needed coverage.
         auto covered_snps_range = genesis::utils::make_filter_range( [&]( BaseCounts const& sample ){
             auto copy = sample;
-            return filter_base_counts( copy, filter );
+            return apply_sample_counts_filter_numerical( copy, filter );
 
         }, range.begin(), range.end() );
 
@@ -410,26 +416,28 @@ TEST( Population, DiversityMeasuresIterator )
         // Make a filter.
         // We do a lot of copies and back and forth here, due to historic reasons
         // (lots of refactoring...). It's okay for the test cases here though.
-        BaseCountsFilter filter;
+        BaseCountsFilterNumericalParams filter;
         filter.min_coverage = settings.min_coverage;
         filter.max_coverage = settings.max_coverage;
         filter.min_count = settings.min_count;
+        filter.deletions_count_limit = settings.min_count;
         filter.only_snps = true;
 
         // Make a filter that only allows samples that are SNPs and have the needed coverage.
         // This could also be added to the generic VariantInputStream, if we were using one.
-        // Also, ount how many SNPs there are in total, and how many sites have the needed coverage.
+        // Also, count how many SNPs there are in total, and how many sites have the needed coverage.
         BaseCountsFilterStats stats;
         size_t variant_count = 0;
         // auto covered_snps_range = genesis::utils::make_filter_range( [&]( BaseCounts const& sample ){
         auto covered_snps_range = genesis::utils::make_filter_range( [&]( BaseCounts& sample ){
             ++variant_count;
             // auto copy = sample;
-            // return filter_base_counts( copy, filter, stats );
-            return filter_base_counts( sample, filter, stats );
+            // return apply_sample_counts_filter_numerical( copy, filter, stats );
+            return apply_sample_counts_filter_numerical( sample, filter, stats );
 
         }, range.begin(), range.end() );
         (void) variant_count;
+        // LOG_DBG << "=====================";
         // LOG_DBG << "variant_count " << variant_count;
 
         // Compute all statistics and compare them to the expected PoPoolation results.
@@ -441,8 +449,9 @@ TEST( Population, DiversityMeasuresIterator )
         for( auto const& sample : covered_snps_range ) {
             calc.process( sample );
         }
-        size_t coverage_count = stats.passed + stats.not_snp;
-        size_t snp_count      = stats.passed; // results.variant_count - stats.not_snp;
+        size_t coverage_count = variant_count - stats.sum() + stats[BaseCountsFilterTag::kNotSnp];
+        size_t snp_count      = variant_count - stats.sum();
+        // results.variant_count - stats.not_snp;
         EXPECT_EQ( snp_count, calc.get_processed_count() );
 
         auto const theta_pi_relative = calc.get_theta_pi_relative( coverage_count );
@@ -451,6 +460,9 @@ TEST( Population, DiversityMeasuresIterator )
 
         // LOG_DBG << "coverage_count " << coverage_count;
         // LOG_DBG << "snp_count " << snp_count;
+        // LOG_DBG << "stats.sum() " << stats.sum();
+        // LOG_DBG << "stats[BaseCountsFilterTag::kNotSnp] " << stats[BaseCountsFilterTag::kNotSnp];
+        // LOG_DBG1 << print_base_counts_filter_stats( stats );
 
         // LOG_DBG1 << iteration_count << "\t" << window_cnt << "\t"
         //          << window.first_position() << "\t" << window.last_position() << "\t"

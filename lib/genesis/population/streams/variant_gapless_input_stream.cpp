@@ -30,6 +30,8 @@
 
 #include "genesis/population/streams/variant_gapless_input_stream.hpp"
 
+#include "genesis/population/filter/sample_counts_filter.hpp"
+#include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/functions/functions.hpp"
 #include "genesis/sequence/functions/codes.hpp"
 
@@ -419,6 +421,7 @@ void VariantGaplessInputStream::Iterator::prepare_current_variant_()
         current_variant_is_missing_ = true;
         missing_variant_.chromosome = current_locus_.chromosome;
         missing_variant_.position   = current_locus_.position;
+        missing_variant_.status.reset( VariantFilterTag::kMissing );
         missing_variant_.reference_base   = 'N';
         missing_variant_.alternative_base = 'N';
 
@@ -426,7 +429,8 @@ void VariantGaplessInputStream::Iterator::prepare_current_variant_()
         // modified (by some filter or transformation), we also need to reset the counts.
         missing_variant_.samples.resize( num_samples_ );
         for( auto& sample : missing_variant_.samples ) {
-            sample.clear();
+            sample = BaseCounts();
+            sample.status.reset( BaseCountsFilterTag::kMissing );
         }
     }
 
