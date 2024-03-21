@@ -43,11 +43,11 @@ namespace population {
 //     Simple (m)pileup Reader Helper Functions
 // =================================================================================================
 
-BaseCounts convert_to_base_counts(
+SampleCounts convert_to_sample_counts(
     SimplePileupReader::Sample const& sample,
     unsigned char min_phred_score
 ) {
-    BaseCounts result;
+    SampleCounts result;
 
     // Tally up the bases.
     size_t total_count = 0;
@@ -156,7 +156,7 @@ Variant convert_to_variant(
     // Convert the individual samples
     result.samples.reserve( record.samples.size() );
     for( size_t i = 0; i < record.samples.size(); ++i ) {
-        result.samples.push_back( convert_to_base_counts( record.samples[i], min_phred_score ));
+        result.samples.push_back( convert_to_sample_counts( record.samples[i], min_phred_score ));
     }
 
     // Pileup does not contain ALT bases, so infer them from counts,
@@ -166,7 +166,7 @@ Variant convert_to_variant(
     // Also, we do not set the alt base if it does not have any counts, and in that case is also
     // meaningless to have an alt base.
     if( is_valid_base( result.reference_base )) {
-        auto const sorted = sorted_base_counts( result, true );
+        auto const sorted = sorted_sample_counts( result, true );
         if( sorted[1].count > 0 ) {
             result.alternative_base = utils::to_upper( sorted[1].base );
         }

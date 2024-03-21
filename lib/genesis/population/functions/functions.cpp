@@ -47,7 +47,7 @@ namespace population {
 //     Counts
 // =================================================================================================
 
-BaseCounts::size_type get_base_count( BaseCounts const& sample, char base )
+SampleCounts::size_type get_base_count( SampleCounts const& sample, char base )
 {
     switch( base ) {
         case 'a':
@@ -83,7 +83,7 @@ BaseCounts::size_type get_base_count( BaseCounts const& sample, char base )
     );
 }
 
-void set_base_count( BaseCounts& sample, char base, BaseCounts::size_type value )
+void set_base_count( SampleCounts& sample, char base, SampleCounts::size_type value )
 {
     switch( base ) {
         case 'a':
@@ -131,13 +131,13 @@ void set_base_count( BaseCounts& sample, char base, BaseCounts::size_type value 
 //     Sorting
 // =================================================================================================
 
-SortedBaseCounts sorted_base_counts( BaseCounts const& sample )
+SortedSampleCounts sorted_sample_counts( SampleCounts const& sample )
 {
     // Sort quickly via sorting network, putting large values first.
     // See https://stackoverflow.com/a/25070688/4184258
     // This is the same as in nucleotide_sorting_order(), but we here swap directly,
     // for speed, as a tradeoff against code duplication...
-    SortedBaseCounts result = {
+    SortedSampleCounts result = {
         'A', sample.a_count,
         'C', sample.c_count,
         'G', sample.g_count,
@@ -161,12 +161,12 @@ SortedBaseCounts sorted_base_counts( BaseCounts const& sample )
     return result;
 }
 
-std::pair<SortedBaseCounts, SortedBaseCounts> sorted_average_base_counts(
-    BaseCounts const& sample_a,
-    BaseCounts const& sample_b
+std::pair<SortedSampleCounts, SortedSampleCounts> sorted_average_sample_counts(
+    SampleCounts const& sample_a,
+    SampleCounts const& sample_b
 ) {
     // Prepare result.
-    auto result = std::pair<SortedBaseCounts, SortedBaseCounts>{};
+    auto result = std::pair<SortedSampleCounts, SortedSampleCounts>{};
 
     // Get frequencies in sample 1
     size_t const s1_cnts[] = {
@@ -229,17 +229,17 @@ std::pair<SortedBaseCounts, SortedBaseCounts> sorted_average_base_counts(
 }
 
 /**
- * @brief Local helper function that takes an already computed @p total from merge_base_counts(),
+ * @brief Local helper function that takes an already computed @p total from merge_sample_counts(),
  * so that it can be re-used internally here.
  */
-SortedBaseCounts sorted_base_counts_(
-    Variant const& variant, bool reference_first, BaseCounts const& total
+SortedSampleCounts sorted_sample_counts_(
+    Variant const& variant, bool reference_first, SampleCounts const& total
 ) {
     // We use sorting networks for speed here. See f_st_asymptotically_unbiased_a1n1a2n2()
     // for details on the technique.
 
     if( reference_first ) {
-        SortedBaseCounts result;
+        SortedSampleCounts result;
         switch( variant.reference_base ) {
             case 'a':
             case 'A': {
@@ -291,22 +291,22 @@ SortedBaseCounts sorted_base_counts_(
         }
         return result;
     } else {
-        return sorted_base_counts( total );
+        return sorted_sample_counts( total );
     }
 }
 
-SortedBaseCounts sorted_base_counts(
+SortedSampleCounts sorted_sample_counts(
     Variant const& variant, bool reference_first
 ) {
-    auto const total = merge_base_counts( variant );
-    return sorted_base_counts_( variant, reference_first, total );
+    auto const total = merge_sample_counts( variant );
+    return sorted_sample_counts_( variant, reference_first, total );
 }
 
 // =================================================================================================
 //     Merging
 // =================================================================================================
 
-size_t allele_count( BaseCounts const& sample )
+size_t allele_count( SampleCounts const& sample )
 {
     // We use bool to int conversion for simplicity, and to avoid branching.
     // For this, we use the fact that bool converts to 1/0 int.
@@ -326,7 +326,7 @@ size_t allele_count( BaseCounts const& sample )
     return al_count;
 }
 
-size_t allele_count( BaseCounts const& sample, size_t min_count )
+size_t allele_count( SampleCounts const& sample, size_t min_count )
 {
     // We need to separate out the min_count == 0 case,
     // as we do not want to count alelles that are exactly 0...
@@ -348,7 +348,7 @@ size_t allele_count( BaseCounts const& sample, size_t min_count )
     return al_count;
 }
 
-size_t allele_count( BaseCounts const& sample, size_t min_count, size_t max_count )
+size_t allele_count( SampleCounts const& sample, size_t min_count, size_t max_count )
 {
     // Edge cases checks.
     if( max_count == 0 ) {
@@ -376,13 +376,13 @@ size_t allele_count( BaseCounts const& sample, size_t min_count, size_t max_coun
     return al_count;
 }
 
-void merge_inplace( BaseCounts& p1, BaseCounts const& p2 )
+void merge_inplace( SampleCounts& p1, SampleCounts const& p2 )
 {
     // Make sure that we do not forget any fields in case of later refactoring of the struct.
     // Nope, can't do, as the compiler might allocate more to get proper memory alignment...
     // static_assert(
-    //     sizeof( BaseCounts ) == 6 * sizeof( size_t ),
-    //     "Unexpected number of member variables in BaseCounts class"
+    //     sizeof( SampleCounts ) == 6 * sizeof( size_t ),
+    //     "Unexpected number of member variables in SampleCounts class"
     // );
 
     p1.a_count += p2.a_count;
@@ -393,16 +393,16 @@ void merge_inplace( BaseCounts& p1, BaseCounts const& p2 )
     p1.d_count += p2.d_count;
 }
 
-BaseCounts merge( BaseCounts const& p1, BaseCounts const& p2 )
+SampleCounts merge( SampleCounts const& p1, SampleCounts const& p2 )
 {
-    BaseCounts result = p1;
+    SampleCounts result = p1;
     merge_inplace( result, p2 );
     return result;
 }
 
-BaseCounts merge( std::vector<BaseCounts> const& p )
+SampleCounts merge( std::vector<SampleCounts> const& p )
 {
-    BaseCounts result;
+    SampleCounts result;
     for( auto const& ps : p ) {
         result.a_count += ps.a_count;
         result.c_count += ps.c_count;
@@ -418,7 +418,7 @@ BaseCounts merge( std::vector<BaseCounts> const& p )
 //     Consensus
 // =================================================================================================
 
-std::pair<char, double> consensus( BaseCounts const& sample )
+std::pair<char, double> consensus( SampleCounts const& sample )
 {
     // Get total count/coverage with nucleotides.
     auto const nucleotide_count = nucleotide_sum( sample );
@@ -459,7 +459,7 @@ std::pair<char, double> consensus( BaseCounts const& sample )
     return { nts[max_idx], conf };
 }
 
-std::pair<char, double> consensus( BaseCounts const& sample, bool is_covered )
+std::pair<char, double> consensus( SampleCounts const& sample, bool is_covered )
 {
     if( is_covered ) {
         return consensus( sample );
@@ -474,7 +474,7 @@ char guess_reference_base( Variant const& variant, bool force )
     if( ! force && is_valid_base( ref )) {
         return ref;
     } else {
-        auto const sorted = sorted_base_counts( variant, false );
+        auto const sorted = sorted_sample_counts( variant, false );
         if( sorted[0].count > 0 ) {
             return utils::to_upper( sorted[0].base );
         }
@@ -492,7 +492,7 @@ char guess_alternative_base( Variant const& variant, bool force )
     } else {
         auto const ref = utils::to_upper( variant.reference_base );
         if( is_valid_base( ref )) {
-            auto const sorted = sorted_base_counts( variant, true );
+            auto const sorted = sorted_sample_counts( variant, true );
             if( sorted[1].count > 0 ) {
                 return utils::to_upper( sorted[1].base );
             }
@@ -510,7 +510,7 @@ void guess_and_set_ref_and_alt_bases( Variant& variant, bool force )
     auto const alt = utils::to_upper( variant.alternative_base );
 
     // We only want to compute the total counts if necessary.
-    BaseCounts total;
+    SampleCounts total;
     bool computed_total = false;
 
     // Set the reference, unless it is already a good value (and we don't force it).
@@ -521,11 +521,11 @@ void guess_and_set_ref_and_alt_bases( Variant& variant, bool force )
         variant.reference_base = 'N';
 
         // Now we need the total base counts.
-        total = merge_base_counts( variant );
+        total = merge_sample_counts( variant );
         computed_total = true;
 
         // Use them to define our ref base.
-        auto const sorted = sorted_base_counts( total );
+        auto const sorted = sorted_sample_counts( total );
         if( sorted[0].count > 0 ) {
             // Update the ref base. Also update our internal `ref` here, as we need it below.
             ref = utils::to_upper( sorted[0].base );
@@ -541,11 +541,11 @@ void guess_and_set_ref_and_alt_bases( Variant& variant, bool force )
         if( is_valid_base( ref )) {
             // Only compute the total if needed.
             if( ! computed_total ) {
-                total = merge_base_counts( variant );
+                total = merge_sample_counts( variant );
             }
 
             // Use it to define our alt base.
-            auto const sorted = sorted_base_counts_( variant, true, total );
+            auto const sorted = sorted_sample_counts_( variant, true, total );
             if( sorted[1].count > 0 ) {
                 variant.alternative_base = utils::to_upper( sorted[1].base );
             }
@@ -630,7 +630,7 @@ void guess_and_set_ref_and_alt_bases(
 //     Output
 // =================================================================================================
 
-std::ostream& operator<<( std::ostream& os, BaseCounts const& bs )
+std::ostream& operator<<( std::ostream& os, SampleCounts const& bs )
 {
     os << "A=" << bs.a_count << ", C=" << bs.c_count << ", G=" << bs.g_count;
     os << ", T=" << bs.t_count << ", N=" << bs.n_count << ", D=" << bs.d_count;

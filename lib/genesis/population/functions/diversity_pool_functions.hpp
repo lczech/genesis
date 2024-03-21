@@ -159,7 +159,7 @@ struct DiversityPoolSettings
  *
  * for details.
  */
-double heterozygosity( BaseCounts const& sample, bool with_bessel = false );
+double heterozygosity( SampleCounts const& sample, bool with_bessel = false );
 
 /**
  * @brief Compute classic theta pi, that is, the sum of heterozygosities.
@@ -254,7 +254,7 @@ double theta_pi_pool( // get_pi_calculator
 
 /**
  * @brief Compute theta pi with pool-sequencing correction according to Kofler et al,
- * for a single BaseCounts.
+ * for a single SampleCounts.
  *
  * The function computes the heterozygosity() for the given @p sample, including Bessel's
  * correction for the total nucleotide count at each position, and divides it by the
@@ -265,7 +265,7 @@ double theta_pi_pool( // get_pi_calculator
 inline double theta_pi_pool(
     DiversityPoolSettings const& settings,
     size_t poolsize,
-    BaseCounts const& sample
+    SampleCounts const& sample
 ) {
     auto const h = heterozygosity( sample, true );
     auto const d = theta_pi_pool_denominator( settings, poolsize, nucleotide_sum( sample ));
@@ -321,14 +321,14 @@ double theta_watterson_pool( // get_theta_calculator
 
 /**
  * @brief Compute theta watterson with pool-sequencing correction according to Kofler et al,
- * for a single BaseCounts sample.
+ * for a single SampleCounts sample.
  *
  * @see DiversityPoolCalculator
  */
 inline double theta_watterson_pool(
     DiversityPoolSettings const& settings,
     size_t poolsize,
-    BaseCounts const& sample
+    SampleCounts const& sample
 ) {
     return 1.0 / theta_watterson_pool_denominator( settings, poolsize, nucleotide_sum( sample ));
 }

@@ -47,91 +47,91 @@ namespace population {
 //     Sample Counts Filter
 // =================================================================================================
 
-std::ostream& print_base_counts_filter_stats(
+std::ostream& print_sample_counts_filter_stats(
     std::ostream& os,
-    BaseCountsFilterStats const& stats,
+    SampleCountsFilterStats const& stats,
     bool verbose
 ) {
-    assert( stats.data.size() == static_cast<size_t>( BaseCountsFilterTag::kEnd ) );
+    assert( stats.data.size() == static_cast<size_t>( SampleCountsFilterTag::kEnd ) );
 
     // We use an explicit loop over the enum values here, which makes sure that we cannot
     // forget about any values in the future. This is a bit inefficient, but we do not expect
     // to call this function more than once.
-    for( size_t i = 0; i < static_cast<size_t>( BaseCountsFilterTag::kEnd ); ++i ) {
-        switch( static_cast<BaseCountsFilterTag>(i) ) {
-            case BaseCountsFilterTag::kPassed: {
-                auto const val = stats[BaseCountsFilterTag::kPassed];
+    for( size_t i = 0; i < static_cast<size_t>( SampleCountsFilterTag::kEnd ); ++i ) {
+        switch( static_cast<SampleCountsFilterTag>(i) ) {
+            case SampleCountsFilterTag::kPassed: {
+                auto const val = stats[SampleCountsFilterTag::kPassed];
                 if( val > 0 || verbose ) {
                     os << "Passed: " << val << "\n";
                 }
                 break;
             }
-            case BaseCountsFilterTag::kMissing: {
-                auto const val = stats[BaseCountsFilterTag::kMissing];
+            case SampleCountsFilterTag::kMissing: {
+                auto const val = stats[SampleCountsFilterTag::kMissing];
                 if( val > 0 || verbose ) {
                     os << "Missing: " << val << "\n";
                 }
                 break;
             }
-            case BaseCountsFilterTag::kNotPassed: {
-                auto const val = stats[BaseCountsFilterTag::kNotPassed];
+            case SampleCountsFilterTag::kNotPassed: {
+                auto const val = stats[SampleCountsFilterTag::kNotPassed];
                 if( val > 0 || verbose ) {
                     os << "NotPassed: " << val << "\n";
                 }
                 break;
             }
-            case BaseCountsFilterTag::kInvalid: {
-                auto const val = stats[BaseCountsFilterTag::kInvalid];
+            case SampleCountsFilterTag::kInvalid: {
+                auto const val = stats[SampleCountsFilterTag::kInvalid];
                 if( val > 0 || verbose ) {
                     os << "Invalid: " << val << "\n";
                 }
                 break;
             }
-            case BaseCountsFilterTag::kEmpty: {
-                auto const val = stats[BaseCountsFilterTag::kEmpty];
+            case SampleCountsFilterTag::kEmpty: {
+                auto const val = stats[SampleCountsFilterTag::kEmpty];
                 if( val > 0 || verbose ) {
                     os << "Empty: " << val << "\n";
                 }
                 break;
             }
-            case BaseCountsFilterTag::kBelowMinCoverage: {
-                auto const val = stats[BaseCountsFilterTag::kBelowMinCoverage];
+            case SampleCountsFilterTag::kBelowMinCoverage: {
+                auto const val = stats[SampleCountsFilterTag::kBelowMinCoverage];
                 if( val > 0 || verbose ) {
                     os << "BelowMinCoverage: " << val << "\n";
                 }
                 break;
             }
-            case BaseCountsFilterTag::kAboveMaxCoverage: {
-                auto const val = stats[BaseCountsFilterTag::kAboveMaxCoverage];
+            case SampleCountsFilterTag::kAboveMaxCoverage: {
+                auto const val = stats[SampleCountsFilterTag::kAboveMaxCoverage];
                 if( val > 0 || verbose ) {
                     os << "AboveMaxCoverage: " << val << "\n";
                 }
                 break;
             }
-            case BaseCountsFilterTag::kAboveDeletionsCountLimit: {
-                auto const val = stats[BaseCountsFilterTag::kAboveDeletionsCountLimit];
+            case SampleCountsFilterTag::kAboveDeletionsCountLimit: {
+                auto const val = stats[SampleCountsFilterTag::kAboveDeletionsCountLimit];
                 if( val > 0 || verbose ) {
                     os << "AboveDeletionsCountLimit: " << val << "\n";
                 }
                 break;
             }
-            case BaseCountsFilterTag::kNotSnp: {
-                auto const val = stats[BaseCountsFilterTag::kNotSnp];
+            case SampleCountsFilterTag::kNotSnp: {
+                auto const val = stats[SampleCountsFilterTag::kNotSnp];
                 if( val > 0 || verbose ) {
                     os << "NotSnp: " << val << "\n";
                 }
                 break;
             }
-            case BaseCountsFilterTag::kNotBiallelicSnp: {
-                auto const val = stats[BaseCountsFilterTag::kNotBiallelicSnp];
+            case SampleCountsFilterTag::kNotBiallelicSnp: {
+                auto const val = stats[SampleCountsFilterTag::kNotBiallelicSnp];
                 if( val > 0 || verbose ) {
                     os << "NotBiallelicSnp: " << val << "\n";
                 }
                 break;
             }
-            case BaseCountsFilterTag::kEnd: {
+            case SampleCountsFilterTag::kEnd: {
                 throw std::domain_error(
-                    "Invalid BaseCountsFilterTag with value " + std::to_string(i)
+                    "Invalid SampleCountsFilterTag with value " + std::to_string(i)
                 );
             }
             // Not using default here, as that way, we catch any unhandled enum values.
@@ -140,12 +140,12 @@ std::ostream& print_base_counts_filter_stats(
     return os;
 }
 
-std::string print_base_counts_filter_stats(
-    BaseCountsFilterStats const& stats,
+std::string print_sample_counts_filter_stats(
+    SampleCountsFilterStats const& stats,
     bool verbose
 )  {
     std::stringstream ss;
-    print_base_counts_filter_stats( ss, stats, verbose );
+    print_sample_counts_filter_stats( ss, stats, verbose );
     return ss.str();
 }
 

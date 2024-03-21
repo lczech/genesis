@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/filter/sample_counts_filter.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
 
@@ -51,24 +51,24 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief Transform a BaseCounts @p sample by setting any nucleotide count (`A`, `C`, `G`, `T`)
+ * @brief Transform a SampleCounts @p sample by setting any nucleotide count (`A`, `C`, `G`, `T`)
  * to zero if @p min_count is not reached for that nucleotide.
  *
  * This transformation is used as a type of quality control. All nucleotide counts (that is,
- * BaseCounts::a_count, BaseCounts::c_count, BaseCounts::g_count, and BaseCounts::t_count) that are
+ * SampleCounts::a_count, SampleCounts::c_count, SampleCounts::g_count, and SampleCounts::t_count) that are
  * below the given @p min_count are set to zero.
  *
- * If @p also_n_and_d_counts is set (default), this filtering is also done for BaseCounts::n_count
- * and BaseCounts::d_count, although they are not taken into account in the statistics.
+ * If @p also_n_and_d_counts is set (default), this filtering is also done for SampleCounts::n_count
+ * and SampleCounts::d_count, although they are not taken into account in the statistics.
  */
 void transform_zero_out_by_min_count(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t min_count,
     bool also_n_and_d_counts = true
 );
 
 /**
- * @copydoc transform_zero_out_by_min_count( BaseCounts&, size_t, bool )
+ * @copydoc transform_zero_out_by_min_count( SampleCounts&, size_t, bool )
  *
  * This overload acts on all Variant::samples in the given @p variant.
  */
@@ -79,24 +79,24 @@ void transform_zero_out_by_min_count(
 );
 
 /**
- * @brief Transform a BaseCounts @p sample by setting any nucleotide count (`A`, `C`, `G`, `T`)
+ * @brief Transform a SampleCounts @p sample by setting any nucleotide count (`A`, `C`, `G`, `T`)
  * to zero if @p max_count is exceeded for that nucleotide.
  *
  * This transformation is used as a type of quality control. All nucleotide counts (that is,
- * BaseCounts::a_count, BaseCounts::c_count, BaseCounts::g_count, and BaseCounts::t_count) that are
+ * SampleCounts::a_count, SampleCounts::c_count, SampleCounts::g_count, and SampleCounts::t_count) that are
  * above the given @p max_count are set to zero.
  *
- * If @p also_n_and_d_counts is set (default), this filtering is also done for BaseCounts::n_count
- * and BaseCounts::d_count, although they are not taken into account in the statistics.
+ * If @p also_n_and_d_counts is set (default), this filtering is also done for SampleCounts::n_count
+ * and SampleCounts::d_count, although they are not taken into account in the statistics.
  */
 void transform_zero_out_by_max_count(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t max_count,
     bool also_n_and_d_counts = true
 );
 
 /**
- * @copydoc transform_zero_out_by_max_count( BaseCounts&, size_t, bool )
+ * @copydoc transform_zero_out_by_max_count( SampleCounts&, size_t, bool )
  *
  * This overload acts on all Variant::samples in the given @p variant.
  */
@@ -111,16 +111,16 @@ void transform_zero_out_by_max_count(
 // =================================================================================================
 
 /**
- * @brief Filter settings to filter and transform BaseCounts.
+ * @brief Filter settings to filter and transform SampleCounts.
  *
- * These filters act on a single BaseCounts object, using the apply_sample_counts_filter_numerical()
+ * These filters act on a single SampleCounts object, using the apply_sample_counts_filter_numerical()
  * functions, or the make_sample_counts_filter_numerical_tagging() functions.
  *
  * When a filter fails, in addition to reporting this via returning `false` from the filter function,
- * we also set the BaseCount::status accordingly to indicate the failure. This way, downstream
+ * we also set the SampleCounts::status accordingly to indicate the failure. This way, downstream
  * functions can ignore this sample as being filtered out.
  */
-struct BaseCountsFilterNumericalParams
+struct SampleCountsFilterNumericalParams
 {
     // -------------------------------------------
     //     Numeric
@@ -141,24 +141,24 @@ struct BaseCountsFilterNumericalParams
     size_t max_count = 0;
 
     /**
-     * @brief Minimum coverage expected for a BaseCounts to be considered covered.
+     * @brief Minimum coverage expected for a SampleCounts to be considered covered.
      *
      * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) in the reads of a sample is less than
-     * the provided value, the BaseCounts is not considered sufficiently covered,
+     * the provided value, the SampleCounts is not considered sufficiently covered,
      * and all counts are set to zero.
      *
-     * @see BaseCountsFilterTag::kBelowMinCoverage
+     * @see SampleCountsFilterTag::kBelowMinCoverage
      */
     size_t min_coverage = 0;
 
     /**
-     * @brief Maximum coverage expected for a BaseCounts to be considered covered.
+     * @brief Maximum coverage expected for a SampleCounts to be considered covered.
      *
      * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) in the reads of a sample is greater than
-     * the provided value, the BaseCounts is not considered properly covered,
+     * the provided value, the SampleCounts is not considered properly covered,
      * and all counts are set to zero.
      *
-     * @see BaseCountsFilterTag::kAboveMaxCoverage
+     * @see SampleCountsFilterTag::kAboveMaxCoverage
      */
     size_t max_coverage = 0;
 
@@ -166,7 +166,7 @@ struct BaseCountsFilterNumericalParams
      * @brief Maximum number of deletions at a position before being filtered out.
      *
      * If this is set to a value greater than 0, and the number of deletions at the position
-     * (determined by the BaseCounts::d_count) is equal to or greater than this value,
+     * (determined by the SampleCounts::d_count) is equal to or greater than this value,
      * the sample is filtered out by setting its status accordingly.
      *
      * @see SampleCountsFilterTag::kAboveDeletionsCountLimit
@@ -180,11 +180,11 @@ struct BaseCountsFilterNumericalParams
     /**
      * @brief Filter if the sample does not have two or more alleles.
      *
-     * A sample is a SNP if at least two of the `A`, `C`, `G`, `T` counts (BaseCounts::a_count,
-     * BaseCounts::c_count, BaseCounts::g_count, and BaseCounts::t_count ) are above zero,
+     * A sample is a SNP if at least two of the `A`, `C`, `G`, `T` counts (SampleCounts::a_count,
+     * SampleCounts::c_count, SampleCounts::g_count, and SampleCounts::t_count ) are above zero,
      * after testing that they are between min_count and max_count and not deleted.
      *
-     * @see BaseCountsFilterTag::kNotSnp
+     * @see SampleCountsFilterTag::kNotSnp
      */
     bool only_snps = false;
 
@@ -195,7 +195,7 @@ struct BaseCountsFilterNumericalParams
      * counts above zero is exactly two - that is, if there are only reads of two of `A`, `C`,
      * `G`, `T` in the sample.
      *
-     * @see BaseCountsFilterTag::kNotBiallelicSnp
+     * @see SampleCountsFilterTag::kNotBiallelicSnp
      */
     bool only_biallelic_snps = false;
 };
@@ -209,33 +209,33 @@ struct BaseCountsFilterNumericalParams
 // --------------------------------------------------------------------------------------
 
 /**
- * @brief Filter a given BaseCounts based on the numerical properties of the counts.
+ * @brief Filter a given SampleCounts based on the numerical properties of the counts.
  *
  * The function applies the filter using the given @p params settings. If any filter fails, the
- * function sets the BaseCounts::status to the corresponding BaseCountsFilterTag value, and increments
+ * function sets the SampleCounts::status to the corresponding SampleCountsFilterTag value, and increments
  * the counter for the @p stats for the failing filter, both for the first filter that fails.
  * It returns whether any filter failed (in which case, `false` is returned), or all passed (`true`).
  */
 bool apply_sample_counts_filter_numerical(
-    BaseCounts& sample,
-    BaseCountsFilterNumericalParams const& params,
-    BaseCountsFilterStats& stats
+    SampleCounts& sample,
+    SampleCountsFilterNumericalParams const& params,
+    SampleCountsFilterStats& stats
 );
 
 /**
- * @copydoc apply_sample_counts_filter_numerical( BaseCounts&, BaseCountsFilterNumericalParams const&, BaseCountsFilterStats& )
+ * @copydoc apply_sample_counts_filter_numerical( SampleCounts&, SampleCountsFilterNumericalParams const&, SampleCountsFilterStats& )
  *
- * This overload simply omits the incrementing of the BaseCountsFilterStats counter.
+ * This overload simply omits the incrementing of the SampleCountsFilterStats counter.
  */
 bool apply_sample_counts_filter_numerical(
-    BaseCounts& sample,
-    BaseCountsFilterNumericalParams const& params
+    SampleCounts& sample,
+    SampleCountsFilterNumericalParams const& params
 );
 
 /**
- * @brief Filter a given BaseCounts based on the numerical properties of the counts.
+ * @brief Filter a given SampleCounts based on the numerical properties of the counts.
  *
- * This function applies the version of this function for BaseCounts to all Variant::samples.
+ * This function applies the version of this function for SampleCounts to all Variant::samples.
  * If @p all_need_pass is set, the function returns `true` iff all individual samples passed all
  * filters, and `false` otherwise, and sets the Variant::status to
  * VariantFilterTag::kNotAllSamplesPassed. If @p all_need_pass is not set, the function returns
@@ -246,20 +246,20 @@ bool apply_sample_counts_filter_numerical(
  */
 bool apply_sample_counts_filter_numerical(
     Variant& variant,
-    BaseCountsFilterNumericalParams const& params,
+    SampleCountsFilterNumericalParams const& params,
     VariantFilterStats& variant_stats,
-    BaseCountsFilterStats& sample_count_stats,
+    SampleCountsFilterStats& sample_count_stats,
     bool all_need_pass = false
 );
 
 /**
- * @copydoc apply_sample_counts_filter_numerical( Variant&, BaseCountsFilterNumericalParams const&, BaseCountsFilterStats&, bool )
+ * @copydoc apply_sample_counts_filter_numerical( Variant&, SampleCountsFilterNumericalParams const&, SampleCountsFilterStats&, bool )
  *
- * This overload simply omits the incrementing of the BaseCountsFilterStats counter.
+ * This overload simply omits the incrementing of the SampleCountsFilterStats counter.
  */
 bool apply_sample_counts_filter_numerical(
     Variant& variant,
-    BaseCountsFilterNumericalParams const& params,
+    SampleCountsFilterNumericalParams const& params,
     bool all_need_pass = false
 );
 
@@ -268,7 +268,7 @@ bool apply_sample_counts_filter_numerical(
 // --------------------------------------------------------------------------------------
 
 /**
- * @brief Return a functional to numerically filter the BaseCount samples in a Variant  tagging
+ * @brief Return a functional to numerically filter the SampleCounts samples in a Variant  tagging
  * the ones that do not pass the filters, and potentially tagging the Variant.
  *
  * The function uses apply_sample_counts_filter_numerical(), modifying the samples, and tagging
@@ -278,7 +278,7 @@ bool apply_sample_counts_filter_numerical(
  * the Variant::status from the stream.
  */
 inline std::function<void(Variant&)> make_sample_counts_filter_numerical_tagging(
-    BaseCountsFilterNumericalParams const& params,
+    SampleCountsFilterNumericalParams const& params,
     bool all_need_pass = false
 ) {
     return [params, all_need_pass]( Variant& variant ){
@@ -287,14 +287,14 @@ inline std::function<void(Variant&)> make_sample_counts_filter_numerical_tagging
 }
 
 /**
- * @copydoc make_sample_counts_filter_numerical_tagging( BaseCountsFilterNumericalParams const& )
+ * @copydoc make_sample_counts_filter_numerical_tagging( SampleCountsFilterNumericalParams const& )
  *
  * This overload also includes the statistics of the failing or passing filter.
  */
 inline std::function<void(Variant&)> make_sample_counts_filter_numerical_tagging(
-    BaseCountsFilterNumericalParams const& params,
+    SampleCountsFilterNumericalParams const& params,
     VariantFilterStats& variant_stats,
-    BaseCountsFilterStats& sample_count_stats,
+    SampleCountsFilterStats& sample_count_stats,
     bool all_need_pass = false
 ) {
     return [params, &variant_stats, &sample_count_stats, all_need_pass]( Variant& variant ){

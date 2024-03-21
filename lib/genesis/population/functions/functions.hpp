@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/sequence/reference_genome.hpp"
 #include "genesis/utils/text/char.hpp"
@@ -85,14 +85,14 @@ inline constexpr bool is_valid_base_or_n( char c )
  *
  * The given @p base has to be one of `ACGTDN` (case insensitive), or `*#.` for deletions as well.
  */
-BaseCounts::size_type get_base_count( BaseCounts const& sample, char base );
+SampleCounts::size_type get_base_count( SampleCounts const& sample, char base );
 
 /**
  * @brief Set the count for a @p base given as a char.
  *
  * The given @p base has to be one of `ACGTDN` (case insensitive), or `*#.` for deletions as well.
  */
-void set_base_count( BaseCounts& sample, char base, BaseCounts::size_type value );
+void set_base_count( SampleCounts& sample, char base, SampleCounts::size_type value );
 
 // =================================================================================================
 //     Sorting
@@ -113,15 +113,15 @@ void set_base_count( BaseCounts& sample, char base, BaseCounts::size_type value 
  *
  * Usage with actual data might be as follows:
  *
- *     BaseCounts sample = ...;
+ *     SampleCounts sample = ...;
  *     auto const data = std::array<T, 4>{
  *         sample.a_count, sample.c_count, sample.g_count, sample.t_count
  *     };
  *     auto const order = nucleotide_sorting_order( data );
  *     // ...
  *
- * See also base_counts_sorting_order() for an equivalent function that also considers the
- * "any" (`N`) and "deletion" (`D`) counts of a BaseCounts object.
+ * See also sample_counts_sorting_order() for an equivalent function that also considers the
+ * "any" (`N`) and "deletion" (`D`) counts of a SampleCounts object.
  */
 template<typename T>
 std::array<size_t, 4> nucleotide_sorting_order( std::array<T, 4> const& values )
@@ -155,13 +155,13 @@ std::array<size_t, 4> nucleotide_sorting_order( std::array<T, 4> const& values )
 
 /**
  * @brief Return the sorting order of six values, for instance of the four nucleotides `ACGT` and
- * the `N` and `D` counts of a BaseCounts object, in descending order (largest first).
+ * the `N` and `D` counts of a SampleCounts object, in descending order (largest first).
  *
  * Same as nucleotide_sorting_order(), but also taking `N` and `D` into account.
  * See there for details.
  */
 template<typename T>
-std::array<size_t, 6> base_counts_sorting_order( std::array<T, 6> const& v )
+std::array<size_t, 6> sample_counts_sorting_order( std::array<T, 6> const& v )
 {
     // Implementation inspired by https://stackoverflow.com/a/2792216/4184258
     // We did not test if this is faster than a sorting network here. Fast enough for now anyway.
@@ -196,7 +196,7 @@ std::array<size_t, 6> base_counts_sorting_order( std::array<T, 6> const& v )
 /**
  * @brief Return the order of base counts (nucleotides), largest one first.
  */
-SortedBaseCounts sorted_base_counts( BaseCounts const& sample );
+SortedSampleCounts sorted_sample_counts( SampleCounts const& sample );
 
 /**
  * @brief Return the sorted base counts of both input samples, orderd by the average
@@ -205,9 +205,9 @@ SortedBaseCounts sorted_base_counts( BaseCounts const& sample );
  * Both returned counts will be in the same order, with the nucleotide first that has the highest
  * average count in the two samples, etc.
  */
-std::pair<SortedBaseCounts, SortedBaseCounts> sorted_average_base_counts(
-    BaseCounts const& sample_a,
-    BaseCounts const& sample_b
+std::pair<SortedSampleCounts, SortedSampleCounts> sorted_average_sample_counts(
+    SampleCounts const& sample_a,
+    SampleCounts const& sample_b
 );
 
 /**
@@ -217,7 +217,7 @@ std::pair<SortedBaseCounts, SortedBaseCounts> sorted_average_base_counts(
  * the reference base of the Variant, while the other three bases are sorted by counts.
  * If @p reference_first is set to `false`, all four bases are sorted by their counts.
  */
-SortedBaseCounts sorted_base_counts(
+SortedSampleCounts sorted_sample_counts(
     Variant const& variant, bool reference_first
 );
 
@@ -232,17 +232,17 @@ SortedBaseCounts sorted_base_counts(
  * non zero. The result hence is between 0 and 4, with 0 = no allele had any counts and 4 = all
  * alleles have a non-zero count.
  */
-size_t allele_count( BaseCounts const& sample );
+size_t allele_count( SampleCounts const& sample );
 
 /**
  * @brief Return the number of alleles, taking a @p min_count into consideration, that is,
  * we compute the number of nucleotide counts of the @p sample that are at least the @p min_count.
  *
  * This looks at all four nucleotide counts (`ACGT`), and returns the number of them that are
- * at least the @p min_count. If `min_count == 0`, we instead call the allele_count(BaseCounts const&)
+ * at least the @p min_count. If `min_count == 0`, we instead call the allele_count(SampleCounts const&)
  * overload of this function that does not consider minimum counts.
  */
-size_t allele_count( BaseCounts const& sample, size_t min_count );
+size_t allele_count( SampleCounts const& sample, size_t min_count );
 
 /**
  * @brief Return the number of alleles, taking a @p min_count and @p max_count into consideration,
@@ -253,28 +253,28 @@ size_t allele_count( BaseCounts const& sample, size_t min_count );
  * at least the @p min_count and at most @p max_count. If either of them is zero, they are not
  * taken into account though.
  */
-size_t allele_count( BaseCounts const& sample, size_t min_count, size_t max_count );
+size_t allele_count( SampleCounts const& sample, size_t min_count, size_t max_count );
 
 /**
- * @brief Merge the counts of two BaseCounts%s, by adding the counts of the second (@p p2)
+ * @brief Merge the counts of two SampleCounts%s, by adding the counts of the second (@p p2)
  * to the first (@p p1).
  */
-void merge_inplace( BaseCounts& p1, BaseCounts const& p2 );
+void merge_inplace( SampleCounts& p1, SampleCounts const& p2 );
 
 /**
- * @brief Merge the counts of two BaseCounts%s.
+ * @brief Merge the counts of two SampleCounts%s.
  */
-BaseCounts merge( BaseCounts const& p1, BaseCounts const& p2 );
+SampleCounts merge( SampleCounts const& p1, SampleCounts const& p2 );
 
 /**
- * @brief Merge the counts of a vector BaseCounts%s.
+ * @brief Merge the counts of a vector SampleCounts%s.
  */
-BaseCounts merge( std::vector<BaseCounts> const& p );
+SampleCounts merge( std::vector<SampleCounts> const& p );
 
 /**
- * @brief Merge the counts of a vector BaseCounts%s.
+ * @brief Merge the counts of a vector SampleCounts%s.
  */
-inline BaseCounts merge_base_counts( Variant const& v )
+inline SampleCounts merge_sample_counts( Variant const& v )
 {
     return merge( v.samples );
 }
@@ -288,19 +288,19 @@ inline BaseCounts merge_base_counts( Variant const& v )
  *
  * NB: In PoPoolation, this variable is called `eucov`.
  */
-inline constexpr size_t nucleotide_sum( BaseCounts const& sample )
+inline constexpr size_t nucleotide_sum( SampleCounts const& sample )
 {
     return sample.a_count + sample.c_count + sample.g_count + sample.t_count;
 }
 
 /**
- * @copybrief nucleotide_sum( BaseCounts const& )
+ * @copybrief nucleotide_sum( SampleCounts const& )
  *
  * See nucleotide_sum() for details. This function gives the sum over all samples in the Variant.
  */
 inline size_t total_nucleotide_sum( Variant const& variant )
 {
-    return nucleotide_sum( merge_base_counts( variant ));
+    return nucleotide_sum( merge_sample_counts( variant ));
 }
 
 /**
@@ -308,9 +308,9 @@ inline size_t total_nucleotide_sum( Variant const& variant )
  * as well as the `N` and `D` count for indetermined and deleted counts.
  *
  * This is simply the sum of `a_count + c_count + g_count + t_count + n_count + d_count`, of the
- * BaseCounts object. See nucleotide_sum() for a function that only sums `ACGT`, but not `N` and `D`.
+ * SampleCounts object. See nucleotide_sum() for a function that only sums `ACGT`, but not `N` and `D`.
  */
-inline constexpr size_t base_counts_sum( BaseCounts const& sample )
+inline constexpr size_t sample_counts_sum( SampleCounts const& sample )
 {
     return
         sample.a_count +
@@ -323,13 +323,13 @@ inline constexpr size_t base_counts_sum( BaseCounts const& sample )
 }
 
 /**
- * @copybrief base_counts_sum( BaseCounts const& )
+ * @copybrief sample_counts_sum( SampleCounts const& )
  *
- * See base_counts_sum() for details. This function gives the sum over all samples in the Variant.
+ * See sample_counts_sum() for details. This function gives the sum over all samples in the Variant.
  */
-inline size_t total_base_counts_sum( Variant const& variant )
+inline size_t total_sample_counts_sum( Variant const& variant )
 {
-    return base_counts_sum( merge_base_counts( variant ));
+    return sample_counts_sum( merge_sample_counts( variant ));
 }
 
 // =================================================================================================
@@ -337,7 +337,7 @@ inline size_t total_base_counts_sum( Variant const& variant )
 // =================================================================================================
 
 /**
- * @brief Consensus character for a BaseCounts, and its confidence.
+ * @brief Consensus character for a SampleCounts, and its confidence.
  *
  * This is simply the character (out of `ACGT`) that appears most often (or, for ties,
  * the lexicographically smallest character), unless all of (`A`, `C`, `G`, `T`) are zero,
@@ -345,10 +345,10 @@ inline size_t total_base_counts_sum( Variant const& variant )
  * The confidence is the count of the consensus character, divided by the total count
  * of all four nucleotides.
  */
-std::pair<char, double> consensus( BaseCounts const& sample );
+std::pair<char, double> consensus( SampleCounts const& sample );
 
 /**
-* @brief Consensus character for a BaseCounts, and its confidence.
+* @brief Consensus character for a SampleCounts, and its confidence.
 *
 * This is simply the character (out of `ACGT`) that appears most often (or, for ties,
 * the lexicographically smallest character). If @p is_covered is false (meaning, the position is
@@ -356,7 +356,7 @@ std::pair<char, double> consensus( BaseCounts const& sample );
 * The confidence is the count of the consensus character, divided by the total count
 * of all four nucleotides.
 */
-std::pair<char, double> consensus( BaseCounts const& sample, bool is_covered );
+std::pair<char, double> consensus( SampleCounts const& sample, bool is_covered );
 
 /**
  * @brief Guess the reference base of a Variant.
@@ -433,9 +433,9 @@ void guess_and_set_ref_and_alt_bases(
 // =================================================================================================
 
 /**
- * @brief Output stream operator for BaseCounts instances.
+ * @brief Output stream operator for SampleCounts instances.
  */
-std::ostream& operator<<( std::ostream& os, BaseCounts const& bs );
+std::ostream& operator<<( std::ostream& os, SampleCounts const& bs );
 
 } // namespace population
 } // namespace genesis

@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/filter/filter_stats.hpp"
 #include "genesis/population/filter/filter_status.hpp"
 #include "genesis/population/variant.hpp"
@@ -124,7 +124,7 @@ enum class VariantFilterTag : FilterStatus::IntType
     // -------------------------------------------
 
     /**
-     * @brief None of the BaseCount samples of the Variant passed their filters.
+     * @brief None of the SampleCounts of the Variant passed their filters.
      *
      * If all samples of the Variant did not pass their respecive filters, this value can be
      * set to skip the whole Variant.
@@ -132,7 +132,7 @@ enum class VariantFilterTag : FilterStatus::IntType
     kNoSamplePassed,
 
     /**
-     * @brief Some of the BaseCount samples of the Variant did not pass their filters.
+     * @brief Some of the SampleCounts of the Variant did not pass their filters.
      *
      * For algorithms that need every sample to be passig their filters, this can be used to
      * indicate that some samples did not pass, and that this Variant hence also needs to be skipped.

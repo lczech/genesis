@@ -37,7 +37,7 @@
 #include "genesis/population/formats/sync_input_stream.hpp"
 #include "genesis/population/formats/sync_reader.hpp"
 #include "genesis/population/formats/vcf_input_stream.hpp"
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/sequence/reference_genome.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
@@ -166,7 +166,7 @@ VariantInputStream make_variant_input_stream_from_vector(
  * An instance of SamVariantInputStream can be provided from which the settings are copied.
  *
  * Depending on the settings used in the @p reader, this can either produce a single sample
- * (one BaseCounts object in the resulting Variant at each position in the genome),
+ * (one SampleCounts object in the resulting Variant at each position in the genome),
  * or split the input file by the read group (RG) tag (potentially also allowing for an
  * "unaccounted" group of reads).
  *
@@ -355,7 +355,7 @@ VariantInputStream make_variant_input_stream_from_pool_vcf_file(
 
 /**
  * @brief Create a VariantInputStream to iterate the contents of a VCF file as Variant%s,
- * treating each sample as an individual, and combining them all into one BaseCounts sample.
+ * treating each sample as an individual, and combining them all into one SampleCounts sample.
  *
  * See convert_to_variant_as_individuals( VcfRecord const&, bool ) for details on the conversion
  * from VcfRecord to Variant. We only consider biallelic SNP positions here.
@@ -474,7 +474,7 @@ VariantInputStream make_variant_input_stream_from_variant_gapless_input_stream(
 /**
  * @brief Create a VariantInputStream that merges samples from its underlying @p input.
  *
- * This provides an on-the-fly merging of input samples by simply summing out their BaseCounts.
+ * This provides an on-the-fly merging of input samples by simply summing out their SampleCounts.
  * It takes a mapping of sample names to group names, and creates a VariantInputStream with
  * the group names as new sample names, which then merge the input of their respective samples.
  *

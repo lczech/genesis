@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -73,13 +73,13 @@ namespace population {
 
 /**
  * @brief Helper function to compute a pairwise F_ST statistic, for all pairs of ranges of
- * BaseCounts%s.
+ * SampleCounts%s.
  *
  * The function is intended to be used as an internal helper for computing pairwise F_ST
- * for a set of BaseCounts%s along some region (e.g., a genomic Window).
+ * for a set of SampleCounts%s along some region (e.g., a genomic Window).
  *
  * The function expects a range (for example, a Window over the genome) of iterators,
- * where each iterator dereferences to a `std::vector<BaseCounts>`. Each entry in the range is
+ * where each iterator dereferences to a `std::vector<SampleCounts>`. Each entry in the range is
  * used as one position in the genome contributing to F_ST. For all entries, the `vector` needs
  * to have the same number of entries.
  *
@@ -89,17 +89,17 @@ namespace population {
  *     // `window` is of type Window<Variant> here
  *     for( auto const& window : window_iterator ) {
  *
- *         // Return the BaseCounts part of the Variants in the window.
- *         auto base_counts_range = utils::make_transform_range([&]( Variant const& var )
- *         -> std::vector<BaseCounts> const& {
+ *         // Return the SampleCounts part of the Variants in the window.
+ *         auto sample_counts_range = utils::make_transform_range([&]( Variant const& var )
+ *         -> std::vector<SampleCounts> const& {
  *             return var.samples;
  *         }, window);
  *
  *         // Call an fst computation on that.
- *         f_st_pool_kofler( poolsizes, base_counts_range.begin(), base_counts_range.end() );
+ *         f_st_pool_kofler( poolsizes, sample_counts_range.begin(), sample_counts_range.end() );
  *     }
  *
- * Then, `base_counts_range.begin()` and `base_counts_range.end()` can be provided as @p begin
+ * Then, `sample_counts_range.begin()` and `sample_counts_range.end()` can be provided as @p begin
  * and @p end here, respectively. Typically, as this is a helper function, they are provided
  * by the functions that use this helper; however, they need this range as input themselves,
  * and the above can be used for that.
@@ -125,22 +125,22 @@ utils::Matrix<double> compute_pairwise_f_st(
     // Now we know that there are entries in the rage. Use the first one to get the number of
     // base pair samples in the range. We later check that this is the same for each entry.
     // Use that size to initialize the resulting matrix.
-    size_t const size = static_cast<std::vector<BaseCounts> const&>( *begin ).size();
+    size_t const size = static_cast<std::vector<SampleCounts> const&>( *begin ).size();
     auto result = utils::Matrix<double>( size, size, 0.0 );
 
     // We use a lambda that returns a tranforming rage to select an entry at a given index
-    // in the set of BaseCounts at the current iterator position.
+    // in the set of SampleCounts at the current iterator position.
     auto select_entry = [size]( ForwardIterator begin, ForwardIterator end, size_t index ){
-        // Currently, in order to use Window here, we need to explicitly use std::vector<BaseCounts>
+        // Currently, in order to use Window here, we need to explicitly use std::vector<SampleCounts>
         // instead of the more generic T... Bit unfortunate, but good enough for now.
-        // Will have to revisit later if we get to use cases where the BaseCounts are not stored
+        // Will have to revisit later if we get to use cases where the SampleCounts are not stored
         // in a vector, but some other container.
         // using T = typename ForwardIterator::value_type;
         return utils::make_transform_range(
-            [size, index]( std::vector<BaseCounts> const& samples ) -> BaseCounts const& {
+            [size, index]( std::vector<SampleCounts> const& samples ) -> SampleCounts const& {
                 if( samples.size() != size ) {
                     throw std::runtime_error(
-                        "In compute_pairwise_f_st(): The number of BaseCounts in the "
+                        "In compute_pairwise_f_st(): The number of SampleCounts in the "
                         "provided range is not consistent throughout the iteration."
                     );
                 }
@@ -195,7 +195,7 @@ double f_st_pool_kofler( // get_conventional_fstcalculator
     FstPoolCalculatorKofler calc{ p1_poolsize, p2_poolsize };
 
     // Iterate the two ranges in parallel. Each iteration is one position in the genome.
-    // In each iteration, p1_it and p2_it point at BaseCounts objects containing nucleotide counts.
+    // In each iteration, p1_it and p2_it point at SampleCounts objects containing nucleotide counts.
     auto p1_it = p1_begin;
     auto p2_it = p2_begin;
     while( p1_it != p1_end && p2_it != p2_end ) {
@@ -333,7 +333,7 @@ std::pair<double, double> f_st_pool_unbiased(
     FstPoolCalculatorUnbiased calc{ p1_poolsize, p2_poolsize };
 
     // Iterate the two ranges in parallel. Each iteration is one position in the genome.
-    // In each iteration, p1_it and p2_it point at BaseCounts objects containing nucleotide counts.
+    // In each iteration, p1_it and p2_it point at SampleCounts objects containing nucleotide counts.
     auto p1_it = p1_begin;
     auto p2_it = p2_begin;
     while( p1_it != p1_end && p2_it != p2_end ) {
@@ -354,7 +354,7 @@ std::pair<double, double> f_st_pool_unbiased(
 
 /**
  * @brief Compute an unbiased F_ST estimator for pool-sequenced data,
- * using the Nei variant of the estimator, for all pairs of ranges of BaseCounts%s.
+ * using the Nei variant of the estimator, for all pairs of ranges of SampleCounts%s.
  *
  * See f_st_pool_unbiased() for details on the method.
  * We here need to offer two variants of the pairwise compute helper, as there are two estimator
@@ -386,7 +386,7 @@ utils::Matrix<double> f_st_pool_unbiased_nei(
 
 /**
  * @brief Compute an unbiased F_ST estimator for pool-sequenced data,
- * using the Hudson variant of the estimator, for all pairs of ranges of BaseCounts%s.
+ * using the Hudson variant of the estimator, for all pairs of ranges of SampleCounts%s.
  *
  * See f_st_pool_unbiased() for details on the method.
  * We here need to offer two variants of the pairwise compute helper, as there are two estimator

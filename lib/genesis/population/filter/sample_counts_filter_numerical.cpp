@@ -48,7 +48,7 @@ namespace population {
 // =================================================================================================
 
 void transform_zero_out_by_min_count(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t min_count,
     bool also_n_and_d_counts
 ) {
@@ -76,7 +76,7 @@ void transform_zero_out_by_min_count(
 }
 
 void transform_zero_out_by_max_count(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t max_count,
     bool also_n_and_d_counts
 ) {
@@ -113,9 +113,9 @@ void transform_zero_out_by_max_count(
 // =================================================================================================
 
 bool apply_sample_counts_filter_numerical(
-    BaseCounts& sample,
-    BaseCountsFilterNumericalParams const& params,
-    BaseCountsFilterStats& stats
+    SampleCounts& sample,
+    SampleCountsFilterNumericalParams const& params,
+    SampleCountsFilterStats& stats
 ) {
     // We do not filter further if the sample has already been determined to be filered out.
     if( ! sample.status.passing() ) {
@@ -141,8 +141,8 @@ bool apply_sample_counts_filter_numerical(
         //     sample.clear();
         // }
 
-        sample.status.set( BaseCountsFilterTag::kEmpty );
-        ++stats[BaseCountsFilterTag::kEmpty];
+        sample.status.set( SampleCountsFilterTag::kEmpty );
+        ++stats[SampleCountsFilterTag::kEmpty];
         return false;
     }
 
@@ -152,8 +152,8 @@ bool apply_sample_counts_filter_numerical(
         //     sample.clear();
         // }
 
-        sample.status.set( BaseCountsFilterTag::kBelowMinCoverage );
-        ++stats[BaseCountsFilterTag::kBelowMinCoverage];
+        sample.status.set( SampleCountsFilterTag::kBelowMinCoverage );
+        ++stats[SampleCountsFilterTag::kBelowMinCoverage];
         return false;
     }
     if( params.max_coverage > 0 && sum > params.max_coverage ) {
@@ -161,8 +161,8 @@ bool apply_sample_counts_filter_numerical(
         //     sample.clear();
         // }
 
-        sample.status.set( BaseCountsFilterTag::kAboveMaxCoverage );
-        ++stats[BaseCountsFilterTag::kAboveMaxCoverage];
+        sample.status.set( SampleCountsFilterTag::kAboveMaxCoverage );
+        ++stats[SampleCountsFilterTag::kAboveMaxCoverage];
         return false;
     }
 
@@ -176,8 +176,8 @@ bool apply_sample_counts_filter_numerical(
         //     sample.clear();
         // }
 
-        sample.status.set( BaseCountsFilterTag::kAboveDeletionsCountLimit );
-        ++stats[BaseCountsFilterTag::kAboveDeletionsCountLimit];
+        sample.status.set( SampleCountsFilterTag::kAboveDeletionsCountLimit );
+        ++stats[SampleCountsFilterTag::kAboveDeletionsCountLimit];
         return false;
     }
 
@@ -195,8 +195,8 @@ bool apply_sample_counts_filter_numerical(
             //     sample.clear();
             // }
 
-            sample.status.set( BaseCountsFilterTag::kNotSnp );
-            ++stats[BaseCountsFilterTag::kNotSnp];
+            sample.status.set( SampleCountsFilterTag::kNotSnp );
+            ++stats[SampleCountsFilterTag::kNotSnp];
             return false;
         }
         if( params.only_biallelic_snps && al_count != 2 ) {
@@ -204,8 +204,8 @@ bool apply_sample_counts_filter_numerical(
             //     sample.clear();
             // }
 
-            sample.status.set( BaseCountsFilterTag::kNotBiallelicSnp );
-            ++stats[BaseCountsFilterTag::kNotBiallelicSnp];
+            sample.status.set( SampleCountsFilterTag::kNotBiallelicSnp );
+            ++stats[SampleCountsFilterTag::kNotBiallelicSnp];
             return false;
         }
     }
@@ -215,10 +215,10 @@ bool apply_sample_counts_filter_numerical(
 }
 
 bool apply_sample_counts_filter_numerical(
-    BaseCounts& sample,
-    BaseCountsFilterNumericalParams const& params
+    SampleCounts& sample,
+    SampleCountsFilterNumericalParams const& params
 ) {
-    BaseCountsFilterStats stats{};
+    SampleCountsFilterStats stats{};
     return apply_sample_counts_filter_numerical( sample, params, stats );
 }
 
@@ -228,9 +228,9 @@ bool apply_sample_counts_filter_numerical(
 
 bool apply_sample_counts_filter_numerical(
     Variant& variant,
-    BaseCountsFilterNumericalParams const& params,
+    SampleCountsFilterNumericalParams const& params,
     VariantFilterStats& variant_stats,
-    BaseCountsFilterStats& sample_count_stats,
+    SampleCountsFilterStats& sample_count_stats,
     bool all_need_pass
 ) {
     // We do not filter further if the position has already been determined to be filered out.
@@ -276,11 +276,11 @@ bool apply_sample_counts_filter_numerical(
 
 bool apply_sample_counts_filter_numerical(
     Variant& variant,
-    BaseCountsFilterNumericalParams const& params,
+    SampleCountsFilterNumericalParams const& params,
     bool all_need_pass
 ) {
     VariantFilterStats variant_stats{};
-    BaseCountsFilterStats sample_count_stats{};
+    SampleCountsFilterStats sample_count_stats{};
     return apply_sample_counts_filter_numerical(
         variant, params, variant_stats, sample_count_stats, all_need_pass
     );

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ namespace population {
 
 /**
  * @brief Compute the F_ST statistic for pool-sequenced data of Kofler et al
- * as used in PoPoolation2, for two ranges of BaseCounts%s.
+ * as used in PoPoolation2, for two ranges of SampleCounts%s.
  *
  * The approach is called the "classical" or "conventional" estimator in PoPoolation2 [1],
  * and follows Hartl and Clark [2].
@@ -102,7 +102,7 @@ private:
         pp_pi_sum_ = 0.0;
     }
 
-    void process_( BaseCounts const& p1, BaseCounts const& p2 ) override
+    void process_( SampleCounts const& p1, SampleCounts const& p2 ) override
     {
         // Edge and error cases. We will return nan anyway when finializing,
         // so we can skip all the computation here.
@@ -114,7 +114,7 @@ private:
         auto const pi_snps = f_st_pool_kofler_pi_snp( p1, p2 );
 
         // Skip invalid entries than can happen when less than two of [ACGT] have counts > 0
-        // in one of the BaseCounts samples.
+        // in one of the SampleCounts samples.
         if(
             std::isfinite( std::get<0>( pi_snps )) &&
             std::isfinite( std::get<1>( pi_snps )) &&
@@ -172,7 +172,7 @@ public:
      * combined (average frequency) heterozygosity, in that order.
      */
     static std::tuple<double, double, double> f_st_pool_kofler_pi_snp(
-        BaseCounts const& p1, BaseCounts const& p2
+        SampleCounts const& p1, SampleCounts const& p2
     ) {
         using namespace genesis::utils;
 

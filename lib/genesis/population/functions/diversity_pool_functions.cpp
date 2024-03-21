@@ -147,7 +147,7 @@ double amnm_( // get_aMnm_buffer
 //     Theta Pi
 // =================================================================================================
 
-double heterozygosity( BaseCounts const& sample, bool with_bessel )
+double heterozygosity( SampleCounts const& sample, bool with_bessel )
 {
     using namespace genesis::utils;
 

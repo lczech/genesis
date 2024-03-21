@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/filter/filter_status.hpp"
 
 #include <string>
@@ -45,7 +45,7 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief A single variant at a position in a chromosome, along with BaseCounts for a set of samples.
+ * @brief A single variant at a position in a chromosome, along with SampleCounts for a set of samples.
  *
  * Typically, this class is used as a general representation of the variants/SNPs at a given
  * chromosome position, for example coming from a line in a VCF file or (m)pileup file.
@@ -56,9 +56,9 @@ namespace population {
  *   * The reference base and alternative base at that position (which might not always be available
  *     in the input file format, in which case we use 'N'). Note that we currently only support
  *     one alternative base here, that is, biallelic variants only.
- *   * A set of BaseCounts%s, that is, information on the counts of nucleotide bases of thereads
+ *   * A set of SampleCounts%s, that is, information on the counts of nucleotide bases of thereads
  *     of a set of pool samples or individuals that cover this variants/SNPs at that position.
- *     See BaseCounts for details on the latter.
+ *     See SampleCounts for details on the latter.
  *   * A filter status to indicate whether this Variant is to be considered in analyses or not.
  *     See FilterStatus for details.
  */
@@ -79,7 +79,7 @@ struct Variant
     char        reference_base   = 'N';
     char        alternative_base = 'N';
 
-    std::vector<BaseCounts> samples;
+    std::vector<SampleCounts> samples;
 };
 
 } // namespace population

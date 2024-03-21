@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_BASE_COUNTS_H_
-#define GENESIS_POPULATION_BASE_COUNTS_H_
+#ifndef GENESIS_POPULATION_SAMPLE_COUNTS_H_
+#define GENESIS_POPULATION_SAMPLE_COUNTS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -41,11 +41,11 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Base Counts
+//     Sample Counts
 // =================================================================================================
 
 /**
- * @brief One set of nucleotide base counts, for example for a given sample that represents a pool
+ * @brief One set of nucleotide sample counts, for example for a given sample that represents a pool
  * of sequenced individuals.
  *
  * This class is a general representation of the read counts (frequencies) contained in the
@@ -53,7 +53,7 @@ namespace population {
  * The class only stores theses counts; for the additional container that also captures the
  * chromosome and position, see Variant.
  */
-struct BaseCounts
+struct SampleCounts
 {
     /**
      * @brief Public alias for the size type that the class uses to store its counts.
@@ -98,16 +98,16 @@ struct BaseCounts
 };
 
 // =================================================================================================
-//     Sorted Base Counts
+//     Sorted Sample Counts
 // =================================================================================================
 
 /**
- * @brief Ordered array of base counts for the four nucleotides.
+ * @brief Ordered array of sample counts for the four nucleotides.
  *
  * Some functions need the bases sorted by their count. This structure is used to keep that data,
  * with the highest count base first.
  */
-struct SortedBaseCounts
+struct SortedSampleCounts
 {
     /**
      * @brief Combination of a nucleotide base and its count.
@@ -128,9 +128,9 @@ struct SortedBaseCounts
         {}
     };
 
-    SortedBaseCounts() = default;
+    SortedSampleCounts() = default;
 
-    SortedBaseCounts(
+    SortedSampleCounts(
         char b0, size_t c0, char b1, size_t c1, char b2, size_t c2, char b3, size_t c3
     )
         : data( std::array<BaseCount, 4>{{

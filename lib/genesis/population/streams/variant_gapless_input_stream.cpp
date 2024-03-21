@@ -429,8 +429,8 @@ void VariantGaplessInputStream::Iterator::prepare_current_variant_()
         // modified (by some filter or transformation), we also need to reset the counts.
         missing_variant_.samples.resize( num_samples_ );
         for( auto& sample : missing_variant_.samples ) {
-            sample = BaseCounts();
-            sample.status.reset( BaseCountsFilterTag::kMissing );
+            sample = SampleCounts();
+            sample.status.reset( SampleCountsFilterTag::kMissing );
         }
     }
 

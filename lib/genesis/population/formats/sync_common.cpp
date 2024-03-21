@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ namespace population {
 //     PoPoolation2 Synchronized File Helper Functions
 // =================================================================================================
 
-std::ostream& to_sync( BaseCounts const& bs, std::ostream& os )
+std::ostream& to_sync( SampleCounts const& bs, std::ostream& os )
 {
     os << bs.a_count << ":" << bs.t_count << ":" << bs.c_count << ":" << bs.g_count;
     os << ":" << bs.n_count << ":" << bs.d_count;

@@ -32,7 +32,7 @@
 
 #include "genesis/population/formats/vcf_common.hpp"
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/formats/vcf_input_stream.hpp"
 #include "genesis/population/formats/vcf_record.hpp"
 #include "genesis/population/functions/functions.hpp"
@@ -309,7 +309,7 @@ Variant convert_to_variant_as_pool( VcfRecord const& record )
         }
 
         // Go through all REF and ALT entries and their respective FORMAT 'AD' counts,
-        // and sum them up, storing them in a new BaseCounts instance at the end of the vector.
+        // and sum them up, storing them in a new SampleCounts instance at the end of the vector.
         result.samples.emplace_back();
         auto& sample = result.samples.back();
         for( size_t i = 0; i < sample_ad.valid_value_count(); ++i ) {
@@ -386,10 +386,10 @@ Variant convert_to_variant_as_individuals(
     Variant result;
 
     // Short solution for when we want to use the AD field:
-    // Simply re-use the pool approach, and merge into one BaseCounts.
+    // Simply re-use the pool approach, and merge into one SampleCounts.
     if( use_allelic_depth ) {
         result = convert_to_variant_as_pool( record );
-        result.samples = std::vector<BaseCounts>{ merge( result.samples ) };
+        result.samples = std::vector<SampleCounts>{ merge( result.samples ) };
         return result;
     }
 

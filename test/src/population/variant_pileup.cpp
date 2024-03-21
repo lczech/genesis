@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/filter/sample_counts_filter_numerical.hpp"
 #include "genesis/population/filter/sample_counts_filter.hpp"
@@ -52,10 +52,10 @@ TEST( Pileup, VariantReader )
     auto variants = reader.read_variants( from_file( infile ));
 
     std::vector<char> ref_bases = { 'T', 'T', 'T', 'A', 'G', 'T', 'G', 'C' };
-    BaseCountsFilterNumericalParams filter;
+    SampleCountsFilterNumericalParams filter;
     filter.only_snps = true;
     filter.only_biallelic_snps = true;
-    BaseCountsFilterStats stats;
+    SampleCountsFilterStats stats;
 
     ASSERT_EQ( 8, variants.size() );
     for( size_t i = 0; i < variants.size(); ++i ) {
@@ -78,7 +78,7 @@ TEST( Pileup, VariantReader )
     EXPECT_EQ( 'T', consensus( pool_0 ).first );
     EXPECT_FLOAT_EQ( 1.0, consensus( pool_0 ).second );
     EXPECT_FALSE( apply_sample_counts_filter_numerical( pool_0, filter, stats ));
-    EXPECT_EQ( 1, stats[BaseCountsFilterTag::kNotSnp] );
+    EXPECT_EQ( 1, stats[SampleCountsFilterTag::kNotSnp] );
     // EXPECT_TRUE(    status( pool_0 ).is_covered );
     // EXPECT_FALSE(   status( pool_0 ).is_snp );
     // EXPECT_FALSE(   status( pool_0 ).is_biallelic );
@@ -100,7 +100,7 @@ TEST( Pileup, VariantReader )
 
     // We cannot directy test the count of passed any more, as we never increment the counter
     // in the filters. So instead we just test that there is no failed filter.
-    // EXPECT_EQ( 1, stats[BaseCountsFilterTag::kPassed] );
+    // EXPECT_EQ( 1, stats[SampleCountsFilterTag::kPassed] );
     EXPECT_EQ( 0, stats.sum() );
 
     // EXPECT_TRUE(    status( pool_1 ).is_covered );
@@ -121,7 +121,7 @@ TEST( Pileup, VariantReader )
     EXPECT_EQ( 'N', consensus( pool_2, false ).first );
     EXPECT_FLOAT_EQ( 0.0, consensus( pool_2, false ).second );
     EXPECT_FALSE( apply_sample_counts_filter_numerical( pool_2, filter, stats ));
-    EXPECT_EQ( 0, stats[BaseCountsFilterTag::kAboveDeletionsCountLimit] );
+    EXPECT_EQ( 0, stats[SampleCountsFilterTag::kAboveDeletionsCountLimit] );
     // EXPECT_FALSE(   status( pool_2 ).is_covered );
     // EXPECT_FALSE(   status( pool_2 ).is_snp );
     // EXPECT_FALSE(   status( pool_2 ).is_biallelic );
@@ -140,7 +140,7 @@ TEST( Pileup, VariantReader )
     EXPECT_EQ( 'A', consensus( pool_3 ).first );
     EXPECT_FLOAT_EQ( 1.0, consensus( pool_3 ).second );
     EXPECT_FALSE( apply_sample_counts_filter_numerical( pool_3, filter, stats ));
-    EXPECT_EQ( 1, stats[BaseCountsFilterTag::kNotSnp] );
+    EXPECT_EQ( 1, stats[SampleCountsFilterTag::kNotSnp] );
     // EXPECT_TRUE(    status( pool_3 ).is_covered );
     // EXPECT_FALSE(   status( pool_3 ).is_snp );
     // EXPECT_FALSE(   status( pool_3 ).is_biallelic );
@@ -162,7 +162,7 @@ TEST( Pileup, VariantReader )
 
     // We cannot directy test the count of passed any more, as we never increment the counter
     // in the filters. So instead we just test that there is no failed filter.
-    // EXPECT_EQ( 1, stats[BaseCountsFilterTag::kPassed] );
+    // EXPECT_EQ( 1, stats[SampleCountsFilterTag::kPassed] );
     EXPECT_EQ( 0, stats.sum() );
 
     // EXPECT_TRUE(    status( pool_4 ).is_covered );
@@ -183,7 +183,7 @@ TEST( Pileup, VariantReader )
     EXPECT_EQ( 'T', consensus( pool_5 ).first );
     EXPECT_FLOAT_EQ( 0.909090909, consensus( pool_5 ).second );
     EXPECT_FALSE( apply_sample_counts_filter_numerical( pool_5, filter, stats ));
-    EXPECT_EQ( 1, stats[BaseCountsFilterTag::kNotBiallelicSnp] );
+    EXPECT_EQ( 1, stats[SampleCountsFilterTag::kNotBiallelicSnp] );
     // EXPECT_TRUE(    status( pool_5 ).is_covered );
     // EXPECT_TRUE(    status( pool_5 ).is_snp );
     // EXPECT_FALSE(   status( pool_5 ).is_biallelic );
@@ -202,7 +202,7 @@ TEST( Pileup, VariantReader )
     EXPECT_EQ( 'G', consensus( pool_6 ).first );
     EXPECT_FLOAT_EQ( 1.0, consensus( pool_6 ).second );
     EXPECT_FALSE( apply_sample_counts_filter_numerical( pool_6, filter, stats ));
-    EXPECT_EQ( 1, stats[BaseCountsFilterTag::kNotSnp] );
+    EXPECT_EQ( 1, stats[SampleCountsFilterTag::kNotSnp] );
     // EXPECT_TRUE(    status( pool_6 ).is_covered );
     // EXPECT_FALSE(   status( pool_6 ).is_snp );
     // EXPECT_FALSE(   status( pool_6 ).is_biallelic );
@@ -221,7 +221,7 @@ TEST( Pileup, VariantReader )
     EXPECT_EQ( 'C', consensus( pool_7 ).first );
     EXPECT_FLOAT_EQ( 0.894736842, consensus( pool_7 ).second );
     EXPECT_FALSE( apply_sample_counts_filter_numerical( pool_7, filter, stats ));
-    EXPECT_EQ( 1, stats[BaseCountsFilterTag::kNotBiallelicSnp] );
+    EXPECT_EQ( 1, stats[SampleCountsFilterTag::kNotBiallelicSnp] );
     // EXPECT_TRUE(    status( pool_7 ).is_covered );
     // EXPECT_TRUE(    status( pool_7 ).is_snp );
     // EXPECT_FALSE(   status( pool_7 ).is_biallelic );

@@ -101,7 +101,7 @@ public:
      * @brief %Iterator over loci of the input sources.
      *
      * This is the class that does the actual work of turning the underlying file data into
-     * our Variant and BaseCounts samples. Use the dereference `operator*()`
+     * our Variant and SampleCounts samples. Use the dereference `operator*()`
      * and `operator->()` to get the Variant at the current locus of the iteration.
      */
     class Iterator
@@ -147,7 +147,7 @@ public:
 
             // We make a list of all sample names that we have seen, noting which type
             // of field we found, to make sure that we have all relevant ones. The order of the
-            // indices is the order in which the BaseCounts in the final Variant are produced.
+            // indices is the order in which the SampleCounts in the final Variant are produced.
             // Shall be accessed through get_sample_info_() to ensure correct setup of the index.
             std::unordered_map<std::string, SampleInfo> sample_infos;
         };
@@ -813,7 +813,7 @@ public:
      */
     self_type& int_factor( double value )
     {
-        if( static_cast<double>( static_cast<BaseCounts::size_type>( value )) != value ) {
+        if( static_cast<double>( static_cast<SampleCounts::size_type>( value )) != value ) {
             throw std::runtime_error(
                 "Cannot set int_factor to " + std::to_string( value ) + " as this is out of range "
                 "of the int type used for storing base counts."
@@ -896,10 +896,10 @@ private:
     // See https://stackoverflow.com/q/1848700/4184258 for the exact double value used here.
     static constexpr double max_int_factor_ = 9007199254740992.0;
 
-    // Make sure that this actually fits into the BaseCounts values.
+    // Make sure that this actually fits into the SampleCounts values.
     static_assert(
-        static_cast<double>( static_cast<BaseCounts::size_type>( max_int_factor_ )) == max_int_factor_,
-        "Numeric type for BaseCounts does not fit for FrequencyTableInputStream::max_int_factor_"
+        static_cast<double>( static_cast<SampleCounts::size_type>( max_int_factor_ )) == max_int_factor_,
+        "Numeric type for SampleCounts does not fit for FrequencyTableInputStream::max_int_factor_"
     );
 
     // The above is the max that we can use, but we allow users to set the used int factor that is

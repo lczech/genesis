@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/filter/filter_stats.hpp"
 #include "genesis/population/filter/filter_status.hpp"
 #include "genesis/population/variant.hpp"
@@ -47,10 +47,10 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     BaseCounts Filter Tag
+//     SampleCounts Filter Tag
 // =================================================================================================
 
-enum class BaseCountsFilterTag : FilterStatus::IntType
+enum class SampleCountsFilterTag : FilterStatus::IntType
 {
     /**
      * @brief Sample has passed all filters.
@@ -90,35 +90,35 @@ enum class BaseCountsFilterTag : FilterStatus::IntType
     /**
      * @brief Sum of counts across all samples is below the min coverage threshold.
      *
-     * @see BaseCountsFilterNumericalParams::min_coverage
+     * @see SampleCountsFilterNumericalParams::min_coverage
      */
     kBelowMinCoverage,
 
     /**
      * @brief Sum of counts across all samples is above the max coverage threshold.
      *
-     * @see BaseCountsFilterNumericalParams::max_coverage
+     * @see SampleCountsFilterNumericalParams::max_coverage
      */
     kAboveMaxCoverage,
 
     /**
      * @brief Too many deletions at the position.
      *
-     * @see BaseCountsFilterNumericalParams::deletions_count_limit
+     * @see SampleCountsFilterNumericalParams::deletions_count_limit
      */
     kAboveDeletionsCountLimit,
 
     /**
      * @brief Invariant position, not a SNP.
      *
-     * @see BaseCountsFilterNumericalParams::only_snps
+     * @see SampleCountsFilterNumericalParams::only_snps
      */
     kNotSnp,
 
     /**
      * @brief SNP position, but not biallelic, i.e., has more than one alternative.
      *
-     * @see BaseCountsFilterNumericalParams::only_biallelic_snps
+     * @see SampleCountsFilterNumericalParams::only_biallelic_snps
      */
     kNotBiallelicSnp,
 
@@ -130,13 +130,13 @@ enum class BaseCountsFilterTag : FilterStatus::IntType
 };
 
 // =================================================================================================
-//     BaseCounts Filter Stats
+//     SampleCounts Filter Stats
 // =================================================================================================
 
 /**
- * @brief Counts of how many BaseCounts%s with each BaseCountsFilterTag occured in some data.
+ * @brief Counts of how many SampleCounts%s with each SampleCountsFilterTag occured in some data.
  */
-using BaseCountsFilterStats = FilterStats<BaseCountsFilterTag>;
+using SampleCountsFilterStats = FilterStats<SampleCountsFilterTag>;
 
 // =================================================================================================
 //     Filter Functions
@@ -149,17 +149,17 @@ using BaseCountsFilterStats = FilterStats<BaseCountsFilterTag>;
 /**
  * @brief Print a textual representation of the counts collected.
  */
-std::ostream& print_base_counts_filter_stats(
+std::ostream& print_sample_counts_filter_stats(
     std::ostream& os,
-    BaseCountsFilterStats const& stats,
+    SampleCountsFilterStats const& stats,
     bool verbose = false
 );
 
 /**
  * @brief Print a textual representation of the counts collected.
  */
-std::string print_base_counts_filter_stats(
-    BaseCountsFilterStats const& stats,
+std::string print_sample_counts_filter_stats(
+    SampleCountsFilterStats const& stats,
     bool verbose = false
 );
 

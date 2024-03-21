@@ -91,7 +91,7 @@ std::function<void(Variant&)> make_variant_input_stream_sample_name_filter_trans
 // =================================================================================================
 
 /**
- * @brief Select which method to use for reducing the max coverage of a BaseCounts sample or a
+ * @brief Select which method to use for reducing the max coverage of a SampleCounts sample or a
  * Variant.
  *
  * See make_variant_input_stream_sample_subsampling_transform() for usage.
@@ -121,7 +121,7 @@ enum class SubsamplingMethod
  * This is intended to be used as a transformation on a VariantInputStream, see
  * @link ::genesis::utils::GenericInputStream::add_transform() add_transform()@endlink for details.
  * The function creates a transformation function to be used on a stream, and subsamples or
- * subscales the BaseCounts of each Variant in the stream, so that @p max_coverage is not
+ * subscales the SampleCounts of each Variant in the stream, so that @p max_coverage is not
  * exceeded. This is useful for instance when computing the pool sequencing diversity estimators,
  * which have computational terms depending on coverage; reducing high coverage can hence help
  * to improve computational time.

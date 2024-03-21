@@ -58,7 +58,7 @@ bool apply_variant_filter_numerical(
     }
 
     // Needed for all below. Bit of overhead if we do no filtering at all...
-    auto const total = merge_base_counts( variant );
+    auto const total = merge_sample_counts( variant );
 
     // -------------------------------------------
     //     Numeric
@@ -183,7 +183,7 @@ bool apply_variant_filter_numerical(
         if( ! is_valid_base( ref_base )) {
 
             // Invalid ref base, will use counts to determine frequency.
-            auto const sorted_counts = sorted_base_counts( total );
+            auto const sorted_counts = sorted_sample_counts( total );
             ref_cnt = sorted_counts[0].count;
             alt_cnt = sorted_counts[1].count;
 
@@ -191,7 +191,7 @@ bool apply_variant_filter_numerical(
 
             // Valid ref base, but invalid alt base. Will use ref base and second most common count.
             assert( is_valid_base( ref_base ));
-            auto const sorted_counts = sorted_base_counts( variant, true );
+            auto const sorted_counts = sorted_sample_counts( variant, true );
             ref_cnt = sorted_counts[0].count;
             alt_cnt = sorted_counts[1].count;
 

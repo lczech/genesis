@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/variant.hpp"
 
@@ -82,7 +82,7 @@ struct VariantFilterNumericalParams
      * @brief Maximum number of deletions at a position before being filtered out.
      *
      * If this is set to a value greater than 0, and the sum of deletions at the position
-     * (determined by their BaseCounts::d_count) is equal to or greater than this value,
+     * (determined by their SampleCounts::d_count) is equal to or greater than this value,
      * the position is filtered out.
      *
      * @see VariantFilterTag::kAboveDeletionsCountLimit

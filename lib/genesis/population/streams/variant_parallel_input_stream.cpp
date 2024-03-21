@@ -67,8 +67,8 @@ VariantParallelInputStream::Iterator::Iterator(
 
         // We now have stored the iterator and called its begin() function,
         // which in the GenericInputStream already obtains the first element.
-        // We use this to get the number of BaseCounts objects in the Variant.
-        // We will later need this to default-construct that many BaseCounts
+        // We use this to get the number of SampleCounts objects in the Variant.
+        // We will later need this to default-construct that many SampleCounts
         // for positions where this iterator does not have data.
         auto const sample_name_count = parent_->inputs_[i].data().sample_names.size();
         if( iterators_[i] ) {
@@ -236,7 +236,7 @@ Variant VariantParallelInputStream::Iterator::joined_variant(
 
         } else {
 
-            // If the variant has no data, put as many dummy samples with empty BaseCounts
+            // If the variant has no data, put as many dummy samples with empty SampleCounts
             // into the result as the input source has samples in its data positions.
             // res.samples.reserve( res.samples.size() + variant_sizes_[i].size() );
             for( size_t k = 0; k < variant_sizes_[i]; ++k ) {
@@ -700,9 +700,9 @@ void VariantParallelInputStream::Iterator::update_variants_()
             // The user does not have access to the iterators, so this is okay.
             // We however cannot move all the data, as we will later need access to the
             // chromosome and position of the iterators; so instead, we only move the expensive
-            // BaseCounts samples. In order to avoid that when we add more elements to Variant later
+            // SampleCounts samples. In order to avoid that when we add more elements to Variant later
             // and then accidentally forget to also set them here, we do a three-step process where
-            // we move the BaseCounts over to a temp location first, and then copy the rest.
+            // we move the SampleCounts over to a temp location first, and then copy the rest.
             // This ensures that whatever other fields Variant gets in the future, we always
             // copy them as well. So future proof!
 

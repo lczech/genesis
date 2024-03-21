@@ -367,7 +367,7 @@ void SimplePileupReader::process_sample_(
     set_sample_read_bases_( base_buffer_, sample );
 
     // Read coverage count error check. We here allow for the same weird special case of a deletion
-    // that does not count for the coverage, as described in convert_to_base_counts().
+    // that does not count for the coverage, as described in convert_to_sample_counts().
     if(
         base_buffer_.size() != read_coverage &&
         !( read_coverage == 0 && base_buffer_.size() == 1 )
@@ -429,11 +429,11 @@ void SimplePileupReader::set_sample_read_coverage_<SimplePileupReader::Sample>(
 }
 
 template<>
-void SimplePileupReader::set_sample_read_coverage_<BaseCounts>(
+void SimplePileupReader::set_sample_read_coverage_<SampleCounts>(
     size_t read_coverage,
-    BaseCounts& sample
+    SampleCounts& sample
 ) const {
-    // Variant BaseCounts don't use read coverage
+    // Variant SampleCounts don't use read coverage
     (void) read_coverage;
     (void) sample;
 }
@@ -683,11 +683,11 @@ void SimplePileupReader::set_sample_read_bases_<SimplePileupReader::Sample>(
 }
 
 template<>
-void SimplePileupReader::set_sample_read_bases_<BaseCounts>(
+void SimplePileupReader::set_sample_read_bases_<SampleCounts>(
     std::string const& read_bases,
-    BaseCounts& sample
+    SampleCounts& sample
 ) const {
-    // Variant BaseCounts don't use read bases
+    // Variant SampleCounts don't use read bases
     (void) read_bases;
     (void) sample;
 }
@@ -740,9 +740,9 @@ void SimplePileupReader::process_quality_string_<SimplePileupReader::Sample>(
 }
 
 template<>
-void SimplePileupReader::process_quality_string_<BaseCounts>(
+void SimplePileupReader::process_quality_string_<SampleCounts>(
     utils::InputStream& input_stream,
-    BaseCounts& sample
+    SampleCounts& sample
 ) const {
     // Shorthand.
     auto& it = input_stream;
@@ -756,7 +756,7 @@ void SimplePileupReader::process_quality_string_<BaseCounts>(
         // we do a slow pass, but that should be rare.
         auto const in_buff = it.buffer();
 
-        // The counts should not have been touched yet. We started with a fresh BaseCount sample,
+        // The counts should not have been touched yet. We started with a fresh SampleCounts,
         // and this function is the only one that calls tally_base_(), so all counts should be 0.
         assert(
             sample.a_count == 0 && sample.c_count == 0 && sample.g_count == 0 &&
@@ -808,7 +808,7 @@ void SimplePileupReader::process_quality_string_<BaseCounts>(
         } else {
             // Reset
             pos = 0;
-            sample = BaseCounts();
+            sample = SampleCounts();
 
             // Go through the quality scores, and tally up the bases that have a high enough quality,
             // keeping track of the position (pos) in the buffer.
@@ -853,7 +853,7 @@ void SimplePileupReader::process_quality_string_<BaseCounts>(
 
 inline void SimplePileupReader::tally_base_(
     utils::InputStream& input_stream,
-    BaseCounts& base_count,
+    SampleCounts& base_count,
     char b
 ) const {
     switch( b ) {
@@ -933,9 +933,9 @@ void SimplePileupReader::process_ancestral_base_<SimplePileupReader::Sample>(
 }
 
 template<>
-void SimplePileupReader::process_ancestral_base_<BaseCounts>(
+void SimplePileupReader::process_ancestral_base_<SampleCounts>(
     utils::InputStream& input_stream,
-    BaseCounts& sample
+    SampleCounts& sample
 ) const {
     (void) input_stream;
     (void) sample;
@@ -947,7 +947,7 @@ void SimplePileupReader::process_ancestral_base_<BaseCounts>(
         //     "with ancestral bases when reading Variants."
         // );
 
-        // Let's simply read and ignore the ancestral base, as our Variant/BaseCounts setup
+        // Let's simply read and ignore the ancestral base, as our Variant/SampleCounts setup
         // does not store those at the moment.
         // For simplicity and to avoid code duplication, we just call the other version of this
         // function with a dummy Sample. This is not super efficient, but given how rare pileups

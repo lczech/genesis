@@ -201,23 +201,23 @@ Variant convert_to_variant_as_pool(
 
 /**
  * @brief Convert a VcfRecord to a Variant, treating each sample as an individual,
- * and combining them all into one BaseCounts sample.
+ * and combining them all into one SampleCounts sample.
  *
  * In this function, we assume that the data that was used to create the VCF file was the typical
  * use case of VCF, where each sample (column) in the file corresponds to an individual.
  * When using this function, all samples (individuals) are combined into one, as our targeted
  * output type Variant is used to describe allele counts of several individual (e.g., in a pool).
- * As all columns are combined, the resulting Variant only contains a single BaseCounts object.
+ * As all columns are combined, the resulting Variant only contains a single SampleCounts object.
  * We only consider biallelic SNP positions here.
  *
- * We offer two ways of combining the samples (columns) of the input VCF record into the BaseCounts:
+ * We offer two ways of combining the samples (columns) of the input VCF record into the SampleCounts:
  *
  *   1. When @p use_allelic_depth is `false` (default), individuals simply contribute to the
- *      BaseCounts according to their polidy. That is, an individual with genotype `A/T` will
+ *      SampleCounts according to their polidy. That is, an individual with genotype `A/T` will
  *      contribute one count each for `A` and `T`.
  *   2. When @p use_allelic_depth is `true` instead, we use the "AD" FORMAT field instead, to
  *      obtain the actual counts for the reference and alterantive allele, and use these to
- *      sum up the BaseCounts data.
+ *      sum up the SampleCounts data.
  *
  * @see See make_variant_input_stream_from_individual_vcf_file() for an example where this is used.
  * @see See convert_to_variant_as_pool() for the alterantive function that instead

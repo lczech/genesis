@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/population/functions/subsample.hpp"
 #include "genesis/population/functions/functions.hpp"
@@ -41,7 +41,7 @@ using namespace genesis::sequence;
 using namespace genesis::utils;
 
 template<typename Transformer>
-void test_base_counts_subsampling_(
+void test_sample_counts_subsampling_(
     Transformer transformer,
     bool skip_if_below_target_coverage
 ) {
@@ -55,14 +55,14 @@ void test_base_counts_subsampling_(
     for( size_t i = 0; i < n; ++i ) {
         // LOG_DBG << "===========================";
 
-        BaseCounts sample;
+        SampleCounts sample;
         sample.a_count = permuted_congruential_generator( 100 );
         sample.c_count = permuted_congruential_generator( 100 );
         sample.g_count = permuted_congruential_generator( 100 );
         sample.t_count = permuted_congruential_generator( 100 );
         sample.n_count = permuted_congruential_generator( 100 );
         sample.d_count = permuted_congruential_generator( 100 );
-        auto const old_sum = base_counts_sum( sample );
+        auto const old_sum = sample_counts_sum( sample );
 
         // Some cases will be below the target sum, but that's okay and needs testing as well.
         auto const target = permuted_congruential_generator( 600 );
@@ -71,7 +71,7 @@ void test_base_counts_subsampling_(
 
         // Run the function and recount
         transformer( sample, target );
-        auto const new_sum = base_counts_sum( sample );
+        auto const new_sum = sample_counts_sum( sample );
 
         // LOG_DBG << sample.a_count << ":" << sample.c_count << ":" << sample.g_count << ":" << sample.t_count << ":" << sample.n_count << ":" << sample.d_count << " @ " << new_sum;
 
@@ -92,37 +92,37 @@ void test_base_counts_subsampling_(
     }
 }
 
-TEST( BaseCounts, Subscale )
+TEST( SampleCounts, Subscale )
 {
-    test_base_counts_subsampling_<void(*)(BaseCounts&, size_t)>(
+    test_sample_counts_subsampling_<void(*)(SampleCounts&, size_t)>(
         subscale_counts, true
     );
 }
 
-TEST( BaseCounts, Rescale )
+TEST( SampleCounts, Rescale )
 {
-    test_base_counts_subsampling_<void(*)(BaseCounts&, size_t)>(
+    test_sample_counts_subsampling_<void(*)(SampleCounts&, size_t)>(
         rescale_counts, false
     );
 }
 
-TEST( BaseCounts, SubsampleWithReplacement )
+TEST( SampleCounts, SubsampleWithReplacement )
 {
-    test_base_counts_subsampling_<void(*)(BaseCounts&, size_t)>(
+    test_sample_counts_subsampling_<void(*)(SampleCounts&, size_t)>(
         subsample_counts_with_replacement, true
     );
 }
 
-TEST( BaseCounts, Resample )
+TEST( SampleCounts, Resample )
 {
-    test_base_counts_subsampling_<void(*)(BaseCounts&, size_t)>(
+    test_sample_counts_subsampling_<void(*)(SampleCounts&, size_t)>(
         resample_counts, false
     );
 }
 
-TEST( BaseCounts, SubsampleWithoutReplacement )
+TEST( SampleCounts, SubsampleWithoutReplacement )
 {
-    test_base_counts_subsampling_<void(*)(BaseCounts&, size_t)>(
+    test_sample_counts_subsampling_<void(*)(SampleCounts&, size_t)>(
         subsample_counts_without_replacement, true
     );
 }

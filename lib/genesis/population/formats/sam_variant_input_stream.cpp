@@ -82,7 +82,7 @@ public:
 
     // List of the @RG read group tags as present in the header, filtered by any potential
     // rg_tag_filter() and inverse_rg_tag_filter() settings. That is, this maps from
-    // RG tags to their index of the BaseCounts object in the Variant that is produced
+    // RG tags to their index of the SampleCounts object in the Variant that is produced
     // by this iterator at each position. We use a map in this direction for speed,
     // as we get the RG tag name from htslib for each read.
     std::unordered_map<std::string, size_t> rg_tags_;
@@ -92,7 +92,7 @@ public:
     // of the above map. Hence, this list here is purely meant for user output.
     std::vector<std::string> target_sample_names_;
 
-    // We furthermore store the number of BaseCounts samples needed in each Variant,
+    // We furthermore store the number of SampleCounts samples needed in each Variant,
     // as a result of the rg_tag splitting. With no splitting, this is 1, as we then only
     // ever produce one sample, containing the base counts of all reads, independently of
     // their RG tag.
@@ -821,7 +821,7 @@ void SamVariantInputStream::Iterator::increment_()
     // but the vector might be empty or of the wrong size afterwards.
     current_variant_.samples.resize( handle_->target_sample_count_ );
     for( auto& sample : current_variant_.samples ) {
-        sample = BaseCounts();
+        sample = SampleCounts();
     }
 
     // Go through the read data at the current position and tally up their base counts.

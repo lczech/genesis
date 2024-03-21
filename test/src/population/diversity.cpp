@@ -174,7 +174,7 @@ TEST( Population, DiversityMeasuresGenerator )
 
         // Select the sample within the current window.
         auto range = make_transform_range(
-            // []( VariantWindow::Entry const& entry ) -> BaseCounts const& {
+            // []( VariantWindow::Entry const& entry ) -> SampleCounts const& {
             [&]( VariantWindow::Entry const& entry ) {
                 // Cannot use gtest within a lambda...
                 // ASSERT_EQ( 1, entry.data.samples.size() );
@@ -194,7 +194,7 @@ TEST( Population, DiversityMeasuresGenerator )
         // Make a filter.
         // We do a lot of copies and back and forth here, due to historic reasons
         // (lots of refactoring...). It's okay for the test cases here though.
-        BaseCountsFilterNumericalParams filter;
+        SampleCountsFilterNumericalParams filter;
         filter.min_coverage = settings.min_coverage;
         filter.max_coverage = settings.max_coverage;
         filter.min_count = settings.min_count;
@@ -202,7 +202,7 @@ TEST( Population, DiversityMeasuresGenerator )
         filter.only_snps = true;
 
         // Count how many SNPs there are in total, and how many sites have the needed coverage.
-        BaseCountsFilterStats stats;
+        SampleCountsFilterStats stats;
         size_t variant_count = 0;
         for( auto it = range.begin(); it != range.end(); ++it ) {
 
@@ -213,14 +213,14 @@ TEST( Population, DiversityMeasuresGenerator )
             // Add them up.
             ++variant_count;
         }
-        size_t coverage_count = variant_count - stats.sum() + stats[BaseCountsFilterTag::kNotSnp];
+        size_t coverage_count = variant_count - stats.sum() + stats[SampleCountsFilterTag::kNotSnp];
         size_t snp_count      = variant_count - stats.sum();
         // results.variant_count - stats.not_snp;
         // LOG_DBG << "vc " << variant_count;
         (void) variant_count;
 
         // Make a filter that only allows samples that are SNPs and have the needed coverage.
-        auto covered_snps_range = genesis::utils::make_filter_range( [&]( BaseCounts const& sample ){
+        auto covered_snps_range = genesis::utils::make_filter_range( [&]( SampleCounts const& sample ){
             auto copy = sample;
             return apply_sample_counts_filter_numerical( copy, filter );
 
@@ -398,7 +398,7 @@ TEST( Population, DiversityMeasuresIterator )
 
         // Select the sample within the current window.
         auto range = make_transform_range(
-            // []( VariantWindow::Entry const& entry ) -> BaseCounts const& {
+            // []( VariantWindow::Entry const& entry ) -> SampleCounts const& {
             [&]( VariantWindow::Entry const& entry ) {
                 // Cannot use gtest within a lambda...
                 // ASSERT_EQ( 1, entry.data.samples.size() );
@@ -416,7 +416,7 @@ TEST( Population, DiversityMeasuresIterator )
         // Make a filter.
         // We do a lot of copies and back and forth here, due to historic reasons
         // (lots of refactoring...). It's okay for the test cases here though.
-        BaseCountsFilterNumericalParams filter;
+        SampleCountsFilterNumericalParams filter;
         filter.min_coverage = settings.min_coverage;
         filter.max_coverage = settings.max_coverage;
         filter.min_count = settings.min_count;
@@ -426,10 +426,10 @@ TEST( Population, DiversityMeasuresIterator )
         // Make a filter that only allows samples that are SNPs and have the needed coverage.
         // This could also be added to the generic VariantInputStream, if we were using one.
         // Also, count how many SNPs there are in total, and how many sites have the needed coverage.
-        BaseCountsFilterStats stats;
+        SampleCountsFilterStats stats;
         size_t variant_count = 0;
-        // auto covered_snps_range = genesis::utils::make_filter_range( [&]( BaseCounts const& sample ){
-        auto covered_snps_range = genesis::utils::make_filter_range( [&]( BaseCounts& sample ){
+        // auto covered_snps_range = genesis::utils::make_filter_range( [&]( SampleCounts const& sample ){
+        auto covered_snps_range = genesis::utils::make_filter_range( [&]( SampleCounts& sample ){
             ++variant_count;
             // auto copy = sample;
             // return apply_sample_counts_filter_numerical( copy, filter, stats );
@@ -449,7 +449,7 @@ TEST( Population, DiversityMeasuresIterator )
         for( auto const& sample : covered_snps_range ) {
             calc.process( sample );
         }
-        size_t coverage_count = variant_count - stats.sum() + stats[BaseCountsFilterTag::kNotSnp];
+        size_t coverage_count = variant_count - stats.sum() + stats[SampleCountsFilterTag::kNotSnp];
         size_t snp_count      = variant_count - stats.sum();
         // results.variant_count - stats.not_snp;
         EXPECT_EQ( snp_count, calc.get_processed_count() );
@@ -461,8 +461,8 @@ TEST( Population, DiversityMeasuresIterator )
         // LOG_DBG << "coverage_count " << coverage_count;
         // LOG_DBG << "snp_count " << snp_count;
         // LOG_DBG << "stats.sum() " << stats.sum();
-        // LOG_DBG << "stats[BaseCountsFilterTag::kNotSnp] " << stats[BaseCountsFilterTag::kNotSnp];
-        // LOG_DBG1 << print_base_counts_filter_stats( stats );
+        // LOG_DBG << "stats[SampleCountsFilterTag::kNotSnp] " << stats[SampleCountsFilterTag::kNotSnp];
+        // LOG_DBG1 << print_sample_counts_filter_stats( stats );
 
         // LOG_DBG1 << iteration_count << "\t" << window_cnt << "\t"
         //          << window.first_position() << "\t" << window.last_position() << "\t"

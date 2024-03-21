@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/formats/simple_pileup_input_stream.hpp"
 #include "genesis/population/formats/simple_pileup_reader.hpp"
 #include "genesis/population/formats/sync_reader.hpp"
@@ -111,7 +111,7 @@ TEST( Structure, FstPoolGenerator )
 
     // Prepare the window.
     size_t cnt = 0;
-    using WindowGen = SlidingWindowGenerator<std::vector<BaseCounts>>;
+    using WindowGen = SlidingWindowGenerator<std::vector<SampleCounts>>;
     WindowGen window_gen( SlidingWindowType::kInterval, window_width, window_stride );
     // window_gen.anchor_type( WindowAnchorType::kIntervalMidpoint );
     window_gen.add_emission_plugin( [&]( WindowGen::Window const& window ) {
@@ -125,14 +125,14 @@ TEST( Structure, FstPoolGenerator )
         // Unfortunately, we need to versions of this, one that just gives the counts,
         // and one that filters min counts, as PoPoolation differs in their implementation.
         auto pop1 = make_transform_range(
-            []( WindowGen::Window::Entry const& entry ) -> BaseCounts const& {
+            []( WindowGen::Window::Entry const& entry ) -> SampleCounts const& {
                 // LOG_DBG1 << "pop1 " << entry.position << " " << entry.data[0];
                 return entry.data[0];
             },
             window
         );
         auto pop2 = make_transform_range(
-            []( WindowGen::Window::Entry const& entry ) -> BaseCounts const& {
+            []( WindowGen::Window::Entry const& entry ) -> SampleCounts const& {
                 // LOG_DBG1 << "pop2 " << entry.position << " " << entry.data[1];
                 return entry.data[1];
             },
@@ -201,7 +201,7 @@ TEST( Structure, FstPoolGenerator )
 
         // Ugly relic of many refactorings to do it this way... but good enough for now.
         auto merged = merge( sample_set.samples );
-        BaseCountsFilterNumericalParams filter;
+        SampleCountsFilterNumericalParams filter;
         filter.min_count = min_allele_count;
         filter.min_coverage = min_coverage;
         filter.max_coverage = max_coverage;
@@ -284,7 +284,7 @@ TEST( Structure, FstPoolIterator )
 
         // Ugly relic of many refactorings to do it this way... but good enough for now.
         auto merged = merge( variant.samples );
-        BaseCountsFilterNumericalParams filter;
+        SampleCountsFilterNumericalParams filter;
         filter.min_count = min_allele_count;
         filter.min_coverage = min_coverage;
         filter.max_coverage = max_coverage;
@@ -319,14 +319,14 @@ TEST( Structure, FstPoolIterator )
         // Unfortunately, we need to versions of this, one that just gives the counts,
         // and one that filters min counts, as PoPoolation differs in their implementation.
         auto pop1 = make_transform_range(
-            []( VariantWindow::Entry const& entry ) -> BaseCounts const& {
+            []( VariantWindow::Entry const& entry ) -> SampleCounts const& {
                 // LOG_DBG1 << "pop1 " << entry.position << " " << entry.data[0];
                 return entry.data.samples[0];
             },
             window
         );
         auto pop2 = make_transform_range(
-            []( VariantWindow::Entry const& entry ) -> BaseCounts const& {
+            []( VariantWindow::Entry const& entry ) -> SampleCounts const& {
                 // LOG_DBG1 << "pop2 " << entry.position << " " << entry.data.samples[1];
                 return entry.data.samples[1];
             },
@@ -435,18 +435,18 @@ TEST( Structure, FstPoolAllPairs )
     // Use the code simitor to what is documented in compute_pairwise_f_st()
     for( auto const& window : win_it ) {
 
-        // Return the BaseCounts part of the Variants in the window.
-        auto base_counts_range = make_transform_range([&]( Variant const& var )  {
+        // Return the SampleCounts part of the Variants in the window.
+        auto sample_counts_range = make_transform_range([&]( Variant const& var )  {
             auto copy = var;
             transform_zero_out_by_min_count( copy, min_allele_count );
             return copy.samples;
         }, window);
 
         // Call an fst computation on that.
-        f_st_pool_kofler( poolsizes, base_counts_range.begin(), base_counts_range.end() );
-        f_st_pool_karlsson( base_counts_range.begin(), base_counts_range.end() );
-        f_st_pool_unbiased_nei( poolsizes, base_counts_range.begin(), base_counts_range.end() );
-        f_st_pool_unbiased_hudson( poolsizes, base_counts_range.begin(), base_counts_range.end() );
+        f_st_pool_kofler( poolsizes, sample_counts_range.begin(), sample_counts_range.end() );
+        f_st_pool_karlsson( sample_counts_range.begin(), sample_counts_range.end() );
+        f_st_pool_unbiased_nei( poolsizes, sample_counts_range.begin(), sample_counts_range.end() );
+        f_st_pool_unbiased_hudson( poolsizes, sample_counts_range.begin(), sample_counts_range.end() );
     }
 }
 

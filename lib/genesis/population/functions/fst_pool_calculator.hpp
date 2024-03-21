@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/variant.hpp"
 
 #include <vector>
@@ -44,7 +44,7 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief Base class to compute FST between two pooled samples, given two instances of BaseCounts.
+ * @brief Base class to compute FST between two pooled samples, given two instances of SampleCounts.
  *
  * The class is to be derived from for the actual computation, such as in FstPoolCalculatorKarlsson,
  * FstPoolCalculatorKofler, or FstPoolCalculatorUnbiased, with three virtual methods to override.
@@ -85,7 +85,7 @@ public:
         return reset_();
     }
 
-    void process( BaseCounts const& p1, BaseCounts const& p2 )
+    void process( SampleCounts const& p1, SampleCounts const& p2 )
     {
         // For now, we accept two populations as input here.
         // If we ever implement an FST equation that also works for multiple populations,
@@ -106,7 +106,7 @@ protected:
 
     // Non-virtual interface.
     virtual void reset_() = 0;
-    virtual void process_( BaseCounts const& p1, BaseCounts const& p2 ) = 0;
+    virtual void process_( SampleCounts const& p1, SampleCounts const& p2 ) = 0;
     virtual double get_result_() = 0;
 
 };

@@ -926,10 +926,10 @@ VariantInputStream make_variant_merging_input_stream(
                 );
             }
 
-            // Now we create a new samples vector (no way around that), with BaseCount instances
+            // Now we create a new samples vector (no way around that), with SampleCounts instances
             // that are all initialized to 0 at all counts, and merge the samples into it,
             // as given by our group assignment.
-            variant.samples = std::vector<BaseCounts>( grouping.group_names.size() );
+            variant.samples = std::vector<SampleCounts>( grouping.group_names.size() );
             for( size_t i = 0; i < sample_count; ++i ) {
                 auto const group_idx = grouping.group_assignments[i];
 

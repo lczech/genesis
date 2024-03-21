@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/streams/variant_parallel_input_stream.hpp"
 #include "genesis/population/filter/variant_filter_numerical.hpp"

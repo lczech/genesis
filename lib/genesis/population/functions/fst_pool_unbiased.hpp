@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief Compute our unbiased F_ST statistic for pool-sequenced data for two ranges of BaseCounts%s.
+ * @brief Compute our unbiased F_ST statistic for pool-sequenced data for two ranges of SampleCounts%s.
  *
  * This is our novel approach for estimating F_ST, using pool-sequencing corrected estimates
  * of Pi within, Pi between, and Pi total, to compute F_ST following the definitions of
@@ -143,14 +143,14 @@ private:
         pi_t_sum_ = 0.0;
     }
 
-    void process_( BaseCounts const& p1, BaseCounts const& p2 ) override
+    void process_( SampleCounts const& p1, SampleCounts const& p2 ) override
     {
         // Compute pi values for the snp.
         // The tuple `pi_snp` returns pi within, between, and total, in that order.
         auto const pi_snp = f_st_pool_unbiased_pi_snp( p1_poolsize_, p2_poolsize_, p1, p2 );
 
         // Skip invalid entries than can happen when less than two of [ACGT] have
-        // counts > 0 in one of the BaseCounts samples.
+        // counts > 0 in one of the SampleCounts samples.
         if(
             std::isfinite( std::get<0>( pi_snp )) &&
             std::isfinite( std::get<1>( pi_snp )) &&
@@ -204,7 +204,7 @@ public:
      */
     static std::tuple<double, double, double> f_st_pool_unbiased_pi_snp(
         size_t p1_poolsize, size_t p2_poolsize,
-        BaseCounts const& p1_counts, BaseCounts const& p2_counts
+        SampleCounts const& p1_counts, SampleCounts const& p2_counts
     ) {
         using namespace genesis::utils;
 

@@ -49,7 +49,7 @@ namespace population {
  * @brief Counts of how many entries with a particular Filter Tag occured in some data.
  *
  * This wrapper around an array is a very simple solution to keep track of the number of entries
- * (Variant%s or BaseCount%s) that had each filter tag in some data. By simply creating a
+ * (Variant%s or SampleCounts) that had each filter tag in some data. By simply creating a
  * `std::array` that has as many entries as we have filter tags, we have a slot for every tag.
  * These can then be incremented while streaming through the data, and read and printed later.
  *

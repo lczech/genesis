@@ -401,7 +401,7 @@ public:
 
     /**
      * @brief Get the currently set minimum phred quality score that a base needs to have
-     * to be added to the Variant BaseCounts for a sample.
+     * to be added to the Variant SampleCounts for a sample.
      *
      * This is only used for the reading and parsing functions that return Variant%s.
      */
@@ -412,7 +412,7 @@ public:
 
     /**
      * @brief Set the minimum phred quality score that a base needs to have
-     * to be added to the Variant BaseCounts for a sample.
+     * to be added to the Variant SampleCounts for a sample.
      *
      * Bases below this quality score are ignored when summing up the counts per sample.
      * Default is 0, meaning that all bases are used.
@@ -446,7 +446,7 @@ private:
 
     /**
      * @brief Helper function to parse a pileup sample,
-     * either into a Record::Sample, or a BaseCount.
+     * either into a Record::Sample, or a SampleCounts.
      */
     template<class T, class S>
     void process_sample_(
@@ -490,7 +490,7 @@ private:
 
     void tally_base_(
         utils::InputStream& input_stream,
-        BaseCounts& base_count,
+        SampleCounts& base_count,
         char b
     ) const;
 

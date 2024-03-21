@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,12 +44,12 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief Output a BaseCounts instance to a stream in the PoPoolation2 sync format.
+ * @brief Output a SampleCounts instance to a stream in the PoPoolation2 sync format.
  *
  * This is one column from that file, outputting the counts separated by colons, in the order
  * `A:T:C:G:N:D`, with `D` being deletions (`*` in pileup).
  */
-std::ostream& to_sync( BaseCounts const& bs, std::ostream& os );
+std::ostream& to_sync( SampleCounts const& bs, std::ostream& os );
 
 /**
  * @brief Output a Variant instance to a stream in the PoPoolation2 sync format.

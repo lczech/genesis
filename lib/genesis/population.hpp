@@ -33,7 +33,6 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
-#include "genesis/population/base_counts.hpp"
 #include "genesis/population/filter/filter_stats.hpp"
 #include "genesis/population/filter/filter_status.hpp"
 #include "genesis/population/filter/sample_counts_filter.hpp"
@@ -83,6 +82,7 @@
 #include "genesis/population/plotting/cathedral_plot.hpp"
 #include "genesis/population/plotting/genome_heatmap.hpp"
 #include "genesis/population/plotting/heatmap_colorization.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/streams/variant_gapless_input_stream.hpp"
 #include "genesis/population/streams/variant_input_stream.hpp"
 #include "genesis/population/streams/variant_parallel_input_stream.hpp"

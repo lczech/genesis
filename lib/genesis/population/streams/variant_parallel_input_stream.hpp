@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/functions/genome_locus.hpp"
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/population/streams/variant_input_stream.hpp"
@@ -72,7 +72,7 @@ namespace population {
  * the @link genesis::utils::Optional Optional@endlink is empty.
  * Use the dereference `operator*()` and `operator->()` of the iterator or the access functions
  * variants() and variant_at() to get the set of variants at the current locus() of the iteration,
- * or use joined_variant() to get one Variant that has all sample BaseCounts joined into it.
+ * or use joined_variant() to get one Variant that has all sample SampleCounts joined into it.
  *
  * Furthermore, using the @link VariantParallelInputStream::inputs() inputs()@endlink and
  * @link VariantParallelInputStream::input_at( size_t ) input_at()@endlink functions, which are
@@ -214,7 +214,7 @@ public:
      * This is the class that does the actual work. Use the dereference `operator*()`
      * and `operator->()` or the access functions variants() and variant_at() to get the set of
      * variants at the current locus() of the iteration, or use joined_variant() to get one
-     * Variant that has all sample BaseCounts joined into it.
+     * Variant that has all sample SampleCounts joined into it.
      */
     class Iterator
     {
@@ -347,10 +347,10 @@ public:
          * @brief Create a single Variant instance that combines all Variant%s from the input
          * sources at the current locus.
          *
-         * This joins all BaseCounts of all Variant%s of the input sources at the current locus.
-         * For sources that have no data at the current position, as many empty BaseCounts
+         * This joins all SampleCounts of all Variant%s of the input sources at the current locus.
+         * For sources that have no data at the current position, as many empty SampleCounts
          * (with all zero counts) are inserted as the iterator has samples; hence, the number
-         * of BaseCounts in the Variant::samples of the returned Variant (as indicated by
+         * of SampleCounts in the Variant::samples of the returned Variant (as indicated by
          * Variant.samples.size()) is kept consistent at each locus.
          *
          * By default, we expect that the Variant%s of each iterator have the same
@@ -362,7 +362,7 @@ public:
          * @p allow_alt_base_mismatches as needed. When a mismatch is allowed, in cases of
          * a mismatch, the returned Variant will contain an `'N'` as the base.
          *
-         * Lastly, by default, we copy the BaseCounts of all Variant::samples into the resulting
+         * Lastly, by default, we copy the SampleCounts of all Variant::samples into the resulting
          * Variant. If however these are not needed at the current iterator position any more
          * (that is, if this iterator is not dereferenced or the variants() function is not called)
          * after calling this function, we can instead move them, for efficiency, by providing
@@ -493,7 +493,7 @@ public:
         // as they are themselves able to tell us if they are still good (via their operator bool).
         std::vector<VariantInputStream::Iterator> iterators_;
 
-        // We need to store how many samples (BaseCounts objects) the Variant of each iterator has,
+        // We need to store how many samples (SampleCounts objects) the Variant of each iterator has,
         // in order to fill in the empty ones at the iterator positions where they don't have data.
         // We cannot always look that up from the iterators themselves, as they might already have
         // reached their end of the data while others are still having data, so we store it here.

@@ -33,7 +33,7 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/functions/genome_locus.hpp"
 #include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/genome_locus.hpp"
@@ -92,10 +92,10 @@ namespace population {
  *     }
  *
  * By default, as above, all reads are considered to be belonging to the same sample.
- * In that case hence, the above inner loop over samples will only ever go through one BaseCounts
+ * In that case hence, the above inner loop over samples will only ever go through one SampleCounts
  * object stored in the Variant.
  * We however are also able to split by read group (`@RG`), see split_by_rg() and
- * with_unaccounted_rg() for details. In that case, the Variant contains one BaseCounts object
+ * with_unaccounted_rg() for details. In that case, the Variant contains one SampleCounts object
  * per read group, as well as potentially a special one for unaccounted reads with no proper RG.
  * This can further be filtered by setting rg_tag_filter(), to only consider certain RG tags
  * as samples to be produced.
@@ -151,7 +151,7 @@ public:
      * @brief %Iterator over loci of the input sources.
      *
      * This is the class that does the actual work of turning the underlying file data into
-     * our Variant and BaseCounts samples. Use the dereference `operator*()`
+     * our Variant and SampleCounts samples. Use the dereference `operator*()`
      * and `operator->()` to get the Variant at the current locus of the iteration.
      */
     class Iterator
@@ -255,7 +255,7 @@ public:
          * This function is useful when
          * @link SamVariantInputStream::split_by_rg( bool ) split_by_rg()@endlink is set to `true`,
          * so that the reads are split by their read group tags. The function then returns
-         * the RG read group tag names, in the same order that the BaseCounts objects are stored
+         * the RG read group tag names, in the same order that the SampleCounts objects are stored
          * in the resulting Variant of this iterator.
          *
          * When additionally
@@ -265,12 +265,12 @@ public:
          *
          * When using rg_tag_filter() to sub-set the RG tags (samples) being processed, this
          * function by default only returnes those sample names (RG tags) that represent the
-         * final BaseCounts samples of the resulting Variant when iterating the data
+         * final SampleCounts samples of the resulting Variant when iterating the data
          * (and potentially including the "unaccounted" group).
          *
          * If @link SamVariantInputStream::split_by_rg( bool ) split_by_rg()@endlink is `false`,
          * we are not splitting by read group tags, so then this function returns an empty vector.
-         * Note that the Variant that is produced during iteration still contains one BaseCounts
+         * Note that the Variant that is produced during iteration still contains one SampleCounts
          * sample, which collects all counts from all reads.
          *
          * All of the above is ignored if the argument @p all_header_tags is set to `true`.
@@ -283,7 +283,7 @@ public:
         std::vector<std::string> rg_tags( bool all_header_tags = false ) const;
 
         /**
-         * @brief Return the size of the Variant::sample vector of BaseCounts that is produced
+         * @brief Return the size of the Variant::sample vector of SampleCounts that is produced
          * by the iterator.
          */
         size_t sample_size() const;
@@ -662,7 +662,7 @@ public:
      * @brief If set to `true`, instead of reading all mapped reads as a single sample,
      * split them by the `@RG` read group tag.
      *
-     * This way, multiple BaseCounts objects are created in the resulting Variant, one for each
+     * This way, multiple SampleCounts objects are created in the resulting Variant, one for each
      * read group, and potentially an additional one for the unaccounted reads that do not have a
      * read group, if with_unaccounted_rg() is also set.
      */
@@ -682,7 +682,7 @@ public:
      * when splitting by `@RG` tag.
      *
      * If split_by_rg() and this option are both set to `true`, also add a special sample for
-     * the reads without a read group, as the last BaseCounts object of the Variant.
+     * the reads without a read group, as the last SampleCounts object of the Variant.
      * If this option here is however set to `false`, all reads without a read group tag or
      * with an invalid read group tag (that does not appear in the header) are ignored.
      * If split_by_rg() is not set to `true`, this option here is completely ignored.

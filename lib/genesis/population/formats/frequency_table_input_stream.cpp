@@ -909,7 +909,7 @@ void FrequencyTableInputStream::Iterator::increment_()
     assert( header_info_.sample_infos.size() == sample_data_->size() );
     assert( header_info_.sample_infos.size() == current_variant_->samples.size() );
 
-    // Now turn all intermediate data into base counts.
+    // Now turn all intermediate data into sample counts.
     // We go in random order here, following the content of header_info_.sample_infos
     // Not sure if that matters much speed-wise, but it's the easiest to implement for now.
     for( auto const& sample_info : header_info_.sample_infos ) {
@@ -932,8 +932,8 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
 ) {
     // Store the counts that we get first here,
     // and then use one routine to assign them to the sample later.
-    BaseCounts::size_type ref_cnt = 0;
-    BaseCounts::size_type alt_cnt = 0;
+    SampleCounts::size_type ref_cnt = 0;
+    SampleCounts::size_type alt_cnt = 0;
     bool do_frq_check = false;
 
     if( sample_info.has_ref && sample_info.has_alt ) {
@@ -1015,7 +1015,7 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
             // Nothing to do, we keep the counts at 0.
         } else if( sample_info.has_cov ) {
             // Avoid rounding errors by doing the second number directly on integers.
-            ref_cnt = static_cast<BaseCounts::size_type>( sample_data.cov * frq );
+            ref_cnt = static_cast<SampleCounts::size_type>( sample_data.cov * frq );
             alt_cnt = sample_data.cov - ref_cnt;
         } else if( sample_info.has_ref ) {
             // We have a frequency f, and a ref count r.
@@ -1024,23 +1024,23 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
             // Let's hope for the best - in particular, that all numbers behave nicely.
             ref_cnt = sample_data.ref_cnt;
             auto const ref_dbl = static_cast<double>( ref_cnt );
-            alt_cnt = static_cast<BaseCounts::size_type>(( ref_dbl / frq ) - ref_dbl );
+            alt_cnt = static_cast<SampleCounts::size_type>(( ref_dbl / frq ) - ref_dbl );
         } else if( sample_info.has_alt ) {
             // Same idea as above, but the other way round.
             alt_cnt = sample_data.alt_cnt;
             auto const alt_dbl = static_cast<double>( alt_cnt );
-            ref_cnt = static_cast<BaseCounts::size_type>( alt_dbl / (( 1.0 / frq ) - 1.0 ));
+            ref_cnt = static_cast<SampleCounts::size_type>( alt_dbl / (( 1.0 / frq ) - 1.0 ));
         } else {
             // If no count is given at all, we use a different strategy instead.
             // Multiply by our large number, to get an int that can be prepresented in double.
             auto const int_fac = parent_->int_factor_;
-            ref_cnt = static_cast<BaseCounts::size_type>( int_fac * frq );
-            alt_cnt = static_cast<BaseCounts::size_type>( int_fac ) - ref_cnt;
+            ref_cnt = static_cast<SampleCounts::size_type>( int_fac * frq );
+            alt_cnt = static_cast<SampleCounts::size_type>( int_fac ) - ref_cnt;
 
             // Also, make sure that the large number actually fits into the size type.
             // We check that when setting the value, but let's be safe.
             assert(
-                static_cast<double>( static_cast<BaseCounts::size_type>( int_fac )) == int_fac
+                static_cast<double>( static_cast<SampleCounts::size_type>( int_fac )) == int_fac
             );
         }
 
@@ -1099,7 +1099,7 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
     }
 
     // (Re-)set the base counts
-    variant.samples[sample_index] = BaseCounts();
+    variant.samples[sample_index] = SampleCounts();
     set_base_count( variant.samples[sample_index], ref_base, ref_cnt );
     set_base_count( variant.samples[sample_index], alt_base, alt_cnt );
 }

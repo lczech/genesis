@@ -124,7 +124,7 @@ std::function<void(Variant&)> make_variant_input_stream_sample_name_filter_trans
         }
 
         // Allocate a samples vector of the right size, and move samples around.
-        std::vector<BaseCounts> samples;
+        std::vector<SampleCounts> samples;
         samples.reserve( pop_count );
         for( size_t i = 0; i < sample_filter.size(); ++i ) {
             if( sample_filter[i] ) {

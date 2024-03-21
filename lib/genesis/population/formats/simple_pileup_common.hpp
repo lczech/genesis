@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ namespace population {
 //     Simple (m)pileup Reader Helper Functions
 // =================================================================================================
 
-BaseCounts convert_to_base_counts(
+SampleCounts convert_to_sample_counts(
     SimplePileupReader::Sample const& sample,
     unsigned char min_phred_score = 0
 );

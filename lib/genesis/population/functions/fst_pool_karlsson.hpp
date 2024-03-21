@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ namespace population {
 
 /**
  * @brief Compute the F_ST statistic for pool-sequenced data of Karlsson et al
- * as used in PoPoolation2, for two ranges of BaseCounts%s.
+ * as used in PoPoolation2, for two ranges of SampleCounts%s.
  *
  * The approach is called the "asymptotically unbiased" estimator in PoPoolation2 [1],
  * and follows Karlsson et al [2].
@@ -110,10 +110,10 @@ private:
         sum_dk_ = 0.0;
     }
 
-    void process_( BaseCounts const& p1, BaseCounts const& p2 ) override
+    void process_( SampleCounts const& p1, SampleCounts const& p2 ) override
     {
         // Get intermediate values and add them up.
-        auto const counts = sorted_average_base_counts( p1, p2 );
+        auto const counts = sorted_average_sample_counts( p1, p2 );
         auto const nkdk = f_st_pool_karlsson_nkdk( counts );
         sum_nk_ += nkdk.first;
         sum_dk_ += nkdk.second;
@@ -135,10 +135,10 @@ public:
      * unbiased F_ST estimator of Karlsson et al (2007).
      *
      * See f_st_pool_karlsson() for details. The function expects sorted base counts for the
-     * two samples of which we want to compute F_ST, which are produced by sorted_average_base_counts().
+     * two samples of which we want to compute F_ST, which are produced by sorted_average_sample_counts().
      */
     static std::pair<double, double> f_st_pool_karlsson_nkdk(
-        std::pair<SortedBaseCounts, SortedBaseCounts> const& sample_counts
+        std::pair<SortedSampleCounts, SortedSampleCounts> const& sample_counts
     ) {
         // PoPoolation2 function: calculate_nk_dk
         using namespace genesis::utils;

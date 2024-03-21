@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/base_counts.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/variant.hpp"
 
 namespace genesis {
@@ -42,11 +42,11 @@ namespace population {
 // =================================================================================================
 
 /**
- * @brief Transform a BaseCounts @p sample by sub-scaling the base counts (`A`, `C`, `G`, `T`, as
+ * @brief Transform a SampleCounts @p sample by sub-scaling the base counts (`A`, `C`, `G`, `T`, as
  * well as `N` and `D`) to sum up to @p max_coverage if @p max_coverage is exceeded for the sample.
  *
- * If the sum of counts (that is, BaseCounts::a_count, BaseCounts::c_count, BaseCounts::g_count,
- * BaseCounts::t_count, BaseCounts::n_count, and BaseCounts::d_count) exceeds the given
+ * If the sum of counts (that is, SampleCounts::a_count, SampleCounts::c_count, SampleCounts::g_count,
+ * SampleCounts::t_count, SampleCounts::n_count, and SampleCounts::d_count) exceeds the given
  * @p max_coverage, all counts are scaled proportionally so that their sum is @p max_coverage.
  * If the sum is below @p max_coverage, nothing happens.
  *
@@ -60,12 +60,12 @@ namespace population {
  * @see subsample_counts_without_replacement()
  */
 void subscale_counts(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t max_coverage
 );
 
 /**
- * @copydoc subscale_counts( BaseCounts&, size_t )
+ * @copydoc subscale_counts( SampleCounts&, size_t )
  *
  * This overload acts on all Variant::samples in the given @p variant.
  */
@@ -75,7 +75,7 @@ void subscale_counts(
 );
 
 /**
- * @brief Transform a BaseCounts @p sample by re-scaling the base counts (`A`, `C`, `G`, `T`, as
+ * @brief Transform a SampleCounts @p sample by re-scaling the base counts (`A`, `C`, `G`, `T`, as
  * well as `N` and `D`) to sum up to @p max if @p max_coverage is exceeded for the sample.
  *
  * This is identical to subscale_counts(), but performs the transformation regardless of whether
@@ -85,12 +85,12 @@ void subscale_counts(
  * @see subscale_counts()
  */
 void rescale_counts(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t target_coverage
 );
 
 /**
- * @copydoc rescale_counts( BaseCounts&, size_t )
+ * @copydoc rescale_counts( SampleCounts&, size_t )
  *
  * This overload acts on all Variant::samples in the given @p variant.
  */
@@ -104,12 +104,12 @@ void rescale_counts(
 // =================================================================================================
 
 /**
- * @brief Transform a BaseCounts @p sample by subsampling the nucleotide counts (`A`, `C`, `G`, `T`,
+ * @brief Transform a SampleCounts @p sample by subsampling the nucleotide counts (`A`, `C`, `G`, `T`,
  * as well as `N` and `D`) _with_ replacement to sum up to @p max if @p max_coverage is exceeded
  * for the sample.
  *
- * If the sum of nucleotide counts (that is, BaseCounts::a_count, BaseCounts::c_count,
- * BaseCounts::g_count, BaseCounts::t_count, BaseCounts::n_count, and BaseCounts::d_count) exceeds
+ * If the sum of nucleotide counts (that is, SampleCounts::a_count, SampleCounts::c_count,
+ * SampleCounts::g_count, SampleCounts::t_count, SampleCounts::n_count, and SampleCounts::d_count) exceeds
  * the given @p max_coverage, the counts are resampled _with_ replacement so that their sum is the
  * given @p max_coverage. This uses
  * @link ::genesis::utils::multinomial_distribution() multinomial_distribution()@endlink
@@ -120,12 +120,12 @@ void rescale_counts(
  * @see subsample_counts_without_replacement()
  */
 void subsample_counts_with_replacement(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t max_coverage
 );
 
 /**
- * @copydoc subsample_counts_with_replacement( BaseCounts&, size_t )
+ * @copydoc subsample_counts_with_replacement( SampleCounts&, size_t )
  *
  * This overload acts on all Variant::samples in the given @p variant.
  */
@@ -135,7 +135,7 @@ void subsample_counts_with_replacement(
 );
 
 /**
- * @brief Resample all counts in a BaseCounts @p sample to a new @p target_coverage.
+ * @brief Resample all counts in a SampleCounts @p sample to a new @p target_coverage.
  *
  * This samples _with_ replacement from a multinomial_distribution distrubtion based on the
  * previous counts of the @p sample. This is the same as subsample_counts_with_replacement(),
@@ -148,12 +148,12 @@ void subsample_counts_with_replacement(
  * already coveres that distribution.
  */
 void resample_counts(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t target_coverage
 );
 
 /**
- * @copydoc resample_counts( BaseCounts&, size_t )
+ * @copydoc resample_counts( SampleCounts&, size_t )
  *
  * This overload acts on all Variant::samples in the given @p variant.
  */
@@ -167,12 +167,12 @@ void resample_counts(
 // =================================================================================================
 
 /**
- * @brief Transform a BaseCounts @p sample by subsampling the nucleotide counts (`A`, `C`, `G`, `T`,
+ * @brief Transform a SampleCounts @p sample by subsampling the nucleotide counts (`A`, `C`, `G`, `T`,
  * as well as `N` and `D`) _without_ replacement to sum up to @p max if @p max_coverage is exceeded
  * for the sample.
  *
- * If the sum of nucleotide counts (that is, BaseCounts::a_count, BaseCounts::c_count,
- * BaseCounts::g_count, BaseCounts::t_count, BaseCounts::n_count, and BaseCounts::d_count) exceeds
+ * If the sum of nucleotide counts (that is, SampleCounts::a_count, SampleCounts::c_count,
+ * SampleCounts::g_count, SampleCounts::t_count, SampleCounts::n_count, and SampleCounts::d_count) exceeds
  * the given @p max_coverage, the counts are resampled _without_ replacement so that their sum is
  * the given @p max_coverage. This uses
  * @link ::genesis::utils::multivariate_hypergeometric_distribution() multivariate_hypergeometric_distribution()@endlink
@@ -182,12 +182,12 @@ void resample_counts(
  * @see subsample_counts_with_replacement()
  */
 void subsample_counts_without_replacement(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t max_coverage
 );
 
 /**
- * @copydoc subsample_counts_without_replacement( BaseCounts&, size_t )
+ * @copydoc subsample_counts_without_replacement( SampleCounts&, size_t )
  *
  * This overload acts on all Variant::samples in the given @p variant.
  */

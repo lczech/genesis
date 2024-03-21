@@ -265,19 +265,19 @@ private:
 
         void parse_sample_gcc_intrinsic_(
             utils::InputStream& input_stream,
-            BaseCounts&         sample
+            SampleCounts&         sample
         ) const;
 
     #endif
 
     void parse_sample_simple_(
         utils::InputStream& input_stream,
-        BaseCounts&         sample
+        SampleCounts&         sample
     ) const;
 
     void parse_sample_(
         utils::InputStream& input_stream,
-        BaseCounts&         sample
+        SampleCounts&         sample
     ) const;
 
     void skip_sample_(

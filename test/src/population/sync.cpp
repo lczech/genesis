@@ -299,7 +299,7 @@ TEST( Sync, SyncInputStream )
 
     // Test the while() approach
     size_t cnt_while = 0;
-    BaseCounts sum_while[2];
+    SampleCounts sum_while[2];
     auto it = SyncInputStream( from_file( infile ));
     while( it ) {
         EXPECT_EQ( 2, it->samples.size() );
@@ -329,7 +329,7 @@ TEST( Sync, SyncInputStream )
 
     // Test the for() approach
     size_t cnt_for = 0;
-    BaseCounts sum_for[2];
+    SampleCounts sum_for[2];
     for( auto it = SyncInputStream( from_file( infile )); it; ++it ) {
         EXPECT_EQ( 2, it->samples.size() );
         merge_inplace( sum_for[0], it->samples[0] );

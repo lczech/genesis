@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -306,7 +306,7 @@ bool SyncReader::parse_line_(
 
 void SyncReader::parse_sample_gcc_intrinsic_(
     utils::InputStream& input_stream,
-    BaseCounts&         sample
+    SampleCounts&         sample
 ) const {
     using namespace genesis::utils;
     auto& it = input_stream;
@@ -539,7 +539,7 @@ void SyncReader::parse_sample_gcc_intrinsic_(
 
 void SyncReader::parse_sample_simple_(
     utils::InputStream& input_stream,
-    BaseCounts&         sample
+    SampleCounts&         sample
 ) const {
     using namespace genesis::utils;
     auto& it = input_stream;
@@ -566,7 +566,7 @@ void SyncReader::parse_sample_simple_(
 
 void SyncReader::parse_sample_(
     utils::InputStream& input_stream,
-    BaseCounts&         sample
+    SampleCounts&         sample
 ) const {
     using namespace genesis::utils;
     auto& it = input_stream;
@@ -662,7 +662,7 @@ void SyncReader::skip_sample_(
     // The skip functions are slow, because they need char by char access to the input stream.
     // Need to fix this at some point. For now, just read into an unused dummy.
     // Not worth bothering with this too much now, as this is really fast anyway.
-    BaseCounts dummy;
+    SampleCounts dummy;
     parse_sample_( input_stream, dummy );
 
     // Simply skip everything.

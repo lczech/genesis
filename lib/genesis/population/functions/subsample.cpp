@@ -47,12 +47,12 @@ namespace population {
 // =================================================================================================
 
 void rescale_counts_(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t target_coverage,
     bool skip_if_below_target_coverage
 ) {
     // Get the total sum. If this does not exceed the max, we are done already.
-    size_t const total_sum = base_counts_sum(sample);
+    size_t const total_sum = sample_counts_sum(sample);
     if( skip_if_below_target_coverage && total_sum <= target_coverage ) {
         return;
     }
@@ -95,7 +95,7 @@ void rescale_counts_(
         // slower, which would add significant runtime to using this function for every position
         // in the genome.
         // auto const sorting_order = utils::sort_indices( frac.begin(), frac.end() );
-        auto const sorting_order = base_counts_sorting_order( frac );
+        auto const sorting_order = sample_counts_sorting_order( frac );
 
         // We need index-based access to the counts, so we make a list of pointers.
         auto const count_refs = std::array<size_t*, 6>{{
@@ -143,11 +143,11 @@ void rescale_counts_(
     sample.t_count = t_count;
     sample.n_count = n_count;
     sample.d_count = d_count;
-    assert( base_counts_sum( sample ) == target_coverage );
+    assert( sample_counts_sum( sample ) == target_coverage );
 }
 
 void subscale_counts(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t max_coverage
 ) {
     rescale_counts_( sample, max_coverage, true );
@@ -164,7 +164,7 @@ void subscale_counts(
 }
 
 void rescale_counts(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t target_coverage
 ) {
     rescale_counts_( sample, target_coverage, false );
@@ -190,13 +190,13 @@ void rescale_counts(
  */
 template<typename Distribution>
 void resample_counts_(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t max_coverage,
     Distribution distribution,
     bool skip_if_below_target_coverage
 ) {
     // Get the total sum. If this does not exceed the max, we are done already.
-    size_t const total_sum = base_counts_sum(sample);
+    size_t const total_sum = sample_counts_sum(sample);
     if( skip_if_below_target_coverage && total_sum <= max_coverage ) {
         return;
     }
@@ -222,11 +222,11 @@ void resample_counts_(
     sample.t_count = new_counts[3];
     sample.n_count = new_counts[4];
     sample.d_count = new_counts[5];
-    assert( base_counts_sum( sample ) == max_coverage );
+    assert( sample_counts_sum( sample ) == max_coverage );
 }
 
 void subsample_counts_with_replacement(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t max_coverage
 ) {
     // Call the local helper function template, to avoid code duplication.
@@ -246,7 +246,7 @@ void subsample_counts_with_replacement(
 }
 
 void resample_counts(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t target_coverage
 ) {
     // Call the local helper function template, to avoid code duplication.
@@ -266,7 +266,7 @@ void resample_counts(
 }
 
 void subsample_counts_without_replacement(
-    BaseCounts& sample,
+    SampleCounts& sample,
     size_t max_coverage
 ) {
     // Call the local helper function template, to avoid code duplication.

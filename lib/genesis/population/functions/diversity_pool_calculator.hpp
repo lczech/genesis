@@ -67,7 +67,7 @@ namespace population {
  *
  * We do expect here that the input samples that are provided to the process() function
  * are already filtered and transformed as needed.
- * For example, typically, we want to use a BaseCountsFilter with these settings:
+ * For example, typically, we want to use a SampleCountsFilter with these settings:
  *
  *     filter.min_count = settings.min_count;
  *     filter.min_coverage = settings.min_coverage;
@@ -75,7 +75,7 @@ namespace population {
  *     filter.only_snps = true;
  *
  * That is, the settings for the pool statistics should match the settings used for filtering the
- * samples. The function filter_base_counts() can be used to transform and filter the input
+ * samples. The function filter_sample_counts() can be used to transform and filter the input
  * coming from a file, in order to remove base counts and samples that do not match these filters.
  *
  * There are multiple ways that this filtering can be applied. Typically for example, we want
@@ -83,12 +83,12 @@ namespace population {
  * file formats, all converted into Variant%s at each position in the genome. This internally
  * is a genesis::utils::GenericInputStream, which offers to add
  * @link genesis::utils::GenericInputStream::add_transform_filter() add_transform_filter()@endlink
- * functions for this purpose. The make_filter_base_counts() is a convenience function that creates
- * such a filter/transform function given a BaseCountsFilter settings instance.
+ * functions for this purpose. The make_filter_sample_counts() is a convenience function that creates
+ * such a filter/transform function given a SampleCountsFilter settings instance.
  *
  * Alternaively, genesis::utils::make_filter_range() can be used to achieve the same effect,
  * but requiring a bit more manual "wiring" of the components first. This however has the advantage
- * that BaseCountsFilterStats can be provided, e.g., per window of the analysis, to capture the
+ * that SampleCountsFilterStats can be provided, e.g., per window of the analysis, to capture the
  * number of sites that pass coverage filters etc. These numbers can then be used for
  * get_theta_pi_relative() and get_theta_watterson_relative(), respectively. Otherwise (when instead
  * filtering directly in the VariantInputStream), these numbers are lost, and instead the relative
@@ -220,7 +220,7 @@ public:
      * This function here also returns both of them (Pi first, Watterson second) for the given
      * sample, as a convenience.
      */
-    std::pair<double, double> process( BaseCounts const& sample )
+    std::pair<double, double> process( SampleCounts const& sample )
     {
         double tp = 0.0;
         double tw = 0.0;
@@ -254,7 +254,7 @@ public:
     /**
      * @brief Get the absolute value of Theta Pi.
      *
-     * This is the sum of all values for all BaseCounts samples that have been given to process().
+     * This is the sum of all values for all SampleCounts samples that have been given to process().
      */
     double get_theta_pi_absolute() const
     {
@@ -265,8 +265,8 @@ public:
      * @brief Compute the relative Theta Pi.
      *
      * According to PoPoolation, this is computed using only the number of SNPs with sufficient
-     * coverage in the given window. This can for example be computed from BaseCountsFilterStats,
-     * by using `coverage_count = BaseCountsFilterStats::passed + BaseCountsFilterStats::not_snp`.
+     * coverage in the given window. This can for example be computed from SampleCountsFilterStats,
+     * by using `coverage_count = SampleCountsFilterStats::passed + SampleCountsFilterStats::not_snp`.
      *
      * Alternaively, using the whole window size might also we a way to compute a relative value.
      * However, this might underestimate diversity in regions with low coverage, as then, we might
@@ -281,7 +281,7 @@ public:
     /**
      * @brief Get the absolute value of Theta Watterson.
      *
-     * This is the sum of all values for all BaseCounts samples that have been given to process().
+     * This is the sum of all values for all SampleCounts samples that have been given to process().
      */
     double get_theta_watterson_absolute() const
     {
@@ -302,13 +302,13 @@ public:
      * @brief Compute the value for Tajima's D, using the computed values for Theta Pi and Theta
      * Watterson.
      *
-     * This uses the sums of all values for all BaseCounts samples that have been given to process().
+     * This uses the sums of all values for all SampleCounts samples that have been given to process().
      * By default, we use @p snp_count equal to the processed_count of positions that have been
      * given to process(); providing a different number here can be useful in situations were
      * some SNP positions were filtered externally for some reason, and can then for example
-     * be obtained from BaseCountsFilterStats::passed. Typically though, we would expect
+     * be obtained from SampleCountsFilterStats::passed. Typically though, we would expect
      * both numbers to be equal, that is, the get_processed_count() number here, and the
-     * BaseCountsFilterStats::passed number obtained from filtering for SNPs.
+     * SampleCountsFilterStats::passed number obtained from filtering for SNPs.
      */
     double compute_tajima_d( size_t snp_count = 0 ) const
     {
