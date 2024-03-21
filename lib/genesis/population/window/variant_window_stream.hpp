@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/streams/variant_input_stream.hpp"
+#include "genesis/population/stream/variant_input_stream.hpp"
 #include "genesis/population/window/base_window_stream.hpp"
 #include "genesis/population/window/window_view_stream.hpp"
 #include "genesis/population/window/window_view.hpp"

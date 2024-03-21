@@ -33,10 +33,10 @@
 #include "src/common.hpp"
 
 #include "genesis/population/variant.hpp"
-#include "genesis/population/functions/functions.hpp"
-#include "genesis/population/formats/vcf_common.hpp"
-#include "genesis/population/formats/vcf_header.hpp"
-#include "genesis/population/formats/vcf_record.hpp"
+#include "genesis/population/function/functions.hpp"
+#include "genesis/population/format/vcf_common.hpp"
+#include "genesis/population/format/vcf_header.hpp"
+#include "genesis/population/format/vcf_record.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;

@@ -32,11 +32,11 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/formats/hts_file.hpp"
-#include "genesis/population/formats/vcf_common.hpp"
-#include "genesis/population/formats/vcf_header.hpp"
-#include "genesis/population/formats/vcf_input_stream.hpp"
-#include "genesis/population/formats/vcf_record.hpp"
+#include "genesis/population/format/hts_file.hpp"
+#include "genesis/population/format/vcf_common.hpp"
+#include "genesis/population/format/vcf_header.hpp"
+#include "genesis/population/format/vcf_input_stream.hpp"
+#include "genesis/population/format/vcf_record.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <bitset>

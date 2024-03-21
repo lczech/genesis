@@ -31,13 +31,13 @@
 #include "src/common.hpp"
 
 #include "genesis/population/sample_counts.hpp"
-#include "genesis/population/streams/variant_input_stream.hpp"
-#include "genesis/population/streams/variant_parallel_input_stream.hpp"
+#include "genesis/population/stream/variant_input_stream.hpp"
+#include "genesis/population/stream/variant_parallel_input_stream.hpp"
 #include "genesis/population/filter/variant_filter_numerical.hpp"
 #include "genesis/population/filter/variant_filter_positional.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/functions/functions.hpp"
-#include "genesis/population/functions/variant_input_stream.hpp"
+#include "genesis/population/function/functions.hpp"
+#include "genesis/population/function/variant_input_stream.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <unordered_set>

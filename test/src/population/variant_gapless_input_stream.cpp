@@ -30,11 +30,11 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/functions/functions.hpp"
-#include "genesis/population/functions/genome_locus.hpp"
+#include "genesis/population/function/functions.hpp"
+#include "genesis/population/function/genome_locus.hpp"
 #include "genesis/population/genome_region.hpp"
-#include "genesis/population/streams/variant_gapless_input_stream.hpp"
-#include "genesis/population/streams/variant_input_stream.hpp"
+#include "genesis/population/stream/variant_gapless_input_stream.hpp"
+#include "genesis/population/stream/variant_input_stream.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/sequence/functions/dict.hpp"
 #include "genesis/utils/containers/generic_input_stream.hpp"

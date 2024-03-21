@@ -31,9 +31,9 @@
 #include "src/common.hpp"
 
 #include "genesis/population/sample_counts.hpp"
-#include "genesis/population/formats/sam_flags.hpp"
-#include "genesis/population/formats/sam_variant_input_stream.hpp"
-#include "genesis/population/functions/functions.hpp"
+#include "genesis/population/format/sam_flags.hpp"
+#include "genesis/population/format/sam_variant_input_stream.hpp"
+#include "genesis/population/function/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/text/string.hpp"
 

@@ -30,9 +30,9 @@
 
 #include "src/common.hpp"
 
-#include "genesis/population/formats/simple_pileup_input_stream.hpp"
-#include "genesis/population/formats/simple_pileup_reader.hpp"
-#include "genesis/population/streams/variant_input_stream.hpp"
+#include "genesis/population/format/simple_pileup_input_stream.hpp"
+#include "genesis/population/format/simple_pileup_reader.hpp"
+#include "genesis/population/stream/variant_input_stream.hpp"
 #include "genesis/population/window/functions.hpp"
 #include "genesis/population/window/chromosome_stream.hpp"
 #include "genesis/population/window/window.hpp"

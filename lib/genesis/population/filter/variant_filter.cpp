@@ -30,7 +30,7 @@
 
 #include "genesis/population/filter/variant_filter.hpp"
 
-#include "genesis/population/functions/functions.hpp"
+#include "genesis/population/function/functions.hpp"
 #include "genesis/utils/text/char.hpp"
 
 #include <cassert>

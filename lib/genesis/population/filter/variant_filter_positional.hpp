@@ -33,7 +33,7 @@
 
 #include "genesis/population/sample_counts.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/functions/genome_region.hpp"
+#include "genesis/population/function/genome_region.hpp"
 #include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/variant.hpp"
