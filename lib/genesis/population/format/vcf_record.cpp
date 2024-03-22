@@ -347,6 +347,8 @@ bool VcfRecord::pass_filter() const
     // We here take a shortcut to avoid the above string copy in has_filter().
     // However, we still have to explicitly create the char array, as the htslib function
     // expects a non-const char*, which does not work by simply passing "PASS" as a string literal.
+    // This also covers '.' (no filter applied), as according to the htslib doc and code,
+    // "PASS" and "." can be used interchangeably.
     char pass[] = "PASS";
     return ::bcf_has_filter( header_->data(), record_, pass );
 }

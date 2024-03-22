@@ -813,12 +813,14 @@ void SamVariantInputStream::Iterator::increment_()
     current_variant_.position = static_cast<size_t>( pos ) + 1;
     current_variant_.reference_base = 'N';
     current_variant_.alternative_base = 'N';
+    current_variant_.status.reset();
 
     // Resize to the number of samples, and reset the variant base count tallies for all samples.
     // We fully resize here, in case that the current_variant_ has been moved from by the user,
     // see https://stackoverflow.com/a/55054380/4184258. All other member variables of the Variant
     // are in defined states after being moved from, so the above initializations are okay,
     // but the vector might be empty or of the wrong size afterwards.
+    // This also resets all counts to 0, and the status to passing.
     current_variant_.samples.resize( handle_->target_sample_count_ );
     for( auto& sample : current_variant_.samples ) {
         sample = SampleCounts();

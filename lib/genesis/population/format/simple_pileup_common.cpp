@@ -166,7 +166,7 @@ Variant convert_to_variant(
     // Also, we do not set the alt base if it does not have any counts, and in that case is also
     // meaningless to have an alt base.
     if( is_valid_base( result.reference_base )) {
-        auto const sorted = sorted_sample_counts( result, true );
+        auto const sorted = sorted_sample_counts( result, true, SampleCountsFilterPolicy::kAll );
         if( sorted[1].count > 0 ) {
             result.alternative_base = utils::to_upper( sorted[1].base );
         }

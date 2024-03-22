@@ -403,7 +403,8 @@ public:
     bool has_filter( std::string const& filter ) const;
 
     /**
-     * @brief Return whether the record passes the filters, that is, whether `PASS` is set.
+     * @brief Return whether the record passes the filters, that is, whether `PASS` is set,
+     * or no filters were applied yet (`FILTER == '.'`).
      *
      * This is identical to calling has_filter() with the argument `"PASS"`, and is the preferred
      * method to test whether a record line has passed all filters (return value `true`), or not

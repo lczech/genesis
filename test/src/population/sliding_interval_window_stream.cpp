@@ -33,6 +33,8 @@
 #include "genesis/population/format/simple_pileup_input_stream.hpp"
 #include "genesis/population/format/simple_pileup_reader.hpp"
 #include "genesis/population/stream/variant_input_stream.hpp"
+#include "genesis/population/stream/variant_input_stream_sources.hpp"
+#include "genesis/population/stream/variant_input_stream_adapters.hpp"
 #include "genesis/population/window/functions.hpp"
 #include "genesis/population/window/sliding_interval_window_stream.hpp"
 #include "genesis/population/window/variant_window_stream.hpp"

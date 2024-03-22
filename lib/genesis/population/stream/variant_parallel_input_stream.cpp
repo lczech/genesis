@@ -30,6 +30,8 @@
 
 #include "genesis/population/stream/variant_parallel_input_stream.hpp"
 
+#include "genesis/population/filter/sample_counts_filter.hpp"
+#include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/utils/core/logging.hpp"
 
 #include <algorithm>
@@ -137,9 +139,7 @@ VariantParallelInputStream::Iterator::Iterator(
 // =================================================================================================
 
 Variant VariantParallelInputStream::Iterator::joined_variant(
-    bool allow_ref_base_mismatches,
-    bool allow_alt_base_mismatches,
-    bool move_samples
+    JoinedVariantParams const& params
 ) {
     assert( iterators_.size() == variants_.size() );
     assert( iterators_.size() == variant_sizes_.size() );
@@ -165,10 +165,14 @@ Variant VariantParallelInputStream::Iterator::joined_variant(
 
     // Go through all variants, and for those that have data, check the data correctness,
     // and add them to the result.
+    size_t missing_cnt = 0;
     for( size_t i = 0; i < variants_.size(); ++i ) {
 
         // If the variant has data, use it.
-        if( variants_[i] ) {
+        if(
+            variants_[i] &&
+            ( variants_[i]->status.passing() || ! params.treat_non_passing_variants_as_missing )
+        ) {
 
             // We already check all of the below when adding the data to variants_.
             // Still, assert that this is all good.
@@ -189,7 +193,7 @@ Variant VariantParallelInputStream::Iterator::joined_variant(
             if( res.reference_base != variants_[i]->reference_base ) {
                 if( res.reference_base == 'N' ) {
                     res.reference_base = variants_[i]->reference_base;
-                } else if( allow_ref_base_mismatches ) {
+                } else if( params.allow_ref_base_mismatches ) {
                     res.reference_base = 'N';
                 } else {
                     throw std::runtime_error(
@@ -203,7 +207,7 @@ Variant VariantParallelInputStream::Iterator::joined_variant(
             if( res.alternative_base != variants_[i]->alternative_base ) {
                 if( res.alternative_base == 'N' ) {
                     res.alternative_base = variants_[i]->alternative_base;
-                } else if( allow_alt_base_mismatches ) {
+                } else if( params.allow_alt_base_mismatches ) {
                     res.alternative_base = 'N';
                 } else {
                     throw std::runtime_error(
@@ -217,7 +221,7 @@ Variant VariantParallelInputStream::Iterator::joined_variant(
 
             // Now move or copy the samples. The reserve calls in the following are not necessary,
             // as we already allocate enough capacity above. We keep them here for future reference.
-            if( move_samples ) {
+            if( params.move_samples ) {
                 // res.samples.reserve( res.samples.size() + variants_[i]->samples.size() );
                 std::move(
                     std::begin( variants_[i]->samples ),
@@ -241,8 +245,20 @@ Variant VariantParallelInputStream::Iterator::joined_variant(
             // res.samples.reserve( res.samples.size() + variant_sizes_[i].size() );
             for( size_t k = 0; k < variant_sizes_[i]; ++k ) {
                 res.samples.emplace_back();
+                res.samples.back().status.set( SampleCountsFilterTag::kMissing );
             }
+            ++missing_cnt;
         }
+    }
+
+    // If all are missing, we are at an additional locus, and set the variant itself to missing.
+    if( missing_cnt == variants_.size() ) {
+        assert( !bases_init );
+        assert(
+            carrying_locus_it_ != parent_->carrying_loci_.cend() &&
+            locus_equal( *carrying_locus_it_, current_locus_ )
+        );
+        res.status.set( VariantFilterTag::kMissing );
     }
 
     // If none of the input sources had data, that means that we are currently at an

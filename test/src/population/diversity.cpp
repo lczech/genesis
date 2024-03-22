@@ -40,6 +40,8 @@
 #include "genesis/population/filter/variant_filter_numerical.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/stream/variant_input_stream.hpp"
+#include "genesis/population/stream/variant_input_stream_sources.hpp"
+#include "genesis/population/stream/variant_input_stream_adapters.hpp"
 #include "genesis/population/window/sliding_interval_window_stream.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"

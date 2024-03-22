@@ -83,16 +83,14 @@ enum class VariantFilterTag : FilterStatus::IntType
     /**
      * @brief Generic indicator that the Variant has not passed a filter.
      *
-     * Not used at the moment internally, but included here as a simple catch-all value if no
-     * further distrinction for the filter that failed is needed.
+     * A simple catch-all value if no further distrinction for the filter that failed is needed.
      */
     kNotPassed,
 
     /**
      * @brief Generic indicator that the Variant is invalid.
      *
-     * Not used at the moment internally. Similar to kNotPassed, this is a generic value for
-     * invalid Variants.
+     * Similar to kNotPassed, this is a generic value for invalid Variants.
      */
     kInvalid,
 

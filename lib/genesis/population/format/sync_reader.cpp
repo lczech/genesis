@@ -30,6 +30,8 @@
 
 #include "genesis/population/format/sync_reader.hpp"
 
+#include "genesis/population/filter/sample_counts_filter.hpp"
+#include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/function/functions.hpp"
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
@@ -292,6 +294,20 @@ bool SyncReader::parse_line_(
         variant.alternative_base = 'N';
     }
 
+    // Set the status of the Variant. If all samples are missing, so is this Variant.
+    variant.status.reset();
+    size_t missing_count = 0;
+    for( auto const& sample : variant.samples ) {
+        if( sample.status.is( SampleCountsFilterTag::kMissing )) {
+            ++missing_count;
+        }
+    }
+    if( missing_count == variant.samples.size() ) {
+        variant.status.set( VariantFilterTag::kMissing );
+    }
+
+    // We reched the end of the line or of the whole input.
+    // Move to the beginning of the next line.
     assert( !it || *it == '\n' );
     ++it;
     return true;
@@ -306,7 +322,7 @@ bool SyncReader::parse_line_(
 
 void SyncReader::parse_sample_gcc_intrinsic_(
     utils::InputStream& input_stream,
-    SampleCounts&         sample
+    SampleCounts&       sample
 ) const {
     using namespace genesis::utils;
     auto& it = input_stream;
@@ -539,7 +555,7 @@ void SyncReader::parse_sample_gcc_intrinsic_(
 
 void SyncReader::parse_sample_simple_(
     utils::InputStream& input_stream,
-    SampleCounts&         sample
+    SampleCounts&       sample
 ) const {
     using namespace genesis::utils;
     auto& it = input_stream;
@@ -566,75 +582,81 @@ void SyncReader::parse_sample_simple_(
 
 void SyncReader::parse_sample_(
     utils::InputStream& input_stream,
-    SampleCounts&         sample
+    SampleCounts&       sample
 ) const {
     using namespace genesis::utils;
     auto& it = input_stream;
     auto const buff = it.buffer();
 
-    // We find that almost all entries in real world data are single digits.
-    // Then, an entry has 11 chars: "0:0:6:0:0:0". Use this fact for super-charging the parsing.
-    // We check that all chars are exactly as we expect them. At the end, we only need to check that
-    // at position 12 there is no digit, that is, that the number is done and does not have any more
-    // digits. The check whether that char is valid in the context of the file is then done later
-    // in the next parsing step after finishing this function.
-    if(
-        buff.second >= 12              &&
-        buff.first[  0 ] == '\t'       &&
-        buff.first[  2 ] == ':'        &&
-        buff.first[  4 ] == ':'        &&
-        buff.first[  6 ] == ':'        &&
-        buff.first[  8 ] == ':'        &&
-        buff.first[ 10 ] == ':'        &&
-        is_digit(   buff.first[  1 ] ) &&
-        is_digit(   buff.first[  3 ] ) &&
-        is_digit(   buff.first[  5 ] ) &&
-        is_digit(   buff.first[  7 ] ) &&
-        is_digit(   buff.first[  9 ] ) &&
-        is_digit(   buff.first[ 11 ] ) &&
-        ! is_digit( buff.first[ 12 ] )
-    ) {
-        // Convert single digits from ASCII to their int value.
-        sample.a_count = buff.first[  1 ] - '0';
-        sample.t_count = buff.first[  3 ] - '0';
-        sample.c_count = buff.first[  5 ] - '0';
-        sample.g_count = buff.first[  7 ] - '0';
-        sample.n_count = buff.first[  9 ] - '0';
-        sample.d_count = buff.first[ 11 ] - '0';
+    // Reset the filter status of the sample, in case it was set to not passing previously.
+    sample.status.reset();
 
-        // Jump to the position after the last entry.
-        it.jump_unchecked( 12 );
-        return;
-    }
-
-    // If activated, allow the missing site notation `.:.:.:.:.:.` of Kapun.
+    // We have two special cases that we want to check: all single digits (in which case we can
+    // speed up the parsing by a lot!), and the missing data annotation format of Kapun.
+    // Both consist of the ?:?:?:?:?:? pattern with single characters in between the colons.
+    // We here check that part first, and then continue checking for the two special cases,
+    // in order to avoid having to double check the shared aspects of the pattern.
     if(
-        allow_missing_           &&
         buff.second >= 12        &&
         buff.first[  0 ] == '\t' &&
-        buff.first[  1 ] == '.'  &&
         buff.first[  2 ] == ':'  &&
-        buff.first[  3 ] == '.'  &&
         buff.first[  4 ] == ':'  &&
-        buff.first[  5 ] == '.'  &&
         buff.first[  6 ] == ':'  &&
-        buff.first[  7 ] == '.'  &&
         buff.first[  8 ] == ':'  &&
-        buff.first[  9 ] == '.'  &&
-        buff.first[ 10 ] == ':'  &&
-        buff.first[ 11 ] == '.'
+        buff.first[ 10 ] == ':'
     ) {
-        // Set everything to zero to signal zero coverage or missing data.
-        sample.a_count = 0;
-        sample.t_count = 0;
-        sample.c_count = 0;
-        sample.g_count = 0;
-        sample.n_count = 0;
-        sample.d_count = 0;
+        // We find that almost all entries in real world data are single digits.
+        // Then, an entry has 11 chars: "0:0:6:0:0:0". Use this fact for super-charging the parsing.
+        // We check that all chars are exactly as we expect them. At the end, we only need to check that
+        // at position 12 there is no digit, that is, that the number is done and does not have any more
+        // digits. The check whether that char is valid in the context of the file is then done later
+        // in the next parsing step after finishing this function.
+        if(
+            buff.second >= 13              &&
+            is_digit(   buff.first[  1 ] ) &&
+            is_digit(   buff.first[  3 ] ) &&
+            is_digit(   buff.first[  5 ] ) &&
+            is_digit(   buff.first[  7 ] ) &&
+            is_digit(   buff.first[  9 ] ) &&
+            is_digit(   buff.first[ 11 ] ) &&
+            ! is_digit( buff.first[ 12 ] )
+        ) {
+            // Convert single digits from ASCII to their int value.
+            sample.a_count = buff.first[  1 ] - '0';
+            sample.t_count = buff.first[  3 ] - '0';
+            sample.c_count = buff.first[  5 ] - '0';
+            sample.g_count = buff.first[  7 ] - '0';
+            sample.n_count = buff.first[  9 ] - '0';
+            sample.d_count = buff.first[ 11 ] - '0';
 
-        // Jump to the position after the last entry.
-        it.jump_unchecked( 12 );
-        return;
+            // Jump to the position after the last entry.
+            it.jump_unchecked( 12 );
+            return;
+        }
+
+        // If activated, allow the missing site notation `.:.:.:.:.:.` of Kapun.
+        if(
+            allow_missing_           &&
+            buff.first[  1 ] == '.'  &&
+            buff.first[  3 ] == '.'  &&
+            buff.first[  5 ] == '.'  &&
+            buff.first[  7 ] == '.'  &&
+            buff.first[  9 ] == '.'  &&
+            buff.first[ 11 ] == '.'
+        ) {
+            // Set everything to zero and signal zero coverage or missing data.
+            sample.a_count = 0;
+            sample.t_count = 0;
+            sample.c_count = 0;
+            sample.g_count = 0;
+            sample.n_count = 0;
+            sample.d_count = 0;
+            sample.status.set( SampleCountsFilterTag::kMissing );
+
+            // Jump to the position after the last entry.
+            it.jump_unchecked( 12 );
+            return;
+        }
     }
 
     // If it's not the simply one-digit format, select the fastest alternative algorithm

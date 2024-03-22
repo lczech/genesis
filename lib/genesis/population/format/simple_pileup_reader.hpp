@@ -433,6 +433,11 @@ public:
 private:
 
     /**
+     * @brief Just to be sure, we reset the filter status each time.
+     */
+    void reset_status_( Variant& variant ) const;
+
+    /**
      * @brief Helper function to parse one line into a target,
      * which can be a Record or a Variant.
      */

@@ -32,10 +32,12 @@
 
 #include "genesis/population/format/vcf_common.hpp"
 
-#include "genesis/population/sample_counts.hpp"
+#include "genesis/population/filter/sample_counts_filter.hpp"
+#include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/format/vcf_input_stream.hpp"
 #include "genesis/population/format/vcf_record.hpp"
 #include "genesis/population/function/functions.hpp"
+#include "genesis/population/sample_counts.hpp"
 #include "genesis/population/variant.hpp"
 
 extern "C" {
@@ -273,6 +275,123 @@ std::pair<std::array<char, 6>, size_t> get_vcf_record_snp_ref_alt_chars_( VcfRec
     return { vars, var_cnt };
 }
 
+/**
+ * @brief Local helper function to tally up the bases form a VcfRecord into a SampleCounts.
+ */
+void convert_to_variant_as_pool_tally_bases_(
+    VcfRecord const& record,
+    std::pair<std::array<char, 6>, size_t> const& snp_chars,
+    VcfFormatIteratorInt const& sample_ad,
+    SampleCounts& sample
+) {
+    assert(  sample_ad.valid_value_count() == 0 || sample_ad.valid_value_count() == snp_chars.second );
+    for( size_t i = 0; i < sample_ad.valid_value_count(); ++i ) {
+
+        // Get the nucleotide and its count.
+        auto const cnt = sample_ad.get_value_at(i);
+        if( cnt < 0 ) {
+            throw std::runtime_error(
+                "Invalid VCF Record with FORMAT field 'AD' value < 0 for a sample, at " +
+                record.get_chromosome() + ":" + std::to_string( record.get_position() )
+            );
+        }
+
+        // Add it to the respective count variable of the sample.
+        switch( snp_chars.first[i] ) {
+            case 'a':
+            case 'A': {
+                sample.a_count = cnt;
+                break;
+            }
+            case 'c':
+            case 'C': {
+                sample.c_count = cnt;
+                break;
+            }
+            case 'g':
+            case 'G': {
+                sample.g_count = cnt;
+                break;
+            }
+            case 't':
+            case 'T': {
+                sample.t_count = cnt;
+                break;
+            }
+            case 'n':
+            case 'N': {
+                sample.n_count = cnt;
+                break;
+            }
+            case '.': {
+                sample.d_count = cnt;
+                break;
+            }
+            default: {
+                throw std::runtime_error(
+                    "Invalid VCF Record that contains a REF or ALT sequence/allele with "
+                    "invalid nucleitide `" + std::string( 1, snp_chars.first[i] ) +
+                    "` where only `[ACGTN.]` are allowed, at " +
+                    record.get_chromosome() + ":" + std::to_string( record.get_position() )
+                );
+            }
+        }
+    }
+}
+
+/**
+ * @brief Local helper function that sets the filter status of a Variant and its samples to missing
+ * depending on whether the genotypes of the samples are missing or not.
+ */
+void convert_to_variant_as_pool_set_missing_gt_(
+    VcfRecord const& record,
+    Variant& variant
+) {
+    // Helper to avoid having the same error string twice.
+    auto throw_invalid_gt_size_ = [&](){
+        throw std::runtime_error(
+            "Invalid VCF Record with number of samples in the record (" +
+            std::to_string( variant.samples.size() ) +
+            ") not equal to the number of GT fields, at " +
+            record.get_chromosome() + ":" + std::to_string( record.get_position() )
+        );
+    };
+
+    // Now iterate the genotypes and see if any is missing. If so, we set the status accordingly.
+    size_t sample_idx = 0;
+    size_t missing_cnt = 0;
+    for( auto const& sample_gt : record.get_format_genotype() ) {
+        if( sample_idx >= variant.samples.size() ) {
+            throw_invalid_gt_size_();
+        }
+
+        // If any of the genotypes is missing, we consider the whole sample to be missing.
+        bool is_missing = false;
+        for( size_t i = 0; i < sample_gt.valid_value_count(); ++i ) {
+            auto const gt = sample_gt.get_value_at(i);
+            if( gt.is_missing() ) {
+                is_missing = true;
+                break;
+            }
+        }
+        if( is_missing ) {
+            ++missing_cnt;
+            variant.samples[sample_idx].status.set( SampleCountsFilterTag::kMissing );
+        }
+        ++sample_idx;
+    }
+
+    // We need to have exactly one set of GT values per sample.
+    if( sample_idx != variant.samples.size() ) {
+        throw_invalid_gt_size_();
+    }
+
+    // If all samples are missing, so is the whole variant.
+    if( missing_cnt == variant.samples.size() ) {
+        variant.status.set( VariantFilterTag::kMissing );
+    }
+}
+
 Variant convert_to_variant_as_pool( VcfRecord const& record )
 {
     // Error check.
@@ -296,7 +415,7 @@ Variant convert_to_variant_as_pool( VcfRecord const& record )
     result.reference_base   = snp_chars.first[0];
     result.alternative_base = snp_chars.first[1]; // TODO this is only reasonable for biallelic SNPs
 
-    // Process the samples that are present in the VCF record line.
+    // Process the sample AD counts that are present in the VCF record line.
     result.samples.reserve( record.header().get_sample_count() );
     for( auto const& sample_ad : record.get_format_int("AD") ) {
         if( sample_ad.valid_value_count() > 0 && sample_ad.valid_value_count() != snp_chars.second ) {
@@ -312,61 +431,10 @@ Variant convert_to_variant_as_pool( VcfRecord const& record )
         // and sum them up, storing them in a new SampleCounts instance at the end of the vector.
         result.samples.emplace_back();
         auto& sample = result.samples.back();
-        for( size_t i = 0; i < sample_ad.valid_value_count(); ++i ) {
-
-            // Get the nucleotide and its count.
-            auto const cnt = sample_ad.get_value_at(i);
-            if( cnt < 0 ) {
-                throw std::runtime_error(
-                    "Invalid VCF Record with FORMAT field 'AD' value < 0 for a sample, at " +
-                    record.get_chromosome() + ":" + std::to_string( record.get_position() )
-                );
-            }
-
-            // Add it to the respective count variable of the sample.
-            switch( snp_chars.first[i] ) {
-                case 'a':
-                case 'A': {
-                    sample.a_count = cnt;
-                    break;
-                }
-                case 'c':
-                case 'C': {
-                    sample.c_count = cnt;
-                    break;
-                }
-                case 'g':
-                case 'G': {
-                    sample.g_count = cnt;
-                    break;
-                }
-                case 't':
-                case 'T': {
-                    sample.t_count = cnt;
-                    break;
-                }
-                case 'n':
-                case 'N': {
-                    sample.n_count = cnt;
-                    break;
-                }
-                case '.': {
-                    sample.d_count = cnt;
-                    break;
-                }
-                default: {
-                    throw std::runtime_error(
-                        "Invalid VCF Record that contains a REF or ALT sequence/allele with "
-                        "invalid nucleitide `" + std::string( 1, snp_chars.first[i] ) +
-                        "` where only `[ACGTN.]` are allowed, at " +
-                        record.get_chromosome() + ":" + std::to_string( record.get_position() )
-                    );
-                }
-            }
-        }
+        convert_to_variant_as_pool_tally_bases_( record, snp_chars, sample_ad, sample );
     }
 
-    // Last proof check.
+    // Proof check the number of samples that were found.
     if( result.samples.size() != record.header().get_sample_count() ) {
         throw std::runtime_error(
             "Invalid VCF Record with number of samples in the record (" +
@@ -375,6 +443,10 @@ Variant convert_to_variant_as_pool( VcfRecord const& record )
             record.get_chromosome() + ":" + std::to_string( record.get_position() )
         );
     }
+
+    // Set any samples as missing if there is no genotype. We still keep the above AD settings,
+    // so that missing data is still filled in as far as possible.
+    convert_to_variant_as_pool_set_missing_gt_( record, result );
 
     return result;
 }
@@ -389,7 +461,9 @@ Variant convert_to_variant_as_individuals(
     // Simply re-use the pool approach, and merge into one SampleCounts.
     if( use_allelic_depth ) {
         result = convert_to_variant_as_pool( record );
-        result.samples = std::vector<SampleCounts>{ merge( result.samples ) };
+        result.samples = std::vector<SampleCounts>{ merge(
+            result.samples, SampleCountsFilterPolicy::kOnlyPassing
+        )};
         return result;
     }
 
@@ -417,34 +491,46 @@ Variant convert_to_variant_as_individuals(
     result.samples.resize( 1 );
     auto& sample = result.samples.back();
 
+    // Keep track of how many genotypes we processed, and how many of them are missing.
+    size_t total_cnt = 0;
+    size_t missing_cnt = 0;
+
     // Go through all sample columns of the VCF, examining their GT field.
     for( auto const& sample_gt : record.get_format_genotype() ) {
 
         // Go through all REF and ALT entries and their respective GT values for the current sample.
         for( size_t i = 0; i < sample_gt.valid_value_count(); ++i ) {
+            ++total_cnt;
 
             // Get the genoptype and immediately convert to the index
             // that we can look up in the snp array.
-            auto const gt = sample_gt.get_value_at(i).variant_index();
+            auto const gt = sample_gt.get_value_at(i);
+            auto const gt_int = gt.variant_index();
 
             // If the VCF is not totally messed up, this needs to be within the number of
             // REF and ALT nucleotides (or -1 for deletions); check that.
-            if( !( gt < 0 || static_cast<size_t>(gt) < snp_chars.second )) {
+            if( !( gt_int < 0 || static_cast<size_t>(gt_int) < snp_chars.second )) {
                 throw std::runtime_error(
-                    "Invalid VCF Record that contains an index " + std::to_string( gt ) +
+                    "Invalid VCF Record that contains an index " + std::to_string( gt_int ) +
                     " into the genotype list that does not exist, at " +
                     record.get_chromosome() + ":" + std::to_string( record.get_position() )
                 );
             }
 
+            // Special case for missing variant calls: nothing to add.
+            if( gt.is_missing() ) {
+                ++missing_cnt;
+                continue;
+            }
+
             // Special case deletion. The genotype value stored in VCF is -1 in that case.
-            if( gt < 0 ) {
+            if( gt_int < 0 ) {
                 ++sample.d_count;
                 continue;
             }
 
             // Use the index to get what nucleotide the genotype is, and increment the count.
-            switch( snp_chars.first[gt] ) {
+            switch( snp_chars.first[gt_int] ) {
                 case 'a':
                 case 'A': {
                     ++sample.a_count;
@@ -481,6 +567,13 @@ Variant convert_to_variant_as_individuals(
             }
         }
     }
+
+    // If everything was missing, we set the filters accordingly.
+    if( missing_cnt == total_cnt ) {
+        sample.status.set( SampleCountsFilterTag::kMissing );
+        result.status.set( VariantFilterTag::kMissing );
+    }
+
     return result;
 }
 
@@ -491,6 +584,11 @@ GenomeLocusSet genome_locus_set_from_vcf_file( std::string const& file )
     GenomeLocusSet result;
 
     // Open and read file, without expecting it to be sorted.
+    // We could try some shenannigans here to keep track of the chromosome, in order to avoid
+    // having to find it each time in the genome locus set. However, the genome locus set add
+    // function also takes care of resizing the bitvector if needed, and adds some safety checks,
+    // so it's good to rely on that, even though it is slightly slower. The VCF parsing is
+    // likely the bottleneck anyway.
     auto it = VcfInputStream( file, false );
     while( it ) {
         result.add( it.record().get_chromosome(), it.record().get_position() );

@@ -28,10 +28,10 @@
  * @ingroup population
  */
 
-#include "genesis/population/stream/variant_input_stream.hpp"
+#include "genesis/population/stream/variant_input_stream_sources.hpp"
 
-#include "genesis/population/stream/variant_gapless_input_stream.hpp"
-#include "genesis/population/stream/variant_parallel_input_stream.hpp"
+#include "genesis/population/filter/sample_counts_filter.hpp"
+#include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/function/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/logging.hpp"
@@ -476,16 +476,10 @@ VariantInputStream make_variant_input_stream_from_frequency_table_file(
  * @brief Local helper function that takes care of both main functions below.
  */
 VariantInputStream make_variant_input_stream_from_vcf_file_(
-    // File input
     std::string const& filename,
-    std::vector<std::string> const& sample_names,
-    bool inverse_sample_names,
-
-    // Settings
+    VariantInputStreamFromVcfParams const& params,
     bool pool_samples,
-    bool use_allelic_depth,
-    bool only_biallelic,
-    bool only_filter_pass
+    bool use_allelic_depth
 ) {
     // We do not expect order by default here. Just to keep it simple. If needed, activate again.
     const bool expect_ordered = false;
@@ -494,7 +488,7 @@ VariantInputStream make_variant_input_stream_from_vcf_file_(
     // and of the correct form. We wrap this in a shared pointer so that this very instance
     // can stay alive when being copied over to the lambda that we return from this function.
     auto input = std::make_shared<VcfInputStream>(
-        filename, sample_names, inverse_sample_names, expect_ordered
+        filename, params.sample_names, params.inverse_sample_names, expect_ordered
     );
     if(
         use_allelic_depth &&
@@ -515,21 +509,23 @@ VariantInputStream make_variant_input_stream_from_vcf_file_(
     // The input is copied over to the lambda, and that copy is kept alive
     // when returning from this function.
     return VariantInputStream(
-        [ input, pool_samples, use_allelic_depth, only_biallelic, only_filter_pass ]
+        [ input, pool_samples, use_allelic_depth, params ]
         ( Variant& variant ) mutable {
             auto& vcf_it = *input;
 
-            // Only use the lines that have the "AD" field, and are biallelic.
-            // Also test for the extra conditions. If any test fails, skip this position.
-            // For simplicity, we code that as a sequence of conditions; the compiler will optimize.
+            // Only use the lines that have the "AD" field (if needed), and fit the other criteria.
+            // If any test fails, skip this position.
             for( ; vcf_it; ++vcf_it ) {
-                if( ! vcf_it->has_format( "AD" ) || ! vcf_it->is_snp() ) {
+                if( use_allelic_depth && ! vcf_it->has_format( "AD" ) ) {
                     continue;
                 }
-                if( only_biallelic && vcf_it->get_alternatives_count() != 1 ) {
+                if( params.only_snps && ! vcf_it->is_snp() ) {
                     continue;
                 }
-                if( only_filter_pass && ! vcf_it->pass_filter() ) {
+                if( params.only_biallelic_snps && vcf_it->get_alternatives_count() != 1 ) {
+                    continue;
+                }
+                if( params.only_filter_pass && ! vcf_it->pass_filter() ) {
                     continue;
                 }
                 break;
@@ -537,8 +533,10 @@ VariantInputStream make_variant_input_stream_from_vcf_file_(
 
             // Now we are either at a record that fits our needs, or at the end of the input.
             if( vcf_it ) {
-                assert( vcf_it->has_format( "AD" ) );
-                assert( vcf_it->is_snp() );
+                assert( ! use_allelic_depth || vcf_it->has_format( "AD" ) );
+                assert( ! params.only_snps || vcf_it->is_snp() );
+                assert( ! params.only_biallelic_snps || vcf_it->get_alternatives_count() == 1 );
+                assert( ! params.only_filter_pass || vcf_it->pass_filter() );
 
                 // Depending on what type of conversion we want to do (which in turn depends on
                 // the wrapper function that this local function was called from), we switch
@@ -547,6 +545,13 @@ VariantInputStream make_variant_input_stream_from_vcf_file_(
                     variant = convert_to_variant_as_pool( *vcf_it );
                 } else {
                     variant = convert_to_variant_as_individuals( *vcf_it, use_allelic_depth );
+                }
+
+                // Set the filter tag, if needed. We need to use reset() here instead of set(),
+                // as the conversion functions might already set the filter status, but we want
+                // the filter setting here to have precedence over, e.g., missing data.
+                if( ! vcf_it->pass_filter() ) {
+                    variant.status.reset( VariantFilterTag::kNotPassed );
                 }
 
                 // Move on to the next input, so that it is ready when this lambda is called again.
@@ -563,397 +568,24 @@ VariantInputStream make_variant_input_stream_from_vcf_file_(
 
 VariantInputStream make_variant_input_stream_from_pool_vcf_file(
     std::string const& filename,
-    bool only_biallelic,
-    bool only_filter_pass
-) {
-    return make_variant_input_stream_from_pool_vcf_file(
-        filename, std::vector<std::string>{}, false,
-        only_biallelic, only_filter_pass
-    );
-}
-
-VariantInputStream make_variant_input_stream_from_pool_vcf_file(
-    std::string const& filename,
-    std::vector<std::string> const& sample_names,
-    bool inverse_sample_names,
-    bool only_biallelic,
-    bool only_filter_pass
+    VariantInputStreamFromVcfParams const& params
 ) {
     return make_variant_input_stream_from_vcf_file_(
-        filename, sample_names, inverse_sample_names,
-        true, true, only_biallelic, only_filter_pass
+        filename, params, true, true
     );
 }
 
 VariantInputStream make_variant_input_stream_from_individual_vcf_file(
     std::string const& filename,
-    bool use_allelic_depth,
-    bool only_biallelic,
-    bool only_filter_pass
-) {
-    return make_variant_input_stream_from_individual_vcf_file(
-        filename, std::vector<std::string>{}, false,
-        use_allelic_depth, only_biallelic, only_filter_pass
-    );
-}
-
-VariantInputStream make_variant_input_stream_from_individual_vcf_file(
-    std::string const& filename,
-    std::vector<std::string> const& sample_names,
-    bool inverse_sample_names,
-    bool use_allelic_depth,
-    bool only_biallelic,
-    bool only_filter_pass
+    VariantInputStreamFromVcfParams const& params,
+    bool use_allelic_depth
 ) {
     return make_variant_input_stream_from_vcf_file_(
-        filename, sample_names, inverse_sample_names,
-        false, use_allelic_depth, only_biallelic, only_filter_pass
+        filename, params, false, use_allelic_depth
     );
 }
 
 #endif // GENESIS_HTSLIB
-
-// =================================================================================================
-//     Variant Parallel Input Stream
-// =================================================================================================
-
-VariantInputStream make_variant_input_stream_from_variant_parallel_input_stream(
-    VariantParallelInputStream const& parallel_input,
-    bool allow_ref_base_mismatches,
-    bool allow_alt_base_mismatches
-) {
-    // As before, make a shared pointer (with a copy of the input) that stays alive.
-    auto input = std::make_shared<VariantParallelInputStream>( parallel_input );
-
-    // Get the iterators.
-    VariantParallelInputStream::Iterator cur;
-    VariantParallelInputStream::Iterator end;
-    bool has_started = false;
-
-    // We do not have a single file here, so make a list of all sample names from the inputs.
-    // Leave file_path and source_name at their empty defaults.
-    VariantInputStreamData data;
-    std::unordered_set<std::string> uniq_names;
-    for( auto const& source : input->inputs() ) {
-        // auto const& source_name = source.data().source_name;
-        // for( auto const& sample_name : source.data().sample_names ) {
-        //     data.sample_names.push_back( source_name + source_sample_separator + sample_name );
-        // }
-
-        for( auto const& sample_name : source.data().sample_names ) {
-            if( uniq_names.count( sample_name ) > 0 ) {
-                throw std::runtime_error(
-                    "Cannot iterate input sources in parallel, as sample name \"" + sample_name +
-                    "\" occurs multiple times in the inputs."
-                );
-            }
-            uniq_names.insert( sample_name );
-            data.sample_names.push_back( sample_name );
-        }
-    }
-    assert( uniq_names.size() == data.sample_names.size() );
-
-    // The input is copied over to the lambda, and that copy is kept alive.
-    return VariantInputStream(
-        [ input, cur, end, has_started, allow_ref_base_mismatches, allow_alt_base_mismatches ]
-        ( Variant& variant ) mutable {
-            if( ! has_started ) {
-                assert( input );
-                cur = input->begin();
-                end = input->end();
-                has_started = true;
-            }
-            if( cur != end ) {
-                variant = cur.joined_variant(
-                    allow_ref_base_mismatches, allow_alt_base_mismatches, true
-                );
-                ++cur;
-                return true;
-            } else {
-                return false;
-            }
-        },
-        std::move( data )
-    );
-}
-
-// =================================================================================================
-//     Variant Gapless Input Stream
-// =================================================================================================
-
-VariantInputStream make_variant_gapless_input_stream(
-    VariantInputStream const& input
-) {
-    auto gapless_input = VariantGaplessInputStream( input );
-    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
-}
-
-VariantInputStream make_variant_gapless_input_stream(
-    VariantInputStream const& input,
-    std::shared_ptr<::genesis::sequence::ReferenceGenome> ref_genome
-) {
-    auto gapless_input = VariantGaplessInputStream( input );
-    gapless_input.reference_genome( ref_genome );
-    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
-}
-
-VariantInputStream make_variant_gapless_input_stream(
-    VariantInputStream const& input,
-    std::shared_ptr<::genesis::sequence::SequenceDict> seq_dict
-) {
-    auto gapless_input = VariantGaplessInputStream( input );
-    gapless_input.sequence_dict( seq_dict );
-    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
-}
-
-VariantInputStream make_variant_input_stream_from_variant_gapless_input_stream(
-    VariantGaplessInputStream const& gapless_input
-) {
-    // As before, make a shared pointer (with a copy of the input) that stays alive.
-    auto input = std::make_shared<VariantGaplessInputStream>( gapless_input );
-
-    // Get the iterators.
-    VariantGaplessInputStream::Iterator cur;
-    VariantGaplessInputStream::Iterator end;
-    bool has_started = false;
-
-    // The input is copied over to the lambda, and that copy is kept alive.
-    // The VariantInputStreamData is simply copied over.
-    return VariantInputStream(
-        [ input, cur, end, has_started ]
-        ( Variant& variant ) mutable {
-            if( ! has_started ) {
-                assert( input );
-                cur = input->begin();
-                end = input->end();
-                has_started = true;
-            }
-            if( cur != end ) {
-                variant = std::move( *cur );
-                ++cur;
-                return true;
-            } else {
-                return false;
-            }
-        },
-        input->input().data()
-    );
-}
-
-// =================================================================================================
-//     Merging Input Stream
-// =================================================================================================
-
-/**
- * @brief Internal helper to keep information needed for make_variant_merging_input_stream()
- */
-struct VariantMergeGroupAssignment
-{
-    /**
-     * @brief Assignment of samples (indicies in the vector) to their group (values).
-     */
-    std::vector<size_t> group_assignments;
-
-    /**
-     * @brief Names of the groups.
-     *
-     * The entries in the group_assignment refer to this list of groups.
-     */
-    std::vector<std::string> group_names;
-};
-
-/**
- * @brief Helper function to create a mapping from sample indices to group indices.
- */
-VariantMergeGroupAssignment make_variant_merging_input_stream_group_assignment_(
-    VariantInputStream const& variant_input,
-    std::unordered_map<std::string, std::string> const& sample_name_to_group,
-    bool allow_ungrouped_samples
-) {
-    // Shorthands and checks
-    auto const& sample_names = variant_input.data().sample_names;
-    if( sample_names.size() == 0 ) {
-        throw std::runtime_error( "Cannot merge sample groups if no sample names are provided" );
-    }
-
-    // Make a vector assinging sample indices to group indices.
-    // We also keep track of the group names (and their indices) and samples names we have processed.
-    VariantMergeGroupAssignment grouping;
-    grouping.group_assignments = std::vector<size_t>( sample_names.size() );
-    std::unordered_map<std::string, size_t> group_to_index;
-    std::unordered_set<std::string> uniq_sample_names;
-
-    // Do the assignment
-    for( size_t i = 0; i < sample_names.size(); ++i ) {
-        auto const& sample_name = sample_names[i];
-        if( sample_name.empty() ) {
-            throw std::runtime_error( "Cannot merge sample groups with empty sample names." );
-        }
-
-        // Check uniqueness of names. We also use that set later, so it's okay to have these
-        // extra copies or the names around.
-        if( uniq_sample_names.count( sample_name ) > 0 ) {
-            throw std::runtime_error(
-                "Cannot merge sample groups with duplicate sample names. Sample name \"" +
-                sample_name + "\" occurs multiple times in the input."
-            );
-        }
-        uniq_sample_names.insert( sample_name );
-
-        // Get the group name for the sample. If it's in the given list, we use that.
-        // If not, we either fail, or use the sample name as the group name.
-        // In the latter case, there is some scenario where some provided sample names is also
-        // a group name - that could be a bit chaotic and have weird consequences, but should
-        // work, and so we just leave that as a user error and do not check for this here.
-        std::string group_name;
-        if( sample_name_to_group.count( sample_name ) > 0 ) {
-            group_name = sample_name_to_group.at( sample_name );
-            if( group_name.empty() ) {
-                throw std::runtime_error(
-                    "Cannot merge sample groups, as sample name \"" + sample_name + "\" has an " +
-                    "empty group name assigned in the provided mapping of sample names to group names."
-                );
-            }
-        } else if( allow_ungrouped_samples ) {
-            group_name = sample_name;
-        } else {
-            throw std::runtime_error(
-                "Cannot merge sample groups, as sample name \"" + sample_name +
-                "\" does not occur in the provided mapping of sample names to group names."
-            );
-        }
-        assert( !group_name.empty() );
-
-        // Now we have a group name. Check if we already have an index for this group,
-        // or whether this is a new group, so that we need to give it the next index.
-        // Then assign this as the group index for the sample.
-        if( group_to_index.count( group_name ) == 0 ) {
-            auto const next_idx = group_to_index.size();
-            group_to_index[ group_name ] = next_idx;
-            grouping.group_names.push_back( group_name );
-        }
-        auto const group_idx = group_to_index.at( group_name );
-        assert( group_idx < group_to_index.size() );
-        assert( group_idx < grouping.group_names.size() );
-        grouping.group_assignments[i] = group_idx;
-    }
-    assert( grouping.group_names.size() > 0 );
-    assert( grouping.group_names.size() == group_to_index.size() );
-    assert( uniq_sample_names.size() == sample_names.size() );
-
-    // Finally, we warn about any names that have an assignment to a group, but did not appear.
-    // Might indicate that something is wrong, but might also just mean that the user has some
-    // larger mapping that does not always contain all names. Either way, better to tell.
-    std::unordered_set<std::string> samples_names_to_warn;
-    for( auto const& ng : sample_name_to_group ) {
-        if( uniq_sample_names.count( ng.first ) == 0 ) {
-            samples_names_to_warn.insert( ng.first );
-        }
-    }
-    if( !samples_names_to_warn.empty() ) {
-        LOG_WARN << "In the provided list of samples to merge into groups, there were "
-                 << std::to_string( samples_names_to_warn.size() )
-                 << " sample names that did not occur in the input sample names:\n"
-                 << "  - " << genesis::utils::join( samples_names_to_warn, "  - " )
-        ;
-    }
-
-    return grouping;
-}
-
-VariantInputStream make_variant_merging_input_stream(
-    VariantInputStream const& variant_input,
-    std::unordered_map<std::string, std::string> const& sample_name_to_group,
-    bool allow_ungrouped_samples
-) {
-
-    // Make a mapping from sample indices to group indices. That is, each entry in the returned
-    // vector corresponds to a sample (by its index) of the input, and the value at each entry
-    // is the group number we assign to this.
-    auto const grouping = make_variant_merging_input_stream_group_assignment_(
-        variant_input, sample_name_to_group, allow_ungrouped_samples
-    );
-
-    // As before, make a shared pointer (with a copy of the input) that stays alive.
-    auto input = std::make_shared<VariantInputStream>( variant_input );
-
-    // Get iterators to the data.
-    VariantInputStream::Iterator cur;
-    VariantInputStream::Iterator end;
-    bool has_started = false;
-
-    // We copy the original variant data, but replace the sample names by our group names.
-    auto data = variant_input.data();
-    data.sample_names = grouping.group_names;
-
-    // Now we can create our iterator. As before, the iterators are copied over to the lambda,
-    // and those copies are kept alive when returning from this function.
-    return VariantInputStream(
-        [ input, cur, end, has_started, grouping ]( Variant& variant ) mutable {
-            if( ! has_started ) {
-                assert( input );
-                cur = input->begin();
-                end = input->end();
-                has_started = true;
-            }
-
-            // Nothing to do if we are at the end. Indicate that to the caller.
-            if( cur == end ) {
-                return false;
-            }
-
-            // For efficiency, we do not want to make a full copy of the input variant,
-            // as that would entail an unncessary copy of the full samples vector.
-            // However, we do want a copy of all other members of Variant, and listing them here
-            // is a bit tedious. So instead we trick around a bit: We move out the samples,
-            // then copy the rest, and then move the samples back. From the point of view of
-            // the underlying input, that should appear as if nothing happened.
-            auto& cur_var = *cur;
-            auto const sample_count = cur_var.samples.size();
-            auto tmp_samples = std::move( cur_var.samples );
-            variant = cur_var;
-            cur_var.samples = std::move( tmp_samples );
-            assert( cur_var.samples.size() == sample_count );
-
-            // Consistency check the number of samples in the input.
-            if( sample_count != grouping.group_assignments.size() ) {
-                throw std::runtime_error(
-                    "Based on sample names and groups, " +
-                    std::to_string( grouping.group_assignments.size() ) +
-                    " samples are expected to be found in the input, but " +
-                    std::to_string( sample_count ) + " samples were found at " +
-                    cur_var.chromosome + ":" + std::to_string( cur_var.position )
-                );
-            }
-
-            // Now we create a new samples vector (no way around that), with SampleCounts instances
-            // that are all initialized to 0 at all counts, and merge the samples into it,
-            // as given by our group assignment.
-            variant.samples = std::vector<SampleCounts>( grouping.group_names.size() );
-            for( size_t i = 0; i < sample_count; ++i ) {
-                auto const group_idx = grouping.group_assignments[i];
-
-                // Validity check. Pretty sure that this could just be an assertion, as this
-                // is all internal and not dependent on user input, but seems important enough
-                // to just always check.
-                if( group_idx >= variant.samples.size() ) {
-                    throw std::runtime_error(
-                        "Invalid group index " + std::to_string( group_idx ) +
-                        " in Variant with " + std::to_string( variant.samples.size() ) +
-                        " samples."
-                    );
-                }
-                merge_inplace( variant.samples[group_idx], cur_var.samples[i] );
-            }
-
-            // We are done, move to the next position in the input,
-            // and signal to the caller that we found data.
-            ++cur;
-            return true;
-        },
-        std::move( data )
-    );
-}
 
 } // namespace population
 } // namespace genesis

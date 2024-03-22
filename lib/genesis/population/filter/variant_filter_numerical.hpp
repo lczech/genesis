@@ -32,6 +32,8 @@
  */
 
 #include "genesis/population/sample_counts.hpp"
+#include "genesis/population/filter/sample_counts_filter_numerical.hpp"
+#include "genesis/population/filter/sample_counts_filter.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/variant.hpp"
 
@@ -258,6 +260,53 @@ inline std::function<void(Variant&)> make_variant_filter_numerical_tagging(
 ) {
     return [params, &stats]( Variant& variant ){
         apply_variant_filter_numerical( variant, params, stats );
+    };
+}
+
+/**
+ * @copydoc make_variant_filter_numerical_tagging( VariantFilterNumericalParams const& )
+ *
+ * This overload additionally runs apply_sample_counts_filter_numerical() on all samples,
+ * i.e., it additionally does the same as make_sample_counts_filter_numerical_tagging().
+ * This is meant as a convenience function that just does all the typical numercial filtering at once.
+ */
+inline std::function<void(Variant&)> make_variant_filter_numerical_tagging(
+    SampleCountsFilterNumericalParams const& sample_count_params,
+    VariantFilterNumericalParams const& variant_params,
+    bool all_need_pass = false
+) {
+    return [sample_count_params, variant_params, all_need_pass]( Variant& variant ){
+        apply_sample_counts_filter_numerical(
+            variant, sample_count_params, all_need_pass
+        );
+        apply_variant_filter_numerical( variant, variant_params );
+    };
+}
+
+/**
+ * @copydoc make_variant_filter_numerical_tagging( VariantFilterNumericalParams const& )
+ *
+ * This overload additionally runs apply_sample_counts_filter_numerical() on all samples,
+ * i.e., it additionally does the same as make_sample_counts_filter_numerical_tagging().
+ * This is meant as a convenience function that just does all the typical numercial filtering at
+ * once. The Variant filter is also set to fitting non-passing values if
+ *
+ * This overload also includes the statistics of the failing or passing filter.
+ */
+inline std::function<void(Variant&)> make_variant_filter_numerical_tagging(
+    SampleCountsFilterNumericalParams const& sample_count_params,
+    VariantFilterNumericalParams const& variant_params,
+    VariantFilterStats& variant_stats,
+    SampleCountsFilterStats& sample_count_stats,
+    bool all_need_pass = false
+) {
+    return [variant_params, sample_count_params, &variant_stats, &sample_count_stats, all_need_pass](
+        Variant& variant
+    ){
+        apply_sample_counts_filter_numerical(
+            variant, sample_count_params, variant_stats, sample_count_stats, all_need_pass
+        );
+        apply_variant_filter_numerical( variant, variant_params, variant_stats );
     };
 }
 

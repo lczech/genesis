@@ -296,14 +296,14 @@ SortedSampleCounts sorted_sample_counts_(
 }
 
 SortedSampleCounts sorted_sample_counts(
-    Variant const& variant, bool reference_first
+    Variant const& variant, bool reference_first, SampleCountsFilterPolicy filter_policy
 ) {
-    auto const total = merge_sample_counts( variant );
+    auto const total = merge_sample_counts( variant, filter_policy );
     return sorted_sample_counts_( variant, reference_first, total );
 }
 
 // =================================================================================================
-//     Merging
+//     Allele Count
 // =================================================================================================
 
 size_t allele_count( SampleCounts const& sample )
@@ -376,6 +376,10 @@ size_t allele_count( SampleCounts const& sample, size_t min_count, size_t max_co
     return al_count;
 }
 
+// =================================================================================================
+//     Merging
+// =================================================================================================
+
 void merge_inplace( SampleCounts& p1, SampleCounts const& p2 )
 {
     // Make sure that we do not forget any fields in case of later refactoring of the struct.
@@ -400,10 +404,13 @@ SampleCounts merge( SampleCounts const& p1, SampleCounts const& p2 )
     return result;
 }
 
-SampleCounts merge( std::vector<SampleCounts> const& p )
+SampleCounts merge( std::vector<SampleCounts> const& p, SampleCountsFilterPolicy filter_policy )
 {
     SampleCounts result;
     for( auto const& ps : p ) {
+        if( filter_policy == SampleCountsFilterPolicy::kOnlyPassing && ! ps.status.passing() ) {
+            continue;
+        }
         result.a_count += ps.a_count;
         result.c_count += ps.c_count;
         result.g_count += ps.g_count;
@@ -468,13 +475,14 @@ std::pair<char, double> consensus( SampleCounts const& sample, bool is_covered )
     }
 }
 
-char guess_reference_base( Variant const& variant, bool force )
-{
+char guess_reference_base(
+    Variant const& variant, bool force, SampleCountsFilterPolicy filter_policy
+) {
     auto const ref = utils::to_upper( variant.reference_base );
     if( ! force && is_valid_base( ref )) {
         return ref;
     } else {
-        auto const sorted = sorted_sample_counts( variant, false );
+        auto const sorted = sorted_sample_counts( variant, false, filter_policy );
         if( sorted[0].count > 0 ) {
             return utils::to_upper( sorted[0].base );
         }
@@ -484,15 +492,16 @@ char guess_reference_base( Variant const& variant, bool force )
     return 'N';
 }
 
-char guess_alternative_base( Variant const& variant, bool force )
-{
+char guess_alternative_base(
+    Variant const& variant, bool force, SampleCountsFilterPolicy filter_policy
+) {
     auto const alt = utils::to_upper( variant.alternative_base );
     if( ! force && is_valid_base( alt )) {
         return alt;
     } else {
         auto const ref = utils::to_upper( variant.reference_base );
         if( is_valid_base( ref )) {
-            auto const sorted = sorted_sample_counts( variant, true );
+            auto const sorted = sorted_sample_counts( variant, true, filter_policy );
             if( sorted[1].count > 0 ) {
                 return utils::to_upper( sorted[1].base );
             }
@@ -503,8 +512,9 @@ char guess_alternative_base( Variant const& variant, bool force )
     return 'N';
 }
 
-void guess_and_set_ref_and_alt_bases( Variant& variant, bool force )
-{
+void guess_and_set_ref_and_alt_bases(
+    Variant& variant, bool force, SampleCountsFilterPolicy filter_policy
+) {
     // Get base data.
     auto ref = utils::to_upper( variant.reference_base );
     auto const alt = utils::to_upper( variant.alternative_base );
@@ -521,7 +531,7 @@ void guess_and_set_ref_and_alt_bases( Variant& variant, bool force )
         variant.reference_base = 'N';
 
         // Now we need the total base counts.
-        total = merge_sample_counts( variant );
+        total = merge_sample_counts( variant, filter_policy );
         computed_total = true;
 
         // Use them to define our ref base.
@@ -541,7 +551,7 @@ void guess_and_set_ref_and_alt_bases( Variant& variant, bool force )
         if( is_valid_base( ref )) {
             // Only compute the total if needed.
             if( ! computed_total ) {
-                total = merge_sample_counts( variant );
+                total = merge_sample_counts( variant, filter_policy );
             }
 
             // Use it to define our alt base.
@@ -556,7 +566,8 @@ void guess_and_set_ref_and_alt_bases( Variant& variant, bool force )
 void guess_and_set_ref_and_alt_bases(
     Variant& variant,
     char ref_base,
-    bool force
+    bool force,
+    SampleCountsFilterPolicy filter_policy
 ) {
     // Shouldn't happen from our parsing etc, but better safe than sorry.
     if( variant.position == 0 ) {
@@ -577,11 +588,11 @@ void guess_and_set_ref_and_alt_bases(
 
         // Now set the base, and obtain the alternative via our normal counting method.
         variant.reference_base = ref_base;
-        variant.alternative_base = guess_alternative_base( variant, force );
+        variant.alternative_base = guess_alternative_base( variant, force, filter_policy );
 
     } else {
         // No usable ref base. Run the normal guessing.
-        guess_and_set_ref_and_alt_bases( variant, force );
+        guess_and_set_ref_and_alt_bases( variant, force, filter_policy );
 
         // Now we cross check that the ref genome base is a valid base,
         // and also that it is an ambiguity char that contains either the ref or alt that we found.
@@ -619,11 +630,12 @@ void guess_and_set_ref_and_alt_bases(
 void guess_and_set_ref_and_alt_bases(
     Variant& variant,
     genesis::sequence::ReferenceGenome const& ref_genome,
-    bool force
+    bool force,
+    SampleCountsFilterPolicy filter_policy
 ) {
     // Get the reference base. Throws if seq or base not present.
     auto const ref_base = ref_genome.get_base( variant.chromosome, variant.position );
-    return guess_and_set_ref_and_alt_bases( variant, ref_base, force );
+    return guess_and_set_ref_and_alt_bases( variant, ref_base, force, filter_policy );
 }
 
 // =================================================================================================

@@ -31,6 +31,7 @@
  * @ingroup population
  */
 
+#include "genesis/population/filter/sample_counts_filter.hpp"
 #include "genesis/population/sample_counts.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/sequence/reference_genome.hpp"
@@ -218,11 +219,11 @@ std::pair<SortedSampleCounts, SortedSampleCounts> sorted_average_sample_counts(
  * If @p reference_first is set to `false`, all four bases are sorted by their counts.
  */
 SortedSampleCounts sorted_sample_counts(
-    Variant const& variant, bool reference_first
+    Variant const& variant, bool reference_first, SampleCountsFilterPolicy filter_policy
 );
 
 // =================================================================================================
-//     Merging
+//     Allele Count
 // =================================================================================================
 
 /**
@@ -255,6 +256,10 @@ size_t allele_count( SampleCounts const& sample, size_t min_count );
  */
 size_t allele_count( SampleCounts const& sample, size_t min_count, size_t max_count );
 
+// =================================================================================================
+//     Merging
+// =================================================================================================
+
 /**
  * @brief Merge the counts of two SampleCounts%s, by adding the counts of the second (@p p2)
  * to the first (@p p1).
@@ -269,14 +274,14 @@ SampleCounts merge( SampleCounts const& p1, SampleCounts const& p2 );
 /**
  * @brief Merge the counts of a vector SampleCounts%s.
  */
-SampleCounts merge( std::vector<SampleCounts> const& p );
+SampleCounts merge( std::vector<SampleCounts> const& p, SampleCountsFilterPolicy filter_policy );
 
 /**
  * @brief Merge the counts of a vector SampleCounts%s.
  */
-inline SampleCounts merge_sample_counts( Variant const& v )
+inline SampleCounts merge_sample_counts( Variant const& v, SampleCountsFilterPolicy filter_policy )
 {
-    return merge( v.samples );
+    return merge( v.samples, filter_policy );
 }
 
 /**
@@ -298,9 +303,9 @@ inline constexpr size_t nucleotide_sum( SampleCounts const& sample )
  *
  * See nucleotide_sum() for details. This function gives the sum over all samples in the Variant.
  */
-inline size_t total_nucleotide_sum( Variant const& variant )
+inline size_t total_nucleotide_sum( Variant const& variant, SampleCountsFilterPolicy filter_policy )
 {
-    return nucleotide_sum( merge_sample_counts( variant ));
+    return nucleotide_sum( merge_sample_counts( variant, filter_policy ));
 }
 
 /**
@@ -327,9 +332,9 @@ inline constexpr size_t sample_counts_sum( SampleCounts const& sample )
  *
  * See sample_counts_sum() for details. This function gives the sum over all samples in the Variant.
  */
-inline size_t total_sample_counts_sum( Variant const& variant )
+inline size_t total_sample_counts_sum( Variant const& variant, SampleCountsFilterPolicy filter_policy )
 {
-    return sample_counts_sum( merge_sample_counts( variant ));
+    return sample_counts_sum( merge_sample_counts( variant, filter_policy ));
 }
 
 // =================================================================================================
@@ -367,7 +372,11 @@ std::pair<char, double> consensus( SampleCounts const& sample, bool is_covered )
  * the base with the highest count is returned instead,
  * unless all counts are 0, in which case the returned reference base is `N`.
  */
-char guess_reference_base( Variant const& variant, bool force = false );
+char guess_reference_base(
+    Variant const& variant,
+    bool force = false,
+    SampleCountsFilterPolicy filter_policy = SampleCountsFilterPolicy::kOnlyPassing
+);
 
 /**
  * @brief Guess the alternative base of a Variant.
@@ -382,7 +391,11 @@ char guess_reference_base( Variant const& variant, bool force = false );
  * If the reference base is not one of `ACGT`, the returned alternative base is `N`.
  * Furthermore, if all three non-reference bases have count 0, the returned alternative base is `N`.
  */
-char guess_alternative_base( Variant const& variant, bool force = false );
+char guess_alternative_base(
+    Variant const& variant,
+    bool force = false,
+    SampleCountsFilterPolicy filter_policy = SampleCountsFilterPolicy::kOnlyPassing
+);
 
 /**
  * @brief Guess the reference and alternative bases for a Variant, and set them.
@@ -390,7 +403,11 @@ char guess_alternative_base( Variant const& variant, bool force = false );
  * This uses the same approach as guess_reference_base() and guess_alternative_base(),
  * but is more efficient than calling both in sequence. See there for details.
  */
-void guess_and_set_ref_and_alt_bases( Variant& variant, bool force = false );
+void guess_and_set_ref_and_alt_bases(
+    Variant& variant,
+    bool force = false,
+    SampleCountsFilterPolicy filter_policy = SampleCountsFilterPolicy::kOnlyPassing
+);
 
 /**
  * @brief Guess the reference and alternative bases for a Variant, and set them,
@@ -412,7 +429,8 @@ void guess_and_set_ref_and_alt_bases( Variant& variant, bool force = false );
 void guess_and_set_ref_and_alt_bases(
     Variant& variant,
     char ref_base,
-    bool force = false
+    bool force = false,
+    SampleCountsFilterPolicy filter_policy = SampleCountsFilterPolicy::kOnlyPassing
 );
 
 /**
@@ -425,7 +443,8 @@ void guess_and_set_ref_and_alt_bases(
 void guess_and_set_ref_and_alt_bases(
     Variant& variant,
     genesis::sequence::ReferenceGenome const& ref_genome,
-    bool force = false
+    bool force = false,
+    SampleCountsFilterPolicy filter_policy = SampleCountsFilterPolicy::kOnlyPassing
 );
 
 // =================================================================================================

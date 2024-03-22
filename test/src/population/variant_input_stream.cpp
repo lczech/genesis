@@ -31,6 +31,8 @@
 #include "src/common.hpp"
 
 #include "genesis/population/sample_counts.hpp"
+#include "genesis/population/stream/variant_input_stream_adapters.hpp"
+#include "genesis/population/stream/variant_input_stream_sources.hpp"
 #include "genesis/population/stream/variant_input_stream.hpp"
 #include "genesis/population/stream/variant_parallel_input_stream.hpp"
 #include "genesis/population/filter/variant_filter_numerical.hpp"
@@ -212,7 +214,7 @@ TEST( VariantInputStream, PileupInputStreamSampleFilter )
         );
         for( auto const& variant : it ) {
             EXPECT_EQ( 1, variant.samples.size() );
-            auto const sum = total_nucleotide_sum( variant );
+            auto const sum = total_nucleotide_sum( variant, SampleCountsFilterPolicy::kAll );
             EXPECT_TRUE( sum == 0 || sum == 1 );
         }
     }
@@ -224,7 +226,7 @@ TEST( VariantInputStream, PileupInputStreamSampleFilter )
         );
         for( auto const& variant : it ) {
             EXPECT_EQ( 1, variant.samples.size() );
-            auto const sum = total_nucleotide_sum( variant );
+            auto const sum = total_nucleotide_sum( variant, SampleCountsFilterPolicy::kAll );
             EXPECT_TRUE( sum == 0 || sum == 2 );
         }
     }
@@ -236,7 +238,7 @@ TEST( VariantInputStream, PileupInputStreamSampleFilter )
         );
         for( auto const& variant : it ) {
             EXPECT_EQ( 1, variant.samples.size() );
-            auto const sum = total_nucleotide_sum( variant );
+            auto const sum = total_nucleotide_sum( variant, SampleCountsFilterPolicy::kAll );
             EXPECT_TRUE( sum == 0 || sum == 1 );
         }
     }
@@ -248,7 +250,7 @@ TEST( VariantInputStream, PileupInputStreamSampleFilter )
         );
         for( auto const& variant : it ) {
             EXPECT_EQ( 1, variant.samples.size() );
-            auto const sum = total_nucleotide_sum( variant );
+            auto const sum = total_nucleotide_sum( variant, SampleCountsFilterPolicy::kAll );
             EXPECT_TRUE( sum == 0 || sum == 2 );
         }
     }
@@ -431,7 +433,7 @@ TEST( VariantInputStream, VcfInputStream )
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/example_ad.vcf";
-    auto it = make_variant_input_stream_from_pool_vcf_file( infile, false, false );
+    auto it = make_variant_input_stream_from_pool_vcf_file( infile );
     EXPECT_EQ( "example_ad", it.data().source_name );
 
     // Add a filter that skips the specified region.
@@ -465,46 +467,63 @@ TEST( VariantInputStream, VcfInputStreamSampleFilter )
 
     // Filter empty. All samples are there, as this is equivalent to no filtering.
     {
+        VariantInputStreamFromVcfParams params;
+        params.sample_names = std::vector<std::string>{};
         auto it = make_variant_input_stream_from_pool_vcf_file(
-            infile, std::vector<std::string>{}
+            infile, params
         );
         EXPECT_EQ( 3, it.begin()->samples.size() );
     }
 
     // Filter empty, inversed. All samples are there, as this is equivalent to no filtering.
     {
+        VariantInputStreamFromVcfParams params;
+        params.sample_names = std::vector<std::string>{};
+        params.inverse_sample_names = true;
         auto it = make_variant_input_stream_from_pool_vcf_file(
-            infile, std::vector<std::string>{}, true
+            infile, params
         );
         EXPECT_EQ( 3, it.begin()->samples.size() );
     }
 
     // Filter NA00002.
     {
+        VariantInputStreamFromVcfParams params;
+        params.sample_names = std::vector<std::string>{ "NA00002" };
         auto it = make_variant_input_stream_from_pool_vcf_file(
-            infile, std::vector<std::string>{ "NA00002" }
+            infile, params
         );
         EXPECT_EQ( 1, it.begin()->samples.size() );
     }
 
     // Filter NA00002, inversed. Two samples remain.
     {
+        VariantInputStreamFromVcfParams params;
+        params.sample_names = std::vector<std::string>{ "NA00002" };
+        params.inverse_sample_names = true;
         auto it = make_variant_input_stream_from_pool_vcf_file(
-            infile, std::vector<std::string>{ "NA00002" }, true
+            infile, params
         );
         EXPECT_EQ( 2, it.begin()->samples.size() );
     }
 
     // Filter invalid.
     {
+        VariantInputStreamFromVcfParams params;
+        params.sample_names = std::vector<std::string>{ "XYZ" };
         EXPECT_ANY_THROW(
              make_variant_input_stream_from_pool_vcf_file(
-                infile, std::vector<std::string>{ "XYZ" }
+                infile, params
             )
         );
+    }
+    {
+        VariantInputStreamFromVcfParams params;
+        params.sample_names = std::vector<std::string>{ "XYZ" };
+        params.inverse_sample_names = true;
         EXPECT_ANY_THROW(
              make_variant_input_stream_from_pool_vcf_file(
-                infile, std::vector<std::string>{ "XYZ" }, true
+                infile, params
             )
         );
     }
@@ -580,7 +599,7 @@ TEST( VariantInputStream, ParallelInputStream2 )
 
     // VCF in.
     std::string const vcf_infile = environment->data_dir + "population/example_ad.vcf";
-    auto vcf_it = make_variant_input_stream_from_pool_vcf_file( vcf_infile, false, false );
+    auto vcf_it = make_variant_input_stream_from_pool_vcf_file( vcf_infile );
 
     // Make parallel iterator from all source.
     VariantParallelInputStream parallel;

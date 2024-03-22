@@ -130,6 +130,24 @@ enum class SampleCountsFilterTag : FilterStatus::IntType
 };
 
 // =================================================================================================
+//     SampleCounts Filter Policy
+// =================================================================================================
+
+/**
+ * @brief Policy helper to decide how to treat filtered SampleCounts.
+ *
+ * In several functions where we need to take the SampleCounts samples of a Variant into account,
+ * we need to decide on whether we want to use all of them, or only those that are passing.
+ * For instance, when merging samples, this is important. This policy allows to select the
+ * needed behaviour.
+ */
+enum class SampleCountsFilterPolicy
+{
+    kAll,
+    kOnlyPassing
+};
+
+// =================================================================================================
 //     SampleCounts Filter Stats
 // =================================================================================================
 

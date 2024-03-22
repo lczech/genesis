@@ -201,6 +201,46 @@ public:
         kFollowing
     };
 
+    /**
+     * @brief Parameters for VariantParallelInputStream::Iterator::joined_variant()
+     *
+     * By default, we expect that the Variant%s of each iterator have the same
+     * Variant::reference_base; if not, the function throws an exception.
+     * For the Variant::alternative_base, by default we allow different bases, as not every
+     * file format contains alternative bases, meaning that it might be set to `'N'` instead
+     * of the actual value in those file formats.
+     * To change the default behaviour, use @p allow_ref_base_mismatches and/or
+     * @p allow_alt_base_mismatches as needed. When a mismatch is allowed, in cases of
+     * a mismatch, the returned Variant will contain an `'N'` as the base.
+     *
+     * We have to decide how to treat input sources that give us Variants with a non-passing status.
+     * We can naturally handle non-passing SampleCounts, as their filter setting is just
+     * copied over to the joined variant prouced here. That however does not work if the whole
+     * variant is non-passing (Variant::status). In that case, we can eiter decide to just copy the
+     * samples and everything as-is (default), or to treat the input variant as if it was missing.
+     * This is done when @p treat_non_passing_variants_as_missing is set to `true`. In that case,
+     * the samples of that variant are default constructed with empty counts, and their
+     * status is set to SampleCountsFilterTag::kMissing.
+     *
+     * Lastly, by default, we copy the SampleCounts of all Variant::samples into the resulting
+     * Variant. If however these are not needed at the current iterator position any more
+     * (that is, if this iterator is not dereferenced or the variants() function is not called)
+     * after calling this function, we can instead move them, for efficiency, by providing
+     * `move_samples == true`.
+     */
+    struct JoinedVariantParams
+    {
+        // Weird clang error here if the following is not defined the way it is now.
+        // See https://stackoverflow.com/a/44693603/4184258
+        JoinedVariantParams()
+        {}
+
+        bool allow_ref_base_mismatches = false;
+        bool allow_alt_base_mismatches = true;
+        bool treat_non_passing_variants_as_missing = false;
+        bool move_samples = false;
+    };
+
     using self_type  = VariantParallelInputStream;
     using value_type = Variant;
 
@@ -352,27 +392,8 @@ public:
          * (with all zero counts) are inserted as the iterator has samples; hence, the number
          * of SampleCounts in the Variant::samples of the returned Variant (as indicated by
          * Variant.samples.size()) is kept consistent at each locus.
-         *
-         * By default, we expect that the Variant%s of each iterator have the same
-         * Variant::reference_base; if not, the function throws an exception.
-         * For the Variant::alternative_base, by default we allow different bases, as not every
-         * file format contains alternative bases, meaning that it might be set to `'N'` instead
-         * of the actual value in those file formats.
-         * To change the default behaviour, use @p allow_ref_base_mismatches and/or
-         * @p allow_alt_base_mismatches as needed. When a mismatch is allowed, in cases of
-         * a mismatch, the returned Variant will contain an `'N'` as the base.
-         *
-         * Lastly, by default, we copy the SampleCounts of all Variant::samples into the resulting
-         * Variant. If however these are not needed at the current iterator position any more
-         * (that is, if this iterator is not dereferenced or the variants() function is not called)
-         * after calling this function, we can instead move them, for efficiency, by providing
-         * `move_samples == true`.
          */
-        Variant joined_variant(
-            bool allow_ref_base_mismatches = false,
-            bool allow_alt_base_mismatches = true,
-            bool move_samples = false
-        );
+        Variant joined_variant( JoinedVariantParams const& params = JoinedVariantParams{} );
 
         /**
          * @brief Return the current locus where the iteration is at.

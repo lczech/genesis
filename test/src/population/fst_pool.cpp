@@ -35,6 +35,8 @@
 #include "genesis/population/format/simple_pileup_reader.hpp"
 #include "genesis/population/format/sync_reader.hpp"
 #include "genesis/population/stream/variant_input_stream.hpp"
+#include "genesis/population/stream/variant_input_stream_sources.hpp"
+#include "genesis/population/stream/variant_input_stream_adapters.hpp"
 #include "genesis/population/filter/sample_counts_filter_numerical.hpp"
 #include "genesis/population/filter/sample_counts_filter.hpp"
 #include "genesis/population/filter/variant_filter_numerical.hpp"
@@ -200,7 +202,7 @@ TEST( Structure, FstPoolGenerator )
         // transform_by_min_count( sample_set.samples[1], min_allele_count );
 
         // Ugly relic of many refactorings to do it this way... but good enough for now.
-        auto merged = merge( sample_set.samples );
+        auto merged = merge( sample_set.samples, SampleCountsFilterPolicy::kOnlyPassing );
         SampleCountsFilterNumericalParams filter;
         filter.min_count = min_allele_count;
         filter.min_coverage = min_coverage;
@@ -283,7 +285,7 @@ TEST( Structure, FstPoolIterator )
         // transform_by_min_count( sample_set.samples[1], min_allele_count );
 
         // Ugly relic of many refactorings to do it this way... but good enough for now.
-        auto merged = merge( variant.samples );
+        auto merged = merge( variant.samples, SampleCountsFilterPolicy::kOnlyPassing );
         SampleCountsFilterNumericalParams filter;
         filter.min_count = min_allele_count;
         filter.min_coverage = min_coverage;

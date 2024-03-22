@@ -34,6 +34,8 @@
 #include "genesis/population/function/genome_locus.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/stream/variant_gapless_input_stream.hpp"
+#include "genesis/population/stream/variant_input_stream_adapters.hpp"
+#include "genesis/population/stream/variant_input_stream_sources.hpp"
 #include "genesis/population/stream/variant_input_stream.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/sequence/functions/dict.hpp"
@@ -378,7 +380,7 @@ void test_gapless_input_stream_random_()
 
         // Check the content, and check against the bitvector
         EXPECT_EQ( 3, var.samples.size() );
-        auto const nt_sum = total_nucleotide_sum(var);
+        auto const nt_sum = total_nucleotide_sum( var, SampleCountsFilterPolicy::kOnlyPassing );
         EXPECT_TRUE( nt_sum == 0 || nt_sum == 30 );
         if( var_bvs.count(var.chromosome) > 0 && var_bvs.at(var.chromosome).get( var.position - 1 )) {
             EXPECT_EQ( 30, nt_sum );

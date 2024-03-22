@@ -32,6 +32,8 @@
 
 #include "genesis/population/stream/variant_input_stream.hpp"
 #include "genesis/population/stream/variant_parallel_input_stream.hpp"
+#include "genesis/population/stream/variant_input_stream_sources.hpp"
+#include "genesis/population/stream/variant_input_stream_adapters.hpp"
 #include "genesis/population/function/genome_locus.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/variant.hpp"
@@ -160,12 +162,16 @@ void test_parallel_input_stream_(
             }
         }
 
+
         // Also test this using the merged variants.
         // We need to ignore alt bases here, as not all input sources have them.
+        EXPECT_EQ( 6, it.joined_variant().samples.size() );
+
         // We also test with move as the very last thing, to make sure that this
         // does not give any weird segfaults.
-        EXPECT_EQ( 6, it.joined_variant().samples.size() );
-        EXPECT_EQ( 6, it.joined_variant( false, true, true ).samples.size() );
+        VariantParallelInputStream::JoinedVariantParams joined_variant_params;
+        joined_variant_params.move_samples = true;
+        EXPECT_EQ( 6, it.joined_variant( joined_variant_params ).samples.size() );
     }
     EXPECT_EQ( expected_positions, found_positions );
 }

@@ -33,6 +33,7 @@
 
 #include "genesis/population/function/fst_pool_calculator.hpp"
 #include "genesis/population/variant.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/core/thread_functions.hpp"
 #include "genesis/utils/core/thread_pool.hpp"
 

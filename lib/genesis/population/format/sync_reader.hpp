@@ -237,8 +237,9 @@ public:
      *
      * In order to distinguish missing/masked data from true zero-coverage positions, Kapun suggested
      * to use the notation `.:.:.:.:.:.` for masked sites. When this is activate (default), we
-     * allow to read these, but still (as of now) produce zero-coverage sites, as we currently
-     * do not have an internal representation for denoting that.
+     * allow to read these, and output this as a zero-coverage site with the SampleCounts::status
+     * being set to SampleCountsFilterTag::kMissing. If all samples at a position are missing,
+     * the Variant::status is also set to VariantFilterTag::kMissing.
      * See https://github.com/lczech/grenedalf/issues/4 for details.
      */
     SyncReader& allow_missing( bool value )
@@ -265,19 +266,19 @@ private:
 
         void parse_sample_gcc_intrinsic_(
             utils::InputStream& input_stream,
-            SampleCounts&         sample
+            SampleCounts&       sample
         ) const;
 
     #endif
 
     void parse_sample_simple_(
         utils::InputStream& input_stream,
-        SampleCounts&         sample
+        SampleCounts&       sample
     ) const;
 
     void parse_sample_(
         utils::InputStream& input_stream,
-        SampleCounts&         sample
+        SampleCounts&       sample
     ) const;
 
     void skip_sample_(

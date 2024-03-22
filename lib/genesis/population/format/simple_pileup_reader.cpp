@@ -182,6 +182,7 @@ bool SimplePileupReader::parse_line_variant(
     utils::InputStream& input_stream,
     Variant& variant
 ) const {
+    reset_status_( variant );
     return parse_line_( input_stream, variant, {}, false );
 }
 
@@ -190,12 +191,25 @@ bool SimplePileupReader::parse_line_variant(
     Variant& variant,
     std::vector<bool> const& sample_filter
 ) const {
+    reset_status_( variant );
     return parse_line_( input_stream, variant, sample_filter, true );
 }
 
 // =================================================================================================
 //     Internal Members
 // =================================================================================================
+
+// -------------------------------------------------------------------------
+//     Reset Status
+// -------------------------------------------------------------------------
+
+void SimplePileupReader::reset_status_( Variant& variant ) const
+{
+    variant.status.reset();
+    for( auto& sample : variant.samples ) {
+        sample.status.reset();
+    }
+}
 
 // -------------------------------------------------------------------------
 //     Parse Line
