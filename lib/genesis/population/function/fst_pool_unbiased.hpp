@@ -91,7 +91,7 @@ public:
         , estimator_( est )
     {}
 
-    ~FstPoolCalculatorUnbiased() = default;
+    virtual ~FstPoolCalculatorUnbiased() override = default;
 
     FstPoolCalculatorUnbiased( FstPoolCalculatorUnbiased const& ) = default;
     FstPoolCalculatorUnbiased( FstPoolCalculatorUnbiased&& )      = default;

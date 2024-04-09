@@ -190,7 +190,7 @@ public:
 
     public:
 
-        virtual ~DerivedIterator() = default;
+        virtual ~DerivedIterator() override = default;
 
         DerivedIterator( self_type const& ) = default;
         DerivedIterator( self_type&& )      = default;
@@ -434,7 +434,7 @@ public:
         : base_type( begin, end )
     {}
 
-    virtual ~ChromosomeStream() = default;
+    virtual ~ChromosomeStream() override = default;
 
     ChromosomeStream( ChromosomeStream const& ) = default;
     ChromosomeStream( ChromosomeStream&& )      = default;

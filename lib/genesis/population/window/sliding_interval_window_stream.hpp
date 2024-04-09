@@ -168,7 +168,7 @@ public:
 
     public:
 
-        virtual ~DerivedIterator() = default;
+        virtual ~DerivedIterator() override = default;
 
         DerivedIterator( self_type const& ) = default;
         DerivedIterator( self_type&& )      = default;
@@ -371,7 +371,7 @@ public:
         : base_type( begin, end )
     {}
 
-    virtual ~SlidingIntervalWindowStream() = default;
+    virtual ~SlidingIntervalWindowStream() override = default;
 
     SlidingIntervalWindowStream( SlidingIntervalWindowStream const& ) = default;
     SlidingIntervalWindowStream( SlidingIntervalWindowStream&& )      = default;

@@ -192,7 +192,7 @@ public:
 
     public:
 
-        virtual ~DerivedIterator() = default;
+        virtual ~DerivedIterator() override = default;
 
         DerivedIterator( self_type const& ) = default;
         DerivedIterator( self_type&& )      = default;
@@ -743,7 +743,7 @@ public:
         }
     }
 
-    virtual ~RegionWindowStream() = default;
+    virtual ~RegionWindowStream() override = default;
 
     RegionWindowStream( RegionWindowStream const& ) = default;
     RegionWindowStream( RegionWindowStream&& )      = default;

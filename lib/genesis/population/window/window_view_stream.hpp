@@ -178,7 +178,7 @@ public:
 
     public:
 
-        virtual ~DerivedIterator() = default;
+        virtual ~DerivedIterator() override = default;
 
         DerivedIterator( self_type const& ) = default;
         DerivedIterator( self_type&& )      = default;
@@ -250,7 +250,7 @@ public:
         : window_stream_( std::move( window_iterator ))
     {}
 
-    virtual ~WindowViewStream() = default;
+    virtual ~WindowViewStream() override = default;
 
     WindowViewStream( WindowViewStream const& ) = default;
     WindowViewStream( WindowViewStream&& )      = default;

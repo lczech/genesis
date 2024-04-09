@@ -90,7 +90,7 @@ public:
         (void) p2_poolsize;
     }
 
-    ~FstPoolCalculatorKarlsson() = default;
+    virtual ~FstPoolCalculatorKarlsson() override = default;
 
     FstPoolCalculatorKarlsson( FstPoolCalculatorKarlsson const& ) = default;
     FstPoolCalculatorKarlsson( FstPoolCalculatorKarlsson&& )      = default;

@@ -80,7 +80,7 @@ public:
         , p2_poolsize_( static_cast<double>( p2_poolsize ))
     {}
 
-    ~FstPoolCalculatorKofler() = default;
+    virtual ~FstPoolCalculatorKofler() override = default;
 
     FstPoolCalculatorKofler( FstPoolCalculatorKofler const& ) = default;
     FstPoolCalculatorKofler( FstPoolCalculatorKofler&& )      = default;
