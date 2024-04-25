@@ -65,6 +65,9 @@ namespace population {
  *    #entry_input_function needs to be provided to convert from `InputType` to this `Data`.
  *    By default, we take this to be the same as the `InputType`, meaning that the Window contains
  *    the same data type as the underlying stream that we get our data from.
+ *  * `WindowType`: The type of window that is emitted in each step of the iteration. This can
+ *    either be Window or WindowView, depending on whether the data needs to be kept in memory,
+ *    or can be produced on the fly while iterating each window.
  *
  * The three functors
  *
@@ -98,7 +101,12 @@ namespace population {
  *
  *     // Iterate over Windows.
  *     for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
- *         ...
+ *         // Inside here, we typically then want to loop over the entries of each window
+ *     }
+ *
+ *     // Alternative version.
+ *     for( auto const& window : win_it ) {
+ *         // Same as above, nested loop here to iterate the entries of each window
  *     }
  *
  * Other derived classes work accordingly.
@@ -347,12 +355,12 @@ public:
         void execute_observers_()
         {
             // If there is still a parent, we are active,
-            // and execute all observers for the element.
+            // and execute all observers for the window.
             assert( pimpl_ );
             if( pimpl_->get_parent_() ) {
-                auto& element = pimpl_->get_current_window_();
+                auto& window = pimpl_->get_current_window_();
                 for( auto const& observer : pimpl_->get_parent_()->observers_ ) {
-                    observer( element );
+                    observer( window );
                 }
             }
         }
@@ -546,12 +554,12 @@ public:
      *
      * These functions are executed when starting and incrementing the iterator, once for each
      * window, in the order in which they are added here. They take the window (typically of type
-     * window or WindowView) that the iterator just moved to as their argument, so that user code
+     * Window or WindowView) that the iterator just moved to as their argument, so that user code
      * can react to the new window properties.
      *
      * They are a way of adding behaviour to the iteration loop that could also simply be placed
      * in the beginning of the loop body of the user code. Still, offering this here can reduce
-     * redundant code, such as logging Windows during the iteration.
+     * redundant code, such as logging window positions during the iteration.
      */
     self_type& add_observer( std::function<void(WindowType const&)> const& observer )
     {
@@ -574,6 +582,13 @@ public:
 
     Iterator begin()
     {
+        if( started_ ) {
+            throw std::runtime_error(
+                "Window Stream is an input iterator (single pass), "
+                "but begin() has been called multiple times."
+            );
+        }
+        started_ = true;
         return Iterator( get_begin_iterator_() );
     }
 
@@ -591,7 +606,20 @@ protected:
     // Need a default for WindowViewStream.
     BaseWindowStream() = default;
 
+    /**
+     * @brief Get the begin iterator.
+     *
+     * Needs to be implemented by the derived class, to give the correct derived BaseIterator
+     * instance.
+     */
     virtual std::unique_ptr<BaseIterator> get_begin_iterator_() = 0;
+
+    /**
+     * @brief Get the end iterator.
+     *
+     * Needs to be implemented by the derived class, to give the correct derived BaseIterator
+     * instance.
+     */
     virtual std::unique_ptr<BaseIterator> get_end_iterator_() = 0;
 
     // -------------------------------------------------------------------------
@@ -603,6 +631,7 @@ private:
     // Underlying iterator to the data that we want to put in windows.
     InputStreamIterator begin_;
     InputStreamIterator end_;
+    mutable bool started_ = false;
 
     // Keep the observers for each window view.
     std::vector<std::function<void(WindowType const&)>> observers_;

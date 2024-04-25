@@ -463,8 +463,8 @@ void test_gapless_input_stream_random_()
 TEST( GaplessInputStream, Random )
 {
     // Random seed. Report it, so that in an error case, we can reproduce.
-    // auto const seed = ::time(nullptr);
-    auto const seed = 1708230970;
+    auto const seed = ::time(nullptr);
+    // auto const seed = 1708230970;
     permuted_congruential_generator_init( seed );
     LOG_INFO << "Seed: " << seed;
 
