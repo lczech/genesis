@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -60,12 +60,12 @@ void rescale_counts_(
     // Scale the numbers, which rounds to the lower integer.
     // We store the result in intermediate values first, as we might need the originals later.
     double const scale = static_cast<double>(target_coverage) / static_cast<double>(total_sum);
-    size_t a_count = static_cast<double>( sample.a_count ) * scale;
-    size_t c_count = static_cast<double>( sample.c_count ) * scale;
-    size_t g_count = static_cast<double>( sample.g_count ) * scale;
-    size_t t_count = static_cast<double>( sample.t_count ) * scale;
-    size_t n_count = static_cast<double>( sample.n_count ) * scale;
-    size_t d_count = static_cast<double>( sample.d_count ) * scale;
+    size_t a_count = static_cast<size_t>( static_cast<double>( sample.a_count ) * scale );
+    size_t c_count = static_cast<size_t>( static_cast<double>( sample.c_count ) * scale );
+    size_t g_count = static_cast<size_t>( static_cast<double>( sample.g_count ) * scale );
+    size_t t_count = static_cast<size_t>( static_cast<double>( sample.t_count ) * scale );
+    size_t n_count = static_cast<size_t>( static_cast<double>( sample.n_count ) * scale );
+    size_t d_count = static_cast<size_t>( static_cast<double>( sample.d_count ) * scale );
 
     // Now we might have some remainder due to the integer rounding, which we want to proportionally
     // distribute across the numbers, so that the largest count gets most. We only processed 6
