@@ -429,9 +429,10 @@ public:
     // -------------------------------------------------------------------------
 
     ChromosomeStream(
-        InputStreamIterator begin, InputStreamIterator end
+        InputStreamIterator begin, InputStreamIterator end, bool whole_genome = false
     )
         : base_type( begin, end )
+        , whole_genome_( whole_genome )
     {}
 
     virtual ~ChromosomeStream() override = default;

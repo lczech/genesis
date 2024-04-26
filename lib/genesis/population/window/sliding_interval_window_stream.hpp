@@ -366,9 +366,12 @@ public:
     // -------------------------------------------------------------------------
 
     SlidingIntervalWindowStream(
-        InputStreamIterator begin, InputStreamIterator end
+        InputStreamIterator begin, InputStreamIterator end,
+        size_t width = 0, size_t stride = 0
     )
         : base_type( begin, end )
+        , width_( width )
+        , stride_( stride )
     {}
 
     virtual ~SlidingIntervalWindowStream() override = default;
