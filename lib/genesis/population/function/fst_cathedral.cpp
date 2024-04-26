@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -275,7 +275,7 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records(
         );
         assert( chr_result.size() == processor.size() );
 
-        // Move the data for one chromsome (for each pair of samples) to the result.
+        // Move the data for one chromosome (for each pair of samples) to the result.
         result.reserve( result.size() + chr_result.size() );
         for( size_t i = 0; i < chr_result.size(); ++i ) {
             result.push_back( std::move( chr_result[i] ));

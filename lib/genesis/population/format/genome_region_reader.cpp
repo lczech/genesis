@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -111,7 +111,7 @@ void GenomeRegionReader::read_(
         // or white space, but not mixed. So here, we take note of which delimiter we found first.
         bool colon = true;
         if( !it || *it == '\n' ) {
-            // No information on positions, so mark it as using the whole chromsome.
+            // No information on positions, so mark it as using the whole chromosome.
             region.start = 0;
             region.end = 0;
             callback( region );

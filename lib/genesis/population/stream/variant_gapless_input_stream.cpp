@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -86,7 +86,7 @@ VariantGaplessInputStream::Iterator::Iterator( VariantGaplessInputStream* parent
         // positions from the ref genome or sequence dict.
         num_samples_ = sample_name_count;
 
-        // We have no actual input data. Still let's see if there are extra chromsomes we want.
+        // We have no actual input data. Still let's see if there are extra chromosomes we want.
         // We might not have anything, in which case we are done already.
         auto const chr = find_next_extra_chromosome_();
         if( chr.empty() ) {
@@ -191,7 +191,7 @@ void VariantGaplessInputStream::Iterator::start_chromosome_()
 
 void VariantGaplessInputStream::Iterator::advance_current_locus_()
 {
-    // If we have no more input data, we are processing positions (and potential extra chromsomes)
+    // If we have no more input data, we are processing positions (and potential extra chromosomes)
     // as provided by the ref genome or seq dict.
     if( !iterator_ ) {
         advance_current_locus_beyond_input_();

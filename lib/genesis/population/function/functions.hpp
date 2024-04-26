@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -55,7 +55,7 @@ namespace population {
  */
 inline constexpr bool is_valid_base( char c )
 {
-    // Can't use a functionc all here, to comply with C++11 constexpr rules.
+    // Can't use a function call here, to comply with C++11 constexpr rules.
     // c = utils::to_upper( c );
     return (
         c == 'A' || c == 'a' ||
@@ -70,7 +70,7 @@ inline constexpr bool is_valid_base( char c )
  */
 inline constexpr bool is_valid_base_or_n( char c )
 {
-    // Can't use a functionc all here, to comply with C++11 constexpr rules.
+    // Can't use a function call here, to comply with C++11 constexpr rules.
     // c = utils::to_upper( c );
     return (
         c == 'A' || c == 'a' ||

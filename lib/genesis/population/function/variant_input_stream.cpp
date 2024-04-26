@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -184,7 +184,7 @@ std::function<void(Variant const&)> make_variant_input_stream_sequence_order_obs
         // name, which will happen in the very first time that this callback is used.
         // The empty string won't be part of the dict chromosomes. For simplicity,
         // we here always check that case. We later check that the variant itself does not have
-        // an empty chromsome name, in order to not regress to this starting condition.
+        // an empty chromosome name, in order to not regress to this starting condition.
         if( ! current_locus.empty() ) {
 
             // If a dict is provided, but the chromosome is not in there, the following check throws.

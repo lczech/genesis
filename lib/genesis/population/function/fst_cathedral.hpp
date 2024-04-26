@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -163,12 +163,12 @@ private:
 
 /**
  * @brief Compute the components of per-position FST data for all pairs of samples in the given
- * @p processor, for the current chromsome in the given input @p iterator.
+ * @p processor, for the current chromosome in the given input @p iterator.
  *
  * The result contains entries for all pairs of samples. The computation starts at the current
  * position in @p iterator, uses that chromosome, and iterates until its end or until the next
  * chromosome is found, and stops there. See compute_fst_cathedral_records() for a helper function
- * that does this for all chromsomes in the input.
+ * that does this for all chromosomes in the input.
  *
  * This expects the processor to only contain FstPoolCalculatorUnbiased calculators, as those
  * are the only ones for which we can compute cathedral plots with our current implementation.
@@ -189,7 +189,7 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records_for_chromosome
 
 /**
  * @brief Compute the components of per-position FST data for all pairs of samples in the given
- * @p processor, for the chromsomes in the given input @p iterator.
+ * @p processor, for the chromosomes in the given input @p iterator.
  *
  * The result contains entries for all pairs of samples and all chromosomes, in one vector.
  * This is a convenience function that calls compute_fst_cathedral_records_for_chromosome() for each

@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -515,7 +515,7 @@ public:
                 );
 
                 // If we did not find a selected entry (only unselected, or nothing at all on this
-                // chromosome), we mark that we reached the end of the chromsome, for below.
+                // chromosome), we mark that we reached the end of the chromosome, for below.
                 if( add_result.second == false ) {
                     finished_chromosome = true;
                 }
@@ -525,7 +525,7 @@ public:
             // afterwards found that we are at the end of the chromosome, we are done with a
             // chromosome (or the whole data). The tail buffer then contains all remaining
             // unselected entries, which we hence need to add to the window, as this is the last
-            // window on the chromsome.
+            // window on the chromosome.
             if( finished_chromosome ) {
                 assert(
                     tail_buffer_.empty() ||

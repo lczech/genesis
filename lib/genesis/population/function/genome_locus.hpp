@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -233,7 +233,7 @@ inline int locus_compare(
     std::string const& l_chromosome, size_t l_position,
     std::string const& r_chromosome, size_t r_position
 ) {
-    // We compare the chromsomes with strcmp, so that we only run the relatively expensive string
+    // We compare the chromosomes with strcmp, so that we only run the relatively expensive string
     // comparison once, and then check the result - if equal, do the threeway position comparison.
     auto const chr_cmp = std::strcmp( l_chromosome.c_str(), r_chromosome.c_str() );
     if( chr_cmp != 0 ) {

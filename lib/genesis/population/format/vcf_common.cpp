@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -650,7 +650,7 @@ void genome_region_list_from_vcf_file( std::string const& file, GenomeRegionList
                 cur_pos = pos;
             }
         } else {
-            // We are at a new chromsome.
+            // We are at a new chromosome.
 
             // Unless we just started, we add the interval, again using the merge flag.
             insert_( cur_chr, beg_pos, cur_pos );

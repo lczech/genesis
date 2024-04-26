@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -321,7 +321,7 @@ public:
 
                 // The next window is determined when we know whether it has data or won't be
                 // skipped anyway (if we dont skip_empty_regions_). It does not matter if this
-                // window is on the same chromsome as the current one - we just need to know
+                // window is on the same chromosome as the current one - we just need to know
                 // that there is one more window coming that we want to yield to the user of this
                 // iterator, and from there we can determine the rest in increment_().
                 auto const next_win_determined = (
@@ -363,7 +363,7 @@ public:
                         // (We could just continue here, as this is also the loop exit condition...)
                         break;
                     } else {
-                        // If we are not yet at the end, we have moved our cur_it to a new chromsome.
+                        // If we are not yet at the end, we have moved our cur_it to a new chromosome.
                         // Assert that this was successfull. Then, start the loop again, to reset
                         // our shorthands, and check our exit conditions again for the cur it.
                         assert( ! windows_.empty() );
@@ -642,7 +642,7 @@ public:
         }
 
         /**
-         * @brief Helper function to add all regions of a chromsome in the region list as empty
+         * @brief Helper function to add all regions of a chromosome in the region list as empty
          * windows to our list.
          */
         void add_chromosome_windows_( std::string const& chromosome )
@@ -652,7 +652,7 @@ public:
             assert( parent_->region_list_ );
             auto const& region_list = *parent_->region_list_;
 
-            // We only call this function for chromsomes for which there are regions,
+            // We only call this function for chromosomes for which there are regions,
             // and that we have not processed before. Both are ensured by the callers already.
             assert( region_list.has_chromosome( chromosome ));
             assert( region_list.region_count( chromosome ) > 0 );

@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -228,7 +228,7 @@ public:
             assert( parent_ );
 
             // Move to the next chromosome. This is only important if this increment function
-            // is called before the inner window view iterator has finished the whole chromsome,
+            // is called before the inner window view iterator has finished the whole chromosome,
             // so if for example a break is called within.
             while(
                 base_iterator_type::current_ != base_iterator_type::end_ &&
@@ -244,7 +244,7 @@ public:
             }
             assert( parent_ );
 
-            // Now we know there is still data, but it belongs to a different chromsome.
+            // Now we know there is still data, but it belongs to a different chromosome.
             assert( base_iterator_type::current_ != base_iterator_type::end_ );
             assert(
                 parent_->chromosome_function( *base_iterator_type::current_ ) != window_.chromosome()
@@ -520,7 +520,7 @@ protected:
 
 private:
 
-    // The class models both types of iterator, whole individual chromsomes,
+    // The class models both types of iterator, whole individual chromosomes,
     // or the whole genome as one large window. Here, we switch between the two.
     bool whole_genome_ = false;
 

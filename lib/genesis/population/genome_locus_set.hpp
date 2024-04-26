@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -279,7 +279,7 @@ public:
      * This overload of the function accepts a Bitvector directly, without checking that it
      * belongs to any of the chromosomes stored (hence, it is a static function). The Bitvector
      * is expected to follow the convention of that class, that is, bit 0 is used to indicate that
-     * the whole chromsome is covered, and all other bits correspond to 1-based positions.
+     * the whole chromosome is covered, and all other bits correspond to 1-based positions.
      * This can for instance be used in combination with chromosome_positions().
      */
     static bool is_covered( utils::Bitvector const& bitvector, size_t position )
@@ -546,7 +546,7 @@ private:
 
     // Map from chromosome names to bitvectors representing which positions are in (true)
     // and out (false). Note that position 0 is special; if set, it means that we consider
-    // the whole chromsome as covered.
+    // the whole chromosome as covered.
     std::unordered_map<std::string, utils::Bitvector> locus_map_;
 
 };

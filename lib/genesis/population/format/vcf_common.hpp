@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -253,7 +253,7 @@ GenomeLocusSet genome_locus_set_from_vcf_file( std::string const& file );
  * and convert to a faster file format, such as simple genome region lists, see GenomeRegionReader.
  *
  * This ignores all sample information, and simply uses the `CHROM`	and `POS` data to construct
- * intervals of consecutive positions along the chromsomes, i.e., if the file contains positions
+ * intervals of consecutive positions along the chromosomes, i.e., if the file contains positions
  * `1`, `2`, and `3`, but not `4`, an interval spanning `1-3` is inserted into the list.
  *
  * The VCF file does not have to be sorted for this.

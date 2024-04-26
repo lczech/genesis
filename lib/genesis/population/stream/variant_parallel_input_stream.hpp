@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -140,7 +140,7 @@ namespace population {
  *
  * Note also that we allow input sources to not contain data at all chromosomes. That is, as long as
  * they are in the correct order (either lexicographical, or according to the sequence dictionary),
- * input sources do not need to contain all chromsomes.
+ * input sources do not need to contain all chromosomes.
  */
 class VariantParallelInputStream
 {

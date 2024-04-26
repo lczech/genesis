@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -198,7 +198,7 @@ void GenomeLocusSet::set_intersect( GenomeLocusSet const& rhs )
             assert( !lhs_bits.get(0) );
         }
 
-        // If the result has any positions set, this is still a chromsome that we want to keep,
+        // If the result has any positions set, this is still a chromosome that we want to keep,
         // so remove it from the to-delete list. If all its bits are 0, we have eliminated
         // all positions from the filter, so we might as well delete the whole vector; in that
         // case, we simply keept it in the to-delete list and then it gets removed below.
