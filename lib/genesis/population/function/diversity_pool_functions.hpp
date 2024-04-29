@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -94,8 +94,8 @@ enum class TajimaDenominatorPolicy
      * the empirical pool size via n_base().
      *
      * With the two bugs of PoPoolation fixed, they still use the user-provided min_coverage
-     * (also a setting here) as input for the n_base() function to compute the empirical pool size.
-     * We think that this is not ideal, and gives wrong estimates of the number of individuals
+     * (see DiversityPoolSettings) as input for the n_base() function to compute the empirical pool
+     * size. We think that this is not ideal, and gives wrong estimates of the number of individuals
      * sequenced. Still, we offer this behaviour here, as a means to compute what we think
      * PoPoolation _intended_ to compute without their more obvious bugs.
      */

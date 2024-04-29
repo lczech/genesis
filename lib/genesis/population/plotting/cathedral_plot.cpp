@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -296,7 +296,7 @@ CathedralPlotRecord load_cathedral_plot_record_from_files(
     std::string const& base_path
 ) {
     // Read the data.
-    auto const components = load_cathedral_plot_record_components_from_files( base_path );
+    auto components = load_cathedral_plot_record_components_from_files( base_path );
     auto const& json = components.first;
 
     // Fill the record. We currently only read the fields that we are actually using downstream.
@@ -315,7 +315,7 @@ CathedralPlotRecord load_cathedral_plot_record_from_files(
     }
 
     // Also get the value data.
-    result.value_matrix = components.second;
+    result.value_matrix = std::move( components.second );
 
     // Now check internal consistency, and return the result.
     validate_cathedral_plot_record( result );
