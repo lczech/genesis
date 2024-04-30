@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -37,6 +37,7 @@
 #include "genesis/population/stream/variant_input_stream_adapters.hpp"
 #include "genesis/population/window/functions.hpp"
 #include "genesis/population/window/chromosome_stream.hpp"
+#include "genesis/population/window/genome_stream.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/population/window/window_view.hpp"
 #include "genesis/utils/containers/generic_input_stream.hpp"
@@ -206,7 +207,7 @@ TEST( WindowStream, ChromosomeStreamChromosome )
     test_window_stream_chromosome_stream_chromosome_multi_( multi_dict );
 }
 
-TEST( WindowStream, ChromosomeStreamWholeGenome )
+TEST( WindowStream, GenomeStream )
 {
     // Almost exactly the same as above... we could refactor this to avoid the duplication...
     // Good enough for now, fix later.

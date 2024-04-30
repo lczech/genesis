@@ -93,6 +93,7 @@
 #include "genesis/population/window/base_window_stream.hpp"
 #include "genesis/population/window/chromosome_stream.hpp"
 #include "genesis/population/window/functions.hpp"
+#include "genesis/population/window/genome_stream.hpp"
 #include "genesis/population/window/queue_window_stream.hpp"
 #include "genesis/population/window/region_window_stream.hpp"
 #include "genesis/population/window/sliding_interval_window_stream.hpp"
