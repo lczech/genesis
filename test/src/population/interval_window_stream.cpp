@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -36,7 +36,7 @@
 #include "genesis/population/stream/variant_input_stream_sources.hpp"
 #include "genesis/population/stream/variant_input_stream_adapters.hpp"
 #include "genesis/population/window/functions.hpp"
-#include "genesis/population/window/sliding_interval_window_stream.hpp"
+#include "genesis/population/window/interval_window_stream.hpp"
 #include "genesis/population/window/variant_window_stream.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/generic_input_stream.hpp"
@@ -128,7 +128,7 @@ TEST( WindowStream, SlidingIntervalDirect )
     auto pileup_end = SimplePileupInputStream<>();
 
     // Set up the window iterator. Rename to `win_it` to use it with the below test code.
-    auto win_it = make_default_sliding_interval_window_stream(
+    auto win_it = make_default_interval_window_stream(
         pileup_begin, pileup_end, 10000
     );
     win_it.emit_leading_empty_windows( false );
@@ -173,7 +173,7 @@ TEST( WindowStream, SlidingIntervalLambda )
     auto pileup_end   = data_gen.end();
 
     // Create a window iterator based on the Generic Input Stream.
-    auto win_it = make_default_sliding_interval_window_stream(
+    auto win_it = make_default_interval_window_stream(
         pileup_begin, pileup_end, 10000
     );
     win_it.emit_leading_empty_windows( false );
@@ -241,7 +241,7 @@ TEST( WindowStream, SlidingIntervalEmpty )
     auto pileup_end   = data_gen.end();
 
     // Create a window iterator based on the Generic Input Stream.
-    auto win_it = make_default_sliding_interval_window_stream(
+    auto win_it = make_default_interval_window_stream(
         pileup_begin, pileup_end, 10000
     );
 

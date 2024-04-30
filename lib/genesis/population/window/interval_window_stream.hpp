@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_WINDOW_SLIDING_INTERVAL_WINDOW_STREAM_H_
-#define GENESIS_POPULATION_WINDOW_SLIDING_INTERVAL_WINDOW_STREAM_H_
+#ifndef GENESIS_POPULATION_WINDOW_INTERVAL_WINDOW_STREAM_H_
+#define GENESIS_POPULATION_WINDOW_INTERVAL_WINDOW_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -61,17 +61,17 @@ namespace population {
  *
  * have to be set in the class prior to starting the iteration, as well as the width().
  * All other settings are optional and/or defaulted to reasonable values.
- * See make_sliding_interval_window_stream() and make_default_sliding_interval_window_stream()
+ * See make_interval_window_stream() and make_default_interval_window_stream()
  * for helper functions that take care of this for most of our data types.
  *
  * See BaseWindowStream for more details on the three functors, the template parameters,
  * and general usage examples of the class.
  *
- * @see make_sliding_interval_window_stream()
- * @see make_default_sliding_interval_window_stream()
+ * @see make_interval_window_stream()
+ * @see make_default_interval_window_stream()
  */
 template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
-class SlidingIntervalWindowStream final : public BaseWindowStream<InputStreamIterator, DataType>
+class IntervalWindowStream final : public BaseWindowStream<InputStreamIterator, DataType>
 {
 public:
 
@@ -79,7 +79,7 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using self_type = SlidingIntervalWindowStream<InputStreamIterator, DataType>;
+    using self_type = IntervalWindowStream<InputStreamIterator, DataType>;
     using base_type = BaseWindowStream<InputStreamIterator, DataType>;
 
     using Window            = ::genesis::population::Window<DataType>;
@@ -107,7 +107,7 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type = typename SlidingIntervalWindowStream<
+        using self_type = typename IntervalWindowStream<
             InputStreamIterator, DataType
         >::DerivedIterator;
 
@@ -130,7 +130,7 @@ public:
         DerivedIterator() = default;
 
         DerivedIterator(
-            SlidingIntervalWindowStream const* parent
+            IntervalWindowStream const* parent
         )
             : base_iterator_type( parent )
             , parent_( parent )
@@ -145,14 +145,14 @@ public:
 
             // Check our own the settings.
             if( parent_->width_ == 0 ) {
-                throw std::runtime_error( "Cannot use SlidingIntervalWindowStream of width 0." );
+                throw std::runtime_error( "Cannot use IntervalWindowStream of width 0." );
             }
             if( parent_->stride_ == 0 ) {
                 parent_->stride_ = parent_->width_;
             }
             if( parent_->stride_ > parent_->width_ ) {
                 throw std::runtime_error(
-                    "Cannot use SlidingIntervalWindowStream with stride > width."
+                    "Cannot use IntervalWindowStream with stride > width."
                 );
             }
 
@@ -176,7 +176,7 @@ public:
         DerivedIterator& operator= ( self_type const& ) = default;
         DerivedIterator& operator= ( self_type&& )      = default;
 
-        friend SlidingIntervalWindowStream;
+        friend IntervalWindowStream;
 
         // -------------------------------------------------------------------------
         //     Internal and Virtual Members
@@ -228,7 +228,7 @@ public:
                 // reset, so that this is an iteration past the end.
                 if( ! base_iterator_type::is_last_window_ ) {
                     throw std::runtime_error(
-                        "SlidingIntervalWindowStream: Incrementing past the end"
+                        "IntervalWindowStream: Incrementing past the end"
                     );
                 }
 
@@ -348,7 +348,7 @@ public:
     private:
 
         // Parent. Needs to live here to have the correct derived type.
-        SlidingIntervalWindowStream const* parent_ = nullptr;
+        IntervalWindowStream const* parent_ = nullptr;
 
         // Current window and its position
         Window window_;
@@ -365,7 +365,7 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    SlidingIntervalWindowStream(
+    IntervalWindowStream(
         InputStreamIterator begin, InputStreamIterator end,
         size_t width = 0, size_t stride = 0
     )
@@ -374,13 +374,13 @@ public:
         , stride_( stride )
     {}
 
-    virtual ~SlidingIntervalWindowStream() override = default;
+    virtual ~IntervalWindowStream() override = default;
 
-    SlidingIntervalWindowStream( SlidingIntervalWindowStream const& ) = default;
-    SlidingIntervalWindowStream( SlidingIntervalWindowStream&& )      = default;
+    IntervalWindowStream( IntervalWindowStream const& ) = default;
+    IntervalWindowStream( IntervalWindowStream&& )      = default;
 
-    SlidingIntervalWindowStream& operator= ( SlidingIntervalWindowStream const& ) = default;
-    SlidingIntervalWindowStream& operator= ( SlidingIntervalWindowStream&& )      = default;
+    IntervalWindowStream& operator= ( IntervalWindowStream const& ) = default;
+    IntervalWindowStream& operator= ( IntervalWindowStream&& )      = default;
 
     friend DerivedIterator;
 
@@ -488,44 +488,44 @@ private:
 // =================================================================================================
 
 /**
- * @brief Helper function to instantiate a SlidingIntervalWindowStream
+ * @brief Helper function to instantiate a IntervalWindowStream
  * without the need to specify the template parameters manually.
  *
  * The three functors `entry_input_function`, `chromosome_function`, and `position_function`
- * of the SlidingIntervalWindowStream have to be set in the returned stream before using it.
- * See make_default_sliding_interval_window_stream() for an alternative make function
+ * of the IntervalWindowStream have to be set in the returned stream before using it.
+ * See make_default_interval_window_stream() for an alternative make function
  * that sets these three functors to reasonable defaults that work for the Variant data type.
  */
 template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
-SlidingIntervalWindowStream<InputStreamIterator, DataType>
-make_sliding_interval_window_stream(
+IntervalWindowStream<InputStreamIterator, DataType>
+make_interval_window_stream(
     InputStreamIterator begin, InputStreamIterator end, size_t width = 0, size_t stride = 0
 ) {
-    auto it = SlidingIntervalWindowStream<InputStreamIterator, DataType>( begin, end );
+    auto it = IntervalWindowStream<InputStreamIterator, DataType>( begin, end );
     it.width( width );
     it.stride( stride );
     return it;
 }
 
 /**
- * @brief Helper function to instantiate a SlidingIntervalWindowStream for a default use case.
+ * @brief Helper function to instantiate a IntervalWindowStream for a default use case.
  *
  * This helper assumes that the underlying type of the input data stream and of the Window%s
  * that we are sliding over are of the same type, that is, we do no conversion in the
- * `entry_input_function` functor of the SlidingIntervalWindowStream. It further assumes that this
+ * `entry_input_function` functor of the IntervalWindowStream. It further assumes that this
  * data type has public member variables `chromosome` and `position` that are accessed by the
- * `chromosome_function` and `position_function` functors of the SlidingIntervalWindowStream.
+ * `chromosome_function` and `position_function` functors of the IntervalWindowStream.
  * For example, a data type that this works for is Variant data.
  */
 template<class InputStreamIterator>
-SlidingIntervalWindowStream<InputStreamIterator>
-make_default_sliding_interval_window_stream(
+IntervalWindowStream<InputStreamIterator>
+make_default_interval_window_stream(
     InputStreamIterator begin, InputStreamIterator end, size_t width = 0, size_t stride = 0
 ) {
     using DataType = typename InputStreamIterator::value_type;
 
     // Set functors.
-    auto it = SlidingIntervalWindowStream<InputStreamIterator>( begin, end );
+    auto it = IntervalWindowStream<InputStreamIterator>( begin, end );
     it.entry_input_function = []( DataType const& variant ) {
         return variant;
     };
@@ -543,13 +543,13 @@ make_default_sliding_interval_window_stream(
 }
 
 /**
- * @brief Helper class that creates a SlidingIntervalWindowStream
+ * @brief Helper class that creates a IntervalWindowStream
  * and wraps it in a WindowViewStream.
  *
- * See make_default_sliding_interval_window_stream() for the base functionality,
+ * See make_default_interval_window_stream() for the base functionality,
  * and see make_window_view_stream() for the wrapping behaviour.
  *
- * Note that because this is a simple wrapper around the constructor of SlidingIntervalWindowStream,
+ * Note that because this is a simple wrapper around the constructor of IntervalWindowStream,
  * we lose access to that class itself, so that its more specialized member functions cannot be called
  * any more. If this is needed, use the two aforementioned `make_...()` functions individually.
  */
@@ -559,7 +559,7 @@ make_default_sliding_interval_window_view_stream(
     InputStreamIterator begin, InputStreamIterator end, size_t width = 0, size_t stride = 0
 ) {
     return make_window_view_stream(
-        make_default_sliding_interval_window_stream( begin, end, width, stride )
+        make_default_interval_window_stream( begin, end, width, stride )
     );
 }
 
