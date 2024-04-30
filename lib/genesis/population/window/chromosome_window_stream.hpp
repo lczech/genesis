@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_WINDOW_CHROMOSOME_STREAM_H_
-#define GENESIS_POPULATION_WINDOW_CHROMOSOME_STREAM_H_
+#ifndef GENESIS_POPULATION_WINDOW_CHROMOSOME_WINDOW_STREAM_H_
+#define GENESIS_POPULATION_WINDOW_CHROMOSOME_WINDOW_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -48,7 +48,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Chromosome Stream
+//     Chromosome Window Stream
 // =================================================================================================
 
 /**
@@ -73,7 +73,7 @@ namespace population {
  *  * #position_function
  *
  * have to be set in the class prior to starting the iteration for the chromosome iterator.
- * See make_chromosome_stream() and make_default_chromosome_stream()
+ * See make_chromosome_window_stream() and make_default_chromosome_window_stream()
  * for helper functions that take care of this for most of our data types.
  *
  * See BaseWindowStream for more details on the three functors, the template parameters.
@@ -83,11 +83,11 @@ namespace population {
  * Hence, instead, it yields a WindowView iterator, directly streaming over the positions of the
  * chromosome, without keeping all data in memory.
  *
- * @see make_chromosome_stream()
- * @see make_default_chromosome_stream()
+ * @see make_chromosome_window_stream()
+ * @see make_default_chromosome_window_stream()
  */
 template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
-class ChromosomeStream final : public BaseWindowStream<
+class ChromosomeWindowStream final : public BaseWindowStream<
     InputStreamIterator, DataType, ::genesis::population::WindowView<DataType>
 >
 {
@@ -98,7 +98,7 @@ public:
     // -------------------------------------------------------------------------
 
     using WindowViewType = ::genesis::population::WindowView<DataType>;
-    using self_type = ChromosomeStream<InputStreamIterator, DataType>;
+    using self_type = ChromosomeWindowStream<InputStreamIterator, DataType>;
     using base_type = BaseWindowStream<InputStreamIterator, DataType, WindowViewType>;
 
     // The input types that we take from the underlying stream over genome positions.
@@ -130,7 +130,7 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type = typename ChromosomeStream<
+        using self_type = typename ChromosomeWindowStream<
             InputStreamIterator, DataType
         >::DerivedIterator;
 
@@ -155,7 +155,7 @@ public:
         DerivedIterator() = default;
 
         DerivedIterator(
-            ChromosomeStream const* parent
+            ChromosomeWindowStream const* parent
         )
             : base_iterator_type( parent )
             , parent_( parent )
@@ -186,7 +186,7 @@ public:
         DerivedIterator& operator= ( self_type const& ) = default;
         DerivedIterator& operator= ( self_type&& )      = default;
 
-        friend ChromosomeStream;
+        friend ChromosomeWindowStream;
 
         // -------------------------------------------------------------------------
         //     Internal and Virtual Members
@@ -250,7 +250,7 @@ public:
                 auto const dict_entry = parent_->sequence_dict_->find( chr );
                 if( dict_entry == parent_->sequence_dict_->end() ) {
                     throw std::invalid_argument(
-                        "In ChromosomeStream: Cannot iterate chromosome \"" + chr +
+                        "In ChromosomeWindowStream: Cannot iterate chromosome \"" + chr +
                         "\", as the provided sequence dictionary or reference genome "
                         "does not contain the chromosome."
                     );
@@ -292,7 +292,7 @@ public:
                     // looking up the chromosome in the dict in every iteration.
                     if( seq_dict && old_pos > seq_dict->get( chr ).length ) {
                         throw std::invalid_argument(
-                            "In ChromosomeStream: Chromosome \"" + chr + "\" has length " +
+                            "In ChromosomeWindowStream: Chromosome \"" + chr + "\" has length " +
                             std::to_string( seq_dict->get( chr ).length ) +
                             " in the provided sequence dictionary or reference genome, "
                             "but the input data contains positions up to " +
@@ -340,7 +340,7 @@ public:
     private:
 
         // Parent. Needs to live here to have the correct derived type.
-        ChromosomeStream const* parent_ = nullptr;
+        ChromosomeWindowStream const* parent_ = nullptr;
 
         // Store the iterator for the window.
         WindowViewType window_;
@@ -359,19 +359,19 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    ChromosomeStream(
+    ChromosomeWindowStream(
         InputStreamIterator begin, InputStreamIterator end
     )
         : base_type( begin, end )
     {}
 
-    virtual ~ChromosomeStream() override = default;
+    virtual ~ChromosomeWindowStream() override = default;
 
-    ChromosomeStream( ChromosomeStream const& ) = default;
-    ChromosomeStream( ChromosomeStream&& )      = default;
+    ChromosomeWindowStream( ChromosomeWindowStream const& ) = default;
+    ChromosomeWindowStream( ChromosomeWindowStream&& )      = default;
 
-    ChromosomeStream& operator= ( ChromosomeStream const& ) = default;
-    ChromosomeStream& operator= ( ChromosomeStream&& )      = default;
+    ChromosomeWindowStream& operator= ( ChromosomeWindowStream const& ) = default;
+    ChromosomeWindowStream& operator= ( ChromosomeWindowStream&& )      = default;
 
     friend DerivedIterator;
 
@@ -443,37 +443,37 @@ private:
 // =================================================================================================
 
 /**
- * @brief Helper function to instantiate a ChromosomeStream for each chromosome,
+ * @brief Helper function to instantiate a ChromosomeWindowStream for each chromosome,
  * without the need to specify the template parameters manually.
  */
 template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
-ChromosomeStream<InputStreamIterator, DataType>
-make_chromosome_stream(
+ChromosomeWindowStream<InputStreamIterator, DataType>
+make_chromosome_window_stream(
     InputStreamIterator begin, InputStreamIterator end
 ) {
-    return ChromosomeStream<InputStreamIterator, DataType>( begin, end );
+    return ChromosomeWindowStream<InputStreamIterator, DataType>( begin, end );
 }
 
 /**
- * @brief Helper function to instantiate a ChromosomeStream for each chromosome,
+ * @brief Helper function to instantiate a ChromosomeWindowStream for each chromosome,
  * for a default use case.
  *
  * This helper assumes that the underlying type of the input data stream and of the data
  * that we are sliding over are of the same type, that is, we do no conversion in the
- * `entry_input_function` functor of the ChromosomeStream. It further assumes that this
+ * `entry_input_function` functor of the ChromosomeWindowStream. It further assumes that this
  * data type has public member variables `chromosome` and `position` that are accessed by the
- * `chromosome_function` and `position_function` functors of the ChromosomeStream.
+ * `chromosome_function` and `position_function` functors of the ChromosomeWindowStream.
  * For example, a data type that this works for is Variant data.
  */
 template<class InputStreamIterator>
-ChromosomeStream<InputStreamIterator>
-make_default_chromosome_stream(
+ChromosomeWindowStream<InputStreamIterator>
+make_default_chromosome_window_stream(
     InputStreamIterator begin, InputStreamIterator end
 ) {
     using DataType = typename InputStreamIterator::value_type;
 
     // Set functors.
-    auto it = ChromosomeStream<InputStreamIterator>( begin, end );
+    auto it = ChromosomeWindowStream<InputStreamIterator>( begin, end );
     it.entry_input_function = []( DataType const& variant ) {
         return variant;
     };

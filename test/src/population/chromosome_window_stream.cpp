@@ -36,8 +36,8 @@
 #include "genesis/population/stream/variant_input_stream_sources.hpp"
 #include "genesis/population/stream/variant_input_stream_adapters.hpp"
 #include "genesis/population/window/functions.hpp"
-#include "genesis/population/window/chromosome_stream.hpp"
-#include "genesis/population/window/genome_stream.hpp"
+#include "genesis/population/window/chromosome_window_stream.hpp"
+#include "genesis/population/window/genome_window_stream.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/population/window/window_view.hpp"
 #include "genesis/utils/containers/generic_input_stream.hpp"
@@ -54,7 +54,7 @@ void test_window_stream_chromosome_stream_chromosome_empty_()
     // Make a generic input stream over the data stream,
     // and set up the window iterator. Rename to `win_it` to use it with the below test code.
     auto data_gen = make_variant_input_stream_from_pileup_file( infile );
-    auto win_it = make_default_chromosome_stream( data_gen.begin(), data_gen.end() );
+    auto win_it = make_default_chromosome_window_stream( data_gen.begin(), data_gen.end() );
 
     // Run the tests.
     std::vector<size_t> pos_per_chr;
@@ -89,7 +89,7 @@ void test_window_stream_chromosome_stream_chromosome_single_(
     // Make a generic input stream over the data stream,
     // and set up the window iterator. Rename to `win_it` to use it with the below test code.
     auto data_gen = make_variant_input_stream_from_pileup_file( infile );
-    auto win_it = make_default_chromosome_stream( data_gen.begin(), data_gen.end() );
+    auto win_it = make_default_chromosome_window_stream( data_gen.begin(), data_gen.end() );
     win_it.sequence_dict( sequence_dict );
 
     // Run the tests.
@@ -139,7 +139,7 @@ void test_window_stream_chromosome_stream_chromosome_multi_(
     // Make a generic input stream over the data stream,
     // and set up the window iterator. Rename to `win_it` to use it with the below test code.
     auto data_gen = make_variant_input_stream_from_sam_file( infile );
-    auto win_it = make_default_chromosome_stream( data_gen.begin(), data_gen.end() );
+    auto win_it = make_default_chromosome_window_stream( data_gen.begin(), data_gen.end() );
     win_it.sequence_dict( sequence_dict );
 
     // Run the tests.
@@ -223,7 +223,7 @@ TEST( WindowStream, GenomeStream )
         // Make a generic input stream over the data stream,
         // and set up the window iterator. Rename to `win_it` to use it with the below test code.
         auto data_gen = make_variant_input_stream_from_pileup_file( infile );
-        auto win_it = make_default_genome_stream( data_gen.begin(), data_gen.end() );
+        auto win_it = make_default_genome_window_stream( data_gen.begin(), data_gen.end() );
 
         // Run the tests.
         std::vector<size_t> pos_per_chr;
@@ -250,7 +250,7 @@ TEST( WindowStream, GenomeStream )
         // Make a generic input stream over the data stream,
         // and set up the window iterator. Rename to `win_it` to use it with the below test code.
         auto data_gen = make_variant_input_stream_from_pileup_file( infile );
-        auto win_it = make_default_genome_stream( data_gen.begin(), data_gen.end() );
+        auto win_it = make_default_genome_window_stream( data_gen.begin(), data_gen.end() );
 
         // Run the tests.
         std::vector<size_t> pos_per_chr;
@@ -278,7 +278,7 @@ TEST( WindowStream, GenomeStream )
         // Make a generic input stream over the data stream,
         // and set up the window iterator. Rename to `win_it` to use it with the below test code.
         auto data_gen = make_variant_input_stream_from_sam_file( infile );
-        auto win_it = make_default_genome_stream( data_gen.begin(), data_gen.end() );
+        auto win_it = make_default_genome_window_stream( data_gen.begin(), data_gen.end() );
 
         // Run the tests.
         std::vector<size_t> pos_per_chr;

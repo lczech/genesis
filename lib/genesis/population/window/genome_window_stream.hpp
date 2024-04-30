@@ -1,5 +1,5 @@
-#ifndef GENESIS_POPULATION_WINDOW_GENOME_STREAM_H_
-#define GENESIS_POPULATION_WINDOW_GENOME_STREAM_H_
+#ifndef GENESIS_POPULATION_WINDOW_GENOME_WINDOW_STREAM_H_
+#define GENESIS_POPULATION_WINDOW_GENOME_WINDOW_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -47,7 +47,7 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Genome Stream
+//     Genome Window Stream
 // =================================================================================================
 
 /**
@@ -70,7 +70,7 @@ namespace population {
  * In fact, only the first of them has to be set, as we internally do not need
  * access to the chromosome and position information of the underlying data iterator.
  * But to be conformant with the other window streams, it is better to be consistent here.
- * See make_genome_stream() and make_default_genome_stream()
+ * See make_genome_window_stream() and make_default_genome_window_stream()
  * for helper functions that take care of this for most of our data types.
  *
  * See BaseWindowStream for more details on the three functors, the template parameters.
@@ -80,11 +80,11 @@ namespace population {
  * Hence, instead, it yields a WindowView iterator, directly streaming over the positions of the
  * chromosome, without keeping all data in memory.
  *
- * @see make_genome_stream()
- * @see make_default_genome_stream()
+ * @see make_genome_window_stream()
+ * @see make_default_genome_window_stream()
  */
 template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
-class GenomeStream final : public BaseWindowStream<
+class GenomeWindowStream final : public BaseWindowStream<
     InputStreamIterator, DataType, ::genesis::population::WindowView<DataType>
 >
 {
@@ -95,7 +95,7 @@ public:
     // -------------------------------------------------------------------------
 
     using WindowViewType = ::genesis::population::WindowView<DataType>;
-    using self_type = GenomeStream<InputStreamIterator, DataType>;
+    using self_type = GenomeWindowStream<InputStreamIterator, DataType>;
     using base_type = BaseWindowStream<InputStreamIterator, DataType, WindowViewType>;
 
     // The input types that we take from the underlying stream over genome positions.
@@ -127,7 +127,7 @@ public:
         //     Constructors and Rule of Five
         // -------------------------------------------------------------------------
 
-        using self_type = typename GenomeStream<
+        using self_type = typename GenomeWindowStream<
             InputStreamIterator, DataType
         >::DerivedIterator;
 
@@ -152,7 +152,7 @@ public:
         DerivedIterator() = default;
 
         DerivedIterator(
-            GenomeStream const* parent
+            GenomeWindowStream const* parent
         )
             : base_iterator_type( parent )
             , parent_( parent )
@@ -185,7 +185,7 @@ public:
         DerivedIterator& operator= ( self_type const& ) = default;
         DerivedIterator& operator= ( self_type&& )      = default;
 
-        friend GenomeStream;
+        friend GenomeWindowStream;
 
         // -------------------------------------------------------------------------
         //     Internal and Virtual Members
@@ -260,7 +260,7 @@ public:
     private:
 
         // Parent. Needs to live here to have the correct derived type.
-        GenomeStream const* parent_ = nullptr;
+        GenomeWindowStream const* parent_ = nullptr;
 
         // Store the iterator for the window.
         WindowViewType window_;
@@ -275,19 +275,19 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    GenomeStream(
+    GenomeWindowStream(
         InputStreamIterator begin, InputStreamIterator end
     )
         : base_type( begin, end )
     {}
 
-    virtual ~GenomeStream() override = default;
+    virtual ~GenomeWindowStream() override = default;
 
-    GenomeStream( GenomeStream const& ) = default;
-    GenomeStream( GenomeStream&& )      = default;
+    GenomeWindowStream( GenomeWindowStream const& ) = default;
+    GenomeWindowStream( GenomeWindowStream&& )      = default;
 
-    GenomeStream& operator= ( GenomeStream const& ) = default;
-    GenomeStream& operator= ( GenomeStream&& )      = default;
+    GenomeWindowStream& operator= ( GenomeWindowStream const& ) = default;
+    GenomeWindowStream& operator= ( GenomeWindowStream&& )      = default;
 
     friend DerivedIterator;
 
@@ -320,43 +320,43 @@ protected:
 // =================================================================================================
 
 /**
- * @brief Helper function to instantiate a GenomeStream for the whole genome,
+ * @brief Helper function to instantiate a GenomeWindowStream for the whole genome,
  * without the need to specify the template parameters manually.
  *
- * This helper function creates a GenomeStream from the given pair of iterators, so that the whole
+ * This helper function creates a GenomeWindowStream from the given pair of iterators, so that the whole
  * genome is traversed without stopping at individual chromosomes in each iteration.
  */
 template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
-GenomeStream<InputStreamIterator, DataType>
-make_genome_stream(
+GenomeWindowStream<InputStreamIterator, DataType>
+make_genome_window_stream(
     InputStreamIterator begin, InputStreamIterator end
 ) {
-    return GenomeStream<InputStreamIterator, DataType>( begin, end );
+    return GenomeWindowStream<InputStreamIterator, DataType>( begin, end );
 }
 
 /**
- * @brief Helper function to instantiate a GenomeStream for the whole genome,
+ * @brief Helper function to instantiate a GenomeWindowStream for the whole genome,
  * for a default use case.
  *
  * This helper assumes that the underlying type of the input data stream and of the data
  * that we are sliding over are of the same type, that is, we do no conversion in the
- * `entry_input_function` functor of the GenomeStream. It further assumes that this
+ * `entry_input_function` functor of the GenomeWindowStream. It further assumes that this
  * data type has public member variables `chromosome` and `position` that are accessed by the
- * `chromosome_function` and `position_function` functors of the GenomeStream.
+ * `chromosome_function` and `position_function` functors of the GenomeWindowStream.
  * For example, a data type that this works for is Variant data.
  *
- * This helper function creates a GenomeStream from the given pair of iterators, so that the whole
+ * This helper function creates a GenomeWindowStream from the given pair of iterators, so that the whole
  * genome is traversed without stopping at individual chromosomes in each iteration.
  */
 template<class InputStreamIterator>
-GenomeStream<InputStreamIterator>
-make_default_genome_stream(
+GenomeWindowStream<InputStreamIterator>
+make_default_genome_window_stream(
     InputStreamIterator begin, InputStreamIterator end
 ) {
     using DataType = typename InputStreamIterator::value_type;
 
     // Set functors.
-    auto it = GenomeStream<InputStreamIterator>( begin, end );
+    auto it = GenomeWindowStream<InputStreamIterator>( begin, end );
     it.entry_input_function = []( DataType const& variant ) {
         return variant;
     };
