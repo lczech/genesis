@@ -31,6 +31,7 @@
  * @ingroup population
  */
 
+#include "genesis/population/filter/sample_counts_filter.hpp"
 #include "genesis/population/function/diversity_pool_functions.hpp"
 #include "genesis/population/function/functions.hpp"
 #include "genesis/population/variant.hpp"
@@ -66,8 +67,9 @@ namespace population {
  * In particular, we want to set the `min_count`, as well as the `min_coverage` and `max_coverage`.
  *
  * We do expect here that the input samples that are provided to the process() function
- * are already filtered and transformed as needed.
- * For example, typically, we want to use a SampleCountsFilter with these settings:
+ * are already filtered (with the appropriate FilterStatus set for the Variant and the SampleCounts)
+ * and transformed as needed. For example, typically, we want to use a SampleCountsFilter with
+ * settings that match the DiversityPoolSettings:
  *
  *     filter.min_count = settings.min_count;
  *     filter.min_coverage = settings.min_coverage;
@@ -75,16 +77,21 @@ namespace population {
  *     filter.only_snps = true;
  *
  * That is, the settings for the pool statistics should match the settings used for filtering the
- * samples. The function filter_sample_counts() can be used to transform and filter the input
- * coming from a file, in order to remove base counts and samples that do not match these filters.
+ * samples. The function filter_sample_counts() can be used to transform and filter the input coming
+ * from a file, in order to filter out base counts and samples that do not match these filters.
+ *
+ * TODO: The below approaches on how to apply filters is outdated and needs rewriting to fit with
+ * the new approach of using FilterStatus for the SampleCounts and Variant objects instead of
+ * completely discarding the filtered positions.
  *
  * There are multiple ways that this filtering can be applied. Typically for example, we want
  * to process a VariantInputStream, which allows us to use input from a variety of input
  * file formats, all converted into Variant%s at each position in the genome. This internally
  * is a genesis::utils::GenericInputStream, which offers to add
  * @link genesis::utils::GenericInputStream::add_transform_filter() add_transform_filter()@endlink
- * functions for this purpose. The make_filter_sample_counts() is a convenience function that creates
- * such a filter/transform function given a SampleCountsFilter settings instance.
+ * functions for this purpose. The make_sample_counts_filter_numerical_tagging() is a convenience
+ * function that creates such a filter/transform function given a SampleCountsFilter settings
+ * instance.
  *
  * Alternaively, genesis::utils::make_filter_range() can be used to achieve the same effect,
  * but requiring a bit more manual "wiring" of the components first. This however has the advantage
@@ -127,16 +134,24 @@ public:
      * @brief Data struct to collect all diversity statistics computed here.
      *
      * This is meant as a simple way to obtain all diversity measures at once. See get_result().
-     * The value of `processed_count` is the number of times that process() as been called.
+     *
+     * The struct stores all results of the diversity metrics, as well as the overall
+     * number of positions that were used to compute those: The value of `processed_count` is the
+     * number of times that process() as been called, and the `filter_stats` contains the counts
+     * of all SampleCounts::status filters of the samples passed to process().
      */
     struct Result
     {
+        // Results of the diversity statistics
         double theta_pi_absolute = 0.0;
         double theta_pi_relative = 0.0;
         double theta_watterson_absolute = 0.0;
         double theta_watterson_relative = 0.0;
         double tajima_d = 0.0;
+
+        // Counts of the Samples that went into those statistics
         size_t processed_count = 0;
+        SampleCountsFilterStats filter_stats;
     };
 
     // -------------------------------------------------------------------------
@@ -166,6 +181,17 @@ public:
     // -------------------------------------------------------------------------
     //     Settings
     // -------------------------------------------------------------------------
+
+    self_type& only_passing_samples( bool value )
+    {
+        only_passing_samples_ = value;
+        return *this;
+    }
+
+    bool only_passing_samples() const
+    {
+        return only_passing_samples_;
+    }
 
     self_type& enable_theta_pi( bool value )
     {
@@ -208,8 +234,9 @@ public:
     {
         theta_pi_sum_.reset();
         theta_watterson_sum_.reset();
-        empirical_min_coverage_ = std::numeric_limits<size_t>::max();
         processed_count_ = 0;
+        filter_stats_.clear();
+        empirical_min_coverage_ = std::numeric_limits<size_t>::max();
     }
 
     /**
@@ -222,21 +249,28 @@ public:
      */
     std::pair<double, double> process( SampleCounts const& sample )
     {
+        // We first check if we need to process this sample at all.
+        // That is either the case if we process _all_ samples (!only_passing_samples_)
+        // or if we only consider the passing ones and the sample is passing.
+        auto const do_process = !only_passing_samples_ || sample.status.passing();
+
+        // Now run the calculations that we need...
         double tp = 0.0;
         double tw = 0.0;
-        if( enable_theta_pi_ || enable_tajima_d_ ) {
+        if( do_process && ( enable_theta_pi_ || enable_tajima_d_ )) {
             tp = theta_pi_pool( settings_, poolsize_, sample );
             if( std::isfinite( tp )) {
                 theta_pi_sum_ += tp;
             }
         }
-        if( enable_theta_watterson_ || enable_tajima_d_ ) {
+        if( do_process && ( enable_theta_watterson_ || enable_tajima_d_ )) {
             tw = theta_watterson_pool( settings_, poolsize_, sample );
             if( std::isfinite( tw )) {
                 theta_watterson_sum_ += tw;
             }
         }
         if(
+            do_process &&
             enable_tajima_d_ &&
             settings_.tajima_denominator_policy == TajimaDenominatorPolicy::kEmpiricalMinCoverage
         ) {
@@ -247,6 +281,9 @@ public:
                 empirical_min_coverage_ = cov;
             }
         }
+
+        // ... and store the results.
+        ++filter_stats_[sample.status.get()];
         ++processed_count_;
         return std::make_pair( tp, tw );
     }
@@ -350,6 +387,7 @@ public:
         }
 
         res.processed_count = processed_count_;
+        res.filter_stats    = filter_stats_;
         return res;
     }
 
@@ -368,6 +406,7 @@ private:
     DiversityPoolSettings settings_;
     size_t poolsize_ = 0;
 
+    bool only_passing_samples_   = true;
     bool enable_theta_pi_        = true;
     bool enable_theta_watterson_ = true;
     bool enable_tajima_d_        = true;
@@ -376,6 +415,7 @@ private:
     utils::NeumaierSum theta_pi_sum_;
     utils::NeumaierSum theta_watterson_sum_;
     size_t processed_count_ = 0;
+    SampleCountsFilterStats filter_stats_;
 
     // Find the minimum empirical coverage that we see in the processed data.
     size_t empirical_min_coverage_ = std::numeric_limits<size_t>::max();

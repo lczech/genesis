@@ -97,6 +97,22 @@ struct FilterStats
         return data[ i ];
     }
 
+    size_t& operator[] ( size_t index )
+    {
+        if( index >= data.size() ) {
+            throw std::invalid_argument( "Invalid enum value " + std::to_string(index) );
+        }
+        return data[ index ];
+    }
+
+    size_t operator[] ( size_t index ) const
+    {
+        if( index >= data.size() ) {
+            throw std::invalid_argument( "Invalid enum value " + std::to_string(index) );
+        }
+        return data[ index ];
+    }
+
     typename EnumArray::iterator begin()
     {
         return data.begin();

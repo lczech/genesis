@@ -435,7 +435,9 @@ TEST( Population, DiversityMeasuresIterator )
             ++variant_count;
             // auto copy = sample;
             // return apply_sample_counts_filter_numerical( copy, filter, stats );
-            return apply_sample_counts_filter_numerical( sample, filter, stats );
+            // return apply_sample_counts_filter_numerical( sample, filter, stats );
+            apply_sample_counts_filter_numerical( sample, filter, stats );
+            return true;
 
         }, range.begin(), range.end() );
         (void) variant_count;
@@ -454,7 +456,8 @@ TEST( Population, DiversityMeasuresIterator )
         size_t coverage_count = variant_count - stats.sum() + stats[SampleCountsFilterTag::kNotSnp];
         size_t snp_count      = variant_count - stats.sum();
         // results.variant_count - stats.not_snp;
-        EXPECT_EQ( snp_count, calc.get_processed_count() );
+        // EXPECT_EQ( snp_count, calc.get_processed_count() );
+        EXPECT_EQ( snp_count, calc.get_result().filter_stats[SampleCountsFilterTag::kPassed] );
 
         auto const theta_pi_relative = calc.get_theta_pi_relative( coverage_count );
         auto const theta_watterson_relative = calc.get_theta_watterson_relative( coverage_count );
