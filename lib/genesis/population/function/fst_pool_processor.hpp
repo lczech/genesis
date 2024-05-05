@@ -33,6 +33,7 @@
 
 #include "genesis/population/function/fst_pool_calculator.hpp"
 #include "genesis/population/variant.hpp"
+#include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/core/thread_functions.hpp"
 #include "genesis/utils/core/thread_pool.hpp"
@@ -64,13 +65,22 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Construct a processor.
+     *
+     * This defaults to using the global thread pool of Options::get().global_thread_pool()
+     * If this is not desired, either pass a different @p thread_pool here, or, if no thread pool
+     * is to be used, deactivate by explicitly setting the thread_pool() function here to `nullptr`.
+     */
     FstPoolProcessor(
-        std::shared_ptr<utils::ThreadPool> thread_pool = {},
+        std::shared_ptr<utils::ThreadPool> thread_pool = nullptr,
         size_t threading_threshold = 4096
     )
         : thread_pool_( thread_pool )
         , threading_threshold_( threading_threshold )
-    {}
+    {
+        thread_pool_ = thread_pool ? thread_pool : utils::Options::get().global_thread_pool();
+    }
 
     ~FstPoolProcessor() = default;
 
@@ -184,7 +194,7 @@ public:
         if( thread_pool_ && calculators_.size() >= threading_threshold_ ) {
             parallel_for(
                 0, sample_pairs_.size(), process_, thread_pool_
-            ).wait();
+            );
         } else {
             for( size_t i = 0; i < sample_pairs_.size(); ++i ) {
                 process_(i);
