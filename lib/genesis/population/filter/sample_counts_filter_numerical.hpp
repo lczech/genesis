@@ -141,6 +141,17 @@ struct SampleCountsFilterNumericalParams
     size_t max_count = 0;
 
     /**
+     * @brief Maximum number of deletions at a position before being filtered out.
+     *
+     * If this is set to a value greater than 0, and the number of deletions at the position
+     * (determined by the SampleCounts::d_count) is equal to or greater than this value,
+     * the sample is filtered out by setting its status accordingly.
+     *
+     * @see SampleCountsFilterTag::kAboveDeletionsCountLimit
+     */
+    size_t deletions_count_limit = 0;
+
+    /**
      * @brief Minimum coverage expected for a SampleCounts to be considered covered.
      *
      * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) in the reads of a sample is less than
@@ -161,17 +172,6 @@ struct SampleCountsFilterNumericalParams
      * @see SampleCountsFilterTag::kAboveMaxCoverage
      */
     size_t max_coverage = 0;
-
-    /**
-     * @brief Maximum number of deletions at a position before being filtered out.
-     *
-     * If this is set to a value greater than 0, and the number of deletions at the position
-     * (determined by the SampleCounts::d_count) is equal to or greater than this value,
-     * the sample is filtered out by setting its status accordingly.
-     *
-     * @see SampleCountsFilterTag::kAboveDeletionsCountLimit
-     */
-    size_t deletions_count_limit = 0;
 
     // -------------------------------------------
     //     SNP vs Invariant

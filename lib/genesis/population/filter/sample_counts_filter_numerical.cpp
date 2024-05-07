@@ -134,6 +134,21 @@ bool apply_sample_counts_filter_numerical(
         transform_zero_out_by_max_count( sample, params.max_count );
     }
 
+    // Check deletions.
+    if(
+        params.deletions_count_limit > 0
+        && sample.d_count > 0
+        && sample.d_count >= params.deletions_count_limit
+    ) {
+        // if( params.clear_filtered ) {
+        //     sample.clear();
+        // }
+
+        sample.status.set( SampleCountsFilterTag::kAboveDeletionsCountLimit );
+        ++stats[SampleCountsFilterTag::kAboveDeletionsCountLimit];
+        return false;
+    }
+
     // Empty?
     auto const sum = nucleotide_sum( sample );
     if( sum == 0 ) {
@@ -163,21 +178,6 @@ bool apply_sample_counts_filter_numerical(
 
         sample.status.set( SampleCountsFilterTag::kAboveMaxCoverage );
         ++stats[SampleCountsFilterTag::kAboveMaxCoverage];
-        return false;
-    }
-
-    // Check deletions.
-    if(
-        params.deletions_count_limit > 0
-        && sample.d_count > 0
-        && sample.d_count >= params.deletions_count_limit
-    ) {
-        // if( params.clear_filtered ) {
-        //     sample.clear();
-        // }
-
-        sample.status.set( SampleCountsFilterTag::kAboveDeletionsCountLimit );
-        ++stats[SampleCountsFilterTag::kAboveDeletionsCountLimit];
         return false;
     }
 
