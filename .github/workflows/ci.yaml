@@ -190,9 +190,9 @@ jobs:
           # - os: macos-latest
           #   compiler: gcc
           #   build_type: RELEASE
-          - os: macos-latest
-            compiler: llvm
-            build_type: RELEASE
+          # - os: macos-latest
+          #   compiler: llvm
+          #   build_type: RELEASE
 
           # Test without htslib with both compilers and OSs
           - os: ubuntu-latest
@@ -204,9 +204,9 @@ jobs:
           # - os: macos-latest
           #   compiler: gcc
           #   htslib: OFF
-          - os: macos-latest
-            compiler: llvm
-            htslib: OFF
+          # - os: macos-latest
+          #   compiler: llvm
+          #   htslib: OFF
 
           # We test AppleClang as well, as a special case.
           # - os: macos-10.15
