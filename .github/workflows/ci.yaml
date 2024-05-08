@@ -109,6 +109,12 @@ jobs:
           - os: ubuntu-22.04
             compiler: gcc-8
 
+          # Same on MacOS now...
+          - os: macos-12
+          compiler: gcc-7
+          - os: macos-12
+          compiler: gcc-8
+
           # llvm-9 causes weird segfauls on Ubuntu, which do not seem to be our fault.
           # Need to investiage further at some point. We used setup-cpp locally to install
           # the very same version of llvm-9, and got tons of segfauls for all kind of functions...
@@ -181,9 +187,9 @@ jobs:
           - os: ubuntu-latest
             compiler: llvm
             build_type: RELEASE
-          - os: macos-latest
-            compiler: gcc
-            build_type: RELEASE
+          # - os: macos-latest
+          #   compiler: gcc
+          #   build_type: RELEASE
           - os: macos-latest
             compiler: llvm
             build_type: RELEASE
@@ -195,9 +201,9 @@ jobs:
           - os: ubuntu-latest
             compiler: llvm
             htslib: OFF
-          - os: macos-latest
-            compiler: gcc
-            htslib: OFF
+          # - os: macos-latest
+          #   compiler: gcc
+          #   htslib: OFF
           - os: macos-latest
             compiler: llvm
             htslib: OFF
