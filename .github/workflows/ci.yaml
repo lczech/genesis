@@ -111,9 +111,9 @@ jobs:
 
           # Same on MacOS now...
           - os: macos-12
-          compiler: gcc-7
+            compiler: gcc-7
           - os: macos-12
-          compiler: gcc-8
+            compiler: gcc-8
 
           # llvm-9 causes weird segfauls on Ubuntu, which do not seem to be our fault.
           # Need to investiage further at some point. We used setup-cpp locally to install
