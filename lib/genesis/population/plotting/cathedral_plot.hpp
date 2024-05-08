@@ -120,6 +120,7 @@ struct CathedralPlotRecord
 
     // Data-derived parameters from the initial input.
     std::string title;
+    std::string plot_name;
     std::string chromosome_name;
     size_t chromosome_length = 0;
 

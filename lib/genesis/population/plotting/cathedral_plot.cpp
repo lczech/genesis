@@ -206,6 +206,7 @@ genesis::utils::JsonDocument cathedral_plot_record_to_json_document(
     // Now fill the object with our data.
     auto& obj = document.get_object();
     obj["title"]            = JsonDocument::string( record.title );
+    obj["plotName"]   = JsonDocument::string( record.plot_name );
     obj["chromosomeName"]   = JsonDocument::string( record.chromosome_name );
     obj["chromosomeLength"] = JsonDocument::number_unsigned( record.chromosome_length );
     obj["windowWidths"]     = JsonDocument( record.window_widths );
@@ -303,6 +304,7 @@ CathedralPlotRecord load_cathedral_plot_record_from_files(
     // Might need amendment if we make use of other fields as well, such as the window widths vec.
     CathedralPlotRecord result;
     result.title             = json[ "title" ].get_string();
+    result.plot_name         = json[ "plotName" ].get_string();
     result.chromosome_name   = json[ "chromosomeName" ].get_string();
     result.chromosome_length = json[ "chromosomeLength" ].get_number_unsigned();
     result.parameters.width  = json[ "width" ].get_number_unsigned();
