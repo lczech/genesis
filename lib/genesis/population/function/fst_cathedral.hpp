@@ -213,7 +213,7 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records(
  * plot of FST, using the result of compute_fst_cathedral_records().
  * The returned matrix can then be plotted as a heatmap.
  */
-void compute_fst_cathedral_matrix(
+inline void compute_fst_cathedral_matrix(
     CathedralPlotParameters const& parameters,
     FstCathedralPlotRecord& record
 ) {
