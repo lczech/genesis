@@ -34,6 +34,7 @@
 #include "genesis/utils/color/color.hpp"
 #include "genesis/utils/color/heat_map.hpp"
 #include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/io/base_output_target.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -337,6 +338,20 @@ genesis::utils::JsonDocument cathedral_plot_parameters_to_json_document(
  */
 genesis::utils::JsonDocument cathedral_plot_record_to_json_document(
     CathedralPlotRecord const& record
+);
+
+/**
+ * @brief Save the record of a cathedral plot in a set of output targets.
+ *
+ * This overload allows to specify the targets directly, instead of creating fitting targets
+ * according to a file `base_path`. See save_cathedral_plot_record_to_files() for the file-based
+ * versions of this function.
+ */
+void save_cathedral_plot_record_to_targets(
+    genesis::utils::JsonDocument const& record_document,
+    genesis::utils::Matrix<double> const& record_value_matrix,
+    std::shared_ptr<genesis::utils::BaseOutputTarget> json_target,
+    std::shared_ptr<genesis::utils::BaseOutputTarget> csv_target
 );
 
 /**

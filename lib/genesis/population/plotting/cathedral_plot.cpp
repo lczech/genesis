@@ -222,10 +222,11 @@ genesis::utils::JsonDocument cathedral_plot_record_to_json_document(
     return document;
 }
 
-void save_cathedral_plot_record_to_files(
+void save_cathedral_plot_record_to_targets(
     genesis::utils::JsonDocument const& record_document,
     genesis::utils::Matrix<double> const& record_value_matrix,
-    std::string const& base_path
+    std::shared_ptr<genesis::utils::BaseOutputTarget> json_target,
+    std::shared_ptr<genesis::utils::BaseOutputTarget> csv_target
 ) {
     using namespace genesis::utils;
 
@@ -245,8 +246,22 @@ void save_cathedral_plot_record_to_files(
     }
 
     // Write both files, using their respective readers.
-    JsonWriter().write( record_document, to_file( base_path + ".json" ));
-    MatrixWriter<double>( "," ).write( record_value_matrix, to_file( base_path + ".csv" ));
+    JsonWriter().write( record_document, json_target );
+    MatrixWriter<double>( "," ).write( record_value_matrix, csv_target );
+}
+
+void save_cathedral_plot_record_to_files(
+    genesis::utils::JsonDocument const& record_document,
+    genesis::utils::Matrix<double> const& record_value_matrix,
+    std::string const& base_path
+) {
+    using namespace genesis::utils;
+    save_cathedral_plot_record_to_targets(
+        record_document,
+        record_value_matrix,
+        to_file( base_path + ".json" ),
+        to_file( base_path + ".csv" )
+    );
 }
 
 void save_cathedral_plot_record_to_files(
