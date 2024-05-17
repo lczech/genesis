@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not,  see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab,  Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35,  D-69118 Heidelberg,  Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -88,13 +88,20 @@ std::vector<double> Tickmarks::linear_ticks( double min, double max, size_t targ
     if( max < min ) {
         throw std::runtime_error( "Cannot calculate scale with max < min." );
     }
+    auto const interval_size = max - min;
+
+    // We want the ticks to be somewhat rounded, within some epsilon of the nice values that
+    // we are trying to create here, in order to avoid artifacts such as 1e-18 instead of 0.
+    // As the epsilon of double values is in the order of 1e-18 itself, we do e-15 here,
+    // which is large enough to avoid these trailing rounding errors, but small enough to not
+    // affect the numerical results too much, which is important for linear_labels() to work.
+    auto const rounding_accuracy = 15;
 
     // The case of 0 target steps can happen for example in SvgPalette.
     // In that case, we only output min and max if needed, but not any inner tickmarks.
     if( target_steps > 0 ) {
         // Get step size.
-        auto interval_size = max - min;
-        auto step_sz = step_size( interval_size, target_steps );
+        auto const step_sz = step_size( interval_size, target_steps );
 
         // Calculate first tick position, so that it is the largest multiple of the step size
         // that is below the min.
@@ -107,22 +114,22 @@ std::vector<double> Tickmarks::linear_ticks( double min, double max, size_t targ
 
         // Add ticks to the list.
         while( tick <= max ) {
-            res.push_back( tick );
+            res.push_back( round_to( tick, rounding_accuracy ));
             tick += step_sz;
         }
 
         // Determine whether we want to stop before or after the max.
         if( overshoot_at_max ) {
-            res.push_back( tick );
+            res.push_back( round_to( tick, rounding_accuracy ));
         }
     }
 
     // Add min and max if needed.
     if( include_min ) {
-        res.push_back( min );
+        res.push_back( round_to( min, rounding_accuracy ));
     }
     if( include_max ) {
-        res.push_back( max );
+        res.push_back( round_to( max, rounding_accuracy ));
     }
 
     // Cleanup duplicate entries and those that are close by. We do not need ticks that are
