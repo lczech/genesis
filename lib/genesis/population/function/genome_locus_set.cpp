@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -42,6 +42,25 @@
 
 namespace genesis {
 namespace population {
+
+// =================================================================================================
+//     Conversion
+// =================================================================================================
+
+genesis::sequence::SequenceDict reference_locus_set_to_dict( GenomeLocusSet const& set )
+{
+    genesis::sequence::SequenceDict result;
+    for( auto const& elem : set ) {
+        // The elements are bitvectors that contain an extra entry for the 0th bit,
+        // which we hence need to subtract from the length here.
+        size_t len = elem.second.size() - 1;
+        if( elem.second.size() == 0 ) {
+            len = 0;
+        }
+        result.add( elem.first, len );
+    }
+    return result;
+}
 
 // =================================================================================================
 //     Mask Fasta Reading

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -37,6 +37,9 @@
 
 #include <cassert>
 #include <stdexcept>
+#include <string>
+#include <unordered_set>
+#include <utility>
 
 namespace genesis {
 namespace sequence {
@@ -195,6 +198,83 @@ SequenceDict sequence_set_to_dict( SequenceSet const& set )
 SequenceDict reference_genome_to_dict( ReferenceGenome const& rg )
 {
     return sequence_iterable_to_dict_( rg );
+}
+
+// =================================================================================================
+//     Reference
+// =================================================================================================
+
+bool compatible_references(
+    SequenceDict const& lhs,
+    SequenceDict const& rhs,
+    ReferenceComparisonMode mode
+) {
+    // Basic check for forbidden edge case of empty strings first.
+    auto check_dict_empty_names_ = []( SequenceDict const& dict ) {
+        for( auto const& e : dict ) {
+            if( e.name.empty() ) {
+                throw std::invalid_argument( "Invalid reference sequences with empty names." );
+            }
+        }
+    };
+    check_dict_empty_names_( lhs );
+    check_dict_empty_names_( rhs );
+
+    // We have a few different combinations to test. Let's see if that works.
+    switch( mode ) {
+        case ReferenceComparisonMode::kStrict: {
+            // Strict: Compar the sizes of both sets. Then, we only need to iterate one of them,
+            // as this then needs to exactly match every entry in the other.
+            if( lhs.size() != rhs.size() ) {
+                return false;
+            }
+            for( auto const& e : lhs ) {
+                if( ! rhs.contains( e.name ) || e.length != rhs.get( e.name ).length ) {
+                    return false;
+                }
+            }
+            break;
+        }
+        case ReferenceComparisonMode::kLeftSuperset: {
+            // Left superset is equivalent to right subset, so we only need to go through everything
+            // that the rhs has and compare those.
+            for( auto const& e : rhs ) {
+                if( ! lhs.contains( e.name ) || e.length != lhs.get( e.name ).length ) {
+                    return false;
+                }
+            }
+            break;
+        }
+        case ReferenceComparisonMode::kRightSuperset: {
+            // Same the other way round. Bit of code duplication, but okay for now.
+            for( auto const& e : lhs ) {
+                if( ! rhs.contains( e.name ) || e.length != rhs.get( e.name ).length ) {
+                    return false;
+                }
+            }
+            break;
+        }
+        case ReferenceComparisonMode::kSharedOnly: {
+            // Shared only: We ignore the ones that are not in either.
+            for( auto const& e : lhs ) {
+                if( ! rhs.contains( e.name )) {
+                    continue;
+                }
+                if( e.length != rhs.get( e.name ).length ) {
+                    return false;
+                }
+            }
+            break;
+        }
+        default: {
+            throw std::invalid_argument(
+                "Invalid ReferenceComparisonMode in compatible_references()"
+            );
+        }
+    }
+
+    // Finally, we have exhausted all false cases above, so we can return that they are compatible.
+    return true;
 }
 
 bool verify( SequenceDict const& dict, SequenceSet const& set, bool match_first_word )
