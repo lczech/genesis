@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -32,6 +32,7 @@
  */
 
 #include "genesis/population/function/fst_pool_calculator.hpp"
+#include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/std.hpp"
@@ -164,11 +165,18 @@ public:
         }
         std::fill( results_.begin(), results_.end(), 0 );
         processed_count_ = 0;
+        filter_stats_.clear();
     }
 
     void process( Variant const& variant )
     {
         assert( sample_pairs_.size() == calculators_.size() );
+
+        // Only process Variants that are passing, but keep track of the ones that did not.
+        ++filter_stats_[variant.status.get()];
+        if( ! variant.status.passing() ) {
+            return;
+        }
 
         // Helper function for the processing.
         auto process_ = [&]( size_t index ) {
@@ -201,6 +209,7 @@ public:
             }
         }
         ++processed_count_;
+        assert( filter_stats_[VariantFilterTag::kPassed] == processed_count_ );
     }
 
     std::vector<double> const& get_result() const
@@ -212,7 +221,24 @@ public:
         return results_;
     }
 
-    size_t processed_count() const
+    /**
+     * @brief Get the sum of filter statistics of all Variant%s processed here.
+     *
+     * With each call to process(), the filter stats are increased according to the filter status
+     * of the provided Variant. Here, we offer to read out the total of all filter tags that
+     * occurred in these Variants.
+     */
+    VariantFilterStats get_filter_stats() const
+    {
+        return filter_stats_;
+    }
+
+    /**
+     * @brief Return the total number of variants for which values were computed.
+     *
+     * This corresponds to the total number of times that process() has been called with a variant that has passing status. Only those are actually processed here.
+     */
+    size_t get_processed_count() const
     {
         return processed_count_;
     }
@@ -239,8 +265,10 @@ private:
     std::vector<std::unique_ptr<BaseFstPoolCalculator>> calculators_;
     mutable std::vector<double> results_;
 
-    // Count how many Variants were processed in this processor.
+    // Count how many Variants were processed in this processor,
+    // and how many of them passed or failed the filters.
     size_t processed_count_ = 0;
+    VariantFilterStats filter_stats_;
 
     // Thread pool to run the buffering in the background, and the size (number of sample pairs)
     // at which we start using the thread pool.

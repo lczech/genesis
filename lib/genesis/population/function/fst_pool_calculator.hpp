@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -31,9 +31,11 @@
  * @ingroup population
  */
 
+#include "genesis/population/filter/sample_counts_filter.hpp"
 #include "genesis/population/sample_counts.hpp"
 #include "genesis/population/variant.hpp"
 
+#include <cassert>
 #include <vector>
 
 namespace genesis {
@@ -82,7 +84,9 @@ public:
 
     void reset()
     {
-        return reset_();
+        reset_();
+        processed_count_ = 0;
+        filter_stats_.clear();
     }
 
     void process( SampleCounts const& p1, SampleCounts const& p2 )
@@ -90,12 +94,46 @@ public:
         // For now, we accept two populations as input here.
         // If we ever implement an FST equation that also works for multiple populations,
         // see https://stackoverflow.com/a/9377363/4184258 for a way to implement this.
-        return process_( p1, p2 );
+        // Or simply make this function accept the Variant instead, and store the needed sample
+        // indices here, instead of the list of sample pairs stored in the FstPoolProcessor.
+
+        // We only want to process samples that are both passing.
+        // We add up both status flags afterwards for the statistics; their order is
+        // arbitrary and indistinguishable anyway, so we might as well store them in one counter.
+        if( p1.status.passing() && p2.status.passing() ) {
+            process_( p1, p2 );
+            ++processed_count_;
+        }
+        ++filter_stats_[p1.status.get()];
+        ++filter_stats_[p2.status.get()];
+        assert( filter_stats_[SampleCountsFilterTag::kPassed] == 2 * processed_count_ );
     }
 
-    double get_result()
+    double get_result() const
     {
         return get_result_();
+    }
+
+    /**
+     * @brief Get the sum of filter statistics of all sample pairs processed here.
+     *
+     * With each call to process(), the filter stats are increased according to the filter status
+     * of both provided samples. Hence, the counts returned here always have an even sum.
+     */
+    SampleCountsFilterStats get_filter_stats() const
+    {
+        return filter_stats_;
+    }
+
+    /**
+     * @brief Return the total number of sample pairs for which a value was computed.
+     *
+     * This corresponds to the total number of times that process() has been called with two
+     * samples that have passing status. Only those are actually processed here.
+     */
+    size_t get_processed_count() const
+    {
+        return processed_count_;
     }
 
     // -------------------------------------------------------------------------
@@ -107,7 +145,18 @@ protected:
     // Non-virtual interface.
     virtual void reset_() = 0;
     virtual void process_( SampleCounts const& p1, SampleCounts const& p2 ) = 0;
-    virtual double get_result_() = 0;
+    virtual double get_result_() const = 0;
+
+    // -------------------------------------------------------------------------
+    //     Private Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    // Count how many sample pairs were processed here,
+    // and how many of them passed or failed the filters.
+    size_t processed_count_ = 0;
+    SampleCountsFilterStats filter_stats_;
 
 };
 

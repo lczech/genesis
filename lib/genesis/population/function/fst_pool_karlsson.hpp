@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -119,7 +119,7 @@ private:
         sum_dk_ += nkdk.second;
     }
 
-    double get_result_() override
+    double get_result_() const override
     {
         return static_cast<double>( sum_nk_ ) / static_cast<double>( sum_dk_ );
     }
