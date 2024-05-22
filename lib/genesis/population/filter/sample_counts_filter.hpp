@@ -36,6 +36,7 @@
 #include "genesis/population/filter/filter_status.hpp"
 #include "genesis/population/variant.hpp"
 
+#include <array>
 #include <cassert>
 #include <iosfwd>
 #include <stdexcept>
@@ -155,6 +156,28 @@ enum class SampleCountsFilterPolicy
  * @brief Counts of how many SampleCounts%s with each SampleCountsFilterTag occured in some data.
  */
 using SampleCountsFilterStats = FilterStats<SampleCountsFilterTag>;
+
+/**
+ * @brief Generate summary counts for a SampleCountsFilterStats counter.
+ *
+ * The given @p stats contain counts for different reasons of filters that could have failed when
+ * filtering a SampleCounts. This function summarizes those stats into three basic categories,
+ * and gives their sums:
+ *
+ *  0. Passing
+ *  1. Missing data and other invalids (basically, all non-numeric filters)
+ *  2. Numeric filters, such as zero counts, outside of read depth limits, etc
+ *
+ * This is meant as a broad summary, for instance for user output, where it might not be overly
+ * relevant which exact numerical filter got triggered how often by a particular filter, but rather
+ * we want to have an overview of which classes or categories of filters got triggered how often.
+ *
+ * Hence, the returned numbers depend on the exact usage of the SampleCountsFilterTag tags here.
+ * If other types of tags are used for the SampleCounts::status instead, this function cannot be used.
+ */
+std::array<size_t, 3> sample_counts_filter_stats_category_counts(
+    SampleCountsFilterStats const& stats
+);
 
 // =================================================================================================
 //     Filter Functions

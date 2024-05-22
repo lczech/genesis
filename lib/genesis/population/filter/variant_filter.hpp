@@ -252,6 +252,31 @@ enum class VariantFilterTag : FilterStatus::IntType
  */
 using VariantFilterStats = FilterStats<VariantFilterTag>;
 
+/**
+ * @brief Generate summary counts for a VariantFilterStats counter.
+ *
+ * The given @p stats contain counts for different reasons of filters that could have failed when
+ * filtering a Variant. This function summarizes those stats into some basic categories, and gives
+ * their sums:
+ *
+ *  0. Passing
+ *  1. Missing data and other invalids
+ *  2. Masked positions or regions
+ *  3. Samples failed, either all or some, depending on SampleCountsFilterPolicy
+ *  4. Numeric filters for read depth limits, etc
+ *  5. Not a (biallelic) SNP, according to the relevant numerical filters
+ *
+ * This is meant as a broad summary, for instance for user output, where it might not be overly
+ * relevant which exact numerical filter got triggered how often by a particular filter, but rather
+ * we want to have an overview of which classes or categories of filters got triggered how often.
+ *
+ * Hence, the returned numbers depend on the exact usage of the VariantFilterTag tags here.
+ * If other types of tags are used for the Variant::status instead, this function cannot be used.
+ */
+std::array<size_t, 6> variant_filter_stats_category_counts(
+    VariantFilterStats const& stats
+);
+
 // =================================================================================================
 //     Filter Functions
 // =================================================================================================

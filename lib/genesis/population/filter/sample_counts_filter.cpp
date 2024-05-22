@@ -44,7 +44,42 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Sample Counts Filter
+//     Stats
+// =================================================================================================
+
+std::array<size_t, 3> sample_counts_filter_stats_category_counts(
+    SampleCountsFilterStats const& stats
+) {
+    // We want to make sure that the tags enum is exactly as expected here. In case that we later
+    // add other values to that enum, we want to know here, in order to adapt the function
+    // accordingly. In the printing function below, we use a loop with a switch statement to be
+    // notified of any missing enum values. Here, this would be a bit too inefficient, as we expect
+    // this function here to be called once per position or window. Hence, we just statically
+    // assert that the last value of the enum has the numerical representation that we expect.
+    // If this fails, we know that we are missing a value.
+    static_assert(
+        static_cast<FilterStatus::IntType>( SampleCountsFilterTag::kEnd ) == 10,
+        "SampleCountsFilterTag::kEnd != 10. The enum has values that are not accounted for."
+    );
+
+    // Now we can build our result with some confidence, by simply adding up the values
+    // to our simple categories / classes.
+    auto result = std::array<size_t, 3>{};
+    result[0] += stats[ SampleCountsFilterTag::kPassed ];
+    result[1] += stats[ SampleCountsFilterTag::kMissing ];
+    result[1] += stats[ SampleCountsFilterTag::kNotPassed ];
+    result[1] += stats[ SampleCountsFilterTag::kInvalid ];
+    result[2] += stats[ SampleCountsFilterTag::kEmpty ];
+    result[2] += stats[ SampleCountsFilterTag::kBelowMinCoverage ];
+    result[2] += stats[ SampleCountsFilterTag::kAboveMaxCoverage ];
+    result[2] += stats[ SampleCountsFilterTag::kAboveDeletionsCountLimit ];
+    result[2] += stats[ SampleCountsFilterTag::kNotSnp ];
+    result[2] += stats[ SampleCountsFilterTag::kNotBiallelicSnp ];
+    return result;
+}
+
+// =================================================================================================
+//     Printing
 // =================================================================================================
 
 std::ostream& print_sample_counts_filter_stats(
@@ -57,6 +92,8 @@ std::ostream& print_sample_counts_filter_stats(
     // We use an explicit loop over the enum values here, which makes sure that we cannot
     // forget about any values in the future. This is a bit inefficient, but we do not expect
     // to call this function more than once.
+    // If this fails, the above function also needs to be updated. There, we expect the function
+    // to be called many times, and hence do not want this inefficient loop.
     for( size_t i = 0; i < static_cast<size_t>( SampleCountsFilterTag::kEnd ); ++i ) {
         switch( static_cast<SampleCountsFilterTag>(i) ) {
             case SampleCountsFilterTag::kPassed: {

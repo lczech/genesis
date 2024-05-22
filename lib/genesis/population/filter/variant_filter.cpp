@@ -33,6 +33,7 @@
 #include "genesis/population/function/functions.hpp"
 #include "genesis/utils/text/char.hpp"
 
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -44,7 +45,49 @@ namespace genesis {
 namespace population {
 
 // =================================================================================================
-//     Variant Filter
+//     Stats
+// =================================================================================================
+
+std::array<size_t, 6> variant_filter_stats_category_counts(
+    VariantFilterStats const& stats
+) {
+    // We want to make sure that the tags enum is exactly as expected here. In case that we later
+    // add other values to that enum, we want to know here, in order to adapt the function
+    // accordingly. In the printing function below, we use a loop with a switch statement to be
+    // notified of any missing enum values. Here, this would be a bit too inefficient, as we expect
+    // this function here to be called once per position or window. Hence, we just statically
+    // assert that the last value of the enum has the numerical representation that we expect.
+    // If this fails, we know that we are missing a value.
+    static_assert(
+        static_cast<FilterStatus::IntType>( VariantFilterTag::kEnd ) == 17,
+        "VariantFilterTag::kEnd != 17. The enum has values that are not accounted for."
+    );
+
+    // Now we can build our result with some confidence, by simply adding up the values
+    // to our simple categories / classes.
+    auto result = std::array<size_t, 6>{};
+    result[0] += stats[ VariantFilterTag::kPassed ];
+    result[1] += stats[ VariantFilterTag::kMissing ];
+    result[1] += stats[ VariantFilterTag::kNotPassed ];
+    result[1] += stats[ VariantFilterTag::kInvalid ];
+    result[2] += stats[ VariantFilterTag::kMaskedPosition ];
+    result[2] += stats[ VariantFilterTag::kMaskedRegion ];
+    result[3] += stats[ VariantFilterTag::kNoSamplePassed ];
+    result[3] += stats[ VariantFilterTag::kNotAllSamplesPassed ];
+    result[4] += stats[ VariantFilterTag::kEmpty ];
+    result[4] += stats[ VariantFilterTag::kBelowMinCoverage ];
+    result[4] += stats[ VariantFilterTag::kAboveMaxCoverage ];
+    result[4] += stats[ VariantFilterTag::kAboveDeletionsCountLimit ];
+    result[5] += stats[ VariantFilterTag::kNotSnp ];
+    result[5] += stats[ VariantFilterTag::kNotBiallelicSnp ];
+    result[5] += stats[ VariantFilterTag::kBelowSnpMinCount ];
+    result[5] += stats[ VariantFilterTag::kAboveSnpMaxCount ];
+    result[5] += stats[ VariantFilterTag::kBelowMinAlleleFreq ];
+    return result;
+}
+
+// =================================================================================================
+//     Printing
 // =================================================================================================
 
 std::ostream& print_variant_filter_stats(
