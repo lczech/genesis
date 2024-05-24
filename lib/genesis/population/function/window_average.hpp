@@ -132,22 +132,15 @@ inline double window_average_denominator(
     VariantFilterStats const& variant_filter_stats,
     SampleCountsFilterStats const& sample_counts_filter_stats
 ) {
-    // We cannot have processed more samples than there were variants.
+    // We cannot have processed more samples than there were passing variants,
+    // as we only should have processed a sample once its variant is found to be passing.
     // In case of the FST processor, we make sure that only one of the samples gets recorded
     // in the stats, so this works there as well. We do not simply assert this here,
     // as a misuse of the filters could result in an error here, which would be on the user
     // side, and so is an exception.
-    if( sample_counts_filter_stats.sum() > variant_filter_stats.sum() ) {
+    if( sample_counts_filter_stats.sum() > variant_filter_stats[VariantFilterTag::kPassed] ) {
         throw std::invalid_argument(
-            "Invalid stat counts with sample_counts_filter_stats.sum() > variant_filter_stats.sum()"
-        );
-    }
-    if(
-        sample_counts_filter_stats[SampleCountsFilterTag::kPassed] >
-        variant_filter_stats[VariantFilterTag::kPassed]
-    ) {
-        throw std::invalid_argument(
-            "Invalid stat counts with sample_counts_filter_stats[SampleCountsFilterTag::kPassed] > "
+            "Invalid stat counts with ""sample_counts_filter_stats.sum() > "
             "variant_filter_stats[VariantFilterTag::kPassed]"
         );
     }

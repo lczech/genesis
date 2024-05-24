@@ -31,8 +31,8 @@
  * @ingroup population
  */
 
-#include "genesis/population/function/average.hpp"
 #include "genesis/population/function/fst_pool_calculator.hpp"
+#include "genesis/population/function/window_average.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/utils/core/options.hpp"
@@ -173,8 +173,8 @@ public:
             assert( calc );
             calc->reset();
         }
-        std::fill( results_.begin(), results_.end(), 0 );
         filter_stats_.clear();
+        std::fill( results_.begin(), results_.end(), 0 );
     }
 
     void process( Variant const& variant )
