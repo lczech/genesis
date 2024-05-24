@@ -392,7 +392,9 @@ TEST( Structure, FstPoolProcessor )
 
     // Make an FST processor for the two samples.
     std::vector<size_t> const poolsizes{ 100, 100 };
-    auto processor = make_fst_pool_processor<FstPoolCalculatorUnbiased>( poolsizes );
+    auto processor = make_fst_pool_processor<FstPoolCalculatorUnbiased>(
+        WindowAveragePolicy::kAbsoluteSum, poolsizes
+    );
     ASSERT_EQ( 1, processor.size() );
     processor.thread_pool( Options::get().global_thread_pool() );
     processor.threading_threshold( 0 );
@@ -403,7 +405,8 @@ TEST( Structure, FstPoolProcessor )
         processor.process( variant );
     }
 
-    auto const result = processor.get_result();
+    size_t const window_length = 1;
+    auto const result = processor.get_result( window_length );
     EXPECT_EQ( 1, result.size() );
     EXPECT_FLOAT_EQ( -0.0041116024, result[0] );
 }

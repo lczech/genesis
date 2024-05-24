@@ -35,6 +35,7 @@
 #include "genesis/population/sample_counts.hpp"
 #include "genesis/population/variant.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <vector>
 
@@ -85,7 +86,6 @@ public:
     void reset()
     {
         reset_();
-        processed_count_ = 0;
         filter_stats_.clear();
     }
 
@@ -98,15 +98,21 @@ public:
         // indices here, instead of the list of sample pairs stored in the FstPoolProcessor.
 
         // We only want to process samples that are both passing.
-        // We add up both status flags afterwards for the statistics; their order is
-        // arbitrary and indistinguishable anyway, so we might as well store them in one counter.
+        // Otherwise, if both fail, we want to record that, but it does not really matter which
+        // of the two reasons for failing we record. However, as we generally have our filter status
+        // tags numerically sorted in the order in which they are applied, we here use the first
+        // tag (smaller number) of the two samples that failed, as that is usually a better and
+        // more general idicator of what failed. Probably does not really matter much anyway,
+        // but why not. Lastly, if only one of the samples failed, we just record that one.
+        // This can be done as the max of the two values, as one of them will be zero.
         if( p1.status.passing() && p2.status.passing() ) {
             process_( p1, p2 );
-            ++processed_count_;
+            ++filter_stats_[SampleCountsFilterTag::kPassed];
+        } else if( ! p1.status.passing() && ! p2.status.passing() ) {
+            ++filter_stats_[ std::min( p1.status.get(), p2.status.get() )];
+        } else {
+            ++filter_stats_[ std::max( p1.status.get(), p2.status.get() )];
         }
-        ++filter_stats_[p1.status.get()];
-        ++filter_stats_[p2.status.get()];
-        assert( filter_stats_[SampleCountsFilterTag::kPassed] == 2 * processed_count_ );
     }
 
     double get_result() const
@@ -123,17 +129,6 @@ public:
     SampleCountsFilterStats get_filter_stats() const
     {
         return filter_stats_;
-    }
-
-    /**
-     * @brief Return the total number of sample pairs for which a value was computed.
-     *
-     * This corresponds to the total number of times that process() has been called with two
-     * samples that have passing status. Only those are actually processed here.
-     */
-    size_t get_processed_count() const
-    {
-        return processed_count_;
     }
 
     // -------------------------------------------------------------------------
@@ -155,7 +150,6 @@ private:
 
     // Count how many sample pairs were processed here,
     // and how many of them passed or failed the filters.
-    size_t processed_count_ = 0;
     SampleCountsFilterStats filter_stats_;
 
 };

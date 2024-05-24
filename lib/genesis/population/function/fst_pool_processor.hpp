@@ -31,6 +31,7 @@
  * @ingroup population
  */
 
+#include "genesis/population/function/average.hpp"
 #include "genesis/population/function/fst_pool_calculator.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/variant.hpp"
@@ -74,10 +75,12 @@ public:
      * is to be used, deactivate by explicitly setting the thread_pool() function here to `nullptr`.
      */
     FstPoolProcessor(
+        WindowAveragePolicy window_average_policy,
         std::shared_ptr<utils::ThreadPool> thread_pool = nullptr,
         size_t threading_threshold = 4096
     )
-        : thread_pool_( thread_pool )
+        : avg_policy_( window_average_policy )
+        , thread_pool_( thread_pool )
         , threading_threshold_( threading_threshold )
     {
         thread_pool_ = thread_pool ? thread_pool : utils::Options::get().global_thread_pool();
@@ -135,6 +138,9 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Add a calculator, that is, an instance to compute FST for a pair of samples.
+     */
     void add_calculator(
         size_t index_p1, size_t index_p2,
         std::unique_ptr<BaseFstPoolCalculator> calculator
@@ -150,6 +156,10 @@ public:
     //     Calculator Functions
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Get the total number of calculates, i.e., the number of pairs of samples
+     * for which we comute FST here.
+     */
     size_t size() const
     {
         assert( calculators_.size() == sample_pairs_.size() );
@@ -164,7 +174,6 @@ public:
             calc->reset();
         }
         std::fill( results_.begin(), results_.end(), 0 );
-        processed_count_ = 0;
         filter_stats_.clear();
     }
 
@@ -208,15 +217,24 @@ public:
                 process_(i);
             }
         }
-        ++processed_count_;
-        assert( filter_stats_[VariantFilterTag::kPassed] == processed_count_ );
     }
 
-    std::vector<double> const& get_result() const
+    /**
+     * @brief Get a list of all resulting FST values for all pairs of samples.
+     *
+     * This _always_ takes the @p window_length as input, even if the WindowAveragePolicy does
+     * not require it. This is meant to make sure that we at least keep track of the right things
+     * when doing any computations, and cannot forget about this.
+     */
+    std::vector<double> const& get_result( size_t window_length ) const
     {
         assert( results_.size() == calculators_.size() );
         for( size_t i = 0; i < results_.size(); ++i ) {
-            results_[i] = calculators_[i]->get_result();
+            auto const abs_res = calculators_[i]->get_result();
+            auto const denom = window_average_denominator(
+                avg_policy_, window_length, filter_stats_, calculators_[i]->get_filter_stats()
+            );
+            results_[i] = abs_res / denom;
         }
         return results_;
     }
@@ -231,16 +249,6 @@ public:
     VariantFilterStats get_filter_stats() const
     {
         return filter_stats_;
-    }
-
-    /**
-     * @brief Return the total number of variants for which values were computed.
-     *
-     * This corresponds to the total number of times that process() has been called with a variant that has passing status. Only those are actually processed here.
-     */
-    size_t get_processed_count() const
-    {
-        return processed_count_;
     }
 
     std::vector<std::pair<size_t, size_t>> const& sample_pairs() const
@@ -259,19 +267,24 @@ public:
 
 private:
 
+    // We force the correct usage of the window averaging policy here,
+    // so that we make misinterpretation of the values less likely.
+    WindowAveragePolicy avg_policy_;
+
     // The pairs of sample indices of the variant between which we want to compute FST,
-    // the processors to use for these computations, as well as the resulting values for caching.
+    // and the processors to use for these computations,
     std::vector<std::pair<size_t, size_t>> sample_pairs_;
     std::vector<std::unique_ptr<BaseFstPoolCalculator>> calculators_;
-    mutable std::vector<double> results_;
 
     // Count how many Variants were processed in this processor,
     // and how many of them passed or failed the filters.
-    size_t processed_count_ = 0;
     VariantFilterStats filter_stats_;
 
-    // Thread pool to run the buffering in the background, and the size (number of sample pairs)
-    // at which we start using the thread pool.
+    // We keep a mutable cache for the results, to avoid reallocating memory each time.
+    mutable std::vector<double> results_;
+
+    // Thread pool to run the buffering in the background, and the size
+    // (number of sample pairs) at which we start using the thread pool.
     std::shared_ptr<utils::ThreadPool> thread_pool_;
     size_t threading_threshold_ = 0;
 };
@@ -290,10 +303,11 @@ private:
  */
 template<class Calculator, typename... Args>
 inline FstPoolProcessor make_fst_pool_processor(
+    WindowAveragePolicy window_average_policy,
     std::vector<size_t> const& pool_sizes,
     Args... args
 ) {
-    FstPoolProcessor result;
+    FstPoolProcessor result( window_average_policy );
     for( size_t i = 0; i < pool_sizes.size(); ++i ) {
         for( size_t j = i + 1; j < pool_sizes.size(); ++j ) {
             result.add_calculator(
@@ -320,11 +334,12 @@ inline FstPoolProcessor make_fst_pool_processor(
  */
 template<class Calculator, typename... Args>
 inline FstPoolProcessor make_fst_pool_processor(
+    WindowAveragePolicy window_average_policy,
     std::vector<std::pair<size_t, size_t>> const& sample_pairs,
     std::vector<size_t> const& pool_sizes,
     Args... args
 ) {
-    FstPoolProcessor result;
+    FstPoolProcessor result( window_average_policy );
     for( auto const& p : sample_pairs ) {
         if( p.first >= pool_sizes.size() || p.second >= pool_sizes.size() ) {
             throw std::invalid_argument(
@@ -357,11 +372,12 @@ inline FstPoolProcessor make_fst_pool_processor(
  */
 template<class Calculator, typename... Args>
 inline FstPoolProcessor make_fst_pool_processor(
+    WindowAveragePolicy window_average_policy,
     size_t index,
     std::vector<size_t> const& pool_sizes,
     Args... args
 ) {
-    FstPoolProcessor result;
+    FstPoolProcessor result( window_average_policy );
     for( size_t i = 0; i < pool_sizes.size(); ++i ) {
         result.add_calculator(
             index, i,
@@ -386,11 +402,12 @@ inline FstPoolProcessor make_fst_pool_processor(
  */
 template<class Calculator, typename... Args>
 inline FstPoolProcessor make_fst_pool_processor(
+    WindowAveragePolicy window_average_policy,
     size_t index_1, size_t index_2,
     std::vector<size_t> const& pool_sizes,
     Args... args
 ) {
-    FstPoolProcessor result;
+    FstPoolProcessor result( window_average_policy );
     result.add_calculator(
         index_1, index_2,
         ::genesis::utils::make_unique<Calculator>(
