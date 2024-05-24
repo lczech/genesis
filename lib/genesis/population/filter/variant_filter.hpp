@@ -75,25 +75,6 @@ enum class VariantFilterTag : FilterStatus::IntType
      */
     kPassed = 0,
 
-    /**
-    * @brief Position is missing in the input data.
-    */
-    kMissing,
-
-    /**
-     * @brief Generic indicator that the Variant has not passed a filter.
-     *
-     * A simple catch-all value if no further distrinction for the filter that failed is needed.
-     */
-    kNotPassed,
-
-    /**
-     * @brief Generic indicator that the Variant is invalid.
-     *
-     * Similar to kNotPassed, this is a generic value for invalid Variants.
-     */
-    kInvalid,
-
     // -------------------------------------------
     //     Position
     // -------------------------------------------
@@ -116,6 +97,29 @@ enum class VariantFilterTag : FilterStatus::IntType
      * See kMaskedPosition for details on the distrinction between the two.
      */
     kMaskedRegion,
+
+    // -------------------------------------------
+    //     Missing and Invalid
+    // -------------------------------------------
+
+    /**
+    * @brief Position is missing in the input data.
+    */
+    kMissing,
+
+    /**
+     * @brief Generic indicator that the Variant has not passed a filter.
+     *
+     * A simple catch-all value if no further distrinction for the filter that failed is needed.
+     */
+    kNotPassed,
+
+    /**
+     * @brief Generic indicator that the Variant is invalid.
+     *
+     * Similar to kNotPassed, this is a generic value for invalid Variants.
+     */
+    kInvalid,
 
     // -------------------------------------------
     //     Sample
@@ -244,6 +248,55 @@ enum class VariantFilterTag : FilterStatus::IntType
 };
 
 // =================================================================================================
+//     Variant Filter Tag Categories
+// =================================================================================================
+
+/**
+ * @brief List of filter categories for a Variant.
+ *
+ * We summarize certain filters into categories. This is more useful for users than to have all
+ * of the above detail filter tags. Most of the time, we are mostly interested in these categories
+ * here; it might not be worth having the above detail tag list in the first place.
+ */
+enum class VariantFilterTagCategory : FilterStatus::IntType
+{
+    /**
+     * @brief Variant has passed all filters.
+     */
+    kPassed = 0,
+
+    /**
+     * @brief Position is masked.
+     */
+    kMasked,
+
+    /**
+     * @brief Position is missing or otherwise invalid.
+     */
+    kMissingInvalid,
+
+    /**
+     * @brief Either all or some of the samples failed their respetive filters.
+     */
+    kSamplesFailed,
+
+    /**
+     * @brief Any of the numeric variant filters failed.
+     */
+    kNumeric,
+
+    /**
+     * @brief Postion is not a SNP according to the SNP filters.
+     */
+    kInvariant,
+
+    /**
+     * @brief End of the enum values.
+     */
+    kEnd
+};
+
+// =================================================================================================
 //     Variant Filter Stats
 // =================================================================================================
 
@@ -253,28 +306,38 @@ enum class VariantFilterTag : FilterStatus::IntType
 using VariantFilterStats = FilterStats<VariantFilterTag>;
 
 /**
+ * @brief Counts of how many Variant%s with each VariantFilterTagCategory occured in some data.
+ *
+ * This is a convenient summary of the VariantFilterStats, where not the full level of detail
+ * is needed, for instance for user output.
+ */
+using VariantFilterCategoryStats = FilterStats<VariantFilterTagCategory>;
+
+/**
+ * @brief For a given @p tag, return its category tag.
+ */
+VariantFilterTagCategory variant_filter_tag_to_category( VariantFilterTag tag );
+
+/**
  * @brief Generate summary counts for a VariantFilterStats counter.
  *
  * The given @p stats contain counts for different reasons of filters that could have failed when
  * filtering a Variant. This function summarizes those stats into some basic categories, and gives
- * their sums:
- *
- *  0. Passing
- *  1. Missing data and other invalids
- *  2. Masked positions or regions
- *  3. Samples failed, either all or some, depending on SampleCountsFilterPolicy
- *  4. Numeric filters for read depth limits, etc
- *  5. Not a (biallelic) SNP, according to the relevant numerical filters
+ * their sums.
  *
  * This is meant as a broad summary, for instance for user output, where it might not be overly
  * relevant which exact numerical filter got triggered how often by a particular filter, but rather
  * we want to have an overview of which classes or categories of filters got triggered how often.
- *
- * Hence, the returned numbers depend on the exact usage of the VariantFilterTag tags here.
- * If other types of tags are used for the Variant::status instead, this function cannot be used.
  */
-std::array<size_t, 6> variant_filter_stats_category_counts(
+VariantFilterCategoryStats variant_filter_stats_category_counts(
     VariantFilterStats const& stats
+);
+
+/**
+ * @brief Overload that only reports back a single category sum of the filter stats.
+ */
+size_t variant_filter_stats_category_counts(
+    VariantFilterStats const& stats, VariantFilterTagCategory category
 );
 
 // =================================================================================================

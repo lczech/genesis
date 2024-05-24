@@ -58,6 +58,10 @@ enum class SampleCountsFilterTag : FilterStatus::IntType
      */
     kPassed = 0,
 
+    // -------------------------------------------
+    //     Missing and Invalid
+    // -------------------------------------------
+
     /**
     * @brief Position is missing in the input data.
     */
@@ -131,6 +135,40 @@ enum class SampleCountsFilterTag : FilterStatus::IntType
 };
 
 // =================================================================================================
+//     SampleCounts Filter Tag Categories
+// =================================================================================================
+
+/**
+ * @brief List of filter categories for a SampleCounts.
+ *
+ * We summarize certain filters into categories. This is more useful for users than to have all
+ * of the above detail filter tags. Most of the time, we are mostly interested in these categories
+ * here; it might not be worth having the above detail tag list in the first place.
+ */
+enum class SampleCountsFilterTagCategory : FilterStatus::IntType
+{
+    /**
+     * @brief SampleCounts has passed all filters.
+     */
+    kPassed = 0,
+
+    /**
+     * @brief Position is missing or otherwise invalid.
+     */
+    kMissingInvalid,
+
+    /**
+     * @brief Any of the numeric variant filters failed.
+     */
+    kNumeric,
+
+    /**
+     * @brief End of the enum values.
+     */
+    kEnd
+};
+
+// =================================================================================================
 //     SampleCounts Filter Policy
 // =================================================================================================
 
@@ -158,25 +196,38 @@ enum class SampleCountsFilterPolicy
 using SampleCountsFilterStats = FilterStats<SampleCountsFilterTag>;
 
 /**
+ * @brief Counts of how many SampleCounts with each SampleCountsFilterTagCategory occured in some data.
+ *
+ * This is a convenient summary of the SampleCountsFilterStats, where not the full level of detail
+ * is needed, for instance for user output.
+ */
+using SampleCountsFilterCategoryStats = FilterStats<SampleCountsFilterTagCategory>;
+
+/**
+ * @brief For a given @p tag, return its category tag.
+ */
+SampleCountsFilterTagCategory sample_counts_filter_tag_to_category( SampleCountsFilterTag tag );
+
+/**
  * @brief Generate summary counts for a SampleCountsFilterStats counter.
  *
  * The given @p stats contain counts for different reasons of filters that could have failed when
  * filtering a SampleCounts. This function summarizes those stats into three basic categories,
- * and gives their sums:
- *
- *  0. Passing
- *  1. Missing data and other invalids (basically, all non-numeric filters)
- *  2. Numeric filters, such as zero counts, outside of read depth limits, etc
+ * and gives their sums.
  *
  * This is meant as a broad summary, for instance for user output, where it might not be overly
  * relevant which exact numerical filter got triggered how often by a particular filter, but rather
  * we want to have an overview of which classes or categories of filters got triggered how often.
- *
- * Hence, the returned numbers depend on the exact usage of the SampleCountsFilterTag tags here.
- * If other types of tags are used for the SampleCounts::status instead, this function cannot be used.
  */
-std::array<size_t, 3> sample_counts_filter_stats_category_counts(
+SampleCountsFilterCategoryStats sample_counts_filter_stats_category_counts(
     SampleCountsFilterStats const& stats
+);
+
+/**
+ * @brief Overload that only reports back a single category sum of the filter stats.
+ */
+size_t sample_counts_filter_stats_category_counts(
+    SampleCountsFilterStats const& stats, SampleCountsFilterTagCategory category
 );
 
 // =================================================================================================
