@@ -489,22 +489,35 @@ double n_base( size_t coverage, size_t poolsize );
  * @brief Compute the denominator for the pool-sequencing correction of Tajima's D according to
  * Kofler et al.
  *
+ * The argument @p window_avg_denom is meant to be the total number of valid positions
+ * that have been processed to get the values for @p theta_pi and @p theta_watterson,
+ * that is, the sum of all SNP positions as well as all other (invariant) positions
+ * that have passed all filters. That is for instance given when usinng window_average_denominator()
+ * to determine that number.
+ *
+ * Interestingly, PoPoolation only uses the number of SNPs here, which seems wrong.
+ * We are unsure why PoPoolation does that, as it is using pileup files, which contain data for
+ * all positions, and so the correct number (including the invariant positions) should be available
+ * for their code as well.
+ *
+ * The argument @p empirical_min_coverage is needed when using the
+ * TajimaDenominatorPolicy::kEmpiricalMinCoverage policy. We always request it as an argument,
+ * to make sure that this function cannot accidentally be misused without having kept track
+ * of that number.
+ *
  * @see tajima_d_pool()
  */
 double tajima_d_pool_denominator(
     DiversityPoolSettings const& settings,
     double theta,
     size_t poolsize,
-    size_t snp_count,
-    size_t empirical_min_coverage = 0
+    double window_avg_denom,
+    size_t empirical_min_coverage
 );
 
 /**
  * @brief Compute the pool-sequencing corrected version of Tajima's D according to
  * Kofler et al.
- *
- * The argument @p snp_count is meant to be the total number of SNPs that have been
- * processed to get the values for @p theta_pi and @p theta_watterson.
  *
  * The argument @p empirical_min_coverage is only needed when using @p settings
  * with TajimaDenominatorPolicy::kEmpiricalMinCoverage
@@ -514,18 +527,19 @@ inline double tajima_d_pool(
     double theta_pi,
     double theta_watterson,
     size_t poolsize,
-    size_t snp_count,
-    size_t empirical_min_coverage = 0
+    double window_avg_denom,
+    size_t empirical_min_coverage
 ) {
     // Edge case, following what PoPoolation does in this situation.
-    if( snp_count == 0 ) {
-        return 0.0;
-    }
+    // Deactivated - we want a nan instead.
+    // if( window_avg_denom == 0 ) {
+    //     return 0.0;
+    // }
 
     // We already have the two theta statistics given here, but need to compute the
     // denominator according to Kofler et al for pooled sequences.
     auto const denom = tajima_d_pool_denominator(
-        settings, theta_watterson, poolsize, snp_count, empirical_min_coverage
+        settings, theta_watterson, poolsize, window_avg_denom, empirical_min_coverage
     );
     return ( theta_pi - theta_watterson ) / denom;
 }

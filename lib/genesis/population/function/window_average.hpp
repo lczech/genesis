@@ -65,8 +65,12 @@ enum class WindowAveragePolicy
     kAbsoluteSum,
 
     /**
-     * @brief Use the window length. This does not take any characteristics of the data into account
-     * and might hence underestimate the average.
+     * @brief Use the window length.
+     *
+     * This does not take any characteristics of the data into account. This might underestimate
+     * diversity in regions with low coverage, as then, we might have positions with no coverage,
+     * so that we do not compute a value there, but they are still used in the denominator
+     * for computing the relative value.
      */
     kWindowLength,
 

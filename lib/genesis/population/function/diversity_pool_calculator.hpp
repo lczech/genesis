@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -67,7 +67,7 @@ namespace population {
  * In particular, we want to set the `min_count`, as well as the `min_coverage` and `max_coverage`.
  *
  * We do expect here that the input samples that are provided to the process() function
- * are already filtered (with the appropriate FilterStatus set for the Variant and the SampleCounts)
+ * are already filtered (with the appropriate filter status set for the Variant and the SampleCounts)
  * and transformed as needed. For example, typically, we want to use a SampleCountsFilter with
  * settings that match the DiversityPoolSettings:
  *
@@ -79,10 +79,6 @@ namespace population {
  * That is, the settings for the pool statistics should match the settings used for filtering the
  * samples. The function filter_sample_counts() can be used to transform and filter the input coming
  * from a file, in order to filter out base counts and samples that do not match these filters.
- *
- * TODO: The below approaches on how to apply filters is outdated and needs rewriting to fit with
- * the new approach of using FilterStatus for the SampleCounts and Variant objects instead of
- * completely discarding the filtered positions.
  *
  * There are multiple ways that this filtering can be applied. Typically for example, we want
  * to process a VariantInputStream, which allows us to use input from a variety of input
@@ -136,35 +132,33 @@ public:
      * This is meant as a simple way to obtain all diversity measures at once. See get_result().
      *
      * The struct stores all results of the diversity metrics, as well as the overall
-     * number of positions that were used to compute those: The value of `processed_count` is the
-     * number of times that process() as been called, and the `filter_stats` contains the counts
+     * number of positions that were used to compute those: the `filter_stats` contains the counts
      * of all SampleCounts::status filters of the samples passed to process().
      */
     struct Result
     {
         // Results of the diversity statistics
-        double theta_pi_absolute = 0.0;
-        double theta_pi_relative = 0.0;
-        double theta_watterson_absolute = 0.0;
-        double theta_watterson_relative = 0.0;
-        double tajima_d = 0.0;
-
-        // Counts of the Samples that went into those statistics
-        size_t processed_count = 0;
-        SampleCountsFilterStats filter_stats;
+        double theta_pi        = std::numeric_limits<double>::quiet_NaN();
+        double theta_watterson = std::numeric_limits<double>::quiet_NaN();
+        double tajima_d        = std::numeric_limits<double>::quiet_NaN();
     };
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    DiversityPoolCalculator( DiversityPoolSettings const& settings, size_t poolsize )
+    DiversityPoolCalculator( DiversityPoolSettings const& settings, size_t pool_size )
         : settings_( settings )
-        , poolsize_( poolsize )
+        , pool_size_( pool_size )
     {
         if( settings.min_count == 0 ) {
             throw std::invalid_argument(
                 "In DiversityPoolCalculator, settings.min_count == 0 is not allowed."
+            );
+        }
+        if( pool_size == 0 ) {
+            throw std::invalid_argument(
+                "In DiversityPoolCalculator, pool_size == 0 is not allowed."
             );
         }
     }
@@ -234,7 +228,6 @@ public:
     {
         theta_pi_sum_.reset();
         theta_watterson_sum_.reset();
-        processed_count_ = 0;
         filter_stats_.clear();
         empirical_min_coverage_ = std::numeric_limits<size_t>::max();
     }
@@ -247,153 +240,91 @@ public:
      * This function here also returns both of them (Pi first, Watterson second) for the given
      * sample, as a convenience.
      */
-    std::pair<double, double> process( SampleCounts const& sample )
+    void process( SampleCounts const& sample )
     {
         // We first check if we need to process this sample at all.
         // That is either the case if we process _all_ samples (!only_passing_samples_)
         // or if we only consider the passing ones and the sample is passing.
-        auto const do_process = !only_passing_samples_ || sample.status.passing();
+        // We assume that the Variant::status has already been checked before calling this,
+        // for instance by the DiversityPoolProcessor.
+        ++filter_stats_[sample.status.get()];
+        if( ! sample.status.passing() ) {
+            return;
+        }
 
-        // Now run the calculations that we need...
-        double tp = 0.0;
-        double tw = 0.0;
-        if( do_process && ( enable_theta_pi_ || enable_tajima_d_ )) {
-            tp = theta_pi_pool( settings_, poolsize_, sample );
+        // Now run the calculations that we need.
+        double tp = std::numeric_limits<double>::quiet_NaN();
+        double tw = std::numeric_limits<double>::quiet_NaN();
+        if( enable_theta_pi_ || enable_tajima_d_ ) {
+            tp = theta_pi_pool( settings_, pool_size_, sample );
             if( std::isfinite( tp )) {
                 theta_pi_sum_ += tp;
             }
+            assert( std::isfinite( tp ) );
         }
-        if( do_process && ( enable_theta_watterson_ || enable_tajima_d_ )) {
-            tw = theta_watterson_pool( settings_, poolsize_, sample );
+        if( enable_theta_watterson_ || enable_tajima_d_ ) {
+            tw = theta_watterson_pool( settings_, pool_size_, sample );
             if( std::isfinite( tw )) {
                 theta_watterson_sum_ += tw;
             }
-        }
-        if(
-            do_process &&
-            enable_tajima_d_ &&
-            settings_.tajima_denominator_policy == TajimaDenominatorPolicy::kEmpiricalMinCoverage
-        ) {
-            // Only needed when we use the empirical coverage for the tajima d correction.
-            // We want to find the minimum coverage of the data that we are processing.
-            auto const cov = nucleotide_sum( sample );
-            if( cov > 0 && cov < empirical_min_coverage_ ) {
-                empirical_min_coverage_ = cov;
-            }
+            assert( std::isfinite( tw ) );
         }
 
-        // ... and store the results.
-        ++filter_stats_[sample.status.get()];
-        ++processed_count_;
-        return std::make_pair( tp, tw );
-    }
-
-    /**
-     * @brief Get the absolute value of Theta Pi.
-     *
-     * This is the sum of all values for all SampleCounts samples that have been given to process().
-     */
-    double get_theta_pi_absolute() const
-    {
-        return theta_pi_sum_.get();
-    }
-
-    /**
-     * @brief Compute the relative Theta Pi.
-     *
-     * According to PoPoolation, this is computed using only the number of SNPs with sufficient
-     * coverage in the given window. This can for example be computed from SampleCountsFilterStats,
-     * by using `coverage_count = SampleCountsFilterStats::passed + SampleCountsFilterStats::not_snp`.
-     *
-     * Alternaively, using the whole window size might also we a way to compute a relative value.
-     * However, this might underestimate diversity in regions with low coverage, as then, we might
-     * have positions with no coverage, so that we do not compute a value there, but they are still
-     * used in the denominator here for computing the relative value.
-     */
-    double get_theta_pi_relative( size_t coverage_count ) const
-    {
-        return theta_pi_sum_.get() / static_cast<double>( coverage_count );
-    }
-
-    /**
-     * @brief Get the absolute value of Theta Watterson.
-     *
-     * This is the sum of all values for all SampleCounts samples that have been given to process().
-     */
-    double get_theta_watterson_absolute() const
-    {
-        return theta_watterson_sum_.get();
-    }
-
-    /**
-     * @brief Compute the relative Theta Watterson.
-     *
-     * @copydetails get_theta_pi_relative()
-     */
-    double get_theta_watterson_relative( size_t coverage_count ) const
-    {
-        return theta_watterson_sum_.get() / static_cast<double>( coverage_count );
-    }
-
-    /**
-     * @brief Compute the value for Tajima's D, using the computed values for Theta Pi and Theta
-     * Watterson.
-     *
-     * This uses the sums of all values for all SampleCounts samples that have been given to process().
-     * By default, we use @p snp_count equal to the processed_count of positions that have been
-     * given to process(); providing a different number here can be useful in situations were
-     * some SNP positions were filtered externally for some reason, and can then for example
-     * be obtained from SampleCountsFilterStats::passed. Typically though, we would expect
-     * both numbers to be equal, that is, the get_processed_count() number here, and the
-     * SampleCountsFilterStats::passed number obtained from filtering for SNPs.
-     */
-    double compute_tajima_d( size_t snp_count = 0 ) const
-    {
-        if( snp_count == 0 ) {
-            snp_count = processed_count_;
+        // We want to keep track of the minimum coverage of the data that we are processing.
+        // This is only needed when using TajimaDenominatorPolicy::kEmpiricalMinCoverage,
+        // but cheap enough to just always keep track of here.
+        auto const cov = nucleotide_sum( sample );
+        if( cov > 0 && cov < empirical_min_coverage_ ) {
+            empirical_min_coverage_ = cov;
         }
-        return tajima_d_pool(
-            settings_,
-            theta_pi_sum_.get(), theta_watterson_sum_.get(),
-            poolsize_, snp_count, empirical_min_coverage_
-        );
     }
 
     /**
-     * @brief Convenience function to obtain all other results at once.
+     * @brief Convenience function to obtain all results at once.
      *
      * The function fills the Result with both diversity statistics, depending on which of them
      * have been computed, according to enable_theta_pi(), enable_theta_watterson().
-     * It further computes the relative variants of those statistics if `coverage_count > 0` is
-     * provided, and computes Tajima's D if enable_tajima_d() is set.
+     * It computes the relative variants of those statistics using the provided window averaging,
+     * and computes Tajima's D if enable_tajima_d() is set.
      */
-    Result get_result( size_t coverage_count = 0, size_t snp_count = 0 ) const
+    Result get_result( double window_avg_denom ) const
     {
-        Result res;
+        Result result;
         if( enable_theta_pi_ ) {
-            res.theta_pi_absolute = get_theta_pi_absolute();
-            if( coverage_count > 0 ) {
-                res.theta_pi_relative = get_theta_pi_relative( coverage_count );
-            }
+            result.theta_pi = theta_pi_sum_.get() / window_avg_denom;
         }
         if( enable_theta_watterson_ ) {
-            res.theta_watterson_absolute = get_theta_watterson_absolute();
-            if( coverage_count > 0 ) {
-                res.theta_watterson_relative = get_theta_watterson_relative( coverage_count );
-            }
+            result.theta_watterson = theta_watterson_sum_.get() / window_avg_denom;
         }
         if( enable_tajima_d_ ) {
-            res.tajima_d = compute_tajima_d( snp_count );
-        }
+            // Yet another problem in PoPoolation: For the |W| window size in the denominator
+            // of Tajima's D, they use the number of SNPs in that window, instead of the actual
+            // denominator, which usually should be the number of _all_ valid positions (the ones
+            // that passed all filters, including any invariant positions).
+            // We hence have to make a distinction here to fix that.
+            auto tajimas_window_avg_denom = window_avg_denom;
+            if( settings_.tajima_denominator_policy == TajimaDenominatorPolicy::kWithPopoolatioBugs ) {
+                tajimas_window_avg_denom = filter_stats_[SampleCountsFilterTag::kPassed];
+            }
 
-        res.processed_count = processed_count_;
-        res.filter_stats    = filter_stats_;
-        return res;
+            result.tajima_d = tajima_d_pool(
+                settings_,
+                theta_pi_sum_.get(), theta_watterson_sum_.get(),
+                pool_size_, tajimas_window_avg_denom, empirical_min_coverage_
+            );
+        }
+        return result;
     }
 
-    size_t get_processed_count() const
+    /**
+     * @brief Get the sum of filter statistics of all sample pairs processed here.
+     *
+     * With each call to process(), the filter stats are increased according to the filter status
+     * of both provided samples. Hence, the counts returned here always have an even sum.
+     */
+    SampleCountsFilterStats get_filter_stats() const
     {
-        return processed_count_;
+        return filter_stats_;
     }
 
     // -------------------------------------------------------------------------
@@ -404,7 +335,7 @@ private:
 
     // Settings
     DiversityPoolSettings settings_;
-    size_t poolsize_ = 0;
+    size_t pool_size_ = 0;
 
     bool only_passing_samples_   = true;
     bool enable_theta_pi_        = true;
@@ -414,7 +345,6 @@ private:
     // Data Accumulation
     utils::NeumaierSum theta_pi_sum_;
     utils::NeumaierSum theta_watterson_sum_;
-    size_t processed_count_ = 0;
     SampleCountsFilterStats filter_stats_;
 
     // Find the minimum empirical coverage that we see in the processed data.

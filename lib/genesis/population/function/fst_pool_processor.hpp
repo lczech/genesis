@@ -174,7 +174,7 @@ public:
             calc->reset();
         }
         filter_stats_.clear();
-        std::fill( results_.begin(), results_.end(), 0 );
+        std::fill( results_.begin(), results_.end(), 0.0 );
     }
 
     void process( Variant const& variant )
@@ -230,11 +230,11 @@ public:
     {
         assert( results_.size() == calculators_.size() );
         for( size_t i = 0; i < results_.size(); ++i ) {
-            auto const abs_res = calculators_[i]->get_result();
-            auto const denom = window_average_denominator(
+            auto const abs_fst = calculators_[i]->get_result();
+            auto const window_avg_denom = window_average_denominator(
                 avg_policy_, window_length, filter_stats_, calculators_[i]->get_filter_stats()
             );
-            results_[i] = abs_res / denom;
+            results_[i] = abs_fst / window_avg_denom;
         }
         return results_;
     }

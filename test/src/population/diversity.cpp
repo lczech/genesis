@@ -234,10 +234,13 @@ TEST( Population, DiversityMeasuresGenerator )
         for( auto const& sample : covered_snps_range ) {
             calc.process( sample );
         }
-        EXPECT_EQ( snp_count, calc.get_processed_count() );
-        auto const theta_pi_relative = calc.get_theta_pi_relative( coverage_count );
-        auto const theta_watterson_relative = calc.get_theta_watterson_relative( coverage_count );
-        auto const tajima_d = calc.compute_tajima_d( snp_count );
+        EXPECT_EQ( snp_count, calc.get_filter_stats()[ SampleCountsFilterTag::kPassed ] );
+
+        // Get the result
+        auto const result = calc.get_result( coverage_count );
+        // auto const theta_pi_relative = calc.get_theta_pi_relative( coverage_count );
+        // auto const theta_watterson_relative = calc.get_theta_watterson_relative( coverage_count );
+        // auto const tajima_d = calc.compute_tajima_d( snp_count );
 
         // LOG_DBG1 << iteration_count << "\t" << value_count << "\t"
         //          << window.first_position() << "\t" << window.last_position() << "\t"
@@ -257,9 +260,9 @@ TEST( Population, DiversityMeasuresGenerator )
         );
 
         // Compare statistic measures
-        EXPECT_FLOAT_EQ( exp_pi[value_count], theta_pi_relative );
-        EXPECT_FLOAT_EQ( exp_tw[value_count], theta_watterson_relative );
-        EXPECT_FLOAT_EQ( exp_td[value_count], tajima_d );
+        EXPECT_FLOAT_EQ( exp_pi[value_count], result.theta_pi );
+        EXPECT_FLOAT_EQ( exp_tw[value_count], result.theta_watterson );
+        EXPECT_FLOAT_EQ( exp_td[value_count], result.tajima_d );
         // std::cout << std::setprecision (9) << tajima_d << ", ";
         ++iteration_count;
         ++value_count;
@@ -457,11 +460,14 @@ TEST( Population, DiversityMeasuresIterator )
         size_t snp_count      = variant_count - stats.sum();
         // results.variant_count - stats.not_snp;
         // EXPECT_EQ( snp_count, calc.get_processed_count() );
-        EXPECT_EQ( snp_count, calc.get_result().filter_stats[SampleCountsFilterTag::kPassed] );
+        EXPECT_EQ( snp_count, calc.get_filter_stats()[SampleCountsFilterTag::kPassed] );
 
-        auto const theta_pi_relative = calc.get_theta_pi_relative( coverage_count );
-        auto const theta_watterson_relative = calc.get_theta_watterson_relative( coverage_count );
-        auto const tajima_d = calc.compute_tajima_d( snp_count );
+        // Get result.
+        auto const result = calc.get_result( coverage_count );
+
+        // auto const theta_pi_relative = calc.get_theta_pi_relative( coverage_count );
+        // auto const theta_watterson_relative = calc.get_theta_watterson_relative( coverage_count );
+        // auto const tajima_d = calc.compute_tajima_d( snp_count );
 
         // LOG_DBG << "coverage_count " << coverage_count;
         // LOG_DBG << "snp_count " << snp_count;
@@ -487,9 +493,9 @@ TEST( Population, DiversityMeasuresIterator )
         );
 
         // Compare statistic measures
-        EXPECT_FLOAT_EQ( exp_pi[window_cnt], theta_pi_relative );
-        EXPECT_FLOAT_EQ( exp_tw[window_cnt], theta_watterson_relative );
-        EXPECT_FLOAT_EQ( exp_td[window_cnt], tajima_d );
+        EXPECT_FLOAT_EQ( exp_pi[window_cnt], result.theta_pi );
+        EXPECT_FLOAT_EQ( exp_tw[window_cnt], result.theta_watterson );
+        EXPECT_FLOAT_EQ( exp_td[window_cnt], result.tajima_d );
 
         ++window_cnt;
         ++iteration_count;

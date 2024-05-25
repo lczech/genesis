@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -515,7 +515,7 @@ double tajima_d_pool_denominator( // get_ddivisor
     DiversityPoolSettings const& settings,
     double theta,
     size_t poolsize, // n
-    size_t snp_count,
+    double window_avg_denom,
     size_t empirical_min_coverage
 ) {
     // PoPoolation variable names:
@@ -598,7 +598,7 @@ double tajima_d_pool_denominator( // get_ddivisor
     }
 
     return std::sqrt(
-        ( alphastar / static_cast<double>( snp_count )) * theta + betastar * squared( theta )
+        ( alphastar / window_avg_denom ) * theta + betastar * squared( theta )
     );
 }
 
