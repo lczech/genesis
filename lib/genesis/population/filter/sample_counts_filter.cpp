@@ -86,7 +86,7 @@ SampleCountsFilterTagCategory sample_counts_filter_tag_to_category( SampleCounts
     assert( false );
 
     // Make compilers happy, just in case.
-    return SampleCountsFilterTagCategory::kPassed;
+    return SampleCountsFilterTagCategory::kEnd;
 }
 
 SampleCountsFilterCategoryStats sample_counts_filter_stats_category_counts(
@@ -97,16 +97,16 @@ SampleCountsFilterCategoryStats sample_counts_filter_stats_category_counts(
 
     // Build our result, by simply adding up the values to our simple categories / classes.
     SampleCountsFilterCategoryStats result;
-    result[SampleCountsFilterTagCategory::kPassed] += stats[ SampleCountsFilterTag::kPassed ];
+    result[SampleCountsFilterTagCategory::kPassed]         += stats[ SampleCountsFilterTag::kPassed ];
     result[SampleCountsFilterTagCategory::kMissingInvalid] += stats[ SampleCountsFilterTag::kMissing ];
     result[SampleCountsFilterTagCategory::kMissingInvalid] += stats[ SampleCountsFilterTag::kNotPassed ];
     result[SampleCountsFilterTagCategory::kMissingInvalid] += stats[ SampleCountsFilterTag::kInvalid ];
-    result[SampleCountsFilterTagCategory::kNumeric] += stats[ SampleCountsFilterTag::kEmpty ];
-    result[SampleCountsFilterTagCategory::kNumeric] += stats[ SampleCountsFilterTag::kBelowMinCoverage ];
-    result[SampleCountsFilterTagCategory::kNumeric] += stats[ SampleCountsFilterTag::kAboveMaxCoverage ];
-    result[SampleCountsFilterTagCategory::kNumeric] += stats[ SampleCountsFilterTag::kAboveDeletionsCountLimit ];
-    result[SampleCountsFilterTagCategory::kNumeric] += stats[ SampleCountsFilterTag::kNotSnp ];
-    result[SampleCountsFilterTagCategory::kNumeric] += stats[ SampleCountsFilterTag::kNotBiallelicSnp ];
+    result[SampleCountsFilterTagCategory::kNumeric]        += stats[ SampleCountsFilterTag::kEmpty ];
+    result[SampleCountsFilterTagCategory::kNumeric]        += stats[ SampleCountsFilterTag::kBelowMinCoverage ];
+    result[SampleCountsFilterTagCategory::kNumeric]        += stats[ SampleCountsFilterTag::kAboveMaxCoverage ];
+    result[SampleCountsFilterTagCategory::kNumeric]        += stats[ SampleCountsFilterTag::kAboveDeletionsCountLimit ];
+    result[SampleCountsFilterTagCategory::kNumeric]        += stats[ SampleCountsFilterTag::kNotSnp ];
+    result[SampleCountsFilterTagCategory::kNumeric]        += stats[ SampleCountsFilterTag::kNotBiallelicSnp ];
     return result;
 }
 
@@ -157,44 +157,39 @@ std::ostream& print_sample_counts_filter_stats(
     SampleCountsFilterStats const& stats,
     bool verbose
 ) {
-    // Same checks as above
-    static_assert(
-        static_cast<FilterStatus::IntType>( SampleCountsFilterTag::kEnd ) == 10,
-        "SampleCountsFilterTag::kEnd != 10. The enum has values that are not accounted for."
-    );
     assert( stats[ SampleCountsFilterTag::kEnd ] == 0 );
     assert( stats.data.size() == static_cast<size_t>( SampleCountsFilterTag::kEnd ) );
 
     // Go through all possible enum values and print them
-    if( stats[SampleCountsFilterTag::kPassed] > 0 || verbose ) {
-        os << "Passed: " << stats[SampleCountsFilterTag::kPassed] << "\n";
-    }
     if( stats[SampleCountsFilterTag::kMissing] > 0 || verbose ) {
-        os << "Missing: " << stats[SampleCountsFilterTag::kMissing] << "\n";
+        os << "Missing:               " << stats[SampleCountsFilterTag::kMissing] << "\n";
     }
     if( stats[SampleCountsFilterTag::kNotPassed] > 0 || verbose ) {
-        os << "NotPassed: " << stats[SampleCountsFilterTag::kNotPassed] << "\n";
+        os << "Not passed:            " << stats[SampleCountsFilterTag::kNotPassed] << "\n";
     }
     if( stats[SampleCountsFilterTag::kInvalid] > 0 || verbose ) {
-        os << "Invalid: " << stats[SampleCountsFilterTag::kInvalid] << "\n";
+        os << "Invalid:               " << stats[SampleCountsFilterTag::kInvalid] << "\n";
     }
     if( stats[SampleCountsFilterTag::kEmpty] > 0 || verbose ) {
-        os << "Empty: " << stats[SampleCountsFilterTag::kEmpty] << "\n";
+        os << "Empty:                 " << stats[SampleCountsFilterTag::kEmpty] << "\n";
     }
     if( stats[SampleCountsFilterTag::kBelowMinCoverage] > 0 || verbose ) {
-        os << "BelowMinCoverage: " << stats[SampleCountsFilterTag::kBelowMinCoverage] << "\n";
+        os << "Below min read depth:  " << stats[SampleCountsFilterTag::kBelowMinCoverage] << "\n";
     }
     if( stats[SampleCountsFilterTag::kAboveMaxCoverage] > 0 || verbose ) {
-        os << "AboveMaxCoverage: " << stats[SampleCountsFilterTag::kAboveMaxCoverage] << "\n";
+        os << "Above max read depth:  " << stats[SampleCountsFilterTag::kAboveMaxCoverage] << "\n";
     }
     if( stats[SampleCountsFilterTag::kAboveDeletionsCountLimit] > 0 || verbose ) {
-        os << "AboveDeletionsCountLimit: " << stats[SampleCountsFilterTag::kAboveDeletionsCountLimit] << "\n";
+        os << "Above deletions limit: " << stats[SampleCountsFilterTag::kAboveDeletionsCountLimit] << "\n";
     }
     if( stats[SampleCountsFilterTag::kNotSnp] > 0 || verbose ) {
-        os << "NotSnp: " << stats[SampleCountsFilterTag::kNotSnp] << "\n";
+        os << "Not SNP:               " << stats[SampleCountsFilterTag::kNotSnp] << "\n";
     }
     if( stats[SampleCountsFilterTag::kNotBiallelicSnp] > 0 || verbose ) {
-        os << "NotBiallelicSnp: " << stats[SampleCountsFilterTag::kNotBiallelicSnp] << "\n";
+        os << "Not biallelic SNP:     " << stats[SampleCountsFilterTag::kNotBiallelicSnp] << "\n";
+    }
+    if( stats[SampleCountsFilterTag::kPassed] > 0 || verbose ) {
+        os << "Passed:                " << stats[SampleCountsFilterTag::kPassed] << "\n";
     }
     return os;
 }
@@ -205,6 +200,36 @@ std::string print_sample_counts_filter_stats(
 )  {
     std::stringstream ss;
     print_sample_counts_filter_stats( ss, stats, verbose );
+    return ss.str();
+}
+
+std::ostream& print_sample_counts_filter_category_stats(
+    std::ostream& os,
+    SampleCountsFilterCategoryStats const& stats,
+    bool verbose
+) {
+    assert( stats[ SampleCountsFilterTagCategory::kEnd ] == 0 );
+    assert( stats.data.size() == static_cast<size_t>( SampleCountsFilterTagCategory::kEnd ) );
+
+    // Go through all possible enum values and print them
+    if( stats[SampleCountsFilterTagCategory::kMissingInvalid] > 0 || verbose ) {
+        os << "Missing:  " << stats[SampleCountsFilterTagCategory::kMissingInvalid] << "\n";
+    }
+    if( stats[SampleCountsFilterTagCategory::kNumeric] > 0 || verbose ) {
+        os << "Numerics: " << stats[SampleCountsFilterTagCategory::kNumeric] << "\n";
+    }
+    if( stats[SampleCountsFilterTagCategory::kPassed] > 0 || verbose ) {
+        os << "Passed:   " << stats[SampleCountsFilterTagCategory::kPassed] << "\n";
+    }
+    return os;
+}
+
+std::string print_sample_counts_filter_category_stats(
+    SampleCountsFilterCategoryStats const& stats,
+    bool verbose
+)  {
+    std::stringstream ss;
+    print_sample_counts_filter_category_stats( ss, stats, verbose );
     return ss.str();
 }
 

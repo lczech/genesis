@@ -97,7 +97,7 @@ VariantFilterTagCategory variant_filter_tag_to_category( VariantFilterTag tag )
     assert( false );
 
     // Make compilers happy, just in case.
-    return VariantFilterTagCategory::kPassed;
+    return VariantFilterTagCategory::kEnd;
 }
 
 VariantFilterCategoryStats variant_filter_stats_category_counts(
@@ -108,23 +108,23 @@ VariantFilterCategoryStats variant_filter_stats_category_counts(
 
     // Build our result, by simply adding up the values to our simple categories / classes.
     VariantFilterCategoryStats result;
-    result[VariantFilterTagCategory::kPassed] += stats[ VariantFilterTag::kPassed ];
-    result[VariantFilterTagCategory::kMasked] += stats[ VariantFilterTag::kMaskedPosition ];
-    result[VariantFilterTagCategory::kMasked] += stats[ VariantFilterTag::kMaskedRegion ];
+    result[VariantFilterTagCategory::kPassed]         += stats[ VariantFilterTag::kPassed ];
+    result[VariantFilterTagCategory::kMasked]         += stats[ VariantFilterTag::kMaskedPosition ];
+    result[VariantFilterTagCategory::kMasked]         += stats[ VariantFilterTag::kMaskedRegion ];
     result[VariantFilterTagCategory::kMissingInvalid] += stats[ VariantFilterTag::kMissing ];
     result[VariantFilterTagCategory::kMissingInvalid] += stats[ VariantFilterTag::kNotPassed ];
     result[VariantFilterTagCategory::kMissingInvalid] += stats[ VariantFilterTag::kInvalid ];
-    result[VariantFilterTagCategory::kSamplesFailed] += stats[ VariantFilterTag::kNoSamplePassed ];
-    result[VariantFilterTagCategory::kSamplesFailed] += stats[ VariantFilterTag::kNotAllSamplesPassed ];
-    result[VariantFilterTagCategory::kNumeric] += stats[ VariantFilterTag::kEmpty ];
-    result[VariantFilterTagCategory::kNumeric] += stats[ VariantFilterTag::kBelowMinCoverage ];
-    result[VariantFilterTagCategory::kNumeric] += stats[ VariantFilterTag::kAboveMaxCoverage ];
-    result[VariantFilterTagCategory::kNumeric] += stats[ VariantFilterTag::kAboveDeletionsCountLimit ];
-    result[VariantFilterTagCategory::kInvariant] += stats[ VariantFilterTag::kNotSnp ];
-    result[VariantFilterTagCategory::kInvariant] += stats[ VariantFilterTag::kNotBiallelicSnp ];
-    result[VariantFilterTagCategory::kInvariant] += stats[ VariantFilterTag::kBelowSnpMinCount ];
-    result[VariantFilterTagCategory::kInvariant] += stats[ VariantFilterTag::kAboveSnpMaxCount ];
-    result[VariantFilterTagCategory::kInvariant] += stats[ VariantFilterTag::kBelowMinAlleleFreq ];
+    result[VariantFilterTagCategory::kSamplesFailed]  += stats[ VariantFilterTag::kNoSamplePassed ];
+    result[VariantFilterTagCategory::kSamplesFailed]  += stats[ VariantFilterTag::kNotAllSamplesPassed ];
+    result[VariantFilterTagCategory::kNumeric]        += stats[ VariantFilterTag::kEmpty ];
+    result[VariantFilterTagCategory::kNumeric]        += stats[ VariantFilterTag::kBelowMinCoverage ];
+    result[VariantFilterTagCategory::kNumeric]        += stats[ VariantFilterTag::kAboveMaxCoverage ];
+    result[VariantFilterTagCategory::kNumeric]        += stats[ VariantFilterTag::kAboveDeletionsCountLimit ];
+    result[VariantFilterTagCategory::kInvariant]      += stats[ VariantFilterTag::kNotSnp ];
+    result[VariantFilterTagCategory::kInvariant]      += stats[ VariantFilterTag::kNotBiallelicSnp ];
+    result[VariantFilterTagCategory::kInvariant]      += stats[ VariantFilterTag::kBelowSnpMinCount ];
+    result[VariantFilterTagCategory::kInvariant]      += stats[ VariantFilterTag::kAboveSnpMaxCount ];
+    result[VariantFilterTagCategory::kInvariant]      += stats[ VariantFilterTag::kBelowMinAlleleFreq ];
     return result;
 }
 
@@ -195,56 +195,56 @@ std::ostream& print_variant_filter_stats(
     assert( stats.data.size() == static_cast<size_t>( VariantFilterTag::kEnd ) );
 
     // Go through all possible enum values and print them
-    if( stats[VariantFilterTag::kPassed] > 0 || verbose ) {
-        os << "Passed: " << stats[VariantFilterTag::kPassed] << "\n";
-    }
     if( stats[VariantFilterTag::kMaskedPosition] > 0 || verbose ) {
-        os << "MaskedPosition: " << stats[VariantFilterTag::kMaskedPosition] << "\n";
+        os << "Masked position:        " << stats[VariantFilterTag::kMaskedPosition] << "\n";
     }
     if( stats[VariantFilterTag::kMaskedRegion] > 0 || verbose ) {
-        os << "MaskedRegion: " << stats[VariantFilterTag::kMaskedRegion] << "\n";
+        os << "Masked region:          " << stats[VariantFilterTag::kMaskedRegion] << "\n";
     }
     if( stats[VariantFilterTag::kMissing] > 0 || verbose ) {
-        os << "Missing: " << stats[VariantFilterTag::kMissing] << "\n";
+        os << "Missing:                " << stats[VariantFilterTag::kMissing] << "\n";
     }
     if( stats[VariantFilterTag::kNotPassed] > 0 || verbose ) {
-        os << "NotPassed: " << stats[VariantFilterTag::kNotPassed] << "\n";
+        os << "Not passed:             " << stats[VariantFilterTag::kNotPassed] << "\n";
     }
     if( stats[VariantFilterTag::kInvalid] > 0 || verbose ) {
-        os << "Invalid: " << stats[VariantFilterTag::kInvalid] << "\n";
+        os << "Invalid:                " << stats[VariantFilterTag::kInvalid] << "\n";
     }
     if( stats[VariantFilterTag::kNoSamplePassed] > 0 || verbose ) {
-        os << "NoSamplePassed: " << stats[VariantFilterTag::kNoSamplePassed] << "\n";
+        os << "No sample passed:       " << stats[VariantFilterTag::kNoSamplePassed] << "\n";
     }
     if( stats[VariantFilterTag::kNotAllSamplesPassed] > 0 || verbose ) {
-        os << "NotAllSamplesPassed: " << stats[VariantFilterTag::kNotAllSamplesPassed] << "\n";
+        os << "Not all samples passed: " << stats[VariantFilterTag::kNotAllSamplesPassed] << "\n";
     }
     if( stats[VariantFilterTag::kEmpty] > 0 || verbose ) {
-        os << "Empty: " << stats[VariantFilterTag::kEmpty] << "\n";
+        os << "Empty:                  " << stats[VariantFilterTag::kEmpty] << "\n";
     }
     if( stats[VariantFilterTag::kBelowMinCoverage] > 0 || verbose ) {
-        os << "BelowMinCoverage: " << stats[VariantFilterTag::kBelowMinCoverage] << "\n";
+        os << "Below min read depth:   " << stats[VariantFilterTag::kBelowMinCoverage] << "\n";
     }
     if( stats[VariantFilterTag::kAboveMaxCoverage] > 0 || verbose ) {
-        os << "AboveMaxCoverage: " << stats[VariantFilterTag::kAboveMaxCoverage] << "\n";
+        os << "Above max read depth:   " << stats[VariantFilterTag::kAboveMaxCoverage] << "\n";
     }
     if( stats[VariantFilterTag::kAboveDeletionsCountLimit] > 0 || verbose ) {
-        os << "AboveDeletionsCountLimit: " << stats[VariantFilterTag::kAboveDeletionsCountLimit] << "\n";
+        os << "Above deletions limit:  " << stats[VariantFilterTag::kAboveDeletionsCountLimit] << "\n";
     }
     if( stats[VariantFilterTag::kNotSnp] > 0 || verbose ) {
-        os << "NotSnp: " << stats[VariantFilterTag::kNotSnp] << "\n";
+        os << "Not SNP:                " << stats[VariantFilterTag::kNotSnp] << "\n";
     }
     if( stats[VariantFilterTag::kNotBiallelicSnp] > 0 || verbose ) {
-        os << "NotBiallelicSnp: " << stats[VariantFilterTag::kNotBiallelicSnp] << "\n";
+        os << "Not biallelic SNP:      " << stats[VariantFilterTag::kNotBiallelicSnp] << "\n";
     }
     if( stats[VariantFilterTag::kBelowSnpMinCount] > 0 || verbose ) {
-        os << "BelowSnpMinCount: " << stats[VariantFilterTag::kBelowSnpMinCount] << "\n";
+        os << "Below SNP min count:    " << stats[VariantFilterTag::kBelowSnpMinCount] << "\n";
     }
     if( stats[VariantFilterTag::kAboveSnpMaxCount] > 0 || verbose ) {
-        os << "AboveSnpMaxCount: " << stats[VariantFilterTag::kAboveSnpMaxCount] << "\n";
+        os << "Above SNP max count:    " << stats[VariantFilterTag::kAboveSnpMaxCount] << "\n";
     }
     if( stats[VariantFilterTag::kBelowMinAlleleFreq] > 0 || verbose ) {
-        os << "BelowMinAlleleFreq: " << stats[VariantFilterTag::kBelowMinAlleleFreq] << "\n";
+        os << "Below min alele freq:   " << stats[VariantFilterTag::kBelowMinAlleleFreq] << "\n";
+    }
+    if( stats[VariantFilterTag::kPassed] > 0 || verbose ) {
+        os << "Passed:                 " << stats[VariantFilterTag::kPassed] << "\n";
     }
     return os;
 }
@@ -255,6 +255,45 @@ std::string print_variant_filter_stats(
 ) {
     std::stringstream ss;
     print_variant_filter_stats( ss, stats, verbose );
+    return ss.str();
+}
+
+std::ostream& print_variant_filter_category_stats(
+    std::ostream& os,
+    VariantFilterCategoryStats const& stats,
+    bool verbose
+) {
+    assert( stats[ VariantFilterTagCategory::kEnd ] == 0 );
+    assert( stats.data.size() == static_cast<size_t>( VariantFilterTagCategory::kEnd ) );
+
+    // Go through all possible enum values and print them
+    if( stats[VariantFilterTagCategory::kMasked] > 0 || verbose ) {
+        os << "Masked:     " << stats[VariantFilterTagCategory::kMasked] << "\n";
+    }
+    if( stats[VariantFilterTagCategory::kMissingInvalid] > 0 || verbose ) {
+        os << "Missing:    " << stats[VariantFilterTagCategory::kMissingInvalid] << "\n";
+    }
+    if( stats[VariantFilterTagCategory::kSamplesFailed] > 0 || verbose ) {
+        os << "No samples: " << stats[VariantFilterTagCategory::kSamplesFailed] << "\n";
+    }
+    if( stats[VariantFilterTagCategory::kNumeric] > 0 || verbose ) {
+        os << "Numrics:    " << stats[VariantFilterTagCategory::kNumeric] << "\n";
+    }
+    if( stats[VariantFilterTagCategory::kInvariant] > 0 || verbose ) {
+        os << "Invariant:  " << stats[VariantFilterTagCategory::kInvariant] << "\n";
+    }
+    if( stats[VariantFilterTagCategory::kPassed] > 0 || verbose ) {
+        os << "Passed:     " << stats[VariantFilterTagCategory::kPassed] << "\n";
+    }
+    return os;
+}
+
+std::string print_variant_filter_category_stats(
+    VariantFilterCategoryStats const& stats,
+    bool verbose
+) {
+    std::stringstream ss;
+    print_variant_filter_category_stats( ss, stats, verbose );
     return ss.str();
 }
 
