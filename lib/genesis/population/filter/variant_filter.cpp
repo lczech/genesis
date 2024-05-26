@@ -103,7 +103,7 @@ VariantFilterTagCategory variant_filter_tag_to_category( VariantFilterTag tag )
 VariantFilterCategoryStats variant_filter_stats_category_counts(
     VariantFilterStats const& stats
 ) {
-    assert( stats[ VariantFilterTag::kEnd ] == 0 );
+    // assert( stats[ VariantFilterTag::kEnd ] == 0 );
     assert( stats.data.size() == static_cast<size_t>( VariantFilterTag::kEnd ) );
 
     // Build our result, by simply adding up the values to our simple categories / classes.
@@ -131,7 +131,7 @@ VariantFilterCategoryStats variant_filter_stats_category_counts(
 size_t variant_filter_stats_category_counts(
     VariantFilterStats const& stats, VariantFilterTagCategory category
 ) {
-    assert( stats[ VariantFilterTag::kEnd ] == 0 );
+    // assert( stats[ VariantFilterTag::kEnd ] == 0 );
     assert( stats.data.size() == static_cast<size_t>( VariantFilterTag::kEnd ) );
 
     // Select the requested category and add up their values.
@@ -191,7 +191,7 @@ std::ostream& print_variant_filter_stats(
     VariantFilterStats const& stats,
     bool verbose
 ) {
-    assert( stats[ VariantFilterTag::kEnd ] == 0 );
+    // assert( stats[ VariantFilterTag::kEnd ] == 0 );
     assert( stats.data.size() == static_cast<size_t>( VariantFilterTag::kEnd ) );
 
     // Go through all possible enum values and print them
@@ -263,7 +263,7 @@ std::ostream& print_variant_filter_category_stats(
     VariantFilterCategoryStats const& stats,
     bool verbose
 ) {
-    assert( stats[ VariantFilterTagCategory::kEnd ] == 0 );
+    // assert( stats[ VariantFilterTagCategory::kEnd ] == 0 );
     assert( stats.data.size() == static_cast<size_t>( VariantFilterTagCategory::kEnd ) );
 
     // Go through all possible enum values and print them

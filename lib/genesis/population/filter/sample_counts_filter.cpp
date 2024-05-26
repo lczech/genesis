@@ -92,7 +92,7 @@ SampleCountsFilterTagCategory sample_counts_filter_tag_to_category( SampleCounts
 SampleCountsFilterCategoryStats sample_counts_filter_stats_category_counts(
     SampleCountsFilterStats const& stats
 ) {
-    assert( stats[ SampleCountsFilterTag::kEnd ] == 0 );
+    // assert( stats[ SampleCountsFilterTag::kEnd ] == 0 );
     assert( stats.data.size() == static_cast<size_t>( SampleCountsFilterTag::kEnd ) );
 
     // Build our result, by simply adding up the values to our simple categories / classes.
@@ -113,7 +113,7 @@ SampleCountsFilterCategoryStats sample_counts_filter_stats_category_counts(
 size_t sample_counts_filter_stats_category_counts(
     SampleCountsFilterStats const& stats, SampleCountsFilterTagCategory category
 ) {
-    assert( stats[ SampleCountsFilterTag::kEnd ] == 0 );
+    // assert( stats[ SampleCountsFilterTag::kEnd ] == 0 );
     assert( stats.data.size() == static_cast<size_t>( SampleCountsFilterTag::kEnd ) );
 
     // Select the requested category and add up their values.
@@ -157,7 +157,7 @@ std::ostream& print_sample_counts_filter_stats(
     SampleCountsFilterStats const& stats,
     bool verbose
 ) {
-    assert( stats[ SampleCountsFilterTag::kEnd ] == 0 );
+    // assert( stats[ SampleCountsFilterTag::kEnd ] == 0 );
     assert( stats.data.size() == static_cast<size_t>( SampleCountsFilterTag::kEnd ) );
 
     // Go through all possible enum values and print them
@@ -208,7 +208,7 @@ std::ostream& print_sample_counts_filter_category_stats(
     SampleCountsFilterCategoryStats const& stats,
     bool verbose
 ) {
-    assert( stats[ SampleCountsFilterTagCategory::kEnd ] == 0 );
+    // assert( stats[ SampleCountsFilterTagCategory::kEnd ] == 0 );
     assert( stats.data.size() == static_cast<size_t>( SampleCountsFilterTagCategory::kEnd ) );
 
     // Go through all possible enum values and print them

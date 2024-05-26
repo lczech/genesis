@@ -82,8 +82,8 @@ public:
         return status_ == value;
     }
 
-    template<typename Enum>
-    bool is( Enum value ) const
+    template<typename FilterTag>
+    bool is( FilterTag value ) const
     {
         return is( static_cast<IntType>( value ));
     }
@@ -108,8 +108,8 @@ public:
         status_ = value;
     }
 
-    template<typename Enum>
-    void set( Enum value )
+    template<typename FilterTag>
+    void set( FilterTag value )
     {
         set( static_cast<IntType>( value ));
     }
@@ -124,8 +124,8 @@ public:
         status_ = value;
     }
 
-    template<typename Enum>
-    void reset( Enum value )
+    template<typename FilterTag>
+    void reset( FilterTag value )
     {
         reset( static_cast<IntType>( value ));
     }

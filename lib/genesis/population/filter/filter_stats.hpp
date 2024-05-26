@@ -57,14 +57,14 @@ namespace population {
  * `kEnd` as its last value, to determine the end of the enum and indicate the full range of all
  * values. See VariantFilterTag and SampleFilterTag for the two enums we use here.
  */
-template<typename Enum>
+template<typename FilterTag>
 struct FilterStats
 {
     // -------------------------------------------------------------------------
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using EnumArray = std::array<size_t, static_cast<size_t>( Enum::kEnd )>;
+    using FilterTagArray = std::array<size_t, static_cast<size_t>( FilterTag::kEnd )>;
 
     // -------------------------------------------------------------------------
     //     Constructor
@@ -79,20 +79,20 @@ struct FilterStats
     //     Operators and Iteration
     // -------------------------------------------------------------------------
 
-    size_t& operator[] ( Enum tag )
+    size_t& operator[] ( FilterTag tag )
     {
-        auto const i = static_cast<typename std::underlying_type<Enum>::type>(tag);
+        auto const i = static_cast<typename std::underlying_type<FilterTag>::type>(tag);
         if( i >= data.size() ) {
-            throw std::invalid_argument( "Invalid enum value " + std::to_string(i) );
+            throw std::invalid_argument( "Invalid filter tag value " + std::to_string(i) );
         }
         return data[ i ];
     }
 
-    size_t operator[] ( Enum tag ) const
+    size_t operator[] ( FilterTag tag ) const
     {
-        auto const i = static_cast<typename std::underlying_type<Enum>::type>(tag);
+        auto const i = static_cast<typename std::underlying_type<FilterTag>::type>(tag);
         if( i >= data.size() ) {
-            throw std::invalid_argument( "Invalid enum value " + std::to_string(i) );
+            throw std::invalid_argument( "Invalid filter tag value " + std::to_string(i) );
         }
         return data[ i ];
     }
@@ -100,7 +100,7 @@ struct FilterStats
     size_t& operator[] ( size_t index )
     {
         if( index >= data.size() ) {
-            throw std::invalid_argument( "Invalid enum value " + std::to_string(index) );
+            throw std::invalid_argument( "Invalid filter tag value " + std::to_string(index) );
         }
         return data[ index ];
     }
@@ -108,27 +108,27 @@ struct FilterStats
     size_t operator[] ( size_t index ) const
     {
         if( index >= data.size() ) {
-            throw std::invalid_argument( "Invalid enum value " + std::to_string(index) );
+            throw std::invalid_argument( "Invalid filter tag value " + std::to_string(index) );
         }
         return data[ index ];
     }
 
-    typename EnumArray::iterator begin()
+    typename FilterTagArray::iterator begin()
     {
         return data.begin();
     }
 
-    typename EnumArray::const_iterator begin() const
+    typename FilterTagArray::const_iterator begin() const
     {
         return data.begin();
     }
 
-    typename EnumArray::iterator end()
+    typename FilterTagArray::iterator end()
     {
         return data.end();
     }
 
-    typename EnumArray::const_iterator end() const
+    typename FilterTagArray::const_iterator end() const
     {
         return data.end();
     }
@@ -155,7 +155,7 @@ struct FilterStats
     {
         // Check that our special 0 case is there and has the right value.
         static_assert(
-            static_cast<typename std::underlying_type<Enum>::type>(Enum::kPassed) == 0,
+            static_cast<typename std::underlying_type<FilterTag>::type>(FilterTag::kPassed) == 0,
             "Filter Tag enum value kPassed != 0"
         );
 
@@ -181,7 +181,7 @@ struct FilterStats
     //     Member Data
     // -------------------------------------------------------------------------
 
-    EnumArray data;
+    FilterTagArray data;
 };
 
 } // namespace population
