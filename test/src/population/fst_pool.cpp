@@ -49,11 +49,16 @@
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/transform_iterator.hpp"
 #include "genesis/utils/core/options.hpp"
+#include "genesis/utils/math/random.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;
 
-TEST( Structure, FstPoolGenerator )
+// =================================================================================================
+//     Generator (deprecated)
+// =================================================================================================
+
+TEST( FST, FstPoolGenerator )
 {
     // Equivalent PoPoolation call for conventional F_ST:
     // perl fst-sliding.pl --input p1_p2.sync --output p1_p2.fst_conventional --suppress-noninformative --min-count 6 --min-coverage 50 --max-coverage 200 --min-covered-fraction 1 --window-size 100 --step-size 100 --pool-size 500 > log_conventional.txt
@@ -224,7 +229,11 @@ TEST( Structure, FstPoolGenerator )
     }
 }
 
-TEST( Structure, FstPoolIterator )
+// =================================================================================================
+//     Stream
+// =================================================================================================
+
+TEST( FST, FstPoolIterator )
 {
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/p1_p2.sync.gz";
@@ -385,7 +394,7 @@ TEST( Structure, FstPoolIterator )
     }
 }
 
-TEST( Structure, FstPoolProcessor )
+TEST( FST, FstPoolProcessor )
 {
     NEEDS_TEST_DATA;
     std::string const infile = environment->data_dir + "population/p1_p2.sync.gz";
@@ -411,10 +420,128 @@ TEST( Structure, FstPoolProcessor )
     EXPECT_FLOAT_EQ( -0.0041116024, result[0] );
 }
 
+// =================================================================================================
+//     Random Fuzzy
+// =================================================================================================
+
+std::vector<Variant> test_fst_fuzzy_make_data_()
+{
+    // Number of samples per variant
+    auto const n_positions = 100;
+    auto const n_samples = permuted_congruential_generator( 2, 10 );
+
+    // Create a list of Variants and samples, with random content
+    std::vector<Variant> data;
+    data.resize( n_positions );
+    for( size_t n_var = 0; n_var < n_positions; ++n_var ) {
+        auto& variant = data[n_var];
+        variant.chromosome = "1";
+        variant.position = n_var + 1;
+        variant.status.set(
+            permuted_congruential_generator( static_cast<int>( VariantFilterTag::kEnd ) - 1 )
+        );
+
+        // Fill the variant with samples
+        variant.samples.resize( n_samples );
+        for( size_t n_smp = 0; n_smp < n_samples; ++n_smp ) {
+            auto& sample = variant.samples[n_smp];
+
+            // Make a selection of how many of the counts we want to fill.
+            // This makes sure that we are not underrepresenting low counts.
+            auto const num_non_empty = permuted_congruential_generator( 4 );
+            switch( num_non_empty ) {
+                case 0: {
+                    break;
+                }
+                case 1: {
+                    sample.a_count = permuted_congruential_generator( 10 );
+                    break;
+                }
+                case 2: {
+                    sample.a_count = permuted_congruential_generator( 10 );
+                    sample.c_count = permuted_congruential_generator( 10 );
+                    break;
+                }
+                case 3: {
+                    sample.a_count = permuted_congruential_generator( 10 );
+                    sample.c_count = permuted_congruential_generator( 10 );
+                    sample.g_count = permuted_congruential_generator( 10 );
+                    break;
+                }
+                case 4: {
+                    sample.a_count = permuted_congruential_generator( 10 );
+                    sample.c_count = permuted_congruential_generator( 10 );
+                    sample.g_count = permuted_congruential_generator( 10 );
+                    sample.t_count = permuted_congruential_generator( 10 );
+                    break;
+                }
+            }
+
+            // Also set a random status
+            sample.status.set(
+                permuted_congruential_generator( static_cast<int>( SampleCountsFilterTag::kEnd ) - 1 )
+            );
+        }
+    }
+    return data;
+}
+
+void test_fst_fuzzy_run_( std::vector<Variant> const& data )
+{
+    // Make an FST processor
+    auto const n_samples = data[0].samples.size();
+    auto const pool_sizes = std::vector<size_t>( n_samples, 100 );
+    auto const window_average_policy = static_cast<WindowAveragePolicy>(
+        permuted_congruential_generator( 0, 4 )
+    );
+    auto processor = make_fst_pool_processor<FstPoolCalculatorUnbiased>(
+        window_average_policy, pool_sizes
+    );
+
+    // Run the data
+    for( auto const& variant : data ) {
+        processor.process( variant );
+    }
+
+    // Test the result
+    auto const pairs = n_samples * ( n_samples - 1 ) / 2;
+    size_t const window_length = data.size();
+    auto const result = processor.get_result( window_length );
+    EXPECT_EQ( pairs, result.size() );
+    // EXPECT_FLOAT_EQ( -0.0041116024, result[0] );
+    for( auto const& r : result ) {
+        LOG_DBG << r;
+    }
+}
+
+TEST( FST, RandomFuzzy )
+{
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    // For the duration of the test, we deactivate debug logging.
+    // But if needed, comment this line out, and each test will report its input.
+    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+
+    size_t num_tests = 5000;
+    for( size_t i = 0; i < num_tests; ++i ) {
+        LOG_DBG << "=================================";
+        LOG_DBG << "Test " << i;
+        auto const data = test_fst_fuzzy_make_data_();
+        test_fst_fuzzy_run_( data );
+    }
+}
+
+// =================================================================================================
+//     C++14 All Pairs
+// =================================================================================================
+
 // Test the C++14 helper functions that compute FST for all pairs of input.
 #if __cplusplus >= 201402L
 
-TEST( Structure, FstPoolAllPairs )
+TEST( FST, FstPoolAllPairs )
 {
     // See above for details. Here we simply test that the C++14 extension
     // to compute all pairs of FST between samples compiles at all.
