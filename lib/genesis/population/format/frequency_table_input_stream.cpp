@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -193,7 +193,7 @@ void FrequencyTableInputStream::Iterator::check_header_fields_(
         // If the flags differ, issue a warning once. We then don't need to further check.
         if( sample_flags != flag ) {
             LOG_WARN << "Frequency table samples contain different types of data "
-                     << "(reference or alternative counts, frequencies, or coverage). "
+                     << "(reference or alternative counts, frequencies, or read depth). "
                      << "We can handle this, but it might indicate that something went wrong "
                      << "when parsing and interpreting the header fields to obtain sample names.";
             break;
@@ -230,7 +230,7 @@ void FrequencyTableInputStream::Iterator::parse_header_field_(
     // We try all our types of fields that are supported by this reader: is it
     //  - the chromosome name or the position in the chromosome
     //  - the ref or alt base
-    //  - one of numbers of ref/alt counts, coverage, or frequency for a sample
+    //  - one of numbers of ref/alt counts, read depth, or frequency for a sample
     // We try to evaluate the field as all types, and see if any of them matches the patterns we
     // are looking for, and keep track of how many matched (the functions return 1 on success of
     // matching, and 0 otherwise), to make sure that we only have at most one valid match.
@@ -648,7 +648,7 @@ int FrequencyTableInputStream::Iterator::evaluate_if_field_is_sample_cov_(
     if( sample_info.has_cov ) {
         throw std::runtime_error(
             "Cannot unambiguously parse frequency table header, as it contains multiple columns "
-            "for the coverage of sample \"" + samplename + "\"."
+            "for the read depth of sample \"" + samplename + "\"."
         );
     }
     sample_info.has_cov = true;
@@ -1056,11 +1056,11 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
         alt_cnt = sample_data.alt_cnt;
         do_frq_check = true;
 
-        // Check that the coverage fits.
+        // Check that the read depth fits.
         // We are dealing with integers here, so this needs to be exact.
         if( sample_info.has_cov && sample_data.cov != sample_data.ref_cnt + sample_data.alt_cnt ) {
             throw std::runtime_error(
-                "Invalid coverage that is not the sum of the reference and alternative base counts."
+                "Invalid read depth that is not the sum of the reference and alternative base counts."
             );
         }
 
@@ -1072,7 +1072,7 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
         // Check that the values are valid.
         if( sample_data.cov < sample_data.ref_cnt ) {
             throw std::runtime_error(
-                "Invalid coverage that is smaller than the reference base count."
+                "Invalid read depth that is smaller than the reference base count."
             );
         }
 
@@ -1087,7 +1087,7 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
         // Highly unlikely case, but hey, let's implement it.
         assert( ! sample_info.has_ref );
         throw std::runtime_error(
-            "Invalid coverage that is smaller than the alternative base count."
+            "Invalid read depth that is smaller than the alternative base count."
         );
         ref_cnt = sample_data.cov - sample_data.alt_cnt;
         alt_cnt = sample_data.ref_cnt;

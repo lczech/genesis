@@ -131,7 +131,7 @@ TEST( Pileup, SimpleReader1 )
     );
 
     // Record 0, Sample 0
-    EXPECT_EQ( 24,  records[0].samples[0].read_coverage );
+    EXPECT_EQ( 24,  records[0].samples[0].read_depth );
     auto pool_0 = convert_to_sample_counts( records[0].samples[0] );
     EXPECT_EQ(  0,  pool_0.a_count );
     EXPECT_EQ(  0,  pool_0.c_count );
@@ -151,7 +151,7 @@ TEST( Pileup, SimpleReader1 )
     stats.clear();
 
     // Record 1, Sample 0
-    EXPECT_EQ( 23,  records[1].samples[0].read_coverage );
+    EXPECT_EQ( 23,  records[1].samples[0].read_depth );
     auto pool_1 = convert_to_sample_counts( records[1].samples[0] );
     EXPECT_EQ(  1,  pool_1.a_count );
     EXPECT_EQ(  0,  pool_1.c_count );
@@ -176,7 +176,7 @@ TEST( Pileup, SimpleReader1 )
     stats.clear();
 
     // Record 2, Sample 0
-    EXPECT_EQ( 23,  records[2].samples[0].read_coverage );
+    EXPECT_EQ( 23,  records[2].samples[0].read_depth );
     auto pool_2 = convert_to_sample_counts( records[2].samples[0] );
     EXPECT_EQ(  0,  pool_2.a_count );
     EXPECT_EQ(  0,  pool_2.c_count );
@@ -196,7 +196,7 @@ TEST( Pileup, SimpleReader1 )
     stats.clear();
 
     // Record 3, Sample 0
-    EXPECT_EQ( 23,  records[3].samples[0].read_coverage );
+    EXPECT_EQ( 23,  records[3].samples[0].read_depth );
     auto pool_3 = convert_to_sample_counts( records[3].samples[0] );
     EXPECT_EQ( 23,  pool_3.a_count );
     EXPECT_EQ(  0,  pool_3.c_count );
@@ -216,7 +216,7 @@ TEST( Pileup, SimpleReader1 )
     stats.clear();
 
     // Record 4, Sample 0
-    EXPECT_EQ( 22,  records[4].samples[0].read_coverage );
+    EXPECT_EQ( 22,  records[4].samples[0].read_depth );
     auto pool_4 = convert_to_sample_counts( records[4].samples[0] );
     EXPECT_EQ(  0,  pool_4.a_count );
     EXPECT_EQ(  0,  pool_4.c_count );
@@ -241,7 +241,7 @@ TEST( Pileup, SimpleReader1 )
     stats.clear();
 
     // Record 5, Sample 0
-    EXPECT_EQ( 22,  records[5].samples[0].read_coverage );
+    EXPECT_EQ( 22,  records[5].samples[0].read_depth );
     auto pool_5 = convert_to_sample_counts( records[5].samples[0] );
     EXPECT_EQ(  0,  pool_5.a_count );
     EXPECT_EQ(  1,  pool_5.c_count );
@@ -261,7 +261,7 @@ TEST( Pileup, SimpleReader1 )
     stats.clear();
 
     // Record 6, Sample 0
-    EXPECT_EQ( 23,  records[6].samples[0].read_coverage );
+    EXPECT_EQ( 23,  records[6].samples[0].read_depth );
     auto pool_6 = convert_to_sample_counts( records[6].samples[0] );
     EXPECT_EQ(  0,  pool_6.a_count );
     EXPECT_EQ(  0,  pool_6.c_count );
@@ -281,7 +281,7 @@ TEST( Pileup, SimpleReader1 )
     stats.clear();
 
     // Record 7, Sample 0
-    EXPECT_EQ( 23,  records[7].samples[0].read_coverage );
+    EXPECT_EQ( 23,  records[7].samples[0].read_depth );
     auto pool_7 = convert_to_sample_counts( records[7].samples[0] );
     EXPECT_EQ(  1,  pool_7.a_count );
     EXPECT_EQ( 17,  pool_7.c_count );

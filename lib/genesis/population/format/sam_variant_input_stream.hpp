@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -601,7 +601,7 @@ public:
     }
 
     /**
-     * @brief Set the minimum depth (coverage) at a given position to be considered.
+     * @brief Set the minimum read depth (coverage) at a given position to be considered.
      *
      * Positions in the genome with fewer than the given minimum depth are skipped.
      */
@@ -617,7 +617,7 @@ public:
     }
 
     /**
-     * @brief Set the maximum depth (coverage) at a given position to be considered.
+     * @brief Set the maximum read depth (coverage) at a given position to be considered.
      *
      * Positions in the genome with more than the given minimum depth are skipped.
      * If set to 0 (default), the value is not used as a threshold.
@@ -634,7 +634,7 @@ public:
     }
 
     /**
-     * @brief Set the maximum depth (coverage) at a given position that is actually processed.
+     * @brief Set the maximum read depth (coverage) at a given position that is actually processed.
      *
      * The max_depth() setting excludes sites that have depth/coverage above a given value.
      * However, one might want to keep those sites in the iteration, and yet limit the number of

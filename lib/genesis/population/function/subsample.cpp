@@ -48,18 +48,18 @@ namespace population {
 
 void rescale_counts_(
     SampleCounts& sample,
-    size_t target_coverage,
-    bool skip_if_below_target_coverage
+    size_t target_depth,
+    bool skip_if_below_target_depth
 ) {
     // Get the total sum. If this does not exceed the max, we are done already.
     size_t const total_sum = sample_counts_sum(sample);
-    if( skip_if_below_target_coverage && total_sum <= target_coverage ) {
+    if( skip_if_below_target_depth && total_sum <= target_depth ) {
         return;
     }
 
     // Scale the numbers, which rounds to the lower integer.
     // We store the result in intermediate values first, as we might need the originals later.
-    double const scale = static_cast<double>(target_coverage) / static_cast<double>(total_sum);
+    double const scale = static_cast<double>(target_depth) / static_cast<double>(total_sum);
     size_t a_count = static_cast<size_t>( static_cast<double>( sample.a_count ) * scale );
     size_t c_count = static_cast<size_t>( static_cast<double>( sample.c_count ) * scale );
     size_t g_count = static_cast<size_t>( static_cast<double>( sample.g_count ) * scale );
@@ -71,8 +71,8 @@ void rescale_counts_(
     // distribute across the numbers, so that the largest count gets most. We only processed 6
     // numbers, so the remainder of the rounding is less than 6.
     size_t const new_sum = a_count + c_count + g_count + t_count + n_count + d_count;
-    assert( new_sum <= target_coverage );
-    size_t const remainder = target_coverage - new_sum;
+    assert( new_sum <= target_depth );
+    size_t const remainder = target_depth - new_sum;
     assert( remainder < 6 );
 
     // Now we distribute the remainder across the counts, starting at the highest, to stay
@@ -143,40 +143,40 @@ void rescale_counts_(
     sample.t_count = t_count;
     sample.n_count = n_count;
     sample.d_count = d_count;
-    assert( sample_counts_sum( sample ) == target_coverage );
+    assert( sample_counts_sum( sample ) == target_depth );
 }
 
 void subscale_counts(
     SampleCounts& sample,
-    size_t max_coverage
+    size_t max_depth
 ) {
-    rescale_counts_( sample, max_coverage, true );
+    rescale_counts_( sample, max_depth, true );
 }
 
 void subscale_counts(
     Variant& variant,
-    size_t max_coverage
+    size_t max_depth
 ) {
     // Call the transformation for each sample in the variant.
     for( auto& sample : variant.samples ) {
-        rescale_counts_( sample, max_coverage, true );
+        rescale_counts_( sample, max_depth, true );
     }
 }
 
 void rescale_counts(
     SampleCounts& sample,
-    size_t target_coverage
+    size_t target_depth
 ) {
-    rescale_counts_( sample, target_coverage, false );
+    rescale_counts_( sample, target_depth, false );
 }
 
 void rescale_counts(
     Variant& variant,
-    size_t target_coverage
+    size_t target_depth
 ) {
     // Call the transformation for each sample in the variant.
     for( auto& sample : variant.samples ) {
-        rescale_counts_( sample, target_coverage, false );
+        rescale_counts_( sample, target_depth, false );
     }
 }
 
@@ -191,13 +191,13 @@ void rescale_counts(
 template<typename Distribution>
 void resample_counts_(
     SampleCounts& sample,
-    size_t max_coverage,
+    size_t max_depth,
     Distribution distribution,
-    bool skip_if_below_target_coverage
+    bool skip_if_below_target_depth
 ) {
     // Get the total sum. If this does not exceed the max, we are done already.
     size_t const total_sum = sample_counts_sum(sample);
-    if( skip_if_below_target_coverage && total_sum <= max_coverage ) {
+    if( skip_if_below_target_depth && total_sum <= max_depth ) {
         return;
     }
 
@@ -211,7 +211,7 @@ void resample_counts_(
             sample.n_count,
             sample.d_count
         }},
-        max_coverage
+        max_depth
     );
     assert( new_counts.size() == 6 );
 
@@ -222,66 +222,66 @@ void resample_counts_(
     sample.t_count = new_counts[3];
     sample.n_count = new_counts[4];
     sample.d_count = new_counts[5];
-    assert( sample_counts_sum( sample ) == max_coverage );
+    assert( sample_counts_sum( sample ) == max_depth );
 }
 
 void subsample_counts_with_replacement(
     SampleCounts& sample,
-    size_t max_coverage
+    size_t max_depth
 ) {
     // Call the local helper function template, to avoid code duplication.
     return resample_counts_<std::vector<size_t>(*)(std::vector<size_t> const&, size_t)>(
-        sample, max_coverage, utils::multinomial_distribution, true
+        sample, max_depth, utils::multinomial_distribution, true
     );
 }
 
 void subsample_counts_with_replacement(
     Variant& variant,
-    size_t max_coverage
+    size_t max_depth
 ) {
     // Call the transformation for each sample in the variant.
     for( auto& sample : variant.samples ) {
-        subsample_counts_with_replacement( sample, max_coverage );
+        subsample_counts_with_replacement( sample, max_depth );
     }
 }
 
 void resample_counts(
     SampleCounts& sample,
-    size_t target_coverage
+    size_t target_depth
 ) {
     // Call the local helper function template, to avoid code duplication.
     return resample_counts_<std::vector<size_t>(*)(std::vector<size_t> const&, size_t)>(
-        sample, target_coverage, utils::multinomial_distribution, false
+        sample, target_depth, utils::multinomial_distribution, false
     );
 }
 
 void resample_counts(
     Variant& variant,
-    size_t target_coverage
+    size_t target_depth
 ) {
     // Call the transformation for each sample in the variant.
     for( auto& sample : variant.samples ) {
-        resample_counts( sample, target_coverage );
+        resample_counts( sample, target_depth );
     }
 }
 
 void subsample_counts_without_replacement(
     SampleCounts& sample,
-    size_t max_coverage
+    size_t max_depth
 ) {
     // Call the local helper function template, to avoid code duplication.
     return resample_counts_<std::vector<size_t>(*)(std::vector<size_t> const&, size_t)>(
-        sample, max_coverage, utils::multivariate_hypergeometric_distribution, true
+        sample, max_depth, utils::multivariate_hypergeometric_distribution, true
     );
 }
 
 void subsample_counts_without_replacement(
     Variant& variant,
-    size_t max_coverage
+    size_t max_depth
 ) {
     // Call the transformation for each sample in the variant.
     for( auto& sample : variant.samples ) {
-        subsample_counts_without_replacement( sample, max_coverage );
+        subsample_counts_without_replacement( sample, max_depth );
     }
 }
 

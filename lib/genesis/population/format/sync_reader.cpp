@@ -644,7 +644,7 @@ void SyncReader::parse_sample_(
             buff.first[  9 ] == '.'  &&
             buff.first[ 11 ] == '.'
         ) {
-            // Set everything to zero and signal zero coverage or missing data.
+            // Set everything to zero and signal zero counts or missing data.
             sample.a_count = 0;
             sample.t_count = 0;
             sample.c_count = 0;

@@ -64,7 +64,8 @@ namespace population {
  * on the functions it computes.
  *
  * The provided DiversityPoolSettings take care of most options offered by PoPoolation.
- * In particular, we want to set the `min_count`, as well as the `min_coverage` and `max_coverage`.
+ * In particular, we want to set the `min_count`, as well as the `min_read_depth` and
+ * `max_read_depth`. These read depths are called "coverage" in PoPoolation, which seems wrong.
  *
  * We do expect here that the input samples that are provided to the process() function
  * are already filtered (with the appropriate filter status set for the Variant and the SampleCounts)
@@ -72,8 +73,8 @@ namespace population {
  * settings that match the DiversityPoolSettings:
  *
  *     filter.min_count = settings.min_count;
- *     filter.min_coverage = settings.min_coverage;
- *     filter.max_coverage = settings.max_coverage;
+ *     filter.min_read_depth = settings.min_read_depth;
+ *     filter.max_read_depth = settings.max_read_depth;
  *     filter.only_snps = true;
  *
  * That is, the settings for the pool statistics should match the settings used for filtering the
@@ -92,7 +93,7 @@ namespace population {
  * Alternaively, genesis::utils::make_filter_range() can be used to achieve the same effect,
  * but requiring a bit more manual "wiring" of the components first. This however has the advantage
  * that SampleCountsFilterStats can be provided, e.g., per window of the analysis, to capture the
- * number of sites that pass coverage filters etc. These numbers can then be used for
+ * number of sites that pass read depth filters etc. These numbers can then be used for
  * get_theta_pi_relative() and get_theta_watterson_relative(), respectively. Otherwise (when instead
  * filtering directly in the VariantInputStream), these numbers are lost, and instead the relative
  * values would need to be computed, e.g., using the full window sizes, instead of taking only
@@ -229,7 +230,7 @@ public:
         theta_pi_sum_.reset();
         theta_watterson_sum_.reset();
         filter_stats_.clear();
-        empirical_min_coverage_ = std::numeric_limits<size_t>::max();
+        empirical_min_read_depth_ = std::numeric_limits<size_t>::max();
     }
 
     /**
@@ -270,12 +271,12 @@ public:
             assert( std::isfinite( tw ) );
         }
 
-        // We want to keep track of the minimum coverage of the data that we are processing.
-        // This is only needed when using TajimaDenominatorPolicy::kEmpiricalMinCoverage,
+        // We want to keep track of the minimum read depth of the data that we are processing.
+        // This is only needed when using TajimaDenominatorPolicy::kEmpiricalMinReadDepth,
         // but cheap enough to just always keep track of here.
         auto const cov = nucleotide_sum( sample );
-        if( cov > 0 && cov < empirical_min_coverage_ ) {
-            empirical_min_coverage_ = cov;
+        if( cov > 0 && cov < empirical_min_read_depth_ ) {
+            empirical_min_read_depth_ = cov;
         }
     }
 
@@ -310,7 +311,7 @@ public:
             result.tajima_d = tajima_d_pool(
                 settings_,
                 theta_pi_sum_.get(), theta_watterson_sum_.get(),
-                pool_size_, tajimas_window_avg_denom, empirical_min_coverage_
+                pool_size_, tajimas_window_avg_denom, empirical_min_read_depth_
             );
         }
         return result;
@@ -347,8 +348,8 @@ private:
     utils::NeumaierSum theta_watterson_sum_;
     SampleCountsFilterStats filter_stats_;
 
-    // Find the minimum empirical coverage that we see in the processed data.
-    size_t empirical_min_coverage_ = std::numeric_limits<size_t>::max();
+    // Find the minimum empirical read depth that we see in the processed data.
+    size_t empirical_min_read_depth_ = std::numeric_limits<size_t>::max();
 };
 
 } // namespace population

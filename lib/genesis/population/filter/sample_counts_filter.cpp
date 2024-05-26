@@ -70,8 +70,8 @@ SampleCountsFilterTagCategory sample_counts_filter_tag_to_category( SampleCounts
         case SampleCountsFilterTag::kInvalid:
             return SampleCountsFilterTagCategory::kMissingInvalid;
         case SampleCountsFilterTag::kEmpty:
-        case SampleCountsFilterTag::kBelowMinCoverage:
-        case SampleCountsFilterTag::kAboveMaxCoverage:
+        case SampleCountsFilterTag::kBelowMinReadDepth:
+        case SampleCountsFilterTag::kAboveMaxReadDepth:
         case SampleCountsFilterTag::kAboveDeletionsCountLimit:
         case SampleCountsFilterTag::kNotSnp:
         case SampleCountsFilterTag::kNotBiallelicSnp:
@@ -102,8 +102,8 @@ SampleCountsFilterCategoryStats sample_counts_filter_stats_category_counts(
     result[SampleCountsFilterTagCategory::kMissingInvalid] += stats[ SampleCountsFilterTag::kNotPassed ];
     result[SampleCountsFilterTagCategory::kMissingInvalid] += stats[ SampleCountsFilterTag::kInvalid ];
     result[SampleCountsFilterTagCategory::kNumeric]        += stats[ SampleCountsFilterTag::kEmpty ];
-    result[SampleCountsFilterTagCategory::kNumeric]        += stats[ SampleCountsFilterTag::kBelowMinCoverage ];
-    result[SampleCountsFilterTagCategory::kNumeric]        += stats[ SampleCountsFilterTag::kAboveMaxCoverage ];
+    result[SampleCountsFilterTagCategory::kNumeric]        += stats[ SampleCountsFilterTag::kBelowMinReadDepth ];
+    result[SampleCountsFilterTagCategory::kNumeric]        += stats[ SampleCountsFilterTag::kAboveMaxReadDepth ];
     result[SampleCountsFilterTagCategory::kNumeric]        += stats[ SampleCountsFilterTag::kAboveDeletionsCountLimit ];
     result[SampleCountsFilterTagCategory::kNumeric]        += stats[ SampleCountsFilterTag::kNotSnp ];
     result[SampleCountsFilterTagCategory::kNumeric]        += stats[ SampleCountsFilterTag::kNotBiallelicSnp ];
@@ -131,8 +131,8 @@ size_t sample_counts_filter_stats_category_counts(
         }
         case SampleCountsFilterTagCategory::kNumeric: {
             result += stats[ SampleCountsFilterTag::kEmpty ];
-            result += stats[ SampleCountsFilterTag::kBelowMinCoverage ];
-            result += stats[ SampleCountsFilterTag::kAboveMaxCoverage ];
+            result += stats[ SampleCountsFilterTag::kBelowMinReadDepth ];
+            result += stats[ SampleCountsFilterTag::kAboveMaxReadDepth ];
             result += stats[ SampleCountsFilterTag::kAboveDeletionsCountLimit ];
             result += stats[ SampleCountsFilterTag::kNotSnp ];
             result += stats[ SampleCountsFilterTag::kNotBiallelicSnp ];
@@ -173,11 +173,11 @@ std::ostream& print_sample_counts_filter_stats(
     if( stats[SampleCountsFilterTag::kEmpty] > 0 || verbose ) {
         os << "Empty:                 " << stats[SampleCountsFilterTag::kEmpty] << "\n";
     }
-    if( stats[SampleCountsFilterTag::kBelowMinCoverage] > 0 || verbose ) {
-        os << "Below min read depth:  " << stats[SampleCountsFilterTag::kBelowMinCoverage] << "\n";
+    if( stats[SampleCountsFilterTag::kBelowMinReadDepth] > 0 || verbose ) {
+        os << "Below min read depth:  " << stats[SampleCountsFilterTag::kBelowMinReadDepth] << "\n";
     }
-    if( stats[SampleCountsFilterTag::kAboveMaxCoverage] > 0 || verbose ) {
-        os << "Above max read depth:  " << stats[SampleCountsFilterTag::kAboveMaxCoverage] << "\n";
+    if( stats[SampleCountsFilterTag::kAboveMaxReadDepth] > 0 || verbose ) {
+        os << "Above max read depth:  " << stats[SampleCountsFilterTag::kAboveMaxReadDepth] << "\n";
     }
     if( stats[SampleCountsFilterTag::kAboveDeletionsCountLimit] > 0 || verbose ) {
         os << "Above deletions limit: " << stats[SampleCountsFilterTag::kAboveDeletionsCountLimit] << "\n";

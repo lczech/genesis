@@ -752,9 +752,9 @@ void SamVariantInputStream::Iterator::increment_()
     assert( handle_->sam_hdr_ );
     assert( handle_->iter_ );
 
-    // Find the next input position that we want to consider (it has data and fitting coverage,
+    // Find the next input position that we want to consider (it has data and fitting read depth,
     // and is not filtered out due to the region list).
-    // tid is the chromosome name index, pos the position on the chromosome, and n is coverage/depth
+    // tid is the chromosome name index, pos the position on the chromosome, and n is read depth ("coverage")
     int tid, pos, n;
     bam_pileup1_t const* plp;
     while( true ) {

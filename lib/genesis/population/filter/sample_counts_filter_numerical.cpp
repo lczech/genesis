@@ -161,23 +161,23 @@ bool apply_sample_counts_filter_numerical(
         return false;
     }
 
-    // Coverage
-    if( sum < params.min_coverage ) {
+    // Read depth
+    if( sum < params.min_read_depth ) {
         // if( params.clear_filtered ) {
         //     sample.clear();
         // }
 
-        sample.status.set( SampleCountsFilterTag::kBelowMinCoverage );
-        ++stats[SampleCountsFilterTag::kBelowMinCoverage];
+        sample.status.set( SampleCountsFilterTag::kBelowMinReadDepth );
+        ++stats[SampleCountsFilterTag::kBelowMinReadDepth];
         return false;
     }
-    if( params.max_coverage > 0 && sum > params.max_coverage ) {
+    if( params.max_read_depth > 0 && sum > params.max_read_depth ) {
         // if( params.clear_filtered ) {
         //     sample.clear();
         // }
 
-        sample.status.set( SampleCountsFilterTag::kAboveMaxCoverage );
-        ++stats[SampleCountsFilterTag::kAboveMaxCoverage];
+        sample.status.set( SampleCountsFilterTag::kAboveMaxReadDepth );
+        ++stats[SampleCountsFilterTag::kAboveMaxReadDepth];
         return false;
     }
 

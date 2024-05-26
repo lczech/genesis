@@ -67,11 +67,11 @@ TEST( Structure, FstPoolGenerator )
     // Settings
     size_t const poolsize = 500;
     size_t const min_allele_count = 6;
-    size_t const min_coverage = 50;
-    size_t const max_coverage = 200;
+    size_t const min_read_depth = 50;
+    size_t const max_read_depth = 200;
     size_t const window_width = 100;
     size_t const window_stride = 100;
-    // settings.min_coverage_fraction = 1.0;
+    // settings.min_read_depth_fraction = 1.0;
     // settings.window_width = 100;
     // settings.window_stride = 100;
     // settings.min_phred_score = 20;
@@ -205,8 +205,8 @@ TEST( Structure, FstPoolGenerator )
         auto merged = merge( sample_set.samples, SampleCountsFilterPolicy::kOnlyPassing );
         SampleCountsFilterNumericalParams filter;
         filter.min_count = min_allele_count;
-        filter.min_coverage = min_coverage;
-        filter.max_coverage = max_coverage;
+        filter.min_read_depth = min_read_depth;
+        filter.max_read_depth = max_read_depth;
         filter.only_biallelic_snps = true;
         if( apply_sample_counts_filter_numerical( merged, filter )) {
             window_gen.enqueue( sample_set.chromosome, sample_set.position, sample_set.samples );
@@ -215,7 +215,7 @@ TEST( Structure, FstPoolGenerator )
         // Old way of checking the status directly
         // if( status(
         //         merge( sample_set.samples ),
-        //         min_coverage, max_coverage, min_allele_count
+        //         min_read_depth, max_read_depth, min_allele_count
         //     ).is_biallelic
         // ) {
         //     // LOG_DBG << "enq " <<  sample_set.position << " " << merge( sample_set.samples );
@@ -232,11 +232,11 @@ TEST( Structure, FstPoolIterator )
     // Settings
     size_t const poolsize = 500;
     size_t const min_allele_count = 6;
-    size_t const min_coverage = 50;
-    size_t const max_coverage = 200;
+    size_t const min_read_depth = 50;
+    size_t const max_read_depth = 200;
     size_t const window_width = 100;
     size_t const window_stride = 100;
-    // settings.min_coverage_fraction = 1.0;
+    // settings.min_read_depth_fraction = 1.0;
     // settings.window_width = 100;
     // settings.window_stride = 100;
     // settings.min_phred_score = 20;
@@ -288,15 +288,15 @@ TEST( Structure, FstPoolIterator )
         auto merged = merge( variant.samples, SampleCountsFilterPolicy::kOnlyPassing );
         SampleCountsFilterNumericalParams filter;
         filter.min_count = min_allele_count;
-        filter.min_coverage = min_coverage;
-        filter.max_coverage = max_coverage;
+        filter.min_read_depth = min_read_depth;
+        filter.max_read_depth = max_read_depth;
         filter.only_biallelic_snps = true;
         return apply_sample_counts_filter_numerical( merged, filter );
 
         // Old way of checking the status directly
         // return status(
         //     merge( variant.samples ),
-        //     min_coverage, max_coverage, min_allele_count
+        //     min_read_depth, max_read_depth, min_allele_count
         // ).is_biallelic;
     });
 

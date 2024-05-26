@@ -129,12 +129,12 @@ SampleCounts convert_to_sample_counts(
         result.a_count + result.c_count + result.g_count + result.t_count + result.n_count
     ;
     if(
-        sample.read_bases.size() != sample.read_coverage &&
+        sample.read_bases.size() != sample.read_depth &&
         !( count_sum == 0 && result.d_count + skip_count == 1 )
     ) {
 
         throw std::runtime_error(
-            "Malformed pileup sample: Given read count (" + std::to_string( sample.read_coverage ) +
+            "Malformed pileup sample: Given read depth (" + std::to_string( sample.read_depth ) +
             ") does not match the number of bases found in the sample (" +
             std::to_string( sample.read_bases.size() ) + ")"
         );

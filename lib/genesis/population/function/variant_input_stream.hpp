@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -91,7 +91,7 @@ std::function<void(Variant&)> make_variant_input_stream_sample_name_filter_trans
 // =================================================================================================
 
 /**
- * @brief Select which method to use for reducing the max coverage of a SampleCounts sample or a
+ * @brief Select which method to use for reducing the max read depth of a SampleCounts sample or a
  * Variant.
  *
  * See make_variant_input_stream_sample_subsampling_transform() for usage.
@@ -116,23 +116,23 @@ enum class SubsamplingMethod
 
 /**
  * @brief Create a Variant transformation function that subscales or subsamples the base counts
- * to be below a given @p max_coverage.
+ * to be below a given @p max_depth.
  *
  * This is intended to be used as a transformation on a VariantInputStream, see
  * @link ::genesis::utils::GenericInputStream::add_transform() add_transform()@endlink for details.
  * The function creates a transformation function to be used on a stream, and subsamples or
- * subscales the SampleCounts of each Variant in the stream, so that @p max_coverage is not
+ * subscales the SampleCounts of each Variant in the stream, so that @p max_depth is not
  * exceeded. This is useful for instance when computing the pool sequencing diversity estimators,
- * which have computational terms depending on coverage; reducing high coverage can hence help
+ * which have computational terms depending on read depth; reducing high read depth can hence help
  * to improve computational time.
  *
  * By default, we use SubsamplingMethod::kSubscale, which is the closest to a lossless reduction
- * of the coverage that can be achieved with integer counts. The two other methods instead
+ * of the read depth that can be achieved with integer counts. The two other methods instead
  * resample from a distribution based on the given counts of the Variant, and can hence also be
  * used to create in-silico alternative populations based on the original sample.
  */
 std::function<void(Variant&)> make_variant_input_stream_sample_subsampling_transform(
-    size_t max_coverage,
+    size_t max_depth,
     SubsamplingMethod method = SubsamplingMethod::kSubscale
 );
 

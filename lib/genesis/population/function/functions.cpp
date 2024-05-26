@@ -427,10 +427,10 @@ SampleCounts merge( std::vector<SampleCounts> const& p, SampleCountsFilterPolicy
 
 std::pair<char, double> consensus( SampleCounts const& sample )
 {
-    // Get total count/coverage with nucleotides.
+    // Get total count/read depth with nucleotides.
     auto const nucleotide_count = nucleotide_sum( sample );
 
-    // Only compute consensus if we have enough coverage. This can only be if we have
+    // Only compute consensus if we have enough read depth. This can only be if we have
     // at least some counts. Assert that.
     if( nucleotide_count == 0 ) {
         return { 'N', 0.0 };

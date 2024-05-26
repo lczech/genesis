@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -72,15 +72,15 @@ bool apply_variant_filter_numerical(
         return false;
     }
 
-    // Coverage
-    if( params.min_coverage > 0 && sum < params.min_coverage ) {
-        variant.status.set( VariantFilterTag::kBelowMinCoverage );
-        ++stats[VariantFilterTag::kBelowMinCoverage];
+    // ReadDepth
+    if( params.min_read_depth > 0 && sum < params.min_read_depth ) {
+        variant.status.set( VariantFilterTag::kBelowMinReadDepth );
+        ++stats[VariantFilterTag::kBelowMinReadDepth];
         return false;
     }
-    if( params.max_coverage > 0 && sum > params.max_coverage ) {
-        variant.status.set( VariantFilterTag::kAboveMaxCoverage );
-        ++stats[VariantFilterTag::kAboveMaxCoverage];
+    if( params.max_read_depth > 0 && sum > params.max_read_depth ) {
+        variant.status.set( VariantFilterTag::kAboveMaxReadDepth );
+        ++stats[VariantFilterTag::kAboveMaxReadDepth];
         return false;
     }
 

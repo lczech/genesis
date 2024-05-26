@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -59,26 +59,26 @@ struct VariantFilterNumericalParams
     // -------------------------------------------
 
     /**
-     * @brief Minimum coverage expected for the whole Variant to be considered covered.
+     * @brief Minimum read depth expected for the whole Variant to be considered covered.
      *
      * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) across all samples is less than
      * the provided value, the Variant is not considered sufficiently covered.
      *
-     * @see VariantFilterTag::kBelowMinCoverage
+     * @see VariantFilterTag::kBelowMinReadDepth
      */
-    size_t min_coverage = 0;
+    size_t min_read_depth = 0;
 
     /**
-     * @brief Maximum coverage expected for the whole Variant to be considered covered.
+     * @brief Maximum read depth expected for the whole Variant to be considered covered.
      *
      * If the provided value is greater than 0, and the sum of nucleotide counts (`A`, `C`, `G`, `T`)
      * across all samples is greater than the provided value, the Variant is filtered out.
-     * This is meant to exclude positions with spuriously high coverage that might reuslt from
+     * This is meant to exclude positions with spuriously high read_depth that might reuslt from
      * repeat regions and other spurious data.
      *
-     * @see VariantFilterTag::kAboveMaxCoverage
+     * @see VariantFilterTag::kAboveMaxReadDepth
      */
-    size_t max_coverage = 0;
+    size_t max_read_depth = 0;
 
     /**
      * @brief Maximum number of deletions at a position before being filtered out.

@@ -43,7 +43,7 @@ using namespace genesis::utils;
 template<typename Transformer>
 void test_sample_counts_subsampling_(
     Transformer transformer,
-    bool skip_if_below_target_coverage
+    bool skip_if_below_target_depth
 ) {
     // Random seed. Report it, so that in an error case, we can reproduce.
     auto const seed = ::time(nullptr);
@@ -78,7 +78,7 @@ void test_sample_counts_subsampling_(
         // We test this for sub-sampling, and for re-sampling.
         // In the former case, we expect the counts to not change if their sum did not exceed
         // the target. In the latter case, we expect them to always match the target coverage.
-        if( skip_if_below_target_coverage ) {
+        if( skip_if_below_target_depth ) {
             EXPECT_LE( new_sum, old_sum );
             EXPECT_LE( new_sum, target );
             if( old_sum >= target ) {

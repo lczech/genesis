@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -150,23 +150,23 @@ enum class VariantFilterTag : FilterStatus::IntType
     /**
      * @brief All counts across all samples are zero.
      *
-     * This corresponds to a zero coverage position that is however not missing in the data.
+     * This corresponds to a zero read depth position that is however not missing in the data.
      */
     kEmpty,
 
     /**
-     * @brief Sum of counts across all samples is below the min coverage threshold.
+     * @brief Sum of counts across all samples is below the min read depth threshold.
      *
-     * @see VariantFilterNumericalParams::min_coverage
+     * @see VariantFilterNumericalParams::min_read_depth
      */
-    kBelowMinCoverage,
+    kBelowMinReadDepth,
 
     /**
-     * @brief Sum of counts across all samples is above the max coverage threshold.
+     * @brief Sum of counts across all samples is above the max read depth threshold.
      *
-     * @see VariantFilterNumericalParams::max_coverage
+     * @see VariantFilterNumericalParams::max_read_depth
      */
-    kAboveMaxCoverage,
+    kAboveMaxReadDepth,
 
     /**
      * @brief Too many deletions at the position.

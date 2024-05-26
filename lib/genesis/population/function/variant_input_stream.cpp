@@ -141,24 +141,24 @@ std::function<void(Variant&)> make_variant_input_stream_sample_name_filter_trans
 // =================================================================================================
 
 std::function<void(Variant&)> make_variant_input_stream_sample_subsampling_transform(
-    size_t max_coverage,
+    size_t max_depth,
     SubsamplingMethod method
 ) {
     // Simply return a function object that applies the transformation.
     switch( method ) {
         case SubsamplingMethod::kSubscale: {
-            return [ max_coverage ]( Variant& variant ){
-                subscale_counts( variant, max_coverage );
+            return [ max_depth ]( Variant& variant ){
+                subscale_counts( variant, max_depth );
             };
         }
         case SubsamplingMethod::kSubsampleWithReplacement: {
-            return [ max_coverage ]( Variant& variant ){
-                subsample_counts_with_replacement( variant, max_coverage );
+            return [ max_depth ]( Variant& variant ){
+                subsample_counts_with_replacement( variant, max_depth );
             };
         }
         case SubsamplingMethod::kSubsampleWithoutReplacement: {
-            return [ max_coverage ]( Variant& variant ){
-                subsample_counts_without_replacement( variant, max_coverage );
+            return [ max_depth ]( Variant& variant ){
+                subsample_counts_without_replacement( variant, max_depth );
             };
         }
     }

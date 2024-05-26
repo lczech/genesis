@@ -64,7 +64,7 @@ namespace population {
  */
 double amnm_( // get_aMnm_buffer
     size_t poolsize,         // n
-    size_t nucleotide_count, // M (coverage)
+    size_t nucleotide_count, // M (coverage/read depth)
     size_t allele_frequency  // m, m_it (running variable for b .. M-b)
 ) {
     // The terminology in PoPoolation is confusing and differs completely from the paper,
@@ -80,7 +80,7 @@ double amnm_( // get_aMnm_buffer
     // PoPoolation uses a function caching mechanism here, which we also initially did:
     // We used to have the following function cache here, but it turned out that this actually
     // was doing more harm than good. It uses a lot of memory (prohibitively so for datasets
-    // with large unfiltered/un-subsampled coverage), and even adds a little bit of extra runtime
+    // with large unfiltered/un-subsampled read depth), and even adds a little bit of extra runtime
     // due to the cache lookups. At the same time, there is not really a upside here, as the
     // values computed here are only used locally in theta_pi_pool_denominator() and
     // theta_watterson_pool_denominator(), which already do their own caching. Due to that,
@@ -324,7 +324,7 @@ double f_star( double a_n, double n ) // calculate_fstar
 double alpha_star( double n ) // get_alphastar_calculator
 {
     if( n <= 1 ) {
-        throw std::invalid_argument( "Cannot compute alpha star with effective coverage n <= 1" );
+        throw std::invalid_argument( "Cannot compute alpha star with effective read depth n <= 1" );
     }
 
     // Local cache for speed.
@@ -352,7 +352,7 @@ double alpha_star( double n ) // get_alphastar_calculator
 double beta_star( double n ) // get_betastar_calculator
 {
     if( n <= 1 ) {
-        throw std::invalid_argument( "Cannot compute beta star with effective coverage n <= 1" );
+        throw std::invalid_argument( "Cannot compute beta star with effective read depth n <= 1" );
     }
 
     // Local cache for speed.
@@ -387,21 +387,21 @@ double beta_star( double n ) // get_betastar_calculator
 }
 
 genesis::utils::Matrix<double> pij_matrix_( // _get_pij_matrix
-    size_t max_coverage, size_t poolsize
+    size_t max_read_depth, size_t poolsize
 ) {
     // Prepare a matrix with the needed dimensions. PoPoolation only computes this matrix
-    // for min( max_coverage, poolsize ) many columns, but we go all the way and compute
+    // for min( max_read_depth, poolsize ) many columns, but we go all the way and compute
     // all that is needed. Just seems cleaner. Also it avoids a bug that PoPoolation might have there.
-    // auto const max_width = max_coverage < poolsize ? max_coverage : poolsize;
+    // auto const max_width = max_read_depth < poolsize ? max_read_depth : poolsize;
     auto const max_width = poolsize;
-    auto result = genesis::utils::Matrix<double>( max_coverage + 1, max_width + 1 );
+    auto result = genesis::utils::Matrix<double>( max_read_depth + 1, max_width + 1 );
 
     // Prepare double conversion constants.
     double const poold = static_cast<double>( poolsize );
 
     // Init first row and column, and top left element.
     result( 0, 0 ) = 1.0;
-    for( size_t i = 1; i < max_coverage + 1; ++i ) {
+    for( size_t i = 1; i < max_read_depth + 1; ++i ) {
         result( i, 0 ) = 0.0;
     }
     for( size_t j = 1; j < max_width + 1; ++j ) {
@@ -409,7 +409,7 @@ genesis::utils::Matrix<double> pij_matrix_( // _get_pij_matrix
     }
 
     // Compute the remaining entries.
-    for( size_t i = 1; i < max_coverage + 1; ++i ) {
+    for( size_t i = 1; i < max_read_depth + 1; ++i ) {
         for( size_t j = 1; j < max_width + 1; ++j ) {
             auto const t1s1 = (( 1.0 + poold - static_cast<double>( j )) / poold );
             auto const t1s2 = result( i - 1, j - 1 );
@@ -421,10 +421,10 @@ genesis::utils::Matrix<double> pij_matrix_( // _get_pij_matrix
 }
 
 genesis::utils::Matrix<double> const& pij_matrix_resolver_( // get_nbase_matrix_resolver
-    size_t max_coverage, size_t poolsize
+    size_t max_read_depth, size_t poolsize
 ) {
     // Here, we need to cache only by poolsize, but additionally make sure that for a given
-    // poolsize, the matrix is large enough for max_coverage.
+    // poolsize, the matrix is large enough for max_read_depth.
     // If it already is, we can just return it. If not, we compute a large enough matrix first.
     // We could re-use data from the smaller matrix for the computation here, but that would
     // be more complex. In terms of runtime, this amortizes pretty quickly, so probably no
@@ -444,55 +444,55 @@ genesis::utils::Matrix<double> const& pij_matrix_resolver_( // get_nbase_matrix_
     // Check if we already have the correct size, and re-compute if not.
     if(
         pij_matrix_cache_.count( poolsize ) == 0 ||
-        max_coverage >= pij_matrix_cache_.at( poolsize ).rows() ||
+        max_read_depth >= pij_matrix_cache_.at( poolsize ).rows() ||
         poolsize + 1 != pij_matrix_cache_.at( poolsize ).cols()
     ) {
         // Get a bit of leeway to reduce recomputation. Or maybe this is about the approximation
         // that PoPoolation does. Not sure. We just copied their approach here...
-        pij_matrix_cache_[ poolsize ] = pij_matrix_( 3 * max_coverage, poolsize );
+        pij_matrix_cache_[ poolsize ] = pij_matrix_( 3 * max_read_depth, poolsize );
     }
 
     assert( pij_matrix_cache_.count( poolsize ) > 0 );
-    assert( max_coverage <= pij_matrix_cache_.at( poolsize ).rows() );
+    assert( max_read_depth <= pij_matrix_cache_.at( poolsize ).rows() );
     assert( poolsize     <= pij_matrix_cache_.at( poolsize ).cols() );
     return pij_matrix_cache_[ poolsize ];
 }
 
-double n_base_matrix( size_t coverage, size_t poolsize ) // get_nbase_buffer
+double n_base_matrix( size_t read_depth, size_t poolsize ) // get_nbase_buffer
 {
     // Shortcut? Boundary check? PoPoolation is not clear on this...
     // Also, might not be needed at all. Who knows. Not me.
     // News: apparently, not needed, as we cover that case below by flipping roles of the variables.
-    // Not sure why. But let's do as PoPoolation does!
-    // if( poolsize <= coverage ) {
+    // Not sure why. But let's do as PoPoolation does! Has been flawless before...
+    // if( poolsize <= read_depth ) {
     //     throw std::invalid_argument(
     //         "Cannot compute nbase with poolsize == " + std::to_string( poolsize ) +
-    //         " <= coverage == " + std::to_string( coverage )
+    //         " <= read_depth == " + std::to_string( read_depth )
     //     );
     // }
 
     // Local cache for speed.
     static genesis::utils::FunctionCache<double, size_t, size_t> nbase_cache_{ [](
-        size_t coverage, size_t poolsize
+        size_t read_depth, size_t poolsize
     ) {
 
         // Get the matrix, cached and by reference, to optimize the access.
-        auto const& pij_matrix = pij_matrix_resolver_( coverage, poolsize );
+        auto const& pij_matrix = pij_matrix_resolver_( read_depth, poolsize );
 
         double nbase = 0.0;
-        auto const minj = ( coverage < poolsize ) ? coverage : poolsize;
+        auto const minj = ( read_depth < poolsize ) ? read_depth : poolsize;
         for( size_t k = 1; k <= minj; ++k ) {
-            assert( coverage < pij_matrix.rows() );
+            assert( read_depth < pij_matrix.rows() );
             assert( k < pij_matrix.cols() );
-            nbase += static_cast<double>( k ) * pij_matrix( coverage, k );
+            nbase += static_cast<double>( k ) * pij_matrix( read_depth, k );
         }
         return nbase;
     }};
 
-    return nbase_cache_( coverage, poolsize );
+    return nbase_cache_( read_depth, poolsize );
 }
 
-double n_base( size_t coverage, size_t poolsize ) // get_nbase_buffer, but better
+double n_base( size_t read_depth, size_t poolsize ) // get_nbase_buffer, but better
 {
     // The following simple closed form is equivalent to the way more complicated equation given
     // in that hidden PoPoolation auxiliary equations document. See
@@ -502,7 +502,7 @@ double n_base( size_t coverage, size_t poolsize ) // get_nbase_buffer, but bette
     // show that, and instead just use their recursive dynamic programming approach (which we
     // re-implemented above) without ever showing (to the best of our knowledge) that this is
     // the same as the given equation.
-    double const p = static_cast<double>( coverage );
+    double const p = static_cast<double>( read_depth );
     double const n = static_cast<double>( poolsize );
     return n * ( 1.0 - std::pow(( n - 1.0 ) / n, p ));
 }
@@ -516,7 +516,7 @@ double tajima_d_pool_denominator( // get_ddivisor
     double theta,
     size_t poolsize, // n
     double window_avg_denom,
-    size_t empirical_min_coverage
+    size_t empirical_min_read_depth
 ) {
     // PoPoolation variable names:
     // min_count:        b
@@ -534,19 +534,19 @@ double tajima_d_pool_denominator( // get_ddivisor
             throw std::invalid_argument(
                 "Minimum allele count needs to be set to 2 for calculating pool-corrected Tajima's D "
                 "with tajima_d_pool() according to Kofler et al. In case 2 is insufficient, "
-                "we recommend to subsample the reads to a smaller coverage."
+                "we recommend to subsample the reads to a smaller read depth."
             );
         }
-        if( settings.min_coverage == 0 ) {
+        if( settings.min_read_depth == 0 ) {
             throw std::invalid_argument(
-                "Minimum coverage of 0 is not valid for calculating pool-corrected Tajima's D "
+                "Minimum read depth of 0 is not valid for calculating pool-corrected Tajima's D "
                 "with tajima_d_pool()."
             );
         }
-        if( 3 * settings.min_coverage >= poolsize ) {
+        if( 3 * settings.min_read_depth >= poolsize ) {
             throw std::invalid_argument(
-                "Invalid minimum coverage >> poolsize (as internal aproximation we use: "
-                "3 * minimumcoverage < poolsize) in tajima_d_pool()"
+                "Invalid minimum read depth >> pool size (as internal aproximation we use: "
+                "3 * minimum read depth < pool size) in tajima_d_pool()"
             );
         }
     }
@@ -572,15 +572,15 @@ double tajima_d_pool_denominator( // get_ddivisor
         case TajimaDenominatorPolicy::kWithoutPopoolatioBugs:
         {
             // Fix the bugs from above, but still use the user min cov for n_base.
-            auto const avg_n = n_base( settings.min_coverage, poolsize );
+            auto const avg_n = n_base( settings.min_read_depth, poolsize );
             alphastar = alpha_star( avg_n );
             betastar  = beta_star( avg_n );
             break;
         }
-        case TajimaDenominatorPolicy::kEmpiricalMinCoverage:
+        case TajimaDenominatorPolicy::kEmpiricalMinReadDepth:
         {
-            // Use the emprical minimum coverage to get the value.
-            auto const avg_n = n_base( empirical_min_coverage, poolsize );
+            // Use the emprical minimum read depth to get the value.
+            auto const avg_n = n_base( empirical_min_read_depth, poolsize );
             alphastar = alpha_star( avg_n );
             betastar  = beta_star( avg_n );
             break;

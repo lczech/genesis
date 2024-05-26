@@ -235,9 +235,9 @@ public:
     /**
      * @brief Set whether to allow missing data in the format suggested by Kapun et al.
      *
-     * In order to distinguish missing/masked data from true zero-coverage positions, Kapun suggested
+     * In order to distinguish missing/masked data from true zero-counts positions, Kapun suggested
      * to use the notation `.:.:.:.:.:.` for masked sites. When this is activate (default), we
-     * allow to read these, and output this as a zero-coverage site with the SampleCounts::status
+     * allow to read these, and output this as a zero-counts site with the SampleCounts::status
      * being set to SampleCountsFilterTag::kMissing. If all samples at a position are missing,
      * the Variant::status is also set to VariantFilterTag::kMissing.
      * See https://github.com/lczech/grenedalf/issues/4 for details.

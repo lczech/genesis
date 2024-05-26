@@ -60,7 +60,7 @@ TEST( Population, StatisticsNBase )
         }
     }
 
-    // Also test some higher values. We request the higher coverage values first in order to
+    // Also test some higher values. We request the higher read depth values first in order to
     // avoid recomputing the matrix as much as possible.
     EXPECT_FLOAT_EQ( n_base_matrix(  500,  100 ), n_base(  500,  100 ));
     EXPECT_FLOAT_EQ( n_base_matrix(  100,  100 ), n_base(  100,  100 ));
@@ -93,9 +93,9 @@ TEST( Population, DiversityMeasuresGenerator )
     size_t const min_phred_score = 20;
     size_t const poolsize = 500;
     settings.min_count = 2;
-    settings.min_coverage = 4;
-    settings.max_coverage = 70;
-    // settings.min_coverage_fraction = 0.6;
+    settings.min_read_depth = 4;
+    settings.max_read_depth = 70;
+    // settings.min_read_depth_fraction = 0.6;
     settings.tajima_denominator_policy = TajimaDenominatorPolicy::kWithPopoolatioBugs;
 
     // Expected values for SNP count, coverage fraction,
@@ -197,8 +197,8 @@ TEST( Population, DiversityMeasuresGenerator )
         // We do a lot of copies and back and forth here, due to historic reasons
         // (lots of refactoring...). It's okay for the test cases here though.
         SampleCountsFilterNumericalParams filter;
-        filter.min_coverage = settings.min_coverage;
-        filter.max_coverage = settings.max_coverage;
+        filter.min_read_depth = settings.min_read_depth;
+        filter.max_read_depth = settings.max_read_depth;
         filter.min_count = settings.min_count;
         filter.deletions_count_limit = settings.min_count;
         filter.only_snps = true;
@@ -298,9 +298,9 @@ TEST( Population, DiversityMeasuresIterator )
     size_t const min_phred_score = 20;
     size_t const poolsize = 500;
     settings.min_count = 2;
-    settings.min_coverage = 4;
-    settings.max_coverage = 70;
-    // settings.min_coverage_fraction = 0.6;
+    settings.min_read_depth = 4;
+    settings.max_read_depth = 70;
+    // settings.min_read_depth_fraction = 0.6;
     settings.tajima_denominator_policy = TajimaDenominatorPolicy::kWithPopoolatioBugs;
 
     // Expected values for SNP count, coverage fraction,
@@ -422,8 +422,8 @@ TEST( Population, DiversityMeasuresIterator )
         // We do a lot of copies and back and forth here, due to historic reasons
         // (lots of refactoring...). It's okay for the test cases here though.
         SampleCountsFilterNumericalParams filter;
-        filter.min_coverage = settings.min_coverage;
-        filter.max_coverage = settings.max_coverage;
+        filter.min_read_depth = settings.min_read_depth;
+        filter.max_read_depth = settings.max_read_depth;
         filter.min_count = settings.min_count;
         filter.deletions_count_limit = settings.min_count;
         filter.only_snps = true;

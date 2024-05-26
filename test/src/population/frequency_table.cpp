@@ -71,7 +71,7 @@ TEST( FrequencyTableInputStream, Read )
     // reader.header_sample_reference_count_substring( "refcnt" );
     // reader.header_sample_alternative_count_substring( "altcount" );
     // reader.header_sample_frequency_substring( ".freq" );
-    // reader.header_sample_coverage_substring( "coverage-" );
+    // reader.header_sample_read_depth_substring( "coverage-" );
     auto it = make_variant_input_stream_from_frequency_table_file( infile, '\t', reader );
     for( auto const& var : it ) {
         variants.emplace_back( var );

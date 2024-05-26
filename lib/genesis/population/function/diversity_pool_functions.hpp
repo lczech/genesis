@@ -81,7 +81,7 @@ enum class TajimaDenominatorPolicy
      * up until (and including) version 1.2.2:
      *
      *  1. They compute the empirical pool size (expeted number of individuals sequenced) as
-     *     n_base(), based on poolsize alone, and do not take the coverage into account at all.
+     *     n_base(), based on pool size alone, and do not take the read depth into account at all.
      *  2. They do not use alpha star, but set it to be equal to beta star instead.
      *
      * Using this option, one can voluntarily activate these bugs here as well, in order to get
@@ -93,7 +93,7 @@ enum class TajimaDenominatorPolicy
      * @brief Fix the bugs of the original PoPoolation, but still use their way of computing
      * the empirical pool size via n_base().
      *
-     * With the two bugs of PoPoolation fixed, they still use the user-provided min_coverage
+     * With the two bugs of PoPoolation fixed, they still use the user-provided min_read_depth
      * (see DiversityPoolSettings) as input for the n_base() function to compute the empirical pool
      * size. We think that this is not ideal, and gives wrong estimates of the number of individuals
      * sequenced. Still, we offer this behaviour here, as a means to compute what we think
@@ -102,13 +102,13 @@ enum class TajimaDenominatorPolicy
     kWithoutPopoolatioBugs,
 
     /**
-     * @brief Use the empirical minimum coverage found in each window for the empirical pool size
+     * @brief Use the empirical minimum read depth found in each window for the empirical pool size
      * instead of n_base().
      *
      * This is a conservative estimator that in our assessment makes more sense to use than
-     * the user-provided minimum coverage setting.
+     * the user-provided minimum read depth setting.
      */
-    kEmpiricalMinCoverage,
+    kEmpiricalMinReadDepth,
 
     /**
      * @brief Instead of using n_base() to obtain the number of individuals sequenced (empirical
@@ -134,8 +134,8 @@ enum class TajimaDenominatorPolicy
 struct DiversityPoolSettings
 {
     size_t min_count = 0;
-    size_t min_coverage = 0;
-    size_t max_coverage = 0;
+    size_t min_read_depth = 0;
+    size_t max_read_depth = 0;
 
     TajimaDenominatorPolicy tajima_denominator_policy = TajimaDenominatorPolicy::kUncorrected;
 };
@@ -464,7 +464,7 @@ double beta_star( double n );
  *
  * @see tajima_d_pool()
  */
-double n_base_matrix( size_t coverage, size_t poolsize );
+double n_base_matrix( size_t read_depth, size_t poolsize );
 
 /**
  * @brief Compute the `n_base` term used for Tajima's D in Kofler et al. 2011, using a faster
@@ -479,7 +479,7 @@ double n_base_matrix( size_t coverage, size_t poolsize );
  *
  * @see tajima_d_pool()
  */
-double n_base( size_t coverage, size_t poolsize );
+double n_base( size_t read_depth, size_t poolsize );
 
 // =================================================================================================
 //     Tajima's D
@@ -500,8 +500,8 @@ double n_base( size_t coverage, size_t poolsize );
  * all positions, and so the correct number (including the invariant positions) should be available
  * for their code as well.
  *
- * The argument @p empirical_min_coverage is needed when using the
- * TajimaDenominatorPolicy::kEmpiricalMinCoverage policy. We always request it as an argument,
+ * The argument @p empirical_min_read_depth is needed when using the
+ * TajimaDenominatorPolicy::kEmpiricalMinReadDepth policy. We always request it as an argument,
  * to make sure that this function cannot accidentally be misused without having kept track
  * of that number.
  *
@@ -512,15 +512,15 @@ double tajima_d_pool_denominator(
     double theta,
     size_t poolsize,
     double window_avg_denom,
-    size_t empirical_min_coverage
+    size_t empirical_min_read_depth
 );
 
 /**
  * @brief Compute the pool-sequencing corrected version of Tajima's D according to
  * Kofler et al.
  *
- * The argument @p empirical_min_coverage is only needed when using @p settings
- * with TajimaDenominatorPolicy::kEmpiricalMinCoverage
+ * The argument @p empirical_min_read_depth is only needed when using @p settings
+ * with TajimaDenominatorPolicy::kEmpiricalMinReadDepth
  */
 inline double tajima_d_pool(
     DiversityPoolSettings const& settings,
@@ -528,7 +528,7 @@ inline double tajima_d_pool(
     double theta_watterson,
     size_t poolsize,
     double window_avg_denom,
-    size_t empirical_min_coverage
+    size_t empirical_min_read_depth
 ) {
     // Edge case, following what PoPoolation does in this situation.
     // Deactivated - we want a nan instead.
@@ -539,7 +539,7 @@ inline double tajima_d_pool(
     // We already have the two theta statistics given here, but need to compute the
     // denominator according to Kofler et al for pooled sequences.
     auto const denom = tajima_d_pool_denominator(
-        settings, theta_watterson, poolsize, window_avg_denom, empirical_min_coverage
+        settings, theta_watterson, poolsize, window_avg_denom, empirical_min_read_depth
     );
     return ( theta_pi - theta_watterson ) / denom;
 }
@@ -562,21 +562,21 @@ double tajima_d_pool( // get_D_calculator
     ForwardIterator begin,
     ForwardIterator end
 ) {
-    // If we need the empirical min coverage, compute it.
+    // If we need the empirical min read depth, compute it.
     // If not, we can skip this step.
-    size_t empirical_min_coverage = std::numeric_limits<size_t>::max();
-    if( settings.tajima_denominator_policy == TajimaDenominatorPolicy::kEmpiricalMinCoverage ) {
+    size_t empirical_min_read_depth = std::numeric_limits<size_t>::max();
+    if( settings.tajima_denominator_policy == TajimaDenominatorPolicy::kEmpiricalMinReadDepth ) {
         for( auto& it = begin; it != end; ++it ) {
             auto const cov = nucleotide_sum( *it );
-            if( cov < empirical_min_coverage ) {
-                empirical_min_coverage = cov;
+            if( cov < empirical_min_read_depth ) {
+                empirical_min_read_depth = cov;
             }
         }
     }
 
     auto const snp_count = std::distance( begin, end );
     return tajima_d_pool(
-        settings, theta_pi, theta_watterson, poolsize, snp_count, empirical_min_coverage
+        settings, theta_pi, theta_watterson, poolsize, snp_count, empirical_min_read_depth
     );
 }
 

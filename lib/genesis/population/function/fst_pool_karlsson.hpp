@@ -171,7 +171,7 @@ public:
 
         // Get the major allele count (`a` here and in PoPoolation2),
         // the minor allele count (`b` here, not used in PoPoolation2 under that name),
-        // and the total coverage (`n` here and in PoPoolation2).
+        // and the total read depth (`n` here and in PoPoolation2, or nucleotide count).
         auto const a_1 = static_cast<double>( sample_counts.first[0].count );
         auto const b_1 = static_cast<double>( sample_counts.first[1].count );
         auto const n_1 = a_1 + b_1;

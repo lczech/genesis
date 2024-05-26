@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -359,10 +359,10 @@ void SimplePileupReader::process_sample_(
     // Reset the sample.
     sample = S();
 
-    // Read the total read count / coverage.
+    // Read the total read depth / coverage.
     next_field_( it );
-    auto const read_coverage = utils::parse_unsigned_integer<size_t>( it );
-    set_sample_read_coverage_( read_coverage, sample );
+    auto const read_depth = utils::parse_unsigned_integer<size_t>( it );
+    set_sample_read_depth_( read_depth, sample );
     assert( !it || !utils::is_digit( *it ));
 
     // Read the nucleotides, skipping everything that we don't want. We need to store these
@@ -380,15 +380,15 @@ void SimplePileupReader::process_sample_(
     }
     set_sample_read_bases_( base_buffer_, sample );
 
-    // Read coverage count error check. We here allow for the same weird special case of a deletion
-    // that does not count for the coverage, as described in convert_to_sample_counts().
+    // Read depth count error check. We here allow for the same weird special case of a deletion
+    // that does not count for the depth, as described in convert_to_sample_counts().
     if(
-        base_buffer_.size() != read_coverage &&
-        !( read_coverage == 0 && base_buffer_.size() == 1 )
+        base_buffer_.size() != read_depth &&
+        !( read_depth == 0 && base_buffer_.size() == 1 )
     ) {
         throw std::runtime_error(
             "Malformed pileup " + it.source_name() + " at " + it.at() +
-            ": Given read count (" + std::to_string( read_coverage ) +
+            ": Given read count (" + std::to_string( read_depth ) +
             ") does not match the number of bases found in the sample (" +
             std::to_string( base_buffer_.size() ) + ")."
         );
@@ -431,24 +431,24 @@ void SimplePileupReader::set_target_alternative_base_<Variant>(
 }
 
 // -------------------------------------------------------------------------
-//     set_sample_read_coverage_
+//     set_sample_read_depth_
 // -------------------------------------------------------------------------
 
 template<>
-void SimplePileupReader::set_sample_read_coverage_<SimplePileupReader::Sample>(
-    size_t read_coverage,
+void SimplePileupReader::set_sample_read_depth_<SimplePileupReader::Sample>(
+    size_t read_depth,
     SimplePileupReader::Sample& sample
 ) const {
-    sample.read_coverage = read_coverage;
+    sample.read_depth = read_depth;
 }
 
 template<>
-void SimplePileupReader::set_sample_read_coverage_<SampleCounts>(
-    size_t read_coverage,
+void SimplePileupReader::set_sample_read_depth_<SampleCounts>(
+    size_t read_depth,
     SampleCounts& sample
 ) const {
-    // Variant SampleCounts don't use read coverage
-    (void) read_coverage;
+    // Variant SampleCounts don't use read depth
+    (void) read_depth;
     (void) sample;
 }
 
@@ -721,7 +721,7 @@ void SimplePileupReader::process_quality_string_<SimplePileupReader::Sample>(
     // Now read the quality codes, if present.
     if( with_quality_string_ ) {
         next_field_( it );
-        sample.phred_scores.reserve( sample.read_coverage );
+        sample.phred_scores.reserve( sample.read_depth );
         while( it && utils::is_graph( *it )) {
             ++quality_code_counts_[*it];
             sample.phred_scores.push_back( sequence::quality_decode_to_phred_score(
@@ -734,7 +734,7 @@ void SimplePileupReader::process_quality_string_<SimplePileupReader::Sample>(
         // Version that processes the whole string at once. Not much time saved, as we need
         // to allocate the string first. Maybe refine later for speed.
         // std::string qual;
-        // qual.reserve( sample.read_coverage );
+        // qual.reserve( sample.read_depth );
         // while( it && utils::is_graph( *it )) {
         //     qual += *it;
         //     ++it;

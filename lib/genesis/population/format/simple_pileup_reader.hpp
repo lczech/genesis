@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -114,7 +114,7 @@ public:
          * with the exception of RNA symbols (`<>`) in the string, that we ignore.
          * If those are needed as well, @ref read_bases can be scanned again to count them.
          */
-        size_t read_coverage = 0;
+        size_t read_depth = 0;
 
         /**
          * @brief All bases (expect for indels) of the reads that cover the given position.
@@ -466,8 +466,8 @@ private:
     ) const;
 
     template<class S>
-    void set_sample_read_coverage_(
-        size_t read_coverage,
+    void set_sample_read_depth_(
+        size_t read_depth,
         S& sample
     ) const;
 

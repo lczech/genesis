@@ -289,7 +289,7 @@ inline SampleCounts merge_sample_counts( Variant const& v, SampleCountsFilterPol
  * the sum of all `A`, `C`, `G`, and `T`.
  *
  * This is simply the sum of `a_count + c_count + g_count + t_count`, which we often use as the
- * coverage at the given site.
+ * read depth at the given site.
  *
  * NB: In PoPoolation, this variable is called `eucov`.
  */

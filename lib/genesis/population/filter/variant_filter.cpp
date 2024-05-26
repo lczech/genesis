@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -77,8 +77,8 @@ VariantFilterTagCategory variant_filter_tag_to_category( VariantFilterTag tag )
         case VariantFilterTag::kNotAllSamplesPassed:
             return VariantFilterTagCategory::kSamplesFailed;
         case VariantFilterTag::kEmpty:
-        case VariantFilterTag::kBelowMinCoverage:
-        case VariantFilterTag::kAboveMaxCoverage:
+        case VariantFilterTag::kBelowMinReadDepth:
+        case VariantFilterTag::kAboveMaxReadDepth:
         case VariantFilterTag::kAboveDeletionsCountLimit:
             return VariantFilterTagCategory::kNumeric;
         case VariantFilterTag::kNotSnp:
@@ -117,8 +117,8 @@ VariantFilterCategoryStats variant_filter_stats_category_counts(
     result[VariantFilterTagCategory::kSamplesFailed]  += stats[ VariantFilterTag::kNoSamplePassed ];
     result[VariantFilterTagCategory::kSamplesFailed]  += stats[ VariantFilterTag::kNotAllSamplesPassed ];
     result[VariantFilterTagCategory::kNumeric]        += stats[ VariantFilterTag::kEmpty ];
-    result[VariantFilterTagCategory::kNumeric]        += stats[ VariantFilterTag::kBelowMinCoverage ];
-    result[VariantFilterTagCategory::kNumeric]        += stats[ VariantFilterTag::kAboveMaxCoverage ];
+    result[VariantFilterTagCategory::kNumeric]        += stats[ VariantFilterTag::kBelowMinReadDepth ];
+    result[VariantFilterTagCategory::kNumeric]        += stats[ VariantFilterTag::kAboveMaxReadDepth ];
     result[VariantFilterTagCategory::kNumeric]        += stats[ VariantFilterTag::kAboveDeletionsCountLimit ];
     result[VariantFilterTagCategory::kInvariant]      += stats[ VariantFilterTag::kNotSnp ];
     result[VariantFilterTagCategory::kInvariant]      += stats[ VariantFilterTag::kNotBiallelicSnp ];
@@ -159,8 +159,8 @@ size_t variant_filter_stats_category_counts(
         }
         case VariantFilterTagCategory::kNumeric: {
             result += stats[ VariantFilterTag::kEmpty ];
-            result += stats[ VariantFilterTag::kBelowMinCoverage ];
-            result += stats[ VariantFilterTag::kAboveMaxCoverage ];
+            result += stats[ VariantFilterTag::kBelowMinReadDepth ];
+            result += stats[ VariantFilterTag::kAboveMaxReadDepth ];
             result += stats[ VariantFilterTag::kAboveDeletionsCountLimit ];
             break;
         }
@@ -219,11 +219,11 @@ std::ostream& print_variant_filter_stats(
     if( stats[VariantFilterTag::kEmpty] > 0 || verbose ) {
         os << "Empty:                  " << stats[VariantFilterTag::kEmpty] << "\n";
     }
-    if( stats[VariantFilterTag::kBelowMinCoverage] > 0 || verbose ) {
-        os << "Below min read depth:   " << stats[VariantFilterTag::kBelowMinCoverage] << "\n";
+    if( stats[VariantFilterTag::kBelowMinReadDepth] > 0 || verbose ) {
+        os << "Below min read depth:   " << stats[VariantFilterTag::kBelowMinReadDepth] << "\n";
     }
-    if( stats[VariantFilterTag::kAboveMaxCoverage] > 0 || verbose ) {
-        os << "Above max read depth:   " << stats[VariantFilterTag::kAboveMaxCoverage] << "\n";
+    if( stats[VariantFilterTag::kAboveMaxReadDepth] > 0 || verbose ) {
+        os << "Above max read depth:   " << stats[VariantFilterTag::kAboveMaxReadDepth] << "\n";
     }
     if( stats[VariantFilterTag::kAboveDeletionsCountLimit] > 0 || verbose ) {
         os << "Above deletions limit:  " << stats[VariantFilterTag::kAboveDeletionsCountLimit] << "\n";

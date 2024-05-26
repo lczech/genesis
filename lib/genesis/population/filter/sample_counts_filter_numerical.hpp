@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -152,26 +152,26 @@ struct SampleCountsFilterNumericalParams
     size_t deletions_count_limit = 0;
 
     /**
-     * @brief Minimum coverage expected for a SampleCounts to be considered covered.
+     * @brief Minimum read depth expected for a SampleCounts to be considered covered.
      *
      * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) in the reads of a sample is less than
      * the provided value, the SampleCounts is not considered sufficiently covered,
      * and all counts are set to zero.
      *
-     * @see SampleCountsFilterTag::kBelowMinCoverage
+     * @see SampleCountsFilterTag::kBelowMinReadDepth
      */
-    size_t min_coverage = 0;
+    size_t min_read_depth = 0;
 
     /**
-     * @brief Maximum coverage expected for a SampleCounts to be considered covered.
+     * @brief Maximum read depth expected for a SampleCounts to be considered covered.
      *
      * If the sum of nucleotide counts (`A`, `C`, `G`, `T`) in the reads of a sample is greater than
      * the provided value, the SampleCounts is not considered properly covered,
      * and all counts are set to zero.
      *
-     * @see SampleCountsFilterTag::kAboveMaxCoverage
+     * @see SampleCountsFilterTag::kAboveMaxReadDepth
      */
-    size_t max_coverage = 0;
+    size_t max_read_depth = 0;
 
     // -------------------------------------------
     //     SNP vs Invariant

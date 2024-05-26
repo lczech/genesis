@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -61,7 +61,7 @@ namespace population {
  * such as chromosome name and position would just be too much waste.
  *
  * The parser will automatically try to determine which samples contain which types of data
- * (reference and alternative counts, frequencies, coverage), and compute whatever needed from that.
+ * (reference and alternative counts, frequencies, read depth), and compute whatever needed from that.
  *
  * Some formats do not contain information on the reference and/or alternative base, such as the
  * HAF-pipe frequency tables. For these cases, a reference_genome() can be provided, which will
@@ -124,7 +124,7 @@ public:
         // For this, we use information per sample, as well as about the constant fields.
 
         // Per sample information, to make sure that we can actually process a sample.
-        // Do we have ref and alt counts? Do we have frequency and/or coverage?
+        // Do we have ref and alt counts? Do we have frequency and/or read depth?
         struct SampleInfo
         {
             size_t index = std::numeric_limits<size_t>::max();
@@ -713,14 +713,14 @@ public:
 
     /**
      * @brief Specify a (sub)string that is the prefix or suffix
-     * for header columns containing the coverage of a sample (that is,
+     * for header columns containing the read depth of a sample (that is,
      * the sum of reference and alternative base counts).
      *
      * See the setter header_sample_reference_count_substring( std::string const& ) for details;
      * this setter here however specifies the prefix or suffix for columns containing
-     * the coverage of samples.
+     * the read depth of samples.
      */
-    self_type& header_sample_coverage_substring( std::string const& str )
+    self_type& header_sample_read_depth_substring( std::string const& str )
     {
         usr_smp_cov_name_ = str;
         return *this;
@@ -728,11 +728,11 @@ public:
 
     /**
      * @brief Return the currently set (sub)string that is the prefix or suffix
-     * for header columns containing the coverage of a sample.
+     * for header columns containing the read depth of a sample.
      *
-     * See the setter header_sample_coverage_substring( std::string const& ) for details.
+     * See the setter header_sample_read_depth_substring( std::string const& ) for details.
      */
-    std::string const& header_sample_coverage_substring() const
+    std::string const& header_sample_read_depth_substring() const
     {
         return usr_smp_cov_name_;
     }
@@ -811,28 +811,29 @@ public:
     }
 
     /**
-     * @brief Set the factor by which frequencies are multiplied if no coverage information is
+     * @brief Set the factor by which frequencies are multiplied if no read depth information is
      * present for a sample.
      *
-     * We allow parsing information on allele counts (ref and alt counts), or frequencies and
-     * coverage. Howver, there are methods such as HAF-pipe that only output a final frequency,
-     * and (by default) do not offer any information on the (effective) coverage that a sample has.
+     * We allow parsing information on allele counts (ref and alt counts), or frequencies and read
+     * depth. Howver, there are methods such as HAF-pipe that only output a final frequency, and
+     * (by default) do not offer any information on the (effective) read depth that a sample has.
      *
      * However, our internal data representation uses counts instead of frequencies, as we based
      * our equations on existing pool-sequencing population genetic statistics, such as those
      * developed by PoPoolation. Hence, we need to convert from frequencies to counts somehow.
-     * In the absence of any coverage information, we hence use a trick, by multiplying the
+     * In the absence of any read depth information, we hence use a trick, by multiplying the
      * frequency with a large number to obtain counts. In subsequent analyses, using a large number
-     * here will basically inactivate the Bessel's correction for coverage (or at least minimize its
-     * influence).
+     * here will basically inactivate the Bessel's correction for read depth (or at least minimize
+     * its influence).
      *
      * By default, we use a factor that is the largest integer value that can be represented in
      * double precision floating point numbers (i.e., 9007199254740992.0), which minimizes the above
      * mentioned Bessel's correction influence. However, with this setting, a different factor can
-     * be used instead, which is useful when actual (effective) coverage information is available.
+     * be used instead, which is useful when actual (effective) read depth information is available.
      *
      * We currently only allow to set this for the whole input, instead of on a per-sample basis.
-     * If needed, we might re-work this feature in the future to allow per-sample effctive coverage.
+     * If needed, we might re-work this feature in the future to allow per-sample effctive read
+     * depth.
      */
     self_type& int_factor( double value )
     {
@@ -858,7 +859,7 @@ public:
      * @brief Allowed error margin for frequencies.
      *
      * If an input table contains information on both the ref/alt counts (or only of of them, but
-     * also their coverage), as well as their frequency, we do a double check to make sure that
+     * also their read depth), as well as their frequency, we do a double check to make sure that
      * everything is in order. This should be the case if the table was computed correctly.
      *
      * This setting here allows to set the threshold for what is considered correct. It is a
@@ -922,7 +923,7 @@ private:
     // multiply the frequency [ 0.0, 1.0 ] by the largest integer for which itself and all
     // smaller integers can be stored in a double exactly. This guarantees that all frequencies
     // are mapped into the largest double range that is as exact as we can manage here.
-    // Using these fake large counts also basically eliminates Bessel's correction for coverage
+    // Using these fake large counts also basically eliminates Bessel's correction for read depth
     // that we have in some of our pop gen equations, as we do not want that when working with
     // frequencies anyway, e.g., when obtaining them from HAF-pipe.
     // See https://stackoverflow.com/q/1848700/4184258 for the exact double value used here.
@@ -943,7 +944,7 @@ private:
 
     // The above is the max that we can use, but we allow users to set the used int factor that is
     // used for frequency-based computations, so that they can for example use the expected
-    // coverage information from HAF-pipe, or similar values instead.
+    // read depth information from HAF-pipe, or similar values instead.
     // double int_factor_ = max_int_factor_;
     double int_factor_ = default_int_factor_;
 
@@ -963,7 +964,7 @@ private:
     std::vector<std::string> alt_names_ = { "alternative", "alternativebase", "alt", "altbase" };
     std::vector<std::string> cnt_names_ = { "counts", "count", "cnt", "ct" };
     std::vector<std::string> frq_names_ = { "frequency", "freq", "maf", "af", "allelefrequency" };
-    std::vector<std::string> cov_names_ = { "coverage", "cov", "depth", "ad" };
+    std::vector<std::string> cov_names_ = { "coverage", "cov", "readdepth", "depth", "ad" };
 
     // User supplied overwrites for the above automatic terms.
     // If either of them is given, we use those instead of the generic word lists.
