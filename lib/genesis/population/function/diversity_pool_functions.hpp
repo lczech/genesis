@@ -77,12 +77,14 @@ enum class TajimaDenominatorPolicy
     /**
      * @brief Replicate the original behaviour of PoPoolation <= 1.2.2.
      *
-     * There are two major bugs (as far as we are aware) in the PoPoolation implementation
+     * There are three major bugs (as far as we are aware) in the PoPoolation implementation
      * up until (and including) version 1.2.2:
      *
      *  1. They compute the empirical pool size (expeted number of individuals sequenced) as
      *     n_base(), based on pool size alone, and do not take the read depth into account at all.
      *  2. They do not use alpha star, but set it to be equal to beta star instead.
+     *  3. To compute window averages, they use the number of SNPs in the window, instead of the
+     *     number of all valid positions in the window.
      *
      * Using this option, one can voluntarily activate these bugs here as well, in order to get
      * results that are comparable with PoPoolation results.
