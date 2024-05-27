@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -41,6 +41,10 @@
 #include <vector>
 
 using namespace genesis::utils;
+
+// =================================================================================================
+//      Transform Iterator
+// =================================================================================================
 
 TEST( Containers, TransformIteratorCopy )
 {
@@ -170,6 +174,10 @@ TEST( Containers, TransformIteratorReference )
     EXPECT_EQ( expected_result, list );
 }
 
+// =================================================================================================
+//      Filter Iterator
+// =================================================================================================
+
 TEST( Containers, FilterIterator )
 {
     // Prepare a list of consequtive numbers.
@@ -207,16 +215,24 @@ TEST( Containers, FilterIterator )
     EXPECT_EQ( result, res_range_cont );
 }
 
+// =================================================================================================
+//      Generic Input Stream
+// =================================================================================================
+
 void test_generic_input_stream_( size_t num_elements, size_t block_size )
 {
     LOG_DBG << "====================================";
     LOG_DBG << "num_elements " << num_elements << ", block_size " << block_size;
 
     // Create data as sequence of numbers, and get their sum.
-    // Could be done with Gauss. Too lazy to look it up now.
+    // By using a sequence of numbers, we make sure to not accidentally test things
+    // that would otherwise be constant. Here, we have a different number for each
+    // visited item. We then use their sum as the expected test result, and use different methods
+    // to arrive at that sum, which all need to come to the same conclusion. Ground truth
+    // is just the sum computed here. Could be done with Gauss. Too lazy to look it up now.
     std::vector<size_t> data( num_elements );
     std::iota( data.begin(), data.end(), 0 );
-    auto expected_sum = std::accumulate( data.begin(), data.end(), size_t{0} );
+    auto const expected_sum = std::accumulate( data.begin(), data.end(), size_t{0} );
 
     // The input is a sequence of numbers. We use a counter while looping to check every element.
     std::atomic<size_t> called_counter{0};
@@ -232,7 +248,8 @@ void test_generic_input_stream_( size_t num_elements, size_t block_size )
             if( beg != end ) {
                 value = *beg;
 
-                // Check that the series is complete
+                // Check that the series is complete.
+                // We do this by checking that we have consequtive numbers.
                 auto const lc = value_counter.load();
                 EXPECT_EQ( lc, value );
                 ++value_counter;
@@ -246,13 +263,19 @@ void test_generic_input_stream_( size_t num_elements, size_t block_size )
     );
 
     // Result variables.
-    size_t visitor_sum = 0;
     size_t loop_sum = 0;
+    size_t on_enter_sum = 0;
+    size_t on_leave_sum = 0;
 
-    // Also add a visitor, doing the same thing, to test their behaviour as well.
-    generator.add_observer(
-        [&visitor_sum]( size_t elem ){
-            visitor_sum += elem;
+    // We add observers, which also add up the numbers, to test their behaviour as well.
+    generator.add_on_enter_observer(
+        [&on_enter_sum]( size_t elem ){
+            on_enter_sum += elem;
+        }
+    );
+    generator.add_on_leave_observer(
+        [&on_leave_sum]( size_t elem ){
+            on_leave_sum += elem;
         }
     );
 
@@ -262,14 +285,16 @@ void test_generic_input_stream_( size_t num_elements, size_t block_size )
         [&]( NumberGenericInputStream const& ){
             LOG_DBG << "begin";
             EXPECT_EQ( 0, loop_sum );
-            EXPECT_EQ( 0, visitor_sum );
+            EXPECT_EQ( 0, on_enter_sum );
+            EXPECT_EQ( 0, on_leave_sum );
         }
     );
         generator.add_end_callback(
         [&]( NumberGenericInputStream const& ){
             LOG_DBG << "end";
             EXPECT_EQ( expected_sum, loop_sum );
-            EXPECT_EQ( expected_sum, visitor_sum );
+            EXPECT_EQ( expected_sum, on_enter_sum );
+            EXPECT_EQ( expected_sum, on_leave_sum );
         }
     );
 
@@ -293,7 +318,8 @@ void test_generic_input_stream_( size_t num_elements, size_t block_size )
 
     // Check the numerical outputs as well
     EXPECT_EQ( expected_sum, loop_sum );
-    EXPECT_EQ( expected_sum, visitor_sum );
+    EXPECT_EQ( expected_sum, on_enter_sum );
+    EXPECT_EQ( expected_sum, on_leave_sum );
 }
 
 TEST( Containers, GenericInputStream )

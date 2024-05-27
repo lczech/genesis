@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 #include "genesis/utils/core/options.hpp"
@@ -130,14 +130,14 @@ struct EmptyGenericInputStreamData
  * As an additional layer of convenience, the class offers observers for each element, as well as
  * callbacks for the beginning and end of the iteration. Those are meant as simplifications to
  * reduce code duplcation in user code, and can be used in combination with each other. For example,
- * a observer can be added that (via a lambda capture) counts statistics of the elements beging
+ * a observer can be added that (via a lambda capture) counts statistics of the elements being
  * processed, and those can then be reported at the end of the iteration. This could of course also
  * be achieved by adding this functionatlity in the loop body and at the loop end when running
  * this iterator. However, for example in our tool https://github.com/lczech/grenedalf, we have
  * setup functions for a GenericInputStream (of type VariantInputStream) that are re-used across
  * commands. Then, instead of having to have code duplication or repeated function calls in those
- * commands, we only need to add the callbacks when creating the iterator, and they are used in
- * every command automatically.
+ * commands, we only need to add the callbacks in the shared code that creates the iterator,
+ * and they are used in every command automatically.
  *
  * Lastly, the class offers block buffering in a separate thread, for speed up. This capability
  * takes care of the underlying iterator processing (including potential file parsing etc),
@@ -421,9 +421,12 @@ public:
             // Edge case: no buffering.
             // Block size zero indicates to use no buffering, so we just use a single element.
             // Make space for it, read the first element, and then we are done here.
+            assert( generator_ );
+            assert( generator_->block_size_ == 0 );
+            assert( current_pos_ == 0 );
             current_block_->resize( 1 );
             end_pos_ = 1;
-            increment_();
+            increment_without_buffer_();
         }
 
         void begin_iteration_with_buffer_()
@@ -460,7 +463,7 @@ public:
             // Now we have an element, which will be the first one of the iteration,
             // and so we execute the observers for it.
             assert( current_pos_ == 0 );
-            execute_observers_( (*current_block_)[current_pos_] );
+            execute_on_enter_observers_( (*current_block_)[current_pos_] );
         }
 
         void increment_()
@@ -479,6 +482,14 @@ public:
             );
             assert( buffer_block_->size() == generator_->block_size_ );
 
+            // We are moving to the next element. This is the only time that we need to call
+            // the leaving observers, as this happens both during the normal iteration,
+            // as well as at its end. We first call this function, and then do the actual increment.
+            // What that incrementation finds that we are at the end of the data, we have already
+            // called our leaving observer, so all good, no extra case needed for that.
+            assert( current_pos_ < current_block_->size() );
+            execute_on_leave_observers_( (*current_block_)[current_pos_] );
+
             // Run the actual increment implementation.
             if( generator_->block_size_ == 0 ) {
                 increment_without_buffer_();
@@ -495,7 +506,7 @@ public:
             assert( current_block_ );
             assert( current_block_->size() == 1 );
             if( get_next_element_( generator_, (*current_block_)[0] )) {
-                execute_observers_( (*current_block_)[0] );
+                execute_on_enter_observers_( (*current_block_)[0] );
             } else {
                 end_iteration_();
             }
@@ -566,7 +577,7 @@ public:
             // Now we have moved to the next element, and potentially the next block,
             // so we are ready to call the observers for that element.
             assert( current_pos_ < end_pos_ );
-            execute_observers_( (*current_block_)[current_pos_] );
+            execute_on_enter_observers_( (*current_block_)[current_pos_] );
         }
 
         void enqueue_filling_of_buffer_block_()
@@ -710,10 +721,18 @@ public:
             generator_ = nullptr;
         }
 
-        void execute_observers_( T const& element ) const
+        void execute_on_enter_observers_( T const& element ) const
         {
             assert( generator_ );
-            for( auto const& observer : generator_->observers_ ) {
+            for( auto const& observer : generator_->on_enter_observers_ ) {
+                observer( element );
+            }
+        }
+
+        void execute_on_leave_observers_( T const& element ) const
+        {
+            assert( generator_ );
+            for( auto const& observer : generator_->on_leave_observers_ ) {
                 observer( element );
             }
         }
@@ -959,19 +978,45 @@ public:
      * in the beginning of the loop body of the user code. Still, offering this here can reduce
      * redundant code, such as logging elements during the iteration.
      */
-    self_type& add_observer( std::function<void(T const&)> const& observer )
+    self_type& add_on_enter_observer( std::function<void(T const&)> const& observer )
     {
         if( has_started_ ) {
             throw std::runtime_error(
                 "GenericInputStream: Cannot change observers after iteration has started."
             );
         }
-        observers_.push_back( observer );
+        on_enter_observers_.push_back( observer );
+        return *this;
+    }
+
+    /**
+     * @brief Add a observer function that is executed when the iterator moves away from an element
+     * during the iteration.
+     *
+     * These functions are executed when incrementing the iterator, once for each element,
+     * in the order in which they are added here. They take the element that the iterator
+     * is about to move away from to as their argument, so that user code can react to the new
+     * element.
+     *
+     * They are a way of adding behaviour to the iteration loop that could also simply be placed
+     * in the beginning of the loop body of the user code. Still, offering this here can reduce
+     * redundant code, such as logging elements during the iteration.
+     */
+    self_type& add_on_leave_observer( std::function<void(T const&)> const& observer )
+    {
+        if( has_started_ ) {
+            throw std::runtime_error(
+                "GenericInputStream: Cannot change observers after iteration has started."
+            );
+        }
+        on_leave_observers_.push_back( observer );
         return *this;
     }
 
     /**
      * @brief Clear all functions that are executed on incrementing to the next element.
+     *
+     * This clears both the on enter and on leave observers.
      */
     self_type& clear_observers()
     {
@@ -980,7 +1025,8 @@ public:
                 "GenericInputStream: Cannot change observers after iteration has started."
             );
         }
-        observers_.clear();
+        on_enter_observers_.clear();
+        on_leave_observers_.clear();
         return *this;
     }
 
@@ -1111,10 +1157,15 @@ public:
 private:
 
     // We have two different types of functions that we accept to operate on the data:
-    // the transforms and filters are executed when filling the buffers,
-    // while the observers are executed once the iteration reaches the respective element.
+    // transforms and filters, which are both executed when filling the buffers.
+    // To keep it simple and a bit faster, we just store them as the same type here,
+    // which can do both of their functionality at once.
     std::vector<std::function<bool(T&)>> transforms_and_filters_;
-    std::vector<std::function<void(T const&)>> observers_;
+
+    // We also offer observers that are executed once the iteration
+    // reaches or leaves the respective element.
+    std::vector<std::function<void(T const&)>> on_enter_observers_;
+    std::vector<std::function<void(T const&)>> on_leave_observers_;
 
     // We furthermore allow callbacks for the beginning and and of the iteration.
     std::vector<std::function<void(self_type const&)>> begin_callbacks_;

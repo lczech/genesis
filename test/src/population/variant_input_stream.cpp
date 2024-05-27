@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -642,7 +642,7 @@ TEST( VariantInputStream, ParallelInputStream2 )
 void test_variant_input_stream_unordered_chromosomes_(
     VariantInputStream& it,
     size_t expected_positions,
-    bool with_observer,
+    bool with_observers,
     bool with_dict,
     bool good_sequence_lengths
 ) {
@@ -663,8 +663,11 @@ void test_variant_input_stream_unordered_chromosomes_(
     }
 
     // Add a check observer to the iterator.
-    if( with_observer ) {
-        it.add_observer(
+    if( with_observers ) {
+        it.add_on_enter_observer(
+            make_variant_input_stream_sequence_order_observer( sequence_dict )
+        );
+        it.add_on_leave_observer(
             make_variant_input_stream_sequence_order_observer( sequence_dict )
         );
     }
