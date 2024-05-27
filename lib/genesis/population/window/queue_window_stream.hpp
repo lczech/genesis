@@ -221,7 +221,7 @@ public:
             if( ! parent->entry_selection_function ) {
                 throw std::runtime_error(
                     "Need to set BaseWindowStream::entry_selection_function "
-                    "before iterating over Windows with a Window Iterator."
+                    "before iterating over Windows with a QueueWindowStream."
                 );
             }
 

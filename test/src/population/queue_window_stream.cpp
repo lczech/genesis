@@ -60,11 +60,16 @@ void test_queue_window_stream_( WindowStream& win_it, size_t count )
     bool found_last_win = false;
 
     // Also test that the observer functions get executed once per window.
-    size_t observe_cnt = 0;
+    size_t enter_observe_cnt = 0;
+    size_t leave_observe_cnt = 0;
     using ValueType = typename WindowStream::InputStreamType::value_type;
-    win_it.add_observer( [&observe_cnt]( Window<ValueType> const& ){
-        // LOG_DBG << "at " << observe_cnt;
-        ++observe_cnt;
+    win_it.add_on_enter_observer( [&enter_observe_cnt]( Window<ValueType> const& ){
+        // LOG_DBG << "at " << enter_observe_cnt;
+        ++enter_observe_cnt;
+    });
+    win_it.add_on_leave_observer( [&leave_observe_cnt]( Window<ValueType> const& ){
+        // LOG_DBG << "at " << leave_observe_cnt;
+        ++leave_observe_cnt;
     });
 
     // DBG  2R : 7790001 7790001-7800000 # 1
@@ -142,7 +147,8 @@ void test_queue_window_stream_( WindowStream& win_it, size_t count )
         ++window_cnt;
     }
     EXPECT_EQ( window_sizes.size(), window_cnt );
-    EXPECT_EQ( window_sizes.size(), observe_cnt );
+    EXPECT_EQ( window_sizes.size(), enter_observe_cnt );
+    EXPECT_EQ( window_sizes.size(), leave_observe_cnt );
 
     EXPECT_TRUE( found_first_win );
     EXPECT_TRUE( found_last_win );
@@ -259,15 +265,21 @@ TEST( WindowStream, QueueWindowWindowView )
     );
 
     // Also test that the observer functions get executed once per window.
-    size_t observe_cnt = 0;
-    win_it.add_observer( [&observe_cnt]( WindowView<Variant> const& ){
-        // LOG_DBG << "at " << observe_cnt;
-        ++observe_cnt;
+    size_t enter_observe_cnt = 0;
+    size_t leave_observe_cnt = 0;
+    win_it.add_on_enter_observer( [&enter_observe_cnt]( WindowView<Variant> const& ){
+        // LOG_DBG << "at " << enter_observe_cnt;
+        ++enter_observe_cnt;
+    });
+    win_it.add_on_leave_observer( [&leave_observe_cnt]( WindowView<Variant> const& ){
+        // LOG_DBG << "at " << leave_observe_cnt;
+        ++leave_observe_cnt;
     });
 
     // We use a test function that takes our abstract type, to see if we set this up correctly.
     run_queue_window_view_variant_test_( win_it );
-    EXPECT_EQ( 6, observe_cnt );
+    EXPECT_EQ( 6, enter_observe_cnt );
+    EXPECT_EQ( 6, leave_observe_cnt );
 
     // size_t window_cnt = 0;
     // for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
@@ -293,10 +305,15 @@ TEST( WindowStream, QueueWindowEmpty )
     );
 
     // Also test that the observer functions get executed once per window.
-    size_t observe_cnt = 0;
-    win_it.add_observer( [&observe_cnt]( Window<Variant> const& ){
-        // LOG_DBG << "at " << observe_cnt;
-        ++observe_cnt;
+    size_t enter_observe_cnt = 0;
+    size_t leave_observe_cnt = 0;
+    win_it.add_on_enter_observer( [&enter_observe_cnt]( Window<Variant> const& ){
+        // LOG_DBG << "at " << enter_observe_cnt;
+        ++enter_observe_cnt;
+    });
+    win_it.add_on_leave_observer( [&leave_observe_cnt]( Window<Variant> const& ){
+        // LOG_DBG << "at " << leave_observe_cnt;
+        ++leave_observe_cnt;
     });
 
     size_t window_cnt = 0;
@@ -313,7 +330,8 @@ TEST( WindowStream, QueueWindowEmpty )
         ++window_cnt;
     }
     EXPECT_EQ( 0, window_cnt );
-    EXPECT_EQ( 0, observe_cnt );
+    EXPECT_EQ( 0, enter_observe_cnt );
+    EXPECT_EQ( 0, leave_observe_cnt );
 }
 
 // =================================================================================================
@@ -615,10 +633,15 @@ void test_queue_window_fuzzy_()
     // LOG_DBG << "sel_stride " << sel_stride;
 
     // Also test that the observer functions get executed once per window.
-    size_t observe_cnt = 0;
-    win_it.add_observer( [&observe_cnt]( Window<Variant> const& ){
-        // LOG_DBG << "at " << observe_cnt;
-        ++observe_cnt;
+    size_t enter_observe_cnt = 0;
+    size_t leave_observe_cnt = 0;
+    win_it.add_on_enter_observer( [&enter_observe_cnt]( Window<Variant> const& ){
+        // LOG_DBG << "at " << enter_observe_cnt;
+        ++enter_observe_cnt;
+    });
+    win_it.add_on_leave_observer( [&leave_observe_cnt]( Window<Variant> const& ){
+        // LOG_DBG << "at " << leave_observe_cnt;
+        ++leave_observe_cnt;
     });
 
     // Correct number of first and last windows
@@ -671,7 +694,8 @@ void test_queue_window_fuzzy_()
 
     EXPECT_EQ( first_cnt, num_chrs );
     EXPECT_EQ( last_cnt, num_chrs );
-    EXPECT_EQ( observe_cnt, window_cnt );
+    EXPECT_EQ( enter_observe_cnt, window_cnt );
+    EXPECT_EQ( leave_observe_cnt, window_cnt );
     EXPECT_EQ( window_exp.first.size(), window_cnt );
 
     size_t tot_win_cnt = 0;

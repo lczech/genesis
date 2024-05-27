@@ -69,10 +69,15 @@ TEST( WindowStream, WindowViewStream )
     );
 
     // Also test that the observer functions get executed once per window.
-    size_t observe_cnt = 0;
-    win_it.add_observer( [&observe_cnt]( WindowView<Variant> const& ){
-        // LOG_DBG << "at " << observe_cnt;
-        ++observe_cnt;
+    size_t enter_observe_cnt = 0;
+    size_t leave_observe_cnt = 0;
+    win_it.add_on_enter_observer( [&enter_observe_cnt]( WindowView<Variant> const& ){
+        // LOG_DBG << "enter at " << enter_observe_cnt;
+        ++enter_observe_cnt;
+    });
+    win_it.add_on_enter_observer( [&leave_observe_cnt]( WindowView<Variant> const& ){
+        // LOG_DBG << "leave at " << leave_observe_cnt;
+        ++leave_observe_cnt;
     });
 
     size_t window_cnt = 0;
@@ -87,7 +92,8 @@ TEST( WindowStream, WindowViewStream )
         ++window_cnt;
     }
     EXPECT_EQ( 7, window_cnt );
-    EXPECT_EQ( 7, observe_cnt );
+    EXPECT_EQ( 7, enter_observe_cnt );
+    EXPECT_EQ( 7, leave_observe_cnt );
     EXPECT_EQ( 50000, total_cnt );
 }
 

@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -187,10 +187,15 @@ void run_region_window_test_(
     );
 
     // Also test that the observer functions get executed once per window.
-    size_t observe_cnt = 0;
-    win_it.add_observer( [&observe_cnt]( Window<Variant> const& ){
-        // LOG_DBG << "at " << observe_cnt;
-        ++observe_cnt;
+    size_t enter_observe_cnt = 0;
+    size_t leave_observe_cnt = 0;
+    win_it.add_on_enter_observer( [&enter_observe_cnt]( Window<Variant> const& ){
+        // LOG_DBG << "at " << enter_observe_cnt;
+        ++enter_observe_cnt;
+    });
+    win_it.add_on_enter_observer( [&leave_observe_cnt]( Window<Variant> const& ){
+        // LOG_DBG << "at " << leave_observe_cnt;
+        ++leave_observe_cnt;
     });
 
     // ...and go through it.
@@ -382,7 +387,8 @@ void run_region_window_test_(
     EXPECT_EQ( exp_var_total_cnt_2, var_total_cnt );
     EXPECT_EQ( regions_with_vars, window_var_cnt );
     EXPECT_EQ( window_cnt_target, window_tot_cnt );
-    EXPECT_EQ( window_cnt_target, observe_cnt );
+    EXPECT_EQ( window_cnt_target, enter_observe_cnt );
+    EXPECT_EQ( window_cnt_target, leave_observe_cnt );
     if( ! skip_empty_regions ) {
         EXPECT_EQ( region_list->total_region_count(), window_tot_cnt );
     }
