@@ -183,7 +183,8 @@ template<class ForwardIterator1, class ForwardIterator2>
 double f_st_pool_kofler( // get_conventional_fstcalculator
     size_t p1_poolsize, size_t p2_poolsize,
     ForwardIterator1 p1_begin, ForwardIterator1 p1_end,
-    ForwardIterator2 p2_begin, ForwardIterator2 p2_end
+    ForwardIterator2 p2_begin, ForwardIterator2 p2_end,
+    bool only_passing_samples = true
 ) {
     // Edge and error cases
     if( p1_poolsize <= 1 || p2_poolsize <= 1 ) {
@@ -199,6 +200,10 @@ double f_st_pool_kofler( // get_conventional_fstcalculator
     auto p1_it = p1_begin;
     auto p2_it = p2_begin;
     while( p1_it != p1_end && p2_it != p2_end ) {
+        if( only_passing_samples && ( !p1_it->status.passing() || !p2_it->status.passing() )) {
+            continue;
+        }
+
         calc.process( *p1_it, *p2_it );
         ++p1_it;
         ++p2_it;
@@ -256,7 +261,8 @@ utils::Matrix<double> f_st_pool_kofler(
 template<class ForwardIterator1, class ForwardIterator2>
 double f_st_pool_karlsson( // get_asymptunbiased_fstcalculator
     ForwardIterator1 p1_begin, ForwardIterator1 p1_end,
-    ForwardIterator2 p2_begin, ForwardIterator2 p2_end
+    ForwardIterator2 p2_begin, ForwardIterator2 p2_end,
+    bool only_passing_samples = true
 ) {
     using namespace genesis::utils;
 
@@ -267,6 +273,10 @@ double f_st_pool_karlsson( // get_asymptunbiased_fstcalculator
     auto p1_it = p1_begin;
     auto p2_it = p2_begin;
     while( p1_it != p1_end && p2_it != p2_end ) {
+        if( only_passing_samples && ( !p1_it->status.passing() || !p2_it->status.passing() )) {
+            continue;
+        }
+
         calc.process( *p1_it, *p2_it );
         ++p1_it;
         ++p2_it;
@@ -318,7 +328,8 @@ template<class ForwardIterator1, class ForwardIterator2>
 std::pair<double, double> f_st_pool_unbiased(
     size_t p1_poolsize, size_t p2_poolsize,
     ForwardIterator1 p1_begin, ForwardIterator1 p1_end,
-    ForwardIterator2 p2_begin, ForwardIterator2 p2_end
+    ForwardIterator2 p2_begin, ForwardIterator2 p2_end,
+    bool only_passing_samples = true
 ) {
     // Edge and error cases
     if( p1_poolsize <= 1 || p2_poolsize <= 1 ) {
@@ -337,6 +348,10 @@ std::pair<double, double> f_st_pool_unbiased(
     auto p1_it = p1_begin;
     auto p2_it = p2_begin;
     while( p1_it != p1_end && p2_it != p2_end ) {
+        if( only_passing_samples && ( !p1_it->status.passing() || !p2_it->status.passing() )) {
+            continue;
+        }
+
         calc.process( *p1_it, *p2_it );
         ++p1_it;
         ++p2_it;

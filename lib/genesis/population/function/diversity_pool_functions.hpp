@@ -171,11 +171,16 @@ double heterozygosity( SampleCounts const& sample, bool with_bessel = false );
  */
 template<class ForwardIterator>
 double theta_pi(
-    ForwardIterator begin, ForwardIterator end,
-    bool with_bessel = true
+    ForwardIterator begin,
+    ForwardIterator end,
+    bool with_bessel = true,
+    bool only_passing_samples = true
 ) {
     double pi_sum = 0.0;
     for( auto& it = begin; it != end; ++it ) {
+        if( only_passing_samples && !it->status.passing() ) {
+            continue;
+        }
         pi_sum += heterozygosity( *it, with_bessel );
     }
     return pi_sum;
@@ -192,11 +197,17 @@ double theta_pi(
 template<class ForwardIterator>
 double theta_pi_within_pool(
     size_t poolsize,
-    ForwardIterator begin, ForwardIterator end
+    ForwardIterator begin,
+    ForwardIterator end,
+    bool only_passing_samples = true
 ) {
     auto const psb = static_cast<double>( poolsize ) / ( static_cast<double>( poolsize ) - 1.0 );
     double pi_sum = 0.0;
     for( auto& it = begin; it != end; ++it ) {
+        if( only_passing_samples && !it->status.passing() ) {
+            continue;
+        }
+
         // Apply heterozygosity with Bessel's for nucleotide count, and Bessel's for pool size.
         pi_sum += heterozygosity( *it, true ) * psb;
     }
@@ -235,7 +246,8 @@ double theta_pi_pool( // get_pi_calculator
     DiversityPoolSettings const& settings,
     size_t poolsize,
     ForwardIterator begin,
-    ForwardIterator end
+    ForwardIterator end,
+    bool only_passing_samples = true
 ) {
     // PoPoolation variable names:
     // poolsize:  n
@@ -243,6 +255,10 @@ double theta_pi_pool( // get_pi_calculator
 
     double pi_sum = 0.0;
     for( auto& it = begin; it != end; ++it ) {
+        if( only_passing_samples && !it->status.passing() ) {
+            continue;
+        }
+
         double const pi_snp = heterozygosity( *it, true );
         double const denom  = theta_pi_pool_denominator(
             settings, poolsize, nucleotide_sum( *it )
@@ -303,7 +319,8 @@ double theta_watterson_pool( // get_theta_calculator
     DiversityPoolSettings const& settings,
     size_t poolsize,
     ForwardIterator begin,
-    ForwardIterator end
+    ForwardIterator end,
+    bool only_passing_samples = true
 ) {
     // PoPoolation variable names:
     // poolsize:  n
@@ -311,6 +328,10 @@ double theta_watterson_pool( // get_theta_calculator
 
     double sum = 0.0;
     for( auto& it = begin; it != end; ++it ) {
+        if( only_passing_samples && !it->status.passing() ) {
+            continue;
+        }
+
         auto const denom = theta_watterson_pool_denominator(
             settings, poolsize, nucleotide_sum( *it )
         );
@@ -562,23 +583,33 @@ double tajima_d_pool( // get_D_calculator
     double theta_watterson,
     size_t poolsize,
     ForwardIterator begin,
-    ForwardIterator end
+    ForwardIterator end,
+    bool only_passing_samples = true
 ) {
     // If we need the empirical min read depth, compute it.
     // If not, we can skip this step.
     size_t empirical_min_read_depth = std::numeric_limits<size_t>::max();
-    if( settings.tajima_denominator_policy == TajimaDenominatorPolicy::kEmpiricalMinReadDepth ) {
+    auto entry_count = std::distance( begin, end );
+    if(
+        only_passing_samples ||
+        settings.tajima_denominator_policy == TajimaDenominatorPolicy::kEmpiricalMinReadDepth
+    ) {
+        entry_count = 0;
         for( auto& it = begin; it != end; ++it ) {
+            if( only_passing_samples && !it->status.passing() ) {
+                continue;
+            }
+
             auto const cov = nucleotide_sum( *it );
             if( cov < empirical_min_read_depth ) {
                 empirical_min_read_depth = cov;
             }
+            ++entry_count;
         }
     }
 
-    auto const snp_count = std::distance( begin, end );
     return tajima_d_pool(
-        settings, theta_pi, theta_watterson, poolsize, snp_count, empirical_min_read_depth
+        settings, theta_pi, theta_watterson, poolsize, entry_count, empirical_min_read_depth
     );
 }
 
@@ -597,12 +628,13 @@ double tajima_d_pool( // get_D_calculator
     DiversityPoolSettings const& settings,
     size_t poolsize,
     ForwardIterator begin,
-    ForwardIterator end
+    ForwardIterator end,
+    bool only_passing_samples = true
 ) {
     // First compute the two theta statistics, then call the other version of this function.
-    auto const pi = theta_pi_pool( settings, poolsize, begin, end );
-    auto const tw = theta_watterson_pool( settings, poolsize, begin, end );
-    return tajima_d_pool( settings, pi, tw, poolsize, begin, end );
+    auto const pi = theta_pi_pool( settings, poolsize, begin, end, only_passing_samples );
+    auto const tw = theta_watterson_pool( settings, poolsize, begin, end, only_passing_samples );
+    return tajima_d_pool( settings, pi, tw, poolsize, begin, end, only_passing_samples );
 }
 
 } // namespace population
