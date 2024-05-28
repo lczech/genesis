@@ -68,6 +68,16 @@ public:
     // -------------------------------------------------------------------------
 
     /**
+     * @brief Default constructor.
+     *
+     * We always want to make sure that the user provides a WindowAveragePolicy, so using this
+     * default constructor leads to an unusable instance. We provide it so that dummy processors
+     * can be constructed, but they have to be replaced by non-default-constructed instances
+     * befor usage.
+     */
+    FstPoolProcessor() = default;
+
+    /**
      * @brief Construct a processor.
      *
      * This defaults to using the global thread pool of Options::get().global_thread_pool()
@@ -82,6 +92,7 @@ public:
         : avg_policy_( window_average_policy )
         , thread_pool_( thread_pool )
         , threading_threshold_( threading_threshold )
+        , is_default_constructed_( false )
     {
         thread_pool_ = thread_pool ? thread_pool : utils::Options::get().global_thread_pool();
     }
@@ -179,7 +190,11 @@ public:
 
     void process( Variant const& variant )
     {
+        // Check correct usage
         assert( sample_pairs_.size() == calculators_.size() );
+        if( is_default_constructed_ ) {
+            throw std::domain_error( "Cannot use a default constructed FstPoolProcessor" );
+        }
 
         // Only process Variants that are passing, but keep track of the ones that did not.
         ++filter_stats_[variant.status.get()];
@@ -287,6 +302,10 @@ private:
     // (number of sample pairs) at which we start using the thread pool.
     std::shared_ptr<utils::ThreadPool> thread_pool_;
     size_t threading_threshold_ = 0;
+
+    // We want to make sure to disallow default constructed instances.
+    // Bit ugly to do it this way, but works for now.
+    bool is_default_constructed_ = true;
 };
 
 // =================================================================================================
