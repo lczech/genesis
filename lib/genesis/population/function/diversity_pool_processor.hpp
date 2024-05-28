@@ -78,7 +78,7 @@ public:
      * can be constructed, but they have to be replaced by non-default-constructed instances
      * befor usage.
      */
-    FstPoolProcessor() = default;
+    DiversityPoolProcessor() = default;
 
     /**
      * @brief Construct a processor.
@@ -171,7 +171,7 @@ public:
         }
         for( auto pool_size : pool_sizes ) {
             calculators_.push_back( DiversityPoolCalculator( settings, pool_size ));
-            results_.emplate_back();
+            results_.emplace_back();
         }
     }
 
@@ -249,9 +249,9 @@ public:
         assert( results_.size() == calculators_.size() );
         for( size_t i = 0; i < results_.size(); ++i ) {
             auto const window_avg_denom = window_average_denominator(
-                avg_policy_, window_length, filter_stats_, calculators_[i]->get_filter_stats()
+                avg_policy_, window_length, filter_stats_, calculators_[i].get_filter_stats()
             );
-            results_[i] = calculators_[i]->get_result( window_avg_denom );
+            results_[i] = calculators_[i].get_result( window_avg_denom );
         }
         return results_;
     }
@@ -304,7 +304,7 @@ private:
 };
 
 // =================================================================================================
-//     Helper Functions with Pool Sizes
+//     Make Diversity Processor Helper Functions
 // =================================================================================================
 
 /**
@@ -318,10 +318,11 @@ private:
  * really do much, and is just provided for symmetry reasons with the fst functions...
  */
 inline DiversityPoolProcessor make_diversity_pool_processor(
+    WindowAveragePolicy window_average_policy,
     DiversityPoolSettings const& settings,
     std::vector<size_t> const& pool_sizes
 ) {
-    DiversityPoolProcessor processor;
+    DiversityPoolProcessor processor{ window_average_policy };
     processor.add_calculators( settings, pool_sizes );
     return processor;
 }

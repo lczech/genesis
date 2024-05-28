@@ -309,7 +309,7 @@ private:
 };
 
 // =================================================================================================
-//     Helper Functions with Pool Sizes
+//     Make Fst Processor Helper Functions
 // =================================================================================================
 
 /**
@@ -437,6 +437,10 @@ inline FstPoolProcessor make_fst_pool_processor(
     );
     return result;
 }
+
+// =================================================================================================
+//     Sample Names Helper Function
+// =================================================================================================
 
 /**
  * @brief Return a list of sample name pairs for each calculator in an FstPoolProcessor.

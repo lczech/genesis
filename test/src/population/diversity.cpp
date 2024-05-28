@@ -35,6 +35,7 @@
 #include "genesis/population/format/simple_pileup_reader.hpp"
 #include "genesis/population/function/diversity_pool_calculator.hpp"
 #include "genesis/population/function/diversity_pool_functions.hpp"
+#include "genesis/population/function/diversity_pool_processor.hpp"
 #include "genesis/population/filter/sample_counts_filter_numerical.hpp"
 #include "genesis/population/filter/sample_counts_filter.hpp"
 #include "genesis/population/filter/variant_filter_numerical.hpp"
@@ -47,6 +48,7 @@
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/filter_iterator.hpp"
 #include "genesis/utils/containers/transform_iterator.hpp"
+#include "genesis/utils/math/random.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;
@@ -506,4 +508,67 @@ TEST( Population, DiversityMeasuresIterator )
     EXPECT_EQ( window_cnt, exp_pi.size() );
     EXPECT_EQ( window_cnt, exp_tw.size() );
     EXPECT_EQ( window_cnt, exp_td.size() );
+}
+
+// =================================================================================================
+//     Random Fuzzy
+// =================================================================================================
+
+// Declartion here. Defined in random_variants.cpp
+std::vector<Variant> test_create_random_variants_( size_t min_count );
+
+void test_diversity_fuzzy_run_( std::vector<Variant> const& data )
+{
+    // Set up some random settings
+    DiversityPoolSettings settings;
+    settings.min_count = 2;
+    settings.min_read_depth = 2;
+    settings.max_read_depth = 100;
+    settings.tajima_denominator_policy = static_cast<TajimaDenominatorPolicy>(
+        permuted_congruential_generator( 4 )
+    );
+
+    // Make a diversity processor
+    ASSERT_GT( data.size(), 0 );
+    auto const n_samples = data[0].samples.size();
+    auto const pool_sizes = std::vector<size_t>( n_samples, 100 );
+    auto const window_average_policy = static_cast<WindowAveragePolicy>(
+        permuted_congruential_generator( 0, 4 )
+    );
+    auto processor = make_diversity_pool_processor(
+        window_average_policy, settings, pool_sizes
+    );
+
+    // Run the data
+    for( auto const& variant : data ) {
+        processor.process( variant );
+    }
+
+    // Test the result
+    size_t const window_length = data.size();
+    auto const result = processor.get_result( window_length );
+    EXPECT_EQ( n_samples, result.size() );
+    for( auto const& r : result ) {
+        LOG_DBG << r.theta_pi << " " << r.theta_watterson << " " << r.tajima_d;
+    }
+}
+
+TEST( Diversity, RandomFuzzy )
+{
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    // For the duration of the test, we deactivate debug logging.
+    // But if needed, comment this line out, and each test will report its input.
+    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+
+    size_t num_tests = 5000;
+    for( size_t i = 0; i < num_tests; ++i ) {
+        LOG_DBG << "=================================";
+        LOG_DBG << "Test " << i;
+        auto const data = test_create_random_variants_( 4 );
+        test_diversity_fuzzy_run_( data );
+    }
 }

@@ -424,71 +424,13 @@ TEST( FST, FstPoolProcessor )
 //     Random Fuzzy
 // =================================================================================================
 
-std::vector<Variant> test_fst_fuzzy_make_data_()
-{
-    // Number of samples per variant
-    auto const n_positions = 100;
-    auto const n_samples = permuted_congruential_generator( 2, 10 );
-
-    // Create a list of Variants and samples, with random content
-    std::vector<Variant> data;
-    data.resize( n_positions );
-    for( size_t n_var = 0; n_var < n_positions; ++n_var ) {
-        auto& variant = data[n_var];
-        variant.chromosome = "1";
-        variant.position = n_var + 1;
-        variant.status.set(
-            permuted_congruential_generator( static_cast<int>( VariantFilterTag::kEnd ) - 1 )
-        );
-
-        // Fill the variant with samples
-        variant.samples.resize( n_samples );
-        for( size_t n_smp = 0; n_smp < n_samples; ++n_smp ) {
-            auto& sample = variant.samples[n_smp];
-
-            // Make a selection of how many of the counts we want to fill.
-            // This makes sure that we are not underrepresenting low counts.
-            auto const num_non_empty = permuted_congruential_generator( 4 );
-            switch( num_non_empty ) {
-                case 0: {
-                    break;
-                }
-                case 1: {
-                    sample.a_count = permuted_congruential_generator( 10 );
-                    break;
-                }
-                case 2: {
-                    sample.a_count = permuted_congruential_generator( 10 );
-                    sample.c_count = permuted_congruential_generator( 10 );
-                    break;
-                }
-                case 3: {
-                    sample.a_count = permuted_congruential_generator( 10 );
-                    sample.c_count = permuted_congruential_generator( 10 );
-                    sample.g_count = permuted_congruential_generator( 10 );
-                    break;
-                }
-                case 4: {
-                    sample.a_count = permuted_congruential_generator( 10 );
-                    sample.c_count = permuted_congruential_generator( 10 );
-                    sample.g_count = permuted_congruential_generator( 10 );
-                    sample.t_count = permuted_congruential_generator( 10 );
-                    break;
-                }
-            }
-
-            // Also set a random status
-            sample.status.set(
-                permuted_congruential_generator( static_cast<int>( SampleCountsFilterTag::kEnd ) - 1 )
-            );
-        }
-    }
-    return data;
-}
+ // Declartion here. Defined in random_variants.cpp
+std::vector<Variant> test_create_random_variants_();
 
 void test_fst_fuzzy_run_( std::vector<Variant> const& data )
 {
     // Make an FST processor
+    ASSERT_GT( data.size(), 0 );
     auto const n_samples = data[0].samples.size();
     auto const pool_sizes = std::vector<size_t>( n_samples, 100 );
     auto const window_average_policy = static_cast<WindowAveragePolicy>(
@@ -529,7 +471,7 @@ TEST( FST, RandomFuzzy )
     for( size_t i = 0; i < num_tests; ++i ) {
         LOG_DBG << "=================================";
         LOG_DBG << "Test " << i;
-        auto const data = test_fst_fuzzy_make_data_();
+        auto const data = test_create_random_variants_();
         test_fst_fuzzy_run_( data );
     }
 }
