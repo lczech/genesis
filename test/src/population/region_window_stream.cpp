@@ -193,7 +193,7 @@ void run_region_window_test_(
         // LOG_DBG << "at " << enter_observe_cnt;
         ++enter_observe_cnt;
     });
-    win_it.add_on_enter_observer( [&leave_observe_cnt]( Window<Variant> const& ){
+    win_it.add_on_leave_observer( [&leave_observe_cnt]( Window<Variant> const& ){
         // LOG_DBG << "at " << leave_observe_cnt;
         ++leave_observe_cnt;
     });

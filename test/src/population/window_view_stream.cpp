@@ -75,7 +75,7 @@ TEST( WindowStream, WindowViewStream )
         // LOG_DBG << "enter at " << enter_observe_cnt;
         ++enter_observe_cnt;
     });
-    win_it.add_on_enter_observer( [&leave_observe_cnt]( WindowView<Variant> const& ){
+    win_it.add_on_leave_observer( [&leave_observe_cnt]( WindowView<Variant> const& ){
         // LOG_DBG << "leave at " << leave_observe_cnt;
         ++leave_observe_cnt;
     });
