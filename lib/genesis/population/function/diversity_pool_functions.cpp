@@ -527,8 +527,8 @@ double tajima_d_pool_denominator( // get_ddivisor
 
     // Edge cases, only relevant for the Kofler-based correction denomiator variants.
     if(
-        settings.tajima_denominator_policy == TajimaDenominatorPolicy::kWithPopoolatioBugs ||
-        settings.tajima_denominator_policy == TajimaDenominatorPolicy::kWithoutPopoolatioBugs
+        settings.tajima_denominator_policy == TajimaDenominatorPolicy::kWithPopoolationBugs ||
+        settings.tajima_denominator_policy == TajimaDenominatorPolicy::kWithoutPopoolationBugs
     ) {
         if( settings.min_count != 2 ) {
             throw std::invalid_argument(
@@ -559,7 +559,7 @@ double tajima_d_pool_denominator( // get_ddivisor
             // No correction at all.
             return 1.0;
         }
-        case TajimaDenominatorPolicy::kWithPopoolatioBugs:
+        case TajimaDenominatorPolicy::kWithPopoolationBugs:
         {
             // We here re-implement two bugs from PoPoolation that massively change the results.
             // We do this in order to be able to ensure that these are the only differences between
@@ -569,7 +569,7 @@ double tajima_d_pool_denominator( // get_ddivisor
             betastar  = alphastar;
             break;
         }
-        case TajimaDenominatorPolicy::kWithoutPopoolatioBugs:
+        case TajimaDenominatorPolicy::kWithoutPopoolationBugs:
         {
             // Fix the bugs from above, but still use the user min cov for n_base.
             auto const avg_n = n_base( settings.min_read_depth, poolsize );

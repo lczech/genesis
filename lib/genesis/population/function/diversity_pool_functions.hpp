@@ -89,7 +89,7 @@ enum class TajimaDenominatorPolicy
      * Using this option, one can voluntarily activate these bugs here as well, in order to get
      * results that are comparable with PoPoolation results.
      */
-    kWithPopoolatioBugs,
+    kWithPopoolationBugs,
 
     /**
      * @brief Fix the bugs of the original PoPoolation, but still use their way of computing
@@ -101,7 +101,7 @@ enum class TajimaDenominatorPolicy
      * sequenced. Still, we offer this behaviour here, as a means to compute what we think
      * PoPoolation _intended_ to compute without their more obvious bugs.
      */
-    kWithoutPopoolatioBugs,
+    kWithoutPopoolationBugs,
 
     /**
      * @brief Use the empirical minimum read depth found in each window for the empirical pool size

@@ -96,7 +96,7 @@ TEST( Population, DiversityMeasuresGenerator )
     settings.min_read_depth = 4;
     settings.max_read_depth = 70;
     // settings.min_read_depth_fraction = 0.6;
-    settings.tajima_denominator_policy = TajimaDenominatorPolicy::kWithPopoolatioBugs;
+    settings.tajima_denominator_policy = TajimaDenominatorPolicy::kWithPopoolationBugs;
 
     // Expected values for SNP count, coverage fraction,
     // theta pi, theta watterson, and tajimas d, as computed by PoPoolation.
@@ -301,7 +301,7 @@ TEST( Population, DiversityMeasuresIterator )
     settings.min_read_depth = 4;
     settings.max_read_depth = 70;
     // settings.min_read_depth_fraction = 0.6;
-    settings.tajima_denominator_policy = TajimaDenominatorPolicy::kWithPopoolatioBugs;
+    settings.tajima_denominator_policy = TajimaDenominatorPolicy::kWithPopoolationBugs;
 
     // Expected values for SNP count, coverage fraction,
     // theta pi, theta watterson, and tajimas d, as computed by PoPoolation.

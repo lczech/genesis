@@ -304,7 +304,7 @@ public:
             // that passed all filters, including any invariant positions).
             // We hence have to make a distinction here to fix that.
             auto tajimas_window_avg_denom = window_avg_denom;
-            if( settings_.tajima_denominator_policy == TajimaDenominatorPolicy::kWithPopoolatioBugs ) {
+            if( settings_.tajima_denominator_policy == TajimaDenominatorPolicy::kWithPopoolationBugs ) {
                 tajimas_window_avg_denom = filter_stats_[SampleCountsFilterTag::kPassed];
             }
 
