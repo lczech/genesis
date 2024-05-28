@@ -60,11 +60,6 @@ namespace population {
 enum class WindowAveragePolicy
 {
     /**
-     * @brief Simply report the total sum, with no averaging, i.e., the absolute value of the metric.
-     */
-    kAbsoluteSum,
-
-    /**
      * @brief Use the window length.
      *
      * This does not take any characteristics of the data into account. This might underestimate
@@ -116,7 +111,12 @@ enum class WindowAveragePolicy
      * particular sample. So we are conservative here, and only use the number of postions
      * that passed everything.
      */
-    kValidSnps
+    kValidSnps,
+
+    /**
+     * @brief Simply report the total sum, with no averaging, i.e., the absolute value of the metric.
+     */
+    kAbsoluteSum
 };
 
 /**
@@ -151,9 +151,6 @@ inline double window_average_denominator(
 
     // Now select which value we want to return.
     switch( policy ) {
-        case WindowAveragePolicy::kAbsoluteSum: {
-            return 1.0;
-        }
         case WindowAveragePolicy::kWindowLength: {
             return window_length;
         }
@@ -174,6 +171,9 @@ inline double window_average_denominator(
         }
         case WindowAveragePolicy::kValidSnps: {
             return sample_counts_filter_stats[SampleCountsFilterTag::kPassed];
+        }
+        case WindowAveragePolicy::kAbsoluteSum: {
+            return 1.0;
         }
         default: {
             throw std::invalid_argument( "Invalid WindowAveragePolicy" );
