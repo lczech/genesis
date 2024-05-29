@@ -32,6 +32,7 @@
  */
 
 #include "genesis/population/function/fst_pool_calculator.hpp"
+#include "genesis/population/function/fst_pool_unbiased.hpp"
 #include "genesis/population/function/window_average.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/variant.hpp"
@@ -46,6 +47,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <tuple>
 #include <vector>
 
 namespace genesis {
@@ -62,6 +64,12 @@ namespace population {
 class FstPoolProcessor
 {
 public:
+
+    // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    using PiVectorTuple = std::tuple<std::vector<double>, std::vector<double>, std::vector<double>>;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -255,6 +263,51 @@ public:
     }
 
     /**
+     * @brief Get lists of all the three intermediate pi values (within, between, total) that
+     * are part of our unbiased estimators.
+     *
+     * This computes the window-averaged values for pi within, pi between, and pi total (in that
+     * order in the tuple), for each sample pair (order in the three vectors). This uses the same
+     * window averaging policy as the get_result() function.
+     *
+     * This only works when all calculators are of type FstPoolCalculatorUnbiased, and throws an
+     * exception otherwise. It is merely meant as a convenience function for that particular case.
+     */
+    PiVectorTuple const& get_pi_vectors( size_t window_length ) const
+    {
+        // Only allocate when someone first calls this.
+        // Does not do anything afterwards.
+        auto const result_size = calculators_.size();
+        std::get<0>( results_pi_ ).resize( result_size );
+        std::get<1>( results_pi_ ).resize( result_size );
+        std::get<2>( results_pi_ ).resize( result_size );
+
+        // Get the pi values from all calculators, assuming that they are of the correct type.
+        for( size_t i = 0; i < result_size; ++i ) {
+            auto& raw_calc = calculators_[i];
+            auto cast_calc = dynamic_cast<FstPoolCalculatorUnbiased const*>( raw_calc.get() );
+            if( ! cast_calc ) {
+                throw std::domain_error(
+                    "Can only call FstPoolProcessor::get_pi_vectors() "
+                    "for calculators of type FstPoolCalculatorUnbiased."
+                );
+            }
+
+            // Get the denominator to use for all averaging.
+            auto const window_avg_denom = window_average_denominator(
+                avg_policy_, window_length, filter_stats_, calculators_[i]->get_filter_stats()
+            );
+
+            // We compute the window-averaged values as above.
+            std::get<0>(results_pi_)[i] = cast_calc->get_pi_within()  / window_avg_denom;
+            std::get<1>(results_pi_)[i] = cast_calc->get_pi_between() / window_avg_denom;
+            std::get<2>(results_pi_)[i] = cast_calc->get_pi_total()   / window_avg_denom;
+        }
+
+        return results_pi_;
+    }
+
+    /**
      * @brief Get the sum of filter statistics of all Variant%s processed here.
      *
      * With each call to process(), the filter stats are increased according to the filter status
@@ -296,7 +349,9 @@ private:
     VariantFilterStats filter_stats_;
 
     // We keep a mutable cache for the results, to avoid reallocating memory each time.
+    // We do the same of the pi values, but this is only allocated when first called.
     mutable std::vector<double> results_;
+    mutable PiVectorTuple       results_pi_;
 
     // Thread pool to run the buffering in the background, and the size
     // (number of sample pairs) at which we start using the thread pool.
