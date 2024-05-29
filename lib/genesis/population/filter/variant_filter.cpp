@@ -186,6 +186,10 @@ size_t variant_filter_stats_category_counts(
 //     Printing
 // =================================================================================================
 
+// --------------------------------------------------------------------------------------
+//     Print variant stats
+// --------------------------------------------------------------------------------------
+
 std::ostream& print_variant_filter_stats(
     std::ostream& os,
     VariantFilterStats const& stats,
@@ -258,6 +262,10 @@ std::string print_variant_filter_stats(
     return ss.str();
 }
 
+// --------------------------------------------------------------------------------------
+//     Print category stats
+// --------------------------------------------------------------------------------------
+
 std::ostream& print_variant_filter_category_stats(
     std::ostream& os,
     VariantFilterCategoryStats const& stats,
@@ -277,7 +285,7 @@ std::ostream& print_variant_filter_category_stats(
         os << "No samples: " << stats[VariantFilterTagCategory::kSamplesFailed] << "\n";
     }
     if( stats[VariantFilterTagCategory::kNumeric] > 0 || verbose ) {
-        os << "Numrics:    " << stats[VariantFilterTagCategory::kNumeric] << "\n";
+        os << "Numrica;:   " << stats[VariantFilterTagCategory::kNumeric] << "\n";
     }
     if( stats[VariantFilterTagCategory::kInvariant] > 0 || verbose ) {
         os << "Invariant:  " << stats[VariantFilterTagCategory::kInvariant] << "\n";

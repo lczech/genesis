@@ -235,7 +235,7 @@ size_t sample_counts_filter_stats_category_counts(
 // =================================================================================================
 
 // --------------------------------------------------------------------------------------
-//     Print stats
+//     Print sample stats
 // --------------------------------------------------------------------------------------
 
 /**
@@ -254,6 +254,40 @@ std::string print_sample_counts_filter_stats(
     SampleCountsFilterStats const& stats,
     bool verbose = false
 );
+
+// --------------------------------------------------------------------------------------
+//     Print category stats
+// --------------------------------------------------------------------------------------
+
+std::ostream& print_sample_counts_filter_category_stats(
+    std::ostream& os,
+    SampleCountsFilterCategoryStats const& stats,
+    bool verbose = false
+);
+
+std::string print_sample_counts_filter_category_stats(
+    SampleCountsFilterCategoryStats const& stats,
+    bool verbose = false
+);
+
+inline std::ostream& print_sample_counts_filter_category_stats(
+    std::ostream& os,
+    SampleCountsFilterStats const& stats,
+    bool verbose = false
+) {
+    return print_sample_counts_filter_category_stats(
+        os, sample_counts_filter_stats_category_counts( stats ), verbose
+    );
+}
+
+inline std::string print_sample_counts_filter_category_stats(
+    SampleCountsFilterStats const& stats,
+    bool verbose = false
+) {
+    return print_sample_counts_filter_category_stats(
+        sample_counts_filter_stats_category_counts( stats ), verbose
+    );
+}
 
 } // namespace population
 } // namespace genesis

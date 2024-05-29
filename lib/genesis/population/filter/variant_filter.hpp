@@ -345,7 +345,7 @@ size_t variant_filter_stats_category_counts(
 // =================================================================================================
 
 // --------------------------------------------------------------------------------------
-//     Print stats
+//     Print variant stats
 // --------------------------------------------------------------------------------------
 
 /**
@@ -364,6 +364,40 @@ std::string print_variant_filter_stats(
     VariantFilterStats const& stats,
     bool verbose = false
 );
+
+// --------------------------------------------------------------------------------------
+//     Print category stats
+// --------------------------------------------------------------------------------------
+
+std::ostream& print_variant_filter_category_stats(
+    std::ostream& os,
+    VariantFilterCategoryStats const& stats,
+    bool verbose = false
+);
+
+std::string print_variant_filter_category_stats(
+    VariantFilterCategoryStats const& stats,
+    bool verbose = false
+);
+
+inline std::ostream& print_variant_filter_category_stats(
+    std::ostream& os,
+    VariantFilterStats const& stats,
+    bool verbose = false
+) {
+    return print_variant_filter_category_stats(
+        os, variant_filter_stats_category_counts( stats ), verbose
+    );
+}
+
+inline std::string print_variant_filter_category_stats(
+    VariantFilterStats const& stats,
+    bool verbose = false
+) {
+    return print_variant_filter_category_stats(
+        variant_filter_stats_category_counts( stats ), verbose
+    );
+}
 
 } // namespace population
 } // namespace genesis
