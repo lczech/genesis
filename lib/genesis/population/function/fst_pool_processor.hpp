@@ -43,6 +43,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -168,7 +169,7 @@ public:
         assert( sample_pairs_.size() == results_.size() );
         sample_pairs_.push_back({ index_p1, index_p2 });
         calculators_.push_back( std::move( calculator ));
-        results_.push_back( 0.0 );
+        results_.push_back( std::numeric_limits<double>::quiet_NaN() );
     }
 
     // -------------------------------------------------------------------------
@@ -193,7 +194,25 @@ public:
             calc->reset();
         }
         filter_stats_.clear();
-        std::fill( results_.begin(), results_.end(), 0.0 );
+        std::fill(
+            results_.begin(), results_.end(),
+            std::numeric_limits<double>::quiet_NaN()
+        );
+
+        // Also reset the pi vectors to nan.
+        // If they are not allocated, nothing happens.
+        std::fill(
+            std::get<0>( results_pi_ ).begin(), std::get<0>( results_pi_ ).end(),
+            std::numeric_limits<double>::quiet_NaN()
+        );
+        std::fill(
+            std::get<1>( results_pi_ ).begin(), std::get<1>( results_pi_ ).end(),
+            std::numeric_limits<double>::quiet_NaN()
+        );
+        std::fill(
+            std::get<2>( results_pi_ ).begin(), std::get<2>( results_pi_ ).end(),
+            std::numeric_limits<double>::quiet_NaN()
+        );
     }
 
     void process( Variant const& variant )
