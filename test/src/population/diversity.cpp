@@ -539,6 +539,11 @@ void test_diversity_fuzzy_run_( std::vector<Variant> const& data )
         window_average_policy, settings, pool_sizes
     );
 
+    // Set some settings, to test the iterator
+    for( auto& calc : processor ) {
+        calc.enable_tajima_d( true );
+    }
+
     // Run the data
     for( auto const& variant : data ) {
         processor.process( variant );

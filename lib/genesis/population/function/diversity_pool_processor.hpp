@@ -274,6 +274,20 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Calculator Iterator
+    // -------------------------------------------------------------------------
+
+    std::vector<DiversityPoolCalculator>::iterator begin()
+    {
+        return calculators_.begin();
+    }
+
+    std::vector<DiversityPoolCalculator>::iterator end()
+    {
+        return calculators_.end();
+    }
+
+    // -------------------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------------------
 
