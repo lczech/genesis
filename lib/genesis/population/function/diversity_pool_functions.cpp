@@ -528,7 +528,7 @@ double tajima_d_pool_denominator( // get_ddivisor
     // Edge cases, only relevant for the Kofler-based correction denomiator variants.
     if(
         settings.tajima_denominator_policy == TajimaDenominatorPolicy::kWithPopoolationBugs ||
-        settings.tajima_denominator_policy == TajimaDenominatorPolicy::kWithoutPopoolationBugs
+        settings.tajima_denominator_policy == TajimaDenominatorPolicy::kProvidedMinReadDepth
     ) {
         if( settings.min_count != 2 ) {
             throw std::invalid_argument(
@@ -554,10 +554,21 @@ double tajima_d_pool_denominator( // get_ddivisor
     double alphastar;
     double betastar;
     switch( settings.tajima_denominator_policy ) {
-        case TajimaDenominatorPolicy::kUncorrected:
+        case TajimaDenominatorPolicy::kEmpiricalMinReadDepth:
         {
-            // No correction at all.
-            return 1.0;
+            // Use the emprical minimum read depth to get the value.
+            auto const avg_n = n_base( empirical_min_read_depth, poolsize );
+            alphastar = alpha_star( avg_n );
+            betastar  = beta_star( avg_n );
+            break;
+        }
+        case TajimaDenominatorPolicy::kProvidedMinReadDepth:
+        {
+            // Fix the bugs from above, but still use the user min cov for n_base.
+            auto const avg_n = n_base( settings.min_read_depth, poolsize );
+            alphastar = alpha_star( avg_n );
+            betastar  = beta_star( avg_n );
+            break;
         }
         case TajimaDenominatorPolicy::kWithPopoolationBugs:
         {
@@ -569,28 +580,17 @@ double tajima_d_pool_denominator( // get_ddivisor
             betastar  = alphastar;
             break;
         }
-        case TajimaDenominatorPolicy::kWithoutPopoolationBugs:
-        {
-            // Fix the bugs from above, but still use the user min cov for n_base.
-            auto const avg_n = n_base( settings.min_read_depth, poolsize );
-            alphastar = alpha_star( avg_n );
-            betastar  = beta_star( avg_n );
-            break;
-        }
-        case TajimaDenominatorPolicy::kEmpiricalMinReadDepth:
-        {
-            // Use the emprical minimum read depth to get the value.
-            auto const avg_n = n_base( empirical_min_read_depth, poolsize );
-            alphastar = alpha_star( avg_n );
-            betastar  = beta_star( avg_n );
-            break;
-        }
         case TajimaDenominatorPolicy::kPoolsize:
         {
             // Use the pool size instead of anything n_base based.
             alphastar = alpha_star( poolsize );
             betastar  = beta_star( poolsize );
             break;
+        }
+        case TajimaDenominatorPolicy::kUncorrected:
+        {
+            // No correction at all.
+            return 1.0;
         }
         default: {
             throw std::invalid_argument( "Invalid enum value for TajimaDenominatorPolicy" );

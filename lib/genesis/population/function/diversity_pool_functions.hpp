@@ -54,29 +54,38 @@ namespace population {
 
 /**
  * @brief Select how to compute the denominator for the pool sequencing correction of Tajima's D.
+ *
+ * This boils down to which read dept to use for computing the expected number of individuals
+ * sequenced, or, as an alternative, drop that term completely, and use a different strategy.
  */
 enum class TajimaDenominatorPolicy
 {
     /**
-     * @brief Do not correct Tajima's D at all.
+     * @brief Use the empirical minimum read depth found in each window to compute the expected
+     * number of individuals in n_base().
      *
-     * Deriving a valid correction for Tajima's D in the context of pool sequencing is very tricky,
-     * and coming up with estimators that correct for all biases and noises is hard.
-     * It involves knowing about the covariance of frequencies across sites, which again
-     * has a demographic component (How has the randomness from pool sequencing affected the
-     * sites?), and a pool sequencing component (How does the randomness in the allele
-     * frequencies at the sites vary?), which seems rather complicated to derive and use.
-     *
-     * So instead, we here simply use _no_ correction at all. Hence, values cannot be interpreted
-     * absolutely, and are not comparable to values of classic (non-pool-sequence) Tajima's D.
-     * Still, knowing their sign, and comparing them relative to each other across windows,
-     * might yield valuable insight.
+     * This is a conservative estimator that in our assessment makes more sense to use than
+     * the user-provided minimum read depth setting (which is what PoPoolation does).
+     * We recommend this most of the time.
      */
-    kUncorrected,
+    kEmpiricalMinReadDepth,
+
+    /**
+     * @brief Fix the bugs of the original PoPoolation, but still use their way of computing
+     * the empirical pool size via n_base() using the user-provided minimum read depth.
+     *
+     * With the bugs of PoPoolation fixed, they still use the user-provided min_read_depth
+     * (see DiversityPoolSettings) as input for the n_base() function to compute the empirical pool
+     * size. We think that this is not ideal, and gives wrong estimates of the number of individuals
+     * sequenced. Still, we offer this behaviour here, as a means to compute what we think
+     * PoPoolation _intended_ to compute without their more obvious bugs.
+     */
+    kProvidedMinReadDepth,
 
     /**
      * @brief Replicate the original behaviour of PoPoolation <= 1.2.2.
      *
+     * The idea is the same as in kProvidedMinReadDepth, but re-introduces the bugs of PoPoolation.
      * There are three major bugs (as far as we are aware) in the PoPoolation implementation
      * up until (and including) version 1.2.2:
      *
@@ -92,34 +101,31 @@ enum class TajimaDenominatorPolicy
     kWithPopoolationBugs,
 
     /**
-     * @brief Fix the bugs of the original PoPoolation, but still use their way of computing
-     * the empirical pool size via n_base().
-     *
-     * With the two bugs of PoPoolation fixed, they still use the user-provided min_read_depth
-     * (see DiversityPoolSettings) as input for the n_base() function to compute the empirical pool
-     * size. We think that this is not ideal, and gives wrong estimates of the number of individuals
-     * sequenced. Still, we offer this behaviour here, as a means to compute what we think
-     * PoPoolation _intended_ to compute without their more obvious bugs.
-     */
-    kWithoutPopoolationBugs,
-
-    /**
-     * @brief Use the empirical minimum read depth found in each window for the empirical pool size
-     * instead of n_base().
-     *
-     * This is a conservative estimator that in our assessment makes more sense to use than
-     * the user-provided minimum read depth setting.
-     */
-    kEmpiricalMinReadDepth,
-
-    /**
      * @brief Instead of using n_base() to obtain the number of individuals sequenced (empirical
      * pool size), simply use the poolsize directly.
      *
      * This is another estimator, that does not use n_base() at all, and just assumes that
-     * the number of individuals sequenced is equal to the pool size.
+     * the number of individuals sequenced is equal to the pool size. This is good under high
+     * read depths.
      */
-    kPoolsize
+    kPoolsize,
+
+    /**
+     * @brief Do not correct Tajima's D at all.
+     *
+     * Deriving a valid correction for Tajima's D in the context of pool sequencing is very tricky,
+     * and coming up with estimators that correct for all biases and noises is hard.
+     * It involves knowing about the covariance of frequencies across sites, which again
+     * has a demographic component (How has the randomness from pool sequencing affected the
+     * sites?), and a pool sequencing component (How does the randomness in the allele
+     * frequencies at the sites vary?), which seems rather complicated to derive and use.
+     *
+     * So instead, we here simply use _no_ correction at all. Hence, values cannot be interpreted
+     * absolutely, and are not comparable to values of classic (non-pool-sequence) Tajima's D.
+     * Still, knowing their sign, and comparing them relative to each other across windows,
+     * might yield valuable insight.
+     */
+    kUncorrected
 };
 
 /**
