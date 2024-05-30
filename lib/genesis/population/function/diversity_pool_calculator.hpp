@@ -299,14 +299,18 @@ public:
         }
         if( enable_tajima_d_ ) {
             // Yet another problem in PoPoolation: For the |W| window size in the denominator
-            // of Tajima's D, they use the number of SNPs in that window, instead of the actual
-            // denominator, which usually should be the number of _all_ valid positions (the ones
-            // that passed all filters, including any invariant positions).
-            // We hence have to make a distinction here to fix that.
-            auto tajimas_window_avg_denom = window_avg_denom;
-            if( settings_.tajima_denominator_policy == TajimaDenominatorPolicy::kWithPopoolationBugs ) {
-                tajimas_window_avg_denom = filter_stats_[SampleCountsFilterTag::kPassed];
-            }
+            // of Tajima's D, they use the number of SNPs in that window, which might or might not
+            // be correct - we will have to figure this out. There is a chance that this is correct,
+            // but it could also be that we want to use the the number of _all_ valid positions
+            // (the ones that passed all filters, including any invariant positions) here again.
+            // For now, we follow their approach, but might leave this to fix later.
+            double const tajimas_window_avg_denom = filter_stats_[SampleCountsFilterTag::kPassed];
+
+            // Potential fix:
+            // auto tajimas_window_avg_denom = window_avg_denom;
+            // if( settings_.tajima_denominator_policy == TajimaDenominatorPolicy::kWithPopoolationBugs ) {
+            //     tajimas_window_avg_denom = filter_stats_[SampleCountsFilterTag::kPassed];
+            // }
 
             result.tajima_d = tajima_d_pool(
                 settings_,
