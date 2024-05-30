@@ -80,14 +80,26 @@ VariantInputStream make_variant_input_stream_from_variant_parallel_input_stream(
 // =================================================================================================
 
 /**
+ * @brief Create a VariantInputStream that wraps a VariantGaplessInputStream.
+ *
+ * See also make_variant_gapless_input_stream()
+ */
+VariantInputStream make_variant_input_stream_from_variant_gapless_input_stream(
+    VariantGaplessInputStream const& gapless_input
+);
+
+/**
  * @brief Create a VariantGaplessInputStream from a VariantInputStream @p input, and wrap it
  * agian in a VariantInputStream.
  *
  * See also make_variant_input_stream_from_variant_gapless_input_stream()
  */
-VariantInputStream make_variant_gapless_input_stream(
+inline VariantInputStream make_variant_gapless_input_stream(
     VariantInputStream const& input
-);
+) {
+    auto gapless_input = VariantGaplessInputStream( input );
+    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
+}
 
 /**
  * @copybrief make_variant_gapless_input_stream( VariantInputStream const& )
@@ -96,10 +108,14 @@ VariantInputStream make_variant_gapless_input_stream(
  *
  * See also make_variant_input_stream_from_variant_gapless_input_stream()
  */
-VariantInputStream make_variant_gapless_input_stream(
+inline VariantInputStream make_variant_gapless_input_stream(
     VariantInputStream const& input,
     std::shared_ptr<::genesis::sequence::ReferenceGenome> ref_genome
-);
+) {
+    auto gapless_input = VariantGaplessInputStream( input );
+    gapless_input.reference_genome( ref_genome );
+    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
+}
 
 /**
  * @copybrief make_variant_gapless_input_stream( VariantInputStream const& )
@@ -108,10 +124,30 @@ VariantInputStream make_variant_gapless_input_stream(
  *
  * See also make_variant_input_stream_from_variant_gapless_input_stream()
  */
-VariantInputStream make_variant_gapless_input_stream(
+inline VariantInputStream make_variant_gapless_input_stream(
     VariantInputStream const& input,
     std::shared_ptr<::genesis::sequence::SequenceDict> seq_dict
-);
+) {
+    auto gapless_input = VariantGaplessInputStream( input );
+    gapless_input.sequence_dict( seq_dict );
+    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
+}
+
+/**
+ * @copybrief make_variant_gapless_input_stream( VariantInputStream const& )
+ *
+ * This overload additionally sets a genome locus set to filter the positions.
+ *
+ * See also make_variant_input_stream_from_variant_gapless_input_stream()
+ */
+inline VariantInputStream make_variant_gapless_input_stream(
+    VariantInputStream const& input,
+    std::shared_ptr<GenomeLocusSet> genome_locus_set
+) {
+    auto gapless_input = VariantGaplessInputStream( input );
+    gapless_input.genome_locus_set( genome_locus_set );
+    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
+}
 
 /**
  * @copybrief make_variant_gapless_input_stream( VariantInputStream const& )
@@ -121,11 +157,16 @@ VariantInputStream make_variant_gapless_input_stream(
  *
  * See also make_variant_input_stream_from_variant_gapless_input_stream()
  */
-VariantInputStream make_variant_gapless_input_stream(
+inline VariantInputStream make_variant_gapless_input_stream(
     VariantInputStream const& input,
     std::shared_ptr<::genesis::sequence::ReferenceGenome> ref_genome,
     std::shared_ptr<GenomeLocusSet> genome_locus_set
-);
+) {
+    auto gapless_input = VariantGaplessInputStream( input );
+    gapless_input.reference_genome( ref_genome );
+    gapless_input.genome_locus_set( genome_locus_set );
+    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
+}
 
 /**
  * @copybrief make_variant_gapless_input_stream( VariantInputStream const& )
@@ -135,20 +176,16 @@ VariantInputStream make_variant_gapless_input_stream(
  *
  * See also make_variant_input_stream_from_variant_gapless_input_stream()
  */
-VariantInputStream make_variant_gapless_input_stream(
+inline VariantInputStream make_variant_gapless_input_stream(
     VariantInputStream const& input,
     std::shared_ptr<::genesis::sequence::SequenceDict> seq_dict,
     std::shared_ptr<GenomeLocusSet> genome_locus_set
-);
-
-/**
- * @brief Create a VariantInputStream that wraps a VariantGaplessInputStream.
- *
- * See also make_variant_gapless_input_stream()
- */
-VariantInputStream make_variant_input_stream_from_variant_gapless_input_stream(
-    VariantGaplessInputStream const& gapless_input
-);
+) {
+    auto gapless_input = VariantGaplessInputStream( input );
+    gapless_input.sequence_dict( seq_dict );
+    gapless_input.genome_locus_set( genome_locus_set );
+    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
+}
 
 // =================================================================================================
 //     Merging Input Stream

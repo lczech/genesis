@@ -118,53 +118,6 @@ VariantInputStream make_variant_input_stream_from_variant_parallel_input_stream(
 //     Variant Gapless Input Stream
 // =================================================================================================
 
-VariantInputStream make_variant_gapless_input_stream(
-    VariantInputStream const& input
-) {
-    auto gapless_input = VariantGaplessInputStream( input );
-    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
-}
-
-VariantInputStream make_variant_gapless_input_stream(
-    VariantInputStream const& input,
-    std::shared_ptr<::genesis::sequence::ReferenceGenome> ref_genome
-) {
-    auto gapless_input = VariantGaplessInputStream( input );
-    gapless_input.reference_genome( ref_genome );
-    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
-}
-
-VariantInputStream make_variant_gapless_input_stream(
-    VariantInputStream const& input,
-    std::shared_ptr<::genesis::sequence::SequenceDict> seq_dict
-) {
-    auto gapless_input = VariantGaplessInputStream( input );
-    gapless_input.sequence_dict( seq_dict );
-    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
-}
-
-VariantInputStream make_variant_gapless_input_stream(
-    VariantInputStream const& input,
-    std::shared_ptr<::genesis::sequence::ReferenceGenome> ref_genome,
-    std::shared_ptr<GenomeLocusSet> genome_locus_set
-) {
-    auto gapless_input = VariantGaplessInputStream( input );
-    gapless_input.reference_genome( ref_genome );
-    gapless_input.genome_locus_set( genome_locus_set );
-    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
-}
-
-VariantInputStream make_variant_gapless_input_stream(
-    VariantInputStream const& input,
-    std::shared_ptr<::genesis::sequence::SequenceDict> seq_dict,
-    std::shared_ptr<GenomeLocusSet> genome_locus_set
-) {
-    auto gapless_input = VariantGaplessInputStream( input );
-    gapless_input.sequence_dict( seq_dict );
-    gapless_input.genome_locus_set( genome_locus_set );
-    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
-}
-
 VariantInputStream make_variant_input_stream_from_variant_gapless_input_stream(
     VariantGaplessInputStream const& gapless_input
 ) {
