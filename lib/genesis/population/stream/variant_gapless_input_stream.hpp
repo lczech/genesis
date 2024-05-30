@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -34,6 +34,7 @@
 #include "genesis/population/function/functions.hpp"
 #include "genesis/population/function/genome_locus.hpp"
 #include "genesis/population/genome_locus.hpp"
+#include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/stream/variant_input_stream.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/sequence/reference_genome.hpp"
@@ -73,6 +74,17 @@ namespace population {
  * is set to `true` (which it is by default), we also iterate any chromosomes that appear in the
  * reference but not in the input data at all (of course, all of them will then only contain missing
  * data). This makes sure that the full reference is iterated over.
+ *
+ * In some cases, the Variant stream is intended to be subset to particular genomic regions.
+ * For this, use genome_locus_set() to set a list of the regions to subset to. Note though that
+ * our current implementation here is slightly inefficient, as we here still first attempt to fill
+ * in the gaps in the input to some degree, only to then throw them out again if they are to be
+ * removed by that region filter. This is unfortunate, but a more efficient implementation
+ * that just skips all those regions in the first place turned out to be quite involved due to the
+ * interactions between the data stream, reference dict, and region filters, and we did not attempt
+ * to make this work for now. The current implementation is however still slightly more efficient
+ * than applying the region filter afterwards, as we are at least able to skip part of the process
+ * for the filtered positions.
  *
  * The iterator is useful in siutations where input is expected to have missing data, so that it's
  * skipped by its iterator, but some external algorithm or processing wants to use all the positions.
@@ -296,6 +308,14 @@ public:
         void check_input_iterator_();
 
         /**
+         * @brief Check if the curret locus is covered by the genome locus set.
+         *
+         * This returns `false` only if a genome locus set filter is given, and does not cover
+         * the given position. Without a genome locus set filter, this always returns `true`.
+         */
+        bool current_locus_is_covered_by_genome_locus_set_();
+
+        /**
          * @brief Get the Variant at the current position.
          *
          * Either points to the input iterator Variant, or our missing variant.
@@ -350,10 +370,11 @@ public:
         // as they are themselves able to tell us if they are still good (via their operator bool).
         VariantInputStream::Iterator iterator_;
 
-        // Cache for the ref genome and seq dict sequences, so that we do not have to find them
-        // on every iteration here.
+        // Cache for the ref genome and seq dict sequences, as well as the genome locus set,
+        // so that we do not have to find them on every iteration here.
         ::genesis::sequence::ReferenceGenome::const_iterator ref_genome_it_;
         ::genesis::sequence::SequenceDict::const_iterator seq_dict_it_;
+        ::genesis::population::GenomeLocusSet::const_iterator genome_locus_set_it_;
 
         // We keep track of which chromosomes we have seen yet, in order to avoid errors due to
         // unordered input, and also to know which chromosomes to process later for the case that
@@ -535,6 +556,48 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Get the currently set GenomeLocusSet for subsetting the iteration positions.
+     */
+    std::shared_ptr<GenomeLocusSet> genome_locus_set() const
+    {
+        return genome_locus_set_;
+    }
+
+    /**
+     * @brief Set a genomic locus set for subsetting the iteration positions.
+     *
+     * Only positions listed in the povided set are iterated. This has the same effect as filtering
+     * out any positions that are not covered in the provided set _after_ applying this gapless
+     * iterator. That means, any gaps of uncovered positions in the given genome locus set will
+     * still be gaps in the iteration here - they are not filled in. The main purpose of this is
+     * hence to filter for larger regions, and not for individual positions such as SNPs
+     * (in that case, doing a gapless iteration on top of SNP filtering wouldn't make sense in the
+     * first place anyway).
+     *
+     * This is recommended in order to avoid unnecessary computations when subsetting the
+     * Variant stream to certain chromosomes or regions. If this was not used, the following would
+     * happen: On the one hand, if the input stream was already subset to some regions, then this
+     * gapless iterator would re-introduce any positions that were previously removed, but with
+     * missing data, which is likely not what we want. On the other hand, if the subsetting to
+     * regions was done after using this gapless iterator, a lot of uncessary positions would first
+     * be iterated, only to then be removed again if they are not in the required regions.
+     *
+     * So instead, setting the region filter here already makes sure that we only iterate the
+     * regions and positions that are actually needed.
+     */
+    self_type& genome_locus_set( std::shared_ptr<GenomeLocusSet> value )
+    {
+        if( started_ ) {
+            throw std::runtime_error(
+                "VariantGaplessInputStream::genome_locus_set() cannot be called "
+                "once the iteration has been started with begin()."
+            );
+        }
+        genome_locus_set_ = value;
+        return *this;
+    }
+
     // -------------------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------------------
@@ -550,6 +613,7 @@ private:
     // Also, we here subset to regions if needed, to avoid unnecessary work later.
     std::shared_ptr<::genesis::sequence::ReferenceGenome> ref_genome_;
     std::shared_ptr<::genesis::sequence::SequenceDict> seq_dict_;
+    std::shared_ptr<GenomeLocusSet> genome_locus_set_;
 
 };
 

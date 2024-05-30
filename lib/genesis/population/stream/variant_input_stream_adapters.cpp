@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -140,6 +140,28 @@ VariantInputStream make_variant_gapless_input_stream(
 ) {
     auto gapless_input = VariantGaplessInputStream( input );
     gapless_input.sequence_dict( seq_dict );
+    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
+}
+
+VariantInputStream make_variant_gapless_input_stream(
+    VariantInputStream const& input,
+    std::shared_ptr<::genesis::sequence::ReferenceGenome> ref_genome,
+    std::shared_ptr<GenomeLocusSet> genome_locus_set
+) {
+    auto gapless_input = VariantGaplessInputStream( input );
+    gapless_input.reference_genome( ref_genome );
+    gapless_input.genome_locus_set( genome_locus_set );
+    return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
+}
+
+VariantInputStream make_variant_gapless_input_stream(
+    VariantInputStream const& input,
+    std::shared_ptr<::genesis::sequence::SequenceDict> seq_dict,
+    std::shared_ptr<GenomeLocusSet> genome_locus_set
+) {
+    auto gapless_input = VariantGaplessInputStream( input );
+    gapless_input.sequence_dict( seq_dict );
+    gapless_input.genome_locus_set( genome_locus_set );
     return make_variant_input_stream_from_variant_gapless_input_stream( gapless_input );
 }
 

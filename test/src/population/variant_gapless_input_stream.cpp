@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -83,13 +83,15 @@ Variant test_gapless_input_stream_make_variant_( std::string const& chr, size_t 
 void test_gapless_input_stream_basic_(
     std::vector<Variant> const& vars,
     size_t exp_positions,
-    std::shared_ptr<ReferenceGenome> ref_genome = std::shared_ptr<ReferenceGenome>{}
+    std::shared_ptr<ReferenceGenome> ref_genome = std::shared_ptr<ReferenceGenome>{},
+    std::shared_ptr<GenomeLocusSet> genome_locus_set = std::shared_ptr<GenomeLocusSet>{}
 ) {
     // Make the basis iterators that we want. The underlying data is coming from the given vector;
     // then, wrap this in the gapless iterator that we want to test.
     auto var_it = make_variant_input_stream_from_vector( vars );
     auto gapless_it = VariantGaplessInputStream( var_it );
     gapless_it.reference_genome( ref_genome );
+    gapless_it.genome_locus_set( genome_locus_set );
 
     // Now we could already iterate over the gapless iterator with
     //     for( auto const& var : gapless_it )
@@ -97,9 +99,11 @@ void test_gapless_input_stream_basic_(
     auto lambda_it = make_variant_input_stream_from_variant_gapless_input_stream( gapless_it );
 
     // Simply test that we get the expected number of variants in the iteration.
+    // LOG_DBG << "=====";
     size_t cnt = 0;
     for( auto const& var : lambda_it ) {
         (void) var;
+        // LOG_DBG << var.chromosome << ":" << var.position;
         ++cnt;
     }
     EXPECT_EQ( exp_positions, cnt );
@@ -107,6 +111,10 @@ void test_gapless_input_stream_basic_(
 
 TEST( GaplessInputStream, Basics )
 {
+    // ----------------------------------------------
+    //     plain
+    // ----------------------------------------------
+
     // Empty input
     {
         std::vector<Variant> vars;
@@ -127,6 +135,10 @@ TEST( GaplessInputStream, Basics )
         test_gapless_input_stream_basic_( vars, 2 );
     }
 
+    // ----------------------------------------------
+    //     ref genome
+    // ----------------------------------------------
+
     // Make a ref genome to be used.
     auto ref_genome = std::make_shared<ReferenceGenome>();
     ref_genome->add( Sequence( "A", "ACGT" ));
@@ -143,6 +155,67 @@ TEST( GaplessInputStream, Basics )
         std::vector<Variant> vars;
         vars.push_back( test_gapless_input_stream_make_variant_( "A", 2 ));
         test_gapless_input_stream_basic_( vars, 8, ref_genome );
+    }
+
+    // ----------------------------------------------
+    //     locus set
+    // ----------------------------------------------
+
+    // Make genome locus sets as a filter for the positions.
+    auto locus_set_1 = std::make_shared<GenomeLocusSet>();
+    locus_set_1->add( "A", 1 );
+    auto locus_set_2_3 = std::make_shared<GenomeLocusSet>();
+    locus_set_2_3->add( "A", 2, 3 );
+
+    // Empty input, but locus set
+    {
+        std::vector<Variant> vars;
+        test_gapless_input_stream_basic_( vars, 0, {}, locus_set_1 );
+    }
+
+    // Single at first position, covered
+    {
+        std::vector<Variant> vars;
+        vars.push_back( test_gapless_input_stream_make_variant_( "A", 1 ));
+        test_gapless_input_stream_basic_( vars, 1, {}, locus_set_1 );
+    }
+
+    // Single at first position, not covered
+    {
+        std::vector<Variant> vars;
+        vars.push_back( test_gapless_input_stream_make_variant_( "A", 1 ));
+        test_gapless_input_stream_basic_( vars, 0, {}, locus_set_2_3 );
+    }
+
+    // Single at second position, covered
+    {
+        std::vector<Variant> vars;
+        vars.push_back( test_gapless_input_stream_make_variant_( "A", 2 ));
+        test_gapless_input_stream_basic_( vars, 1, {}, locus_set_2_3 );
+    }
+
+    // Single at second position, not covered
+    {
+        std::vector<Variant> vars;
+        vars.push_back( test_gapless_input_stream_make_variant_( "A", 2 ));
+        test_gapless_input_stream_basic_( vars, 1, {}, locus_set_1 );
+    }
+
+    // ----------------------------------------------
+    //     ref genome + locus set
+    // ----------------------------------------------
+
+    // Empty input, but ref genome and locus set
+    {
+        std::vector<Variant> vars;
+        test_gapless_input_stream_basic_( vars, 2, ref_genome, locus_set_2_3 );
+    }
+
+    // Ref genome with extra chromosomes.
+    {
+        std::vector<Variant> vars;
+        vars.push_back( test_gapless_input_stream_make_variant_( "A", 2 ));
+        test_gapless_input_stream_basic_( vars, 2, ref_genome, locus_set_2_3 );
     }
 }
 
@@ -207,8 +280,23 @@ std::shared_ptr<SequenceDict> test_gapless_input_stream_make_sequence_dict_(
     return result;
 }
 
-std::map<std::string, Bitvector> test_gapless_input_stream_make_variant_bitvectors_(
-    size_t num_reg_chrs
+// std::shared_ptr<GenomeLocusSet> test_gapless_input_stream_make_locus_set_(
+//     std::map<std::string, Bitvector> const& bitvectors
+// ) {
+//     auto locus_set = std::make_shared<GenomeLocusSet>();
+//     for( auto const& bv : bitvectors ) {
+//         for( size_t i = 0; i < bv.second.size(); ++i ) {
+//             if( bv.second.get(i) ) {
+//                 // 1-based positions here.
+//                 locus_set->add( bv.first, i + 1 );
+//             }
+//         }
+//     }
+//     return result;
+// }
+
+std::map<std::string, Bitvector> test_gapless_input_stream_make_ramdom_bitvectors_(
+    size_t num_chrs
 ) {
     // Make random bitvectors for each chromosome, with random positions being set
     // that will indicate wheather we generate a variant there, or leave it missing.
@@ -216,7 +304,7 @@ std::map<std::string, Bitvector> test_gapless_input_stream_make_variant_bitvecto
     // Having these bitvectors makes it easy later on to test that the right positions
     // are appearing in the iterator.
     std::map<std::string, Bitvector> result;
-    for( size_t i = 0; i < num_reg_chrs; ++i ) {
+    for( size_t i = 0; i < num_chrs; ++i ) {
         auto bv = Bitvector( 10 );
         auto const filled = permuted_congruential_generator( 1, 10 );
         auto const selection = select_without_replacement( filled, 10 );
@@ -306,7 +394,7 @@ void test_gapless_input_stream_random_()
     // Now make variants for all chrs that we want. We do this via a set of bitvectors,
     // randomly set and indicating for which positions we want to have varians, with all
     // others missing, so that we can actually test the behavior of the iterator.
-    auto const var_bvs = test_gapless_input_stream_make_variant_bitvectors_( num_reg_chrs );
+    auto const var_bvs = test_gapless_input_stream_make_ramdom_bitvectors_( num_reg_chrs );
     auto const vars = test_gapless_input_stream_make_variants_( var_bvs, ref_genome );
 
     // Debug output

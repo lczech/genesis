@@ -100,7 +100,18 @@ VariantGaplessInputStream::Iterator::Iterator( VariantGaplessInputStream* parent
     // chromosome, and we can start the processing.
     assert( current_locus_.chromosome != "" && current_locus_.position != 0 );
     start_chromosome_();
-    prepare_current_variant_();
+
+    // We have just initialized the chrosome, including all cache pointer for the given references.
+    // We now use that to check that the position where we started is actually covered by the
+    // genome locus set filter. If not, we move on until we find a covered position.
+    // This is inefficient, as we are looping over gaps and data that might be filtered out
+    // immediately again. But it is good enough for now, and the use case is pretty special anyway.
+    if( current_locus_is_covered_by_genome_locus_set_() ) {
+        prepare_current_variant_();
+    } else {
+        // The advance function will loop until it finds a covered locus.
+        advance_();
+    }
 }
 
 // =================================================================================================
@@ -116,22 +127,30 @@ void VariantGaplessInputStream::Iterator::advance_()
     // Some basic checks.
     assert( parent_ );
 
-    // Move the current_locus_, and potentially the input iterator,
-    // to the next position we want to process.
-    advance_current_locus_();
+    // We need to loop until we find a locus that is actually covered by the genome locus set.
+    // If that is not given anyway, this loop will immediately exit. But in case that we have
+    // a genome locus set filter, for simplicty, we have implemented this as a loop here.
+    // At least, we only do the work of preparing the variant at the very end, once we know
+    // that we want to visit it.
+    do {
+        // Move the current_locus_, and potentially the input iterator,
+        // to the next position we want to process.
+        advance_current_locus_();
 
-    // If there is no next position, we are done.
-    if( current_locus_.empty() ) {
-        parent_ = nullptr;
-        return;
-    }
-    assert( current_locus_.chromosome != "" && current_locus_.position != 0 );
+        // If there is no next position, we are done.
+        if( current_locus_.empty() ) {
+            parent_ = nullptr;
+            return;
+        }
+        assert( current_locus_.chromosome != "" && current_locus_.position != 0 );
 
-    // If the next position is the start of a chromosome,
-    // we need to set it up correctly first.
-    if( current_locus_.position == 1 ) {
-        start_chromosome_();
-    }
+        // If the next position is the start of a chromosome,
+        // we need to set it up correctly first.
+        if( current_locus_.position == 1 ) {
+            start_chromosome_();
+        }
+    } while( ! current_locus_is_covered_by_genome_locus_set_() );
+
 
     // Now we have everything to populate our variant as needed.
     prepare_current_variant_();
@@ -182,6 +201,15 @@ void VariantGaplessInputStream::Iterator::start_chromosome_()
                 "in the input data, which does not occur in the sequence dictionary."
             );
         }
+    }
+
+    // Lastly, for the genome locus set, we do the same check, but slightly different:
+    // The set might not contain chromosomes that are filtered out completely anyway,
+    // and in that case we do not want to fail, but just indicate that be setting the
+    // cache iterator to the end. That is done by the find function anyway,
+    // so no further steps or checks are needed in that case.
+    if( parent_->genome_locus_set_ ) {
+        genome_locus_set_it_ = parent_->genome_locus_set_->find( chr );
     }
 }
 
@@ -517,6 +545,31 @@ void VariantGaplessInputStream::Iterator::check_input_iterator_()
             "with empty chromosome name or zero position."
         );
     }
+}
+
+// -------------------------------------------------------------------------
+//     current_locus_is_covered_by_genome_locus_set_
+// -------------------------------------------------------------------------
+
+bool VariantGaplessInputStream::Iterator::current_locus_is_covered_by_genome_locus_set_()
+{
+    assert( parent_ );
+
+    // Without a given genome locus set, we always consider this position to be covered.
+    if( ! parent_->genome_locus_set_ ) {
+        return true;
+    }
+
+    // If we are here, we have a genome locus set filter given.
+    // If the chromosome is not in the set, that means that the position is not covered.
+    if( genome_locus_set_it_ == parent_->genome_locus_set_->end() ) {
+        return false;
+    }
+
+    // If it contains the given chromosome, we use that to determine if the locus is covered.
+    // We assume that the iterator is at the current chromosome.
+    assert( genome_locus_set_it_->first == current_locus_.chromosome );
+    return parent_->genome_locus_set_->is_covered( genome_locus_set_it_, current_locus_.position );
 }
 
 } // namespace population
