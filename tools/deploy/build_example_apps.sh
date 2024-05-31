@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+# Copyright (C) 2014-2024 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -82,7 +82,7 @@ for filename in ${file_paths[@]}; do
 done
 
 # Run the incremental build process.
-make update
+make update -j 8
 
 # Cleanup: delete all copied files again.
 for basename in ${file_names[@]}; do
