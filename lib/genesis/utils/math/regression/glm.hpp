@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,13 +35,14 @@
 #include "genesis/utils/math/regression/family.hpp"
 #include "genesis/utils/math/regression/link.hpp"
 
+#include <utility>
 #include <vector>
 
 namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Generalized Linear Model
+//     GLM Data Structures
 // =================================================================================================
 
 struct GlmExtras
@@ -72,7 +73,7 @@ struct GlmExtras
      * `mean_deviance = true`, we divide these values by the number of data points,
      * that is, we calculate their mean.
      */
-    bool         mean_deviance = false;
+    bool mean_deviance = false;
 };
 
 struct GlmControl
@@ -143,6 +144,8 @@ struct GlmOutput
 
     /**
      * @brief Vector of parameter estimates (in terms of basis matrix, Xb) (size `M`).
+     *
+     * Use glm_estimate_betas() to transform this back into the basis of the original predictors.
      */
     std::vector<double> betaQ;
 
@@ -152,9 +155,28 @@ struct GlmOutput
      */
     std::vector<double> tri;
 
+    /**
+     * @brief Null deviance.
+     *
+     * Goodness of fit of a model with only the intercept (no predictors) compared to a
+     * perfect model, indicating how well the model with no predictors explains the variability
+     * in the response variable.
+     */
     double null_deviance = 0.0;
+
+    /**
+     * @brief Deviance.
+     *
+     * Difference in goodness of fit between the fitted model and the perfect model,
+     * quantifying how well the model with predictors explains the variability in the response
+     * variable compared to the null model.
+     */
     double deviance = 0.0;
 };
+
+// =================================================================================================
+//     GLM Fit
+// =================================================================================================
 
 /**
  * @brief Fit a Generalized Linear Model (GLM).
@@ -198,6 +220,107 @@ GlmOutput glm_fit(
     std::vector<double> const& y_response,
     GlmExtras const&           extras = {},
     GlmControl const&          control = {}
+);
+
+// =================================================================================================
+//     GLM Output
+// =================================================================================================
+
+/**
+ * @brief Compute the beta estimates resulting from a glm_fit().
+ *
+ * The GlmOutput::betaQ result expresses the betas in terms of the GlmOutput::Xb basis space,
+ * which is an orthogonal representaton of the original predictor matrix. To turn this into betas
+ * expressed in the original predictor column space, this function inverts the triangular
+ * transformation matrix GlmOutput::tri, and uses this to transform the betaQ into betas.
+ */
+std::vector<double> glm_estimate_betas( GlmOutput const& output );
+
+// /**
+//  * @brief Obtain beta estimates and variance covariance matrix of estimates from output the output
+//  * of glm_fit().
+//  *
+//  * The resulting variance covariance matrix is a packed symmetric matrix with the size of the
+//  * number of predictor variables (which is the size of the betas).
+//  * Robust variance is calculated if the "meat" matrix for the information sandwich is supplied.
+//  */
+// std::pair<std::vector<double>, std::vector<double>> glm_estimate_betas_and_var_covar(
+//     GlmOutput const& output,
+//     std::vector<double> const& meat = std::vector<double>{}
+// );
+
+/**
+ * @brief Compute the intercept resulting from a glm_fit().
+ *
+ * This takes the input and output of the glm_fit(), as well as the list of @p betas in the original
+ * predictor column space, which is computed by glm_estimate_betas().
+ *
+ * Assumes identity link function such as from glm_link_identity(). See the other overload of the
+ * function to specify the link function.
+ */
+double glm_estimate_intercept(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmOutput const&           output,
+    std::vector<double> const& betas
+);
+
+/**
+ * @brief Compute the intercept resulting from a glm_fit().
+ *
+ * Overload where the link function can be specified, for links other than identity.
+ *
+ * Note that this function computes the intercept in the original space of the predictors and
+ * response. For instance, assuming the data has been generated like this:
+ *
+ *     beta_0 = 0.5
+ *     beta_1 = 0.3
+ *     X = np.linspace(start=1, stop=10, num=10)
+ *     Y = np.exp(beta_0 + beta_1 * X)
+ *
+ * and the GLM has accordingly been run with glm_family_poisson()/glm_link_log(), that is, with a
+ * log link. Then, this function here computes the intercept as originally specified, i.e., `0.5`.
+ */
+double glm_estimate_intercept(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmLink const&             link,
+    GlmOutput const&           output,
+    std::vector<double> const& betas
+);
+
+/**
+ * @brief Compute the model coefficients of a glm_fit().
+ *
+ * This simply calls glm_estimate_intercept() and glm_estimate_betas(), and stores the results
+ * in a vector, i.e., the intercept, followed by the beta coefficients. This is hence a
+ * convenience function for cases where all coefficients are needed. See these two functions
+ * for specifics on the values that they are computing.
+ *
+ * Assumes identity link function such as from glm_link_identity(). See the other overload of the
+ * function to specify the link function.
+ */
+std::vector<double> glm_coefficients(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmOutput const&           output
+);
+
+/**
+ * @brief Compute the model coefficients of a glm_fit().
+ *
+ * Overload where the link function can be specified, for links other than identity.
+ *
+ * Note that the functions glm_estimate_intercept() and glm_estimate_betas() compute their
+ * values in the original space of the predictors and response, and _not_ on the link scale.
+ * This is particularly important when using a link function other than identity. See
+ * glm_estimate_intercept() for an example of the value computed.
+ */
+std::vector<double> glm_coefficients(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmLink const&             link,
+    GlmOutput const&           output
 );
 
 } // namespace utils

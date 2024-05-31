@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2022 Lucas Czech
+# Copyright (C) 2014-2024 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ ENDIF()
 # in order to only compile the sources once, but have both lib flavors available.
 add_library( genesis_lib_obj OBJECT ${genesis_lib_sources} )
 
-# Link against any external libraries, e.g. Pthreads.
+# Link against any external libraries, e.g. htslib.
 target_link_libraries( genesis_lib_obj PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES} )
 target_compile_options( genesis_lib_obj PRIVATE -fPIC )
 target_include_directories( genesis_lib_obj PUBLIC ${PROJECT_SOURCE_DIR}/lib )

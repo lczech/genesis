@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@
 #include "genesis/utils/math/ranking.hpp"
 #include "genesis/utils/math/statistics.hpp"
 
-#include<limits>
+#include <limits>
 
 using namespace genesis::utils;
 
@@ -349,40 +349,6 @@ TEST( Math, RankingUnsorted )
         std::vector<double>({ 4.5, 6.0, 8.0, 1.5, 3.0, 4.5, 8.0, 8.0, 1.5 }),
         ranking_fractional({ 3.0, 4.0, 5.0, 1.0, 2.0, 3.0, 5.0, 5.0, 1.0 })
     );
-}
-
-TEST( Math, SpearmansRankCorrelationCoeffcient )
-{
-    // Example from https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient
-    auto iq = std::vector<double>({
-        106, 86, 100, 101, 99, 103, 97, 113, 112, 110
-    });
-    auto tv = std::vector<double>({
-        7, 0, 27, 50, 28, 29, 20, 12, 6, 17
-    });
-    EXPECT_DOUBLE_EQ( -0.17575757575757575, spearmans_rank_correlation_coefficient( iq, tv ) );
-
-    // Add some nan values to it. Nothing should change.
-    auto iq2 = std::vector<double>({
-        106, 86, (1.0/0.0), 100, 101, 99, 103, 97, 113, 112, 110, (1.0/0.0)
-    });
-    auto tv2 = std::vector<double>({
-        7, 0, 0, 27, 50, 28, 29, 20, 12, 6, 17, 100
-    });
-    EXPECT_DOUBLE_EQ( -0.17575757575757575, spearmans_rank_correlation_coefficient( iq2, tv2 ) );
-}
-
-TEST( Math, FisherTransformation )
-{
-    double const inf = std::numeric_limits<double>::infinity();
-
-    EXPECT_FLOAT_EQ( -inf,      fisher_transformation( -1 ));
-    EXPECT_FLOAT_EQ( -1.47222,  fisher_transformation( -0.9 ));
-    EXPECT_FLOAT_EQ( -0.549306, fisher_transformation( -0.5 ));
-    EXPECT_FLOAT_EQ( 0.0,       fisher_transformation( 0 ));
-    EXPECT_FLOAT_EQ( 0.549306,  fisher_transformation( 0.5 ));
-    EXPECT_FLOAT_EQ( 1.47222,   fisher_transformation( 0.9 ));
-    EXPECT_FLOAT_EQ( inf,       fisher_transformation( 1 ));
 }
 
 TEST( Math, QuartileCoefficientOfDispersion )

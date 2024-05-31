@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -537,6 +537,259 @@ GlmOutput glm_fit(
 ) {
     auto family = glm_family_gaussian();
     return glm_fit( x_predictors, y_response, family, family.canonical_link(), extras, control );
+}
+
+// =================================================================================================
+//     Output
+// =================================================================================================
+
+/**
+ * @brief Invert diagonal and unit upper triangular matrices stored as one array.
+ */
+std::vector<double> glm_inv_tri_( std::vector<double> const& tri, size_t M )
+{
+    if( tri.size() != (M * ( M+1 )) / 2 ) {
+        throw std::invalid_argument(
+            "glm_inv_tri_(): Input tri vector is expected to have tridiagonal form."
+        );
+    }
+
+    auto result = tri; // std::vector<double>( M, 0 );
+    for( size_t j = 0, ij = 0; j < M; j++ ) {
+        for( size_t i = 0, ii1 = 1; i < j; i++, ii1 += (i+2) ) {
+            double w = tri[ij];
+            for( size_t k = i+1, kj = ij+1, ik = ii1; k < j; k++, kj++, ik += k ) {
+                w += result[ik]*tri[kj];
+            }
+            result[ij++] = (-w);
+        }
+        double diag = tri[ij];
+        if( diag <= 0.0 ) {
+            std::runtime_error(
+                "glm_inv_tri_(): negative diagonal with j==" + std::to_string(j) +
+                ", ij==" + std::to_string(ij) + ", diag==" + std::to_string(diag)
+            );
+        }
+        result[ij++] = 1/diag;
+    }
+    return result;
+}
+
+/**
+ * @brief Helper function to compute the betas, given that we have already inverted
+ * the tri matrix.
+ */
+std::vector<double> glm_estimate_betas_inv_tri_(
+    GlmOutput const& output,
+    std::vector<double> const& inv_tri
+) {
+    assert( inv_tri.size() == output.tri.size() );
+    if( output.betaQ.size() != output.Xb.cols() ) {
+        throw std::invalid_argument(
+            "Invalid size of betaQ for computing glm_estimate_betas()"
+        );
+    }
+
+    auto const M = output.Xb.cols();
+    auto betas = std::vector<double>( M );
+    for( size_t i = 0, ijs = 1; i < M; i++, ijs += (2+i) ) {
+        double w = output.betaQ[i];
+        for( size_t j = i+1, ij = ijs; j < M; j++, ij += j ) {
+            w += output.betaQ[j] * inv_tri[ij];
+        }
+        betas[i] = w;
+    }
+    return betas;
+}
+
+std::vector<double> glm_estimate_betas( GlmOutput const& output )
+{
+    auto const inv_tri = glm_inv_tri_( output.tri, output.Xb.cols() );
+    return glm_estimate_betas_inv_tri_( output, inv_tri );
+}
+
+/**
+ * @brief Calculate U.D.U-transpose.
+ *
+ * For packed upper unit triangular matrix, U, and diagonal matrix D
+ * (occupying the same space, U), calculate U.D.U-transpose and scale
+ * it by a constant multiple.
+ */
+std::vector<double> udu_transpose_( size_t M, std::vector<double> const& U, double scale )
+{
+    assert( U.size() == (M * ( M+1 )) / 2 );
+
+    // TODO the below code is wrong and accesses an element ik beyond the input array.
+    // It's a mess of indexing magic, and I understand what it is trying to do,
+    // but lack the time to dive into why it is not doing that exactly.
+    // Furthermore, with our test case, we get a symmetric, but not positive definite
+    // matrix inv_tri, which means that this decomposition here is invalid anyway.
+    // As that test is based on some very clean numbers, it probably is worse on more
+    // messy data. Hence, for now, this will not be properly implemented, until
+    // someone actually needs this.
+    assert( false );
+
+    auto result = std::vector<double>( U.size() );
+    for( size_t j = 0, ij = 0, jj = 0; j < M; j++, jj += (1 + j) ) {
+        for( size_t i = 0; i <= j; i++, ij++ ) {
+            double w = 0.0;
+            for(
+                size_t k = j, jk = jj, ik = jj - i + j, kk = jj;
+                k < M;
+                k++, kk += (1 + k), jk += k, ik += k
+            ) {
+                double Uik = (i == k) ? 1.0 : U[ik];
+                double Ujk = (j == k) ? 1.0 : U[jk];
+                double Dk = U[kk];
+                w += Uik * Ujk * Dk;
+            }
+            result[ij] = scale * w;
+        }
+    }
+    return result;
+}
+
+/**
+ * @brief Calculate U.D.V.D.U-transpose.
+ *
+ * For packed upper unit triangular matrix, U, and diagonal matrix D
+ * (occupying the same space, U), and packed symmetric matrix V,
+ * calculate U.D.V.D.U-transpose and multiply by a scale factor.
+ */
+std::vector<double> udvdu_transpose_(
+    size_t M, std::vector<double> const& U, std::vector<double> const& V, double scale
+) {
+    assert( U.size() == (M * ( M+1 )) / 2 );
+
+    auto result = std::vector<double>( U.size() );
+    for( size_t j = 0, ij = 0, jj = 0; j < M; jj += (2 + (j++)) ) {
+        for( size_t i = 0, ii = 0; i <= j; ii += (2 + (i++)), ij++ ) {
+            double w = 0.0;
+            for(
+                size_t v = j, vv = jj, jv = jj, uv = ij;
+                v < M;
+                v++, vv += (2 + v), jv += v
+            ) {
+                double Ujv = (v == j) ? 1.0 : U[jv];
+                double Dv = U[vv];
+                for( size_t u = i, uu = ii, iu = ii; u < M; u++, uu += (2 + u), iu += u ) {
+                    double Uiu = (u == i) ? 1.0 : U[iu];
+                    double Du = U[uu];
+                    w += Du * Dv * Uiu * Ujv * V[uv];
+                    if( u < v ) {
+                        uv++;
+                    } else {
+                        uv += (1 + u);
+                    }
+                }
+                uv = vv + i + 1;
+            }
+            result[ij] = scale * w;
+        }
+    }
+    return result;
+}
+
+std::pair<std::vector<double>, std::vector<double>> glm_estimate_betas_and_var_covar(
+    GlmOutput const& output,
+    std::vector<double> const& meat
+) {
+    throw std::runtime_error( "glm_estimate_betas_and_var_covar() not implemented" );
+
+    auto const M = output.Xb.cols();
+    auto const inv_tri = glm_inv_tri_( output.tri, M );
+    auto const betas = glm_estimate_betas_inv_tri_( output, inv_tri );
+    assert( betas.size() == M );
+
+    std::vector<double> vars_covars;
+    if( meat.empty() ) {
+        vars_covars = udu_transpose_( M, inv_tri, output.scale );
+    } else {
+        vars_covars = udvdu_transpose_( M, inv_tri, meat, output.scale );
+    }
+    assert( vars_covars.size() == (M * ( M+1 )) / 2 );
+    return { betas, vars_covars };
+}
+
+double glm_estimate_intercept(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmOutput const&           output,
+    std::vector<double> const& betas
+) {
+    return glm_estimate_intercept(
+        x_predictors, y_response, glm_link_identity(), output, betas
+    );
+}
+
+double glm_estimate_intercept(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmLink const&             link,
+    GlmOutput const&           output,
+    std::vector<double> const& betas
+) {
+    if( betas.size() != x_predictors.cols() ) {
+        throw std::invalid_argument(
+            "Invalid size of betas for computing glm_estimate_intercept()"
+        );
+    }
+
+    // TODO Do we need to account for strata here as well?
+    // As far as I could figure this out, the estimated betaQ values are computed across strata
+    // andyway, so then the intercept would be as well? Meaning that we do not need to take
+    // strata into account here again. But not sure.
+
+    // We compute the weighted averages of the y_response and each of the x_predictors,
+    // using the weights as determined by glm_fit(). Then, we compute the sum of the products
+    // of the betas with the weighted averages of the predictors. That, subtracted from the
+    // response, is our intercept.
+
+    // First we get the sum of the weights themselves.
+    // We just "misuse" the weighted sum here to sum the weights themselves.
+    auto const weight_sum = weighted_sum( output.weights );
+    assert( std::isfinite( weight_sum ));
+
+    // We first need to translate our response into the link space.
+    auto y_response_transformed = y_response;
+    for( auto& y : y_response_transformed ) {
+        y = link.link(y);
+    }
+
+    // Now compute the weighted sum of the y_response_transformed, and divide by the weight sum,
+    // i.e., compute the weighted average of the response.
+    auto const y_avg = weighted_sum( y_response_transformed, output.weights ) / weight_sum;
+    assert( std::isfinite( y_avg ));
+
+    // Compute our final result by subtracting product of the beta values with the sum of the
+    // weighted average of each column of x_predictors from the y_response_transformed average.
+    double result = y_avg;
+    for( size_t i = 0; i < x_predictors.cols(); ++i ) {
+        auto const x_col_avg = weighted_sum( x_predictors.col(i), output.weights ) / weight_sum;
+        assert( std::isfinite( x_col_avg ));
+        result -= betas[i] * x_col_avg;
+    }
+    return result;
+}
+
+std::vector<double> glm_coefficients(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmOutput const&           output
+) {
+    return glm_coefficients( x_predictors, y_response, glm_link_identity(), output );
+}
+
+std::vector<double> glm_coefficients(
+    Matrix<double> const&      x_predictors,
+    std::vector<double> const& y_response,
+    GlmLink const&             link,
+    GlmOutput const&           output
+) {
+    auto coeffs = glm_estimate_betas( output );
+    auto intercept = glm_estimate_intercept( x_predictors, y_response, link, output, coeffs );
+    coeffs.insert( coeffs.begin(), intercept );
+    return coeffs;
 }
 
 } // namespace utils

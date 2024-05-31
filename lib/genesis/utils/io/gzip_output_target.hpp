@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -160,10 +160,11 @@ private:
  * (FileOutputTarget, StringOutputTarget, StreamOutputTarget, etc),
  * and compresses using the gzip format on the fly while writing to that other target.
  *
- * Using gzip blocks allows us to compress in parallel using multiple threads. Furthermore,
- * it should allow for downstream indexing and random access into the compressed file, although
- * we currently have not tested this. See the GzipBlockOStream class for details on gzip block
- * compression.
+ * Using gzip blocks allows us to compress in parallel using multiple threads. By default, if no
+ * `thread_pool` is provided, we use the global pool of Options::get().global_thread_pool().
+ * Furthermore, using gzip blocks should allow for downstream indexing and random access into the
+ * compressed file, similar to VCF tabix indexing, although we currently have not tested this.
+ * See the GzipBlockOStream class for details on gzip block compression.
  *
  * The class can be moved, but not copied, because of the internal state that is kept for
  * compression, and which would mess up the output if copied.
@@ -190,12 +191,12 @@ public:
         std::shared_ptr<BaseOutputTarget> output_target,
         std::size_t block_size = GzipBlockOStream::GZIP_DEFAULT_BLOCK_SIZE,
         GzipCompressionLevel compression_level = GzipCompressionLevel::kDefaultCompression,
-        std::size_t num_threads = 0
+        std::shared_ptr<ThreadPool> thread_pool = nullptr
     )
         : output_target_( output_target )
         , block_size_( block_size )
         , compression_level_( compression_level )
-        , num_threads_( num_threads )
+        , thread_pool_( thread_pool )
     {
         if( compression_level_ == GzipCompressionLevel::kNoCompression ) {
             throw std::invalid_argument(
@@ -229,7 +230,7 @@ private:
             // Although we are in untils namespace here, we specify the namespace full,
             // in order to avoid ambiguous overload when compiled with C++17.
             stream_ = genesis::utils::make_unique<GzipBlockOStream>(
-                output_target_->ostream(), block_size_, compression_level_, num_threads_
+                output_target_->ostream(), block_size_, compression_level_, thread_pool_
             );
         }
         assert( stream_ );
@@ -268,9 +269,9 @@ private:
     std::unique_ptr<GzipBlockOStream> stream_;
 
     // Need to store our settings, as we use lazy instanciation of the output stream
-    std::size_t          block_size_;
-    GzipCompressionLevel compression_level_;
-    std::size_t          num_threads_;
+    std::size_t                 block_size_;
+    GzipCompressionLevel        compression_level_;
+    std::shared_ptr<ThreadPool> thread_pool_;
 
 };
 

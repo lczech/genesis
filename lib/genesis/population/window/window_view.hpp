@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -133,8 +133,8 @@ public:
             // Then, we need to read the first element, and check if there is any.
             if( parent_ ) {
                 assert( parent_->get_element );
-                current_ = parent_->get_element();
-                if( ! current_ ) {
+                current_element_ = parent_->get_element();
+                if( ! current_element_ ) {
                     parent_ = nullptr;
                 }
             }
@@ -155,29 +155,29 @@ public:
         value_type const * operator->() const
         {
             assert( parent_ );
-            assert( current_ );
-            return current_;
+            assert( current_element_ );
+            return current_element_;
         }
 
         value_type * operator->()
         {
             assert( parent_ );
-            assert( current_ );
-            return current_;
+            assert( current_element_ );
+            return current_element_;
         }
 
         value_type const & operator*() const
         {
             assert( parent_ );
-            assert( current_ );
-            return *current_;
+            assert( current_element_ );
+            return *current_element_;
         }
 
         value_type & operator*()
         {
             assert( parent_ );
-            assert( current_ );
-            return *current_;
+            assert( current_element_ );
+            return *current_element_;
         }
 
         // -------------------------------------------------------------------------
@@ -189,8 +189,8 @@ public:
             assert( parent_ );
             assert( parent_->get_element );
 
-            current_ = parent_->get_element();
-            if( ! current_ ) {
+            current_element_ = parent_->get_element();
+            if( ! current_element_ ) {
                 parent_ = nullptr;
             }
             return *this;
@@ -225,7 +225,7 @@ public:
 
     private:
 
-        Data* current_ = nullptr;
+        Data* current_element_ = nullptr;
         WindowView const* parent_ = nullptr;
 
     };
@@ -278,7 +278,7 @@ public:
         };
     }
 
-    virtual ~WindowView() = default;
+    virtual ~WindowView() override = default;
 
     WindowView( WindowView const& ) = default;
     WindowView( WindowView&& )      = default;

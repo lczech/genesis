@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,10 +33,14 @@
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/bitvector/helper.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
+#include "genesis/utils/math/random.hpp"
+#include "genesis/utils/text/string.hpp"
 
+#include <algorithm>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <limits>
 
 using namespace genesis::utils;
 
@@ -207,6 +211,64 @@ TEST( Bitvector, Operators )
     EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, true ));
 }
 
+TEST( Bitvector, SetRange )
+{
+    // We do an exhaustive test, because why not.
+    // We tested up to 1024, which takes some minutes,
+    // but in the normal case, it should suffice to test fewer,
+    // as long as we have cases across word boundaries, with words in the middle, etc
+    for( size_t s = 0; s < 256; ++s ) {
+        // if( s % 100 == 0 ) {
+        //     LOG_DBG << "at " << s;
+        // }
+        for( size_t f = 0; f < s; ++f ) {
+            for( size_t l = f; l <= s; ++l ) {
+                // Set true
+                {
+                    // Use the function to test
+                    auto bv = Bitvector( s, false );
+                    bv.set( f, l, true );
+
+                    // Make expected version using slow setter
+                    auto ex = Bitvector( s, false );
+                    for( size_t i = f; i < l; ++i ) {
+                        ex.set( i, true );
+                    }
+
+                    // Now test
+                    if( ex != bv ) {
+                        LOG_DBG << "s==" << s << " f==" << f << " l==" << l;
+                        LOG_DBG << "bv==" << bv;
+                        LOG_DBG << "ex==" << ex;
+                    }
+                    EXPECT_EQ( ex, bv );
+                }
+
+                // Set false
+                {
+                    // Use the function to test
+                    auto bv = Bitvector( s, true );
+                    bv.set( f, l, false );
+
+                    // Make expected version using slow setter
+                    auto ex = Bitvector( s, true );
+                    for( size_t i = f; i < l; ++i ) {
+                        ex.set( i, false );
+                    }
+
+                    // Now test
+                    if( ex != bv ) {
+                        LOG_DBG << "s==" << s << " f==" << f << " l==" << l;
+                        LOG_DBG << "bv==" << bv;
+                        LOG_DBG << "ex==" << ex;
+                    }
+                    EXPECT_EQ( ex, bv );
+                }
+            }
+        }
+    }
+}
+
 TEST( Bitvector, CountRange )
 {
     // 0 word
@@ -311,5 +373,120 @@ TEST( Bitvector, CountRangeFuzzy )
 
         EXPECT_EQ( exp, cnt ) << "first: " << s << ", last: " << e << ", bv: " << bv;
         // LOG_DBG << "first: " << s << ", last: " << e << ", count: " << cnt << ", bv: " << bv;
+    }
+}
+
+TEST( Bitvector, FindNextSet )
+{
+    auto const max = std::numeric_limits<size_t>::max();
+
+    // 0 word
+    Bitvector bv_0( 0 );
+    EXPECT_EQ( max, bv_0.find_next_set( 0 ));
+    EXPECT_EQ( max, bv_0.find_next_set( 1 ));
+
+    // 0.5 word
+    Bitvector bv_32( 32 );
+    bv_32.set( 0 );
+    bv_32.set( 1 );
+    bv_32.set( 16 );
+    bv_32.set( 31 );
+    EXPECT_EQ(   0, bv_32.find_next_set(  0 ));
+    EXPECT_EQ(   1, bv_32.find_next_set(  1 ));
+    EXPECT_EQ(  16, bv_32.find_next_set(  2 ));
+    EXPECT_EQ(  16, bv_32.find_next_set( 15 ));
+    EXPECT_EQ(  16, bv_32.find_next_set( 16 ));
+    EXPECT_EQ(  31, bv_32.find_next_set( 17 ));
+    EXPECT_EQ(  31, bv_32.find_next_set( 30 ));
+    EXPECT_EQ(  31, bv_32.find_next_set( 31 ));
+    EXPECT_EQ( max, bv_32.find_next_set( 32 ));
+    EXPECT_EQ( max, bv_32.find_next_set( 63 ));
+    EXPECT_EQ( max, bv_32.find_next_set( 64 ));
+
+    // 1 word
+    Bitvector bv_64( 64 );
+    bv_64.set( 63 );
+    EXPECT_EQ(  63, bv_64.find_next_set( 0 ));
+    EXPECT_EQ(  63, bv_64.find_next_set( 62 ));
+    EXPECT_EQ(  63, bv_64.find_next_set( 63 ));
+    EXPECT_EQ( max, bv_64.find_next_set( 64 ));
+
+    // 1.5 word
+    Bitvector bv_96( 96 );
+    bv_96.set( 64 );
+    bv_96.set( 95 );
+    EXPECT_EQ(  64, bv_96.find_next_set( 0 ));
+    EXPECT_EQ(  64, bv_96.find_next_set( 63 ));
+    EXPECT_EQ(  64, bv_96.find_next_set( 64 ));
+    EXPECT_EQ(  95, bv_96.find_next_set( 65 ));
+    EXPECT_EQ(  95, bv_96.find_next_set( 95 ));
+    EXPECT_EQ( max, bv_96.find_next_set( 96 ));
+
+    // 2.5 word
+    Bitvector bv_160( 160 );
+    bv_160.set( 63 );
+    bv_160.set( 130 );
+    EXPECT_EQ(  63, bv_160.find_next_set( 0 ));
+    EXPECT_EQ(  63, bv_160.find_next_set( 63 ));
+    EXPECT_EQ( 130, bv_160.find_next_set( 64 ));
+    EXPECT_EQ( 130, bv_160.find_next_set( 129 ));
+    EXPECT_EQ( 130, bv_160.find_next_set( 130 ));
+    EXPECT_EQ( max, bv_160.find_next_set( 131 ));
+}
+
+TEST( Bitvector, FindNextSetFuzzy )
+{
+    auto const seed = std::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_DBG << "seed " << seed;
+
+    // Helper to find the smallest number in the vector
+    // that is greater than or equal to the given number.
+    auto find_next_set_val_ = []( std::vector<size_t> const& vec, size_t val ){
+        auto it = std::lower_bound( vec.begin(), vec.end(), val );
+
+        // We always have the max number in the vector, so we always find one.
+        EXPECT_TRUE( it != vec.end() );
+        return *it;
+    };
+
+    // Run a bunch of randomized tests
+    size_t const max_size = 1024;
+    for( size_t n = 0; n < 5000; ++n ) {
+
+        // Size of the bitvector
+        size_t const size = permuted_congruential_generator( 1, max_size );
+        auto bv = Bitvector( size );
+
+        // Our vector has up to 1024 bits, and we populate up to 32 bits of them,
+        // so that we have test cases where more than one bit is set per word of the bitvector.
+        auto const num_bits = permuted_congruential_generator( std::min<size_t>( 32, size ));
+        auto selection = select_without_replacement( num_bits, size );
+        std::sort( selection.begin(), selection.end() );
+
+        // Now set the bits
+        for( auto b : selection ) {
+            bv.set(b);
+        }
+
+        // LOG_DBG << "list[" << size << "]: " << join(selection);
+        // LOG_DBG << "bits: " << bv.dump();
+
+        // We also add the max, so that we always find something in the vector to match.
+        selection.push_back( std::numeric_limits<size_t>::max() );
+
+        // Our test now is to go through the whole vector, and test every position.
+        // We keep track of the index from our ground truth, so that we do not need to search
+        // for it in every iteration.
+        size_t next_in_vec = find_next_set_val_( selection, 0 );
+        for( size_t i = 0; i < size; ++i ) {
+            if( i > next_in_vec ) {
+                next_in_vec = find_next_set_val_( selection, i );
+            }
+
+            EXPECT_EQ( next_in_vec, bv.find_next_set(i) ) << " at " << i;
+        }
+        EXPECT_EQ( std::numeric_limits<size_t>::max(), bv.find_next_set( size ));
+        EXPECT_EQ( std::numeric_limits<size_t>::max(), bv.find_next_set( size + 1 ));
     }
 }

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,15 +30,27 @@
 
 #include <gtest/gtest.h>
 
+#include <csignal>
 #include <iostream>
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "src/common.hpp"
 #include "genesis/utils/core/options.hpp"
 
 GenesisTestEnvironment* environment;
+
+void genesis_test_sighandler( int signum )
+{
+    // Without special tricks, we might not get a core dump when a SIGSEGV occurs.
+    // So we overwrite the default handler to achieve that.
+    // See https://stackoverflow.com/a/19308537
+    LOG_ERR << "Segmentation fault (SIGSEGV)";
+    std::signal( signum, SIG_DFL );
+    ::kill( ::getpid(), signum );
+}
 
 /**
  * @brief Initializes and starts the test run.
@@ -51,6 +63,11 @@ int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
     environment = new GenesisTestEnvironment();
+
+    // Set a custom signal handler, see there for details.
+    // Sometimes, this however does the opposite, and does not dump a core when segfauling...
+    // So deactivating this for now again.
+    // signal( SIGSEGV, genesis_test_sighandler );
 
     // Set data dir using the program path.
     std::string call = argv[0];

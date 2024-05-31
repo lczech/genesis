@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 #include "genesis/utils/io/gzip_block_ostream.hpp"
 
-#include "genesis/utils/core/thread_pool.hpp"
+#include "genesis/utils/core/options.hpp"
 
 #include <cassert>
 #include <fstream>
@@ -52,10 +52,6 @@
 #   endif
 
 #endif // GENESIS_ZLIB
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif // GENESIS_OPENMP
 
 namespace genesis {
 namespace utils {
@@ -330,7 +326,7 @@ private:
         {}
 
         GzipBlockCompressor block;
-        std::future<void> future;
+        ProactiveFuture<void> future;
     };
 
     // -------------------------------------------------------------
@@ -347,22 +343,22 @@ public:
      * `std::ios_base::binary` mode, so that the gzip data does not get destroyed.
      *
      * The constructor also takes the desired @p block_size of the uncompressed data blocks to use,
-     * as well as the @p compression_level, the @p num_threads number of threads to use for
-     * parallel compression, and the @p num_blocks number of consecutive blocks to store as
-     * intermediate data (so that the threads can work on them in parallel).
-     * Using `num_blocks < num_threads` does not make much sense, as the threads would not have
-     * enough data to work on to all do something in parallel, and we hence recommend to use the
-     * default (`num_blocks == 0`), which causes to use `num_blocks = 2 * num_threads`.
+     * as well as the @p compression_level, the @p thread_pool to use for parallel compression, and
+     * the @p num_blocks number of consecutive blocks to store as intermediate data (so that the
+     * threads can work on them in parallel). Using `num_blocks < thread_pool.size()` does not make
+     * much sense, as the threads would not have enough data to work on to all do something in
+     * parallel, and we hence recommend to use the default (`num_blocks == 0`), which causes to
+     * use `num_blocks = 2 * thread_pool.size()`.
      */
     GzipBlockOStreambuf(
         std::streambuf* sbuf_p,
         std::size_t block_size = GzipBlockOStream::GZIP_DEFAULT_BLOCK_SIZE,
         int compression_level = Z_DEFAULT_COMPRESSION,
-        size_t num_threads = 1,
+        std::shared_ptr<ThreadPool> thread_pool = nullptr,
         size_t num_blocks = 0
     )
         : sbuf_p_( sbuf_p )
-        , thread_pool_( num_threads )
+        , thread_pool_( thread_pool ? thread_pool : Options::get().global_thread_pool() )
     {
         // Basic setup. We take the number of threads as provided, and if given a number of blocks,
         // also use that. If not, we aim to use twice as many blocks as threads, so that there is
@@ -370,18 +366,14 @@ public:
         // have one for current writing operations of the stream, and one that can be compressed
         // at the same time.
         assert( sbuf_p_ );
-        if( num_threads == 0 ) {
-            throw std::invalid_argument(
-                "Cannot create Gzip Block Output Stream with 0 worker threads."
-            );
-        }
+        assert( thread_pool_ );
+
         if( num_blocks == 0 ) {
-            num_blocks = 2 * num_threads;
+            num_blocks = 2 * thread_pool_->size();
         }
         if( num_blocks < 2 ) {
             num_blocks = 2;
         }
-        assert( num_threads >= 1 );
         assert( num_blocks >= 2 );
 
         // Create as many empty working blocks as needed.
@@ -518,10 +510,6 @@ public:
             }()
         );
 
-        // Also, the queue of the thread pool must be empty, because we just waited
-        // for all jobs to finish.
-        assert( thread_pool_.load() == 0 );
-
         // If we got here, all previous checks of `ret` were okay. So it still should be okay now.
         assert( ret == 0 );
         return ret;
@@ -561,8 +549,9 @@ private:
 
         // Send block to a compression worker thread, using all bytes that have been written to it.
         // The thread pool will pick up the task once a thread is available.
+        assert( thread_pool_ );
         auto const avail_in = pptr() - pbase();
-        cur_block.future = thread_pool_.enqueue(
+        cur_block.future = thread_pool_->enqueue(
             [&]( size_t av_in ){
                 cur_block.block.compress( av_in );
             },
@@ -660,7 +649,7 @@ private:
     std::streambuf * sbuf_p_;
 
     // Get a pool of workers that will do the compression of each block
-    ThreadPool thread_pool_;
+    std::shared_ptr<ThreadPool> thread_pool_;
 
     // Ring-buffer-like usage of compression blocks: we rotate, and wait if the compression is not
     // yet done for the next block to be re-used in the ring. The current_block_ number only ever
@@ -676,40 +665,15 @@ private:
 //     Gzip Output Stream
 // ================================================================================================
 
-/**
- * @brief Local helper function to estimate the number of threads
- * that can be used for gzip block compression.
- */
-size_t gzip_block_get_num_threads_()
-{
-    #ifdef GENESIS_OPENMP
-        size_t threads = 0;
-
-        // Start a parallel region. OpenMP should be configured in a way that nested regions
-        // only get as many threads as there are free ones, so this will not overestimate the number
-        // of available threads.
-        #pragma omp parallel
-        {
-            threads = omp_get_num_threads();
-        }
-        if( threads == 0 ) {
-            threads = 1;
-        }
-        return threads;
-    #else
-        return 1;
-    #endif
-}
-
 // We have all the implementation here, so that we do not need to expose the stream buffer.
 
 GzipBlockOStream::GzipBlockOStream(
     std::ostream& os,
     std::size_t block_size,
     GzipCompressionLevel compression_level,
-    std::size_t num_threads
+    std::shared_ptr<ThreadPool> thread_pool
 )
-    : GzipBlockOStream( os.rdbuf(), block_size, compression_level, num_threads )
+    : GzipBlockOStream( os.rdbuf(), block_size, compression_level, thread_pool )
 {
     // Nothing to do
 }
@@ -718,18 +682,13 @@ GzipBlockOStream::GzipBlockOStream(
     std::streambuf* sbuf_p,
     std::size_t block_size,
     GzipCompressionLevel compression_level,
-    std::size_t num_threads
+    std::shared_ptr<ThreadPool> thread_pool
 )
     : std::ostream( new GzipBlockOStreambuf(
         sbuf_p,
         block_size,
         static_cast<int>(compression_level),
-
-        // Trickery: if 0 threads are set, we attempt automatic estimation:
-        // use the number of active OpenMP threads in a parallel region
-        num_threads == 0
-            ? gzip_block_get_num_threads_()
-            : num_threads
+        thread_pool
     ))
 {
     exceptions(std::ios_base::badbit);

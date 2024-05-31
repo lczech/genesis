@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -34,6 +34,7 @@
 #include "genesis/utils/color/color.hpp"
 #include "genesis/utils/color/heat_map.hpp"
 #include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/io/base_output_target.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -101,7 +102,7 @@ struct CathedralPlotParameters
 /**
  * @brief Collection of the data used for making for a cathedral plot.
  *
- * Base class that contains the data-derived parameters, such as chromsome name.
+ * Base class that contains the data-derived parameters, such as chromosome name.
  * In each of the steps during the creating of a cathedral plot, it receives more data,
  * resulting from what the step did.
  *
@@ -120,6 +121,7 @@ struct CathedralPlotRecord
 
     // Data-derived parameters from the initial input.
     std::string title;
+    std::string plot_name;
     std::string chromosome_name;
     size_t chromosome_length = 0;
 
@@ -336,6 +338,20 @@ genesis::utils::JsonDocument cathedral_plot_parameters_to_json_document(
  */
 genesis::utils::JsonDocument cathedral_plot_record_to_json_document(
     CathedralPlotRecord const& record
+);
+
+/**
+ * @brief Save the record of a cathedral plot in a set of output targets.
+ *
+ * This overload allows to specify the targets directly, instead of creating fitting targets
+ * according to a file `base_path`. See save_cathedral_plot_record_to_files() for the file-based
+ * versions of this function.
+ */
+void save_cathedral_plot_record_to_targets(
+    genesis::utils::JsonDocument const& record_document,
+    genesis::utils::Matrix<double> const& record_value_matrix,
+    std::shared_ptr<genesis::utils::BaseOutputTarget> json_target,
+    std::shared_ptr<genesis::utils::BaseOutputTarget> csv_target
 );
 
 /**

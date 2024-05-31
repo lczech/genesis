@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <stdexcept>
+#include <thread>
 
 #include <errno.h>
 #include <stdio.h>
@@ -64,15 +65,12 @@
 #    endif
 #    include <stdio.h>
 #    include <sys/ioctl.h>
+#    include <sys/types.h>
 #    include <unistd.h>
 #endif
 
 #ifdef GENESIS_OPENMP
 #    include <omp.h>
-#endif
-
-#ifdef GENESIS_PTHREADS
-#     include <thread>
 #endif
 
 namespace genesis {
@@ -212,15 +210,6 @@ std::string info_compile_date_time()
     return std::string( __DATE__ " " __TIME__ );
 }
 
-bool info_using_pthreads()
-{
-    #ifdef GENESIS_PTHREADS
-        return true;
-    #else
-        return false;
-    #endif
-}
-
 bool info_using_openmp()
 {
     #ifdef GENESIS_OPENMP
@@ -251,6 +240,17 @@ bool info_using_htslib()
 // =================================================================================================
 //     Run Time Environment
 // =================================================================================================
+
+size_t info_get_pid()
+{
+    // The return type `pid_t` of getpid() is an `int`, guaranteed to be non-negative:
+    // https://ftp.gnu.org/old-gnu/Manuals/glibc-2.2.3/html_node/libc_554.html
+    // https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_300
+    // We hence simply convert to `size_t` here.
+    auto const pid = ::getpid();
+    assert( pid > 0 );
+    return static_cast<size_t>( pid );
+}
 
 bool info_stdin_is_terminal()
 {
@@ -343,22 +343,6 @@ size_t info_current_file_count()
 //     Number of Threads
 // =================================================================================================
 
-bool hyperthreads_enabled()
-{
-    // Get CPU info.
-    int32_t info[4];
-    #ifdef __aarch64__
-        (void)info;
-        return false;
-    #elif defined( _WIN32 )
-        __cpuid( info, 1 );
-    #else
-        __cpuid_count( 1, 0, info[0], info[1], info[2], info[3] );
-    #endif
-
-    return (bool) (info[3] & (0x1 << 28));
-}
-
 size_t guess_number_of_threads( bool use_openmp, bool use_slurm, bool physical_cores )
 {
     // Dummy to avoid compiler warnings.
@@ -375,7 +359,7 @@ size_t guess_number_of_threads( bool use_openmp, bool use_slurm, bool physical_c
     }
 
     // Now take hyperthreads into account.
-    auto const threads_per_core = hyperthreads_enabled() ? 2 : 1;
+    auto const threads_per_core = info_hyperthreads_enabled() ? 2 : 1;
     auto const hw_cores = hw_concur / threads_per_core;
     if( hw_cores > 0 && physical_cores ) {
         guess = static_cast<size_t>( hw_cores );
@@ -383,35 +367,15 @@ size_t guess_number_of_threads( bool use_openmp, bool use_slurm, bool physical_c
 
     // Now try slurm, if specified.
     if( use_slurm ) {
-        auto const slurm_ptr = std::getenv( "SLURM_CPUS_PER_TASK" );
-        if( slurm_ptr ) {
-            auto const slurm_cpus = std::atoi( slurm_ptr );
-            if( slurm_cpus > 0 ) {
-                guess = static_cast<size_t>( slurm_cpus );
-            }
+        auto const slurm_cpus = info_number_of_threads_slurm();
+        if( slurm_cpus > 0 ) {
+            guess = static_cast<size_t>( slurm_cpus );
         }
     }
 
     // Lastly, try OpenMP, if specified.
     if( use_openmp ) {
-        size_t openmp_threads = 0;
-
-        #if defined( GENESIS_OPENMP )
-
-            // Use number of OpenMP threads, which might be set through the `OMP_NUM_THREADS`
-            // environment variable. If there was an error there, fix it.
-            openmp_threads = static_cast<size_t>( std::max( omp_get_max_threads(), 0 ));
-
-        #else
-
-            // Use the env variable directly if we don't have access to the OpenMP functions.
-            auto const openmp_ptr = std::getenv( "OMP_NUM_THREADS" );
-            if( openmp_ptr ) {
-                openmp_threads = std::atoi( openmp_ptr );
-            }
-
-        #endif
-
+        auto const openmp_threads = info_number_of_threads_openmp();
         if( openmp_threads > 0 ) {
             guess = static_cast<size_t>( openmp_threads );
         }
@@ -422,6 +386,56 @@ size_t guess_number_of_threads( bool use_openmp, bool use_slurm, bool physical_c
 
     assert( guess > 0 );
     return guess;
+}
+
+bool info_hyperthreads_enabled()
+{
+    // Get CPU info.
+    int32_t info[4];
+    #ifdef __aarch64__
+        (void)info;
+        return false;
+    #elif defined( _WIN32 )
+        __cpuid( info, 1 );
+    #else
+        __cpuid_count( 1, 0, info[0], info[1], info[2], info[3] );
+    #endif
+
+    return (bool) (info[3] & (0x1 << 28));
+}
+
+size_t info_number_of_threads_openmp()
+{
+    size_t openmp_threads = 0;
+
+    #if defined( GENESIS_OPENMP )
+
+        // Use number of OpenMP threads, which might be set through the `OMP_NUM_THREADS`
+        // environment variable. If there was an error there, fix it.
+        openmp_threads = static_cast<size_t>( std::max( omp_get_max_threads(), 0 ));
+
+    #else
+
+        // Use the env variable directly if we don't have access to the OpenMP functions.
+        auto const openmp_ptr = std::getenv( "OMP_NUM_THREADS" );
+        if( openmp_ptr ) {
+            openmp_threads = std::atoi( openmp_ptr );
+        }
+
+    #endif
+
+    return openmp_threads;
+}
+
+size_t info_number_of_threads_slurm()
+{
+    size_t slurm_cpus = 0;
+    auto const slurm_ptr = std::getenv( "SLURM_CPUS_PER_TASK" );
+    if( slurm_ptr ) {
+        slurm_cpus = std::atoi( slurm_ptr );
+
+    }
+    return slurm_cpus;
 }
 
 } // namespace utils

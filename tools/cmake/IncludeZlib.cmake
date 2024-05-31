@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2021 Lucas Czech
+# Copyright (C) 2014-2024 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ else()
     message( STATUS "${ColorRed}zlib not found${ColorEnd}" )
     message(
         STATUS
-        "${ColorYellow}Try installing `zlib1g-dev` first, or the equivalent for your system."
+        "${ColorYellow}Try installing `zlib1g-dev` first, or the equivalent for your system. "
         "To build without zlib support, call CMake with `-DGENESIS_USE_ZLIB=OFF`.${ColorEnd}"
     )
     message( FATAL_ERROR "Required package zlib not found.")

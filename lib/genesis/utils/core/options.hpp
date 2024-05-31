@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,8 +33,11 @@
 
 #include "genesis/utils/core/thread_pool.hpp"
 
+#include <atomic>
+#include <chrono>
 #include <memory>
 #include <random>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -60,10 +63,11 @@ public:
     /**
      * @brief Returns a single instance of this class.
      */
-    inline static Options& get() {
-            // Meyers-Singleton
-            static Options instance;
-            return instance;
+    inline static Options& get()
+    {
+        // Meyers-Singleton
+        static Options instance;
+        return instance;
     }
 
     // -------------------------------------------------------------------------
@@ -92,45 +96,129 @@ public:
     void command_line( int const argc, char const* const* argv );
 
     // -------------------------------------------------------------------------
+    //     Random Seed & Engine
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Returns the random seed that was used to initialize the engine.
+     *
+     * This is the global seed that is used as a basis for all thread-local seeding.
+     */
+    inline unsigned long random_seed() const
+    {
+        return random_seed_;
+    }
+
+    /**
+     * @brief Set a specific global seed for the random engine initialization.
+     *
+     * This (re)sets the global seed for the thread-local random engines. The engine of the thread
+     * where this function is called from, as well as any thread spawned after, is reseeded using
+     * this seed plus a counter based on the number of spawned threads.
+     *
+     * On startup, the seed is initialized using the current system time, and that exact seed is
+     * used for the main thead. The seed can be reset using this function, but this will only affect
+     * the thread where the function is called from, as well as any threads spawned later. If a
+     * fixed seed is needed, this function hence needs to be called prior to spawning threads,
+     * and in particlar, before calling the init_global_thread_pool() functions. Otherwise,
+     * this function throws an exception, in order to avoid potential bugs that would be hard
+     * to track down.
+     *
+     * In a single threaded environment, this behaves identical to the usual way of (re)seeding
+     * a random engine.
+     */
+    inline void random_seed( unsigned long const seed )
+    {
+        if( thread_pool_ ) {
+            throw std::domain_error(
+                "Cannot re-seed global random engine after having spawned the global thread pool, "
+                "as the threads would not be aware of the re-seeding. "
+                "Call Options::get().random_seed() before Options::get().init_global_thread_pool() "
+                "to fix this."
+            );
+        }
+        random_seed_ = seed;
+        thread_local_random_engine_().seed( seed );
+    }
+
+    /**
+     * @brief Return a thread-local engine for random number generation.
+     *
+     * Caveat: The engines are thread-local, and hence thread-safe. However, generally, in a
+     * multi-threaded setting, the order of execution in not deterministic, and hence results might
+     * not be reproducible, even when using a fixed seed.
+     */
+    inline std::default_random_engine& random_engine()
+    {
+        return thread_local_random_engine_();
+    }
+
+    /**
+     * @brief Return the number of seeds used to initialize thread-local random engines.
+     *
+     * This corresponds to the number of threads that have called random_engine().
+     */
+    inline size_t seed_counter() const
+    {
+        return seed_counter_.load();
+    }
+
+private:
+
+    inline unsigned long generate_thread_seed_()
+    {
+        return random_seed_ + seed_counter_.fetch_add( 1, std::memory_order_relaxed );
+    }
+
+    inline std::default_random_engine& thread_local_random_engine_()
+    {
+        // Private method to access the thread-local engine
+        thread_local std::default_random_engine engine( generate_thread_seed_() );
+        return engine;
+    }
+
+public:
+
+    // -------------------------------------------------------------------------
     //     Multi-Threading
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Returns the number of threads.
-     */
-    inline unsigned int number_of_threads() const
-    {
-        return number_of_threads_;
-    }
-
-    /**
-     * @brief Overwrite the system given number of threads.
+     * @brief Initialize the global thread pool to be used for parallel computations.
      *
-     * When the Options class is first instanciated, the value is initialized with the actual
-     * number of cores available in the system using std::thread::hardware_concurrency().
-     * This method overwrites this value.
+     * This overload uses the result of guess_number_of_threads() to get the overall number of
+     * threads to use, and initializes the pool to use one fewer than that, to account for the
+     * main thread also doing work. As our ThreadPool implementation uses what we call a
+     * ProactiveFuture, the main thread will start processing tasks from the pool queue while
+     * it is waiting for results to get ready.
      *
-     * If @p number is 0, the number of threads is set again to hardware concurrency.
+     * After calling this function, global_thread_pool() can be used to obtain the global thread
+     * pool to enqueue work.
      */
-    void number_of_threads( unsigned int number );
+    void init_global_thread_pool();
 
     /**
      * @brief Initialize the global thread pool to be used for parallel computations.
      *
-     * If @p num_threads is not provided (i.e., left at 0), we use the result of
-     * guess_number_of_threads() to initialize the number of threads to use in the pool.
-     * After this, global_thread_pool() can be used to obtain the pool to enqueue work.
+     * This initializes the pool to have exactly as many threads as provided by @p num_threads here.
+     * Note that the main thread will also do work, so it is recommended to keep the @p num_threads
+     * at at least one fewer than the hardware concurrency (or other upper limit of threads, such as
+     * OpenMP or Slum limits, that you might want to keep). Use the overload init_global_thread_pool()
+     * without any arguments to do this automatically.
+     *
+     * If @p num_threads is `0`, the thread pool is initialized with no threads at all, meaning that
+     * all enqueued work will instead be processed by the main thread once it wants to obtain the
+     * results of tasks. This essentially renders the thread pool into a lazy evaluating task queue.
+     *
+     * After calling this function, global_thread_pool() can be used to obtain the global thread
+     * pool to enqueue work.
      */
-    void init_global_thread_pool( size_t num_threads = 0 );
+    void init_global_thread_pool( size_t num_threads );
 
     /**
      * @brief Return a global thread pool to be used for parallel computations.
      *
      * The thread pool has to be initialized with init_global_thread_pool() first.
-     *
-     * Ideally, we want to use this pool for every CPU-heavy computation. Hopefully, we can at some
-     * point use this instead of OpenMP, but that will require some refactoring.
-     * So for now, we use this pool to limit parallel file reading operations with LambdaIterator.
      *
      * Note: In cases where we need to limit our number of spawned threads to some maximum amount,
      * we might even want to use this pool for our readers, which often use AsynchronousReader,
@@ -140,42 +228,6 @@ public:
      * their disk operation.
      */
     std::shared_ptr<ThreadPool> global_thread_pool() const;
-
-    // -------------------------------------------------------------------------
-    //     Random Seed & Engine
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Returns the random seed that was used to initialize the engine.
-     */
-    inline unsigned long random_seed() const
-    {
-        return random_seed_;
-    }
-
-    /**
-     * @brief Set a specific seed for the random engine.
-     *
-     * On startup, the random engine is initialized using the current system time. This value can
-     * be overwritten using this method.
-     */
-    void random_seed (const unsigned long seed);
-
-    /**
-     * @brief Returns the default engine for random number generation.
-     *
-     * Caveat: This is not intended for the use in more than one thread. As the order of execution in
-     * threads is not deterministic, results would not be reproducible, even when using a fixed seed.
-     * Furthermore, it might be a speed bottleneck to add a mutex to this method.
-     *
-     * If in the future there is need for multi-threaded random engines, they needed to be outfitted
-     * with separate seeds each (otherwise they would all produce the same results). Thus, for now we
-     * simply assume single-threaded use.
-     */
-    inline std::default_random_engine& random_engine()
-    {
-        return random_engine_;
-    }
 
     // -------------------------------------------------------------------------
     //     File Options
@@ -310,13 +362,12 @@ private:
     // CLI
     std::vector<std::string> command_line_;
 
-    // Multi-threading
-    unsigned int number_of_threads_;
-    std::shared_ptr<ThreadPool> thread_pool_;
-
-    // Random
+    // Random engine seeding
     unsigned long random_seed_;
-    std::default_random_engine random_engine_;
+    std::atomic<size_t> seed_counter_{0};
+
+    // Global thread pool
+    std::shared_ptr<ThreadPool> thread_pool_;
 
     // File handling
     bool allow_file_overwriting_ = false;
@@ -336,7 +387,11 @@ private:
     /**
      * @brief Constructor, which initializes the options with reasonable defaults.
      */
-    Options();
+    Options()
+    {
+        // Initialize random seed with time.
+        random_seed( std::chrono::system_clock::now().time_since_epoch().count() );
+    }
 
     ~Options() = default;
 

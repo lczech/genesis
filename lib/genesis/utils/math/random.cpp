@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,22 +52,53 @@ static uint64_t const pcg32_increment  = 1442695040888963407u; // Or an arbitrar
 
 static inline uint32_t pcg32_rotr32( uint32_t x, unsigned int r )
 {
-	return x >> r | x << (-r & 31);
+    return x >> r | x << (-r & 31);
 }
 
 uint32_t permuted_congruential_generator()
 {
-	uint64_t x = pcg32_state;
-	auto count = static_cast<unsigned int>( x >> 59 ); // 59 = 64 - 5
+    uint64_t x = pcg32_state;
+    auto count = static_cast<unsigned int>( x >> 59 ); // 59 = 64 - 5
 
-	pcg32_state = x * pcg32_multiplier + pcg32_increment;
-	x ^= x >> 18; // 18 = (64 - 27)/2
-	return pcg32_rotr32( static_cast<uint32_t>( x >> 27 ), count ); // 27 = 32 - 5
+    pcg32_state = x * pcg32_multiplier + pcg32_increment;
+    x ^= x >> 18; // 18 = (64 - 27)/2
+    return pcg32_rotr32( static_cast<uint32_t>( x >> 27 ), count ); // 27 = 32 - 5
+}
+
+uint32_t permuted_congruential_generator( uint32_t max )
+{
+    return permuted_congruential_generator() % ( max + 1 );
+}
+
+uint32_t permuted_congruential_generator( uint32_t min, uint32_t max )
+{
+    if( min > max ) {
+        throw std::invalid_argument(
+            "Invalid call to permuted_congruential_generator( "  + std::to_string(min) + ", " +
+            std::to_string(max) + " )"
+        );
+    }
+    return min + permuted_congruential_generator() % ( max - min + 1 );
+}
+
+bool permuted_congruential_generator_bool()
+{
+    return permuted_congruential_generator() % 2 == 0;
+}
+
+bool permuted_congruential_generator_bool( uint32_t chance_one_in )
+{
+    if( chance_one_in == 0 ) {
+        throw std::invalid_argument(
+            "Invalid call to permuted_congruential_generator_bool( 0 )"
+        );
+    }
+    return permuted_congruential_generator() % chance_one_in == 0;
 }
 
 void permuted_congruential_generator_init( uint64_t seed )
 {
-	pcg32_state = seed + pcg32_increment;
+    pcg32_state = seed + pcg32_increment;
 }
 
 // ================================================================================================

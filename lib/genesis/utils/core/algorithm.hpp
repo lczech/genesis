@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -187,7 +187,7 @@ inline std::vector<size_t> sort_indices(
     // Initialize original index locations with increasing numbers.
     size_t size = std::distance( first, last );
     std::vector<size_t> idx( size );
-    std::iota( idx.begin(), idx.end(), 0 );
+    std::iota( idx.begin(), idx.end(), static_cast<size_t>(0) );
 
     // Sort indexes based on comparing values of the iterator range.
     std::sort( idx.begin(), idx.end(), [&] ( size_t i1, size_t i2 ) {
@@ -244,7 +244,7 @@ inline std::vector<size_t> stable_sort_indices(
     // Initialize original index locations with increasing numbers.
     size_t size = std::distance( first, last );
     std::vector<size_t> idx( size );
-    std::iota( idx.begin(), idx.end(), 0 );
+    std::iota( idx.begin(), idx.end(), static_cast<size_t>(0) );
 
     // Sort indexes based on comparing values of the iterator range.
     std::stable_sort( idx.begin(), idx.end(), [&] ( size_t i1, size_t i2 ) {

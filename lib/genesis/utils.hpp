@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -54,6 +54,7 @@
 #include "genesis/utils/containers/deref_iterator.hpp"
 #include "genesis/utils/containers/filter_iterator.hpp"
 #include "genesis/utils/containers/function_cache.hpp"
+#include "genesis/utils/containers/generic_input_stream.hpp"
 #include "genesis/utils/containers/hash_tuple.hpp"
 #include "genesis/utils/containers/interval_tree/functions.hpp"
 #include "genesis/utils/containers/interval_tree/fwd.hpp"
@@ -61,7 +62,6 @@
 #include "genesis/utils/containers/interval_tree/interval.hpp"
 #include "genesis/utils/containers/interval_tree/iterator.hpp"
 #include "genesis/utils/containers/interval_tree/node.hpp"
-#include "genesis/utils/containers/lambda_iterator.hpp"
 #include "genesis/utils/containers/matrix/col.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/matrix/operators.hpp"
@@ -72,6 +72,7 @@
 #include "genesis/utils/containers/mru_cache.hpp"
 #include "genesis/utils/containers/optional.hpp"
 #include "genesis/utils/containers/range.hpp"
+#include "genesis/utils/containers/threadsafe_queue.hpp"
 #include "genesis/utils/containers/transform_iterator.hpp"
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/core/exception.hpp"
@@ -81,6 +82,7 @@
 #include "genesis/utils/core/multi_future.hpp"
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/std.hpp"
+#include "genesis/utils/core/thread_functions.hpp"
 #include "genesis/utils/core/thread_pool.hpp"
 #include "genesis/utils/core/version.hpp"
 #include "genesis/utils/formats/bmp/writer.hpp"
@@ -144,7 +146,9 @@
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/compensated_sum.hpp"
+#include "genesis/utils/math/correlation.hpp"
 #include "genesis/utils/math/distance.hpp"
+#include "genesis/utils/math/distribution.hpp"
 #include "genesis/utils/math/euclidean_kmeans.hpp"
 #include "genesis/utils/math/histogram/accumulator.hpp"
 #include "genesis/utils/math/histogram/distances.hpp"

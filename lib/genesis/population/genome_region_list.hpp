@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -338,7 +338,7 @@ public:
      * The is_covered() function only returns whether a position is covered at all, but does not
      * tell by how many regions/intervals it is covered. This function returns that value.
      *
-     * Note that the special "whole chromsome" case (marked by setting an interval that covers
+     * Note that the special "whole chromosome" case (marked by setting an interval that covers
      * position 0) is not considered here by default, as this is likely to be not intended.
      * With @p whole_chromosome, this behaviour can be changed, meaning that if position 0 is also
      * covered (and hence the whole chromosome is marked as covered), the resulting counter

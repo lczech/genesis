@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,8 +32,10 @@
 
 #include "genesis/utils/containers/mru_cache.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/core/thread_functions.hpp"
 #include "genesis/utils/core/options.hpp"
 
+#include <atomic>
 #include <cstdlib>
 #include <memory>
 #include <string>
@@ -228,7 +230,6 @@ TEST( Containers, MruCacheFiles )
     EXPECT_TRUE(  cache.contains( "fail3.jtest" ));
     EXPECT_TRUE(  cache.contains( "fail4.jtest" ));
     EXPECT_TRUE(  cache.contains( "fail5.jtest" ));
-
 }
 
 TEST( Containers, MruCacheSharedPtr )
@@ -286,24 +287,25 @@ TEST( Containers, MruCacheThreading )
     MruCache<std::string, std::shared_ptr<std::string>> cache{ 3 };
 
     // Load elements from file. Wait random time, so that we actualy get wasted loadings.
-    cache.load_function = [ &dir ]( std::string const& file ){
+    std::atomic<size_t> load_count{0};
+    cache.load_function = [&]( std::string const& file ){
+        ++load_count;
         auto wait = std::rand() % 10;
         std::this_thread::sleep_for( std::chrono::milliseconds( wait ));
         return std::make_shared<std::string>( file_read( dir + "/" + file ));
     };
 
-    // Use all threads on the system.
-    genesis::utils::Options::get().number_of_threads( 0 );
-
-    #pragma omp parallel for schedule(static)
-    for( size_t i = 0; i < 100; ++i ) {
-
+    parallel_for( 0, 100, [&](size_t){
         // Get a number between 2-12, for valid file names that are acutally in our test data.
         // This is dirty, but works.
         size_t num = 2 + ( std::rand() % 11 );
 
         cache.fetch_copy( "fail" + std::to_string( num ) + ".jtest" );
-    }
+    });
+
+    // We must have loaded at least one element (which would mean that _all_ 100 calls loaded
+    // the same file... very much unlikely, but still, it's enough to test this here).
+    EXPECT_GT( load_count.load(), 0 );
 }
 
 // TEST( Containers, MruCacheLock )

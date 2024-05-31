@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -153,6 +153,7 @@ void MassTreeKmeans::update_centroids(
             assert( utils::almost_equal_relative(
                 count, mass_tree_sum_of_masses( centroid ), 0.00001
             ));
+            (void) count;
 
             // Put in bins for speedup, and normalize.
             if( accumulate_centroid_masses_ == 1 ) {

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -367,6 +367,7 @@ std::vector<T> n_first_elements(
         ++val_cnt;
     }
     assert(( val_cnt < n && queue.size() == val_cnt ) || queue.size() == n );
+    (void) val_cnt;
 
     // Convert to vector in sorting order. The top() element is actually the _last_ we want
     // in the returned vector, so we fill it backwards... bit cumbersome, but efficient.

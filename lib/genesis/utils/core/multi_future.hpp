@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -60,6 +60,8 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/thread_pool.hpp"
+
 #include <cassert>
 #include <future>
 #include <stdexcept>
@@ -93,7 +95,7 @@ public:
         : futures_( n )
     {}
 
-    // Copy construction deleted, as std::future cannot be copied
+    // Copy construction deleted, as future cannot be copied
     MultiFuture( MultiFuture const& ) = delete;
     MultiFuture( MultiFuture&& )      = default;
 
@@ -109,7 +111,7 @@ public:
     /**
      * @brief Append a future.
      */
-    void push_back( std::future<T> future )
+    void push_back( ProactiveFuture<T> future )
     {
         futures_.push_back( std::move(future) );
     }
@@ -184,7 +186,7 @@ public:
     /**
      * @brief Get a reference to one of the stored futures.
      */
-    std::future<T>& operator[]( size_t i )
+    ProactiveFuture<T>& operator[]( size_t i )
     {
         return futures_[i];
     }
@@ -192,7 +194,7 @@ public:
     /**
      * @brief Get a const reference to one of the stored futures.
      */
-    std::future<T> const& operator[]( size_t i ) const
+    ProactiveFuture<T> const& operator[]( size_t i ) const
     {
         return futures_[i];
     }
@@ -211,7 +213,7 @@ public:
 
 private:
 
-    std::vector<std::future<T>> futures_;
+    std::vector<ProactiveFuture<T>> futures_;
 };
 
 } // namespace utils

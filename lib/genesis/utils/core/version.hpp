@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -100,7 +100,7 @@ inline std::string genesis_header()
      (___/ (___  /   / (___  (__) / (__)   \n\
       __/______________________________    \n\
     (__/                                   \n\
-               2014-2023 by Lucas Czech    \n\
+               2014-2024 by Lucas Czech    \n\
                " + genesis_url()     +    "\n\
                " + genesis_version() +    "\n";
 }
@@ -115,7 +115,7 @@ inline std::string genesis_license()
 {
     return "\
     Genesis - A toolkit for working with phylogenetic data.\n\
-    Copyright (C) 2014-2023 Lucas Czech\n\
+    Copyright (C) 2014-2024 Lucas Czech\n\
     \n\
     This program is free software: you can redistribute it and/or modify\n\
     it under the terms of the GNU General Public License as published by\n\

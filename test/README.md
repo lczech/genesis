@@ -20,11 +20,14 @@ test modes. The basic usage is
 
     ./run.sh [mode] [filter]...
 
-Currently, it has three main modes:
+Currently, it has these main modes:
 
 1. `validation` (or short `val`) simply runs GTest tests. If no mode is provided, this one is used.
 2. `memory` (or short `mem`) runs a full [Valgrind](http://valgrind.org/) memory check on the tests.
-3. `speed` runs the tests several times and measures their execution speed. If immediately followed
+3. `head` (or `massif`) runs Valgrind massif, to check heap allocations.
+4. `debug` (or `gdb`) runs the GNU debugger `gdb` on the test cases.
+5. `gtest` simply runs the underlying gtest binary directly - good to see its output.
+6. `speed` runs the tests several times and measures their execution speed. If immediately followed
    by an integer, this number of speed runs is executed (e.g., `./run.sh speed 100`).
 
 Those modes will output a list of all executed tests with some additional information.

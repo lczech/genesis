@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -31,6 +31,8 @@
 #include "genesis/population/genome_locus_set.hpp"
 
 #include "genesis/utils/math/bitvector/operators.hpp"
+
+#include <unordered_set>
 
 namespace genesis {
 namespace population {
@@ -86,12 +88,18 @@ void GenomeLocusSet::add(
     assert( bv.size() >= end + 1 );
 
     // Now set all bits in between the two positions, inclusive.
-    for( size_t i = start; i <= end; ++i ) {
-        bv.set( i );
-    }
+    bv.set( start, end + 1 );
+    // for( size_t i = start; i <= end; ++i ) {
+    //     bv.set( i );
+    // }
 }
 
 void GenomeLocusSet::add( std::string const& chromosome, utils::Bitvector const& values )
+{
+    add( chromosome, utils::Bitvector( values ));
+}
+
+void GenomeLocusSet::add( std::string const& chromosome, utils::Bitvector&& values )
 {
     // Checks.
     if( chromosome.empty() ) {
@@ -109,6 +117,12 @@ void GenomeLocusSet::add( std::string const& chromosome, utils::Bitvector const&
     if( values.empty() ) {
         throw std::invalid_argument(
             "Cannot add region via chromosome and Bitvector, as given Bitvector is empty."
+        );
+    }
+    assert( values.size() > 0 );
+    if( values.size() == 1 && !values.get(0) ) {
+        throw std::invalid_argument(
+            "Cannot add region via chromosome and Bitvector, as given Bitvector has [0]==false."
         );
     }
 
@@ -184,7 +198,7 @@ void GenomeLocusSet::set_intersect( GenomeLocusSet const& rhs )
             assert( !lhs_bits.get(0) );
         }
 
-        // If the result has any positions set, this is still a chromsome that we want to keep,
+        // If the result has any positions set, this is still a chromosome that we want to keep,
         // so remove it from the to-delete list. If all its bits are 0, we have eliminated
         // all positions from the filter, so we might as well delete the whole vector; in that
         // case, we simply keept it in the to-delete list and then it gets removed below.

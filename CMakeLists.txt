@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2023 Lucas Czech
+# Copyright (C) 2014-2024 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -51,7 +51,9 @@ else()
 endif()
 message (STATUS "Host: ${GENSIS_HOST_INFO}")
 message (STATUS "System: ${GENSIS_SYST_INFO}")
-message (STATUS "OS: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION}")
+IF(( DEFINED CMAKE_SYSTEM_NAME) OR ( DEFINED CMAKE_SYSTEM_VERSION ))
+    message (STATUS "OS: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION}")
+ENDIF()
 
 # Important settings.
 set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
@@ -106,7 +108,7 @@ set( GENESIS_SHARED_LIBRARY "" )
 # This is exported to the parent scope, but only usable if GENESIS_BUILD_STATIC_LIB is ON.
 set( GENESIS_STATIC_LIBRARY "" )
 
-# Prepare variable that collects libraries that Genesis needs to be linked against, e.g. Pthreads.
+# Prepare variable that collects libraries that Genesis needs to be linked against, e.g. htslib.
 # This is used internally, and also added to the Genesis library exports, so that in parent scope,
 # only one target needs to be linked against.
 set( GENESIS_INTERNAL_LINK_LIBRARIES "" )
@@ -189,9 +191,6 @@ option (GENESIS_BUILD_TESTS         "Build the Genesis test suites."            
 
 # If available, use external dependencies.
 option (GENESIS_USE_ZLIB            "Use zlib."                                          ON)
-
-# We default to using threads (if available, which will be checked later).
-option (GENESIS_USE_THREADS         "Use a threading library (mainly, pthreads)."        ON)
 option (GENESIS_USE_OPENMP          "Use OpenMP."                                        ON)
 
 # Additional dependencies: htslib
@@ -277,6 +276,8 @@ set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
 set (CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O2 -DDEBUG -g -ggdb3 -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC")
 set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
 
+# Address sanitizer: add `-fsanitize=address` to the flags above.
+
 # Settings for getting code coverage reports of the tests with gcov and lcov.
 # Compile with gcc (clang will need a different command for running gcov, I think its `clang gov`
 # or something), using
@@ -343,15 +344,6 @@ IF(GENESIS_USE_ZLIB)
 ENDIF()
 
 # ----------------------------------------------------------
-#     (p)threads
-# ----------------------------------------------------------
-
-IF(GENESIS_USE_THREADS)
-    # Included from modules dir tools/cmake
-    include( IncludePthreads )
-ENDIF()
-
-# ----------------------------------------------------------
 #     OpenMP
 # ----------------------------------------------------------
 
@@ -375,6 +367,8 @@ if(GENESIS_USE_HTSLIB)
     SET( GENESIS_HTSLIB_VERSION "1.16" ) #GENESIS_HTSLIB_VERSION#
 
     # Included from modules dir tools/cmake
+    # htslib needs pthreads to be linked, so we include this here as well
+    include( IncludePthreads )
     include( IncludeHtslib )
 
 endif()
@@ -463,11 +457,11 @@ IF( GENESIS_HAS_PARENT_DIR )
 
     # Set the libraries to be used for `target_link_libraries()` in the parent scope.
     # This is a combination of our own internal libraries (shared and static lib), as well as
-    # any needed other external libraries, e.g., Pthreads.
+    # any needed other external libraries, e.g., htslib.
     set( GENESIS_LINK_LIBRARIES        ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_LIBRARY} PARENT_SCOPE )
 
     # We also offer explicit targets for the shared and static library, in case both were build.
-    # They also include our internal dependencies (Pthreads etc), just to be sure.
+    # They also include our internal dependencies (htslib etc), just to be sure.
     set( GENESIS_LINK_SHARED_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_SHARED_LIBRARY} PARENT_SCOPE )
     set( GENESIS_LINK_STATIC_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_STATIC_LIBRARY} PARENT_SCOPE )
 

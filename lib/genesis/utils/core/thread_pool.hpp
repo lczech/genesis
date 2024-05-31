@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,36 +24,6 @@
     260 Panama Street, Stanford, CA 94305, USA
 */
 
-/*
-    The parallel block/for functionality is inspired by BS::thread_pool,
-    see https://github.com/bshoshany/thread-pool, but adapted to fit into our contex,
-    and improved for a more even distribution of the workload, and usage convenience.
-
-    We here still need to include the following original license of BS::thread_pool:
-
-    MIT License
-
-    Copyright (c) 2022 Barak Shoshany
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-*/
-
 /**
  * @brief
  *
@@ -63,6 +33,7 @@
 
 #include <atomic>
 #include <cassert>
+#include <chrono>
 #include <condition_variable>
 #include <iterator>
 #include <functional>
@@ -72,14 +43,220 @@
 #include <queue>
 #include <stdexcept>
 #include <thread>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
-#include "genesis/utils/core/multi_future.hpp"
-#include "genesis/utils/core/logging.hpp"
-
 namespace genesis {
 namespace utils {
+
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class ThreadPool;
+
+// =================================================================================================
+//     Proactive Future
+// =================================================================================================
+
+/**
+ * @brief Wrapper around `std::future` that implements busy waiting.
+ *
+ * This has the same interface and functionality as `std::future`, with the key difference that
+ * when calling wait(), tasks from the ThreadPool queue are processed while waiting. This avoids
+ * the pool to deadlock should tasks submit tasks of their own that they are then waiting for.
+ * In such a scenario, all threads in the pool could be waiting for their submitted tasks, but none
+ * of them can run, because all the threads are already processing a task (the one that is stuck
+ * waiting).
+ *
+ * The technique is inspired by "C++ Concurrency in Action" * book by Anthony Williams, second
+ * edition, chapter 9, where this idea is mentioned as a way to avoid starving tasks. We here wrap
+ * this idea into a class, so that users of the ThreadPool have to use this feature, and hence
+ * avoid the deadlock.
+ */
+template<class T>
+class ProactiveFuture
+{
+public:
+
+    // -------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------
+
+    /**
+     * @brief Public default constructor, so that for instance a `std::vector` of ProactiveFuture can
+     * be created.
+     */
+    ProactiveFuture() noexcept = default;
+
+private:
+
+    /**
+     * @brief Private constructur, so that only a ThreadPool can create instances.
+     */
+    ProactiveFuture( std::future<T> future_result, ThreadPool& thread_pool )
+        : future_( std::move( future_result ))
+        , thread_pool_( &thread_pool )
+    {}
+
+    friend ThreadPool;
+
+public:
+
+    ~ProactiveFuture() noexcept = default;
+
+    ProactiveFuture( ProactiveFuture&& ) noexcept = default;
+    ProactiveFuture( const ProactiveFuture& ) = delete;
+
+    ProactiveFuture& operator=( ProactiveFuture&& ) noexcept = default;
+    ProactiveFuture& operator=( const ProactiveFuture& ) = delete;
+
+    // -------------------------------------------------------------
+    //     Forwarded members
+    // -------------------------------------------------------------
+
+    /**
+     * @brief Return the result, after calling wait().
+     */
+    T get()
+    {
+        // Use our busy waiting first, until we are ready.
+        wait();
+        assert( ready() );
+        return future_.get();
+    }
+
+    /**
+     * @brief Return the result, after calling wait().
+     */
+    template<typename U = T>
+    typename std::enable_if<!std::is_void<U>::value, U&>::type get()
+    {
+        // Enable this method only if T is not void (non-void types).
+        static_assert( ! std::is_same<T, void>::value, "ProactiveFuture::get() intended for T != void" );
+
+        // Use our busy waiting first, until we are ready.
+        wait();
+        assert( ready() );
+        return future_.get();
+    }
+
+    /**
+     * @brief Return the result, after calling wait().
+     */
+    template<typename U = T>
+    typename std::enable_if<std::is_void<U>::value>::type get()
+    {
+        // Enable this method only if T is void
+        static_assert( std::is_same<T, void>::value, "ProactiveFuture::get() intended for T == void" );
+
+        // Use our busy waiting first, until we are ready.
+        wait();
+        assert( ready() );
+        return future_.get();
+    }
+
+    /**
+     * @brief Check if the future has a shared state.
+     */
+    bool valid() const noexcept
+    {
+        return future_.valid();
+    }
+
+    /**
+     * @brief Wait for the result to become available.
+     *
+     * This is the main function that differs from `std::future::wait()`, in that it processes
+     * other tasks from the pool while waiting, until the underlying future is ready.
+     */
+    void wait() const;
+
+    /**
+     * @brief Wait for the result, return if it is not available for the specified timeout duration.
+     *
+     * This simply forwards to the `wait_for` function of the future. Note that this does _not_ do
+     * the busy waiting that this wrapper is intended for. Hence, calling this function in a loop
+     * until the future is ready might never happen, in case that the ThreadPool dead locks due to
+     * the task waiting for a (then) starving other task. The whole idea of this class is to avoid
+     * this scenario, by processing these potentially starving tasks. We hence recommend to not use
+     * this function, or at least not in a loop, unless you are sure that none of your tasks submit
+     * any tasks of their own to the same thread pool.
+     */
+    template< class Rep, class Period >
+    std::future_status wait_for( std::chrono::duration<Rep,Period> const& timeout_duration ) const
+    {
+        // If the user species a time to wait for, we just forward that to the future.
+        return future_.wait_for( timeout_duration );
+    }
+
+    /**
+     * @brief Wait for the result, return if it is not available until specified time point has been
+     * reached.
+     *
+     * This simply forwards to the `wait_until` function of the future. The same caveat as explained
+     * in wait_for() applies here as well. We hence recommend to not use this function.
+     */
+    template< class Clock, class Duration >
+    std::future_status wait_until( std::chrono::time_point<Clock,Duration> const& timeout_time ) const
+    {
+        // If the user species a time to wait until, we just forward that to the future.
+        return future_.wait_until( timeout_time );
+    }
+
+    // -------------------------------------------------------------
+    //     Additional members
+    // -------------------------------------------------------------
+
+    /**
+     * @brief Check if the future is ready.
+     */
+    bool ready() const
+    {
+        throw_if_invalid_();
+        return future_.wait_for( std::chrono::seconds(0) ) == std::future_status::ready;
+    }
+
+    /**
+     * @brief Check if the future is deferred, i.e., the result will be computed only when
+     * explicitly requested.
+     *
+     * This should always return `false`, as we never create a deferred future ourselves.
+     * This would indicate some misuse of the class via `std::async` or some other mechanism.
+     */
+    bool deferred() const
+    {
+        throw_if_invalid_();
+        return future_.wait_for( std::chrono::seconds(0) ) == std::future_status::deferred;
+    }
+
+    // -------------------------------------------------------------
+    //     Internal members
+    // -------------------------------------------------------------
+
+private:
+
+    void throw_if_invalid_() const
+    {
+        // From: https://en.cppreference.com/w/cpp/thread/future/wait
+        // The implementations are encouraged to detect the case when valid() == false before the
+        // call and throw a std::future_error with an error condition of std::future_errc::no_state.
+        if( !future_.valid() ) {
+            throw std::future_error( std::future_errc::no_state );
+        }
+    }
+
+    // -------------------------------------------------------------
+    //     Data members
+    // -------------------------------------------------------------
+
+private:
+
+    std::future<T> future_;
+    ThreadPool* thread_pool_;
+
+};
 
 // =================================================================================================
 //     Thread Pool
@@ -90,12 +267,19 @@ namespace utils {
  *
  * This simple implementation offer a standing pool of worker threads that pick up tasks.
  *
+ * For reasons explained below, it is recommended to initialize a global thread pool via
+ * Options::get().global_thread_pool(), with one fewer threads than intended to keep busy,
+ * as the main thread will also be able to do busy work while waiting for tasks. Use
+ * guess_number_of_threads() for obtaining the adequate number of total threads to run,
+ * and subtract one to get the number to use this class with.
+ *
  * Example
  *
  *     // Create a thread pool with 2 worker threads
  *     ThreadPool thread_pool( 2 );
  *
- *     // Enqueue a new task by providing a function and its arguments, and store its future result
+ *     // Enqueue a new task by providing a function and its arguments, and store its future result.
+ *     // This is a ProactiveFuture, so that calling wait() or get() on it will process other tasks.
  *     auto result = thread_pool.enqueue(
  *         []( int some_param ) {
  *             // do computations
@@ -105,17 +289,27 @@ namespace utils {
  *         0 // value for `some_param`
  *     );
  *
- *     // Get the value of `some_result` from the future
- *     // As this is a future, the function call to get() blocks until a thread has finished the work
+ *     // Get the value of `some_result` from the future.
+ *     // As this is a future, the function call to get() blocks until a thread has finished the
+ *     // work, but also processes other tasks from the queue in the meantime, see ProactiveFuture.
  *     std::cout << result.get() << "\n";
  *
  * As the workers are stored in the ThreadPool object itself, it does not allow to be copied.
  *
- * When a submitted task itself tries to enqueue a task (which can happen in our library, where
- * parallelization is introduced at several levels of granularity), we execute that nested task
- * directly, instead of enqueueing it in the pool. Otherwise, we could end up in a deadlock situation,
- * where the submitting task is executed in the pool, and keeps waiting for the nested task, but
- * that one never gets picked up by a thread, as all threads might be in such a waiting state.
+ * The pool implements a technique similar to the one described in the "C++ Concurrency in Action"
+ * book by Anthony Williams, second edition, chapter 9, in order to avoid dead locking when tasks
+ * submit their own tasks. In such cases, the parent task could then potentially be waiting  for the
+ * child, but the child might never start, as all threads in the pool are busy waiting for children,
+ * this could starve. Hence, our wrapper implementation ProactiveFuture instead processes tasks from the
+ * queue while waiting for the future, so that those do not starve.
+ *
+ * This mechanism also allows to start a ThreadPool with 0 threads. In that case, all tasks will
+ * be processed once wait() or get() is called on their returned ProactiveFuture (our thin wrapper
+ * around `std::future`; see there for details) - essentially making the pool behave as
+ * a lazy evaluator of the tasks. This is very convenient behavior to ensure that the number of
+ * actually busy threads is exactly known - a main thread that waits for some submitted tasks will
+ * also be doing work while waiting. Hence, we recommend to start thise pool with one fewer threads
+ * than hardware concurrency (or whatever other upper limit you want to ensure, e.g., Slurm).
  */
 class ThreadPool
 {
@@ -128,14 +322,12 @@ public:
     /**
      * @brief Construct a thread pool with a given number of workers.
      *
-     * We allow for 0 tasks on construction, so that default construction is possible.
-     * However, the enqueue() throws if used with such an instance.
+     * We allow for 0 tasks on construction. With no threads in the pool, every task submitted will
+     * be processed instead once its future is queried via wait or get; it then hence behaves as a
+     * lazy evaluating task queue.
      */
     explicit ThreadPool( size_t num_threads )
     {
-        // Store the ID where this pool was started.
-        this_id_ = std::this_thread::get_id();
-
         // Create the threads.
         init_( num_threads );
     }
@@ -182,19 +374,18 @@ public:
     /**
      * @brief Return the current number of queued tasks.
      */
-    size_t load() const
+    size_t currently_enqueued_tasks() const
     {
         std::unique_lock<std::mutex> lock( task_queue_mutex_ );
         return task_queue_.size();
     }
 
     /**
-     * @brief Return counts of the number of tasks that have been enqueued in total (first) and that
-     * have been nested calles that were executed directly without being enqueued (second).
+     * @brief Return counts of the number of tasks that have been enqueued in total.
      */
-    std::pair<size_t, size_t> statistics() const
+    size_t total_enqueued_tasks() const
     {
-        return std::make_pair( enqueued_tasks_.load(), nested_tasks_.load() );
+        return enqueued_tasks_.load();
     }
 
     // -------------------------------------------------------------
@@ -209,14 +400,13 @@ public:
      * back to the caller, if needed, by simply returning it from the task function.
      *
      * We internally use a std::packaged_task, so that any exception thrown in the function will
-     * be caught and trapped inside of the std::future, until its get() function is called.
+     * be caught and trapped inside of the future, until its get() function is called.
      */
     template<class F, class... Args>
     auto enqueue( F&& f, Args&&... args )
-    -> std::future<typename std::result_of<F(Args...)>::type>
+    -> ProactiveFuture<typename std::result_of<F(Args...)>::type>
     {
         using result_type = typename std::result_of<F(Args...)>::type;
-        assert( ! worker_pool_.empty() );
 
         // Prepare the task by binding the function to its arguments.
         // Using a packaged task ensures that any exception thrown in the task function
@@ -227,29 +417,9 @@ public:
         );
 
         // Prepare the resulting future result of the task
-        std::future<result_type> future_result = task->get_future();
+        auto future_result = ProactiveFuture<result_type>( task->get_future(), *this );
 
-        // If this function was called from a thread that is not the same as from where this pool
-        // was started, we have to assume that it's a nested call, where a task in a pool itself
-        // submits tasks to the queue. In that case, we could easily deadlock, as the initial task
-        // is runnining in one of the threads of the pool, but will only finish once its nested task
-        // is done, but that might starve at the end of the queue, as all running tasks might be
-        // in such a waiting state...
-        // In order to solve this, we just run the task function here directly, without enqueueing it.
-        // This might mess up the whole purpose of the pool if tasks can be submitted from other
-        // threads that are not threads in the pool itself - but that's not a use case that we
-        // currently have, so we can live with that. It would still work, but not make optimal use
-        // of the threads then.
-        if( this_id_ != std::this_thread::get_id() ) {
-            (*task)();
-            ++nested_tasks_;
-            return future_result;
-        }
-
-        // Here, we know that the task was enqueued from the same thread as the pool was started from,
-        // which we assert, and then we can add it to the queue without dead locking.
         // Put the task into the queue, synchronized, and in a small scope.
-        assert( this_id_ == std::this_thread::get_id() );
         {
             std::unique_lock<std::mutex> lock( task_queue_mutex_ );
 
@@ -267,240 +437,34 @@ public:
     }
 
     /**
-     * @brief Parallel block over a range of elements, breaking the range into blocks for which
-     * the @p body function is executed individually.
+     * @brief Helper function to run a pending task from outside the pool.
      *
-     * The function takes a @p begin index and an @p end (past-the-end) index, and executes
-     * the @p body in @p num_blocks many blocks, aiming to equally distribute the work across the
-     * range @p begin to @p end.
-     * In other words, it is equivalent to `for( T i = begin; i < end; ++i )`.
-     *
-     * The @p body function to loop through is called once per block. It should take two arguments:
-     * the first index in the block and the index after the last index in the block, e.g.:
-     *
-     * ```
-     * []( size_t begin, size_t end ) {
-     *     for( size_t i = begin; i < end; ++i ) {
-     *         // ...
-     *     }
-     * }
-     * ```
-     *
-     * The @p num_blocks determines the number of blocks to split the loop body into. Default is
-     * to use the number of threads in the pool.
-     *
-     * The function returns a MultiFuture that can be used to wait for all the blocks to finish.
-     * If the loop body returns a value, the MultiFuture can also be used to obtain the values
-     * returned by each block, for example:
-     *
-     * ```
-     * []( size_t begin, size_t end ) {
-     *     size_t block_sum = 0;
-     *     for( size_t i = begin; i < end; ++i ) {
-     *         // ...
-     *         block_sum += ...
-     *     }
-     *     return block_sum;
-     * }
-     * ```
-     *
-     * This is useful for example for aggregating values, such as a parallel sum.
+     * The return value indicates whether a task has been run.
+     * If no tasks are enqueued, return `false` without doing anything.
+     * This is the function that allows ProactiveFuture to process tasks while waiting.
      */
-    template<
-        typename F,
-        typename T1, typename T2, typename T = typename std::common_type<T1, T2>::type,
-        typename R = typename std::result_of<typename std::decay<F>::type(T, T)>::type
-    >
-    MultiFuture<R> parallel_block( T1 begin, T2 end, F&& body, size_t num_blocks = 0 )
+    bool run_pending_task()
     {
-        // Get the total range and number of tasks.
-        // Casting, so that we work with a common type... bit of a relic, but sure, why not.
-        auto begin_t = static_cast<T>( begin );
-        auto end_t = static_cast<T>( end );
-        if( begin_t > end_t ) {
-            std::swap( begin_t, end_t );
-        }
-        size_t const total_size = end_t - begin_t;
+        // Similar to the worker function, but without the condition_variable to wait, as we might
+        // not ever have any tasks in the queue, and would be waiting for the condition indefinitely.
+        // Instead, we here just want to process a task if there is one, or return otherwise.
+        std::function<void()> task;
 
-        // Edge case. Nothing to do.
-        if( total_size == 0 ) {
-            assert( begin_t == end_t );
-            return MultiFuture<R>();
-        }
-
-        // Default block size is the number of threads, unless there are not even that many tasks,
-        // in which case we can use fewer blocks.
-        if( num_blocks == 0 ) {
-            assert( worker_pool_.size() > 0 );
-            num_blocks = worker_pool_.size();
-        }
-        if( num_blocks > total_size ) {
-            num_blocks = total_size;
-        }
-        assert( num_blocks > 0 );
-        assert( num_blocks <= total_size );
-
-        // Compute the needed sizes. We do _not_ follow BS::thread_pool here, as they currently
-        // do not distribute work optimally, see https://github.com/bshoshany/thread-pool/issues/96
-        // Instead, we use blocks of minimal size, and add the remainder to the first few blocks,
-        // so that the blocks that are one larger than the others run first, minimizing our wait
-        // time at the end. See e.g., https://stackoverflow.com/a/36689107
-        size_t const block_size = total_size / num_blocks;
-        size_t const remainder  = total_size % num_blocks;
-        assert( block_size > 0 );
-        assert( remainder < num_blocks );
-
-        // Enqueue all blocks.
-        size_t current_start = 0;
-        MultiFuture<R> result( num_blocks );
-        for( size_t i = 0; i < num_blocks; ++i ) {
-            // We get the length of the current block, and in the beginning also add one to their
-            // length to distribute the remainder elements that did not fit evently into the blocks.
-            // Use that length to get the begin and end points, and submit the block.
-            auto const l = block_size + ( i < remainder ? 1 : 0 );
-            auto const b = begin_t + static_cast<T>( current_start );
-            auto const e = begin_t + static_cast<T>( current_start + l );
-            assert( l > 0 );
-            assert( b < e );
-            result[i] = enqueue( std::forward<F>( body ), b, e );
-
-            // Our next block will start where this one ended.
-            current_start += l;
-            assert( current_start <= total_size );
+        // Short lock to get a task if there is one.
+        {
+            std::unique_lock<std::mutex> lock( task_queue_mutex_ );
+            if( !this->task_queue_.empty() ) {
+                task = std::move( this->task_queue_.front() );
+                this->task_queue_.pop();
+            }
         }
 
-        // Now we should have processed everything exactly.
-        // Check this, then return the future.
-        assert( current_start == total_size );
-        assert( begin_t + static_cast<T>( current_start ) == end_t );
-        return result;
-    }
-
-    /**
-     * @brief Parallel `for` over a range of positions, breaking the range into blocks for which
-     * the @p body function is executed individually.
-     *
-     * This is almost the same as parallel_block(), but intended to be used with `for` loops that
-     * do not need to compute per-block return values. The function signature of `F` is hence simply
-     * expected to be `void F( size_t i )`, and is called for every position in the processed range.
-     *
-     * ```
-     * std::vector<int> numbers( 100 );
-     * auto futures = pool->parallel_for(
-     *     0, numbers.size(),
-     *     [&numbers]( size_t i )
-     *     {
-     *         numbers[i] *= 2;
-     *     }
-     * );
-     * futures.get();
-     * ```
-     *
-     * This makes it a convenience function; see also parallel_for_each() for container-based data.
-     */
-    template<
-        typename F,
-        typename T1, typename T2, typename T = typename std::common_type<T1, T2>::type
-    >
-    MultiFuture<void> parallel_for( T1 begin, T2 end, F&& body, size_t num_blocks = 0 )
-    {
-        return parallel_block(
-            begin, end,
-            [body]( T b, T e ){
-                for( size_t i = b; i < e; ++i ) {
-                    body(i);
-                }
-            }, num_blocks
-        );
-    }
-
-    /**
-     * @brief Parallel `for each` over a container, processing it in blocks for which
-     * the @p body function is executed individually.
-     *
-     * This is almost the same as parallel_for(), but intended to be used with containers.
-     * The function signature of `F` is hence simply expected to be `void F( T& element )` or
-     * `void F( T const& element )`, and is called for every element in the container.
-     *
-     * ```
-     * std::vector<int> numbers( 100 );
-     * auto futures = pool->parallel_for_each(
-     *     numbers.begin(), numbers.end(),
-     *     []( int& element )
-     *     {
-     *         element *= 2;
-     *     }
-     * );
-     * futures.get();
-     * ```
-     *
-     * This makes it a convenience function.
-     */
-    template<typename F, typename T>
-    MultiFuture<void> parallel_for_each( T const begin, T const end, F&& body, size_t num_blocks = 0 )
-    {
-        // Boundary checks.
-        auto const total = std::distance( begin, end );
-        if( total < 0 ) {
-            throw std::invalid_argument( "Cannot use parallel_for_each() with a reverse range." );
+        // If we got a task, run it.
+        if( task ) {
+            task();
+            return true;
         }
-        if( total == 0 ) {
-            return MultiFuture<void>();
-        }
-
-        // Run the loop over elements in parallel blocks.
-        // For some reason, we need to take `begin` by const copy in the signature above,
-        // and copy it again here for the lambda. Otherwise, we run into some weird iterator
-        // invalidity issues, that might come from the threading or something... it's weird.
-        // The iterator itself is never advanced here, so that should not lead to this error...
-        return parallel_block(
-            0, total,
-            [begin, body]( size_t b, size_t e ){
-                for( size_t i = b; i < e; ++i ) {
-                    body( *(begin + i) );
-                }
-            }, num_blocks
-        );
-    }
-
-    /**
-     * @brief Parallel `for each` over a container, processing it in blocks for which
-     * the @p body function is executed individually.
-     *
-     * Expects a random access container that supports `size()` as well as `operator[]` to access
-     * individual elements, and a @p body that takes one element of that container to process.
-     *
-     * ```
-     * std::vector<int> numbers( 100 );
-     * auto futures = pool->parallel_for_each(
-     *     numbers,
-     *     []( int& element )
-     *     {
-     *         element *= 2;
-     *     }
-     * );
-     * futures.get();
-     * ```
-     *
-     * This makes it a convenience function.
-     */
-    template<typename F, typename T>
-    MultiFuture<void> parallel_for_each( T& container, F&& body, size_t num_blocks = 0 )
-    {
-        // Boundary checks.
-        if( container.size() == 0 ) {
-            return MultiFuture<void>();
-        }
-
-        // Run the loop over elements in parallel blocks.
-        return parallel_block(
-            0, container.size(),
-            [&container, body]( size_t b, size_t e ) {
-                for( size_t i = b; i < e; ++i ) {
-                    body( container[ i ] );
-                }
-            }, num_blocks
-        );
+        return false;
     }
 
     // -------------------------------------------------------------
@@ -511,13 +475,6 @@ private:
 
     void init_( size_t num_threads )
     {
-        // Some dead end checking.
-        if( num_threads == 0 ) {
-            throw std::runtime_error(
-                "Cannot construct an empty ThreadPool, as this would not be able to do anything."
-            );
-        }
-
         // Create the desired number of workers.
         for( size_t i = 0; i < num_threads; ++i ) {
             worker_pool_.emplace_back(
@@ -560,9 +517,6 @@ private:
 
 private:
 
-    // Store the current thread ID, needed for nested task submissions.
-    std::thread::id this_id_;
-
     // Store all workers
     std::vector<std::thread> worker_pool_;
 
@@ -576,8 +530,56 @@ private:
 
     // Statistics
     std::atomic<size_t> enqueued_tasks_{ 0 };
-    std::atomic<size_t> nested_tasks_{ 0 };
 };
+
+// =================================================================================================
+//      Deferred Definitions
+// =================================================================================================
+
+// Implemented here, as it needs ThreadPool to be defined first.
+template<class T>
+void ProactiveFuture<T>::wait() const
+{
+    // Let's be thorough. The standard encourages the check for validity.
+    throw_if_invalid_();
+
+    // Also, check that we have a valid thread pool.
+    assert( thread_pool_ );
+    // if( !thread_pool_ ) {
+    //     throw std::runtime_error( "Invalid call to ProactiveFuture::wait() without a ThreadPool" );
+    // }
+
+    // If we have a deferred future, something is off - this was not created by us.
+    // We do not do any busy work while waiting, as otherwise, it won't ever get ready.
+    // As this might deadlock the thread pool, and was not done by us, we throw.
+    assert( !deferred() );
+    // if( deferred() ) {
+        // throw std::runtime_error( "Invalid call to ProactiveFuture::wait() with a deferred future" );
+        // return future_.wait();
+    // }
+
+    // Otherwise, we use the waiting time to process other tasks from the thread pool
+    // that created this future in the first place.
+    while( !ready() ) {
+        assert( thread_pool_ );
+
+        // We attempt to run a pending task. If that returns false, there were no tasks
+        // in the pool, so we can yield our thread for now - nothing to do for now, just wait more.
+        // We however need to keep waiting here. It could otherwise be that the task we are waiting
+        // for submits more tasks later, which might then deadlock the thread pool, if we here
+        // went into an actual wait for that first task - which would defy the main purpose of
+        // having this proactive waiting future in the first place.
+        // We also can't do anything with condition variables to omit the busy wait here, as we do
+        // not know whether there will be any tasks in the queue at all before we are done here.
+        if( ! thread_pool_->run_pending_task() ) {
+            std::this_thread::yield();
+        }
+    }
+
+    // We call wait just in case here again, to make sure that everything is all right.
+    // Probably not necessary, as it's already ready, but won't hurt either.
+    // future_.wait();
+}
 
 } // namespace utils
 } // namespace genesis

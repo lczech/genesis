@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -206,6 +206,7 @@ genesis::utils::JsonDocument cathedral_plot_record_to_json_document(
     // Now fill the object with our data.
     auto& obj = document.get_object();
     obj["title"]            = JsonDocument::string( record.title );
+    obj["plotName"]   = JsonDocument::string( record.plot_name );
     obj["chromosomeName"]   = JsonDocument::string( record.chromosome_name );
     obj["chromosomeLength"] = JsonDocument::number_unsigned( record.chromosome_length );
     obj["windowWidths"]     = JsonDocument( record.window_widths );
@@ -221,10 +222,11 @@ genesis::utils::JsonDocument cathedral_plot_record_to_json_document(
     return document;
 }
 
-void save_cathedral_plot_record_to_files(
+void save_cathedral_plot_record_to_targets(
     genesis::utils::JsonDocument const& record_document,
     genesis::utils::Matrix<double> const& record_value_matrix,
-    std::string const& base_path
+    std::shared_ptr<genesis::utils::BaseOutputTarget> json_target,
+    std::shared_ptr<genesis::utils::BaseOutputTarget> csv_target
 ) {
     using namespace genesis::utils;
 
@@ -244,8 +246,22 @@ void save_cathedral_plot_record_to_files(
     }
 
     // Write both files, using their respective readers.
-    JsonWriter().write( record_document, to_file( base_path + ".json" ));
-    MatrixWriter<double>( "," ).write( record_value_matrix, to_file( base_path + ".csv" ));
+    JsonWriter().write( record_document, json_target );
+    MatrixWriter<double>( "," ).write( record_value_matrix, csv_target );
+}
+
+void save_cathedral_plot_record_to_files(
+    genesis::utils::JsonDocument const& record_document,
+    genesis::utils::Matrix<double> const& record_value_matrix,
+    std::string const& base_path
+) {
+    using namespace genesis::utils;
+    save_cathedral_plot_record_to_targets(
+        record_document,
+        record_value_matrix,
+        to_file( base_path + ".json" ),
+        to_file( base_path + ".csv" )
+    );
 }
 
 void save_cathedral_plot_record_to_files(
@@ -296,13 +312,14 @@ CathedralPlotRecord load_cathedral_plot_record_from_files(
     std::string const& base_path
 ) {
     // Read the data.
-    auto const components = load_cathedral_plot_record_components_from_files( base_path );
+    auto components = load_cathedral_plot_record_components_from_files( base_path );
     auto const& json = components.first;
 
     // Fill the record. We currently only read the fields that we are actually using downstream.
     // Might need amendment if we make use of other fields as well, such as the window widths vec.
     CathedralPlotRecord result;
     result.title             = json[ "title" ].get_string();
+    result.plot_name         = json[ "plotName" ].get_string();
     result.chromosome_name   = json[ "chromosomeName" ].get_string();
     result.chromosome_length = json[ "chromosomeLength" ].get_number_unsigned();
     result.parameters.width  = json[ "width" ].get_number_unsigned();
@@ -315,7 +332,7 @@ CathedralPlotRecord load_cathedral_plot_record_from_files(
     }
 
     // Also get the value data.
-    result.value_matrix = components.second;
+    result.value_matrix = std::move( components.second );
 
     // Now check internal consistency, and return the result.
     validate_cathedral_plot_record( result );

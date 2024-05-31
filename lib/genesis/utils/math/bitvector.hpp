@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 #include <cassert>
 #include <cstdint>
 #include <iterator>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -56,6 +57,11 @@ public:
 
     using IntType = uint64_t;
     static const size_t IntSize = sizeof(IntType) * 8;
+
+    /**
+     * @brief Value to indicate that find_next_set() did not find any set bits.
+     */
+    static const size_t npos = std::numeric_limits<size_t>::max();
 
     // ---------------------------------------------------------
     //     Constructor and Rule of Five
@@ -86,7 +92,7 @@ public:
     /**
      * @brief Constructor that takes a size and a list of values (positions) to be set to true.
      */
-    Bitvector( size_t size, std::initializer_list<size_t> list)
+    Bitvector( size_t size, std::initializer_list<size_t> list )
         : Bitvector(size, false)
     {
         for( size_t e : list ) {
@@ -149,7 +155,7 @@ public:
     /**
      * @brief Return the value of a single bit, without boundary check.
      */
-    inline bool operator [] (size_t index) const {
+    inline bool operator [] ( size_t index ) const {
         assert( index / IntSize < data_.size() );
         assert( index % IntSize < bit_mask_.size() );
         return static_cast<bool> (data_[index / IntSize] & bit_mask_[index % IntSize]);
@@ -158,9 +164,9 @@ public:
     /**
      * @brief Return the value of a single bit, with boundary check.
      */
-    inline bool get (size_t index) const
+    inline bool get( size_t index ) const
     {
-        if (index >= size_) {
+        if( index >= size_ ) {
             throw std::out_of_range(
                 "Cannot access element " + std::to_string(index) + " in Bitvector of size " +
                 std::to_string(size())
@@ -175,7 +181,7 @@ public:
     /**
      * @brief Set the value of a single bit to true, with boundary check.
      */
-    inline void set (size_t index)
+    inline void set( size_t index )
     {
         if (index >= size_) {
             throw std::out_of_range(
@@ -192,9 +198,9 @@ public:
     /**
      * @brief Set the value of a single bit to false, with boundary check.
      */
-    inline void unset (size_t index)
+    inline void unset( size_t index )
     {
-        if (index >= size_) {
+        if( index >= size_ ) {
             throw std::out_of_range(
                 "Cannot access element " + std::to_string(index) + " in Bitvector of size " +
                 std::to_string(size())
@@ -209,21 +215,38 @@ public:
     /**
      * @brief Set the value of a single bit to a given bool value, with boundary check.
      */
-    inline void set (size_t index, bool value)
+    inline void set( size_t index, bool value )
     {
-        if (value) {
-            set(index);
+        if( value ) {
+            set( index );
         } else {
-            unset(index);
+            unset( index );
         }
     }
 
     /**
+     * @brief Set the value of a contiguous range of bits in the Bitvector.
+     *
+     * This function takes the @p first (inclusive) and @p last (past-the-end) indices into
+     * the Bitvector (with boundary check), and sets them to the given value (`true` by default).
+     *
+     * The range @p first to @p last is zero-based, with last being the past-the-end index.
+     * Hence, this is the same as
+     *
+     *     for( size_t i = first; i < last; ++i ) {
+     *         bitvector.set( i, value );
+     *     }
+     *
+     * but faster for anything beyond a few bits, as we operate on whole words internally.
+     */
+    void set( size_t first, size_t last, bool value = true );
+
+    /**
      * @brief Flip (negate) the value of a single bit, with boundary check.
      */
-    inline void flip (size_t index)
+    inline void flip( size_t index )
     {
-        if (index >= size_) {
+        if( index >= size_ ) {
             throw std::out_of_range(
                 "Cannot access element " + std::to_string(index) + " in Bitvector of size " +
                 std::to_string(size())
@@ -233,6 +256,14 @@ public:
         assert( index / IntSize < data_.size() );
         assert( index % IntSize < bit_mask_.size() );
         data_[index / IntSize] ^= bit_mask_[index % IntSize];
+    }
+
+    /**
+     * @brief Alias for flip(), see there for details.
+     */
+    inline void toggle( size_t index )
+    {
+        return flip( index );
     }
 
     // ---------------------------------------------------------
@@ -298,6 +329,20 @@ public:
      * but faster, as we use whole-word counting internally.
      */
     size_t count( size_t first, size_t last ) const;
+
+    /**
+     * @brief Return if any bits are set at all.
+     */
+    bool any_set() const;
+
+    /**
+     * @brief Return the index of the next position in the Bitvector that is set.
+     *
+     * This returns the first position after @p start, including @p start itself, that is set.
+     * If no such position exists (because all following bits are `false`), or if @p start is beyond
+     * the length of the vector, Bitvector::npos is returned instead.
+     */
+    size_t find_next_set( size_t start ) const;
 
     /**
      * @brief Return an std::hash value for the Bitvector.
@@ -370,12 +415,9 @@ private:
     /**
      * @brief Bitmask that contains as many ones as the position in the array tells.
      *
-     * The element at position `i` contains `i` many ones, starting from the right, with the
-     * exception of the first entry, which is just ones (to avoid branching in the function
-     * where this is used). This is because we compute `mod 64`, so that entry is equivalent
-     * to "64 ones".
+     * The element at position `i` contains `i` many ones, starting from the right.
      *
-     *     ones_mask_[ 0] -->  n ones: 1111...1111
+     *     ones_mask_[ 0] -->  0 ones: 0000...0000
      *     ones_mask_[ 1] -->  1 one:  0000...0001
      *     ones_mask_[ 2] -->  2 ones: 0000...0011
      *     ones_mask_[ 3] -->  3 ones: 0000...0111
