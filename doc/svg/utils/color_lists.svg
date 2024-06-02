@@ -12,10 +12,10 @@
    version="1.1"
    id="svg3013"
    sodipodi:docname="color_lists.svg"
-   inkscape:export-filename="/home/lucas/Dropbox/HITS/genesis/doc/img/utils/color_lists.png"
+   inkscape:export-filename="/home/lucas/Dropbox/GitHub/genesis/doc/png/utils/color_lists.png"
    inkscape:export-xdpi="96.187653"
    inkscape:export-ydpi="96.187653"
-   inkscape:version="0.92.4 (unknown)">
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)">
   <metadata
      id="metadata3017">
     <rdf:RDF>
@@ -24,6 +24,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -34,17 +35,17 @@
      objecttolerance="10"
      gridtolerance="10"
      guidetolerance="10"
-     inkscape:pageopacity="0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:window-width="1869"
-     inkscape:window-height="1056"
+     inkscape:window-width="1864"
+     inkscape:window-height="1052"
      id="namedview3015"
      showgrid="false"
-     inkscape:zoom="0.16978417"
-     inkscape:cx="-817.82037"
-     inkscape:cy="695"
-     inkscape:window-x="51"
-     inkscape:window-y="24"
+     inkscape:zoom="0.67913669"
+     inkscape:cx="-133.06076"
+     inkscape:cy="892.0467"
+     inkscape:window-x="56"
+     inkscape:window-y="28"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg3013" />
   <!-- Created with genesis v0.20.0 (http://genesis-lib.org) on 2019-02-16 at 22:44:59 -->
