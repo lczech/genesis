@@ -116,7 +116,7 @@ enum class WindowAveragePolicy
     /**
      * @brief Simply report the total sum, with no averaging, i.e., the absolute value of the metric.
      */
-    kAbsoluteSum
+    kSum
 };
 
 /**
@@ -172,7 +172,7 @@ inline double window_average_denominator(
         case WindowAveragePolicy::kValidSnps: {
             return sample_counts_filter_stats[SampleCountsFilterTag::kPassed];
         }
-        case WindowAveragePolicy::kAbsoluteSum: {
+        case WindowAveragePolicy::kSum: {
             return 1.0;
         }
         default: {

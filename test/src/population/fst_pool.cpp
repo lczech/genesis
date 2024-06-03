@@ -402,7 +402,7 @@ TEST( FST, FstPoolProcessor )
     // Make an FST processor for the two samples.
     std::vector<size_t> const poolsizes{ 100, 100 };
     auto processor = make_fst_pool_processor<FstPoolCalculatorUnbiased>(
-        WindowAveragePolicy::kAbsoluteSum, poolsizes
+        WindowAveragePolicy::kSum, poolsizes
     );
     ASSERT_EQ( 1, processor.size() );
     processor.thread_pool( Options::get().global_thread_pool() );
