@@ -208,12 +208,31 @@ public:
 
         // Iterator() = delete;
 
-        Iterator( std::unique_ptr<BaseIterator> base_iterator )
-            : pimpl_( std::move( base_iterator ))
+        Iterator(
+            BaseWindowStream const* parent,
+            std::unique_ptr<BaseIterator> base_iterator
+        )
+            : base_parent_( parent )
+            , pimpl_( std::move( base_iterator ))
         {
             // Observe the first element, if this is an active iterator.
             assert( pimpl_ );
+
+            // If we are here from an end iterator, we do nothing.
+            if( !base_parent_ ) {
+                return;
+            }
+            assert( base_parent_ );
+
+            // Before starting to init anything, call the callbacks.
+            execute_begin_callbacks_();
             execute_on_enter_observers_();
+
+            // Special case: no data. Need to execute the end callback as well.
+            assert( pimpl_ );
+            if( !pimpl_->get_parent_() ) {
+                execute_end_callbacks_();
+            }
         }
 
     public:
@@ -224,14 +243,26 @@ public:
         Iterator( Iterator const& ) = delete;
         Iterator( Iterator&& other )
         {
+            // Copy the base parent pointer, as that instance stays the same.
+            // We however need to move the pimpl, as we own it.
+            base_parent_ = other.base_parent_;
             pimpl_ = std::move( other.pimpl_ );
+
+            // Now reset the other, so that in case of a bug here, we induce a segfault
+            // instead of accidental undefined behaviour when accessing the old data.
+            other.base_parent_ = nullptr;
             other.pimpl_ = nullptr;
         }
 
         Iterator& operator= ( Iterator const& ) = delete;
         Iterator& operator= ( Iterator&& other )
         {
+            // Same as above.
+            // Probably we should follow the rule of five more closely here though,
+            // and implement one in terms of the other...
+            base_parent_ = other.base_parent_;
             pimpl_ = std::move( other.pimpl_ );
+            other.base_parent_ = nullptr;
             other.pimpl_ = nullptr;
             return *this;
         }
@@ -308,16 +339,29 @@ public:
 
         self_type& operator ++()
         {
+            assert( pimpl_ );
+            assert( base_parent_ );
+
             // Advance to the next element, and observe it.
             // This is the only place that we need to call the leaving observers:
             // During normal iteration, this works fine anyway. Then, the last iteration
             // will first call the leaving oberservers, then try to move to the next window,
             // but find that there is none, and finish the iteration. By that time, the
             // leaving oberserver has been called correclty already, so nothing else to do.
-            assert( pimpl_ );
+
             execute_on_leave_observers_();
             pimpl_->increment_();
+
+            // Now that we are at the new element, we execute the enter observers.
+            // If we instead reached the end of the input though, that one will do nothing.
+            // In that case however, we want to execute the end callbacks instead.
             execute_on_enter_observers_();
+
+            assert( pimpl_ );
+            assert( base_parent_ );
+            if( !pimpl_->get_parent_() ) {
+                execute_end_callbacks_();
+            }
             return *this;
         }
 
@@ -384,12 +428,36 @@ public:
             }
         }
 
+        void execute_begin_callbacks_() const
+        {
+            assert( base_parent_ );
+            for( auto const& cb : base_parent_->begin_callbacks_ ) {
+                cb();
+            }
+        }
+
+        void execute_end_callbacks_() const
+        {
+            assert( base_parent_ );
+            for( auto const& cb : base_parent_->end_callbacks_ ) {
+                cb();
+            }
+        }
+
         // -------------------------------------------------------------------------
         //     PIMPL-like Implementation Abstraction
         // -------------------------------------------------------------------------
 
     private:
 
+        // Parent. This is only the base class, and hence cannot be used by the derived classes.
+        // We need it here for the begin and end callbacks only, as those need to be run
+        // indepentently of the derived classes.
+        BaseWindowStream const* base_parent_ = nullptr;
+
+        // Implementation of the derived iterator. This is where all the logic for the actual
+        // window iteration lives. We use the pimpl idiom here so that this class here does
+        // not need to expose derived interfaces.
         std::unique_ptr<BaseIterator> pimpl_;
 
     };
@@ -618,6 +686,60 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Add a callback function that is executed when beginning the iteration.
+     *
+     * Similar to the functionality offered by the observers, this could also be achieved by
+     * executing these functions direclty where needed, but having it as a callback here helps
+     * to reduce code duplication.
+     *
+     * See also add_end_callback().
+     */
+    self_type& add_begin_callback( std::function<void()> const& callback )
+    {
+        if( started_ ) {
+            throw std::runtime_error(
+                "Window Stream: Cannot change callbacks after iteration has started."
+            );
+        }
+        begin_callbacks_.push_back( callback );
+        return *this;
+    }
+
+    /**
+     * @brief Add a callback function that is executed when the end of the iteration is reached.
+     *
+     * This is similar to the add_begin_callback() functionality, but instead of executing the
+     * callback when starting the iteration, it is called when ending it. Again, this is meant
+     * as a means to reduce user code duplication, for example for logging needs.
+     */
+    self_type& add_end_callback( std::function<void()> const& callback )
+    {
+        if( started_ ) {
+            throw std::runtime_error(
+                "Window Stream: Cannot change callbacks after iteration has started."
+            );
+        }
+        end_callbacks_.push_back( callback );
+        return *this;
+    }
+
+    /**
+     * @brief Clear all functions that have been added via add_begin_callback() and
+     * add_end_callback().
+     */
+    self_type& clear_callbacks()
+    {
+        if( started_ ) {
+            throw std::runtime_error(
+                "Window Stream: Cannot change callbacks after iteration has started."
+            );
+        }
+        begin_callbacks_.clear();
+        end_callbacks_.clear();
+        return *this;
+    }
+
     // -------------------------------------------------------------------------
     //     Iteration
     // -------------------------------------------------------------------------
@@ -631,12 +753,12 @@ public:
             );
         }
         started_ = true;
-        return Iterator( get_begin_iterator_() );
+        return Iterator( this, get_begin_iterator_() );
     }
 
     Iterator end()
     {
-        return Iterator( get_end_iterator_() );
+        return Iterator( nullptr, get_end_iterator_() );
     }
 
     // -------------------------------------------------------------------------
@@ -678,6 +800,10 @@ private:
     // Keep the observers for each window view.
     std::vector<std::function<void(WindowType const&)>> on_enter_observers_;
     std::vector<std::function<void(WindowType const&)>> on_leave_observers_;
+
+    // We furthermore allow callbacks for the beginning and and of the iteration.
+    std::vector<std::function<void()>> begin_callbacks_;
+    std::vector<std::function<void()>> end_callbacks_;
 
 };
 

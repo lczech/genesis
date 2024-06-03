@@ -84,6 +84,18 @@ void test_sliding_interval_stream_( WindowStream& win_it )
         ++leave_observe_cnt;
     });
 
+    // Same for the callbacks
+    size_t begin_cnt = 0;
+    size_t end_cnt = 0;
+    win_it.add_begin_callback( [&begin_cnt](){
+        // LOG_DBG << "begin";
+        ++begin_cnt;
+    });
+    win_it.add_end_callback( [&end_cnt](){
+        // LOG_DBG << "end";
+        ++end_cnt;
+    });
+
     size_t window_cnt = 0;
     for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
         auto const& window = *it;
@@ -117,6 +129,8 @@ void test_sliding_interval_stream_( WindowStream& win_it )
     EXPECT_EQ( 7, window_cnt );
     EXPECT_EQ( 7, enter_observe_cnt );
     EXPECT_EQ( 7, leave_observe_cnt );
+    EXPECT_EQ( 1, begin_cnt );
+    EXPECT_EQ( 1, end_cnt );
 
     EXPECT_TRUE( found_first_win );
     EXPECT_TRUE( found_last_win );
@@ -190,7 +204,9 @@ TEST( WindowStream, SlidingIntervalLambda )
 void run_sliding_interval_window_view_variant_test_( VariantWindowViewStream& win_it )
 {
     size_t window_cnt = 0;
+    // LOG_DBG << "go go go";
     for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
+        // LOG_DBG << "==========";
         ++window_cnt;
     }
     EXPECT_EQ( 7, window_cnt );
@@ -228,10 +244,24 @@ TEST( WindowStream, SlidingIntervalWindowView )
         ++leave_observe_cnt;
     });
 
+    // Same for the callbacks
+    size_t begin_cnt = 0;
+    size_t end_cnt = 0;
+    win_it.add_begin_callback( [&begin_cnt](){
+        // LOG_DBG << "begin";
+        ++begin_cnt;
+    });
+    win_it.add_end_callback( [&end_cnt](){
+        // LOG_DBG << "end";
+        ++end_cnt;
+    });
+
     // We use a test function that takes our abstract type, to see if we set this up correctly.
     run_sliding_interval_window_view_variant_test_( win_it );
     EXPECT_EQ( 7, enter_observe_cnt );
     EXPECT_EQ( 7, leave_observe_cnt );
+    EXPECT_EQ( 1, begin_cnt );
+    EXPECT_EQ( 1, end_cnt );
 
     // test_sliding_interval_stream_( win_it );
     // size_t window_cnt = 0;
@@ -269,6 +299,18 @@ TEST( WindowStream, SlidingIntervalEmpty )
         ++leave_observe_cnt;
     });
 
+    // Same for the callbacks
+    size_t begin_cnt = 0;
+    size_t end_cnt = 0;
+    win_it.add_begin_callback( [&begin_cnt](){
+        // LOG_DBG << "begin";
+        ++begin_cnt;
+    });
+    win_it.add_end_callback( [&end_cnt](){
+        // LOG_DBG << "end";
+        ++end_cnt;
+    });
+
     size_t window_cnt = 0;
     for( auto it = win_it.begin(); it != win_it.end(); ++it ) {
 
@@ -285,4 +327,6 @@ TEST( WindowStream, SlidingIntervalEmpty )
     EXPECT_EQ( 0, window_cnt );
     EXPECT_EQ( 0, enter_observe_cnt );
     EXPECT_EQ( 0, leave_observe_cnt );
+    EXPECT_EQ( 1, begin_cnt );
+    EXPECT_EQ( 1, end_cnt );
 }

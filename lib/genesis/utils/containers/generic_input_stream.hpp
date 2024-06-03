@@ -1031,14 +1031,14 @@ public:
     }
 
     /**
-     * @brief Add a callback function that is executed when the begin() function is called.
+     * @brief Add a callback function that is executed when beginning the iteration.
      *
      * The callback needs to accept the GenericInputStream object itself, as a means to, for example,
      * access its data(), and is meant as a reporting mechanism. For example, callbacks can be added
      * that write properties of the underlying data sources to log. They are executed in the order
      * added.
      *
-     * Similar to the functionality offered by add_observer(), this could also be achieved by
+     * Similar to the functionality offered by the observers, this could also be achieved by
      * executing these functions direclty where needed, but having it as a callback here helps
      * to reduce code duplication.
      *
@@ -1056,7 +1056,7 @@ public:
     }
 
     /**
-     * @brief Add a callback function that is executed when the end() of the iteration is reached.
+     * @brief Add a callback function that is executed when the end of the iteration is reached.
      *
      * This is similar to the add_begin_callback() functionality, but instead of executing the
      * callback when starting the iteration, it is called when ending it. Again, this is meant
