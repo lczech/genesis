@@ -276,22 +276,22 @@ std::ostream& print_variant_filter_category_stats(
 
     // Go through all possible enum values and print them
     if( stats[VariantFilterTagCategory::kMasked] > 0 || verbose ) {
-        os << "Masked:     " << stats[VariantFilterTagCategory::kMasked] << "\n";
+        os << "Masked:    " << stats[VariantFilterTagCategory::kMasked] << "\n";
     }
     if( stats[VariantFilterTagCategory::kMissingInvalid] > 0 || verbose ) {
-        os << "Missing:    " << stats[VariantFilterTagCategory::kMissingInvalid] << "\n";
+        os << "Missing:   " << stats[VariantFilterTagCategory::kMissingInvalid] << "\n";
     }
     if( stats[VariantFilterTagCategory::kSamplesFailed] > 0 || verbose ) {
-        os << "No samples: " << stats[VariantFilterTagCategory::kSamplesFailed] << "\n";
+        os << "Empty:     " << stats[VariantFilterTagCategory::kSamplesFailed] << "\n";
     }
     if( stats[VariantFilterTagCategory::kNumeric] > 0 || verbose ) {
-        os << "Numrica;:   " << stats[VariantFilterTagCategory::kNumeric] << "\n";
+        os << "Numric:    " << stats[VariantFilterTagCategory::kNumeric] << "\n";
     }
     if( stats[VariantFilterTagCategory::kInvariant] > 0 || verbose ) {
-        os << "Invariant:  " << stats[VariantFilterTagCategory::kInvariant] << "\n";
+        os << "Invariant: " << stats[VariantFilterTagCategory::kInvariant] << "\n";
     }
     if( stats[VariantFilterTagCategory::kPassed] > 0 || verbose ) {
-        os << "Passed:     " << stats[VariantFilterTagCategory::kPassed] << "\n";
+        os << "Passed:    " << stats[VariantFilterTagCategory::kPassed] << "\n";
     }
     return os;
 }

@@ -221,13 +221,13 @@ std::ostream& print_sample_counts_filter_category_stats(
 
     // Go through all possible enum values and print them
     if( stats[SampleCountsFilterTagCategory::kMissingInvalid] > 0 || verbose ) {
-        os << "Missing:   " << stats[SampleCountsFilterTagCategory::kMissingInvalid] << "\n";
+        os << "Missing: " << stats[SampleCountsFilterTagCategory::kMissingInvalid] << "\n";
     }
     if( stats[SampleCountsFilterTagCategory::kNumeric] > 0 || verbose ) {
-        os << "Numerical: " << stats[SampleCountsFilterTagCategory::kNumeric] << "\n";
+        os << "Numeric: " << stats[SampleCountsFilterTagCategory::kNumeric] << "\n";
     }
     if( stats[SampleCountsFilterTagCategory::kPassed] > 0 || verbose ) {
-        os << "Passed:    " << stats[SampleCountsFilterTagCategory::kPassed] << "\n";
+        os << "Passed:  " << stats[SampleCountsFilterTagCategory::kPassed] << "\n";
     }
     return os;
 }
