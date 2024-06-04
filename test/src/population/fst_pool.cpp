@@ -402,7 +402,7 @@ TEST( FST, FstPoolProcessor )
     // Make an FST processor for the two samples.
     std::vector<size_t> const poolsizes{ 100, 100 };
     auto processor = make_fst_pool_processor<FstPoolCalculatorUnbiased>(
-        WindowAveragePolicy::kAbsoluteSum, poolsizes
+        poolsizes, WindowAveragePolicy::kSum
     );
     ASSERT_EQ( 1, processor.size() );
     processor.thread_pool( Options::get().global_thread_pool() );
@@ -417,7 +417,25 @@ TEST( FST, FstPoolProcessor )
     size_t const window_length = 1;
     auto const result = processor.get_result( window_length );
     EXPECT_EQ( 1, result.size() );
-    EXPECT_FLOAT_EQ( -0.0041116024, result[0] );
+
+    // Th FST value changed here since the introduction of the proper window normalization,
+    // since pi total is computed at the end of each window now, instead of being summed
+    // during the window. This is a "ratio of averages" vs "average of ratios" difference,
+    // which now changes the values of our result...
+    // EXPECT_FLOAT_EQ( -0.0041116024, result[0] );
+    EXPECT_FLOAT_EQ( -0.00035794353, result[0] );
+
+    // Also test the involved pi values for consistency.
+    // The commented value below is the old pi total value before the redesign.
+    auto const vecs = processor.get_pi_vectors( window_length );
+    EXPECT_EQ( 1, std::get<0>( vecs ).size() );
+    EXPECT_EQ( 1, std::get<1>( vecs ).size() );
+    EXPECT_EQ( 1, std::get<2>( vecs ).size() );
+    EXPECT_FLOAT_EQ( 133.798915747651, std::get<0>( vecs )[0] );
+    EXPECT_FLOAT_EQ( 133.703165107056, std::get<1>( vecs )[0] );
+    EXPECT_FLOAT_EQ( 133.751040427354, std::get<2>( vecs )[0] );
+    // EXPECT_FLOAT_EQ( 133.251040427354, std::get<2>( vecs )[0] );
+
 }
 
 // =================================================================================================
@@ -437,7 +455,7 @@ void test_fst_fuzzy_run_( std::vector<Variant> const& data )
         permuted_congruential_generator( 0, 4 )
     );
     auto processor = make_fst_pool_processor<FstPoolCalculatorUnbiased>(
-        window_average_policy, pool_sizes
+        pool_sizes, window_average_policy
     );
 
     // Run the data
@@ -450,7 +468,6 @@ void test_fst_fuzzy_run_( std::vector<Variant> const& data )
     size_t const window_length = data.size();
     auto const result = processor.get_result( window_length );
     EXPECT_EQ( pairs, result.size() );
-    // EXPECT_FLOAT_EQ( -0.0041116024, result[0] );
     for( auto const& r : result ) {
         LOG_DBG << r;
     }

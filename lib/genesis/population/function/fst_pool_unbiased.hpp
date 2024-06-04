@@ -31,8 +31,13 @@
  * @ingroup population
  */
 
+#include "genesis/population/filter/filter_stats.hpp"
+#include "genesis/population/filter/filter_status.hpp"
+#include "genesis/population/filter/sample_counts_filter.hpp"
+#include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/function/fst_pool_calculator.hpp"
 #include "genesis/population/function/functions.hpp"
+#include "genesis/population/function/window_average.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/compensated_sum.hpp"
@@ -76,7 +81,7 @@ class FstPoolCalculatorUnbiased final : public BaseFstPoolCalculator
 public:
 
     // -------------------------------------------------------------------------
-    //     Constructors and Rule of Five
+    //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
     enum class Estimator
@@ -85,9 +90,26 @@ public:
         kHudson
     };
 
-    FstPoolCalculatorUnbiased( size_t p1_poolsize, size_t p2_poolsize, Estimator est = Estimator::kNei )
-        : p1_poolsize_( p1_poolsize )
-        , p2_poolsize_( p2_poolsize )
+    struct PiValues
+    {
+        double pi_within;
+        double pi_between;
+        double pi_total;
+    };
+
+    // -------------------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------------------
+
+    FstPoolCalculatorUnbiased(
+        size_t smp1_poolsize,
+        size_t smp2_poolsize,
+        WindowAveragePolicy window_average_policy,
+        Estimator est = Estimator::kNei
+    )
+        : smp1_poolsize_( smp1_poolsize )
+        , smp2_poolsize_( smp2_poolsize )
+        , avg_policy_( window_average_policy )
         , estimator_( est )
     {}
 
@@ -100,36 +122,6 @@ public:
     FstPoolCalculatorUnbiased& operator= ( FstPoolCalculatorUnbiased&& )      = default;
 
     // -------------------------------------------------------------------------
-    //     Additional Members
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Get both variants of FST, following Nei, and following Hudson, as a pair.
-     */
-    std::pair<double, double> get_result_pair() const
-    {
-        // Final computation of our two FST estimators, using Nei and Hudson, respectively.
-        double const fst_nei = 1.0 - ( pi_w_sum_ / pi_t_sum_ );
-        double const fst_hud = 1.0 - ( pi_w_sum_ / pi_b_sum_ );
-        return { fst_nei, fst_hud };
-    }
-
-    double get_pi_within() const
-    {
-        return pi_w_sum_;
-    }
-
-    double get_pi_between() const
-    {
-        return pi_b_sum_;
-    }
-
-    double get_pi_total() const
-    {
-        return pi_t_sum_;
-    }
-
-    // -------------------------------------------------------------------------
     //     Abstract Members
     // -------------------------------------------------------------------------
 
@@ -137,51 +129,135 @@ private:
 
     void reset_() override
     {
-        // Reset the internal counters, but not the pool sizes, so that the object can be reused.
-        pi_w_sum_ = 0.0;
-        pi_b_sum_ = 0.0;
-        pi_t_sum_ = 0.0;
+        // Reset the internal counters, but not the pool sizes,
+        // so that the instance can be reused across windows.
+        sample_filter_stats_smp1_.clear();
+        sample_filter_stats_smp2_.clear();
+        sample_filter_stats_b_.clear();
+        pi_w_smp1_sum_ = 0.0;
+        pi_w_smp2_sum_ = 0.0;
+        pi_b_sum_    = 0.0;
     }
 
-    void process_( SampleCounts const& p1, SampleCounts const& p2 ) override
+    void process_( SampleCounts const& smp1, SampleCounts const& smp2 ) override
     {
-        // Compute pi values for the snp.
-        // The tuple `pi_snp` returns pi within, between, and total, in that order.
-        auto const pi_snp = f_st_pool_unbiased_pi_snp( p1_poolsize_, p2_poolsize_, p1, p2 );
-
-        // Skip invalid entries than can happen when less than two of [ACGT] have
-        // counts > 0 in one of the SampleCounts samples.
-        if(
-            std::isfinite( std::get<0>( pi_snp )) &&
-            std::isfinite( std::get<1>( pi_snp )) &&
-            std::isfinite( std::get<2>( pi_snp ))
+        // Helper function for the two components of pi within
+        auto pi_within_partial_ = [](
+            double poolsize, double freq_a, double freq_c, double freq_g, double freq_t, double nt_cnt
         ) {
-            // If we are here, both p1 and p2 have counts. Let's assert.
-            assert( p1.a_count + p1.c_count + p1.g_count + p1.t_count > 0 );
-            assert( p2.a_count + p2.c_count + p2.g_count + p2.t_count > 0 );
+            assert( poolsize > 1.0 );
 
-            // Now add them to the tally.
-            pi_w_sum_ += std::get<0>( pi_snp );
-            pi_b_sum_ += std::get<1>( pi_snp );
-            pi_t_sum_ += std::get<2>( pi_snp );
-        } else {
-            // If we are here, at least one of the two inputs has one or fewer counts in [ACGT],
-            // otherwise, the results would have been finite. Let's assert this.
-            assert(
-                ( p1.a_count + p1.c_count + p1.g_count + p1.t_count <= 1 ) ||
-                ( p2.a_count + p2.c_count + p2.g_count + p2.t_count <= 1 )
+            double result = 1.0;
+            result -= utils::squared( freq_a );
+            result -= utils::squared( freq_c );
+            result -= utils::squared( freq_g );
+            result -= utils::squared( freq_t );
+            result *= nt_cnt / ( nt_cnt - 1.0 );
+            result *= poolsize / ( poolsize - 1.0 );
+            return result;
+        };
+
+        // Prepare frequencies in sample 1. We only compute them when used.
+        double smp1_nt_cnt = 0.0;
+        double smp1_freq_a = 0.0;
+        double smp1_freq_c = 0.0;
+        double smp1_freq_g = 0.0;
+        double smp1_freq_t = 0.0;
+
+        // Prepare frequencies in sample 2. We only compute them when used.
+        double smp2_nt_cnt = 0.0;
+        double smp2_freq_a = 0.0;
+        double smp2_freq_c = 0.0;
+        double smp2_freq_g = 0.0;
+        double smp2_freq_t = 0.0;
+
+        // Compute pi within for smp1
+        ++sample_filter_stats_smp1_[ smp1.status.get() ];
+        if( smp1.status.passing() ) {
+            smp1_nt_cnt = static_cast<double>( nucleotide_sum( smp1 ));
+            smp1_freq_a = static_cast<double>( smp1.a_count ) / smp1_nt_cnt;
+            smp1_freq_c = static_cast<double>( smp1.c_count ) / smp1_nt_cnt;
+            smp1_freq_g = static_cast<double>( smp1.g_count ) / smp1_nt_cnt;
+            smp1_freq_t = static_cast<double>( smp1.t_count ) / smp1_nt_cnt;
+
+            auto const pi_within_smp1 = pi_within_partial_(
+                smp1_poolsize_, smp1_freq_a, smp1_freq_c, smp1_freq_g, smp1_freq_t, smp1_nt_cnt
             );
+            if( std::isfinite( pi_within_smp1 )) {
+                pi_w_smp1_sum_ += pi_within_smp1;
+                assert( smp1.a_count + smp1.c_count + smp1.g_count + smp1.t_count > 0 );
+            } else {
+                assert( smp1.a_count + smp1.c_count + smp1.g_count + smp1.t_count <= 1 );
+            }
+        }
+
+        // Compute pi within for smp2
+        ++sample_filter_stats_smp2_[ smp2.status.get() ];
+        if( smp2.status.passing() ) {
+            smp2_nt_cnt = static_cast<double>( nucleotide_sum( smp2 ));
+            smp2_freq_a = static_cast<double>( smp2.a_count ) / smp2_nt_cnt;
+            smp2_freq_c = static_cast<double>( smp2.c_count ) / smp2_nt_cnt;
+            smp2_freq_g = static_cast<double>( smp2.g_count ) / smp2_nt_cnt;
+            smp2_freq_t = static_cast<double>( smp2.t_count ) / smp2_nt_cnt;
+
+            auto const pi_within_smp2 = pi_within_partial_(
+                smp2_poolsize_, smp2_freq_a, smp2_freq_c, smp2_freq_g, smp2_freq_t, smp2_nt_cnt
+            );
+            if( std::isfinite( pi_within_smp2 )) {
+                pi_w_smp2_sum_ += pi_within_smp2;
+                assert( smp2.a_count + smp2.c_count + smp2.g_count + smp2.t_count > 0 );
+            } else {
+                assert( smp2.a_count + smp2.c_count + smp2.g_count + smp2.t_count <= 1 );
+            }
+        }
+
+        // Compute pi between
+        if( smp1.status.passing() && smp2.status.passing() ) {
+            double pi_between = 1.0;
+            pi_between -= smp1_freq_a * smp2_freq_a;
+            pi_between -= smp1_freq_c * smp2_freq_c;
+            pi_between -= smp1_freq_g * smp2_freq_g;
+            pi_between -= smp1_freq_t * smp2_freq_t;
+            if( std::isfinite( pi_between )) {
+                pi_b_sum_ += pi_between;
+            }
+
+            ++sample_filter_stats_b_[SampleCountsFilterTag::kPassed];
+        } else if( ! smp1.status.passing() && ! smp2.status.passing() ) {
+            ++sample_filter_stats_b_[ std::min( smp1.status.get(), smp2.status.get() )];
+        } else {
+            ++sample_filter_stats_b_[ std::max( smp1.status.get(), smp2.status.get() )];
         }
     }
 
     double get_result_() const override
     {
+        // We have a bit of an unfortunate situation here from a software design point of view.
+        // The other fst calculator classes (Kofler and Karlsson, at the moment) do not use the
+        // window normalization, and it would be weird to use dummies there. So instead, in the
+        // FstPoolProcessor, we cast accordingly (which is ugly as well), to avoid this.
+        // We need a dummy implementation of the result function here, to make the compiler happy.
+        throw std::domain_error(
+            "FstPoolCalculatorUnbiased::get_result() needs to be called via its overload"
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    //     Additional Members
+    // -------------------------------------------------------------------------
+
+public:
+
+    double get_result(
+        size_t window_length,
+        VariantFilterStats const& variant_filter_stats
+    ) const {
         switch( estimator_ ) {
             case Estimator::kNei: {
-                return get_result_pair().first;
+                return get_result_pair( window_length, variant_filter_stats ).first;
             }
             case Estimator::kHudson: {
-                return get_result_pair().second;
+                return get_result_pair( window_length, variant_filter_stats ).second;
             }
             default: {
                 throw std::invalid_argument( "Invalid FstPoolCalculatorUnbiased::Estimator" );
@@ -190,74 +266,74 @@ private:
         return 0.0;
     }
 
-    // -------------------------------------------------------------------------
-    //     Helper Functions
-    // -------------------------------------------------------------------------
+    double get_pi_within(
+        size_t window_length,
+        VariantFilterStats const& variant_filter_stats
+    ) const {
+        auto const pi_w_smp1 = pi_w_smp1_sum_.get() / window_average_denominator(
+            avg_policy_, window_length, variant_filter_stats, sample_filter_stats_smp1_
+        );
+        auto const pi_w_smp2 = pi_w_smp2_sum_.get() / window_average_denominator(
+            avg_policy_, window_length, variant_filter_stats, sample_filter_stats_smp2_
+        );
+        return 0.5 * ( pi_w_smp1 + pi_w_smp2 );
+    }
 
-public:
+    double get_pi_between(
+        size_t window_length,
+        VariantFilterStats const& variant_filter_stats
+    ) const {
+        return pi_b_sum_.get() / window_average_denominator(
+            avg_policy_, window_length, variant_filter_stats, sample_filter_stats_b_
+        );
+    }
+
+    double get_pi_total( double pi_within, double pi_between ) const
+    {
+        return 0.5 * ( pi_within + pi_between );
+    }
+
+    double get_pi_total(
+        size_t window_length,
+        VariantFilterStats const& variant_filter_stats
+    ) const {
+        auto const pi_within  = get_pi_within( window_length, variant_filter_stats );
+        auto const pi_between = get_pi_between( window_length, variant_filter_stats );
+        return get_pi_total( pi_within, pi_between );
+    }
+
+    PiValues get_pi_values(
+        size_t window_length,
+        VariantFilterStats const& variant_filter_stats
+    ) const {
+        PiValues result;
+        result.pi_within  = get_pi_within( window_length, variant_filter_stats );
+        result.pi_between = get_pi_between( window_length, variant_filter_stats );
+        result.pi_total   = get_pi_total( result.pi_within, result.pi_between );
+        return result;
+    }
 
     /**
-     * @brief Compute the SNP-based Theta Pi values used in f_st_pool_unbiased().
-     *
-     * The function returns pi within, between, and total, in that order.
-     * See f_st_pool_unbiased() for details.
+     * @brief Get both variants of FST, following Nei, and following Hudson, as a pair.
      */
-    static std::tuple<double, double, double> f_st_pool_unbiased_pi_snp(
-        size_t p1_poolsize, size_t p2_poolsize,
-        SampleCounts const& p1_counts, SampleCounts const& p2_counts
-    ) {
-        using namespace genesis::utils;
+    std::pair<double, double> get_result_pair(
+        size_t window_length,
+        VariantFilterStats const& variant_filter_stats
+    ) const {
+        // Get the components that we need, each normalized using their own filter stats.
+        auto const pi_within  = get_pi_within( window_length, variant_filter_stats );
+        auto const pi_between = get_pi_between( window_length, variant_filter_stats );
+        auto const pi_total   = get_pi_total( pi_within, pi_between );
 
-        // There is some code duplication from f_st_pool_kofler_pi_snp() here, but for speed reasons,
-        // we keep it that way for now. Not worth calling more functions than needed.
+        // Final computation of our two FST estimators, using Nei and Hudson, respectively.
+        double const fst_nei = 1.0 - ( pi_within / pi_total );
+        double const fst_hud = 1.0 - ( pi_within / pi_between );
+        return { fst_nei, fst_hud };
+    }
 
-        // Helper function for the two components of pi within
-        auto pi_within_partial_ = [](
-            double poolsize, double freq_a, double freq_c, double freq_g, double freq_t, double nt_cnt
-        ) {
-            assert( poolsize > 1.0 );
-
-            double result = 1.0;
-            result -= squared( freq_a );
-            result -= squared( freq_c );
-            result -= squared( freq_g );
-            result -= squared( freq_t );
-            result *= nt_cnt / ( nt_cnt - 1.0 );
-            result *= poolsize / ( poolsize - 1.0 );
-            return result;
-        };
-
-        // Get frequencies in sample 1
-        double const p1_nt_cnt = static_cast<double>( nucleotide_sum( p1_counts ));
-        double const p1_freq_a = static_cast<double>( p1_counts.a_count ) / p1_nt_cnt;
-        double const p1_freq_c = static_cast<double>( p1_counts.c_count ) / p1_nt_cnt;
-        double const p1_freq_g = static_cast<double>( p1_counts.g_count ) / p1_nt_cnt;
-        double const p1_freq_t = static_cast<double>( p1_counts.t_count ) / p1_nt_cnt;
-
-        // Get frequencies in sample 2
-        double const p2_nt_cnt = static_cast<double>( nucleotide_sum( p2_counts ));
-        double const p2_freq_a = static_cast<double>( p2_counts.a_count ) / p2_nt_cnt;
-        double const p2_freq_c = static_cast<double>( p2_counts.c_count ) / p2_nt_cnt;
-        double const p2_freq_g = static_cast<double>( p2_counts.g_count ) / p2_nt_cnt;
-        double const p2_freq_t = static_cast<double>( p2_counts.t_count ) / p2_nt_cnt;
-
-        // Compute pi within
-        auto const pi_within = 0.5 * (
-            pi_within_partial_( p1_poolsize, p1_freq_a, p1_freq_c, p1_freq_g, p1_freq_t, p1_nt_cnt ) +
-            pi_within_partial_( p2_poolsize, p2_freq_a, p2_freq_c, p2_freq_g, p2_freq_t, p2_nt_cnt )
-        );
-
-        // Compute pi between
-        double pi_between = 1.0;
-        pi_between -= p1_freq_a * p2_freq_a;
-        pi_between -= p1_freq_c * p2_freq_c;
-        pi_between -= p1_freq_g * p2_freq_g;
-        pi_between -= p1_freq_t * p2_freq_t;
-
-        // Compute pi total
-        double const pi_total = 0.5 * ( pi_within + pi_between );
-
-        return std::tuple<double, double, double>{ pi_within, pi_between, pi_total };
+    WindowAveragePolicy get_window_average_policy() const
+    {
+        return avg_policy_;
     }
 
     // -------------------------------------------------------------------------
@@ -267,15 +343,22 @@ public:
 private:
 
     // Pool sizes
-    size_t p1_poolsize_ = 0;
-    size_t p2_poolsize_ = 0;
+    size_t smp1_poolsize_ = 0;
+    size_t smp2_poolsize_ = 0;
 
+    // Parameters
+    WindowAveragePolicy avg_policy_;
     Estimator estimator_ = Estimator::kNei;
 
-    // Sums over the window of pi within, between, total.
-    utils::NeumaierSum pi_w_sum_ = 0.0;
-    utils::NeumaierSum pi_b_sum_ = 0.0;
-    utils::NeumaierSum pi_t_sum_ = 0.0;
+    // Filter stats of everything that is processed here.
+    SampleCountsFilterStats sample_filter_stats_smp1_;
+    SampleCountsFilterStats sample_filter_stats_smp2_;
+    SampleCountsFilterStats sample_filter_stats_b_;
+
+    // Sums over the window of pi within for both pools, and pi between them.
+    utils::NeumaierSum pi_w_smp1_sum_ = 0.0;
+    utils::NeumaierSum pi_w_smp2_sum_ = 0.0;
+    utils::NeumaierSum pi_b_sum_    = 0.0;
 
 };
 

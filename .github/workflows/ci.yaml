@@ -109,11 +109,14 @@ jobs:
           - os: ubuntu-22.04
             compiler: gcc-8
 
-          # Same on MacOS now...
+          # Older GCC versions are also not supported by MacOS 12 any more.
+          # Also excluding a broken current one for now... Fix later!
           - os: macos-12
             compiler: gcc-7
           - os: macos-12
             compiler: gcc-8
+          - os: macos-12
+            compiler: gcc-13
 
           # llvm-9 causes weird segfauls on Ubuntu, which do not seem to be our fault.
           # Need to investiage further at some point. We used setup-cpp locally to install

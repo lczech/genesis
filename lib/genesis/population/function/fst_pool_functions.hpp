@@ -31,11 +31,16 @@
  * @ingroup population
  */
 
+#include "genesis/population/filter/filter_stats.hpp"
+#include "genesis/population/filter/filter_status.hpp"
+#include "genesis/population/filter/sample_counts_filter.hpp"
+#include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/function/fst_pool_karlsson.hpp"
 #include "genesis/population/function/fst_pool_kofler.hpp"
-#include "genesis/population/function/fst_pool_unbiased.hpp"
 #include "genesis/population/function/fst_pool_processor.hpp"
+#include "genesis/population/function/fst_pool_unbiased.hpp"
 #include "genesis/population/function/functions.hpp"
+#include "genesis/population/function/window_average.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/transform_iterator.hpp"
@@ -341,7 +346,10 @@ std::pair<double, double> f_st_pool_unbiased(
     }
 
     // Init the calculator.
-    FstPoolCalculatorUnbiased calc{ p1_poolsize, p2_poolsize };
+    // For simplicity in this wrapper, we only allow to normalize the pi values per window
+    // via their sum; in this function, we do not have the additionally needed information
+    // on the Variant Filter Status statistics anyway. If that is needed, use FstPoolProcessor.
+    FstPoolCalculatorUnbiased calc{ p1_poolsize, p2_poolsize, WindowAveragePolicy::kSum };
 
     // Iterate the two ranges in parallel. Each iteration is one position in the genome.
     // In each iteration, p1_it and p2_it point at SampleCounts objects containing nucleotide counts.
@@ -362,7 +370,9 @@ std::pair<double, double> f_st_pool_unbiased(
         );
     }
 
-    return calc.get_result_pair();
+    // Unfortunately, we need dummies here now for the window based counters. They are not used
+    // with the above WindowAveragePolicy::kSum policy, but need to be provided nonetheless...
+    return calc.get_result_pair( 0, VariantFilterStats{} );
 }
 
 #if __cplusplus >= 201402L

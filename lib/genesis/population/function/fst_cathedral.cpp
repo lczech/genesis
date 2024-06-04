@@ -30,6 +30,7 @@
 
 #include "genesis/population/function/fst_cathedral.hpp"
 
+#include "genesis/population/function/window_average.hpp"
 #include "genesis/utils/formats/json/document.hpp"
 
 #include <cassert>
@@ -183,23 +184,27 @@ void fill_fst_cathedral_records_from_processor_(
     // Bit hacky, but good enough for now. Then, store the results.
     assert( processor.size() == records.size() );
     for( size_t i = 0; i < processor.size(); ++i ) {
-        auto& raw_calc = processor.calculators()[i];
-        auto fst_calc = dynamic_cast<FstPoolCalculatorUnbiased const*>( raw_calc.get() );
+        auto const& raw_calc = processor.calculators()[i];
+        auto const* fst_calc = dynamic_cast<FstPoolCalculatorUnbiased const*>( raw_calc.get() );
         if( ! fst_calc ) {
             throw std::runtime_error(
                 "In compute_fst_cathedral_records_for_chromosome(): "
                 "Invalid FstPoolCalculator that is not FstPoolCalculatorUnbiased"
             );
         }
+        if( fst_calc->get_window_average_policy() != WindowAveragePolicy::kSum ) {
+            throw std::runtime_error(
+                "In compute_fst_cathedral_records_for_chromosome(): "
+                "Invalid FstPoolCalculator that is not using WindowAveragePolicy::kSum"
+            );
+        }
 
         // Now add the entry for the current calculator to its respective records entry.
         // We rely on the amortized complexity here - cannot pre-allocate the size,
         // as we do not know how many positions will actually be in the input beforehand.
+        auto const pis = fst_calc->get_pi_values( 0, processor.get_filter_stats() );
         records[i].entries.emplace_back(
-            position,
-            fst_calc->get_pi_within(),
-            fst_calc->get_pi_between(),
-            fst_calc->get_pi_total()
+            position, pis.pi_within, pis.pi_between, pis.pi_total
         );
     }
 }

@@ -241,7 +241,7 @@ public:
          * It then does some consistenty checks and sets up the ref genome or seq dict for the new
          * chromosome.
          */
-        void start_chromosome_();
+        void init_chromosome_();
 
         /**
          * @brief Find the next locus to process.
