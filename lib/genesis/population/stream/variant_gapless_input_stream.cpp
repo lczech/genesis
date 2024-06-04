@@ -99,7 +99,7 @@ VariantGaplessInputStream::Iterator::Iterator( VariantGaplessInputStream* parent
     // If we are here, we have initialized the current locus to the first position on some valid
     // chromosome, and we can start the processing.
     assert( current_locus_.chromosome != "" && current_locus_.position != 0 );
-    start_chromosome_();
+    init_chromosome_();
 
     // We have just initialized the chrosome, including all cache pointer for the given references.
     // We now use that to check that the position where we started is actually covered by the
@@ -147,7 +147,7 @@ void VariantGaplessInputStream::Iterator::advance_()
         // If the next position is the start of a chromosome,
         // we need to set it up correctly first.
         if( current_locus_.position == 1 ) {
-            start_chromosome_();
+            init_chromosome_();
         }
     } while( ! current_locus_is_covered_by_genome_locus_set_() );
 
@@ -157,10 +157,10 @@ void VariantGaplessInputStream::Iterator::advance_()
 }
 
 // -------------------------------------------------------------------------
-//     start_chromosome_
+//     init_chromosome_
 // -------------------------------------------------------------------------
 
-void VariantGaplessInputStream::Iterator::start_chromosome_()
+void VariantGaplessInputStream::Iterator::init_chromosome_()
 {
     // Check that we are not done yet (parent still valid), and that we have either
     // a ref genome or a seq dict, but not both (neither is also fine).
@@ -554,6 +554,8 @@ void VariantGaplessInputStream::Iterator::check_input_iterator_()
 bool VariantGaplessInputStream::Iterator::current_locus_is_covered_by_genome_locus_set_()
 {
     assert( parent_ );
+    assert( current_locus_.chromosome != "" );
+    assert( current_locus_.position > 0 );
 
     // Without a given genome locus set, we always consider this position to be covered.
     if( ! parent_->genome_locus_set_ ) {
