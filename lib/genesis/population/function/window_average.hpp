@@ -142,9 +142,14 @@ inline double window_average_denominator(
     // in the stats, so this works there as well. We do not simply assert this here,
     // as a misuse of the filters could result in an error here, which would be on the user
     // side, and so is an exception.
-    if( sample_counts_filter_stats.sum() > variant_filter_stats[VariantFilterTag::kPassed] ) {
+    // We skip this test when using the sum anyway, as in those cases, we might not have
+    // the correct filter stats available in the first place.
+    if(
+        policy != WindowAveragePolicy::kSum &&
+        sample_counts_filter_stats.sum() > variant_filter_stats[VariantFilterTag::kPassed]
+    ) {
         throw std::invalid_argument(
-            "Invalid stat counts with ""sample_counts_filter_stats.sum() > "
+            "Invalid stat counts with sample_counts_filter_stats.sum() > "
             "variant_filter_stats[VariantFilterTag::kPassed]"
         );
     }

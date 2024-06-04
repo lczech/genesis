@@ -77,16 +77,6 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Default constructor.
-     *
-     * We always want to make sure that the user provides a WindowAveragePolicy, so using this
-     * default constructor leads to an unusable instance. We provide it so that dummy processors
-     * can be constructed, but they have to be replaced by non-default-constructed instances
-     * befor usage.
-     */
-    FstPoolProcessor() = default;
-
-    /**
      * @brief Construct a processor.
      *
      * This defaults to using the global thread pool of Options::get().global_thread_pool()
@@ -94,14 +84,11 @@ public:
      * is to be used, deactivate by explicitly setting the thread_pool() function here to `nullptr`.
      */
     FstPoolProcessor(
-        WindowAveragePolicy window_average_policy,
         std::shared_ptr<utils::ThreadPool> thread_pool = nullptr,
         size_t threading_threshold = 4096
     )
-        : avg_policy_( window_average_policy )
-        , thread_pool_( thread_pool )
+        : thread_pool_( thread_pool )
         , threading_threshold_( threading_threshold )
-        , is_default_constructed_( false )
     {
         thread_pool_ = thread_pool ? thread_pool : utils::Options::get().global_thread_pool();
     }
@@ -189,6 +176,7 @@ public:
 
     void reset()
     {
+        assert( calculators_.size() == results_.size() );
         for( auto& calc : calculators_ ) {
             assert( calc );
             calc->reset();
@@ -201,6 +189,10 @@ public:
 
         // Also reset the pi vectors to nan.
         // If they are not allocated, nothing happens.
+        auto const res_sz = results_.size();
+        assert( std::get<0>( results_pi_ ).size() == 0 || std::get<0>( results_pi_ ).size() == res_sz );
+        assert( std::get<1>( results_pi_ ).size() == 0 || std::get<1>( results_pi_ ).size() == res_sz );
+        assert( std::get<2>( results_pi_ ).size() == 0 || std::get<2>( results_pi_ ).size() == res_sz );
         std::fill(
             std::get<0>( results_pi_ ).begin(), std::get<0>( results_pi_ ).end(),
             std::numeric_limits<double>::quiet_NaN()
@@ -219,9 +211,6 @@ public:
     {
         // Check correct usage
         assert( sample_pairs_.size() == calculators_.size() );
-        if( is_default_constructed_ ) {
-            throw std::domain_error( "Cannot use a default constructed FstPoolProcessor" );
-        }
 
         // Only process Variants that are passing, but keep track of the ones that did not.
         ++filter_stats_[variant.status.get()];
@@ -272,11 +261,19 @@ public:
     {
         assert( results_.size() == calculators_.size() );
         for( size_t i = 0; i < results_.size(); ++i ) {
-            auto const abs_fst = calculators_[i]->get_result();
-            auto const window_avg_denom = window_average_denominator(
-                avg_policy_, window_length, filter_stats_, calculators_[i]->get_filter_stats()
-            );
-            results_[i] = abs_fst / window_avg_denom;
+            // We do an ugly dispatch here to treat the special case of the FstPoolCalculatorUnbiased
+            // class, which needs additional information on the window in order to normalize
+            // the pi values correctly. The Kofler and Karlsson do not need that, and we want to
+            // avoid using dummies in these places. So instead, we just do a dispatch here.
+            // If in the future more calculators are added that need special behaviour,
+            // we might want to redesign this...
+            auto const* raw_calc = calculators_[i].get();
+            auto const* unbiased_calc = dynamic_cast<FstPoolCalculatorUnbiased const*>( raw_calc );
+            if( unbiased_calc ) {
+                results_[i] = unbiased_calc->get_result( window_length, filter_stats_ );
+            } else {
+                results_[i] = raw_calc->get_result();
+            }
         }
         return results_;
     }
@@ -285,9 +282,9 @@ public:
      * @brief Get lists of all the three intermediate pi values (within, between, total) that
      * are part of our unbiased estimators.
      *
-     * This computes the window-averaged values for pi within, pi between, and pi total (in that
-     * order in the tuple), for each sample pair (order in the three vectors). This uses the same
-     * window averaging policy as the get_result() function.
+     * This computes the window-average-corrected values for pi within, pi between, and pi total
+     * (in that order in the tuple), for each sample pair (order in the three vectors).
+     * This uses the same window averaging policy as the get_result() function.
      *
      * This only works when all calculators are of type FstPoolCalculatorUnbiased, and throws an
      * exception otherwise. It is merely meant as a convenience function for that particular case.
@@ -296,31 +293,32 @@ public:
     {
         // Only allocate when someone first calls this.
         // Does not do anything afterwards.
-        auto const result_size = calculators_.size();
-        std::get<0>( results_pi_ ).resize( result_size );
-        std::get<1>( results_pi_ ).resize( result_size );
-        std::get<2>( results_pi_ ).resize( result_size );
+        auto const res_sz = calculators_.size();
+        assert( std::get<0>( results_pi_ ).size() == 0 || std::get<0>( results_pi_ ).size() == res_sz );
+        assert( std::get<1>( results_pi_ ).size() == 0 || std::get<1>( results_pi_ ).size() == res_sz );
+        assert( std::get<2>( results_pi_ ).size() == 0 || std::get<2>( results_pi_ ).size() == res_sz );
+        std::get<0>( results_pi_ ).resize( res_sz );
+        std::get<1>( results_pi_ ).resize( res_sz );
+        std::get<2>( results_pi_ ).resize( res_sz );
 
         // Get the pi values from all calculators, assuming that they are of the correct type.
-        for( size_t i = 0; i < result_size; ++i ) {
-            auto& raw_calc = calculators_[i];
-            auto cast_calc = dynamic_cast<FstPoolCalculatorUnbiased const*>( raw_calc.get() );
-            if( ! cast_calc ) {
+        for( size_t i = 0; i < res_sz; ++i ) {
+            auto const& raw_calc = calculators_[i];
+            auto const* unbiased_calc = dynamic_cast<FstPoolCalculatorUnbiased const*>( raw_calc.get() );
+            if( ! unbiased_calc ) {
                 throw std::domain_error(
                     "Can only call FstPoolProcessor::get_pi_vectors() "
                     "for calculators of type FstPoolCalculatorUnbiased."
                 );
             }
 
-            // Get the denominator to use for all averaging.
-            auto const window_avg_denom = window_average_denominator(
-                avg_policy_, window_length, filter_stats_, calculators_[i]->get_filter_stats()
-            );
-
-            // We compute the window-averaged values as above.
-            std::get<0>(results_pi_)[i] = cast_calc->get_pi_within()  / window_avg_denom;
-            std::get<1>(results_pi_)[i] = cast_calc->get_pi_between() / window_avg_denom;
-            std::get<2>(results_pi_)[i] = cast_calc->get_pi_total()   / window_avg_denom;
+            // We compute the window-averaged values here.
+            // Unfortunately, we need to copy this value-by-value, as we want to return
+            // three independent vectors for user convenienec on the caller's end.
+            auto const pis = unbiased_calc->get_pi_values( window_length, filter_stats_ );
+            std::get<0>(results_pi_)[i] = pis.pi_within;
+            std::get<1>(results_pi_)[i] = pis.pi_between;
+            std::get<2>(results_pi_)[i] = pis.pi_total;
         }
 
         return results_pi_;
@@ -354,10 +352,6 @@ public:
 
 private:
 
-    // We force the correct usage of the window averaging policy here,
-    // so that we make misinterpretation of the values less likely.
-    WindowAveragePolicy avg_policy_;
-
     // The pairs of sample indices of the variant between which we want to compute FST,
     // and the processors to use for these computations,
     std::vector<std::pair<size_t, size_t>> sample_pairs_;
@@ -376,10 +370,6 @@ private:
     // (number of sample pairs) at which we start using the thread pool.
     std::shared_ptr<utils::ThreadPool> thread_pool_;
     size_t threading_threshold_ = 0;
-
-    // We want to make sure to disallow default constructed instances.
-    // Bit ugly to do it this way, but works for now.
-    bool is_default_constructed_ = true;
 };
 
 // =================================================================================================
@@ -396,11 +386,10 @@ private:
  */
 template<class Calculator, typename... Args>
 inline FstPoolProcessor make_fst_pool_processor(
-    WindowAveragePolicy window_average_policy,
     std::vector<size_t> const& pool_sizes,
     Args... args
 ) {
-    FstPoolProcessor result( window_average_policy );
+    FstPoolProcessor result;
     for( size_t i = 0; i < pool_sizes.size(); ++i ) {
         for( size_t j = i + 1; j < pool_sizes.size(); ++j ) {
             result.add_calculator(
@@ -427,12 +416,11 @@ inline FstPoolProcessor make_fst_pool_processor(
  */
 template<class Calculator, typename... Args>
 inline FstPoolProcessor make_fst_pool_processor(
-    WindowAveragePolicy window_average_policy,
     std::vector<std::pair<size_t, size_t>> const& sample_pairs,
     std::vector<size_t> const& pool_sizes,
     Args... args
 ) {
-    FstPoolProcessor result( window_average_policy );
+    FstPoolProcessor result;
     for( auto const& p : sample_pairs ) {
         if( p.first >= pool_sizes.size() || p.second >= pool_sizes.size() ) {
             throw std::invalid_argument(
@@ -465,12 +453,11 @@ inline FstPoolProcessor make_fst_pool_processor(
  */
 template<class Calculator, typename... Args>
 inline FstPoolProcessor make_fst_pool_processor(
-    WindowAveragePolicy window_average_policy,
     size_t index,
     std::vector<size_t> const& pool_sizes,
     Args... args
 ) {
-    FstPoolProcessor result( window_average_policy );
+    FstPoolProcessor result;
     for( size_t i = 0; i < pool_sizes.size(); ++i ) {
         result.add_calculator(
             index, i,
@@ -495,12 +482,11 @@ inline FstPoolProcessor make_fst_pool_processor(
  */
 template<class Calculator, typename... Args>
 inline FstPoolProcessor make_fst_pool_processor(
-    WindowAveragePolicy window_average_policy,
     size_t index_1, size_t index_2,
     std::vector<size_t> const& pool_sizes,
     Args... args
 ) {
-    FstPoolProcessor result( window_average_policy );
+    FstPoolProcessor result;
     result.add_calculator(
         index_1, index_2,
         ::genesis::utils::make_unique<Calculator>(
