@@ -225,8 +225,8 @@ VariantInputStream make_variant_input_stream_from_sam_file(
         // Scratch that. If we treat the file as a single sample anyway, we just use the file name
         // as the sample name. Way more intuitive. Unfortunately, there is then the inconsistency
         // in naming, but it's more in line with what e.g. the sync does if a header is provided.
-        assert( data.sample_names.size() <= 1 );
-        if( data.sample_names.size() == 1 ) {
+        assert( cur.sample_size() <= 1 );
+        if( cur.sample_size() == 1 ) {
             data.sample_names = std::vector<std::string>{ data.source_name };
         }
     } else {
