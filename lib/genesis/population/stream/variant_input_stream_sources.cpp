@@ -219,8 +219,16 @@ VariantInputStream make_variant_input_stream_from_sam_file(
         // Take this into account, and create as many empty (unnamed) samples as needed.
         // This cannot be more than one though, as it can be the unaccounted or none,
         // or, if we do not split by RG at all, just the one sample were every read ends up in.
-        data.sample_names = make_sample_name_list_( data.source_name, cur.sample_size() );
+        // data.sample_names = make_sample_name_list_( data.source_name, cur.sample_size() );
+        // assert( data.sample_names.size() <= 1 );
+
+        // Scratch that. If we treat the file as a single sample anyway, we just use the file name
+        // as the sample name. Way more intuitive. Unfortunately, there is then the inconsistency
+        // in naming, but it's more in line with what e.g. the sync does if a header is provided.
         assert( data.sample_names.size() <= 1 );
+        if( data.sample_names.size() == 1 ) {
+            data.sample_names = std::vector<std::string>{ data.source_name };
+        }
     } else {
         assert( reader.split_by_rg() == true );
     }
