@@ -285,7 +285,7 @@ std::ostream& print_variant_filter_category_stats(
         os << "Empty:     " << stats[VariantFilterTagCategory::kSamplesFailed] << "\n";
     }
     if( stats[VariantFilterTagCategory::kNumeric] > 0 || verbose ) {
-        os << "Numric:    " << stats[VariantFilterTagCategory::kNumeric] << "\n";
+        os << "Numeric:   " << stats[VariantFilterTagCategory::kNumeric] << "\n";
     }
     if( stats[VariantFilterTagCategory::kInvariant] > 0 || verbose ) {
         os << "Invariant: " << stats[VariantFilterTagCategory::kInvariant] << "\n";

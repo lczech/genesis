@@ -261,14 +261,14 @@ public:
             if( std::isfinite( tp )) {
                 theta_pi_sum_ += tp;
             }
-            assert( std::isfinite( tp ) );
+            // assert( std::isfinite( tp ) );
         }
         if( enable_theta_watterson_ || enable_tajima_d_ ) {
             tw = theta_watterson_pool( settings_, pool_size_, sample );
             if( std::isfinite( tw )) {
                 theta_watterson_sum_ += tw;
             }
-            assert( std::isfinite( tw ) );
+            // assert( std::isfinite( tw ) );
         }
 
         // We want to keep track of the minimum read depth of the data that we are processing.

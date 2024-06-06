@@ -190,6 +190,7 @@ public:
         // Also reset the pi vectors to nan.
         // If they are not allocated, nothing happens.
         auto const res_sz = results_.size();
+        (void) res_sz;
         assert( std::get<0>( results_pi_ ).size() == 0 || std::get<0>( results_pi_ ).size() == res_sz );
         assert( std::get<1>( results_pi_ ).size() == 0 || std::get<1>( results_pi_ ).size() == res_sz );
         assert( std::get<2>( results_pi_ ).size() == 0 || std::get<2>( results_pi_ ).size() == res_sz );
