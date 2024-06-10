@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -30,10 +30,10 @@
 
 #include "src/common.hpp"
 
-#include "genesis/sequence/formats/fastq_input_iterator.hpp"
-#include "genesis/sequence/formats/fastq_output_iterator.hpp"
+#include "genesis/sequence/formats/fastq_output_stream.hpp"
 #include "genesis/sequence/formats/fastq_reader.hpp"
 #include "genesis/sequence/formats/fastq_writer.hpp"
+#include "genesis/sequence/formats/fastx_input_stream.hpp"
 #include "genesis/sequence/functions/quality.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 
@@ -102,23 +102,28 @@ TEST( Sequence, FastqEncoding )
     EXPECT_EQ( QualityEncoding::kSanger, enc );
 }
 
-TEST( Sequence, FastqInputIterator )
+TEST( Sequence, FastqInputStream )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
     std::string infile = environment->data_dir + "sequence/SP1.fq";
 
     size_t cnt = 0;
-    auto it = FastqInputIterator( utils::from_file( infile ));
-    while( it ) {
-        // std::cout << "A " << cnt << " " << it->length() << "\n";
+    auto it = FastqInputStream( utils::from_file( infile ));
+    for( auto const& seq : it ) {
+        // std::cout << "A " << cnt << " " << seq.length() << "\n";
+        (void) seq;
         ++cnt;
-        ++it;
     }
+    // while( it ) {
+    //     // std::cout << "A " << cnt << " " << it->length() << "\n";
+    //     ++cnt;
+    //     ++it;
+    // }
     EXPECT_EQ( 250, cnt );
 
     cnt = 0;
-    for( auto const& s : FastqInputIterator( utils::from_file( infile )) ) {
+    for( auto const& s : FastqInputStream( utils::from_file( infile )) ) {
         (void) s;
         // std::cout << "B " << cnt << " " << s.length() << "\n";
         ++cnt;
@@ -144,7 +149,7 @@ TEST( Sequence, FastqWriter )
     EXPECT_EQ( data, written );
 }
 
-TEST( Sequence, FastqOutputIterator )
+TEST( Sequence, FastqOutputStream )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -156,7 +161,7 @@ TEST( Sequence, FastqOutputIterator )
     // Write to string. Need scope to actually do the writing.
     std::string target;
     {
-        auto out_it = FastqOutputIterator( utils::to_string( target ));
+        auto out_it = FastqOutputStream( utils::to_string( target ));
         for( auto const& seq : sset ) {
             out_it << seq;
         }
