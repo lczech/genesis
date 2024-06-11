@@ -306,6 +306,32 @@ bool VcfRecord::is_snp() const
     return ::bcf_is_snp( record_ );
 }
 
+bool VcfRecord::is_snp_or_alt_del() const
+{
+    // We here need a special case of the ::bcf_is_snp() function, so we base our code on theirs,
+    // but rewrite it to fit our needs. They do a weird loop, which we have simplified here a bit.
+    // We do not need to work with the mpileup <X> format that they check for - if we have that,
+    // then we are definitely returning false here anyway.
+
+    bcf_unpack( record_, BCF_UN_STR );
+    for( size_t i = 0; i < record_->n_allele; ++i) {
+        // We return false for any non-single-char allele, for monomorphic reference ('.'),
+        // and if the ref allele is a deletion. The monomorphic reference should actually
+        // not occur in practicel, as thye n_allele count would just not have an entry for it
+        // anyway. Still, seems to be better to check, just in case.
+        if( record_->d.allele[i][1] != 0 ) {
+            return false;
+        }
+        if( record_->d.allele[i][0] == '.' ) {
+            return false;
+        }
+        if( record_->d.allele[i][0] == '*' && i == 0 ) {
+            return false;
+        }
+    }
+    return true;
+}
+
 double VcfRecord::get_quality() const
 {
     return record_->qual;

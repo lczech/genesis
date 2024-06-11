@@ -451,8 +451,12 @@ TEST( VariantInputStream, VcfInputStream )
     std::string result;
     for( auto const& variant : it ) {
         result += " " + std::to_string( variant.position );
+        // LOG_DBG << variant.chromosome << ":" << variant.position;
+        // for( auto const& s : variant.samples ) {
+        //     LOG_DBG1 << s;
+        // }
     }
-    EXPECT_EQ( " 14370 1230237", result );
+    EXPECT_EQ( " 14370 1230237 1230238", result );
 
     // Test cases for missing file.
     EXPECT_ANY_THROW( make_variant_input_stream_from_pool_vcf_file( "" ));

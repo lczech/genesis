@@ -242,14 +242,11 @@ std::pair<std::array<char, 6>, size_t> get_vcf_record_snp_ref_alt_chars_( VcfRec
     record.unpack();
     auto rec_data = record.data();
 
-    // The n_allele count does not include deletions ('.'), meaning that if there is only a single
-    // variant, we manually adjust this to also include the deletion.
-    // To avoid too much branching, we init the array so that we have all deletions initially,
-    // and hence do not need to overwrite in the case that we added that deletion manually
-    // to the counter.
-    size_t const var_cnt = rec_data->n_allele == 1 ? rec_data->n_allele + 1 : rec_data->n_allele;
+    // To avoid too much branching and allocation, we init the array so that we have all deletions
+    // initially, and hence do not need to overwrite in the case that we added that deletion
+    // manually to the counter.
     auto vars = std::array<char, 6>{{ '.', '.', '.', '.', '.', '.' }};
-    if( var_cnt > 6 ) {
+    if( rec_data->n_allele > 6 ) {
         throw std::runtime_error(
             "Invalid VCF Record that contains a REF or ALT sequence/allele with "
             "invalid nucleitides where only `[ACGTN.]` are allowed, at " +
@@ -272,7 +269,7 @@ std::pair<std::array<char, 6>, size_t> get_vcf_record_snp_ref_alt_chars_( VcfRec
         vars[i] = *rec_data->d.allele[i];
     }
 
-    return { vars, var_cnt };
+    return { vars, rec_data->n_allele };
 }
 
 /**
@@ -323,7 +320,7 @@ void convert_to_variant_as_pool_tally_bases_(
                 sample.n_count = cnt;
                 break;
             }
-            case '.': {
+            case '*': {
                 sample.d_count = cnt;
                 break;
             }
@@ -331,7 +328,7 @@ void convert_to_variant_as_pool_tally_bases_(
                 throw std::runtime_error(
                     "Invalid VCF Record that contains a REF or ALT sequence/allele with "
                     "invalid nucleitide `" + std::string( 1, snp_chars.first[i] ) +
-                    "` where only `[ACGTN.]` are allowed, at " +
+                    "` where only `[ACGTN*]` are allowed, at " +
                     record.get_chromosome() + ":" + std::to_string( record.get_position() )
                 );
             }
