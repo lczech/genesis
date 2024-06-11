@@ -107,6 +107,18 @@ public:
         return *this;
     }
 
+    self_type& write( Sequence const& seq )
+    {
+        writer_.write( seq, target_ );
+        return *this;
+    }
+
+    self_type& write( Sequence const& seq, std::string const& quality_string )
+    {
+        writer_.write( seq, quality_string, target_ );
+        return *this;
+    }
+
     /**
      * @brief Return the FastqWriter used for this iterator.
      *

@@ -169,20 +169,20 @@ public:
             return &sequence_;
         }
 
-        // value_type* operator->()
-        // {
-        //     return &sequence_;
-        // }
+        value_type* operator->()
+        {
+            return &sequence_;
+        }
 
         value_type const& operator*() const
         {
             return sequence_;
         }
 
-        // value_type& operator*()
-        // {
-        //     return sequence_;
-        // }
+        value_type& operator*()
+        {
+            return sequence_;
+        }
 
         // -------------------------------------------------------------------------
         //     Iteration
@@ -332,7 +332,7 @@ public:
         return input_source_;
     }
 
-    Reader& fastq_reader()
+    Reader& reader()
     {
         return reader_;
     }
