@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -39,6 +39,7 @@
 #include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/string.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <fstream>
@@ -135,6 +136,7 @@ bool FastqReader::parse_sequence_( utils::InputStream& input_stream, Sequence& s
 void FastqReader::parse_label1_( utils::InputStream& input_stream, Sequence& sequence ) const
 {
     auto& it = input_stream;
+    buffer_.clear();
 
     // Check beginning of sequence.
     if( !it || *it != '@' ) {
@@ -148,31 +150,24 @@ void FastqReader::parse_label1_( utils::InputStream& input_stream, Sequence& seq
     ++it;
 
     // Parse label.
-    auto const label1 = utils::read_while( it, isprint );
-    if( label1 == "" ) {
+    it.get_line( buffer_ );
+    auto const buffer_is_print = std::all_of(
+        buffer_.cbegin(),
+        buffer_.cend(),
+        []( char c ){
+            return utils::is_print( c );
+        }
+    );
+    if( buffer_.empty() || !buffer_is_print ) {
         throw std::runtime_error(
-            "Malformed Fastq " + it.source_name()
-            + ": Expecting label after '@' in sequence at line "
-            + std::to_string( it.line() ) + "."
+            "Malformed Fastq " + it.source_name() + ": Expecting valid label after '@' "
+            "in sequence at line " + std::to_string( it.line() ) + ", but instead the label "
+            "is empty or contains non-printable characters."
         );
     }
-
-    // TODO do the isprint check after reading the whole line, for speed reasons.
-    // TODO also, use the ascii only version, again for speed
-
-    // Check for unexpected end of file.
-    if( !it || *it != '\n' ) {
-        throw std::runtime_error(
-            "Malformed Fastq " + it.source_name()
-            + ": Unexpected characters at the end of the label line in sequence at line "
-            + std::to_string( it.line() ) + "."
-        );
-    }
-    assert( it && *it == '\n' );
-    ++it;
 
     // Copy the label into the sequence, which also makes sure that we do not store extra capacity.
-    sequence.label( label1 );
+    sequence.label( buffer_ );
 }
 
 void FastqReader::parse_sites_( utils::InputStream& input_stream, Sequence& sequence ) const
