@@ -1,5 +1,5 @@
-#ifndef GENESIS_SEQUENCE_FORMATS_FASTQ_OUTPUT_STREAM_H_
-#define GENESIS_SEQUENCE_FORMATS_FASTQ_OUTPUT_STREAM_H_
+#ifndef GENESIS_SEQUENCE_FORMATS_FASTX_OUTPUT_STREAM_H_
+#define GENESIS_SEQUENCE_FORMATS_FASTX_OUTPUT_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -32,6 +32,7 @@
  */
 
 #include "genesis/sequence/sequence.hpp"
+#include "genesis/sequence/formats/fasta_writer.hpp"
 #include "genesis/sequence/formats/fastq_writer.hpp"
 
 #include "genesis/utils/io/output_target.hpp"
@@ -43,14 +44,24 @@ namespace genesis {
 namespace sequence {
 
 // =================================================================================================
-//     Fastq Output Stream
+//     Forward declarations and typedefs
+// =================================================================================================
+
+template<class Writer>
+class FastxOutputStream;
+
+using FastaOutputStream = FastxOutputStream<FastaWriter>;
+using FastqOutputStream = FastxOutputStream<FastqWriter>;
+
+// =================================================================================================
+//     Fasta and Fastq Output Stream
 // =================================================================================================
 
 /**
- * @brief Write Fastq data, sequentially.
+ * @brief Write Fasta or Fastq data, sequentially.
  *
- * This class allows to write Sequence data to an output target, using Fastq format, without
- * the need to have a full SequenceSet containing all Sequence%s in memory.
+ * This class allows to write Sequence data to an output target, using Fasta or Fastq format,
+ * without the need to have a full SequenceSet containing all Sequence%s in memory.
  *
  * Exemplary usage:
  *
@@ -63,7 +74,8 @@ namespace sequence {
  * See the output target convenience functions utils::to_file(), utils::to_stream(), and
  * utils::to_string() for examples of how to obtain a suitable output target.
  */
-class FastqOutputStream
+template<class Writer>
+class FastxOutputStream
 {
 public:
 
@@ -71,28 +83,33 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using self_type = FastqOutputStream;
+    using self_type = FastxOutputStream;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    FastqOutputStream() = delete;
+    FastxOutputStream() = delete;
 
-    explicit FastqOutputStream( std::shared_ptr<utils::BaseOutputTarget> target )
+    explicit FastxOutputStream(
+        std::shared_ptr<utils::BaseOutputTarget> target
+    )
         : target_( target )
         , writer_()
     {}
 
-    FastqOutputStream( std::shared_ptr<utils::BaseOutputTarget> target, FastqWriter const& writer )
+    FastxOutputStream(
+        std::shared_ptr<utils::BaseOutputTarget> target,
+        Writer const& writer
+    )
         : target_( target )
         , writer_( writer )
     {}
 
-    ~FastqOutputStream() = default;
+    ~FastxOutputStream() = default;
 
-    FastqOutputStream( self_type const& ) = default;
-    FastqOutputStream( self_type&& )      = default;
+    FastxOutputStream( self_type const& ) = default;
+    FastxOutputStream( self_type&& )      = default;
 
     self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
@@ -101,31 +118,53 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
-    self_type& operator<< ( Sequence const& seq )
+    self_type& operator<< ( Sequence const& sequence )
     {
-        writer_.write( seq, target_ );
+        writer_.write( sequence, target_ );
         return *this;
     }
 
-    self_type& write( Sequence const& seq )
+    self_type& write( Sequence const& sequence )
     {
-        writer_.write( seq, target_ );
-        return *this;
-    }
-
-    self_type& write( Sequence const& seq, std::string const& quality_string )
-    {
-        writer_.write( seq, quality_string, target_ );
+        writer_.write( sequence, target_ );
         return *this;
     }
 
     /**
-     * @brief Return the FastqWriter used for this iterator.
+     * @brief Writer overload for Fastq files where the @p quality_string is provided instead
+     * of taken from the @p sequence.
+     */
+    template<
+        typename T = Writer,
+        typename std::enable_if< std::is_same<T, FastqWriter>::value >::type* = nullptr
+    >
+    self_type& write( Sequence const& sequence, std::string const& quality_string )
+    {
+        writer_.write( sequence, quality_string, target_ );
+        return *this;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Settings
+    // -------------------------------------------------------------------------
+
+    std::shared_ptr<utils::BaseOutputTarget> output_target() const
+    {
+        return target_;
+    }
+
+    /**
+     * @brief Return the Writer used for this iterator.
      *
      * Use this to change the settings and writing behaviour of the iterator.
-     * See FastqWriter for details.
+     * See Writer for details.
      */
-    FastqWriter& writer()
+    Writer& writer()
+    {
+        return writer_;
+    }
+
+    Writer const& writer() const
     {
         return writer_;
     }
@@ -137,7 +176,7 @@ public:
 private:
 
     std::shared_ptr<utils::BaseOutputTarget> target_;
-    FastqWriter writer_;
+    Writer writer_;
 };
 
 } // namespace sequence

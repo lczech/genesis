@@ -30,10 +30,10 @@
 
 #include "src/common.hpp"
 
-#include "genesis/sequence/formats/fastq_output_stream.hpp"
 #include "genesis/sequence/formats/fastq_reader.hpp"
 #include "genesis/sequence/formats/fastq_writer.hpp"
 #include "genesis/sequence/formats/fastx_input_stream.hpp"
+#include "genesis/sequence/formats/fastx_output_stream.hpp"
 #include "genesis/sequence/functions/quality.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 

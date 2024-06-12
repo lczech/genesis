@@ -295,10 +295,10 @@ public:
      */
     FastxInputStream(
         std::shared_ptr<utils::BaseInputSource> source,
-        Reader const& settings
+        Reader const& reader
     )
         : input_source_( source )
-        , reader_( settings )
+        , reader_( reader )
     {}
 
     ~FastxInputStream() = default;
@@ -333,6 +333,11 @@ public:
     }
 
     Reader& reader()
+    {
+        return reader_;
+    }
+
+    Reader const& reader() const
     {
         return reader_;
     }

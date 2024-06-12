@@ -34,13 +34,12 @@
  */
 
 #include "genesis/sequence/counts.hpp"
-#include "genesis/sequence/formats/fasta_output_stream.hpp"
 #include "genesis/sequence/formats/fasta_reader.hpp"
 #include "genesis/sequence/formats/fasta_writer.hpp"
-#include "genesis/sequence/formats/fastq_output_stream.hpp"
 #include "genesis/sequence/formats/fastq_reader.hpp"
 #include "genesis/sequence/formats/fastq_writer.hpp"
 #include "genesis/sequence/formats/fastx_input_stream.hpp"
+#include "genesis/sequence/formats/fastx_output_stream.hpp"
 #include "genesis/sequence/formats/phylip_reader.hpp"
 #include "genesis/sequence/formats/phylip_writer.hpp"
 #include "genesis/sequence/functions/codes.hpp"
