@@ -155,19 +155,24 @@ void InputStream::get_line( std::string& target )
             // Load chunks of 32 bytes and loop until one of them contains nl or cr,
             // or we reach the end of what we can currently process.
             int mask = 0;
+            bool aligned = reinterpret_cast<uintptr_t>( buffer_ + data_pos_ ) % 32 == 0;
             while( data_pos_ + 32 <= stop ) {
 
-                // Load unaligned 32 bytes. We could potentially have a loop before to process
-                // anything up to an alignment boundary, but for short lines, that would mean
-                // that we are wasting time there. For longer lines, this might be a better way.
-                // But as we do not know the line lengths, and bioinformatics file formats tend
-                // to have not too long lines (fasta or fastq for instance), we just go with the
-                // easy option here, and load unaligned memory.
-                // Alternatively, we could process the beginning twice: load unaligned, then move
-                // to the next alignment boundary, and load aligned from there on. Not sure if good.
-                auto data_32bytes = _mm256_loadu_si256(
-                    reinterpret_cast<__m256i const*>( buffer_ + data_pos_ )
-                );
+                // Load 32 bytes of data. We first do an unaligned load for the first iteration,
+                // and then move forward to the next alignment boundary, so that subsequent
+                // iterations can use aligned load. On average this will double check 16 bytes,
+                // which might be slower when the data consists of many very short lines.
+                // But typically, that is not the case, and then this gives significant speedup.
+                __m256i data_32bytes;
+                if( aligned ) {
+                    data_32bytes = _mm256_load_si256(
+                        reinterpret_cast<__m256i const*>( buffer_ + data_pos_ )
+                    );
+                } else {
+                    data_32bytes = _mm256_loadu_si256(
+                        reinterpret_cast<__m256i const*>( buffer_ + data_pos_ )
+                    );
+                }
 
                 // Compare the data with the masks, setting bits where they match,
                 // and combining them into one mask that we then evaluate.
@@ -181,7 +186,13 @@ void InputStream::get_line( std::string& target )
                 if( mask != 0 ) {
                     break;
                 }
-                data_pos_ += 32;
+                if( aligned ) {
+                    data_pos_ += 32;
+                } else {
+                    auto const remainder = reinterpret_cast<uintptr_t>( buffer_ + data_pos_ ) % 32;
+                    data_pos_ += 32 - remainder;
+                    aligned = true;
+                }
             }
 
             // If we have builtin capabilities to find the first set bit, we use it.
@@ -233,7 +244,7 @@ void InputStream::get_line( std::string& target )
         #endif
 
         // The above loops might end with data_pos_ somewhere before the exact line break.
-        // We now need to walk the rest by foot, and examine char by char.
+        // In those cases, we now need to walk the rest by foot, and examine char by char.
         while(
             data_pos_ < stop &&
             buffer_[ data_pos_ ] != '\n' &&
