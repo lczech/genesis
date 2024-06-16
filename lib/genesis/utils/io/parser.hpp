@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -49,6 +49,15 @@ namespace utils {
 // =================================================================================================
 
 /**
+ * @brief Parse the input @p source as an unsigned int into a size_t.
+ *
+ * This is the basic parsing function that we use internally for the function templates
+ * parse_unsigned_integer() and parse_signed_integer(). That means, our internal int size
+ * cannot exceed 64 bits. That should be okay.
+ */
+size_t parse_unsigned_integer_size_t( utils::InputStream& source );
+
+/**
  * @brief Read an unsigned integer from a stream and return it.
  *
  * The function expects a sequence of digits. The current char in the stream has to be a digit,
@@ -58,27 +67,25 @@ namespace utils {
 template<class T>
 T parse_unsigned_integer( utils::InputStream& source )
 {
-    T x = 0;
+    // No need to assert unsignedness here. We will later check that casting to the desired
+    // type worked, and we test for the correct sign there as well, so that it workes for
+    // signed types.
+    // static_assert(
+    //     std::is_unsigned<T>::value,
+    //     "Need unsigned type for parse_unsigned_integer()"
+    // );
 
-    if( ! source || ! utils::is_digit( *source ) ) {
-        throw std::runtime_error(
-            "Expecting digit in " + source.source_name() + " at " + source.at() + "."
+    auto const x = parse_unsigned_integer_size_t( source );
+
+    // We parsed as largest, and now try to cast to desired type,
+    // testing that back-conversion gives the same value and correct sign.
+    auto const r = static_cast<T>(x);
+    if( static_cast<size_t>(r) != x || r < 0 ) {
+        throw std::overflow_error(
+            "Numerical overflow in " + source.source_name() + " at " + source.at() + "."
         );
     }
-
-    while( source && utils::is_digit( *source )) {
-        T y = *source - '0';
-
-        if( x > ( std::numeric_limits<T>::max() - y ) / 10 ) {
-            throw std::overflow_error(
-                "Numerical overflow in " + source.source_name() + " at " + source.at() + "."
-            );
-        }
-
-        x = 10 * x + y;
-        ++source;
-    }
-    return x;
+    return r;
 }
 
 /**
@@ -93,41 +100,51 @@ T parse_unsigned_integer( utils::InputStream& source )
 template<class T>
 T parse_signed_integer( utils::InputStream& source )
 {
+    static_assert(
+        std::is_signed<T>::value,
+        "Need signed type for parse_signed_integer()"
+    );
+
     if( !source ) {
         throw std::runtime_error(
             "Expecting number in " + source.source_name() + " at " + source.at() + "."
         );
     }
 
-    if( *source == '-' ) {
+    int sign = 1;
+    if( *source == '-' || *source == '+' ) {
+        if( *source == '-' ) {
+            sign = -1;
+        }
         ++source;
+    }
 
-        if( ! source || ! utils::is_digit( *source ) ) {
-            throw std::runtime_error(
-                "Expecting digit in " + source.source_name() + " at " + source.at() + "."
+    // Parse as largest, but report overflow as underflow if negative.
+    size_t x;
+    try {
+        x = parse_unsigned_integer_size_t( source );
+    } catch( std::overflow_error const& ) {
+        if( sign == -1 ) {
+            throw std::underflow_error(
+                "Numerical overflow in " + source.source_name() + " at " + source.at() + "."
             );
+        } else {
+            throw;
         }
-
-        T x = 0;
-        while( source && utils::is_digit( *source )) {
-            T y = *source - '0';
-
-            if( x < ( std::numeric_limits<T>::min() + y ) / 10 ) {
-                throw std::underflow_error(
-                    "Numerical underflow in " + source.source_name() + " at " + source.at() + "."
-                );
-            }
-
-            x = 10 * x - y;
-            ++source;
-        }
-        return x;
     }
 
-    if( *source == '+' ) {
-        ++source;
+    // Lastly, try to cast to desired type, testing that back-conversion
+    // gives the same value and sign.
+    // The back-cast of `sign * r` is always valid, as the negative range of signed ints
+    // is smaller than the positive, so if it's negative, multiplying by -1 will always result
+    // in a valid value.
+    auto const r = static_cast<T>( sign * static_cast<T>(x) );
+    if( static_cast<size_t>( sign * r ) != x || !( r == 0 || (sign < 0) == (r < 0) )) {
+        throw std::underflow_error(
+            "Numerical overflow in " + source.source_name() + " at " + source.at() + "."
+        );
     }
-    return parse_unsigned_integer<T>(source);
+    return r;
 }
 
 /**

@@ -30,8 +30,9 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/core/std.hpp"
+#include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/random.hpp"
 
@@ -314,7 +315,7 @@ TEST( InputStream, ParseInt )
     size_t target_length = 0;
     while( input_stream ) {
 
-        auto const n = input_stream.parse_signed_integer<int64_t>();
+        auto const n = parse_signed_integer<int64_t>( input_stream );
         target_sum += n;
         target_length += std::to_string(n).size();
 
