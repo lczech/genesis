@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/sequence/functions/quality.hpp"
+#include "genesis/utils/math/random.hpp"
 
 #include <numeric>
 #include <string>
@@ -38,6 +39,7 @@
 
 using namespace genesis;
 using namespace genesis::sequence;
+using namespace genesis::utils;
 
 // Fixed strings of all chars in the correct ASCII order for all encodings
 std::string const sanger = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHI";
@@ -225,4 +227,46 @@ TEST( Sequence, QualityEncodingNames )
     EXPECT_EQ( QualityEncoding::kIllumina13, guess_quality_encoding_from_name( "illumina-1.3" ));
     EXPECT_EQ( QualityEncoding::kIllumina15, guess_quality_encoding_from_name( "illumina-1.5" ));
     EXPECT_EQ( QualityEncoding::kIllumina18, guess_quality_encoding_from_name( "illumina-1.8" ));
+}
+
+// =================================================================================================
+//     Random Fuzzy
+// =================================================================================================
+
+void test_quality_decoding_fuzzy_()
+{
+    // Fill a vector of random length with random valid phred scores.
+    auto const len = permuted_congruential_generator( 1, 1000 );
+    auto phred_scores = std::vector<unsigned char>( len );
+    for( size_t i = 0; i < len; ++i ) {
+        phred_scores[i] = permuted_congruential_generator( 0, 93 );
+    }
+
+    // Encode the scores. We trust this function.
+    auto const encoded = quality_encode_from_phred_score( phred_scores );
+
+    // Now decode again and check that we have the same as before.
+    EXPECT_EQ( phred_scores, quality_decode_to_phred_score( encoded ));
+}
+
+TEST( Sequence, QualityDecodingFuzzy )
+{
+    // Skip test if no data directory availabe.
+    NEEDS_TEST_DATA;
+
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    // For the duration of the test, we deactivate debug logging.
+    // But if needed, comment this line out, and each test will report its input.
+    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+
+    size_t num_tests = 1000;
+    for( size_t i = 0; i < num_tests; ++i ) {
+        LOG_DBG << "=================================";
+        LOG_DBG << "Test " << i;
+        test_quality_decoding_fuzzy_();
+    }
 }

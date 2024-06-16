@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,8 +44,10 @@
 #include <cstdint>
 #include <stdexcept>
 
-#ifdef GENESIS_AVX
+#if defined(GENESIS_AVX) || defined(GENESIS_AVX2) || defined(GENESIS_AVX512)
+
     #include <immintrin.h>
+
 #endif
 
 namespace genesis {
@@ -292,40 +294,40 @@ std::vector<unsigned char> quality_decode_to_phred_score(
     // In the loops below, we convert Solexa as if it was phred, and fix this later.
     // This avoids code duplication for the error checking.
 
-    #ifdef GENESIS_AVX
+    #ifdef GENESIS_AVX2
 
-    // Get the data in the right format
-    auto const* data = reinterpret_cast<__m256i const*>( quality_codes.c_str() );
-    auto* write = reinterpret_cast<__m256i*>( result.data() );
+        // Get the data in the right format
+        auto const* data = reinterpret_cast<__m256i const*>( quality_codes.c_str() );
+        auto* write = reinterpret_cast<__m256i*>( result.data() );
 
-    // Define some masks. We use 32 byte full of the offset, and full of the upper limit for
-    // ascii-encoded phred scores.
-    auto const m_offset = _mm256_set1_epi8( offset );
-    auto static const m_upper = _mm256_set1_epi8( 126 );
+        // Define some masks. We use 32 byte full of the offset, and full of the upper limit for
+        // ascii-encoded phred scores.
+        auto const m_offset = _mm256_set1_epi8( offset );
+        auto static const m_upper = _mm256_set1_epi8( 126 );
 
-    // Process in 32-byte chunks. The loop condition uses integer division / 32, so we miss the rest
-    // that is above a multiple of 32. We process this later.
-    for( size_t j = 0; j < quality_codes.size() / 32; ++j ) {
+        // Process in 32-byte chunks. The loop condition uses integer division / 32,
+        // so we miss the rest that is above a multiple of 32. We process this later.
+        for( size_t j = 0; j < quality_codes.size() / 32; ++j ) {
 
-        // Load the data and compare it to the offset and upper limit.
-        auto const m_data = _mm256_loadu_si256( data + j );
-        auto const m_min = _mm256_cmpgt_epi8( m_offset, m_data );
-        auto const m_max = _mm256_cmpgt_epi8( m_data, m_upper );
+            // Load the data and compare it to the offset and upper limit.
+            auto const m_data = _mm256_loadu_si256( data + j );
+            auto const m_min = _mm256_cmpgt_epi8( m_offset, m_data );
+            auto const m_max = _mm256_cmpgt_epi8( m_data, m_upper );
 
-        // If any char is below the offset or above the upper limit, we have an error.
-        // We just store the result of the test, to avoid branching.
-        good &= _mm256_testz_si256( m_min, m_min ) && _mm256_testz_si256( m_max, m_max );
+            // If any char is below the offset or above the upper limit, we have an error.
+            // We just store the result of the test, to avoid branching.
+            good &= _mm256_testz_si256( m_min, m_min ) && _mm256_testz_si256( m_max, m_max );
 
-        // Subtract the offset, and store the result.
-        auto const m_result = _mm256_sub_epi8( m_data, m_offset );
-        _mm256_storeu_si256( write + j, m_result );
-    }
+            // Subtract the offset, and store the result.
+            auto const m_result = _mm256_sub_epi8( m_data, m_offset );
+            _mm256_storeu_si256( write + j, m_result );
+        }
 
-    // Set i to what it needs to be so that the loop below processes the remaining chars that are
-    // left in the string after AVX is done with the 32 byte chunks.
-    i = quality_codes.size() / 32 * 32;
+        // Set i to what it needs to be so that the loop below processes the remaining chars
+        // that are left in the string after AVX is done with the 32 byte chunks.
+        i = quality_codes.size() / 32 * 32;
 
-    #endif // GENESIS_AVX
+    #endif // GENESIS_AVX2
 
     // Run the conversion. Again, we avoid branching in the inner loop.
     // i is already initialized, either from before the AVX code, or from within the AVX code.
