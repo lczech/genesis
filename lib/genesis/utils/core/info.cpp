@@ -219,6 +219,24 @@ bool info_using_openmp()
     #endif
 }
 
+bool info_using_avx()
+{
+    #ifdef GENESIS_AVX
+        return true;
+    #else
+        return false;
+    #endif
+}
+
+bool info_using_avx2()
+{
+    #ifdef GENESIS_AVX2
+        return true;
+    #else
+        return false;
+    #endif
+}
+
 bool info_using_zlib()
 {
     #ifdef GENESIS_ZLIB

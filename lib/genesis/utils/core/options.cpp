@@ -148,6 +148,8 @@ std::string Options::info_compile_time() const
         info_is_little_endian() ? "little endian" : "big endian"
     ) + "\n";
     res += "Using OpenMP:      " + std::string( info_using_openmp() ? "true" : "false" ) + "\n";
+    res += "Using AVX:         " + std::string( info_using_avx()    ? "true" : "false" ) + "\n";
+    res += "Using AVX2:        " + std::string( info_using_avx2()   ? "true" : "false" ) + "\n";
     return res;
 }
 

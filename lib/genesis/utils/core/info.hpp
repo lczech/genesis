@@ -109,6 +109,16 @@ std::string info_compile_date_time();
 bool info_using_openmp();
 
 /**
+ * @brief Return whether the binary was compiled using AVX.
+ */
+bool info_using_avx();
+
+/**
+ * @brief Return whether the binary was compiled using AVX2.
+ */
+bool info_using_avx2();
+
+/**
  * @brief Return whether the binary was compiled using zlib.
  */
 bool info_using_zlib();
