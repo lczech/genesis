@@ -16,9 +16,9 @@
     along with this program.  If not,  see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -38,6 +38,12 @@
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 
     #include <charconv>
+
+#endif
+
+#if defined(GENESIS_AVX) || defined(GENESIS_AVX2) || defined(GENESIS_AVX512)
+
+    #include <immintrin.h>
 
 #endif
 
@@ -109,63 +115,139 @@ void InputStream::get_line( std::string& target )
         // End of block: need to read the next one first, so loop again.
         auto const stop = std::min( data_end_, start + BlockLength );
 
-        // 8-fold loop unrolling. Yes, the compiler does not do that.
-        // It gives some speedup, in particular if the reading is used in a parser that also
-        // does other things with the data. In a stand-alone line reader, it still gives
-        // a slight advantage.
+        #if defined(GENESIS_AVX512)
+
+            // UNTESTED and hence unused - we never set the GENESIS_AVX512 definition
+
+            static auto const all_nl = _mm512_set1_epi8('\n');
+            static auto const all_cr = _mm512_set1_epi8('\r');
+
+            // Process 64 bytes at a time using AVX-512
+            while( data_pos_ + 64 <= stop ) {
+                auto data_64bytes = _mm512_loadu_si512(
+                    reinterpret_cast<__m512i const*>( buffer_ + data_pos_ )
+                );
+
+                // Compare each byte in the chunk with '\n' and '\r'
+                auto nl_pos = _mm512_cmpeq_epi8_mask(data_64bytes, all_nl);
+                auto cr_pos = _mm512_cmpeq_epi8_mask(data_64bytes, all_cr);
+
+                // Combine the results of the comparisons
+                auto nr_pos = nl_pos | cr_pos;
+
+                // Check if any of the comparisons were true
+                if (nr_pos != 0) {
+                    // Find the position of the first set bit
+                    int offset = _tzcnt_u64(nr_pos);
+                    data_pos_ += offset;
+                    break;
+                }
+
+                data_pos_ += 64;
+            }
+
+        #elif defined(GENESIS_AVX2)
+
+            // 32 byte masks where each byte is new line or carriage return.
+            static auto const all_nl = _mm256_set1_epi8( '\n' );
+            static auto const all_cr = _mm256_set1_epi8( '\r' );
+
+            // Load chunks of 32 bytes and loop until one of them contains nl or cr,
+            // or we reach the end of what we can currently process.
+            int mask = 0;
+            while( data_pos_ + 32 <= stop ) {
+
+                // Load unaligned 32 bytes. We could potentially have a loop before to process
+                // anything up to an alignment boundary, but for short lines, that would mean
+                // that we are wasting time there. For longer lines, this might be a better way.
+                // But as we do not know the line lengths, and bioinformatics file formats tend
+                // to have not too long lines (fasta or fastq for instance), we just go with the
+                // easy option here, and load unaligned memory.
+                // Alternatively, we could process the beginning twice: load unaligned, then move
+                // to the next alignment boundary, and load aligned from there on. Not sure if good.
+                auto data_32bytes = _mm256_loadu_si256(
+                    reinterpret_cast<__m256i const*>( buffer_ + data_pos_ )
+                );
+
+                // Compare the data with the masks, setting bits where they match,
+                // and combining them into one mask that we then evaluate.
+                auto nl_pos = _mm256_cmpeq_epi8( data_32bytes, all_nl );
+                auto cr_pos = _mm256_cmpeq_epi8( data_32bytes, all_cr );
+                auto nr_pos = _mm256_or_si256( nl_pos, cr_pos );
+
+                // Get a bit mask that is set wherever nl or cr are.
+                // If there is a bit set, we are done with the loop.
+                mask = _mm256_movemask_epi8( nr_pos );
+                if( mask != 0 ) {
+                    break;
+                }
+                data_pos_ += 32;
+            }
+
+            // If we have builtin capabilities to find the first set bit, we use it.
+            // This brings data_pos_ to where the nl or cr is, so that the below slow loop
+            // will not run. If we do not have the builtin, we instead use the loop below
+            // to find the exact position of the char.
+            #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
+
+                // If we found a new line, use the mask to get position of the first set bit.
+                // This is where the nl or cr character is located, so we move there.
+                if( mask != 0 ) {
+                    int const offset = __builtin_ctz(mask);
+                    data_pos_ += offset;
+                    assert( buffer_[ data_pos_ ] == '\n' || buffer_[ data_pos_ ] == '\r' );
+                } else {
+                    assert( data_pos_ + 32 > stop );
+                }
+
+            #endif
+
+        #else
+
+            // 8-fold loop unrolling, to help the compiler.
+            // It gives some speedup, in particular if the reading is used in a parser that also
+            // does other things with the data. In a stand-alone line reader, it still gives
+            // a slight advantage.
+            while(
+                data_pos_ + 7 < stop &&
+                buffer_[ data_pos_ + 0 ] != '\n' &&
+                buffer_[ data_pos_ + 0 ] != '\r' &&
+                buffer_[ data_pos_ + 1 ] != '\n' &&
+                buffer_[ data_pos_ + 1 ] != '\r' &&
+                buffer_[ data_pos_ + 2 ] != '\n' &&
+                buffer_[ data_pos_ + 2 ] != '\r' &&
+                buffer_[ data_pos_ + 3 ] != '\n' &&
+                buffer_[ data_pos_ + 3 ] != '\r' &&
+                buffer_[ data_pos_ + 4 ] != '\n' &&
+                buffer_[ data_pos_ + 4 ] != '\r' &&
+                buffer_[ data_pos_ + 5 ] != '\n' &&
+                buffer_[ data_pos_ + 5 ] != '\r' &&
+                buffer_[ data_pos_ + 6 ] != '\n' &&
+                buffer_[ data_pos_ + 6 ] != '\r' &&
+                buffer_[ data_pos_ + 7 ] != '\n' &&
+                buffer_[ data_pos_ + 7 ] != '\r'
+            ) {
+                data_pos_ += 8;
+            }
+
+        #endif
+
+        // The above loops might end with data_pos_ somewhere before the exact line break.
+        // We now need to walk the rest by foot, and examine char by char.
         while(
-            data_pos_ + 7 < stop &&
-            buffer_[ data_pos_ + 0 ] != '\n'    &&
-            buffer_[ data_pos_ + 0 ] != '\r'    &&
-            buffer_[ data_pos_ + 1 ] != '\n'    &&
-            buffer_[ data_pos_ + 1 ] != '\r'    &&
-            buffer_[ data_pos_ + 2 ] != '\n'    &&
-            buffer_[ data_pos_ + 2 ] != '\r'    &&
-            buffer_[ data_pos_ + 3 ] != '\n'    &&
-            buffer_[ data_pos_ + 3 ] != '\r'    &&
-            buffer_[ data_pos_ + 4 ] != '\n'    &&
-            buffer_[ data_pos_ + 4 ] != '\r'    &&
-            buffer_[ data_pos_ + 5 ] != '\n'    &&
-            buffer_[ data_pos_ + 5 ] != '\r'    &&
-            buffer_[ data_pos_ + 6 ] != '\n'    &&
-            buffer_[ data_pos_ + 6 ] != '\r'    &&
-            buffer_[ data_pos_ + 7 ] != '\n'    &&
-            buffer_[ data_pos_ + 7 ] != '\r'
+            data_pos_ < stop &&
+            buffer_[ data_pos_ ] != '\n' &&
+            buffer_[ data_pos_ ] != '\r'
         ) {
-            data_pos_ += 8;
+            ++data_pos_;
         }
 
-        // Working AVX version. Not worth the trouble as of now. Keeping it here for reference.
-
-        // #ifdef GENESIS_AVX
-        //     #include <immintrin.h>
-        // #endif
-        //
-        // auto b = _mm256_loadu_si256(( __m256i const* )( buffer_ + data_pos_ ));
-        //
-        // static auto const n = _mm256_set1_epi8( '\n' );
-        // static auto const r = _mm256_set1_epi8( '\r' );
-        //
-        // auto bn = _mm256_cmpeq_epi8( b, n );
-        // auto br = _mm256_cmpeq_epi8( b, r );
-        //
-        // while(
-        //     data_pos_ + 32 <= stop &&
-        //     _mm256_testz_si256( bn, bn ) &&
-        //     _mm256_testz_si256( bn, bn )
-        // ) {
-        //     data_pos_ += 32;
-        //     b = _mm256_loadu_si256(( __m256i const* )( buffer_ + data_pos_ ));
-        //     bn = _mm256_cmpeq_epi8( b, n );
-        //     br = _mm256_cmpeq_epi8( b, r );
-        // }
-
-        // Alternative version taht uses 64bit words instead, and hence works without AVX.
+        // Alternative version that uses 64bit words instead, and hence works without AVX.
         // Uses macros from https://graphics.stanford.edu/~seander/bithacks.html
 
         // static auto const nmask = ~static_cast<uint64_t>(0) / 255U * '\n';
         // static auto const rmask = ~static_cast<uint64_t>(0) / 255U * '\r';
-        //
+
         // #define haszero(v) (((v) - static_cast<uint64_t>(0x0101010101010101)) & ~(v) & static_cast<uint64_t>(0x8080808080808080))
         // #define hasvalue(x,n) (haszero((x) ^ (~static_cast<uint64_t>(0) / 255U * (n))))
         //
@@ -190,16 +272,6 @@ void InputStream::get_line( std::string& target )
         //
         // #undef haszero
         // #undef hasvalue
-
-        // The above loop ends with data_pos_ somewhere before the exact line break.
-        // We now need to walk the rest by foot, and examine char by char.
-        while(
-            data_pos_ < stop &&
-            buffer_[ data_pos_ ] != '\n' &&
-            buffer_[ data_pos_ ] != '\r'
-        ) {
-            ++data_pos_;
-        }
 
         // Store what we have so far.
         target.append( buffer_ + start, data_pos_ - start );

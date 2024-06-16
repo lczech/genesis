@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -33,6 +33,7 @@
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/common.hpp"
+#include "genesis/utils/math/random.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -164,6 +165,77 @@ TEST( InputStream, LargeFile )
     // Make sure the file is deleted.
     ASSERT_EQ( 0, std::remove(tmpfile.c_str()) );
 }
+
+// =================================================================================================
+//     Random Fuzzy
+// =================================================================================================
+
+void test_input_stream_fuzzy_()
+{
+    // Create a large file with a known number and length of lines.
+    std::string tmpfile = environment->data_dir + "utils/fuzzy_file.txt";
+    std::ofstream out{ tmpfile };
+    ASSERT_TRUE( out );
+
+    // Make a file with random line length
+    auto const lines = permuted_congruential_generator( 1, 100 );
+    std::vector<size_t> line_lengths;
+    for( size_t i = 0; i < lines; ++i ) {
+        auto const len = permuted_congruential_generator( 1, 100 );
+        line_lengths.push_back( len );
+        for( size_t j = 0; j < len; ++j ) {
+            out << "x";
+        }
+        out << "\n";
+    }
+    out.close();
+
+    // Now read it again and expect the correct line length.
+    auto it = InputStream( from_file( tmpfile ));
+    size_t cnt = 0;
+    while( it ) {
+
+        EXPECT_EQ( cnt + 1, it.line() );
+        EXPECT_EQ( 1, it.column() );
+
+        auto const line = it.get_line();
+
+        EXPECT_EQ( line_lengths[cnt], line.size() );
+        EXPECT_EQ( cnt + 2, it.line() );
+        EXPECT_EQ( 1, it.column() );
+
+        ++cnt;
+    }
+
+    // Make sure the file is deleted.
+    ASSERT_EQ( 0, std::remove(tmpfile.c_str()) );
+}
+
+TEST( InputStream, FuzzyFile )
+{
+    // Skip test if no data directory availabe.
+    NEEDS_TEST_DATA;
+
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    // For the duration of the test, we deactivate debug logging.
+    // But if needed, comment this line out, and each test will report its input.
+    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+
+    size_t num_tests = 1000;
+    for( size_t i = 0; i < num_tests; ++i ) {
+        LOG_DBG << "=================================";
+        LOG_DBG << "Test " << i;
+        test_input_stream_fuzzy_();
+    }
+}
+
+// =================================================================================================
+//     Parsing
+// =================================================================================================
 
 TEST( InputStream, ParseInt )
 {
