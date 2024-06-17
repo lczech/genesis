@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -147,14 +147,14 @@ TEST(Color, ToAndFromHex)
 TEST( Color, Names )
 {
     // Find some valid color names.
-    EXPECT_TRUE( is_web_color_name("Dark Sea Green") );
-    EXPECT_TRUE( is_web_color_name("ForestGreen") );
-    EXPECT_TRUE( is_web_color_name("lawn_green") );
-    EXPECT_TRUE( is_web_color_name("lime green") );
+    EXPECT_TRUE( is_color_name_web("Dark Sea Green") );
+    EXPECT_TRUE( is_color_name_web("ForestGreen") );
+    EXPECT_TRUE( is_color_name_web("lawn_green") );
+    EXPECT_TRUE( is_color_name_web("lime green") );
 
     // And invalid.
-    EXPECT_FALSE( is_web_color_name("heavy metal") );
-    EXPECT_FALSE( is_web_color_name("applepie") );
+    EXPECT_FALSE( is_color_name_web("heavy metal") );
+    EXPECT_FALSE( is_color_name_web("applepie") );
 
     // Compare some color values.
     compare_color( color_from_bytes(199, 21, 133), color_from_name_web("MediumVioletRed") );

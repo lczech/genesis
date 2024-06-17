@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -46,7 +46,7 @@ namespace utils {
 
 /**
  * @brief Return `true` if the name represents one of the named colors offered by genesis,
- * which is (currently) a shortcut for is_web_color_name() and is_xkcd_color_name().
+ * which is (currently) a shortcut for is_color_name_web() and is_color_name_xkcd().
  */
 bool is_color_name( std::string const& name );
 
@@ -67,7 +67,7 @@ std::vector<Color> color_palette_web();
  *
  * Names are compared only by their alnum chars, and the letter case is ignored.
  */
-bool is_web_color_name( std::string const& name );
+bool is_color_name_web( std::string const& name );
 
 /**
  * @brief Retrieve a named web color by name.
@@ -89,7 +89,7 @@ std::vector<Color> color_palette_xkcd();
  * Names are compared only by their alnum chars, and the letter case is ignored.
  * See color_from_name_xkcd() for details on this color list.
  */
-bool is_xkcd_color_name( std::string const& name );
+bool is_color_name_xkcd( std::string const& name );
 
 /**
  * @brief Retrieve a named xkcd color by name.
@@ -104,6 +104,35 @@ bool is_xkcd_color_name( std::string const& name );
  * @link supplement_acknowledgements_code_reuse_xkcd_color_names Acknowledgements@endlink.
  */
 Color color_from_name_xkcd( std::string const& name );
+
+// =================================================================================================
+//     Color Names LEGO
+// =================================================================================================
+
+std::vector<Color> color_palette_lego();
+
+/**
+ * @brief Return true iff the given name is a named LEGO color.
+ *
+ * Names are compared only by their alnum chars, and the letter case is ignored.
+ * See color_from_name_lego() for details on this color list.
+ */
+bool is_color_name_lego( std::string const& name );
+
+/**
+ * @brief Retrieve a named LEGO color by name.
+ *
+ * Names are compared only by their alnum chars, and the letter case is ignored.
+ * If the color name does not exist, an `std::invalid_argument` exception is thrown.
+ *
+ * The colors are taken from the `colors.csv.gz` table of the LEGO Catalog Database at
+ * https://rebrickable.com/downloads/ on 2024-06-17. They were published with the note
+ *
+ *  > You can use these files for any purpose.
+ *
+ * which we interpret as the table being in the public domain.
+ */
+Color color_from_name_lego( std::string const& name );
 
 } // namespace utils
 } // namespace genesis
