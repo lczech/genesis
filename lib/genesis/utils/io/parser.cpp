@@ -360,14 +360,14 @@ size_t parse_unsigned_integer_std_from_chars_( utils::InputStream& source )
     // below for data_pos >= data_end || ! is_digit( buffer[ data_pos ] )
     if( dist == 0 ) {
         throw std::runtime_error(
-            "Expecting integer in " + source_name() + " at " + at() + "."
+            "Expecting integer in " + source.source_name() + " at " + source.at() + "."
         );
     }
 
     if( conv.ec != std::errc() ) {
         if( conv.ec == std::errc::result_out_of_range ) {
             throw std::overflow_error(
-                "Numerical overflow in " + source_name() + " at " + at() + "."
+                "Numerical overflow in " + source.source_name() + " at " + source.at() + "."
             );
         } else if( conv.ec == std::errc::invalid_argument ) {
             // Cannot happen, as we above checked that there is at least one digit.
@@ -379,7 +379,7 @@ size_t parse_unsigned_integer_std_from_chars_( utils::InputStream& source )
 
         // In either case, we need to stop here.
         throw std::overflow_error(
-            "Integer parsing error in " + source_name() + " at " + at() + "."
+            "Integer parsing error in " + source.source_name() + " at " + source.at() + "."
         );
     }
 

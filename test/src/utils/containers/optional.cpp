@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -243,8 +243,8 @@ TEST( Containers, OptionalSwapModify )
         {
             Optional<int> d1;
             Optional<int> d2;
-            Optional<int> e1( 42 );
-            Optional<int> e2( 7 );
+            // Optional<int> e1( 42 );
+            // Optional<int> e2( 7 );
 
             d1.swap( d2 );
             EXPECT_TRUE( !d1 );
@@ -252,8 +252,8 @@ TEST( Containers, OptionalSwapModify )
 
         // swap engaged with engaged optional
         {
-            Optional<int> d1;
-            Optional<int> d2;
+            // Optional<int> d1;
+            // Optional<int> d2;
             Optional<int> e1( 42 );
             Optional<int> e2( 7 );
 
@@ -266,9 +266,9 @@ TEST( Containers, OptionalSwapModify )
         // swap disengaged with engaged optional" )
         {
             Optional<int> d1;
-            Optional<int> d2;
+            // Optional<int> d2;
             Optional<int> e1( 42 );
-            Optional<int> e2( 7 );
+            // Optional<int> e2( 7 );
 
             d1.swap( e1 );
             EXPECT_TRUE(  d1 );
@@ -278,9 +278,9 @@ TEST( Containers, OptionalSwapModify )
         // swap engaged with disengaged optional" )
         {
             Optional<int> d1;
-            Optional<int> d2;
+            // Optional<int> d2;
             Optional<int> e1( 42 );
-            Optional<int> e2( 7 );
+            // Optional<int> e2( 7 );
 
             e1.swap( d1 );
             EXPECT_TRUE(  d1 );
@@ -448,8 +448,8 @@ TEST( Containers, OptionalNonMemberFunctions )
         {
             Optional<int> d1;
             Optional<int> d2;
-            Optional<int> e1( 42 );
-            Optional<int> e2( 7 );
+            // Optional<int> e1( 42 );
+            // Optional<int> e2( 7 );
 
             swap( d1, d2 );
             EXPECT_TRUE( !d1 );
@@ -457,8 +457,8 @@ TEST( Containers, OptionalNonMemberFunctions )
 
         // swap engaged with engaged optional" )
         {
-            Optional<int> d1;
-            Optional<int> d2;
+            // Optional<int> d1;
+            // Optional<int> d2;
             Optional<int> e1( 42 );
             Optional<int> e2( 7 );
 
@@ -472,9 +472,9 @@ TEST( Containers, OptionalNonMemberFunctions )
         // swap disengaged with engaged optional" )
         {
             Optional<int> d1;
-            Optional<int> d2;
+            // Optional<int> d2;
             Optional<int> e1( 42 );
-            Optional<int> e2( 7 );
+            // Optional<int> e2( 7 );
 
             swap( d1, e1 );
             EXPECT_TRUE(  d1 );
@@ -485,9 +485,9 @@ TEST( Containers, OptionalNonMemberFunctions )
         // swap engaged with disengaged optional" )
         {
             Optional<int> d1;
-            Optional<int> d2;
+            // Optional<int> d2;
             Optional<int> e1( 42 );
-            Optional<int> e2( 7 );
+            // Optional<int> e2( 7 );
 
             swap( e1, d1 );
             EXPECT_TRUE(  d1 );
