@@ -36,6 +36,7 @@
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/text/char.hpp"
 
+#include <array>
 #include <cassert>
 #include <cstdint>
 #include <functional>
@@ -43,6 +44,12 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+    #include <string_view>
+
+#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 
 namespace genesis {
 namespace utils {
@@ -281,13 +288,79 @@ public:
         return result;
     }
 
+    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+    /**
+     * @brief Read the current line and move to the beginning of the next, returning a
+     * `std::string_view` into the line that was just read.
+     *
+     * This is a faster alternative to get_line() that does not require memory allocations for
+     * the returned string. As such however, it comes with limitations:
+     *
+     *   * The returned string view is only valid while the current internal buffer is not
+     *     changed. As this can happen with any operation that advances the stream, it should
+     *     be assumed that the returned string view is only valid until any such operation is
+     *     called.
+     *   * As the string view points into the internal buffer, we are limited by the buffer
+     *     size, currenlty 4MB. That means, no lines longer than that can be read, otherwise
+     *     an exception is thrown. This should be fine for most typical file formats for which
+     *     this function is intended.
+     *
+     * The returned string view starts at the current position, and ends so that the last
+     * character of the view is the last character of the line, exclusing the new line or
+     * carriage return character there (or the end of the file).
+     * The stream is left at the first char of the next line.
+     */
+    std::string_view get_line_view();
+
+    /**
+     * @brief Read `N` many lines, and return an array of `std::string_view` into them.
+     *
+     * This is a very fast alternative to get_line(), and a multi-line variant of get_line_view().
+     * This is needed because otherwise, we could not obtain views into multiple consequitive lines
+     * at the same time - the get_line_view() might update the internal buffer when called again,
+     * hence invalidating all previous views.
+     *
+     * Similar to get_line_view(), this function hence has some limiations. In particular, the
+     * combined length of all lines (including their new line characters) cannot exceed the buffer
+     * size of 4MB, otherwise an exception is thrown. This function is hence meant for data and
+     * file formats that we expect to consist of not too long lines. Also, if any other function
+     * is called that advances the stream, all views returned here are considered invalidated.
+     *
+     * Each returned string view points to the beginning of the line and ends so that the last
+     * character of the view is the last character of the line, exclusing the new line or
+     * carriage return character there (or the end of the file).
+     * The stream is left at the first char of the next line.
+     *
+     * The function returns a fixed sized array, for speed, and to guarantee that the caller knows
+     * how many lines are needed for the particular format (e.g., fastq format). Allowing for a
+     * flexible number of lines here might encourage to read too much, which will fail.
+     */
+    template<size_t N>
+    std::array<std::string_view, N> get_line_views()
+    {
+        // We relay the work to a non-template inner function, to keep this header clean.
+        std::array<std::string_view, N> result;
+        fill_line_views_( result.data(), result.size() );
+        return result;
+    }
+
+private:
+
+    // Internal helper that does the actual work of the get_line_views() function.
+    void fill_line_views_( std::string_view* str_views, size_t n_lines );
+
+    #endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
 private:
 
     // Internal functions for the line operations.
-    bool move_to_line_or_buffer_end_();
+    size_t update_and_move_to_line_or_buffer_end_();
+    void move_to_line_or_buffer_end_( size_t const stop_pos );
     void approach_line_or_buffer_end_avx512_( size_t const stop_pos );
     void approach_line_or_buffer_end_avx2_( size_t const stop_pos );
-    void approach_line_or_buffer_end_naive_( size_t const stop_pos );
+    void approach_line_or_buffer_end_unrolled_( size_t const stop_pos );
+    void increment_to_next_line_();
 
 public:
 

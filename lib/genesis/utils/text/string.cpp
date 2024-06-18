@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -1042,6 +1042,23 @@ std::string to_string_rounded( double const value, int const precision )
     }
     str.erase( last_nonzero + offset, std::string::npos );
     return str;
+}
+
+std::string to_string_byte_format( size_t value )
+{
+    const char* suffixes[] = {"B", "KB", "MB", "GB", "TB", "PB", "EB"};
+    size_t magnitude = 0;
+    double size = static_cast<double>(value);
+
+    // Loop until we find the fitting order of magnitude.
+    while( size >= 1024 && magnitude < (sizeof(suffixes) / sizeof(suffixes[0])) - 1 ) {
+        size /= 1024;
+        ++magnitude;
+    }
+
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(2) << size << suffixes[magnitude];
+    return oss.str();
 }
 
 } // namespace utils
