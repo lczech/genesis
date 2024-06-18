@@ -229,6 +229,31 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Char Operations
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Lexing function that reads a single char from the stream and checks whether it equals
+     * the provided one.
+     *
+     * If not, the function throws `std::runtime_error`. The stream is advanced by one position and
+     * the char is returned. For a similar function that checks the value of the current char but
+     * does not advance in the stream, see affirm_char_or_throw().
+     */
+    char read_char_or_throw( char const criterion );
+
+
+    /**
+     * @brief Lexing function that reads a single char from the stream and checks whether it
+     * fulfills the provided criterion.
+     *
+     * If not, the function throws `std::runtime_error`. The stream is advanced by one position and
+     * the char is returned. For a similar function that checks the value of the current char but
+     * does not advance in the stream, see affirm_char_or_throw().
+     */
+    char read_char_or_throw( std::function<bool (char)> criterion );
+
+    // -------------------------------------------------------------------------
     //     Line Operations
     // -------------------------------------------------------------------------
 
@@ -256,55 +281,56 @@ public:
         return result;
     }
 
+private:
+
+    // Internal functions for the line operations.
+    bool move_to_line_or_buffer_end_();
+    void approach_line_or_buffer_end_avx512_( size_t const stop_pos );
+    void approach_line_or_buffer_end_avx2_( size_t const stop_pos );
+    void approach_line_or_buffer_end_naive_( size_t const stop_pos );
+
+public:
+
     // -------------------------------------------------------------------------
-    //     Char Operations
+    //     Buffer Access
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Lexing function that reads a single char from the stream and checks whether it equals
-     * the provided one.
+     * @brief Direct access to the internal buffer.
      *
-     * If not, the function throws `std::runtime_error`. The stream is advanced by one position and
-     * the char is returned. For a similar function that checks the value of the current char but
-     * does not advance in the stream, see affirm_char_or_throw().
+     * This function returns a pointer to the internal buffer, as well as the length (past the end)
+     * that is currently buffered. This is meant for special file parsers that can optimize better
+     * when using this - but it is highly dangerous to use if you do not know what you are doing!
+     *
+     * The idea is as follows: With access to the buffer, parse data as needed, keeping track of
+     * how many chars have been processed. Then, use the jump_unchecked() function to update this
+     * stream to the new position of the stream (the char after the last one being processed by
+     * the parsing).
+     *
+     * Caveat: Never parse and jump across new line characters (or, for that matter, carriage return
+     * characters, which won't be automatically converted when using the buffer directly)! This
+     * would invalidate the line counting!
+     *
+     * Caveat: Never read after the end of the buffer, that is, never access the char at the
+     * returned last position `buffer + length` or after!
      */
-    inline char read_char_or_throw( char const criterion )
+    std::pair<char const*, size_t> buffer()
     {
-        // Check char and move to next.
-        if( data_pos_ >= data_end_ || current_ != criterion ) GENESIS_UNLIKELY {
-            throw std::runtime_error(
-                std::string("In ") + source_name() + ": " +
-                "Expecting " + char_to_hex( criterion ) + " at " + at() + ", " +
-                "but received " + char_to_hex( current_ ) + " instead."
-            );
-        }
-        assert( good() && current_ == criterion );
-        operator++();
-        return criterion;
+        assert( data_pos_ <= data_end_ );
+        return { &buffer_[ data_pos_ ], data_end_ - data_pos_ };
     }
 
     /**
-     * @brief Lexing function that reads a single char from the stream and checks whether it
-     * fulfills the provided criterion.
+     * @brief Jump forward in the stream by a certain amount of chars.
      *
-     * If not, the function throws `std::runtime_error`. The stream is advanced by one position and
-     * the char is returned. For a similar function that checks the value of the current char but
-     * does not advance in the stream, see affirm_char_or_throw().
+     * This is meant to update the stream position after using buffer() for direct parsing.
+     * See the caveats there!
+     *
+     * In particular, we can never jump behind the current buffer end, and shall not jump across
+     * new lines. That is, this function is not meant as a way to jump to an arbitrary (later)
+     * position in a file!
      */
-    inline char read_char_or_throw( std::function<bool (char)> criterion )
-    {
-        // Check char and move to next.
-        if( data_pos_ >= data_end_ || !criterion( current_ )) GENESIS_UNLIKELY {
-            throw std::runtime_error(
-                std::string("In ") + source_name() + ": " +
-                "Unexpected char " + char_to_hex( current_ ) + " at " + at() + "."
-            );
-        }
-        assert( good() );
-        auto const chr = current_;
-        operator++();
-        return chr;
-    }
+    void jump_unchecked( size_t n );
 
     // -------------------------------------------------------------------------
     //     State
@@ -381,73 +407,6 @@ public:
         return source_name_;
     }
 
-    /**
-     * @brief Direct access to the internal buffer.
-     *
-     * This function returns a pointer to the internal buffer, as well as the length (past the end)
-     * that is currently buffered. This is meant for special file parsers that can optimize better
-     * when using this - but it is highly dangerous to use if you do not know what you are doing!
-     *
-     * The idea is as follows: With access to the buffer, parse data as needed, keeping track of
-     * how many chars have been processed. Then, use the jump_unchecked() function to update this
-     * stream to the new position of the stream (the char after the last one being processed by
-     * the parsing).
-     *
-     * Caveat: Never parse and jump across new line characters (or, for that matter, carriage return
-     * characters, which won't be automatically converted when using the buffer directly)! This
-     * would invalidate the line counting!
-     *
-     * Caveat: Never read after the end of the buffer, that is, never access the char at the
-     * returned last position `buffer + length` or after!
-     */
-    std::pair<char const*, size_t> buffer()
-    {
-        assert( data_pos_ <= data_end_ );
-        return { &buffer_[ data_pos_ ], data_end_ - data_pos_ };
-    }
-
-    /**
-     * @brief Jump forward in the stream by a certain amount of chars.
-     *
-     * This is meant to update the stream position after using buffer() for direct parsing.
-     * See the caveats there!
-     *
-     * In particular, we can never jump behind the current buffer end, and shall not jump across
-     * new lines. That is, this function is not meant as a way to jump to an arbitrary (later)
-     * position in a file!
-     */
-    void jump_unchecked( size_t n )
-    {
-        // Safety first! We do a single check here, so that in the default case,
-        // we only branch once - assuming that the compiler doesn't optimize that even better anway.
-        if( data_pos_ + n >= data_end_ ) {
-            if( data_pos_ + n == data_end_ ) {
-                // Lazy approach to make sure that all functions are called as expected
-                // when reaching the end of the input data.
-                assert( data_pos_ < data_end_ );
-                assert( n > 0 );
-                data_pos_ += n - 1;
-                column_   += n - 1;
-                advance();
-                return;
-            }
-
-            // We try to jump past the end
-            assert( data_pos_ + n > data_end_ );
-            throw std::runtime_error(
-                "Invalid InputStream jump to position after buffer end."
-            );
-        }
-
-        // Update the position as neeeded.
-        data_pos_ += n;
-        column_ += n;
-        if( data_pos_ >= BlockLength ) {
-            update_blocks_();
-        }
-        set_current_char_();
-    }
-
     // -------------------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------------------
@@ -478,42 +437,7 @@ private:
      * @brief Helper function that does some checks on the current char and sets it to what
      * is at `data_pos_` in the `buffer_`.
      */
-    inline void set_current_char_()
-    {
-        // Check end of stream conditions.
-        if( data_pos_ >= data_end_ ) GENESIS_UNLIKELY {
-            // We do not expect to overshoot. Let's assert this, but if it still happens
-            // (in release build), we can also cope, and will just set \0 as the current char.
-            assert( data_pos_ == data_end_ );
-
-            if( data_pos_ == data_end_ && data_pos_ > 0 && buffer_[ data_pos_ - 1 ] != '\n' ) {
-                // If this is the end of the data, but there was no closing \n, add one.
-                buffer_[ data_pos_ ] = '\n';
-                ++data_end_;
-            } else {
-                // If we reached the end, do not fully reset the line and column counters.
-                // They might be needed in some parser.
-                current_ = '\0';
-                return;
-            }
-        }
-
-        // Treat stupid Windows and Mac lines breaks. Set them to \n, so that downstream parsers
-        // don't have to deal with this.
-        if( buffer_[ data_pos_ ] == '\r' ) {
-            buffer_[ data_pos_ ] = '\n';
-
-            // If this is a Win line break \r\n, skip one of them, so that only a single \n
-            // is visible to the outside. We do not treat \n\r line breaks properly here!
-            // If any system still uses those, we'd have to change code here.
-            if( data_pos_ + 1 < data_end_ && buffer_[ data_pos_ + 1 ] == '\n' ) {
-                ++data_pos_;
-            }
-        }
-
-        // Set the char.
-        current_ = buffer_[ data_pos_ ];
-    }
+    void set_current_char_();
 
     // -------------------------------------------------------------------------
     //     Data Members

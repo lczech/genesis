@@ -35,6 +35,7 @@
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/random.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -231,6 +232,80 @@ TEST( InputStream, FuzzyFile )
         LOG_DBG << "=================================";
         LOG_DBG << "Test " << i;
         test_input_stream_fuzzy_();
+    }
+}
+
+// =================================================================================================
+//     Large Fuzzy
+// =================================================================================================
+
+void test_input_stream_large_fuzzy_()
+{
+    // We write to a string buffer here, for speed, instead of files.
+    std::stringstream ss;
+
+    // We use the block len as our basic line length, but vary this by plus or minus one char
+    // each time, so that we constantly hit block boundaries in the reading.
+    // That means, we will like have lines that are exact multiples of the block size,
+    // and are aligned at the block ends.
+    // This is good for testing boundary conditions of exact matches of lengths,
+    // so that we can check some of the assertions of the input stream!
+    auto const block_len = InputStream::BlockLength;
+    auto const base_text = std::string( block_len - 1, '-' );
+
+    // Make a string with random line length
+    auto const lines = permuted_congruential_generator( 1, 10 );
+    std::vector<size_t> line_lengths;
+    for( size_t i = 0; i < lines; ++i ) {
+
+        // The base text above is one character short. Decide if we want to keep it that way,
+        // hit the exact block size, or overshoot by one.
+        auto const extra = permuted_congruential_generator( 0, 2 );
+
+        line_lengths.push_back( block_len - 1 + extra );
+        ss << base_text;
+        for( size_t j = 0; j < extra; ++j ) {
+            ss << "x";
+        }
+        ss << "\n";
+    }
+    auto const large = ss.str();
+    // LOG_DBG << utils::join( line_lengths );
+
+    // Now read it again and expect the correct line length.
+    auto it = InputStream( from_string( large ));
+    size_t cnt = 0;
+    while( it ) {
+
+        EXPECT_EQ( cnt + 1, it.line() );
+        EXPECT_EQ( 1, it.column() );
+
+        auto const line = it.get_line();
+
+        EXPECT_EQ( line_lengths[cnt], line.size() );
+        EXPECT_EQ( cnt + 2, it.line() );
+        EXPECT_EQ( 1, it.column() );
+
+        ++cnt;
+    }
+}
+
+TEST( InputStream, LargeFuzzy )
+{
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    // For the duration of the test, we deactivate debug logging.
+    // But if needed, comment this line out, and each test will report its input.
+    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+
+    size_t num_tests = 50;
+    for( size_t i = 0; i < num_tests; ++i ) {
+        LOG_DBG << "=================================";
+        LOG_DBG << "Test " << i;
+        test_input_stream_large_fuzzy_();
     }
 }
 
