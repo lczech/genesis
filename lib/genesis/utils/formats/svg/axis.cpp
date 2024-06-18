@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -82,7 +82,8 @@ SvgGroup make_svg_axis(
 
     // Draw all axis ticks
     for( auto const& label : labels ) {
-        if( !std::isfinite(label.first) || label.first < 0.0 || label.first > 1.0 ) {
+        double const eps = 0.0000001;
+        if( !std::isfinite(label.first) || label.first < 0.0 - eps || label.first > 1.0 + eps ) {
             throw std::runtime_error( "Svg axis label position out of [ 0.0, 1.0 ]" );
         }
 
