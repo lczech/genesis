@@ -135,14 +135,17 @@ public:
     private:
 
         Iterator() = default;
+
         Iterator( FastxInputStream const* parent )
             : parent_( parent )
-            , input_stream_( std::make_shared<utils::InputStream>( parent_->input_source_ ))
         {
             // Safeguard
             if( ! parent_ ) {
                 return;
             }
+
+            // Start reading from the input source into a stream.
+            input_stream_ = std::make_shared<utils::InputStream>( parent_->input_source_ );
 
             // Start streaming the data
             increment_();

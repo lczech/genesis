@@ -36,6 +36,12 @@
 #include <iosfwd>
 #include <string>
 
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+    #include <string_view>
+
+#endif
+
 namespace genesis {
 namespace sequence {
 
@@ -115,7 +121,7 @@ public:
      */
     void write(
         Sequence const& sequence,
-        std::string const& quality_string,
+        std::string const& quality,
         std::shared_ptr<utils::BaseOutputTarget> target
     ) const;
 
@@ -130,27 +136,23 @@ public:
         std::shared_ptr<utils::BaseOutputTarget> target
     ) const;
 
-    /**
-     * @brief Write a single Sequence to an output stream in Fastq format.
-     */
-    void write_sequence(
-        Sequence const& sequence,
-        std::ostream& os
-    ) const;
+    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 
     /**
-     * @brief Write a single Sequence to an output stream in Fastq format.
+     * @brief Write a sequence in form of std::string_view instances on the data.
      *
-     * Overload that additionally takes a quality string as input, for sequences that do not have
-     * the phred scores stored. The provided quality string has to be either of the same length
-     * as the sequece itself, or empty, in which case this function behaves according to
-     * fill_missing_quality(). If the sequence itself already has a phred score, an exception is thrown.
+     * This can for instance come from FastqInputViewStream. Note that the @p quality string is
+     * just taken as-is, that is, we assume that it is already in the desired ASCII encoding.
+     * If left empty, and fill_missing_quality() is `true`, it is instead filled with a dummy code.
      */
-    void write_sequence(
-        Sequence const& sequence,
-        std::string const& quality_string,
-        std::ostream& os
+    void write(
+        std::string_view const& label,
+        std::string_view const& sites,
+        std::string_view const& quality,
+        std::shared_ptr<utils::BaseOutputTarget> target
     ) const;
+
+    #endif
 
     // ---------------------------------------------------------------------
     //     Properties
@@ -247,8 +249,9 @@ private:
     ) const;
 
     void write_sequence_(
-        Sequence const& sequence,
-        std::string const& quality_string,
+        std::string const& label,
+        std::string const& sites,
+        std::string const& quality,
         std::ostream& os
     ) const;
 

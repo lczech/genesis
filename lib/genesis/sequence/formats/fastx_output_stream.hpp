@@ -40,6 +40,12 @@
 #include <iterator>
 #include <iostream>
 
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+    #include <string_view>
+
+#endif
+
 namespace genesis {
 namespace sequence {
 
@@ -118,13 +124,13 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
-    self_type& operator<< ( Sequence const& sequence )
+    self_type const& operator<< ( Sequence const& sequence ) const
     {
         writer_.write( sequence, target_ );
         return *this;
     }
 
-    self_type& write( Sequence const& sequence )
+    self_type const& write( Sequence const& sequence ) const
     {
         writer_.write( sequence, target_ );
         return *this;
@@ -138,11 +144,34 @@ public:
         typename T = Writer,
         typename std::enable_if< std::is_same<T, FastqWriter>::value >::type* = nullptr
     >
-    self_type& write( Sequence const& sequence, std::string const& quality_string )
+    self_type const& write( Sequence const& sequence, std::string const& quality_string ) const
     {
         writer_.write( sequence, quality_string, target_ );
         return *this;
     }
+
+    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+    /**
+     * @brief Writer overload for Fastq files where all elements are provided as std::string_view.
+     *
+     * The given @p quality string is assumed to be encoded correctly already, for instance in
+     * phred scaling and ASCII encoding.
+     */
+    template<
+        typename T = Writer,
+        typename std::enable_if< std::is_same<T, FastqWriter>::value >::type* = nullptr
+    >
+    self_type const& write(
+        std::string_view const& label,
+        std::string_view const& sites,
+        std::string_view const& quality
+    ) const {
+        writer_.write( label, sites, quality, target_ );
+        return *this;
+    }
+
+    #endif
 
     // -------------------------------------------------------------------------
     //     Settings

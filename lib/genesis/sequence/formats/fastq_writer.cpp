@@ -45,6 +45,69 @@ namespace genesis {
 namespace sequence {
 
 // =================================================================================================
+//     Internal helper
+// =================================================================================================
+
+/**
+ * @brief Local function template that does the actual work.
+ *
+ * We introduce a template param for std::string and std::string_view, if C++17 is used.
+ */
+template<class StringType>
+static void fastq_writer_write_sequence_helper_(
+    StringType const& label,
+    StringType const& sites,
+    StringType const& quality,
+    size_t line_length,
+    bool repeat_label,
+    std::ostream& os
+) {
+    // This function is only called internally, with the correct sizes.
+    assert( sites.size() == quality.size() );
+
+    // Helper function to write lines with potential wrapping.
+    auto write_wrapped_ = [&]( StringType const& str ){
+        if( line_length > 0 ) {
+            for( size_t i = 0; i < str.size(); i += line_length ) {
+                // Write line_length many characters.
+                // (If the string is shorter, as many characters as possible are used.)
+                // os << str.substr( i, line_length ) << "\n";
+                auto const sub = str.substr( i, line_length );
+                os.write( sub.data(), sub.size() );
+                os.write( "\n", 1 );
+            }
+        } else {
+            // os << str << "\n";
+            os.write( str.data(), str.size() );
+            os.write( "\n", 1 );
+        }
+    };
+
+    // Write label.
+    // os << "@" << label << "\n";
+    os.write( "@", 1 );
+    os.write( label.data(), label.size() );
+    os.write( "\n", 1 );
+
+    // Write sequence.
+    write_wrapped_( sites );
+
+    // Write third line, repeat label if necessary.
+    if( repeat_label ) {
+        // os << "+" << label << "\n";
+        os.write( "+", 1 );
+        os.write( label.data(), label.size() );
+        os.write( "\n", 1 );
+    } else {
+        // os << "+\n";
+        os.write( "+\n", 2 );
+    }
+
+    // Write the phred quality score.
+    write_wrapped_( quality );
+}
+
+// =================================================================================================
 //     Writing
 // =================================================================================================
 
@@ -52,45 +115,20 @@ void FastqWriter::write(
     Sequence const& sequence,
     std::shared_ptr<utils::BaseOutputTarget> target
 ) const {
-    write_sequence( sequence, target->ostream() );
-}
-
-void FastqWriter::write(
-    Sequence const& sequence,
-    std::string const& quality_string,
-    std::shared_ptr<utils::BaseOutputTarget> target
-) const {
-    write_sequence( sequence, quality_string, target->ostream() );
-}
-
-void FastqWriter::write(
-    SequenceSet const& sequence_set,
-    std::shared_ptr<utils::BaseOutputTarget> target
-) const {
-    auto& os = target->ostream();
-    for( Sequence const& sequence : sequence_set ) {
-        write_sequence( sequence, os );
-    }
-}
-
-void FastqWriter::write_sequence(
-    Sequence const& seq,
-    std::ostream& os
-) const {
     // Produce the phred quality score.
     std::string quality_string;
-    if( seq.phred_scores().size() == seq.sites().size() ) {
+    if( sequence.phred_scores().size() == sequence.sites().size() ) {
 
         // Default case: proper phred quality scores. We do a lot of string copies here (first,
         // to get the scores in string form, then possibly for wrapping the lines), which is slow.
         // For now, we do not need to write Fastq that often, so we can live with that.
         // Can be optimized if needed. Same for the "const dummy scores" case below.
-        quality_string = quality_encode_from_phred_score( seq.phred_scores() );
+        quality_string = quality_encode_from_phred_score( sequence.phred_scores() );
 
-    } else if( seq.phred_scores().size() == 0 ) {
+    } else if( sequence.phred_scores().size() == 0 ) {
 
         // Make a string filled with the filler quality char.
-        quality_string = make_filled_quality_string_( seq.sites().size() );
+        quality_string = make_filled_quality_string_( sequence.sites().size() );
 
     } else {
         // Error case.
@@ -100,17 +138,17 @@ void FastqWriter::write_sequence(
     }
 
     // Now write all of this to the stream
-    write_sequence_( seq, quality_string, os );
+    write_sequence_( sequence.label(), sequence.sites(), quality_string, target->ostream() );
 }
 
-void FastqWriter::write_sequence(
-    Sequence const& seq,
+void FastqWriter::write(
+    Sequence const& sequence,
     std::string const& quality_string,
-    std::ostream& os
+    std::shared_ptr<utils::BaseOutputTarget> target
 ) const {
     // We want to avoid mistakes here of calling this function with a provided qualith string,
     // in situations where the sequence itself already contains one.
-    if( ! seq.phred_scores().empty() ) {
+    if( ! sequence.phred_scores().empty() ) {
         throw std::runtime_error(
             "Cannot write Fastq sequence with provided quality string "
             "if the sequence contains phred scores already."
@@ -118,17 +156,55 @@ void FastqWriter::write_sequence(
     }
 
     // Check that the quality string has the right lenght, or fill in otherwise.
-    if( quality_string.size() == seq.sites().size() ) {
-        write_sequence_( seq, quality_string, os );
+    if( quality_string.size() == sequence.sites().size() ) {
+        write_sequence_( sequence.label(), sequence.sites(), quality_string, target->ostream() );
     } else if( quality_string.size() == 0 ) {
-        auto const filled_string = make_filled_quality_string_( seq.sites().size() );
-        write_sequence_( seq, filled_string, os );
+        auto const filled_string = make_filled_quality_string_( sequence.sites().size() );
+        write_sequence_( sequence.label(), sequence.sites(), filled_string, target->ostream() );
     } else {
         throw std::runtime_error(
             "Invalid given quality string of different length than the sequence has sites."
         );
     }
 }
+
+void FastqWriter::write(
+    SequenceSet const& sequence_set,
+    std::shared_ptr<utils::BaseOutputTarget> target
+) const {
+    for( Sequence const& sequence : sequence_set ) {
+        write( sequence, target );
+    }
+}
+
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+void FastqWriter::write(
+    std::string_view const& label,
+    std::string_view const& sites,
+    std::string_view const& quality,
+    std::shared_ptr<utils::BaseOutputTarget> target
+) const {
+    // We need to make sure that a quality string is given, or filled in.
+    // We use an internal buffer to store the filled quality if needed, and redirect to there.
+    std::string quality_buffer;
+    std::string_view quality_view = quality;
+    if( quality.empty() ) {
+        quality_buffer = make_filled_quality_string_( sites.size() );
+        quality_view = std::string_view( quality_buffer );
+    } else if( quality.size() != sites.size() ) {
+        throw std::runtime_error(
+            "Invalid Sequence with quality string of different length than the sequence has sites."
+        );
+    }
+
+    // Now write the data, using the view into either the original quality, or the buffer.
+    fastq_writer_write_sequence_helper_<std::string_view>(
+        label, sites, quality_view, line_length_, repeat_label_, target->ostream()
+    );
+}
+
+#endif
 
 // =================================================================================================
 //     Internal Members
@@ -155,41 +231,14 @@ std::string FastqWriter::make_filled_quality_string_(
 }
 
 void FastqWriter::write_sequence_(
-    Sequence const& sequence,
-    std::string const& quality_string,
+    std::string const& label,
+    std::string const& sites,
+    std::string const& quality,
     std::ostream& os
 ) const {
-    // This function is only called internally, with the correct sizes.
-    assert( sequence.sites().size() == quality_string.size() );
-
-    // Helper function to write lines with potential wrapping.
-    auto write_wrapped_ = [&]( std::string const& str ){
-        if( line_length_ > 0 ) {
-            for( size_t i = 0; i < str.size(); i += line_length_ ) {
-                // Write line_length_ many characters.
-                // (If the string is shorter, as many characters as possible are used.)
-                os << str.substr( i, line_length_ ) << "\n";
-            }
-        } else {
-            os << str << "\n";
-        }
-    };
-
-    // Write label.
-    os << "@" << sequence.label() << "\n";
-
-    // Write sequence.
-    write_wrapped_( sequence.sites() );
-
-    // Write third line, repeat label if necessary.
-    if( repeat_label_ ) {
-        os << "+" << sequence.label() << "\n";
-    } else {
-        os << "+\n";
-    }
-
-    // Write the phred quality score.
-    write_wrapped_( quality_string );
+    fastq_writer_write_sequence_helper_<std::string>(
+        label, sites, quality, line_length_, repeat_label_, os
+    );
 }
 
 } // namespace sequence
