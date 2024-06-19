@@ -460,9 +460,9 @@ void InputStream::approach_line_or_buffer_end_avx2_( size_t const stop_pos )
     }
 
     // If we have builtin capabilities to find the first set bit, we use it.
-    // This brings data_pos_ to where the nl or cr is, so that the below slow loop
-    // will not run. If we do not have the builtin, we instead use the loop below
-    // to find the exact position of the char.
+    // This brings data_pos_ to where the nl or cr is, so that the slow loop at the end of
+    // move_to_line_or_buffer_end_() will not run. If we do not have the builtin, we instead use
+    // the loop in move_to_line_or_buffer_end_() to find the exact position of the new line char.
     #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
 
         // If we found a new line, use the mask to get position of the first set bit.
@@ -475,6 +475,12 @@ void InputStream::approach_line_or_buffer_end_avx2_( size_t const stop_pos )
         } else {
             assert( data_pos_ + 32 > stop_pos );
         }
+
+    #else
+
+        // Without the builtin, we at least do a bit of loop unrolling to get closer
+        // to where we want to be - the new line or the end of the data.
+        approach_line_or_buffer_end_unrolled_( stop_pos );
 
     #endif // defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
 }
