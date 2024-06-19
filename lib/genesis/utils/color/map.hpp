@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -366,9 +366,9 @@ private:
 
 private:
 
-    Color mask_color_   = { 1.0, 1.0, 0.0 };
-    Color over_color_   = { 0.0, 1.0, 1.0 };
-    Color under_color_  = { 1.0, 0.0, 1.0 };
+    Color mask_color_  = { 1.0, 1.0, 0.0 };
+    Color over_color_  = { 1.0, 0.0, 1.0 };
+    Color under_color_ = { 0.0, 1.0, 1.0 };
 
     bool clip_under_ = false;
     bool clip_over_  = false;
