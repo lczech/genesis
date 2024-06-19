@@ -32,6 +32,7 @@
 
 #include "genesis/sequence/formats/fastq_reader.hpp"
 #include "genesis/sequence/formats/fastq_writer.hpp"
+#include "genesis/sequence/formats/fastq_input_view_stream.hpp"
 #include "genesis/sequence/formats/fastx_input_stream.hpp"
 #include "genesis/sequence/formats/fastx_output_stream.hpp"
 #include "genesis/sequence/functions/quality.hpp"
@@ -39,6 +40,7 @@
 
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/std.hpp"
+#include "genesis/utils/text/string.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 
 #include <fstream>
@@ -109,11 +111,15 @@ TEST( Sequence, FastqInputStream )
     std::string infile = environment->data_dir + "sequence/SP1.fq";
 
     size_t cnt = 0;
+    size_t sum_labels = 0;
     auto it = FastqInputStream( utils::from_file( infile ));
     for( auto const& seq : it ) {
         // std::cout << "A " << cnt << " " << seq.length() << "\n";
-        (void) seq;
+        EXPECT_TRUE( seq.label().size() >= 21 || seq.label().size() <= 23 );
+        EXPECT_EQ( 31, seq.sites().size() );
+        EXPECT_TRUE( utils::starts_with( seq.label(), "cluster_" ));
         ++cnt;
+        sum_labels += seq.label().size();
     }
     // while( it ) {
     //     // std::cout << "A " << cnt << " " << it->length() << "\n";
@@ -121,7 +127,9 @@ TEST( Sequence, FastqInputStream )
     //     ++it;
     // }
     EXPECT_EQ( 250, cnt );
+    EXPECT_EQ( 5471, sum_labels );
 
+    // Again, to test resetting
     cnt = 0;
     for( auto const& s : FastqInputStream( utils::from_file( infile )) ) {
         (void) s;
@@ -130,6 +138,30 @@ TEST( Sequence, FastqInputStream )
     }
     EXPECT_EQ( 250, cnt );
 }
+
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+TEST( Sequence, FastqInputViewStream )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string infile = environment->data_dir + "sequence/SP1.fq";
+
+    size_t cnt = 0;
+    size_t sum_labels = 0;
+    auto it = FastqInputViewStream( utils::from_file( infile ));
+    for( auto const& seq : it ) {
+        EXPECT_TRUE( seq.label().size() >= 21 || seq.label().size() <= 23 );
+        EXPECT_EQ( 31, seq.sites().size() );
+        EXPECT_TRUE( utils::starts_with( std::string( seq.label() ), "cluster_" ));
+        ++cnt;
+        sum_labels += seq.label().size();
+    }
+    EXPECT_EQ( 250, cnt );
+    EXPECT_EQ( 5471, sum_labels );
+}
+
+#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 
 TEST( Sequence, FastqWriter )
 {
