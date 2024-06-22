@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -30,6 +30,7 @@
 
 #include "genesis/utils/core/info.hpp"
 
+#include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/version.hpp"
 
 #include <algorithm>
@@ -316,6 +317,53 @@ std::pair<int, int> info_terminal_size()
         return { w.ws_col, w.ws_row };
 
     #endif
+}
+
+// =================================================================================================
+//     Environment Printing
+// =================================================================================================
+
+std::string info_print()
+{
+    std::string res;
+    res += genesis_header() + "\n";
+    res += info_print_compile_time() + "\n";
+    res += info_print_run_time() + "\n";
+    return res;
+}
+
+std::string info_print_compile_time()
+{
+    std::string res;
+    res += "Compile Time Options\n";
+    res += "=============================================\n\n";
+    res += "Platform:          " + info_platform() + "\n";
+    res += "Compiler:          " + info_compiler_family() + " " + info_compiler_version() + "\n";
+    res += "C++ version:       " + info_cpp_version() + "\n";
+    res += "Build type:        " + info_build_type()  + "\n";
+    res += "Endianness:        " + std::string(
+        info_is_little_endian() ? "little endian" : "big endian"
+    ) + "\n";
+    res += "Using OpenMP:      " + std::string( info_using_openmp() ? "true" : "false" ) + "\n";
+    res += "Using AVX:         " + std::string( info_using_avx()    ? "true" : "false" ) + "\n";
+    res += "Using AVX2:        " + std::string( info_using_avx2()   ? "true" : "false" ) + "\n";
+    return res;
+}
+
+std::string info_print_run_time()
+{
+    // Get the runtime info we need from the global options.
+    auto const cli_str = Options::get().command_line_string();
+    auto const num_threads = Options::get().global_thread_pool_size();
+    auto const random_seed = Options::get().random_seed();
+
+    std::string res;
+    res += "Run Time Options\n";
+    res += "=============================================\n\n";
+    res += "Command line:      " + ( cli_str.size() > 0 ? cli_str : "(not available)" ) + "\n";
+    res += "Number of threads: " + std::to_string( num_threads ) + "\n";
+    res += "Random seed:       " + std::to_string( random_seed ) + "\n";
+    return res;
 }
 
 // =================================================================================================

@@ -31,9 +31,11 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/info.hpp"
 #include "genesis/utils/core/thread_pool.hpp"
 
 #include <atomic>
+#include <cassert>
 #include <chrono>
 #include <memory>
 #include <random>
@@ -77,7 +79,7 @@ public:
     /**
      * @brief Returns an array of strings containing the program's command line arguments.
      */
-    inline std::vector<std::string> command_line() const
+    inline std::vector<std::string> const& command_line() const
     {
         return command_line_;
     }
@@ -85,7 +87,15 @@ public:
     /**
      * @brief Returns a string containing the program's command line arguments.
      */
-    std::string command_line_string() const;
+    std::string command_line_string() const
+    {
+        std::string ret = "";
+        for (size_t i = 0; i < command_line_.size(); ++i) {
+            std::string a = command_line_[i];
+            ret += (i==0 ? "" : " ") + a;
+        }
+        return ret;
+    }
 
     /**
      * @brief Set arguments to the program's command line options.
@@ -93,7 +103,14 @@ public:
      * If the program is run from the command line, this method has to be used to properly
      * propagate the command line options to this options class.
      */
-    void command_line( int const argc, char const* const* argv );
+    void command_line( int const argc, char const* const* argv )
+    {
+        // Store all arguments in the array.
+        command_line_.clear();
+        for (int i = 0; i < argc; i++) {
+            command_line_.push_back(argv[i]);
+        }
+    }
 
     // -------------------------------------------------------------------------
     //     Random Seed & Engine
@@ -180,7 +197,7 @@ private:
 public:
 
     // -------------------------------------------------------------------------
-    //     Multi-Threading
+    //     Global Thread Pool
     // -------------------------------------------------------------------------
 
     /**
@@ -195,7 +212,18 @@ public:
      * After calling this function, global_thread_pool() can be used to obtain the global thread
      * pool to enqueue work.
      */
-    void init_global_thread_pool();
+    void init_global_thread_pool()
+    {
+        // Automatic guessing of the correct number of threads.
+        // We then reduce it by one to account for the main thread doing work as well.
+        auto const num_threads = guess_number_of_threads();
+        assert( num_threads > 0 );
+        if( num_threads == 0 ) {
+            init_global_thread_pool( 0 );
+        } else {
+            init_global_thread_pool( num_threads - 1 );
+        }
+    }
 
     /**
      * @brief Initialize the global thread pool to be used for parallel computations.
@@ -213,7 +241,16 @@ public:
      * After calling this function, global_thread_pool() can be used to obtain the global thread
      * pool to enqueue work.
      */
-    void init_global_thread_pool( size_t num_threads );
+    void init_global_thread_pool( size_t num_threads )
+    {
+        if( thread_pool_ ) {
+            throw std::runtime_error(
+                "Global thread pool has already been initialized. "
+                "Cannot call Options::get().init_global_thread_pool() multiple times."
+            );
+        }
+        thread_pool_ = std::make_shared<utils::ThreadPool>( num_threads );
+    }
 
     /**
      * @brief Return a global thread pool to be used for parallel computations.
@@ -228,7 +265,33 @@ public:
      * their disk operation. However, for more complex reading such as from compressed files,
      * we might want to use the global thread pool after all. See BaseInputSource::is_trivial()
      */
-    std::shared_ptr<ThreadPool> global_thread_pool() const;
+    std::shared_ptr<ThreadPool> global_thread_pool() const
+    {
+        if( ! thread_pool_ ) {
+            throw std::runtime_error(
+                "Global thread pool has not been initialized. "
+                "Call Options::get().init_global_thread_pool() first."
+            );
+        }
+        return thread_pool_;
+    }
+
+    /**
+     * @brief Get the number of threads allocatd in the pool, plus one for the main thread.
+     *
+     * This is because with our ProactiveFuture implementaiton, the main thread does work as well.
+     */
+    size_t global_thread_pool_size() const
+    {
+        if( ! thread_pool_ ) {
+            return 1;
+        }
+        return thread_pool_->size() + 1;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Input Reader Threads
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Decide how to use threads for input reading.
@@ -285,7 +348,7 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     File Options
+    //     File Output
     // -------------------------------------------------------------------------
 
     /**
@@ -302,7 +365,9 @@ public:
      * @brief Set whether Genesis is allowed to overwrite files when outputting data.
      *
      * The option is `false` by default, which causes Genesis to throw an execption when it attempts
-     * to write to a file that is already existing.
+     * to write to a file that is already existing, as long as only the internal file writing
+     * functions are used, such as the to_file() function to get a target for the writer classes.
+     * We of course cannot control any independent file operations.
      *
      * By setting this option to `true`, files are silently overwritten in case they already
      * exist. This has to be activated explicitly in order to avoid losing files by accident.
@@ -313,25 +378,6 @@ public:
     {
         allow_file_overwriting_ = value;
     }
-
-    // -------------------------------------------------------------------------
-    //     Overview
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Return a list with compile time and run time options with their values.
-     */
-    std::string info() const;
-
-    /**
-     * @brief Return a list of compile time options.
-     */
-    std::string info_compile_time() const;
-
-    /**
-     * @brief Return a list of run time options.
-     */
-    std::string info_run_time() const;
 
     // -------------------------------------------------------------------------
     //     Data Members

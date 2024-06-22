@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -166,6 +166,25 @@ bool info_stderr_is_terminal();
  * in number of columns and lines.
  */
 std::pair<int, int> info_terminal_size();
+
+// =================================================================================================
+//     Environment Printing
+// =================================================================================================
+
+/**
+ * @brief Return a list with compile time and run time options with their values.
+ */
+std::string info_print();
+
+/**
+ * @brief Return a list of compile time options.
+ */
+std::string info_print_compile_time();
+
+/**
+ * @brief Return a list of run time options.
+ */
+std::string info_print_run_time();
 
 // =================================================================================================
 //     File Handling
