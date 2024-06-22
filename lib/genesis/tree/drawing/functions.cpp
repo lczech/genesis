@@ -294,6 +294,7 @@ utils::SvgDocument get_color_tree_svg_document(
         auto svg_pal_settings = utils::SvgColorBarSettings();
         svg_pal_settings.height = svg_doc.bounding_box().height() / 2.0;
         svg_pal_settings.width = svg_pal_settings.height / 10.0;
+        svg_pal_settings.line_width = svg_pal_settings.height / 300.0;
         svg_pal_settings.text_size = svg_pal_settings.height / 30.0;
         auto svg_scale = make_svg_color_bar( svg_pal_settings, color_map, color_norm );
 

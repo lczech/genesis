@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -81,7 +81,12 @@ void SvgDocument::write( std::ostream& out ) const
     out << svg_attribute( "xmlns:xlink", "http://www.w3.org/1999/xlink" );
     out << svg_attribute( "width",  doc_width );
     out << svg_attribute( "height", doc_height );
-    out << svg_attribute( "style", "background:" + color_to_hex( background_color, "#", false, true ));
+    out << svg_attribute(
+        "background-color", color_to_hex( background_color, "#", false, true )
+    );
+    // out << svg_attribute(
+    //     "style", "background:" + color_to_hex( background_color, "#", false, true )
+    // );
     if( overflow != Overflow::kNone ) {
         out << overflow_to_string( overflow );
     }

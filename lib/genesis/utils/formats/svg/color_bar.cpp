@@ -118,8 +118,7 @@ static std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_gradient_(
     SvgGroup group;
     group << SvgRect(
         0.0, 0.0, settings.width, settings.height,
-        SvgStroke(),
-        // SvgStroke( SvgStroke::Type::kNone ),
+        SvgStroke( Color( 0.0, 0.0, 0.0 ), settings.line_width ),
         SvgFill( gradient_id )
     );
 
@@ -201,7 +200,7 @@ static std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_discrete_(
     // Add a black line around the bar
     group << SvgRect(
         0.0, 0.0, settings.width, settings.height,
-        SvgStroke( Color( 0.0, 0.0, 0.0 )),
+        SvgStroke( Color( 0.0, 0.0, 0.0 ), settings.line_width ),
         SvgFill( SvgFill::Type::kNone )
     );
 
@@ -280,8 +279,9 @@ static void make_svg_color_bar_tickmarks_(
 
         // Draw lines and text. Lines only for inners, as we already have a box around the scale.
         if( rel_pos != 0.0 && rel_pos != 1.0 ) {
-            group << SvgLine( line1_p1, line1_p2 );
-            group << SvgLine( line2_p1, line2_p2 );
+            auto const stroke = SvgStroke( Color( 0.0, 0.0, 0.0 ), settings.line_width );
+            group << SvgLine( line1_p1, line1_p2, stroke );
+            group << SvgLine( line2_p1, line2_p2, stroke );
         }
         if( settings.with_labels ) {
             if( rel_pos == 1.0 && map.clip_over() ) {
