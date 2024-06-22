@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -223,11 +223,66 @@ public:
      * Note: In cases where we need to limit our number of spawned threads to some maximum amount,
      * we might even want to use this pool for our readers, which often use AsynchronousReader,
      * thus spawning threads to  minimize i/o wait times; but this is not recommended, as the
-     * threads waiting for i/o might  then be unnecessaryliy wait in the thread pool, just for them
+     * threads waiting for i/o might then be unnecessaryliy wait in the thread pool, just for them
      * to then relatively quickly (compared to potential wait times in the thread queue) execute
-     * their disk operation.
+     * their disk operation. However, for more complex reading such as from compressed files,
+     * we might want to use the global thread pool after all. See BaseInputSource::is_trivial()
      */
     std::shared_ptr<ThreadPool> global_thread_pool() const;
+
+    /**
+     * @brief Decide how to use threads for input reading.
+     */
+    enum class InputReadingThreadPolicy
+    {
+        /**
+         * @brief All input reading uses the global thread pool.
+         *
+         * This means that we do not spawn extra threads for simply I/O, which can slow down the
+         * reading, as file reading then needs to wait in the global thread queue to be processed.
+         * It however makes sure that we are not spawning any more threads on top of the global
+         * pool, which might be relevant on some systems.
+         */
+        kStrict,
+
+        /**
+         * @brief Use async threads for trivial input sources, such as simple files, but use
+         * the global thread pool for sources that need computation.
+         *
+         * This is the default, where trivial input sources such as a simple file reading get their
+         * own thread, so that their I/O wait time does not block any computational threads.
+         * However, input sources such as gzipped files, which need decompression first, instead
+         * use the global thread pool, in order to make sure that their computation does not end
+         * up in over-subscribing the threads.
+         */
+        kTrivialAsync,
+
+        /**
+         * @brief All reading from input sources gets their own thread.
+         *
+         * These threads are hence independent of the global thread pool, which can lead to
+         * oversubscribing if I/O-heavy work and computational work need to be performed at the same
+         * time. It can however be a performance optimization for programs that mostly do simple
+         * file reading, without having to synchronize their threads via the global pool.
+         */
+        kAllAsync
+    };
+
+    /**
+     * @brief Set the policy for the threading of input source reading.
+     */
+    inline void input_reading_thread_policy( InputReadingThreadPolicy policy )
+    {
+        input_reading_thread_policy_ = policy;
+    }
+
+    /**
+     * @brief Get the policy for the threading of input source reading.
+     */
+    inline InputReadingThreadPolicy input_reading_thread_policy()
+    {
+        return input_reading_thread_policy_;
+    }
 
     // -------------------------------------------------------------------------
     //     File Options
@@ -368,6 +423,7 @@ private:
 
     // Global thread pool
     std::shared_ptr<ThreadPool> thread_pool_;
+    InputReadingThreadPolicy input_reading_thread_policy_ = InputReadingThreadPolicy::kTrivialAsync;
 
     // File handling
     bool allow_file_overwriting_ = false;

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -101,6 +101,24 @@ public:
         return source_string_();
     }
 
+    /**
+     * @brief Return whether reading from this source is trivial, such as reading from a file,
+     * or involves more complex operations, such as reading from a compressed input that needs
+     * to be decompressed first.
+     *
+     * This helps downstream processes to decide if reading can be done in a cheap async thread,
+     * or needs to use the global thread pool in order to not oversubscribe the system when many
+     * such inputs (e.g., many gzipped files) are read in parallel. A thread that is just reading
+     * a block of data from a file is not using computation, and will spend its time in I/O wait,
+     * so it's okay to have many of those. However, compressed files need computation, and are
+     * hence not trivial.
+     */
+    bool is_trivial() const
+    {
+        // Non-virtual interface.
+        return is_trivial_();
+    }
+
     // -------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------
@@ -111,6 +129,12 @@ private:
 
     virtual std::string source_name_() const = 0;
     virtual std::string source_string_() const = 0;
+
+    // By default, we just assume trivial reading unless the derived class overrides this.
+    virtual bool is_trivial_() const
+    {
+        return true;
+    }
 
 };
 

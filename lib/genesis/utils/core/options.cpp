@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -94,7 +94,7 @@ void Options::init_global_thread_pool()
     auto const num_threads = guess_number_of_threads();
     assert( num_threads > 0 );
     if( num_threads == 0 ) {
-        init_global_thread_pool( 1 );
+        init_global_thread_pool( 0 );
     } else {
         init_global_thread_pool( num_threads - 1 );
     }

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -67,8 +67,7 @@ TEST( Info, FileCount )
         // we at least can use all other classes, and do some shennenigans with them here.
         std::string const infile = environment->data_dir + "utils/csv/simple.csv";
         auto input_source = from_file( infile );
-        auto input_reader = make_unique<InputReader>();
-        input_reader->init( input_source );
+        auto input_reader = genesis::utils::make_unique<InputReader>( input_source );
 
         // Now we have a reader. Let's have it read some data, so that the file source
         // is acutually opened (we are using lazy opening there, which is good, as it minimizes
