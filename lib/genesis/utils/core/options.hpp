@@ -315,81 +315,6 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Object Info
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Set whether an object info one-liner is printed when using the `operator <<` that
-     * is defined for many classes.
-     *
-     * NOTE: So far, this is only implemented for the @link genesis::tree::Tree Tree@endlink class.
-     * It might be extended in the future to more classes, for example if we re-activate the
-     * python bindings, as this feature might be more useful when scripting. So take the word
-     * "many" here with a huge grain of salt.
-     *
-     * In genesis, we create the functions `print_info()` and `print_gist()`,
-     * and overload the `operator <<` for many classes as a convenient way to get information about
-     * an object, for example for debugging purposes.
-     * Using this setting, the behaviour of the `operator <<` is controlled:
-     * If set to `true`, a one-liner containing basic information about the object (its type,
-     * and for containers, its size) is printed.
-     *
-     * See also print_object_gists( int ) for an additional setting that allows to print more details
-     * when using `operator <<` on an object. Both settings can also be combined. In that case,
-     * first, the one-line info is printed, followed by the gist.
-     */
-    inline void print_object_infos( bool value )
-    {
-        print_obj_infos_ = value;
-    }
-
-    /**
-     * @brief Get whether an object info one-liner is printed when using the `operator <<`.
-     *
-     * See print_object_infos( bool ) for details.
-     */
-    inline bool print_object_infos() const
-    {
-        return print_obj_infos_;
-    }
-
-    /**
-     * @brief Set whether an object gist is printed when using the `operator <<` that is defined
-     * for many (container) classes.
-     *
-     * NOTE: So far, this is only implemented for the @link genesis::tree::Tree Tree@endlink class.
-     * It might be extended in the future to more classes, for example if we re-activate the
-     * python bindings, as this feature might be more useful when scripting. So take the word
-     * "many" here with a huge grain of salt.
-     *
-     * In genesis, we create the functions `print_info()` and `print_gist()`, and overload
-     * the `operator <<` for many classes as a convenient way to get information about an object,
-     * for example for debugging purposes.
-     * Using this setting, the behaviour of the `operator <<` is controlled:
-     * If set to a value `n` greather than 0, the first `n` elements that the object contains are
-     * printed. If set to a negative value, all elements are printed.
-     * Default is 0, that is, no gist of the object's elements is printed.
-     *
-     * See also print_object_infos( bool ) for an additional setting that allows to print an info
-     * one-liner when using `operator <<` on an object. Both settings can also be combined.
-     * In that case, first, the one-line info is printed, followed by the gist.
-     */
-    inline void print_object_gists( long value )
-    {
-        print_obj_gists_ = value;
-    }
-
-    /**
-     * @brief Get whether an object gist is printed when using the `operator <<`.
-     *
-     * See print_object_gists( long ) for details.
-     */
-    inline long print_object_gists() const
-    {
-        return print_obj_gists_;
-    }
-
-    // -------------------------------------------------------------------------
     //     Overview
     // -------------------------------------------------------------------------
 
@@ -427,10 +352,6 @@ private:
 
     // File handling
     bool allow_file_overwriting_ = false;
-
-    // Object dumping
-    bool print_obj_infos_ = true;
-    long print_obj_gists_ = 0;
 
     // -------------------------------------------------------------------------
     //     Hidden Class Members
