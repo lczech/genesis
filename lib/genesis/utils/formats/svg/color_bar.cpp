@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -299,7 +299,7 @@ static void make_svg_color_bar_tickmarks_(
             ) {
                 text_s.transform.append( SvgTransform::Rotate( 90.0 ));
             }
-            // text_s.dominant_baseline = SvgText::DominantBaseline::kMiddle;
+            text_s.dominant_baseline = SvgText::DominantBaseline::kMiddle;
             // text_s.alignment_baseline = SvgText::AlignmentBaseline::kMiddle;
             // text_s.dy = "0.33em";
             group << text_s;
