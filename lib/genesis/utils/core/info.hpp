@@ -147,6 +147,11 @@ struct InfoHardware
      */
     bool is_little_endian;
 
+    /**
+     * @brief Total amount of memory, in bytes.
+     */
+    size_t total_memory;
+
     // Vendor
     bool vendor_AMD;
     bool vendor_Intel;
@@ -262,6 +267,75 @@ bool info_use_avx2();
 bool info_use_avx512();
 
 // =================================================================================================
+//     Number of Threads
+// =================================================================================================
+
+/**
+ * @brief Get the number of CPU cores.
+ *
+ * This tries to get the physical core count, and if that fails, it uses
+ * std::thread::hardware_concurrency() along with info_hyperthreads_enabled() to determine
+ * a best guess at the number of physical cores.
+ */
+size_t info_physical_core_count();
+
+/**
+ * @brief Try to get whether hyperthreads are enabled in the current system.
+ */
+bool info_hyperthreads_enabled();
+
+/**
+ * @brief Get the number of threads as indicated by the OpenMP environment.
+ *
+ * If genesis was compiled with OpenMP support (that is, if `GENESIS_OPENMP` is defined, which is
+ * done via the CMake script), we use `omp_get_max_threads()` to get a number of threads from that.
+ * If however genesis was compiled without OpenMP support, we instead consider the environment
+ * variable `OMP_NUM_THREADS` as a source for the OpenMP threads.
+ *
+ * If unsuccessful, 0 is returned.
+ */
+size_t info_number_of_threads_openmp();
+
+/**
+ * @brief Get the number of threads as indicated by the SLURM environment.
+ *
+ * This uses the environment variable `SLURM_CPUS_PER_TASK`. If unsuccessful, 0 is returned.
+ */
+size_t info_number_of_threads_slurm();
+
+/**
+ * @brief Make an educated guess on the number of threads to use for multi-threaded functionality.
+ *
+ * This function uses multiple sources and ways to try to guess a reasonable number of threads:
+ *
+ *  - If @p use_openmp is set, we use the `omp_get_max_threads()` function or the `OMP_NUM_THREADS`
+ *    environment variable to get a number of threads, using the info_number_of_threads_openmp()
+ *    function. For details, see there.
+ *  - If @p use_slurm is set, we get a number of cores from the environment variable
+ *    `SLURM_CPUS_PER_TASK`.
+ *  - Lastly, we get the result of `std::thread::hardware_concurrency()` as another hint.
+ *    If furthermore @p physical_cores is set, and hyperthreads are enabled, we divide that hardware
+ *    concurrency number by two, in order to account for hyperthreads, resulting in the number
+ *    of physical cores available on the system (ideally). This avoids core oversubscription that
+ *    could otherwise be the result of using all threads instead of all physical cores.
+ *
+ * If the numbers disagree with each other, we prefer OpenMP over slurm over `hardware_concurrency()`,
+ * that is, we are going from most specific to least. Furthermore, if the OpenMP based guess yields
+ * exactly the same number as the hardware concurrency, we also use the @p physical_cores setting,
+ * as this result usually indicates that OpenMP left at its default, in which case we also want
+ * to avoid core oversubscription due to hyperthreading.
+ *
+ * The function is guaranteed to return a non-zero value, meaning that at least the main thread
+ * is always accounted for. This is important for Options::get().init_global_thread_pool(), which
+ * will account for that, and initialize the number of additional threads to one fewer than this.
+ */
+size_t guess_number_of_threads(
+    bool use_openmp = true,
+    bool use_slurm = true,
+    bool physical_cores = true
+);
+
+// =================================================================================================
 //     Run Time Environment
 // =================================================================================================
 
@@ -301,7 +375,7 @@ bool info_stderr_is_terminal();
 std::pair<int, int> info_terminal_size();
 
 // =================================================================================================
-//     File Handling
+//     Resource Usage
 // =================================================================================================
 
 /**
@@ -316,65 +390,27 @@ size_t info_max_file_count();
  */
 size_t info_current_file_count();
 
-// =================================================================================================
-//     Number of Threads
-// =================================================================================================
+/**
+ * @brief Get the currently used memory, in bytes.
+ */
+size_t info_memory_usage();
 
 /**
- * @brief Make an educated guess on the number of threads to use for multi-threaded functionality.
+ * @brief Get the currently used cpu run time, similar to the Unix `time` command.
  *
- * This function uses multiple sources and ways to try to guess a reasonable number of threads:
- *
- *  - If @p use_openmp is set, we use the `omp_get_max_threads()` function or the `OMP_NUM_THREADS`
- *    environment variable to get a number of threads, using the info_number_of_threads_openmp()
- *    function. For details, see there.
- *  - If @p use_slurm is set, we get a number of cores from the environment variable
- *    `SLURM_CPUS_PER_TASK`.
- *  - Lastly, we get the result of `std::thread::hardware_concurrency()` as another hint.
- *    If furthermore @p physical_cores is set, and hyperthreads are enabled, we divide that hardware
- *    concurrency number by two, in order to account for hyperthreads, resulting in the number
- *    of physical cores available on the system (ideally). This avoids core oversubscription that
- *    could otherwise be the result of using all threads instead of all physical cores.
- *
- * If the numbers disagree with each other, we prefer OpenMP over slurm over `hardware_concurrency()`,
- * that is, we are going from most specific to least. Furthermore, if the OpenMP based guess yields
- * exactly the same number as the hardware concurrency, we also use the @p physical_cores setting,
- * as this result usually indicates that OpenMP left at its default, in which case we also want
- * to avoid core oversubscription due to hyperthreading.
- *
- * The function is guaranteed to return a non-zero value, meaning that at least the main thread
- * is always accounted for. This is important for Options::get().init_global_thread_pool(), which
- * will account for that, and initialize the number of additional threads to one fewer than this.
+ * Time is returned in seconds, with the first result the user time, and the second the system time.
  */
-size_t guess_number_of_threads(
-    bool use_openmp = true,
-    bool use_slurm = true,
-    bool physical_cores = true
-);
+std::pair<double, double> info_cpu_time();
 
 /**
- * @brief Try to get whether hyperthreads are enabled in the current system.
+ * @brief Get energy consumption of the program so far, in Wh.
  */
-bool info_hyperthreads_enabled();
+double info_energy_consumption();
 
 /**
- * @brief Get the number of threads as indicated by the OpenMP environment.
- *
- * If genesis was compiled with OpenMP support (that is, if `GENESIS_OPENMP` is defined, which is
- * done via the CMake script), we use `omp_get_max_threads()` to get a number of threads from that.
- * If however genesis was compiled without OpenMP support, we instead consider the environment
- * variable `OMP_NUM_THREADS` as a source for the OpenMP threads.
- *
- * If unsuccessful, 0 is returned.
+ * @brief Print usage information to a string.
  */
-size_t info_number_of_threads_openmp();
-
-/**
- * @brief Get the number of threads as indicated by the SLURM environment.
- *
- * This uses the environment variable `SLURM_CPUS_PER_TASK`. If unsuccessful, 0 is returned.
- */
-size_t info_number_of_threads_slurm();
+std::string info_print_usage();
 
 } // namespace utils
 } // namespace genesis

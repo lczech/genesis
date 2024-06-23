@@ -55,13 +55,19 @@ TEST( Info, Hardware )
     auto info = info_print_hardware();
     ASSERT_GT( info.size(), 1000 );
     // LOG_DBG << info;
-}
 
-TEST( Info, Endianness )
-{
     std::string endian = "Genesis currently only supports little endian systems!";
     ASSERT_TRUE( info_get_hardware().is_little_endian ) << endian;
     // ASSERT_FALSE( info_get_hardware().is_big_endian )   << endian;
+}
+
+TEST( Info, Usage )
+{
+    // Same as above
+    auto info = info_print_usage();
+    ASSERT_GT( info.size(), 20 );
+    // LOG_DBG << info;
+    // LOG_DBG << guess_number_of_threads();
 }
 
 TEST( Info, FileCount )

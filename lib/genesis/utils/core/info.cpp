@@ -26,12 +26,12 @@
     see https://github.com/Mysticial/FeatureDetector which is published under CC0 1.0 Universal.
     We have adapted the code to be contained in the classes and functions here.
 
-    For an alternative approach that seems to support Apple better, see
-    https://github.com/xflouris/libpll-2/blob/54b9a3db5689cce6abed5af978e49c45a3b23b45/src/hardware.c
-    and https://github.com/amkozlov/raxml-ng/blob/805318cef87bd5d67064efa299b5d1cf948367fd/src/util/sysutil.cpp
+    For an alternative approach that seems to support Apple better,
+    see https://github.com/xflouris/libpll-2/blob/master/src/hardware.c
+    and https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
 
     For more hardware related information, see
-    https://github.com/amkozlov/raxml-ng/blob/805318cef87bd5d67064efa299b5d1cf948367fd/src/util/sysutil.cpp
+    https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
  */
 
 /**
@@ -43,21 +43,27 @@
 
 #include "genesis/utils/core/info.hpp"
 
+#include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/version.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <climits>
+#include <cstdarg>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <thread>
+#include <unordered_set>
 
 #include <errno.h>
 #include <stdio.h>
@@ -73,6 +79,14 @@
 // -----------------------------------------------------------------------------
 //     OS Specific Includes
 // -----------------------------------------------------------------------------
+
+#if defined __APPLE__
+#    include <sys/sysctl.h>
+#endif
+
+#if defined(__linux__)
+#    include <sched.h>
+#endif
 
 #if defined( _WIN32 ) || defined(  _WIN64  ) || defined(_MSC_VER)
 #    include <io.h>
@@ -260,9 +274,6 @@ std::string info_print_compiler()
     res += "With AVX        = " + std::string( info_comp.with_avx    ? "true" : "false" ) + "\n";
     res += "With AVX2       = " + std::string( info_comp.with_avx2   ? "true" : "false" ) + "\n";
 
-    // res += "Endianness:        " + std::string(
-    //     info_is_little_endian() ? "little endian" : "big endian"
-    // ) + "\n";
     return res;
 }
 
@@ -282,7 +293,7 @@ std::string info_print_compiler()
 
 #if defined( _WIN32 ) || defined(  _WIN64  )
 
-    void cpuid(int32_t out[4], int32_t eax, int32_t ecx)
+    void get_cpuid_(int32_t out[4], int32_t eax, int32_t ecx)
     {
         __cpuidex(out, eax, ecx);
     }
@@ -324,7 +335,7 @@ std::string info_print_compiler()
 
 #else // defined( _WIN32 ) || defined(  _WIN64  )
 
-    void cpuid(int32_t out[4], int32_t eax, int32_t ecx)
+    void get_cpuid_(int32_t out[4], int32_t eax, int32_t ecx)
     {
         __cpuid_count(eax, ecx, out[0], out[1], out[2], out[3]);
     }
@@ -397,7 +408,7 @@ bool detect_OS_AVX_()
     bool avxSupported = false;
 
     int32_t cpuInfo[4];
-    cpuid(cpuInfo, 1, 0);
+    get_cpuid_(cpuInfo, 1, 0);
 
     bool osUsesXSAVE_XRSTORE = (cpuInfo[2] & (1 << 27)) != 0;
     bool cpuAVXSuport = (cpuInfo[2] & (1 << 28)) != 0;
@@ -424,7 +435,7 @@ std::string get_vendor_string_()
     int32_t CPUInfo[4];
     char name[13];
 
-    cpuid(CPUInfo, 0, 0);
+    get_cpuid_(CPUInfo, 0, 0);
     memcpy(name + 0, &CPUInfo[1], 4);
     memcpy(name + 4, &CPUInfo[3], 4);
     memcpy(name + 8, &CPUInfo[2], 4);
@@ -448,6 +459,62 @@ std::string get_cpu_model_()
     return model;
 }
 
+size_t get_memtotal_( bool ignore_errors = true )
+{
+    // Adapted from https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
+    // which itself is seems to be adapted from vsearch.
+
+    #if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
+
+        long phys_pages = sysconf(_SC_PHYS_PAGES);
+        long pagesize = sysconf(_SC_PAGESIZE);
+
+        if ((phys_pages == -1) || (pagesize == -1)) {
+            if (ignore_errors) {
+                return 0;
+            } else {
+                throw std::runtime_error("Cannot determine amount of RAM");
+            }
+        }
+
+        // sysconf(3) notes that pagesize * phys_pages can overflow, such as when long is
+        // 32-bits and there's more than 4GB RAM. Since we target LP64 systems like
+        // x86_64 linux, this will not arise in practice on the intended platform.
+        if (pagesize > LONG_MAX / phys_pages) {
+            return LONG_MAX;
+        } else {
+            return (unsigned long)pagesize * (unsigned long)phys_pages;
+        }
+
+    #elif defined(__APPLE__)
+
+        int mib[] = { CTL_HW, HW_MEMSIZE };
+        int64_t ram = 0;
+        size_t length = sizeof(ram);
+        if (-1 == sysctl(mib, 2, &ram, &length, NULL, 0)) {
+            if (ignore_errors) {
+                return 0;
+            } else {
+                throw std::runtime_error("Cannot determine amount of RAM");
+            }
+        }
+        return ram;
+
+    #else
+
+        struct sysinfo si;
+        if (sysinfo(&si)) {
+            if (ignore_errors) {
+                return 0;
+            } else {
+                throw std::runtime_error("Cannot determine amount of RAM");
+            }
+        }
+        return si.totalram * si.mem_unit;
+
+    #endif
+}
+
 // -----------------------------------------------------------------------------
 //     info_get_hardware
 // -----------------------------------------------------------------------------
@@ -467,6 +534,9 @@ InfoHardware const& info_get_hardware()
     result.is_little_endian = ( 0 == *reinterpret_cast< uint8_t const* >( &little_endian_test ));
     // static const uint16_t big_endian_test = 0x0001;
     // result.is_little_endian = ( 0 == *reinterpret_cast< uint8_t const* >( &big_endian_test ));
+
+    // Memory
+    result.total_memory = get_memtotal_();
 
     // ---------------------------------------------------------
     //     Vendor and OS
@@ -497,14 +567,14 @@ InfoHardware const& info_get_hardware()
     // Now run the feature detection
 
     int32_t info[4];
-    cpuid(info, 0, 0);
+    get_cpuid_(info, 0, 0);
     int nIds = info[0];
 
-    cpuid(info, 0x80000000, 0);
+    get_cpuid_(info, 0x80000000, 0);
     uint32_t nExIds = info[0];
 
     if (nIds >= 0x00000001){
-        cpuid(info, 0x00000001, 0);
+        get_cpuid_(info, 0x00000001, 0);
         result.HW_MMX    = (info[3] & ((int)1 << 23)) != 0;
         result.HW_SSE    = (info[3] & ((int)1 << 25)) != 0;
         result.HW_SSE2   = (info[3] & ((int)1 << 26)) != 0;
@@ -521,7 +591,7 @@ InfoHardware const& info_get_hardware()
         result.HW_RDRAND = (info[2] & ((int)1 << 30)) != 0;
     }
     if (nIds >= 0x00000007){
-        cpuid(info, 0x00000007, 0);
+        get_cpuid_(info, 0x00000007, 0);
         result.HW_AVX2         = (info[1] & ((int)1 <<  5)) != 0;
 
         result.HW_BMI1         = (info[1] & ((int)1 <<  3)) != 0;
@@ -557,11 +627,11 @@ InfoHardware const& info_get_hardware()
         result.HW_AVX512_VPCLMUL   = (info[2] & ((int)1 << 10)) != 0;
         result.HW_AVX512_BITALG    = (info[2] & ((int)1 << 12)) != 0;
 
-        cpuid(info, 0x00000007, 1);
+        get_cpuid_(info, 0x00000007, 1);
         result.HW_AVX512_BF16      = (info[0] & ((int)1 <<  5)) != 0;
     }
     if (nExIds >= 0x80000001){
-        cpuid(info, 0x80000001, 0);
+        get_cpuid_(info, 0x80000001, 0);
         result.HW_x64   = (info[3] & ((int)1 << 29)) != 0;
         result.HW_ABM   = (info[2] & ((int)1 <<  5)) != 0;
         result.HW_SSE4a = (info[2] & ((int)1 <<  6)) != 0;
@@ -579,6 +649,8 @@ InfoHardware const& info_get_hardware()
 
 std::string info_print_hardware()
 {
+    auto const& info_hardware = info_get_hardware();
+
     std::stringstream ss;
     auto print_ = [&]( char const* label, bool yes )
     {
@@ -588,13 +660,17 @@ std::string info_print_hardware()
 
     ss << "Hardware Features\n";
     ss << "=============================================\n\n";
-    auto const& info_hardware = info_get_hardware();
+
+    ss << "Memory:" << "\n";
+    ss << "    Memory        = " << to_string_byte_format( info_hardware.total_memory ) << "\n";
+    print_("    Little endian = ", info_hardware.is_little_endian);
+    ss << "\n";
 
     ss << "CPU Vendor:" << "\n";
-    ss << "    Vendor      = " << info_hardware.vendor_string << "\n";
-    ss << "    CPU model   = " << info_hardware.cpu_model << "\n";
-    print_("    AMD         = ", info_hardware.vendor_AMD);
-    print_("    Intel       = ", info_hardware.vendor_Intel);
+    ss << "    Vendor        = " << info_hardware.vendor_string << "\n";
+    ss << "    CPU model     = " << info_hardware.cpu_model << "\n";
+    print_("    AMD           = ", info_hardware.vendor_AMD);
+    print_("    Intel         = ", info_hardware.vendor_Intel);
     ss << "\n";
 
     ss << "OS Features:" << "\n";
@@ -702,6 +778,203 @@ bool info_use_avx512()
 }
 
 // =================================================================================================
+//     Number of Threads
+// =================================================================================================
+
+unsigned int info_task_cpu_cores( bool physical = false )
+{
+    // Adapted from https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
+    auto ncores = std::thread::hardware_concurrency();
+
+    #if defined(__linux__)
+        cpu_set_t mask;
+        if (sched_getaffinity(0, sizeof(cpu_set_t), &mask) != -1) {
+            ncores = CPU_COUNT(&mask);
+        }
+    #endif
+
+    if (physical) {
+        auto const threads_per_core = info_hyperthreads_enabled() ? 2 : 1;
+        ncores /= threads_per_core;
+    }
+
+    return ncores;
+}
+
+long info_online_cpu_cores()
+{
+    return sysconf(_SC_NPROCESSORS_ONLN);
+}
+
+size_t read_id_from_file_( std::string const& filename )
+{
+    std::ifstream f(filename);
+    if( f.good() ) {
+        size_t id;
+        f >> id;
+        return id;
+    } else {
+        throw std::runtime_error("couldn't open sys files");
+    }
+}
+
+size_t get_numa_node_id_( std::string const& cpu_path )
+{
+    // Adapted from https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
+    // This is ugly, but should be reliable -> please blame Linux kernel developers & Intel!
+    std::string node_path = cpu_path + "../node";
+    for (size_t i = 0; i < 1000; ++i) {
+        if( is_dir(node_path + std::to_string(i)) ) {
+            return i;
+        }
+    }
+
+    // Fallback solution: return socket_id which is often identical to numa id
+    return read_id_from_file_(cpu_path + "physical_package_id");
+}
+
+size_t get_core_id_(const std::string& cpu_path)
+{
+    return read_id_from_file_(cpu_path + "core_id");
+}
+
+int get_physical_core_count_(size_t n_cpu)
+{
+    // Adapted from https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
+    #if defined(__linux__)
+        std::unordered_set<size_t> cores;
+        for (size_t i = 0; i < n_cpu; ++i) {
+            std::string cpu_path = "/sys/devices/system/cpu/cpu" + std::to_string(i) + "/topology/";
+            size_t core_id = get_core_id_(cpu_path);
+            size_t node_id = get_numa_node_id_(cpu_path);
+            size_t uniq_core_id = (node_id << 16) + core_id;
+            cores.insert(uniq_core_id);
+        }
+        return cores.size();
+    #else
+        void(n_cpu);
+        return 0;
+    #endif
+}
+
+size_t info_physical_core_count()
+{
+    auto const hw_cores = std::thread::hardware_concurrency();
+    try {
+        // Try to get the physical cores, might fail and throw.
+        auto const phys_cores = get_physical_core_count_( hw_cores );
+        if( phys_cores > 0 ) {
+            return phys_cores;
+        }
+    } catch ( ... ) {
+        // Do nothing, just continue with the alternative.
+    }
+
+    // If the above did not work, use the fallback instead.
+    auto const threads_per_core = info_hyperthreads_enabled() ? 2 : 1;
+    return hw_cores / threads_per_core;
+}
+
+bool info_hyperthreads_enabled()
+{
+    // Get CPU info.
+    int32_t info[4];
+    #ifdef __aarch64__
+        (void)info;
+        return false;
+    #elif defined( _WIN32 )
+        __cpuid( info, 1 );
+    #else
+        __cpuid_count( 1, 0, info[0], info[1], info[2], info[3] );
+    #endif
+
+    return (bool) (info[3] & (0x1 << 28));
+}
+
+size_t info_number_of_threads_openmp()
+{
+    size_t openmp_threads = 0;
+
+    #if defined( GENESIS_OPENMP )
+
+        // Use number of OpenMP threads, which might be set through the `OMP_NUM_THREADS`
+        // environment variable. If there was an error there, fix it.
+        openmp_threads = static_cast<size_t>( std::max( omp_get_max_threads(), 0 ));
+
+    #else
+
+        // Use the env variable directly if we don't have access to the OpenMP functions.
+        auto const openmp_ptr = std::getenv( "OMP_NUM_THREADS" );
+        if( openmp_ptr ) {
+            openmp_threads = std::atoi( openmp_ptr );
+        }
+
+    #endif
+
+    return openmp_threads;
+}
+
+size_t info_number_of_threads_slurm()
+{
+    size_t slurm_cpus = 0;
+    auto const slurm_ptr = std::getenv( "SLURM_CPUS_PER_TASK" );
+    if( slurm_ptr ) {
+        slurm_cpus = std::atoi( slurm_ptr );
+
+    }
+    return slurm_cpus;
+}
+
+size_t guess_number_of_threads( bool use_openmp, bool use_slurm, bool physical_cores )
+{
+    // Dummy to avoid compiler warnings.
+    (void) use_openmp;
+
+    // Default to 1 thread. Will be overwritten later.
+    size_t guess = 1;
+
+    // Initialize threads with actual number of cores.
+    // The function might return 0 if no number could be determined, in which case we default to 1.
+    if( physical_cores ) {
+        auto const phys_cores = info_physical_core_count();
+        if( phys_cores > 0 ) {
+            guess = phys_cores;
+        }
+    } else {
+        auto const hw_concur = std::thread::hardware_concurrency();
+        if( hw_concur > 0 ) {
+            guess = static_cast<size_t>( hw_concur );
+        }
+    }
+
+    // Now try slurm, if specified.
+    if( use_slurm ) {
+        auto const slurm_cpus = info_number_of_threads_slurm();
+        if( slurm_cpus > 0 ) {
+            guess = static_cast<size_t>( slurm_cpus );
+        }
+    }
+
+    // Lastly, try OpenMP, if specified.
+    if( use_openmp ) {
+        auto const openmp_threads = info_number_of_threads_openmp();
+
+        // By default, OpenMP uses something like hardware_concurrency, which might include
+        // hyperthreads, and hence mess up this setup. So we catch that special case.
+        auto const hw_concur = std::thread::hardware_concurrency();
+        if( openmp_threads > 0 && openmp_threads == hw_concur && physical_cores ) {
+            // We do not use the OpenMP threads for the guess in that case.
+        } else if( openmp_threads > 0 ) {
+            // Here, OpenMP is set to some non-zero number that is not just the hardware_concurrency
+            guess = static_cast<size_t>( openmp_threads );
+        }
+    }
+
+    assert( guess > 0 );
+    return guess;
+}
+
+// =================================================================================================
 //     Run Time Environment
 // =================================================================================================
 
@@ -765,7 +1038,7 @@ std::pair<int, int> info_terminal_size()
 }
 
 // =================================================================================================
-//     File Handling
+//     Resource Usage
 // =================================================================================================
 
 size_t info_max_file_count()
@@ -803,103 +1076,77 @@ size_t info_current_file_count()
     return fd_counter;
 }
 
-// =================================================================================================
-//     Number of Threads
-// =================================================================================================
-
-size_t guess_number_of_threads( bool use_openmp, bool use_slurm, bool physical_cores )
+size_t info_memory_usage()
 {
-    // Dummy to avoid compiler warnings.
-    (void) use_openmp;
+    // Adapted from https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
 
-    // Default to 1 thread. Will be overwritten later.
-    size_t guess = 1;
+    struct rusage r_usage;
+    getrusage(RUSAGE_SELF, &r_usage);
 
-    // Initialize threads with actual number of cores.
-    // The function might return 0 if no number could be determined, in which case we default to 1.
-    auto const hw_concur = std::thread::hardware_concurrency();
-    if( hw_concur > 0 ) {
-        guess = static_cast<size_t>( hw_concur );
-    }
-
-    // Now take hyperthreads into account.
-    auto const threads_per_core = info_hyperthreads_enabled() ? 2 : 1;
-    auto const hw_cores = hw_concur / threads_per_core;
-    if( hw_cores > 0 && physical_cores ) {
-        guess = static_cast<size_t>( hw_cores );
-    }
-
-    // Now try slurm, if specified.
-    if( use_slurm ) {
-        auto const slurm_cpus = info_number_of_threads_slurm();
-        if( slurm_cpus > 0 ) {
-            guess = static_cast<size_t>( slurm_cpus );
-        }
-    }
-
-    // Lastly, try OpenMP, if specified.
-    if( use_openmp ) {
-        auto const openmp_threads = info_number_of_threads_openmp();
-        if( openmp_threads > 0 ) {
-            guess = static_cast<size_t>( openmp_threads );
-        }
-        if( openmp_threads == hw_concur && hw_cores > 0 && physical_cores ) {
-            guess = static_cast<size_t>( hw_cores );
-        }
-    }
-
-    assert( guess > 0 );
-    return guess;
-}
-
-bool info_hyperthreads_enabled()
-{
-    // Get CPU info.
-    int32_t info[4];
-    #ifdef __aarch64__
-        (void)info;
-        return false;
-    #elif defined( _WIN32 )
-        __cpuid( info, 1 );
+    #if defined __APPLE__
+        // Mac: ru_maxrss gives the size in bytes
+        return static_cast<size_t>( r_usage.ru_maxrss );
     #else
-        __cpuid_count( 1, 0, info[0], info[1], info[2], info[3] );
+        // Linux: ru_maxrss gives the size in kilobytes
+        return static_cast<size_t>( r_usage.ru_maxrss * 1024 );
     #endif
-
-    return (bool) (info[3] & (0x1 << 28));
 }
 
-size_t info_number_of_threads_openmp()
+std::pair<double, double> info_cpu_time()
 {
-    size_t openmp_threads = 0;
+    // https://www.gnu.org/software/libc/manual/html_node/Resource-Usage.html
+    struct rusage r_usage;
+    getrusage(RUSAGE_SELF, &r_usage);
 
-    #if defined( GENESIS_OPENMP )
+    // Calculate user and system time.
+    auto const u_tmr = r_usage.ru_utime.tv_sec * 1.0 + (double)r_usage.ru_utime.tv_usec * 1.0e-6;
+    auto const s_tmr = r_usage.ru_stime.tv_sec * 1.0 + r_usage.ru_stime.tv_usec * 1.0e-6;
 
-        // Use number of OpenMP threads, which might be set through the `OMP_NUM_THREADS`
-        // environment variable. If there was an error there, fix it.
-        openmp_threads = static_cast<size_t>( std::max( omp_get_max_threads(), 0 ));
+    return std::make_pair( u_tmr, s_tmr );
+}
 
-    #else
+double info_energy_consumption()
+{
+    // Adapted from https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
 
-        // Use the env variable directly if we don't have access to the OpenMP functions.
-        auto const openmp_ptr = std::getenv( "OMP_NUM_THREADS" );
-        if( openmp_ptr ) {
-            openmp_threads = std::atoi( openmp_ptr );
+    double energy = 0;
+    size_t max_packages = 32;
+    try {
+        for (size_t i = 0; i < max_packages; i++) {
+            double pkg_energy;
+            auto fname = "/sys/class/powercap/intel-rapl/intel-rapl:" + std::to_string(i) + "/energy_uj";
+            if (!file_is_readable(fname)) {
+                break;
+            }
+            std::ifstream fs(fname);
+            fs >> pkg_energy;
+            energy += pkg_energy;
         }
-
-    #endif
-
-    return openmp_threads;
+        energy /= 1e6; // convert to Joules
+        energy /= 3600; // convert to Wh
+        return energy;
+    } catch ( ... ) {
+        return 0.0;
+    }
+    return 0.0;
 }
 
-size_t info_number_of_threads_slurm()
+std::string info_print_usage()
 {
-    size_t slurm_cpus = 0;
-    auto const slurm_ptr = std::getenv( "SLURM_CPUS_PER_TASK" );
-    if( slurm_ptr ) {
-        slurm_cpus = std::atoi( slurm_ptr );
+    // Get data.
+    auto const time = info_cpu_time();
+    auto const memory = info_memory_usage();
+    auto const energy = info_energy_consumption();
 
-    }
-    return slurm_cpus;
+    // Print everything.
+    std::stringstream ss;
+    ss << std::setprecision(3) << std::fixed;
+    ss << "Time:   " << time.first << "s (user)\n";
+    ss << "Time:   " << time.second << "s (sys)\n";
+    ss << "Memory: " << to_string_byte_format( memory ) << "\n";
+    ss << "Energy: " << energy << "Wh\n";
+
+    return ss.str();
 }
 
 } // namespace utils
