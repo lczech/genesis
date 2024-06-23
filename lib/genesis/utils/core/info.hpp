@@ -41,92 +41,225 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Compile Time Environment
+//     Compiler Info
 // =================================================================================================
 
-/**
- * @brief Return whether the binary was compiled with build type `DEBUG`.
- */
-bool info_is_debug();
+struct InfoCompiler
+{
+    /**
+     * @brief Date and time when genesis was compiled.
+     *
+     * Due to this using the preprocessor, the returned date and time are from when
+     * the Options class was first compiled in a clean build process.
+     */
+    std::string compile_date_time;
+
+    /**
+    * @brief Binary was compiled with build type `DEBUG`.
+    */
+    bool is_debug;
+
+    /**
+    * @brief Binary was compiled with build type `RELEASE`.
+    */
+    bool is_release;
+
+    /**
+    * @brief Build type that was used to compile the binary, i.e., "debug" or "release".
+    */
+    std::string build_type;
+
+    /**
+    * @brief Platform under which genesis was compiled.
+    *
+    * This can be either "Win32", "Linux", "Apple", "Unix" or "Unknown".
+    */
+    std::string platform;
+
+    /**
+    * @brief Compiler family (name) that was used to compile genesis.
+    *
+    * See compiler_version to get the version of the compiler.
+    */
+    std::string compiler_family;
+
+    /**
+    * @brief Compiler version that was used to compile genesis.
+    *
+    * See compiler_family to get the corresponding compiler name.
+    */
+    std::string compiler_version;
+
+    /**
+    * @brief C++ version that was used to compile genesis.
+    */
+    std::string cpp_version;
+
+    /**
+     * @brief Compiled with OpenMP.
+     */
+    bool with_openmp;
+
+    /**
+     * @brief Compiled with AVX.
+     *
+     * Note that this only indicates if the AVX compiler flag was given, but it does not indicate
+     * if AVX is actually available on the hardware and OS. See info_get_hardware() for that.
+     */
+    bool with_avx;
+
+    /**
+     * @brief Compiled with AVX2.
+     *
+     * Note that this only indicates if the AVX compiler flag was given, but it does not indicate
+     * if AVX is actually available on the hardware and OS. See info_get_hardware() for that.
+     */
+    bool with_avx2;
+
+    /**
+     * @brief Compiled with AVX512.
+     *
+     * Note that this only indicates if the AVX compiler flag was given, but it does not indicate
+     * if AVX is actually available on the hardware and OS. See info_get_hardware() for that.
+     */
+    bool with_avx512;
+
+};
 
 /**
- * @brief Return whether the binary was compiled with build type `RELEASE`.
+ * @brief Return information about compiler settings and flags.
  */
-bool info_is_release();
+InfoCompiler const& info_get_compiler();
 
 /**
- * @brief Return the build type that was used to compile the binary, i.e., "debug" or "release".
+ * @brief Print information about compiler settings and flags to a string.
  */
-std::string info_build_type();
+std::string info_print_compiler();
+
+// =================================================================================================
+//     Hardware Info
+// =================================================================================================
+
+struct InfoHardware
+{
+    /**
+     * @brief System uses little endian memory. If false, system uses big endian.
+     */
+    bool is_little_endian;
+
+    // Vendor
+    bool vendor_AMD;
+    bool vendor_Intel;
+    std::string vendor_string;
+    std::string cpu_model;
+
+    //  OS Features
+    bool OS_x64;
+    bool OS_AVX;
+    bool OS_AVX512;
+
+    //  Misc.
+    bool HW_MMX;
+    bool HW_x64;
+    bool HW_ABM;
+    bool HW_RDRAND;
+    bool HW_RDSEED;
+    bool HW_BMI1;
+    bool HW_BMI2;
+    bool HW_ADX;
+    bool HW_MPX;
+    bool HW_PREFETCHW;
+    bool HW_PREFETCHWT1;
+    bool HW_RDPID;
+
+    //  SIMD: 128-bit
+    bool HW_SSE;
+    bool HW_SSE2;
+    bool HW_SSE3;
+    bool HW_SSSE3;
+    bool HW_SSE41;
+    bool HW_SSE42;
+    bool HW_SSE4a;
+    bool HW_AES;
+    bool HW_SHA;
+
+    //  SIMD: 256-bit
+    bool HW_AVX;
+    bool HW_XOP;
+    bool HW_FMA3;
+    bool HW_FMA4;
+    bool HW_AVX2;
+
+    //  SIMD: 512-bit
+    bool HW_AVX512_F;
+    bool HW_AVX512_CD;
+
+    //  Knights Landing
+    bool HW_AVX512_PF;
+    bool HW_AVX512_ER;
+
+    //  Skylake Purley
+    bool HW_AVX512_VL;
+    bool HW_AVX512_BW;
+    bool HW_AVX512_DQ;
+
+    //  Cannon Lake
+    bool HW_AVX512_IFMA;
+    bool HW_AVX512_VBMI;
+
+    //  Knights Mill
+    bool HW_AVX512_VPOPCNTDQ;
+    bool HW_AVX512_4VNNIW;
+    bool HW_AVX512_4FMAPS;
+
+    //  Cascade Lake
+    bool HW_AVX512_VNNI;
+
+    //  Cooper Lake
+    bool HW_AVX512_BF16;
+
+    //  Ice Lake
+    bool HW_AVX512_VBMI2;
+    bool HW_GFNI;
+    bool HW_VAES;
+    bool HW_AVX512_VPCLMUL;
+    bool HW_AVX512_BITALG;
+
+};
 
 /**
- * @brief Return whether the system uses little endian memory.
+ * @brief Return information about hardware features.
  */
-bool info_is_little_endian();
+InfoHardware const& info_get_hardware();
 
 /**
- * @brief Return whether the system uses big endian memory.
+ * @brief Print information about hardware features to a string.
  */
-bool info_is_big_endian();
+std::string info_print_hardware();
 
 /**
- * @brief Return the platform under which genesis was compiled.
+ * @brief Assess if it is safe to use AVX features.
  *
- * This can be either "Win32", "Linux", "Apple", "Unix" or "Unknown".
+ * This is the case if the hardware supports AVX, the OS has it activated, and the compiler had
+ * the respective flag set.
  */
-std::string info_platform();
+bool info_use_avx();
 
 /**
- * @brief Return the compiler family (name) that was used to compile genesis.
+ * @brief Assess if it is safe to use AVX2 features.
  *
- * See compiler_version() to get the version of the compiler.
+ * This is the case if the hardware supports AVX2, the OS has it activated, and the compiler had
+ * the respective flag set.
  */
-std::string info_compiler_family();
+bool info_use_avx2();
 
 /**
- * @brief Return the compiler version that was used to compile genesis.
+ * @brief Assess if it is safe to use AVX512 features.
  *
- * See compiler_family() to get the corresponding compiler name.
+ * This is the case if the hardware supports AVX512, the OS has it activated, and the compiler had
+ * the respective flag set.
  */
-std::string info_compiler_version();
-
-/**
- * @brief Return the CPP version that was used to compile genesis.
- */
-std::string info_cpp_version();
-
-/**
- * @brief Return the date and time when genesis was compiled.
- *
- * Due to this using the preprocessor, the returned date and time are from when
- * the Options class was first compiled in a clean build process.
- */
-std::string info_compile_date_time();
-
-/**
- * @brief Return whether the binary was compiled using OpenMP.
- */
-bool info_using_openmp();
-
-/**
- * @brief Return whether the binary was compiled using AVX.
- */
-bool info_using_avx();
-
-/**
- * @brief Return whether the binary was compiled using AVX2.
- */
-bool info_using_avx2();
-
-/**
- * @brief Return whether the binary was compiled using zlib.
- */
-bool info_using_zlib();
-
-/**
- * @brief Return whether the binary was compiled with our optional htslib dependency.
- */
-bool info_using_htslib();
+bool info_use_avx512();
 
 // =================================================================================================
 //     Run Time Environment
@@ -166,25 +299,6 @@ bool info_stderr_is_terminal();
  * in number of columns and lines.
  */
 std::pair<int, int> info_terminal_size();
-
-// =================================================================================================
-//     Environment Printing
-// =================================================================================================
-
-/**
- * @brief Return a list with compile time and run time options with their values.
- */
-std::string info_print();
-
-/**
- * @brief Return a list of compile time options.
- */
-std::string info_print_compile_time();
-
-/**
- * @brief Return a list of run time options.
- */
-std::string info_print_run_time();
 
 // =================================================================================================
 //     File Handling

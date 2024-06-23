@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -233,7 +233,8 @@ void BmpWriter::write_uint16_( uint16_t data, std::ostream& target ) const
 {
     auto const bytes = reinterpret_cast< uint8_t const* >( &data );
 
-    if( info_is_little_endian() ) {
+    static const bool is_little_endian = info_get_hardware().is_little_endian;
+    if( is_little_endian ) {
         target.put( bytes[0] );
         target.put( bytes[1] );
     } else {
@@ -246,7 +247,8 @@ void BmpWriter::write_uint32_( uint32_t data, std::ostream& target ) const
 {
     auto const bytes = reinterpret_cast< uint8_t const* >( &data );
 
-    if( info_is_little_endian() ) {
+    static const bool is_little_endian = info_get_hardware().is_little_endian;
+    if( is_little_endian ) {
         target.put( bytes[0] );
         target.put( bytes[1] );
         target.put( bytes[2] );

@@ -40,11 +40,28 @@
 
 using namespace genesis::utils;
 
+TEST( Info, Compiler )
+{
+    // It's hard to test things explicitly, but we can at least call the function,
+    // check if it runs without failing, and returns some characters.
+    auto info = info_print_compiler();
+    ASSERT_GT( info.size(), 200 );
+    // LOG_DBG << info;
+}
+
+TEST( Info, Hardware )
+{
+    // Same as above
+    auto info = info_print_hardware();
+    ASSERT_GT( info.size(), 1000 );
+    // LOG_DBG << info;
+}
+
 TEST( Info, Endianness )
 {
     std::string endian = "Genesis currently only supports little endian systems!";
-    ASSERT_TRUE( info_is_little_endian() ) << endian;
-    ASSERT_FALSE( info_is_big_endian() )   << endian;
+    ASSERT_TRUE( info_get_hardware().is_little_endian ) << endian;
+    // ASSERT_FALSE( info_get_hardware().is_big_endian )   << endian;
 }
 
 TEST( Info, FileCount )
