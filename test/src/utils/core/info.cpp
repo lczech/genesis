@@ -34,7 +34,9 @@
 #include "genesis/utils/io/input_reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/math/random.hpp"
 
+#include <chrono>
 #include <fstream>
 #include <string>
 
@@ -63,9 +65,36 @@ TEST( Info, Hardware )
 
 TEST( Info, Usage )
 {
+    // Init. CPU usage has to be called onces to get started.
+    size_t sum = 0;
+    info_current_cpu_usage();
+
+    // Do some busy work. We need to pass some time here,
+    // in order for the CPU usage to register the work.
+    auto const start_time = std::chrono::high_resolution_clock::now();
+    while (true) {
+        // Check elapsed time. If the loop has been running for more than a second, break
+        auto current_time = std::chrono::high_resolution_clock::now();
+        auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time);
+        if( elapsed_time.count() >= 1 ) {
+            break;
+        }
+
+        for( size_t j = 0; j < 100000; ++j ) {
+            sum += permuted_congruential_generator();
+        }
+    }
+
+    // Now report the cpu usage
+    auto const cpu_usage = info_current_cpu_usage();
+    EXPECT_GT( cpu_usage, 80 );
+    EXPECT_LT( cpu_usage, 120 );
+    EXPECT_GT( info_current_memory_usage(), 0 );
+    EXPECT_GT( sum, 0 );
+
     // Same as above
-    auto info = info_print_usage();
-    ASSERT_GT( info.size(), 20 );
+    auto info_total = info_print_total_usage();
+    ASSERT_GT( info_total.size(), 20 );
     // LOG_DBG << info;
     // LOG_DBG << guess_number_of_threads();
 }

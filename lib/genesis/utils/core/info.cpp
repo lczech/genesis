@@ -80,7 +80,7 @@
 //     OS Specific Includes
 // -----------------------------------------------------------------------------
 
-#if defined __APPLE__
+#if defined( __APPLE__ )
 #    include <sys/sysctl.h>
 #endif
 
@@ -88,11 +88,12 @@
 #    include <sched.h>
 #endif
 
-#if defined( _WIN32 ) || defined(  _WIN64  ) || defined(_MSC_VER)
+// For processor features and other intrinsics
+#if defined( _WIN32 ) || defined( _WIN64  )|| defined( _MSC_VER )
 #    include <io.h>
 #    include <intrin.h>
 #    include <windows.h>
-#elif defined(__GNUC__) || defined(__clang__)
+#elif defined( __GNUC__ ) || defined( __clang__ )
 #    ifndef __aarch64__
         // Both GCC and LLVM are missing the header guard for this header up until recent versions,
         // see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=96238 and https://reviews.llvm.org/D91226
@@ -112,6 +113,28 @@
 
 #if !(defined(__x86_64__) || defined(_M_X64) || defined(__i386) || defined(_M_IX86))
 #    warning "No cpuid intrinsic defined for processor architecture."
+#endif
+
+// For current usage
+#if defined( _WIN32 ) || defined( _WIN64  )|| defined( _MSC_VER )
+#    include <TCHAR.h>
+#    include <pdh.h>
+#    include <psapi.h>
+#elif defined( __APPLE__ )
+#    include <sys/time.h>
+#    include <sys/types.h>
+#    include <sys/sysinfo.h>
+#    include <mach/mach.h>
+#    include <mach/task_info.h>
+#    include <sys/resource.h>
+#elif defined( __GNUC__ ) || defined( __clang__ )
+#    include <sys/types.h>
+#    include <sys/sysinfo.h>
+#    include <stdlib.h>
+#    include <stdio.h>
+#    include <string.h>
+#    include <sys/times.h>
+#    include <sys/vtimes.h>
 #endif
 
 #ifdef GENESIS_OPENMP
@@ -316,8 +339,8 @@ std::string info_print_compiler()
         {
             if (!fnIsWow64Process(GetCurrentProcess(), &bIsWow64))
             {
-                printf("Error Detecting Operating System.\n");
-                printf("Defaulting to 32-bit OS.\n\n");
+                // printf("Error Detecting Operating System.\n");
+                // printf("Defaulting to 32-bit OS.\n\n");
                 bIsWow64 = FALSE;
             }
         }
@@ -413,8 +436,7 @@ bool detect_OS_AVX_()
     bool osUsesXSAVE_XRSTORE = (cpuInfo[2] & (1 << 27)) != 0;
     bool cpuAVXSuport = (cpuInfo[2] & (1 << 28)) != 0;
 
-    if (osUsesXSAVE_XRSTORE && cpuAVXSuport)
-    {
+    if( osUsesXSAVE_XRSTORE && cpuAVXSuport ) {
         uint64_t xcrFeatureMask = xgetbv(_XCR_XFEATURE_ENABLED_MASK);
         avxSupported = (xcrFeatureMask & 0x6) == 0x6;
     }
@@ -424,12 +446,14 @@ bool detect_OS_AVX_()
 
 bool detect_OS_AVX512_()
 {
-    if (!detect_OS_AVX_())
+    if( !detect_OS_AVX_() ) {
         return false;
+    }
 
     uint64_t xcrFeatureMask = xgetbv(_XCR_XFEATURE_ENABLED_MASK);
     return (xcrFeatureMask & 0xe6) == 0xe6;
 }
+
 std::string get_vendor_string_()
 {
     int32_t CPUInfo[4];
@@ -647,7 +671,7 @@ InfoHardware const& info_get_hardware()
 //     info_print_hardware
 // -----------------------------------------------------------------------------
 
-std::string info_print_hardware()
+std::string info_print_hardware( bool full )
 {
     auto const& info_hardware = info_get_hardware();
 
@@ -673,73 +697,76 @@ std::string info_print_hardware()
     print_("    Intel         = ", info_hardware.vendor_Intel);
     ss << "\n";
 
-    ss << "OS Features:" << "\n";
-    print_("    64-bit      = ", info_hardware.OS_x64);
-    print_("    OS AVX      = ", info_hardware.OS_AVX);
-    print_("    OS AVX512   = ", info_hardware.OS_AVX512);
-    ss << "\n";
+    if( full ) {
+        ss << "OS Features:" << "\n";
+        print_("    64-bit      = ", info_hardware.OS_x64);
+        print_("    OS AVX      = ", info_hardware.OS_AVX);
+        print_("    OS AVX512   = ", info_hardware.OS_AVX512);
+        ss << "\n";
 
-    ss << "Hardware Features:" << "\n";
-    print_("    MMX         = ", info_hardware.HW_MMX);
-    print_("    x64         = ", info_hardware.HW_x64);
-    print_("    ABM         = ", info_hardware.HW_ABM);
-    print_("    RDRAND      = ", info_hardware.HW_RDRAND);
-    print_("    RDSEED      = ", info_hardware.HW_RDSEED);
-    print_("    BMI1        = ", info_hardware.HW_BMI1);
-    print_("    BMI2        = ", info_hardware.HW_BMI2);
-    print_("    ADX         = ", info_hardware.HW_ADX);
-    print_("    MPX         = ", info_hardware.HW_MPX);
-    print_("    PREFETCHW   = ", info_hardware.HW_PREFETCHW);
-    print_("    PREFETCHWT1 = ", info_hardware.HW_PREFETCHWT1);
-    print_("    RDPID       = ", info_hardware.HW_RDPID);
-    print_("    GFNI        = ", info_hardware.HW_GFNI);
-    print_("    VAES        = ", info_hardware.HW_VAES);
-    ss << "\n";
+        ss << "Hardware Features:" << "\n";
+        print_("    MMX         = ", info_hardware.HW_MMX);
+        print_("    x64         = ", info_hardware.HW_x64);
+        print_("    ABM         = ", info_hardware.HW_ABM);
+        print_("    RDRAND      = ", info_hardware.HW_RDRAND);
+        print_("    RDSEED      = ", info_hardware.HW_RDSEED);
+        print_("    BMI1        = ", info_hardware.HW_BMI1);
+        print_("    BMI2        = ", info_hardware.HW_BMI2);
+        print_("    ADX         = ", info_hardware.HW_ADX);
+        print_("    MPX         = ", info_hardware.HW_MPX);
+        print_("    PREFETCHW   = ", info_hardware.HW_PREFETCHW);
+        print_("    PREFETCHWT1 = ", info_hardware.HW_PREFETCHWT1);
+        print_("    RDPID       = ", info_hardware.HW_RDPID);
+        print_("    GFNI        = ", info_hardware.HW_GFNI);
+        print_("    VAES        = ", info_hardware.HW_VAES);
+        ss << "\n";
 
-    ss << "SIMD: 128-bit" << "\n";
-    print_("    SSE         = ", info_hardware.HW_SSE);
-    print_("    SSE2        = ", info_hardware.HW_SSE2);
-    print_("    SSE3        = ", info_hardware.HW_SSE3);
-    print_("    SSSE3       = ", info_hardware.HW_SSSE3);
-    print_("    SSE4a       = ", info_hardware.HW_SSE4a);
-    print_("    SSE4.1      = ", info_hardware.HW_SSE41);
-    print_("    SSE4.2      = ", info_hardware.HW_SSE42);
-    print_("    AES-NI      = ", info_hardware.HW_AES);
-    print_("    SHA         = ", info_hardware.HW_SHA);
-    ss << "\n";
+        ss << "SIMD: 128-bit" << "\n";
+        print_("    SSE         = ", info_hardware.HW_SSE);
+        print_("    SSE2        = ", info_hardware.HW_SSE2);
+        print_("    SSE3        = ", info_hardware.HW_SSE3);
+        print_("    SSSE3       = ", info_hardware.HW_SSSE3);
+        print_("    SSE4a       = ", info_hardware.HW_SSE4a);
+        print_("    SSE4.1      = ", info_hardware.HW_SSE41);
+        print_("    SSE4.2      = ", info_hardware.HW_SSE42);
+        print_("    AES-NI      = ", info_hardware.HW_AES);
+        print_("    SHA         = ", info_hardware.HW_SHA);
+        ss << "\n";
 
-    ss << "SIMD: 256-bit" << "\n";
-    print_("    AVX         = ", info_hardware.HW_AVX);
-    print_("    XOP         = ", info_hardware.HW_XOP);
-    print_("    FMA3        = ", info_hardware.HW_FMA3);
-    print_("    FMA4        = ", info_hardware.HW_FMA4);
-    print_("    AVX2        = ", info_hardware.HW_AVX2);
-    ss << "\n";
+        ss << "SIMD: 256-bit" << "\n";
+        print_("    AVX         = ", info_hardware.HW_AVX);
+        print_("    XOP         = ", info_hardware.HW_XOP);
+        print_("    FMA3        = ", info_hardware.HW_FMA3);
+        print_("    FMA4        = ", info_hardware.HW_FMA4);
+        print_("    AVX2        = ", info_hardware.HW_AVX2);
+        ss << "\n";
 
-    ss << "SIMD: 512-bit" << "\n";
-    print_("    AVX512-F         = ", info_hardware.HW_AVX512_F);
-    print_("    AVX512-CD        = ", info_hardware.HW_AVX512_CD);
-    print_("    AVX512-PF        = ", info_hardware.HW_AVX512_PF);
-    print_("    AVX512-ER        = ", info_hardware.HW_AVX512_ER);
-    print_("    AVX512-VL        = ", info_hardware.HW_AVX512_VL);
-    print_("    AVX512-BW        = ", info_hardware.HW_AVX512_BW);
-    print_("    AVX512-DQ        = ", info_hardware.HW_AVX512_DQ);
-    print_("    AVX512-IFMA      = ", info_hardware.HW_AVX512_IFMA);
-    print_("    AVX512-VBMI      = ", info_hardware.HW_AVX512_VBMI);
-    print_("    AVX512-VPOPCNTDQ = ", info_hardware.HW_AVX512_VPOPCNTDQ);
-    print_("    AVX512-4VNNIW    = ", info_hardware.HW_AVX512_4VNNIW);
-    print_("    AVX512-4FMAPS    = ", info_hardware.HW_AVX512_4FMAPS);
-    print_("    AVX512-VBMI2     = ", info_hardware.HW_AVX512_VBMI2);
-    print_("    AVX512-VPCLMUL   = ", info_hardware.HW_AVX512_VPCLMUL);
-    print_("    AVX512-VNNI      = ", info_hardware.HW_AVX512_VNNI);
-    print_("    AVX512-BITALG    = ", info_hardware.HW_AVX512_BITALG);
-    print_("    AVX512-BF16      = ", info_hardware.HW_AVX512_BF16);
-    ss << "\n";
+        ss << "SIMD: 512-bit" << "\n";
+        print_("    AVX512-F         = ", info_hardware.HW_AVX512_F);
+        print_("    AVX512-CD        = ", info_hardware.HW_AVX512_CD);
+        print_("    AVX512-PF        = ", info_hardware.HW_AVX512_PF);
+        print_("    AVX512-ER        = ", info_hardware.HW_AVX512_ER);
+        print_("    AVX512-VL        = ", info_hardware.HW_AVX512_VL);
+        print_("    AVX512-BW        = ", info_hardware.HW_AVX512_BW);
+        print_("    AVX512-DQ        = ", info_hardware.HW_AVX512_DQ);
+        print_("    AVX512-IFMA      = ", info_hardware.HW_AVX512_IFMA);
+        print_("    AVX512-VBMI      = ", info_hardware.HW_AVX512_VBMI);
+        print_("    AVX512-VPOPCNTDQ = ", info_hardware.HW_AVX512_VPOPCNTDQ);
+        print_("    AVX512-4VNNIW    = ", info_hardware.HW_AVX512_4VNNIW);
+        print_("    AVX512-4FMAPS    = ", info_hardware.HW_AVX512_4FMAPS);
+        print_("    AVX512-VBMI2     = ", info_hardware.HW_AVX512_VBMI2);
+        print_("    AVX512-VPCLMUL   = ", info_hardware.HW_AVX512_VPCLMUL);
+        print_("    AVX512-VNNI      = ", info_hardware.HW_AVX512_VNNI);
+        print_("    AVX512-BITALG    = ", info_hardware.HW_AVX512_BITALG);
+        print_("    AVX512-BF16      = ", info_hardware.HW_AVX512_BF16);
+        ss << "\n";
+    }
 
-    // ss << "Summary:" << "\n";
-    // print_("    Safe to use AVX:     ", info_hardware.HW_AVX && info_hardware.OS_AVX);
-    // print_("    Safe to use AVX512:  ", info_hardware.HW_AVX512_F && info_hardware.OS_AVX512);
-    // ss << "\n";
+    ss << "Summary:" << "\n";
+    print_("    Safe to use AVX:     ", info_use_avx());
+    print_("    Safe to use AVX2:    ", info_use_avx2());
+    print_("    Safe to use AVX512:  ", info_use_avx512());
+    ss << "\n";
 
     return ss.str();
 }
@@ -833,7 +860,7 @@ size_t get_numa_node_id_( std::string const& cpu_path )
     return read_id_from_file_(cpu_path + "physical_package_id");
 }
 
-size_t get_core_id_(const std::string& cpu_path)
+size_t get_core_id_( std::string const& cpu_path )
 {
     return read_id_from_file_(cpu_path + "core_id");
 }
@@ -964,6 +991,8 @@ size_t guess_number_of_threads( bool use_openmp, bool use_slurm, bool physical_c
         auto const hw_concur = std::thread::hardware_concurrency();
         if( openmp_threads > 0 && openmp_threads == hw_concur && physical_cores ) {
             // We do not use the OpenMP threads for the guess in that case.
+            auto const threads_per_core = info_hyperthreads_enabled() ? 2 : 1;
+            guess = hw_concur / threads_per_core;
         } else if( openmp_threads > 0 ) {
             // Here, OpenMP is set to some non-zero number that is not just the hardware_concurrency
             guess = static_cast<size_t>( openmp_threads );
@@ -1038,7 +1067,7 @@ std::pair<int, int> info_terminal_size()
 }
 
 // =================================================================================================
-//     Resource Usage
+//     Current Resource Usage
 // =================================================================================================
 
 size_t info_max_file_count()
@@ -1076,7 +1105,282 @@ size_t info_current_file_count()
     return fd_counter;
 }
 
-size_t info_memory_usage()
+#if defined( _WIN32 ) || defined( _WIN64  )|| defined( _MSC_VER )
+
+size_t info_current_memory_usage()
+{
+    // https://stackoverflow.com/q/63166/4184258
+    // Beware: Completely untested, no error checking.
+    // Kept here mostly for future reference.
+
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
+    return pmc.WorkingSetSize;
+}
+
+double info_current_cpu_usage( bool total, bool percent )
+{
+    // https://stackoverflow.com/q/63166/4184258
+    // Beware: Completely untested, no error checking.
+    // Kept here mostly for future reference.
+
+    static ULARGE_INTEGER lastCPU, lastSysCPU, lastUserCPU;
+    static int num_processors;
+    static HANDLE self;
+    static bool initialized = false;
+
+    if( ! initialized ) {
+        SYSTEM_INFO sysInfo;
+        FILETIME ftime, fsys, fuser;
+
+        GetSystemInfo(&sysInfo);
+        num_processors = sysInfo.dwNumberOfProcessors;
+
+        GetSystemTimeAsFileTime(&ftime);
+        memcpy(&lastCPU, &ftime, sizeof(FILETIME));
+
+        self = GetCurrentProcess();
+        GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
+        memcpy(&lastSysCPU, &fsys, sizeof(FILETIME));
+        memcpy(&lastUserCPU, &fuser, sizeof(FILETIME));
+
+        initialized = true;
+        return 0.0;
+    }
+
+    FILETIME ftime, fsys, fuser;
+    ULARGE_INTEGER now, sys, user;
+    double result;
+
+    GetSystemTimeAsFileTime(&ftime);
+    memcpy(&now, &ftime, sizeof(FILETIME));
+
+    GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
+    memcpy(&sys, &fsys, sizeof(FILETIME));
+    memcpy(&user, &fuser, sizeof(FILETIME));
+    result = (sys.QuadPart - lastSysCPU.QuadPart) + (user.QuadPart - lastUserCPU.QuadPart);
+    result /= (now.QuadPart - lastCPU.QuadPart);
+    if( ! total ) {
+        result /= num_processors;
+    }
+    if( percent ) {
+        result *= 100;
+    }
+
+    lastCPU = now;
+    lastUserCPU = user;
+    lastSysCPU = sys;
+
+    return result;
+}
+
+#elif defined( __APPLE__ )
+
+size_t info_current_memory_usage()
+{
+    // https://stackoverflow.com/q/63166/4184258
+
+    struct task_basic_info t_info;
+    mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+
+    auto const ret = task_info(
+        mach_task_self(), TASK_BASIC_INFO, (task_info_t)&t_info, &t_info_count
+    );
+    if( KERN_SUCCESS != ret ) {
+        return 0;
+    }
+    // resident size is in t_info.resident_size;
+    // virtual size is in t_info.virtual_size;
+    return t_info.resident_size;
+}
+
+double info_current_cpu_usage( bool total, bool percent )
+{
+    // No implementation from stack overflow :-(
+    // Hopefully, this one works though, provided by ChatGPT.
+
+    static uint64_t last_total_time = 0;
+    static struct timeval last_time;
+    static int num_processors = 0;
+    static bool initialized = false;
+
+    struct task_thread_times_info thread_times;
+    mach_msg_type_number_t count = TASK_THREAD_TIMES_INFO_COUNT;
+
+    if( !initialized ) {
+        gettimeofday(&last_time, NULL);
+        auto const ti = task_info(
+            mach_task_self(), TASK_THREAD_TIMES_INFO, (task_info_t)&thread_times, &count
+        );
+        if( ti != KERN_SUCCESS ) {
+            return 0.0;
+        }
+        last_total_time =
+            thread_times.user_time.seconds * 1000000 +
+            thread_times.user_time.microseconds +
+            thread_times.system_time.seconds * 1000000 +
+            thread_times.system_time.microseconds
+        ;
+
+        // Get the number of processors
+        host_basic_info_data_t hostInfo;
+        mach_msg_type_number_t hostCount = HOST_BASIC_INFO_COUNT;
+        auto const hi = host_info(
+            mach_host_self(), HOST_BASIC_INFO, (host_info_t)&hostInfo, &hostCount
+        );
+        if( hi != KERN_SUCCESS ) {
+            return 0.0;
+        }
+        num_processors = hostInfo.avail_cpus;
+
+        initialized = true;
+        return 0.0;
+    }
+
+    struct timeval current_time;
+    gettimeofday(&current_time, NULL);
+    auto const ti = task_info(
+        mach_task_self(), TASK_THREAD_TIMES_INFO, (task_info_t)&thread_times, &count
+    );
+    if( ti != KERN_SUCCESS ) {
+        return 0.0;
+    }
+    uint64_t total_time =
+        thread_times.user_time.seconds * 1000000 +
+        thread_times.user_time.microseconds +
+        thread_times.system_time.seconds * 1000000 +
+        thread_times.system_time.microseconds
+    ;
+    uint64_t elapsed_time =
+        (current_time.tv_sec - last_time.tv_sec) * 1000000 +
+        (current_time.tv_usec - last_time.tv_usec)
+    ;
+    double result = (total_time - last_total_time) / static_cast<double>(elapsed_time);
+    if( total ) {
+        result *= num_processors;
+    }
+    if( percent ) {
+        result *= 100;
+    }
+
+    last_time = current_time;
+    last_total_time = total_time;
+
+    return result;
+}
+
+#elif defined( __GNUC__ ) || defined( __clang__ )
+
+size_t info_current_memory_usage()
+{
+    // https://stackoverflow.com/q/63166/4184258
+
+    auto parse_line_ = []( char* line ) {
+        // This assumes that a digit will be found and the line ends in " Kb".
+        auto i = strlen(line);
+        const char* p = line;
+        while(( p < line + i && *p != 0 ) && ( *p < '0' || *p > '9' )) {
+            p++;
+        }
+        if( i > 3 && p < line + i && *p != 0 ) {
+            line[i-3] = '\0';
+            i = atoi(p);
+        }
+        return i;
+    };
+
+    //Note: this value is in KB!
+    FILE* file = fopen("/proc/self/status", "r");
+    size_t result = 0;
+    char line[128];
+
+    while (fgets(line, 128, file) != NULL){
+        if (strncmp(line, "VmRSS:", 6) == 0){
+            result = parse_line_(line);
+            break;
+        }
+    }
+    fclose(file);
+    return result * 1024;
+}
+
+double info_current_cpu_usage( bool total, bool percent )
+{
+    // https://stackoverflow.com/q/63166/4184258
+
+    static clock_t lastCPU, lastSysCPU, lastUserCPU;
+    static int num_processors;
+    static bool initialized = false;
+
+    if( ! initialized ) {
+        struct tms timeSample;
+        char line[128];
+
+        lastCPU = times(&timeSample);
+        lastSysCPU = timeSample.tms_stime;
+        lastUserCPU = timeSample.tms_utime;
+
+        FILE* file = fopen("/proc/cpuinfo", "r");
+        if( file ) {
+            num_processors = 0;
+            while(fgets(line, 128, file) != NULL){
+                if( strncmp(line, "processor", 9) == 0 ) {
+                    ++num_processors;
+                }
+            }
+            fclose(file);
+
+            initialized = true;
+        }
+        return 0.0;
+    }
+
+    struct tms timeSample;
+    clock_t now;
+    double result;
+
+    now = times(&timeSample);
+    if( now <= lastCPU || timeSample.tms_stime < lastSysCPU || timeSample.tms_utime < lastUserCPU ) {
+        //Overflow detection. Just skip this value.
+        result = 0.0;
+    } else {
+        result = (timeSample.tms_stime - lastSysCPU) + (timeSample.tms_utime - lastUserCPU);
+        result /= (now - lastCPU);
+        if( ! total ) {
+            result /= num_processors;
+        }
+        if( percent ) {
+            result *= 100;
+        }
+    }
+    lastCPU = now;
+    lastSysCPU = timeSample.tms_stime;
+    lastUserCPU = timeSample.tms_utime;
+
+    return result;
+}
+
+#else
+
+size_t info_current_memory_usage()
+{
+    return 0;
+}
+
+double info_current_cpu_usage( bool total, bool percent )
+{
+    (void) total;
+    (void) percent;
+    return 0.0;
+}
+
+#endif
+
+// =================================================================================================
+//     Total Resource Usage
+// =================================================================================================
+
+size_t info_peak_memory_usage()
 {
     // Adapted from https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
 
@@ -1092,7 +1396,7 @@ size_t info_memory_usage()
     #endif
 }
 
-std::pair<double, double> info_cpu_time()
+std::pair<double, double> info_total_cpu_time()
 {
     // https://www.gnu.org/software/libc/manual/html_node/Resource-Usage.html
     struct rusage r_usage;
@@ -1105,23 +1409,28 @@ std::pair<double, double> info_cpu_time()
     return std::make_pair( u_tmr, s_tmr );
 }
 
-double info_energy_consumption()
+double info_total_energy_consumption()
 {
     // Adapted from https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
 
-    double energy = 0;
-    size_t max_packages = 32;
     try {
-        for (size_t i = 0; i < max_packages; i++) {
+        double energy = 0.0;
+        auto const basepath = "/sys/class/powercap/intel-rapl/intel-rapl:";
+
+        // Sum up over all energy files
+        size_t const max_packages = 32;
+        for( size_t i = 0; i < max_packages; ++i ) {
             double pkg_energy;
-            auto fname = "/sys/class/powercap/intel-rapl/intel-rapl:" + std::to_string(i) + "/energy_uj";
-            if (!file_is_readable(fname)) {
+            auto const fname = basepath + std::to_string(i) + "/energy_uj";
+            if( !file_is_readable(fname) ) {
                 break;
             }
             std::ifstream fs(fname);
             fs >> pkg_energy;
             energy += pkg_energy;
         }
+
+        // Prepare output
         energy /= 1e6; // convert to Joules
         energy /= 3600; // convert to Wh
         return energy;
@@ -1131,12 +1440,12 @@ double info_energy_consumption()
     return 0.0;
 }
 
-std::string info_print_usage()
+std::string info_print_total_usage()
 {
     // Get data.
-    auto const time = info_cpu_time();
-    auto const memory = info_memory_usage();
-    auto const energy = info_energy_consumption();
+    auto const time = info_total_cpu_time();
+    auto const memory = info_peak_memory_usage();
+    auto const energy = info_total_energy_consumption();
 
     // Print everything.
     std::stringstream ss;
