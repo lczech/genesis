@@ -152,11 +152,13 @@ struct InfoHardware
      */
     size_t total_memory;
 
-    // Vendor
+    // CPU
     bool vendor_AMD;
     bool vendor_Intel;
     std::string vendor_string;
     std::string cpu_model;
+    size_t physical_core_count;
+    bool with_hyperthreading;
 
     //  OS Features
     bool OS_x64;

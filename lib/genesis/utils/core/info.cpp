@@ -123,7 +123,7 @@
 #elif defined( __APPLE__ )
 #    include <sys/time.h>
 #    include <sys/types.h>
-#    include <sys/sysinfo.h>
+// #    include <sys/sysinfo.h>
 #    include <mach/mach.h>
 #    include <mach/task_info.h>
 #    include <sys/resource.h>
@@ -134,7 +134,7 @@
 #    include <stdio.h>
 #    include <string.h>
 #    include <sys/times.h>
-#    include <sys/vtimes.h>
+// #    include <sys/vtimes.h>
 #endif
 
 #ifdef GENESIS_OPENMP
@@ -574,6 +574,8 @@ InfoHardware const& info_get_hardware()
         result.vendor_AMD = true;
     }
     result.cpu_model = get_cpu_model_();
+    result.physical_core_count = info_physical_core_count();
+    result.with_hyperthreading = info_hyperthreads_enabled();
 
     //  OS Features
     result.OS_x64 = detect_OS_x64_();
@@ -695,6 +697,8 @@ std::string info_print_hardware( bool full )
     ss << "    CPU model     = " << info_hardware.cpu_model << "\n";
     print_("    AMD           = ", info_hardware.vendor_AMD);
     print_("    Intel         = ", info_hardware.vendor_Intel);
+    ss << "    Cores         = " << info_hardware.physical_core_count << "\n";
+    print_("    Hyperthreads  = ", info_hardware.with_hyperthreading);
     ss << "\n";
 
     if( full ) {
@@ -865,7 +869,7 @@ size_t get_core_id_( std::string const& cpu_path )
     return read_id_from_file_(cpu_path + "core_id");
 }
 
-int get_physical_core_count_(size_t n_cpu)
+int get_physical_core_count_( size_t n_cpu )
 {
     // Adapted from https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
     #if defined(__linux__)

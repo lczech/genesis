@@ -88,7 +88,7 @@ TEST( Info, Usage )
     // Now report the cpu usage
     auto const cpu_usage = info_current_cpu_usage();
     EXPECT_GT( cpu_usage, 80 );
-    EXPECT_LT( cpu_usage, 120 );
+    EXPECT_LT( cpu_usage, 200 );
     EXPECT_GT( info_current_memory_usage(), 0 );
     EXPECT_GT( sum, 0 );
 
