@@ -883,7 +883,7 @@ int get_physical_core_count_( size_t n_cpu )
         }
         return cores.size();
     #else
-        void(n_cpu);
+        (void) n_cpu;
         return 0;
     #endif
 }
