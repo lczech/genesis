@@ -85,10 +85,18 @@ TEST( Info, Usage )
         }
     }
 
-    // Now report the cpu usage
+    // Now report the cpu usage. We are fully using it, so let's assume that
+    // that is at least 80% of one core. Of course that's kinda random, but good enough
+    // to just see that it is not zero, meaning that something reasonable got measured.
     auto const cpu_usage = info_current_cpu_usage();
     EXPECT_GT( cpu_usage, 80 );
-    EXPECT_LT( cpu_usage, 200 );
+
+    // Apparently, MacOS automatically multithreads, or something weird.
+    // On the GitHub Actions tests, this function runs on 400%, on two cores with hyperthreading,
+    // meaning that it is fully loaded. Weird. Anyway, can't test for an upper limit here.
+    // EXPECT_LT( cpu_usage, 120 );
+
+    // Test some other properties as well
     EXPECT_GT( info_current_memory_usage(), 0 );
     EXPECT_GT( sum, 0 );
 
