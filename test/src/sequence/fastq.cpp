@@ -32,8 +32,8 @@
 
 #include "genesis/sequence/formats/fastq_reader.hpp"
 #include "genesis/sequence/formats/fastq_writer.hpp"
-#include "genesis/sequence/formats/fastq_input_view_stream.hpp"
 #include "genesis/sequence/formats/fastx_input_stream.hpp"
+#include "genesis/sequence/formats/fastx_input_view_stream.hpp"
 #include "genesis/sequence/formats/fastx_output_stream.hpp"
 #include "genesis/sequence/functions/quality.hpp"
 #include "genesis/sequence/sequence_set.hpp"
@@ -149,7 +149,7 @@ TEST( Sequence, FastqInputViewStream )
 
     size_t cnt = 0;
     size_t sum_labels = 0;
-    auto it = FastqInputViewStream( utils::from_file( infile ));
+    auto it = FastxInputViewStream( utils::from_file( infile ));
     for( auto const& seq : it ) {
         EXPECT_TRUE( seq.label().size() >= 21 || seq.label().size() <= 23 );
         EXPECT_EQ( 31, seq.sites().size() );

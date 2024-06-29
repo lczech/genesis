@@ -33,6 +33,7 @@
 #include "genesis/sequence/formats/fasta_reader.hpp"
 #include "genesis/sequence/formats/fasta_writer.hpp"
 #include "genesis/sequence/formats/fastx_input_stream.hpp"
+#include "genesis/sequence/formats/fastx_input_view_stream.hpp"
 #include "genesis/sequence/formats/fastx_output_stream.hpp"
 #include "genesis/sequence/functions/codes.hpp"
 #include "genesis/sequence/functions/functions.hpp"
@@ -213,6 +214,29 @@ TEST( Sequence, FastaGzip )
     EXPECT_EQ( "Di106BGTue",           sset[0].label() );
     EXPECT_EQ( "TCGAAACCTGC------CTA", sset[0].sites().substr( 0, 20 ) );
 }
+
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+TEST( Sequence, FastaInputViewStream )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string infile = environment->data_dir + "sequence/dna_10_single.fasta";
+
+    size_t cnt = 0;
+    size_t sum_labels = 0;
+    auto it = FastxInputViewStream( utils::from_file( infile ));
+    for( auto const& seq : it ) {
+        EXPECT_TRUE( seq.label().size() >= 10 || seq.label().size() <= 15 );
+        EXPECT_EQ( 460, seq.sites().size() );
+        ++cnt;
+        sum_labels += seq.label().size();
+    }
+    EXPECT_EQ( 10, cnt );
+    EXPECT_EQ( 112, sum_labels );
+}
+
+#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 
 TEST( Sequence, FastaWriter )
 {

@@ -1,5 +1,5 @@
-#ifndef GENESIS_SEQUENCE_FORMATS_FASTQ_INPUT_VIEW_STREAM_H_
-#define GENESIS_SEQUENCE_FORMATS_FASTQ_INPUT_VIEW_STREAM_H_
+#ifndef GENESIS_SEQUENCE_FORMATS_FASTX_INPUT_VIEW_STREAM_H_
+#define GENESIS_SEQUENCE_FORMATS_FASTX_INPUT_VIEW_STREAM_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -37,6 +37,7 @@
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/text/char.hpp"
 
 #include <array>
 #include <cassert>
@@ -54,23 +55,31 @@ namespace sequence {
 //     Fasta and Fastq Input Stream
 // =================================================================================================
 
+// Simple aliases for more expressive code.
+class FastxInputViewStream;
+using FastaInputViewStream = FastxInputViewStream;
+using FastqInputViewStream = FastxInputViewStream;
+
 /**
- * @brief Stream through an input source and parse it as Fastq sequences, returning string views.
+ * @brief Stream through an input source and parse it as Fasta or Fastq sequences, returning
+ * string views into the parts of each record.
  *
- * This class allows to iterate over an input source, interpreting it as Fastq sequences,
- * and yielding one such sequence per iteration step, as simple string views into the four
- * components of a fastq record. This is useful for fast processing large files
- * without having to keep them fully in memory, or even allocate strings.
+ * This class allows to iterate over an input source, interpreting it as Fasta or Fastq sequences,
+ * and yielding one such sequence per iteration step, as simple string views into the two components
+ * of a fasta record, or four components of a fastq record. This is useful for fast processing
+ * large files without having to keep them fully in memory, or even allocate strings. The format
+ * is detected automatically.
  *
  * In order to allow for the speed, this iterator does not make copies of the data. The returned
- * views are invalidated when incrementing the iterator. Furthermore, the input fastq file needs
- * to be of a stricter format than what the FastqInputStream can handle:
+ * views are invalidated when incrementing the iterator. Furthermore, the input fasta/fastq file
+ * needs to be of a stricter format than what the FastaInputStream and FastqInputStream can handle:
  *
- *   * Each record needs to consist of exactly four lines: Label, sequence, label again, quality.
- *     No line breaks are allowed within the sequence or quality strings.
+ *   * Each record needs to consist of exactly two/four lines: label, sequence, (label again,
+ *     quality). No line breaks are allowed within the sequence or quality strings.
  *   * The total length of a record cannot exceed the internal buffer length of the input stream,
  *     which at the time of writing is set to 4MB. Assuming short labels, that means that the
- *     sequence length cannot be more than ~2MB, plus ~2MB for the quality length.
+ *     sequence length cannot be more than ~4MB for fasta and more than ~2MB, plus ~2MB for the
+ *     quality length for fastq (plus some margin for the sequence labels).
  *
  * This stream is hence meant for short reads. It barely does any error checking, in order to allow
  * for maximum speed. We hence assume correct input files, and might crash unexpectedly if
@@ -78,7 +87,7 @@ namespace sequence {
  *
  * Example:
  *
- *     for( auto const& s : FastqInputViewStream( from_file( "/path/to/large_file.fastq" ))) {
+ *     for( auto const& s : FastxInputViewStream( from_file( "/path/to/large_file.fastq" ))) {
  *         std::cout << s.sites() << "\n";
  *     }
  *
@@ -89,7 +98,7 @@ namespace sequence {
  * Thus, guarding induces unnecessary overhead. If multiple threads read from this iterator, both
  * dereferencing and incrementing need to be guarded.
  */
-class FastqInputViewStream
+class FastxInputViewStream
 {
 public:
 
@@ -97,7 +106,7 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using self_type         = FastqInputViewStream;
+    using self_type         = FastxInputViewStream;
     using value_type        = Sequence;
     using pointer           = value_type*;
     using reference         = value_type&;
@@ -124,7 +133,7 @@ public:
 
     public:
 
-        using self_type         = FastqInputViewStream::Iterator;
+        using self_type         = FastxInputViewStream::Iterator;
         using value_type        = std::array<std::string_view, 4>;
         using pointer           = value_type const*;
         using reference         = value_type const&;
@@ -139,7 +148,7 @@ public:
 
         Iterator() = default;
 
-        Iterator( FastqInputViewStream const* parent )
+        Iterator( FastxInputViewStream const* parent )
             : parent_( parent )
         {
             // Safeguard
@@ -149,6 +158,28 @@ public:
 
             // Start reading from the input source into a stream.
             input_stream_ = std::make_shared<utils::InputStream>( parent_->input_source_ );
+
+            // Check whether the input stream is good (not end-of-stream) and can be read from.
+            // If not, we reached its end, so we stop immediately.
+            if( ! input_stream_ || ! *input_stream_ ) {
+                parent_ = nullptr;
+                input_stream_ = nullptr;
+                sequence_view_ = std::array<std::string_view, 4>();
+                return;
+            }
+
+            // Check the format. We then stick with it of the rest of the streaming.
+            if( **input_stream_ == '>' ) {
+                format_is_fasta_ = true;
+            } else if( **input_stream_ == '@' ) {
+                format_is_fasta_ = false;
+            } else {
+                throw std::runtime_error(
+                    "Malformed fasta/fastq " + input_stream_->source_name() +
+                    ", starting with neither '>' nor '@', but instead " +
+                    utils::char_to_hex( **input_stream_ )
+                );
+            }
 
             // Start streaming the data
             increment_();
@@ -164,7 +195,7 @@ public:
         Iterator& operator= ( self_type const& ) = default;
         Iterator& operator= ( self_type&& )      = default;
 
-        friend FastqInputViewStream;
+        friend FastxInputViewStream;
 
         // -------------------------------------------------------------------------
         //     Iterator Accessors
@@ -204,7 +235,7 @@ public:
          * @brief Compare two iterators for equality.
          *
          * Any two iterators that are created by calling begin() on the same
-         * FastqInputViewStream instance will compare equal, as long as neither of them is
+         * FastxInputViewStream instance will compare equal, as long as neither of them is
          * past-the-end. A valid (not past-the-end) iterator and an end() iterator will not compare
          * equal; all past-the-end iterators compare equal, independently from which parent they
          * were created.
@@ -236,7 +267,8 @@ public:
         /**
          * @brief Get the first label line.
          *
-         * This is an alias for label(), and provided as a means of distinction with label2().
+         * This is an alias for label(), and provided as a means of distinction with label2(),
+         * for fastq formats, where the label might be repeated.
          */
         std::string_view const& label1() const
         {
@@ -257,8 +289,8 @@ public:
         /**
          * @brief Get the second label line.
          *
-         * This is usally either empty or identical to the first label line. We do not check this,
-         * and just return the data as it was in the input.
+         * This is usally either empty or identical to the first label line in fastq. In fasta, it
+         * is always empty. We do not check this, and just return the data as it was in the input.
          */
         std::string_view const& label2() const
         {
@@ -268,9 +300,9 @@ public:
         /**
          * @brief Get the quality string.
          *
-         * This contains just the characters as they are in the input. In order to decode them
-         * into more usable phred scores or similar, use functions such as
-         * quality_decode_to_phred_score() on the returned string.
+         * This contains just the quality string characters as they are in the input of fastq.
+         * In order to decode them into more usable phred scores or similar, use functions such
+         * as quality_decode_to_phred_score() on the returned string. Always empty on fasta.
          */
         std::string_view const& quality() const
         {
@@ -288,6 +320,67 @@ public:
         // ---------------------------------------------
 
         void increment_()
+        {
+            if( format_is_fasta_ ) {
+                increment_fasta_();
+            } else {
+                increment_fastq_();
+            }
+        }
+
+        void increment_fasta_()
+        {
+            assert( parent_ );
+
+            // Check whether the input stream is good (not end-of-stream) and can be read from.
+            // If not, we reached its end, so we stop reading in the next iteration.
+            if( ! input_stream_ || ! *input_stream_ ) {
+                parent_ = nullptr;
+                input_stream_ = nullptr;
+                sequence_view_ = std::array<std::string_view, 4>();
+                return;
+            }
+
+            // Get the next record. Also give a more user friendly error if this does not work.
+            try {
+                // We do a transfer here to the shared buffer for fastq and fasta.
+                // We could use two buffers instead to avoid this, but that would introduce a
+                // switch in the getters, which is also not nice.
+                auto seqs = input_stream_->get_line_views<2>();
+                sequence_view_[0] = seqs[0];
+                sequence_view_[1] = seqs[1];
+            } catch( std::exception const& ex ) {
+                throw std::runtime_error(
+                    "Cannot stream through fasta " + input_stream_->source_name() +
+                    " with fast string view parser, either because the file is corrupt, "
+                    "or has lines that are too long. Error: " + ex.what()
+                );
+            }
+
+            // Parse label
+            if( sequence_view_[0].size() < 1 || sequence_view_[0][0] != '>' ) {
+                throw std::runtime_error(
+                    "Malformed fasta " + input_stream_->source_name() + ": Expecting '>' at "
+                    "beginning of label near line " + std::to_string( input_stream_->line() ) +
+                    ". Note that we here can only process fasta with single lines for the " +
+                    "sequence and quality data."
+                );
+            }
+            sequence_view_[0].remove_prefix( 1 );
+
+            // Basic check of sequence length.
+            if( sequence_view_[1].empty() ) {
+                throw std::runtime_error(
+                    "Malformed fasta " + input_stream_->source_name() + ": Expecting a " +
+                    "sequence sites line after the first label line near line "
+                    + std::to_string( input_stream_->line() ) +
+                    ". Note that we here can only process fasta with single lines for the " +
+                    "sequence and quality data."
+                );
+            }
+        }
+
+        void increment_fastq_()
         {
             assert( parent_ );
 
@@ -361,10 +454,13 @@ public:
     private:
 
         // Parent. If null, this indicates the end of the input and that we are done iterating.
-        FastqInputViewStream const* parent_ = nullptr;
+        FastxInputViewStream const* parent_ = nullptr;
 
         // Data stream to read from.
         std::shared_ptr<utils::InputStream> input_stream_;
+
+        // fasta = true, fastq = false
+        bool format_is_fasta_;
 
         // The sequence that we parse the input into and expose to the user.
         std::array<std::string_view, 4> sequence_view_;
@@ -381,23 +477,23 @@ public:
     /**
      * @brief Create a default instance, with no input.
      */
-    FastqInputViewStream()
+    FastxInputViewStream()
         : input_source_( nullptr )
     {}
 
     /**
      * @brief Create an instance that reads from an input source.
      */
-    explicit FastqInputViewStream(
+    explicit FastxInputViewStream(
         std::shared_ptr<utils::BaseInputSource> source
     )
         : input_source_( source )
     {}
 
-    ~FastqInputViewStream() = default;
+    ~FastxInputViewStream() = default;
 
-    FastqInputViewStream( self_type const& ) = default;
-    FastqInputViewStream( self_type&& )      = default;
+    FastxInputViewStream( self_type const& ) = default;
+    FastxInputViewStream( self_type&& )      = default;
 
     self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
