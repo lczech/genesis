@@ -31,6 +31,9 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/std.hpp"
+#include "genesis/utils/containers/threadsafe_queue.hpp"
+
 #include <array>
 #include <cassert>
 #include <climits>
@@ -38,6 +41,7 @@
 #include <deque>
 #include <functional>
 #include <limits>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <string>
@@ -101,8 +105,9 @@ private:
     // We use the slots as indicators which elements in the slots of a block have been set already.
     // Using 64 slots fixed for now, for efficiency. Might parameterize as template param,
     // so that the buffer can be made smaller if needed for large elements instead.
-    using BlockSlots = uint64_t;
-    static const size_t BlockSize = CHAR_BIT * sizeof( BlockSlots );
+    using BlockSlotBits = uint64_t;
+    static const BlockSlotBits ALL_SLOTS = std::numeric_limits<BlockSlotBits>::max();
+    static const size_t BLOCK_SLOT_SIZE = CHAR_BIT * sizeof( BlockSlotBits );
     static_assert( CHAR_BIT == 8, "CHAR_BIT != 8" );
 
     // For sequentially capturing output, we need to know which elements have already been set.
@@ -115,8 +120,8 @@ private:
     // again, 64 is an okay number to buffer anyway in a highly multi-threaded environment.
     struct Block
     {
-        BlockSlots occupied = 0;
-        std::array<T, BlockSize> slots;
+        BlockSlotBits occupied_slots = 0;
+        std::array<T, BLOCK_SLOT_SIZE> slots;
     };
 
     // -------------------------------------------------------------------------
@@ -131,7 +136,8 @@ public:
      *
      * The @p output_function is called exactly once for each emplaced element, in their order.
      * By default, the sequence order starts at 0, unless @p first_sequence_id is set to some
-     * other value.
+     * other value, and has to be dense, i.e., in the end, all sequence ids from the first one
+     * to the last have to be emplaced at some point, with no gaps.
      */
     SequentialOutputBuffer( std::function<void(T&&)> output_function, size_t first_sequence_id = 0 )
         : head_sequence_id_( first_sequence_id )
@@ -178,8 +184,7 @@ public:
     void emplace( size_t sequence_id, T&& element )
     {
         // Lock the mutex, as everything from here on needs exclusive access.
-        // Freed automatically at the end of the scope.
-        std::lock_guard<std::mutex> lock( mutex_ );
+        std::unique_lock<std::mutex> block_lock( block_mutex_ );
 
         // Fundamental checks.
         if( !output_function_ ) {
@@ -195,42 +200,30 @@ public:
             );
         }
 
-        // Get the indices into the block chain that we need.
-        auto const index = sequence_id - head_sequence_id_;
-        auto const block_index = index / BlockSize;
-        auto const slot_index  = index % BlockSize;
-        auto const slot_bit = static_cast<BlockSlots>( 1 ) << slot_index;
-        assert( slot_bit != 0 );
+        // Emplace the element
+        emplace_element_( sequence_id, std::move( element ));
 
-        // Get the block we need, creating it if not present.
-        while( block_deque_.size() < block_index + 1 ) {
-            block_deque_.emplace_back();
-        }
-        assert( block_deque_.size() > block_index );
-        auto& block = block_deque_[block_index];
-
-        // Check that the element has not been set already.
-        if( block.occupied & slot_bit ) {
-            throw std::runtime_error(
-                "Invalid sequence in Sequential Output Buffer, emplacing element " +
-                std::to_string( sequence_id ) + ", which has already been emplaced before"
-            );
+        // Check if the first blocks are ready for output, i.e., if all their slots are full.
+        // If not, we are done here, at which point the above lock on the mutex gets released.
+        if( block_deque_.empty() || block_deque_.front()->occupied_slots != ALL_SLOTS ) {
+            return;
         }
 
-        // Insert the element, and set its slot bit.
-        block.slots[slot_index] = std::move( element );
-        block.occupied |= slot_bit;
+        // Here, we know that at least the first block is ready for output, as all its slots are full.
+        // Transfer all full blocks at the front to the output queue, after which we can release
+        // the block_mutex_ again. At this point, other threads can keep adding to the buffer,
+        // while we process the output, while then holding the output_mutex_. This way,
+        // we avoid having other threads to wait adding to the buffer while processing.
+        transfer_full_blocks_to_output_queue_();
 
-        // Finally, if all the bits in the first blocks are set, we can process them for output,
-        // and remove them from the buffer.
-        static const BlockSlots full_block = std::numeric_limits<BlockSlots>::max();
-        while( block_deque_.size() > 0 && block_deque_[0].occupied == full_block ) {
-            for( size_t i = 0; i < BlockSize; ++i ) {
-                output_function_( std::move( block_deque_[0].slots[i] ));
-            }
-            block_deque_.pop_front();
-            head_sequence_id_ += BlockSize;
-        }
+        // We have transferred all blocks that are ready, and can release the lock on block_mutex_,
+        // so that other threads can continue emplacing elements. Then, we can process the blocks
+        // we have just transferred. This is as close as we can get to lock-free behaviour without
+        // massive over-engineering (there is probably a way to avoid the lock in this function here,
+        // by processing the slots in some atomic way), while still maintaining the correct output
+        // order (which has no way around a lock on the actual output processing, I think).
+        block_lock.unlock();
+        process_output_queue_();
     }
 
     /**
@@ -240,9 +233,12 @@ public:
      */
     void close()
     {
-        // Lock, just in case this is used in a weird way. If multiple places call this at once,
-        // the second one will fail anyway.
-        std::lock_guard<std::mutex> lock( mutex_ );
+        // Lock both mutexes, just in case this is used in a weird way. We never do this anywhere
+        // else, so there should be no deadlock possible here. Also, this function is not meant
+        // to be called in a concurrent way anyway. If multiple places call this at once,
+        // the second call will wait here, and then fail, as we can only call close() once.
+        std::lock_guard<std::mutex> block_lock( block_mutex_ );
+        std::lock_guard<std::mutex> output_lock( output_mutex_ );
 
         // Make sure that we are in a valid state. This function might have been called already,
         // and then again in the destructor. In that case, do nothing. Otherwise, it's an error.
@@ -256,47 +252,142 @@ public:
         }
         assert( output_function_ );
 
+        // Process the last blocks, and indicate that we are closed already.
+        // No more emplacing possible after this.
+        process_last_blocks_();
+        output_function_ = nullptr;
+    }
 
+    // -------------------------------------------------------------------------
+    //     Private Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    void emplace_element_( size_t sequence_id, T&& element )
+    {
+        // Assumes that caller holds a lock on block_mutex_,
+        // and assumes the following two properties.
+        assert( output_function_ );
+        assert( sequence_id >= head_sequence_id_ );
+
+        // Get the indices into the block chain that we need.
+        auto const index = sequence_id - head_sequence_id_;
+        auto const block_index = index / BLOCK_SLOT_SIZE;
+        auto const slot_index  = index % BLOCK_SLOT_SIZE;
+        auto const slot_bit = static_cast<BlockSlotBits>( 1 ) << slot_index;
+        assert( slot_bit != 0 );
+
+        // Get the block we need, creating it if not present.
+        while( block_deque_.size() < block_index + 1 ) {
+            block_deque_.emplace_back(
+                genesis::utils::make_unique<Block>()
+            );
+        }
+        assert( block_deque_.size() > block_index );
+        auto& block = *block_deque_[block_index];
+
+        // Check that the element has not been set already.
+        if( block.occupied_slots & slot_bit ) {
+            throw std::runtime_error(
+                "Invalid sequence in Sequential Output Buffer, emplacing element " +
+                std::to_string( sequence_id ) + ", which has already been emplaced before"
+            );
+        }
+
+        // Insert the element, and set its slot bit to mark that this is set now.
+        block.slots[slot_index] = std::move( element );
+        block.occupied_slots |= slot_bit;
+    }
+
+    void transfer_full_blocks_to_output_queue_()
+    {
+        // Assumes that caller holds a lock on block_mutex_,
+        // and assumes the following property, meaning there is a full block at the front.
+        assert( block_deque_.size() > 0 && block_deque_.front()->occupied_slots == ALL_SLOTS );
+
+        // Transfer all full blocks from the front to the output queue.
+        // While this is being transferred, there might be another thread that is currently
+        // in process_output_queue_(), but that's okay, because we are using a thread safe queue
+        // for the transfer. In that case, the other thread will also process the elements
+        // pushed from here. Then, once our thread here gets to the process_output_queue_() as well,
+        // there might be nothing to do any more, and that's okay.
+        while( block_deque_.size() > 0 && block_deque_.front()->occupied_slots == ALL_SLOTS ) {
+            output_queue_.push( std::move( block_deque_.front() ));
+            block_deque_.pop_front();
+            head_sequence_id_ += BLOCK_SLOT_SIZE;
+        }
+    }
+
+    void process_output_queue_()
+    {
+        // We obtain a lock on the output_mutex_, to make sure that everything is in the correct
+        // order. If any other thread is currently writing output, we will have to wait here.
+        std::lock_guard<std::mutex> output_lock( output_mutex_ );
+        assert( output_function_ );
+        while( !output_queue_.empty() ) {
+
+            // Get the front element of the queue. This always succeeds, as we have a lock
+            // on this function and it is the only place where elements are removed.
+            // If any other thread adds elements in the meantime, that's okay as well.
+            std::unique_ptr<Block> block;
+            if( ! output_queue_.try_pop( block )) {
+                throw std::runtime_error( "Internal error: broken lock in SequentialOutputBuffer" );
+            }
+            if( block->occupied_slots != ALL_SLOTS ) {
+                throw std::runtime_error( "Internal error: broken block in SequentialOutputBuffer" );
+            }
+
+            // Now process the block.
+            for( size_t slot = 0; slot < BLOCK_SLOT_SIZE; ++slot ) {
+                output_function_( std::move( block->slots[slot] ));
+            }
+        }
+    }
+
+    void process_last_blocks_()
+    {
         // Here, we know we need to wrap up. We process all elements, checking each time that
         // the sequence is complete, and remove them until nothing is left.
         // We cannot have more than the last unfinished block here, as all previous ones
         // are already processed if the order is correct. Still, we process this in a loop,
         // so that any errors can be elegantly handled and reported.
         size_t closed_blocks = 0;
-        while( block_deque_.size() > 0 ) {
+        while( ! block_deque_.empty() ) {
+            auto& first_block = *block_deque_.front();
 
             // Process the currently first block in the deque, stopping once we find an unused slot.
-            size_t i = 0;
-            for( ; i < BlockSize; ++i ) {
-                auto const slot_bit = static_cast<BlockSlots>( 1 ) << i;
+            size_t slot = 0;
+            for( ; slot < BLOCK_SLOT_SIZE; ++slot ) {
+                auto const slot_bit = static_cast<BlockSlotBits>( 1 ) << slot;
                 assert( slot_bit != 0 );
 
                 // If the slot bit is set, we can process the element.
                 // If not, we are done - in that case, for the buffer to be valid, there must be
                 // no further blocks or slots after this one, which we check below.
-                if( !( block_deque_[0].occupied & slot_bit )) {
+                if( !( first_block.occupied_slots & slot_bit )) {
                     break;
                 }
 
                 // Process the element, and unset its slot bit.
-                output_function_( std::move( block_deque_[0].slots[i] ));
-                assert( block_deque_[0].occupied & slot_bit );
-                block_deque_[0].occupied ^= slot_bit;
-                assert( !( block_deque_[0].occupied & slot_bit ));
+                output_function_( std::move( first_block.slots[slot] ));
+                assert( first_block.occupied_slots & slot_bit );
+                first_block.occupied_slots ^= slot_bit;
+                assert( !( first_block.occupied_slots & slot_bit ));
             }
 
             // We processed the first block. It now needs to be empty for the buffer to be valid.
-            if( block_deque_[0].occupied ) {
+            if( first_block.occupied_slots || block_deque_.size() > 1 ) {
                 throw std::runtime_error(
                     "Invalid sequence in Sequential Output Buffer, closing the buffer with gaps "
-                    "at sequence id " + std::to_string( head_sequence_id_ + i )
+                    "at sequence id " + std::to_string( head_sequence_id_ + slot )
                 );
             }
 
             // We can now remove the block.
-            assert( i == BlockSize || block_deque_[0].occupied == 0 );
+            assert( slot == BLOCK_SLOT_SIZE || first_block.occupied_slots == 0 );
             block_deque_.pop_front();
-            head_sequence_id_ += BlockSize;
+            head_sequence_id_ += BLOCK_SLOT_SIZE;
             ++closed_blocks;
         }
 
@@ -304,9 +395,6 @@ public:
         // So indeed, as stated above, this must have been a single block.
         (void) closed_blocks;
         assert( closed_blocks <= 1 );
-
-        // Now indicate that we are closed already. No more emplacing possible after this.
-        output_function_ = nullptr;
     }
 
     // -------------------------------------------------------------------------
@@ -315,13 +403,23 @@ public:
 
 private:
 
-    // This is meant for multithreaded access, so we need to lock it.
-    std::mutex mutex_;
+    // This is meant for multithreaded access, so we need to lock access to the main block deque,
+    // as well as the output processing deque that we keep internally.
+    std::mutex block_mutex_;
+    std::mutex output_mutex_;
 
     // A sequence of blocks, each containing slots for the elements.
+    // We store them via pointers, so that we can move them around quickly.
+    // We use a deque here, as we need index-based access to the elements.
+    std::deque<std::unique_ptr<Block>> block_deque_;
+
+    // Another sequence of blocks, but only those that are ready for output.
+    // We keep this separate, so that output processing in the thread that finishes a block
+    // does not make the other threads wait unnecessarily.
+    ThreadsafeQueue<std::unique_ptr<Block>> output_queue_;
+
     // We only ever need to keep the id (sequence order) of the first element of the first block
     // here, as everything else can easily be computed from that one.
-    std::deque<Block> block_deque_;
     size_t head_sequence_id_ = 0;
 
     // The function to process each element in the correct order with.
