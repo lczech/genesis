@@ -1,0 +1,334 @@
+#ifndef GENESIS_UTILS_CONTAINERS_SEQUENTIAL_OUTPUT_BUFFER_H_
+#define GENESIS_UTILS_CONTAINERS_SEQUENTIAL_OUTPUT_BUFFER_H_
+
+/*
+    Genesis - A toolkit for working with phylogenetic data.
+    Copyright (C) 2014-2024 Lucas Czech
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Contact:
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
+*/
+
+/**
+ * @brief
+ *
+ * @file
+ * @ingroup utils
+ */
+
+#include <array>
+#include <cassert>
+#include <climits>
+#include <cstdint>
+#include <deque>
+#include <functional>
+#include <limits>
+#include <mutex>
+#include <stdexcept>
+#include <string>
+
+namespace genesis {
+namespace utils {
+
+// =================================================================================================
+//     Sequential Output Buffer
+// =================================================================================================
+
+/**
+ * @brief Buffer structure for output to be produced in a well-defined sequential order.
+ *
+ * In multi-threaded processing, we might have cases where elements are computed in some semi-random
+ * order, depending on the speed of processing of each element in the compute threads. However,
+ * for ordered output, we might need the elements to be processed in their original sequential order.
+ * This class helps to achive this, by buffering elements along with their sequence id. Once the
+ * buffer is filled to some degree with a consecutive sequence of elements (we use blocks internally),
+ * the elements can be processed in the correct order by an output function.
+ *
+ * Elements are emplaced with a sequence id indicating their desired position in the output.
+ * Each id can only be used once, and after all elements have been processed, there shall be no
+ * gaps in the ids up until the highest id that was emplaced. After that, calling close() or
+ * destructing the buffer will then flush the remaining set of elements if their block was not
+ * yet completely filled.
+ *
+ * Example:
+ *
+ *     // Create a buffer that prints lines in the correct order.
+ *     auto seq_out_buff = SequentialOutputBuffer<std::string>(
+ *         [&]( std::string&& line ){
+ *             std::cout << line << "\n";
+ *         }
+ *     );
+ *
+ *     // Emplace elements in the buffer. This loop can be run in a thread pool,
+ *     // where each thread processed a subset of lines in some order. In that case,
+ *     // make sure to wait for all threads to finish before calling close().
+ *     for( size_t i = 0; i < num_lines; ++i ) {
+ *         seq_out_buff.emplace( i, lines[i] );
+ *     }
+ *     seq_out_buff.close();
+ *
+ * As we buffer all elements until they are ready, this class is meant for data that is roughly in
+ * the correct order already. If elements come in completely random order, we need to allocate
+ * the full range of memory spanning up to the differenence in the current id and the max id that
+ * was emplaced. It is hence best used in a multi-threaded setting, where some threads process
+ * elements in their order, so that the sequence of elements is only locally random, but overall
+ * monotonic.
+ */
+template<typename T>
+class SequentialOutputBuffer
+{
+    // -------------------------------------------------------------------------
+    //     Private Member Types
+    // -------------------------------------------------------------------------
+
+private:
+
+    // We use the slots as indicators which elements in the slots of a block have been set already.
+    // Using 64 slots fixed for now, for efficiency. Might parameterize as template param,
+    // so that the buffer can be made smaller if needed for large elements instead.
+    using BlockSlots = uint64_t;
+    static const size_t BlockSize = CHAR_BIT * sizeof( BlockSlots );
+    static_assert( CHAR_BIT == 8, "CHAR_BIT != 8" );
+
+    // For sequentially capturing output, we need to know which elements have already been set.
+    // This could be done with one bool per element, but that seems wasteful, and might be slightly
+    // inefficient due to the interleaved memory alignment of inserting single bools between
+    // elements. So instead, we store an array of elements at once, with a bit vector indicating
+    // which ones have already been set. This also reduces the amount of allocations of the deque,
+    // at the cost of higher upfront memory for whole blocks. This currently allocates blocks
+    // of 64 elements each time. For very large elements, we might want to reduce that. But then
+    // again, 64 is an okay number to buffer anyway in a highly multi-threaded environment.
+    struct Block
+    {
+        BlockSlots occupied = 0;
+        std::array<T, BlockSize> slots;
+    };
+
+    // -------------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------------
+
+public:
+
+    /**
+     * @brief Initialize a sequential output buffer with the function that is to be called
+     * for each element in the correct sequence order.
+     *
+     * The @p output_function is called exactly once for each emplaced element, in their order.
+     * By default, the sequence order starts at 0, unless @p first_sequence_id is set to some
+     * other value.
+     */
+    SequentialOutputBuffer( std::function<void(T&&)> output_function, size_t first_sequence_id = 0 )
+        : head_sequence_id_( first_sequence_id )
+        , output_function_( output_function )
+    {
+        if( !output_function ) {
+            throw std::invalid_argument(
+                "Cannot initialize SequentialOutputBuffer with empty output function"
+            );
+        }
+    }
+
+    ~SequentialOutputBuffer()
+    {
+        close();
+    }
+
+    SequentialOutputBuffer( SequentialOutputBuffer const& ) = delete;
+    SequentialOutputBuffer( SequentialOutputBuffer&& )      = default;
+
+    SequentialOutputBuffer& operator= ( SequentialOutputBuffer const& ) = delete;
+    SequentialOutputBuffer& operator= ( SequentialOutputBuffer&& )      = default;
+
+    // -------------------------------------------------------------------------
+    //     Element Access
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Emplace an @p element in the buffer, at the given @p sequence_id.
+     *
+     * This overload places a copy of the element in the buffer.
+     */
+    void emplace( size_t sequence_id, T const& element )
+    {
+        T copy = element;
+        emplace( sequence_id, std::move( copy ));
+    }
+
+    /**
+     * @brief Emplace an @p element in the buffer, at the given @p sequence_id.
+     *
+     * This overload places the element in the buffer by moving. Preferred if possible.
+     */
+    void emplace( size_t sequence_id, T&& element )
+    {
+        // Lock the mutex, as everything from here on needs exclusive access.
+        // Freed automatically at the end of the scope.
+        std::lock_guard<std::mutex> lock( mutex_ );
+
+        // Fundamental checks.
+        if( !output_function_ ) {
+            throw std::runtime_error(
+                "Cannot emplace element in SequentialOutputBuffer after it has been closed"
+            );
+        }
+        if( sequence_id < head_sequence_id_ ) {
+            throw std::runtime_error(
+                "Invalid sequence in Sequential Output Buffer, emplacing element " +
+                std::to_string( sequence_id ) + " when head is already at " +
+                std::to_string( head_sequence_id_ )
+            );
+        }
+
+        // Get the indices into the block chain that we need.
+        auto const index = sequence_id - head_sequence_id_;
+        auto const block_index = index / BlockSize;
+        auto const slot_index  = index % BlockSize;
+        auto const slot_bit = static_cast<BlockSlots>( 1 ) << slot_index;
+        assert( slot_bit != 0 );
+
+        // Get the block we need, creating it if not present.
+        while( block_deque_.size() < block_index + 1 ) {
+            block_deque_.emplace_back();
+        }
+        assert( block_deque_.size() > block_index );
+        auto& block = block_deque_[block_index];
+
+        // Check that the element has not been set already.
+        if( block.occupied & slot_bit ) {
+            throw std::runtime_error(
+                "Invalid sequence in Sequential Output Buffer, emplacing element " +
+                std::to_string( sequence_id ) + ", which has already been emplaced before"
+            );
+        }
+
+        // Insert the element, and set its slot bit.
+        block.slots[slot_index] = std::move( element );
+        block.occupied |= slot_bit;
+
+        // Finally, if all the bits in the first blocks are set, we can process them for output,
+        // and remove them from the buffer.
+        static const BlockSlots full_block = std::numeric_limits<BlockSlots>::max();
+        while( block_deque_.size() > 0 && block_deque_[0].occupied == full_block ) {
+            for( size_t i = 0; i < BlockSize; ++i ) {
+                output_function_( std::move( block_deque_[0].slots[i] ));
+            }
+            block_deque_.pop_front();
+            head_sequence_id_ += BlockSize;
+        }
+    }
+
+    /**
+     * @brief Close the buffer, i.e., process all remaining elements.
+     *
+     * After this, no new elements can be emplaced any more.
+     */
+    void close()
+    {
+        // Lock, just in case this is used in a weird way. If multiple places call this at once,
+        // the second one will fail anyway.
+        std::lock_guard<std::mutex> lock( mutex_ );
+
+        // Make sure that we are in a valid state. This function might have been called already,
+        // and then again in the destructor. In that case, do nothing. Otherwise, it's an error.
+        if( !output_function_ ) {
+            if( block_deque_.empty() ) {
+                return;
+            }
+            throw std::runtime_error(
+                "Invalid state of SequentialOutputBuffer after it has been closed"
+            );
+        }
+        assert( output_function_ );
+
+
+        // Here, we know we need to wrap up. We process all elements, checking each time that
+        // the sequence is complete, and remove them until nothing is left.
+        // We cannot have more than the last unfinished block here, as all previous ones
+        // are already processed if the order is correct. Still, we process this in a loop,
+        // so that any errors can be elegantly handled and reported.
+        size_t closed_blocks = 0;
+        while( block_deque_.size() > 0 ) {
+
+            // Process the currently first block in the deque, stopping once we find an unused slot.
+            size_t i = 0;
+            for( ; i < BlockSize; ++i ) {
+                auto const slot_bit = static_cast<BlockSlots>( 1 ) << i;
+                assert( slot_bit != 0 );
+
+                // If the slot bit is set, we can process the element.
+                // If not, we are done - in that case, for the buffer to be valid, there must be
+                // no further blocks or slots after this one, which we check below.
+                if( !( block_deque_[0].occupied & slot_bit )) {
+                    break;
+                }
+
+                // Process the element, and unset its slot bit.
+                output_function_( std::move( block_deque_[0].slots[i] ));
+                assert( block_deque_[0].occupied & slot_bit );
+                block_deque_[0].occupied ^= slot_bit;
+                assert( !( block_deque_[0].occupied & slot_bit ));
+            }
+
+            // We processed the first block. It now needs to be empty for the buffer to be valid.
+            if( block_deque_[0].occupied ) {
+                throw std::runtime_error(
+                    "Invalid sequence in Sequential Output Buffer, closing the buffer with gaps "
+                    "at sequence id " + std::to_string( head_sequence_id_ + i )
+                );
+            }
+
+            // We can now remove the block.
+            assert( i == BlockSize || block_deque_[0].occupied == 0 );
+            block_deque_.pop_front();
+            head_sequence_id_ += BlockSize;
+            ++closed_blocks;
+        }
+
+        // Here, we have finished the above successfully, without throwing.
+        // So indeed, as stated above, this must have been a single block.
+        (void) closed_blocks;
+        assert( closed_blocks <= 1 );
+
+        // Now indicate that we are closed already. No more emplacing possible after this.
+        output_function_ = nullptr;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    // This is meant for multithreaded access, so we need to lock it.
+    std::mutex mutex_;
+
+    // A sequence of blocks, each containing slots for the elements.
+    // We only ever need to keep the id (sequence order) of the first element of the first block
+    // here, as everything else can easily be computed from that one.
+    std::deque<Block> block_deque_;
+    size_t head_sequence_id_ = 0;
+
+    // The function to process each element in the correct order with.
+    std::function<void( T&& )> output_function_;
+};
+
+} // namespace utils
+} // namespace genesis
+
+#endif // include guard
