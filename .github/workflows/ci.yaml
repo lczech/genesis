@@ -89,7 +89,7 @@ jobs:
         #     exclude
         # -------------------------------------------------------
 
-        exclude:
+        # exclude:
           # Newer compiler versions are not available on all Ubuntu
           # - os: ubuntu-20.04
           #   compiler: gcc-12
