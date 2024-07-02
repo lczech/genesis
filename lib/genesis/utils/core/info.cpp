@@ -436,8 +436,11 @@ std::string info_print_compiler()
 
 #elif defined(__arm__) || defined(__aarch64__) || defined(__ARM_ARCH) // for M1/M2 chips
 
-    void get_cpuid_(int32_t out[4], int32_t eax, int32_t ecx)
+    void get_cpuid_( int32_t out[4], int32_t eax, int32_t ecx )
     {
+        (void) eax;
+        (void) ecx;
+
         // On ARM, for instance MacOS with M1/M2 chips, we do not detect any features at the moment.
         // That means we will just run vanilla code, but well, can't support everything.
         // Those processors seem to not have much support for SIMD anyway.
@@ -446,6 +449,7 @@ std::string info_print_compiler()
 
     uint64_t xgetbv(unsigned int index)
     {
+        (void) index;
         return 0;
     }
 
