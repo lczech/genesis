@@ -550,7 +550,7 @@ jobs:
             sudo xcode-select --switch /Library/Developer/CommandLineTools
           fi
 
-          cmake --build ./build -- -j 2
+          cmake --build ./build -- -j 4
 
       # -------------------------------------------------------
       #     Test

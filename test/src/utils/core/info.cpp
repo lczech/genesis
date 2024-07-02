@@ -107,7 +107,7 @@ TEST( Info, Usage )
 
     // Test totals
     EXPECT_GT( info_process_peak_memory_usage(), 0 );
-    EXPECT_GT( info_process_total_cpu_time(), 0 );
+    EXPECT_GT( info_process_total_cpu_time().first, 0.0 );
 
     // Same as above
     auto info_total = info_process_print_total_usage();
