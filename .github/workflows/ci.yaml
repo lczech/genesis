@@ -47,9 +47,14 @@ jobs:
 
       matrix:
 
-        # Need dummy entries for the matrix to pick up the variables
-        os: []
-        compiler: []
+        # Need dummy entries for the matrix to pick up the variables.
+        # We later set all other combinations that we want explicitly.
+        os:
+          - ubuntu-latest
+          - macos-latest
+        compiler:
+          - gcc
+          - llvm
 
         # Default to debug build
         build_type:
