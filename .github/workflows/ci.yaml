@@ -47,10 +47,16 @@ jobs:
 
       matrix:
 
+        # Need dummy entries for the matrix to pick up the variables
+        os: []
+        compiler: []
+
+        # Default to debug build
         build_type:
           - DEBUG
           # - RELEASE
 
+        # Default to building with htslib
         htslib:
           - ON
           # - OFF
@@ -423,7 +429,7 @@ jobs:
       - name: Setup C++
         # Reference: https://github.com/marketplace/actions/setup-cpp-c-c
         uses: aminya/setup-cpp@v0.37.0
-        if: matrix.compiler != 'apple'
+        if: ${{ matrix.compiler != 'apple' && matrix.os != 'macos-latest' }}
         with:
           compiler: ${{ matrix.compiler }}
           cmake: true

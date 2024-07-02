@@ -110,11 +110,11 @@
 #    include <sys/types.h>
 #    include <unistd.h>
 #else
-#    warning "No cpuid intrinsic defined for compiler."
+// #    warning "No cpuid intrinsic defined for compiler."
 #endif
 
 #if !(defined(__x86_64__) || defined(_M_X64) || defined(__i386) || defined(_M_IX86))
-#    warning "No cpuid intrinsic defined for processor architecture."
+// #    warning "No cpuid intrinsic defined for processor architecture."
 #endif
 
 // For current usage
@@ -365,7 +365,27 @@ std::string info_print_compiler()
         #endif
     }
 
-#else // defined( _WIN32 ) || defined(  _WIN64  )
+#elif defined(__arm__) // for M1/M2 chips
+
+    void get_cpuid_(int32_t out[4], int32_t eax, int32_t ecx)
+    {
+        // On MacOS with M1/M2 arm chips, we do not detect any features at the moment.
+        // That means we will just run vanilla code, but well, can't support everything.
+        out[0] = out[1] = out[2] = out[3] = 0;
+    }
+
+    uint64_t xgetbv(unsigned int index)
+    {
+        return 0;
+    }
+
+    bool detect_OS_x64_()
+    {
+        // For now, we assume that any arm is actually a 64bit M1/M2 or comparable...
+        return true;
+    }
+
+#else
 
     void get_cpuid_(int32_t out[4], int32_t eax, int32_t ecx)
     {
@@ -391,15 +411,13 @@ std::string info_print_compiler()
         return ((uint64_t)edx << 32) | eax;
     }
 
-    #define _XCR_XFEATURE_ENABLED_MASK  0
-
     //  Detect 64-bit
-    bool detect_OS_x64_(){
+    bool detect_OS_x64_() {
         //  We only support x64 on Linux.
         return true;
     }
 
-#endif // defined( _WIN32 ) || defined(  _WIN64  )
+#endif
 
 #if defined(__linux__)
 
@@ -446,6 +464,7 @@ bool detect_OS_AVX_()
     bool cpuAVXSuport = (cpuInfo[2] & (1 << 28)) != 0;
 
     if( osUsesXSAVE_XRSTORE && cpuAVXSuport ) {
+        auto const _XCR_XFEATURE_ENABLED_MASK = 0;
         uint64_t xcrFeatureMask = xgetbv(_XCR_XFEATURE_ENABLED_MASK);
         avxSupported = (xcrFeatureMask & 0x6) == 0x6;
     }
@@ -459,6 +478,7 @@ bool detect_OS_AVX512_()
         return false;
     }
 
+auto const _XCR_XFEATURE_ENABLED_MASK = 0;
     uint64_t xcrFeatureMask = xgetbv(_XCR_XFEATURE_ENABLED_MASK);
     return (xcrFeatureMask & 0xe6) == 0xe6;
 }
@@ -588,9 +608,9 @@ InfoHardware const& info_get_hardware()
 
     //  Vendor
     result.vendor_string = get_vendor_string_();
-    if( result.vendor_string == "GenuineIntel" ){
+    if( result.vendor_string == "GenuineIntel" ) {
         result.vendor_Intel = true;
-    }else if( result.vendor_string == "AuthenticAMD" ){
+    } else if( result.vendor_string == "AuthenticAMD" ) {
         result.vendor_AMD = true;
     }
     result.cpu_model = get_cpu_model_();
@@ -613,14 +633,14 @@ InfoHardware const& info_get_hardware()
     // Now run the feature detection
 
     int32_t info[4];
-    get_cpuid_(info, 0, 0);
+    get_cpuid_( info, 0, 0 );
     int nIds = info[0];
 
-    get_cpuid_(info, 0x80000000, 0);
+    get_cpuid_( info, 0x80000000, 0 );
     uint32_t nExIds = info[0];
 
-    if (nIds >= 0x00000001){
-        get_cpuid_(info, 0x00000001, 0);
+    if( nIds >= 0x00000001 ) {
+        get_cpuid_( info, 0x00000001, 0 );
         result.HW_MMX    = (info[3] & ((int)1 << 23)) != 0;
         result.HW_SSE    = (info[3] & ((int)1 << 25)) != 0;
         result.HW_SSE2   = (info[3] & ((int)1 << 26)) != 0;
@@ -636,8 +656,8 @@ InfoHardware const& info_get_hardware()
 
         result.HW_RDRAND = (info[2] & ((int)1 << 30)) != 0;
     }
-    if (nIds >= 0x00000007){
-        get_cpuid_(info, 0x00000007, 0);
+    if( nIds >= 0x00000007 ) {
+        get_cpuid_( info, 0x00000007, 0 );
         result.HW_AVX2         = (info[1] & ((int)1 <<  5)) != 0;
 
         result.HW_BMI1         = (info[1] & ((int)1 <<  3)) != 0;
@@ -673,11 +693,11 @@ InfoHardware const& info_get_hardware()
         result.HW_AVX512_VPCLMUL   = (info[2] & ((int)1 << 10)) != 0;
         result.HW_AVX512_BITALG    = (info[2] & ((int)1 << 12)) != 0;
 
-        get_cpuid_(info, 0x00000007, 1);
+        get_cpuid_( info, 0x00000007, 1 );
         result.HW_AVX512_BF16      = (info[0] & ((int)1 <<  5)) != 0;
     }
-    if (nExIds >= 0x80000001){
-        get_cpuid_(info, 0x80000001, 0);
+    if( nExIds >= 0x80000001 ) {
+        get_cpuid_( info, 0x80000001, 0 );
         result.HW_x64   = (info[3] & ((int)1 << 29)) != 0;
         result.HW_ABM   = (info[2] & ((int)1 <<  5)) != 0;
         result.HW_SSE4a = (info[2] & ((int)1 <<  6)) != 0;
@@ -1458,7 +1478,8 @@ size_t info_process_current_file_count()
     //     Current Mem/CPU - Linux
     // -------------------------------------------------------------------------
 
-    size_t parse_status_line_( char* line ){
+    size_t parse_status_line_( char* line )
+    {
         // Helper function to parse "/proc/self/status", see
         // https://stackoverflow.com/q/63166/4184258
         // Adapted from there to add error checking.
@@ -1509,8 +1530,8 @@ size_t info_process_current_file_count()
             return 0;
         }
 
-        while( fgets( line, 128, file ) != NULL ){
-            if( strncmp( line, "VmRSS:", 6 ) == 0 ){
+        while( fgets( line, 128, file ) != NULL ) {
+            if( strncmp( line, "VmRSS:", 6 ) == 0 ) {
                 result = parse_status_line_(line);
                 break;
             }
@@ -1542,7 +1563,7 @@ size_t info_process_current_file_count()
             return 0;
         }
         char line[128];
-        while(fgets(line, 128, file) != NULL){
+        while( fgets(line, 128, file) != NULL) {
             if( strncmp(line, "processor", 9) == 0 ) {
                 ++num_processors;
             }
