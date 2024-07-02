@@ -1613,12 +1613,15 @@ size_t info_current_file_count()
                 return 0.0;
             }
 
-            fscanf(
+            auto const scanned = fscanf(
                 file, "cpu %llu %llu %llu %llu",
                 &lastTotalUser, &lastTotalUserLow, &lastTotalSys, &lastTotalIdle
             );
             fclose(file);
             num_processors = info_process_number_of_processors_();
+            if( scanned != 4 ) {
+                return 0.0;
+            }
 
             initialized = true;
             return 0.0;
@@ -1632,11 +1635,14 @@ size_t info_current_file_count()
         if( ! file ) {
             return 0.0;
         }
-        fscanf(
+        auto const scanned = fscanf(
             file, "cpu %llu %llu %llu %llu",
             &totalUser, &totalUserLow, &totalSys, &totalIdle
         );
         fclose(file);
+        if( scanned != 4 ) {
+            return 0.0;
+        }
 
         if(
             totalUser < lastTotalUser || totalUserLow < lastTotalUserLow ||

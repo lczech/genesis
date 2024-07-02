@@ -72,11 +72,11 @@ namespace utils {
  * Example:
  *
  *     // Create a buffer that prints lines in the correct order.
- *     auto seq_out_buff = SequentialOutputBuffer<std::string>(
+ *     SequentialOutputBuffer<std::string> seq_out_buff{
  *         [&]( std::string&& line ){
  *             std::cout << line << "\n";
  *         }
- *     );
+ *     };
  *
  *     // Emplace elements in the buffer. This loop can be run in a thread pool,
  *     // where each thread processed a subset of lines in some order. In that case,
@@ -156,10 +156,10 @@ public:
     }
 
     SequentialOutputBuffer( SequentialOutputBuffer const& ) = delete;
-    SequentialOutputBuffer( SequentialOutputBuffer&& )      = default;
+    SequentialOutputBuffer( SequentialOutputBuffer&& )      = delete;
 
     SequentialOutputBuffer& operator= ( SequentialOutputBuffer const& ) = delete;
-    SequentialOutputBuffer& operator= ( SequentialOutputBuffer&& )      = default;
+    SequentialOutputBuffer& operator= ( SequentialOutputBuffer&& )      = delete;
 
     // -------------------------------------------------------------------------
     //     Element Access

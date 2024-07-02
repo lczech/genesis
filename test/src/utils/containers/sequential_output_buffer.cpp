@@ -55,11 +55,11 @@ void test_sequential_output_buffer_()
     results.reserve( max_elem );
 
     // Make a buffer that on output writes the value to the results vector.
-    auto buff = SequentialOutputBuffer<size_t>(
+    SequentialOutputBuffer<size_t> buff{
         [&]( size_t value ){
             results.push_back( value );
         }
-    );
+    };
 
     // Make a vector with all sequential numbers up to the max, randomized.
     auto values = std::vector<size_t>( max_elem );
@@ -111,11 +111,11 @@ void test_sequential_output_buffer_parallel_()
     results.reserve( max_elem );
 
     // Make a buffer that on output writes the value to the results vector.
-    auto seq_out_buff = SequentialOutputBuffer<size_t>(
+    SequentialOutputBuffer<size_t> seq_out_buff{
         [&]( size_t value ){
             results.push_back( value );
         }
-    );
+    };
 
     // Make a vector with all sequential numbers up to the max, randomized.
     auto values = std::vector<size_t>( max_elem );
