@@ -399,10 +399,15 @@ size_t info_current_file_count();
 /**
  * @brief Return the memory currently used by the current process, in bytes.
  */
-size_t info_current_memory_usage();
+size_t info_process_current_memory_usage();
 
 /**
- * @brief Return the percentage of CPU usage of the current process.
+ * @brief Return the memory currently used across all running processes, in bytes.
+ */
+size_t info_total_current_memory_usage();
+
+/**
+ * @brief Return the CPU usage of the current process.
  *
  * The first time the function is called, it is being initialized, and will return 0.0, as there is
  * no usage to be reported yet. Any subsequent call with then report the usage since the last call.
@@ -410,11 +415,18 @@ size_t info_current_memory_usage();
  * By default, this reports the total usage across all cores. That is, for multi-core systems,
  * this can report usage up to the number of cores. For instance, two cores fully running on a
  * 4-core system would report 200% usage (using return value 200.0 by default, or 2.0 if @p percent
- * is set to `false`). If however @p total is set to `false`, this is instead divided by the number
- * of cores, and so would return 50% usage (using return value 50.0 or 0.5, depending on @p percent)
- * instead.
+ * is set to `false`). If however @p all_cores is set to `false`, this is instead divided by the
+ * number of cores, and so would return 50% usage (using return value 50.0 or 0.5, depending on
+ * @p percent) instead.
  */
-double info_current_cpu_usage( bool total = true, bool percent = true );
+double info_process_current_cpu_usage( bool all_cores = true, bool percent = true );
+
+/**
+ * @brief Return the CPU usage of the system, across all cores.
+ *
+ * @see See info_process_current_cpu_usage() for details on the parameters.
+ */
+double info_total_current_cpu_usage( bool all_cores = true, bool percent = true );
 
 // =================================================================================================
 //     Total Resource Usage
@@ -423,24 +435,24 @@ double info_current_cpu_usage( bool total = true, bool percent = true );
 /**
  * @brief Get the peak used memory, in bytes.
  */
-size_t info_peak_memory_usage();
+size_t info_process_peak_memory_usage();
 
 /**
  * @brief Get the currently used cpu run time, similar to the Unix `time` command.
  *
  * Time is returned in seconds, with the first result the user time, and the second the system time.
  */
-std::pair<double, double> info_total_cpu_time();
+std::pair<double, double> info_process_total_cpu_time();
 
 /**
  * @brief Get energy consumption of the program so far, in Wh.
  */
-double info_total_energy_consumption();
+double info_process_total_energy_consumption();
 
 /**
  * @brief Print usage information to a string.
  */
-std::string info_print_total_usage();
+std::string info_process_print_total_usage();
 
 } // namespace utils
 } // namespace genesis

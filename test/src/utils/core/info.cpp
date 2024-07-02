@@ -67,7 +67,8 @@ TEST( Info, Usage )
 {
     // Init. CPU usage has to be called onces to get started.
     size_t sum = 0;
-    info_current_cpu_usage();
+    info_process_current_cpu_usage();
+    info_total_current_cpu_usage();
 
     // Do some busy work. We need to pass some time here,
     // in order for the CPU usage to register the work.
@@ -88,20 +89,24 @@ TEST( Info, Usage )
     // Now report the cpu usage. We are fully using it, so let's assume that
     // that is at least 80% of one core. Of course that's kinda random, but good enough
     // to just see that it is not zero, meaning that something reasonable got measured.
-    auto const cpu_usage = info_current_cpu_usage();
-    EXPECT_GT( cpu_usage, 80 );
+    auto const process_cpu_usage = info_process_current_cpu_usage();
+    auto const total_cpu_usage = info_total_current_cpu_usage();
+    EXPECT_GT( process_cpu_usage, 80 );
+    EXPECT_GT( total_cpu_usage, 80 );
+    // LOG_DBG << process_cpu_usage << " " << total_cpu_usage;
 
     // Apparently, MacOS automatically multithreads, or something weird.
     // On the GitHub Actions tests, this function runs on 400%, on two cores with hyperthreading,
     // meaning that it is fully loaded. Weird. Anyway, can't test for an upper limit here.
-    // EXPECT_LT( cpu_usage, 120 );
+    // EXPECT_LT( process_cpu_usage, 120 );
 
     // Test some other properties as well
-    EXPECT_GT( info_current_memory_usage(), 0 );
+    EXPECT_GT( info_process_current_memory_usage(), 0 );
+    EXPECT_GT( info_total_current_memory_usage(), 0 );
     EXPECT_GT( sum, 0 );
 
     // Same as above
-    auto info_total = info_print_total_usage();
+    auto info_total = info_process_print_total_usage();
     ASSERT_GT( info_total.size(), 20 );
     // LOG_DBG << info;
     // LOG_DBG << guess_number_of_threads();

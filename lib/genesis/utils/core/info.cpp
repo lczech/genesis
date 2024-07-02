@@ -44,12 +44,14 @@
 #include "genesis/utils/core/info.hpp"
 
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/version.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
 #include <cassert>
+#include <cctype>
 #include <chrono>
 #include <climits>
 #include <cstdarg>
@@ -120,14 +122,21 @@
 #    include <TCHAR.h>
 #    include <pdh.h>
 #    include <psapi.h>
+#    include <windows.h>
 #elif defined( __APPLE__ )
+#    include <mach/mach_error.h>
+#    include <mach/mach_host.h>
+#    include <mach/mach_init.h>
+#    include <mach/mach_types.h>
+#    include <mach/mach.h>
+#    include <mach/task_info.h>
+#    include <mach/vm_map.h>
+#    include <mach/vm_statistics.h>
+#    include <sys/resource.h>
 #    include <sys/time.h>
 #    include <sys/types.h>
 // #    include <sys/sysinfo.h>
-#    include <mach/mach.h>
-#    include <mach/task_info.h>
-#    include <sys/resource.h>
-#elif defined( __GNUC__ ) || defined( __clang__ )
+#elif defined( __GNUC__ ) || defined( __clang__ ) || defined(__linux__)
 #    include <sys/types.h>
 #    include <sys/sysinfo.h>
 #    include <stdlib.h>
@@ -163,7 +172,6 @@ InfoCompiler const& info_get_compiler()
     static InfoCompiler result;
     static bool initialized = false;
     if( initialized ) {
-        initialized = true;
         return result;
     }
 
@@ -279,6 +287,7 @@ InfoCompiler const& info_get_compiler()
     #endif
     result.with_avx512 = false;
 
+    initialized = true;
     return result;
 }
 
@@ -483,22 +492,45 @@ std::string get_cpu_model_()
     return model;
 }
 
-size_t get_memtotal_( bool ignore_errors = true )
+#if defined(__linux__)
+
+    size_t get_memtotal_linux_()
+    {
+        // Using http://stackoverflow.com/a/1312957/4184258
+        // And https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
+
+        struct sysinfo memInfo;
+        if( sysinfo( &memInfo )) {
+            return 0;
+        }
+        return static_cast<size_t>( memInfo.totalram ) * static_cast<size_t>( memInfo.mem_unit );
+    }
+
+#endif
+
+size_t get_memtotal_()
 {
     // Adapted from https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
     // which itself is seems to be adapted from vsearch.
 
-    #if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
+    #if defined( _WIN32 ) || defined( _WIN64  )|| defined( _MSC_VER )
+
+        MEMORYSTATUSEX memInfo;
+        memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+        GlobalMemoryStatusEx(&memInfo);
+        return memInfo.ullTotalPhys;
+
+    #elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
 
         long phys_pages = sysconf(_SC_PHYS_PAGES);
         long pagesize = sysconf(_SC_PAGESIZE);
 
         if ((phys_pages == -1) || (pagesize == -1)) {
-            if (ignore_errors) {
+            #if defined(__linux__)
+                return get_memtotal_linux_();
+            #else
                 return 0;
-            } else {
-                throw std::runtime_error("Cannot determine amount of RAM");
-            }
+            #endif
         }
 
         // sysconf(3) notes that pagesize * phys_pages can overflow, such as when long is
@@ -507,7 +539,7 @@ size_t get_memtotal_( bool ignore_errors = true )
         if (pagesize > LONG_MAX / phys_pages) {
             return LONG_MAX;
         } else {
-            return (unsigned long)pagesize * (unsigned long)phys_pages;
+            return static_cast<size_t>( pagesize ) * static_cast<size_t>( phys_pages );
         }
 
     #elif defined(__APPLE__)
@@ -516,26 +548,15 @@ size_t get_memtotal_( bool ignore_errors = true )
         int64_t ram = 0;
         size_t length = sizeof(ram);
         if (-1 == sysctl(mib, 2, &ram, &length, NULL, 0)) {
-            if (ignore_errors) {
-                return 0;
-            } else {
-                throw std::runtime_error("Cannot determine amount of RAM");
-            }
+            return 0;
         }
         return ram;
 
+    #elif defined(__linux__)
+        // Generic solution
+        return get_memtotal_linux_();
     #else
-
-        struct sysinfo si;
-        if (sysinfo(&si)) {
-            if (ignore_errors) {
-                return 0;
-            } else {
-                throw std::runtime_error("Cannot determine amount of RAM");
-            }
-        }
-        return si.totalram * si.mem_unit;
-
+        return 0;
     #endif
 }
 
@@ -549,7 +570,6 @@ InfoHardware const& info_get_hardware()
     static InfoHardware result;
     static bool initialized = false;
     if( initialized ) {
-        initialized = true;
         return result;
     }
 
@@ -666,6 +686,7 @@ InfoHardware const& info_get_hardware()
         result.HW_PREFETCHW = (info[2] & ((int)1 << 8)) != 0;
     }
 
+    initialized = true;
     return result;
 }
 
@@ -1074,6 +1095,10 @@ std::pair<int, int> info_terminal_size()
 //     Current Resource Usage
 // =================================================================================================
 
+// -------------------------------------------------------------------------
+//     Open File Counts
+// -------------------------------------------------------------------------
+
 size_t info_max_file_count()
 {
     // https://www.man7.org/linux/man-pages/man2/getdtablesize.2.html
@@ -1111,272 +1136,568 @@ size_t info_current_file_count()
 
 #if defined( _WIN32 ) || defined( _WIN64  )|| defined( _MSC_VER )
 
-size_t info_current_memory_usage()
-{
-    // https://stackoverflow.com/q/63166/4184258
-    // Beware: Completely untested, no error checking.
-    // Kept here mostly for future reference.
+    // -------------------------------------------------------------------------
+    //     Current Mem/CPU - Windows
+    // -------------------------------------------------------------------------
 
-    PROCESS_MEMORY_COUNTERS_EX pmc;
-    GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
-    return pmc.WorkingSetSize;
-}
+    size_t info_process_current_memory_usage()
+    {
+        // https://stackoverflow.com/q/63166/4184258
+        // Beware: Completely untested, no error checking.
+        // Kept here mostly for future reference.
 
-double info_current_cpu_usage( bool total, bool percent )
-{
-    // https://stackoverflow.com/q/63166/4184258
-    // Beware: Completely untested, no error checking.
-    // Kept here mostly for future reference.
+        PROCESS_MEMORY_COUNTERS_EX pmc;
+        GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
+        return pmc.WorkingSetSize;
+    }
 
-    static ULARGE_INTEGER lastCPU, lastSysCPU, lastUserCPU;
-    static int num_processors;
-    static HANDLE self;
-    static bool initialized = false;
+    size_t info_total_current_memory_usage()
+    {
+        // https://stackoverflow.com/q/63166/4184258
+        // Beware: Completely untested, no error checking.
+        // Kept here mostly for future reference.
 
-    if( ! initialized ) {
-        SYSTEM_INFO sysInfo;
+        MEMORYSTATUSEX memInfo;
+        memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+        GlobalMemoryStatusEx(&memInfo);
+        assert( memInfo.ullTotalPhys >= memInfo.ullAvailPhys );
+        return memInfo.ullTotalPhys - memInfo.ullAvailPhys;
+    }
+
+    double info_process_current_cpu_usage( bool all_cores, bool percent )
+    {
+        // https://stackoverflow.com/q/63166/4184258
+        // Beware: Completely untested, no error checking.
+        // Kept here mostly for future reference.
+
+        static ULARGE_INTEGER lastCPU, lastSysCPU, lastUserCPU;
+        static int num_processors;
+        static HANDLE self;
+        static bool initialized = false;
+
+        if( ! initialized ) {
+            SYSTEM_INFO sysInfo;
+            FILETIME ftime, fsys, fuser;
+
+            GetSystemInfo(&sysInfo);
+            num_processors = sysInfo.dwNumberOfProcessors;
+
+            GetSystemTimeAsFileTime(&ftime);
+            memcpy(&lastCPU, &ftime, sizeof(FILETIME));
+
+            self = GetCurrentProcess();
+            GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
+            memcpy(&lastSysCPU, &fsys, sizeof(FILETIME));
+            memcpy(&lastUserCPU, &fuser, sizeof(FILETIME));
+
+            initialized = true;
+            return 0.0;
+        }
+
         FILETIME ftime, fsys, fuser;
-
-        GetSystemInfo(&sysInfo);
-        num_processors = sysInfo.dwNumberOfProcessors;
+        ULARGE_INTEGER now, sys, user;
+        double result;
 
         GetSystemTimeAsFileTime(&ftime);
-        memcpy(&lastCPU, &ftime, sizeof(FILETIME));
+        memcpy(&now, &ftime, sizeof(FILETIME));
 
-        self = GetCurrentProcess();
         GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
-        memcpy(&lastSysCPU, &fsys, sizeof(FILETIME));
-        memcpy(&lastUserCPU, &fuser, sizeof(FILETIME));
+        memcpy(&sys, &fsys, sizeof(FILETIME));
+        memcpy(&user, &fuser, sizeof(FILETIME));
+        result = (sys.QuadPart - lastSysCPU.QuadPart) + (user.QuadPart - lastUserCPU.QuadPart);
+        result /= (now.QuadPart - lastCPU.QuadPart);
+        if( ! all_cores ) {
+            result /= num_processors;
+        }
+        if( percent ) {
+            result *= 100;
+        }
 
-        initialized = true;
-        return 0.0;
+        lastCPU = now;
+        lastUserCPU = user;
+        lastSysCPU = sys;
+
+        return result;
     }
 
-    FILETIME ftime, fsys, fuser;
-    ULARGE_INTEGER now, sys, user;
-    double result;
+    double info_total_current_cpu_usage( bool all_cores, bool percent )
+    {
+        // Adapted from https://stackoverflow.com/q/63166/4184258
+        // Beware: Completely untested, no error checking.
+        // Kept here mostly for future reference.
 
-    GetSystemTimeAsFileTime(&ftime);
-    memcpy(&now, &ftime, sizeof(FILETIME));
+        static PDH_HQUERY cpuQuery;
+        static PDH_HCOUNTER cpuTotal;
+        static int num_processors;
+        static bool initialized = false;
 
-    GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
-    memcpy(&sys, &fsys, sizeof(FILETIME));
-    memcpy(&user, &fuser, sizeof(FILETIME));
-    result = (sys.QuadPart - lastSysCPU.QuadPart) + (user.QuadPart - lastUserCPU.QuadPart);
-    result /= (now.QuadPart - lastCPU.QuadPart);
-    if( ! total ) {
-        result /= num_processors;
+        if( ! initialized ) {
+            SYSTEM_INFO sysInfo;
+            GetSystemInfo(&sysInfo);
+            num_processors = sysInfo.dwNumberOfProcessors;
+
+            PdhOpenQuery(NULL, NULL, &cpuQuery);
+            // You can also use L"\\Processor(*)\\% Processor Time" and get individual CPU values
+            // with PdhGetFormattedCounterArray()
+            PdhAddEnglishCounter(cpuQuery, L"\\Processor(_Total)\\% Processor Time", NULL, &cpuTotal);
+            PdhCollectQueryData(cpuQuery);
+
+            initialized = true;
+        }
+
+        PDH_FMT_COUNTERVALUE counterVal;
+        PdhCollectQueryData(cpuQuery);
+        PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
+
+        auto result = counterVal.doubleValue;
+        if( !all_cores ) {
+            result /= num_processors;
+        }
+        if( !percent ) {
+            result /= 100.0;
+        }
+        return result;
     }
-    if( percent ) {
-        result *= 100;
-    }
-
-    lastCPU = now;
-    lastUserCPU = user;
-    lastSysCPU = sys;
-
-    return result;
-}
 
 #elif defined( __APPLE__ )
 
-size_t info_current_memory_usage()
-{
-    // https://stackoverflow.com/q/63166/4184258
+    // -------------------------------------------------------------------------
+    //     Current Mem/CPU - Apple
+    // -------------------------------------------------------------------------
 
-    struct task_basic_info t_info;
-    mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+    size_t info_process_current_memory_usage()
+    {
+        // https://stackoverflow.com/q/63166/4184258
 
-    auto const ret = task_info(
-        mach_task_self(), TASK_BASIC_INFO, (task_info_t)&t_info, &t_info_count
-    );
-    if( KERN_SUCCESS != ret ) {
+        struct task_basic_info t_info;
+        mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+
+        auto const ret = task_info(
+            mach_task_self(), TASK_BASIC_INFO, (task_info_t)&t_info, &t_info_count
+        );
+        if( KERN_SUCCESS != ret ) {
+            return 0;
+        }
+        // resident size is in t_info.resident_size;
+        // virtual size is in t_info.virtual_size;
+        return t_info.resident_size;
+    }
+
+    size_t info_total_current_memory_usage()
+    {
+        // Adapted from https://stackoverflow.com/a/1911863/4184258
+
+        vm_size_t page_size;
+        mach_port_t mach_port;
+        mach_msg_type_number_t count;
+        vm_statistics64_data_t vm_stats;
+
+        mach_port = mach_host_self();
+        count = sizeof(vm_stats) / sizeof(natural_t);
+        if(
+            KERN_SUCCESS == host_page_size(mach_port, &page_size) &&
+            KERN_SUCCESS == host_statistics64(
+                mach_port, HOST_VM_INFO, (host_info64_t)&vm_stats, &count
+            )
+        ) {
+            // long long free_memory = (int64_t)vm_stats.free_count * (int64_t)page_size;
+
+            // Used memory has several types of relevant pages that we need to take into account.
+            auto const relevant_sum =
+                (int64_t)vm_stats.active_count +
+                (int64_t)vm_stats.inactive_count +
+                (int64_t)vm_stats.wire_count
+            ;
+            return relevant_sum * (int64_t)page_size;
+        }
+
         return 0;
     }
-    // resident size is in t_info.resident_size;
-    // virtual size is in t_info.virtual_size;
-    return t_info.resident_size;
-}
 
-double info_current_cpu_usage( bool total, bool percent )
-{
-    // No implementation from stack overflow :-(
-    // Hopefully, this one works though, provided by ChatGPT.
+    size_t info_process_number_of_processors_()
+    {
+        // This is kind of redundant from the other functions...
+        // Well, but we keep it this way for now for compatibility with the original code.
 
-    static uint64_t last_total_time = 0;
-    static struct timeval last_time;
-    static int num_processors = 0;
-    static bool initialized = false;
-
-    struct task_thread_times_info thread_times;
-    mach_msg_type_number_t count = TASK_THREAD_TIMES_INFO_COUNT;
-
-    if( !initialized ) {
-        gettimeofday(&last_time, NULL);
-        auto const ti = task_info(
-            mach_task_self(), TASK_THREAD_TIMES_INFO, (task_info_t)&thread_times, &count
-        );
-        if( ti != KERN_SUCCESS ) {
-            return 0.0;
-        }
-        last_total_time =
-            thread_times.user_time.seconds * 1000000 +
-            thread_times.user_time.microseconds +
-            thread_times.system_time.seconds * 1000000 +
-            thread_times.system_time.microseconds
-        ;
-
-        // Get the number of processors
         host_basic_info_data_t hostInfo;
         mach_msg_type_number_t hostCount = HOST_BASIC_INFO_COUNT;
         auto const hi = host_info(
             mach_host_self(), HOST_BASIC_INFO, (host_info_t)&hostInfo, &hostCount
         );
         if( hi != KERN_SUCCESS ) {
-            return 0.0;
+            return 0;
         }
-        num_processors = hostInfo.avail_cpus;
-
-        initialized = true;
-        return 0.0;
+        return hostInfo.avail_cpus;
     }
 
-    struct timeval current_time;
-    gettimeofday(&current_time, NULL);
-    auto const ti = task_info(
-        mach_task_self(), TASK_THREAD_TIMES_INFO, (task_info_t)&thread_times, &count
-    );
-    if( ti != KERN_SUCCESS ) {
-        return 0.0;
-    }
-    uint64_t total_time =
-        thread_times.user_time.seconds * 1000000 +
-        thread_times.user_time.microseconds +
-        thread_times.system_time.seconds * 1000000 +
-        thread_times.system_time.microseconds
-    ;
-    uint64_t elapsed_time =
-        (current_time.tv_sec - last_time.tv_sec) * 1000000 +
-        (current_time.tv_usec - last_time.tv_usec)
-    ;
-    double result = (total_time - last_total_time) / static_cast<double>(elapsed_time);
-    if( total ) {
-        result *= num_processors;
-    }
-    if( percent ) {
-        result *= 100;
-    }
+    double info_process_current_cpu_usage( bool all_cores, bool percent )
+    {
+        // No implementation from stack overflow :-(
+        // Hopefully, this one works though, provided by ChatGPT.
 
-    last_time = current_time;
-    last_total_time = total_time;
+        static uint64_t last_total_time = 0;
+        static struct timeval last_time;
+        static int num_processors = 0;
+        static bool initialized = false;
 
-    return result;
-}
+        struct task_thread_times_info thread_times;
+        mach_msg_type_number_t count = TASK_THREAD_TIMES_INFO_COUNT;
 
-#elif defined( __GNUC__ ) || defined( __clang__ )
-
-size_t info_current_memory_usage()
-{
-    // https://stackoverflow.com/q/63166/4184258
-
-    auto parse_line_ = []( char* line ) {
-        // This assumes that a digit will be found and the line ends in " Kb".
-        auto i = strlen(line);
-        const char* p = line;
-        while(( p < line + i && *p != 0 ) && ( *p < '0' || *p > '9' )) {
-            p++;
-        }
-        if( i > 3 && p < line + i && *p != 0 ) {
-            line[i-3] = '\0';
-            i = atoi(p);
-        }
-        return i;
-    };
-
-    //Note: this value is in KB!
-    FILE* file = fopen("/proc/self/status", "r");
-    size_t result = 0;
-    char line[128];
-
-    while (fgets(line, 128, file) != NULL){
-        if (strncmp(line, "VmRSS:", 6) == 0){
-            result = parse_line_(line);
-            break;
-        }
-    }
-    fclose(file);
-    return result * 1024;
-}
-
-double info_current_cpu_usage( bool total, bool percent )
-{
-    // https://stackoverflow.com/q/63166/4184258
-
-    static clock_t lastCPU, lastSysCPU, lastUserCPU;
-    static int num_processors;
-    static bool initialized = false;
-
-    if( ! initialized ) {
-        struct tms timeSample;
-        char line[128];
-
-        lastCPU = times(&timeSample);
-        lastSysCPU = timeSample.tms_stime;
-        lastUserCPU = timeSample.tms_utime;
-
-        FILE* file = fopen("/proc/cpuinfo", "r");
-        if( file ) {
-            num_processors = 0;
-            while(fgets(line, 128, file) != NULL){
-                if( strncmp(line, "processor", 9) == 0 ) {
-                    ++num_processors;
-                }
+        if( !initialized ) {
+            gettimeofday(&last_time, NULL);
+            auto const ti = task_info(
+                mach_task_self(), TASK_THREAD_TIMES_INFO, (task_info_t)&thread_times, &count
+            );
+            if( ti != KERN_SUCCESS ) {
+                return 0.0;
             }
-            fclose(file);
+            last_total_time =
+                thread_times.user_time.seconds * 1000000 +
+                thread_times.user_time.microseconds +
+                thread_times.system_time.seconds * 1000000 +
+                thread_times.system_time.microseconds
+            ;
+
+            // Get the number of processors
+            num_processors = info_process_number_of_processors_();
 
             initialized = true;
+            return 0.0;
         }
-        return 0.0;
-    }
 
-    struct tms timeSample;
-    clock_t now;
-    double result;
-
-    now = times(&timeSample);
-    if( now <= lastCPU || timeSample.tms_stime < lastSysCPU || timeSample.tms_utime < lastUserCPU ) {
-        //Overflow detection. Just skip this value.
-        result = 0.0;
-    } else {
-        result = (timeSample.tms_stime - lastSysCPU) + (timeSample.tms_utime - lastUserCPU);
-        result /= (now - lastCPU);
-        if( ! total ) {
-            result /= num_processors;
+        struct timeval current_time;
+        gettimeofday(&current_time, NULL);
+        auto const ti = task_info(
+            mach_task_self(), TASK_THREAD_TIMES_INFO, (task_info_t)&thread_times, &count
+        );
+        if( ti != KERN_SUCCESS ) {
+            return 0.0;
+        }
+        uint64_t total_time =
+            thread_times.user_time.seconds * 1000000 +
+            thread_times.user_time.microseconds +
+            thread_times.system_time.seconds * 1000000 +
+            thread_times.system_time.microseconds
+        ;
+        uint64_t elapsed_time =
+            (current_time.tv_sec - last_time.tv_sec) * 1000000 +
+            (current_time.tv_usec - last_time.tv_usec)
+        ;
+        double result = (total_time - last_total_time) / static_cast<double>(elapsed_time);
+        if( all_cores ) {
+            result *= num_processors;
         }
         if( percent ) {
             result *= 100;
         }
-    }
-    lastCPU = now;
-    lastSysCPU = timeSample.tms_stime;
-    lastUserCPU = timeSample.tms_utime;
 
-    return result;
-}
+        last_time = current_time;
+        last_total_time = total_time;
+
+        return result;
+    }
+
+    double info_total_current_cpu_usage( bool all_cores, bool percent )
+    {
+        // Adapted from https://stackoverflow.com/a/49996245/4184258
+
+        static size_t _previousTotalTicks = 0;
+        static size_t _previousIdleTicks = 0;
+        static int num_processors = 0;
+        static bool initialized = false;
+
+        if( ! initialized ) {
+            num_processors = info_process_number_of_processors_();
+            initialized = true;
+            return 0.0;
+        }
+
+        auto calculate_CPU_load_ = [&](size_t idleTicks, size_t totalTicks)
+        {
+            size_t totalTicksSinceLastTime = totalTicks - _previousTotalTicks;
+            size_t idleTicksSinceLastTime  = idleTicks  - _previousIdleTicks;
+            _previousTotalTicks = totalTicks;
+            _previousIdleTicks  = idleTicks;
+
+            if( totalTicksSinceLastTime == 0 ) {
+                return 1.0;
+            }
+            return 1.0 - static_cast<double>( idleTicksSinceLastTime ) / totalTicksSinceLastTime;
+        };
+
+        // Returns 1.0f for "CPU fully pinned", 0.0f for "CPU idle", or somewhere in between
+        // You'll need to call this at regular intervals, since it measures the load between
+        // the previous call and the current one.
+        host_cpu_load_info_data_t cpuinfo;
+        mach_msg_type_number_t count = HOST_CPU_LOAD_INFO_COUNT;
+        if(
+            host_statistics(
+                mach_host_self(), HOST_CPU_LOAD_INFO, (host_info_t)&cpuinfo, &count
+            ) != KERN_SUCCESS
+        ) {
+            return 0.0;
+        }
+
+        size_t totalTicks = 0;
+        for( int i = 0; i < CPU_STATE_MAX; i++ ) {
+            totalTicks += cpuinfo.cpu_ticks[i];
+        }
+        auto result = calculate_CPU_load_( cpuinfo.cpu_ticks[CPU_STATE_IDLE], totalTicks );
+        if( all_cores ) {
+            result *= num_processors;
+        }
+        if( percent ) {
+            result *= 100.0;
+        }
+        return result;
+    }
+
+#elif defined( __GNUC__ ) || defined( __clang__ ) || defined(__linux__)
+
+    // -------------------------------------------------------------------------
+    //     Current Mem/CPU - Linux
+    // -------------------------------------------------------------------------
+
+    size_t parse_status_line_( char* line ){
+        // Helper function to parse "/proc/self/status", see
+        // https://stackoverflow.com/q/63166/4184258
+        // Adapted from there to add error checking.
+
+
+        // Check if the line is too short to contain " kB" and a value
+        auto length = strlen(line);
+        if( length < 5 ) {
+            return 0;
+        }
+
+        // Need to remove new line from end if present
+        if( line[length - 1] == '\n' ) {
+            line[length - 1] = '\0';
+            --length;
+        }
+
+        // Check that the string ends with " kB" (case-insensitive)
+        if( strncasecmp( &line[length - 3], " kB", 3 ) != 0 ) {
+            return 0;
+        }
+
+        // Null-terminate the string to remove the " kB"
+        line[length - 3] = '\0';
+
+        // Find the first digit in the string
+        char* p = line;
+        while( *p && !isdigit(*p) ) {
+            p++;
+        }
+
+        // Check if we found a digit, then convert the numeric part of the string to an integer
+        if( *p == '\0' ) {
+            return 0;
+        }
+        return atoi(p);
+    }
+
+    size_t info_process_current_memory_usage()
+    {
+        // https://stackoverflow.com/q/63166/4184258
+
+        //Note: this value is in KB!
+        FILE* file = fopen("/proc/self/status", "r");
+        size_t result = 0;
+        char line[128];
+        if( !file ) {
+            return 0;
+        }
+
+        while( fgets( line, 128, file ) != NULL ){
+            if( strncmp( line, "VmRSS:", 6 ) == 0 ){
+                result = parse_status_line_(line);
+                break;
+            }
+        }
+        fclose(file);
+        return result * 1024;
+    }
+
+    size_t info_total_current_memory_usage()
+    {
+        // Adapted from https://stackoverflow.com/q/63166/4184258
+
+        struct sysinfo memInfo;
+        if( sysinfo( &memInfo )) {
+            return 0;
+        }
+        auto const mem_unit = static_cast<size_t>( memInfo.mem_unit );
+        return static_cast<size_t>( memInfo.totalram - memInfo.freeram ) * mem_unit;
+    }
+
+    size_t info_process_number_of_processors_()
+    {
+        // This is kind of redundant from the other functions...
+        // Well, but we keep it this way for now for compatibility with the original code.
+
+        size_t num_processors = 0;
+        FILE* file = fopen("/proc/cpuinfo", "r");
+        if( ! file ) {
+            return 0;
+        }
+        char line[128];
+        while(fgets(line, 128, file) != NULL){
+            if( strncmp(line, "processor", 9) == 0 ) {
+                ++num_processors;
+            }
+        }
+        fclose(file);
+        return num_processors;
+    }
+
+    double info_process_current_cpu_usage( bool all_cores, bool percent )
+    {
+        // https://stackoverflow.com/q/63166/4184258
+
+        static clock_t lastCPU, lastSysCPU, lastUserCPU;
+        static int num_processors;
+        static bool initialized = false;
+
+        if( ! initialized ) {
+            struct tms timeSample;
+            lastCPU = times(&timeSample);
+            lastSysCPU = timeSample.tms_stime;
+            lastUserCPU = timeSample.tms_utime;
+            num_processors = info_process_number_of_processors_();
+
+            initialized = true;
+            return 0.0;
+        }
+
+        struct tms timeSample;
+        clock_t now;
+        double result;
+
+        now = times(&timeSample);
+        if(
+            now <= lastCPU ||
+            timeSample.tms_stime < lastSysCPU ||
+            timeSample.tms_utime < lastUserCPU
+        ) {
+            //Overflow detection. Just skip this value.
+            result = 0.0;
+        } else {
+            result = (timeSample.tms_stime - lastSysCPU) + (timeSample.tms_utime - lastUserCPU);
+            result /= (now - lastCPU);
+            if( ! all_cores ) {
+                result /= num_processors;
+            }
+            if( percent ) {
+                result *= 100;
+            }
+        }
+        lastCPU = now;
+        lastSysCPU = timeSample.tms_stime;
+        lastUserCPU = timeSample.tms_utime;
+
+        return result;
+    }
+
+    double info_total_current_cpu_usage( bool all_cores, bool percent )
+    {
+        // Adapted from https://stackoverflow.com/q/63166/4184258
+
+        static unsigned long long lastTotalUser, lastTotalUserLow, lastTotalSys, lastTotalIdle;
+        static int num_processors;
+        static bool initialized = false;
+
+        if( ! initialized ) {
+            FILE* file = fopen("/proc/stat", "r");
+            if( ! file ) {
+                return 0.0;
+            }
+
+            fscanf(
+                file, "cpu %llu %llu %llu %llu",
+                &lastTotalUser, &lastTotalUserLow, &lastTotalSys, &lastTotalIdle
+            );
+            fclose(file);
+            num_processors = info_process_number_of_processors_();
+
+            initialized = true;
+            return 0.0;
+        }
+
+        double result;
+        FILE* file;
+        unsigned long long totalUser, totalUserLow, totalSys, totalIdle, total;
+
+        file = fopen("/proc/stat", "r");
+        if( ! file ) {
+            return 0.0;
+        }
+        fscanf(
+            file, "cpu %llu %llu %llu %llu",
+            &totalUser, &totalUserLow, &totalSys, &totalIdle
+        );
+        fclose(file);
+
+        if(
+            totalUser < lastTotalUser || totalUserLow < lastTotalUserLow ||
+            totalSys < lastTotalSys || totalIdle < lastTotalIdle
+        ) {
+            //Overflow detection. Just skip this value.
+            result = 0.0;
+        } else {
+            total =
+                (totalUser    - lastTotalUser) +
+                (totalUserLow - lastTotalUserLow) +
+                (totalSys     - lastTotalSys)
+            ;
+            result = total;
+            total += (totalIdle - lastTotalIdle);
+            result /= total;
+            if( all_cores ) {
+                result *= num_processors;
+            }
+            if( percent ) {
+                result *= 100;
+            }
+        }
+
+        lastTotalUser = totalUser;
+        lastTotalUserLow = totalUserLow;
+        lastTotalSys = totalSys;
+        lastTotalIdle = totalIdle;
+
+        return result;
+    }
 
 #else
 
-size_t info_current_memory_usage()
-{
-    return 0;
-}
+    // -------------------------------------------------------------------------
+    //     Current Mem/CPU - Default
+    // -------------------------------------------------------------------------
 
-double info_current_cpu_usage( bool total, bool percent )
-{
-    (void) total;
-    (void) percent;
-    return 0.0;
-}
+    size_t info_process_current_memory_usage()
+    {
+        return 0;
+    }
+
+    size_t info_total_current_memory_usage()
+    {
+        return 0;
+    }
+
+    double info_process_current_cpu_usage( bool all_cores, bool percent )
+    {
+        (void) all_cores;
+        (void) percent;
+        return 0.0;
+    }
+
+    double info_total_current_cpu_usage( bool all_cores, bool percent )
+    {
+        (void) all_cores;
+        (void) percent;
+        return 0.0;
+    }
 
 #endif
 
@@ -1384,7 +1705,7 @@ double info_current_cpu_usage( bool total, bool percent )
 //     Total Resource Usage
 // =================================================================================================
 
-size_t info_peak_memory_usage()
+size_t info_process_peak_memory_usage()
 {
     // Adapted from https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
 
@@ -1400,7 +1721,7 @@ size_t info_peak_memory_usage()
     #endif
 }
 
-std::pair<double, double> info_total_cpu_time()
+std::pair<double, double> info_process_total_cpu_time()
 {
     // https://www.gnu.org/software/libc/manual/html_node/Resource-Usage.html
     struct rusage r_usage;
@@ -1413,7 +1734,7 @@ std::pair<double, double> info_total_cpu_time()
     return std::make_pair( u_tmr, s_tmr );
 }
 
-double info_total_energy_consumption()
+double info_process_total_energy_consumption()
 {
     // Adapted from https://github.com/amkozlov/raxml-ng/blob/master/src/util/sysutil.cpp
 
@@ -1444,12 +1765,12 @@ double info_total_energy_consumption()
     return 0.0;
 }
 
-std::string info_print_total_usage()
+std::string info_process_print_total_usage()
 {
     // Get data.
-    auto const time = info_total_cpu_time();
-    auto const memory = info_peak_memory_usage();
-    auto const energy = info_total_energy_consumption();
+    auto const time = info_process_total_cpu_time();
+    auto const memory = info_process_peak_memory_usage();
+    auto const energy = info_process_total_energy_consumption();
 
     // Print everything.
     std::stringstream ss;
