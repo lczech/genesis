@@ -42,17 +42,19 @@ jobs:
       #     matrix
       # -------------------------------------------------------
 
+      # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
+      # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners
+
       matrix:
         os:
-          # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
           - ubuntu-20.04
           - ubuntu-22.04
-          - macos-11
+          - ubuntu-24.04
           - macos-12
+          - macos-13
+          - macos-14
 
         compiler:
-          # - gcc-5
-          # - gcc-6
           - gcc-7
           - gcc-8
           - gcc-9
@@ -60,7 +62,7 @@ jobs:
           - gcc-11
           - gcc-12
           - gcc-13
-          # - llvm-5
+          - gcc-14
           - llvm-6
           - llvm-7
           - llvm-8
@@ -73,6 +75,7 @@ jobs:
           - llvm-15
           - llvm-16
           - llvm-17
+          - llvm-18
 
         build_type:
           - DEBUG
@@ -88,95 +91,73 @@ jobs:
 
         exclude:
           # Newer compiler versions are not available on all Ubuntu
-          - os: ubuntu-20.04
-            compiler: gcc-12
-          - os: ubuntu-20.04
-            compiler: gcc-13
-          - os: ubuntu-20.04
-            compiler: llvm-13
-          - os: ubuntu-20.04
-            compiler: llvm-14
-          - os: ubuntu-20.04
-            compiler: llvm-15
-          - os: ubuntu-20.04
-            compiler: llvm-16
-          - os: ubuntu-20.04
-            compiler: llvm-17
+          # - os: ubuntu-20.04
+          #   compiler: gcc-12
+          # - os: ubuntu-20.04
+          #   compiler: gcc-13
+          # - os: ubuntu-20.04
+          #   compiler: llvm-13
+          # - os: ubuntu-20.04
+          #   compiler: llvm-14
+          # - os: ubuntu-20.04
+          #   compiler: llvm-15
+          # - os: ubuntu-20.04
+          #   compiler: llvm-16
+          # - os: ubuntu-20.04
+          #   compiler: llvm-17
 
           # Older GCC versions are not supported by Ubuntu any more
-          - os: ubuntu-22.04
-            compiler: gcc-7
-          - os: ubuntu-22.04
-            compiler: gcc-8
+          # - os: ubuntu-22.04
+          #   compiler: gcc-7
+          # - os: ubuntu-22.04
+          #   compiler: gcc-8
 
           # Older GCC versions are also not supported by MacOS 12 any more.
           # Also excluding a broken current one for now... Fix later!
-          - os: macos-12
-            compiler: gcc-7
-          - os: macos-12
-            compiler: gcc-8
-          - os: macos-12
-            compiler: gcc-13
+          # - os: macos-12
+          #   compiler: gcc-7
+          # - os: macos-12
+          #   compiler: gcc-8
+          # - os: macos-12
+          #   compiler: gcc-13
 
           # llvm-9 causes weird segfauls on Ubuntu, which do not seem to be our fault.
           # Need to investiage further at some point. We used setup-cpp locally to install
           # the very same version of llvm-9, and got tons of segfauls for all kind of functions...
-          - os: ubuntu-20.04
-            compiler: llvm-9
-          - os: ubuntu-22.04
-            compiler: llvm-9
+          # - os: ubuntu-20.04
+          #   compiler: llvm-9
+          # - os: ubuntu-22.04
+          #   compiler: llvm-9
 
           # We also currently exclude clang from macos, as it fails with different types of
           # linker errors. As this is merely a problem in the setup, we defer solving this for now.
           # Wildcards do not work here, so we have to list them all... :-(
-          - os: macos-11
-            compiler: llvm-5
-          - os: macos-11
-            compiler: llvm-6
-          - os: macos-11
-            compiler: llvm-7
-          - os: macos-11
-            compiler: llvm-8
-          - os: macos-11
-            compiler: llvm-9
-          - os: macos-11
-            compiler: llvm-10
-          - os: macos-11
-            compiler: llvm-11
-          - os: macos-11
-            compiler: llvm-12
-          - os: macos-11
-            compiler: llvm-13
-          - os: macos-11
-            compiler: llvm-16
-          - os: macos-11
-            compiler: llvm-17
-          - os: macos-12
-            compiler: llvm-5
-          - os: macos-12
-            compiler: llvm-6
-          - os: macos-12
-            compiler: llvm-7
-          - os: macos-12
-            compiler: llvm-8
-          - os: macos-12
-            compiler: llvm-9
-          - os: macos-12
-            compiler: llvm-10
-          - os: macos-12
-            compiler: llvm-11
-          - os: macos-12
-            compiler: llvm-12
-          - os: macos-12
-            compiler: llvm-13
+          # - os: macos-12
+          #   compiler: llvm-5
+          # - os: macos-12
+          #   compiler: llvm-6
+          # - os: macos-12
+          #   compiler: llvm-7
+          # - os: macos-12
+          #   compiler: llvm-8
+          # - os: macos-12
+          #   compiler: llvm-9
+          # - os: macos-12
+          #   compiler: llvm-10
+          # - os: macos-12
+          #   compiler: llvm-11
+          # - os: macos-12
+          #   compiler: llvm-12
+          # - os: macos-12
+          #   compiler: llvm-13
           # - os: macos-12
           #   compiler: llvm-14
           # - os: macos-12
           #   compiler: llvm-15
-          - os: macos-12
-            compiler: llvm-16
-          - os: macos-12
-            compiler: llvm-17
+          # - os: macos-12
+          #   compiler: llvm-16
+          # - os: macos-12
+          #   compiler: llvm-17
 
         # -------------------------------------------------------
         #     include
@@ -190,12 +171,15 @@ jobs:
           - os: ubuntu-latest
             compiler: llvm
             build_type: RELEASE
-          # - os: macos-latest
-          #   compiler: gcc
-          #   build_type: RELEASE
-          # - os: macos-latest
-          #   compiler: llvm
-          #   build_type: RELEASE
+          - os: macos-latest
+            compiler: gcc
+            build_type: RELEASE
+          - os: macos-latest
+            compiler: llvm
+            build_type: RELEASE
+          - os: macos-latest
+            compiler: apple
+            build_type: RELEASE
 
           # Test without htslib with both compilers and OSs
           - os: ubuntu-latest
@@ -204,19 +188,22 @@ jobs:
           - os: ubuntu-latest
             compiler: llvm
             htslib: OFF
-          # - os: macos-latest
-          #   compiler: gcc
-          #   htslib: OFF
-          # - os: macos-latest
-          #   compiler: llvm
-          #   htslib: OFF
+          - os: macos-latest
+            compiler: gcc
+            htslib: OFF
+          - os: macos-latest
+            compiler: llvm
+            htslib: OFF
+          - os: macos-latest
+            compiler: apple
+            htslib: OFF
 
           # We test AppleClang as well, as a special case.
-          # - os: macos-10.15
-          #   compiler: apple
-          - os: macos-11
-            compiler: apple
           - os: macos-12
+            compiler: apple
+          - os: macos-13
+            compiler: apple
+          - os: macos-14
             compiler: apple
 
     # ==========================================================================
