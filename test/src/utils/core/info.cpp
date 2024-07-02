@@ -48,7 +48,7 @@ TEST( Info, Compiler )
     // check if it runs without failing, and returns some characters.
     auto info = info_print_compiler();
     ASSERT_GT( info.size(), 200 );
-    // LOG_DBG << info;
+    LOG_DBG << info;
 }
 
 TEST( Info, Hardware )
@@ -105,6 +105,10 @@ TEST( Info, Usage )
     EXPECT_GT( info_system_current_memory_usage(), 0 );
     EXPECT_GT( sum, 0 );
 
+    // Test totals
+    EXPECT_GT( info_process_peak_memory_usage(), 0 );
+    EXPECT_GT( info_process_total_cpu_time(), 0 );
+
     // Same as above
     auto info_total = info_process_print_total_usage();
     ASSERT_GT( info_total.size(), 20 );
@@ -117,6 +121,7 @@ TEST( Info, FileCount )
     NEEDS_TEST_DATA;
     // LOG_DBG << info_process_max_file_count();
     // LOG_DBG << info_process_current_file_count();
+    EXPECT_GT( info_process_max_file_count(), 0 );
 
     // Get how many files are open at the moment. That should just be stdin, stdout, stderr.
     // Also, apparently, in the GitHub Actions workflow, there are three more...
