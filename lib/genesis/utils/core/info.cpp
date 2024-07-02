@@ -1099,7 +1099,7 @@ std::pair<int, int> info_terminal_size()
 //     Open File Counts
 // -------------------------------------------------------------------------
 
-size_t info_max_file_count()
+size_t info_process_max_file_count()
 {
     // https://www.man7.org/linux/man-pages/man2/getdtablesize.2.html
     return getdtablesize();
@@ -1112,13 +1112,13 @@ size_t info_max_file_count()
     // rlimits.rlim_max // hard limit (ceiling for rlim_cur)
 }
 
-size_t info_current_file_count()
+size_t info_process_current_file_count()
 {
     // Adapted from https://web.archive.org/web/20150326011742/
     // http://blog.lobstertechnology.com/2005/08/22/determine-the-number-of-open-files/
 
     // We loop over all possible file descriptor numbers...
-    auto const max_fd_cnt = info_max_file_count();
+    auto const max_fd_cnt = info_process_max_file_count();
 
     // ... and check if they are currently in use. If errno returns anything other
     // than EBADF 'file descriptor is bad', it increments a count.
@@ -1151,7 +1151,7 @@ size_t info_current_file_count()
         return pmc.WorkingSetSize;
     }
 
-    size_t info_total_current_memory_usage()
+    size_t info_system_current_memory_usage()
     {
         // https://stackoverflow.com/q/63166/4184258
         // Beware: Completely untested, no error checking.
@@ -1220,7 +1220,7 @@ size_t info_current_file_count()
         return result;
     }
 
-    double info_total_current_cpu_usage( bool all_cores, bool percent )
+    double info_system_current_cpu_usage( bool all_cores, bool percent )
     {
         // Adapted from https://stackoverflow.com/q/63166/4184258
         // Beware: Completely untested, no error checking.
@@ -1283,7 +1283,7 @@ size_t info_current_file_count()
         return t_info.resident_size;
     }
 
-    size_t info_total_current_memory_usage()
+    size_t info_system_current_memory_usage()
     {
         // Adapted from https://stackoverflow.com/a/1911863/4184258
 
@@ -1397,7 +1397,7 @@ size_t info_current_file_count()
         return result;
     }
 
-    double info_total_current_cpu_usage( bool all_cores, bool percent )
+    double info_system_current_cpu_usage( bool all_cores, bool percent )
     {
         // Adapted from https://stackoverflow.com/a/49996245/4184258
 
@@ -1519,7 +1519,7 @@ size_t info_current_file_count()
         return result * 1024;
     }
 
-    size_t info_total_current_memory_usage()
+    size_t info_system_current_memory_usage()
     {
         // Adapted from https://stackoverflow.com/q/63166/4184258
 
@@ -1599,7 +1599,7 @@ size_t info_current_file_count()
         return result;
     }
 
-    double info_total_current_cpu_usage( bool all_cores, bool percent )
+    double info_system_current_cpu_usage( bool all_cores, bool percent )
     {
         // Adapted from https://stackoverflow.com/q/63166/4184258
 
@@ -1686,7 +1686,7 @@ size_t info_current_file_count()
         return 0;
     }
 
-    size_t info_total_current_memory_usage()
+    size_t info_system_current_memory_usage()
     {
         return 0;
     }
@@ -1698,7 +1698,7 @@ size_t info_current_file_count()
         return 0.0;
     }
 
-    double info_total_current_cpu_usage( bool all_cores, bool percent )
+    double info_system_current_cpu_usage( bool all_cores, bool percent )
     {
         (void) all_cores;
         (void) percent;

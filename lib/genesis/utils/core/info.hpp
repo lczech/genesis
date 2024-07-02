@@ -388,13 +388,13 @@ std::pair<int, int> info_terminal_size();
  * @brief Return the maximum number of files (i.e., file descriptors)
  * that can be opened simultaneously in the current process.
  */
-size_t info_max_file_count();
+size_t info_process_max_file_count();
 
 /**
  * @brief Return the number of files (i.e., file descriptors) that the current process
  * (the process calling this function) has opened at the moment.
  */
-size_t info_current_file_count();
+size_t info_process_current_file_count();
 
 /**
  * @brief Return the memory currently used by the current process, in bytes.
@@ -404,7 +404,7 @@ size_t info_process_current_memory_usage();
 /**
  * @brief Return the memory currently used across all running processes, in bytes.
  */
-size_t info_total_current_memory_usage();
+size_t info_system_current_memory_usage();
 
 /**
  * @brief Return the CPU usage of the current process.
@@ -426,7 +426,7 @@ double info_process_current_cpu_usage( bool all_cores = true, bool percent = tru
  *
  * @see See info_process_current_cpu_usage() for details on the parameters.
  */
-double info_total_current_cpu_usage( bool all_cores = true, bool percent = true );
+double info_system_current_cpu_usage( bool all_cores = true, bool percent = true );
 
 // =================================================================================================
 //     Total Resource Usage

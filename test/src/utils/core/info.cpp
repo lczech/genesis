@@ -68,7 +68,7 @@ TEST( Info, Usage )
     // Init. CPU usage has to be called onces to get started.
     size_t sum = 0;
     info_process_current_cpu_usage();
-    info_total_current_cpu_usage();
+    info_system_current_cpu_usage();
 
     // Do some busy work. We need to pass some time here,
     // in order for the CPU usage to register the work.
@@ -90,7 +90,7 @@ TEST( Info, Usage )
     // that is at least 80% of one core. Of course that's kinda random, but good enough
     // to just see that it is not zero, meaning that something reasonable got measured.
     auto const process_cpu_usage = info_process_current_cpu_usage();
-    auto const total_cpu_usage = info_total_current_cpu_usage();
+    auto const total_cpu_usage = info_system_current_cpu_usage();
     EXPECT_GT( process_cpu_usage, 80 );
     EXPECT_GT( total_cpu_usage, 80 );
     // LOG_DBG << process_cpu_usage << " " << total_cpu_usage;
@@ -102,7 +102,7 @@ TEST( Info, Usage )
 
     // Test some other properties as well
     EXPECT_GT( info_process_current_memory_usage(), 0 );
-    EXPECT_GT( info_total_current_memory_usage(), 0 );
+    EXPECT_GT( info_system_current_memory_usage(), 0 );
     EXPECT_GT( sum, 0 );
 
     // Same as above
@@ -115,12 +115,12 @@ TEST( Info, Usage )
 TEST( Info, FileCount )
 {
     NEEDS_TEST_DATA;
-    // LOG_DBG << info_max_file_count();
-    // LOG_DBG << info_current_file_count();
+    // LOG_DBG << info_process_max_file_count();
+    // LOG_DBG << info_process_current_file_count();
 
     // Get how many files are open at the moment. That should just be stdin, stdout, stderr.
     // Also, apparently, in the GitHub Actions workflow, there are three more...
-    auto const initial_size = info_current_file_count();
+    auto const initial_size = info_process_current_file_count();
     ASSERT_LE( 3, initial_size );
 
     {
@@ -143,10 +143,10 @@ TEST( Info, FileCount )
 
         // Now we can check our expectations.
         EXPECT_EQ( 10, got_bytes );
-        EXPECT_EQ( initial_size + 1, info_current_file_count() );
+        EXPECT_EQ( initial_size + 1, info_process_current_file_count() );
     }
 
     // After the scope closes, the file handle should be released,
     // so we are back to where we started.
-    EXPECT_EQ( initial_size, info_current_file_count() );
+    EXPECT_EQ( initial_size, info_process_current_file_count() );
 }
