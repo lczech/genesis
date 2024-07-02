@@ -64,8 +64,10 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <thread>
 #include <unordered_set>
+#include <vector>
 
 #include <errno.h>
 #include <stdio.h>
@@ -291,6 +293,73 @@ InfoCompiler const& info_get_compiler()
     return result;
 }
 
+std::unordered_map<std::string,std::string> const& info_preprocessor_definitions()
+{
+    // No need to repeat.
+    static std::unordered_map<std::string,std::string> result;
+    static bool initialized = false;
+    if( initialized ) {
+        return result;
+    }
+
+    // Now check all the macros that we want. There is likely no way to make these one-lines,
+    // as having a preprocessor ifdef within a macro definition itself is not possible.
+    #ifdef __cplusplus
+        result.emplace( "__cplusplus", std::to_string( __cplusplus ));
+    #endif
+    #ifdef _MSVC_LANG
+        result.emplace( "_MSVC_LANG", std::to_string( _MSVC_LANG ));
+    #endif
+    #ifdef __GNUC__
+        result.emplace( "__GNUC__", std::to_string( __GNUC__ ));
+    #endif
+    #ifdef __clang__
+        result.emplace( "__clang__", std::to_string( __clang__ ));
+    #endif
+    #ifdef _MSC_VER
+        result.emplace( "_MSC_VER", std::to_string( _MSC_VER ));
+    #endif
+    #ifdef __APPLE__
+        result.emplace( "__APPLE__", std::to_string( __APPLE__ ));
+    #endif
+    #ifdef __linux__
+        result.emplace( "__linux__", std::to_string( __linux__ ));
+    #endif
+    #ifdef __unix__
+        result.emplace( "__unix__", std::to_string( __unix__ ));
+    #endif
+    #ifdef _WIN32
+        result.emplace( "_WIN32", std::to_string( _WIN32 ));
+    #endif
+    #ifdef _WIN64
+        result.emplace( "_WIN64", std::to_string( _WIN64 ));
+    #endif
+    #ifdef __x86_64__
+        result.emplace( "__x86_64__", std::to_string( __x86_64__ ));
+    #endif
+    #ifdef _M_X64
+        result.emplace( "_M_X64", std::to_string( _M_X64 ));
+    #endif
+    #ifdef __i386
+        result.emplace( "__i386", std::to_string( __i386 ));
+    #endif
+    #ifdef _M_IX86
+        result.emplace( "_M_IX86", std::to_string( _M_IX86 ));
+    #endif
+    #ifdef __ARM_ARCH
+        result.emplace( "__ARM_ARCH", std::to_string( __ARM_ARCH ));
+    #endif
+    #ifdef __arm__
+        result.emplace( "__arm__", std::to_string( __arm__ ));
+    #endif
+    #ifdef __aarch64__
+        result.emplace( "__aarch64__", std::to_string( __aarch64__ ));
+    #endif
+
+    initialized = true;
+    return result;
+}
+
 std::string info_print_compiler()
 {
     auto const& info_comp = info_get_compiler();
@@ -365,12 +434,13 @@ std::string info_print_compiler()
         #endif
     }
 
-#elif defined(__arm__) // for M1/M2 chips
+#elif defined(__arm__) || defined(__aarch64__) || defined(__ARM_ARCH) // for M1/M2 chips
 
     void get_cpuid_(int32_t out[4], int32_t eax, int32_t ecx)
     {
-        // On MacOS with M1/M2 arm chips, we do not detect any features at the moment.
+        // On ARM, for instance MacOS with M1/M2 chips, we do not detect any features at the moment.
         // That means we will just run vanilla code, but well, can't support everything.
+        // Those processors seem to not have much support for SIMD anyway.
         out[0] = out[1] = out[2] = out[3] = 0;
     }
 
@@ -381,8 +451,12 @@ std::string info_print_compiler()
 
     bool detect_OS_x64_()
     {
-        // For now, we assume that any arm is actually a 64bit M1/M2 or comparable...
-        return true;
+        // https://stackoverflow.com/a/41666292/4184258
+        #ifdef __aarch64__
+            return true;
+        #else
+            return false;
+        #endif
     }
 
 #else
@@ -730,6 +804,7 @@ std::string info_print_hardware( bool full )
 
     ss << "Memory:" << "\n";
     ss << "    Memory        = " << to_string_byte_format( info_hardware.total_memory ) << "\n";
+    print_("    64-bit        = ", info_hardware.OS_x64);
     print_("    Little endian = ", info_hardware.is_little_endian);
     ss << "\n";
 
@@ -744,7 +819,6 @@ std::string info_print_hardware( bool full )
 
     if( full ) {
         ss << "OS Features:" << "\n";
-        print_("    64-bit      = ", info_hardware.OS_x64);
         print_("    OS AVX      = ", info_hardware.OS_AVX);
         print_("    OS AVX512   = ", info_hardware.OS_AVX512);
         ss << "\n";
@@ -807,7 +881,7 @@ std::string info_print_hardware( bool full )
         ss << "\n";
     }
 
-    ss << "Summary:" << "\n";
+    ss << "SIMD Summary:" << "\n";
     print_("    Safe to use AVX:     ", info_use_avx());
     print_("    Safe to use AVX2:    ", info_use_avx2());
     print_("    Safe to use AVX512:  ", info_use_avx512());
@@ -1184,6 +1258,18 @@ size_t info_process_current_file_count()
         return memInfo.ullTotalPhys - memInfo.ullAvailPhys;
     }
 
+    size_t info_system_current_memory_available()
+    {
+        // Based on https://stackoverflow.com/q/63166/4184258
+        // Beware: Completely untested, no error checking.
+        // Kept here mostly for future reference.
+
+        MEMORYSTATUSEX memInfo;
+        memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+        GlobalMemoryStatusEx(&memInfo);
+        return memInfo.ullAvailPhys;
+    }
+
     double info_process_current_cpu_usage( bool all_cores, bool percent )
     {
         // https://stackoverflow.com/q/63166/4184258
@@ -1320,17 +1406,37 @@ size_t info_process_current_file_count()
                 mach_port, HOST_VM_INFO, (host_info64_t)&vm_stats, &count
             )
         ) {
-            // long long free_memory = (int64_t)vm_stats.free_count * (int64_t)page_size;
-
             // Used memory has several types of relevant pages that we need to take into account.
             auto const relevant_sum =
-                (int64_t)vm_stats.active_count +
-                (int64_t)vm_stats.inactive_count +
-                (int64_t)vm_stats.wire_count
+                static_cast<size_t>( vm_stats.active_count ) +
+                static_cast<size_t>( vm_stats.inactive_count ) +
+                static_cast<size_t>( vm_stats.wire_count )
             ;
-            return relevant_sum * (int64_t)page_size;
+            return relevant_sum * static_cast<size_t>( page_size );
         }
 
+        return 0;
+    }
+
+    size_t info_system_current_memory_available()
+    {
+        // Adapted from https://stackoverflow.com/a/1911863/4184258
+
+        vm_size_t page_size;
+        mach_port_t mach_port;
+        mach_msg_type_number_t count;
+        vm_statistics64_data_t vm_stats;
+
+        mach_port = mach_host_self();
+        count = sizeof(vm_stats) / sizeof(natural_t);
+        if(
+            KERN_SUCCESS == host_page_size(mach_port, &page_size) &&
+            KERN_SUCCESS == host_statistics64(
+                mach_port, HOST_VM_INFO, (host_info64_t)&vm_stats, &count
+            )
+        ) {
+            return static_cast<size_t>( vm_stats.free_count ) * static_cast<size_t>( page_size );
+        }
         return 0;
     }
 
@@ -1478,7 +1584,7 @@ size_t info_process_current_file_count()
     //     Current Mem/CPU - Linux
     // -------------------------------------------------------------------------
 
-    size_t parse_status_line_( char* line )
+    size_t parse_proc_line_kb_( char* line )
     {
         // Helper function to parse "/proc/self/status", see
         // https://stackoverflow.com/q/63166/4184258
@@ -1532,7 +1638,7 @@ size_t info_process_current_file_count()
 
         while( fgets( line, 128, file ) != NULL ) {
             if( strncmp( line, "VmRSS:", 6 ) == 0 ) {
-                result = parse_status_line_(line);
+                result = parse_proc_line_kb_(line);
                 break;
             }
         }
@@ -1540,16 +1646,77 @@ size_t info_process_current_file_count()
         return result * 1024;
     }
 
-    size_t info_system_current_memory_usage()
+    std::unordered_map<std::string, size_t> get_proc_meminfo_lines_()
     {
-        // Adapted from https://stackoverflow.com/q/63166/4184258
+        std::unordered_map<std::string, size_t> meminfo;
+        std::ifstream file("/proc/meminfo");
+        std::string line;
 
+        while (std::getline(file, line)) {
+            std::istringstream iss(line);
+            std::string key;
+            size_t value;
+            std::string unit;
+            iss >> key >> value >> unit;
+            key.pop_back(); // Remove trailing ':'
+            meminfo[key] = value * 1024; // Convert kB to bytes
+        }
+
+        return meminfo;
+    }
+
+    size_t info_system_current_memory_helper_( bool available )
+    {
+        // Use a more comprehensive approach based on proc files, that also accounts for
+        // buffered and cached memory pages.
+        try {
+            // We purposefully do not make meminfo const here, so that any failing
+            // lookups instead simply add the element as 0, which is an okay fallback.
+            size_t mem_avail = 0;
+            auto meminfo = get_proc_meminfo_lines_();
+            if( meminfo.count( "MemAvailable" ) > 0 ) {
+                mem_avail = meminfo["MemAvailable"];
+            } else {
+                // If MemAvailable is not found, fallback to calculating it manually
+                size_t memFree = meminfo["MemFree"];
+                size_t buffers = meminfo["Buffers"];
+                size_t cached  = meminfo["Cached"];
+                mem_avail = memFree + buffers + cached;
+            }
+            if( available ) {
+                return mem_avail;
+            } else if( meminfo.count( "MemTotal" ) != 0 ) {
+                // If this is not available, we use the below fallback instead.
+                return meminfo["MemTotal"] - mem_avail;
+            }
+        } catch( ... ) {
+            // Do nothing here, just follow up with the below fallback.
+        }
+
+        // If the above does not work, we use this as another fallback, which however
+        // only reports the completely free memory, disregarind buffers and caches.
+        // Adapted from https://stackoverflow.com/q/63166/4184258
         struct sysinfo memInfo;
         if( sysinfo( &memInfo )) {
             return 0;
         }
         auto const mem_unit = static_cast<size_t>( memInfo.mem_unit );
-        return static_cast<size_t>( memInfo.totalram - memInfo.freeram ) * mem_unit;
+        if( available ) {
+            return static_cast<size_t>( memInfo.freeram ) * mem_unit;
+        } else {
+            return static_cast<size_t>( memInfo.totalram - memInfo.freeram ) * mem_unit;
+        }
+        return 0;
+    }
+
+    size_t info_system_current_memory_usage()
+    {
+        return info_system_current_memory_helper_( false );
+    }
+
+    size_t info_system_current_memory_available()
+    {
+        return info_system_current_memory_helper_( true );
     }
 
     size_t info_process_number_of_processors_()
@@ -1708,6 +1875,11 @@ size_t info_process_current_file_count()
     }
 
     size_t info_system_current_memory_usage()
+    {
+        return 0;
+    }
+
+    size_t info_system_current_memory_available()
     {
         return 0;
     }

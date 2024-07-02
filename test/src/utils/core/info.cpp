@@ -35,6 +35,7 @@
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/math/random.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <chrono>
 #include <fstream>
@@ -49,6 +50,12 @@ TEST( Info, Compiler )
     auto info = info_print_compiler();
     ASSERT_GT( info.size(), 200 );
     LOG_DBG << info;
+
+    std::string defs;
+    for( auto const& elem : info_preprocessor_definitions() ) {
+        defs += elem.first + "=" + elem.second + " ";
+    }
+    LOG_DBG << "Preprocessor definitons: " << defs;
 }
 
 TEST( Info, Hardware )
@@ -85,6 +92,7 @@ TEST( Info, Usage )
             sum += permuted_congruential_generator();
         }
     }
+    EXPECT_GT( sum, 0 );
 
     // Now report the cpu usage. We are fully using it, so let's assume that
     // that is at least 80% of one core. Of course that's kinda random, but good enough
@@ -103,7 +111,13 @@ TEST( Info, Usage )
     // Test some other properties as well
     EXPECT_GT( info_process_current_memory_usage(), 0 );
     EXPECT_GT( info_system_current_memory_usage(), 0 );
-    EXPECT_GT( sum, 0 );
+    EXPECT_GT( info_system_current_memory_available(), 0 );
+
+    // Print for our amusement
+    LOG_DBG << "proc mem use   " << info_process_current_memory_usage();
+    LOG_DBG << "sys  mem use   " << info_system_current_memory_usage();
+    LOG_DBG << "sys  mem avail " << info_system_current_memory_available();
+    LOG_DBG << "sys  mem total " << info_get_hardware().total_memory;
 
     // Test totals
     EXPECT_GT( info_process_peak_memory_usage(), 0 );
@@ -112,7 +126,7 @@ TEST( Info, Usage )
     // Same as above
     auto info_total = info_process_print_total_usage();
     ASSERT_GT( info_total.size(), 20 );
-    // LOG_DBG << info;
+    LOG_DBG << info_total;
     // LOG_DBG << guess_number_of_threads();
 }
 

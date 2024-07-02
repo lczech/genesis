@@ -34,6 +34,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -130,6 +131,14 @@ struct InfoCompiler
  * @brief Return information about compiler settings and flags.
  */
 InfoCompiler const& info_get_compiler();
+
+/**
+ * @brief Return a string map with some relevant preprocessor macros.
+ *
+ * This is mostly for debugging, to see how different systems compile the code.
+ * We only add a set of important macros that we internally have use for as well.
+ */
+std::unordered_map<std::string,std::string> const& info_preprocessor_definitions();
 
 /**
  * @brief Print information about compiler settings and flags to a string.
@@ -405,6 +414,11 @@ size_t info_process_current_memory_usage();
  * @brief Return the memory currently used across all running processes, in bytes.
  */
 size_t info_system_current_memory_usage();
+
+/**
+ * @brief Return the memory currently available in the system, in bytes.
+ */
+size_t info_system_current_memory_available();
 
 /**
  * @brief Return the CPU usage of the current process.
