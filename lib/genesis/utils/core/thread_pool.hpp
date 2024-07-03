@@ -61,7 +61,7 @@ class ThreadPool;
 // =================================================================================================
 
 /**
- * @brief Wrapper around `std::future` that implements busy waiting.
+ * @brief Wrapper around `std::future` that implements (pro-)active waiting, i.e., work stealing.
  *
  * This has the same interface and functionality as `std::future`, with the key difference that
  * when calling wait(), tasks from the ThreadPool queue are processed while waiting. This avoids
@@ -296,31 +296,39 @@ private:
  *
  * As the workers are stored in the ThreadPool object itself, it does not allow to be copied.
  *
- * The pool implements a technique similar to the one described in the "C++ Concurrency in Action"
- * book by Anthony Williams, second edition, chapter 9, in order to avoid dead locking when tasks
- * submit their own tasks. In such cases, the parent task could then potentially be waiting for the
- * child, but the child might never start, as all threads in the pool are busy waiting for children,
- * this could starve. Hence, our wrapper implementation ProactiveFuture instead processes tasks from
- * the queue while waiting for the future, so that those do not starve.
+ * The pool implements a work stealing technique similar to the one described in the
+ * "C++ Concurrency in Action" book by Anthony Williams, second edition, chapter 9, in order to
+ * avoid dead locking when tasks submit their own tasks. In such cases, the parent task could then
+ * potentially be waiting for the child, but the child might never start, as all threads in the pool
+ * are busy waiting for the children they enqueued. Hence, our wrapper implementation, called
+ * ProactiveFuture (a thin wrapper around `std::future`; see there for details), instead processes
+ * tasks from the queue while waiting for the future, so that those do not starve.
  *
  * This mechanism also allows to start a ThreadPool with 0 threads. In that case, all tasks will
- * be processed once wait() or get() is called on their returned ProactiveFuture (our thin wrapper
- * around `std::future`; see there for details) - essentially making the pool behave as
- * a lazy evaluator of the tasks. This is very convenient behavior to ensure that the number of
- * actually busy threads is exactly known - a main thread that waits for some submitted tasks will
- * also be doing work while waiting. Hence, we recommend to start this pool with one fewer threads
- * than hardware concurrency (or whatever other upper limit you want to ensure, e.g., Slurm).
+ * be processed once wait() or get() is called on their returned ProactiveFuture - essentially
+ * making the pool behave as a lazy evaluator of the tasks. This is very convenient behavior to
+ * ensure that the number of actually busy threads is exactly known - a main thread that waits for
+ * some submitted tasks will also be doing work while waiting. Hence, we recommend to start this
+ * pool with one fewer threads than hardware concurrency (or whatever other upper limit you want
+ * to ensure, e.g., Slurm).
  *
  * Lastly, if upon construction a maximum queue size is provided, only that many tasks will be
  * queued at a time (with a bit of leeway, due to concurrency). If a thread calls enqueue() when
- * the queue is already full, it instead waits for the queue to be below the specified max, and
- * while waiting, starts processing tasks of its own, so that the waiting time is spend productively.
- * This is meant as a mechanism to avoid a main thread that endlessly queues work, with the workers
+ * the queue is already filled with waiting tasks up to the maximum size, the caller instead waits
+ * for the queue to be below the specified max, and while waiting, starts processing tasks of its
+ * own, so that the waiting time is spend productively.
+ *
+ * This is meant as a mechanism to allow a main thread to just keep queueing work without capturing
+ * the futures and waiting for them, while avoiding to endlessly queue new tasks, with the workers
  * not being able to catch up. The max size needs to be at least double the number of threads for
  * this to make sense. Due to concurrency, the max size can be exceeded by the number of threads,
  * in case that many threads enqueue work simultaneously. That is okay, as we usually just want
- * there to be _some_ upper limit on the number of tasks. Making this an exact limit would either
- * require more locking, or a sophisticated lock-free approach, which is currenlty not necessary.
+ * there to be _some_ upper limit on the number of tasks. Also, in case of just a single main thread
+ * that is enqueueing new tasks, the maximum is never exceeded.
+ *
+ * When using this mechanism of submitting work without storing the futures, the wait() function
+ * of the class can be used to wait for all current work to be done. This is intended to be called,
+ * for instance, from the main thread, once there is no more work to be enqueued.
  */
 class ThreadPool
 {
@@ -381,6 +389,7 @@ public:
                 worker.join();
             }
         }
+        assert( active_tasks_.load() == 0 );
     }
 
     // -------------------------------------------------------------
@@ -465,7 +474,21 @@ public:
             if( terminate_pool_ ) {
                 throw std::runtime_error( "Cannot enqueue task into terminated ThreadPool." );
             }
-            task_queue_.emplace([task](){ (*task)(); });
+
+            // We add the task, incrementing the active counter, and only decrementing it
+            // once the task has been fully processed. That way, the counter always tells us
+            // if there is still work going on. We capture a reference to this here, which could
+            // be dangerous if the threads survive the lifetime of the pool, but given that their
+            // exit condition depends on terminate_pool_, which is only called from the pool
+            // destructor, this should never be able to happen.
+            ++active_tasks_;
+            task_queue_.emplace(
+                [task, this](){
+                    (*task)();
+                    assert( this->active_tasks_.load() > 0 );
+                    --this->active_tasks_;
+                }
+            );
             ++enqueued_tasks_;
         }
 
@@ -505,6 +528,34 @@ public:
         return false;
     }
 
+    /**
+     * @brief Wait for all current tasks to be finished processing.
+     *
+     * This is an alternative mechanism for tasks whose future has not been captured when being
+     * enqueued. This can be used for instance by a main thread that keeps submitting work,
+     * and then later needs to wait for everything to be finished. In that case, it might make
+     * sense to set a max_queue_size when constructing the pool, to ensure that the pool does not
+     * grow indefinitely. See the main class description for details.
+     */
+    void wait()
+    {
+        // Wait for all pending tasks to be processed. While we wait, we can also help processing
+        // tasks! The loop stops once there are not more enqueued tasks.
+        while( run_pending_task() );
+
+        // Now, there are no more tasks in the queue, so we cannot help processing them any more.
+        // All we have to do now is to wait for all actively running tasks of the thread workers
+        // to finish.
+        // Of course, the above condition might already be violated here in the meantime, as more
+        // tasks could have been enqueued by now. But we generally assume that this function is
+        // to be called from the main thread, so nothing should get enqueued any more for now.
+        // If it still does, we might keep waiting here for a bit, keeping the caller in a busy loop.
+        // Still, nothing bad happens; this should still be functional, and just wasteful.
+        while( active_tasks_.load() > 0 ) {
+            std::this_thread::yield();
+        }
+    }
+
     // -------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------
@@ -535,14 +586,21 @@ private:
                                     return !this->task_queue_.empty() || this->terminate_pool_;
                                 }
                             );
+
+                            // We only ever exit this loop upon destruction.
+                            // This ensures that local references, such as to the active_tasks_
+                            // count remain valid while the thread pool is in use.
                             if( this->terminate_pool_ && this->task_queue_.empty() ) {
                                 return;
                             }
+
+                            // We hold the lock on the task queue, so we can pop our next task,
+                            // before releasing the lock again at the end of the scope.
                             task = std::move( this->task_queue_.front() );
                             this->task_queue_.pop();
                         }
 
-                        // Run the task
+                        // Run the task, outside of the lock scope.
                         task();
                     }
                 }
@@ -561,6 +619,7 @@ private:
 
     // Store the task queue
     std::queue<std::function<void()>> task_queue_;
+    std::atomic<size_t> active_tasks_{ 0 };
     size_t max_queue_size_;
 
     // Synchronization
