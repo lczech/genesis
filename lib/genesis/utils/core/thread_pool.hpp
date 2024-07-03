@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -298,18 +298,29 @@ private:
  *
  * The pool implements a technique similar to the one described in the "C++ Concurrency in Action"
  * book by Anthony Williams, second edition, chapter 9, in order to avoid dead locking when tasks
- * submit their own tasks. In such cases, the parent task could then potentially be waiting  for the
+ * submit their own tasks. In such cases, the parent task could then potentially be waiting for the
  * child, but the child might never start, as all threads in the pool are busy waiting for children,
- * this could starve. Hence, our wrapper implementation ProactiveFuture instead processes tasks from the
- * queue while waiting for the future, so that those do not starve.
+ * this could starve. Hence, our wrapper implementation ProactiveFuture instead processes tasks from
+ * the queue while waiting for the future, so that those do not starve.
  *
  * This mechanism also allows to start a ThreadPool with 0 threads. In that case, all tasks will
  * be processed once wait() or get() is called on their returned ProactiveFuture (our thin wrapper
  * around `std::future`; see there for details) - essentially making the pool behave as
  * a lazy evaluator of the tasks. This is very convenient behavior to ensure that the number of
  * actually busy threads is exactly known - a main thread that waits for some submitted tasks will
- * also be doing work while waiting. Hence, we recommend to start thise pool with one fewer threads
+ * also be doing work while waiting. Hence, we recommend to start this pool with one fewer threads
  * than hardware concurrency (or whatever other upper limit you want to ensure, e.g., Slurm).
+ *
+ * Lastly, if upon construction a maximum queue size is provided, only that many tasks will be
+ * queued at a time (with a bit of leeway, due to concurrency). If a thread calls enqueue() when
+ * the queue is already full, it instead waits for the queue to be below the specified max, and
+ * while waiting, starts processing tasks of its own, so that the waiting time is spend productively.
+ * This is meant as a mechanism to avoid a main thread that endlessly queues work, with the workers
+ * not being able to catch up. The max size needs to be at least double the number of threads for
+ * this to make sense. Due to concurrency, the max size can be exceeded by the number of threads,
+ * in case that many threads enqueue work simultaneously. That is okay, as we usually just want
+ * there to be _some_ upper limit on the number of tasks. Making this an exact limit would either
+ * require more locking, or a sophisticated lock-free approach, which is currenlty not necessary.
  */
 class ThreadPool
 {
@@ -324,10 +335,23 @@ public:
      *
      * We allow for 0 tasks on construction. With no threads in the pool, every task submitted will
      * be processed instead once its future is queried via wait or get; it then hence behaves as a
-     * lazy evaluating task queue.
+     * lazy evaluating task queue
+     *
+     * If a @p max_queue_size is set to a value other than zero, roughly that many tasks will only
+     * be enqueued at the same time. See the class description for details.
      */
-    explicit ThreadPool( size_t num_threads )
+    explicit ThreadPool( size_t num_threads, size_t max_queue_size = 0 )
+        : max_queue_size_( max_queue_size )
     {
+        // We disallow a max queue size smaller than half the number of threads.
+        // That would be slow and inefficient, and just not really what we want.
+        if( max_queue_size_ > 0 && max_queue_size_ < num_threads * 2 ) {
+            throw std::runtime_error(
+                "Cannot use ThreadPool with max queue size less than half the number of threads, "
+                "for efficiency"
+            );
+        }
+
         // Create the threads.
         init_( num_threads );
     }
@@ -401,17 +425,31 @@ public:
      *
      * We internally use a std::packaged_task, so that any exception thrown in the function will
      * be caught and trapped inside of the future, until its get() function is called.
+     *
+     * If enqueuing the task would exceed the max queue size, we instead first process existing
+     * tasks until there is enough space in the queue. This makes the caller do wait and work.
      */
     template<class F, class... Args>
     auto enqueue( F&& f, Args&&... args )
     -> ProactiveFuture<typename std::result_of<F(Args...)>::type>
     {
-        using result_type = typename std::result_of<F(Args...)>::type;
+        // Check that we can enqueue a task at the moment, of if we need to wait and to work first.
+        // In a high-contention situation, this of course could fail, so that once the loop condition
+        // is checked, some other task already has finished the work. But that doesn't matter, the
+        // call to run_pending_task will catch that and just do nothing. Also, the other way round
+        // could happen, and the queue could in theory be overloaded if many threads try to enqueue
+        // at exactly the same time. But we probably never have enough threads for that to be a real
+        // issue - worst case, we exceed the max queue size by the number of threads, which is fine.
+        // All we want to avoid is to have an infinitely growing queue.
+        while( max_queue_size_ > 0 && currently_enqueued_tasks() >= max_queue_size_ ) {
+            run_pending_task();
+        }
 
         // Prepare the task by binding the function to its arguments.
         // Using a packaged task ensures that any exception thrown in the task function
         // will be caught by the future, and re-thrown when its get() function is called,
         // see e.g., https://stackoverflow.com/a/16345305/4184258
+        using result_type = typename std::result_of<F(Args...)>::type;
         auto task = std::make_shared< std::packaged_task<result_type()> >(
             std::bind( std::forward<F>(f), std::forward<Args>(args)... )
         );
@@ -488,6 +526,7 @@ private:
                         // Synchronized access to the task list: see if there is a task to be done,
                         // and if so, pick it up and remove it from the queue
                         {
+                            // The lock is managed by the condition variable.
                             std::unique_lock<std::mutex> lock( task_queue_mutex_ );
                             this->condition_.wait(
                                 lock,
@@ -522,6 +561,7 @@ private:
 
     // Store the task queue
     std::queue<std::function<void()>> task_queue_;
+    size_t max_queue_size_;
 
     // Synchronization
     mutable std::mutex task_queue_mutex_;

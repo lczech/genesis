@@ -241,7 +241,7 @@ public:
      * After calling this function, global_thread_pool() can be used to obtain the global thread
      * pool to enqueue work.
      */
-    void init_global_thread_pool( size_t num_threads )
+    void init_global_thread_pool( size_t num_threads, size_t max_queue_size = 0 )
     {
         if( thread_pool_ ) {
             throw std::runtime_error(
@@ -249,7 +249,7 @@ public:
                 "Cannot call Options::get().init_global_thread_pool() multiple times."
             );
         }
-        thread_pool_ = std::make_shared<utils::ThreadPool>( num_threads );
+        thread_pool_ = std::make_shared<utils::ThreadPool>( num_threads, max_queue_size );
     }
 
     /**
