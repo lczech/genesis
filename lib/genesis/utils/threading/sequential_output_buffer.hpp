@@ -416,6 +416,9 @@ private:
     // Another sequence of blocks, but only those that are ready for output.
     // We keep this separate, so that output processing in the thread that finishes a block
     // does not make the other threads wait unnecessarily.
+    // We are using a simple blocking threadsafe queue here, instead of the concurrent queue,
+    // as the latter does not guarantee the order of elements that have been enqueued from
+    // several threads, which would make it harder to reason about the order of blocks here.
     ThreadsafeQueue<std::unique_ptr<Block>> output_queue_;
 
     // We only ever need to keep the id (sequence order) of the first element of the first block

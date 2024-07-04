@@ -31,15 +31,15 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/threading/blocking_concurrent_queue.hpp"
+
 #include <atomic>
 #include <cassert>
 #include <chrono>
-#include <condition_variable>
 #include <iterator>
 #include <functional>
 #include <future>
 #include <memory>
-#include <mutex>
 #include <queue>
 #include <stdexcept>
 #include <thread>
@@ -269,14 +269,14 @@ private:
  *
  * For reasons explained below, it is recommended to initialize a global thread pool via
  * Options::get().global_thread_pool(), with one fewer threads than intended to keep busy,
- * as the main thread will also be able to do busy work while waiting for tasks. Use
- * guess_number_of_threads() for obtaining the adequate number of total threads to run,
- * and subtract one to get the number to use this class with.
+ * as the main thread will also be able to do busy work while waiting for tasks via our work
+ * stealing ProactiveFuture. Use guess_number_of_threads() for obtaining the adequate number of
+ * total threads to run, and subtract one to get the number to use this class with.
  *
  * Example
  *
- *     // Create a thread pool with 2 worker threads
- *     ThreadPool thread_pool( 2 );
+ *     // Create a thread pool with 3 worker threads, on a 4 core system.
+ *     ThreadPool thread_pool( 3 );
  *
  *     // Enqueue a new task by providing a function and its arguments, and store its future result.
  *     // This is a ProactiveFuture, so that calling wait() or get() on it will process other tasks.
@@ -355,13 +355,14 @@ public:
         // That would be slow and inefficient, and just not really what we want.
         if( max_queue_size_ > 0 && max_queue_size_ < num_threads * 2 ) {
             throw std::runtime_error(
-                "Cannot use ThreadPool with max queue size less than half the number of threads, "
-                "for efficiency"
+                "Cannot use ThreadPool with max queue size less than "
+                "half the number of threads, for efficiency"
             );
         }
 
         // Create the threads.
         init_( num_threads );
+        assert( worker_pool_.size() == num_threads );
     }
 
     ThreadPool( ThreadPool const& ) = delete;
@@ -376,20 +377,24 @@ public:
      */
     ~ThreadPool()
     {
-        // Set synchronized signal to all workers to terminate
-        {
-            std::unique_lock<std::mutex> lock( task_queue_mutex_ );
-            terminate_pool_ = true;
+        // Just in case, we wait for any unfinished work to be done, to avoid terminating when
+        // tasks are still doing work that needs to be finished.
+        wait();
+        assert( unfinished_tasks_.load() == 0 );
+
+        // Send the special stop task to the pool, once for each worker.
+        // As each worker stops upon receiving the task, this stops all workers.
+        for( size_t i = 0; i < worker_pool_.size(); ++i ) {
+            task_queue_.enqueue( WrappedTask( true ));
         }
 
-        // Wake up all workers, and join them back into the main thread
-        condition_.notify_all();
+        // Join them back into the main thread, after which there is no unfinished work.
         for( std::thread& worker : worker_pool_ ) {
             if( worker.joinable() ) {
                 worker.join();
             }
         }
-        assert( active_tasks_.load() == 0 );
+        assert( unfinished_tasks_.load() == 0 );
     }
 
     // -------------------------------------------------------------
@@ -409,16 +414,8 @@ public:
      */
     size_t currently_enqueued_tasks() const
     {
-        std::unique_lock<std::mutex> lock( task_queue_mutex_ );
-        return task_queue_.size();
-    }
-
-    /**
-     * @brief Return counts of the number of tasks that have been enqueued in total.
-     */
-    size_t total_enqueued_tasks() const
-    {
-        return enqueued_tasks_.load();
+        return unfinished_tasks_.load();
+        // return task_queue_.size_approx();
     }
 
     // -------------------------------------------------------------
@@ -445,13 +442,13 @@ public:
         // Check that we can enqueue a task at the moment, of if we need to wait and to work first.
         // In a high-contention situation, this of course could fail, so that once the loop condition
         // is checked, some other task already has finished the work. But that doesn't matter, the
-        // call to run_pending_task will catch that and just do nothing. Also, the other way round
+        // call to try_run_pending_task will catch that and just do nothing. Also, the other way round
         // could happen, and the queue could in theory be overloaded if many threads try to enqueue
         // at exactly the same time. But we probably never have enough threads for that to be a real
         // issue - worst case, we exceed the max queue size by the number of threads, which is fine.
         // All we want to avoid is to have an infinitely growing queue.
         while( max_queue_size_ > 0 && currently_enqueued_tasks() >= max_queue_size_ ) {
-            run_pending_task();
+            try_run_pending_task();
         }
 
         // Prepare the task by binding the function to its arguments.
@@ -459,41 +456,37 @@ public:
         // will be caught by the future, and re-thrown when its get() function is called,
         // see e.g., https://stackoverflow.com/a/16345305/4184258
         using result_type = typename std::result_of<F(Args...)>::type;
-        auto task = std::make_shared< std::packaged_task<result_type()> >(
+        auto task_package = std::make_shared< std::packaged_task<result_type()> >(
             std::bind( std::forward<F>(f), std::forward<Args>(args)... )
         );
 
-        // Prepare the resulting future result of the task
-        auto future_result = ProactiveFuture<result_type>( task->get_future(), *this );
+        // Prepare the resulting future result of the task, which is our return value.
+        auto future_result = ProactiveFuture<result_type>( task_package->get_future(), *this );
 
-        // Put the task into the queue, synchronized, and in a small scope.
+        // Prepare the task that we want to submit, by wrapping the function to be called.
+        // All this wrapping should be completely transparent to the compiler, and removed.
+        // The task captures the package including the promise that is needed for the future.
+        WrappedTask wrapped_task;
+        wrapped_task.function = [task_package, this]()
         {
-            std::unique_lock<std::mutex> lock( task_queue_mutex_ );
+            // Run the actual work task here.
+            // Once done, we can signal this to the unfinished list.
+            (*task_package)();
+            assert( this->unfinished_tasks_.load() > 0 );
+            --this->unfinished_tasks_;
+        };
 
-            // Do not allow adding tasks after stopping the pool
-            if( terminate_pool_ ) {
-                throw std::runtime_error( "Cannot enqueue task into terminated ThreadPool." );
-            }
+        // We add the task, incrementing the unfinished counter, and only decrementing it once the
+        // task has been fully processed. That way, the counter always tells us if there is still
+        // work going on. We capture a reference to `this` in the task above, which could be
+        // dangerous if the threads survive the lifetime of the pool, but given that their exit
+        // condition is only called from the pool destructor, this should never be able to happen.
+        ++unfinished_tasks_;
+        task_queue_.enqueue(
+            std::move( wrapped_task )
+        );
 
-            // We add the task, incrementing the active counter, and only decrementing it
-            // once the task has been fully processed. That way, the counter always tells us
-            // if there is still work going on. We capture a reference to this here, which could
-            // be dangerous if the threads survive the lifetime of the pool, but given that their
-            // exit condition depends on terminate_pool_, which is only called from the pool
-            // destructor, this should never be able to happen.
-            ++active_tasks_;
-            task_queue_.emplace(
-                [task, this](){
-                    (*task)();
-                    assert( this->active_tasks_.load() > 0 );
-                    --this->active_tasks_;
-                }
-            );
-            ++enqueued_tasks_;
-        }
-
-        // Get a worker to pick up the task, and return the future result
-        condition_.notify_one();
+        // The task is submitted. Return its future for the caller to be able to wait for it.
         return future_result;
     }
 
@@ -504,25 +497,14 @@ public:
      * If no tasks are enqueued, return `false` without doing anything.
      * This is the function that allows ProactiveFuture to process tasks while waiting.
      */
-    bool run_pending_task()
+    bool try_run_pending_task()
     {
-        // Similar to the worker function, but without the condition_variable to wait, as we might
-        // not ever have any tasks in the queue, and would be waiting for the condition indefinitely.
+        // Similar to the worker function, but without the blocking wait, as we might not ever
+        // have any tasks in the queue, and would be waiting for the condition indefinitely.
         // Instead, we here just want to process a task if there is one, or return otherwise.
-        std::function<void()> task;
-
-        // Short lock to get a task if there is one.
-        {
-            std::unique_lock<std::mutex> lock( task_queue_mutex_ );
-            if( !this->task_queue_.empty() ) {
-                task = std::move( this->task_queue_.front() );
-                this->task_queue_.pop();
-            }
-        }
-
-        // If we got a task, run it.
-        if( task ) {
-            task();
+        WrappedTask task;
+        if( task_queue_.try_dequeue( task )) {
+            task.function();
             return true;
         }
         return false;
@@ -539,19 +521,10 @@ public:
      */
     void wait()
     {
-        // Wait for all pending tasks to be processed. While we wait, we can also help processing
-        // tasks! The loop stops once there are not more enqueued tasks.
-        while( run_pending_task() );
-
-        // Now, there are no more tasks in the queue, so we cannot help processing them any more.
-        // All we have to do now is to wait for all actively running tasks of the thread workers
-        // to finish.
-        // Of course, the above condition might already be violated here in the meantime, as more
-        // tasks could have been enqueued by now. But we generally assume that this function is
-        // to be called from the main thread, so nothing should get enqueued any more for now.
-        // If it still does, we might keep waiting here for a bit, keeping the caller in a busy loop.
-        // Still, nothing bad happens; this should still be functional, and just wasteful.
-        while( active_tasks_.load() > 0 ) {
+        // Wait for all pending tasks to be processed. While we wait, we can also help
+        // processing tasks! The loop stops once there are not more unfinished tasks.
+        while( unfinished_tasks_.load() > 0 ) {
+            while( try_run_pending_task() );
             std::this_thread::yield();
         }
     }
@@ -562,50 +535,64 @@ public:
 
 private:
 
+    /**
+     * @brief Wrap a task, with a special case for stopping a worker.
+     *
+     * The workers are using a blocking concurrent queue without any condition variables,
+     * for speed. That means we cannot signal them from the outside, but instead use this
+     * trick to tell them when to stop: A worker that receives a WrappedTask with stop=true
+     * will finish its loop waiting for more work. This is inspired by the usage of the queue
+     * in https://github.com/cameron314/concurrentqueue/issues/176#issuecomment-569801801
+     */
+    struct WrappedTask
+    {
+        explicit WrappedTask( bool stop = false )
+            : stop(stop)
+        {}
+
+        ~WrappedTask() = default;
+
+        WrappedTask( WrappedTask const& ) = delete;
+        WrappedTask( WrappedTask&& )      = default;
+
+        WrappedTask& operator= ( WrappedTask const& ) = delete;
+        WrappedTask& operator= ( WrappedTask&& )      = default;
+
+        std::function<void()> function;
+        bool stop;
+    };
+
+    // -------------------------------------------------------------
+    //     Internal Members
+    // -------------------------------------------------------------
+
     void init_( size_t num_threads )
     {
         // Create the desired number of workers.
         worker_pool_.reserve( num_threads );
         for( size_t i = 0; i < num_threads; ++i ) {
             worker_pool_.emplace_back(
-                [this]
-                {
-                    // Each worker runs an infinite loop until requested to stop,
-                    // using conditional waits to not waste compute power.
-                    while( true ) {
-                        std::function<void()> task;
-
-                        // Synchronized access to the task list: see if there is a task to be done,
-                        // and if so, pick it up and remove it from the queue
-                        {
-                            // The lock is managed by the condition variable.
-                            std::unique_lock<std::mutex> lock( task_queue_mutex_ );
-                            this->condition_.wait(
-                                lock,
-                                [this]
-                                {
-                                    return !this->task_queue_.empty() || this->terminate_pool_;
-                                }
-                            );
-
-                            // We only ever exit this loop upon destruction.
-                            // This ensures that local references, such as to the active_tasks_
-                            // count remain valid while the thread pool is in use.
-                            if( this->terminate_pool_ && this->task_queue_.empty() ) {
-                                return;
-                            }
-
-                            // We hold the lock on the task queue, so we can pop our next task,
-                            // before releasing the lock again at the end of the scope.
-                            task = std::move( this->task_queue_.front() );
-                            this->task_queue_.pop();
-                        }
-
-                        // Run the task, outside of the lock scope.
-                        task();
-                    }
-                }
+                &worker_, this
             );
+        }
+    }
+
+    static void worker_( ThreadPool* pool )
+    {
+        // Using a token for the consumer speeds it up. This is created once per worker thread
+        // when the function is called from the thread constructor upon emplacing the worker
+        // in the pool in init_()
+        ConsumerToken consumer_token( pool->task_queue_ );
+
+        // The worker runs an infinite loop of waiting for tasks,
+        // only stopping once a special "stop" task is received.
+        WrappedTask task;
+        while( true ) {
+            pool->task_queue_.wait_dequeue( consumer_token, task );
+            if( task.stop ) {
+                break;
+            }
+            task.function();
         }
     }
 
@@ -615,21 +602,13 @@ private:
 
 private:
 
-    // Store all workers
+    // Worker threads
     std::vector<std::thread> worker_pool_;
 
-    // Store the task queue
-    std::queue<std::function<void()>> task_queue_;
-    std::atomic<size_t> active_tasks_{ 0 };
+    // WrappedTask queue and its counters
+    BlockingConcurrentQueue<WrappedTask> task_queue_;
+    std::atomic<size_t> unfinished_tasks_{ 0 };
     size_t max_queue_size_;
-
-    // Synchronization
-    mutable std::mutex task_queue_mutex_;
-    std::condition_variable condition_;
-    std::atomic<bool> terminate_pool_{ false };
-
-    // Statistics
-    std::atomic<size_t> enqueued_tasks_{ 0 };
 };
 
 // =================================================================================================
@@ -671,7 +650,7 @@ void ProactiveFuture<T>::wait() const
         // having this proactive waiting future in the first place.
         // We also can't do anything with condition variables to omit the busy wait here, as we do
         // not know whether there will be any tasks in the queue at all before we are done here.
-        if( ! thread_pool_->run_pending_task() ) {
+        if( ! thread_pool_->try_run_pending_task() ) {
             std::this_thread::yield();
         }
     }
