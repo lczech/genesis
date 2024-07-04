@@ -81,7 +81,7 @@ namespace utils {
 template <typename T, typename Traits = ConcurrentQueueDefaultTraits>
 class BlockingConcurrentQueue {
 private:
-    using ConcurrentQueue = ConcurrentQueue<T, Traits>;
+    typedef ::genesis::utils::ConcurrentQueue<T, Traits> ConcurrentQueue;
 
 public:
     typedef typename ConcurrentQueue::producer_token_t producer_token_t;
