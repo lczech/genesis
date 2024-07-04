@@ -40,6 +40,8 @@
 #include "genesis/utils/math/regression/slr.hpp"
 #include "genesis/utils/text/string.hpp"
 
+#include <cmath>
+
 using namespace genesis::utils;
 
 TEST( Math, GlmFactors )
@@ -286,8 +288,13 @@ TEST( Math, GlmGaussInteraction )
     });
 
     // Run the model. As the data is created to be perfect, we expect a perfect fit.
+    // For some reason, on MacOS 14, we cannot do a float comparison here, as it fails
+    // with a difference of 2.5243549e-29, which should be below float equality...
+    // Probably they have some incredibly large doubles going on, the the test macro
+    // fails for that. Anywya, just using a plain comparison here instead now.
     auto const output = glm_fit( predictor, response );
-    EXPECT_FLOAT_EQ( 0.0, output.deviance );
+    EXPECT_LT( std::abs( output.deviance ), 1e-25 );
+    // EXPECT_FLOAT_EQ( 0.0, output.deviance );
 
     // LOG_DBG << "scale " << output.scale;
     // LOG_DBG << "fitted " << join(output.fitted);
