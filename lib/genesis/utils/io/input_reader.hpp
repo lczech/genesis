@@ -199,7 +199,7 @@ public:
 
         // We capture the target by value, meaning that the caller has to stay alive until the
         // task is finished, so that we don't get a memory access violation for the buffer.
-        future_ = thread_pool_->enqueue(
+        future_ = thread_pool_->enqueue_and_retrieve(
             [=](){
                 return input_source->read( target_buffer, target_size );
             }

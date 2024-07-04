@@ -203,7 +203,7 @@ MultiFuture<R> parallel_block(
         auto const e = begin_t + static_cast<T>( current_start + l );
         assert( l > 0 );
         assert( b < e );
-        result[i] = thread_pool->enqueue( std::forward<F>( body ), b, e );
+        result[i] = thread_pool->enqueue_and_retrieve( std::forward<F>( body ), b, e );
 
         // Our next block will start where this one ended.
         current_start += l;

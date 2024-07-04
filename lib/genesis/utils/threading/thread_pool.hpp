@@ -423,7 +423,8 @@ public:
     // -------------------------------------------------------------
 
     /**
-     * @brief Enqueue a new task, using a function to call and its arguments.
+     * @brief Enqueue a new task, using a function to call and its arguments, and returning
+     * a future to receive the result of the task.
      *
      * The enqueue function returns a future that can be used to check whether the task has
      * finished, or to wait for it to be finished. This also allows the task to send its result
@@ -431,12 +432,14 @@ public:
      *
      * We internally use a std::packaged_task, so that any exception thrown in the function will
      * be caught and trapped inside of the future, until its get() function is called.
+     * See enqueue_detached() for an alternative function that does not incur the overhead of
+     * creating the packaged_task and future, and hence has 50% less overhead.
      *
      * If enqueuing the task would exceed the max queue size, we instead first process existing
-     * tasks until there is enough space in the queue. This makes the caller do wait and work.
+     * tasks until there is e space in the queue. This makes the caller do wait and work.
      */
     template<class F, class... Args>
-    auto enqueue( F&& f, Args&&... args )
+    auto enqueue_and_retrieve( F&& f, Args&&... args )
     -> ProactiveFuture<typename std::result_of<F(Args...)>::type>
     {
         // Check that we can enqueue a task at the moment, of if we need to wait and to work first.
@@ -488,6 +491,57 @@ public:
 
         // The task is submitted. Return its future for the caller to be able to wait for it.
         return future_result;
+    }
+
+    /**
+     * @brief Enqueue a new task, using a function to call and its arguments, without a std::future.
+     *
+     * This function simply submits the task to the pool, but does not create a std::future for the
+     * caller to wait for the result. Hence, this mostly makes sense for tasks that do not return a
+     * result that is needed. Thus, the task function itself needs to take care for propagating its
+     * result, if needed. This has 50% less overhead compared to enqueue_and_retrieve().
+     *
+     * If enqueuing the task would exceed the max queue size, we instead first process existing
+     * tasks until there is enough space in the queue. This makes the caller do wait and work.
+     */
+    template<class F, class... Args>
+    void enqueue_detached( F&& f, Args&&... args )
+    {
+        // Check that we can enqueue a task at the moment, of if we need to wait and to work first.
+        // In a high-contention situation, this of course could fail, so that once the loop condition
+        // is checked, some other task already has finished the work. But that doesn't matter, the
+        // call to try_run_pending_task will catch that and just do nothing. Also, the other way round
+        // could happen, and the queue could in theory be overloaded if many threads try to enqueue
+        // at exactly the same time. But we probably never have enough threads for that to be a real
+        // issue - worst case, we exceed the max queue size by the number of threads, which is fine.
+        // All we want to avoid is to have an infinitely growing queue.
+        while( max_queue_size_ > 0 && currently_enqueued_tasks() >= max_queue_size_ ) {
+            try_run_pending_task();
+        }
+
+        // Prepare the task that we want to submit, by wrapping the function to be called.
+        // All this wrapping should be completely transparent to the compiler, and removed.
+        // The task captures the package including the promise that is needed for the future.
+        WrappedTask wrapped_task;
+        auto task_function = std::bind( std::forward<F>(f), std::forward<Args>(args)... );
+        wrapped_task.function = [task_function, this]()
+        {
+            // Run the actual work task here.
+            // Once done, we can signal this to the unfinished list.
+            task_function();
+            assert( this->unfinished_tasks_.load() > 0 );
+            --this->unfinished_tasks_;
+        };
+
+        // We add the task, incrementing the unfinished counter, and only decrementing it once the
+        // task has been fully processed. That way, the counter always tells us if there is still
+        // work going on. We capture a reference to `this` in the task above, which could be
+        // dangerous if the threads survive the lifetime of the pool, but given that their exit
+        // condition is only called from the pool destructor, this should never be able to happen.
+        ++unfinished_tasks_;
+        task_queue_.enqueue(
+            std::move( wrapped_task )
+        );
     }
 
     /**

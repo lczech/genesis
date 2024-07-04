@@ -616,7 +616,7 @@ public:
             // Despite its parallel nature, we can use a thread pool here, as we are only ever
             // submitting a single read task to it, so there cannot be two reads of the same lambda
             // iterator in the pool.
-            *future_ = generator_->thread_pool_->enqueue(
+            *future_ = generator_->thread_pool_->enqueue_and_retrieve(
                 [ generator, buffer_block, block_size ](){
                     return read_block_( generator, buffer_block, block_size );
                 }

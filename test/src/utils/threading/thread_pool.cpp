@@ -62,7 +62,7 @@ void thread_pool_work_(size_t i)
 
     // LOG_DBG << "sub B " << i;
     auto pool = Options::get().global_thread_pool();
-    auto res = pool->enqueue([=](){
+    auto res = pool->enqueue_and_retrieve([=](){
         // LOG_DBG << "beg B " << i;
         thread_pool_sleep_();
         // LOG_DBG << "end B " << i;
@@ -81,7 +81,7 @@ TEST( ThreadPool, Nested )
     for (size_t i = 0; i < 4; ++i) {
         // LOG_DBG << "sub A " << i;
         auto pool = Options::get().global_thread_pool();
-        tasks.emplace_back( pool->enqueue( [=](){
+        tasks.emplace_back( pool->enqueue_and_retrieve( [=](){
             // LOG_DBG << "beg A " << i;
             thread_pool_sleep_();
             thread_pool_work_(i);

@@ -545,13 +545,16 @@ private:
 
         // Assert that all pointers are where they should be
         assert( pbase() == cur_block.block.get_input_buffer().first );
-        assert( epptr() == cur_block.block.get_input_buffer().first + cur_block.block.get_input_buffer().second );
+        assert(
+            epptr() ==
+            cur_block.block.get_input_buffer().first + cur_block.block.get_input_buffer().second
+        );
 
         // Send block to a compression worker thread, using all bytes that have been written to it.
         // The thread pool will pick up the task once a thread is available.
         assert( thread_pool_ );
         auto const avail_in = pptr() - pbase();
-        cur_block.future = thread_pool_->enqueue(
+        cur_block.future = thread_pool_->enqueue_and_retrieve(
             [&]( size_t av_in ){
                 cur_block.block.compress( av_in );
             },
