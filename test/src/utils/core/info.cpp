@@ -95,12 +95,15 @@ TEST( Info, Usage )
     EXPECT_GT( sum, 0 );
 
     // Now report the cpu usage. We are fully using it, so let's assume that
-    // that is at least 80% of one core. Of course that's kinda random, but good enough
+    // that is at least 50% of one core. Of course that's kinda random, but good enough
     // to just see that it is not zero, meaning that something reasonable got measured.
+    // For the overall system usage, we just test that we get a valid result,
+    // as any attempt to predict usage in the virtual envs of the GitHub Actions runners,
+    // in particular for Apple M1, is futile.
     auto const process_cpu_usage = info_process_current_cpu_usage();
     auto const total_cpu_usage = info_system_current_cpu_usage();
-    EXPECT_GT( process_cpu_usage, 80 );
-    EXPECT_GT( total_cpu_usage, 80 );
+    EXPECT_GT( process_cpu_usage, 50 );
+    EXPECT_GT( total_cpu_usage, 0 );
     // LOG_DBG << process_cpu_usage << " " << total_cpu_usage;
 
     // Apparently, MacOS automatically multithreads, or something weird.
