@@ -552,7 +552,7 @@ void thread_pool_nested_fuzzy_work_()
 
     // Run the function that recursively splits the tasks into blocks.
     thread_pool_compute_nested_fuzzy_work_( pool, numbers, 0, num_tasks, 0, counter );
-    ASSERT_EQ( 0, pool->currently_enqueued_tasks() );
+    ASSERT_EQ( 0, pool->pending_tasks_count() );
 
     // Aggregate the result and check that we got the correct sum.
     auto const total = std::accumulate( numbers.begin(), numbers.end(), 0 );
