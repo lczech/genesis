@@ -30,8 +30,8 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/containers/sequential_output_buffer.hpp"
 #include "genesis/utils/math/random.hpp"
+#include "genesis/utils/threading/sequential_output_buffer.hpp"
 
 #include <atomic>
 #include <future>

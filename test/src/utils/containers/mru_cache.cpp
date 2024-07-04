@@ -32,8 +32,8 @@
 
 #include "genesis/utils/containers/mru_cache.hpp"
 #include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/thread_functions.hpp"
 #include "genesis/utils/core/options.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <atomic>
 #include <cstdlib>

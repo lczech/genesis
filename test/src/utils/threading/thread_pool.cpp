@@ -38,8 +38,8 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/core/options.hpp"
-#include "genesis/utils/core/thread_pool.hpp"
-#include "genesis/utils/core/thread_functions.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/random.hpp"
 

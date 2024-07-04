@@ -31,9 +31,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/thread_pool.hpp"
 #include "genesis/utils/io/gzip.hpp"
 #include "genesis/utils/io/gzip_stream.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
 
 #include <memory>
 #include <sstream>

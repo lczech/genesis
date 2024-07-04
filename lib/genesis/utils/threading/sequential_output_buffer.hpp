@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_CONTAINERS_SEQUENTIAL_OUTPUT_BUFFER_H_
-#define GENESIS_UTILS_CONTAINERS_SEQUENTIAL_OUTPUT_BUFFER_H_
+#ifndef GENESIS_UTILS_THREADING_SEQUENTIAL_OUTPUT_BUFFER_H_
+#define GENESIS_UTILS_THREADING_SEQUENTIAL_OUTPUT_BUFFER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -32,7 +32,7 @@
  */
 
 #include "genesis/utils/core/std.hpp"
-#include "genesis/utils/containers/threadsafe_queue.hpp"
+#include "genesis/utils/threading/threadsafe_queue.hpp"
 
 #include <array>
 #include <cassert>

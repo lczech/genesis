@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_CORE_THREAD_POOL_H_
-#define GENESIS_UTILS_CORE_THREAD_POOL_H_
+#ifndef GENESIS_UTILS_THREADING_THREAD_POOL_H_
+#define GENESIS_UTILS_THREADING_THREAD_POOL_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -565,6 +565,7 @@ private:
     void init_( size_t num_threads )
     {
         // Create the desired number of workers.
+        worker_pool_.reserve( num_threads );
         for( size_t i = 0; i < num_threads; ++i ) {
             worker_pool_.emplace_back(
                 [this]

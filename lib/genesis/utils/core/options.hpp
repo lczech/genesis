@@ -32,7 +32,7 @@
  */
 
 #include "genesis/utils/core/info.hpp"
-#include "genesis/utils/core/thread_pool.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
 
 #include <atomic>
 #include <cassert>
