@@ -81,8 +81,7 @@ namespace utils {
 template <typename T, typename Traits = ConcurrentQueueDefaultTraits>
 class BlockingConcurrentQueue {
 private:
-    typedef ConcurrentQueue<T, Traits> ConcurrentQueue;
-    typedef LightweightSemaphore LightweightSemaphore;
+    using ConcurrentQueue = ConcurrentQueue<T, Traits>;
 
 public:
     typedef typename ConcurrentQueue::producer_token_t producer_token_t;
