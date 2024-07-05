@@ -523,9 +523,7 @@ public:
         // dangerous if the threads survive the lifetime of the pool, but given that their exit
         // condition is only called from the pool destructor, this should never be able to happen.
         ++unfinished_tasks_;
-        task_queue_.enqueue(
-            std::move( wrapped_task )
-        );
+        task_queue_.enqueue( std::move( wrapped_task ));
     }
 
     /**
@@ -638,7 +636,7 @@ private:
 
     inline void run_tasks_until_below_max_queue_size_()
     {
-        // Check that we can enqueue a task at the moment, of if we need to wait and to work first.
+        // Check that we can enqueue a task at the moment, of if we need to wait and do work first.
         // In a high-contention situation, this of course could fail, so that once the loop condition
         // is checked, some other task already has finished the work. But that doesn't matter, the
         // call to try_run_pending_task will catch that and just do nothing. Also, the other way round
@@ -664,16 +662,22 @@ private:
             // Run the work task, and set the value of the associated promise.
             // We need to delegate this here, as the std::promise::set_value() function
             // differs for void and non-void return types. That is unfortunate.
+            // Also, as either the task function or setting the value of the promise can throw
+            // an exception, but in between we need to decrement the unfiished tasks counter,
+            // we need a way to figure out if we already did the decrement in case of an error.
+            bool decremented_unfinished_tasks = false;
             try {
                 run_task_and_fulfill_promise_<T>(
-                    task_promise, task_function
+                    task_promise, task_function, decremented_unfinished_tasks
                 );
             } catch (...) {
-                // TODO Here, we might or might not already have decremented unfinished_tasks_,
-                // depending on where exaclty the exception occurred. This is not clean,
-                // but for now, this is accetable, as we terminate upon exceptions anyway.
+                if( !decremented_unfinished_tasks ) {
+                    --unfinished_tasks_;
+                    decremented_unfinished_tasks = true;
+                }
                 task_promise->set_exception( std::current_exception() );
             }
+            assert( decremented_unfinished_tasks );
         };
     }
 
@@ -681,7 +685,8 @@ private:
     typename std::enable_if<!std::is_void<T>::value>::type
     inline run_task_and_fulfill_promise_(
         std::shared_ptr<std::promise<T>> task_promise,
-        std::function<T()> task_function
+        std::function<T()> task_function,
+        bool& decremented_unfinished_tasks
     ) {
         // Run the actual work task here. Once done, we can signal this to the unfinished list.
         // This bit is the only reason why the whole wrapping exists: We need to first decrement
@@ -690,6 +695,7 @@ private:
         auto result = task_function();
         assert( unfinished_tasks_.load() > 0 );
         --unfinished_tasks_;
+        decremented_unfinished_tasks = true;
         task_promise->set_value( std::move( result ));
     }
 
@@ -697,12 +703,14 @@ private:
     typename std::enable_if<std::is_void<T>::value>::type
     inline run_task_and_fulfill_promise_(
         std::shared_ptr<std::promise<T>> task_promise,
-        std::function<void()> task_function
+        std::function<void()> task_function,
+        bool& decremented_unfinished_tasks
     ) {
         // Same as above, but for void functions, i.e., without setting a value for the promise.
         task_function();
         assert( unfinished_tasks_.load() > 0 );
         --unfinished_tasks_;
+        decremented_unfinished_tasks = true;
         task_promise->set_value();
     }
 
