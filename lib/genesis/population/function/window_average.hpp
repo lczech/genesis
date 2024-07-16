@@ -74,9 +74,9 @@ enum class WindowAveragePolicy
      * settings. This can be useful when SNP calling was applied beforehand.
      *
      * Technically, this simply uses the sum of the variant filter stats to get the number of
-     * positions that have been processed in total. As the stats get incremented each time a position
-     * is processed, this sum reflects every entry that was exposed to some filter and not already
-     * completely removed, via e.g., region filters.
+     * positions that have been processed in total, except for any missing data.
+     * As the stats get incremented each time a position is processed, this sum reflects every entry
+     * that was exposed to some filter and not already completely removed, via e.g., region filters.
      */
     kAvailableLoci,
 
@@ -160,7 +160,10 @@ inline double window_average_denominator(
             return window_length;
         }
         case WindowAveragePolicy::kAvailableLoci: {
-            return variant_filter_stats.sum();
+            auto const missing = variant_filter_stats_category_counts(
+                variant_filter_stats, VariantFilterTagCategory::kMissingInvalid
+            );
+            return variant_filter_stats.sum() - missing;
         }
         case WindowAveragePolicy::kValidLoci: {
             // Here, we use the number of positions that passed all total variant filters
