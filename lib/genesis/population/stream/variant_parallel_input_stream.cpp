@@ -33,6 +33,7 @@
 #include "genesis/population/filter/sample_counts_filter.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/text/char.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -183,16 +184,16 @@ Variant VariantParallelInputStream::Iterator::joined_variant(
             // Set and check the ref and alt bases.
             // This is the first input that has data here. Use it to initialize the bases.
             if( ! bases_init ) {
-                res.reference_base   = variants_[i]->reference_base;
-                res.alternative_base = variants_[i]->alternative_base;
+                res.reference_base   = utils::to_upper( variants_[i]->reference_base );
+                res.alternative_base = utils::to_upper( variants_[i]->alternative_base );
                 bases_init = true;
             }
 
             // Now check that all inputs have the same bases. We however overwrite any input
             // that has an N with an input that does not have N, to get the best data.
-            if( res.reference_base != variants_[i]->reference_base ) {
+            if( res.reference_base != utils::to_upper( variants_[i]->reference_base )) {
                 if( res.reference_base == 'N' ) {
-                    res.reference_base = variants_[i]->reference_base;
+                    res.reference_base = utils::to_upper( variants_[i]->reference_base );
                 } else if( params.allow_ref_base_mismatches ) {
                     res.reference_base = 'N';
                 } else {
@@ -200,13 +201,13 @@ Variant VariantParallelInputStream::Iterator::joined_variant(
                         "Mismatching reference bases while iterating input sources in parallel at " +
                         to_string( current_locus_ ) + ". Some sources have base '" +
                         std::string( 1, res.reference_base ) + "' while others have '" +
-                        std::string( 1, variants_[i]->reference_base ) + "'."
+                        std::string( 1, utils::to_upper( variants_[i]->reference_base )) + "'."
                     );
                 }
             }
-            if( res.alternative_base != variants_[i]->alternative_base ) {
+            if( res.alternative_base != utils::to_upper( variants_[i]->alternative_base )) {
                 if( res.alternative_base == 'N' ) {
-                    res.alternative_base = variants_[i]->alternative_base;
+                    res.alternative_base = utils::to_upper( variants_[i]->alternative_base );
                 } else if( params.allow_alt_base_mismatches ) {
                     res.alternative_base = 'N';
                 } else {
@@ -214,7 +215,7 @@ Variant VariantParallelInputStream::Iterator::joined_variant(
                         "Mismatching alternative bases while iterating input sources in parallel at " +
                         to_string( current_locus_ ) + ". Some sources have base '" +
                         std::string( 1, res.alternative_base ) + "' while others have '" +
-                        std::string( 1, variants_[i]->alternative_base ) + "'."
+                        std::string( 1, utils::to_upper( variants_[i]->alternative_base )) + "'."
                     );
                 }
             }

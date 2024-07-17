@@ -34,6 +34,7 @@
 #include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/function/functions.hpp"
 #include "genesis/sequence/functions/codes.hpp"
+#include "genesis/utils/text/char.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -499,14 +500,14 @@ void VariantGaplessInputStream::Iterator::prepare_current_variant_ref_base_()
         current_locus_.position > 0 &&
         current_locus_.position <= ref_genome_it_->length()
     );
-    auto const ref_base = ref_genome_it_->site_at( current_locus_.position - 1 );
+    auto const ref_base = utils::to_upper( ref_genome_it_->site_at( current_locus_.position - 1 ));
     // guess_and_set_ref_and_alt_bases( cur_var, ref_base, true );
-    if( is_valid_base( cur_var.reference_base )) {
+    if( is_valid_base( utils::to_upper( cur_var.reference_base ))) {
         bool contains = false;
         try {
             using genesis::sequence::nucleic_acid_code_containment;
             contains = nucleic_acid_code_containment(
-                ref_base, cur_var.reference_base
+                ref_base, utils::to_upper( cur_var.reference_base )
             );
         } catch(...) {
             // The above throws an error if the given bases are not valid.
@@ -529,7 +530,7 @@ void VariantGaplessInputStream::Iterator::prepare_current_variant_ref_base_()
             );
         }
     } else {
-        cur_var.reference_base = ref_base;
+        cur_var.reference_base = utils::to_upper( ref_base );
     }
 }
 
