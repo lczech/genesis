@@ -167,12 +167,13 @@ MultiFuture<R> parallel_block(
     }
 
     // Default block size is the number of threads in the pool plus one.
-    // We implement a mechanism where the future returned from the pool is proactively processing
-    // other tasks while waiting, so that the calling thread of this function here would be able
-    // to do work as well when waiting, so we make a block for it.
+    // We implement a work stealing mechanism where the future returned from the pool is proactively
+    // processing other tasks while waiting, so that the calling thread of this function here would
+    // be able to do work as well when waiting, so we make a block for it.
     if( num_blocks == 0 ) {
         num_blocks = thread_pool->size() + 1;
     }
+
     // If there are more blocks than actual items to process, we can adjust, so that we actually
     // have one block per item. Empty blocks would not make sense.
     if( num_blocks > total_size ) {
@@ -322,6 +323,9 @@ MultiFuture<void> parallel_for_each(
     // and copy it again here for the lambda. Otherwise, we run into some weird iterator
     // invalidity issues, that might come from the threading or something... it's weird.
     // The iterator itself is never advanced here, so that should not lead to this error...
+    // Edit: It might be due to something similar to P2644R1 "Fix for Range-based for Loop".
+    // See https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2644r1.pdf
+    // Not sure that makes sense, as we are using a function here, but it seems somehow related.
     return parallel_block(
         0, total,
         [begin, body]( size_t b, size_t e ){
