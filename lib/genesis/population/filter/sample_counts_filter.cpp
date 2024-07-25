@@ -47,12 +47,12 @@ namespace population {
 // add other values to that enum, we want to know here, in order to adapt all below functions
 // accordingly.
 static_assert(
-    static_cast<FilterStatus::IntType>( SampleCountsFilterTag::kEnd ) == 10,
-    "SampleCountsFilterTag::kEnd != 10. The enum has values that are not accounted for."
+    static_cast<FilterStatus::IntType>( SampleCountsFilterTag::kEnd ) == 12,
+    "SampleCountsFilterTag::kEnd != 12. The enum has values that are not accounted for."
 );
 static_assert(
-    static_cast<FilterStatus::IntType>( SampleCountsFilterTagCategory::kEnd ) == 3,
-    "SampleCountsFilterTagCategory::kEnd != 3. The enum has values that are not accounted for."
+    static_cast<FilterStatus::IntType>( SampleCountsFilterTagCategory::kEnd ) == 4,
+    "SampleCountsFilterTagCategory::kEnd != 4. The enum has values that are not accounted for."
 );
 
 // =================================================================================================
@@ -65,6 +65,9 @@ SampleCountsFilterTagCategory sample_counts_filter_tag_to_category( SampleCounts
     switch( tag ) {
         case SampleCountsFilterTag::kPassed:
             return SampleCountsFilterTagCategory::kPassed;
+        case SampleCountsFilterTag::kMaskedPosition:
+        case SampleCountsFilterTag::kMaskedRegion:
+            return SampleCountsFilterTagCategory::kMasked;
         case SampleCountsFilterTag::kMissing:
         case SampleCountsFilterTag::kNotPassed:
         case SampleCountsFilterTag::kInvalid:
@@ -98,6 +101,8 @@ SampleCountsFilterCategoryStats sample_counts_filter_stats_category_counts(
     // Build our result, by simply adding up the values to our simple categories / classes.
     SampleCountsFilterCategoryStats result;
     result[SampleCountsFilterTagCategory::kPassed]         += stats[ SampleCountsFilterTag::kPassed ];
+    result[SampleCountsFilterTagCategory::kMasked]         += stats[ SampleCountsFilterTag::kMaskedPosition ];
+    result[SampleCountsFilterTagCategory::kMasked]         += stats[ SampleCountsFilterTag::kMaskedRegion ];
     result[SampleCountsFilterTagCategory::kMissingInvalid] += stats[ SampleCountsFilterTag::kMissing ];
     result[SampleCountsFilterTagCategory::kMissingInvalid] += stats[ SampleCountsFilterTag::kNotPassed ];
     result[SampleCountsFilterTagCategory::kMissingInvalid] += stats[ SampleCountsFilterTag::kInvalid ];
@@ -121,6 +126,11 @@ size_t sample_counts_filter_stats_category_counts(
     switch( category ) {
         case SampleCountsFilterTagCategory::kPassed: {
             result += stats[ SampleCountsFilterTag::kPassed ];
+            break;
+        }
+        case SampleCountsFilterTagCategory::kMasked: {
+            result += stats[ SampleCountsFilterTag::kMaskedPosition ];
+            result += stats[ SampleCountsFilterTag::kMaskedRegion ];
             break;
         }
         case SampleCountsFilterTagCategory::kMissingInvalid: {
@@ -165,6 +175,12 @@ std::ostream& print_sample_counts_filter_stats(
     assert( stats.data.size() == static_cast<size_t>( SampleCountsFilterTag::kEnd ) );
 
     // Go through all possible enum values and print them
+    if( stats[SampleCountsFilterTag::kMaskedPosition] > 0 || verbose ) {
+        os << "Masked position:       " << stats[SampleCountsFilterTag::kMaskedPosition] << "\n";
+    }
+    if( stats[SampleCountsFilterTag::kMaskedRegion] > 0 || verbose ) {
+        os << "Masked region:         " << stats[SampleCountsFilterTag::kMaskedRegion] << "\n";
+    }
     if( stats[SampleCountsFilterTag::kMissing] > 0 || verbose ) {
         os << "Missing:               " << stats[SampleCountsFilterTag::kMissing] << "\n";
     }
@@ -220,6 +236,9 @@ std::ostream& print_sample_counts_filter_category_stats(
     assert( stats.data.size() == static_cast<size_t>( SampleCountsFilterTagCategory::kEnd ) );
 
     // Go through all possible enum values and print them
+    if( stats[SampleCountsFilterTagCategory::kMasked] > 0 || verbose ) {
+        os << "Masked:  " << stats[SampleCountsFilterTagCategory::kMasked] << "\n";
+    }
     if( stats[SampleCountsFilterTagCategory::kMissingInvalid] > 0 || verbose ) {
         os << "Missing: " << stats[SampleCountsFilterTagCategory::kMissingInvalid] << "\n";
     }

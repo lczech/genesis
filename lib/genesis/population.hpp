@@ -37,6 +37,7 @@
 #include "genesis/population/filter/filter_status.hpp"
 #include "genesis/population/filter/sample_counts_filter.hpp"
 #include "genesis/population/filter/sample_counts_filter_numerical.hpp"
+#include "genesis/population/filter/sample_counts_filter_positional.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/filter/variant_filter_numerical.hpp"
 #include "genesis/population/filter/variant_filter_positional.hpp"

@@ -59,6 +59,29 @@ enum class SampleCountsFilterTag : FilterStatus::IntType
     kPassed = 0,
 
     // -------------------------------------------
+    //     Position
+    // -------------------------------------------
+
+    /**
+     * @brief Position has been masked out from processing.
+     *
+     * This can be due to, e.g., via a RegionLocus set from a fasta file, see read_mask_fasta().
+     * We distinguish this from kMaskedRegion purely for semantic reasons. Both filters are due to
+     * some user-specified position-based filter, and created by similar functions. However, we
+     * generally mean to indicate that a masked position is due to some fine-grained positional
+     * filter, while masked regions are meant to indicate filters for larger regions such as
+     * chromsosomes or genes.
+     */
+    kMaskedPosition,
+
+    /**
+     * @brief Position is part of a masked region.
+     *
+     * See kMaskedPosition for details on the distrinction between the two.
+     */
+    kMaskedRegion,
+
+    // -------------------------------------------
     //     Missing and Invalid
     // -------------------------------------------
 
@@ -151,6 +174,11 @@ enum class SampleCountsFilterTagCategory : FilterStatus::IntType
      * @brief SampleCounts has passed all filters.
      */
     kPassed = 0,
+
+    /**
+     * @brief Position is masked.
+     */
+    kMasked,
 
     /**
      * @brief Position is missing or otherwise invalid.
