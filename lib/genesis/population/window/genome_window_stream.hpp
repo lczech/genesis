@@ -32,6 +32,7 @@
  */
 
 #include "genesis/population/window/base_window_stream.hpp"
+#include "genesis/population/window/genome_window_view.hpp"
 #include "genesis/population/window/window_view.hpp"
 
 #include <cassert>
@@ -52,10 +53,10 @@ namespace population {
 
 /**
  * @brief Stream for traversing the entire genome as a single window,
- * with an inner WindowView iterator over the positions along the chromosomes.
+ * with an inner GenomeWindowView iterator over the positions along the chromosomes.
  *
  * The class produces exctly one window, which then traverses all positions of the whole underlying
- * input data stream via an inner WindowView iterator. This class is merely meant as a
+ * input data stream via an inner GenomeWindowView iterator. This class is merely meant as a
  * simplification and wrapper, so that downstream statistics algorithms can just use a window as
  * their input. This class contains a quite unfortunate amount of boiler plate, but hopefully
  * makes downstream algorithms easier to write.
@@ -77,7 +78,7 @@ namespace population {
  * This class here however does not derive from the BaseWindowStream over normal Window%s,
  * but behaves in a similar way - with the exception that it does not produce Window%s in each
  * step of the iteration, as we do not want to keep the positions of a whole genome in memory.
- * Hence, instead, it yields a WindowView iterator, directly streaming over the positions of the
+ * Hence, instead, it yields a GenomeWindowView iterator, directly streaming over the positions of the
  * chromosome, without keeping all data in memory.
  *
  * @see make_genome_window_stream()
@@ -85,7 +86,7 @@ namespace population {
  */
 template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
 class GenomeWindowStream final : public BaseWindowStream<
-    InputStreamIterator, DataType, ::genesis::population::WindowView<DataType>
+    InputStreamIterator, DataType, ::genesis::population::GenomeWindowView<DataType>
 >
 {
 public:
@@ -94,7 +95,7 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using WindowViewType = ::genesis::population::WindowView<DataType>;
+    using WindowViewType = ::genesis::population::GenomeWindowView<DataType>;
     using self_type = GenomeWindowStream<InputStreamIterator, DataType>;
     using base_type = BaseWindowStream<InputStreamIterator, DataType, WindowViewType>;
 
@@ -102,8 +103,8 @@ public:
     using InputType         = typename InputStreamIterator::value_type;
     // using Entry             = typename Window::Entry;
 
-    // This class produces an iterator of type WindowView.
-    // That WindowView then iterates over the actual values of the input.
+    // This class produces an iterator of type GenomeWindowView.
+    // That GenomeWindowView then iterates over the actual values of the input.
     using iterator_category = std::input_iterator_tag;
     using value_type        = WindowViewType;
     using pointer           = value_type*;
@@ -115,7 +116,7 @@ public:
     // ======================================================================================
 
     /**
-     * @brief Internal iterator that produces WindowView%s.
+     * @brief Internal iterator that produces GenomeWindowView%s.
      */
     class DerivedIterator final : public BaseWindowStream<
         InputStreamIterator, DataType, WindowViewType
@@ -216,14 +217,28 @@ public:
 
             // We need pointer variables to the iterators and other elements,
             // so that we can capture them in a C++11 lambda... bit cumbersome.
+            // We need to access the underlying iterator through the self type of the class,
+            // see here https://stackoverflow.com/a/28623297/4184258
+            // (we could do this in all other instances as well, but it only matters here).
             bool is_first = true;
             auto& cur = self_type::current_;
             auto& end = self_type::end_;
+            auto const par = parent_;
+            auto chr = parent_->chromosome_function( *base_iterator_type::current_ );
+            auto const seq_dict = parent_->sequence_dict_;
 
-            // We reset the window view, so that it is a new iterator for the new chromosome,
-            // starting from the first position, with a fitting increment function.
+            // We set the genome window view. We leave the normal properties for chromosome,
+            // and start and end position of the view untouched here at their defaults,
+            // as this special case instead uses the mechanism of GenomeWindowView direclty to report
+            // the chromosomes and their lengths as they are encountered here in the stream.
+            // This is becase we do not have a window over a single chromosome here, and hence
+            // need this special case. See GenomeWindowView.
             window_ = WindowViewType();
-            window_.get_element = [ is_first, &cur, &end ]() mutable -> DataType* {
+            auto& window = window_;
+
+            window_.get_element = [
+                is_first, &cur, &end, par, chr, seq_dict, &window
+            ]() mutable -> DataType* {
                 assert( cur != end );
 
                 // If this is the first call of the function, we are initializing the WindowView
@@ -235,14 +250,73 @@ public:
                 }
 
                 // Now we are in the case that we want to move to the next position first.
-                // Move to the next position, and check that it is in the correct order.
+                auto const old_pos = par->position_function( *cur );
                 ++cur;
 
-                // Now check whether we are done with the chromosome.
-                // If not, we return the current element that we just moved to.
-                if( cur == end ) {
-                    return nullptr;
+                // Check whether we are done with the chromosome. That's when we want to update
+                // the window chromosome lengths, and check everything related to that.
+                if( cur == end || par->chromosome_function( *cur ) != chr ) {
+
+                    // We now are finished with a chromsome, so we can add its length to the window.
+                    // First we get the length, either from the data or from the dict, if given.
+                    size_t chr_len = 0;
+                    if( seq_dict ) {
+                        auto const dict_entry = seq_dict->find( chr );
+                        if( dict_entry == seq_dict->end() ) {
+                            throw std::invalid_argument(
+                                "In GenomeWindowStream: Cannot iterate chromosome \"" + chr +
+                                "\", as the provided sequence dictionary or reference genome "
+                                "does not contain the chromosome."
+                            );
+                        }
+                        chr_len = dict_entry->length;
+
+                        if( old_pos > chr_len ) {
+                            throw std::invalid_argument(
+                                "In GenomeWindowStream: Chromosome \"" + chr + "\" has length " +
+                                std::to_string( chr_len ) +
+                                " in the provided sequence dictionary or reference genome, "
+                                "but the input data contains positions up to " +
+                                std::to_string( old_pos ) + " for that chromosome."
+                            );
+                        }
+                    } else {
+                        chr_len = old_pos;
+                    }
+
+                    // Add the chr and its length to the window.
+                    if( window.chromosomes().count( chr ) > 0 ) {
+                        throw std::runtime_error(
+                            "Chromosome " + chr + " occurs multiple times in the input."
+                        );
+                    }
+                    window.chromosomes()[ chr ] = chr_len;
+
+                    // Now check again whether we are done with the data.
+                    // If so, nothing else to do here.
+                    if( cur == end ) {
+                        return nullptr;
+                    }
+
+                    // Here, we are not yet at the end of the data, but at a new chromosome.
+                    assert( par->chromosome_function( *cur ) != chr );
+                    chr = par->chromosome_function( *cur );
+
+                    return &*cur;
                 }
+                assert( cur != end );
+                assert( par->chromosome_function( *cur ) == chr );
+
+                // Check that it is in the correct order.
+                auto const new_pos = par->position_function( *cur );
+                if( old_pos >= new_pos ) {
+                    throw std::runtime_error(
+                        "Invalid order on chromosome " + chr + " with position " +
+                        std::to_string( old_pos ) + " followed by position " +
+                        std::to_string( new_pos )
+                    );
+                }
+
                 return &*cur;
             };
         }
@@ -292,6 +366,34 @@ public:
     friend DerivedIterator;
 
     // -------------------------------------------------------------------------
+    //     Settings
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Get the currently set sequence dictionary used for the chromosome lengths.
+     */
+    std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict() const
+    {
+        return sequence_dict_;
+    }
+
+    /**
+     * @brief Set a sequence dictionary to be used for the chromosome lengths.
+     *
+     * By default, we use the chromosome positions as given in the data to set the window positions.
+     * When setting a @link ::genesis::sequence::SequenceDict SequenceDict@endlink here, we use
+     * lengths as provided instead, throwing an exception should the dict not contain a chromosome
+     * of the input.
+     *
+     * To un-set the dictionary, simply call this function with a `nullptr`.
+     */
+    self_type& sequence_dict( std::shared_ptr<genesis::sequence::SequenceDict> value )
+    {
+        sequence_dict_ = value;
+        return *this;
+    }
+
+    // -------------------------------------------------------------------------
     //     Virtual Members
     // -------------------------------------------------------------------------
 
@@ -312,6 +414,16 @@ protected:
         return std::unique_ptr<DerivedIterator>( new DerivedIterator( nullptr ));
         // return utils::make_unique<DerivedIterator>( nullptr );
     }
+
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    // When iterating the genome, we might want to look up their lengths,
+    // in order to properly set the window start and end. Otherwise we use what's in the data.
+    std::shared_ptr<genesis::sequence::SequenceDict> sequence_dict_;
 
 };
 

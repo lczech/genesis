@@ -37,6 +37,9 @@
 #include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/sample_counts.hpp"
 #include "genesis/population/variant.hpp"
+#include "genesis/population/window/base_window.hpp"
+#include "genesis/population/window/genome_window_view.hpp"
+#include "genesis/population/window/window_view.hpp"
 
 #include <cassert>
 #include <limits>
@@ -118,6 +121,31 @@ enum class WindowAveragePolicy
      */
     kSum
 };
+
+/**
+ * @brief Get the length of a given Window.
+ *
+ * This is needed for the special case of the GenomeWindowView, where the length is not contiguous
+ * along a single chromosome. In all other window cases, we simply use the first and last position
+ * of the window, via BaseWindow::width().
+ */
+template<class D>
+size_t get_window_length( BaseWindow<D> const& window )
+{
+    // If the window is of type GenomeWindowStream, its total length is the sum of all lengths
+    // of the chromosomes that the genome has covered.
+    auto genome_window_view = dynamic_cast<GenomeWindowView<D> const*>( &window );
+    if( genome_window_view ) {
+        size_t window_length = 0;
+        for( auto const& chr_len : genome_window_view->chromosomes() ) {
+            window_length += chr_len.second;
+        }
+        return window_length;
+    }
+
+    // In all other cases, we simply use the window width function.
+    return window.width();
+}
 
 /**
  * @brief Get the denoninator to use for averaging an estimator across a window.

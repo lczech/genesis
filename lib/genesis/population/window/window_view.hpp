@@ -73,7 +73,7 @@ namespace population {
  * iterator with no random access to the data in the window.
  */
 template<class D>
-class WindowView final : public BaseWindow<D>
+class WindowView : public BaseWindow<D>
 {
 public:
 

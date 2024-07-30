@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -174,7 +174,6 @@ public:
         return last_position_ - first_position_ + 1;
     }
 
-
     // -------------------------------------------------------------------------
     //     Modifiers and Helpers
     // -------------------------------------------------------------------------
@@ -184,9 +183,9 @@ public:
      */
     void clear()
     {
-        chromosome_    = "";
+        chromosome_     = "";
         first_position_ = 0;
-        last_position_ = 0;
+        last_position_  = 0;
         clear_();
     }
 
@@ -212,7 +211,7 @@ private:
 
     std::string chromosome_;
     size_t first_position_ = 0;
-    size_t last_position_ = 0;
+    size_t last_position_  = 0;
 
 };
 
