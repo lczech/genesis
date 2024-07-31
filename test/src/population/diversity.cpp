@@ -550,8 +550,8 @@ void test_diversity_fuzzy_run_( std::vector<Variant> const& data )
     }
 
     // Test the result
-    size_t const window_length = data.size();
-    auto const result = processor.get_result( window_length );
+    // size_t const window_length = data.size();
+    auto const result = processor.get_result();
     EXPECT_EQ( n_samples, result.size() );
     for( auto const& r : result ) {
         LOG_DBG << r.theta_pi << " " << r.theta_watterson << " " << r.tajima_d;

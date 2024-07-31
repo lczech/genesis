@@ -192,6 +192,11 @@ void fill_fst_cathedral_records_from_processor_(
                 "Invalid FstPoolCalculator that is not FstPoolCalculatorUnbiased"
             );
         }
+
+        // We are only using the sum at the moment, to keep it simple.
+        // The below function to get the pi values is a shortcut without window averaging,
+        // which always returns the sum anyway, so the policy here is ignored either way.
+        // But we check it, in order to make sure the user set up everything as intended.
         if( fst_calc->get_window_average_policy() != WindowAveragePolicy::kSum ) {
             throw std::runtime_error(
                 "In compute_fst_cathedral_records_for_chromosome(): "
@@ -202,7 +207,9 @@ void fill_fst_cathedral_records_from_processor_(
         // Now add the entry for the current calculator to its respective records entry.
         // We rely on the amortized complexity here - cannot pre-allocate the size,
         // as we do not know how many positions will actually be in the input beforehand.
-        auto const pis = fst_calc->get_pi_values( 0, processor.get_filter_stats() );
+        // For the window averaging, we do not need the window details or mask,
+        // so we use the overload here that does no window averaging.
+        auto const pis = fst_calc->get_pi_values();
         records[i].entries.emplace_back(
             position, pis.pi_within, pis.pi_between, pis.pi_total
         );

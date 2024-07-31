@@ -370,9 +370,8 @@ std::pair<double, double> f_st_pool_unbiased(
         );
     }
 
-    // Unfortunately, we need dummies here now for the window based counters. They are not used
-    // with the above WindowAveragePolicy::kSum policy, but need to be provided nonetheless...
-    return calc.get_result_pair( 0, VariantFilterStats{} );
+    // We use the result overload here that does not do window averaging, and just returns the sum.
+    return calc.get_result_pair();
 }
 
 #if __cplusplus >= 201402L

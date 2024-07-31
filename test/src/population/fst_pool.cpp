@@ -414,8 +414,8 @@ TEST( FST, FstPoolProcessor )
         processor.process( variant );
     }
 
-    size_t const window_length = 1;
-    auto const result = processor.get_result( window_length );
+    // Get the non window averaged result.
+    auto const result = processor.get_result();
     EXPECT_EQ( 1, result.size() );
 
     // Th FST value changed here since the introduction of the proper window normalization,
@@ -427,7 +427,7 @@ TEST( FST, FstPoolProcessor )
 
     // Also test the involved pi values for consistency.
     // The commented value below is the old pi total value before the redesign.
-    auto const vecs = processor.get_pi_vectors( window_length );
+    auto const vecs = processor.get_pi_vectors();
     EXPECT_EQ( 1, std::get<0>( vecs ).size() );
     EXPECT_EQ( 1, std::get<1>( vecs ).size() );
     EXPECT_EQ( 1, std::get<2>( vecs ).size() );
@@ -465,8 +465,8 @@ void test_fst_fuzzy_run_( std::vector<Variant> const& data )
 
     // Test the result
     auto const pairs = n_samples * ( n_samples - 1 ) / 2;
-    size_t const window_length = data.size();
-    auto const result = processor.get_result( window_length );
+    // size_t const window_length = data.size();
+    auto const result = processor.get_result();
     EXPECT_EQ( pairs, result.size() );
     for( auto const& r : result ) {
         LOG_DBG << r;

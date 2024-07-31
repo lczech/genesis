@@ -35,6 +35,7 @@
 #include "genesis/population/filter/filter_status.hpp"
 #include "genesis/population/filter/sample_counts_filter.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
+#include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/sample_counts.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/population/window/base_window.hpp"
@@ -43,7 +44,9 @@
 
 #include <cassert>
 #include <limits>
+#include <memory>
 #include <stdexcept>
+#include <string>
 
 namespace genesis {
 namespace population {
@@ -119,7 +122,17 @@ enum class WindowAveragePolicy
     /**
      * @brief Simply report the total sum, with no averaging, i.e., the absolute value of the metric.
      */
-    kSum
+    kSum,
+
+    /**
+     * @brief Use exactly the provided loci as set in the window of a GenomeLocusSet.
+     *
+     * This bypasses all the above data-based ways of determining the denominator for window
+     * averaging, and instead uses a user-provided mask in form of a GenomeLocusSet. Within the
+     * window, all positions that are set to `true` in that mask are considered to be valid,
+     * and their count is used as the denominator.
+     */
+    kProvidedLoci
 };
 
 /**
@@ -130,7 +143,7 @@ enum class WindowAveragePolicy
  * of the window, via BaseWindow::width().
  */
 template<class D>
-size_t get_window_length( BaseWindow<D> const& window )
+inline size_t get_window_length( BaseWindow<D> const& window )
 {
     // If the window is of type GenomeWindowStream, its total length is the sum of all lengths
     // of the chromosomes that the genome has covered.
@@ -148,6 +161,90 @@ size_t get_window_length( BaseWindow<D> const& window )
 }
 
 /**
+ * @brief Get the count of provided loci in a window.
+ */
+template<class D>
+inline size_t get_window_provided_loci_count(
+    BaseWindow<D> const& window,
+    std::shared_ptr<GenomeLocusSet> provided_loci
+) {
+    // We need a provided loci mask for this function.
+    if( !provided_loci ) {
+        throw std::invalid_argument(
+            "Cannot comput window average denominator from provided loci mask, "
+            "as no such mask was provided."
+        );
+    }
+
+    // Helper function that takes a chromosome and positions on it, and returns the number
+    // of set loci on the provided mask in that window.
+    auto get_chr_loci_count_ = [&provided_loci]( std::string const& chr, size_t first, size_t last )
+    {
+        // Position checks. Should not happen if our internal usage is correct.
+        if( first == 0 || last == 0 || first > last ) {
+            throw std::invalid_argument(
+                "Invalid positions first=" + std::to_string( first ) + " last=" +
+                std::to_string(last) + " on chromosome \"" + chr +
+                "\" for computing provided loci mask window denominator."
+            );
+        }
+
+        // Get the chromosome. This can fail if the user did not provide a fitting mask.
+        if( ! provided_loci->has_chromosome( chr )) {
+            throw std::runtime_error(
+                "Cannot compute provided loci on chromosome \"" +  chr +
+                "\", as the provided loci mask does not contain the chromosome."
+            );
+        }
+        auto const& bv = provided_loci->chromosome_positions( chr );
+
+        // Mask check. In our internal usage, this should not fail, but we check anyway,
+        // in case this function is called with a mask that is not meant for the given purpose.
+        if( bv.get(0) ) {
+            throw std::invalid_argument(
+                "Invvalid provided loci mask with bit 0 set."
+            );
+        }
+
+        // Another check based on user data. Can fail if the user did not provide a fitting mask.
+        if( last >= bv.size() ) {
+            throw std::runtime_error(
+                "Cannot compute provided loci on chromosome \"" +  chr +
+                "\", as the provided loci mask for the chromosome has length " +
+                std::to_string( bv.size() - 1 ) + ", but the window covers positions " +
+                std::to_string( first ) + "-" + std::to_string( last )
+            );
+        }
+
+        // Finally, we have checked everything. Our first and last position are both inclusive,
+        // while the bitvector count uses past-the-end, so we need to add one here for the last.
+        return bv.count( first, last + 1 );
+    };
+
+    // If the window is of type GenomeWindowStream, we use all its chromosomes.
+    // This might not cover all chromosomes that the provided loci have data for,
+    // in case a region filter was applied, so we want to account for that.
+    // We are also rather strict in the process, to avoid accidental mismatches on the user side.
+    // We count all positions between the beginning of the chromosome, and the end as either
+    // specified in the data, or, if a sequence dict was given to the GenomeWindowView, from that.
+    auto genome_window_view = dynamic_cast<GenomeWindowView<D> const*>( &window );
+    if( genome_window_view ) {
+        size_t loci_count = 0;
+        for( auto const& chr_len : genome_window_view->chromosomes() ) {
+            loci_count += get_chr_loci_count_( chr_len.first, 1, chr_len.second );
+        }
+        return loci_count;
+    }
+
+    // Here we are in the normal case for all other window types. For those, we just simply use
+    // their first and last positions. For ChromosomeWindowStream, this is similar as for the above
+    // GenomeWindowStream, and could also be based on the sequence dict, if given, or on the data.
+    return get_chr_loci_count_(
+        window.chromosome(), window.first_position(), window.last_position()
+    );
+}
+
+/**
  * @brief Get the denoninator to use for averaging an estimator across a window.
  *
  * This simply uses the @p policy to make a selection of which of the given input numbers to select.
@@ -158,9 +255,11 @@ size_t get_window_length( BaseWindow<D> const& window )
  * are all available. This also enforces correct usage of the calculators and processors,
  * as neither number can be omitted by accident.
  */
+template<class D>
 inline double window_average_denominator(
     WindowAveragePolicy policy,
-    size_t window_length,
+    BaseWindow<D> const& window,
+    std::shared_ptr<GenomeLocusSet> provided_loci,
     VariantFilterStats const& variant_filter_stats,
     SampleCountsFilterStats const& sample_counts_filter_stats
 ) {
@@ -185,7 +284,7 @@ inline double window_average_denominator(
     // Now select which value we want to return.
     switch( policy ) {
         case WindowAveragePolicy::kWindowLength: {
-            return window_length;
+            return get_window_length( window );
         }
         case WindowAveragePolicy::kAvailableLoci: {
             auto const missing = variant_filter_stats_category_counts(
@@ -210,6 +309,9 @@ inline double window_average_denominator(
         }
         case WindowAveragePolicy::kSum: {
             return 1.0;
+        }
+        case WindowAveragePolicy::kProvidedLoci: {
+            return get_window_provided_loci_count( window, provided_loci );
         }
         default: {
             throw std::invalid_argument( "Invalid WindowAveragePolicy" );

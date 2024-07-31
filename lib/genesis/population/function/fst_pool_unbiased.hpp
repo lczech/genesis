@@ -38,6 +38,8 @@
 #include "genesis/population/function/fst_pool_calculator.hpp"
 #include "genesis/population/function/functions.hpp"
 #include "genesis/population/function/window_average.hpp"
+#include "genesis/population/genome_locus_set.hpp"
+#include "genesis/population/window/base_window.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/compensated_sum.hpp"
@@ -46,6 +48,7 @@
 #include <cassert>
 #include <cmath>
 #include <limits>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -236,28 +239,15 @@ private:
         // The other fst calculator classes (Kofler and Karlsson, at the moment) do not use the
         // window normalization, and it would be weird to use dummies there. So instead, in the
         // FstPoolProcessor, we cast accordingly (which is ugly as well), to avoid this.
-        // We need a dummy implementation of the result function here, to make the compiler happy.
-        throw std::domain_error(
-            "FstPoolCalculatorUnbiased::get_result() needs to be called via its overload"
-        );
-    }
 
-    // -------------------------------------------------------------------------
-    //     Additional Members
-    // -------------------------------------------------------------------------
-
-public:
-
-    double get_result(
-        size_t window_length,
-        VariantFilterStats const& variant_filter_stats
-    ) const {
+        // Here, we offer an additional function though for the non-window-averaging case,
+        // that just returns the sum. It uses the special overloads below.
         switch( estimator_ ) {
             case Estimator::kNei: {
-                return get_result_pair( window_length, variant_filter_stats ).first;
+                return get_result_pair().first;
             }
             case Estimator::kHudson: {
-                return get_result_pair( window_length, variant_filter_stats ).second;
+                return get_result_pair().second;
             }
             default: {
                 throw std::invalid_argument( "Invalid FstPoolCalculatorUnbiased::Estimator" );
@@ -266,63 +256,48 @@ public:
         return 0.0;
     }
 
-    double get_pi_within(
-        size_t window_length,
+    // -------------------------------------------------------------------------
+    //     Additional Members
+    // -------------------------------------------------------------------------
+
+public:
+
+    // -------------------------------------------------------------------------
+    //     With Window Averaging
+    // -------------------------------------------------------------------------
+
+    template<class D>
+    double get_result(
+        BaseWindow<D> const& window,
+        std::shared_ptr<GenomeLocusSet> provided_loci,
         VariantFilterStats const& variant_filter_stats
     ) const {
-        auto const pi_w_smp1 = pi_w_smp1_sum_.get() / window_average_denominator(
-            avg_policy_, window_length, variant_filter_stats, sample_filter_stats_smp1_
-        );
-        auto const pi_w_smp2 = pi_w_smp2_sum_.get() / window_average_denominator(
-            avg_policy_, window_length, variant_filter_stats, sample_filter_stats_smp2_
-        );
-        return 0.5 * ( pi_w_smp1 + pi_w_smp2 );
-    }
-
-    double get_pi_between(
-        size_t window_length,
-        VariantFilterStats const& variant_filter_stats
-    ) const {
-        return pi_b_sum_.get() / window_average_denominator(
-            avg_policy_, window_length, variant_filter_stats, sample_filter_stats_b_
-        );
-    }
-
-    double get_pi_total( double pi_within, double pi_between ) const
-    {
-        return 0.5 * ( pi_within + pi_between );
-    }
-
-    double get_pi_total(
-        size_t window_length,
-        VariantFilterStats const& variant_filter_stats
-    ) const {
-        auto const pi_within  = get_pi_within( window_length, variant_filter_stats );
-        auto const pi_between = get_pi_between( window_length, variant_filter_stats );
-        return get_pi_total( pi_within, pi_between );
-    }
-
-    PiValues get_pi_values(
-        size_t window_length,
-        VariantFilterStats const& variant_filter_stats
-    ) const {
-        PiValues result;
-        result.pi_within  = get_pi_within( window_length, variant_filter_stats );
-        result.pi_between = get_pi_between( window_length, variant_filter_stats );
-        result.pi_total   = get_pi_total( result.pi_within, result.pi_between );
-        return result;
+        switch( estimator_ ) {
+            case Estimator::kNei: {
+                return get_result_pair( window, provided_loci, variant_filter_stats ).first;
+            }
+            case Estimator::kHudson: {
+                return get_result_pair( window, provided_loci, variant_filter_stats ).second;
+            }
+            default: {
+                throw std::invalid_argument( "Invalid FstPoolCalculatorUnbiased::Estimator" );
+            }
+        }
+        return 0.0;
     }
 
     /**
      * @brief Get both variants of FST, following Nei, and following Hudson, as a pair.
      */
+    template<class D>
     std::pair<double, double> get_result_pair(
-        size_t window_length,
+        BaseWindow<D> const& window,
+        std::shared_ptr<GenomeLocusSet> provided_loci,
         VariantFilterStats const& variant_filter_stats
     ) const {
         // Get the components that we need, each normalized using their own filter stats.
-        auto const pi_within  = get_pi_within( window_length, variant_filter_stats );
-        auto const pi_between = get_pi_between( window_length, variant_filter_stats );
+        auto const pi_within  = get_pi_within( window, provided_loci, variant_filter_stats );
+        auto const pi_between = get_pi_between( window, provided_loci, variant_filter_stats );
         auto const pi_total   = get_pi_total( pi_within, pi_between );
 
         // Final computation of our two FST estimators, using Nei and Hudson, respectively.
@@ -331,9 +306,111 @@ public:
         return { fst_nei, fst_hud };
     }
 
+    template<class D>
+    double get_pi_within(
+        BaseWindow<D> const& window,
+        std::shared_ptr<GenomeLocusSet> provided_loci,
+        VariantFilterStats const& variant_filter_stats
+    ) const {
+        auto const pi_w_smp1 = pi_w_smp1_sum_.get() / window_average_denominator(
+            avg_policy_, window, provided_loci, variant_filter_stats, sample_filter_stats_smp1_
+        );
+        auto const pi_w_smp2 = pi_w_smp2_sum_.get() / window_average_denominator(
+            avg_policy_, window, provided_loci, variant_filter_stats, sample_filter_stats_smp2_
+        );
+        return 0.5 * ( pi_w_smp1 + pi_w_smp2 );
+    }
+
+    template<class D>
+    double get_pi_between(
+        BaseWindow<D> const& window,
+        std::shared_ptr<GenomeLocusSet> provided_loci,
+        VariantFilterStats const& variant_filter_stats
+    ) const {
+        return pi_b_sum_.get() / window_average_denominator(
+            avg_policy_, window, provided_loci, variant_filter_stats, sample_filter_stats_b_
+        );
+    }
+
+    double get_pi_total( double pi_within, double pi_between ) const
+    {
+        return 0.5 * ( pi_within + pi_between );
+    }
+
+    template<class D>
+    double get_pi_total(
+        BaseWindow<D> const& window,
+        std::shared_ptr<GenomeLocusSet> provided_loci,
+        VariantFilterStats const& variant_filter_stats
+    ) const {
+        auto const pi_within  = get_pi_within( window, provided_loci, variant_filter_stats );
+        auto const pi_between = get_pi_between( window, provided_loci, variant_filter_stats );
+        return get_pi_total( pi_within, pi_between );
+    }
+
+    template<class D>
+    PiValues get_pi_values(
+        BaseWindow<D> const& window,
+        std::shared_ptr<GenomeLocusSet> provided_loci,
+        VariantFilterStats const& variant_filter_stats
+    ) const {
+        PiValues result;
+        result.pi_within  = get_pi_within( window, provided_loci, variant_filter_stats );
+        result.pi_between = get_pi_between( window, provided_loci, variant_filter_stats );
+        result.pi_total   = get_pi_total( result.pi_within, result.pi_between );
+        return result;
+    }
+
     WindowAveragePolicy get_window_average_policy() const
     {
         return avg_policy_;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Without Window Averaging
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Get both variants of FST, following Nei, and following Hudson, as a pair.
+     */
+    std::pair<double, double> get_result_pair() const {
+        // Get the components that we need, each normalized using their own filter stats.
+        auto const pi_within  = get_pi_within();
+        auto const pi_between = get_pi_between();
+        auto const pi_total   = get_pi_total( pi_within, pi_between );
+
+        // Final computation of our two FST estimators, using Nei and Hudson, respectively.
+        double const fst_nei = 1.0 - ( pi_within / pi_total );
+        double const fst_hud = 1.0 - ( pi_within / pi_between );
+        return { fst_nei, fst_hud };
+    }
+
+    double get_pi_within() const
+    {
+        auto const pi_w_smp1 = pi_w_smp1_sum_.get();
+        auto const pi_w_smp2 = pi_w_smp2_sum_.get();
+        return 0.5 * ( pi_w_smp1 + pi_w_smp2 );
+    }
+
+    double get_pi_between() const
+    {
+        return pi_b_sum_.get();
+    }
+
+    double get_pi_total() const
+    {
+        auto const pi_within  = get_pi_within();
+        auto const pi_between = get_pi_between();
+        return get_pi_total( pi_within, pi_between );
+    }
+
+    PiValues get_pi_values() const
+    {
+        PiValues result;
+        result.pi_within  = get_pi_within();
+        result.pi_between = get_pi_between();
+        result.pi_total   = get_pi_total( result.pi_within, result.pi_between );
+        return result;
     }
 
     // -------------------------------------------------------------------------
