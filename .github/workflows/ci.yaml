@@ -135,8 +135,9 @@ jobs:
           #   compiler: llvm-16
           - os: ubuntu-20.04
             compiler: llvm-17
-          - os: ubuntu-20.04
-            compiler: llvm-18
+          # Setup fails
+          # - os: ubuntu-20.04
+          #   compiler: llvm-18
 
           # -------------------------------
           #     Ubuntu 22.04
@@ -185,8 +186,9 @@ jobs:
             compiler: llvm-16
           - os: ubuntu-22.04
             compiler: llvm-17
-          - os: ubuntu-22.04
-            compiler: llvm-18
+          # Setup fails
+          # - os: ubuntu-22.04
+          #   compiler: llvm-18
 
           # -------------------------------
           #     Ubuntu 24.04
