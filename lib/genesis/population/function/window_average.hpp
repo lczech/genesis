@@ -39,7 +39,6 @@
 #include "genesis/population/sample_counts.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/population/window/base_window.hpp"
-#include "genesis/population/window/genome_window_view.hpp"
 #include "genesis/population/window/window_view.hpp"
 
 #include <cassert>
@@ -138,8 +137,9 @@ enum class WindowAveragePolicy
 /**
  * @brief Get the length of a given Window.
  *
- * This is needed for the special case of the GenomeWindowView, where the length is not contiguous
- * along a single chromosome. In all other window cases, we simply use the first and last position
+ * This is needed for the special case of a WindowView over the whole genome, which we indicate by
+ * WindowView::is_whole_genome() being set. In this case, the length is not contiguous along
+ * a single chromosome. In all other window cases, we simply use the first and last position
  * of the window, via BaseWindow::width().
  */
 template<class D>
@@ -147,10 +147,9 @@ inline size_t get_window_length( BaseWindow<D> const& window )
 {
     // If the window is of type GenomeWindowStream, its total length is the sum of all lengths
     // of the chromosomes that the genome has covered.
-    auto genome_window_view = dynamic_cast<GenomeWindowView<D> const*>( &window );
-    if( genome_window_view ) {
+    if( window.is_whole_genome() ) {
         size_t window_length = 0;
-        for( auto const& chr_len : genome_window_view->chromosomes() ) {
+        for( auto const& chr_len : window.chromosomes() ) {
             window_length += chr_len.second;
         }
         return window_length;
@@ -221,16 +220,15 @@ inline size_t get_window_provided_loci_count(
         return bv.count( first, last + 1 );
     };
 
-    // If the window is of type GenomeWindowStream, we use all its chromosomes.
+    // If the window is a WindowStream over a whole genome, we use all its chromosomes.
     // This might not cover all chromosomes that the provided loci have data for,
     // in case a region filter was applied, so we want to account for that.
     // We are also rather strict in the process, to avoid accidental mismatches on the user side.
     // We count all positions between the beginning of the chromosome, and the end as either
-    // specified in the data, or, if a sequence dict was given to the GenomeWindowView, from that.
-    auto genome_window_view = dynamic_cast<GenomeWindowView<D> const*>( &window );
-    if( genome_window_view ) {
+    // specified in the data, or, if a sequence dict was given to the genome window stream, from that.
+    if( window.is_whole_genome() ) {
         size_t loci_count = 0;
-        for( auto const& chr_len : genome_window_view->chromosomes() ) {
+        for( auto const& chr_len : window.chromosomes() ) {
             loci_count += get_chr_loci_count_( chr_len.first, 1, chr_len.second );
         }
         return loci_count;
@@ -238,7 +236,7 @@ inline size_t get_window_provided_loci_count(
 
     // Here we are in the normal case for all other window types. For those, we just simply use
     // their first and last positions. For ChromosomeWindowStream, this is similar as for the above
-    // GenomeWindowStream, and could also be based on the sequence dict, if given, or on the data.
+    // whole genome WindowStream, and is also be based on the sequence dict, if given, or on the data.
     return get_chr_loci_count_(
         window.chromosome(), window.first_position(), window.last_position()
     );

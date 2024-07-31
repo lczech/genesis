@@ -97,7 +97,6 @@
 #include "genesis/population/window/chromosome_window_stream.hpp"
 #include "genesis/population/window/functions.hpp"
 #include "genesis/population/window/genome_window_stream.hpp"
-#include "genesis/population/window/genome_window_view.hpp"
 #include "genesis/population/window/interval_window_stream.hpp"
 #include "genesis/population/window/position_window_stream.hpp"
 #include "genesis/population/window/queue_window_stream.hpp"

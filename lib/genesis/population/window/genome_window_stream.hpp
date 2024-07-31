@@ -32,7 +32,6 @@
  */
 
 #include "genesis/population/window/base_window_stream.hpp"
-#include "genesis/population/window/genome_window_view.hpp"
 #include "genesis/population/window/window_view.hpp"
 
 #include <cassert>
@@ -53,10 +52,10 @@ namespace population {
 
 /**
  * @brief Stream for traversing the entire genome as a single window,
- * with an inner GenomeWindowView iterator over the positions along the chromosomes.
+ * with an inner WindowView iterator over the positions along the chromosomes.
  *
  * The class produces exctly one window, which then traverses all positions of the whole underlying
- * input data stream via an inner GenomeWindowView iterator. This class is merely meant as a
+ * input data stream via an inner WindowView iterator. This class is merely meant as a
  * simplification and wrapper, so that downstream statistics algorithms can just use a window as
  * their input. This class contains a quite unfortunate amount of boiler plate, but hopefully
  * makes downstream algorithms easier to write.
@@ -78,7 +77,7 @@ namespace population {
  * This class here however does not derive from the BaseWindowStream over normal Window%s,
  * but behaves in a similar way - with the exception that it does not produce Window%s in each
  * step of the iteration, as we do not want to keep the positions of a whole genome in memory.
- * Hence, instead, it yields a GenomeWindowView iterator, directly streaming over the positions of the
+ * Hence, instead, it yields a WindowView iterator, directly streaming over the positions of the
  * chromosome, without keeping all data in memory.
  *
  * @see make_genome_window_stream()
@@ -86,7 +85,7 @@ namespace population {
  */
 template<class InputStreamIterator, class DataType = typename InputStreamIterator::value_type>
 class GenomeWindowStream final : public BaseWindowStream<
-    InputStreamIterator, DataType, ::genesis::population::GenomeWindowView<DataType>
+    InputStreamIterator, DataType, ::genesis::population::WindowView<DataType>
 >
 {
 public:
@@ -95,7 +94,7 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    using WindowViewType = ::genesis::population::GenomeWindowView<DataType>;
+    using WindowViewType = ::genesis::population::WindowView<DataType>;
     using self_type = GenomeWindowStream<InputStreamIterator, DataType>;
     using base_type = BaseWindowStream<InputStreamIterator, DataType, WindowViewType>;
 
@@ -103,8 +102,8 @@ public:
     using InputType         = typename InputStreamIterator::value_type;
     // using Entry             = typename Window::Entry;
 
-    // This class produces an iterator of type GenomeWindowView.
-    // That GenomeWindowView then iterates over the actual values of the input.
+    // This class produces an iterator of type WindowView.
+    // That WindowView then iterates over the actual values of the input.
     using iterator_category = std::input_iterator_tag;
     using value_type        = WindowViewType;
     using pointer           = value_type*;
@@ -116,7 +115,7 @@ public:
     // ======================================================================================
 
     /**
-     * @brief Internal iterator that produces GenomeWindowView%s.
+     * @brief Internal iterator that produces WindowView%s.
      */
     class DerivedIterator final : public BaseWindowStream<
         InputStreamIterator, DataType, WindowViewType
@@ -229,11 +228,12 @@ public:
 
             // We set the genome window view. We leave the normal properties for chromosome,
             // and start and end position of the view untouched here at their defaults,
-            // as this special case instead uses the mechanism of GenomeWindowView direclty to report
+            // as this special case instead uses the mechanism of WindowView direclty to report
             // the chromosomes and their lengths as they are encountered here in the stream.
             // This is becase we do not have a window over a single chromosome here, and hence
-            // need this special case. See GenomeWindowView.
+            // need this special case. See WindowView.
             window_ = WindowViewType();
+            window_.is_whole_genome( true );
             auto& window = window_;
 
             window_.get_element = [

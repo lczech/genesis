@@ -39,6 +39,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 namespace genesis {
 namespace population {
@@ -71,9 +72,17 @@ namespace population {
  * Because of its streaming approach, its memory footprint is smaller than that of a Window,
  * and hence allows to iterator whole chromosomes or genomes. On the flipside, its a single pass
  * iterator with no random access to the data in the window.
+ *
+ *
+ * The class also adds a special case for when we are streaming over a whole genome.
+ * In that case, we cannot use our usual notation of first and last positions on a chromosome,
+ * as we are using the whole genome instead. As the notation is however useful in all other cases,
+ * we want to keep it. A cleaner approach from a software design perspective would be to have base
+ * classes for both cases, but that would lead to having incompatible types of WindowStream classes,
+ * which would add too much complexity for the current use case.
  */
 template<class D>
-class WindowView : public BaseWindow<D>
+class WindowView final : public BaseWindow<D>
 {
 public:
 
@@ -314,6 +323,48 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Genome Window View
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return if this instance is intended to be used for a whole genome stream.
+     */
+    bool is_whole_genome() const
+    {
+        return is_whole_genome_;
+    }
+
+
+    /**
+     * @brief Set whether this instance is intended to be used for a whole genome stream.
+     */
+    void is_whole_genome( bool value )
+    {
+        is_whole_genome_ = value;
+    }
+
+    /**
+     * @brief Get the list of all chromosomes along the genome, with their length.
+     *
+     * This is based on the chromsomoes and their lengths as encountered in the input data,
+     * or on the sequence dictionary if provided to the GenomeWindowStream.
+     *
+     * Usage of this member is only valid if is_whole_genome() is set.
+     */
+    std::unordered_map<std::string, size_t> const& chromosomes() const
+    {
+        return chromosomes_;
+    }
+
+    /**
+     * @brief Get the list of all chromosomes along the genome, with their length.
+     */
+    std::unordered_map<std::string, size_t>& chromosomes()
+    {
+        return chromosomes_;
+    }
+
+    // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
@@ -332,6 +383,10 @@ public:
 private:
 
     mutable bool started_ = false;
+
+    // Genome window view
+    bool is_whole_genome_ = false;
+    std::unordered_map<std::string, size_t> chromosomes_;
 
 };
 
