@@ -63,7 +63,7 @@ namespace genesis {
 inline std::string genesis_version()
 {
     // The following line is automatically replaced by the deploy scripts. Do not change manually.
-    return "v0.31.1"; // #GENESIS_VERSION#
+    return "v0.32.0"; // #GENESIS_VERSION#
 }
 
 /**
@@ -74,7 +74,7 @@ inline std::string genesis_version()
 inline std::string genesis_version_name()
 {
     // The following line is automatically replaced by the deploy scripts. Do not change manually.
-    return "Fluid Speech"; // #GENESIS_VERSION_NAME#
+    return "Matter"; // #GENESIS_VERSION_NAME#
 }
 
 /**
