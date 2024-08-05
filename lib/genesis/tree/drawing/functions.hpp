@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -115,9 +115,14 @@ void write_color_tree_to_nexus_file(
 );
 
 // =================================================================================================
-//     SVG Functions
+//     SVG Params
 // =================================================================================================
 
+/**
+ * @brief Collection of params for simple tree to svg wrapper functions.
+ *
+ * See
+ */
 struct LayoutParameters
 {
     LayoutShape      shape     = LayoutShape::kCircular;
@@ -125,6 +130,59 @@ struct LayoutParameters
     bool             ladderize = true;
     utils::SvgStroke stroke;
 };
+
+// =================================================================================================
+//     Tree to SVG Document
+// =================================================================================================
+
+utils::SvgDocument get_tree_svg_document(
+    CommonTree const&       tree,
+    LayoutParameters const& params
+);
+
+utils::SvgDocument get_color_tree_svg_document(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<utils::Color> const& color_per_branch
+);
+
+utils::SvgDocument get_color_tree_svg_document(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<double> const&       value_per_branch,
+    utils::ColorMap const&           color_map,
+    utils::ColorNormalization const& color_norm
+);
+
+utils::SvgDocument get_color_tree_svg_document(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<utils::Color> const& color_per_branch,
+    utils::ColorMap const&           color_map,
+    utils::ColorNormalization const& color_norm
+);
+
+utils::SvgDocument get_color_tree_svg_document(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<utils::Color> const& color_per_branch,
+    utils::ColorMap const&           color_map,
+    utils::ColorNormalization const& color_norm,
+    std::vector<utils::SvgGroup> const& node_shapes,
+    std::vector<utils::SvgGroup> const& edge_shapes
+);
+
+utils::SvgDocument get_color_tree_svg_document(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<utils::Color> const& color_per_branch,
+    std::vector<utils::Color> const& color_list,
+    std::vector<std::string> const&  color_labels
+);
+
+// =================================================================================================
+//     Tree to SVG File
+// =================================================================================================
 
 void write_tree_to_svg_file(
     CommonTree const&       tree,
@@ -154,6 +212,17 @@ void write_color_tree_to_svg_file(
     std::vector<utils::Color> const& color_per_branch,
     utils::ColorMap const&           color_map,
     utils::ColorNormalization const& color_norm,
+    std::string const&               svg_filename
+);
+
+void write_color_tree_to_svg_file(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<utils::Color> const& color_per_branch,
+    utils::ColorMap const&           color_map,
+    utils::ColorNormalization const& color_norm,
+    std::vector<utils::SvgGroup> const& node_shapes,
+    std::vector<utils::SvgGroup> const& edge_shapes,
     std::string const&               svg_filename
 );
 

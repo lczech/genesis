@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -175,13 +175,15 @@ void write_color_tree_to_nexus_file(
 }
 
 // =================================================================================================
-//     SVG Functions
+//     Tree to SVG Document
 // =================================================================================================
 
 utils::SvgDocument get_color_tree_svg_doc_(
     CommonTree const&                tree,
     LayoutParameters const&          params,
-    std::vector<utils::Color> const& color_per_branch
+    std::vector<utils::Color> const& color_per_branch,
+    std::vector<utils::SvgGroup> const& node_shapes,
+    std::vector<utils::SvgGroup> const& edge_shapes
 ) {
     // Make a layout tree. We need a pointer to it in order to allow for the two different classes
     // (circular/rectancular) to be returned here. Make it a unique ptr for automatic cleanup.
@@ -207,11 +209,164 @@ utils::SvgDocument get_color_tree_svg_doc_(
         layout->set_edge_strokes( strokes );
     }
 
+    // Add the edge and node shapes
+    if( ! node_shapes.empty() ) {
+        layout->set_node_shapes( node_shapes );
+    }
+    if( ! edge_shapes.empty() ) {
+        layout->set_edge_shapes( edge_shapes );
+    }
+
     // Prepare svg doc.
     auto svg_doc = layout->to_svg_document();
     svg_doc.margin.left = svg_doc.margin.top = svg_doc.margin.bottom = svg_doc.margin.right = 200;
     return svg_doc;
 }
+
+utils::SvgDocument get_tree_svg_document(
+    CommonTree const&       tree,
+    LayoutParameters const& params
+) {
+    // We use a dummy linear norm here, to satisfy the compiler (because the standard norm has
+    // purely virtual functiosn and can thus not be instanciated). As the color map however is
+    // empty, the called function will not use the norm.
+    return get_color_tree_svg_document(
+        tree, params, std::vector<utils::Color>{}, utils::ColorMap{}, utils::ColorNormalizationLinear()
+    );
+}
+
+utils::SvgDocument get_color_tree_svg_document(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<utils::Color> const& color_per_branch
+) {
+    // We use a dummy linear norm here, to satisfy the compiler (because the standard norm has
+    // purely virtual functiosn and can thus not be instanciated). As the color map however is
+    // empty, the called function will not use the norm.
+    return get_color_tree_svg_document(
+        tree, params, color_per_branch, utils::ColorMap{}, utils::ColorNormalizationLinear()
+    );
+}
+
+utils::SvgDocument get_color_tree_svg_document(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<double> const&       value_per_branch,
+    utils::ColorMap const&           color_map,
+    utils::ColorNormalization const& color_norm
+) {
+    return get_color_tree_svg_document(
+        tree, params, color_map( color_norm, value_per_branch ), color_map, color_norm
+    );
+}
+
+utils::SvgDocument get_color_tree_svg_document(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<utils::Color> const& color_per_branch,
+    utils::ColorMap const&           color_map,
+    utils::ColorNormalization const& color_norm
+) {
+    return get_color_tree_svg_document(
+        tree, params, color_per_branch, color_map, color_norm,
+        std::vector<utils::SvgGroup>{}, std::vector<utils::SvgGroup>{}
+    );
+}
+
+utils::SvgDocument get_color_tree_svg_document(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<utils::Color> const& color_per_branch,
+    utils::ColorMap const&           color_map,
+    utils::ColorNormalization const& color_norm,
+    std::vector<utils::SvgGroup> const& node_shapes,
+    std::vector<utils::SvgGroup> const& edge_shapes
+) {
+    // Get the basic svg tree layout.
+    auto svg_doc = get_color_tree_svg_doc_(
+        tree, params, color_per_branch, node_shapes, edge_shapes
+    );
+
+    // Add the color legend / scale.
+    if( ! color_map.empty() ) {
+
+        // Make the scale with nice sizes.
+        auto svg_pal_settings = utils::SvgColorBarSettings();
+        svg_pal_settings.height = svg_doc.bounding_box().height() / 2.0;
+        svg_pal_settings.width = svg_pal_settings.height / 10.0;
+        svg_pal_settings.line_width = svg_pal_settings.height / 300.0;
+        svg_pal_settings.text_size = svg_pal_settings.height / 30.0;
+        auto svg_scale = make_svg_color_bar( svg_pal_settings, color_map, color_norm );
+
+        // Move it to the bottom right corner.
+        if( params.shape == LayoutShape::kCircular ) {
+            svg_scale.second.transform.append( utils::SvgTransform::Translate(
+                1.2 * svg_doc.bounding_box().width() / 2.0, 0.0
+            ));
+            svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() / 2.0 + 2 * svg_pal_settings.width + 200;
+        }
+        if( params.shape == LayoutShape::kRectangular ) {
+            svg_scale.second.transform.append( utils::SvgTransform::Translate(
+                1.2 * svg_doc.bounding_box().width(), svg_pal_settings.height
+            ));
+            svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() + 2 * svg_pal_settings.width + 200;
+        }
+
+        // Add it to the svg doc.
+        if( ! svg_scale.first.empty() ) {
+            svg_doc.defs.push_back( svg_scale.first );
+        }
+        svg_doc.add( svg_scale.second );
+    }
+
+    return svg_doc;
+}
+
+utils::SvgDocument get_color_tree_svg_document(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<utils::Color> const& color_per_branch,
+    std::vector<utils::Color> const& color_list,
+    std::vector<std::string> const&  color_labels
+) {
+    // Get the basic svg tree layout.
+    auto svg_doc = get_color_tree_svg_doc_(
+        tree, params, color_per_branch,
+        std::vector<utils::SvgGroup>{}, std::vector<utils::SvgGroup>{}
+    );
+
+    // Add the color legend / scale.
+
+    // Make the color list.
+    auto svg_color_list = make_svg_color_list( color_list, color_labels );
+
+    // Move it to the bottom right corner.
+    if( params.shape == LayoutShape::kCircular ) {
+        svg_color_list.transform.append( utils::SvgTransform::Translate(
+            1.2 * svg_doc.bounding_box().width() / 2.0, 0.0
+        ));
+        // svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() / 2.0 + 2 * svg_pal_settings.width + 200;
+    }
+    if( params.shape == LayoutShape::kRectangular ) {
+        svg_color_list.transform.append( utils::SvgTransform::Translate(
+            1.2 * svg_doc.bounding_box().width(), svg_doc.bounding_box().height() / 2.0
+        ));
+        // svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() + 2 * svg_pal_settings.width + 200;
+    }
+
+    // Apply a scale factor that scales the box to be half the figure height.
+    // The denominator is the number items in the list times their height (15px, used by make_svg_color_list)
+    auto const sf = ( svg_doc.bounding_box().height() / 2.0 ) / (static_cast<double>( color_list.size() ) * 15.0 );
+    svg_color_list.transform.append( utils::SvgTransform::Scale( sf ));
+
+    // Add it to the svg doc.
+    svg_doc.add( svg_color_list );
+    return svg_doc;
+}
+
+// =================================================================================================
+//     Tree to SVG File
+// =================================================================================================
 
 void write_tree_to_svg_file(
     CommonTree const&       tree,
@@ -265,41 +420,29 @@ void write_color_tree_to_svg_file(
     utils::ColorNormalization const& color_norm,
     std::string const&               svg_filename
 ) {
-    // Get the basic svg tree layout.
-    auto svg_doc = get_color_tree_svg_doc_( tree, params, color_per_branch );
-
-    // Add the color legend / scale.
-    if( ! color_map.empty() ) {
-
-        // Make the scale with nice sizes.
-        auto svg_pal_settings = utils::SvgColorBarSettings();
-        svg_pal_settings.height = svg_doc.bounding_box().height() / 2.0;
-        svg_pal_settings.width = svg_pal_settings.height / 10.0;
-        svg_pal_settings.text_size = svg_pal_settings.height / 30.0;
-        auto svg_scale = make_svg_color_bar( svg_pal_settings, color_map, color_norm );
-
-        // Move it to the bottom right corner.
-        if( params.shape == LayoutShape::kCircular ) {
-            svg_scale.second.transform.append( utils::SvgTransform::Translate(
-                1.2 * svg_doc.bounding_box().width() / 2.0, 0.0
-            ));
-            svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() / 2.0 + 2 * svg_pal_settings.width + 200;
-        }
-        if( params.shape == LayoutShape::kRectangular ) {
-            svg_scale.second.transform.append( utils::SvgTransform::Translate(
-                1.2 * svg_doc.bounding_box().width(), svg_pal_settings.height
-            ));
-            svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() + 2 * svg_pal_settings.width + 200;
-        }
-
-        // Add it to the svg doc.
-        if( ! svg_scale.first.empty() ) {
-            svg_doc.defs.push_back( svg_scale.first );
-        }
-        svg_doc.add( svg_scale.second );
-    }
-
     // Write the whole svg doc to file.
+    auto const svg_doc = get_color_tree_svg_document(
+        tree, params, color_per_branch, color_map, color_norm
+    );
+    std::ofstream ofs;
+    utils::file_output_stream( svg_filename, ofs );
+    svg_doc.write( ofs );
+}
+
+void write_color_tree_to_svg_file(
+    CommonTree const&                tree,
+    LayoutParameters const&          params,
+    std::vector<utils::Color> const& color_per_branch,
+    utils::ColorMap const&           color_map,
+    utils::ColorNormalization const& color_norm,
+    std::vector<utils::SvgGroup> const& node_shapes,
+    std::vector<utils::SvgGroup> const& edge_shapes,
+    std::string const&               svg_filename
+){
+    // Write the whole svg doc to file.
+    auto const svg_doc = get_color_tree_svg_document(
+        tree, params, color_per_branch, color_map, color_norm, node_shapes, edge_shapes
+    );
     std::ofstream ofs;
     utils::file_output_stream( svg_filename, ofs );
     svg_doc.write( ofs );
@@ -313,37 +456,10 @@ void write_color_tree_to_svg_file(
     std::vector<std::string> const&  color_labels,
     std::string const&               svg_filename
 ) {
-    // Get the basic svg tree layout.
-    auto svg_doc = get_color_tree_svg_doc_( tree, params, color_per_branch );
-
-    // Add the color legend / scale.
-
-    // Make the color list.
-    auto svg_color_list = make_svg_color_list( color_list, color_labels );
-
-    // Move it to the bottom right corner.
-    if( params.shape == LayoutShape::kCircular ) {
-        svg_color_list.transform.append( utils::SvgTransform::Translate(
-            1.2 * svg_doc.bounding_box().width() / 2.0, 0.0
-        ));
-        // svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() / 2.0 + 2 * svg_pal_settings.width + 200;
-    }
-    if( params.shape == LayoutShape::kRectangular ) {
-        svg_color_list.transform.append( utils::SvgTransform::Translate(
-            1.2 * svg_doc.bounding_box().width(), svg_doc.bounding_box().height() / 2.0
-        ));
-        // svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() + 2 * svg_pal_settings.width + 200;
-    }
-
-    // Apply a scale factor that scales the box to be half the figure height.
-    // The denominator is the number items in the list times their height (15px, used by make_svg_color_list)
-    auto const sf = ( svg_doc.bounding_box().height() / 2.0 ) / (static_cast<double>( color_list.size() ) * 15.0 );
-    svg_color_list.transform.append( utils::SvgTransform::Scale( sf ));
-
-    // Add it to the svg doc.
-    svg_doc.add( svg_color_list );
-
     // Write the whole svg doc to file.
+    auto const svg_doc = get_color_tree_svg_document(
+        tree, params, color_per_branch, color_list, color_labels
+    );
     std::ofstream ofs;
     utils::file_output_stream( svg_filename, ofs );
     svg_doc.write( ofs );

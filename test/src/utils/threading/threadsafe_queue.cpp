@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/containers/threadsafe_queue.hpp"
+#include "genesis/utils/threading/threadsafe_queue.hpp"
 
 #include <atomic>
 #include <future>

@@ -42,6 +42,7 @@
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/genome_region_list.hpp"
+#include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 
 namespace genesis {
@@ -266,6 +267,16 @@ public:
      * @brief Compute the union with another GenomeLocusSet @p rhs.
      */
     void set_union( GenomeLocusSet const& rhs );
+
+    /**
+     * @brief Invert all chromosome regions.
+     *
+     * This needs a means of getting the length of each chromosome, in order to know how many
+     * positions towards the end of each chromosome need to be inverted. If the given
+     * @p sequence_dict does not contain a chromosome that is present in this set here,
+     * or the set contains set positions beyond the dict, an exception is thrown.
+     */
+    void invert( sequence::SequenceDict const& sequence_dict );
 
     // -------------------------------------------------------------------------
     //     Locus Covered

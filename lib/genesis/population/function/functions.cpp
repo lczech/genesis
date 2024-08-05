@@ -573,16 +573,18 @@ void guess_and_set_ref_and_alt_bases(
     if( variant.position == 0 ) {
         throw std::runtime_error( "Invalid position 0 in Variant." );
     }
+    ref_base = utils::to_upper( ref_base );
 
     // Now use that reference base. If it is in ACGT, we use it as ref; if not, we check against
     // ambiguity codes to see if it fits with our count-based ref and alt bases instead.
     if( is_valid_base( ref_base )) {
-        if( variant.reference_base != 'N' && variant.reference_base != ref_base ) {
+        auto const var_ref_base = utils::to_upper( variant.reference_base );
+        if( var_ref_base != 'N' && var_ref_base != ref_base ) {
             throw std::runtime_error(
                 "At chromosome \"" + variant.chromosome + "\" position " +
                 std::to_string( variant.position ) + ", the Reference Genome has base '" +
                 std::string( 1, ref_base ) + "', while the Variant already has mismatching base '" +
-                std::string( 1, variant.reference_base ) + "' set"
+                std::string( 1, var_ref_base ) + "' set"
             );
         }
 
@@ -593,6 +595,8 @@ void guess_and_set_ref_and_alt_bases(
     } else {
         // No usable ref base. Run the normal guessing.
         guess_and_set_ref_and_alt_bases( variant, force, filter_policy );
+        auto const var_ref_base = utils::to_upper( variant.reference_base );
+        auto const var_alt_base = utils::to_upper( variant.alternative_base );
 
         // Now we cross check that the ref genome base is a valid base,
         // and also that it is an ambiguity char that contains either the ref or alt that we found.
@@ -601,8 +605,8 @@ void guess_and_set_ref_and_alt_bases(
         bool contains = false;
         try {
             using genesis::sequence::nucleic_acid_code_containment;
-            contains |= nucleic_acid_code_containment( ref_base, variant.reference_base );
-            contains |= nucleic_acid_code_containment( ref_base, variant.alternative_base );
+            contains |= nucleic_acid_code_containment( ref_base, var_ref_base );
+            contains |= nucleic_acid_code_containment( ref_base, var_alt_base );
         } catch(...) {
             // The above throws an error if the given bases are not valid.
             // Catch this, and re-throw a nicer, more understandable exception instead.
@@ -616,8 +620,8 @@ void guess_and_set_ref_and_alt_bases(
             throw std::runtime_error(
                 "At chromosome \"" + variant.chromosome + "\" position " +
                 std::to_string( variant.position ) + ", the reference base is '" +
-                std::string( 1, variant.reference_base ) + "' and the alternative base is '" +
-                std::string( 1, variant.alternative_base ) +
+                std::string( 1, var_ref_base ) + "' and the alternative base is '" +
+                std::string( 1, var_alt_base ) +
                 "', determined from nucleotide counts in the data at this position. " +
                 "However, the Reference Genome has base '" + std::string( 1, ref_base ) +
                 "', which does not code for either of them, " +

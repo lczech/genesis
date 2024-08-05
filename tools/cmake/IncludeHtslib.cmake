@@ -25,7 +25,7 @@
 
 # This file is included from the main CMakeLists.txt in order to build htslib.
 message (STATUS "Looking for htslib")
-cmake_minimum_required( VERSION 3.1 )
+cmake_minimum_required( VERSION 3.5 )
 if(NOT DEFINED HTSLIB_DIR)
   include(ExternalProject)
 endif()

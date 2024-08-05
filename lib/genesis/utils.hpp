@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -72,18 +72,14 @@
 #include "genesis/utils/containers/mru_cache.hpp"
 #include "genesis/utils/containers/optional.hpp"
 #include "genesis/utils/containers/range.hpp"
-#include "genesis/utils/containers/threadsafe_queue.hpp"
 #include "genesis/utils/containers/transform_iterator.hpp"
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/core/exception.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/info.hpp"
 #include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/core/multi_future.hpp"
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/std.hpp"
-#include "genesis/utils/core/thread_functions.hpp"
-#include "genesis/utils/core/thread_pool.hpp"
 #include "genesis/utils/core/version.hpp"
 #include "genesis/utils/formats/bmp/writer.hpp"
 #include "genesis/utils/formats/csv/input_iterator.hpp"
@@ -182,6 +178,14 @@
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/text/style.hpp"
 #include "genesis/utils/text/table.hpp"
+#include "genesis/utils/threading/blocking_concurrent_queue.hpp"
+#include "genesis/utils/threading/concurrent_queue.hpp"
+#include "genesis/utils/threading/lightweight_semaphore.hpp"
+#include "genesis/utils/threading/multi_future.hpp"
+#include "genesis/utils/threading/sequential_output_buffer.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/threadsafe_queue.hpp"
 #include "genesis/utils/tools/char_lookup.hpp"
 #include "genesis/utils/tools/date_time.hpp"
 #include "genesis/utils/tools/geodesy/functions.hpp"

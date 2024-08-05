@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 
 #include "genesis/population/genome_region.hpp"
 
@@ -47,6 +48,13 @@ namespace population {
  * @brief Base class for Window and WindowView, to share common functionality.
  *
  * See Window for usage and details on the functions offered here.
+ *
+ * The class also adds a special case for when we are streaming over a whole genome.
+ * In that case, we cannot use our usual notation of first and last positions on a chromosome,
+ * as we are using the whole genome instead. As the notation is however useful in all other cases,
+ * we want to keep it. A cleaner approach from a software design perspective would be to have base
+ * classes for both cases, but that would lead to having incompatible types of WindowStream classes,
+ * which would add too much complexity for the current use case.
  */
 template<class D>
 class BaseWindow
@@ -174,6 +182,47 @@ public:
         return last_position_ - first_position_ + 1;
     }
 
+    // -------------------------------------------------------------------------
+    //     Whole Genome
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return if this instance is intended to be used for a whole genome stream.
+     */
+    bool is_whole_genome() const
+    {
+        return is_whole_genome_;
+    }
+
+
+    /**
+     * @brief Set whether this instance is intended to be used for a whole genome stream.
+     */
+    void is_whole_genome( bool value )
+    {
+        is_whole_genome_ = value;
+    }
+
+    /**
+     * @brief Get the list of all chromosomes along the genome, with their length.
+     *
+     * This is based on the chromsomoes and their lengths as encountered in the input data,
+     * or on the sequence dictionary if provided to the GenomeWindowStream.
+     *
+     * Usage of this member is only valid if is_whole_genome() is set.
+     */
+    std::unordered_map<std::string, size_t> const& chromosomes() const
+    {
+        return chromosomes_;
+    }
+
+    /**
+     * @brief Get the list of all chromosomes along the genome, with their length.
+     */
+    std::unordered_map<std::string, size_t>& chromosomes()
+    {
+        return chromosomes_;
+    }
 
     // -------------------------------------------------------------------------
     //     Modifiers and Helpers
@@ -184,9 +233,11 @@ public:
      */
     void clear()
     {
-        chromosome_    = "";
+        chromosome_     = "";
         first_position_ = 0;
-        last_position_ = 0;
+        last_position_  = 0;
+        is_whole_genome_ = false;
+        chromosomes_.clear();
         clear_();
     }
 
@@ -210,9 +261,14 @@ protected:
 
 private:
 
+    // Normal case of window within chromosome
     std::string chromosome_;
     size_t first_position_ = 0;
-    size_t last_position_ = 0;
+    size_t last_position_  = 0;
+
+    // Special case of window over whole genome
+    bool is_whole_genome_ = false;
+    std::unordered_map<std::string, size_t> chromosomes_;
 
 };
 

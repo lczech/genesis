@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_CONTAINERS_THREADSAFE_QUEUE_H_
-#define GENESIS_UTILS_CONTAINERS_THREADSAFE_QUEUE_H_
+#ifndef GENESIS_UTILS_THREADING_THREADSAFE_QUEUE_H_
+#define GENESIS_UTILS_THREADING_THREADSAFE_QUEUE_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -147,7 +147,7 @@ public:
     void push( T new_value )
     {
         std::lock_guard<std::mutex> lk(mutex_);
-        data_queue_.push(new_value);
+        data_queue_.push( std::move( new_value ));
         data_cond_.notify_one();
     }
 
@@ -155,7 +155,7 @@ public:
     {
         std::unique_lock<std::mutex> lk(mutex_);
         data_cond_.wait(lk, [this] { return !data_queue_.empty(); });
-        value = data_queue_.front();
+        value = std::move( data_queue_.front() );
         data_queue_.pop();
     }
 
@@ -174,7 +174,7 @@ public:
         if( data_queue_.empty() ) {
             return false;
         }
-        value = data_queue_.front();
+        value = std::move( data_queue_.front() );
         data_queue_.pop();
         return true;
     }

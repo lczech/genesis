@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2022 Lucas Czech
+# Copyright (C) 2014-2024 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 #   GTest Download
 # ------------------------------------------------------------------------------
 
-cmake_minimum_required( VERSION 3.1 )
+cmake_minimum_required( VERSION 3.5 )
 project( googletest-download NONE )
 
 include(ExternalProject)

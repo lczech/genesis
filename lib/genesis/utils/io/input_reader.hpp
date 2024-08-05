@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -31,12 +31,14 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/thread_pool.hpp"
+#include "genesis/utils/core/options.hpp"
 #include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
 
 #include <cassert>
 #include <memory>
 #include <string>
+#include <stdexcept>
 #include <utility>
 
 namespace genesis {
@@ -66,19 +68,23 @@ using InputReader = AsynchronousReader;
  * @brief Read bytes from an @link BaseInputSource InputSource@endlink into a `char buffer`.
  *
  * The reading is done asynchronously, that is, in another thread. This is usually faster than
- * synchronous reading (see SynchronousReader), particularly for large data blocks. It is thus the
- * preferred reader, if available.
+ * synchronous reading (see SynchronousReader), particularly for large data blocks, because we can
+ * avoid blocking any computational threads for I/O wait times. It is thus the preferred reader,
+ * if available.
+ *
+ * In detail, if we have a trival input source, such as just reading data from a file, it get its
+ * own thread pool with one thread, which boils down to just a thread and condition variable for
+ * notifying the thread, and hence is a realative lightweight way of not blocking any computational
+ * threads with I/O wait times. For more complex inputs, such as gzip that needs decompression,
+ * and hence is not a trivial I/O wait, we instead use a given or the global thread pool, to avoid
+ * oversubscribing our desired thread count, and spamming too many async reader threads when
+ * multiple files need to be processed at the same time.
  *
  * The caller is responsible for keeping the data buffer alive while the reading is happening.
  * That is, calling start_reading() without then also calling finish_reading() and having the
  * buffer go out of scope could lead to a segfault. Don't do that. Also, each call to start_reading()
  * needs to be matched by a call to finish_reading() before calling start_reading() again, as
  * otherwise, the input data will get scrambled.
- *
- * Note that we recommend using an individual ThreadPool of size 1 for using this class, which is
- * the default if no external thread pool is provided. We however also allow to set an external
- * thread pool, so that in cases where the number of spawned threads need to be limited, this
- * can be achieved. Not recommended though, as it will likely result in slowdown.
  *
  * Implementation details inspired by
  * [fast-cpp-csv-parser](https://github.com/ben-strasser/fast-cpp-csv-parser) by Ben Strasser,
@@ -92,13 +98,58 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    AsynchronousReader( std::shared_ptr<utils::ThreadPool> thread_pool = {} )
-    {
-        if( thread_pool ) {
-            thread_pool_ = thread_pool;
-        } else {
-            thread_pool_ = std::make_shared<utils::ThreadPool>( 1 );
+    AsynchronousReader(
+        std::shared_ptr<BaseInputSource> input_source,
+        std::shared_ptr<ThreadPool> thread_pool = nullptr
+    ) {
+        if( !input_source ) {
+            throw std::runtime_error( "Cannot read from BaseInputSource nullptr" );
         }
+
+        // Depending on the async policy (see below), we might want to use a thread pool for the
+        // reading - either the given one, or if none is given, the global one. We use a lambda
+        // for that decision to avoid code duplcation below, but also being able to ignore the
+        // global thread pool if we do not need it. This is relevant when we do not want to use
+        // it, and init_global_thread_pool() has not been called.
+        auto get_thread_pool_ = [&]()
+        {
+            if( thread_pool ) {
+                return thread_pool;
+            }
+            return Options::get().global_thread_pool();
+        };
+
+        // Set the threads according to the global options policy for file reading.
+        // By default, for trivial input such as reading a simple file, use our own thread.
+        // This makes sure that simple file I/O does not need to wait in the thread pool
+        // to be executed, but gets spawned in its own thread that can operate idependently
+        // of the pool, and just wait for the I/O to be done, without blocking any other
+        // threads while waiting.
+        // For complex sources, we use the given or global thread pool instead, for instance
+        // when decompressing gzipped files. That means that internally, for such sources,
+        // the actual I/O for getting the data that needs to be decompressed is blocking
+        // that thread until I/O is completed. We could add another layer of data fetching
+        // to avoid that, and load the gzipped data async into some other buffer first,
+        // but well, decompression probably takes up enough time for that to not matter too much.
+        switch( Options::get().input_reading_thread_policy() ) {
+            case Options::InputReadingThreadPolicy::kStrict: {
+                thread_pool_ = get_thread_pool_();
+                break;
+            }
+            case Options::InputReadingThreadPolicy::kTrivialAsync: {
+                if( input_source->is_trivial() ) {
+                    thread_pool_ = std::make_shared<utils::ThreadPool>( 1 );
+                } else {
+                    thread_pool_ = get_thread_pool_();
+                }
+                break;
+            }
+            case Options::InputReadingThreadPolicy::kAllAsync: {
+                thread_pool_ = std::make_shared<utils::ThreadPool>( 1 );
+                break;
+            }
+        }
+        input_source_ = input_source;
     }
 
     AsynchronousReader( AsynchronousReader const& ) = delete;
@@ -113,19 +164,14 @@ public:
     //     Init and General Members
     // -------------------------------------------------------------
 
-    void init( std::shared_ptr< BaseInputSource > input_source )
-    {
-        input_source_ = input_source;
-    }
-
     bool valid() const
     {
         return input_source_ != nullptr;
     }
 
-    BaseInputSource const* input_source() const
+    std::shared_ptr<BaseInputSource> input_source() const
     {
-        return input_source_.get();
+        return input_source_;
     }
 
     std::string class_name() const
@@ -153,7 +199,7 @@ public:
 
         // We capture the target by value, meaning that the caller has to stay alive until the
         // task is finished, so that we don't get a memory access violation for the buffer.
-        future_ = thread_pool_->enqueue(
+        future_ = thread_pool_->enqueue_and_retrieve(
             [=](){
                 return input_source->read( target_buffer, target_size );
             }
@@ -211,7 +257,12 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    SynchronousReader()  = default;
+    SynchronousReader(
+        std::shared_ptr<BaseInputSource> input_source
+    )
+        : input_source_( input_source )
+    {}
+
     ~SynchronousReader() = default;
 
     SynchronousReader( SynchronousReader const& ) = delete;
@@ -224,19 +275,14 @@ public:
     //     Init and General Members
     // -------------------------------------------------------------
 
-    void init( std::shared_ptr<BaseInputSource> input_source )
-    {
-        input_source_ = input_source;
-    }
-
     bool valid() const
     {
         return input_source_ != nullptr;
     }
 
-    BaseInputSource const* input_source() const
+    std::shared_ptr<BaseInputSource> input_source() const
     {
-        return input_source_.get();
+        return input_source_;
     }
 
     std::string class_name() const

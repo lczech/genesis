@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -34,14 +34,13 @@
  */
 
 #include "genesis/sequence/counts.hpp"
-#include "genesis/sequence/formats/fasta_input_iterator.hpp"
-#include "genesis/sequence/formats/fasta_output_iterator.hpp"
 #include "genesis/sequence/formats/fasta_reader.hpp"
 #include "genesis/sequence/formats/fasta_writer.hpp"
-#include "genesis/sequence/formats/fastq_input_iterator.hpp"
-#include "genesis/sequence/formats/fastq_output_iterator.hpp"
 #include "genesis/sequence/formats/fastq_reader.hpp"
 #include "genesis/sequence/formats/fastq_writer.hpp"
+#include "genesis/sequence/formats/fastx_input_stream.hpp"
+#include "genesis/sequence/formats/fastx_input_view_stream.hpp"
+#include "genesis/sequence/formats/fastx_output_stream.hpp"
 #include "genesis/sequence/formats/phylip_reader.hpp"
 #include "genesis/sequence/formats/phylip_writer.hpp"
 #include "genesis/sequence/functions/codes.hpp"

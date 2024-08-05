@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -1175,6 +1175,284 @@ const NamedColorList color_list_xkcd_ = {{
 }};
 
 // =================================================================================================
+//     LEGO Color Name List
+// =================================================================================================
+
+/**
+ * @brief Struct that stores a static const map of named LEGO colors.
+ *
+ * The map stores the color names of the LEGO colors from https://rebrickable.com/downloads/
+ * as of 2024-06-17.
+ */
+const NamedColorList color_list_lego_ = {{
+    { "Black", { 5, 19, 29 } },
+    { "Blue", { 0, 85, 191 } },
+    { "Green", { 35, 120, 65 } },
+    { "Dark Turquoise", { 0, 143, 155 } },
+    { "Red", { 201, 26, 9 } },
+    { "Dark Pink", { 200, 112, 160 } },
+    { "Brown", { 88, 57, 39 } },
+    { "Light Gray", { 155, 161, 157 } },
+    { "Dark Gray", { 109, 110, 92 } },
+    { "Light Blue", { 180, 210, 227 } },
+    { "Bright Green", { 75, 159, 74 } },
+    { "Light Turquoise", { 85, 165, 175 } },
+    { "Salmon", { 242, 112, 94 } },
+    { "Pink", { 252, 151, 172 } },
+    { "Yellow", { 242, 205, 55 } },
+    { "White", { 255, 255, 255 } },
+    { "Light Green", { 194, 218, 184 } },
+    { "Light Yellow", { 251, 230, 150 } },
+    { "Tan", { 228, 205, 158 } },
+    { "Light Violet", { 201, 202, 226 } },
+    { "Glow In Dark Opaque", { 212, 213, 201 } },
+    { "Purple", { 129, 0, 123 } },
+    { "Dark Blue-Violet", { 32, 50, 176 } },
+    { "Orange", { 254, 138, 24 } },
+    { "Magenta", { 146, 57, 120 } },
+    { "Lime", { 187, 233, 11 } },
+    { "Dark Tan", { 149, 138, 115 } },
+    { "Bright Pink", { 228, 173, 200 } },
+    { "Medium Lavender", { 172, 120, 186 } },
+    { "Lavender", { 225, 213, 237 } },
+    { "Trans-Black IR Lens", { 99, 95, 82 } },
+    { "Trans-Dark Blue", { 0, 32, 160 } },
+    { "Trans-Green", { 132, 182, 141 } },
+    { "Trans-Bright Green", { 217, 228, 167 } },
+    { "Trans-Red", { 201, 26, 9 } },
+    { "Trans-Brown", { 99, 95, 82 } },
+    { "Trans-Light Blue", { 174, 239, 236 } },
+    { "Trans-Neon Green", { 248, 241, 132 } },
+    { "Trans-Very Lt Blue", { 193, 223, 240 } },
+    { "Trans-Dark Pink", { 223, 102, 149 } },
+    { "Trans-Yellow", { 245, 205, 47 } },
+    { "Trans-Clear", { 252, 252, 252 } },
+    { "Trans-Purple", { 165, 165, 203 } },
+    { "Trans-Neon Yellow", { 218, 176, 0 } },
+    { "Trans-Neon Orange", { 255, 128, 13 } },
+    { "Chrome Antique Brass", { 100, 90, 76 } },
+    { "Chrome Blue", { 108, 150, 191 } },
+    { "Chrome Green", { 60, 179, 113 } },
+    { "Chrome Pink", { 170, 77, 142 } },
+    { "Chrome Black", { 27, 42, 52 } },
+    { "Very Light Orange", { 243, 207, 155 } },
+    { "Light Purple", { 205, 98, 152 } },
+    { "Reddish Brown", { 88, 42, 18 } },
+    { "Light Bluish Gray", { 160, 165, 169 } },
+    { "Dark Bluish Gray", { 108, 110, 104 } },
+    { "Medium Blue", { 90, 147, 219 } },
+    { "Medium Green", { 115, 220, 161 } },
+    { "Speckle Black-Copper", { 5, 19, 29 } },
+    { "Speckle DBGray-Silver", { 108, 110, 104 } },
+    { "Light Pink", { 254, 204, 207 } },
+    { "Light Nougat", { 246, 215, 179 } },
+    { "Milky White", { 255, 255, 255 } },
+    { "Metallic Silver", { 165, 169, 180 } },
+    { "Metallic Green", { 137, 155, 95 } },
+    { "Metallic Gold", { 219, 172, 52 } },
+    { "Medium Nougat", { 170, 125, 85 } },
+    { "Dark Purple", { 63, 54, 145 } },
+    { "Light Brown", { 124, 80, 58 } },
+    { "Royal Blue", { 76, 97, 219 } },
+    { "Nougat", { 208, 145, 104 } },
+    { "Light Salmon", { 254, 186, 189 } },
+    { "Violet", { 67, 84, 163 } },
+    { "Medium Bluish Violet", { 104, 116, 202 } },
+    { "Glitter Trans-Dark Pink", { 223, 102, 149 } },
+    { "Medium Lime", { 199, 210, 60 } },
+    { "Glitter Trans-Clear", { 255, 255, 255 } },
+    { "Aqua", { 179, 215, 209 } },
+    { "Light Lime", { 217, 228, 167 } },
+    { "Light Orange", { 249, 186, 97 } },
+    { "Glitter Trans-Purple", { 165, 165, 203 } },
+    { "Speckle Black-Silver", { 5, 19, 29 } },
+    { "Speckle Black-Gold", { 5, 19, 29 } },
+    { "Copper", { 174, 122, 89 } },
+    { "Pearl Light Gray", { 156, 163, 168 } },
+    { "Pearl Sand Blue", { 121, 136, 161 } },
+    { "Pearl Light Gold", { 220, 188, 129 } },
+    { "Trans-Medium Blue", { 207, 226, 247 } },
+    { "Pearl Dark Gray", { 87, 88, 87 } },
+    { "Pearl Very Light Gray", { 171, 173, 172 } },
+    { "Very Light Bluish Gray", { 230, 227, 224 } },
+    { "Yellowish Green", { 223, 238, 165 } },
+    { "Flat Dark Gold", { 180, 132, 85 } },
+    { "Flat Silver", { 137, 135, 136 } },
+    { "Trans-Orange", { 240, 143, 28 } },
+    { "Pearl White", { 242, 243, 242 } },
+    { "Bright Light Orange", { 248, 187, 61 } },
+    { "Bright Light Blue", { 159, 195, 233 } },
+    { "Rust", { 179, 16, 4 } },
+    { "Bright Light Yellow", { 255, 240, 58 } },
+    { "Trans-Pink", { 228, 173, 200 } },
+    { "Sky Blue", { 125, 191, 221 } },
+    { "Trans-Light Purple", { 150, 112, 159 } },
+    { "Dark Blue", { 10, 52, 99 } },
+    { "Dark Green", { 24, 70, 50 } },
+    { "Glow In Dark Trans", { 189, 198, 173 } },
+    { "Pearl Gold", { 170, 127, 46 } },
+    { "Dark Brown", { 53, 33, 0 } },
+    { "Maersk Blue", { 53, 146, 195 } },
+    { "Dark Red", { 114, 14, 15 } },
+    { "Dark Azure", { 7, 139, 201 } },
+    { "Medium Azure", { 54, 174, 191 } },
+    { "Light Aqua", { 173, 195, 192 } },
+    { "Olive Green", { 155, 154, 90 } },
+    { "Chrome Gold", { 187, 165, 61 } },
+    { "Sand Red", { 214, 117, 114 } },
+    { "Medium Dark Pink", { 247, 133, 177 } },
+    { "Earth Orange", { 250, 156, 28 } },
+    { "Sand Purple", { 132, 94, 132 } },
+    { "Sand Green", { 160, 188, 172 } },
+    { "Sand Blue", { 96, 116, 161 } },
+    { "Chrome Silver", { 224, 224, 224 } },
+    { "Fabuland Brown", { 182, 123, 80 } },
+    { "Medium Orange", { 255, 167, 11 } },
+    { "Dark Orange", { 169, 85, 0 } },
+    { "Very Light Gray", { 230, 227, 218 } },
+    { "Glow in Dark White", { 217, 217, 217 } },
+    { "Medium Violet", { 147, 145, 228 } },
+    { "Glitter Trans-Neon Green", { 192, 245, 0 } },
+    { "Glitter Trans-Light Blue", { 104, 188, 197 } },
+    { "Trans-Flame Yellowish Orange", { 252, 183, 109 } },
+    { "Trans-Fire Yellow", { 251, 232, 144 } },
+    { "Trans-Light Royal Blue", { 180, 212, 247 } },
+    { "Reddish Lilac", { 142, 85, 151 } },
+    { "Vintage Blue", { 3, 156, 189 } },
+    { "Vintage Green", { 30, 96, 30 } },
+    { "Vintage Red", { 202, 31, 8 } },
+    { "Vintage Yellow", { 243, 195, 5 } },
+    { "Fabuland Orange", { 239, 145, 33 } },
+    { "Modulex White", { 244, 244, 244 } },
+    { "Modulex Light Bluish Gray", { 175, 181, 199 } },
+    { "Modulex Light Gray", { 156, 156, 156 } },
+    { "Modulex Charcoal Gray", { 89, 93, 96 } },
+    { "Modulex Tile Gray", { 107, 90, 90 } },
+    { "Modulex Black", { 77, 76, 82 } },
+    { "Modulex Tile Brown", { 51, 0, 0 } },
+    { "Modulex Terracotta", { 92, 80, 48 } },
+    { "Modulex Brown", { 144, 116, 80 } },
+    { "Modulex Buff", { 222, 198, 156 } },
+    { "Modulex Red", { 181, 44, 32 } },
+    { "Modulex Pink Red", { 244, 92, 64 } },
+    { "Modulex Orange", { 244, 123, 48 } },
+    { "Modulex Light Orange", { 247, 173, 99 } },
+    { "Modulex Light Yellow", { 255, 227, 113 } },
+    { "Modulex Ochre Yellow", { 254, 213, 87 } },
+    { "Modulex Lemon", { 189, 198, 24 } },
+    { "Modulex Pastel Green", { 125, 181, 56 } },
+    { "Modulex Olive Green", { 124, 144, 81 } },
+    { "Modulex Aqua Green", { 39, 134, 126 } },
+    { "Modulex Teal Blue", { 70, 112, 131 } },
+    { "Modulex Tile Blue", { 0, 87, 166 } },
+    { "Modulex Medium Blue", { 97, 175, 255 } },
+    { "Modulex Pastel Blue", { 104, 174, 206 } },
+    { "Modulex Violet", { 189, 125, 133 } },
+    { "Modulex Pink", { 247, 133, 177 } },
+    { "Modulex Clear", { 255, 255, 255 } },
+    { "Modulex Foil Dark Gray", { 89, 93, 96 } },
+    { "Modulex Foil Light Gray", { 156, 156, 156 } },
+    { "Modulex Foil Dark Green", { 0, 100, 0 } },
+    { "Modulex Foil Light Green", { 125, 181, 56 } },
+    { "Modulex Foil Dark Blue", { 0, 87, 166 } },
+    { "Modulex Foil Light Blue", { 104, 174, 206 } },
+    { "Modulex Foil Violet", { 75, 0, 130 } },
+    { "Modulex Foil Red", { 139, 0, 0 } },
+    { "Modulex Foil Yellow", { 254, 213, 87 } },
+    { "Modulex Foil Orange", { 247, 173, 99 } },
+    { "Coral", { 255, 105, 143 } },
+    { "Pastel Blue", { 90, 196, 218 } },
+    { "Glitter Trans-Orange", { 240, 143, 28 } },
+    { "Opal Trans-Light Blue", { 104, 188, 197 } },
+    { "Opal Trans-Dark Pink", { 206, 29, 155 } },
+    { "Opal Trans-Clear", { 252, 252, 252 } },
+    { "Opal Trans-Brown", { 88, 57, 39 } },
+    { "Trans-Light Bright Green", { 201, 231, 136 } },
+    { "Trans-Light Green", { 148, 229, 171 } },
+    { "Opal Trans-Purple", { 131, 32, 183 } },
+    { "Opal Trans-Bright Green", { 132, 182, 141 } },
+    { "Opal Trans-Dark Blue", { 0, 32, 160 } },
+    { "Vibrant Yellow", { 235, 216, 0 } },
+    { "Pearl Copper", { 180, 106, 0 } },
+    { "Fabuland Red", { 255, 128, 20 } },
+    { "Reddish Gold", { 172, 130, 71 } },
+    { "Curry", { 221, 152, 46 } },
+    { "Dark Nougat", { 173, 97, 64 } },
+    { "Bright Reddish Orange", { 238, 84, 52 } },
+    { "Pearl Red", { 214, 0, 38 } },
+    { "Pearl Blue", { 0, 89, 163 } },
+    { "Pearl Green", { 0, 142, 60 } },
+    { "Pearl Brown", { 87, 57, 44 } },
+    { "Pearl Black", { 10, 19, 39 } },
+    { "Duplo Blue", { 0, 158, 206 } },
+    { "Duplo Medium Blue", { 62, 149, 182 } },
+    { "Duplo Lime", { 255, 242, 48 } },
+    { "Fabuland Lime", { 120, 252, 120 } },
+    { "Duplo Medium Green", { 70, 138, 95 } },
+    { "Duplo Light Green", { 96, 186, 118 } },
+    { "Light Tan", { 243, 201, 136 } },
+    { "Rust Orange", { 135, 43, 23 } },
+    { "Clikits Pink", { 254, 120, 176 } },
+    { "Two-tone Copper", { 148, 81, 72 } },
+    { "Two-tone Gold", { 171, 103, 58 } },
+    { "Two-tone Silver", { 115, 114, 113 } },
+    { "Pearl Lime", { 106, 121, 68 } },
+    { "Duplo Pink", { 255, 135, 156 } },
+    { "Medium Brown", { 117, 89, 69 } },
+    { "Warm Tan", { 204, 163, 115 } },
+    { "Duplo Turquoise", { 63, 182, 158 } },
+    { "Warm Yellowish Orange", { 255, 203, 120 } },
+    { "Metallic Copper", { 118, 77, 59 } },
+    { "Light Lilac", { 145, 149, 202 } },
+    { "Trans-Medium Purple", { 141, 115, 179 } },
+    { "Trans-Black", { 99, 95, 82 } },
+    { "Glitter Trans-Bright Green", { 217, 228, 167 } },
+    { "Glitter Trans-Medium Purple", { 141, 115, 179 } },
+    { "Glitter Trans-Green", { 132, 182, 141 } },
+    { "Glitter Trans-Pink", { 228, 173, 200 } },
+    { "Clikits Yellow", { 255, 207, 11 } },
+    { "Duplo Dark Purple", { 95, 39, 170 } },
+    { "Trans-Neon Red", { 255, 0, 64 } },
+    { "Pearl Titanium", { 62, 60, 57 } },
+    { "HO Aqua", { 179, 215, 209 } },
+    { "HO Azure", { 21, 145, 203 } },
+    { "HO Blue-gray", { 53, 78, 90 } },
+    { "HO Cyan", { 91, 152, 179 } },
+    { "HO Dark Aqua", { 167, 220, 207 } },
+    { "HO Dark Blue", { 10, 52, 99 } },
+    { "HO Dark Gray", { 109, 110, 92 } },
+    { "HO Dark Green", { 24, 70, 50 } },
+    { "HO Dark Lime", { 178, 185, 85 } },
+    { "HO Dark Red", { 99, 19, 20 } },
+    { "HO Dark Sand Green", { 98, 122, 98 } },
+    { "HO Dark Turquoise", { 16, 146, 157 } },
+    { "HO Earth Orange", { 187, 119, 27 } },
+    { "HO Gold", { 180, 167, 116 } },
+    { "HO Light Aqua", { 163, 209, 192 } },
+    { "HO Light Brown", { 150, 83, 54 } },
+    { "HO Light Gold", { 205, 194, 152 } },
+    { "HO Light Tan", { 249, 241, 199 } },
+    { "HO Light Yellow", { 245, 250, 183 } },
+    { "HO Medium Blue", { 115, 150, 200 } },
+    { "HO Medium Red", { 192, 17, 17 } },
+    { "HO Metallic Blue", { 13, 71, 99 } },
+    { "HO Metallic Dark Gray", { 94, 94, 94 } },
+    { "HO Metallic Green", { 135, 152, 103 } },
+    { "HO Metallic Sand Blue", { 95, 125, 140 } },
+    { "HO Olive Green", { 155, 154, 90 } },
+    { "HO Rose", { 208, 98, 98 } },
+    { "HO Sand Blue", { 110, 138, 166 } },
+    { "HO Sand Green", { 160, 188, 172 } },
+    { "HO Tan", { 228, 205, 158 } },
+    { "HO Titanium", { 97, 97, 97 } },
+    { "Metal", { 165, 173, 180 } },
+    { "Reddish Orange", { 202, 76, 11 } },
+    { "Sienna Brown", { 145, 92, 60 } },
+    { "Umber Brown", { 94, 63, 51 } },
+    { "Opal Trans-Yellow", { 245, 205, 47 } }
+}};
+
+// =================================================================================================
 //     Helper Functions
 // =================================================================================================
 
@@ -1225,10 +1503,13 @@ static std::vector<Color> convert_to_palette_( NamedColorList const & list )
 
 bool is_color_name( std::string const& name )
 {
-    if( is_web_color_name( name ) ) {
+    if( is_color_name_web( name ) ) {
         return true;
     }
-    if( is_xkcd_color_name( name ) ) {
+    if( is_color_name_xkcd( name ) ) {
+        return true;
+    }
+    if( is_color_name_lego( name ) ) {
         return true;
     }
     return false;
@@ -1237,11 +1518,14 @@ bool is_color_name( std::string const& name )
 Color color_from_name( std::string const& name )
 {
     // Lazy...
-    if( is_web_color_name( name ) ) {
+    if( is_color_name_web( name ) ) {
         return color_from_name_web( name );
     }
-    if( is_xkcd_color_name( name ) ) {
+    if( is_color_name_xkcd( name ) ) {
         return color_from_name_xkcd( name );
+    }
+    if( is_color_name_lego( name ) ) {
+        return color_from_name_lego( name );
     }
     throw std::invalid_argument( "No color named '" + name + "'." );
 }
@@ -1250,7 +1534,7 @@ Color color_from_name( std::string const& name )
 //     Color Names Web
 // =================================================================================================
 
-bool is_web_color_name( std::string const& name )
+bool is_color_name_web( std::string const& name )
 {
     return get_color_list_iterator_( color_list_web_, name ) != color_list_web_.end();
 }
@@ -1275,7 +1559,7 @@ std::vector<Color> color_palette_web()
 //     Color Name xkcd
 // =================================================================================================
 
-bool is_xkcd_color_name( std::string const& name )
+bool is_color_name_xkcd( std::string const& name )
 {
     return get_color_list_iterator_( color_list_xkcd_, name ) != color_list_xkcd_.end();
 }
@@ -1294,6 +1578,31 @@ Color color_from_name_xkcd( std::string const& name )
 std::vector<Color> color_palette_xkcd()
 {
     return convert_to_palette_( color_list_xkcd_ );
+}
+
+// =================================================================================================
+//     Color Name LEGO
+// =================================================================================================
+
+bool is_color_name_lego( std::string const& name )
+{
+    return get_color_list_iterator_( color_list_lego_, name ) != color_list_lego_.end();
+}
+
+Color color_from_name_lego( std::string const& name )
+{
+    auto it = get_color_list_iterator_( color_list_lego_, name );
+    if( it == color_list_lego_.end() ) {
+        throw std::invalid_argument( "No color named " + name + " in LEGO colors." );
+    }
+
+    auto const c = it->second;
+    return color_from_bytes( c.r, c.g, c.b );
+}
+
+std::vector<Color> color_palette_lego()
+{
+    return convert_to_palette_( color_list_lego_ );
 }
 
 } // namespace utils

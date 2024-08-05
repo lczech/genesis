@@ -32,6 +32,8 @@
 
 #include "genesis/utils/math/bitvector/operators.hpp"
 
+#include <cassert>
+#include <stdexcept>
 #include <unordered_set>
 
 namespace genesis {
@@ -254,6 +256,48 @@ void GenomeLocusSet::set_union( GenomeLocusSet const& rhs )
                 lhs_bits = rhs_bits;
             }
         }
+    }
+}
+
+void GenomeLocusSet::invert( sequence::SequenceDict const& sequence_dict )
+{
+    using namespace genesis::utils;
+
+    for( auto& chr_bv : locus_map_ ) {
+        // Basic check for the chromosome
+        if( ! sequence_dict.contains( chr_bv.first )) {
+            throw std::runtime_error(
+                "Cannot invert Genome Locus Set for chromosome \"" + chr_bv.first +
+                "\", as the given Sequence Dict does not contain an entry for that chromosome"
+            );
+        }
+
+        // Get the sequence dict entry and check the lengths
+        auto const& seq_entry = sequence_dict.get( chr_bv.first );
+        assert( chr_bv.second.size() > 0 );
+        if( chr_bv.second.size() - 1 > seq_entry.size() ) {
+            throw std::runtime_error(
+                "Cannot invert Genome Locus Set for chromosome \"" + chr_bv.first +
+                "\", as the given Sequence Dict indicates its length to be " +
+                std::to_string( seq_entry.size() ) + ", instead of " +
+                std::to_string( chr_bv.second.size() - 1 )
+            );
+        }
+
+        // Create an empty bitvector of the desired size, and fill it with the bits set.
+        // We make sure that it gets the larger size, which is the seq entry size (or equal).
+        // Again we need to reserve an additional bit for special position 0.
+        // If the "all" marker is set, the inversion is "nothing", so then we just use a single bit.
+        auto new_bv = Bitvector( 1 );
+        if( ! chr_bv.second.get(0) ) {
+            new_bv = Bitvector( seq_entry.size() + 1, chr_bv.second );
+            new_bv.negate();
+            new_bv.set( 0, false );
+            assert( new_bv.size() >= chr_bv.second.size() );
+        }
+
+        // Finally update our data
+        locus_map_[ chr_bv.first ] = new_bv;
     }
 }
 

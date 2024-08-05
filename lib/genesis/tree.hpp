@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -65,6 +65,7 @@
 #include "genesis/tree/formats/newick/writer.hpp"
 #include "genesis/tree/formats/phyloxml/color_writer_plugin.hpp"
 #include "genesis/tree/formats/phyloxml/writer.hpp"
+#include "genesis/tree/formats/table/reader.hpp"
 #include "genesis/tree/function/distances.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/lca_lookup.hpp"

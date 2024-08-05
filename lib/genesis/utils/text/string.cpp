@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -43,8 +43,10 @@
 #include <sstream>
 #include <stdexcept>
 
-#ifdef GENESIS_AVX
+#if defined(GENESIS_AVX) || defined(GENESIS_AVX2) || defined(GENESIS_AVX512)
+
     #include <immintrin.h>
+
 #endif
 
 namespace genesis {
@@ -833,7 +835,7 @@ std::string trim (
 //     Case Conversion
 // =================================================================================================
 
-#ifdef GENESIS_AVX
+#ifdef GENESIS_AVX2
 
 inline void toggle_case_ascii_inplace_avx_( std::string& str, char char_a, char char_z )
 {
@@ -853,7 +855,9 @@ inline void toggle_case_ascii_inplace_avx_( std::string& str, char char_a, char 
         auto reg = _mm256_loadu_si256( reinterpret_cast<__m256i*>( &str[i] ) );
 
         // mask_az contains 0x00 where the character is between 'a/A' and 'z/Z', 0xff otherwise.
-        auto mask_az = _mm256_or_si256( _mm256_cmpgt_epi8( mask_a, reg ), _mm256_cmpgt_epi8( reg, mask_z ) );
+        auto mask_az = _mm256_or_si256(
+            _mm256_cmpgt_epi8( mask_a, reg ), _mm256_cmpgt_epi8( reg, mask_z )
+        );
 
         // Toggle the upper/lower char bit (0x20), 1 means lower case, 0 means upper case.
         reg = _mm256_xor_si256( _mm256_andnot_si256( mask_az, val_32 ), reg );
@@ -869,23 +873,23 @@ inline void toggle_case_ascii_inplace_avx_( std::string& str, char char_a, char 
     }
 }
 
-#endif // GENESIS_AVX
+#endif // GENESIS_AVX2
 
 void to_lower_ascii_inplace( std::string& str )
 {
-    #ifdef GENESIS_AVX
+    #ifdef GENESIS_AVX2
 
     // Toggle the ascii case bit for all values between the two mask boundaries.
     toggle_case_ascii_inplace_avx_( str, 'A', 'Z' );
 
-    #else // GENESIS_AVX
+    #else // GENESIS_AVX2
 
     // Naive implementation that might use compiler-generated vector intrinsics.
     for( auto& c : str ){
         c = to_lower(c);
     }
 
-    #endif // GENESIS_AVX
+    #endif // GENESIS_AVX2
 }
 
 std::string to_lower_ascii( std::string const& str )
@@ -897,19 +901,19 @@ std::string to_lower_ascii( std::string const& str )
 
 void to_upper_ascii_inplace( std::string& str )
 {
-    #ifdef GENESIS_AVX
+    #ifdef GENESIS_AVX2
 
     // Toggle the ascii case bit for all values between the two mask boundaries.
     toggle_case_ascii_inplace_avx_( str, 'a', 'z' );
 
-    #else // GENESIS_AVX
+    #else // GENESIS_AVX2
 
     // Naive implementation that might use compiler-generated vector intrinsics.
     for( auto& c : str ){
         c = to_upper(c);
     }
 
-    #endif // GENESIS_AVX
+    #endif // GENESIS_AVX2
 }
 
 std::string to_upper_ascii( std::string const& str )
@@ -1038,6 +1042,23 @@ std::string to_string_rounded( double const value, int const precision )
     }
     str.erase( last_nonzero + offset, std::string::npos );
     return str;
+}
+
+std::string to_string_byte_format( size_t value )
+{
+    const char* suffixes[] = {"B", "KB", "MB", "GB", "TB", "PB", "EB"};
+    size_t magnitude = 0;
+    double size = static_cast<double>(value);
+
+    // Loop until we find the fitting order of magnitude.
+    while( size >= 1024 && magnitude < (sizeof(suffixes) / sizeof(suffixes[0])) - 1 ) {
+        size /= 1024;
+        ++magnitude;
+    }
+
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(2) << size << suffixes[magnitude];
+    return oss.str();
 }
 
 } // namespace utils

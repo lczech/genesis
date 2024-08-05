@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -30,9 +30,12 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/core/std.hpp"
+#include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/math/common.hpp"
+#include "genesis/utils/math/random.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -49,7 +52,7 @@
 using namespace genesis;
 using namespace genesis::utils;
 
-static void test_input_specs( InputStream& instr, size_t lines, size_t columns )
+static void input_stream_test_input_specs_( InputStream& instr, size_t lines, size_t columns )
 {
     size_t max_col = 0;
     size_t max_lin = 0;
@@ -65,21 +68,21 @@ static void test_input_specs( InputStream& instr, size_t lines, size_t columns )
     EXPECT_EQ( lines,   max_lin );
 }
 
-static void test_string ( std::string str, size_t lines, size_t columns )
+static void input_stream_test_string_ ( std::string str, size_t lines, size_t columns )
 {
     InputStream instr( utils::make_unique< StringInputSource >( str ));
-    test_input_specs( instr, lines, columns );
+    input_stream_test_input_specs_( instr, lines, columns );
 }
 
 TEST(InputStream, Strings)
 {
-    test_string ("",              0, 0);
-    test_string ("\n",            1, 1);
-    test_string ("\n\n\n",        3, 1);
-    test_string ("x",             1, 2);
-    test_string ("xyz",           1, 4);
-    test_string ("xyz\n",         1, 4);
-    test_string ("xyz\nxy\nx\nx", 4, 4);
+    input_stream_test_string_ ("",              0, 0);
+    input_stream_test_string_ ("\n",            1, 1);
+    input_stream_test_string_ ("\n\n\n",        3, 1);
+    input_stream_test_string_ ("x",             1, 2);
+    input_stream_test_string_ ("xyz",           1, 4);
+    input_stream_test_string_ ("xyz\n",         1, 4);
+    input_stream_test_string_ ("xyz\nxy\nx\nx", 4, 4);
 }
 
 TEST(InputStream, FileReading)
@@ -90,28 +93,188 @@ TEST(InputStream, FileReading)
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
     InputStream instr( utils::make_unique< FileInputSource >( infile ));
 
-    test_input_specs( instr, 110, 51 );
+    input_stream_test_input_specs_( instr, 110, 51 );
 }
 
 TEST(InputStream, NewLines)
 {
     // Just \n.
-    test_string( "a\nb",   2, 2);
-    test_string( "a\nb\n", 2, 2);
+    input_stream_test_string_( "a\nb",   2, 2);
+    input_stream_test_string_( "a\nb\n", 2, 2);
 
     // Just \r.
-    test_string( "a\rb",   2, 2);
-    test_string( "a\rb\r", 2, 2);
+    input_stream_test_string_( "a\rb",   2, 2);
+    input_stream_test_string_( "a\rb\r", 2, 2);
 
     // Both.
-    test_string( "a\r\nb",     2, 2);
-    test_string( "a\r\nb\r\n", 2, 2);
+    input_stream_test_string_( "a\r\nb",     2, 2);
+    input_stream_test_string_( "a\r\nb\r\n", 2, 2);
 
     // Go crazy.
-    test_string( "\r\r\n\r\n\n", 4, 1);
+    input_stream_test_string_( "\r\r\n\r\n\n", 4, 1);
 }
 
-TEST( InputStream, LargeFile )
+// =================================================================================================
+//     Random Fuzzy
+// =================================================================================================
+
+struct RandomFuzzyLines
+{
+    std::vector<size_t> line_lengths;
+    std::string text;
+};
+
+RandomFuzzyLines make_random_fuzzy_lines_( size_t const n_lines )
+{
+    RandomFuzzyLines result;
+    std::stringstream ss;
+    for( size_t i = 0; i < n_lines; ++i ) {
+        auto const len = permuted_congruential_generator( 0, 100 );
+        ss << std::string( len, 'x' ) << "\n";
+        result.line_lengths.push_back( len );
+    }
+    // LOG_DBG << utils::join( result.line_lengths );
+    result.text = ss.str();
+    return result;
+}
+
+template<bool View>
+void test_input_stream_fuzzy_()
+{
+    // Make a string with random line length.
+    // We explicitly want to have tests that generate more than one block length of text.
+    // The function creates lines of 1-100 chars, so 50 on average, meaning that 4MB / 50 ~ 80k
+    // lines are one buffer block. So, we just do some tests with more than double.
+    auto const n_lines = permuted_congruential_generator( 1, 200000 );
+    auto const lines_data = make_random_fuzzy_lines_( n_lines );
+
+    // Now read it again and expect the correct line length.
+    auto it = InputStream( from_string( lines_data.text ));
+    size_t cnt = 0;
+    while( it ) {
+
+        EXPECT_EQ( cnt + 1, it.line() );
+        EXPECT_EQ( 1, it.column() );
+
+        std::string line;
+        if( View ) {
+            #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+                // To keep the below test the same for either get_line function, we convert to string.
+                line = std::string( it.get_line_view() );
+            #else
+                // Without C++17, we just do the line get again, to satisfy the compiler.
+                line = it.get_line();
+            #endif
+        } else {
+            line = it.get_line();
+        }
+
+        EXPECT_EQ( lines_data.line_lengths[cnt], line.size() );
+        EXPECT_EQ( cnt + 2, it.line() );
+        EXPECT_EQ( 1, it.column() );
+
+        ++cnt;
+    }
+}
+
+template<bool View>
+void run_test_input_stream_fuzzy_()
+{
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    // For the duration of the test, we deactivate debug logging.
+    // But if needed, comment this line out, and each test will report its input.
+    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+
+    size_t num_tests = 50;
+    for( size_t i = 0; i < num_tests; ++i ) {
+        LOG_DBG << "=================================";
+        LOG_DBG << "Test " << i;
+        test_input_stream_fuzzy_<View>();
+    }
+}
+
+TEST( InputStream, GetLineFuzzy )
+{
+    run_test_input_stream_fuzzy_<false>();
+}
+
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+TEST( InputStream, GetLineViewFuzzy )
+{
+    run_test_input_stream_fuzzy_<true>();
+}
+
+// =================================================================================================
+//     Random Fuzzy Views
+// =================================================================================================
+
+void run_test_input_stream_fuzzy_views_()
+{
+    // How many lines do we want to read at a time?
+    auto const line_block_size = 4;
+
+    // Make a string with random line length.
+    // We explicitly want to have tests that generate more than one block length of text.
+    // The function creates lines of 1-100 chars, so 50 on average, meaning that 4MB / 50 ~ 80k
+    // lines are one buffer block. So, we just do some tests with more than double.
+    // We round to a multiple of the line_block_size, as the reader expects an exact fit.
+    auto n_lines = permuted_congruential_generator( 1, 200000 );
+    n_lines += line_block_size - ( n_lines % line_block_size );
+    auto const lines_data = make_random_fuzzy_lines_( n_lines );
+
+    // Now read it again and expect the correct line length.
+    auto it = InputStream( from_string( lines_data.text ));
+    size_t cnt = 0;
+    while( it ) {
+
+        EXPECT_EQ( cnt + 1, it.line() );
+        EXPECT_EQ( 1, it.column() );
+
+        // We get four lines at a time.
+        auto const views = it.get_line_views<line_block_size>();
+        for( size_t i = 0; i < line_block_size; ++i ) {
+            if( cnt < lines_data.line_lengths.size() ) {
+                EXPECT_EQ( lines_data.line_lengths[cnt], views[i].size() );
+                ++cnt;
+            }
+        }
+
+        EXPECT_EQ( cnt + 1, it.line() );
+        EXPECT_EQ( 1, it.column() );
+    }
+}
+
+TEST( InputStream, GetLineViewsFuzzy )
+{
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    // For the duration of the test, we deactivate debug logging.
+    // But if needed, comment this line out, and each test will report its input.
+    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+
+    size_t num_tests = 50;
+    for( size_t i = 0; i < num_tests; ++i ) {
+        LOG_DBG << "=================================";
+        LOG_DBG << "Test " << i;
+        run_test_input_stream_fuzzy_views_();
+    }
+}
+
+#endif
+
+// =================================================================================================
+//     Get Lines
+// =================================================================================================
+
+TEST( InputStream, GetLineLargeFile )
 {
     // Skip test if no data directory availabe.
     NEEDS_TEST_DATA;
@@ -164,6 +327,84 @@ TEST( InputStream, LargeFile )
     // Make sure the file is deleted.
     ASSERT_EQ( 0, std::remove(tmpfile.c_str()) );
 }
+
+// =================================================================================================
+//     Large Fuzzy
+// =================================================================================================
+
+void test_input_stream_large_fuzzy_()
+{
+    // We write to a string buffer here, for speed, instead of files.
+    std::stringstream ss;
+
+    // We use the block len as our basic line length, but vary this by plus or minus one char
+    // each time, so that we constantly hit block boundaries in the reading.
+    // That means, we will like have lines that are exact multiples of the block size,
+    // and are aligned at the block ends.
+    // This is good for testing boundary conditions of exact matches of lengths,
+    // so that we can check some of the assertions of the input stream!
+    auto const block_len = InputStream::BlockLength;
+    auto const base_text = std::string( block_len - 1, '-' );
+
+    // Make a string with random line length
+    auto const lines = permuted_congruential_generator( 1, 10 );
+    std::vector<size_t> line_lengths;
+    for( size_t i = 0; i < lines; ++i ) {
+
+        // The base text above is one character short. Decide if we want to keep it that way,
+        // hit the exact block size, or overshoot by one.
+        auto const extra = permuted_congruential_generator( 0, 2 );
+
+        line_lengths.push_back( block_len - 1 + extra );
+        ss << base_text;
+        for( size_t j = 0; j < extra; ++j ) {
+            ss << "x";
+        }
+        ss << "\n";
+    }
+    auto const large = ss.str();
+    // LOG_DBG << utils::join( line_lengths );
+
+    // Now read it again and expect the correct line length.
+    auto it = InputStream( from_string( large ));
+    size_t cnt = 0;
+    while( it ) {
+
+        EXPECT_EQ( cnt + 1, it.line() );
+        EXPECT_EQ( 1, it.column() );
+
+        auto const line = it.get_line();
+
+        EXPECT_EQ( line_lengths[cnt], line.size() );
+        EXPECT_EQ( cnt + 2, it.line() );
+        EXPECT_EQ( 1, it.column() );
+
+        ++cnt;
+    }
+}
+
+TEST( InputStream, GetLineLargeFuzzy )
+{
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    // For the duration of the test, we deactivate debug logging.
+    // But if needed, comment this line out, and each test will report its input.
+    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+
+    size_t num_tests = 50;
+    for( size_t i = 0; i < num_tests; ++i ) {
+        LOG_DBG << "=================================";
+        LOG_DBG << "Test " << i;
+        test_input_stream_large_fuzzy_();
+    }
+}
+
+// =================================================================================================
+//     Parsing
+// =================================================================================================
 
 TEST( InputStream, ParseInt )
 {
@@ -242,7 +483,7 @@ TEST( InputStream, ParseInt )
     size_t target_length = 0;
     while( input_stream ) {
 
-        auto const n = input_stream.parse_signed_integer<int64_t>();
+        auto const n = parse_signed_integer<int64_t>( input_stream );
         target_sum += n;
         target_length += std::to_string(n).size();
 

@@ -146,7 +146,8 @@ inline std::function<void(Variant&)> make_variant_filter_by_region_tagging(
             "as tags for make_variant_filter_by_region_tagging()."
         );
     }
-    return [region, tag, complement]( Variant& variant ){
+    return [region, tag, complement]( Variant& variant )
+    {
         if( ! variant.status.passing() ) {
             return;
         }
@@ -190,7 +191,8 @@ inline std::function<void(Variant&)> make_variant_filter_by_region_tagging(
             "with a valid shared pointer to a GenomeRegionList."
         );
     }
-    return [regions, tag, complement]( Variant& variant ){
+    return [regions, tag, complement]( Variant& variant )
+    {
         if( ! variant.status.passing() ) {
             return;
         }
@@ -202,7 +204,7 @@ inline std::function<void(Variant&)> make_variant_filter_by_region_tagging(
 }
 
 /**
- * @copydoc make_variant_filter_by_region_tagging( std::shared_ptr<GenomeRegionList>, bool )
+ * @copydoc make_variant_filter_by_region_tagging( std::shared_ptr<GenomeRegionList>, VariantFilterTag, bool )
  */
 inline std::function<void(Variant&)> make_variant_filter_by_region_tagging(
     std::shared_ptr<GenomeLocusSet> loci,
@@ -221,7 +223,8 @@ inline std::function<void(Variant&)> make_variant_filter_by_region_tagging(
             "with a valid shared pointer to a GenomeLocusSet."
         );
     }
-    return [loci, tag, complement]( Variant& variant ){
+    return [loci, tag, complement]( Variant& variant )
+    {
         if( ! variant.status.passing() ) {
             return;
         }

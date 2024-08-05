@@ -15,9 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Contact:
-# Lucas Czech <lczech@carnegiescience.edu>
-# Department of Plant Biology, Carnegie Institution For Science
-# 260 Panama Street, Stanford, CA 94305, USA
+# Lucas Czech <lucas.czech@sund.ku.dk>
+# University of Copenhagen, Globe Institute, Section for GeoGenetics
+# Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 
 # --------------------------------------------------------------------------------------------------
 #   CMake Init
@@ -192,6 +192,7 @@ option (GENESIS_BUILD_TESTS         "Build the Genesis test suites."            
 # If available, use external dependencies.
 option (GENESIS_USE_ZLIB            "Use zlib."                                          ON)
 option (GENESIS_USE_OPENMP          "Use OpenMP."                                        ON)
+option (GENESIS_USE_AVX             "Use AVX/AVX2."                                      ON)
 
 # Additional dependencies: htslib
 # We use a locally installed (in the build directory) version of htslib,
@@ -351,6 +352,15 @@ IF(GENESIS_USE_OPENMP)
     # Included from modules dir tools/cmake
     include( IncludeOpenMP )
 ENDIF()
+
+# ----------------------------------------------------------
+#     AVX/AVX2
+# ----------------------------------------------------------
+
+# IF(GENESIS_USE_AVX)
+#     # Included from modules dir tools/cmake
+#     include( IncludeAVX )
+# ENDIF()
 
 # ----------------------------------------------------------
 #     htslib

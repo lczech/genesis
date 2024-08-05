@@ -372,6 +372,13 @@ public:
     bool is_snp() const;
 
     /**
+     * @brief Return whether this variant is a SNP, or a deletion in the alternative.
+     *
+     * This is similar to is_snp(), but also allows the alternatives to have a deletion.
+     */
+    bool is_snp_or_alt_del() const;
+
+    /**
      * @brief Get the quality score (`QUAL`, sixth column of the line).
      */
     double get_quality() const;

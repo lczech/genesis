@@ -204,7 +204,7 @@ bool SyncReader::parse_line_(
         );
     }
     it.read_char_or_throw( '\t' );
-    variant.position = it.parse_unsigned_integer<size_t>();
+    variant.position = parse_unsigned_integer<size_t>( it );
     if( variant.position == 0 ) {
         throw std::runtime_error(
             "Malformed sync " + it.source_name() + " at " + it.at() +
@@ -563,17 +563,17 @@ void SyncReader::parse_sample_simple_(
 
     // The allele frequencies are stored in the order `A:T:C:G:N:del`,
     // see https://sourceforge.net/p/popoolation2/wiki/Tutorial/
-    sample.a_count = it.parse_unsigned_integer<size_t>();
+    sample.a_count = parse_unsigned_integer<size_t>( it );
     it.read_char_or_throw( ':' );
-    sample.t_count = it.parse_unsigned_integer<size_t>();
+    sample.t_count = parse_unsigned_integer<size_t>( it );
     it.read_char_or_throw( ':' );
-    sample.c_count = it.parse_unsigned_integer<size_t>();
+    sample.c_count = parse_unsigned_integer<size_t>( it );
     it.read_char_or_throw( ':' );
-    sample.g_count = it.parse_unsigned_integer<size_t>();
+    sample.g_count = parse_unsigned_integer<size_t>( it );
     it.read_char_or_throw( ':' );
-    sample.n_count = it.parse_unsigned_integer<size_t>();
+    sample.n_count = parse_unsigned_integer<size_t>( it );
     it.read_char_or_throw( ':' );
-    sample.d_count = it.parse_unsigned_integer<size_t>();
+    sample.d_count = parse_unsigned_integer<size_t>( it );
 }
 
 // -------------------------------------------------------------------------

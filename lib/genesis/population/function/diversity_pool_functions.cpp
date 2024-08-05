@@ -186,13 +186,14 @@ double theta_pi_pool_denominator(
         // Boundary: if not held, we'd return zero, and that would not be a useful denominator.
         // Update: It's okay, we can return 0 here. The position will just not contribute
         // to the overall diversity sum then, but still considered for the sum of valid positions.
-        // if( 2 * min_count > nucleotide_count ) {
-        //     throw std::invalid_argument(
-        //         "Cannot compute theta_pi_pool_denominator with min_count = " +
-        //         std::to_string( min_count ) + " and nucleotide_count = " +
-        //         std::to_string( nucleotide_count )
-        //     );
-        // }
+        if( 2 * min_count > nucleotide_count ) {
+            return 0.0;
+            // throw std::invalid_argument(
+            //     "Cannot compute theta_pi_pool_denominator with min_count = " +
+            //     std::to_string( min_count ) + " and nucleotide_count = " +
+            //     std::to_string( nucleotide_count )
+            // );
+        }
 
         // Iterate all allele frequencies in between the min and max-min boundaries.
         double denom = 0.0;
@@ -244,13 +245,14 @@ double theta_watterson_pool_denominator(
         // Boundary: if not held, we'd return zero, and that would not be a useful denominator.
         // Update: It's okay, we can return 0 here. The position will just not contribute
         // to the overall diversity sum then, but still considered for the sum of valid positions.
-        // if( 2 * min_count > nucleotide_count ) {
-        //     throw std::invalid_argument(
-        //         "Cannot compute theta_watterson_pool_denominator with min_count = " +
-        //         std::to_string( min_count ) + " and nucleotide_count = " +
-        //         std::to_string( nucleotide_count )
-        //     );
-        // }
+        if( 2 * min_count > nucleotide_count ) {
+            return 0.0;
+            // throw std::invalid_argument(
+            //     "Cannot compute theta_watterson_pool_denominator with min_count = " +
+            //     std::to_string( min_count ) + " and nucleotide_count = " +
+            //     std::to_string( nucleotide_count )
+            // );
+        }
 
         // Iterate all allele frequencies in between the min and max-min boundaries.
         double denom = 0.0;

@@ -25,7 +25,7 @@
 */
 
 #include "genesis/utils/core/options.hpp"
-#include "genesis/utils/core/thread_pool.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
 
 #include <cassert>
 #include <functional>
@@ -604,8 +604,8 @@ public:
             assert( buffer_block_->size() == generator_->block_size_ );
 
             // In order to use lambda captures by copy for class member variables in C++11, we first
-            // have to make local copies, and then capture those. Capturing the class members direclty
-            // was only introduced later. Bit cumbersome, but gets the job done.
+            // have to make local copies, and then capture those. Capturing the class members
+            // directly was only introduced later. Bit cumbersome, but gets the job done.
             auto generator    = generator_;
             auto buffer_block = buffer_block_;
             auto block_size   = generator_->block_size_;
@@ -616,7 +616,7 @@ public:
             // Despite its parallel nature, we can use a thread pool here, as we are only ever
             // submitting a single read task to it, so there cannot be two reads of the same lambda
             // iterator in the pool.
-            *future_ = generator_->thread_pool_->enqueue(
+            *future_ = generator_->thread_pool_->enqueue_and_retrieve(
                 [ generator, buffer_block, block_size ](){
                     return read_block_( generator, buffer_block, block_size );
                 }

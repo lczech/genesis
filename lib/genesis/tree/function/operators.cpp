@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -36,7 +36,6 @@
 #include "genesis/tree/printer/compact.hpp"
 #include "genesis/tree/tree/subtree.hpp"
 #include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/core/options.hpp"
 
 #include <ostream>
 
@@ -324,39 +323,6 @@ std::string print_gist( Tree const& tree, long items )
     auto pc = PrinterCompact();
     pc.limit( items );
     return pc.print( tree );
-}
-
-std::ostream& operator << ( std::ostream& out, Tree const& tree )
-{
-    if( utils::Options::get().print_object_infos() ) {
-        out << print_info( tree );
-    }
-    out << print_gist( tree, utils::Options::get().print_object_gists() );
-    return out;
-}
-
-std::ostream& operator << ( std::ostream& out, TreeEdge const& edge )
-{
-    if( utils::Options::get().print_object_infos() ) {
-        out << print_info( edge );
-    }
-    return out;
-}
-
-std::ostream& operator << ( std::ostream& out, TreeLink const& link )
-{
-    if( utils::Options::get().print_object_infos() ) {
-        out << print_info( link );
-    }
-    return out;
-}
-
-std::ostream& operator << ( std::ostream& out, TreeNode const& node )
-{
-    if( utils::Options::get().print_object_infos() ) {
-        out << print_info( node );
-    }
-    return out;
 }
 
 // =================================================================================================

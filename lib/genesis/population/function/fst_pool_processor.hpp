@@ -31,15 +31,17 @@
  * @ingroup population
  */
 
+#include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/function/fst_pool_calculator.hpp"
 #include "genesis/population/function/fst_pool_unbiased.hpp"
 #include "genesis/population/function/window_average.hpp"
-#include "genesis/population/filter/variant_filter.hpp"
+#include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/variant.hpp"
+#include "genesis/population/window/base_window.hpp"
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/std.hpp"
-#include "genesis/utils/core/thread_functions.hpp"
-#include "genesis/utils/core/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -254,12 +256,17 @@ public:
     /**
      * @brief Get a list of all resulting FST values for all pairs of samples.
      *
-     * This _always_ takes the @p window_length as input, even if the WindowAveragePolicy does
+     * This _always_ takes the @p window and @p provided_loci as input, which are components needed
+     * for some of the window averaging policies, even if the WindowAveragePolicy does
      * not require it. This is meant to make sure that we at least keep track of the right things
      * when doing any computations, and cannot forget about this.
+     * There is an overload of this function which does not need this, and always returns the sum.
      */
-    std::vector<double> const& get_result( size_t window_length ) const
-    {
+    template<class D>
+    std::vector<double> const& get_result(
+        BaseWindow<D> const& window,
+        std::shared_ptr<GenomeLocusSet> provided_loci
+    ) const {
         assert( results_.size() == calculators_.size() );
         for( size_t i = 0; i < results_.size(); ++i ) {
             // We do an ugly dispatch here to treat the special case of the FstPoolCalculatorUnbiased
@@ -271,10 +278,26 @@ public:
             auto const* raw_calc = calculators_[i].get();
             auto const* unbiased_calc = dynamic_cast<FstPoolCalculatorUnbiased const*>( raw_calc );
             if( unbiased_calc ) {
-                results_[i] = unbiased_calc->get_result( window_length, filter_stats_ );
+                results_[i] = unbiased_calc->get_result( window, provided_loci, filter_stats_ );
             } else {
                 results_[i] = raw_calc->get_result();
             }
+        }
+        return results_;
+    }
+
+    /**
+     * @brief Get a list of all resulting FST values for all pairs of samples.
+     *
+     * This overload does not use window averaging, and always returns the sum.
+     */
+    std::vector<double> const& get_result() const
+    {
+        assert( results_.size() == calculators_.size() );
+        for( size_t i = 0; i < results_.size(); ++i ) {
+            // No dispatch here as in the above overload. Instead, we just use the result function
+            // that does not use window averaging directly.
+            results_[i] = calculators_[i]->get_result();
         }
         return results_;
     }
@@ -290,20 +313,15 @@ public:
      * This only works when all calculators are of type FstPoolCalculatorUnbiased, and throws an
      * exception otherwise. It is merely meant as a convenience function for that particular case.
      */
-    PiVectorTuple const& get_pi_vectors( size_t window_length ) const
-    {
-        // Only allocate when someone first calls this.
-        // Does not do anything afterwards.
-        auto const res_sz = calculators_.size();
-        assert( std::get<0>( results_pi_ ).size() == 0 || std::get<0>( results_pi_ ).size() == res_sz );
-        assert( std::get<1>( results_pi_ ).size() == 0 || std::get<1>( results_pi_ ).size() == res_sz );
-        assert( std::get<2>( results_pi_ ).size() == 0 || std::get<2>( results_pi_ ).size() == res_sz );
-        std::get<0>( results_pi_ ).resize( res_sz );
-        std::get<1>( results_pi_ ).resize( res_sz );
-        std::get<2>( results_pi_ ).resize( res_sz );
+    template<class D>
+    PiVectorTuple const& get_pi_vectors(
+        BaseWindow<D> const& window,
+        std::shared_ptr<GenomeLocusSet> provided_loci
+    ) const {
+        allocate_pi_result_vectors_();
 
         // Get the pi values from all calculators, assuming that they are of the correct type.
-        for( size_t i = 0; i < res_sz; ++i ) {
+        for( size_t i = 0; i < calculators_.size(); ++i ) {
             auto const& raw_calc = calculators_[i];
             auto const* unbiased_calc = dynamic_cast<FstPoolCalculatorUnbiased const*>( raw_calc.get() );
             if( ! unbiased_calc ) {
@@ -316,7 +334,35 @@ public:
             // We compute the window-averaged values here.
             // Unfortunately, we need to copy this value-by-value, as we want to return
             // three independent vectors for user convenienec on the caller's end.
-            auto const pis = unbiased_calc->get_pi_values( window_length, filter_stats_ );
+            auto const pis = unbiased_calc->get_pi_values( window, provided_loci, filter_stats_ );
+            std::get<0>(results_pi_)[i] = pis.pi_within;
+            std::get<1>(results_pi_)[i] = pis.pi_between;
+            std::get<2>(results_pi_)[i] = pis.pi_total;
+        }
+
+        return results_pi_;
+    }
+
+    /**
+     * @brief Get lists of all the three intermediate pi values (within, between, total) that
+     * are part of our unbiased estimators.
+     *
+     * This overload ignores the window average policy, and just returns the sum.
+     */
+    PiVectorTuple const& get_pi_vectors() const
+    {
+        // Same as above, but using a different get_pi_vectors() overload.
+        allocate_pi_result_vectors_();
+        for( size_t i = 0; i < calculators_.size(); ++i ) {
+            auto const& raw_calc = calculators_[i];
+            auto const* unbiased_calc = dynamic_cast<FstPoolCalculatorUnbiased const*>( raw_calc.get() );
+            if( ! unbiased_calc ) {
+                throw std::domain_error(
+                    "Can only call FstPoolProcessor::get_pi_vectors() "
+                    "for calculators of type FstPoolCalculatorUnbiased."
+                );
+            }
+            auto const pis = unbiased_calc->get_pi_values();
             std::get<0>(results_pi_)[i] = pis.pi_within;
             std::get<1>(results_pi_)[i] = pis.pi_between;
             std::get<2>(results_pi_)[i] = pis.pi_total;
@@ -345,6 +391,25 @@ public:
     std::vector<std::unique_ptr<BaseFstPoolCalculator>> const& calculators() const
     {
         return calculators_;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Internal Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    void allocate_pi_result_vectors_() const
+    {
+        // Only allocate when someone first calls this.
+        // Does not do anything afterwards.
+        auto const res_sz = calculators_.size();
+        assert( std::get<0>( results_pi_ ).size() == 0 || std::get<0>( results_pi_ ).size() == res_sz );
+        assert( std::get<1>( results_pi_ ).size() == 0 || std::get<1>( results_pi_ ).size() == res_sz );
+        assert( std::get<2>( results_pi_ ).size() == 0 || std::get<2>( results_pi_ ).size() == res_sz );
+        std::get<0>( results_pi_ ).resize( res_sz );
+        std::get<1>( results_pi_ ).resize( res_sz );
+        std::get<2>( results_pi_ ).resize( res_sz );
     }
 
     // -------------------------------------------------------------------------

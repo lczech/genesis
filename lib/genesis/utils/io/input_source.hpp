@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -40,6 +40,7 @@
 
 #include "genesis/utils/core/std.hpp"
 
+#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
@@ -183,11 +184,26 @@ inline std::vector<std::shared_ptr<BaseInputSource>> from_strings(
  *
  * @see from_file(), from_files(), from_string(), and from_strings() for similar
  * helper functions for other types of input sources.
+ * @see
  */
 inline std::shared_ptr<BaseInputSource> from_stream(
     std::istream& input_stream
 ) {
     return std::make_shared< StreamInputSource >( input_stream );
+}
+
+/**
+ * @brief Obtain an input source for reading from standard input (i.e., stdin or cin).
+ *
+ * The input source returned from this function can be used in the reader classes, e.g.,
+ * placement::JplaceReader or sequence::FastaReader.
+ *
+ * @see from_file(), from_files(), from_string(), and from_strings() for similar
+ * helper functions for other types of input sources, and see from_stream() for the underlying
+ * stream input helper function.
+ */
+inline std::shared_ptr<BaseInputSource> from_stdin() {
+    return std::make_shared< StreamInputSource >( std::cin );
 }
 
 } // namespace utils

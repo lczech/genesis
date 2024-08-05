@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -41,6 +41,7 @@
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/std.hpp"
 
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -121,6 +122,20 @@ inline std::shared_ptr<BaseOutputTarget> to_file(
 }
 
 /**
+ * @brief Obtain an output target for writing to a gzip-compressed file.
+ *
+ * The output target returned from this function can be used in the writer classes, e.g.,
+ * placement::JplaceWriter or sequence::FastaWriter.
+ *
+ * @see to_file(), this is a wrapper that automatically sets GzipCompressionLevel::kDefaultCompression
+ */
+inline std::shared_ptr<BaseOutputTarget> to_gzip_file(
+    std::string const& file_name
+) {
+    return to_file( file_name, GzipCompressionLevel::kDefaultCompression );
+}
+
+/**
  * @brief Obtain an output target for writing gzip block compressed data to a file.
  *
  * This output target uses multithreaded gzip compression by block-compressing chunks of data.
@@ -163,6 +178,18 @@ inline std::shared_ptr<BaseOutputTarget> to_gzip_block_file(
 }
 
 /**
+ * @brief Obtain an output target for writing to a string.
+ *
+ * The output target returned from this function can be used in the writer classes, e.g.,
+ * placement::JplaceWriter or sequence::FastaWriter.
+ */
+inline std::shared_ptr<BaseOutputTarget> to_string(
+    std::string& target_string
+) {
+    return std::make_shared< StringOutputTarget >( target_string );
+}
+
+/**
  * @brief Obtain an output target for writing to a stream.
  *
  * The output target returned from this function can be used in the writer classes, e.g.,
@@ -187,15 +214,23 @@ inline std::shared_ptr<BaseOutputTarget> to_stream(
 }
 
 /**
- * @brief Obtain an output target for writing to a string.
+ * @brief Obtain an output target for writing to standard output (i.e., stdout or cout).
  *
  * The output target returned from this function can be used in the writer classes, e.g.,
  * placement::JplaceWriter or sequence::FastaWriter.
  */
-inline std::shared_ptr<BaseOutputTarget> to_string(
-    std::string& target_string
-) {
-    return std::make_shared< StringOutputTarget >( target_string );
+inline std::shared_ptr<BaseOutputTarget> to_stdout() {
+    return std::make_shared< StreamOutputTarget >( std::cout );
+}
+
+/**
+ * @brief Obtain an output target for writing to standard error (i.e., stderr or cerr).
+ *
+ * The output target returned from this function can be used in the writer classes, e.g.,
+ * placement::JplaceWriter or sequence::FastaWriter.
+ */
+inline std::shared_ptr<BaseOutputTarget> to_stderr() {
+    return std::make_shared< StreamOutputTarget >( std::cerr );
 }
 
 } // namespace utils

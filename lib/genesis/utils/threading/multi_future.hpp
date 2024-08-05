@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_CORE_MULTI_FUTURE_H_
-#define GENESIS_UTILS_CORE_MULTI_FUTURE_H_
+#ifndef GENESIS_UTILS_THREADING_MULTI_FUTURE_H_
+#define GENESIS_UTILS_THREADING_MULTI_FUTURE_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -60,7 +60,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/thread_pool.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
 
 #include <cassert>
 #include <future>

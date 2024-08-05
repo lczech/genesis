@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -30,10 +30,11 @@
 
 #include "src/common.hpp"
 
-#include "genesis/sequence/formats/fasta_input_iterator.hpp"
-#include "genesis/sequence/formats/fasta_output_iterator.hpp"
 #include "genesis/sequence/formats/fasta_reader.hpp"
 #include "genesis/sequence/formats/fasta_writer.hpp"
+#include "genesis/sequence/formats/fastx_input_stream.hpp"
+#include "genesis/sequence/formats/fastx_input_view_stream.hpp"
+#include "genesis/sequence/formats/fastx_output_stream.hpp"
 #include "genesis/sequence/functions/codes.hpp"
 #include "genesis/sequence/functions/functions.hpp"
 #include "genesis/sequence/sequence_set.hpp"
@@ -68,68 +69,67 @@ TEST( Sequence, FastaReaderValidating )
     EXPECT_EQ( "TCGAAACCTGC------CTA", sset[0].sites().substr( 0, 20 ) );
 }
 
-TEST( FastaInputIterator, ReadingLoop )
+TEST( FastaInputStream, ReadingLoop )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
 
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-    auto it = FastaInputIterator( utils::from_file( infile ));
+    auto it = FastaInputStream( utils::from_file( infile ));
 
     size_t len = 0;
     size_t cnt = 0;
-    while( it ) {
-        // Check first sequence.
+    for( auto const& seq : it ) {
+        // Check first and last sequence, as examples.
         if( cnt == 0 ) {
-            EXPECT_EQ( "Di106BGTue", it->label() );
+            EXPECT_EQ( "Di106BGTue", seq.label() );
         }
         if( cnt == 9 ) {
-            EXPECT_EQ( "GTCGTTCT", it->sites().substr(387, 8 ));
+            EXPECT_EQ( "GTCGTTCT", seq.sites().substr(387, 8 ));
         }
 
-        len = std::max( len, it->length() );
+        len = std::max( len, seq.length() );
         ++cnt;
-        ++it;
     }
 
-    EXPECT_FALSE( it );
+    // EXPECT_FALSE( it );
     EXPECT_EQ( 460, len );
     EXPECT_EQ( 10, cnt );
 }
 
-TEST( FastaInputIterator, Advance )
+// TEST( FastaInputStream, Advance )
+// {
+//     // Skip test if no data availabe.
+//     NEEDS_TEST_DATA;
+//
+//     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
+//     auto stream = FastaInputStream( utils::from_file( infile ));
+//     auto it = stream.begin();
+//
+//     std::advance( it, 3 );
+//
+//     size_t cnt = 0;
+//     for( ; it != stream.end(); ++it ) {
+//         std::advance( it, 2 );
+//         ++cnt;
+//     }
+//
+//     // EXPECT_FALSE( it );
+//     EXPECT_EQ( 3, cnt );
+//
+//     // Fails assertion, as expected for an input iterator.
+//     // The test is problematic because of the threaded reading routines. so we leave it out for now.
+//     // EXPECT_DEATH_IF_SUPPORTED( std::advance( it, -2 ), ".*" );
+// }
+
+TEST( FastaInputStream, RangeBased )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
-
-    std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-    auto it = FastaInputIterator( utils::from_file( infile ));
-
-    std::advance( it, 3 );
-
-    size_t cnt = 0;
-    while( it ) {
-        std::advance( it, 2 );
-        ++cnt;
-        ++it;
-    }
-
-    EXPECT_FALSE( it );
-    EXPECT_EQ( 3, cnt );
-
-    // Fails assertion, as expected for an input iterator.
-    // The test is problematic because of the threaded reading routines. so we leave it out for now.
-    // EXPECT_DEATH_IF_SUPPORTED( std::advance( it, -2 ), ".*" );
-}
-
-TEST( FastaInputIterator, RangeBased )
-{
-    // Skip test if no data availabe.
-    NEEDS_TEST_DATA;
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
 
     size_t cnt = 0;
-    for( auto const& s : FastaInputIterator( utils::from_file( infile ))) {
+    for( auto const& s : FastaInputStream( utils::from_file( infile ))) {
         (void) s;
         // std::cout << s.length() << "\n";
         ++cnt;
@@ -137,13 +137,13 @@ TEST( FastaInputIterator, RangeBased )
     EXPECT_EQ( 10, cnt );
 }
 
-// TEST( FastaInputIterator, ReadingInput )
+// TEST( FastaInputStream, ReadingInput )
 // {
 //     // Skip test if no data availabe.
 //     NEEDS_TEST_DATA;
 //
 //     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-//     auto it = FastaInputIterator();
+//     auto it = FastaInputStream();
 //     it.from_file( infile );
 //     Sequence seq;
 //
@@ -215,6 +215,29 @@ TEST( Sequence, FastaGzip )
     EXPECT_EQ( "TCGAAACCTGC------CTA", sset[0].sites().substr( 0, 20 ) );
 }
 
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+TEST( Sequence, FastaInputViewStream )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string infile = environment->data_dir + "sequence/dna_10_single.fasta";
+
+    size_t cnt = 0;
+    size_t sum_labels = 0;
+    auto it = FastxInputViewStream( utils::from_file( infile ));
+    for( auto const& seq : it ) {
+        EXPECT_TRUE( seq.label().size() >= 10 || seq.label().size() <= 15 );
+        EXPECT_EQ( 460, seq.sites().size() );
+        ++cnt;
+        sum_labels += seq.label().size();
+    }
+    EXPECT_EQ( 10, cnt );
+    EXPECT_EQ( 112, sum_labels );
+}
+
+#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
 TEST( Sequence, FastaWriter )
 {
     // Skip test if no data availabe.
@@ -238,7 +261,7 @@ TEST( Sequence, FastaWriter )
     EXPECT_EQ( read_again, target );
 }
 
-TEST( Sequence, FastaOutputIterator )
+TEST( Sequence, FastaOutputStream )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -250,7 +273,7 @@ TEST( Sequence, FastaOutputIterator )
     // Write to string. Need scope to actually do the writing.
     std::string target;
     {
-        auto out_it = FastaOutputIterator( utils::to_string( target ));
+        auto out_it = FastaOutputStream( utils::to_string( target ));
         out_it.writer().line_length( 50 );
         for( auto const& seq : sset ) {
             out_it << seq;

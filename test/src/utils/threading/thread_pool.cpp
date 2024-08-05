@@ -38,8 +38,8 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/core/options.hpp"
-#include "genesis/utils/core/thread_pool.hpp"
-#include "genesis/utils/core/thread_functions.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/random.hpp"
 
@@ -62,7 +62,7 @@ void thread_pool_work_(size_t i)
 
     // LOG_DBG << "sub B " << i;
     auto pool = Options::get().global_thread_pool();
-    auto res = pool->enqueue([=](){
+    auto res = pool->enqueue_and_retrieve([=](){
         // LOG_DBG << "beg B " << i;
         thread_pool_sleep_();
         // LOG_DBG << "end B " << i;
@@ -81,7 +81,7 @@ TEST( ThreadPool, Nested )
     for (size_t i = 0; i < 4; ++i) {
         // LOG_DBG << "sub A " << i;
         auto pool = Options::get().global_thread_pool();
-        tasks.emplace_back( pool->enqueue( [=](){
+        tasks.emplace_back( pool->enqueue_and_retrieve( [=](){
             // LOG_DBG << "beg A " << i;
             thread_pool_sleep_();
             thread_pool_work_(i);
@@ -552,7 +552,7 @@ void thread_pool_nested_fuzzy_work_()
 
     // Run the function that recursively splits the tasks into blocks.
     thread_pool_compute_nested_fuzzy_work_( pool, numbers, 0, num_tasks, 0, counter );
-    ASSERT_EQ( 0, pool->currently_enqueued_tasks() );
+    ASSERT_EQ( 0, pool->pending_tasks_count() );
 
     // Aggregate the result and check that we got the correct sum.
     auto const total = std::accumulate( numbers.begin(), numbers.end(), 0 );

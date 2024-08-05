@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -152,6 +152,20 @@ private:
      * source, potentially removing a trailing ".gz" (for convenience when reading files).
      */
     std::string source_string_() const override;
+
+    /**
+     * @brief Reading gzip input is not trivial, i.e., it should not be done in a simply async thread.
+     *
+     * The attribute is used to tell the reading process whether reading from this source can be
+     * done in a simply async thread. For gzipped input, that is not the case, as we need to
+     * deflate the input, which needs computation, is not trivial, and should hence be part of the
+     * global thread pool, instead of in an extra async thread that might otherwise oversubscribe
+     * the system.
+     */
+    bool is_trivial_() const override
+    {
+        return false;
+    }
 
     /**
     * @brief Get the zlib internal int form of the format enum.

@@ -30,7 +30,7 @@
 
 #include "genesis/population/function/genome_locus_set.hpp"
 
-#include "genesis/sequence/formats/fasta_input_iterator.hpp"
+#include "genesis/sequence/formats/fastx_input_stream.hpp"
 #include "genesis/sequence/formats/fasta_reader.hpp"
 #include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/math/bitvector.hpp"
@@ -81,7 +81,7 @@ GenomeLocusSet read_mask_fasta(
     }
 
     // Read using a fasta input iterator
-    for( auto const& seq : sequence::FastaInputIterator( source )) {
+    for( auto const& seq : sequence::FastaInputStream( source )) {
         if( result.has_chromosome( seq.label() )) {
             throw std::runtime_error(
                 "Duplicate sequence name \"" + seq.label() + "\" in " + source->source_name()

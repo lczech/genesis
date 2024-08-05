@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -642,6 +642,45 @@ std::string to_string_nice( T const& v )
 }
 
 /**
+ * @brief Produce a human readable formatting of a size in bytes, using the appropriate suffix.
+ *
+ * For instance, this function produces `123MB`.
+ */
+std::string to_string_byte_format( size_t value );
+
+/**
+ * @brief Return the bit representation of an unsigned int.
+ *
+ * For example, to_bit_string(5) yields "0...0101".
+ * Optionally, the chars to use for @p zero and @p one can be set, as well as a flag whether
+ * to put spaces in between individual bytes of the output.
+ */
+template<typename T>
+inline std::string to_bit_string(
+    T const x, char const zero = '0', char const one = '1', bool const byte_space = true
+) {
+    static_assert(
+        std::is_unsigned<T>::value,
+        "Can only use to_bit_string() with unsigned types."
+    );
+
+    std::string binary = "";
+    T mask = 1;
+    for( size_t i = 0; i < sizeof(T) * 8; ++i ) {
+        if( byte_space && i > 0 && i % 8 == 0 ) {
+            binary = ' ' + binary;
+        }
+        if( mask & x ) {
+            binary = one + binary;
+        } else {
+            binary = zero + binary;
+        }
+        mask <<= 1;
+    }
+    return binary;
+}
+
+/**
  * @brief Print elements of the given @p container to the output @p stream, joining them
  * with the @p delimiter.
  *
@@ -703,38 +742,6 @@ std::string join( C const& container, std::string const& delimiter = ", " )
     std::ostringstream s;
     join( s, container, delimiter );
     return s.str();
-}
-
-/**
- * @brief Return the bit representation of an unsigned int.
- *
- * For example, to_bit_string(5) yields "0...0101".
- * Optionally, the chars to use for @p zero and @p one can be set, as well as a flag whether
- * to put spaces in between individual bytes of the output.
- */
-template<typename T>
-inline std::string to_bit_string(
-    T const x, char const zero = '0', char const one = '1', bool const byte_space = true
-) {
-    static_assert(
-        std::is_unsigned<T>::value,
-        "Can only use to_bit_string() with unsigned types."
-    );
-
-    std::string binary = "";
-    T mask = 1;
-    for( size_t i = 0; i < sizeof(T) * 8; ++i ) {
-        if( byte_space && i > 0 && i % 8 == 0 ) {
-            binary = ' ' + binary;
-        }
-        if( mask & x ) {
-            binary = one + binary;
-        } else {
-            binary = zero + binary;
-        }
-        mask <<= 1;
-    }
-    return binary;
 }
 
 } // namespace utils

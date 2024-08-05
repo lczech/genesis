@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -93,6 +93,9 @@ private:
             // We use our own function to open the stream, to get consistent error checking,
             // as well as the automatic file overwriting check.
             file_output_stream( file_name_, stream_, mode_ );
+
+            // We also set a custom buffer, to increase writing speed.
+            stream_.rdbuf()->pubsetbuf( stream_buffer_, buffer_size_ );
         }
         return stream_;
     }
@@ -117,10 +120,15 @@ private:
     //     Member Variables
     // -------------------------------------------------------------
 
+    // User provided target
     std::string file_name_;
-    std::ofstream stream_;
-
     std::ios_base::openmode mode_ = std::ios_base::out;
+
+    // Output stream and buffer of 64KB
+    std::ofstream stream_;
+    static const size_t buffer_size_ = 1 << 16;
+    char stream_buffer_[buffer_size_];
+
 };
 
 } // namespace utils

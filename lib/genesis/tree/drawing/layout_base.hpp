@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -146,10 +146,10 @@ public:
     // -------------------------------------------------------------
 
     void set_edge_shapes( utils::SvgGroup const& shape );
-    void set_edge_shapes( std::vector< utils::SvgGroup> const& shapes );
+    void set_edge_shapes( std::vector<utils::SvgGroup> const& shapes );
 
     void set_node_shapes( utils::SvgGroup const& shape );
-    void set_node_shapes( std::vector< utils::SvgGroup> const& shapes );
+    void set_node_shapes( std::vector<utils::SvgGroup> const& shapes );
 
     // -------------------------------------------------------------
     //     Drawing

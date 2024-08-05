@@ -310,7 +310,7 @@ void test_generic_input_stream_( size_t num_elements, size_t block_size )
     // any more - the iterator should have waited for the end of everything before finishing.
     // We are only using the global thread pool sequentially in the tests here, so there
     // cannot be anything left from other places once we are done with the iteration.
-    EXPECT_EQ( 0, Options::get().global_thread_pool()->currently_enqueued_tasks() );
+    EXPECT_EQ( 0, Options::get().global_thread_pool()->pending_tasks_count() );
 
     // We called the get element function in the lambda exactly one per data item,
     // and one last time at the end to indicate that ther is no more data.
@@ -332,7 +332,7 @@ TEST( Containers, GenericInputStream )
     LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
 
     // Loop a few times, to have a higher chance of finding race conditions etc in the threading.
-    for( size_t i = 0; i < 250; ++i ) {
+    for( size_t i = 0; i < 500; ++i ) {
 
         // No elements
         test_generic_input_stream_( 0, 0 );

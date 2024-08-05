@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -35,6 +35,12 @@
 
 #include <iosfwd>
 #include <string>
+
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+    #include <string_view>
+
+#endif
 
 namespace genesis {
 namespace sequence {
@@ -97,7 +103,27 @@ public:
      * See the output target convenience functions utils::to_file(), utils::to_stream(), and
      * utils::to_string() for examples of how to obtain a suitable output target.
      */
-    void write( Sequence const& sequence, std::shared_ptr<utils::BaseOutputTarget> target ) const;
+    void write(
+        Sequence const& sequence,
+        std::shared_ptr<utils::BaseOutputTarget> target
+    ) const;
+
+    /**
+     * @brief Write a single Sequence to an output target, using the Fastq format.
+     *
+     * This overload additionally takes the quality string as input, for cases where this is not
+     * stored in the sequence itself. The provided quality string has to be either of the same length
+     * as the sequece itself, or empty, in which case this function behaves according to
+     * fill_missing_quality(). If the sequence itself already has a phred score, an exception is thrown.
+     *
+     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
+     * utils::to_string() for examples of how to obtain a suitable output target.
+     */
+    void write(
+        Sequence const& sequence,
+        std::string const& quality,
+        std::shared_ptr<utils::BaseOutputTarget> target
+    ) const;
 
     /**
      * @brief Write a SequenceSet to an output target, using the Fastq format.
@@ -105,12 +131,28 @@ public:
      * See the output target convenience functions utils::to_file(), utils::to_stream(), and
      * utils::to_string() for examples of how to obtain a suitable output target.
      */
-    void write( SequenceSet const& sequence_set, std::shared_ptr<utils::BaseOutputTarget> target ) const;
+    void write(
+        SequenceSet const& sequence_set,
+        std::shared_ptr<utils::BaseOutputTarget> target
+    ) const;
+
+    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 
     /**
-     * @brief Write a single Sequence to an output stream in Fastq format.
+     * @brief Write a sequence in form of std::string_view instances on the data.
+     *
+     * This can for instance come from FastqInputViewStream. Note that the @p quality string is
+     * just taken as-is, that is, we assume that it is already in the desired ASCII encoding.
+     * If left empty, and fill_missing_quality() is `true`, it is instead filled with a dummy code.
      */
-    void write_sequence( Sequence const& sequence, std::ostream& os ) const;
+    void write(
+        std::string_view const& label,
+        std::string_view const& sites,
+        std::string_view const& quality,
+        std::shared_ptr<utils::BaseOutputTarget> target
+    ) const;
+
+    #endif
 
     // ---------------------------------------------------------------------
     //     Properties
@@ -128,14 +170,21 @@ public:
      *
      * The functions returns the FastqWriter object to allow fluent interfaces.
      */
-    FastqWriter& line_length( size_t value );
+    FastqWriter& line_length( size_t value )
+    {
+        line_length_ = value;
+        return *this;
+    }
 
     /**
      * @brief Get the current line length.
      *
      * See the setter line_length( size_t ) for details.
      */
-    size_t line_length() const;
+    size_t line_length() const
+    {
+        return line_length_;
+    }
 
     /**
      * @brief Set the value to fill the quality scores of sequences that do not have a phread
@@ -151,12 +200,19 @@ public:
      * Lastly, in order to restore the original behaviour (that is, throw an exception if a sequence
      * is missing phred scores), set this function to the magic value `255`.
      */
-    FastqWriter& fill_missing_quality( unsigned char value );
+    FastqWriter& fill_missing_quality( unsigned char value )
+    {
+        fill_missing_quality_ = value;
+        return *this;
+    }
 
     /**
      * @brief Get the current value to fill missing phred quality scores.
      */
-    unsigned char fill_missing_quality() const;
+    unsigned char fill_missing_quality() const
+    {
+        return fill_missing_quality_;
+    }
 
     /**
      * @brief Set whether to repeat the sequence identifier (label) on the third line of each
@@ -167,13 +223,37 @@ public:
      * write the label again, to save a bit of storage space. Use this function to change that
      * behaviour.
      */
-    FastqWriter& repeat_label( bool value );
+    FastqWriter& repeat_label( bool value )
+    {
+        repeat_label_ = value;
+        return *this;
+    }
 
     /**
      * @brief Get whether the setting to repeat the sequence identifier (label) on the third line
      * is set.
      */
-    bool repeat_label() const;
+    bool repeat_label() const
+    {
+        return repeat_label_;
+    }
+
+    // ---------------------------------------------------------------------
+    //     Internal Members
+    // ---------------------------------------------------------------------
+
+private:
+
+    std::string make_filled_quality_string_(
+        size_t length
+    ) const;
+
+    void write_sequence_(
+        std::string const& label,
+        std::string const& sites,
+        std::string const& quality,
+        std::ostream& os
+    ) const;
 
     // ---------------------------------------------------------------------
     //     Members

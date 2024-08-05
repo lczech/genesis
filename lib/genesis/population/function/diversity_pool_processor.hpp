@@ -31,14 +31,16 @@
  * @ingroup population
  */
 
+#include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/function/diversity_pool_calculator.hpp"
 #include "genesis/population/function/window_average.hpp"
-#include "genesis/population/filter/variant_filter.hpp"
+#include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/variant.hpp"
+#include "genesis/population/window/base_window.hpp"
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/std.hpp"
-#include "genesis/utils/core/thread_functions.hpp"
-#include "genesis/utils/core/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -240,18 +242,38 @@ public:
     /**
      * @brief Get a list of all resulting values for all samples.
      *
-     * This _always_ takes the @p window_length as input, even if the WindowAveragePolicy does
-     * not require it. This is meant to make sure that we at least keep track of the right things
-     * when doing any computations, and cannot forget about this.
+     * This _always_ takes the @p window and @p provided_loci as input, even if the
+     * WindowAveragePolicy does not require it. This is meant to make sure that we at least keep
+     * track of the right things when doing any computations, and cannot forget about this.
+     * For cases where the result is needed without averaging over windows (that is, just the sum
+     * of all per site values), there is an overload of this function.
      */
-    std::vector<DiversityPoolCalculator::Result> const& get_result( size_t window_length ) const
-    {
+    template<class D>
+    std::vector<DiversityPoolCalculator::Result> const& get_result(
+        BaseWindow<D> const& window,
+        std::shared_ptr<GenomeLocusSet> provided_loci
+    ) const {
         assert( results_.size() == calculators_.size() );
         for( size_t i = 0; i < results_.size(); ++i ) {
             auto const window_avg_denom = window_average_denominator(
-                avg_policy_, window_length, filter_stats_, calculators_[i].get_filter_stats()
+                avg_policy_, window, provided_loci, filter_stats_, calculators_[i].get_filter_stats()
             );
             results_[i] = calculators_[i].get_result( window_avg_denom );
+        }
+        return results_;
+    }
+
+    /**
+     * @brief Get a list of all resulting values for all samples.
+     *
+     * This overload does not consider the window averaging, and simply returns the sum of all
+     * per site values.
+     */
+    std::vector<DiversityPoolCalculator::Result> const& get_result() const
+    {
+        assert( results_.size() == calculators_.size() );
+        for( size_t i = 0; i < results_.size(); ++i ) {
+            results_[i] = calculators_[i].get_result( 1 );
         }
         return results_;
     }

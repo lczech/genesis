@@ -955,9 +955,9 @@ void FrequencyTableInputStream::Iterator::increment_()
         );
 
         // Both ref genome and ref column are given and have a usable value. Try to match them.
-        if( header_info_.has_ref && current_variant_->reference_base != 'N' ) {
+        if( header_info_.has_ref && utils::to_upper( current_variant_->reference_base ) != 'N' ) {
             // Get a shorthand, and check the bases that the processor allows.
-            auto const ref_base = current_variant_->reference_base;
+            auto const ref_base = utils::to_upper( current_variant_->reference_base );
             assert( is_valid_base( ref_base ));
 
             // Both are given and the base from the file is not 'N', so let's see if they agree.
@@ -982,7 +982,7 @@ void FrequencyTableInputStream::Iterator::increment_()
             // or it's 'N', so that we might want to replace it by the ref genome. Both cases are
             // treated the same here: Check that we can use the genome base, or use N if not.
             if( is_valid_base( ref_gen_base )) {
-                current_variant_->reference_base = ref_gen_base;
+                current_variant_->reference_base = utils::to_upper( ref_gen_base );
             } else {
                 current_variant_->reference_base = 'N';
             }
@@ -1189,8 +1189,8 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
 
     // Now store the counts in the sample, using the ref/alt base info if available,
     // or fixed bases if ref and/or alt are not available.
-    char ref_base = variant.reference_base;
-    char alt_base = variant.alternative_base;
+    char ref_base = utils::to_upper( variant.reference_base );
+    char alt_base = utils::to_upper( variant.alternative_base );
     assert( is_valid_base_or_n( ref_base ));
     assert( is_valid_base_or_n( alt_base ));
     if( utils::char_match_ci( ref_base, 'N' )) {

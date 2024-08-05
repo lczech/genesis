@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -36,6 +36,7 @@
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/text/char.hpp"
 
+#include <array>
 #include <cassert>
 #include <cstdint>
 #include <functional>
@@ -43,6 +44,12 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+    #include <string_view>
+
+#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 
 namespace genesis {
 namespace utils {
@@ -229,6 +236,31 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Char Operations
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Lexing function that reads a single char from the stream and checks whether it equals
+     * the provided one.
+     *
+     * If not, the function throws `std::runtime_error`. The stream is advanced by one position and
+     * the char is returned. For a similar function that checks the value of the current char but
+     * does not advance in the stream, see affirm_char_or_throw().
+     */
+    char read_char_or_throw( char const criterion );
+
+
+    /**
+     * @brief Lexing function that reads a single char from the stream and checks whether it
+     * fulfills the provided criterion.
+     *
+     * If not, the function throws `std::runtime_error`. The stream is advanced by one position and
+     * the char is returned. For a similar function that checks the value of the current char but
+     * does not advance in the stream, see affirm_char_or_throw().
+     */
+    char read_char_or_throw( std::function<bool (char)> criterion );
+
+    // -------------------------------------------------------------------------
     //     Line Operations
     // -------------------------------------------------------------------------
 
@@ -256,205 +288,122 @@ public:
         return result;
     }
 
-    // -------------------------------------------------------------------------
-    //     Char Operations
-    // -------------------------------------------------------------------------
+    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 
     /**
-     * @brief Lexing function that reads a single char from the stream and checks whether it equals
-     * the provided one.
+     * @brief Read the current line and move to the beginning of the next, returning a
+     * `std::string_view` into the line that was just read.
      *
-     * If not, the function throws `std::runtime_error`. The stream is advanced by one position and
-     * the char is returned. For a similar function that checks the value of the current char but
-     * does not advance in the stream, see affirm_char_or_throw().
+     * This is a faster alternative to get_line() that does not require memory allocations for
+     * the returned string. As such however, it comes with limitations:
+     *
+     *   * The returned string view is only valid while the current internal buffer is not
+     *     changed. As this can happen with any operation that advances the stream, it should
+     *     be assumed that the returned string view is only valid until any such operation is
+     *     called.
+     *   * As the string view points into the internal buffer, we are limited by the buffer
+     *     size, currenlty 4MB. That means, no lines longer than that can be read, otherwise
+     *     an exception is thrown. This should be fine for most typical file formats for which
+     *     this function is intended.
+     *
+     * The returned string view starts at the current position, and ends so that the last
+     * character of the view is the last character of the line, exclusing the new line or
+     * carriage return character there (or the end of the file).
+     * The stream is left at the first char of the next line.
      */
-    inline char read_char_or_throw( char const criterion )
-    {
-        // Check char and move to next.
-        if( data_pos_ >= data_end_ || current_ != criterion ) GENESIS_UNLIKELY {
-            throw std::runtime_error(
-                std::string("In ") + source_name() + ": " +
-                "Expecting " + char_to_hex( criterion ) + " at " + at() + ", " +
-                "but received " + char_to_hex( current_ ) + " instead."
-            );
-        }
-        assert( good() && current_ == criterion );
-        operator++();
-        return criterion;
-    }
+    std::string_view get_line_view();
 
     /**
-     * @brief Lexing function that reads a single char from the stream and checks whether it
-     * fulfills the provided criterion.
+     * @brief Read `N` many lines, and return an array of `std::string_view` into them.
      *
-     * If not, the function throws `std::runtime_error`. The stream is advanced by one position and
-     * the char is returned. For a similar function that checks the value of the current char but
-     * does not advance in the stream, see affirm_char_or_throw().
+     * This is a very fast alternative to get_line(), and a multi-line variant of get_line_view().
+     * This is needed because otherwise, we could not obtain views into multiple consequitive lines
+     * at the same time - the get_line_view() might update the internal buffer when called again,
+     * hence invalidating all previous views.
+     *
+     * Similar to get_line_view(), this function hence has some limiations. In particular, the
+     * combined length of all lines (including their new line characters) cannot exceed the buffer
+     * size of 4MB, otherwise an exception is thrown. This function is hence meant for data and
+     * file formats that we expect to consist of not too long lines. Also, if any other function
+     * is called that advances the stream, all views returned here are considered invalidated.
+     *
+     * Each returned string view points to the beginning of the line and ends so that the last
+     * character of the view is the last character of the line, exclusing the new line or
+     * carriage return character there (or the end of the file).
+     * The stream is left at the first char of the next line.
+     *
+     * The function returns a fixed sized array, for speed, and to guarantee that the caller knows
+     * how many lines are needed for the particular format (e.g., fastq format). Allowing for a
+     * flexible number of lines here might encourage to read too much, which will fail.
      */
-    inline char read_char_or_throw( std::function<bool (char)> criterion )
+    template<size_t N>
+    std::array<std::string_view, N> get_line_views()
     {
-        // Check char and move to next.
-        if( data_pos_ >= data_end_ || !criterion( current_ )) GENESIS_UNLIKELY {
-            throw std::runtime_error(
-                std::string("In ") + source_name() + ": " +
-                "Unexpected char " + char_to_hex( current_ ) + " at " + at() + "."
-            );
-        }
-        assert( good() );
-        auto const chr = current_;
-        operator++();
-        return chr;
+        // We relay the work to a non-template inner function, to keep this header clean.
+        std::array<std::string_view, N> result;
+        fill_line_views_( result.data(), result.size() );
+        return result;
     }
-
-    // -------------------------------------------------------------------------
-    //     Parsers
-    // -------------------------------------------------------------------------
 
 private:
 
-    // Only use intrinsics version for the compilers that support them!
-    #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
+    // Internal helper that does the actual work of the get_line_views() function.
+    void fill_line_views_( std::string_view* str_views, size_t n_lines );
 
-        /**
-         * @brief Super fast loop-less parsing of unsigned ints from < 8 chars,
-         * using GCC/Clang compiler intrinsic builtins.
-         */
-        size_t parse_unsigned_integer_gcc_intrinsic_();
+    #endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 
-    #endif
+private:
 
-    // This implementation needs __builtin_mul_overflow, which is buggy on Clang 5-7.
-    // We currently do not use it anyway, so let's deactivate it completely for now.
-    // #if ( defined(__GNUC__) || defined(__GNUG__) ) && ( !defined(__clang__) || ( __clang_major__ >= 8 ))
-    #if 0
-
-        /**
-         * @brief Re-implementation of the C++17 function std::from_chars().
-         * Currently not in use and not well tested!
-         */
-        size_t parse_unsigned_integer_from_chars_();
-
-    #endif
-
-    // Only use C++17 code if we are compiled with that version.
-    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-
-        /**
-         * @brief Another speedup technique using std::from_chars(),
-         * which however only works when compiled with C++17 or later.
-         */
-        size_t parse_unsigned_integer_std_from_chars_();
-
-    #endif
-
-    /**
-     * @brief Naive parsing that simply loops over chars.
-     */
-    size_t parse_unsigned_integer_naive_();
-
-    /**
-     * @brief Internal helper functiont that decides which of the above to use.
-     */
-    size_t parse_unsigned_integer_size_t_();
+    // Internal functions for the line operations.
+    size_t update_and_move_to_line_or_buffer_end_();
+    void move_to_line_or_buffer_end_( size_t const stop_pos );
+    void approach_line_or_buffer_end_avx512_( size_t const stop_pos );
+    void approach_line_or_buffer_end_avx2_( size_t const stop_pos );
+    void approach_line_or_buffer_end_unrolled_( size_t const stop_pos );
+    void increment_to_next_line_();
 
 public:
 
+    // -------------------------------------------------------------------------
+    //     Buffer Access
+    // -------------------------------------------------------------------------
+
     /**
-     * @brief Read an unsigned integer from a stream and return it.
+     * @brief Direct access to the internal buffer.
      *
-     * The function expects a sequence of digits. The current char in the stream has to be a digit,
-     * otherwise the function throws `std::runtime_error`. It stops reading at the first non-digit.
-     * In case the value range is too small, the function throws `std::overflow_error`.
+     * This function returns a pointer to the internal buffer, as well as the length (past the end)
+     * that is currently buffered. This is meant for special file parsers that can optimize better
+     * when using this - but it is highly dangerous to use if you do not know what you are doing!
      *
-     * We also have a specialization of this function for size_t at the end of this header file
-     * that does not do the conversion check, as yet another little bit of speed of when not needed.
+     * The idea is as follows: With access to the buffer, parse data as needed, keeping track of
+     * how many chars have been processed. Then, use the jump_unchecked() function to update this
+     * stream to the new position of the stream (the char after the last one being processed by
+     * the parsing).
+     *
+     * Caveat: Never parse and jump across new line characters (or, for that matter, carriage return
+     * characters, which won't be automatically converted when using the buffer directly)! This
+     * would invalidate the line counting!
+     *
+     * Caveat: Never read after the end of the buffer, that is, never access the char at the
+     * returned last position `buffer + length` or after!
      */
-    template<class T>
-    T parse_unsigned_integer()
+    std::pair<char const*, size_t> buffer()
     {
-        // No need to assert unsignedness here. We will later check that casting to the desired
-        // type worked, and we test for the correct sign there as well, so that it workes for
-        // signed types.
-        // static_assert(
-        //     std::is_unsigned<T>::value,
-        //     "Need unsigned type for parse_unsigned_integer()"
-        // );
-
-        auto const x = parse_unsigned_integer_size_t_();
-
-        // We parsed as largest, and now try to cast to desired type,
-        // testing that back-conversion gives the same value and correct sign.
-        auto const r = static_cast<T>(x);
-        if( static_cast<size_t>(r) != x || r < 0 ) {
-            throw std::overflow_error(
-                "Numerical overflow in " + source_name() + " at " + at() + "."
-            );
-        }
-        return r;
+        assert( data_pos_ <= data_end_ );
+        return { &buffer_[ data_pos_ ], data_end_ - data_pos_ };
     }
 
     /**
-     * @brief Read a signed integer from a stream and return it.
+     * @brief Jump forward in the stream by a certain amount of chars.
      *
-     * The function expects a sequence of digits, possibly with a leading `+` or `-`.
-     * The first char after that has to be a digit, otherwise the function throws `std::runtime_error`.
-     * It stops reading at the first non-digit.
-     * In case the value range is too small, the function throws `std::overflow_error`,
-     * or `underflow_error`, respectively.
+     * This is meant to update the stream position after using buffer() for direct parsing.
+     * See the caveats there!
+     *
+     * In particular, we can never jump behind the current buffer end, and shall not jump across
+     * new lines. That is, this function is not meant as a way to jump to an arbitrary (later)
+     * position in a file!
      */
-    template<class T>
-    T parse_signed_integer()
-    {
-        static_assert(
-            std::is_signed<T>::value,
-            "Need signed type for parse_signed_integer()"
-        );
-
-        if( data_pos_ >= data_end_ ) {
-            throw std::runtime_error(
-                "Expecting number in " + source_name() + " at " + at() + "."
-            );
-        }
-
-        int sign = 1;
-        if( current_ == '-' || current_ == '+' ) {
-            if( current_ == '-' ) {
-                sign = -1;
-            }
-
-            // Here we know that we are within limits of the buffer, and not at a new line.
-            // Let's not use the expensive operator then.
-            // operator++();
-            assert( data_pos_ < data_end_ );
-            assert( current_ != '\n' );
-            ++column_;
-            ++data_pos_;
-            current_ = buffer_[ data_pos_ ];
-        }
-
-        // Parse as largest, and then try to cast to desired type,
-        // testing that back-conversion gives the same value and sign.
-        // The back-cast of `sign * r` is always valid, as the negative range of signed ints
-        // is smaller than the positive, so if it's negative, multiplying by -1 will always result
-        // in a valid value.
-        auto const x = parse_unsigned_integer_size_t_();
-        auto const r = sign * static_cast<T>(x);
-        if( static_cast<size_t>( sign * r ) != x || !( r == 0 || (sign < 0) == (r < 0) )) {
-            throw std::overflow_error(
-                "Numerical overflow in " + source_name() + " at " + at() + "."
-            );
-        }
-        return r;
-    }
-
-    /**
-     * @brief Alias for parse_signed_integer().
-     */
-    template<class T>
-    T parse_integer()
-    {
-        return parse_signed_integer<T>();
-    }
+    void jump_unchecked( size_t n );
 
     // -------------------------------------------------------------------------
     //     State
@@ -531,73 +480,6 @@ public:
         return source_name_;
     }
 
-    /**
-     * @brief Direct access to the internal buffer.
-     *
-     * This function returns a pointer to the internal buffer, as well as the length (past the end)
-     * that is currently buffered. This is meant for special file parsers that can optimize better
-     * when using this - but it is highly dangerous to use if you do not know what you are doing!
-     *
-     * The idea is as follows: With access to the buffer, parse data as needed, keeping track of
-     * how many chars have been processed. Then, use the jump_unchecked() function to update this
-     * stream to the new position of the stream (the char after the last one being processed by
-     * the parsing).
-     *
-     * Caveat: Never parse and jump across new line characters (or, for that matter, carriage return
-     * characters, which won't be automatically converted when using the buffer directly)! This
-     * would invalidate the line counting!
-     *
-     * Caveat: Never read after the end of the buffer, that is, never access the char at the
-     * returned last position `buffer + length` or after!
-     */
-    std::pair<char const*, size_t> buffer()
-    {
-        assert( data_pos_ <= data_end_ );
-        return { &buffer_[ data_pos_ ], data_end_ - data_pos_ };
-    }
-
-    /**
-     * @brief Jump forward in the stream by a certain amount of chars.
-     *
-     * This is meant to update the stream position after using buffer() for direct parsing.
-     * See the caveats there!
-     *
-     * In particular, we can never jump behind the current buffer end, and shall not jump across
-     * new lines. That is, this function is not meant as a way to jump to an arbitrary (later)
-     * position in a file!
-     */
-    void jump_unchecked( size_t n )
-    {
-        // Safety first! We do a single check here, so that in the default case,
-        // we only branch once - assuming that the compiler doesn't optimize that even better anway.
-        if( data_pos_ + n >= data_end_ ) {
-            if( data_pos_ + n == data_end_ ) {
-                // Lazy approach to make sure that all functions are called as expected
-                // when reaching the end of the input data.
-                assert( data_pos_ < data_end_ );
-                assert( n > 0 );
-                data_pos_ += n - 1;
-                column_   += n - 1;
-                advance();
-                return;
-            }
-
-            // We try to jump past the end
-            assert( data_pos_ + n > data_end_ );
-            throw std::runtime_error(
-                "Invalid InputStream jump to position after buffer end."
-            );
-        }
-
-        // Update the position as neeeded.
-        data_pos_ += n;
-        column_ += n;
-        if( data_pos_ >= BlockLength ) {
-            update_blocks_();
-        }
-        set_current_char_();
-    }
-
     // -------------------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------------------
@@ -628,42 +510,7 @@ private:
      * @brief Helper function that does some checks on the current char and sets it to what
      * is at `data_pos_` in the `buffer_`.
      */
-    inline void set_current_char_()
-    {
-        // Check end of stream conditions.
-        if( data_pos_ >= data_end_ ) GENESIS_UNLIKELY {
-            // We do not expect to overshoot. Let's assert this, but if it still happens
-            // (in release build), we can also cope, and will just set \0 as the current char.
-            assert( data_pos_ == data_end_ );
-
-            if( data_pos_ == data_end_ && data_pos_ > 0 && buffer_[ data_pos_ - 1 ] != '\n' ) {
-                // If this is the end of the data, but there was no closing \n, add one.
-                buffer_[ data_pos_ ] = '\n';
-                ++data_end_;
-            } else {
-                // If we reached the end, do not fully reset the line and column counters.
-                // They might be needed in some parser.
-                current_ = '\0';
-                return;
-            }
-        }
-
-        // Treat stupid Windows and Mac lines breaks. Set them to \n, so that downstream parsers
-        // don't have to deal with this.
-        if( buffer_[ data_pos_ ] == '\r' ) {
-            buffer_[ data_pos_ ] = '\n';
-
-            // If this is a Win line break \r\n, skip one of them, so that only a single \n
-            // is visible to the outside. We do not treat \n\r line breaks properly here!
-            // If any system still uses those, we'd have to change code here.
-            if( data_pos_ + 1 < data_end_ && buffer_[ data_pos_ + 1 ] == '\n' ) {
-                ++data_pos_;
-            }
-        }
-
-        // Set the char.
-        current_ = buffer_[ data_pos_ ];
-    }
+    void set_current_char_();
 
     // -------------------------------------------------------------------------
     //     Data Members
@@ -686,23 +533,6 @@ private:
     size_t line_;
     size_t column_;
 };
-
-// =================================================================================================
-//     Template Specializations
-// =================================================================================================
-
-/**
- * @brief Read an unsigned integer from a stream into a size_t and return it.
- *
- * This template specialization is mean as yet another speedup for the case of this data type,
- * as we can then work without casting and overflow check. It is also the base function that
- * is called from the others that do the overflow check.
- */
-template<>
-inline size_t InputStream::parse_unsigned_integer<size_t>()
-{
-    return parse_unsigned_integer_size_t_();
-}
 
 } // namespace utils
 } // namespace genesis

@@ -16,9 +16,9 @@
     along with this program.  If not,  see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -30,14 +30,15 @@
 
 #include "genesis/utils/io/input_stream.hpp"
 
+#include "genesis/utils/text/string.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <stdexcept>
 
-// For C++17, we have a little speedup in the integer parsing part.
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if defined(GENESIS_AVX) || defined(GENESIS_AVX2) || defined(GENESIS_AVX512)
 
-    #include <charconv>
+    #include <immintrin.h>
 
 #endif
 
@@ -82,8 +83,46 @@ InputStream& InputStream::operator= ( InputStream&& other )
 }
 
 // =================================================================================================
+//     Char Operations
+// =================================================================================================
+
+char InputStream::read_char_or_throw( char const criterion )
+{
+    // Check char and move to next.
+    if( data_pos_ >= data_end_ || current_ != criterion ) GENESIS_UNLIKELY {
+        throw std::runtime_error(
+            std::string("In ") + source_name() + ": " +
+            "Expecting " + char_to_hex( criterion ) + " at " + at() + ", " +
+            "but received " + char_to_hex( current_ ) + " instead."
+        );
+    }
+    assert( good() && current_ == criterion );
+    operator++();
+    return criterion;
+}
+
+char InputStream::read_char_or_throw( std::function<bool (char)> criterion )
+{
+    // Check char and move to next.
+    if( data_pos_ >= data_end_ || !criterion( current_ )) GENESIS_UNLIKELY {
+        throw std::runtime_error(
+            std::string("In ") + source_name() + ": " +
+            "Unexpected char " + char_to_hex( current_ ) + " at " + at() + "."
+        );
+    }
+    assert( good() );
+    auto const chr = current_;
+    operator++();
+    return chr;
+}
+
+// =================================================================================================
 //     Line Operations
 // =================================================================================================
+
+// -------------------------------------------------------------------------
+//     get_line
+// -------------------------------------------------------------------------
 
 void InputStream::get_line( std::string& target )
 {
@@ -95,125 +134,438 @@ void InputStream::get_line( std::string& target )
     // Loop until we find the end of the line. As this can be longer than one block,
     // we might need to update the blocks and store the results in between.
     while( true ) {
-        // Read data if necessary.
-        if( data_pos_ >= BlockLength ) GENESIS_UNLIKELY {
-            update_blocks_();
-        }
-        assert( data_pos_ < BlockLength );
 
-        // Store the starting position, so that we can copy from there once we found the end.
-        size_t const start = data_pos_;
-
-        // Read until the end of the line, but also stop before the end of the data,
-        // and after we read a full block. End of data: we are done anyway.
-        // End of block: need to read the next one first, so loop again.
-        auto const stop = std::min( data_end_, start + BlockLength );
-
-        // 8-fold loop unrolling. Yes, the compiler does not do that.
-        // It gives some speedup, in particular if the reading is used in a parser that also
-        // does other things with the data. In a stand-alone line reader, it still gives
-        // a slight advantage.
-        while(
-            data_pos_ + 7 < stop &&
-            buffer_[ data_pos_ + 0 ] != '\n'    &&
-            buffer_[ data_pos_ + 0 ] != '\r'    &&
-            buffer_[ data_pos_ + 1 ] != '\n'    &&
-            buffer_[ data_pos_ + 1 ] != '\r'    &&
-            buffer_[ data_pos_ + 2 ] != '\n'    &&
-            buffer_[ data_pos_ + 2 ] != '\r'    &&
-            buffer_[ data_pos_ + 3 ] != '\n'    &&
-            buffer_[ data_pos_ + 3 ] != '\r'    &&
-            buffer_[ data_pos_ + 4 ] != '\n'    &&
-            buffer_[ data_pos_ + 4 ] != '\r'    &&
-            buffer_[ data_pos_ + 5 ] != '\n'    &&
-            buffer_[ data_pos_ + 5 ] != '\r'    &&
-            buffer_[ data_pos_ + 6 ] != '\n'    &&
-            buffer_[ data_pos_ + 6 ] != '\r'    &&
-            buffer_[ data_pos_ + 7 ] != '\n'    &&
-            buffer_[ data_pos_ + 7 ] != '\r'
-        ) {
-            data_pos_ += 8;
-        }
-
-        // Working AVX version. Not worth the trouble as of now. Keeping it here for reference.
-
-        // #ifdef GENESIS_AVX
-        //     #include <immintrin.h>
-        // #endif
-        //
-        // auto b = _mm256_loadu_si256(( __m256i const* )( buffer_ + data_pos_ ));
-        //
-        // static auto const n = _mm256_set1_epi8( '\n' );
-        // static auto const r = _mm256_set1_epi8( '\r' );
-        //
-        // auto bn = _mm256_cmpeq_epi8( b, n );
-        // auto br = _mm256_cmpeq_epi8( b, r );
-        //
-        // while(
-        //     data_pos_ + 32 <= stop &&
-        //     _mm256_testz_si256( bn, bn ) &&
-        //     _mm256_testz_si256( bn, bn )
-        // ) {
-        //     data_pos_ += 32;
-        //     b = _mm256_loadu_si256(( __m256i const* )( buffer_ + data_pos_ ));
-        //     bn = _mm256_cmpeq_epi8( b, n );
-        //     br = _mm256_cmpeq_epi8( b, r );
-        // }
-
-        // Alternative version taht uses 64bit words instead, and hence works without AVX.
-        // Uses macros from https://graphics.stanford.edu/~seander/bithacks.html
-
-        // static auto const nmask = ~static_cast<uint64_t>(0) / 255U * '\n';
-        // static auto const rmask = ~static_cast<uint64_t>(0) / 255U * '\r';
-        //
-        // #define haszero(v) (((v) - static_cast<uint64_t>(0x0101010101010101)) & ~(v) & static_cast<uint64_t>(0x8080808080808080))
-        // #define hasvalue(x,n) (haszero((x) ^ (~static_cast<uint64_t>(0) / 255U * (n))))
-        //
-        // auto const* buffc = reinterpret_cast<uint64_t const*>( buffer_ + data_pos_ );
-        // size_t i = 0;
-        // while( true ) {
-        //     bool const e = i*8 >= data_end_;
-        //     bool const b = i*8 - start >= BlockLength;
-        //
-        //     // bool const n = buffc[i] ^ nmask;
-        //     // bool const r = buffc[i] ^ rmask;
-        //     bool const n = hasvalue( buffc[i], '\n' );
-        //     bool const r = hasvalue( buffc[i], '\r' );
-        //
-        //     if( e | b | n | r ) {
-        //         break;
-        //     }
-        //
-        //     ++i;
-        // }
-        // data_pos_ += i*8;
-        //
-        // #undef haszero
-        // #undef hasvalue
-
-        // The above loop ends with data_pos_ somewhere before the exact line break.
-        // We now need to walk the rest by foot, and examine char by char.
-        while(
-            data_pos_ < stop &&
-            buffer_[ data_pos_ ] != '\n' &&
-            buffer_[ data_pos_ ] != '\r'
-        ) {
-            ++data_pos_;
-        }
+        // Move data_pos_ to the end of the line or end of the buffered data.
+        // We end at either the end of the data, or have moved a whole block
+        // or until we found a new line character.
+        auto const move_dist = update_and_move_to_line_or_buffer_end_();
+        assert(
+            data_pos_ == data_end_ ||
+            move_dist == BlockLength ||
+            buffer_[ data_pos_ ] == '\n' ||
+            buffer_[ data_pos_ ] == '\r'
+        );
+        assert( move_dist <= BlockLength );
+        assert( move_dist <= data_pos_ );
 
         // Store what we have so far.
-        target.append( buffer_ + start, data_pos_ - start );
+        target.append( buffer_ + data_pos_ - move_dist, move_dist );
 
         // If the line is not yet finished, we need an extra round. Start the loop again.
-        assert( data_pos_ >= start );
-        if( data_pos_ - start >= BlockLength ) {
+        if( move_dist == BlockLength ) {
             continue;
         }
 
-        // In all other cases, we stop here.
+        // In all other cases, we stop here. Either we are at the end of the data,
+        // or have found the characters we are looking for.
         break;
     }
 
+    // If we are here, we have either found our char and are at the end of the line, or we have
+    // reached the end of the input. In the first case, we move to the beginning of the next line.
+    assert( data_pos_ == data_end_ || buffer_[ data_pos_ ] == '\n' || buffer_[ data_pos_ ] == '\r' );
+    increment_to_next_line_();
+    assert( data_pos_ == data_end_ || column_ == 1 );
+}
+
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+// -------------------------------------------------------------------------
+//     get_line_view
+// -------------------------------------------------------------------------
+
+std::string_view InputStream::get_line_view()
+{
+    // Check edge case.
+    if( data_pos_ >= data_end_ ) {
+        return std::string_view();
+    }
+
+    // Move data_pos_ to the end of the line or end of the buffered data.
+    // Similar to the above get_line().
+    auto const move_dist = update_and_move_to_line_or_buffer_end_();
+    assert(
+        data_pos_ == data_end_ ||
+        move_dist == BlockLength ||
+        buffer_[ data_pos_ ] == '\n' ||
+        buffer_[ data_pos_ ] == '\r'
+    );
+    assert( move_dist <= BlockLength );
+    assert( move_dist <= data_pos_ );
+
+    // If the line is not yet finished after a full block, we cannot use this function.
+    if( move_dist == BlockLength ) {
+        throw std::runtime_error(
+            "Cannot call InputStream::get_line_view() on lines that are longer "
+            "than the internal buffer of " + to_string_byte_format( BlockLength ) + " bytes"
+        );
+    }
+
+    // We have moved, and might also have updated the blocks before, so we need to work backwards
+    // from where we are now to get the positions we want for our view.
+    auto result = std::string_view( buffer_ + data_pos_ - move_dist, move_dist );
+
+    // If we are here, we have either found our char and are at the end of the line, or we have
+    // reached the end of the input. In the first case, we move to the beginning of the next line.
+    // The function below shall not call update_blocks_(), as otherwise our return value
+    // might be invalidated.
+    assert( data_pos_ == data_end_ || buffer_[ data_pos_ ] == '\n' || buffer_[ data_pos_ ] == '\r' );
+    increment_to_next_line_();
+    assert( data_pos_ == data_end_ || column_ == 1 );
+
+    // Now we are at the beginning of the next line, and can return our result.
+    return result;
+}
+
+// -------------------------------------------------------------------------
+//     fill_line_views_
+// -------------------------------------------------------------------------
+
+void InputStream::fill_line_views_( std::string_view* str_views, size_t n_lines )
+{
+    // Check edge case.
+    if( data_pos_ >= data_end_ ) {
+        return;
+    }
+
+    // Read data if necessary. After this, we are guaranteed to have data_pos_ in the first block.
+    // We need to do the update here once, and do not do it again for the rest of the function,
+    // so as to not invalidate the string views.
+    if( data_pos_ >= BlockLength ) {
+        update_blocks_();
+    }
+    assert( data_pos_ < BlockLength );
+
+    // Store the overall starting position, so that we know when we went too far.
+    size_t const total_start_pos = data_pos_;
+
+    // We need to stop before the end of the data, and before the end of the second block.
+    // As a safeguard, we are not reading more than one block length away from the current pos.
+    auto const stop_pos = std::min( data_end_, total_start_pos + BlockLength );
+
+    // Fill the lines with string views.
+    for( size_t i = 0; i < n_lines; ++i ) {
+        // Store the line starting position, so that we can copy from there once we found the end.
+        size_t const start_pos = data_pos_;
+
+        // Check case that we do not have enough lines in the file any more.
+        if( data_pos_ >= data_end_ ) {
+            throw std::runtime_error(
+                "Reached the end of input before reading " + std::to_string( n_lines ) +
+                " lines from " + source_name()
+            );
+        }
+
+        // Move data_pos_ to the new line char or to the stop position.
+        move_to_line_or_buffer_end_( stop_pos );
+
+        // Now we are either at the new line character, or at the end of the current data.
+        assert( data_pos_ >= start_pos );
+        assert( data_pos_ == stop_pos || buffer_[ data_pos_ ] == '\n' || buffer_[ data_pos_ ] == '\r' );
+        assert( stop_pos == data_end_ || stop_pos == total_start_pos + BlockLength );
+
+        // Check that we are still within bounds. We include here that we need another char for the
+        // new line (or two, if it is a \r\n combination), which we will process next.
+        // If the sum of lines is not yet finished after a full block, we cannot use this function.
+        // This has an edge case where the data edge is also exactly the end of one block length.
+        // But that is so close to the failure condition anyway (just one or two chars off) that we
+        // just treat that as an error as well, for simplicity. Shouldn't matter if we are allowed
+        // to read lines of 4MB or 4MB minus 2B.
+        if( data_pos_ >= total_start_pos + BlockLength - 2 ) {
+            throw std::runtime_error(
+                "Cannot call InputStream::get_line_views() on lines that are in sum longer "
+                "than the internal buffer of " + to_string_byte_format( BlockLength ) + " bytes"
+            );
+        }
+
+        // Store a view of the range that we found.
+        str_views[i] = std::string_view( buffer_ + start_pos, data_pos_ - start_pos );
+
+        // If we are here, we have either found our char and are at the end of the line, or we have
+        // reached the end of the input. In the first case, we move to the beginning of the next line.
+        // The function below shall not call update_blocks_(), as otherwise our return value
+        // might be invalidated.
+        assert( data_pos_ == data_end_ || buffer_[ data_pos_ ] == '\n' || buffer_[ data_pos_ ] == '\r' );
+        increment_to_next_line_();
+        assert( data_pos_ == data_end_ || column_ == 1 );
+    }
+}
+
+#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+// -------------------------------------------------------------------------
+//     update_and_move_to_line_or_buffer_end_
+// -------------------------------------------------------------------------
+
+size_t InputStream::update_and_move_to_line_or_buffer_end_()
+{
+    // The caller needs to guarantee that we are not at the end,
+    // because the caller would need to react to that in their own way.
+    assert( data_pos_ < data_end_ );
+
+    // Read data if necessary. After this, we are guaranteed to have data_pos_ in the first block.
+    if( data_pos_ >= BlockLength ) GENESIS_UNLIKELY {
+        update_blocks_();
+    }
+    assert( data_pos_ < BlockLength );
+
+    // Store the starting position, so that we can copy from there once we found the end.
+    size_t const start_pos = data_pos_;
+
+    // We need to stop before the end of the data, and before the end of the second block.
+    // As a safeguard, we are not reading more than one block length away from the current pos.
+    auto const stop_pos = std::min( data_end_, data_pos_ + BlockLength );
+
+    // Move data_pos_ to the new line char or to the stop position.
+    move_to_line_or_buffer_end_( stop_pos );
+
+    // Now we are either at the new line character, or at the end of the current data.
+    // We return how far we moved: A whole block, or where we found the new line.
+    assert( data_pos_ >= start_pos );
+    assert( data_pos_ == stop_pos || buffer_[ data_pos_ ] == '\n' || buffer_[ data_pos_ ] == '\r' );
+    return data_pos_ - start_pos;
+}
+
+// -------------------------------------------------------------------------
+//     move_to_line_or_buffer_end_
+// -------------------------------------------------------------------------
+
+void InputStream::move_to_line_or_buffer_end_( size_t const stop_pos )
+{
+    // Pick the fastest implementation available to move data_pos_ as close as possible
+    // to the next nl or cr character, without overshooting the end of the data or block.
+    #if defined(GENESIS_AVX512)
+        approach_line_or_buffer_end_avx512_( stop_pos );
+    #elif defined(GENESIS_AVX2)
+        approach_line_or_buffer_end_avx2_( stop_pos );
+    #else
+        approach_line_or_buffer_end_unrolled_( stop_pos );
+    #endif
+
+    // The above approach loops might end with data_pos_ somewhere before the exact line break.
+    // In those cases, we need to walk the rest by foot, and examine char by char.
+    while(
+        data_pos_ < stop_pos &&
+        buffer_[ data_pos_ ] != '\n' &&
+        buffer_[ data_pos_ ] != '\r'
+    ) {
+        ++data_pos_;
+    }
+}
+
+// -------------------------------------------------------------------------
+//     approach_line_or_buffer_end_avx512_
+// -------------------------------------------------------------------------
+
+#if defined(GENESIS_AVX512)
+
+void InputStream::approach_line_or_buffer_end_avx512_( size_t const stop_pos )
+{
+    // UNTESTED and hence unused - we never set the GENESIS_AVX512 definition
+
+    static auto const all_nl = _mm512_set1_epi8('\n');
+    static auto const all_cr = _mm512_set1_epi8('\r');
+
+    // Process 64 bytes at a time using AVX-512
+    while( data_pos_ + 64 <= stop_pos ) {
+        auto data_64bytes = _mm512_loadu_si512(
+            reinterpret_cast<__m512i const*>( buffer_ + data_pos_ )
+        );
+
+        // Compare each byte in the chunk with '\n' and '\r'
+        auto nl_pos = _mm512_cmpeq_epi8_mask(data_64bytes, all_nl);
+        auto cr_pos = _mm512_cmpeq_epi8_mask(data_64bytes, all_cr);
+
+        // Combine the results of the comparisons.
+        // If this is non-zero, we have found a nl or cr character.
+        auto nr_pos = nl_pos | cr_pos;
+
+        // Check if any of the comparisons were true.
+        if( nr_pos != 0 ) {
+            // Find the position of the first set bit, using intrinsics.
+            int offset = _tzcnt_u64(nr_pos);
+            data_pos_ += offset;
+            break;
+        }
+
+        data_pos_ += 64;
+    }
+}
+
+#else // defined(GENESIS_AVX512)
+
+void InputStream::approach_line_or_buffer_end_avx512_( size_t const stop_pos )
+{
+    // Avoid compiler complaints when below code is not processed.
+    (void) stop_pos;
+    assert( false );
+}
+
+#endif // defined(GENESIS_AVX512)
+
+// -------------------------------------------------------------------------
+//     approach_line_or_buffer_end_avx2_
+// -------------------------------------------------------------------------
+
+#if defined(GENESIS_AVX2)
+
+void InputStream::approach_line_or_buffer_end_avx2_( size_t const stop_pos )
+{
+    // 32 byte masks where each byte is new line or carriage return.
+    static auto const all_nl = _mm256_set1_epi8( '\n' );
+    static auto const all_cr = _mm256_set1_epi8( '\r' );
+
+    // Load chunks of 32 bytes and loop until one of them contains nl or cr,
+    // or we reach the end of what we can currently process.
+    int mask = 0;
+    bool aligned = reinterpret_cast<uintptr_t>( buffer_ + data_pos_ ) % 32 == 0;
+    while( data_pos_ + 32 <= stop_pos ) {
+
+        // Load 32 bytes of data. We first do an unaligned load for the first iteration,
+        // and then move forward to the next alignment boundary, so that subsequent
+        // iterations can use aligned load. On average this will double check 16 bytes,
+        // which might be slower when the data consists of many very short lines.
+        // But typically, that is not the case, and then this gives significant speedup.
+        __m256i data_chunk;
+        if( aligned ) {
+            assert( reinterpret_cast<uintptr_t>( buffer_ + data_pos_ ) % 32 == 0 );
+            data_chunk = _mm256_load_si256(
+                reinterpret_cast<__m256i const*>( buffer_ + data_pos_ )
+            );
+        } else {
+            data_chunk = _mm256_loadu_si256(
+                reinterpret_cast<__m256i const*>( buffer_ + data_pos_ )
+            );
+        }
+
+        // Compare the data with the masks, setting bits where they match,
+        // and combining them into one mask that we then evaluate.
+        auto const nl_pos = _mm256_cmpeq_epi8( data_chunk, all_nl );
+        auto const cr_pos = _mm256_cmpeq_epi8( data_chunk, all_cr );
+        auto const nr_pos = _mm256_or_si256( nl_pos, cr_pos );
+
+        // Get a bit mask that is set wherever nl or cr are.
+        // If there is a bit set, we are done with the loop.
+        mask = _mm256_movemask_epi8( nr_pos );
+        if( mask != 0 ) {
+            break;
+        }
+        if( aligned ) {
+            data_pos_ += 32;
+        } else {
+            auto const remainder = reinterpret_cast<uintptr_t>( buffer_ + data_pos_ ) % 32;
+            data_pos_ += 32 - remainder;
+            aligned = true;
+        }
+    }
+
+    // If we have builtin capabilities to find the first set bit, we use it.
+    // This brings data_pos_ to where the nl or cr is, so that the slow loop at the end of
+    // move_to_line_or_buffer_end_() will not run. If we do not have the builtin, we instead use
+    // the loop in move_to_line_or_buffer_end_() to find the exact position of the new line char.
+    #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
+
+        // If we found a new line, use the mask to get position of the first set bit.
+        // This is where the nl or cr character is located, so we move there.
+        if( mask != 0 ) {
+            auto const offset = __builtin_ctz(mask);
+            data_pos_ += offset;
+            assert( data_pos_ <= stop_pos );
+            assert( buffer_[ data_pos_ ] == '\n' || buffer_[ data_pos_ ] == '\r' );
+        } else {
+            assert( data_pos_ + 32 > stop_pos );
+        }
+
+    #else
+
+        // Without the builtin, we at least do a bit of loop unrolling to get closer
+        // to where we want to be - the new line or the end of the data.
+        approach_line_or_buffer_end_unrolled_( stop_pos );
+
+    #endif // defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
+}
+
+#else // defined(GENESIS_AVX2)
+
+void InputStream::approach_line_or_buffer_end_avx2_( size_t const stop_pos )
+{
+    // Avoid compiler complaints when below code is not processed.
+    (void) stop_pos;
+    assert( false );
+}
+
+#endif // defined(GENESIS_AVX2)
+
+// -------------------------------------------------------------------------
+//     approach_line_or_buffer_end_unrolled_
+// -------------------------------------------------------------------------
+
+void InputStream::approach_line_or_buffer_end_unrolled_( size_t const stop_pos )
+{
+    // 8-fold loop unrolling, to help the compiler.
+    // It gives some speedup, in particular if the reading is used in a parser that also
+    // does other things with the data. In a stand-alone line reader, it still gives
+    // a slight advantage.
+    while(
+        data_pos_ + 7 < stop_pos &&
+        buffer_[ data_pos_ + 0 ] != '\n' &&
+        buffer_[ data_pos_ + 0 ] != '\r' &&
+        buffer_[ data_pos_ + 1 ] != '\n' &&
+        buffer_[ data_pos_ + 1 ] != '\r' &&
+        buffer_[ data_pos_ + 2 ] != '\n' &&
+        buffer_[ data_pos_ + 2 ] != '\r' &&
+        buffer_[ data_pos_ + 3 ] != '\n' &&
+        buffer_[ data_pos_ + 3 ] != '\r' &&
+        buffer_[ data_pos_ + 4 ] != '\n' &&
+        buffer_[ data_pos_ + 4 ] != '\r' &&
+        buffer_[ data_pos_ + 5 ] != '\n' &&
+        buffer_[ data_pos_ + 5 ] != '\r' &&
+        buffer_[ data_pos_ + 6 ] != '\n' &&
+        buffer_[ data_pos_ + 6 ] != '\r' &&
+        buffer_[ data_pos_ + 7 ] != '\n' &&
+        buffer_[ data_pos_ + 7 ] != '\r'
+    ) {
+        data_pos_ += 8;
+    }
+
+    // Alternative version that uses 64bit words instead, and hence works without AVX.
+    // Uses macros from https://graphics.stanford.edu/~seander/bithacks.html
+
+    // static auto const nmask = ~static_cast<uint64_t>(0) / 255U * '\n';
+    // static auto const rmask = ~static_cast<uint64_t>(0) / 255U * '\r';
+
+    // #define haszero(v) (((v) - static_cast<uint64_t>(0x0101010101010101)) & ~(v) & static_cast<uint64_t>(0x8080808080808080))
+    // #define hasvalue(x,n) (haszero((x) ^ (~static_cast<uint64_t>(0) / 255U * (n))))
+    //
+    // auto const* buffc = reinterpret_cast<uint64_t const*>( buffer_ + data_pos_ );
+    // size_t i = 0;
+    // while( true ) {
+    //     bool const e = i*8 >= data_end_;
+    //     bool const b = i*8 - start >= BlockLength;
+    //
+    //     // bool const n = buffc[i] ^ nmask;
+    //     // bool const r = buffc[i] ^ rmask;
+    //     bool const n = hasvalue( buffc[i], '\n' );
+    //     bool const r = hasvalue( buffc[i], '\r' );
+    //
+    //     if( e | b | n | r ) {
+    //         break;
+    //     }
+    //
+    //     ++i;
+    // }
+    // data_pos_ += i*8;
+    //
+    // #undef haszero
+    // #undef hasvalue
+}
+
+// -------------------------------------------------------------------------
+//     increment_to_next_line_
+// -------------------------------------------------------------------------
+
+void InputStream::increment_to_next_line_()
+{
     // Some safty.
     assert( data_pos_ <= data_end_ );
     assert( data_pos_ < 2 * BlockLength );
@@ -238,7 +590,7 @@ void InputStream::get_line( std::string& target )
             ++data_pos_;
         }
     } else {
-        // We have checked all cases where the loop above can terminate.
+        // We need to have checked all cases where this function is called from already.
         // So this should not happen.
         assert( false );
     }
@@ -251,402 +603,48 @@ void InputStream::get_line( std::string& target )
 }
 
 // =================================================================================================
-//     Parsing
+//     Buffer Access
 // =================================================================================================
 
-// Only use intrinsics version for the compilers that support them!
-#if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
-
-size_t InputStream::parse_unsigned_integer_gcc_intrinsic_()
+void InputStream::jump_unchecked( size_t n )
 {
-    // This function only works on little endian systems (I think).
-    // We do not check this here, as so far, no one has tried to run our code on any machine
-    // that is not little endian. So we are good for now. In case this code needs to be adapted
-    // to big endian as well: I think the only change required is the `chunk <<= ...` that needs
-    // to turn into a right shift instead. Not entirely sure though.
-    // Also, in this function, we make use of the fact that our internal buffer is always way larger
-    // than any valid integer input. That is, we may read from after the block end, or even the
-    // stream end, but we have enough buffer for this to be okay (after all, we are just reading
-    // eight bytes here). We then check for this later.
-
-    // Copy 8 bytes into a chunk that we process as one unit.
-    std::uint64_t chunk = 0;
-    std::memcpy( &chunk, &buffer_[ data_pos_ ], sizeof( chunk ));
-
-    // Helper macro functions to check whether a word has bytes that are less than or greater
-    // than some specified value, and mark these bytes.
-    // http://graphics.stanford.edu/~seander/bithacks.html#HasLessInWord
-    // http://graphics.stanford.edu/~seander/bithacks.html#HasMoreInWord
-    auto const zero = static_cast<uint64_t>(0);
-    #define hasless(x,n) (((x)-~zero/255*(n))&~(x)&~zero/255*128)
-    #define hasmore(x,n) ((((x)+~zero/255*(127-(n)))|(x))&~zero/255*128)
-
-    // Get all positions that are not digits, by marking a bit in their respective byte.
-    auto const l = hasless( chunk, '0' );
-    auto const m = hasmore( chunk, '9' );
-    auto const p = l | m;
-
-    // Example:
-    // String "167\n253\n" turns into chunk c (on little endian systems)
-    //         \n        3        5        2       \n        7        6        1
-    // c 00001010 00110011 00110101 00110010 00001010 00110111 00110110 00110001
-    // l 10000000 00000000 00000000 00000000 10000000 00000000 00000000 00000000
-    // m 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-    // p 10000000 00000000 00000000 00000000 10000000 00000000 00000000 00000000
-    //   ^                                   ^
-    // with the two '\n' bytes marked.
-
-    #undef hasless
-    #undef hasmore
-
-    // Find the index of the first byte that is not a digit. We first get the bit position
-    // using an intrinsic, and then divite by 8 to get the byte. The branching to select the
-    // correct intrinsic should be resolved at compile time already.
-    // We are using __builtin_ffs and its variants:
-    // Returns one plus the index of the least significant 1-bit of x, or if x is zero, returns zero.
-    // https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html#Other-Builtins
-    int idx = 0;
-    if( sizeof(int) == sizeof(std::uint64_t) ) {
-        idx = __builtin_ffs(p) / 8;
-    } else if( sizeof(long) == sizeof(std::uint64_t) ) {
-        idx = __builtin_ffsl(p) / 8;
-    } else if( sizeof(long long) == sizeof(std::uint64_t) ) {
-        idx = __builtin_ffsll(p) / 8;
-    } else {
-        static_assert(
-            ( sizeof(int) == sizeof(std::uint64_t) ) ||
-            ( sizeof(long) == sizeof(std::uint64_t) ) ||
-            ( sizeof(long long) == sizeof(std::uint64_t) ),
-            "No compilter intrinsic __builtin_ffs[l][l] for std::uint64_t"
-        );
-        throw std::runtime_error(
-            "No compilter intrinsic __builtin_ffs[l][l] for std::uint64_t"
-        );
-    }
-    assert( 0 <= idx && idx <= 8 );
-
-    // Not needed but kept for reference: Mask out all bits that we do not want.
-    // auto const mask = ~(~zero << ((idx-1)*8));
-    // chunk &= mask;
-
-    // On little endian systems, we need to move the actual data chars that we want to parse to the
-    // left-most position for the following code to work. So, for our example from above, we need
-    // to move the "xxxx x761" in the chunk so that we get "7610 0000".
-    chunk <<= (8 * ( 8 - idx + 1 ));
-
-    // Now use an O(log(n)) method of computing the result, where we combine adjacent parts into
-    // numbers, first 2 bytes, then 4 bytes, then all 8 bytes. Inspired by parse_8_chars() from
-    // https://kholdstare.github.io/technical/2020/05/26/faster-integer-parsing.html
-
-    // 1-byte mask trick (works on 4 pairs of single digits)
-    std::uint64_t lower_digits = (chunk & 0x0f000f000f000f00) >> 8;
-    std::uint64_t upper_digits = (chunk & 0x000f000f000f000f) * 10;
-    chunk = lower_digits + upper_digits;
-
-    // 2-byte mask trick (works on 2 pairs of two digits)
-    lower_digits = (chunk & 0x00ff000000ff0000) >> 16;
-    upper_digits = (chunk & 0x000000ff000000ff) * 100;
-    chunk = lower_digits + upper_digits;
-
-    // 4-byte mask trick (works on pair of four digits)
-    lower_digits = (chunk & 0x0000ffff00000000) >> 32;
-    upper_digits = (chunk & 0x000000000000ffff) * 10000;
-    chunk = lower_digits + upper_digits;
-
-    // Edge cases. We treat them at the end, so that in the standard cases, the processor
-    // does not come to a grinding halt when trying to figure out if these cases apply;
-    // this might be premature optimization, but in our tests, it made the function slightly faster.
-    // If the returned index is 0, there was no non-digit byte in the chunk,
-    // so we run the naive loop instead. We could also call this function here again recursively,
-    // summing up parts of large numbers. But that would mean that we need to do overflow
-    // detection and all that, and currently, this does not seem needed. Let's be lazy today.
-    // Furthermore, if the 8 bytes that we process here are at the end of the stream, we cannot
-    // confidently use them, in cases for example where the stream ends in a number, but does
-    // not have a new line char at the end. So in that case, better parse naievely.
-    // Lastly, if the index is 1, the first byte is not a digit, which is an error, as this function
-    // is only called from parsers that expect a number.
-    if( idx == 0 || data_pos_ + 8 >= data_end_ ) {
-        return parse_unsigned_integer_naive_();
-    }
-    if( idx == 1 ) {
-        throw std::runtime_error(
-            "Expecting integer in " + source_name() + " at " + at() + "."
-        );
-    }
-
-    // Now move as far as needed in the buffer...
-    data_pos_ += idx - 1;
-    column_   += idx - 1;
-    set_current_char_();
-
-    // ...and finally initiate the next block if needed.
-    if( data_pos_ >= BlockLength ) {
-        update_blocks_();
-    }
-    assert( data_pos_ < BlockLength );
-
-    return chunk;
-}
-
-#endif // defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
-
-// Completely deactivated for now, as we are not using it anyway,
-// and it's causing trouble with clang 5-7.
-// #if ( defined(__GNUC__) || defined(__GNUG__) ) && ( !defined(__clang__) || ( __clang_major__ >= 8 ))
-
-// We used to have to following in our main CMakeList.txt to try to support this,
-// but that lead to linker errors downstream, and was hence not worth keeping.
-// Keeping it here for future reference, but likeley not needed any more.
-
-// # With clang 5 to 7, we run into a bug (https://stackoverflow.com/a/49795448) of clang,
-// # because we are using `__builtin_mul_overflow` in genesis/utils/io/input_stream.cpp
-// # This here tries to fix this. If this causes more trouble in the future, we might instead
-// # use the native algorithm in that function...
-// # Update: Yes, that causes trouble, as we then get linker errors:
-// # undefined reference to symbol '_Unwind_Resume@@GCC_3.0'
-// # see https://stackoverflow.com/a/22774687 - so instead we deactivate this hack here for now,
-// # and use a different implementation in input_stream.cpp instead when using clang 5-7.
-// # if(
-// #     "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
-// #     AND ( NOT ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "5" ))
-// #     AND ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "8" )
-// # )
-// #     message(STATUS "Building with Clang 5, 6 or 7. Switching to --rtlib=compiler-rt")
-// #
-// #     set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS} ")
-// #     set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --rtlib=compiler-rt" )
-// #
-// #     set( GENESIS_CXX_FLAGS        "${GENESIS_CXX_FLAGS} ")
-// #     set( GENESIS_EXE_LINKER_FLAGS "${GENESIS_EXE_LINKER_FLAGS} --rtlib=compiler-rt" )
-// # endif()
-
-#if 0
-
-size_t InputStream::parse_unsigned_integer_from_chars_()
-{
-
-    // Re-implementation of the gcc from_chars() code.
-    // https://github.com/gcc-mirror/gcc/blob/12bb62fbb47bd2848746da53c72ed068a4274daf/libstdc++-v3/include/std/charconv
-    // Currently not in use and not well tested!
-
-    // Prepare. We alias T, in case we want to refactor to a template function at some point.
-    using T = size_t;
-    using namespace utils;
-    T x = 0;
-
-    // Hardcoded base 10. See below for other version that allows to select base.
-    auto raise_and_add_ = []( T& val, unsigned char c ) {
-        return !(
-            __builtin_mul_overflow( val, 10, &val ) ||
-            __builtin_add_overflow( val, c, &val )
-        );
-    };
-    // int const base = 10;
-    // auto raise_and_add_ = [base]( T& val, unsigned char c ) {
-    //     return !(
-    //         __builtin_mul_overflow( val, base, &val ) ||
-    //         __builtin_add_overflow( val, c, &val )
-    //     );
-    // };
-
-    auto from_chars_digit_ = [&]( char const*& first, char const* last, T& val ) {
-        while( first != last ) {
-            char const c = *first;
-            if( is_digit(c) ) {
-                if( !raise_and_add_(val, c - '0') ) {
-                    return false;
-                }
-                first++;
-            } else {
-                return true;
-            }
-        }
-        return true;
-    };
-
-    char const* start = &buffer_[ data_pos_ ];
-    char const* end   = &buffer_[ data_end_ ];
-    auto const valid = from_chars_digit_( start, end, x );
-    auto const dist = start - &buffer_[ data_pos_ ];
-
-    if( dist == 0 ) {
-        throw std::runtime_error(
-            "Expecting integer in " + source_name() + " at " + at() + "."
-        );
-    } else if( !valid ) {
-        throw std::overflow_error(
-            "Numerical overflow in " + source_name() + " at " + at() + "."
-        );
-    } else if( std::is_signed<T>::value ) {
-        assert( false );
-        // T tmp;
-        // if (__builtin_mul_overflow(x, sign, &tmp)) {
-        //     throw std::overflow_error(
-        //         "Numerical overflow in " + source_name() + " at " + at() + "."
-        //     );
-        // }
-    }
-
-    // Move to where we the parsing left us.
-    data_pos_ += dist;
-    column_   += dist;
-    set_current_char_();
-
-    // Now finally initiate the next block if needed.
-    if( data_pos_ >= BlockLength ) {
-        update_blocks_();
-    }
-    assert( data_pos_ < BlockLength );
-
-    return x;
-}
-
-#endif // ( defined(__GNUC__) || defined(__GNUG__) ) && ( !defined(__clang__) || ( __clang_major__ >= 8 ))
-
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-
-size_t InputStream::parse_unsigned_integer_std_from_chars_()
-{
-    // Uses the C++17 std::from_chars() function.
-    // Currently not in use and not well tested!
-
-    // Prepare. We alias T, in case we want to refactor to a template function at some point.
-    using T = size_t;
-    using namespace utils;
-    T x = 0;
-
-    // Fastest method accoing to
-    // https://www.fluentcpp.com/2018/07/27/how-to-efficiently-convert-a-string-to-an-int-in-c/
-    // is from_chars(), so let's us it!
-
-    auto const conv = std::from_chars( &buffer_[ data_pos_ ], &buffer_[ data_end_ ], x );
-
-    // How many chars did we consume?
-    auto const dist = conv.ptr - &buffer_[ data_pos_ ];
-
-    // Check that we processed at least one digit, as this function is only called when the
-    // input format requires an integer. This is equivalent to the check in the non C++17 version
-    // below for data_pos_ >= data_end_ || ! is_digit( current_ )
-    if( dist == 0 ) {
-        throw std::runtime_error(
-            "Expecting integer in " + source_name() + " at " + at() + "."
-        );
-    }
-
-    if( conv.ec != std::errc() ) {
-        if( conv.ec == std::errc::result_out_of_range ) {
-            throw std::overflow_error(
-                "Numerical overflow in " + source_name() + " at " + at() + "."
-            );
-        } else if( conv.ec == std::errc::invalid_argument ) {
-            // Cannot happen, as we above checked that there is at least one digit.
-            assert( false );
-        } else {
-            // Cannot happen, as we caught every case of `ec`.
-            assert( false );
+    // Safety first! We do a single check here, so that in the default case,
+    // we only branch once - assuming that the compiler doesn't optimize that even better anway.
+    if( data_pos_ + n >= data_end_ ) {
+        if( data_pos_ + n == data_end_ ) {
+            // Lazy approach to make sure that all functions are called as expected
+            // when reaching the end of the input data.
+            assert( data_pos_ < data_end_ );
+            assert( n > 0 );
+            data_pos_ += n - 1;
+            column_   += n - 1;
+            advance();
+            return;
         }
 
-        // In either case, we need to stop here.
-        throw std::overflow_error(
-            "Integer parsing error in " + source_name() + " at " + at() + "."
-        );
-    }
-
-    // Move to where we the parsing left us.
-    column_   += dist;
-    data_pos_ += dist;
-
-    // Now finally initiate the next block if needed.
-    if( data_pos_ >= BlockLength ) {
-        update_blocks_();
-    }
-    assert( data_pos_ < BlockLength );
-
-    // Finally we also need to update the char so that new lines are taken care of.
-    set_current_char_();
-
-    return x;
-}
-
-#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-
-size_t InputStream::parse_unsigned_integer_naive_()
-{
-    // Prepare. We alias T, in case we want to refactor to a template function at some point.
-    using T = size_t;
-    using namespace utils;
-    T x = 0;
-
-    if( data_pos_ >= data_end_ || ! is_digit( current_ ) ) {
+        // We try to jump past the end
+        assert( data_pos_ + n > data_end_ );
         throw std::runtime_error(
-            "Expecting integer in " + source_name() + " at " + at() + "."
+            "Invalid InputStream jump to position after buffer end."
         );
     }
 
-    while(( data_pos_ < data_end_ ) && is_digit( current_ )) {
-        T y = current_ - '0';
-
-        if( x > ( std::numeric_limits<T>::max() - y ) / 10 ) {
-            throw std::overflow_error(
-                "Numerical overflow in " + source_name() + " at " + at() + "."
-            );
-        }
-
-        x = 10 * x + y;
-
-        // In the original function that was not part of this class, we simply called
-        // advance() here, to move to the next char. However, here, we already know that
-        // we have data_pos_ < data_end_, and that we do not have a new line.
-        // Furthermore, we also can ignore the update for block length while in this loop
-        // (or maybe even completely), as it does not matter much if we move a bit into the
-        // second block before starting the reading thread again. This loop here cannot
-        // iterate that many times anyway before we overflow the interger.
-        // So let's simply move on to the next char.
-        // advance();
-        assert( data_pos_ < data_end_ );
-        assert( current_ != '\n' );
-        ++column_;
-        ++data_pos_;
-        current_ = buffer_[ data_pos_ ];
-    }
-
-    // Now finally initiate the next block if needed.
+    // Update the position as neeeded.
+    data_pos_ += n;
+    column_ += n;
     if( data_pos_ >= BlockLength ) {
         update_blocks_();
     }
-    assert( data_pos_ < BlockLength );
-
-    // Finally we also need to update the char so that new lines are taken care of.
     set_current_char_();
-
-    return x;
-}
-
-size_t InputStream::parse_unsigned_integer_size_t_()
-{
-    // Select the fastest alternative available for a given compiler and C++ version.
-    #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
-
-        // If we have GCC or Clang, use our own handcrafted fast-as-hell implementation.
-        return parse_unsigned_integer_gcc_intrinsic_();
-
-    // #elif ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-    //
-    //     // Otherwise, if this is C++17, at least use its own fast version,
-    //     // that can use some compiler intrinsics itself.
-    //     return parse_unsigned_integer_std_from_chars_();
-
-    #else
-
-        // If neither, just use the slow, naive loop.
-        return parse_unsigned_integer_naive_();
-
-    #endif
 }
 
 // =================================================================================================
 //     Internal Members
 // =================================================================================================
+
+// -------------------------------------------------------------------------
+//     init_
+// -------------------------------------------------------------------------
 
 void InputStream::init_( std::shared_ptr<BaseInputSource> input_source )
 {
@@ -702,9 +700,7 @@ void InputStream::init_( std::shared_ptr<BaseInputSource> input_source )
 
             // Create the reader. We need to do this explictily,
             // as we use a unique ptr to make this class movable.
-            input_reader_ = utils::make_unique<InputReader>();
-
-            input_reader_->init( input_source );
+            input_reader_ = utils::make_unique<InputReader>( input_source );
             input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
         }
 
@@ -713,6 +709,10 @@ void InputStream::init_( std::shared_ptr<BaseInputSource> input_source )
         throw;
     }
 }
+
+// -------------------------------------------------------------------------
+//     update_blocks_
+// -------------------------------------------------------------------------
 
 void InputStream::update_blocks_()
 {
@@ -744,6 +744,47 @@ void InputStream::update_blocks_()
 
     // After the update, the current position needs to be within the first block.
     assert( data_pos_ < BlockLength );
+}
+
+// -------------------------------------------------------------------------
+//     set_current_char_
+// -------------------------------------------------------------------------
+
+void InputStream::set_current_char_()
+{
+    // Check end of stream conditions.
+    if( data_pos_ >= data_end_ ) GENESIS_UNLIKELY {
+        // We do not expect to overshoot. Let's assert this, but if it still happens
+        // (in release build), we can also cope, and will just set \0 as the current char.
+        assert( data_pos_ == data_end_ );
+
+        if( data_pos_ == data_end_ && data_pos_ > 0 && buffer_[ data_pos_ - 1 ] != '\n' ) {
+            // If this is the end of the data, but there was no closing \n, add one.
+            buffer_[ data_pos_ ] = '\n';
+            ++data_end_;
+        } else {
+            // If we reached the end, do not fully reset the line and column counters.
+            // They might be needed in some parser.
+            current_ = '\0';
+            return;
+        }
+    }
+
+    // Treat stupid Windows and Mac lines breaks. Set them to \n, so that downstream parsers
+    // don't have to deal with this.
+    if( buffer_[ data_pos_ ] == '\r' ) {
+        buffer_[ data_pos_ ] = '\n';
+
+        // If this is a Win line break \r\n, skip one of them, so that only a single \n
+        // is visible to the outside. We do not treat \n\r line breaks properly here!
+        // If any system still uses those, we'd have to change code here.
+        if( data_pos_ + 1 < data_end_ && buffer_[ data_pos_ + 1 ] == '\n' ) {
+            ++data_pos_;
+        }
+    }
+
+    // Set the char.
+    current_ = buffer_[ data_pos_ ];
 }
 
 } // namespace utils

@@ -258,11 +258,15 @@ TEST( WindowStream, GenomeStream )
             pos_per_chr.push_back(0);
             // LOG_DBG << "chr " << it->chromosome();
             for( auto const& elem : *it ) {
-                // LOG_DBG1 << "at " << elem.position;
+                // LOG_DBG1 << "at " << elem.chromosome << ":" << elem.position;
                 (void) elem;
                 ++pos_per_chr.back();
             }
             // LOG_DBG << "done " << cnt;
+
+            // Test the window chr and len as set by the stream
+            EXPECT_EQ( 1, it->chromosomes().count( "2R" ));
+            EXPECT_EQ( 7850275, it->chromosomes().at( "2R" ));
         }
 
         // Tests
@@ -286,11 +290,17 @@ TEST( WindowStream, GenomeStream )
             pos_per_chr.push_back(0);
             // LOG_DBG << "chr " << it->chromosome();
             for( auto const& elem : *it ) {
-                // LOG_DBG1 << "at " << elem.position;
+                // LOG_DBG1 << "at " << elem.chromosome << ":" << elem.position;
                 (void) elem;
                 ++pos_per_chr.back();
             }
             // LOG_DBG << "done " << cnt;
+
+            // Test the window chr and len as set by the stream
+            EXPECT_EQ( 1, it->chromosomes().count( "seq1" ));
+            EXPECT_EQ( 1, it->chromosomes().count( "seq2" ));
+            EXPECT_EQ( 1569, it->chromosomes().at( "seq1" ));
+            EXPECT_EQ( 1567, it->chromosomes().at( "seq2" ));
         }
 
         // Tests

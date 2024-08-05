@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -38,6 +38,7 @@
 #include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/string.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <fstream>
@@ -109,9 +110,9 @@ bool FastaReader::parse_sequence(
     utils::InputStream& input_stream,
     Sequence&           sequence
 ) const {
-    // Init. Call clear in order to avoid not setting properties that might be added to
-    // Sequence in the future. Should not noticeable affect speed, as the sequence string capacities
-    // should not change when setting the strings to empty strings.
+    // Init. Call clear on the sequence in order to avoid not setting properties that might be added
+    // to Sequence in the future. Should not noticeable affect speed, as the sequence string
+    // capacities should not change when setting the strings to empty strings.
     auto& it = input_stream;
     sequence.clear();
 
@@ -124,10 +125,6 @@ bool FastaReader::parse_sequence(
     //     Label
     // ---------------------------------------------
 
-    // Scope to ensure that the label line is only used
-    // while we actually are in that line.
-    {
-
     // Check beginning of sequence.
     if( !it || *it != '>' ) {
         throw std::runtime_error(
@@ -139,33 +136,29 @@ bool FastaReader::parse_sequence(
     ++it;
 
     // Parse label.
-    std::string const label = utils::read_while( it, isprint );
-    if( label == "" ) {
+    buffer_.clear();
+    it.get_line( buffer_ );
+    auto const buffer_is_print = std::all_of(
+        buffer_.cbegin(),
+        buffer_.cend(),
+        []( char c ){
+            return utils::is_print( c );
+        }
+    );
+    if( buffer_.empty() || !buffer_is_print ) {
         throw std::runtime_error(
-            "Malformed Fasta " + it.source_name()
-            + ": Expecting label after '>' in sequence at line " + std::to_string( it.line() ) + "."
+            "Malformed Fasta " + it.source_name() + ": Expecting valid label after '>' "
+            "in sequence at line " + std::to_string( it.line() ) + ", but instead the label "
+            "is empty or contains non-printable characters."
         );
     }
     if( guess_abundances_ ) {
-        auto const la = guess_sequence_abundance( label );
+        auto const la = guess_sequence_abundance( buffer_ );
         sequence.label( la.first );
         sequence.abundance( la.second );
     } else {
-        sequence.label( label );
+        sequence.label( buffer_ );
     }
-
-    // Check for unexpected end of file.
-    if( !it || *it != '\n' ) {
-        throw std::runtime_error(
-            "Malformed Fasta " + it.source_name()
-            + ": Unexpected characters at the end of the label line in sequence at line "
-            + std::to_string( it.line() ) + "."
-        );
-    }
-    assert( it && *it == '\n' );
-    ++it;
-
-    } // End of line scope. We are done with the label line.
 
     // ---------------------------------------------
     //     Sites
@@ -188,20 +181,19 @@ bool FastaReader::parse_sequence(
     }
     assert( it );
 
-    // Reserve some tmp memory. We will later copy the content, so that superfluous capacity
-    // is stripped.
-    // We could do a sites.reserve( ... ) here, but this yields only minor speedups.
-    std::string sites;
-    // sites.reserve( n );
+    // Use some tmp memory. We will later copy the content, so that superfluous capacity
+    // is stripped. We could do a sites.reserve( ... ) here, but this yields only minor speedups.
+    buffer_.clear();
+    // buffer_.reserve( n );
 
     // Parse sequence. At every beginning of the loop, we are at a line start.
     while( it && *it != '>' ) {
         assert( it.column() == 1 );
-        it.get_line( sites );
+        it.get_line( buffer_ );
     }
     assert( !it || *it == '>' );
 
-    if( sites.length() == 0 ) {
+    if( buffer_.length() == 0 ) {
         throw std::runtime_error(
             "Malformed Fasta " + it.source_name() + ": Empty sequence at line "
             + std::to_string( it.line() - 1 ) + "."
@@ -209,14 +201,14 @@ bool FastaReader::parse_sequence(
     }
 
     if( site_casing_ == SiteCasing::kToUpper ) {
-        sequence.sites() = utils::to_upper_ascii( sites );
+        sequence.sites() = utils::to_upper_ascii( buffer_ );
     } else if( site_casing_ == SiteCasing::kToLower ) {
-        sequence.sites() = utils::to_lower_ascii( sites );
+        sequence.sites() = utils::to_lower_ascii( buffer_ );
     } else {
         // We could do a move here instead, but this way, we save some memory, which might be
         // more reasonable for big sequences files than the small gain in speed.
         // sequence.sites() = std::move(sites);
-        sequence.sites() = sites;
+        sequence.sites() = buffer_;
     }
 
     if( use_validation_ ) {

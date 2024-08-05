@@ -522,9 +522,14 @@ VariantInputStream make_variant_input_stream_from_vcf_file_(
             auto& vcf_it = *input;
 
             // Only use the lines that have the "AD" field (if needed), and fit the other criteria.
-            // If any test fails, skip this position.
+            // If any test fails, skip this position. In particular, we need to skip everything
+            // that is not a single change (contains ref or alt that is not a single nucleotide)
+            // when working with Pool data.
             for( ; vcf_it; ++vcf_it ) {
                 if( use_allelic_depth && ! vcf_it->has_format( "AD" ) ) {
+                    continue;
+                }
+                if( pool_samples && ! vcf_it->is_snp_or_alt_del() ) {
                     continue;
                 }
                 if( params.only_snps && ! vcf_it->is_snp() ) {
