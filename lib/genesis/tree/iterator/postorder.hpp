@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -35,10 +35,11 @@
 #include "genesis/tree/tree/subtree.hpp"
 #include "genesis/utils/containers/range.hpp"
 
+#include <algorithm>
 #include <cassert>
-#include <deque>
 #include <iterator>
 #include <type_traits>
+#include <vector>
 
 namespace genesis {
 namespace tree {
@@ -128,21 +129,21 @@ public:
         stack_.push_back( link_ptr );
 
         // Now start traversing in the direction of this link.
-        stack_.push_front( &link_ptr->outer() );
+        stack_.push_back( &link_ptr->outer() );
         link_ptr = &link_ptr->outer();
 
         // Add all inner nodes along the first path, until we reach a leaf.
         while( is_inner_( *link_ptr )) {
-            push_front_children_( link_ptr );
+            push_back_children_( link_ptr );
             link_ptr = &link_ptr->next().outer();
         }
 
         // The fist leaf that we found is the last link that was added.
         // Remove it from the stack again, because this is where we stop - this is the first
         // node being visited, and hence does not need to be on the stack any more
-        // (it was added to keep the push_front_children fct simple and without edge case).
-        assert( link_ptr == stack_.front() );
-        stack_.pop_front();
+        // (it was added to keep the push_back_children fct simple and without edge case).
+        assert( link_ptr == stack_.back() );
+        stack_.pop_back();
         link_ = link_ptr;
     }
 
@@ -163,14 +164,14 @@ public:
 
         // Find the first leaf.
         while( is_inner_( *link_ptr )) {
-            push_front_children_( link_ptr );
+            push_back_children_( link_ptr );
             link_ptr = &link_ptr->next().outer();
         }
 
         // The leaf that was last added is the one that we visit now.
         // Remove it again, as we are here now.
-        assert( link_ptr == stack_.front() );
-        stack_.pop_front();
+        assert( link_ptr == stack_.back() );
+        stack_.pop_back();
         link_ = link_ptr;
     }
 
@@ -199,24 +200,24 @@ public:
             // There are no more links on the stack to be visited.
             link_ = nullptr;
 
-        } else if( &link_->outer().next() == stack_.front() ) {
+        } else if( &link_->outer().next() == stack_.back() ) {
 
             // This condition is active when seeing an inner node the last time,
             // meaning that it is its turn to be visited.
-            link_ = stack_.front();
-            stack_.pop_front();
+            link_ = stack_.back();
+            stack_.pop_back();
 
         } else {
 
             // This condition is active in all other cases: going down the tree towards the leaves.
             // That means, we are in a part that is not yet on the stack, so we need to add it.
-            link_ = stack_.front();
+            link_ = stack_.back();
             while( is_inner_( *link_ )) {
-                push_front_children_(link_);
+                push_back_children_(link_);
                 link_ = &link_->next().outer();
             }
-            assert( link_ == stack_.front() );
-            stack_.pop_front();
+            assert( link_ == stack_.back() );
+            stack_.pop_back();
         }
 
         return *this;
@@ -279,20 +280,20 @@ private:
     //     Internal Helper Functions
     // -----------------------------------------------------
 
-    void push_front_children_( LinkType* link )
+    void push_back_children_( LinkType* link )
     {
-        // we need to push to a tmp queue first, in order to get the order right.
-        // otherwise, we would still do a postorder traversal, but starting with
+        // We add the children, and at the end reverse their order.
+        // Otherwise, we would still do a postorder traversal, but starting with
         // the last child of each node instead of the first one.
-        std::deque<LinkType*> tmp;
+        size_t push_cnt = 0;
         LinkType* c = &link->next();
         while( c != link ) {
-            tmp.push_front( &c->outer() );
+            stack_.push_back( &c->outer() );
+            ++push_cnt;
             c = &c->next();
         }
-        for( LinkType* l : tmp ) {
-            stack_.push_front(l);
-        }
+        assert( stack_.size() >= push_cnt );
+        std::reverse( stack_.end() - push_cnt, stack_.end() );
     }
 
     bool is_inner_( TreeLink const& link )
@@ -308,7 +309,7 @@ private:
     LinkType* const       start_;
     LinkType*             link_;
 
-    std::deque<LinkType*> stack_;
+    std::vector<LinkType*> stack_;
 };
 
 // =================================================================================================
