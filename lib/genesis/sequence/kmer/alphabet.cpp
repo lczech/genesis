@@ -41,6 +41,9 @@ namespace sequence {
 // ================================================================================================
 
 // Need out-of-line definition in C++11... Just to make the compiler happy.
+
+std::string const KmerAlphabet::ALPHABET = "ACGT";
+
 // std::array<uint8_t, 256> constexpr KmerAlphabet::ascii_to_nt4;
 
 } // namespace sequence

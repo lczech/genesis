@@ -258,7 +258,14 @@ public:
      */
     typename Bitfield::WordType rev_comp = 0;
 
-    // size_t location = 0;
+    /**
+     * @brief Location of the kmer in the original input sequence.
+     *
+     * This is the position (0-based) of the first character of the kmer in the sequence.
+     * Might not be set by all methods. Defaults to max() to indicate that it is not valid.
+     */
+    size_t location = std::numeric_limits<size_t>::max();
+
     // Bitmask::WordType invalid_chars;
 
     // -------------------------------------------------------------------------

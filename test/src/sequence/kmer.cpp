@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/sequence/kmer/kmer.hpp"
+#include "genesis/sequence/kmer/extractor.hpp"
 #include "genesis/sequence/kmer/function.hpp"
 #include "genesis/utils/math/random.hpp"
 
@@ -43,7 +44,7 @@ using namespace genesis::utils;
 
 TEST( Kmer, Basics )
 {
-    Kmer<KmerTagDefault>::set_k( 7 );
+    Kmer<KmerTagDefault>::reset_k( 7 );
 
     // GATACAC = 0b 01 00 01 00 11 00 10 = 0x1132
     auto const k1 = Kmer<KmerTagDefault>( 0x1132 );
@@ -74,11 +75,19 @@ TEST( Kmer, CanonicalRepresentation )
         Kmer<KmerTagDefault>::reset_k( k );
         for( size_t i = 0; i < number_of_kmers( k ); ++i ) {
 
-            // Test that the canonical representation is the same for the kmer and its rc.
             auto const km = Kmer<KmerTagDefault>( i );
             auto const rc = reverse_complement( km );
             // LOG_DBG1 << km << " <-> " << rc << " --> " << canonical_representation( km );
+            EXPECT_EQ( 0, km.rev_comp );
+            EXPECT_EQ( km.value, rc.rev_comp );
+
+            // Test that the canonical representation is the same for the kmer and its rc.
             EXPECT_EQ( canonical_representation( km ), canonical_representation( rc ));
+
+            // Test that the rc of the rc is the original again.
+            // We make a copy of the rc here, to ensure that we are testing the value.
+            auto rcrc = reverse_complement( Kmer<KmerTagDefault>( rc.value ));
+            EXPECT_EQ( rcrc.value, km.value );
 
             // Test that the canonical representation follows lexicographical ordering,
             // by actually sorting the string representation.
@@ -87,6 +96,126 @@ TEST( Kmer, CanonicalRepresentation )
             auto const crs = kms < rcs ? kms : rcs;
             EXPECT_EQ( crs, to_string( canonical_representation( km )));
             EXPECT_EQ( crs, to_string( canonical_representation( rc )));
+        }
+    }
+}
+
+TEST( Kmer, ExtractorBasics )
+{
+    using Alphabet = Kmer<KmerTagDefault>::Alphabet;
+
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    // Set the k for this test.
+    Kmer<KmerTagDefault>::reset_k( 7 );
+    auto const k = Kmer<KmerTagDefault>::k();
+
+    for( size_t i = 0; i < 1000; ++i ) {
+        // Make a string of length i with random valid chars.
+        auto sequence = std::string( i, '-' );
+        for( size_t j = 0; j < i; ++j ) {
+            sequence[j] = Alphabet::rank_to_char(
+                permuted_congruential_generator( Alphabet::MAX_RANK )
+            );
+        }
+        EXPECT_EQ( i, sequence.size() );
+
+        // LOG_DBG << "==================================";
+        // LOG_DBG << "  at " << i << ": " << sequence;
+
+        // Run the kmer extractor
+        size_t start_loc = 0;
+        auto extractor = KmerExtractor<KmerTagDefault>( sequence );
+        for( auto it = extractor.begin(); it != extractor.end(); ++it ) {
+            // LOG_DBG1 << to_string( *it );
+
+            // Basic tests of the location and characters at that location.
+            EXPECT_EQ( it->location, start_loc );
+            EXPECT_LE( it->location + k, sequence.size() );
+            EXPECT_EQ( to_string( *it ), sequence.substr( start_loc, k ));
+
+            // Test that the rc was set correctly by the extractor.
+            EXPECT_EQ( it->rev_comp, reverse_complement( Kmer<KmerTagDefault>( it->value )).value );
+            ++start_loc;
+        }
+
+        // Expect correct num of iterations
+        if( sequence.size() >= k ) {
+            EXPECT_EQ( start_loc, sequence.size() - k + 1 );
+        } else {
+            EXPECT_EQ( start_loc, 0 );
+        }
+    }
+}
+
+TEST( Kmer, ExtractorInvalids )
+{
+    using Alphabet = Kmer<KmerTagDefault>::Alphabet;
+
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    // Set the k for this test.
+    Kmer<KmerTagDefault>::reset_k( 7 );
+    auto const k = Kmer<KmerTagDefault>::k();
+
+    for( size_t i = k; i < 1000; ++i ) {
+        // Make a string of length i with random valid chars.
+        auto sequence = std::string( i, '-' );
+        for( size_t j = 0; j < i; ++j ) {
+            sequence[j] = Alphabet::rank_to_char(
+                permuted_congruential_generator( Alphabet::MAX_RANK )
+            );
+        }
+        EXPECT_EQ( i, sequence.size() );
+
+        // Replace some random characters to invalid values.
+        // We set up to the number of chars, but as we draw with replacement,
+        // effectively we almost never set all of them to invalid chars.
+        auto const num_inv = permuted_congruential_generator( 0, i );
+        for( size_t j = 0; j < num_inv; ++j ) {
+            auto const pos = permuted_congruential_generator( 0, sequence.size() - 1 );
+            sequence[pos] = 'N';
+        }
+
+        // LOG_DBG << "==================================";
+        // LOG_DBG << "  at " << i << ": " << sequence;
+
+        // Run the kmer extractor in sync with the sequence, where we need to skip over invalids.
+        size_t start_loc = 0;
+        auto extractor = KmerExtractor<KmerTagDefault>( sequence );
+        auto cur = extractor.begin();
+        auto end = extractor.end();
+        while( start_loc + k <= sequence.size() ) {
+            // Get the substr at the current location.
+            // If it is invalid, go on to the next.
+            auto const kstr = sequence.substr( start_loc, k );
+            if( kstr.find_first_not_of( Alphabet::ALPHABET ) != std::string::npos ) {
+                // LOG_DBG1 << kstr << " skip";
+                ++start_loc;
+                continue;
+            }
+            // LOG_DBG1 << kstr << " good";
+
+            // Now we are at a valid kmer in the input. The extractor also needs to be valid here.
+            ASSERT_NE( cur, end );
+
+            // Basic tests of the location and character at that location.
+            EXPECT_EQ( cur->location, start_loc );
+            EXPECT_LE( cur->location + k, sequence.size() );
+            EXPECT_EQ( to_string( *cur ), kstr );
+
+            // Test that the rc was set correctly by the extractor.
+            EXPECT_EQ( cur->rev_comp, reverse_complement( Kmer<KmerTagDefault>( cur->value )).value );
+
+            // Now move both to the next location
+            ++start_loc;
+            ++cur;
         }
     }
 }

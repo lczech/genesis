@@ -56,6 +56,11 @@ struct KmerAlphabet
     // -------------------------------------------------------------------------
 
     /**
+     * @brief All characters in the alphabet.
+     */
+    static const std::string ALPHABET;
+
+    /**
      * @brief Size of the alphabet, i.e., the number of different symbols in it.
      */
     static const uint8_t SIZE = 4;
