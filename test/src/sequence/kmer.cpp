@@ -42,6 +42,25 @@ using namespace genesis;
 using namespace genesis::sequence;
 using namespace genesis::utils;
 
+std::string make_random_kmer_sequence( size_t length )
+{
+    using Alphabet = Kmer<KmerTagDefault>::Alphabet;
+
+    // Make a string of length i with random valid chars.
+    auto sequence = std::string( length, '-' );
+    for( size_t i = 0; i < length; ++i ) {
+        sequence[i] = Alphabet::rank_to_char(
+            permuted_congruential_generator( Alphabet::MAX_RANK )
+        );
+    }
+    EXPECT_EQ( length, sequence.size() );
+    return sequence;
+}
+
+// =================================================================================================
+//     Basics
+// =================================================================================================
+
 TEST( Kmer, Basics )
 {
     Kmer<KmerTagDefault>::reset_k( 7 );
@@ -62,6 +81,23 @@ TEST( Kmer, Basics )
     // Canonical
     EXPECT_EQ( "GATACAC", to_string( canonical_representation( k1 )));
     EXPECT_EQ( "GATACAC", to_string( canonical_representation( k2 )));
+}
+
+TEST( Kmer, Lengths )
+{
+    using Alphabet = Kmer<KmerTagDefault>::Alphabet;
+    using Bitfield = Kmer<KmerTagDefault>::Bitfield;
+
+    for( size_t k = 1; k <= Bitfield::MAX_CHARS_PER_KMER; ++k ) {
+        Kmer<KmerTagDefault>::reset_k( k );
+        auto seq = make_random_kmer_sequence( k );
+        auto kmer = kmer_from_string<KmerTagDefault>( seq );
+        EXPECT_TRUE( validate( kmer ));
+        EXPECT_EQ( to_string( kmer ), seq );
+        for( size_t i = 0; i < k; ++i ) {
+            EXPECT_EQ( Alphabet::rank_to_char( kmer[i] ), seq[i] );
+        }
+    }
 }
 
 TEST( Kmer, CanonicalRepresentation )
@@ -100,10 +136,12 @@ TEST( Kmer, CanonicalRepresentation )
     }
 }
 
+// =================================================================================================
+//     Extractor
+// =================================================================================================
+
 TEST( Kmer, ExtractorBasics )
 {
-    using Alphabet = Kmer<KmerTagDefault>::Alphabet;
-
     // Random seed. Report it, so that in an error case, we can reproduce.
     auto const seed = ::time(nullptr);
     permuted_congruential_generator_init( seed );
@@ -114,14 +152,7 @@ TEST( Kmer, ExtractorBasics )
     auto const k = Kmer<KmerTagDefault>::k();
 
     for( size_t i = 0; i < 1000; ++i ) {
-        // Make a string of length i with random valid chars.
-        auto sequence = std::string( i, '-' );
-        for( size_t j = 0; j < i; ++j ) {
-            sequence[j] = Alphabet::rank_to_char(
-                permuted_congruential_generator( Alphabet::MAX_RANK )
-            );
-        }
-        EXPECT_EQ( i, sequence.size() );
+        auto const sequence = make_random_kmer_sequence( i );
 
         // LOG_DBG << "==================================";
         // LOG_DBG << "  at " << i << ": " << sequence;
@@ -165,14 +196,7 @@ TEST( Kmer, ExtractorInvalids )
     auto const k = Kmer<KmerTagDefault>::k();
 
     for( size_t i = k; i < 1000; ++i ) {
-        // Make a string of length i with random valid chars.
-        auto sequence = std::string( i, '-' );
-        for( size_t j = 0; j < i; ++j ) {
-            sequence[j] = Alphabet::rank_to_char(
-                permuted_congruential_generator( Alphabet::MAX_RANK )
-            );
-        }
-        EXPECT_EQ( i, sequence.size() );
+        auto sequence = make_random_kmer_sequence( i );
 
         // Replace some random characters to invalid values.
         // We set up to the number of chars, but as we draw with replacement,

@@ -165,7 +165,6 @@ public:
      */
     inline uint8_t get( uint8_t position ) const
     {
-        assert( validate() );
         if( position >= k_ ) {
             throw std::invalid_argument(
                 "Invalid position " + std::to_string( position ) +
@@ -183,7 +182,6 @@ public:
      */
     inline void set( uint8_t position, uint8_t rank )
     {
-        assert( validate() );
         if( position >= k_ ) {
             throw std::invalid_argument(
                 "Invalid position " + std::to_string( position ) +
@@ -205,27 +203,6 @@ public:
     inline operator typename Bitfield::WordType() const
     {
         return value;
-    }
-
-    /**
-     * @brief Validate the current kmer by checking some basic properties.
-     */
-    bool validate( bool throw_if_invalid = false ) const
-    {
-        bool valid = true;
-
-        // Check k.
-        valid &= ( k_ > 0 && k_ <= Bitfield::MAX_CHARS_PER_KMER );
-
-        // Check that only the valid bits for the given k are set.
-        valid &= (( value    & Bitfield::ones_mask[k_] ) == value );
-        valid &= (( rev_comp & Bitfield::ones_mask[k_] ) == rev_comp );
-
-        // Respond to the result of the check.
-        if( ! valid && throw_if_invalid ) {
-            throw std::runtime_error( "Invalid kmer" );
-        }
-        return valid;
     }
 
     // -------------------------------------------------------------------------

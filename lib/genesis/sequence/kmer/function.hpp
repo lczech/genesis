@@ -111,6 +111,34 @@ std::ostream& operator<< ( std::ostream& output, Kmer<Tag> const& kmer )
     return output;
 }
 
+/**
+ * @brief Validate a @p kmer by checking some basic properties.
+ */
+template<typename Tag>
+bool validate( Kmer<Tag> const& kmer, bool throw_if_invalid = false )
+{
+    using Bitfield = typename Kmer<Tag>::Bitfield;
+    bool valid = true;
+
+    // Check k.
+    valid &= ( kmer.k() > 0 && kmer.k() <= Bitfield::MAX_CHARS_PER_KMER );
+
+    // Check that only the valid bits for the given k are set.
+    valid &= (( kmer.value    & Bitfield::ones_mask[kmer.k()] ) == kmer.value );
+    valid &= (( kmer.rev_comp & Bitfield::ones_mask[kmer.k()] ) == kmer.rev_comp );
+
+    // Check that the reverse complement is correct.
+    auto copy = Kmer<Tag>( kmer.value );
+    set_reverse_complement( copy );
+    valid &= ( kmer.rev_comp == copy.rev_comp || kmer.rev_comp == 0 );
+
+    // Respond to the result of the check.
+    if( ! valid && throw_if_invalid ) {
+        throw std::runtime_error( "Invalid kmer" );
+    }
+    return valid;
+}
+
 // =================================================================================================
 //     Kmer Operators
 // =================================================================================================
@@ -182,9 +210,6 @@ void set_reverse_complement( Kmer<Tag>& kmer )
     );
     using Bitfield = typename Kmer<Tag>::Bitfield;
 
-    // Check the kmer validity.
-    assert( kmer.validate() );
-
     // Nothing to do if already set.
     // If the rc is AAAA, we cannot detect this, and compute it anyway below.
     if( kmer.rev_comp != 0 ) {
@@ -208,7 +233,6 @@ void set_reverse_complement( Kmer<Tag>& kmer )
     assert( Bitfield::BIT_WIDTH >= kmer.k() * Bitfield::BITS_PER_CHAR );
     value = ((~value) >> ( Bitfield::BIT_WIDTH - kmer.k() * Bitfield::BITS_PER_CHAR ));
     kmer.rev_comp = value;
-    assert( kmer.validate() );
 }
 
 /**
@@ -221,7 +245,7 @@ Kmer<Tag> reverse_complement( Kmer<Tag> const& kmer )
     auto result = kmer;
     set_reverse_complement( result );
     std::swap( result.value, result.rev_comp );
-    assert( result.validate() );
+    assert( validate( result ));
     return result;
 }
 
@@ -255,7 +279,7 @@ Kmer<Tag> canonical_representation( Kmer<Tag> const& kmer )
     // Make the result, by flipping the original value and the rev_comp if needed.
     auto result = kmer;
     make_canonical( result );
-    assert( result.validate() );
+    assert( validate( result ));
     return result;
 }
 
