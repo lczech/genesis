@@ -45,25 +45,8 @@ namespace genesis {
 namespace sequence {
 
 // =================================================================================================
-//     Helper Functions
+//     String Functions
 // =================================================================================================
-
-/**
- * @brief Compute the total number of possible k-mers for a given @p k and @p alphabet_size.
- *
- * The default for @p alphabet_size is `4`, for typical nucleotide k-mers over the alphabet `ACGT`.
- * For instance, with `k==6`, this yields `4*4*4*4*4*4 == 4096` possible k-mers of that size.
- */
-inline size_t number_of_kmers( size_t k, size_t alphabet_size = 4 )
-{
-    // We do an explicit loop instead of using std::pow,
-    // in case that double precision is not enough here.
-    size_t n = 1;
-    for( size_t i = 0; i < k; ++i ) {
-        n *= alphabet_size;
-    }
-    return n;
-}
 
 /**
  * @brief Construct a kmer from an input string.
@@ -111,36 +94,8 @@ std::ostream& operator<< ( std::ostream& output, Kmer<Tag> const& kmer )
     return output;
 }
 
-/**
- * @brief Validate a @p kmer by checking some basic properties.
- */
-template<typename Tag>
-bool validate( Kmer<Tag> const& kmer, bool throw_if_invalid = false )
-{
-    using Bitfield = typename Kmer<Tag>::Bitfield;
-    bool valid = true;
-
-    // Check k.
-    valid &= ( kmer.k() > 0 && kmer.k() <= Bitfield::MAX_CHARS_PER_KMER );
-
-    // Check that only the valid bits for the given k are set.
-    valid &= (( kmer.value    & Bitfield::ones_mask[kmer.k()] ) == kmer.value );
-    valid &= (( kmer.rev_comp & Bitfield::ones_mask[kmer.k()] ) == kmer.rev_comp );
-
-    // Check that the reverse complement is correct.
-    auto copy = Kmer<Tag>( kmer.value );
-    set_reverse_complement( copy );
-    valid &= ( kmer.rev_comp == copy.rev_comp || kmer.rev_comp == 0 );
-
-    // Respond to the result of the check.
-    if( ! valid && throw_if_invalid ) {
-        throw std::runtime_error( "Invalid kmer" );
-    }
-    return valid;
-}
-
 // =================================================================================================
-//     Kmer Operators
+//     Kmer Comparison
 // =================================================================================================
 
 template<typename Tag>
@@ -180,7 +135,70 @@ bool operator>( Kmer<Tag> const& lhs, Kmer<Tag> const& rhs )
 }
 
 // =================================================================================================
-//     Nucleotide Kmer Functions
+//     Counting
+// =================================================================================================
+
+/**
+ * @brief Compute the total number of possible k-mers for a given @p k and @p alphabet_size.
+ *
+ * The default for @p alphabet_size is `4`, for typical nucleotide k-mers over the alphabet `ACGT`.
+ * For instance, with `k==6`, this yields `4*4*4*4*4*4 == 4096` possible k-mers of that size.
+ */
+inline uint64_t number_of_kmers( uint8_t k, uint8_t alphabet_size = 4 )
+{
+    // We do an explicit loop instead of using std::pow,
+    // in case that double precision is not enough here.
+    size_t n = 1;
+    for( size_t i = 0; i < k; ++i ) {
+        n *= alphabet_size;
+    }
+    return n;
+}
+
+/**
+ * @brief Compute the number of canonical k-mers for a given k and nucleotide alphabet.
+ *
+ * This follows Wittler 2023, [doi:10.24072/pcjournal.323](https://doi.org/10.24072/pcjournal.323).
+ * See there for the equations implemented here. We use it for indexing k-mers to achieve a minimal
+ * encoding of canonical k-mers, as explained there.
+ */
+inline uint64_t number_of_canonical_kmers( uint8_t k )
+{
+    // Helper function to compute integer exponentiation by squaring,
+    // see http://stackoverflow.com/a/101613/4184258
+    auto int_exp_ = []( uint64_t base, uint8_t exp )
+    {
+        uint64_t res = 1;
+        while( exp )  {
+            if( exp & 1 ) {
+                res *= base;
+            }
+            exp >>= 1;
+            base *= base;
+        }
+        return res;
+    };
+
+    // We need distinct approaches for even and odd values, due to palindromes.
+    // It might be easier to just have a hard coded table... but this way is more approachable.
+    if( k == 0 || k > 32 ) {
+        throw std::invalid_argument( "Can only compute minimal encoding size for k in [1,32]" );
+    } else if( k % 2 == 0 ) {
+        // Even numbers, need to add palindromes.
+        // We use base 2 here, and instead of dividing the result by 2 in the end, we subtract 1
+        // from the exponent, in order to avoid overflowing for the case k=32.
+        // The original (overflowing) equation from the paper is commented out below for reference.
+        return int_exp_( 2, 2 * k - 1 ) + int_exp_( 2, 2 * k / 2 - 1 );
+        // return ( int_exp_( 4, k ) + int_exp_( 4, k / 2 )) / 2;
+    } else {
+        // Odd numbers. No overflow for the valid range.
+        return int_exp_( 4, k ) / 2;
+    }
+    return 0;
+}
+
+// =================================================================================================
+//     Reverse Complementing
 // =================================================================================================
 
 /**
@@ -281,6 +299,38 @@ Kmer<Tag> canonical_representation( Kmer<Tag> const& kmer )
     make_canonical( result );
     assert( validate( result ));
     return result;
+}
+
+// =================================================================================================
+//     Helper Functions
+// =================================================================================================
+
+/**
+ * @brief Validate a @p kmer by checking some basic properties.
+ */
+template<typename Tag>
+bool validate( Kmer<Tag> const& kmer, bool throw_if_invalid = false )
+{
+    using Bitfield = typename Kmer<Tag>::Bitfield;
+    bool valid = true;
+
+    // Check k.
+    valid &= ( kmer.k() > 0 && kmer.k() <= Bitfield::MAX_CHARS_PER_KMER );
+
+    // Check that only the valid bits for the given k are set.
+    valid &= (( kmer.value    & Bitfield::ones_mask[kmer.k()] ) == kmer.value );
+    valid &= (( kmer.rev_comp & Bitfield::ones_mask[kmer.k()] ) == kmer.rev_comp );
+
+    // Check that the reverse complement is correct.
+    auto copy = Kmer<Tag>( kmer.value );
+    set_reverse_complement( copy );
+    valid &= ( kmer.rev_comp == copy.rev_comp || kmer.rev_comp == 0 );
+
+    // Respond to the result of the check.
+    if( ! valid && throw_if_invalid ) {
+        throw std::runtime_error( "Invalid kmer" );
+    }
+    return valid;
 }
 
 } // namespace sequence

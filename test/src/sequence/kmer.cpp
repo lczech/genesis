@@ -36,8 +36,10 @@
 #include "genesis/sequence/kmer/microvariant_scanner.hpp"
 #include "genesis/utils/math/random.hpp"
 
+#include <cstdint>
 #include <fstream>
 #include <string>
+#include <vector>
 
 using namespace genesis;
 using namespace genesis::sequence;
@@ -348,5 +350,27 @@ TEST( Kmer, MicrovariantScanner )
                 ++cnt;
             }
         }
+    }
+}
+
+// =================================================================================================
+//     Minimal Canonical Encoding
+// =================================================================================================
+
+TEST( Kmer, NumCanonicalKmers )
+{
+    // We here test against a hard coded fixed table, which we could instead just use that table
+    // to return the values in the function being tested... But well, seems cleaner to implement
+    // the function as an actual computation following the original equation.
+    auto const exp = std::vector<uint64_t>{{
+        0, 2, 10, 32, 136, 512, 2080, 8192, 32896, 131072, 524800, 2097152, 8390656, 33554432,
+        134225920, 536870912, 2147516416, 8589934592, 34359869440, 137438953472, 549756338176,
+        2199023255552, 8796095119360, 35184372088832, 140737496743936, 562949953421312,
+        2251799847239680, 9007199254740992, 36028797153181696, 144115188075855872,
+        576460752840294400, 2305843009213693952, 9223372039002259456ULL
+    }};
+
+    for( size_t i = 1; i <= 32; ++i ) {
+        EXPECT_EQ( exp[i], number_of_canonical_kmers( i ));
     }
 }
