@@ -33,6 +33,7 @@
 #include "genesis/sequence/kmer/kmer.hpp"
 #include "genesis/sequence/kmer/extractor.hpp"
 #include "genesis/sequence/kmer/function.hpp"
+#include "genesis/sequence/kmer/microvariant_scanner.hpp"
 #include "genesis/utils/math/random.hpp"
 
 #include <fstream>
@@ -55,6 +56,38 @@ std::string make_random_kmer_sequence( size_t length )
     }
     EXPECT_EQ( length, sequence.size() );
     return sequence;
+}
+
+// Hand-crafted reverse complement on a string
+std::string string_rev_comp( std::string const& str )
+{
+    auto res = std::string( str.size(), '#' );
+    for( size_t i = 0; i < str.size(); ++i ) {
+        char rc = '-';
+        switch( str[i] ) {
+            case 'A': {
+                rc = 'T';
+                break;
+            }
+            case 'C': {
+                rc = 'G';
+                break;
+            }
+            case 'G': {
+                rc = 'C';
+                break;
+            }
+            case 'T': {
+                rc = 'A';
+                break;
+            }
+            default: {
+                rc = 'X';
+            }
+        }
+        res[ str.size() - i - 1 ] = rc;
+    }
+    return res;
 }
 
 // =================================================================================================
@@ -116,6 +149,8 @@ TEST( Kmer, CanonicalRepresentation )
             // LOG_DBG1 << km << " <-> " << rc << " --> " << canonical_representation( km );
             EXPECT_EQ( 0, km.rev_comp );
             EXPECT_EQ( km.value, rc.rev_comp );
+            EXPECT_TRUE( validate( km ));
+            EXPECT_TRUE( validate( rc ));
 
             // Test that the canonical representation is the same for the kmer and its rc.
             EXPECT_EQ( canonical_representation( km ), canonical_representation( rc ));
@@ -124,6 +159,7 @@ TEST( Kmer, CanonicalRepresentation )
             // We make a copy of the rc here, to ensure that we are testing the value.
             auto rcrc = reverse_complement( Kmer<KmerTagDefault>( rc.value ));
             EXPECT_EQ( rcrc.value, km.value );
+            EXPECT_TRUE( validate( rcrc ));
 
             // Test that the canonical representation follows lexicographical ordering,
             // by actually sorting the string representation.
@@ -132,6 +168,9 @@ TEST( Kmer, CanonicalRepresentation )
             auto const crs = kms < rcs ? kms : rcs;
             EXPECT_EQ( crs, to_string( canonical_representation( km )));
             EXPECT_EQ( crs, to_string( canonical_representation( rc )));
+
+            // Test that the rc is correct
+            EXPECT_EQ( rcs, string_rev_comp( kms ));
         }
     }
 }
@@ -167,6 +206,7 @@ TEST( Kmer, ExtractorBasics )
             EXPECT_EQ( it->location, start_loc );
             EXPECT_LE( it->location + k, sequence.size() );
             EXPECT_EQ( to_string( *it ), sequence.substr( start_loc, k ));
+            EXPECT_TRUE( validate( *it ));
 
             // Test that the rc was set correctly by the extractor.
             EXPECT_EQ( it->rev_comp, reverse_complement( Kmer<KmerTagDefault>( it->value )).value );
@@ -233,6 +273,7 @@ TEST( Kmer, ExtractorInvalids )
             EXPECT_EQ( cur->location, start_loc );
             EXPECT_LE( cur->location + k, sequence.size() );
             EXPECT_EQ( to_string( *cur ), kstr );
+            EXPECT_TRUE( validate( *cur ));
 
             // Test that the rc was set correctly by the extractor.
             EXPECT_EQ( cur->rev_comp, reverse_complement( Kmer<KmerTagDefault>( cur->value )).value );
@@ -240,6 +281,72 @@ TEST( Kmer, ExtractorInvalids )
             // Now move both to the next location
             ++start_loc;
             ++cur;
+        }
+
+        // Now we are done with the kmer extractor as well.
+        EXPECT_EQ( cur, end );
+    }
+}
+
+// =================================================================================================
+//     Microvariants
+// =================================================================================================
+
+TEST( Kmer, MicrovariantScanner )
+{
+    auto count_mismatches_ = []( std::string const& str1, std::string const& str2 )
+    {
+        EXPECT_EQ( str1.length(), str2.length() );
+
+        // Compare characters at each position in the strings
+        size_t mismatch_cnt = 0;
+        for( size_t i = 0; i < str1.length(); ++i ) {
+            if( str1[i] != str2[i] ) {
+                ++mismatch_cnt;
+            }
+        }
+        return mismatch_cnt;
+    };
+
+    // Test several different lengths of kmers
+    for( size_t k = 1; k < 10; ++k ) {
+        // LOG_DBG << "at " << k;
+        Kmer<KmerTagDefault>::reset_k( k );
+
+        // Test all kmers of that length
+        for( size_t i = 0; i < number_of_kmers( k ); ++i ) {
+
+            // Make the kmer
+            auto km = Kmer<KmerTagDefault>( i );
+            set_reverse_complement( km );
+            auto const kms = to_string( km );
+            auto const rcs = to_string( reverse_complement( km ));
+
+            // Go through all microvariants of the kmer,
+            // and test that they have edit distance 1 to the original.
+            size_t cnt = 0;
+            for( auto const& mv : iterate_microvariants( km )) {
+                // LOG_DBG << kmer;
+                auto const ekm = count_mismatches_( kms, to_string( mv ));
+                auto const erv = count_mismatches_( rcs, to_string( reverse_complement( mv )));
+
+                // Test that the rc was set correctly by the extractor.
+                EXPECT_EQ(
+                    mv.rev_comp,
+                    reverse_complement( Kmer<KmerTagDefault>( mv.value )).value
+                );
+                EXPECT_TRUE( validate( mv ));
+
+                // The first kmer is the original, so that has edit distance 0
+                if( cnt == 0 ) {
+                    EXPECT_EQ( 0, ekm );
+                    EXPECT_EQ( 0, erv );
+                } else {
+                    EXPECT_EQ( 1, ekm );
+                    EXPECT_EQ( 1, erv );
+                }
+                ++cnt;
+            }
         }
     }
 }
