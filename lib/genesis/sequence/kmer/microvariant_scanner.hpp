@@ -93,6 +93,13 @@ public:
         , pos_( 0 )
         , cnt_( 0 )
     {
+        // Correct setup
+        if( Kmer<Tag>::k() == 0 || Kmer<Tag>::k() > 32 ) {
+            throw std::invalid_argument(
+                "Cannot extract kmers with k=" + std::to_string( Kmer<Tag>::k() )
+            );
+        }
+
         // If we do not want the original kmer, iterate to the first microvariant.
         if( ! include_original ) {
             increment_();

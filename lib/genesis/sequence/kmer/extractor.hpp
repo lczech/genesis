@@ -112,6 +112,13 @@ public:
                 return;
             }
 
+            // Correct setup
+            if( Kmer<Tag>::k() == 0 || Kmer<Tag>::k() > 32 ) {
+                throw std::invalid_argument(
+                    "Cannot extract kmers with k=" + std::to_string( Kmer<Tag>::k() )
+                );
+            }
+
             // Start streaming the data
             assert( location_ == 0 );
             init_kmer_from_current_location_();

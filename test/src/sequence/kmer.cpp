@@ -328,7 +328,7 @@ TEST( Kmer, MicrovariantScanner )
             // and test that they have edit distance 1 to the original.
             size_t cnt = 0;
             for( auto const& mv : iterate_microvariants( km )) {
-                // LOG_DBG << kmer;
+                // LOG_DBG << mv;
                 auto const ekm = count_mismatches_( kms, to_string( mv ));
                 auto const erv = count_mismatches_( rcs, to_string( reverse_complement( mv )));
 
@@ -349,6 +349,9 @@ TEST( Kmer, MicrovariantScanner )
                 }
                 ++cnt;
             }
+
+            // We have 3 variants per position, plus the original kmer.
+            EXPECT_EQ( cnt, 1 + 3 * k );
         }
     }
 }
@@ -370,7 +373,7 @@ TEST( Kmer, NumCanonicalKmers )
         576460752840294400, 2305843009213693952, 9223372039002259456ULL
     }};
 
-    for( size_t i = 1; i <= 32; ++i ) {
-        EXPECT_EQ( exp[i], number_of_canonical_kmers( i ));
+    for( size_t k = 1; k <= 32; ++k ) {
+        EXPECT_EQ( exp[k], number_of_canonical_kmers( k ));
     }
 }

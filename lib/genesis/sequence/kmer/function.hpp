@@ -32,6 +32,7 @@
  */
 
 #include "genesis/sequence/kmer/kmer.hpp"
+#include "genesis/utils/math/common.hpp"
 
 #include <cassert>
 #include <cstdint>
@@ -144,7 +145,7 @@ bool operator>( Kmer<Tag> const& lhs, Kmer<Tag> const& rhs )
  * The default for @p alphabet_size is `4`, for typical nucleotide k-mers over the alphabet `ACGT`.
  * For instance, with `k==6`, this yields `4*4*4*4*4*4 == 4096` possible k-mers of that size.
  */
-inline uint64_t number_of_kmers( uint8_t k, uint8_t alphabet_size = 4 )
+inline size_t number_of_kmers( uint8_t k, uint8_t alphabet_size = 4 )
 {
     // We do an explicit loop instead of using std::pow,
     // in case that double precision is not enough here.
@@ -162,23 +163,8 @@ inline uint64_t number_of_kmers( uint8_t k, uint8_t alphabet_size = 4 )
  * See there for the equations implemented here. We use it for indexing k-mers to achieve a minimal
  * encoding of canonical k-mers, as explained there.
  */
-inline uint64_t number_of_canonical_kmers( uint8_t k )
+inline size_t number_of_canonical_kmers( uint8_t k )
 {
-    // Helper function to compute integer exponentiation by squaring,
-    // see http://stackoverflow.com/a/101613/4184258
-    auto int_exp_ = []( uint64_t base, uint8_t exp )
-    {
-        uint64_t res = 1;
-        while( exp )  {
-            if( exp & 1 ) {
-                res *= base;
-            }
-            exp >>= 1;
-            base *= base;
-        }
-        return res;
-    };
-
     // We need distinct approaches for even and odd values, due to palindromes.
     // It might be easier to just have a hard coded table... but this way is more approachable.
     if( k == 0 || k > 32 ) {
@@ -188,13 +174,31 @@ inline uint64_t number_of_canonical_kmers( uint8_t k )
         // We use base 2 here, and instead of dividing the result by 2 in the end, we subtract 1
         // from the exponent, in order to avoid overflowing for the case k=32.
         // The original (overflowing) equation from the paper is commented out below for reference.
-        return int_exp_( 2, 2 * k - 1 ) + int_exp_( 2, 2 * k / 2 - 1 );
-        // return ( int_exp_( 4, k ) + int_exp_( 4, k / 2 )) / 2;
+        return utils::int_pow( 2, 2 * k - 1 ) + utils::int_pow( 2, 2 * k / 2 - 1 );
+        // return ( utils::int_pow( 4, k ) + utils::int_pow( 4, k / 2 )) / 2;
     } else {
         // Odd numbers. No overflow for the valid range.
-        return int_exp_( 4, k ) / 2;
+        return utils::int_pow( 4, k ) / 2;
     }
     return 0;
+}
+
+/**
+ * @brief Compute the number of palindromes (under reverse complmenet) that exist
+ * for a given @p k and nucleotide alphabet.
+ *
+ * This is `0` for odd values of @p k, and `4^()`
+ */
+inline size_t number_of_palindromes( uint8_t k )
+{
+    // Edge and special cases.
+    if( k == 0 || k > 32 ) {
+        throw std::invalid_argument( "Can only compute minimal encoding size for k in [1,32]" );
+    } else if( k % 2 != 0 ) {
+        // No palindromes for odd k
+        return 0;
+    }
+    return utils::int_pow( 4, k / 2 );
 }
 
 // =================================================================================================
@@ -208,7 +212,7 @@ inline uint64_t number_of_canonical_kmers( uint8_t k )
  * will be able to set it. For these, we offer this function to compute and set it from scratch.
  *
  * If the kmer already carries its own rc, we do nothing. This might be the case for certain
- * extractors that set it on the fly in order to avoid re-computing it for every kmer.
+ * methods that set it on the fly in order to avoid re-computing it for every kmer.
  */
 template<typename Tag>
 void set_reverse_complement( Kmer<Tag>& kmer )

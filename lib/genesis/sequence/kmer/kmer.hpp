@@ -88,7 +88,7 @@ public:
     Kmer() = default;
 
     // Constructor to initialize k-mer data
-    Kmer( typename Bitfield::WordType data )
+    explicit Kmer( typename Bitfield::WordType data )
         : value( data )
     {
         // assert( value & Bitfield::ones_mask[k_] == value );
