@@ -76,11 +76,36 @@ Kmer<Tag> kmer_from_string( std::string const& input )
  * @brief Get a string representation of a @p kmer.
  */
 template<typename Tag>
-std::string to_string( Kmer<Tag> const& kmer )
+std::string kmer_to_string( Kmer<Tag> const& kmer )
 {
     auto result = std::string( kmer.k(), '#' );
     for( size_t i = 0; i < kmer.k(); ++i ) {
         result[i] = Kmer<Tag>::Alphabet::rank_to_char( kmer[i] );
+    }
+    return result;
+}
+
+/**
+ * @brief Get a string representation of the bits in a @p kmer.
+ */
+template<typename Tag>
+std::string kmer_bits_to_string( Kmer<Tag> const& kmer )
+{
+    using Bitfield = typename Kmer<Tag>::Bitfield;
+    typename Bitfield::WordType const one = 1;
+
+    std::string result;
+    for( size_t i = 0; i < Bitfield::BIT_WIDTH; ++i ) {
+        if( i > 0 && i % Bitfield::BITS_PER_CHAR == 0 ) {
+            result += " ";
+        }
+
+        auto const pos = one << ( Bitfield::BIT_WIDTH - i - 1);
+        if( kmer.value & pos ) {
+            result += "1";
+        } else {
+            result += "0";
+        }
     }
     return result;
 }
@@ -91,7 +116,7 @@ std::string to_string( Kmer<Tag> const& kmer )
 template<typename Tag>
 std::ostream& operator<< ( std::ostream& output, Kmer<Tag> const& kmer )
 {
-    output << to_string( kmer );
+    output << kmer_to_string( kmer );
     return output;
 }
 

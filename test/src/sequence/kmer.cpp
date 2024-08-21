@@ -110,12 +110,14 @@ TEST( Kmer, Basics )
     // Basic string operators
     EXPECT_EQ( k1, kmer_from_string<KmerTagDefault>( "GATACAC" ));
     EXPECT_EQ( k2, kmer_from_string<KmerTagDefault>( "GTGTATC" ));
-    EXPECT_EQ( "GATACAC", to_string( k1 ));
-    EXPECT_EQ( "GTGTATC", to_string( k2 ));
+    EXPECT_EQ( "GATACAC", kmer_to_string( k1 ));
+    EXPECT_EQ( "GTGTATC", kmer_to_string( k2 ));
+    // LOG_DBG << "GATACAC: " << kmer_bits_to_string( k1 );
+    // LOG_DBG << "GTGTATC: " << kmer_bits_to_string( k2 );
 
     // Canonical
-    EXPECT_EQ( "GATACAC", to_string( canonical_representation( k1 )));
-    EXPECT_EQ( "GATACAC", to_string( canonical_representation( k2 )));
+    EXPECT_EQ( "GATACAC", kmer_to_string( canonical_representation( k1 )));
+    EXPECT_EQ( "GATACAC", kmer_to_string( canonical_representation( k2 )));
 }
 
 TEST( Kmer, Lengths )
@@ -128,7 +130,7 @@ TEST( Kmer, Lengths )
         auto seq = make_random_kmer_sequence( k );
         auto kmer = kmer_from_string<KmerTagDefault>( seq );
         EXPECT_TRUE( validate( kmer ));
-        EXPECT_EQ( to_string( kmer ), seq );
+        EXPECT_EQ( kmer_to_string( kmer ), seq );
         for( size_t i = 0; i < k; ++i ) {
             EXPECT_EQ( Alphabet::rank_to_char( kmer[i] ), seq[i] );
         }
@@ -165,11 +167,11 @@ TEST( Kmer, CanonicalRepresentation )
 
             // Test that the canonical representation follows lexicographical ordering,
             // by actually sorting the string representation.
-            auto const kms = to_string( km );
-            auto const rcs = to_string( rc );
+            auto const kms = kmer_to_string( km );
+            auto const rcs = kmer_to_string( rc );
             auto const crs = kms < rcs ? kms : rcs;
-            EXPECT_EQ( crs, to_string( canonical_representation( km )));
-            EXPECT_EQ( crs, to_string( canonical_representation( rc )));
+            EXPECT_EQ( crs, kmer_to_string( canonical_representation( km )));
+            EXPECT_EQ( crs, kmer_to_string( canonical_representation( rc )));
 
             // Test that the rc is correct
             EXPECT_EQ( rcs, string_rev_comp( kms ));
@@ -202,12 +204,12 @@ TEST( Kmer, ExtractorBasics )
         size_t start_loc = 0;
         auto extractor = KmerExtractor<KmerTagDefault>( sequence );
         for( auto it = extractor.begin(); it != extractor.end(); ++it ) {
-            // LOG_DBG1 << to_string( *it );
+            // LOG_DBG1 << kmer_to_string( *it );
 
             // Basic tests of the location and characters at that location.
             EXPECT_EQ( it->location, start_loc );
             EXPECT_LE( it->location + k, sequence.size() );
-            EXPECT_EQ( to_string( *it ), sequence.substr( start_loc, k ));
+            EXPECT_EQ( kmer_to_string( *it ), sequence.substr( start_loc, k ));
             EXPECT_TRUE( validate( *it ));
 
             // Test that the rc was set correctly by the extractor.
@@ -274,7 +276,7 @@ TEST( Kmer, ExtractorInvalids )
             // Basic tests of the location and character at that location.
             EXPECT_EQ( cur->location, start_loc );
             EXPECT_LE( cur->location + k, sequence.size() );
-            EXPECT_EQ( to_string( *cur ), kstr );
+            EXPECT_EQ( kmer_to_string( *cur ), kstr );
             EXPECT_TRUE( validate( *cur ));
 
             // Test that the rc was set correctly by the extractor.
@@ -321,16 +323,16 @@ TEST( Kmer, MicrovariantScanner )
             // Make the kmer
             auto km = Kmer<KmerTagDefault>( i );
             set_reverse_complement( km );
-            auto const kms = to_string( km );
-            auto const rcs = to_string( reverse_complement( km ));
+            auto const kms = kmer_to_string( km );
+            auto const rcs = kmer_to_string( reverse_complement( km ));
 
             // Go through all microvariants of the kmer,
             // and test that they have edit distance 1 to the original.
             size_t cnt = 0;
             for( auto const& mv : iterate_microvariants( km )) {
                 // LOG_DBG << mv;
-                auto const ekm = count_mismatches_( kms, to_string( mv ));
-                auto const erv = count_mismatches_( rcs, to_string( reverse_complement( mv )));
+                auto const ekm = count_mismatches_( kms, kmer_to_string( mv ));
+                auto const erv = count_mismatches_( rcs, kmer_to_string( reverse_complement( mv )));
 
                 // Test that the rc was set correctly by the extractor.
                 EXPECT_EQ(
