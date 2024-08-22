@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/sequence/kmer/kmer.hpp"
+#include "genesis/sequence/kmer/canonical_encoding.hpp"
 #include "genesis/sequence/kmer/extractor.hpp"
 #include "genesis/sequence/kmer/function.hpp"
 #include "genesis/sequence/kmer/microvariant_scanner.hpp"
@@ -378,5 +379,55 @@ TEST( Kmer, NumCanonicalKmers )
 
     for( size_t k = 1; k <= 32; ++k ) {
         EXPECT_EQ( exp[k], number_of_canonical_kmers( k ));
+    }
+}
+
+TEST( Kmer, CanonicalEncoding )
+{
+    // Test several different lengths of kmers
+    // for( size_t k = 1; k < 10; ++k ) {
+    for( size_t k = 1; k < 12; ++k ) {
+        // LOG_DBG << "at " << k;
+
+        Kmer<KmerTagDefault>::reset_k( k );
+        auto const num_canon_kmers = number_of_canonical_kmers( k );
+        auto const num_palindromes = number_of_palindromes( k );
+
+        // We count all kmers of the given k, and see
+        // if they evenly fill an array of all possible indices.
+        auto counts = std::vector<size_t>( num_canon_kmers, 0 );
+
+        // Test all kmers of that length
+        auto encoder = MinimalCanonicalEncoding<KmerTagDefault>();
+        for( size_t i = 0; i < number_of_kmers( k ); ++i ) {
+
+            // Make the kmer
+            auto km = Kmer<KmerTagDefault>( i );
+            set_reverse_complement( km );
+
+            // Get its index
+            auto const index = encoder.encode( km );
+            // LOG_DBG << kmer_to_string(km) << "\t" << index;
+
+            // The index needs to match the one of the reverse complement
+            EXPECT_EQ( index, encoder.encode( reverse_complement( km )));
+
+            // Increment the count of that index, checking that we are in bounds.
+            ASSERT_LT( index, num_canon_kmers );
+            ++counts[index];
+        }
+
+        // Test that all bins got the number of kmers that we expect.
+        EXPECT_EQ( counts.size(), num_canon_kmers );
+        for( size_t i = 0; i < num_canon_kmers; ++i ) {
+            // LOG_DBG1 << i << ": " << counts[i];
+
+            // For palindromes: the first 4^(k/2)/2 entries are only set once.
+            if( k % 2 == 0 && i < num_palindromes ) {
+                EXPECT_EQ( 1, counts[i] );
+            } else {
+                EXPECT_EQ( 2, counts[i] );
+            }
+        }
     }
 }
