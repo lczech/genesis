@@ -100,8 +100,8 @@ TEST( Kmer, Basics )
 {
     Kmer<KmerTagDefault>::reset_k( 7 );
 
-    // GATACAC = 0b 01 00 01 00 11 00 10 = 0x1132
-    auto const k1 = Kmer<KmerTagDefault>( 0x1132 );
+    // GATACAC = 0b 10 00 11 00 01 00 01 = 0x2311
+    auto const k1 = Kmer<KmerTagDefault>( 0x2311 );
     auto const k2 = reverse_complement( k1 );
 
     // LOG_DBG << "k1 " << k1 << " from " << k1.value;
@@ -204,7 +204,8 @@ TEST( Kmer, ExtractorBasics )
         size_t start_loc = 0;
         auto extractor = KmerExtractor<KmerTagDefault>( sequence );
         for( auto it = extractor.begin(); it != extractor.end(); ++it ) {
-            // LOG_DBG1 << kmer_to_string( *it );
+            // LOG_DBG1 << kmer_to_string( *it ) << " vs " << sequence.substr( start_loc, k );
+            // LOG_DBG << kmer_bits_to_string( *it );
 
             // Basic tests of the location and characters at that location.
             EXPECT_EQ( it->location, start_loc );

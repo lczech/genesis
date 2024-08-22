@@ -80,6 +80,9 @@ public:
     using reference         = value_type&;
     using iterator_category = std::forward_iterator_tag;
 
+    using Alphabet = typename Kmer<Tag>::Alphabet;
+    using Bitfield = typename Kmer<Tag>::Bitfield;
+
     // -----------------------------------------------------
     //     Constructors and Rule of Five
     // -----------------------------------------------------
@@ -94,7 +97,7 @@ public:
         , cnt_( 0 )
     {
         // Correct setup
-        if( Kmer<Tag>::k() == 0 || Kmer<Tag>::k() > 32 ) {
+        if( Kmer<Tag>::k() == 0 || Kmer<Tag>::k() > Bitfield::MAX_CHARS_PER_KMER ) {
             throw std::invalid_argument(
                 "Cannot extract kmers with k=" + std::to_string( Kmer<Tag>::k() )
             );
@@ -188,8 +191,7 @@ private:
     void increment_()
     {
         // Check assumptions of this function.
-        using Bitfield = typename Kmer<Tag>::Bitfield;
-        using WordType = typename Kmer<Tag>::Bitfield::WordType;
+        using WordType = typename Bitfield::WordType;
         static_assert( Bitfield::BITS_PER_CHAR == 2, "Kmer<Tag>::BITS_PER_CHAR != 2" );
 
         // We use four xor steps at the current position to cycle through the variants:
@@ -217,10 +219,13 @@ private:
         auto cycle_next_microvariant_ = [&]( uint8_t pos, uint8_t& cnt )
         {
             // Move the needed xor value to the position in the word and apply it.
+            // We use the position into the k-mer so that the last characters are stored in the
+            // least significant bits. Hence, we reverse this here, so that we iterate microvariants
+            // starting with the variants in the beginning of the k-mer (leftmost bits) first.
             assert( pos < kmer_.k() );
             WordType const xor_val = ( cnt % 2 == 0 ? 0x1 : 0x3 );
-            kmer_.value    ^= ( xor_val << ( Bitfield::BITS_PER_CHAR * pos ));
-            kmer_.rev_comp ^= ( xor_val << ( Bitfield::BITS_PER_CHAR * ( kmer_.k() - pos - 1 )));
+            kmer_.value    ^= ( xor_val << ( Bitfield::BITS_PER_CHAR * ( kmer_.k() - pos - 1 )));
+            kmer_.rev_comp ^= ( xor_val << ( Bitfield::BITS_PER_CHAR * pos ));
             ++cnt;
         };
 
@@ -255,18 +260,9 @@ private:
     // to avoid mistakes, if we introduce different kmer types.
     // Anything that fails here means that the class is used with
     // an incompatible bit representation or alphabet encoding.
-    static_assert(
-        Kmer<Tag>::Bitfield::BITS_PER_CHAR == 2,
-        "Kmer<Tag>::Bitfield::BITS_PER_CHAR != 2"
-    );
-    static_assert(
-        Kmer<Tag>::Alphabet::SIZE == 4,
-        "Kmer<Tag>::Alphabet::SIZE != 4"
-    );
-    static_assert(
-        Kmer<Tag>::Alphabet::NEGATE_IS_COMPLEMENT,
-        "Kmer<Tag>::Alphabet::NEGATE_IS_COMPLEMENT != true"
-    );
+    static_assert( Bitfield::BITS_PER_CHAR == 2, "Bitfield::BITS_PER_CHAR != 2" );
+    static_assert( Alphabet::SIZE == 4, "Alphabet::SIZE != 4" );
+    static_assert( Alphabet::NEGATE_IS_COMPLEMENT, "Alphabet::NEGATE_IS_COMPLEMENT != true" );
 
     // The current k-mer
     Kmer<Tag> kmer_;

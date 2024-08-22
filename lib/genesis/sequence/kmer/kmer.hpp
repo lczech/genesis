@@ -155,7 +155,7 @@ public:
      */
     inline uint8_t operator[] ( uint8_t position ) const
     {
-        return Bitfield::extract( value, position );
+        return Bitfield::extract( k_, value, position );
     }
 
     /**
@@ -171,7 +171,7 @@ public:
                 " in k-mer of size " + std::to_string( k_ )
             );
         }
-        return Bitfield::extract( value, position );
+        return Bitfield::extract( k_, value, position );
     }
 
     /**
@@ -194,7 +194,7 @@ public:
                 " in bit encoding with max rank " + std::to_string( Bitfield::MAX_RANK )
             );
         }
-        Bitfield::implant( value, position, rank );
+        Bitfield::implant( k_, value, position, rank );
     }
 
     /**

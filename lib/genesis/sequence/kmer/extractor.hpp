@@ -113,7 +113,7 @@ public:
             }
 
             // Correct setup
-            if( Kmer<Tag>::k() == 0 || Kmer<Tag>::k() > 32 ) {
+            if( Kmer<Tag>::k() == 0 || Kmer<Tag>::k() > Bitfield::MAX_CHARS_PER_KMER ) {
                 throw std::invalid_argument(
                     "Cannot extract kmers with k=" + std::to_string( Kmer<Tag>::k() )
                 );
@@ -184,6 +184,7 @@ public:
         {
             assert( parent_ );
 
+            // location_ points to the index in the input sequence that we are processing next.
             // Test for end of iteration. Signal this by unsetting the parent,
             // which is used in the equality comparison to check for the end iterator.
             if( location_ >= parent_->input_.size() ) {
@@ -258,17 +259,17 @@ public:
 
             // Move the new value into the kmer.
             auto const word = static_cast<typename Bitfield::WordType>( rank );
-            kmer_.value >>= Bitfield::BITS_PER_CHAR;
-            kmer_.value |= ( word << (( k - 1 ) * Bitfield::BITS_PER_CHAR ));
+            kmer_.value <<= Bitfield::BITS_PER_CHAR;
+            kmer_.value &=  Bitfield::ones_mask[ k ];
+            kmer_.value |=  word;
 
             // Also populate the reverse complement if needed.
             // We only do this effort if needed - although it might be worth testing
             // how much this actually costs, and maybe just do it all the time anyway.
             if( parent_->with_reverse_complement_ ) {
                 typename Bitfield::WordType const rc_word = Alphabet::complement( rank );
-                kmer_.rev_comp <<= Bitfield::BITS_PER_CHAR;
-                kmer_.rev_comp &=  Bitfield::ones_mask[ k ];
-                kmer_.rev_comp |=  rc_word;
+                kmer_.rev_comp >>= Bitfield::BITS_PER_CHAR;
+                kmer_.rev_comp |= ( rc_word << (( k - 1 ) * Bitfield::BITS_PER_CHAR ));
             }
 
             // Successfully processed the char.
