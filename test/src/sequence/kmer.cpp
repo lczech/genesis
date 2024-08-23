@@ -387,6 +387,7 @@ TEST( Kmer, CanonicalEncoding )
     // Test several different lengths of kmers
     // for( size_t k = 1; k < 10; ++k ) {
     for( size_t k = 1; k < 12; ++k ) {
+        // LOG_DBG << "=======================================================================";
         // LOG_DBG << "at " << k;
 
         Kmer<KmerTagDefault>::reset_k( k );
@@ -400,6 +401,7 @@ TEST( Kmer, CanonicalEncoding )
         // Test all kmers of that length
         auto encoder = MinimalCanonicalEncoding<KmerTagDefault>();
         for( size_t i = 0; i < number_of_kmers( k ); ++i ) {
+            // LOG_DBG << "------------------------";
 
             // Make the kmer
             auto km = Kmer<KmerTagDefault>( i );
@@ -431,3 +433,27 @@ TEST( Kmer, CanonicalEncoding )
         }
     }
 }
+
+// TEST( Kmer, CanonicalEncodingSpeed )
+// {
+//     int const k = 13;
+//     Kmer<KmerTagDefault>::reset_k( k );
+//
+//     // Test all kmers of that length
+//     auto encoder = MinimalCanonicalEncoding<KmerTagDefault>();
+//     for( size_t i = 0; i < number_of_kmers( k ); ++i ) {
+//
+//         // Make the kmer
+//         auto km = Kmer<KmerTagDefault>( i );
+//         set_reverse_complement( km );
+//         // EXPECT_EQ( km.rev_comp, reverse_complement( km ));
+//
+//         // Get its index
+//         auto const index = encoder.encode( km );
+//         // LOG_DBG << kmer_to_string(km) << "\t" << index;
+//
+//         // The index needs to match the one of the reverse complement
+//         EXPECT_EQ( index, encoder.encode( reverse_complement( km )));
+//     }
+//     LOG_DBG << "num kmers " << number_of_kmers( k );
+// }
