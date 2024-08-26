@@ -193,11 +193,10 @@ public:
             }
 
             // Now try to process the char at the current location.
-            // If that works, we move to the next location in the input and are done.
+            // If that works, we have moved to the next location in the input and are done.
             // If not, we found an invalid character, and will have to start a new kmer.
-            if( process_char_at_current_location_() ) {
+            if( process_current_char_() ) {
                 ++kmer_.location;
-                ++location_;
             } else {
                 init_kmer_from_current_location_();
             }
@@ -220,40 +219,48 @@ public:
                 }
 
                 // Test for end of iteration. Signal this by unsetting the parent.
-                if( start_location + k > parent_->input_.size() ) {
+                // This will process the rest of the input for completeness, even though we might
+                // already know that start_location + k > parent_->input_.size() (meaning, we will
+                // reach the end of the sequence before the kmer is filled). We do this so that the
+                // char counts are correct. This function here is called only initally, and if
+                // there is an invalid char in the input, and that happening in the last k chars
+                // of the input is probably rare enough that it does not matter in terms of speed.
+                if( location_ >= parent_->input_.size() ) {
                     parent_ = nullptr;
                     return;
                 }
 
                 // Process one character from the input. This returns if that was valid.
                 // If not, we start with a new kmer.
-                if( !process_char_at_current_location_() ) {
-                    ++location_;
+                if( !process_current_char_() ) {
                     start_location = location_;
                     length = 0;
                     continue;
                 }
 
-                ++location_;
                 ++length;
             }
             assert( length == k );
+            assert( start_location + k == location_ );
 
             // Store the starting location of the kmer, for downstream algorithms
             // that can optimize if we only moved a single character.
             kmer_.location = start_location;
         }
 
-        bool process_char_at_current_location_()
+        bool process_current_char_()
         {
-            // Shorthands.
+            // Shorthands and checks.
             auto const k = Kmer<Tag>::k();
             assert( k > 0 );
+            assert( parent_ );
 
             // Get the next bits to use. If it is invalid, we let the caller know.
             assert( location_ < parent_->input_.size() );
             auto const rank = Alphabet::char_to_rank( parent_->input_[ location_ ] );
+            ++location_;
             if( rank > Alphabet::MAX_RANK ) {
+                ++(parent_->count_invalid_characters_);
                 return false;
             }
 
@@ -263,16 +270,13 @@ public:
             kmer_.value &=  Bitfield::ones_mask[ k ];
             kmer_.value |=  word;
 
-            // Also populate the reverse complement if needed.
-            // We only do this effort if needed - although it might be worth testing
-            // how much this actually costs, and maybe just do it all the time anyway.
-            if( parent_->with_reverse_complement_ ) {
-                typename Bitfield::WordType const rc_word = Alphabet::complement( rank );
-                kmer_.rev_comp >>= Bitfield::BITS_PER_CHAR;
-                kmer_.rev_comp |= ( rc_word << (( k - 1 ) * Bitfield::BITS_PER_CHAR ));
-            }
+            // Also populate the reverse complement.
+            typename Bitfield::WordType const rc_word = Alphabet::complement( rank );
+            kmer_.rev_comp >>= Bitfield::BITS_PER_CHAR;
+            kmer_.rev_comp |= ( rc_word << (( k - 1 ) * Bitfield::BITS_PER_CHAR ));
 
             // Successfully processed the char.
+            ++(parent_->count_valid_characters_);
             return true;
         }
 
@@ -338,21 +342,6 @@ public:
     self_type& operator= ( self_type&& )      = default;
 
     // -------------------------------------------------------------------------
-    //     Settings
-    // -------------------------------------------------------------------------
-
-    bool with_reverse_complement() const
-    {
-        return with_reverse_complement_;
-    }
-
-    self_type& with_reverse_complement( bool value )
-    {
-        with_reverse_complement_ = value;
-        return *this;
-    }
-
-    // -------------------------------------------------------------------------
     //     Iteration
     // -------------------------------------------------------------------------
 
@@ -364,6 +353,16 @@ public:
     Iterator end() const
     {
         return Iterator();
+    }
+
+    size_t count_valid_characters() const
+    {
+        return count_valid_characters_;
+    }
+
+    size_t count_invalid_characters() const
+    {
+        return count_invalid_characters_;
     }
 
     // -------------------------------------------------------------------------
@@ -388,8 +387,9 @@ private:
 
     #endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 
-    // We only want to process additional aspects if needed.
-    bool with_reverse_complement_ = true;
+    // Count data during iteration
+    mutable size_t count_valid_characters_ = 0;
+    mutable size_t count_invalid_characters_ = 0;
 
 };
 

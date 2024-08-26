@@ -37,6 +37,7 @@
 #include "genesis/sequence/kmer/microvariant_scanner.hpp"
 #include "genesis/utils/math/random.hpp"
 
+#include <algorithm>
 #include <cstdint>
 #include <fstream>
 #include <string>
@@ -264,6 +265,8 @@ TEST( Kmer, ExtractorBasics )
             }
 
             // Expect correct num of iterations
+            EXPECT_EQ( extractor.count_valid_characters(), sequence.size() );
+            EXPECT_EQ( extractor.count_invalid_characters(), 0 );
             if( sequence.size() >= k ) {
                 EXPECT_EQ( start_loc, sequence.size() - k + 1 );
             } else {
@@ -292,7 +295,7 @@ TEST( Kmer, ExtractorInvalids )
     auto run_test_ = []()
     {
         auto const k = Kmer<KmerTagDefault>::k();
-        for( size_t i = k; i < 500; ++i ) {
+        for( size_t i = 1; i < 500; ++i ) {
             auto sequence = make_random_kmer_sequence( i );
 
             // Replace some random characters to invalid values.
@@ -303,8 +306,10 @@ TEST( Kmer, ExtractorInvalids )
                 auto const pos = permuted_congruential_generator( 0, sequence.size() - 1 );
                 sequence[pos] = 'N';
             }
+            auto const invalid_size = std::count( sequence.begin(), sequence.end(), 'N' );
+            auto const valid_size = sequence.size() - invalid_size;
 
-            // LOG_DBG << "==================================";
+            // LOG_DBG << "--------------";
             // LOG_DBG << "  at " << i << ": " << sequence;
 
             // Run the kmer extractor in sync with the sequence, where we need to skip over invalids.
@@ -345,12 +350,21 @@ TEST( Kmer, ExtractorInvalids )
 
             // Now we are done with the kmer extractor as well.
             EXPECT_EQ( cur, end );
+            EXPECT_EQ( extractor.count_valid_characters(), valid_size );
+            EXPECT_EQ( extractor.count_invalid_characters(), invalid_size );
+            EXPECT_EQ(
+                extractor.count_valid_characters() + extractor.count_invalid_characters(),
+                sequence.size()
+            );
+            if( sequence.size() < k ) {
+                EXPECT_EQ( start_loc, 0 );
+            }
         }
     };
 
     // Test some random strings for all k-mer sizes
     for( size_t k = 1; k <= 32; ++k ) {
-        // LOG_DBG << "at " << k;
+        // LOG_DBG << "########## at " << k;
         Kmer<KmerTagDefault>::reset_k( k );
         run_test_();
     }
