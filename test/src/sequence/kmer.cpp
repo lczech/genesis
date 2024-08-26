@@ -491,15 +491,13 @@ TEST( Kmer, CanonicalEncoding )
         // Test all kmers of that length
         auto encoder = MinimalCanonicalEncoding<KmerTagDefault>();
         for( size_t i = 0; i < number_of_kmers( k ); ++i ) {
-            // LOG_DBG << "------------------------";
-
             // Make the kmer
             auto km = Kmer<KmerTagDefault>( i );
             set_reverse_complement( km );
 
             // Get its index
             auto const index = encoder.encode( km );
-            // LOG_DBG << kmer_to_string(km) << "\t" << index;
+            // LOG_DBG1 << kmer_to_string(km) << "\t" << index;
 
             // The index needs to match the one of the reverse complement
             EXPECT_EQ( index, encoder.encode( reverse_complement( km )));

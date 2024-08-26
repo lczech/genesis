@@ -123,7 +123,11 @@ struct KmerBitfield
         3ull << 32, 3ull << 34, 3ull << 36, 3ull << 38, 3ull << 40, 3ull << 42, 3ull << 44, 3ull << 46,
         3ull << 48, 3ull << 50, 3ull << 52, 3ull << 54, 3ull << 56, 3ull << 58, 3ull << 60, 3ull << 62
     }};
+
+    // Test that the last entry is non-zero. std::array::operator[] is constexpr only since C++17
+    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
     static_assert( char_mask[ MAX_CHARS_PER_KMER - 1 ] != 0, "char_mask == 0" );
+    #endif
 
     /**
      * @brief Bitmask that holds as many consecutive all-one values

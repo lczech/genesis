@@ -212,7 +212,7 @@ inline size_t number_of_canonical_kmers( uint8_t k )
  * @brief Compute the number of palindromes (under reverse complmenet) that exist
  * for a given @p k and nucleotide alphabet.
  *
- * This is `0` for odd values of @p k, and `4^()`
+ * This is `0` for odd values of @p k, and `4^(k/2)` for even values of @p k.
  */
 inline size_t number_of_palindromes( uint8_t k )
 {
