@@ -301,17 +301,17 @@ private:
     }
 
     inline uint64_t encode_gapped_palindrome_(
-        uint64_t const val_km, int const l
+        uint64_t const val_km, int l
     ) const {
         // Palindrome -> nothing to do.
         // Can only occurr in even k.
         auto const k = Kmer<Tag>::k();
         assert( k % 2 == 0 );
         assert( l >= k );
-        (void) l;
 
         // We use l = k here, as l might overshoot.
-        return encode_prime_( val_km, k );
+        l = k;
+        return encode_prime_( val_km, l );
     }
 
     inline uint64_t encode_prime_( uint64_t const val, int const l ) const
