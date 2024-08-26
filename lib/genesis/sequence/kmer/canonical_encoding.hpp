@@ -308,6 +308,7 @@ private:
         auto const k = Kmer<Tag>::k();
         assert( k % 2 == 0 );
         assert( l >= k );
+        (void) l;
 
         // We use l = k here, as l might overshoot.
         return encode_prime_( val_km, k );
