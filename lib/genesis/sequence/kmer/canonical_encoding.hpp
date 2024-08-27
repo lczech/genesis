@@ -128,14 +128,20 @@ public:
         // as calling ctz(0) is undefined behavior, which we avoid here.
         // Then, l is the bit index of the char that is the specifying case for the k-mer.
         uint64_t const sym = kmer.value ^ kmer.rev_comp;
-        int const l = ( sym == 0 ? Bitfield::BIT_WIDTH : ( __builtin_ctzll(sym) / 2 * 2 ));
+        uint8_t const l = ( sym == 0 ? Bitfield::BIT_WIDTH : ( __builtin_ctzll(sym) / 2 * 2 ));
         assert( l % 2 == 0 );
+
+        // The above builtin call uses unsigned long long. Assert that this has the size we expect.
+        static_assert(
+            sizeof(unsigned long long) >= sizeof(uint64_t),
+            "sizeof(unsigned long long) < sizeof(uint64_t)"
+        );
 
         // Get the encoding that still includes gaps in the image space
         uint64_t kmerhash = encode_gapped_( kmer.value, kmer.rev_comp, l );
 
         // Subtract gaps: 2*(k//2-l-1) ones followed by k-2 zeros
-        if( l <= k - 4 ) {
+        if( k >= 4 && l <= k - 4 ) {
             // The original code uses a pre-computed bit mask here to get the value we need:
             // uint64_t gaps = zeromasks[64 - (2*(k/2-l/2-1))];
             // We here instead compute that value directly, so that we do not need the mask.
@@ -163,7 +169,7 @@ public:
 
 private:
 
-    inline uint64_t encode_gapped_( uint64_t const val_km, uint64_t const val_rc, int const l ) const
+    inline uint64_t encode_gapped_( uint64_t const val_km, uint64_t const val_rc, uint8_t const l ) const
     {
         // Function originally part of hash() in https://gitlab.ub.uni-bielefeld.de/gi/MinEncCanKmer
         auto const k = Kmer<Tag>::k();
@@ -201,7 +207,7 @@ private:
     }
 
     inline uint64_t encode_gapped_specifying_pair_(
-        uint64_t const val_km, uint64_t const val_rc, int const l
+        uint64_t const val_km, uint64_t const val_rc, uint8_t const l
     ) const {
         // Not just single character in the middle, i.e., we have a specifying pair.
         auto const k = Kmer<Tag>::k();
@@ -259,7 +265,7 @@ private:
     }
 
     inline uint64_t encode_gapped_single_character_(
-        uint64_t const val_km, int const l
+        uint64_t const val_km, uint8_t const l
     ) const {
         // Single character in the middle. Can only occurr in odd k.
         auto const k = Kmer<Tag>::k();
@@ -301,7 +307,7 @@ private:
     }
 
     inline uint64_t encode_gapped_palindrome_(
-        uint64_t const val_km, int l
+        uint64_t const val_km, uint8_t const l
     ) const {
         // Palindrome -> nothing to do.
         // Can only occurr in even k.
@@ -313,7 +319,7 @@ private:
         return encode_prime_( val_km, k );
     }
 
-    inline uint64_t encode_prime_( uint64_t const val, int const l ) const
+    inline uint64_t encode_prime_( uint64_t const val, uint8_t const l ) const
     {
         // Compute encoding where only setting the bits according to specifying case and
         // subtracting gaps is missing, i.e., enc prime.
@@ -344,26 +350,16 @@ private:
 
         // This computes zeromasks[offset+2*k-l]. We need a special case for l==0 due to shifting
         // being undefined behavior if the shift is larger than then bit width...
-        uint64_t const zeromask = l == 0 ? 0 : Bitfield::ALL_1 >> ( Bitfield::BIT_WIDTH - l );
+        uint64_t const zeromask = ( l == 0 ? 0 : Bitfield::ALL_1 >> ( Bitfield::BIT_WIDTH - l ));
 
         // Use the mask with l trailing 1s and 0s else to extract the new right part.
         // Then, complement / invert the right part by xor with zeromask.
         uint64_t const right = (val & zeromask) ^ zeromask;
 
         // No remainder left? We are done.
-        // When compiled with gcc 7, we here get a compiler warning that is turned into an error
-        // for the code path where this function here is called from encode_gapped_palindrome_().
-        // In that case, we have l==k, meaning that the condition here is always true, and the
-        // compiler will tell us, see https://stackoverflow.com/a/17205195/4184258
-        // That is an absolutely unnecessary warning, as it only affects that one code path,
-        // and would require us to somehow add another flag or somthing to avoid it.
-        // So instead we here just silence that particular behaviour...
-        #pragma GCC diagnostic push
-        #pragma GCC diagnostic ignored "-fno-strict-overflow"
         if( l + 2 >= k ) {
             return right;
         }
-        #pragma GCC diagnostic pop
 
         // Assert that the values are as expected. The last assertion is needed to avoid
         // bit shifting by the bit width, which again would be undefined behavior.
