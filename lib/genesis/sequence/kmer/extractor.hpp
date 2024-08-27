@@ -180,7 +180,7 @@ public:
         //     Increment and Processing Samples
         // ---------------------------------------------
 
-        void increment_()
+        inline void increment_()
         {
             assert( parent_ );
 
@@ -202,7 +202,7 @@ public:
             }
         }
 
-        void init_kmer_from_current_location_()
+        inline void init_kmer_from_current_location_()
         {
             assert( parent_ );
 
@@ -248,7 +248,7 @@ public:
             kmer_.location = start_location;
         }
 
-        bool process_current_char_()
+        inline bool process_current_char_()
         {
             // Shorthands and checks.
             auto const k = Kmer<Tag>::k();
