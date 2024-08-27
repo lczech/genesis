@@ -370,6 +370,39 @@ TEST( Kmer, ExtractorInvalids )
     }
 }
 
+// TEST( Kmer, ExtractorSpeed )
+// {
+//     // Random seed. Report it, so that in an error case, we can reproduce.
+//     auto const seed = ::time(nullptr);
+//     permuted_congruential_generator_init( seed );
+//     LOG_INFO << "Seed: " << seed;
+//
+//     // We make one long sequence for the testing
+//     LOG_TIME << "make sequence";
+//     auto const sequence = make_random_kmer_sequence( 1000000000 );
+//
+//     LOG_TIME << "extract kmers";
+//     auto const k = 15;
+//     Kmer<KmerTagDefault>::reset_k( k );
+//     auto extractor = KmerExtractor<KmerTagDefault>( sequence );
+//     auto encoder = MinimalCanonicalEncoding<KmerTagDefault>();
+//
+//     size_t cnt = 0;
+//     size_t sum = 0;
+//     for( auto const& kmer : extractor ) {
+//         (void) kmer;
+//         auto const index = encoder.encode( kmer );
+//         sum += index;
+//         ++cnt;
+//     }
+//     LOG_TIME << "done " << sum;
+//
+//     // Expect correct num of iterations
+//     EXPECT_EQ( extractor.count_valid_characters(), sequence.size() );
+//     EXPECT_EQ( extractor.count_invalid_characters(), 0 );
+//     EXPECT_EQ( cnt, sequence.size() - k + 1 );
+// }
+
 // =================================================================================================
 //     Microvariants
 // =================================================================================================
