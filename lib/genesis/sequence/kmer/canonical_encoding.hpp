@@ -316,17 +316,7 @@ private:
         assert( l >= k );
 
         // We use l = k here, as l might overshoot.
-        // When compiled with gcc 7, we cause a compiler warning (that is then turned into an error
-        // due to our pedantic warning policy). We here have l==k, meaning that the condition
-        // `l + 2 >= k` in the call of encode_prime_() is always true, and gcc 7 will warn
-        // about this, see https://stackoverflow.com/a/17205195/4184258
-        // That is an absolutely unnecessary warning, as it only affects that one code path,
-        // and will only lead to eliminating that one condition there. So instead we here just
-        // silence that particular behaviour, by using a volatile register. Very ugly, but the
-        // alternative is to add another flag, or be unable to use gcc 7... we tried pragma
-        // directives to silence the issue, but that did not work either.
-        volatile auto vlk = k;
-        return encode_prime_( val_km, vlk );
+        return encode_prime_( val_km, k );
     }
 
     inline uint64_t encode_prime_( uint64_t const val, uint8_t const l ) const
@@ -367,9 +357,18 @@ private:
         uint64_t const right = (val & zeromask) ^ zeromask;
 
         // No remainder left? We are done.
+        // When compiled with gcc 7, we here get a compiler warning (that is then turned into an
+        // error due to our pedantic warning policy) for the code path where this function here is
+        // called from encode_gapped_palindrome_().
+        // In that case, we have l==k, meaning that the condition here is always true, and the
+        // compiler will tell us, see https://stackoverflow.com/a/17205195/4184258
+        // That is an absolutely unnecessary warning, so we here just silence it here.
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wstrict-overflow"
         if( l + 2 >= k ) {
             return right;
         }
+        #pragma GCC diagnostic pop
 
         // Assert that the values are as expected. The last assertion is needed to avoid
         // bit shifting by the bit width, which again would be undefined behavior.
