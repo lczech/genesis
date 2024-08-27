@@ -310,8 +310,7 @@ private:
         assert( l >= k );
 
         // We use l = k here, as l might overshoot.
-        l = k;
-        return encode_prime_( val_km, l );
+        return encode_prime_( val_km, k );
     }
 
     inline uint64_t encode_prime_( uint64_t const val, int const l ) const
@@ -352,9 +351,19 @@ private:
         uint64_t const right = (val & zeromask) ^ zeromask;
 
         // No remainder left? We are done.
+        // When compiled with gcc 7, we here get a compiler warning that is turned into an error
+        // for the code path where this function here is called from encode_gapped_palindrome_().
+        // In that case, we have l==k, meaning that the condition here is always true, and the
+        // compiler will tell us, see https://stackoverflow.com/a/17205195/4184258
+        // That is an absolutely unnecessary warning, as it only affects that one code path,
+        // and would require us to somehow add another flag or somthing to avoid it.
+        // So instead we here just silence that particular behaviour...
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-fno-strict-overflow"
         if( l + 2 >= k ) {
             return right;
         }
+        #pragma GCC diagnostic pop
 
         // Assert that the values are as expected. The last assertion is needed to avoid
         // bit shifting by the bit width, which again would be undefined behavior.
