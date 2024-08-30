@@ -91,23 +91,7 @@ std::string kmer_to_string( Kmer<Tag> const& kmer )
 template<typename Tag>
 std::string kmer_bits_to_string( Kmer<Tag> const& kmer )
 {
-    using Bitfield = typename Kmer<Tag>::Bitfield;
-    typename Bitfield::WordType const one = 1;
-
-    std::string result;
-    for( size_t i = 0; i < Bitfield::BIT_WIDTH; ++i ) {
-        if( i > 0 && i % Bitfield::BITS_PER_CHAR == 0 ) {
-            result += " ";
-        }
-
-        auto const pos = one << ( Bitfield::BIT_WIDTH - i - 1);
-        if( kmer.value & pos ) {
-            result += "1";
-        } else {
-            result += "0";
-        }
-    }
-    return result;
+    return Kmer<Tag>::Bitfield::to_string( kmer.value );
 }
 
 /**

@@ -221,6 +221,28 @@ struct KmerBitfield
         implant( word, k - position - 1, rank );
     }
 
+    /**
+     * @brief Get a string representation of the bits in the given @p word.
+     */
+    static inline std::string to_string( WordType const& word )
+    {
+        WordType const one = 1;
+        std::string result;
+        for( size_t i = 0; i < BIT_WIDTH; ++i ) {
+            if( i > 0 && i % BITS_PER_CHAR == 0 ) {
+                result += " ";
+            }
+
+            auto const pos = one << ( BIT_WIDTH - i - 1);
+            if( word & pos ) {
+                result += "1";
+            } else {
+                result += "0";
+            }
+        }
+        return result;
+    }
+
 };
 
 } // namespace sequence
