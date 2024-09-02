@@ -76,7 +76,7 @@ namespace sequence {
  * The code is based on https://gitlab.ub.uni-bielefeld.de/gi/MinEncCanKmer,
  * but modified to fit our Kmer structure and code conventions. Furthermore, we added several code
  * optimizations for speed, and replaced some pre-computed masks by direct bit operations. We have
- * also contributed these improvements back to the original repository, so that the basic code
+ * also contributed these improvements back to the original repository, so that the basic code there
  * matches the one here.
  */
 template<typename Tag>
@@ -141,7 +141,7 @@ public:
 
         // Get the encoding that still includes gaps in the image space.
         // Depending on the type of the specifying pair, we need different ways for this.
-        uint64_t kmerhash = 0;
+        uint64_t kmercode = 0;
         if( l < k - 1 ) {
             // Not just single character in the middle, i.e., we have a specifying pair.
 
@@ -156,9 +156,9 @@ public:
 
             // Check which case we need for the initial hash, based on the pattern we found.
             if( reverse_[pattern] ) {
-                kmerhash = encode_prime_( kmer.rev_comp, l );
+                kmercode = encode_prime_( kmer.rev_comp, l );
             } else {
-                kmerhash = encode_prime_( kmer.value, l );
+                kmercode = encode_prime_( kmer.value, l );
             }
 
             // Set positions l+1, l+2, l+3 and l+4 according to the specifying pair pattern,
@@ -166,7 +166,7 @@ public:
             // Similar to above, we can avoid any branching here by directly shifting
             // the replace_ mask bits to the needed positions. If the replace mask is 0 for the
             // given pattern, we shift a zero, which just does nothing.
-            kmerhash |= ( replace_[pattern] << ( 2*k - l - 4 ));
+            kmercode |= ( replace_[pattern] << ( 2*k - l - 4 ));
         } else if( l == k - 1 ) {
             // Single character in the middle. Can only occurr in odd k.
             assert( k % 2 == 1 );
@@ -180,17 +180,17 @@ public:
             //     C = 01 -> 1
             //     G = 10 -> 1
             //     T = 11 -> 0
-            // Depending on the combination of those two bits, we want to set a bit in kmerhash.
+            // Depending on the combination of those two bits, we want to set a bit in kmercode.
             // In particular, we want to set the same bit as the second of the two above positions,
             // but only if both bit positions are different (C or G). For this, we first obtain
             // both bits of the kmer, and use XOR to see if they are different. To this end,
             // bit1 is shifted by 1 so that it is in the same positon as bit2.
             // The result of this XOR is a single bit indicating if we have C/G or A/T at the position,
-            // and it is already in the correct position to be set in kmerhash.
-            kmerhash = encode_prime_( kmer.value, l );
+            // and it is already in the correct position to be set in kmercode.
+            kmercode = encode_prime_( kmer.value, l );
             auto const bit1 = ( kmer.value & ( 1ULL << ( k   ))) >> 1;
             auto const bit2 = ( kmer.value & ( 1ULL << ( k-1 )));
-            kmerhash |= bit1 ^ bit2;
+            kmercode |= bit1 ^ bit2;
         } else {
             // Palindrome -> nothing to do. Can only occurr in even k.
             assert( k % 2 == 0 );
@@ -198,26 +198,30 @@ public:
 
             // We use l = k here, as in a palindrome, l will overshoot due to the ctl call,
             // so we limit it here to the range that we are interested in.
-            kmerhash = encode_prime_( kmer.value, k );
+            kmercode = encode_prime_( kmer.value, k );
         }
 
-        // Subtract gaps: 2*(k//2-l-1) ones followed by k-2 zeros
-        if( l <= k - 4 ) {
+        // Subtract gaps: 2*(k//2-l-1) ones followed by k-2 zeros, for the case that  `l <= k - 4`.
+        // We add 4 to the left hand side here to avoid underflowing for small k.
+        if( l + 4 <= k ) {
+            assert( k >= 4 );
             auto const ALL_1 = Bitfield::ALL_1;
             auto const shift = 2 * ( k/2 - l/2 - 1 );
-            uint64_t gaps = ( shift == 0 ? ALL_1 : ( ALL_1 >> ( Bitfield::BIT_WIDTH - shift )));
+            assert( shift != 0 );
+            // uint64_t gaps = ( shift == 0 ? ALL_1 : ( ALL_1 >> ( Bitfield::BIT_WIDTH - shift )));
+            uint64_t gaps = ( ALL_1 >> ( Bitfield::BIT_WIDTH - shift ));
             gaps <<= ( 2 * (( k+1 ) / 2 ) - 1 );
-            kmerhash -= gaps;
+            kmercode -= gaps;
         }
 
         // Subtract gaps in code due to specifying middle position (odd k).
         // We here use pre-computed powers of four for speed, as those are constant.
         assert( k <= 32 );
-        if( k % 2 == 1 && kmerhash >= four_to_the_k_half_plus_one_ ) {
-            kmerhash -= twice_four_to_the_k_half_;
+        if( k % 2 == 1 && kmercode >= four_to_the_k_half_plus_one_ ) {
+            kmercode -= twice_four_to_the_k_half_;
         }
 
-        return kmerhash;
+        return kmercode;
     }
 
     // -----------------------------------------------------
@@ -238,9 +242,9 @@ private:
         // the remainder, see encode_prime_(). We here precompute a mask to do that.
         // For instance, for k==7, the relevant entries are shaped like this:
         //
-        //     remainder_mask_[2] == 00 .. 00 11 11 11 11 00
-        //     remainder_mask_[4] == 00 .. 00 00 11 11 00 00
-        //     remainder_mask_[6] == 00 .. 00 00 11 00 00 00
+        //     remainder_mask_[2] == 00 .. 00 11 11 11 11 11 00
+        //     remainder_mask_[4] == 00 .. 00 00 11 11 11 00 00
+        //     remainder_mask_[6] == 00 .. 00 00 00 11 00 00 00
         //
         // We only ever need to access entries at even indices, as this is indexed per bit,
         // and we use index access to the starting bit of the characters.
@@ -306,7 +310,7 @@ private:
     static_assert( Alphabet::SIZE == 4, "Alphabet::SIZE != 4" );
     static_assert( Alphabet::NEGATE_IS_COMPLEMENT, "Alphabet::NEGATE_IS_COMPLEMENT != true" );
 
-    // Replace markers for the function R of Wittler 2023.
+    // Replace markers for the function R of Wittler 2023, for each type of specifying pair.
     // We code those as a lookup table, where each entry is a single word
     // containing the four bits of the following list in their LSBs.
     // We store those as the type of our underlying data, so that we can

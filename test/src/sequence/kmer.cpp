@@ -39,6 +39,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <ctime>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -605,7 +606,6 @@ TEST( Kmer, CanonicalEncodingLarge )
 //     LOG_DBG << "num kmers " << number_of_kmers( k );
 // }
 
-
 // TEST( Kmer, CanonicalEncodingSpeed2 )
 // {
 //     // Random seed. Report it, so that in an error case, we can reproduce.
@@ -644,4 +644,54 @@ TEST( Kmer, CanonicalEncodingLarge )
 //     EXPECT_EQ( extractor.count_valid_characters(), sequence.size() );
 //     EXPECT_EQ( extractor.count_invalid_characters(), 0 );
 //     EXPECT_EQ( cnt, sequence.size() - k + 1 );
+// }
+
+// void test_canonical_encoding_speed_( int k )
+// {
+//     Kmer<KmerTagDefault>::reset_k( k );
+//
+//     // Generate random kmers and store them and their rc.
+//     // LOG_DBG << "make kmers";
+//     size_t const NUM_KMERS = 200000000;
+//     auto kmers = std::vector<Kmer<KmerTagDefault>>( NUM_KMERS );
+//     for( size_t i = 0; i < NUM_KMERS; ++i ) {
+//         auto kmer = make_random_kmer<KmerTagDefault>();
+//         set_reverse_complement( kmer );
+//         kmers[i] = kmer;
+//     }
+//
+//     // Start high-resolution timer
+//     // LOG_DBG << "start speed test";
+//     struct timespec start, end;
+//     clock_gettime(CLOCK_MONOTONIC, &start);
+//
+//     // Test that the encoding is the same for the kmer and its rc.
+//     // That's our speed test, hence encoding twice the number of kmers of the array.
+//     auto encoder = MinimalCanonicalEncoding<KmerTagDefault>();
+//     size_t sum = 0;
+//     for( size_t i = 0; i < NUM_KMERS; ++i ) {
+//         // Compute the encoding.
+//         auto const index = encoder.encode( kmers[i] );
+//         sum += index;
+//     }
+//     (void) sum;
+//
+//     // Calculate the elapsed time in seconds, and the number of encodings per sec we achieved.
+//     clock_gettime(CLOCK_MONOTONIC, &end);
+//     double elapsed_time = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+//     unsigned long enc_per_sec = NUM_KMERS / elapsed_time;
+//     // LOG_DBG << "finished speed test";
+//     LOG_DBG << "k==" << k << ", time: " << elapsed_time << "s, enc/s: " << enc_per_sec;
+// }
+//
+// TEST( Kmer, CanonicalEncodingSpeed3 )
+// {
+//     // Random seed. Report it, so that in an error case, we can reproduce.
+//     auto const seed = ::time(nullptr);
+//     permuted_congruential_generator_init( seed );
+//     LOG_INFO << "Seed: " << seed;
+//
+//     // Test and even and an odd value of k.
+//     test_canonical_encoding_speed_( 15 );
+//     test_canonical_encoding_speed_( 16 );
 // }

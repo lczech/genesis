@@ -153,9 +153,20 @@ bool operator>( Kmer<Tag> const& lhs, Kmer<Tag> const& rhs )
  *
  * The default for @p alphabet_size is `4`, for typical nucleotide k-mers over the alphabet `ACGT`.
  * For instance, with `k==6`, this yields `4*4*4*4*4*4 == 4096` possible k-mers of that size.
+ * Note that the function does not generally check for overflow, except for the default case with
+ * `alphabet_size == 4`, as that is the most common one used here. In this case, the largest value
+ * is `k==31`, as we reach the exact overflow for `k==32` for the 64-bit integer return value.
  */
 inline size_t number_of_kmers( uint8_t k, uint8_t alphabet_size = 4 )
 {
+    static_assert( sizeof(size_t) == 8, "sizeof(size_t) != 8" );
+    if( k == 0 ) {
+        throw std::invalid_argument( "Invalid k==0" );
+    }
+    if( alphabet_size == 4 && k >= 32 ) {
+        throw std::invalid_argument( "Can only compute number of k-mers for k in [1,32)" );
+    }
+
     // We do an explicit loop instead of using std::pow,
     // in case that double precision is not enough here.
     size_t n = 1;
@@ -177,7 +188,7 @@ inline size_t number_of_canonical_kmers( uint8_t k )
     // We need distinct approaches for even and odd values, due to palindromes.
     // It might be easier to just have a hard coded table... but this way is more approachable.
     if( k == 0 || k > 32 ) {
-        throw std::invalid_argument( "Can only compute minimal encoding size for k in [1,32]" );
+        throw std::invalid_argument( "Can only compute number of canonical k-mers for k in [1,32]" );
     } else if( k % 2 == 0 ) {
         // Even numbers, need to add palindromes.
         // We use base 2 here, and instead of dividing the result by 2 in the end, we subtract 1
@@ -202,7 +213,7 @@ inline size_t number_of_palindromes( uint8_t k )
 {
     // Edge and special cases.
     if( k == 0 || k > 32 ) {
-        throw std::invalid_argument( "Can only compute minimal encoding size for k in [1,32]" );
+        throw std::invalid_argument( "Can only compute number of palindromes for k in [1,32]" );
     } else if( k % 2 != 0 ) {
         // No palindromes for odd k
         return 0;
