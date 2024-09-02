@@ -127,11 +127,11 @@ public:
         assert( kmer.rev_comp != 0 || kmer.value == Bitfield::ones_mask[Kmer<Tag>::k()] );
 
         // Get the length of the symmetric prefix/suffix, in num of characters, i.e., 2x num of bits.
-        // We check the special case sym==0, as calling ctz(0) is undefined behavior.
         // Then, l is the bit index of the char that is the specifying case for the k-mer.
+        // Calling ctz(0) is undefined, which is the case for palindromes; we catch this
+        // below by checking for sym==0, as this is faster than an additional check here.
         uint64_t const sym = kmer.value ^ kmer.rev_comp;
-        uint8_t const l = ( sym == 0 ? Bitfield::BIT_WIDTH : ( __builtin_ctzll(sym) / 2 * 2 ));
-        assert( l % 2 == 0 );
+        uint8_t l = __builtin_ctzll(sym) / 2 * 2;
 
         // The above builtin call uses unsigned long long. Assert that this has the size we expect.
         static_assert(
@@ -142,7 +142,15 @@ public:
         // Get the encoding that still includes gaps in the image space.
         // Depending on the type of the specifying pair, we need different ways for this.
         uint64_t kmercode = 0;
-        if( l < k - 1 ) {
+        if( sym == 0 ) {
+            // Palindrome -> nothing to do. Can only occurr in even k.
+            l = k;
+            assert( k % 2 == 0 );
+
+            // We use l = k here, as in a palindrome, l will overshoot due to the ctl call,
+            // so we limit it here to the range that we are interested in.
+            kmercode = encode_prime_( kmer.value, l );
+        } else if( l < k - 1 ) {
             // Not just single character in the middle, i.e., we have a specifying pair.
 
             // There are 16 possible combinations of two characters from ACGT.
@@ -192,26 +200,21 @@ public:
             auto const bit2 = ( kmer.value & ( 1ULL << ( k-1 )));
             kmercode |= bit1 ^ bit2;
         } else {
-            // Palindrome -> nothing to do. Can only occurr in even k.
-            assert( k % 2 == 0 );
-            assert( l >= k );
-
-            // We use l = k here, as in a palindrome, l will overshoot due to the ctl call,
-            // so we limit it here to the range that we are interested in.
-            kmercode = encode_prime_( kmer.value, k );
+            // This branch is taken only if l >= k, which however implies that the kmer
+            // is a palindrome, which is already checked as the first branch.
+            assert( false );
         }
+        assert( l % 2 == 0 );
 
         // Subtract gaps: 2*(k//2-l-1) ones followed by k-2 zeros, for the case that  `l <= k - 4`.
         // We add 4 to the left hand side here to avoid underflowing for small k.
         if( l + 4 <= k ) {
             assert( k >= 4 );
-            auto const ALL_1 = Bitfield::ALL_1;
-            auto const shift = 2 * ( k/2 - l/2 - 1 );
+            // auto const shift = 2 * ( k/2 - l/2 - 1 );
+            auto const shift = k/2*2 - l - 2;
             assert( shift != 0 );
-            // uint64_t gaps = ( shift == 0 ? ALL_1 : ( ALL_1 >> ( Bitfield::BIT_WIDTH - shift )));
-            uint64_t gaps = ( ALL_1 >> ( Bitfield::BIT_WIDTH - shift ));
-            gaps <<= ( 2 * (( k+1 ) / 2 ) - 1 );
-            kmercode -= gaps;
+            auto const gaps = ( Bitfield::ALL_1 >> ( Bitfield::BIT_WIDTH - shift ));
+            kmercode -= ( gaps << gap_shift_ );
         }
 
         // Subtract gaps in code due to specifying middle position (odd k).
@@ -237,6 +240,7 @@ private:
         auto const k = Kmer<Tag>::k();
         four_to_the_k_half_plus_one_ = utils::int_pow( 4, k / 2 + 1 );
         twice_four_to_the_k_half_ = 2 * utils::int_pow( 4, k / 2 );
+        gap_shift_ = ( 2 * (( k+1 ) / 2 ) - 1 );
 
         // After we have identified the specifying pair of characters, we need to extract
         // the remainder, see encode_prime_(). We here precompute a mask to do that.
@@ -269,11 +273,10 @@ private:
         auto const k = Kmer<Tag>::k();
         (void) k;
 
-        // This computes a mask of the form 0..01..1 (l trailing ones), to extract
+        // This uses a mask of the form 0..01..1 (l trailing ones), to extract
         // the relevant bits on the right, and invert (complement) them.
-        // We need a special case for l==0 due to shifting being undefined behavior
-        // if the shift is larger than or equal to the bit width.
-        uint64_t const zeromask = ( l == 0 ? 0 : Bitfield::ALL_1 >> ( Bitfield::BIT_WIDTH - l ));
+        uint64_t const zeromask = Bitfield::ones_mask[l/2];
+        assert( zeromask == ( l == 0 ? 0 : Bitfield::ALL_1 >> ( Bitfield::BIT_WIDTH - l )));
         uint64_t const right = (val & zeromask) ^ zeromask;
 
         // No remainder left? We could just return here, but in our tests, the introduced
@@ -345,6 +348,7 @@ private:
     // Powers are expensive to compute, but these here only depend on k, so we can pre-compute them.
     uint64_t four_to_the_k_half_plus_one_;
     uint64_t twice_four_to_the_k_half_;
+    uint64_t gap_shift_;
 };
 
 } // namespace sequence
