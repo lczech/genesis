@@ -284,18 +284,17 @@ public:
     ParsingMethod parsing_method() const;
 
     /**
-     * @brief Set whether Sequence sites are automatically turned into upper or lower case.
+     * @brief Set whether the labels of sequences shall be validated.
      *
-     * Default is SiteCasing::kToUpper, that is, all sites of the read Sequences are turned into
-     * upper case letters automatically. This is demanded by the Fasta standard.
-     * The function returns the FastaReader object to allow for fluent interfaces.
+     * If so, we test if they only contain printable characters, and throw an exception if not.
+     * We always check for empty labels, as that indicates a more severe issue with the data.
      */
-    FastaReader& site_casing( SiteCasing value );
+    FastaReader& validate_labels( bool value );
 
     /**
-     * @brief Return whether Sequence sites are automatically turned into upper or lower case.
+     * @brief Return whether the label is validated.
      */
-    SiteCasing site_casing() const;
+    bool validate_labels() const;
 
     /**
      * @brief Set whether Sequence labels are used to guess/extract Sequence abundances
@@ -310,6 +309,20 @@ public:
      * @brief Return whether the label is used to guess/extracat Sequence abundances.
      */
     bool guess_abundances() const;
+
+    /**
+     * @brief Set whether Sequence sites are automatically turned into upper or lower case.
+     *
+     * Default is SiteCasing::kToUpper, that is, all sites of the read Sequences are turned into
+     * upper case letters automatically. This is demanded by the Fasta standard.
+     * The function returns the FastaReader object to allow for fluent interfaces.
+     */
+    FastaReader& site_casing( SiteCasing value );
+
+    /**
+     * @brief Return whether Sequence sites are automatically turned into upper or lower case.
+     */
+    SiteCasing site_casing() const;
 
     /**
      * @brief Set the chars that are used for validating Sequence sites when reading them.
@@ -385,6 +398,7 @@ private:
     ParsingMethod           parsing_method_ = ParsingMethod::kDefault;
 
     SiteCasing              site_casing_      = SiteCasing::kUnchanged;
+    bool                    validate_labels_  = true;
     bool                    guess_abundances_ = false;
     bool                    use_validation_   = false;
     utils::CharLookup<bool> lookup_;

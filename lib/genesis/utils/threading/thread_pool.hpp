@@ -356,7 +356,7 @@ public:
         if( max_queue_size_ > 0 && max_queue_size_ < num_threads * 2 ) {
             throw std::runtime_error(
                 "Cannot use ThreadPool with max queue size less than "
-                "half the number of threads, for efficiency"
+                "double the number of threads, for efficiency"
             );
         }
 

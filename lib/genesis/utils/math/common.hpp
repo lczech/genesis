@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -188,11 +188,11 @@ inline double round_to( double x, size_t accuracy_order )
  * because of the fast overflow. However, using doubles leads to rounding errors, at least for
  * bigger numbers. So, within the valid range, this function is more accurate. Also, it is faster.
  */
-inline size_t int_pow( size_t base, size_t exp )
+inline uint64_t int_pow( uint64_t base, uint8_t exp )
 {
     // Using Exponentiation by squaring, see
     // http://stackoverflow.com/a/101613/4184258
-    size_t result = 1;
+    uint64_t result = 1;
     while( exp )  {
         if( exp & 1 ) {
             result *= base;

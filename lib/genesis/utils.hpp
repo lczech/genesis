@@ -48,6 +48,7 @@
 #include "genesis/utils/color/norm_diverging.hpp"
 #include "genesis/utils/color/norm_linear.hpp"
 #include "genesis/utils/color/norm_logarithmic.hpp"
+#include "genesis/utils/containers/bitpacked_vector.hpp"
 #include "genesis/utils/containers/dataframe.hpp"
 #include "genesis/utils/containers/dataframe/operators.hpp"
 #include "genesis/utils/containers/dataframe/reader.hpp"

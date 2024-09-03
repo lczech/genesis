@@ -138,19 +138,27 @@ bool FastaReader::parse_sequence(
     // Parse label.
     buffer_.clear();
     it.get_line( buffer_ );
-    auto const buffer_is_print = std::all_of(
-        buffer_.cbegin(),
-        buffer_.cend(),
-        []( char c ){
-            return utils::is_print( c );
-        }
-    );
-    if( buffer_.empty() || !buffer_is_print ) {
+    if( buffer_.empty() ) {
         throw std::runtime_error(
-            "Malformed Fasta " + it.source_name() + ": Expecting valid label after '>' "
-            "in sequence at line " + std::to_string( it.line() ) + ", but instead the label "
-            "is empty or contains non-printable characters."
+            "Malformed Fasta " + it.source_name() + ": Expecting valid label after '>' in sequence "
+            "at line " + std::to_string( it.line() ) + ", but instead the label is empty."
         );
+    }
+    if( validate_labels_ ) {
+        auto const buffer_is_print = std::all_of(
+            buffer_.cbegin(),
+            buffer_.cend(),
+            []( char c ){
+                return utils::is_print( c );
+            }
+        );
+        if( !buffer_is_print ) {
+            throw std::runtime_error(
+                "Malformed Fasta " + it.source_name() + ": Expecting valid label after '>' "
+                "in sequence at line " + std::to_string( it.line() ) + ", but instead the label "
+                "contains non-printable characters."
+            );
+        }
     }
     if( guess_abundances_ ) {
         auto const la = guess_sequence_abundance( buffer_ );
@@ -374,15 +382,15 @@ FastaReader::ParsingMethod FastaReader::parsing_method() const
     return parsing_method_;
 }
 
-FastaReader& FastaReader::site_casing( SiteCasing value )
+FastaReader& FastaReader::validate_labels( bool value )
 {
-    site_casing_ = value;
+    validate_labels_ = value;
     return *this;
 }
 
-FastaReader::SiteCasing FastaReader::site_casing() const
+bool FastaReader::validate_labels() const
 {
-    return site_casing_;
+    return validate_labels_;
 }
 
 FastaReader& FastaReader::guess_abundances( bool value )
@@ -394,6 +402,17 @@ FastaReader& FastaReader::guess_abundances( bool value )
 bool FastaReader::guess_abundances() const
 {
     return guess_abundances_;
+}
+
+FastaReader& FastaReader::site_casing( SiteCasing value )
+{
+    site_casing_ = value;
+    return *this;
+}
+
+FastaReader::SiteCasing FastaReader::site_casing() const
+{
+    return site_casing_;
 }
 
 FastaReader& FastaReader::valid_chars( std::string const& chars )
