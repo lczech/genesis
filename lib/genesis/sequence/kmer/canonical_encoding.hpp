@@ -149,7 +149,7 @@ public:
         // Depending on the type of the specifying pair, we need different ways for this.
         uint64_t kmercode = 0;
         if( sym == 0 ) {
-            // Palindrome -> nothing to do. Can only occurr in even k.
+            // Palindrome -> nothing to do. Can only occur in even k.
             assert( k % 2 == 0 );
 
             // We set l = k here, as in a palindrome, l will be undefined due to the ctz call,
@@ -157,7 +157,7 @@ public:
             l = k;
             kmercode = encode_prime_( kmer.value, l );
         } else if( l == k - 1 ) {
-            // Single character in the middle. Can only occurr in odd k.
+            // Single character in the middle. Can only occur in odd k.
             assert( k % 2 == 1 );
 
             // We are interested in the bits at the central character,
@@ -184,6 +184,7 @@ public:
             // Not just single character in the middle, i.e., we have a specifying pair.
             // Due to the symmetry of the kmer and its rc, we cannot have l > k - 1,
             // so the only case where this branch is taken is if l < k - 1.
+            assert( k >= 2 );
             assert( l < k - 1 );
 
             // There are 16 possible combinations of two characters from ACGT.
@@ -212,15 +213,11 @@ public:
         assert( l % 2 == 0 );
         assert( l <= k );
 
-        // Subtract gaps: 2*(k//2-l-1) ones followed by k-2 zeros, for the case that  `l <= k - 4`.
-        // We add 4 to the left hand side here to avoid underflowing for small k.
+        // Subtract gaps: 2*(k//2-l-1) ones followed by k-2 zeros, for the case that `l <= k - 4`;
+        // we move the 4 to the lhs of the equation to avoid underflowing for small k.
         if( l + 4 <= k ) {
             assert( k >= 4 );
-            // auto const shift = 2 * ( k/2 - l/2 - 1 );
-            auto const shift = k/2*2 - l - 2;
-            assert( shift != 0 );
-            auto const gaps = ( Bitfield::ALL_1 >> ( Bitfield::BIT_WIDTH - shift ));
-            kmercode -= ( gaps << gap_shift_ );
+            kmercode -= gap_sizes_[l];
         }
 
         // Subtract gaps in code due to specifying middle position (odd k).
@@ -246,7 +243,6 @@ private:
         auto const k = Kmer<Tag>::k();
         four_to_the_k_half_plus_one_ = utils::int_pow( 4, k / 2 + 1 );
         twice_four_to_the_k_half_ = 2 * utils::int_pow( 4, k / 2 );
-        gap_shift_ = ( 2 * (( k+1 ) / 2 ) - 1 );
 
         // After we have identified the specifying pair of characters, we need to extract
         // the remainder, see encode_prime_(). We here precompute a mask to do that.
@@ -268,6 +264,16 @@ private:
         }
         for( size_t i = k+1; i < remainder_mask_.size(); ++i ) {
             remainder_mask_[i] = 0;
+        }
+
+        // Precompute the gap sizes that we need to subtract from the prime encoding,
+        // for different patterns depending on where the specifying pair is.
+        // Gaps have sizes of 2*(k//2-l-1) ones followed by k-2 zeros.
+        for( size_t l = 0; l + 4 <= k; ++l ) {
+            auto const one_shift = k/2*2 - l - 2;
+            assert( one_shift != 0 );
+            auto const gaps = ( Bitfield::ALL_1 >> ( Bitfield::BIT_WIDTH - one_shift ));
+            gap_sizes_[l] = ( gaps << ( 2 * (( k+1 ) / 2 ) - 1 ));
         }
     }
 
@@ -352,10 +358,12 @@ private:
     // and is created on construction. We might access positions up to k+2, hence the max size here.
     std::array<uint64_t, Bitfield::MAX_CHARS_PER_KMER + 2> remainder_mask_;
 
+    // Values of the gap sizes we need to subtract from the prime encoding, depending on l.
+    std::array<uint64_t, Bitfield::MAX_CHARS_PER_KMER> gap_sizes_;
+
     // Powers are expensive to compute, but these here only depend on k, so we can pre-compute them.
     uint64_t four_to_the_k_half_plus_one_;
     uint64_t twice_four_to_the_k_half_;
-    uint64_t gap_shift_;
 };
 
 } // namespace sequence
