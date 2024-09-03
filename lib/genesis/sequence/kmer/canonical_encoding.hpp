@@ -127,11 +127,17 @@ public:
         assert( kmer.rev_comp != 0 || kmer.value == Bitfield::ones_mask[Kmer<Tag>::k()] );
 
         // Get the length of the symmetric prefix/suffix, in num of characters, i.e., 2x num of bits.
-        // Then, l is the bit index of the char that is the specifying case for the k-mer.
-        // Calling ctz(0) is undefined, which is the case for palindromes; we catch this
-        // below by checking for sym==0, as this is faster than an additional check here.
+        // Then, l is the (rounded) bit index of the char that is the specifying case for the k-mer.
+        // For instance, with `kmer == GATAC == 10 00 11 00 01`, and `rc == GTATC == 10 11 00 11 01`,
+        // we get `kmer ^ rc == 00 11 11 11 00`, and thus `l == 2`. We measure l in bit,
+        // while k covers 2 bits, so comparing l to k means that we compare the position of l within
+        // the lower half of the k-mer bits (due to symmetry), which is what the below code uses.
+        // Calling ctz(0) gives an undefined result (not undefined behavior though), which is the
+        // case for palindromes; we catch this below by checking for sym==0, and set l to a defined
+        // value in that case, as this is faster than an additional check here.
         uint64_t const sym = kmer.value ^ kmer.rev_comp;
         uint8_t l = __builtin_ctzll(sym) / 2 * 2;
+        assert( sym == 0 || l <= k - 1 );
 
         // The above builtin call uses unsigned long long. Assert that this has the size we expect.
         static_assert(
@@ -144,37 +150,12 @@ public:
         uint64_t kmercode = 0;
         if( sym == 0 ) {
             // Palindrome -> nothing to do. Can only occurr in even k.
-            l = k;
             assert( k % 2 == 0 );
 
-            // We use l = k here, as in a palindrome, l will overshoot due to the ctl call,
-            // so we limit it here to the range that we are interested in.
+            // We set l = k here, as in a palindrome, l will be undefined due to the ctz call,
+            // so we set it here to the position that we are interested in.
+            l = k;
             kmercode = encode_prime_( kmer.value, l );
-        } else if( l < k - 1 ) {
-            // Not just single character in the middle, i.e., we have a specifying pair.
-
-            // There are 16 possible combinations of two characters from ACGT.
-            // We here extract the first two asymmetric characters (the specifying pair, i.e. 2x2 bits)
-            // to build a pattern for a lookup of which combination we have in the kmer.
-            // This is done by shifting the relevant bits of the pair to the LSBs of the pattern.
-            unsigned char pattern = 0;
-            pattern |= ( kmer.value >> ( 2*k - l - 4 )) & 0x0C;
-            pattern |= ( kmer.value >> (       l     )) & 0x03;
-            assert( pattern < 16 );
-
-            // Check which case we need for the initial hash, based on the pattern we found.
-            if( reverse_[pattern] ) {
-                kmercode = encode_prime_( kmer.rev_comp, l );
-            } else {
-                kmercode = encode_prime_( kmer.value, l );
-            }
-
-            // Set positions l+1, l+2, l+3 and l+4 according to the specifying pair pattern,
-            // which is called R in the manuscript.
-            // Similar to above, we can avoid any branching here by directly shifting
-            // the replace_ mask bits to the needed positions. If the replace mask is 0 for the
-            // given pattern, we shift a zero, which just does nothing.
-            kmercode |= ( replace_[pattern] << ( 2*k - l - 4 ));
         } else if( l == k - 1 ) {
             // Single character in the middle. Can only occurr in odd k.
             assert( k % 2 == 1 );
@@ -200,11 +181,36 @@ public:
             auto const bit2 = ( kmer.value & ( 1ULL << ( k-1 )));
             kmercode |= bit1 ^ bit2;
         } else {
-            // This branch is taken only if l >= k, which however implies that the kmer
-            // is a palindrome, which is already checked as the first branch.
-            assert( false );
+            // Not just single character in the middle, i.e., we have a specifying pair.
+            // Due to the symmetry of the kmer and its rc, we cannot have l > k - 1,
+            // so the only case where this branch is taken is if l < k - 1.
+            assert( l < k - 1 );
+
+            // There are 16 possible combinations of two characters from ACGT.
+            // We here extract the first two asymmetric characters (the specifying pair, i.e. 2x2 bits)
+            // to build a pattern for a lookup of which combination we have in the kmer.
+            // This is done by shifting the relevant bits of the pair to the LSBs of the pattern.
+            unsigned char pattern = 0;
+            pattern |= ( kmer.value >> ( 2*k - l - 4 )) & 0x0C;
+            pattern |= ( kmer.value >> (       l     )) & 0x03;
+            assert( pattern < 16 );
+
+            // Check which case we need for the initial hash, based on the pattern we found.
+            if( reverse_[pattern] ) {
+                kmercode = encode_prime_( kmer.rev_comp, l );
+            } else {
+                kmercode = encode_prime_( kmer.value, l );
+            }
+
+            // Set positions l+1, l+2, l+3 and l+4 according to the specifying pair pattern,
+            // which is called R in the manuscript.
+            // Similar to above, we can avoid any branching here by directly shifting
+            // the replace_ mask bits to the needed positions. If the replace mask is 0 for the
+            // given pattern, we shift a zero, which just does nothing.
+            kmercode |= ( replace_[pattern] << ( 2*k - l - 4 ));
         }
         assert( l % 2 == 0 );
+        assert( l <= k );
 
         // Subtract gaps: 2*(k//2-l-1) ones followed by k-2 zeros, for the case that  `l <= k - 4`.
         // We add 4 to the left hand side here to avoid underflowing for small k.
@@ -308,6 +314,7 @@ private:
     // to avoid mistakes, if we introduce different kmer types.
     // Anything that fails here means that the class is used with
     // an incompatible bit representation or alphabet encoding.
+    static_assert( sizeof(typename Bitfield::WordType) == 8, "sizeof(Bitfield::WordType) != 8" );
     static_assert( Bitfield::BIT_WIDTH == 64, "Bitfield::BIT_WIDTH != 64" );
     static_assert( Bitfield::BITS_PER_CHAR == 2, "Bitfield::BITS_PER_CHAR != 2" );
     static_assert( Alphabet::SIZE == 4, "Alphabet::SIZE != 4" );
@@ -334,7 +341,7 @@ private:
     // # 13 T..C -> G..A    -> 1001
     // # 14 T..G -> C..A    -> 1000
     // # 15 T..T -> A..A    -> 0110
-    std::array<typename Bitfield::WordType, 16> const replace_ = {{
+    std::array<uint64_t, 16> const replace_ = {{
         0x06, 0x05, 0x04, 0x00, 0x08, 0x07, 0x00, 0x04, 0x09, 0x00, 0x07, 0x05, 0x00, 0x09, 0x08, 0x06
     }};
 
@@ -343,7 +350,7 @@ private:
 
     // Mask to extract the remainder after having found the specifying pair. Depends on k,
     // and is created on construction. We might access positions up to k+2, hence the max size here.
-    std::array<typename Bitfield::WordType, Bitfield::MAX_CHARS_PER_KMER + 2> remainder_mask_;
+    std::array<uint64_t, Bitfield::MAX_CHARS_PER_KMER + 2> remainder_mask_;
 
     // Powers are expensive to compute, but these here only depend on k, so we can pre-compute them.
     uint64_t four_to_the_k_half_plus_one_;
