@@ -1,5 +1,5 @@
-#ifndef GENESIS_SEQUENCE_KMER_KMER_SCANNER_H_
-#define GENESIS_SEQUENCE_KMER_KMER_SCANNER_H_
+#ifndef GENESIS_SEQUENCE_KMER_EXTRACTOR_H_
+#define GENESIS_SEQUENCE_KMER_EXTRACTOR_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
