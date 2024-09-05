@@ -118,6 +118,9 @@ public:
                     "Cannot extract kmers with k=" + std::to_string( Kmer<Tag>::k() )
                 );
             }
+            auto const k = Kmer<Tag>::k();
+            ones_mask_ = Bitfield::ones_mask[ k ];
+            rc_shift_ = (( k - 1 ) * Bitfield::BITS_PER_CHAR );
 
             // Start streaming the data
             assert( location_ == 0 );
@@ -250,9 +253,6 @@ public:
 
         inline bool process_current_char_()
         {
-            // Shorthands and checks.
-            auto const k = Kmer<Tag>::k();
-            assert( k > 0 );
             assert( parent_ );
 
             // Get the next bits to use. If it is invalid, we let the caller know.
@@ -267,13 +267,13 @@ public:
             // Move the new value into the kmer.
             auto const word = static_cast<typename Bitfield::WordType>( rank );
             kmer_.value <<= Bitfield::BITS_PER_CHAR;
-            kmer_.value &=  Bitfield::ones_mask[ k ];
+            kmer_.value &=  ones_mask_;
             kmer_.value |=  word;
 
             // Also populate the reverse complement.
             typename Bitfield::WordType const rc_word = Alphabet::complement( rank );
             kmer_.rev_comp >>= Bitfield::BITS_PER_CHAR;
-            kmer_.rev_comp |= ( rc_word << (( k - 1 ) * Bitfield::BITS_PER_CHAR ));
+            kmer_.rev_comp |= ( rc_word << rc_shift_ );
 
             // Successfully processed the char.
             ++(parent_->count_valid_characters_);
@@ -293,6 +293,10 @@ public:
         // This corresponds to the char that is extracted from the sequence at the end of the kmer.
         Kmer<Tag> kmer_;
         size_t location_ = 0;
+
+        // Precomputed values for speed
+        typename Bitfield::WordType ones_mask_;
+        int rc_shift_ = 0;
     };
 
     // ======================================================================================

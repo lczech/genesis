@@ -116,7 +116,56 @@ std::string string_rev_comp( std::string const& str )
 }
 
 // =================================================================================================
-//     Basics
+//     Alphabet
+// =================================================================================================
+
+TEST( Kmer, AlphabetBasics )
+{
+    using Alphabet = Kmer<KmerTagDefault>::Alphabet;
+    for( int i = 0; i < 128; ++i ) {
+        char c = i;
+        switch( c ) {
+            case 'a':
+            case 'A': {
+                EXPECT_EQ( 0, Alphabet::char_to_rank(c) );
+                break;
+            }
+            case 'c':
+            case 'C': {
+                EXPECT_EQ( 1, Alphabet::char_to_rank(c) );
+                break;
+            }
+            case 'g':
+            case 'G': {
+                EXPECT_EQ( 2, Alphabet::char_to_rank(c) );
+                break;
+            }
+            case 't':
+            case 'T': {
+                EXPECT_EQ( 3, Alphabet::char_to_rank(c) );
+                break;
+            }
+            default: {
+                EXPECT_EQ( 255, Alphabet::char_to_rank(c) );
+            }
+        }
+    }
+}
+
+// TEST( Kmer, AlphabetSpeed )
+// {
+//     using Alphabet = Kmer<KmerTagDefault>::Alphabet;
+//     auto const seq = make_random_kmer_sequence( 1000000000 );
+//     LOG_TIME << "start";
+//     size_t sum = 0;
+//     for( auto c : seq ) {
+//         sum += Alphabet::char_to_rank( c );
+//     }
+//     LOG_TIME << "finish: " << sum;
+// }
+
+// =================================================================================================
+//     Kmer Basics
 // =================================================================================================
 
 TEST( Kmer, Basics )
@@ -380,7 +429,8 @@ TEST( Kmer, ExtractorInvalids )
 //
 //     // We make one long sequence for the testing
 //     LOG_TIME << "make sequence";
-//     auto const sequence = make_random_kmer_sequence( 500000000 );
+//     size_t const seq_len = 1000000000;
+//     auto const sequence = make_random_kmer_sequence( seq_len );
 //     LOG_TIME << "done";
 //
 //     auto const k = 15;
@@ -389,10 +439,20 @@ TEST( Kmer, ExtractorInvalids )
 //
 //     size_t cnt = 0;
 //     LOG_TIME << "extract kmers";
+//
+//     // Start high-resolution timer
+//     struct timespec start, end;
+//     clock_gettime(CLOCK_MONOTONIC, &start);
 //     for( auto const& kmer : extractor ) {
 //         (void) kmer;
 //         ++cnt;
 //     }
+//
+//     // Calculate the elapsed time in seconds, and the number of encodings per sec we achieved.
+//     clock_gettime(CLOCK_MONOTONIC, &end);
+//     double elapsed_time = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+//     unsigned long extr_per_sec = cnt / elapsed_time;
+//     LOG_DBG << "k==" << k << ", time: " << elapsed_time << "s, kmer/s: " << extr_per_sec;
 //     LOG_TIME << "done " << cnt;
 //
 //     // Expect correct num of iterations
