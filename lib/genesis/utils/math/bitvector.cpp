@@ -45,6 +45,8 @@ namespace utils {
 //     Constants
 // =============================================================================
 
+const size_t Bitvector::npos;
+
 const Bitvector::IntType Bitvector::all_0_ = 0ul;
 const Bitvector::IntType Bitvector::all_1_ = (((1ul << 32) - 1) << 32)  +  ((1ul << 32) - 1);
 
@@ -405,6 +407,48 @@ bool Bitvector::any_set() const
         }
     }
     return false;
+}
+
+size_t Bitvector::find_first_set() const
+{
+    return find_next_set( 0 );
+}
+
+size_t Bitvector::find_last_set() const
+{
+    // We currently do not have a find_prev_set() function. If we implement one at some point,
+    // this function here should instead simply call that one. For now however, we implement
+    // only what we need here.
+
+    // Find the last word that is non-zero. We use that unsigned ints have defined underflow
+    // behavior, so if we wrap around at word index 0, we just go to int max, and stop.
+    // This also works for the boundary case of an empty bitvector.
+    size_t wrd_idx = data_.size() - 1;
+    while( wrd_idx < data_.size() && data_[wrd_idx] == 0 ) {
+        --wrd_idx;
+    }
+
+    // Boundary condition: No bits set, or empty vector
+    if( wrd_idx >= data_.size() ) {
+        return Bitvector::npos;
+    }
+
+    // Now find the last bit in the word. For now, we do a simple bit-based loop,
+    // but we could speed this up with a similar ctz/clz approach as in find_next_set().
+    // We start at either the end position of the word index that we found above,
+    // or, if that's the last word of the vector, we start at its last bit.
+    assert( wrd_idx < data_.size() );
+    assert( data_[wrd_idx] != 0 );
+    auto bit_idx = std::min( wrd_idx * IntSize + IntSize - 1, size_ - 1 );
+    while( bit_idx < data_.size() * IntSize ) {
+        if( get(bit_idx) ) {
+            return bit_idx;
+        }
+        --bit_idx;
+    }
+
+    // We must have found a bit above.
+    throw std::runtime_error( "Internal error in Bitvector::find_last_set()" );
 }
 
 size_t Bitvector::find_next_set( size_t start ) const

@@ -490,3 +490,23 @@ TEST( Bitvector, FindNextSetFuzzy )
         EXPECT_EQ( std::numeric_limits<size_t>::max(), bv.find_next_set( size + 1 ));
     }
 }
+
+TEST( Bitvector, FindFirstLastSet )
+{
+    // Test different lengths of bitvectors
+    for( size_t l = 0; l <= 1024; ++l ) {
+        // Test no bit being set
+        auto bv = Bitvector( l );
+        EXPECT_EQ( Bitvector::npos, bv.find_first_set() );
+        EXPECT_EQ( Bitvector::npos, bv.find_last_set() );
+
+        // Test exactly one bit being set, for all bits.
+        for( size_t s = 0; s < l; ++s ) {
+            // LOG_DBG << "l==" << l << " s==" << s;
+            auto bv = Bitvector( l );
+            bv.set( s );
+            EXPECT_EQ( s, bv.find_first_set() );
+            EXPECT_EQ( s, bv.find_last_set() );
+        }
+    }
+}

@@ -336,9 +336,23 @@ public:
     bool any_set() const;
 
     /**
+     * @brief Return the index of the first bit in the Bitvector that is set.
+     *
+     * If no such position exists (because all bits are `false`), Bitvector::npos is returned.
+     */
+    size_t find_first_set() const;
+
+    /**
+     * @brief Return the index of the last bit in the Bitvector that is set.
+     *
+     * If no such position exists (because all bits are `false`), Bitvector::npos is returned.
+     */
+    size_t find_last_set() const;
+
+    /**
      * @brief Return the index of the next position in the Bitvector that is set.
      *
-     * This returns the first position after @p start, including @p start itself, that is set.
+     * This returns the first position starting at @p start, including @p start itself, that is set.
      * If no such position exists (because all following bits are `false`), or if @p start is beyond
      * the length of the vector, Bitvector::npos is returned instead.
      */
