@@ -174,41 +174,114 @@ TEST( Bitvector, Operators )
     auto const bv_s = Bitvector( "0011" );
     auto const bv_l = Bitvector( "010101" );
 
+    // Shorthands.
+    auto const kExpectEqual = BitwiseOperatorLengthPolicy::kExpectEqual;
+    auto const kUseShorter  = BitwiseOperatorLengthPolicy::kUseShorter;
+    auto const kUseLonger   = BitwiseOperatorLengthPolicy::kUseLonger;
+    auto const kUseFirst    = BitwiseOperatorLengthPolicy::kUseFirst;
+    auto const kUseSecond   = BitwiseOperatorLengthPolicy::kUseSecond;
+
+    // -----------------------------------
+    //     and
+    // -----------------------------------
+
+    // and, expect equal length
+    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, kExpectEqual ));
+    EXPECT_ANY_THROW(               bitwise_and( bv_l, bv_s, kExpectEqual ));
+    EXPECT_ANY_THROW(               bitwise_and( bv_s, bv_l, kExpectEqual ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, kExpectEqual ));
+
     // and, using smaller
-    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, false ));
-    EXPECT_EQ( Bitvector("0001"),   bitwise_and( bv_l, bv_s, false ));
-    EXPECT_EQ( Bitvector("0001"),   bitwise_and( bv_s, bv_l, false ));
-    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, false ));
+    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, kUseShorter ));
+    EXPECT_EQ( Bitvector("0001"),   bitwise_and( bv_l, bv_s, kUseShorter ));
+    EXPECT_EQ( Bitvector("0001"),   bitwise_and( bv_s, bv_l, kUseShorter ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, kUseShorter ));
 
     // and, using larger
-    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, true ));
-    EXPECT_EQ( Bitvector("000100"), bitwise_and( bv_l, bv_s, true ));
-    EXPECT_EQ( Bitvector("000100"), bitwise_and( bv_s, bv_l, true ));
-    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, true ));
+    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, kUseLonger ));
+    EXPECT_EQ( Bitvector("000100"), bitwise_and( bv_l, bv_s, kUseLonger ));
+    EXPECT_EQ( Bitvector("000100"), bitwise_and( bv_s, bv_l, kUseLonger ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, kUseLonger ));
+
+    // and, using first
+    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, kUseFirst ));
+    EXPECT_EQ( Bitvector("000100"), bitwise_and( bv_l, bv_s, kUseFirst ));
+    EXPECT_EQ( Bitvector("0001"),   bitwise_and( bv_s, bv_l, kUseFirst ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, kUseFirst ));
+
+    // and, using second
+    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, kUseSecond ));
+    EXPECT_EQ( Bitvector("0001"),   bitwise_and( bv_l, bv_s, kUseSecond ));
+    EXPECT_EQ( Bitvector("000100"), bitwise_and( bv_s, bv_l, kUseSecond ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, kUseSecond ));
+
+    // -----------------------------------
+    //     or
+    // -----------------------------------
+
+    // or, expect equal length
+    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, kExpectEqual ));
+    EXPECT_ANY_THROW(               bitwise_or( bv_l, bv_s, kExpectEqual ));
+    EXPECT_ANY_THROW(               bitwise_or( bv_s, bv_l, kExpectEqual ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, kExpectEqual ));
 
     // or, using smaller
-    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, false ));
-    EXPECT_EQ( Bitvector("0111"),   bitwise_or( bv_l, bv_s, false ));
-    EXPECT_EQ( Bitvector("0111"),   bitwise_or( bv_s, bv_l, false ));
-    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, false ));
+    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, kUseShorter ));
+    EXPECT_EQ( Bitvector("0111"),   bitwise_or( bv_l, bv_s, kUseShorter ));
+    EXPECT_EQ( Bitvector("0111"),   bitwise_or( bv_s, bv_l, kUseShorter ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, kUseShorter ));
 
     // or, using larger
-    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, true ));
-    EXPECT_EQ( Bitvector("011101"), bitwise_or( bv_l, bv_s, true ));
-    EXPECT_EQ( Bitvector("011101"), bitwise_or( bv_s, bv_l, true ));
-    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, true ));
+    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, kUseLonger ));
+    EXPECT_EQ( Bitvector("011101"), bitwise_or( bv_l, bv_s, kUseLonger ));
+    EXPECT_EQ( Bitvector("011101"), bitwise_or( bv_s, bv_l, kUseLonger ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, kUseLonger ));
+
+    // or, using first
+    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, kUseFirst ));
+    EXPECT_EQ( Bitvector("011101"), bitwise_or( bv_l, bv_s, kUseFirst ));
+    EXPECT_EQ( Bitvector("0111"),   bitwise_or( bv_s, bv_l, kUseFirst ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, kUseFirst ));
+
+    // or, using second
+    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, kUseSecond ));
+    EXPECT_EQ( Bitvector("0111"),   bitwise_or( bv_l, bv_s, kUseSecond ));
+    EXPECT_EQ( Bitvector("011101"), bitwise_or( bv_s, bv_l, kUseSecond ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, kUseSecond ));
+
+    // -----------------------------------
+    //     xor
+    // -----------------------------------
+
+    // xor, expect equal length
+    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, kExpectEqual ));
+    EXPECT_ANY_THROW(               bitwise_xor( bv_l, bv_s, kExpectEqual ));
+    EXPECT_ANY_THROW(               bitwise_xor( bv_s, bv_l, kExpectEqual ));
+    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, kExpectEqual ));
 
     // xor, using smaller
-    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, false ));
-    EXPECT_EQ( Bitvector("0110"),   bitwise_xor( bv_l, bv_s, false ));
-    EXPECT_EQ( Bitvector("0110"),   bitwise_xor( bv_s, bv_l, false ));
-    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, false ));
+    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, kUseShorter ));
+    EXPECT_EQ( Bitvector("0110"),   bitwise_xor( bv_l, bv_s, kUseShorter ));
+    EXPECT_EQ( Bitvector("0110"),   bitwise_xor( bv_s, bv_l, kUseShorter ));
+    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, kUseShorter ));
 
     // xor, using larger
-    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, true ));
-    EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_l, bv_s, true ));
-    EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_s, bv_l, true ));
-    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, true ));
+    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, kUseLonger ));
+    EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_l, bv_s, kUseLonger ));
+    EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_s, bv_l, kUseLonger ));
+    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, kUseLonger ));
+
+    // xor, using first
+    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, kUseFirst ));
+    EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_l, bv_s, kUseFirst ));
+    EXPECT_EQ( Bitvector("0110"),   bitwise_xor( bv_s, bv_l, kUseFirst ));
+    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, kUseFirst ));
+
+    // xor, using second
+    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, kUseSecond ));
+    EXPECT_EQ( Bitvector("0110"),   bitwise_xor( bv_l, bv_s, kUseSecond ));
+    EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_s, bv_l, kUseSecond ));
+    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, kUseSecond ));
 }
 
 TEST( Bitvector, SetRange )

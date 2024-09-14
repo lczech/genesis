@@ -192,10 +192,9 @@ void GenomeLocusSet::set_intersect( GenomeLocusSet const& rhs )
             assert( !lhs_bits.get(0) );
         } else {
             assert( !lhs_bit_0 && !rhs_bit_0 );
-            // Actual intersection of the two vectors.
-            // We use the smaller one as our target size, hence `use_larger == false` here.
+            // Actual intersection of the two vectors. We use the smaller one as our target size.
             // Everything behind those positions will end up false anyway when intersecting.
-            lhs_bits = bitwise_and( lhs_bits, rhs_bits, false );
+            lhs_bits = bitwise_and( lhs_bits, rhs_bits, BitwiseOperatorLengthPolicy::kUseShorter );
             assert( lhs_bits.size() > 0 );
             assert( !lhs_bits.get(0) );
         }
@@ -239,10 +238,9 @@ void GenomeLocusSet::set_union( GenomeLocusSet const& rhs )
                 // has the bit set, we shorten the vector here, to save some memory.
                 lhs_bits = Bitvector( 1, true );
             } else {
-                // Compute actual union of the two vectors.
-                // Here, we use `use_larger == true`, so that the longer vector is used,
+                // Compute actual union of the two vectors. Here, we use the longer vector,
                 // with all its bits that are not in the other one.
-                lhs_bits = bitwise_or( lhs_bits, rhs_bits, true );
+                lhs_bits = bitwise_or( lhs_bits, rhs_bits, BitwiseOperatorLengthPolicy::kUseLonger );
             }
         } else {
             // lhs does not have the chromosome, so we just copy. We here use the array
@@ -268,7 +266,8 @@ void GenomeLocusSet::invert( sequence::SequenceDict const& sequence_dict )
         if( ! sequence_dict.contains( chr_bv.first )) {
             throw std::runtime_error(
                 "Cannot invert Genome Locus Set for chromosome \"" + chr_bv.first +
-                "\", as the given Sequence Dict does not contain an entry for that chromosome"
+                "\", as the given sequence dictionary (such as from a .dict or .fai file, or from "
+                "a reference genome .fasta file) does not contain an entry for that chromosome"
             );
         }
 
@@ -278,7 +277,8 @@ void GenomeLocusSet::invert( sequence::SequenceDict const& sequence_dict )
         if( chr_bv.second.size() - 1 > seq_entry.size() ) {
             throw std::runtime_error(
                 "Cannot invert Genome Locus Set for chromosome \"" + chr_bv.first +
-                "\", as the given Sequence Dict indicates its length to be " +
+                "\", as the given sequence dictionary (such as from a .dict or .fai file, or from "
+                "a reference genome .fasta file) indicates its length to be " +
                 std::to_string( seq_entry.size() ) + ", instead of " +
                 std::to_string( chr_bv.second.size() - 1 )
             );

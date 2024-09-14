@@ -43,35 +43,93 @@ namespace utils {
 // =================================================================================================
 
 /**
+ * @brief Policy to decide how to combine Bitvector%s of different lengths.
+ *
+ * This is used in bitwise_and(), bitwise_or(), and bitwise_xor(). For these functions, when
+ * applying them to Bitvector%s of different lengths, we need to decide which length to use.
+ */
+enum class BitwiseOperatorLengthPolicy
+{
+    /**
+     * @brief Expect both Bitvector%s to be of equal length, throw an exception otherwise.
+     */
+    kExpectEqual,
+
+    /**
+     * @brief Use the length of the shorter of the two Bitvector%s.
+     *
+     * Operate on bits `[ 0 , m )` with `m = min( lhs.size(), rhs.size() )`.
+     * This truncates any remaining bits of the longer Bitvector.
+     */
+    kUseShorter,
+
+    /**
+     * @brief Use the length of the longer of the two Bitvector%s.
+     *
+     * Operate on bits `[ 0 , m )` with `m = max( lhs.size(), rhs.size() )`.
+     * This behaves as if the shorter Bitvector was filled with 0 to the longer length.
+     */
+    kUseLonger,
+
+    /**
+     * @brief Use the length of the first (left hand side) Bitvector of the operator.
+     *
+     * The other Bitvector (second, right hand side) is either truncated or filled with zeros
+     * to match the length.
+     */
+    kUseFirst,
+
+    /**
+     * @brief Use the length of the second (right hand side) Bitvector of the operator.
+     *
+     * The other Bitvector (first, left hand side) is either truncated or filled with zeros
+     * to match the length.
+     */
+    kUseSecond
+};
+
+/**
  * @brief Take the bitwise `and` of two Bitvector%s of potentially different size.
  *
  * The function is the same as the normal version, but allows to use Bitvector%s of different sizes.
- * By default (`use_larger == false`), we use the number of bits of the shorter Bitvector,
- * that is, it operates on bits `[ 0 , m )` with `m = min( lhs.size(), rhs.size() )`.
- * If @p use_larger is set however, the resulting Bitvector has the max size of the two inputs,
- * with the bits at the end (the ones after `m`) being `false`.
+ * By default (`policty == kExpectEqual`), the vectors are expected to be of equal length.
+ * See BitwiseOperatorLengthPolicy for other choices of the policy.
  */
-Bitvector bitwise_and( Bitvector const& lhs, Bitvector const& rhs, bool use_larger = false );
+Bitvector bitwise_and(
+    Bitvector const& lhs, Bitvector const& rhs,
+    BitwiseOperatorLengthPolicy length_policy = BitwiseOperatorLengthPolicy::kExpectEqual
+);
 
 /**
 * @brief Take the bitwise `or` of two Bitvector%s of potentially different size.
 *
 * The function is the same as the normal version, but allows to use Bitvector%s of different sizes.
-* By default (`use_larger == false`), we use the number of bits of the shorter Bitvector,
-* that is, it operates on bits `[ 0 , m )` with `m = min( lhs.size(), rhs.size() )`.
-* If @p use_larger is set however, the resulting Bitvector has the max size of the two inputs,
-* with the bits at the end (the ones after `m`) being identical to those in the larger Bitvector.
+* By default (`policty == kExpectEqual`), the vectors are expected to be of equal length.
+* See BitwiseOperatorLengthPolicy for other choices of the policy.
 */
-Bitvector bitwise_or( Bitvector const& lhs, Bitvector const& rhs, bool use_larger = false );
+Bitvector bitwise_or(
+    Bitvector const& lhs, Bitvector const& rhs,
+    BitwiseOperatorLengthPolicy length_policy = BitwiseOperatorLengthPolicy::kExpectEqual
+);
 
 /**
 * @brief Take the bitwise `xor` of two Bitvector%s of potentially different size.
 *
 * @copydetails bitwise_or()
 */
-Bitvector bitwise_xor( Bitvector const& lhs, Bitvector const& rhs, bool use_larger = false );
+Bitvector bitwise_xor(
+    Bitvector const& lhs, Bitvector const& rhs,
+    BitwiseOperatorLengthPolicy length_policy = BitwiseOperatorLengthPolicy::kExpectEqual
+);
 
+/**
+ * @brief Compute the set minus `lhs & (~rhs)` between two Bitvector%s.
+ */
 Bitvector set_minus (Bitvector const& lhs, Bitvector const& rhs);
+
+/**
+ * @brief Compute the symmetric differeence `(lhs | rhs) & ~(lhs & rhs)` between two Bitvector%s.
+ */
 Bitvector symmetric_difference( Bitvector const& lhs, Bitvector const& rhs );
 
 /**

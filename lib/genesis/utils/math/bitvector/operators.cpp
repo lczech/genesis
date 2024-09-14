@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -33,6 +33,7 @@
 #include <cassert>
 #include <iostream>
 #include <stdexcept>
+#include <utility>
 #include <string>
 
 namespace genesis {
@@ -42,43 +43,108 @@ namespace utils {
 //     Bitvector Operators
 // =================================================================================================
 
-Bitvector bitwise_and( Bitvector const& lhs, Bitvector const& rhs, bool use_larger )
-{
-    if(( use_larger ) ^ ( lhs.size() < rhs.size() )) {
-        auto result = Bitvector( lhs.size(), rhs );
-        result &= lhs;
-        return result;
-    } else {
-        auto result = Bitvector( rhs.size(), lhs );
-        result &= rhs;
-        return result;
+/**
+ * @brief Local helper function to get the order of two bitvectors for bitwise operations.
+ *
+ * The first one returned is the vector whose size we want to end up with. The second one is then
+ * the one that we use for the bitwise operation.
+ */
+inline std::pair<Bitvector const*, Bitvector const*> bitwise_operator_order_(
+    Bitvector const& lhs, Bitvector const& rhs,
+    BitwiseOperatorLengthPolicy length_policy
+) {
+    Bitvector const* first  = nullptr;
+    Bitvector const* second = nullptr;
+
+    switch( length_policy ) {
+        case BitwiseOperatorLengthPolicy::kExpectEqual: {
+            if( lhs.size() != rhs.size() ) {
+                throw std::invalid_argument(
+                    "Bitwise operation on bitvectors of different lengths (" +
+                    std::to_string( lhs.size() ) + " and " + std::to_string( rhs.size() ) +
+                    ") with BitwiseOperatorLengthPolicy::kExpectEqual"
+                );
+            }
+            first  = &lhs;
+            second = &rhs;
+            break;
+        }
+        case BitwiseOperatorLengthPolicy::kUseShorter: {
+            if( lhs.size() < rhs.size() ) {
+                first  = &lhs;
+                second = &rhs;
+            } else {
+                first  = &rhs;
+                second = &lhs;
+            }
+            break;
+        }
+        case BitwiseOperatorLengthPolicy::kUseLonger: {
+            if( lhs.size() < rhs.size() ) {
+                first  = &rhs;
+                second = &lhs;
+            } else {
+                first  = &lhs;
+                second = &rhs;
+            }
+            break;
+        }
+        case BitwiseOperatorLengthPolicy::kUseFirst: {
+            first  = &lhs;
+            second = &rhs;
+            break;
+        }
+        case BitwiseOperatorLengthPolicy::kUseSecond: {
+            first  = &rhs;
+            second = &lhs;
+            break;
+        }
+        default: {
+            throw std::invalid_argument(
+                "Invalid BitwiseOperatorLengthPolicy in bitwise operator"
+            );
+        }
     }
+
+    return std::make_pair( first, second );
 }
 
-Bitvector bitwise_or( Bitvector const& lhs, Bitvector const& rhs, bool use_larger )
-{
-    if(( use_larger ) ^ ( lhs.size() < rhs.size() )) {
-        auto result = Bitvector( lhs.size(), rhs );
-        result |= lhs;
-        return result;
-    } else {
-        auto result = Bitvector( rhs.size(), lhs );
-        result |= rhs;
-        return result;
-    }
+Bitvector bitwise_and(
+    Bitvector const& lhs, Bitvector const& rhs,
+    BitwiseOperatorLengthPolicy length_policy
+) {
+    // Depending on the length policty, we want to switch between which of the two vectors
+    // we use to obtain the final length of the resulting vector. The order function returns
+    // the vector as first whose length we want. We use that to create the result vector with
+    // that length, but using the data of the second vector to fill it. That is an easy way
+    // to get a vector with the desired length that can then combined with the first vector
+    // again via the operator, as now both have the same length.
+    auto const order = bitwise_operator_order_( lhs, rhs, length_policy );
+    auto result = Bitvector( order.first->size(), *order.second );
+    result &= *order.first;
+    return result;
 }
 
-Bitvector bitwise_xor( Bitvector const& lhs, Bitvector const& rhs, bool use_larger )
-{
-    if(( use_larger ) ^ ( lhs.size() < rhs.size() )) {
-        auto result = Bitvector( lhs.size(), rhs );
-        result ^= lhs;
-        return result;
-    } else {
-        auto result = Bitvector( rhs.size(), lhs );
-        result ^= rhs;
-        return result;
-    }
+Bitvector bitwise_or(
+    Bitvector const& lhs, Bitvector const& rhs,
+    BitwiseOperatorLengthPolicy length_policy
+) {
+    // See above bitwise_and() for details on how this works.
+    auto const order = bitwise_operator_order_( lhs, rhs, length_policy );
+    auto result = Bitvector( order.first->size(), *order.second );
+    result |= *order.first;
+    return result;
+}
+
+Bitvector bitwise_xor(
+    Bitvector const& lhs, Bitvector const& rhs,
+    BitwiseOperatorLengthPolicy length_policy
+) {
+    // See above bitwise_and() for details on how this works.
+    auto const order = bitwise_operator_order_( lhs, rhs, length_policy );
+    auto result = Bitvector( order.first->size(), *order.second );
+    result ^= *order.first;
+    return result;
 }
 
 Bitvector set_minus( Bitvector const& lhs, Bitvector const& rhs )
