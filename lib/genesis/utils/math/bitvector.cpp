@@ -103,11 +103,11 @@ Bitvector::Bitvector( size_t size, Bitvector const& other )
         "Bitvector::all_1_ is not all one"
     );
 
-    // if( &other == this ) {
-    //     throw std::runtime_error(
-    //         "In Bitvector::Bitvector( size_t, Bitvector const& ): Cannot self assign."
-    //     );
-    // }
+    if( &other == this ) {
+        throw std::runtime_error(
+            "In Bitvector::Bitvector( size_t, Bitvector const& ): Cannot self assign."
+        );
+    }
 
     // Copy over all data, making sure to not go past the end of either vector.
     // If other is smaller than the size we are creating here, we are technically copying

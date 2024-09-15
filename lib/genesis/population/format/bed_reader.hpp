@@ -32,12 +32,14 @@
  */
 
 #include "genesis/population/genome_locus_set.hpp"
-#include "genesis/population/genome_region.hpp"
 #include "genesis/population/genome_region_list.hpp"
+#include "genesis/population/genome_region.hpp"
+#include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -147,13 +149,38 @@ public:
      * @brief Read an input source, and return its content as a GenomeLocusSet.
      *
      * This only uses the first three columns, `chrom`, `chromStart`, and `chromEnd`,
-     * and ignores everything else.
+     * and ignores everything else. The lengths of the Bitvector%s in the resulting GenomeLocusSet
+     * are set to match the last bit that is set (the last position in the intervals of the input).
+     * We also offer an overload that additionally takes a SequenceDict, in order to set the lengths
+     * to the full chromosome lengths instead.
      *
      * This is the recommended way to read an input for testing whether genome coordinates
      * are covered (filtered / to be considered) for downstream analyses.
      */
     GenomeLocusSet read_as_genome_locus_set(
         std::shared_ptr< utils::BaseInputSource > source
+    ) const;
+
+    /**
+     * @brief Read an input source, and return its content as a GenomeLocusSet.
+     *
+     * This overload additionally takes a @p sequence_dict. If given a non-nullptr value,
+     * this is used to set the lengths of the Bitvector%s in the resulting GenomeLocusSet.
+     */
+    GenomeLocusSet read_as_genome_locus_set(
+        std::shared_ptr< utils::BaseInputSource > source,
+        sequence::SequenceDict const& sequence_dict
+    ) const;
+
+    /**
+     * @brief Read an input source, and return its content as a GenomeLocusSet.
+     *
+     * Additional overload that takes the @p sequence_dict via shared pointer. If provided,
+     * it is used; otherwise, the overload without sequence dictionary is used.
+     */
+    GenomeLocusSet read_as_genome_locus_set(
+        std::shared_ptr< utils::BaseInputSource > source,
+        std::shared_ptr< sequence::SequenceDict > sequence_dict
     ) const;
 
     /**
