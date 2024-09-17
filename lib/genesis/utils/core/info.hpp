@@ -92,9 +92,9 @@ struct InfoCompiler
     std::string compiler_version;
 
     /**
-    * @brief C++ version that was used to compile genesis.
+    * @brief C++ standard version that was used to compile genesis.
     */
-    std::string cpp_version;
+    std::string cpp_standard;
 
     /**
      * @brief Compiled with OpenMP.

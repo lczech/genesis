@@ -548,7 +548,7 @@ jobs:
       - name: Configure
         run: |
           export GENESIS_DEBUG=ON
-          GENESIS_CPP_VERSION=""
+          GENESIS_CPP_STANDARD=""
           GENESIS_USE_HTSLIB=""
           GENESIS_USE_OPENMP=""
 
@@ -560,7 +560,7 @@ jobs:
           # Set the C++ standard that we want to compile with.
           # By default, use "auto" to use our CMake auto detection.
           if [[ "${{ matrix.cppstd }}" != "auto" ]]; then
-            GENESIS_CPP_VERSION="-DGENESIS_CPP_VERSION=${{ matrix.cppstd }}"
+            GENESIS_CPP_STANDARD="-DGENESIS_CPP_STANDARD=${{ matrix.cppstd }}"
           fi
 
           # Deactive htslib for some tests
@@ -579,7 +579,7 @@ jobs:
             sudo xcode-select --switch /Library/Developer/CommandLineTools
           fi
 
-          cmake -S . -B ./build ${GENESIS_CPP_VERSION} ${GENESIS_USE_HTSLIB} ${GENESIS_USE_OPENMP}
+          cmake -S . -B ./build ${GENESIS_CPP_STANDARD} ${GENESIS_USE_HTSLIB} ${GENESIS_USE_OPENMP}
 
       # - name: MacOS CMake debug
       #   if: always() && runner.os == 'macos'

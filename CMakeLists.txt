@@ -182,7 +182,7 @@ option (GENESIS_BUILD_SHARED_LIB    "Build the shared library version of Genesis
 option (GENESIS_BUILD_STATIC_LIB    "Build the static library version of Genesis." ${GENESIS_HAS_PARENT_DIR})
 
 # Option for setting C++ version: default to "auto"
-set( GENESIS_CPP_VERSION "auto" CACHE STRING
+set( GENESIS_CPP_STANDARD "auto" CACHE STRING
     "Set C++ standard version (e.g., 11, 14, 17, 20, or 'auto' \
     to auto-detect the highest supported version)"
 )
@@ -261,7 +261,7 @@ message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION
 # Call the function to determine the C++ standard version (either auto-detected or user-specified).
 # This sets `CMAKE_CXX_STANDARD` to the value to be used for compilation.
 include(DetectCppVersion)
-detect_and_set_cpp_version()
+detect_and_set_cpp_standard()
 
 # --------------------------------------------------------------------------------------------------
 #   Compiler and Linker Options
