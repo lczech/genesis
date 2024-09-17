@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/threading/blocking_concurrent_queue.hpp"
 
 #include <atomic>
@@ -452,11 +453,9 @@ public:
      */
     template<class F, class... Args>
     auto enqueue_and_retrieve( F&& f, Args&&... args )
-    -> ProactiveFuture<typename std::invoke_result<F, Args...>::type>
+    -> ProactiveFuture<typename genesis_invoke_result<F, Args...>::type>
     {
-        // Updated for C++17 and later:
-        // using result_type = typename std::result_of<F(Args...)>::type;
-        using result_type = typename std::invoke_result<F, Args...>::type;
+        using result_type = typename genesis_invoke_result<F, Args...>::type;
 
         // Make sure that we do not enqueue more tasks than the max size.
         run_tasks_until_below_max_queue_size_();

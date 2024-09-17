@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
 */
 
 /**
@@ -32,6 +32,7 @@
  */
 
 #include "genesis/utils/containers/range.hpp"
+#include "genesis/utils/core/std.hpp"
 
 #include <cstddef>
 #include <iterator>
@@ -110,8 +111,8 @@ public:
     // -------------------------------------------------------------------------
 
     // Get the type that the TransformFunctor returns
-    using result_type = typename std::result_of<
-        TransformFunctor( typename std::iterator_traits<BaseIterator>::reference )
+    using result_type = typename genesis_invoke_result<
+        TransformFunctor, typename std::iterator_traits<BaseIterator>::reference
     >::type;
 
     // We want to cache the transformed values if the transform functor returns a valy by copy

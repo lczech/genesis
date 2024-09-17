@@ -62,6 +62,7 @@
  */
 
 #include "genesis/utils/core/options.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/threading/multi_future.hpp"
 #include "genesis/utils/threading/thread_pool.hpp"
 
@@ -138,7 +139,8 @@ namespace utils {
 template<
     typename F,
     typename T1, typename T2, typename T = typename std::common_type<T1, T2>::type,
-    typename R = typename std::result_of<typename std::decay<F>::type(T, T)>::type
+    typename R = typename genesis_invoke_result<F, T, T>::type
+    // typename R = typename std::result_of<typename std::decay<F>::type(T, T)>::type
 >
 MultiFuture<R> parallel_block(
     T1 begin, T2 end, F&& body,

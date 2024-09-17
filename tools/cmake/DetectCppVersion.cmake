@@ -42,12 +42,17 @@ set(CPP_VERSIONS_AND_FLAGS
 # Function to detect the highest available C++ standard
 function(detect_highest_cpp_version HIGHEST_SUPPORTED_CXX_VERSION)
     # Create a minimal C++ source code snippet for testing.
-    # We also include the chrono header here as a super ugly ad-hoc patch for a clang bug,
-    # which occurs with that header and clang 10 to 14, see
-    # https://stackoverflow.com/a/63985023/4184258
+    # We also include some headers here as a super ugly ad-hoc patch for some bugs.
+    # The chrono header is broken in clang 10 to 14, see https://stackoverflow.com/a/63985023/4184258
+    # The regex header has issues in clang 6 to 8.
+    # In both cases, compiling with an earlier version of C++ as a fallback seems to work,
+    # so when including them here, compilation fails for the later versions, which is what we want.
     file(
         WRITE "${CMAKE_BINARY_DIR}/test_cpp_version.cpp"
-        "#include <iostream>\n#include <chrono>\nint main() { std::cout << \"C++ version check\" << std::endl; return 0; }\n"
+        "#include <iostream>\n \
+        #include <chrono>\n \
+        #include <regex>\n \
+        int main() { std::cout << \"C++ version check\" << std::endl; return 0; }\n"
     )
 
     # Iterate over the list of C++ versions and their corresponding and check if it is supported

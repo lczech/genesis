@@ -35,6 +35,8 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
+#include <utility>
 
 namespace genesis {
 namespace utils {
@@ -105,6 +107,49 @@ public:
 private:
 
     T t;
+};
+
+// =================================================================================================
+//     Helpers for portability between C++ 11 and later
+// =================================================================================================
+
+/**
+ * @brief Helper to abstract from `std::invoke_result` and `std::result_of`
+ * for different C++ standards.
+ *
+ * This simply switches between the two, depending on the C++ standard being compiled with.
+ * This is necessary as in later versions, `std::result_of` is deprecated and removed.
+ * Usage similar to `std::invoke_result`, such as
+ *
+ *     typename genesis_invoke_result<F, Args...>::type
+ *
+ * to obtain the resulting type of a call of function `F` with arugments `Args`.
+ */
+template <typename F, typename... Args>
+struct genesis_invoke_result
+{
+    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+        // C++17 or later
+        using type = typename std::invoke_result<F, Args...>::type;
+    #else
+        // C++11 and C++14. Tricky to get right.
+
+        // First attempt, simply forwarding.
+        // using type = typename std::result_of<F(Args...)>::type;
+
+        // Using decltype to get the correct return type for callable objects, including lambdas
+        // using type = decltype( std::declval<F>()( std::declval<Args>()... ));
+
+        // Use decltype to deduce the result type, ensuring F is callable with Args...
+        // using type = typename std::enable_if<
+        //     std::is_function<typename std::remove_pointer<F>::type>::value ||
+        //     std::is_function<F>::value,
+        //     decltype(std::declval<F>()(std::declval<Args>()...))
+        // >::type;
+
+        // Refined version with decay for lambdas.
+        using type = typename std::result_of<typename std::decay<F>::type(Args...)>::type;
+    #endif
 };
 
 // =================================================================================================

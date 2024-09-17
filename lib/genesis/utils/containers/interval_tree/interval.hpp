@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -252,6 +252,13 @@ struct IntervalClosed
 // =================================================================================================
 //     Interval
 // =================================================================================================
+
+// We have issues with GCC 7 due to stupid signed integer overflow warnings.
+// They do not make sense, and are indeed an overly cautious compiler, so we just deactive them.
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
 
 /**
  * @brief Type to store an interval (range) between two numbers, as used in the IntervalTree.
@@ -523,6 +530,11 @@ private:
     numerical_type high_;
     data_type  data_;
 };
+
+// Reset the GCC compiler warning levels.
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 } // namespace utils
 } // namespace genesis
