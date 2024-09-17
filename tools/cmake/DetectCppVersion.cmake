@@ -30,9 +30,14 @@
 cmake_minimum_required(VERSION 3.8)
 message (STATUS "Detecting C++ Standard")
 
-# List of C++ standards and corresponding flags for testing, starting from the highest
+# List of C++ standards and corresponding flags for testing, starting from the highest,
+# so that the first one matching is used.
+# Currently, we do not test for C++23, as Clang 17 has a known bug that causes compilation
+# to fail, see https://github.com/llvm/llvm-project/issues/61415
+# If that standard is needed, the issues need to be revisited and resolved first,
+# either by adding a workaround to our code, or by disallowing Clang 17.
 set(CPP_STANDARDS_AND_FLAGS
-    "23@-std=c++23"
+    # "23@-std=c++23"
     "20@-std=c++20"
     "17@-std=c++17"
     "14@-std=c++14"
