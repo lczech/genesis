@@ -562,6 +562,8 @@ jobs:
           if [[ "${{ matrix.cppstd }}" != "auto" ]]; then
             GENESIS_CPP_STANDARD="-DGENESIS_CPP_STANDARD=${{ matrix.cppstd }}"
           fi
+          echo "matrix.cppstd='${{ matrix.cppstd }}'"
+          echo "GENESIS_CPP_STANDARD='${GENESIS_CPP_STANDARD}'"
 
           # Deactive htslib for some tests
           if [[ "${{ matrix.htslib }}" == "OFF" ]]; then
