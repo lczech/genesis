@@ -32,6 +32,7 @@
  */
 
 #include "genesis/sequence/kmer/kmer.hpp"
+#include "genesis/utils/core/std.hpp"
 
 #include <array>
 #include <cassert>
@@ -41,7 +42,7 @@
 #include <stdexcept>
 #include <string>
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if GENESIS_CPP_STD >= 201703L
 #    include <string_view>
 #endif
 
@@ -308,7 +309,7 @@ public:
     // -------------------------------------------------------------------------
 
     // With C++17, we can optimize by offering a std::string_view interface.
-    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #if GENESIS_CPP_STD >= 201703L
 
     KmerExtractor( std::string const& input )
         : buffer_( input )
@@ -325,7 +326,7 @@ public:
     {}
 
     // For C++11, we instead just offer std::string
-    #else // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #else // GENESIS_CPP_STD >= 201703L
 
     KmerExtractor( std::string const& input )
         : input_( input )
@@ -335,7 +336,7 @@ public:
         : input_( std::move( input ))
     {}
 
-    #endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #endif // GENESIS_CPP_STD >= 201703L
 
     ~KmerExtractor() = default;
 
@@ -375,7 +376,7 @@ public:
 
 private:
 
-    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #if GENESIS_CPP_STD >= 201703L
 
     // We use a string as a buffer if the class was initialized with a std::string,
     // so that we can keep ownership of (a copy of) the input if needed. If not needed,
@@ -384,12 +385,12 @@ private:
     std::string buffer_;
     std::string_view input_;
 
-    #else // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #else // GENESIS_CPP_STD >= 201703L
 
     // For C++11, we just use a normal string
     std::string input_;
 
-    #endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #endif // GENESIS_CPP_STD >= 201703L
 
     // Count data during iteration
     mutable size_t count_valid_characters_ = 0;

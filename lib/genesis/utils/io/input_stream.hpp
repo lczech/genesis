@@ -34,6 +34,7 @@
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/text/char.hpp"
 
 #include <array>
@@ -45,11 +46,11 @@
 #include <string>
 #include <utility>
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if GENESIS_CPP_STD >= 201703L
 
     #include <string_view>
 
-#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#endif // GENESIS_CPP_STD >= 201703L
 
 namespace genesis {
 namespace utils {
@@ -288,7 +289,7 @@ public:
         return result;
     }
 
-    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #if GENESIS_CPP_STD >= 201703L
 
     /**
      * @brief Read the current line and move to the beginning of the next, returning a
@@ -350,7 +351,7 @@ private:
     // Internal helper that does the actual work of the get_line_views() function.
     void fill_line_views_( std::string_view* str_views, size_t n_lines );
 
-    #endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #endif // GENESIS_CPP_STD >= 201703L
 
 private:
 

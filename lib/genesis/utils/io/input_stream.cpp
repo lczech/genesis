@@ -30,6 +30,7 @@
 
 #include "genesis/utils/io/input_stream.hpp"
 
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
@@ -168,7 +169,7 @@ void InputStream::get_line( std::string& target )
     assert( data_pos_ == data_end_ || column_ == 1 );
 }
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if GENESIS_CPP_STD >= 201703L
 
 // -------------------------------------------------------------------------
 //     get_line_view
@@ -291,7 +292,7 @@ void InputStream::fill_line_views_( std::string_view* str_views, size_t n_lines 
     }
 }
 
-#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#endif // GENESIS_CPP_STD >= 201703L
 
 // -------------------------------------------------------------------------
 //     update_and_move_to_line_or_buffer_end_

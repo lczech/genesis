@@ -68,18 +68,10 @@
 //     Prelude
 // =================================================================================================
 
-// C++ language version detection:
-// Note: VC14.0/1900 (VS2015) lacks too much from C++14.
-#ifndef   GENESIS_OPTIONAL_CPLUSPLUS
-# if defined(_MSVC_LANG ) && !defined(__clang__)
-#  define GENESIS_OPTIONAL_CPLUSPLUS  (_MSC_VER == 1900 ? 201103L : _MSVC_LANG )
-# else
-#  define GENESIS_OPTIONAL_CPLUSPLUS  __cplusplus
-# endif
-#endif
+#include "genesis/utils/core/std.hpp"
 
 // Check if C++17 std::optional is available:
-#if ( GENESIS_OPTIONAL_CPLUSPLUS >= 201703L ) && defined( __has_include )
+#if ( GENESIS_CPP_STD >= 201703L ) && defined( __has_include )
 #    if __has_include( <optional> )
 #        define GENESIS_OPTIONAL_HAVE_STD_OPTIONAL  1
 #    else

@@ -31,6 +31,8 @@
  * @ingroup sequence
  */
 
+#include "genesis/utils/core/std.hpp"
+
 #include <array>
 #include <cassert>
 #include <climits>
@@ -125,7 +127,7 @@ struct KmerBitfield
     }};
 
     // Test that the last entry is non-zero. std::array::operator[] is constexpr only since C++17
-    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #if GENESIS_CPP_STD >= 201703L
     static_assert( char_mask[ MAX_CHARS_PER_KMER - 1 ] != 0, "char_mask == 0" );
     #endif
 

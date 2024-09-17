@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,9 +31,10 @@
  * @ingroup utils
  */
 
-#include <algorithm>
-
 #include "genesis/utils/containers/interval_tree/interval.hpp"
+#include "genesis/utils/core/std.hpp"
+
+#include <algorithm>
 
 namespace genesis {
 namespace utils {
@@ -52,7 +53,7 @@ template <
     typename NumericalType = DefaultIntervalNumericalType,
     typename IntervalKind = IntervalClosed
 >
-#if __cplusplus >= 201703L
+#if GENESIS_CPP_STD >= 201703L
     constexpr
 #endif
 Interval<DataType, NumericalType, IntervalKind> make_safe_interval(
@@ -74,7 +75,7 @@ template <
     typename NumericalType = DefaultIntervalNumericalType,
     typename IntervalKind = IntervalClosed
 >
-#if __cplusplus >= 201703L
+#if GENESIS_CPP_STD >= 201703L
     constexpr
 #endif
 Interval<DataType, NumericalType, IntervalKind> make_safe_interval(
@@ -97,7 +98,7 @@ template <
     typename NumericalType = DefaultIntervalNumericalType,
     typename IntervalKind = IntervalClosed
 >
-#if __cplusplus >= 201703L
+#if GENESIS_CPP_STD >= 201703L
     constexpr
 #endif
 Interval<DataType, NumericalType, IntervalKind> make_safe_interval(

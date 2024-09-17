@@ -31,13 +31,15 @@
  * @ingroup sequence
  */
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-
 #include "genesis/sequence/sequence.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/text/char.hpp"
+
+// The class provided in this file is only available with string_view support.
+#if GENESIS_CPP_STD >= 201703L
 
 #include <array>
 #include <cassert>
@@ -533,5 +535,5 @@ private:
 } // namespace sequence
 } // namespace genesis
 
-#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#endif // GENESIS_CPP_STD >= 201703L
 #endif // include guard

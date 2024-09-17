@@ -28,6 +28,7 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
 #include "genesis/utils/text/char.hpp"
@@ -43,7 +44,7 @@
 // Not avaiable on GCC < 8 though, so we need an additional check here.
 // Also not working with Clang 6-7, see https://bugzilla.redhat.com/show_bug.cgi?id=1657544
 // Basicaly, the std::from_chars function seems cursed in early implementations of C++17...
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if GENESIS_CPP_STD >= 201703L
 #if defined( __has_include ) && __has_include(<charconv>)
 #if !defined(__clang__) || (__clang_major__ > 7)
     // Only if all the above conditions are met do we activate our implementation.

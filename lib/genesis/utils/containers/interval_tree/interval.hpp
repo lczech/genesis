@@ -37,6 +37,9 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/containers/interval_tree/fwd.hpp"
+#include "genesis/utils/core/std.hpp"
+
 #include <cassert>
 #include <cstdio>
 #include <iostream>
@@ -45,8 +48,6 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
-
-#include "genesis/utils/containers/interval_tree/fwd.hpp"
 
 namespace genesis {
 namespace utils {
@@ -302,7 +303,7 @@ public:
      *
      * The value @p low must be smaller than or equal to @p high, otherwise an exception is thrown.
      */
-    #if __cplusplus >= 201703L
+    #if GENESIS_CPP_STD >= 201703L
         constexpr
     #endif
     Interval( numerical_type low, numerical_type high )

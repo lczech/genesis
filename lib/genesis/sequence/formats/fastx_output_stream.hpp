@@ -31,16 +31,16 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/sequence.hpp"
 #include "genesis/sequence/formats/fasta_writer.hpp"
 #include "genesis/sequence/formats/fastq_writer.hpp"
-
+#include "genesis/sequence/sequence.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/output_target.hpp"
 
 #include <iterator>
 #include <iostream>
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if GENESIS_CPP_STD >= 201703L
 
     #include <string_view>
 
@@ -150,7 +150,7 @@ public:
         return *this;
     }
 
-    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #if GENESIS_CPP_STD >= 201703L
 
     /**
      * @brief Writer overload for Fastq files where all elements are provided as std::string_view.

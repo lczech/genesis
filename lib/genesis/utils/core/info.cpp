@@ -46,6 +46,7 @@
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/options.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/core/version.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -261,7 +262,9 @@ InfoCompiler const& info_get_compiler()
     #endif
 
     // C++ version
-    #ifdef __cplusplus
+    #if defined(GENESIS_CPP_STD)
+        result.cpp_standard = std::to_string(GENESIS_CPP_STD);
+    #elif defined(__cplusplus)
         result.cpp_standard = std::to_string(__cplusplus);
     #elif defined(_MSVC_LANG) && _MSVC_LANG >= 201703L
         result.cpp_standard = std::to_string(_MSVC_LANG);

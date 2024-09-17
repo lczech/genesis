@@ -33,6 +33,7 @@
 
 #include "genesis/population/genome_locus.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/common.hpp"
 
 #include <cassert>
@@ -271,10 +272,10 @@ inline int locus_compare(
 // Add all other overloads for GenomeLocus and SequenceDict combinations.
 ADD_LOCUS_COMPARISON_OVERLOADS( locus_compare )
 
-// Let's be cool and add the actual spaceship, even if genesis is currently using C++11.
+// Let's be cool and add the actual spaceship, even though genesis is currently mostly using C++11.
 // Users might compile with later versions, so this might be useful to have.
 
-#if __cplusplus >= 202002L
+#if GENESIS_CPP_STD >= 202002L
 
 /**
  * @copydoc locus_compare( std::string const&, size_t, std::string const&, size_t )
@@ -284,7 +285,7 @@ inline int operator <=> ( GenomeLocus const& l, GenomeLocus const& r )
     return locus_compare( l.chromosome, l.position, r.chromosome, r.position );
 }
 
-#endif // __cplusplus >= 202002L
+#endif // GENESIS_CPP_STD >= 202002L
 
 // -------------------------------------------------------------------------
 //     Equality ==
