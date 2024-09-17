@@ -559,11 +559,9 @@ jobs:
 
           # Set the C++ standard that we want to compile with.
           # By default, use "auto" to use our CMake auto detection.
-          if [[ "${{ matrix.cppstd }}" != "auto" ]]; then
+          if [[ "${{ matrix.cppstd }}" != "auto" ]] && [[ "${{ matrix.cppstd }}" != "" ]]; then
             GENESIS_CPP_STANDARD="-DGENESIS_CPP_STANDARD=${{ matrix.cppstd }}"
           fi
-          echo "matrix.cppstd='${{ matrix.cppstd }}'"
-          echo "GENESIS_CPP_STANDARD='${GENESIS_CPP_STANDARD}'"
 
           # Deactive htslib for some tests
           if [[ "${{ matrix.htslib }}" == "OFF" ]]; then
