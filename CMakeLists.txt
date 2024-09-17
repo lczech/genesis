@@ -357,10 +357,10 @@ ENDIF()
 #     AVX/AVX2
 # ----------------------------------------------------------
 
-# IF(GENESIS_USE_AVX)
-#     # Included from modules dir tools/cmake
-#     include( IncludeAVX )
-# ENDIF()
+IF(GENESIS_USE_AVX)
+    # Included from modules dir tools/cmake
+    include( IncludeAVX )
+ENDIF()
 
 # ----------------------------------------------------------
 #     htslib
