@@ -262,8 +262,8 @@ public:
         // Update for C++23: We need to build the tuple in a different way,
         // due to the more stringent rules regarding parameter pack expansion.
         // std::tuple<A...> const key( arguments... );
-        // auto const key = std::make_tuple( arguments... );
-        auto const key = std::forward_as_tuple( arguments... );
+        // auto const key = std::forward_as_tuple( arguments... );
+        auto const key = std::make_tuple( arguments... );
 
         // Get the shard that this key belongs to.
         assert( shard_index_( key ) < shards_.size() );
@@ -298,7 +298,7 @@ public:
     {
         // Simply follow the steps of the above operator(), but only check the presence of the key,
         // without computing the function. Same update for the key creating here for C++23.
-        auto const key = std::forward_as_tuple( arguments... );
+        auto const key = std::make_tuple( arguments... );
         auto& shard = *shards_[ shard_index_( key ) ];
         std::lock_guard<std::mutex> lock( shard.guard_ );
         auto search = shard.cache_.find( key );
