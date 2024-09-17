@@ -113,9 +113,10 @@ function(detect_and_set_cpp_standard)
         # Check if the provided version is valid and supported
         set(version_valid OFF)
         foreach(version_and_flag ${CPP_STANDARDS_AND_FLAGS})
-            list(GET version_and_flag 0 version)
+            string(REPLACE "@" ";" version_and_flag_split ${version_and_flag})
+            list(GET version_and_flag_split 0 version)
             if (GENESIS_CPP_STANDARD STREQUAL version)
-                message(STATUS "Using user-specified C++ version: C++${GENESIS_CPP_STANDARD}")
+                message(STATUS "Using user-specified C++ standard: C++${GENESIS_CPP_STANDARD}")
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++${GENESIS_CPP_STANDARD}" PARENT_SCOPE)
                 set(version_valid ON)
                 break() # Exit the loop once a valid version is found
@@ -125,7 +126,7 @@ function(detect_and_set_cpp_standard)
         # If no valid version was found, throw an error
         if (NOT version_valid)
             message(FATAL_ERROR
-                "Invalid C++ version specified: ${GENESIS_CPP_STANDARD}. \
+                "Invalid C++ standard specified: '${GENESIS_CPP_STANDARD}'. \
                 Supported versions are: 11, 14, 17, 20, 23"
             )
         endif()
