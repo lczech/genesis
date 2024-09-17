@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 #include <algorithm>
 #include <cassert>
 #include <numeric>
+#include <random>
 #include <stdexcept>
 
 namespace genesis {
@@ -127,13 +128,19 @@ std::vector<size_t> SimulatorExtraPlacementDistribution::generate( PlacementTree
         return result;
     }
 
+    // Set up a random engine. Proably should use the global seed, but well, good enough for now.
+    std::random_device rd;
+    std::default_random_engine rng(rd());
+
     // We make sure that an edge gets at most one placement per pquery by maintaining a list of
     // possible candidate edges that do not have a placement (for this pquery) yet.
     // For this, get a list of all possible candidates of neighbouring edges of the given edge.
     // We shuffle them so that we take different edges for every pquery.
     auto edge_prox = edge_proximities_[ edge.index() ];
     for( auto& candidates : edge_prox.candidates_per_level ) {
-        std::random_shuffle( candidates.begin() , candidates.end() );
+        // Update for C++17 and later:
+        // std::random_shuffle( candidates.begin() , candidates.end() );
+        std::shuffle( candidates.begin(), candidates.end(), rng );
     }
 
     // We can only place as many placements as there are neighbouring edges.

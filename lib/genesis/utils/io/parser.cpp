@@ -40,10 +40,15 @@
 #include <stdexcept>
 
 // For C++17, we have a little speedup in the integer parsing part.
+// Not avaiable on GCC < 8 though, so we need an additional check here...
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if defined( __has_include ) && __has_include(<charconv>)
+    #define GENESIS_COMPILER_HAS_CHARCONV
+#endif
+#endif
 
+#ifdef GENESIS_COMPILER_HAS_CHARCONV
     #include <charconv>
-
 #endif
 
 namespace genesis {
@@ -323,8 +328,8 @@ size_t parse_unsigned_integer_from_chars_( utils::InputStream& source )
 //     parse_unsigned_integer_std_from_chars_
 // -------------------------------------------------------------------------
 
-// Only use C++17 code if we are compiled with that version.
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+// Only use C++17 code if we are compiled with that version and charconv support.
+#ifdef GENESIS_COMPILER_HAS_CHARCONV
 
 /**
  * @brief Another speedup technique using std::from_chars(),
@@ -389,7 +394,7 @@ size_t parse_unsigned_integer_std_from_chars_( utils::InputStream& source )
     return x;
 }
 
-#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#endif // GENESIS_COMPILER_HAS_CHARCONV
 
 // -------------------------------------------------------------------------
 //     parse_unsigned_integer_naive_
@@ -458,7 +463,7 @@ size_t parse_unsigned_integer_size_t( utils::InputStream& source )
         // If we have GCC or Clang, use our own handcrafted fast-as-hell implementation.
         return parse_unsigned_integer_gcc_intrinsic_( source );
 
-    // #elif ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    // #elif GENESIS_COMPILER_HAS_CHARCONV
     //
     //     // Otherwise, if this is C++17, at least use its own fast version,
     //     // that can use some compiler intrinsics itself.

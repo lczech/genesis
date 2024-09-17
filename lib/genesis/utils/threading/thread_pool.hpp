@@ -452,9 +452,11 @@ public:
      */
     template<class F, class... Args>
     auto enqueue_and_retrieve( F&& f, Args&&... args )
-    -> ProactiveFuture<typename std::result_of<F(Args...)>::type>
+    -> ProactiveFuture<typename std::invoke_result<F, Args...>::type>
     {
-        using result_type = typename std::result_of<F(Args...)>::type;
+        // Updated for C++17 and later:
+        // using result_type = typename std::result_of<F(Args...)>::type;
+        using result_type = typename std::invoke_result<F, Args...>::type;
 
         // Make sure that we do not enqueue more tasks than the max size.
         run_tasks_until_below_max_queue_size_();
