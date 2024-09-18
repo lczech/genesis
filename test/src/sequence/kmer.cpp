@@ -31,10 +31,12 @@
 #include "src/common.hpp"
 
 #include "genesis/sequence/kmer/kmer.hpp"
+#include "genesis/sequence/kmer/kmer_tags.hpp"
 #include "genesis/sequence/kmer/canonical_encoding.hpp"
 #include "genesis/sequence/kmer/extractor.hpp"
 #include "genesis/sequence/kmer/function.hpp"
 #include "genesis/sequence/kmer/microvariant_scanner.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/random.hpp"
 
 #include <algorithm>
@@ -47,6 +49,10 @@
 using namespace genesis;
 using namespace genesis::sequence;
 using namespace genesis::utils;
+
+// =================================================================================================
+//     Helper Functions
+// =================================================================================================
 
 template<typename Tag>
 Kmer<Tag> make_random_kmer()
@@ -460,6 +466,74 @@ TEST( Kmer, ExtractorInvalids )
 //     EXPECT_EQ( extractor.count_invalid_characters(), 0 );
 //     EXPECT_EQ( cnt, sequence.size() - k + 1 );
 // }
+
+// =================================================================================================
+//     Kmer Tag Instances
+// =================================================================================================
+
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_20
+
+TEST( Kmer, TagInstances )
+{
+    auto const sequence = make_random_kmer_sequence( 100 );
+
+    // LOG_DBG << "Custom kmer values";
+    auto extractors_custom = make_numeric_tagged_kmer_classes_from_custom_set<
+        KmerExtractor, 10, 20, 30
+    >();
+    constexpr std::size_t num_tags_custom = std::tuple_size<decltype(extractors_custom)>::value;
+    size_t loop_cnt_custom = 0;
+    for (std::size_t i = 0; i < num_tags_custom; ++i) {
+        call_function_on_numeric_tagged_kmer_tuple(
+            i, extractors_custom,
+            [&]( auto& instance ) {
+                ++loop_cnt_custom;
+                auto const k = std::remove_reference_t<decltype(instance)>::value_type::k();
+                // LOG_DBG1 << "k==" << ((int)k);
+
+                // Expect correct num of iterations
+                instance.set_sequence( sequence );
+                size_t cnt = 0;
+                for( auto it = instance.begin(); it != instance.end(); ++it ) {
+                    // LOG_DBG2 << kmer_to_string(*it);
+                    ++cnt;
+                }
+                EXPECT_EQ( cnt, sequence.size() - k + 1 );
+            }
+        );
+    }
+    EXPECT_EQ( loop_cnt_custom, num_tags_custom );
+    EXPECT_EQ( 3, num_tags_custom );
+
+    // LOG_DBG << "Range of kmer values";
+    auto extractors_range = make_numeric_tagged_kmer_classes_from_range<
+        KmerExtractor, 10, 15
+    >();
+    constexpr std::size_t num_tags_range = std::tuple_size<decltype(extractors_range)>::value;
+    size_t loop_cnt_range = 0;
+    for (std::size_t i = 0; i < num_tags_range; ++i) {
+        call_function_on_numeric_tagged_kmer_tuple(
+            i, extractors_range,
+            [&]( auto& instance ) {
+                ++loop_cnt_range;
+                auto const k = std::remove_reference_t<decltype(instance)>::value_type::k();
+                // LOG_DBG1 << "k==" << ((int)k);
+
+                instance.set_sequence( sequence );
+                size_t cnt = 0;
+                for( auto it = instance.begin(); it != instance.end(); ++it ) {
+                    // LOG_DBG2 << kmer_to_string(*it);
+                    ++cnt;
+                }
+                EXPECT_EQ( cnt, sequence.size() - k + 1 );
+            }
+        );
+    }
+    EXPECT_EQ( loop_cnt_range, num_tags_range );
+    EXPECT_EQ( 6, num_tags_range );
+}
+
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_20
 
 // =================================================================================================
 //     Microvariants

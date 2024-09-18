@@ -308,6 +308,8 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
+    KmerExtractor() = default;
+
     // With C++17, we can optimize by offering a std::string_view interface.
     #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
@@ -345,6 +347,43 @@ public:
 
     self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
+
+    // -------------------------------------------------------------------------
+    //     Sequence
+    // -------------------------------------------------------------------------
+
+    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+    void set_sequence( std::string const& input )
+    {
+        buffer_ = input;
+        input_ = buffer_;
+    }
+
+    void set_sequence( std::string&& input )
+    {
+        buffer_ = std::move( input );
+        input_ = buffer_;
+    }
+
+    void set_sequence( std::string_view input )
+    {
+        input_ = input;
+    }
+
+    #else // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+    void set_sequence( std::string const& input )
+    {
+        input_ = input;
+    }
+
+    void set_sequence( std::string&& input )
+    {
+        input_ = std::move( input );
+    }
+
+    #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     // -------------------------------------------------------------------------
     //     Iteration
