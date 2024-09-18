@@ -127,7 +127,7 @@ struct KmerBitfield
     }};
 
     // Test that the last entry is non-zero. std::array::operator[] is constexpr only since C++17
-    #if GENESIS_CPP_STD >= 201703L
+    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
     static_assert( char_mask[ MAX_CHARS_PER_KMER - 1 ] != 0, "char_mask == 0" );
     #endif
 

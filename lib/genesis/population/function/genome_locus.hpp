@@ -275,7 +275,7 @@ ADD_LOCUS_COMPARISON_OVERLOADS( locus_compare )
 // Let's be cool and add the actual spaceship, even though genesis is currently mostly using C++11.
 // Users might compile with later versions, so this might be useful to have.
 
-#if GENESIS_CPP_STD >= 202002L
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_20
 
 /**
  * @copydoc locus_compare( std::string const&, size_t, std::string const&, size_t )
@@ -285,7 +285,7 @@ inline int operator <=> ( GenomeLocus const& l, GenomeLocus const& r )
     return locus_compare( l.chromosome, l.position, r.chromosome, r.position );
 }
 
-#endif // GENESIS_CPP_STD >= 202002L
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_20
 
 // -------------------------------------------------------------------------
 //     Equality ==

@@ -169,7 +169,7 @@ void InputStream::get_line( std::string& target )
     assert( data_pos_ == data_end_ || column_ == 1 );
 }
 
-#if GENESIS_CPP_STD >= 201703L
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 // -------------------------------------------------------------------------
 //     get_line_view
@@ -292,7 +292,7 @@ void InputStream::fill_line_views_( std::string_view* str_views, size_t n_lines 
     }
 }
 
-#endif // GENESIS_CPP_STD >= 201703L
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 // -------------------------------------------------------------------------
 //     update_and_move_to_line_or_buffer_end_

@@ -36,11 +36,11 @@
 #include <iosfwd>
 #include <string>
 
-#if GENESIS_CPP_STD >= 201703L
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     #include <string_view>
 
-#endif // GENESIS_CPP_STD >= 201703L
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 namespace genesis {
 namespace sequence {
@@ -136,7 +136,7 @@ public:
         std::shared_ptr<utils::BaseOutputTarget> target
     ) const;
 
-    #if GENESIS_CPP_STD >= 201703L
+    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     /**
      * @brief Write a sequence in form of std::string_view instances on the data.
@@ -152,7 +152,7 @@ public:
         std::shared_ptr<utils::BaseOutputTarget> target
     ) const;
 
-    #endif // GENESIS_CPP_STD >= 201703L
+    #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     // ---------------------------------------------------------------------
     //     Properties

@@ -53,7 +53,7 @@ template <
     typename NumericalType = DefaultIntervalNumericalType,
     typename IntervalKind = IntervalClosed
 >
-#if GENESIS_CPP_STD >= 201703L
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
     constexpr
 #endif
 Interval<DataType, NumericalType, IntervalKind> make_safe_interval(
@@ -75,7 +75,7 @@ template <
     typename NumericalType = DefaultIntervalNumericalType,
     typename IntervalKind = IntervalClosed
 >
-#if GENESIS_CPP_STD >= 201703L
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
     constexpr
 #endif
 Interval<DataType, NumericalType, IntervalKind> make_safe_interval(
@@ -98,7 +98,7 @@ template <
     typename NumericalType = DefaultIntervalNumericalType,
     typename IntervalKind = IntervalClosed
 >
-#if GENESIS_CPP_STD >= 201703L
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
     constexpr
 #endif
 Interval<DataType, NumericalType, IntervalKind> make_safe_interval(

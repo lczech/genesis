@@ -46,11 +46,11 @@
 #include <string>
 #include <utility>
 
-#if GENESIS_CPP_STD >= 201703L
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     #include <string_view>
 
-#endif // GENESIS_CPP_STD >= 201703L
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 namespace genesis {
 namespace utils {
@@ -289,7 +289,7 @@ public:
         return result;
     }
 
-    #if GENESIS_CPP_STD >= 201703L
+    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     /**
      * @brief Read the current line and move to the beginning of the next, returning a
@@ -351,7 +351,7 @@ private:
     // Internal helper that does the actual work of the get_line_views() function.
     void fill_line_views_( std::string_view* str_views, size_t n_lines );
 
-    #endif // GENESIS_CPP_STD >= 201703L
+    #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 private:
 

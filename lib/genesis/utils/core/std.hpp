@@ -48,14 +48,30 @@ namespace utils {
 // Define a macro constant that we can use for testing the C++ compiler standard.
 // This is meant in order to avoid the cumbersome tests usually needed if spelled out each time.
 // The values are set to what `__cplusplus` gives with GCC and Clang, for ease of comparison.
+//
+// We set the following values as our internal points of reference:
+//
+//     #define GENESIS_CPP_STD_11 201103L
+//     #define GENESIS_CPP_STD_14 201402L
+//     #define GENESIS_CPP_STD_17 201703L
+//     #define GENESIS_CPP_STD_20 202002L
+//
+// These constants shall be used for all tests of the version of the C++ standard,
+// for instance `#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17`, around code that needs C++17.
 #ifndef GENESIS_CPP_STD
+
+// Define our internally used values for version checks.
+#define GENESIS_CPP_STD_11 201103L
+#define GENESIS_CPP_STD_14 201402L
+#define GENESIS_CPP_STD_17 201703L
+#define GENESIS_CPP_STD_20 202002L
 
 // Detect the C++ standard version based on __cplusplus
 #if defined(__cplusplus)
     #define GENESIS_CPP_STD __cplusplus
 #else
     // __cplusplus not defined, use C++11 by default
-    #define GENESIS_CPP_STD 201103L
+    #define GENESIS_CPP_STD GENESIS_CPP_STD_11
 #endif
 
 // For MSVC (Microsoft Visual C++)
@@ -63,23 +79,25 @@ namespace utils {
 // we approximate the C++ standard version using _MSC_VER.
 #if defined(_MSC_VER)
     #if _MSC_VER >= 1920  // MSVC 2019 and later
-        #if __cplusplus == 202002L
+        #if __cplusplus == GENESIS_CPP_STD_20
             // Already correct for C++20
         #else
             // MSVC 2017 and later typically support C++17
             #undef GENESIS_CPP_STD
-            #define GENESIS_CPP_STD 201703L
+            #define GENESIS_CPP_STD GENESIS_CPP_STD_17
         #endif
     #elif _MSC_VER >= 1910  // MSVC 2017
         // Approximate as C++14
         #undef GENESIS_CPP_STD
-        #define GENESIS_CPP_STD 201402L
+        #define GENESIS_CPP_STD GENESIS_CPP_STD_14
     #elif _MSC_VER >= 1900  // MSVC 2015
         // Approximate as C++11
         #undef GENESIS_CPP_STD
-        #define GENESIS_CPP_STD 201103L
+        #define GENESIS_CPP_STD GENESIS_CPP_STD_11
     #else
-        // Older MSVC, approximate as C++98
+        // Older MSVC, approximate as C++98.
+        // That is too old for our code base,
+        // but let's add it for completeness.
         #undef GENESIS_CPP_STD
         #define GENESIS_CPP_STD 199711L
     #endif

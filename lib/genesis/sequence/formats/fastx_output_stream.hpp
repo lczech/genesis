@@ -40,11 +40,11 @@
 #include <iterator>
 #include <iostream>
 
-#if GENESIS_CPP_STD >= 201703L
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     #include <string_view>
 
-#endif
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 namespace genesis {
 namespace sequence {
@@ -150,7 +150,7 @@ public:
         return *this;
     }
 
-    #if GENESIS_CPP_STD >= 201703L
+    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     /**
      * @brief Writer overload for Fastq files where all elements are provided as std::string_view.
@@ -171,7 +171,7 @@ public:
         return *this;
     }
 
-    #endif
+    #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     // -------------------------------------------------------------------------
     //     Settings

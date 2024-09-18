@@ -303,7 +303,7 @@ public:
      *
      * The value @p low must be smaller than or equal to @p high, otherwise an exception is thrown.
      */
-    #if GENESIS_CPP_STD >= 201703L
+    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
         constexpr
     #endif
     Interval( numerical_type low, numerical_type high )

@@ -71,7 +71,7 @@
 #include "genesis/utils/core/std.hpp"
 
 // Check if C++17 std::optional is available:
-#if ( GENESIS_CPP_STD >= 201703L ) && defined( __has_include )
+#if ( GENESIS_CPP_STD >= GENESIS_CPP_STD_17 ) && defined( __has_include )
 #    if __has_include( <optional> )
 #        define GENESIS_OPTIONAL_HAVE_STD_OPTIONAL  1
 #    else

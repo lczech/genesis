@@ -178,7 +178,7 @@ void FastqWriter::write(
     }
 }
 
-#if GENESIS_CPP_STD >= 201703L
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 void FastqWriter::write(
     std::string_view const& label,
@@ -205,7 +205,7 @@ void FastqWriter::write(
     );
 }
 
-#endif // GENESIS_CPP_STD >= 201703L
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 // =================================================================================================
 //     Internal Members
