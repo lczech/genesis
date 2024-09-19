@@ -181,6 +181,7 @@
 #include "genesis/utils/text/table.hpp"
 #include "genesis/utils/threading/blocking_concurrent_queue.hpp"
 #include "genesis/utils/threading/concurrent_queue.hpp"
+#include "genesis/utils/threading/concurrent_vector_guard.hpp"
 #include "genesis/utils/threading/lightweight_semaphore.hpp"
 #include "genesis/utils/threading/multi_future.hpp"
 #include "genesis/utils/threading/sequential_output_buffer.hpp"

@@ -102,6 +102,11 @@ public:
     // -------------------------------------------------------------
 
     /**
+     * @brief Default constructor. A default constructed instance shall not be used.
+     */
+    ConcurrentVectorGuard() = default;
+
+    /**
      * @brief Create a given number of mutexes for buckets of the vector to be guarded.
      */
     ConcurrentVectorGuard( size_t num_buckets )
