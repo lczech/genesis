@@ -145,7 +145,28 @@ void call_function_on_numeric_tagged_kmer_tuple( std::size_t index, Tuple& tuple
         func( std::get<I>(tuple) );
     } else if constexpr ( I + 1 < std::tuple_size<Tuple>::value ) {
         // Recurse to the next index
-        call_function_on_numeric_tagged_kmer_tuple<I + 1>( index, tuple, std::forward<Func>(func) );
+        call_function_on_numeric_tagged_kmer_tuple<I + 1>(
+            index, tuple, std::forward<Func>(func)
+        );
+    }
+}
+
+/**
+ * @brief Helper function to iterate over a set of tuples of numerical tagged classes,
+ * and call the provided function for a zipped set of instances for each tag.
+ */
+template<std::size_t I = 0, typename Func, typename Tuple1, typename Tuple2, typename... Tuples>
+void call_function_on_numeric_tagged_kmer_tuple(
+    std::size_t index, Func&& func, Tuple1& tuple1, Tuple2& tuple2, Tuples&... tuples
+) {
+    if (I == index) {
+        // Call function on I-th element of all tuples, zipped
+        func(std::get<I>(tuple1), std::get<I>(tuple2), std::get<I>(tuples)...);
+    } else if constexpr (I + 1 < std::tuple_size<Tuple1>::value) {
+        // Recurse to the next index
+        call_function_on_numeric_tagged_kmer_tuple<I + 1>(
+            index, std::forward<Func>(func), tuple1, tuple2, tuples...
+        );
     }
 }
 

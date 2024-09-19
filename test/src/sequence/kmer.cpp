@@ -321,8 +321,8 @@ TEST( Kmer, ExtractorBasics )
             }
 
             // Expect correct num of iterations
-            EXPECT_EQ( extractor.count_valid_characters(), sequence.size() );
-            EXPECT_EQ( extractor.count_invalid_characters(), 0 );
+            EXPECT_EQ( extractor.valid_character_count(), sequence.size() );
+            EXPECT_EQ( extractor.invalid_character_count(), 0 );
             if( sequence.size() >= k ) {
                 EXPECT_EQ( start_loc, sequence.size() - k + 1 );
             } else {
@@ -406,10 +406,10 @@ TEST( Kmer, ExtractorInvalids )
 
             // Now we are done with the kmer extractor as well.
             EXPECT_EQ( cur, end );
-            EXPECT_EQ( extractor.count_valid_characters(), valid_size );
-            EXPECT_EQ( extractor.count_invalid_characters(), invalid_size );
+            EXPECT_EQ( extractor.valid_character_count(), valid_size );
+            EXPECT_EQ( extractor.invalid_character_count(), invalid_size );
             EXPECT_EQ(
-                extractor.count_valid_characters() + extractor.count_invalid_characters(),
+                extractor.valid_character_count() + extractor.invalid_character_count(),
                 sequence.size()
             );
             if( sequence.size() < k ) {
@@ -462,8 +462,8 @@ TEST( Kmer, ExtractorInvalids )
 //     LOG_TIME << "done " << cnt;
 //
 //     // Expect correct num of iterations
-//     EXPECT_EQ( extractor.count_valid_characters(), sequence.size() );
-//     EXPECT_EQ( extractor.count_invalid_characters(), 0 );
+//     EXPECT_EQ( extractor.valid_character_count(), sequence.size() );
+//     EXPECT_EQ( extractor.invalid_character_count(), 0 );
 //     EXPECT_EQ( cnt, sequence.size() - k + 1 );
 // }
 
@@ -483,7 +483,7 @@ TEST( Kmer, TagInstances )
     >();
     constexpr std::size_t num_tags_custom = std::tuple_size<decltype(extractors_custom)>::value;
     size_t loop_cnt_custom = 0;
-    for (std::size_t i = 0; i < num_tags_custom; ++i) {
+    for( std::size_t i = 0; i < num_tags_custom; ++i ) {
         call_function_on_numeric_tagged_kmer_tuple(
             i, extractors_custom,
             [&]( auto& instance ) {
@@ -511,7 +511,7 @@ TEST( Kmer, TagInstances )
     >();
     constexpr std::size_t num_tags_range = std::tuple_size<decltype(extractors_range)>::value;
     size_t loop_cnt_range = 0;
-    for (std::size_t i = 0; i < num_tags_range; ++i) {
+    for( std::size_t i = 0; i < num_tags_range; ++i ) {
         call_function_on_numeric_tagged_kmer_tuple(
             i, extractors_range,
             [&]( auto& instance ) {
@@ -527,6 +527,36 @@ TEST( Kmer, TagInstances )
                 }
                 EXPECT_EQ( cnt, sequence.size() - k + 1 );
             }
+        );
+    }
+    EXPECT_EQ( loop_cnt_range, num_tags_range );
+    EXPECT_EQ( 6, num_tags_range );
+
+    // LOG_DBG << "Range of kmer values zipped";
+    auto encoders_range = make_numeric_tagged_kmer_classes_from_range<
+        MinimalCanonicalEncoding, 10, 15
+    >();
+    loop_cnt_range = 0;
+    for( std::size_t i = 0; i < num_tags_range; ++i ) {
+        call_function_on_numeric_tagged_kmer_tuple(
+            i,
+            [&]( auto& extractor, auto const& encoder ) {
+                ++loop_cnt_range;
+                auto const k = std::remove_reference_t<decltype(extractor)>::value_type::k();
+                EXPECT_EQ( k,  std::remove_reference_t<decltype(encoder)>::value_type::k() );
+                // LOG_DBG1 << "k==" << ((int)k);
+
+                extractor.set_sequence( sequence );
+                size_t cnt = 0;
+                for( auto it = extractor.begin(); it != extractor.end(); ++it ) {
+                    // LOG_DBG2 << kmer_to_string(*it);
+                    auto const index = encoder.encode( *it );
+                    EXPECT_EQ( index, encoder.encode( reverse_complement( *it )));
+                    ++cnt;
+                }
+                EXPECT_EQ( cnt, sequence.size() - k + 1 );
+            },
+            extractors_range, encoders_range
         );
     }
     EXPECT_EQ( loop_cnt_range, num_tags_range );
@@ -775,8 +805,8 @@ TEST( Kmer, CanonicalEncodingLarge )
 //     LOG_TIME << "done " << sum;
 //
 //     // Expect correct num of iterations
-//     EXPECT_EQ( extractor.count_valid_characters(), sequence.size() );
-//     EXPECT_EQ( extractor.count_invalid_characters(), 0 );
+//     EXPECT_EQ( extractor.valid_character_count(), sequence.size() );
+//     EXPECT_EQ( extractor.invalid_character_count(), 0 );
 //     EXPECT_EQ( cnt, sequence.size() - k + 1 );
 // }
 

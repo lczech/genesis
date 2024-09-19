@@ -59,6 +59,7 @@
 #include "genesis/sequence/kmer/extractor.hpp"
 #include "genesis/sequence/kmer/function.hpp"
 #include "genesis/sequence/kmer/kmer.hpp"
+#include "genesis/sequence/kmer/kmer_tags.hpp"
 #include "genesis/sequence/kmer/microvariant_scanner.hpp"
 #include "genesis/sequence/printers/bitmap.hpp"
 #include "genesis/sequence/printers/simple.hpp"

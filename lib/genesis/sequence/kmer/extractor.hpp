@@ -261,7 +261,7 @@ public:
             auto const rank = Alphabet::char_to_rank( parent_->input_[ location_ ] );
             ++location_;
             if( rank > Alphabet::MAX_RANK ) {
-                ++(parent_->count_invalid_characters_);
+                ++(parent_->invalid_character_count_);
                 return false;
             }
 
@@ -277,7 +277,7 @@ public:
             kmer_.rev_comp |= ( rc_word << rc_shift_ );
 
             // Successfully processed the char.
-            ++(parent_->count_valid_characters_);
+            ++(parent_->valid_character_count_);
             return true;
         }
 
@@ -358,17 +358,20 @@ public:
     {
         buffer_ = input;
         input_ = buffer_;
+        reset_character_counts();
     }
 
     void set_sequence( std::string&& input )
     {
         buffer_ = std::move( input );
         input_ = buffer_;
+        reset_character_counts();
     }
 
     void set_sequence( std::string_view input )
     {
         input_ = input;
+        reset_character_counts();
     }
 
     #else // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
@@ -376,11 +379,13 @@ public:
     void set_sequence( std::string const& input )
     {
         input_ = input;
+        reset_character_counts();
     }
 
     void set_sequence( std::string&& input )
     {
         input_ = std::move( input );
+        reset_character_counts();
     }
 
     #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
@@ -399,14 +404,24 @@ public:
         return Iterator();
     }
 
-    size_t count_valid_characters() const
+    // -------------------------------------------------------------------------
+    //     Statistics
+    // -------------------------------------------------------------------------
+
+    size_t valid_character_count() const
     {
-        return count_valid_characters_;
+        return valid_character_count_;
     }
 
-    size_t count_invalid_characters() const
+    size_t invalid_character_count() const
     {
-        return count_invalid_characters_;
+        return invalid_character_count_;
+    }
+
+    void reset_character_counts()
+    {
+        valid_character_count_ = 0;
+        invalid_character_count_ = 0;
     }
 
     // -------------------------------------------------------------------------
@@ -432,8 +447,8 @@ private:
     #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     // Count data during iteration
-    mutable size_t count_valid_characters_ = 0;
-    mutable size_t count_invalid_characters_ = 0;
+    mutable size_t valid_character_count_ = 0;
+    mutable size_t invalid_character_count_ = 0;
 
 };
 

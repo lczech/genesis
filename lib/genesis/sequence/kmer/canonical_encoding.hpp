@@ -88,6 +88,8 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
+    using value_type = Kmer<Tag>;
+
     using Alphabet = typename Kmer<Tag>::Alphabet;
     using Bitfield = typename Kmer<Tag>::Bitfield;
 
