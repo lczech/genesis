@@ -52,21 +52,14 @@ namespace sequence {
 /**
  * @brief Construct a kmer from an input string.
  *
- * The string size has to match the value of k set of the given kmer tag. This is mostly meant for
- * testing and debugging, to be able to quickly create a kmer from a given string value.
+ * The string size has to fit into the k-mer. This is mostly meant for testing and debugging,
+ * to be able to quickly create a kmer from a given string value.
  */
-template<typename Tag>
-Kmer<Tag> kmer_from_string( std::string const& input )
+inline Kmer kmer_from_string( std::string const& input )
 {
-    Kmer<Tag> result;
-    if( input.size() != Kmer<Tag>::k() ) {
-        throw std::invalid_argument(
-            "Cannot construct kmer of size " + std::to_string( Kmer<Tag>::k() ) +
-            " from input string of size " + std::to_string( input.size() )
-        );
-    }
+    auto result = Kmer( input.size(), 0 );
     for( size_t i = 0; i < input.size(); ++i ) {
-        auto const rank = Kmer<Tag>::Alphabet::char_to_rank( input[i] );
+        auto const rank = Kmer::Alphabet::char_to_rank( input[i] );
         result.set( i, rank );
     }
     return result;
@@ -75,12 +68,11 @@ Kmer<Tag> kmer_from_string( std::string const& input )
 /**
  * @brief Get a string representation of a @p kmer.
  */
-template<typename Tag>
-std::string kmer_to_string( Kmer<Tag> const& kmer )
+inline std::string kmer_to_string( Kmer const& kmer )
 {
     auto result = std::string( kmer.k(), '#' );
     for( size_t i = 0; i < kmer.k(); ++i ) {
-        result[i] = Kmer<Tag>::Alphabet::rank_to_char( kmer[i] );
+        result[i] = Kmer::Alphabet::rank_to_char( kmer[i] );
     }
     return result;
 }
@@ -88,17 +80,15 @@ std::string kmer_to_string( Kmer<Tag> const& kmer )
 /**
  * @brief Get a string representation of the bits in a @p kmer.
  */
-template<typename Tag>
-std::string kmer_bits_to_string( Kmer<Tag> const& kmer )
+inline std::string kmer_bits_to_string( Kmer const& kmer )
 {
-    return Kmer<Tag>::Bitfield::to_string( kmer.value );
+    return Kmer::Bitfield::to_string( kmer.value );
 }
 
 /**
  * @brief Print the string representation of a @p kmer to an @p output stream.
  */
-template<typename Tag>
-std::ostream& operator<< ( std::ostream& output, Kmer<Tag> const& kmer )
+inline std::ostream& operator<< ( std::ostream& output, Kmer const& kmer )
 {
     output << kmer_to_string( kmer );
     return output;
@@ -108,39 +98,39 @@ std::ostream& operator<< ( std::ostream& output, Kmer<Tag> const& kmer )
 //     Kmer Comparison
 // =================================================================================================
 
-template<typename Tag>
-bool operator==( Kmer<Tag> const& lhs, Kmer<Tag> const& rhs )
+inline bool operator==( Kmer const& lhs, Kmer const& rhs )
 {
+    assert( lhs.k() == rhs.k() );
     return lhs.value == rhs.value;
 }
 
-template<typename Tag>
-bool operator!=( Kmer<Tag> const& lhs, Kmer<Tag> const& rhs )
+inline bool operator!=( Kmer const& lhs, Kmer const& rhs )
 {
+    assert( lhs.k() == rhs.k() );
     return lhs.value != rhs.value;
 }
 
-template<typename Tag>
-bool operator<=( Kmer<Tag> const& lhs, Kmer<Tag> const& rhs )
+inline bool operator<=( Kmer const& lhs, Kmer const& rhs )
 {
+    assert( lhs.k() == rhs.k() );
     return lhs.value <= rhs.value;
 }
 
-template<typename Tag>
-bool operator>=( Kmer<Tag> const& lhs, Kmer<Tag> const& rhs )
+inline bool operator>=( Kmer const& lhs, Kmer const& rhs )
 {
+    assert( lhs.k() == rhs.k() );
     return lhs.value >= rhs.value;
 }
 
-template<typename Tag>
-bool operator<( Kmer<Tag> const& lhs, Kmer<Tag> const& rhs )
+inline bool operator<( Kmer const& lhs, Kmer const& rhs )
 {
+    assert( lhs.k() == rhs.k() );
     return lhs.value < rhs.value;
 }
 
-template<typename Tag>
-bool operator>( Kmer<Tag> const& lhs, Kmer<Tag> const& rhs )
+inline bool operator>( Kmer const& lhs, Kmer const& rhs )
 {
+    assert( lhs.k() == rhs.k() );
     return lhs.value > rhs.value;
 }
 
@@ -225,6 +215,9 @@ inline size_t number_of_palindromes( uint8_t k )
 //     Reverse Complementing
 // =================================================================================================
 
+// Forward declaration
+bool validate( Kmer const& kmer, bool throw_if_invalid = false );
+
 /**
  * @brief Set the reverse complement value in the given @p kmer.
  *
@@ -234,23 +227,22 @@ inline size_t number_of_palindromes( uint8_t k )
  * If the kmer already carries its own rc, we do nothing. This might be the case for certain
  * methods that set it on the fly in order to avoid re-computing it for every kmer.
  */
-template<typename Tag>
-void set_reverse_complement( Kmer<Tag>& kmer )
+inline void set_reverse_complement( Kmer& kmer )
 {
     // Function is written for a specific bit width.
     static_assert(
-        std::is_same<typename Kmer<Tag>::Bitfield::WordType, std::uint64_t>::value,
+        std::is_same<typename Kmer::Bitfield::WordType, std::uint64_t>::value,
         "Kmer::Bitfield::WordType != uint64_t"
     );
     static_assert(
-        Kmer<Tag>::Bitfield::BITS_PER_CHAR == 2,
-        "Kmer<Tag>::Bitfield::BITS_PER_CHAR != 2"
+        Kmer::Bitfield::BITS_PER_CHAR == 2,
+        "Kmer::Bitfield::BITS_PER_CHAR != 2"
     );
     static_assert(
-        Kmer<Tag>::Alphabet::NEGATE_IS_COMPLEMENT,
-        "Kmer<Tag>::Alphabet::NEGATE_IS_COMPLEMENT != true"
+        Kmer::Alphabet::NEGATE_IS_COMPLEMENT,
+        "Kmer::Alphabet::NEGATE_IS_COMPLEMENT != true"
     );
-    using Bitfield = typename Kmer<Tag>::Bitfield;
+    using Bitfield = typename Kmer::Bitfield;
 
     // Nothing to do if already set.
     // If the rc is AAAA, we cannot detect this, and compute it anyway below.
@@ -280,8 +272,7 @@ void set_reverse_complement( Kmer<Tag>& kmer )
 /**
  * @brief Get the reverse complement of a given @p kmer.
  */
-template<typename Tag>
-Kmer<Tag> reverse_complement( Kmer<Tag> const& kmer )
+inline Kmer reverse_complement( Kmer const& kmer )
 {
     // Make the result, by flipping the original value and the rev_comp.
     auto result = kmer;
@@ -296,8 +287,7 @@ Kmer<Tag> reverse_complement( Kmer<Tag> const& kmer )
  *
  * This is the lexicographically smaller of the kmer and its reverse complement.
  */
-template<typename Tag>
-void make_canonical( Kmer<Tag>& kmer )
+inline void make_canonical( Kmer& kmer )
 {
     // In case the rc is not set, compute it. Does nothing if already set.
     set_reverse_complement( kmer );
@@ -315,8 +305,7 @@ void make_canonical( Kmer<Tag>& kmer )
  *
  * This is the lexicographically smaller of the kmer and its reverse complement.
  */
-template<typename Tag>
-Kmer<Tag> canonical_representation( Kmer<Tag> const& kmer )
+inline Kmer canonical_representation( Kmer const& kmer )
 {
     // Make the result, by flipping the original value and the rev_comp if needed.
     auto result = kmer;
@@ -332,10 +321,9 @@ Kmer<Tag> canonical_representation( Kmer<Tag> const& kmer )
 /**
  * @brief Validate a @p kmer by checking some basic properties.
  */
-template<typename Tag>
-bool validate( Kmer<Tag> const& kmer, bool throw_if_invalid = false )
+inline bool validate( Kmer const& kmer, bool throw_if_invalid )
 {
-    using Bitfield = typename Kmer<Tag>::Bitfield;
+    using Bitfield = typename Kmer::Bitfield;
     bool valid = true;
 
     // Check k.
@@ -346,7 +334,7 @@ bool validate( Kmer<Tag> const& kmer, bool throw_if_invalid = false )
     valid &= (( kmer.rev_comp & Bitfield::ones_mask[kmer.k()] ) == kmer.rev_comp );
 
     // Check that the reverse complement is correct.
-    auto copy = Kmer<Tag>( kmer.value );
+    auto copy = Kmer( kmer.k(), kmer.value );
     set_reverse_complement( copy );
     valid &= ( kmer.rev_comp == copy.rev_comp || kmer.rev_comp == 0 );
 

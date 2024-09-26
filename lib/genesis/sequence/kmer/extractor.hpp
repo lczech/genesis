@@ -56,7 +56,6 @@ namespace sequence {
 /**
  * @brief
  */
-template<typename Tag>
 class KmerExtractor
 {
 public:
@@ -66,13 +65,13 @@ public:
     // -------------------------------------------------------------------------
 
     using self_type         = KmerExtractor;
-    using value_type        = Kmer<Tag>;
+    using value_type        = Kmer;
     using pointer           = value_type*;
     using reference         = value_type&;
     using iterator_category = std::input_iterator_tag;
 
-    using Alphabet = typename Kmer<Tag>::Alphabet;
-    using Bitfield = typename Kmer<Tag>::Bitfield;
+    using Alphabet = typename Kmer::Alphabet;
+    using Bitfield = typename Kmer::Bitfield;
 
     // ======================================================================================
     //      Internal Iterator
@@ -89,13 +88,14 @@ public:
     public:
 
         using self_type         = KmerExtractor::Iterator;
-        using value_type        = Kmer<Tag>;
+        using value_type        = Kmer;
         using pointer           = value_type const*;
         using reference         = value_type const&;
         using iterator_category = std::input_iterator_tag;
 
-        using Alphabet = typename Kmer<Tag>::Alphabet;
-        using Bitfield = typename Kmer<Tag>::Bitfield;
+        using Alphabet = typename Kmer::Alphabet;
+        using Bitfield = typename Kmer::Bitfield;
+        using WordType = typename Bitfield::WordType;
 
         // -------------------------------------------------------------------------
         //     Constructors and Rule of Five
@@ -114,12 +114,11 @@ public:
             }
 
             // Correct setup
-            if( Kmer<Tag>::k() == 0 || Kmer<Tag>::k() > Bitfield::MAX_CHARS_PER_KMER ) {
-                throw std::invalid_argument(
-                    "Cannot extract kmers with k=" + std::to_string( Kmer<Tag>::k() )
-                );
-            }
-            auto const k = Kmer<Tag>::k();
+            auto const k = parent_->k_;
+            assert( k > 0 && k <= Bitfield::MAX_CHARS_PER_KMER );
+            kmer_ = Kmer( k, 0 );
+
+            // Precomputed values
             ones_mask_ = Bitfield::ones_mask[ k ];
             rc_shift_ = (( k - 1 ) * Bitfield::BITS_PER_CHAR );
 
@@ -211,7 +210,7 @@ public:
             assert( parent_ );
 
             // Shorthands.
-            auto const k = Kmer<Tag>::k();
+            auto const k = parent_->k_;
             assert( k <= Bitfield::MAX_CHARS_PER_KMER );
 
             size_t start_location = location_;
@@ -266,13 +265,13 @@ public:
             }
 
             // Move the new value into the kmer.
-            auto const word = static_cast<typename Bitfield::WordType>( rank );
+            auto const word = static_cast<WordType>( rank );
             kmer_.value <<= Bitfield::BITS_PER_CHAR;
             kmer_.value &=  ones_mask_;
             kmer_.value |=  word;
 
             // Also populate the reverse complement.
-            typename Bitfield::WordType const rc_word = Alphabet::complement( rank );
+            WordType const rc_word = Alphabet::complement( rank );
             kmer_.rev_comp >>= Bitfield::BITS_PER_CHAR;
             kmer_.rev_comp |= ( rc_word << rc_shift_ );
 
@@ -292,12 +291,13 @@ public:
 
         // The internal kmer we operate on, and the current location in the input sequence.
         // This corresponds to the char that is extracted from the sequence at the end of the kmer.
-        Kmer<Tag> kmer_;
+        Kmer kmer_;
         size_t location_ = 0;
 
         // Precomputed values for speed
-        typename Bitfield::WordType ones_mask_;
+        WordType ones_mask_;
         int rc_shift_ = 0;
+
     };
 
     // ======================================================================================
@@ -313,30 +313,40 @@ public:
     // With C++17, we can optimize by offering a std::string_view interface.
     #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
-    KmerExtractor( std::string const& input )
+    KmerExtractor( uint8_t k, std::string const& input )
         : buffer_( input )
         , input_( buffer_ )
-    {}
+    {
+        set_k_( k );
+    }
 
-    KmerExtractor( std::string&& input )
+    KmerExtractor( uint8_t k, std::string&& input )
         : buffer_( std::move( input ))
         , input_( buffer_ )
-    {}
+    {
+        set_k_( k );
+    }
 
-    KmerExtractor( std::string_view input )
+    KmerExtractor( uint8_t k, std::string_view input )
         : input_( input )
-    {}
+    {
+        set_k_( k );
+    }
 
     // For C++11, we instead just offer std::string
     #else // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
-    KmerExtractor( std::string const& input )
+    KmerExtractor( uint8_t k, std::string const& input )
         : input_( input )
-    {}
+    {
+        set_k_( k );
+    }
 
-    KmerExtractor( std::string&& input )
+    KmerExtractor( uint8_t k, std::string&& input )
         : input_( std::move( input ))
-    {}
+    {
+        set_k_( k );
+    }
 
     #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
@@ -347,48 +357,6 @@ public:
 
     self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
-
-    // -------------------------------------------------------------------------
-    //     Sequence
-    // -------------------------------------------------------------------------
-
-    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
-
-    void set_sequence( std::string const& input )
-    {
-        buffer_ = input;
-        input_ = buffer_;
-        reset_character_counts();
-    }
-
-    void set_sequence( std::string&& input )
-    {
-        buffer_ = std::move( input );
-        input_ = buffer_;
-        reset_character_counts();
-    }
-
-    void set_sequence( std::string_view input )
-    {
-        input_ = input;
-        reset_character_counts();
-    }
-
-    #else // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
-
-    void set_sequence( std::string const& input )
-    {
-        input_ = input;
-        reset_character_counts();
-    }
-
-    void set_sequence( std::string&& input )
-    {
-        input_ = std::move( input );
-        reset_character_counts();
-    }
-
-    #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     // -------------------------------------------------------------------------
     //     Iteration
@@ -425,10 +393,28 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Internal Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    void set_k_( uint8_t k )
+    {
+        if( k == 0 || k > Bitfield::MAX_CHARS_PER_KMER ) {
+            throw std::invalid_argument(
+                "Cannot use k-mer with k==" + std::to_string( k )
+            );
+        }
+        k_ = k;
+    }
+
+    // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
 private:
+
+    uint8_t k_;
 
     #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 

@@ -191,7 +191,6 @@ struct KmerBitfield
      */
     static inline uint8_t extract( uint8_t k, WordType const& word, uint8_t position )
     {
-        (void) word;
         assert( position < k );
         assert( k <= MAX_CHARS_PER_KMER );
         return extract( word, k - position - 1 );

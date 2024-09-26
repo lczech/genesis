@@ -79,7 +79,6 @@ namespace sequence {
  * also contributed these improvements back to the original repository, so that the basic code there
  * matches the one here.
  */
-template<typename Tag>
 class MinimalCanonicalEncoding
 {
 public:
@@ -88,18 +87,17 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using value_type = Kmer<Tag>;
-
-    using Alphabet = typename Kmer<Tag>::Alphabet;
-    using Bitfield = typename Kmer<Tag>::Bitfield;
+    using Alphabet = typename Kmer::Alphabet;
+    using Bitfield = typename Kmer::Bitfield;
 
     // -----------------------------------------------------
     //     Constructors and Rule of Five
     // -----------------------------------------------------
 
-    MinimalCanonicalEncoding()
+    MinimalCanonicalEncoding( uint8_t k )
+        : k_(k)
     {
-        if( Kmer<Tag>::k() == 0 || Kmer<Tag>::k() > 32 ) {
+        if( k == 0 || k > 32 ) {
             throw std::invalid_argument(
                 "Can only use minimal canonical encoding with k in [1,32]"
             );
@@ -119,14 +117,12 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    uint64_t encode( Kmer<Tag> const& kmer ) const
+    uint64_t encode( Kmer const& kmer ) const
     {
-        // Compute enc_r_c, called hash() in https://gitlab.ub.uni-bielefeld.de/gi/MinEncCanKmer
-        // We renamed variables, and restructured the code.
-        auto const k = Kmer<Tag>::k();
+        assert( kmer.k() == k_ );
 
         // Check that the kmer has its rc set (if rc==0, the kmer is maxed out with Ts)
-        assert( kmer.rev_comp != 0 || kmer.value == Bitfield::ones_mask[Kmer<Tag>::k()] );
+        assert( kmer.rev_comp != 0 || kmer.value == Bitfield::ones_mask[k_] );
 
         // Get the length of the symmetric prefix/suffix, in num of characters, i.e., 2x num of bits.
         // Then, l is the (rounded) bit index of the char that is the specifying case for the k-mer.
@@ -139,7 +135,7 @@ public:
         // value in that case, as this is faster than an additional check here.
         uint64_t const sym = kmer.value ^ kmer.rev_comp;
         uint8_t l = __builtin_ctzll(sym) / 2 * 2;
-        assert( sym == 0 || l <= k - 1 );
+        assert( sym == 0 || l <= k_ - 1 );
 
         // The above builtin call uses unsigned long long. Assert that this has the size we expect.
         static_assert(
@@ -152,15 +148,15 @@ public:
         uint64_t kmercode = 0;
         if( sym == 0 ) {
             // Palindrome -> nothing to do. Can only occur in even k.
-            assert( k % 2 == 0 );
+            assert( k_ % 2 == 0 );
 
             // We set l = k here, as in a palindrome, l will be undefined due to the ctz call,
             // so we set it here to the position that we are interested in.
-            l = k;
+            l = k_;
             kmercode = encode_prime_( kmer.value, l );
-        } else if( l == k - 1 ) {
+        } else if( l == k_ - 1 ) {
             // Single character in the middle. Can only occur in odd k.
-            assert( k % 2 == 1 );
+            assert( k_ % 2 == 1 );
 
             // We are interested in the bits at the central character,
             // which (given that we have l == k - 1 here) are located at:
@@ -179,23 +175,23 @@ public:
             // The result of this XOR is a single bit indicating if we have C/G or A/T at the position,
             // and it is already in the correct position to be set in kmercode.
             kmercode = encode_prime_( kmer.value, l );
-            auto const bit1 = ( kmer.value & ( 1ULL << ( k   ))) >> 1;
-            auto const bit2 = ( kmer.value & ( 1ULL << ( k-1 )));
+            auto const bit1 = ( kmer.value & ( 1ULL << ( k_   ))) >> 1;
+            auto const bit2 = ( kmer.value & ( 1ULL << ( k_-1 )));
             kmercode |= bit1 ^ bit2;
         } else {
             // Not just single character in the middle, i.e., we have a specifying pair.
             // Due to the symmetry of the kmer and its rc, we cannot have l > k - 1,
             // so the only case where this branch is taken is if l < k - 1.
-            assert( k >= 2 );
-            assert( l < k - 1 );
+            assert( k_ >= 2 );
+            assert( l < k_ - 1 );
 
             // There are 16 possible combinations of two characters from ACGT.
             // We here extract the first two asymmetric characters (the specifying pair, i.e. 2x2 bits)
             // to build a pattern for a lookup of which combination we have in the kmer.
             // This is done by shifting the relevant bits of the pair to the LSBs of the pattern.
             unsigned char pattern = 0;
-            pattern |= ( kmer.value >> ( 2*k - l - 4 )) & 0x0C;
-            pattern |= ( kmer.value >> (       l     )) & 0x03;
+            pattern |= ( kmer.value >> ( 2*k_ - l - 4 )) & 0x0C;
+            pattern |= ( kmer.value >> (        l     )) & 0x03;
             assert( pattern < 16 );
 
             // Check which case we need for the initial hash, based on the pattern we found.
@@ -210,22 +206,22 @@ public:
             // Similar to above, we can avoid any branching here by directly shifting
             // the replace_ mask bits to the needed positions. If the replace mask is 0 for the
             // given pattern, we shift a zero, which just does nothing.
-            kmercode |= ( replace_[pattern] << ( 2*k - l - 4 ));
+            kmercode |= ( replace_[pattern] << ( 2*k_ - l - 4 ));
         }
         assert( l % 2 == 0 );
-        assert( l <= k );
+        assert( l <= k_ );
 
         // Subtract gaps: 2*(k//2-l-1) ones followed by k-2 zeros, for the case that `l <= k - 4`;
         // we move the 4 to the lhs of the equation to avoid underflowing for small k.
-        if( l + 4 <= k ) {
-            assert( k >= 4 );
+        if( l + 4 <= k_ ) {
+            assert( k_ >= 4 );
             kmercode -= gap_sizes_[l];
         }
 
         // Subtract gaps in code due to specifying middle position (odd k).
         // We here use pre-computed powers of four for speed, as those are constant.
-        assert( k <= 32 );
-        if( k % 2 == 1 && kmercode >= four_to_the_k_half_plus_one_ ) {
+        assert( k_ <= 32 );
+        if( k_ % 2 == 1 && kmercode >= four_to_the_k_half_plus_one_ ) {
             kmercode -= twice_four_to_the_k_half_;
         }
 
@@ -242,9 +238,8 @@ private:
     {
         // We need two variants of powers of 4 depending on k, which we can pre-compute for speed,
         // as this is too expensive for the hot path.
-        auto const k = Kmer<Tag>::k();
-        four_to_the_k_half_plus_one_ = utils::int_pow( 4, k / 2 + 1 );
-        twice_four_to_the_k_half_ = 2 * utils::int_pow( 4, k / 2 );
+        four_to_the_k_half_plus_one_ = utils::int_pow( 4, k_ / 2 + 1 );
+        twice_four_to_the_k_half_ = 2 * utils::int_pow( 4, k_ / 2 );
 
         // After we have identified the specifying pair of characters, we need to extract
         // the remainder, see encode_prime_(). We here precompute a mask to do that.
@@ -259,23 +254,23 @@ private:
         // Lastly, as explained in encode_prime_(), we also might access entries
         // beyond the given triangle of 1s, so we fill those with zeros here.
         remainder_mask_[0] = Bitfield::ALL_1;
-        for( size_t i = 1; i <= k; i++ ){
-            auto const zeromask = Bitfield::ALL_1 >> ( Bitfield::BIT_WIDTH - 2 * k + i );
+        for( size_t i = 1; i <= k_; i++ ){
+            auto const zeromask = Bitfield::ALL_1 >> ( Bitfield::BIT_WIDTH - 2 * k_ + i );
             auto const onemask  = Bitfield::ALL_1 << i;
             remainder_mask_[i]  = zeromask & onemask;
         }
-        for( size_t i = k+1; i < remainder_mask_.size(); ++i ) {
+        for( size_t i = k_+1; i < remainder_mask_.size(); ++i ) {
             remainder_mask_[i] = 0;
         }
 
         // Precompute the gap sizes that we need to subtract from the prime encoding,
         // for different patterns depending on where the specifying pair is.
         // Gaps have sizes of 2*(k//2-l-1) ones followed by k-2 zeros.
-        for( size_t l = 0; l + 4 <= k; ++l ) {
-            auto const one_shift = k/2*2 - l - 2;
+        for( size_t l = 0; l + 4 <= k_; ++l ) {
+            auto const one_shift = k_/2*2 - l - 2;
             assert( one_shift != 0 );
             auto const gaps = ( Bitfield::ALL_1 >> ( Bitfield::BIT_WIDTH - one_shift ));
-            gap_sizes_[l] = ( gaps << ( 2 * (( k+1 ) / 2 ) - 1 ));
+            gap_sizes_[l] = ( gaps << ( 2 * (( k_+1 ) / 2 ) - 1 ));
         }
     }
 
@@ -283,9 +278,6 @@ private:
     {
         // Compute encoding where only setting the bits according to specifying case and
         // subtracting gaps is missing, i.e., enc prime.
-        // Called initialhashed() in https://gitlab.ub.uni-bielefeld.de/gi/MinEncCanKmer
-        auto const k = Kmer<Tag>::k();
-        (void) k;
 
         // This uses a mask of the form 0..01..1 (l trailing ones), to extract
         // the relevant bits on the right, and invert (complement) them.
@@ -296,12 +288,12 @@ private:
         // No remainder left? We could just return here, but in our tests, the introduced
         // branching is more expensive than unconditionally executing the below bit operations,
         // so we have deactivated this check here. Recommended to be tested on your hardware.
-        // if( l + 2 >= k ) {
+        // if( l + 2 >= k_ ) {
         //     return right;
         // }
 
         // Assert that the values are as expected.
-        assert( l <= k );
+        assert( l <= k_ );
         assert( l % 2 == 0 );
 
         // Use the remainder mask (consisting of ones in the middle) to extract the bits
@@ -349,12 +341,14 @@ private:
     // # 13 T..C -> G..A    -> 1001
     // # 14 T..G -> C..A    -> 1000
     // # 15 T..T -> A..A    -> 0110
-    std::array<uint64_t, 16> const replace_ = {{
+    static constexpr std::array<uint64_t, 16> replace_ = {{
         0x06, 0x05, 0x04, 0x00, 0x08, 0x07, 0x00, 0x04, 0x09, 0x00, 0x07, 0x05, 0x00, 0x09, 0x08, 0x06
     }};
 
     // Markers to check if we need to encode the forward or the reverse complement.
-    std::array<uint8_t, 16> const reverse_ = {{ 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1 }};
+    static constexpr std::array<uint8_t, 16> reverse_ = {{
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1
+    }};
 
     // Mask to extract the remainder after having found the specifying pair. Depends on k,
     // and is created on construction. We might access positions up to k+2, hence the max size here.
@@ -366,6 +360,9 @@ private:
     // Powers are expensive to compute, but these here only depend on k, so we can pre-compute them.
     uint64_t four_to_the_k_half_plus_one_;
     uint64_t twice_four_to_the_k_half_;
+
+    uint8_t k_;
+
 };
 
 } // namespace sequence
