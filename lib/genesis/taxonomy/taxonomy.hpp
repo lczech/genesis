@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -31,8 +31,10 @@
  * @ingroup taxonomy
  */
 
-#include <string>
+#include <algorithm>
 #include <list>
+#include <stdexcept>
+#include <string>
 
 namespace genesis {
 namespace taxonomy {
@@ -117,7 +119,11 @@ public:
      * We need a custom version of this in order to set the Taxon::parent() pointers of all children
      * correctly when copying.
      */
-    Taxonomy( Taxonomy const& );
+    Taxonomy( Taxonomy const& other )
+        : children_( other.children_ )
+    {
+        reset_parent_pointers_( nullptr );
+    }
 
     /**
      * @brief Move constructor.
@@ -125,7 +131,11 @@ public:
      * We need a custom version of this in order to set the Taxon::parent() pointers of all children
      * correctly when copying.
      */
-    Taxonomy( Taxonomy&& );
+    Taxonomy( Taxonomy&& other )
+        : children_( std::move( other.children_ ))
+    {
+        reset_parent_pointers_( nullptr );
+    }
 
     /**
      * @brief Copy assignment operator.
@@ -133,7 +143,12 @@ public:
      * We need a custom version of this in order to set the Taxon::parent() pointers of all children
      * correctly when copying.
      */
-    Taxonomy& operator= ( Taxonomy const& );
+    Taxonomy& operator= ( Taxonomy const& other )
+    {
+        children_ = other.children_;
+        reset_parent_pointers_( nullptr );
+        return *this;
+    }
 
     /**
      * @brief Move assignment operator.
@@ -141,9 +156,21 @@ public:
      * We need a custom version of this in order to set the Taxon::parent() pointers of all children
      * correctly when copying.
      */
-    Taxonomy& operator= ( Taxonomy&& );
+    Taxonomy& operator= ( Taxonomy&& other )
+    {
+        children_ = std::move( other.children_ );
+        reset_parent_pointers_( nullptr );
+        return *this;
+    }
 
-    friend void swap( Taxonomy& lhs, Taxonomy& rhs );
+    /**
+     * @brief Swapperator for Taxonomy.
+     */
+    friend void swap( Taxonomy& lhs, Taxonomy& rhs )
+    {
+        using std::swap;
+        swap( lhs.children_, rhs.children_ );
+    }
 
     // -------------------------------------------------------------------------
     //     Accessors
@@ -154,22 +181,25 @@ public:
      *
      * See total_taxa_count() for counting all Taxa, including all nested ones.
      */
-    size_t size() const;
+    size_t size() const
+    {
+        return children_.size();
+    }
 
     /**
      * @brief Return whether an immediate child Taxon with the given name exists.
      */
-    bool has_child ( std::string name ) const;
+    bool has_child( std::string name ) const;
 
     /**
      * @brief Return the child Taxon with a given name if it exists, or throw otherwise.
      */
-    Taxon const& get_child ( std::string name ) const;
+    Taxon const& get_child( std::string name ) const;
 
     /**
      * @brief Return the child Taxon with a given name if it exists, or throw otherwise.
      */
-    Taxon&       get_child ( std::string name );
+    Taxon& get_child( std::string name );
 
     /**
      * @brief Return the child Taxon with a given name if it exists, or throw otherwise.
@@ -179,21 +209,21 @@ public:
     /**
      * @brief Return the child Taxon with a given name if it exists, or throw otherwise.
      */
-    Taxon&       operator [] ( std::string name );
+    Taxon& operator [] ( std::string name );
 
     /**
      * @brief Return the child Taxon at the given index.
      *
      * The function throws an exception if the index in invalid, i.e., `>=` size().
      */
-    Taxon const& at ( size_t index  ) const;
+    Taxon const& at( size_t index  ) const;
 
     /**
      * @brief Return the child Taxon at the given index.
      *
      * The function throws an exception if the index in invalid, i.e., `>=` size().
      */
-    Taxon&       at ( size_t index  );
+    Taxon& at( size_t index  );
 
     /**
      * @brief Return the child Taxon at the given index.
@@ -207,7 +237,7 @@ public:
      *
      * The function does not check whether the provided index is within the valid range of size().
      */
-    Taxon&       operator [] ( size_t index );
+    Taxon& operator [] ( size_t index );
 
     size_t index_of( std::string const& name ) const;
 
@@ -223,7 +253,7 @@ public:
      * Otherwise (@p merge_duplicates is `false`), the Taxon is added, even if this creates
      * another child Taxon with the same name.
      */
-    Taxon& add_child( Taxon const&       child, bool merge_duplicates = true );
+    Taxon& add_child( Taxon const& child, bool merge_duplicates = true );
 
     /**
      * @brief Add a child Taxon by creating a new one with the given name and return it.
@@ -272,32 +302,50 @@ public:
     /**
      * @brief Return an iterator to the beginning of the child taxa.
      */
-    iterator begin();
+    iterator begin()
+    {
+        return children_.begin();
+    }
 
     /**
      * @brief Return an iterator to the end of the child taxa.
      */
-    iterator end();
+    iterator end()
+    {
+        return children_.end();
+    }
 
     /**
      * @brief Return a const iterator to the beginning of the child taxa.
      */
-    const_iterator begin() const;
+    const_iterator begin() const
+    {
+        return children_.cbegin();
+    }
 
     /**
      * @brief Return a const iterator to the end of the child taxa.
      */
-    const_iterator end() const;
+    const_iterator end() const
+    {
+        return children_.cend();
+    }
 
     /**
      * @brief Return a const iterator to the beginning of the child taxa.
      */
-    const_iterator cbegin() const;
+    const_iterator cbegin() const
+    {
+        return children_.cbegin();
+    }
 
     /**
      * @brief Return a const iterator to the end of the child taxa.
      */
-    const_iterator cend() const;
+    const_iterator cend() const
+    {
+        return children_.cend();
+    }
 
     // -------------------------------------------------------------------------
     //     Internal Implementation Details

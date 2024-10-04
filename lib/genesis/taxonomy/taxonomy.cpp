@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -39,52 +39,8 @@ namespace genesis {
 namespace taxonomy {
 
 // =================================================================================================
-//     Constructors and Rule of Five
-// =================================================================================================
-
-Taxonomy::Taxonomy( Taxonomy const& other )
-    : children_( other.children_ )
-{
-    reset_parent_pointers_( nullptr );
-}
-
-Taxonomy::Taxonomy( Taxonomy&& other )
-    : children_( std::move( other.children_ ))
-{
-    reset_parent_pointers_( nullptr );
-}
-
-Taxonomy& Taxonomy::operator= ( Taxonomy const& other )
-{
-    children_ = other.children_;
-    reset_parent_pointers_( nullptr );
-    return *this;
-}
-
-Taxonomy& Taxonomy::operator= ( Taxonomy&& other )
-{
-    children_ = std::move( other.children_ );
-    reset_parent_pointers_( nullptr );
-    return *this;
-}
-
-/**
- * @brief Swapperator for Taxonomy.
- */
-void swap( Taxonomy& lhs, Taxonomy& rhs )
-{
-    using std::swap;
-    swap( lhs.children_, rhs.children_ );
-}
-
-// =================================================================================================
 //     Accessors
 // =================================================================================================
-
-size_t Taxonomy::size() const
-{
-    return children_.size();
-}
 
 bool Taxonomy::has_child ( std::string name ) const
 {
@@ -224,40 +180,6 @@ void Taxonomy::remove_at( size_t index )
 void Taxonomy::clear_children()
 {
     children_.clear();
-}
-
-// =================================================================================================
-//     Iterators
-// =================================================================================================
-
-Taxonomy::iterator Taxonomy::begin()
-{
-    return children_.begin();
-}
-
-Taxonomy::iterator Taxonomy::end()
-{
-    return children_.end();
-}
-
-Taxonomy::const_iterator Taxonomy::begin() const
-{
-    return children_.cbegin();
-}
-
-Taxonomy::const_iterator Taxonomy::end() const
-{
-    return children_.cend();
-}
-
-Taxonomy::const_iterator Taxonomy::cbegin() const
-{
-    return children_.cbegin();
-}
-
-Taxonomy::const_iterator Taxonomy::cend() const
-{
-    return children_.cend();
 }
 
 // =================================================================================================

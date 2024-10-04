@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -34,7 +34,9 @@
 #include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/taxonomy/taxon_data.hpp"
 
+#include <algorithm>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 namespace genesis {
@@ -93,12 +95,26 @@ public:
     /**
      * @brief Default constructor. Does nothing. Yields an empty Taxon.
      */
-    Taxon();
+    Taxon()
+        : Taxonomy()
+        , name_()
+        , rank_()
+        , id_()
+        , parent_( nullptr )
+        , data_( nullptr )
+    {}
 
     /**
      * @brief Constructor that uses the given name for the Taxon.
      */
-    explicit Taxon( std::string const& name, std::string const& rank = "", std::string const& id = "" );
+    explicit Taxon( std::string const& name, std::string const& rank = "", std::string const& id = "" )
+        : Taxonomy()
+        , name_( name )
+        , rank_( rank )
+        , id_( id )
+        , parent_( nullptr )
+        , data_( nullptr )
+    {}
 
     virtual ~Taxon() override = default;
 
@@ -115,7 +131,18 @@ public:
      * If however we copy a Taxon into a Taxonomy (or into some other Taxon), reset_parent_pointers_()
      * is called later anyway, which then sets the parent pointer to the correct value.
      */
-    Taxon( Taxon const& );
+    Taxon( Taxon const& other )
+        : Taxonomy( other )
+        , name_( other.name_ )
+        , rank_( other.rank_ )
+        , id_( other.id_ )
+        , parent_( nullptr )
+    {
+        if( other.has_data() ) {
+            reset_data( other.data_->clone() );
+        }
+        reset_parent_pointers_( this );
+    }
 
     /**
      * @brief Move constructor.
@@ -123,7 +150,17 @@ public:
      * We need a custom version of this in order to set the Taxon::parent() pointers of all children
      * correctly, and to treat the data correctlty when copying.
      */
-    Taxon( Taxon&& );
+    Taxon( Taxon&& other )
+        : Taxonomy( std::move( other ))
+        , name_(    std::move( other.name_ ))
+        , rank_(    std::move( other.rank_ ))
+        , id_(      std::move( other.id_ ))
+        , parent_(  other.parent_ )
+        , data_(    std::move( other.data_ ))
+    {
+        reset_parent_pointers_( this );
+    }
+
 
     /**
      * @brief Copy assignment operator.
@@ -133,7 +170,19 @@ public:
      *
      * See the @link Taxon( Taxon const& other ) move constructor@endlink for details.
      */
-    Taxon& operator= ( Taxon const& );
+    Taxon& operator= ( Taxon const& other )
+    {
+        Taxonomy::operator=( static_cast< Taxonomy const& >( other ));
+        name_ = other.name_;
+        rank_ = other.rank_;
+        id_ = other.id_;
+        parent_ = nullptr;
+        if( other.has_data() ) {
+            reset_data( other.data_->clone() );
+        }
+        reset_parent_pointers_( this );
+        return *this;
+    }
 
     /**
      * @brief Move assignment operator.
@@ -141,12 +190,32 @@ public:
      * We need a custom version of this in order to set the Taxon::parent() pointers of all children
      * correctly, and to treat the data correctlty when copying.
      */
-    Taxon& operator= ( Taxon&& );
+    Taxon& operator= ( Taxon&& other )
+    {
+        Taxonomy::operator=( static_cast< Taxonomy&& >( std::move( other )));
+        name_ = std::move( other.name_ );
+        rank_ = std::move( other.rank_ );
+        id_ = std::move( other.id_ );
+        parent_ = other.parent_;
+        data_ = std::move( other.data_ );
+        reset_parent_pointers_( this );
+        return *this;
+    }
 
     /**
      * @brief Swapperator for Taxon.
      */
-    friend void swap( Taxon& lhs, Taxon& rhs );
+    friend void swap( Taxon& lhs, Taxon& rhs )
+    {
+        using std::swap;
+        swap( static_cast< Taxonomy& >( lhs ), static_cast< Taxonomy& >( rhs ) );
+
+        swap( lhs.name_,   rhs.name_ );
+        swap( lhs.rank_,   rhs.rank_ );
+        swap( lhs.id_,     rhs.id_ );
+        swap( lhs.parent_, rhs.parent_ );
+        swap( lhs.data_,   rhs.data_ );
+    }
 
     // -------------------------------------------------------------------------
     //     Properties
@@ -155,34 +224,61 @@ public:
     /**
      * @brief Return the name of this taxon.
      */
-    std::string const& name() const;
+    std::string const& name() const
+    {
+        return name_;
+    }
 
     /**
      * @brief Set the name of this taxon.
      */
-    void               name( std::string const& value );
+    void name( std::string const& value )
+    {
+        name_ = value;
+    }
 
     /**
      * @brief Return the rank of this taxon.
      */
-    std::string const& rank() const;
-    void               rank( std::string const& value );
+    std::string const& rank() const
+    {
+        return rank_;
+    }
+
+    void rank( std::string const& value )
+    {
+        rank_ = value;
+    }
 
     /**
      * @brief Set the ID of this taxon.
      */
-    std::string const& id() const;
-    void               id( std::string const& value );
+    std::string const& id() const
+    {
+        return id_;
+    }
+
+    void id( std::string const& value )
+    {
+        id_ = value;
+    }
+
 
     /**
      * @brief Return a pointer to the parent of this taxon, or a `nullptr` if this is the top level taxon.
      */
-    Taxon const* parent () const;
+    Taxon const* parent() const
+    {
+        return parent_;
+    }
 
     /**
      * @brief Return a pointer to the parent of this taxon, or a `nullptr` if this is the top level taxon.
      */
-    Taxon*       parent ();
+    Taxon* parent()
+    {
+        return parent_;
+    }
 
     // -------------------------------------------------------------------------
     //     Data
@@ -191,7 +287,10 @@ public:
     /**
      * @brief Return `true` if the Taxon has a data object assigned to it.
      */
-    bool has_data() const;
+    bool has_data() const
+    {
+        return data_.get() != nullptr;
+    }
 
     template< class TaxonDataType >
     TaxonDataType& data()
@@ -223,7 +322,10 @@ public:
      * In most cases, using data<>() is more convenient. However, in some cases, this function
      * might be necessary.
      */
-    BaseTaxonData*       data_ptr();
+    BaseTaxonData* data_ptr()
+    {
+        return data_.get();
+    }
 
     /**
      * @brief Return a const pointer to the data.
@@ -231,7 +333,10 @@ public:
      * In most cases, using data<>() is more convenient. However, in some cases, this function
      * might be necessary.
      */
-    BaseTaxonData const* data_ptr() const;
+    BaseTaxonData const* data_ptr() const
+    {
+        return data_.get();
+    }
 
     /**
      * @brief Reset the data pointer of this Taxon.
@@ -241,7 +346,11 @@ public:
      * functions that work with a Taxonomy expect a certain data type. Thus, changing it might break
      * those functions and lead to exceptions and other errors.
      */
-    Taxon& reset_data( std::unique_ptr< BaseTaxonData > data );
+    Taxon& reset_data( std::unique_ptr<BaseTaxonData> data )
+    {
+        data_ = std::move( data );
+        return *this;
+    }
 
     // -------------------------------------------------------------------------
     //     Protected Implementation Details
@@ -255,7 +364,16 @@ protected:
      * See Taxonomy::add_child_() for details. In addition to the base class implementation, this
      * function also sets the parent pointer of the Taxon.
      */
-    Taxon& add_child_( Taxon const& child, bool merge_duplicates ) override;
+    Taxon& add_child_( Taxon const& child, bool merge_duplicates ) override
+    {
+        auto& c = Taxonomy::add_child_( child, merge_duplicates );
+        // c.parent_ = this;
+
+        // We added to the container. This might have caused relocation of the contant.
+        // Need to update parent pointers!
+        reset_parent_pointers_( this );
+        return c;
+    }
 
     // -------------------------------------------------------------------------
     //     Data Members
@@ -267,9 +385,9 @@ private:
     std::string rank_;
     std::string id_;
 
-    Taxon*      parent_;
+    Taxon* parent_;
 
-    std::unique_ptr< BaseTaxonData > data_;
+    std::unique_ptr<BaseTaxonData> data_;
 
 };
 
