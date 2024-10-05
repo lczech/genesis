@@ -73,19 +73,45 @@ using NcbiNameLookup = std::unordered_map<std::string, NcbiName>;
 //     Tables
 // -------------------------------------------------------------------------
 
+/**
+ * @brief Parameters for reading the NCBI node and name tables.
+ *
+ * We need to extract fields from certain column positions in the table.
+ * These should be stable across NCBI releases, but if needed, can be changed here.
+ *
+ * Furthermore, by default we only add the scientific names into our Taxonomy, and ignore entries
+ * with alternative names and other types of classes. If instead the `name_class_filter` is set
+ * to an emptry string here, all entries are added to the taxonomy.
+ */
+struct NcbiTableParameters
+{
+    size_t node_table_tax_id_pos        = 0;
+    size_t node_table_parent_tax_id_pos = 1;
+    size_t node_table_rank_pos          = 2;
+
+    size_t name_table_tax_id_pos        = 0;
+    size_t name_table_name_pos          = 1;
+    size_t name_table_name_class_pos    = 3;
+
+    std::string name_class_filter = "scientific name";
+};
+
+NcbiNodeLookup read_ncbi_node_table(
+    std::shared_ptr<utils::BaseInputSource> source
+);
+
 NcbiNodeLookup read_ncbi_node_table(
     std::shared_ptr<utils::BaseInputSource> source,
-    size_t tax_id_pos = 0,
-    size_t parent_tax_id_pos = 1,
-    size_t rank_pos = 2
+    NcbiTableParameters const& params
+);
+
+NcbiNameLookup read_ncbi_name_table(
+    std::shared_ptr<utils::BaseInputSource> source
 );
 
 NcbiNameLookup read_ncbi_name_table(
     std::shared_ptr<utils::BaseInputSource> source,
-    size_t tax_id_pos = 0,
-    size_t name_pos = 1,
-    size_t name_class_pos = 3,
-    std::string const& name_class_filter = "scientific name"
+    NcbiTableParameters const& params
 );
 
 // -------------------------------------------------------------------------
@@ -103,8 +129,20 @@ Taxonomy read_ncbi_taxonomy(
 );
 
 Taxonomy read_ncbi_taxonomy(
+    std::string const& node_file,
+    std::string const& name_file,
+    NcbiTableParameters const& params
+);
+
+Taxonomy read_ncbi_taxonomy(
     std::shared_ptr<utils::BaseInputSource> node_source,
     std::shared_ptr<utils::BaseInputSource> name_source
+);
+
+Taxonomy read_ncbi_taxonomy(
+    std::shared_ptr<utils::BaseInputSource> node_source,
+    std::shared_ptr<utils::BaseInputSource> name_source,
+    NcbiTableParameters const& params
 );
 
 } // namespace taxonomy

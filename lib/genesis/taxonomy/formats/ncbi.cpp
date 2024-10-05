@@ -62,15 +62,25 @@ utils::CsvReader get_ncbi_file_reader_()
 // =================================================================================================
 
 NcbiNodeLookup read_ncbi_node_table(
+    std::shared_ptr<utils::BaseInputSource> source
+) {
+    // Use default params.
+    NcbiTableParameters params;
+    return read_ncbi_node_table( source, params );
+}
+
+NcbiNodeLookup read_ncbi_node_table(
     std::shared_ptr<utils::BaseInputSource> source,
-    size_t tax_id_pos,
-    size_t parent_tax_id_pos,
-    size_t rank_pos
+    NcbiTableParameters const& params
 ) {
     NcbiNodeLookup result;
 
     // Param checks.
-    if( tax_id_pos == parent_tax_id_pos || tax_id_pos == rank_pos || parent_tax_id_pos == rank_pos ) {
+    if(
+        params.node_table_tax_id_pos == params.node_table_parent_tax_id_pos ||
+        params.node_table_tax_id_pos == params.node_table_rank_pos ||
+        params.node_table_parent_tax_id_pos == params.node_table_rank_pos
+    ) {
         throw std::invalid_argument( "Invalid field positions for reading NCBI node table" );
     }
 
@@ -98,9 +108,9 @@ NcbiNodeLookup read_ncbi_node_table(
 
         // Extract the relevant fields.
         NcbiNode node;
-        node.tax_id        = get_field( line, tax_id_pos, "tax_id" );
-        node.parent_tax_id = get_field( line, parent_tax_id_pos, "parent_tax_id" );
-        node.rank          = get_field( line, rank_pos, "rank" );
+        node.tax_id        = get_field( line, params.node_table_tax_id_pos, "tax_id" );
+        node.parent_tax_id = get_field( line, params.node_table_parent_tax_id_pos, "parent_tax_id" );
+        node.rank          = get_field( line, params.node_table_rank_pos, "rank" );
 
         // We expect unique entries.
         if( result.count( node.tax_id ) > 0 ) {
@@ -115,16 +125,25 @@ NcbiNodeLookup read_ncbi_node_table(
 }
 
 NcbiNameLookup read_ncbi_name_table(
+    std::shared_ptr<utils::BaseInputSource> source
+) {
+    // Use default params.
+    NcbiTableParameters params;
+    return read_ncbi_name_table( source, params );
+}
+
+NcbiNameLookup read_ncbi_name_table(
     std::shared_ptr<utils::BaseInputSource> source,
-    size_t tax_id_pos,
-    size_t name_pos,
-    size_t name_class_pos,
-    std::string const& name_class_filter
+    NcbiTableParameters const& params
 ) {
     NcbiNameLookup result;
 
     // Param checks.
-    if( tax_id_pos == name_pos || tax_id_pos == name_class_pos || name_pos == name_class_pos ) {
+    if(
+        params.name_table_tax_id_pos == params.name_table_name_pos ||
+        params.name_table_tax_id_pos == params.name_table_name_class_pos ||
+        params.name_table_name_pos == params.name_table_name_class_pos
+    ) {
         throw std::invalid_argument( "Invalid field positions for reading NCBI name table" );
     }
 
@@ -152,12 +171,12 @@ NcbiNameLookup read_ncbi_name_table(
 
         // Extract the relevant fields.
         NcbiName name;
-        name.tax_id     = get_field( line, tax_id_pos, "tax_id" );
-        name.name       = get_field( line, name_pos, "name" );
-        name.name_class = get_field( line, name_class_pos, "name_class" );
+        name.tax_id     = get_field( line, params.name_table_tax_id_pos, "tax_id" );
+        name.name       = get_field( line, params.name_table_name_pos, "name" );
+        name.name_class = get_field( line, params.name_table_name_class_pos, "name_class" );
 
         // Do not add if the name class does not fit.
-        if( name.name_class != name_class_filter ) {
+        if( !params.name_class_filter.empty() && name.name_class != params.name_class_filter ) {
             ++csv_iterator;
             continue;
         }
@@ -258,18 +277,47 @@ Taxonomy convert_ncbi_tables(
     return result;
 }
 
-Taxonomy read_ncbi_taxonomy( std::string const& node_file, std::string const& name_file )
-{
-    return read_ncbi_taxonomy( utils::from_file( node_file ), utils::from_file( name_file ));
+
+Taxonomy read_ncbi_taxonomy(
+    std::string const& node_file,
+    std::string const& name_file
+) {
+    // Use default params.
+    NcbiTableParameters params;
+    return read_ncbi_taxonomy(
+        utils::from_file( node_file ), utils::from_file( name_file ), params
+    );
+}
+
+Taxonomy read_ncbi_taxonomy(
+    std::string const& node_file,
+    std::string const& name_file,
+    NcbiTableParameters const& params
+) {
+    return read_ncbi_taxonomy(
+        utils::from_file( node_file ), utils::from_file( name_file ), params
+    );
 }
 
 Taxonomy read_ncbi_taxonomy(
     std::shared_ptr<utils::BaseInputSource> node_source,
     std::shared_ptr<utils::BaseInputSource> name_source
 ) {
+    // Use default params.
+    NcbiTableParameters params;
+    return read_ncbi_taxonomy(
+        node_source, name_source, params
+    );
+}
+
+Taxonomy read_ncbi_taxonomy(
+    std::shared_ptr<utils::BaseInputSource> node_source,
+    std::shared_ptr<utils::BaseInputSource> name_source,
+    NcbiTableParameters const& params
+) {
     // Read data into lookup tables.
-    auto const nodes = read_ncbi_node_table( node_source );
-    auto const names = read_ncbi_name_table( name_source );
+    auto const nodes = read_ncbi_node_table( node_source, params );
+    auto const names = read_ncbi_name_table( name_source, params );
 
     // Do the table untangling.
     return convert_ncbi_tables( nodes, names );
