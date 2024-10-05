@@ -87,7 +87,7 @@ NcbiNodeLookup read_ncbi_node_table(
     // Helper to get a field or throw.
     auto get_field = [](
         utils::CsvReader::Line& line, size_t pos, std::string const& field_name
-    ){
+    ) -> std::string& {
         if( pos >= line.size() ) {
             throw std::runtime_error(
                 "NCBI node table line does not contain position " + std::to_string( pos ) +
@@ -96,7 +96,7 @@ NcbiNodeLookup read_ncbi_node_table(
         }
 
         assert( pos < line.size() );
-        return std::move( line[ pos ] );
+        return line[ pos ];
     };
 
     // Set up the csv reader iterator.
@@ -107,17 +107,25 @@ NcbiNodeLookup read_ncbi_node_table(
         auto& line = *csv_iterator;
 
         // Extract the relevant fields.
-        NcbiNode node;
-        node.tax_id        = get_field( line, params.node_table_tax_id_pos, "tax_id" );
-        node.parent_tax_id = get_field( line, params.node_table_parent_tax_id_pos, "parent_tax_id" );
-        node.rank          = get_field( line, params.node_table_rank_pos, "rank" );
+        NcbiNode node_entry;
+        node_entry.tax_id = std::stoul(
+            get_field( line, params.node_table_tax_id_pos, "tax_id" )
+        );
+        node_entry.parent_tax_id = std::stoul(
+            get_field( line, params.node_table_parent_tax_id_pos, "parent_tax_id" )
+        );
+        node_entry.rank = std::move(
+            get_field( line, params.node_table_rank_pos, "rank" )
+        );
 
         // We expect unique entries.
-        if( result.count( node.tax_id ) > 0 ) {
-            throw std::runtime_error( "Multiple entries for NCBI node with tax_id " + node.tax_id );
+        if( result.count( node_entry.tax_id ) > 0 ) {
+            throw std::runtime_error(
+                "Multiple entries for NCBI node with tax_id " + std::to_string( node_entry.tax_id )
+            );
         }
 
-        result[ node.tax_id ] = std::move( node );
+        result[ node_entry.tax_id ] = std::move( node_entry );
         ++csv_iterator;
     }
 
@@ -150,16 +158,16 @@ NcbiNameLookup read_ncbi_name_table(
     // Helper to get a field or throw.
     auto get_field = [](
         utils::CsvReader::Line& line, size_t pos, std::string const& field_name
-    ){
+    ) -> std::string& {
         if( pos >= line.size() ) {
             throw std::runtime_error(
-                "NCBI name table line does not contain position " + std::to_string( pos ) +
-                " for field " + field_name
+                "NCBI name table line does not contain position " +
+                std::to_string( pos ) + " for field " + field_name
             );
         }
 
         assert( pos < line.size() );
-        return std::move( line[ pos ] );
+        return line[ pos ];
     };
 
     // Set up the csv reader iterator.
@@ -170,23 +178,32 @@ NcbiNameLookup read_ncbi_name_table(
         auto& line = *csv_iterator;
 
         // Extract the relevant fields.
-        NcbiName name;
-        name.tax_id     = get_field( line, params.name_table_tax_id_pos, "tax_id" );
-        name.name       = get_field( line, params.name_table_name_pos, "name" );
-        name.name_class = get_field( line, params.name_table_name_class_pos, "name_class" );
+        NcbiName name_entry;
+        name_entry.tax_id = std::stoul(
+            get_field( line, params.name_table_tax_id_pos, "tax_id" )
+        );
+        name_entry.name = std::move(
+            get_field( line, params.name_table_name_pos, "name" )
+        );
+        name_entry.name_class = std::move(
+            get_field( line, params.name_table_name_class_pos, "name_class" )
+        );
 
         // Do not add if the name class does not fit.
-        if( !params.name_class_filter.empty() && name.name_class != params.name_class_filter ) {
+        if( !params.name_class_filter.empty() && name_entry.name_class != params.name_class_filter ) {
             ++csv_iterator;
             continue;
         }
 
         // We expect unique entries.
-        if( result.count( name.tax_id ) > 0 ) {
-            throw std::runtime_error( "Multiple entries for NCBI name with tax_id " + name.tax_id );
+        if( result.count( name_entry.tax_id ) > 0 ) {
+            throw std::runtime_error(
+                "Multiple entries for NCBI name with tax_id " + std::to_string( name_entry.tax_id ) +
+                ": '" + result[ name_entry.tax_id ].name + "' vs '" + name_entry.name + "'"
+            );
         }
 
-        result[ name.tax_id ] = std::move( name );
+        result[ name_entry.tax_id ] = std::move( name_entry );
         ++csv_iterator;
     }
 
@@ -216,8 +233,8 @@ Taxonomy convert_ncbi_tables(
         auto parent_node_it = nodes.find( node.parent_tax_id );
         if( parent_node_it == nodes.end() ) {
             throw std::runtime_error(
-                "Cannot find parent tax_id " + node.parent_tax_id + " for node " +
-                node.tax_id + " in the NCBI nodes."
+                "Cannot find parent tax_id " + std::to_string( node.parent_tax_id ) + " for node " +
+                std::to_string( node.tax_id ) + " in the NCBI nodes."
             );
         }
 
@@ -253,14 +270,16 @@ Taxonomy convert_ncbi_tables(
         // Get the name of this taxon.
         auto name_it = names.find( node.tax_id );
         if( name_it == names.end() ) {
-            throw std::runtime_error( "No name found for tax_id " + node.tax_id );
+            throw std::runtime_error(
+                "No name found for tax_id " + std::to_string( node.tax_id )
+            );
         }
         auto const& name = name_it->second.name;
 
         // Add the taxon to the parent.
         auto& added = parent_tax->add_child( name );
         added.rank( node.rank );
-        added.id( node.tax_id );
+        added.id( std::to_string( node.tax_id ));
 
         // Done. Store the taxon in the lookup for later.
         node.taxon = &added;
