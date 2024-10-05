@@ -32,9 +32,15 @@
  */
 
 #include <algorithm>
-#include <list>
+#include <cassert>
+#include <memory>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "genesis/utils/core/std.hpp"
+#include "genesis/utils/containers/deref_iterator.hpp"
 
 namespace genesis {
 namespace taxonomy {
@@ -44,8 +50,6 @@ namespace taxonomy {
 // =================================================================================================
 
 class Taxon;
-class Taxonomy;
-void swap( Taxonomy& lhs, Taxonomy& rhs );
 
 // =================================================================================================
 //     Taxonomy
@@ -103,8 +107,9 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    typedef std::list<Taxon>::iterator             iterator;
-    typedef std::list<Taxon>::const_iterator const_iterator;
+    using ContainerType  = std::vector<std::unique_ptr<Taxon>>;
+    using       iterator = utils::DereferenceIterator< ContainerType::iterator >;
+    using const_iterator = utils::DereferenceIterator< ContainerType::const_iterator >;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -115,51 +120,34 @@ public:
 
     /**
      * @brief Copy constructor.
-     *
-     * We need a custom version of this in order to set the Taxon::parent() pointers of all children
-     * correctly when copying.
      */
-    Taxonomy( Taxonomy const& other )
-        : children_( other.children_ )
-    {
-        reset_parent_pointers_( nullptr );
-    }
+    Taxonomy( Taxonomy const& other );
 
     /**
      * @brief Move constructor.
-     *
-     * We need a custom version of this in order to set the Taxon::parent() pointers of all children
-     * correctly when copying.
      */
     Taxonomy( Taxonomy&& other )
         : children_( std::move( other.children_ ))
-    {
-        reset_parent_pointers_( nullptr );
-    }
+        , names_( std::move( other.names_ ))
+    {}
 
     /**
      * @brief Copy assignment operator.
-     *
-     * We need a custom version of this in order to set the Taxon::parent() pointers of all children
-     * correctly when copying.
      */
-    Taxonomy& operator= ( Taxonomy const& other )
+    Taxonomy& operator= ( Taxonomy other )
     {
-        children_ = other.children_;
-        reset_parent_pointers_( nullptr );
+        // copy-and-swap idiom
+        swap( *this, other );
         return *this;
     }
 
     /**
      * @brief Move assignment operator.
-     *
-     * We need a custom version of this in order to set the Taxon::parent() pointers of all children
-     * correctly when copying.
      */
     Taxonomy& operator= ( Taxonomy&& other )
     {
-        children_ = std::move( other.children_ );
-        reset_parent_pointers_( nullptr );
+        // move-and-swap idiom
+        swap( *this, other );
         return *this;
     }
 
@@ -170,6 +158,7 @@ public:
     {
         using std::swap;
         swap( lhs.children_, rhs.children_ );
+        swap( lhs.names_, rhs.names_ );
     }
 
     // -------------------------------------------------------------------------
@@ -183,63 +172,127 @@ public:
      */
     size_t size() const
     {
+        assert( children_.size() == names_.size() );
         return children_.size();
     }
 
     /**
      * @brief Return whether an immediate child Taxon with the given name exists.
      */
-    bool has_child( std::string name ) const;
+    bool has_child( std::string const& name ) const
+    {
+        return names_.count( name ) > 0;
+    }
 
     /**
      * @brief Return the child Taxon with a given name if it exists, or throw otherwise.
      */
-    Taxon const& get_child( std::string name ) const;
+    Taxon const& get_child( std::string const& name ) const
+    {
+        auto it = names_.find( name );
+        if( it == names_.end() ) {
+            throw std::runtime_error( "Taxon has no child named '" + name + "'." );
+        }
+        assert( children_[it->second] );
+        return *children_[it->second];
+    }
 
     /**
      * @brief Return the child Taxon with a given name if it exists, or throw otherwise.
      */
-    Taxon& get_child( std::string name );
+    Taxon& get_child( std::string const& name )
+    {
+        auto it = names_.find( name );
+        if( it == names_.end() ) {
+            throw std::runtime_error( "Taxon has no child named '" + name + "'." );
+        }
+        assert( children_[it->second] );
+        return *children_[it->second];
+    }
 
     /**
      * @brief Return the child Taxon with a given name if it exists, or throw otherwise.
      */
-    Taxon const& operator [] ( std::string name ) const;
+    Taxon const& operator [] ( std::string const& name ) const
+    {
+        return get_child( name );
+    }
 
     /**
      * @brief Return the child Taxon with a given name if it exists, or throw otherwise.
      */
-    Taxon& operator [] ( std::string name );
+    Taxon& operator [] ( std::string const& name )
+    {
+        return get_child( name );
+    }
 
     /**
      * @brief Return the child Taxon at the given index.
      *
      * The function throws an exception if the index in invalid, i.e., `>=` size().
      */
-    Taxon const& at( size_t index  ) const;
+    Taxon const& at( size_t index ) const
+    {
+        assert( children_.size() == names_.size() );
+        if( index >= children_.size() ) {
+            throw std::invalid_argument(
+                "Index out of bounds for accessing Taxonomy children: " +
+                std::to_string( index ) + " >= " + std::to_string( children_.size() )
+            );
+        }
+        assert( children_[ index ] );
+        return *children_[ index ];
+    }
 
     /**
      * @brief Return the child Taxon at the given index.
      *
      * The function throws an exception if the index in invalid, i.e., `>=` size().
      */
-    Taxon& at( size_t index  );
+    Taxon& at( size_t index )
+    {
+        assert( children_.size() == names_.size() );
+        if( index >= children_.size() ) {
+            throw std::invalid_argument(
+                "Index out of bounds for accessing Taxonomy children: " +
+                std::to_string( index ) + " >= " + std::to_string( children_.size() )
+            );
+        }
+        assert( children_[ index ] );
+        return *children_[ index ];
+    }
 
     /**
      * @brief Return the child Taxon at the given index.
      *
      * The function does not check whether the provided index is within the valid range of size().
      */
-    Taxon const& operator [] ( size_t index ) const;
+    Taxon const& operator [] ( size_t index ) const
+    {
+        return at( index );
+    }
 
     /**
      * @brief Return the child Taxon at the given index.
      *
      * The function does not check whether the provided index is within the valid range of size().
      */
-    Taxon& operator [] ( size_t index );
+    Taxon& operator [] ( size_t index )
+    {
+        return at( index );
+    }
 
-    size_t index_of( std::string const& name ) const;
+    /**
+     * @brief Get the index of a Taxon, given its @p name.
+     */
+    size_t index_of( std::string const& name ) const
+    {
+        auto it = names_.find( name );
+        if( it == names_.end() ) {
+            throw std::runtime_error( "Taxon has no child named '" + name + "'." );
+        }
+        return it->second;
+    }
 
     // -------------------------------------------------------------------------
     //     Modifiers
@@ -247,23 +300,23 @@ public:
 
     /**
      * @brief Add a child Taxon as a copy of a given Taxon and return it.
-     *
-     * If @p merge_duplicates is `true` (default), the Taxonomy is checked for a child Taxon with
-     * the same name, and if one exists, it is recursively merged with the given Taxon.
-     * Otherwise (@p merge_duplicates is `false`), the Taxon is added, even if this creates
-     * another child Taxon with the same name.
      */
-    Taxon& add_child( Taxon const& child, bool merge_duplicates = true );
+    Taxon& add_child( Taxon const& child );
+
+    /**
+     * @brief Add a child Taxon by moving a given Taxon and return it.
+     */
+    Taxon& add_child( Taxon&& child );
 
     /**
      * @brief Add a child Taxon by creating a new one with the given name and return it.
-     *
-     * If @p merge_duplicates is `true` (default), the Taxonomy is checked for a child Taxon with
-     * the same name, and if one exists, nothing is added.
-     * Otherwise (@p merge_duplicates is `false`), a new Taxon is added, even if this creates
-     * another child Taxon with the same name.
      */
-    Taxon& add_child( std::string const& name, bool merge_duplicates = true );
+    Taxon& add_child( std::string const& name );
+
+    /**
+     * @brief Add a child Taxon by creating a new one with the given name and return it.
+     */
+    Taxon& add_child( std::string&& name );
 
     /**
      * @brief Remove a child Taxon with a certain name.
@@ -284,7 +337,11 @@ public:
     /**
      * @brief Remove all children.
      */
-    void clear_children();
+    void clear_children()
+    {
+        children_.clear();
+        names_.clear();
+    }
 
     /**
      * @brief Sort the taxonomy according to some compare criterion.
@@ -292,7 +349,15 @@ public:
     template <class Compare>
     void sort( Compare comp )
     {
-        children_.sort( comp );
+        // Need to dereference the unique pointers before using the comparator here.
+        std::sort(
+            children_.begin(), children_.end(),
+            [&]( std::unique_ptr<Taxon> const& lhs, std::unique_ptr<Taxon> const& rhs ){
+                assert( lhs && rhs );
+                return comp( *lhs, *rhs );
+            }
+        );
+        reset_name_indicies_();
     }
 
     // -------------------------------------------------------------------------
@@ -359,14 +424,14 @@ protected:
      * This function is invoked by all add_child() functions in order to implement the non-virtual
      * interface pattern.
      *
-     * It needs to be virtual because adding a child Taxon differs for Taxonomy and Taxon.
-     * In the latter case, the additional @link Taxon::parent() parent @endlink property has to be set.
-     * Thus, this function is overridden by Taxon, see Taxon::add_child_().
+     * It also needs to be virtual anyway because adding a child Taxon differs for Taxonomy and
+     * Taxon. In the latter case, the additional @link Taxon::parent() parent @endlink property has
+     * to be set. Thus, this function is overridden by Taxon, see Taxon::add_child_().
      *
-     * If a child Taxon with the same name already exists, it is recursively merged with the given Taxon.
-     * The function returns the child.
+     * If a child Taxon with the same name already exists, it is recursively merged with the given
+     * Taxon. The function returns the child.
      */
-    virtual Taxon& add_child_( Taxon const& child, bool merge_duplicates );
+    virtual Taxon& add_child_( Taxon&& child );
 
     /**
      * @brief Internal helper function that resets the parent pointer of all stored Taxa.
@@ -382,13 +447,22 @@ protected:
      */
     void reset_parent_pointers_( Taxon* parent );
 
+    /**
+     * @brief Reset the indices in the name map.
+     *
+     * Whenever elements are removed or moved around (e.g., by sorting), the name map for looking
+     * up indices needs to be recomputed.
+     */
+    void reset_name_indicies_();
+
     // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
 private:
 
-    std::list<Taxon> children_;
+    std::vector<std::unique_ptr<Taxon>> children_;
+    std::unordered_map<std::string, size_t> names_;
 };
 
 } // namespace taxonomy

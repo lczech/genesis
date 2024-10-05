@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -274,6 +274,17 @@ bool validate( Taxonomy const& taxonomy, bool stop_at_first_error )
     ) {
         bool res = true;
         for( auto const& c : tax ) {
+
+            // Check that the names in the map and vector are consistent.
+            auto const& found = tax.get_child( c.name() );
+            if( found.name() != c.name() ) {
+                LOG_INFO << "Taxon with inconsistent names: " << c.name() + " vs " + found.name();
+                if( stop_at_first_error ) {
+                    return false;
+                } else {
+                    res = false;
+                }
+            }
 
             // Check current parent.
             if( (level == 0 && c.parent() != nullptr) || (level > 0 && c.parent() != &tax) ) {

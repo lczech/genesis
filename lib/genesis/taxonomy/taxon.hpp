@@ -43,13 +43,6 @@ namespace genesis {
 namespace taxonomy {
 
 // =================================================================================================
-//     Forward Declarations
-// =================================================================================================
-
-class Taxon;
-void swap( Taxon& lhs, Taxon& rhs );
-
-// =================================================================================================
 //     Taxon
 // =================================================================================================
 
@@ -105,6 +98,14 @@ public:
     {}
 
     /**
+     * @brief Constructor that uses the given name for the Taxon, by moving it.
+     */
+    explicit Taxon( std::string&& name )
+        : Taxonomy()
+        , name_( std::move( name ))
+    {}
+
+    /**
      * @brief Constructor that uses the given name for the Taxon.
      */
     explicit Taxon( std::string const& name, std::string const& rank = "", std::string const& id = "" )
@@ -118,19 +119,6 @@ public:
 
     virtual ~Taxon() override = default;
 
-    /**
-     * @brief Copy constructor.
-     *
-     * We need a custom version of this in order to set the Taxon::parent() pointers of all children
-     * correctly when copying and to copy the data.
-     *
-     * Copying first sets the parent() pointer to `nullptr`. This is because we might want to get a
-     * 'blank' copy, i.e., a Taxon that is not attached to a Taxonomy. This way, the functions
-     * expecting a parent pointer don't get a potentially invalid pointer.
-     *
-     * If however we copy a Taxon into a Taxonomy (or into some other Taxon), reset_parent_pointers_()
-     * is called later anyway, which then sets the parent pointer to the correct value.
-     */
     Taxon( Taxon const& other )
         : Taxonomy( other )
         , name_( other.name_ )
@@ -138,18 +126,22 @@ public:
         , id_( other.id_ )
         , parent_( nullptr )
     {
+        // We need a custom version of this in order to set the Taxon::parent() pointers of all
+        // children correctly when copying and to copy the data.
+        //
+        // Copying first sets the parent() pointer to `nullptr`. This is because we might want to
+        // get a 'blank' copy, i.e., a Taxon that is not attached to a Taxonomy. This way, the
+        // functions expecting a parent pointer don't get a potentially invalid pointer.
+        //
+        // If however we copy a Taxon into a Taxonomy (or into some other Taxon),
+        // reset_parent_pointers_() is called later anyway, which then sets the parent pointer
+        // to the correct value.
         if( other.has_data() ) {
             reset_data( other.data_->clone() );
         }
         reset_parent_pointers_( this );
     }
 
-    /**
-     * @brief Move constructor.
-     *
-     * We need a custom version of this in order to set the Taxon::parent() pointers of all children
-     * correctly, and to treat the data correctlty when copying.
-     */
     Taxon( Taxon&& other )
         : Taxonomy( std::move( other ))
         , name_(    std::move( other.name_ ))
@@ -158,46 +150,30 @@ public:
         , parent_(  other.parent_ )
         , data_(    std::move( other.data_ ))
     {
+        // We need a custom version of this in order to set the Taxon::parent() pointers of all children
+        // correctly, and to treat the data correctly when copying.
         reset_parent_pointers_( this );
     }
 
-
-    /**
-     * @brief Copy assignment operator.
-     *
-     * We need a custom version of this in order to set the Taxon::parent() pointers of all children
-     * correctly, and to treat the data correctlty when copying.
-     *
-     * See the @link Taxon( Taxon const& other ) move constructor@endlink for details.
-     */
-    Taxon& operator= ( Taxon const& other )
+    Taxon& operator= ( Taxon other )
     {
-        Taxonomy::operator=( static_cast< Taxonomy const& >( other ));
-        name_ = other.name_;
-        rank_ = other.rank_;
-        id_ = other.id_;
-        parent_ = nullptr;
-        if( other.has_data() ) {
-            reset_data( other.data_->clone() );
-        }
+        // We need a custom version of this in order to set the Taxon::parent() pointers of all children
+        // correctly, and to treat the data correctly when copying.
+        // See the @link Taxon( Taxon const& other ) move constructor@endlink for details.
+
+        // copy-and-swap idiom
+        swap( *this, other );
         reset_parent_pointers_( this );
         return *this;
     }
 
-    /**
-     * @brief Move assignment operator.
-     *
-     * We need a custom version of this in order to set the Taxon::parent() pointers of all children
-     * correctly, and to treat the data correctlty when copying.
-     */
     Taxon& operator= ( Taxon&& other )
     {
-        Taxonomy::operator=( static_cast< Taxonomy&& >( std::move( other )));
-        name_ = std::move( other.name_ );
-        rank_ = std::move( other.rank_ );
-        id_ = std::move( other.id_ );
-        parent_ = other.parent_;
-        data_ = std::move( other.data_ );
+        // We need a custom version of this in order to set the Taxon::parent() pointers of all children
+        // correctly, and to treat the data correctly when copying.
+
+        // move-and-swap idiom
+        swap( *this, other );
         reset_parent_pointers_( this );
         return *this;
     }
@@ -213,8 +189,8 @@ public:
         swap( lhs.name_,   rhs.name_ );
         swap( lhs.rank_,   rhs.rank_ );
         swap( lhs.id_,     rhs.id_ );
-        swap( lhs.parent_, rhs.parent_ );
         swap( lhs.data_,   rhs.data_ );
+        // swap( lhs.parent_, rhs.parent_ );
     }
 
     // -------------------------------------------------------------------------
@@ -364,14 +340,10 @@ protected:
      * See Taxonomy::add_child_() for details. In addition to the base class implementation, this
      * function also sets the parent pointer of the Taxon.
      */
-    Taxon& add_child_( Taxon const& child, bool merge_duplicates ) override
+    Taxon& add_child_( Taxon&& child ) override
     {
-        auto& c = Taxonomy::add_child_( child, merge_duplicates );
-        // c.parent_ = this;
-
-        // We added to the container. This might have caused relocation of the contant.
-        // Need to update parent pointers!
-        reset_parent_pointers_( this );
+        auto& c = Taxonomy::add_child_( std::move( child ));
+        c.parent_ = this;
         return c;
     }
 
