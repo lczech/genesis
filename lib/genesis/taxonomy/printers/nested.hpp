@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -94,11 +94,17 @@ public:
     PrinterNested& depth_limit( int value );
     int            depth_limit() const;
 
+    PrinterNested& indent_string( std::string value );
+    std::string    indent_string() const;
+
     PrinterNested& print_ranks( bool value );
     bool           print_ranks() const;
 
     PrinterNested& print_ids( bool value );
     bool           print_ids() const;
+
+    PrinterNested& print_sizes( bool value );
+    bool           print_sizes() const;
 
     // -------------------------------------------------------------------------
     //     Internal Functions
@@ -106,7 +112,7 @@ public:
 
 private:
 
-    bool print_to_ostream(
+    bool print_to_ostream_(
         std::ostream&   out,
         Taxonomy const& tax,
         size_t          depth,
@@ -119,10 +125,14 @@ private:
 
 private:
 
-    int  line_limit_  = -1;
-    int  depth_limit_ = -1;
+    int line_limit_  = -1;
+    int depth_limit_ = -1;
+    std::string indent_string_ = "\t";
+
     bool print_ranks_ = true;
     bool print_ids_ = true;
+    bool print_sizes_ = true;
+
 };
 
 } // namespace taxonomy
