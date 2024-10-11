@@ -238,13 +238,21 @@ public:
 
 private:
 
-    void throw_if_invalid_() const
+    inline void throw_if_invalid_() const
     {
         // From: https://en.cppreference.com/w/cpp/thread/future/wait
         // The implementations are encouraged to detect the case when valid() == false before the
         // call and throw a std::future_error with an error condition of std::future_errc::no_state.
+        // Unfortunately, prior to C++17, the standard does not offer an accessible constructor for
+        // std::future_error, see https://en.cppreference.com/w/cpp/thread/future_error/future_error
+        // and while most compilers offer one anyway, AppleClang 16 does not, and fails to compile.
+        // So instead, we here just throw an invalid argument...
         if( !future_.valid() ) {
-            throw std::future_error( std::future_errc::no_state );
+            throw std::invalid_argument(
+                "std::future_error( std::future_errc::no_state ): "
+                "Attempt to access std::promise or std::future without an associated shared state."
+            );
+            // throw std::future_error( std::future_errc::no_state );
         }
     }
 
