@@ -115,20 +115,20 @@ Taxon& Taxonomy::add_child_( Taxon&& child )
         if( taxon.rank().empty() ) {
             taxon.rank( child.rank() );
         }
-        if( taxon.id().empty() ) {
+        if( taxon.id() == 0 ) {
             taxon.id( child.id() );
         }
 
         // Check that the new taxon is compatible with the existing one.
         if(
             ( !child.rank().empty() && taxon.rank() != child.rank() ) ||
-            ( !child.id().empty() &&   taxon.id()   != child.id()   )
+            ( child.id() != 0 && taxon.id() != child.id() )
         ) {
             throw std::invalid_argument(
                 "Cannot add taxon with existing name '" + child.name() + "' to taxonomy, "
                 "as the rank and/or id differ between the existing and new taxon entry: "
                 "Rank '" + taxon.rank() + "' != '" + child.rank() + "', " +
-                "ID '" + taxon.id() + "' != '" + child.id() + "'"
+                "ID '" + std::to_string( taxon.id() ) + "' != '" + std::to_string( child.id() ) + "'"
             );
         }
 

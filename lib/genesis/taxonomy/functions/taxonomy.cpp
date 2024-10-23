@@ -38,6 +38,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cctype>
 #include <ostream>
 #include <stdexcept>
 #include <string>
@@ -61,12 +62,12 @@ Taxon* find_taxon_by_name( Taxonomy& tax, std::string const& name )
     return find_taxon_by_name( tax, name, DepthFirstSearch{} );
 }
 
-Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id )
+Taxon const* find_taxon_by_id( Taxonomy const& tax, uint64_t id )
 {
     return find_taxon_by_id( tax, id, DepthFirstSearch{} );
 }
 
-Taxon*       find_taxon_by_id( Taxonomy&       tax, std::string const& id )
+Taxon* find_taxon_by_id( Taxonomy& tax, uint64_t id )
 {
     return find_taxon_by_id( tax, id, DepthFirstSearch{} );
 }
@@ -195,7 +196,7 @@ std::unordered_map< std::string, size_t> taxa_count_ranks(
 
 bool has_unique_ids( Taxonomy const& tax )
 {
-    std::unordered_set<std::string> ids;
+    std::unordered_set<uint64_t> ids;
     bool has_duplicates = false;
 
     auto collect_and_check = [&]( Taxon const& tax ){

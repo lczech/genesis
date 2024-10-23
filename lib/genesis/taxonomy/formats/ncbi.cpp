@@ -108,10 +108,10 @@ NcbiNodeLookup read_ncbi_node_table(
 
         // Extract the relevant fields.
         NcbiNode node_entry;
-        node_entry.tax_id = std::stoul(
+        node_entry.tax_id = std::stoull(
             get_field( line, params.node_table_tax_id_pos, "tax_id" )
         );
-        node_entry.parent_tax_id = std::stoul(
+        node_entry.parent_tax_id = std::stoull(
             get_field( line, params.node_table_parent_tax_id_pos, "parent_tax_id" )
         );
         node_entry.rank = std::move(
@@ -179,7 +179,7 @@ NcbiNameLookup read_ncbi_name_table(
 
         // Extract the relevant fields.
         NcbiName name_entry;
-        name_entry.tax_id = std::stoul(
+        name_entry.tax_id = std::stoull(
             get_field( line, params.name_table_tax_id_pos, "tax_id" )
         );
         name_entry.name = std::move(
@@ -279,7 +279,7 @@ Taxonomy convert_ncbi_tables(
         // Add the taxon to the parent.
         auto& added = parent_tax->add_child( name );
         added.rank( node.rank );
-        added.id( std::to_string( node.tax_id ));
+        added.id( node.tax_id );
 
         // Done. Store the taxon in the lookup for later.
         node.taxon = &added;

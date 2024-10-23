@@ -88,25 +88,25 @@ bool PrinterNested::print_to_ostream_(
 
         // Print and count.
         out << in << t.name();
-        if(( print_ranks_ && t.rank() != "" ) || ( print_ids_ && t.id() != "" ) || print_sizes_ ) {
+        if(( print_ranks_ && t.rank() != "" ) || ( print_ids_ && t.id() != 0 ) || print_sizes_ ) {
             out << " (";
         }
         if( print_ranks_ && t.rank() != "" ) {
             out << t.rank();
         }
-        if( print_ids_ && t.id() != "" ) {
+        if( print_ids_ && t.id() != 0 ) {
             if( print_ranks_ && t.rank() != "" ) {
                 out << ", ";
             }
             out << "id=" << t.id();
         }
         if( print_sizes_ ) {
-            if(( print_ranks_ && t.rank() != "" ) || ( print_ids_ && t.id() != "" )) {
+            if(( print_ranks_ && t.rank() != "" ) || ( print_ids_ && t.id() != 0 )) {
                 out << ", ";
             }
             out << "size=" << total_taxa_count( t );
         }
-        if(( print_ranks_ && t.rank() != "" ) || ( print_ids_ && t.id() != "" ) || print_sizes_ ) {
+        if(( print_ranks_ && t.rank() != "" ) || ( print_ids_ && t.id() != 0 ) || print_sizes_ ) {
             out << ")";
         }
         out << "\n";

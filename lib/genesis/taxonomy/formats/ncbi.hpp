@@ -36,6 +36,7 @@
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
 
+#include <cctype>
 #include <string>
 #include <unordered_map>
 
@@ -52,8 +53,8 @@ namespace taxonomy {
 
 struct NcbiNode
 {
-    unsigned long tax_id;
-    unsigned long parent_tax_id;
+    uint64_t tax_id;
+    uint64_t parent_tax_id;
     std::string rank;
 
     mutable Taxon* taxon = nullptr;
@@ -61,13 +62,13 @@ struct NcbiNode
 
 struct NcbiName
 {
-    unsigned long tax_id;
+    uint64_t tax_id;
     std::string name;
     std::string name_class;
 };
 
-using NcbiNodeLookup = std::unordered_map<unsigned long, NcbiNode>;
-using NcbiNameLookup = std::unordered_map<unsigned long, NcbiName>;
+using NcbiNodeLookup = std::unordered_map<uint64_t, NcbiNode>;
+using NcbiNameLookup = std::unordered_map<uint64_t, NcbiName>;
 
 // -------------------------------------------------------------------------
 //     Tables

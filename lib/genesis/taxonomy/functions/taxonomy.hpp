@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -34,6 +34,7 @@
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
 
+#include <cctype>
 #include <functional>
 #include <iosfwd>
 #include <string>
@@ -153,17 +154,17 @@ Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name );
 /**
 * @brief Alias for find_taxon_by_name(..., DepthFirstSearch{}).
  */
-Taxon*       find_taxon_by_name( Taxonomy&       tax, std::string const& name );
+Taxon* find_taxon_by_name( Taxonomy& tax, std::string const& name );
 
 /**
 * @brief Alias for find_taxon_by_id(..., DepthFirstSearch{}).
  */
-Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id );
+Taxon const* find_taxon_by_id( Taxonomy const& tax, uint64_t id );
 
 /**
 * @brief Alias for find_taxon_by_id(..., DepthFirstSearch{}).
  */
-Taxon*       find_taxon_by_id( Taxonomy&       tax, std::string const& id );
+Taxon* find_taxon_by_id( Taxonomy& tax, uint64_t id );
 
 /**
  * @brief Find a Taxon with a given name by recursively searching the Taxonomy according to a search strategy.
@@ -180,7 +181,7 @@ Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name, S
  * @brief Find a Taxon with a given name by recursively searching the Taxonomy according to a search strategy.
  */
 template< class SearchStrategy >
-Taxon*       find_taxon_by_name( Taxonomy&       tax, std::string const& name, SearchStrategy strat )
+Taxon* find_taxon_by_name( Taxonomy& tax, std::string const& name, SearchStrategy strat )
 {
     // Avoid code duplication according to Scott Meyers.
     auto const& ctax = static_cast< Taxonomy const& >( tax );
@@ -191,7 +192,7 @@ Taxon*       find_taxon_by_name( Taxonomy&       tax, std::string const& name, S
  * @brief Find a Taxon with a given ID by recursively searching the Taxonomy according to a search strategy.
  */
 template< class SearchStrategy >
-Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id, SearchStrategy strat )
+Taxon const* find_taxon_by_id( Taxonomy const& tax, uint64_t id, SearchStrategy strat )
 {
     return find_taxon( tax, [&id]( Taxon const& t ){
         return t.id() == id;
@@ -202,7 +203,7 @@ Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id, Searc
  * @brief Find a Taxon with a given ID by recursively searching the Taxonomy according to a search strategy.
  */
 template< class SearchStrategy >
-Taxon*       find_taxon_by_id( Taxonomy&       tax, std::string const& id, SearchStrategy strat )
+Taxon* find_taxon_by_id( Taxonomy& tax, uint64_t id, SearchStrategy strat )
 {
     // Avoid code duplication according to Scott Meyers.
     auto const& ctax = static_cast< Taxonomy const& >( tax );

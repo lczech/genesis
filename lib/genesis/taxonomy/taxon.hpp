@@ -35,6 +35,7 @@
 #include "genesis/taxonomy/taxon_data.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -108,7 +109,7 @@ public:
     /**
      * @brief Constructor that uses the given name for the Taxon.
      */
-    explicit Taxon( std::string const& name, std::string const& rank = "", std::string const& id = "" )
+    explicit Taxon( std::string const& name, std::string const& rank = "", uint64_t id = 0 )
         : Taxonomy()
         , name_( name )
         , rank_( rank )
@@ -229,16 +230,15 @@ public:
     /**
      * @brief Set the ID of this taxon.
      */
-    std::string const& id() const
+    uint64_t id() const
     {
         return id_;
     }
 
-    void id( std::string const& value )
+    void id( uint64_t value )
     {
         id_ = value;
     }
-
 
     /**
      * @brief Return a pointer to the parent of this taxon, or a `nullptr` if this is the top level taxon.
@@ -355,7 +355,7 @@ private:
 
     std::string name_;
     std::string rank_;
-    std::string id_;
+    uint64_t    id_;
 
     Taxon* parent_;
 
