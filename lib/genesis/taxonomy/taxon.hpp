@@ -355,7 +355,7 @@ private:
 
     std::string name_;
     std::string rank_;
-    uint64_t    id_;
+    uint64_t    id_ = 0;
 
     Taxon* parent_;
 

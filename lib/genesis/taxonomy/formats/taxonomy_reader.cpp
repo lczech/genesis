@@ -102,7 +102,9 @@ void TaxonomyReader::parse_document(
 
         // Set the rank and ID.
         taxon.rank( line.rank );
-        taxon.id( std::stoull( line.id ));
+        if( !line.id.empty() ) {
+            taxon.id( std::stoull( line.id ));
+        }
     }
 }
 
