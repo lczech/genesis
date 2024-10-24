@@ -200,6 +200,17 @@ public:
     }
 
     /**
+     * @brief Return how many accessions were valid, i.e., were added to the AccessionLookup.
+     *
+     * This usually corresponds to the final value of AccessionLookup::size(),
+     * unless other sources were used as well to add accessions to the lookup.
+     */
+    size_t valid_accessions_count() const
+    {
+        return val_count_;
+    }
+
+    /**
      * @brief Return how many accessions were invalid, i.e., for which there was no valid tax id
      * in the underlying Taxonomy.
      *
@@ -211,6 +222,21 @@ public:
         return inv_count_;
     }
 
+    /**
+     * @brief Produce a short summary report of the reading, listing the counts.
+     */
+    std::string report() const
+    {
+        auto const acc_count = static_cast<double>( acc_count_ );
+        auto const val_percent = 100.0 * static_cast<double>( val_count_ ) / acc_count;
+        // auto const inv_percent = 100.0 * static_cast<double>( inv_count_ ) / acc_count;
+        return (
+            "Processed " + std::to_string( acc_count_ ) + " input accession names, of which " +
+            std::to_string( val_count_ ) + "(" + std::to_string( val_percent ) +
+            "%) had a valid taxonomic ID in the taxonomy."
+        );
+    }
+
     // ---------------------------------------------------------------------
     //     Internal Members
     // ---------------------------------------------------------------------
@@ -220,6 +246,8 @@ private:
     void fill_taxon_map_(
         Taxonomy& tax
     ) {
+        // Iterate the whole underlying taxonomy, and add an entry for each taxon
+        // to our internal lookup table from taxon id to the taxon pointer.
         preorder_for_each(
             tax,
             [&]( Taxon& taxon )
@@ -326,6 +354,7 @@ private:
                 }
             }
             target.add( cols[acc_pos], tax_it->second );
+            ++val_count_;
         }
     }
 
@@ -343,9 +372,10 @@ private:
     char separator_char_ = '\t';
     bool skip_accessions_with_invalid_tax_id_ = false;
 
-    // Counts of processing the table, one for the total,
-    // and one for the accessions with an invalid tax id.
+    // Counts of processing the table, for the total,
+    // and for the accessions with a valid and invalid tax id.
     mutable size_t acc_count_ = 0;
+    mutable size_t val_count_ = 0;
     mutable size_t inv_count_ = 0;
 
 };
