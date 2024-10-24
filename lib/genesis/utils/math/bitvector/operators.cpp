@@ -43,6 +43,10 @@ namespace utils {
 //     Bitvector Operators
 // =================================================================================================
 
+// -------------------------------------------------------------------------
+//     Bit Operators
+// -------------------------------------------------------------------------
+
 /**
  * @brief Local helper function to get the order of two bitvectors for bitwise operations.
  *
@@ -147,6 +151,10 @@ Bitvector bitwise_xor(
     return result;
 }
 
+// -------------------------------------------------------------------------
+//     Set Operators
+// -------------------------------------------------------------------------
+
 Bitvector set_minus( Bitvector const& lhs, Bitvector const& rhs )
 {
     return lhs & (~rhs);
@@ -179,6 +187,31 @@ bool is_superset( Bitvector const& super, Bitvector const& sub )
 {
     return (super == sub) || is_strict_superset(super, sub);
 }
+
+double jaccard_similarity( Bitvector const& lhs, Bitvector const& rhs )
+{
+    // Compute sizes of the intersection and the union.
+    // Throws an exception in the and/or operators if the bitvectors are of different length.
+    auto const i = ( lhs & rhs ).count();
+    auto const u = ( lhs | rhs ).count();
+    assert( lhs.size() == rhs.size() );
+
+    // Compute the index, taking care of the edge case.
+    if( u == 0 ) {
+        assert( i == 0 );
+        return 0.0;
+    }
+    return static_cast<double>( i ) / static_cast<double>( u );
+}
+
+double jaccard_distance( Bitvector const& lhs, Bitvector const& rhs )
+{
+    return 1.0 - jaccard_similarity( lhs, rhs );
+}
+
+// -------------------------------------------------------------------------
+//     Sorting
+// -------------------------------------------------------------------------
 
 // bool lexicographically_compare_helper_( Bitvector const& lhs, Bitvector const& rhs, bool on_equal )
 // {
@@ -223,6 +256,10 @@ bool is_superset( Bitvector const& super, Bitvector const& sub )
 // {
 //     return lexicographically_compare_helper_( rhs, lhs, true );
 // }
+
+// -------------------------------------------------------------------------
+//     Input and Output
+// -------------------------------------------------------------------------
 
 std::ostream& operator << (std::ostream& s, Bitvector const& bv)
 {

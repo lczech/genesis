@@ -42,6 +42,10 @@ namespace utils {
 //     Bitvector Operators
 // =================================================================================================
 
+// -------------------------------------------------------------------------
+//     Bit Operators
+// -------------------------------------------------------------------------
+
 /**
  * @brief Policy to decide how to combine Bitvector%s of different lengths.
  *
@@ -122,10 +126,14 @@ Bitvector bitwise_xor(
     BitwiseOperatorLengthPolicy length_policy = BitwiseOperatorLengthPolicy::kExpectEqual
 );
 
+// -------------------------------------------------------------------------
+//     Set Operators
+// -------------------------------------------------------------------------
+
 /**
  * @brief Compute the set minus `lhs & (~rhs)` between two Bitvector%s.
  */
-Bitvector set_minus (Bitvector const& lhs, Bitvector const& rhs);
+Bitvector set_minus( Bitvector const& lhs, Bitvector const& rhs );
 
 /**
  * @brief Compute the symmetric differeence `(lhs | rhs) & ~(lhs & rhs)` between two Bitvector%s.
@@ -151,6 +159,26 @@ bool is_subset( Bitvector const& sub, Bitvector const& super );
  * @brief Superset or equal.
  */
 bool is_superset( Bitvector const& super, Bitvector const& sub );
+
+/**
+ * @brief Compute the Jaccard index (Jaccard similarity coefficient) for two Bitvector%s
+ * of the same size.
+ *
+ * This is simply the intersection size divided by the union size of the Bitvectors,
+ * where size measures the number of bits set.
+ */
+double jaccard_similarity( Bitvector const& lhs, Bitvector const& rhs );
+
+/**
+ * @brief Compute the Jaccard distance for two Bitvector%s of the same size.
+ *
+ * This dissimilarity is simply 1 - jaccard_similarity().
+ */
+double jaccard_distance( Bitvector const& lhs, Bitvector const& rhs );
+
+// -------------------------------------------------------------------------
+//     Sorting
+// -------------------------------------------------------------------------
 
 // /* *
 //  * @brief Return whether @p lhs is lexicographically less than @p rhs.
@@ -181,6 +209,10 @@ bool is_superset( Bitvector const& super, Bitvector const& sub );
 //  * @copydetails is_lexicographically_less()
 //  */
 // bool is_lexicographically_greater_or_equal( Bitvector const& lhs, Bitvector const& rhs );
+
+// -------------------------------------------------------------------------
+//     Input and Output
+// -------------------------------------------------------------------------
 
 /**
  * @brief Insertion operator that outputs a Bitvector as a string of '0's and '1's.

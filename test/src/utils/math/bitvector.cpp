@@ -284,6 +284,14 @@ TEST( Bitvector, Operators )
     EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, kUseSecond ));
 }
 
+TEST( Bitvector, JaccardIndex )
+{
+    auto const p1 = Bitvector( "10111" );
+    auto const p2 = Bitvector( "10011" );
+    EXPECT_EQ(       3.0 / 4.0, jaccard_similarity( p1, p2 ));
+    EXPECT_EQ( 1.0 - 3.0 / 4.0, jaccard_distance(   p1, p2 ));
+}
+
 TEST( Bitvector, SetRange )
 {
     // We do an exhaustive test, because why not.
