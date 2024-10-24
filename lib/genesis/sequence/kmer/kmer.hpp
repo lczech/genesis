@@ -52,8 +52,13 @@ namespace sequence {
 /**
  * @brief Kmer struct for representing k-mers of various sizes, currently up to k-32.
  *
- * Note that we do not store the value of `k` here for efficiency. Furthermore, most operations
- * on the Kmer are actually done byt the KmerBitfield and KmerAlphabet helper classes.
+ * Note that we do store the value of `k` here for simplicity, as well as other properties such
+ * as the reverse complement, location in the genome, etc. These are helpful in many situations,
+ * but is of course wasteful when we just want the value of the k-mer itself.
+ * Hence, when larger collections of Kmer instances need to be stored, it might make sense
+ * to just store the numerical value instead, and discard the extra information kept here.
+ *
+ * Most operations on the Kmer are actually done byt the KmerBitfield and KmerAlphabet classes.
  * This struct here is mostly meant as an (almost) POD to store the values of a k-mer.
  */
 struct Kmer
