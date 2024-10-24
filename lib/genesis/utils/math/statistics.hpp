@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -33,15 +33,18 @@
 
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/math/common.hpp"
+#include "genesis/utils/math/compensated_sum.hpp"
 #include "genesis/utils/math/ranking.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <limits>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -330,6 +333,62 @@ void closure( ForwardIterator first, ForwardIterator last )
 inline void closure( std::vector<double>& vec )
 {
     return closure( vec.begin(), vec.end() );
+}
+
+/**
+ * @brief Compute the Shannon entropy of a range of values.
+ *
+ * This uses the normalized values (such that their sum is 1.0), and computes the sum of each
+ * normalized value multiplied by its logarithm. Internally, we use data types that maximize
+ * accuracy, as well as a compensated summation algorithm, at the expense of a slight increase
+ * in runtime. This is beneficial for large vectors, as we are then likely dealing with
+ * the summation of many small values.
+ */
+template <class ForwardIterator>
+double shannon_entropy( ForwardIterator first, ForwardIterator last, double log_base = 2.0)
+{
+    using T = ForwardIterator::value_type;
+
+    // Use uint64_t for integral types, and compensated summation for floating-point types,
+    // to avoid overflow, and get maximum accuracy.
+    using SumType = typename std::conditional<
+        std::is_integral<T>::value,
+        uint64_t,
+        NeumaierSum
+    >::type;
+    SumType sum = 0;
+
+    // Sum the data and check for negative values
+    for( auto it = first; it != last; ++it ) {
+        if( *it < 0 ) {
+            throw std::invalid_argument(
+                "Negative values are not allowed for computing Shannon entropy."
+            );
+        }
+        sum += *it;
+    }
+
+    // Calculate the Shannon entropy, with precomputed log base change.
+    // Here, we use a compensated sum, as we potentially have many small values.
+    // For simplicity, we always add the value, and negate the result in the end.
+    NeumaierSum entropy = 0.0;
+    double log_base_inv = 1.0 / std::log(log_base);
+    for( auto it = first; it != last; ++it ) {
+        if( *it > 0 ) {
+            double const prob = static_cast<double>(*it) / static_cast<double>(sum);
+            entropy += prob * std::log(prob) * log_base_inv;
+        }
+    }
+    return -1.0 * entropy.get();
+}
+
+/**
+ * @brief Compute the Shannon entropy of a vector of values.
+ */
+template <typename T>
+double shannon_entropy( std::vector<T> const& data, double log_base = 2.0 )
+{
+    return shannon_entropy( data.begin(), data.end(), log_base );
 }
 
 // =================================================================================================
