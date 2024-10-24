@@ -559,7 +559,7 @@ bool detect_OS_AVX512_()
         return false;
     }
 
-auto const _XCR_XFEATURE_ENABLED_MASK = 0;
+    auto const _XCR_XFEATURE_ENABLED_MASK = 0;
     uint64_t xcrFeatureMask = xgetbv(_XCR_XFEATURE_ENABLED_MASK);
     return (xcrFeatureMask & 0xe6) == 0xe6;
 }
