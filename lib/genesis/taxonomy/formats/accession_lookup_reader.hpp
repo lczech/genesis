@@ -327,8 +327,9 @@ private:
             );
         }
 
-        // Parse the table. Can be optimized a lot by avoiding to use all those strings,
-        // and parse the data directly instead, but good enough for now.
+        // Parse the table. Can be optimized by avoiding to use all those strings,
+        // and parse the data directly instead, but good enough for now. The majority
+        // of this function is spent in the hashmap adding function target.add() anyway.
         while( instr ) {
             // Get the next line (moves the inut stream), and split it into fields.
             auto const line = instr.get_line();

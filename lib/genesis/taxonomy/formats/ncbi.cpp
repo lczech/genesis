@@ -32,7 +32,9 @@
 
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/formats/csv/input_iterator.hpp"
+#include "genesis/utils/text/char.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <fstream>
 #include <functional>
@@ -125,6 +127,7 @@ NcbiNodeLookup read_ncbi_node_table(
             );
         }
 
+        // Add the node to the lookup, and move to the next entry
         result[ node_entry.tax_id ] = std::move( node_entry );
         ++csv_iterator;
     }
@@ -195,6 +198,20 @@ NcbiNameLookup read_ncbi_name_table(
             continue;
         }
 
+        // Check name validity
+        if( params.validate_name_characters ) {
+            auto const all_print = std::all_of(
+                name_entry.name.begin(), name_entry.name.end(), utils::is_print
+            );
+            if( !all_print ) {
+                throw std::runtime_error(
+                    "NCBI name table contains entries with non-printable characters: "
+                    "tax_id = " + std::to_string( name_entry.tax_id ) + ", name = \"" +
+                    name_entry.name + "\""
+                );
+            }
+        }
+
         // We expect unique entries.
         if( result.count( name_entry.tax_id ) > 0 ) {
             throw std::runtime_error(
@@ -203,6 +220,7 @@ NcbiNameLookup read_ncbi_name_table(
             );
         }
 
+        // Add the name to the lookup, and move to the next entry
         result[ name_entry.tax_id ] = std::move( name_entry );
         ++csv_iterator;
     }
@@ -223,7 +241,7 @@ Taxonomy convert_ncbi_tables(
     // Recursive function that addes a taxon to the taxonomy, and its parents first, if needed.
     std::function<void( NcbiNode const& node )> add_taxon = [&]( NcbiNode const& node ){
 
-        // Due to the recurson, it can happen that we already added the node before.
+        // Due to the recursion, it can happen that we already added the node before.
         // In that case, we can simply skip.
         if( node.taxon != nullptr ) {
             return;

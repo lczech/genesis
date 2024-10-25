@@ -83,18 +83,25 @@ using NcbiNameLookup = std::unordered_map<uint64_t, NcbiName>;
  * Furthermore, by default we only add the scientific names into our Taxonomy, and ignore entries
  * with alternative names and other types of classes. If instead the `name_class_filter` is set
  * to an emptry string here, all entries are added to the taxonomy.
+ *
+ * Lastly, we likely want to check names for a valid character set. By default, we validate
+ * that names only consist of printable ASCII characters, according to `std::isprint`.
  */
 struct NcbiTableParameters
 {
+    // Column indices in the node table
     size_t node_table_tax_id_pos        = 0;
     size_t node_table_parent_tax_id_pos = 1;
     size_t node_table_rank_pos          = 2;
 
+    // Column indices in the name table
     size_t name_table_tax_id_pos        = 0;
     size_t name_table_name_pos          = 1;
     size_t name_table_name_class_pos    = 3;
 
+    // Extra validity and filter settings
     std::string name_class_filter = "scientific name";
+    bool validate_name_characters = true;
 };
 
 NcbiNodeLookup read_ncbi_node_table(
