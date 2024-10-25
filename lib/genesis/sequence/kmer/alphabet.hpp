@@ -31,6 +31,7 @@
  * @ingroup sequence
  */
 
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/text/char.hpp"
 
 #include <array>
@@ -130,7 +131,7 @@ struct KmerAlphabet
         if(
             ( c != 'A' ) && ( c != 'C' ) && ( c != 'G' ) && ( c != 'T' ) &&
             ( c != 'a' ) && ( c != 'c' ) && ( c != 'g' ) && ( c != 't' )
-        ) {
+        ) GENESIS_CPP_UNLIKELY {
             if( throw_if_invalid ) {
                 throw std::invalid_argument(
                     "Cannot use char " + utils::char_to_hex( c ) + " to construct ACGT k-mer"

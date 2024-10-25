@@ -213,10 +213,13 @@ public:
 
         // Subtract gaps: 2*(k//2-l-1) ones followed by k-2 zeros, for the case that `l <= k - 4`;
         // we move the 4 to the lhs of the equation to avoid underflowing for small k.
-        if( l + 4 <= k_ ) {
-            assert( k_ >= 4 );
-            kmercode -= gap_sizes_[l];
-        }
+        // We can leave out the check here, as the gap sizes is filled with zeros for the remainder.
+        // That avoids another branching here, for speed.
+        // if( l + 4 <= k_ ) {
+        //     assert( k_ >= 4 );
+        //     kmercode -= gap_sizes_[l];
+        // }
+        kmercode -= gap_sizes_[l];
 
         // Subtract gaps in code due to specifying middle position (odd k).
         // We here use pre-computed powers of four for speed, as those are constant.
@@ -266,6 +269,9 @@ private:
         // Precompute the gap sizes that we need to subtract from the prime encoding,
         // for different patterns depending on where the specifying pair is.
         // Gaps have sizes of 2*(k//2-l-1) ones followed by k-2 zeros.
+        for( size_t l = 0; l < gap_sizes_.size(); ++l ) {
+            gap_sizes_[l] = 0;
+        }
         for( size_t l = 0; l + 4 <= k_; ++l ) {
             auto const one_shift = k_/2*2 - l - 2;
             assert( one_shift != 0 );

@@ -190,7 +190,7 @@ public:
             // location_ points to the index in the input sequence that we are processing next.
             // Test for end of iteration. Signal this by unsetting the parent,
             // which is used in the equality comparison to check for the end iterator.
-            if( location_ >= parent_->input_.size() ) {
+            if( location_ >= parent_->input_.size() ) GENESIS_CPP_UNLIKELY {
                 parent_ = nullptr;
                 return;
             }
@@ -198,9 +198,9 @@ public:
             // Now try to process the char at the current location.
             // If that works, we have moved to the next location in the input and are done.
             // If not, we found an invalid character, and will have to start a new kmer.
-            if( process_current_char_() ) {
+            if( process_current_char_() ) GENESIS_CPP_LIKELY {
                 ++kmer_.location;
-            } else {
+            } else GENESIS_CPP_UNLIKELY {
                 init_kmer_from_current_location_();
             }
         }
@@ -259,7 +259,7 @@ public:
             assert( location_ < parent_->input_.size() );
             auto const rank = Alphabet::char_to_rank( parent_->input_[ location_ ] );
             ++location_;
-            if( rank > Alphabet::MAX_RANK ) {
+            if( rank > Alphabet::MAX_RANK ) GENESIS_CPP_UNLIKELY {
                 ++(parent_->invalid_character_count_);
                 return false;
             }

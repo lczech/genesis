@@ -169,12 +169,12 @@ public:
      */
     inline char current() const
     {
-        if( data_pos_ >= data_end_ ) GENESIS_UNLIKELY {
+        if( data_pos_ >= data_end_ ) GENESIS_CPP_UNLIKELY {
             throw std::runtime_error(
                 "Unexpected end of " + source_name() + " at " + at() + "."
             );
         }
-        if( current_ < 0 ) GENESIS_UNLIKELY {
+        if( current_ < 0 ) GENESIS_CPP_UNLIKELY {
             throw std::domain_error(
                 "Invalid input char in " + source_name() + " at " + at() + "."
             );
@@ -197,22 +197,22 @@ public:
     inline self_type& operator ++ ()
     {
         // If we were already at the end, set counter so zero.
-        if( data_pos_ >= data_end_ ) GENESIS_UNLIKELY {
+        if( data_pos_ >= data_end_ ) GENESIS_CPP_UNLIKELY {
             reset_();
             return *this;
         }
 
         // Read data if necessary.
-        if( data_pos_ >= BlockLength ) GENESIS_UNLIKELY {
+        if( data_pos_ >= BlockLength ) GENESIS_CPP_UNLIKELY {
             update_blocks_();
         }
         assert( data_pos_ < BlockLength );
 
         // In case we are moving to a new line, set the counters accordingly.
-        if( current_ == '\n' ) {
+        if( current_ == '\n' ) GENESIS_CPP_UNLIKELY {
             ++line_;
             column_ = 1;
-        } else {
+        } else GENESIS_CPP_LIKELY {
             ++column_;
         }
 

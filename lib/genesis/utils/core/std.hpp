@@ -125,12 +125,15 @@ namespace utils {
 //     Compiler Attributes
 // =================================================================================================
 
-// We define them here as specified by later standards.
-// Using them this way allows us to easily switch them off (by turning them into empty statements).
-// #define GENESIS_LIKELY   [[likely]]
-// #define GENESIS_UNLIKELY [[unlikely]]
-#define GENESIS_LIKELY
-#define GENESIS_UNLIKELY
+// Since C++20, there are attributes to help the compiler with branch prediction.
+// We use them when available, and otherwise set them to empty statements.
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_20
+    #define GENESIS_CPP_LIKELY   [[likely]]
+    #define GENESIS_CPP_UNLIKELY [[unlikely]]
+#else
+    #define GENESIS_CPP_LIKELY
+    #define GENESIS_CPP_UNLIKELY
+#endif
 
 // =================================================================================================
 //     Shortcomings of the C++ 11 STL...
@@ -192,7 +195,7 @@ private:
 template <typename F, typename... Args>
 struct genesis_invoke_result
 {
-    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
         // C++17 or later
         using type = typename std::invoke_result<F, Args...>::type;
     #else
