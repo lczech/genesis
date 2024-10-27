@@ -57,6 +57,7 @@ namespace taxonomy {
 TaxonomyReader::TaxonomyReader()
 {
     csv_reader_.separator_chars( "\t" );
+    csv_reader_.quotation_chars( "" );
 }
 
 // =================================================================================================
