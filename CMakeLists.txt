@@ -274,7 +274,8 @@ if (MSVC OR (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
 else ()
     # For other operating systems, set the warn flags to a very high level - except unknown pragmas,
     # as this causes needless warnings with OpenMP and other pragma-based techniques.
-    set (WARN_FLAGS "-Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors")
+    set( WARN_FLAGS "-Wall -Wextra -pedantic -pedantic-errors" )
+    set( WARN_FLAGS "${WARN_FLAGS} -Wno-unknown-pragmas -Wno-unknown-attributes" )
 
     # Furthermore, in debug mode, we also want all warnings to be errors, so that we do not miss them
     # In release, this might hinder users to successfully build genesis if any warnings remain

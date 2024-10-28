@@ -347,7 +347,7 @@ inline void closure( std::vector<double>& vec )
 template <class ForwardIterator>
 double shannon_entropy( ForwardIterator first, ForwardIterator last, double log_base = 2.0)
 {
-    using T = ForwardIterator::value_type;
+    using T = typename ForwardIterator::value_type;
 
     // Use uint64_t for integral types, and compensated summation for floating-point types,
     // to avoid overflow, and get maximum accuracy.
