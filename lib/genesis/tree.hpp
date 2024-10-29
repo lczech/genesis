@@ -66,6 +66,7 @@
 #include "genesis/tree/formats/phyloxml/color_writer_plugin.hpp"
 #include "genesis/tree/formats/phyloxml/writer.hpp"
 #include "genesis/tree/formats/table/reader.hpp"
+#include "genesis/tree/function/accumulate.hpp"
 #include "genesis/tree/function/distances.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/lca_lookup.hpp"
