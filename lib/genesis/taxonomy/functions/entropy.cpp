@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -47,7 +47,9 @@
 #include <limits>
 #include <numeric>
 #include <map>
+#include <stack>
 #include <stdexcept>
+#include <unordered_set>
 
 namespace genesis {
 namespace taxonomy {
@@ -561,17 +563,15 @@ bool validate_pruned_taxonomy( Taxonomy const& taxonomy )
     return correct;
 }
 
+// =================================================================================================
+//     Unused Tests
+// =================================================================================================
 
-/*
-
-    Old functions for testing. Did not use the EntropyTaxonData, but lists with pointers into
-    the Taxonomy. Thus, ugly and and error prone. If needed, refactor first!
-
-/ **
+/**
  * @brief Split a Taxonomy at Taxa that exceed a certain entropy threshold.
  *
  * This is mainly a test method, as it is currently not further used.
- * /
+ */
 std::unordered_set< Taxon const* > split_taxonomy_by_entropy_threshold(
     Taxonomy const&                                   taxonomy,
     std::unordered_map< Taxon const*, double > const& entropies,
@@ -622,12 +622,12 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_threshold(
     return crop_list;
 }
 
-/ **
+/**
  * @brief Test method for splitting a Taxonomy using nested intervals.
  *
  * This method is a test whether a Taxonomy can be splitted into low entropy regions using
  * nested intervals. Did not work, as the entropy per Taxon is not monotonic in the hierarchy.
- * /
+ */
 std::unordered_set< Taxon const* > split_taxonomy_by_entropy_nested_invervals(
     Taxonomy const&                                   taxonomy,
     std::unordered_map< Taxon const*, double > const& entropies,
@@ -709,7 +709,6 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_nested_invervals(
 
     return crop_list;
 }
-*/
 
 } // namespace taxonomy
 } // namespace genesis
