@@ -30,6 +30,7 @@
 
 #include "genesis/utils/math/bitvector/operators.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <stdexcept>
@@ -289,6 +290,35 @@ std::istream& operator >> ( std::istream& in, Bitvector& bv )
         }
     }
     return in;
+}
+
+std::vector<bool> make_bool_vector_from_indices( std::vector<size_t> const& indices, size_t size )
+{
+    // Get the largest element of the vector. If it's empty, we return an all-false vector.
+    auto max_it = std::max_element( indices.begin(), indices.end() );
+    if( max_it == indices.end() ) {
+        return std::vector<bool>( size, false );
+    }
+    size_t target_size = *max_it + 1;
+    if( size > 0 ) {
+        if( target_size > size ) {
+            throw std::invalid_argument(
+                "Cannot use make_bool_vector_from_indices() with size " + std::to_string( size ) +
+                " that is smaller than required to include the larged index " +
+                std::to_string( *max_it ) + " in the list of indices (zero-based)."
+            );
+        }
+        target_size = size;
+    }
+
+    // Fill a bool vector, setting all positions to true
+    // that are indicated by the indices, pun intended.
+    auto result = std::vector<bool>( target_size, false );
+    for( auto const& idx : indices ) {
+        assert( idx < result.size() );
+        result[idx] = true;
+    }
+    return result;
 }
 
 } // namespace utils

@@ -31,7 +31,6 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/math/bitvector.hpp"
-#include "genesis/utils/math/bitvector/helper.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/random.hpp"
 #include "genesis/utils/text/string.hpp"

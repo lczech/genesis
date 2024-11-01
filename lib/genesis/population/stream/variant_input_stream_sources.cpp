@@ -35,7 +35,7 @@
 #include "genesis/population/function/functions.hpp"
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/math/bitvector/helper.hpp"
+#include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <algorithm>

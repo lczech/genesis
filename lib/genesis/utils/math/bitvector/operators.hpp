@@ -33,7 +33,9 @@
 
 #include "genesis/utils/math/bitvector.hpp"
 
+#include <cstddef>
 #include <iosfwd>
+#include <vector>
 
 namespace genesis {
 namespace utils {
@@ -224,6 +226,18 @@ std::ostream& operator << ( std::ostream& out, Bitvector const& bv );
 * and stops at the first char that is not '0' or '1'.
 */
 std::istream& operator >> ( std::istream& in, Bitvector& bv );
+
+/**
+ * @brief Helper function to create a bool vector from a set of indices to be set to `true`.
+ *
+ * The function expectes a list of indices. It returns a bool vector with the size of the largest
+ * index, or the provided @p size (if set to a value > 0), where all positions of these indices are
+ * `true`, and all other positions are `false`.
+ */
+std::vector<bool> make_bool_vector_from_indices(
+    std::vector<size_t> const& indices,
+    size_t size = 0
+);
 
 } // namespace utils
 } // namespace genesis
