@@ -1242,7 +1242,7 @@ inline std::vector<double> index_of_dispersion( std::vector<MeanStddevPair> cons
 template<typename T>
 inline double quartile_coefficient_of_dispersion( Quartiles<T> const& q )
 {
-    return ( q.q3 - q.q1 ) / ( q.q3 + q.q1 );
+    return static_cast<double>( q.q3 - q.q1 ) / static_cast<double>( q.q3 + q.q1 );
 }
 
 /**
