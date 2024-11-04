@@ -52,15 +52,15 @@ Taxonomy TaxonomyJsonReader::read( utils::JsonDocument& doc ) const
     Taxonomy tax;
     auto& arr = doc.get_array();
     for( auto& child : arr ) {
-        Taxon child_tax;
-        object_to_taxon_( child.get_object(), child_tax );
-        tax.add_child( std::move( child_tax ));
+        tax.add_child( object_to_taxon_( child.get_object() ));
     }
     return tax;
 }
 
-void TaxonomyJsonReader::object_to_taxon_( utils::JsonDocument::ObjectType& obj, Taxon& tax ) const
+Taxon TaxonomyJsonReader::object_to_taxon_( utils::JsonDocument::ObjectType& obj ) const
 {
+    Taxon tax;
+
     // Get the basic properties of a Taxon.
     tax.name( obj[ "name" ].get_string() );
     if( obj.count( "rank" ) > 0 ) {
@@ -80,12 +80,12 @@ void TaxonomyJsonReader::object_to_taxon_( utils::JsonDocument::ObjectType& obj,
     if( obj.count( "children" ) > 0 ) {
         auto& children = obj[ "children" ].get_array();
         for( auto& child : children ) {
-            Taxon child_tax;
-            object_to_taxon_( child.get_object(), child_tax );
-            tax.add_child( std::move( child_tax ));
+            tax.add_child( object_to_taxon_( child.get_object() ));
         }
         children.clear();
     }
+
+    return tax;
 }
 
 } // namespace taxonomy

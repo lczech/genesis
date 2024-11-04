@@ -70,10 +70,19 @@ public:
     /**
      * @brief Function to store additional data from each Taxon in the JsonDocument.
      *
-     * This function is called for every Taxon, and can be used to store additional data
-     * in the Json object of that Taxon.
+     * If provided, this function is called for every Taxon, and can be used to store
+     * additional data in the Json object of that Taxon.
      */
     std::function<void( Taxon const&, utils::JsonDocument::ObjectType& )> taxon_to_json;
+
+    /**
+     * @brief Function to decide whether to recurse into the children of a Taxon.
+     *
+     * If provided, this function is evaluated for a given Taxon that has children.
+     * If it returns true, the children of the Taxon are traversed and added to the JsonDocument.
+     * If the function is not provided, all children are recursively visited.
+     */
+    std::function<bool( Taxon const& )> recurse_taxon_condition;
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five

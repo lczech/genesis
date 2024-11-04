@@ -65,32 +65,34 @@ utils::JsonDocument::ObjectType TaxonomyJsonWriter::taxon_to_object_(
     Taxon const& tax
 ) const {
     using namespace utils;
-    auto target = utils::JsonDocument::ObjectType();
+    auto obj = utils::JsonDocument::ObjectType();
 
     // Set the basic properties of a Taxon.
-    target[ "name" ] = tax.name();
+    obj[ "name" ] = tax.name();
     if( !tax.rank().empty() ) {
-        target[ "rank" ] = tax.rank();
+        obj[ "rank" ] = tax.rank();
     }
     if( tax.id() != 0 ) {
-        target[ "id" ] = JsonDocument::number_unsigned( tax.id() );
+        obj[ "id" ] = JsonDocument::number_unsigned( tax.id() );
     }
 
     // If we have a special function to process extra data, apply that one as well.
     if( taxon_to_json ) {
-        taxon_to_json( tax, target );
+        taxon_to_json( tax, obj );
     }
 
-    // Finally, recursive call for the children, if there are any.
+    // Finally, recursive call for the children, if there are any, and the condition is fulfilled.
     // Even the NCBI taxonomy is only ~30 levels deep, so that is fine to do by recursion.
     if( tax.size() > 0 ) {
-        target[ "children" ] = JsonDocument::array();
-        for( auto const& child : tax ) {
-            target[ "children" ].push_back( taxon_to_object_( child ));
+        if( ! recurse_taxon_condition || recurse_taxon_condition( tax )) {
+            obj[ "children" ] = JsonDocument::array();
+            for( auto const& child : tax ) {
+                obj[ "children" ].push_back( taxon_to_object_( child ));
+            }
         }
     }
 
-    return target;
+    return obj;
 }
 
 } // namespace taxonomy

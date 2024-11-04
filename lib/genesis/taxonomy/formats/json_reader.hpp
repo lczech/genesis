@@ -105,7 +105,7 @@ public:
 
 private:
 
-    void object_to_taxon_( utils::JsonDocument::ObjectType& obj, Taxon& tax ) const;
+    Taxon object_to_taxon_( utils::JsonDocument::ObjectType& obj ) const;
 
 };
 
