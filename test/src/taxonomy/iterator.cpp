@@ -151,7 +151,7 @@ TEST( Taxonomy, IteratorPreorder )
 
     // Build string using iterator.
     std::string iterator_result;
-    for( auto it : preorder( tax )) {
+    for( auto const& it : preorder( tax )) {
         auto gen = TaxopathGenerator();
         auto name = gen( it );
         iterator_result += name + "\n";
