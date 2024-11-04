@@ -48,13 +48,13 @@ void TaxonomyWriter::write( Taxonomy const& tax, std::shared_ptr<utils::BaseOutp
 {
     auto& os = target->ostream();
     for( auto const& tit : preorder( tax )) {
-        os << tax_gen_.to_string( tit.taxon() );
+        os << tax_gen_.to_string( tit );
 
         if( write_ids_ ) {
-            os << "\t" << tit.taxon().id();
+            os << "\t" << tit.id();
         }
         if( write_ranks_ ) {
-            os << "\t" << tit.taxon().rank();
+            os << "\t" << tit.rank();
         }
 
         os << "\n";

@@ -76,8 +76,8 @@ void prune_by_entropy(
 
         // Expand fully.
         for( auto it : preorder( taxonomy ) ) {
-            auto& status = it.taxon().data<EntropyTaxonData>().status;
-            if( it.taxon().size() == 0 ) {
+            auto& status = it.data<EntropyTaxonData>().status;
+            if( it.size() == 0 ) {
                 status = EntropyTaxonData::PruneStatus::kBorder;
             } else {
                 status = EntropyTaxonData::PruneStatus::kInside;
@@ -136,8 +136,8 @@ void prune_by_entropy(
             // Then, iterate it, and set all taxa in it to inner or
             // border, depending on whether they are inner of leaf taxa.
             for( auto it : preorder( taxon ) ) {
-                auto& sub_taxon_data = it.taxon().data<EntropyTaxonData>();
-                if( it.taxon().size() == 0 ) {
+                auto& sub_taxon_data = it.data<EntropyTaxonData>();
+                if( it.size() == 0 ) {
                     sub_taxon_data.status = EntropyTaxonData::PruneStatus::kBorder;
                     ++border_taxa_count;
                 } else {
@@ -437,8 +437,8 @@ void expand_small_subtaxonomies(
             // Then, iterate it, and set all taxa in it to inner or
             // border, depending on whether they are inner of leaf taxa.
             for( auto it : preorder( taxon ) ) {
-                auto& sub_taxon_data = it.taxon().data<EntropyTaxonData>();
-                if( it.taxon().size() == 0 ) {
+                auto& sub_taxon_data = it.data<EntropyTaxonData>();
+                if( it.size() == 0 ) {
                     sub_taxon_data.status = EntropyTaxonData::PruneStatus::kBorder;
                 } else {
                     sub_taxon_data.status = EntropyTaxonData::PruneStatus::kInside;
