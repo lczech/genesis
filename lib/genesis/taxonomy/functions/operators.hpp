@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,14 +51,17 @@ namespace taxonomy {
  * using typeid() for this matching.
  */
 template< class TaxonDataType >
-bool taxonomy_data_is( Taxonomy const& taxonomy )
+bool taxonomy_data_is( Taxonomy const& taxonomy, bool allow_no_data = false )
 {
-    // Slow, because we traverse the whole thing even if the first one is already false...
-    // Works for now.
+    // Slow, because we need to traverse the whole thing (due to the lamba function being used)
+    // even if the first one is already false... Works for now.
     bool correct = true;
     preorder_for_each( taxonomy, [&] ( Taxon const& taxon ) {
-        if( ! taxon.has_data() ) {
-            correct = false;
+        if( taxon.data_ptr() == nullptr ) {
+            if( ! allow_no_data ) {
+                correct = false;
+            }
+            return;
         }
         auto const& ref = *taxon.data_ptr();
         if( typeid( ref ) != typeid( TaxonDataType ) ) {
@@ -75,14 +78,20 @@ bool taxonomy_data_is( Taxonomy const& taxonomy )
  * are derived from the specified type. It uses dynamic_cast() for this.
  */
 template< class TaxonDataType >
-bool taxonomy_data_is_derived_from( Taxonomy const& taxonomy )
+bool taxonomy_data_is_derived_from( Taxonomy const& taxonomy, bool allow_no_data = false )
 {
-    // Slow, because we traverse the whole thing even if the first one is already false...
-    // Works for now.
+    // Slow, because we need to traverse the whole thing (due to the lamba function being used)
+    // even if the first one is already false... Works for now.
     bool correct = true;
     preorder_for_each( taxonomy, [&] ( Taxon const& taxon ) {
+        if( taxon.data_ptr() == nullptr ) {
+            if( ! allow_no_data ) {
+                correct = false;
+            }
+            return;
+        }
         if( dynamic_cast< TaxonDataType const* >( taxon.data_ptr() ) == nullptr ) {
-            return false;
+            correct = false;
         }
     });
     return correct;
