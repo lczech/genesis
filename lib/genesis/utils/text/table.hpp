@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -34,6 +34,7 @@
 #include "genesis/utils/text/style.hpp"
 
 #include <iosfwd>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -65,7 +66,114 @@ class Table
 
 public:
 
-    class Column;
+    // ================================================================================
+    //     Table Column
+    // ================================================================================
+
+    class Column
+    {
+        // ---------------------------------------
+        //     Member Types
+        // ---------------------------------------
+
+    public:
+
+        enum class Justification
+        {
+            kLeft,
+            kRight,
+            kCentered
+        };
+
+        // ---------------------------------------
+        //     Constructor and Rule of Five
+        // ---------------------------------------
+
+    public:
+
+        Column() = default;
+
+        explicit Column( std::string const& label, Justification justify = Justification::kLeft )
+            : label_( label )
+            , just_(  justify )
+            , width_( label.size() )
+        {}
+
+        ~Column() = default;
+
+        Column( Column const& ) = default;
+        Column( Column&& )      = default;
+
+        Column& operator= ( Column const& ) = default;
+        Column& operator= ( Column&& )      = default;
+
+        // void swap( Column& other )
+        // {
+        //     using std::swap;
+        // }
+
+        // ---------------------------------------
+        //     Properties
+        // ---------------------------------------
+
+        void        label( std::string value );
+        std::string label() const;
+
+        void          justify( Justification value );
+        Justification justify() const;
+
+        void   width( size_t value );
+        size_t width() const;
+
+        void shrink_width();
+
+        // ---------------------------------------
+        //     Accessors
+        // ---------------------------------------
+
+        size_t length() const;
+
+        std::string row( size_t i ) const;
+
+        // ---------------------------------------
+        //     Modifiers
+        // ---------------------------------------
+
+        void clear_content();
+
+        void append( std::string value );
+        void append( Style const& style, std::string value );
+
+        // ---------------------------------------
+        //     Output
+        // ---------------------------------------
+
+    public:
+
+        void write_row( std::ostream& stream, size_t row ) const;
+        void write_label( std::ostream& stream ) const;
+
+    private:
+
+        void write( std::ostream& stream, Style style, std::string text ) const;
+
+        // ---------------------------------------
+        //     Data members
+        // ---------------------------------------
+
+    private:
+
+        std::string   label_ = "";
+        Justification just_  = Justification::kLeft;
+        size_t        width_ = 0;
+
+        std::vector< std::pair< Style, std::string >> data_;
+
+    };
+
+    // ================================================================================
+    //     Table
+    // ================================================================================
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -100,10 +208,22 @@ public:
     void clear();
     void clear_content();
 
-    Column& add_column( std::string label = "" );
+    Column& add_column(
+        std::string label = "",
+        Column::Justification justify = Column::Justification::kLeft
+    );
 
     Table& operator << ( std::string value );
     // Table& operator << ( Style const& value );
+
+    template<typename T>
+    Table& operator << ( T const& value )
+    {
+        std::stringstream ss;
+        ss << value;
+        append( ss.str() );
+        return *this;
+    }
 
     Table& append ( std::string value );
     Table& append ( Style const& style, std::string value );
@@ -130,111 +250,6 @@ private:
 
     size_t current_col_ = 0;
     std::vector<Column> columns_;
-
-};
-
-// =================================================================================================
-//     Table Column
-// =================================================================================================
-
-class Table::Column
-{
-    // ---------------------------------------------------------------------
-    //     Member Types
-    // ---------------------------------------------------------------------
-
-public:
-
-    enum class Justification
-    {
-        kLeft,
-        kRight,
-        kCentered
-    };
-
-    // ---------------------------------------------------------------------
-    //     Constructor and Rule of Five
-    // ---------------------------------------------------------------------
-
-public:
-
-    Column() = default;
-
-    explicit Column( std::string const& label, Justification justify = Justification::kLeft )
-        : label_( label )
-        , just_(  justify )
-        , width_( label.size() )
-    {}
-
-    ~Column() = default;
-
-    Column( Column const& ) = default;
-    Column( Column&& )      = default;
-
-    Column& operator= ( Column const& ) = default;
-    Column& operator= ( Column&& )      = default;
-
-    // void swap( Column& other )
-    // {
-    //     using std::swap;
-    // }
-
-    // ---------------------------------------------------------------------
-    //     Properties
-    // ---------------------------------------------------------------------
-
-    void        label( std::string value );
-    std::string label() const;
-
-    void          justify( Justification value );
-    Justification justify() const;
-
-    void   width( size_t value );
-    size_t width() const;
-
-    void shrink_width();
-
-    // ---------------------------------------------------------------------
-    //     Accessors
-    // ---------------------------------------------------------------------
-
-    size_t length() const;
-
-    std::string row( size_t i ) const;
-
-    // ---------------------------------------------------------------------
-    //     Modifiers
-    // ---------------------------------------------------------------------
-
-    void clear_content();
-
-    void append( std::string value );
-    void append( Style const& style, std::string value );
-
-    // ---------------------------------------------------------------------
-    //     Output
-    // ---------------------------------------------------------------------
-
-public:
-
-    void write_row( std::ostream& stream, size_t row ) const;
-    void write_label( std::ostream& stream ) const;
-
-private:
-
-    void write( std::ostream& stream, Style style, std::string text ) const;
-
-    // ---------------------------------------------------------------------
-    //     Data members
-    // ---------------------------------------------------------------------
-
-private:
-
-    std::string   label_ = "";
-    Justification just_  = Justification::kLeft;
-    size_t        width_ = 0;
-
-    std::vector< std::pair< Style, std::string >> data_;
 
 };
 

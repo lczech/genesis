@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -102,10 +102,10 @@ void Table::clear_content()
  * If the table already contains columns with data, the new one is initialized with empty strings
  * for the whole length of the table.
  */
-Table::Column& Table::add_column( std::string label )
+Table::Column& Table::add_column( std::string label, Column::Justification justify )
 {
     auto const len = length();
-    columns_.push_back( Column(label) );
+    columns_.push_back( Column( label, justify ));
     for( size_t i = 0; i < len; ++i ) {
         columns_.back().append("");
     }
