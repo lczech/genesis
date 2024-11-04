@@ -124,16 +124,20 @@ struct MeanStddevPair
 };
 
 /**
- * @brief Store the values of quartiles: `q0 == min`, `q1 == 25%`, `q2 == 50%`, `q3 == 75%`,
- * `q4 == max`.
+ * @brief Store the values of quartiles.
+ *
+ *  See the quarties() function. The stored values are
+ *  `q0 == min`, `q1 == 25%`, `q2 == 50%`, `q3 == 75%`, `q4 == max`.
+ *  The struct is templated over the numeric data type, defaulting to `double`.
  */
+template<typename T = double>
 struct Quartiles
 {
-    double q0 = 0.0;
-    double q1 = 0.0;
-    double q2 = 0.0;
-    double q3 = 0.0;
-    double q4 = 0.0;
+    T q0 = T{};
+    T q1 = T{};
+    T q2 = T{};
+    T q3 = T{};
+    T q4 = T{};
 };
 
 // =================================================================================================
@@ -1070,8 +1074,9 @@ inline double weighted_harmonic_mean(
  * is the arithmetic mean (average) of its two middle elements.
  */
 template <class RandomAccessIterator>
-double median( RandomAccessIterator first, RandomAccessIterator last )
-{
+typename RandomAccessIterator::value_type median(
+    RandomAccessIterator first, RandomAccessIterator last
+) {
     // Checks.
     if( ! std::is_sorted( first, last )) {
         throw std::runtime_error( "Range has to be sorted for median calculation." );
@@ -1102,11 +1107,12 @@ double median( RandomAccessIterator first, RandomAccessIterator last )
 }
 
 /**
- * @brief Calculate the median value of a `vector` of `double`.
+ * @brief Calculate the median value of a `vector` of `double` or some other numerical type.
  *
- * The vector has to be sorted.
+ * The vector has to be sorted, otherwise the function throws an exception.
  */
-inline double median( std::vector<double> const& vec )
+template<typename T>
+inline T median( std::vector<T> const& vec )
 {
     return median( vec.begin(), vec.end() );
 }
@@ -1122,10 +1128,11 @@ inline double median( std::vector<double> const& vec )
  * @p last to the past-the-end element.
  */
 template <class RandomAccessIterator>
-Quartiles quartiles( RandomAccessIterator first, RandomAccessIterator last )
-{
+Quartiles<typename RandomAccessIterator::value_type> quartiles(
+    RandomAccessIterator first, RandomAccessIterator last
+) {
     // Prepare result.
-    Quartiles result;
+    Quartiles<typename RandomAccessIterator::value_type> result;
 
     // Checks.
     if( ! std::is_sorted( first, last )) {
@@ -1160,11 +1167,12 @@ Quartiles quartiles( RandomAccessIterator first, RandomAccessIterator last )
 }
 
 /**
- * @brief Calculate the Quartiles of a `vector` of `double`.
+ * @brief Calculate the Quartiles of a `vector` of `double` or some other numerical type.
  *
- * The vector has to be sorted.
+ * The vector has to be sorted, otherwise the function throws an exception.
  */
-inline Quartiles quartiles( std::vector<double> const& vec )
+template<typename T>
+inline Quartiles<T> quartiles( std::vector<T> const& vec )
 {
     return quartiles( vec.begin(), vec.end() );
 }
@@ -1231,15 +1239,17 @@ inline std::vector<double> index_of_dispersion( std::vector<MeanStddevPair> cons
  * See quartiles() to caculate those values.
  * See https://en.wikipedia.org/wiki/Quartile_coefficient_of_dispersion for details.
  */
-inline double quartile_coefficient_of_dispersion( Quartiles const& q )
+template<typename T>
+inline double quartile_coefficient_of_dispersion( Quartiles<T> const& q )
 {
     return ( q.q3 - q.q1 ) / ( q.q3 + q.q1 );
 }
 
 /**
- * @copydoc quartile_coefficient_of_dispersion( Quartiles const& ms )
+ * @copydoc quartile_coefficient_of_dispersion( Quartiles<T> const& ms )
  */
-inline std::vector<double> quartile_coefficient_of_dispersion( std::vector<Quartiles> const& q )
+template<typename T>
+inline std::vector<double> quartile_coefficient_of_dispersion( std::vector<Quartiles<T>> const& q )
 {
     auto res = std::vector<double>( q.size() );
     for( size_t i = 0; i < q.size(); ++i ) {
