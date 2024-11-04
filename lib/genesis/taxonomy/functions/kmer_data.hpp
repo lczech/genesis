@@ -32,10 +32,10 @@
  */
 
 #include "genesis/taxonomy/taxon_data.hpp"
-#include "genesis/sequence/counts.hpp"
 
 #include <cstddef>
-#include <string>
+#include <limits>
+#include <memory>
 
 namespace genesis {
 namespace taxonomy {
@@ -48,7 +48,7 @@ class Taxon;
 class Taxonomy;
 
 // =================================================================================================
-//     Entropy Data
+//     Kmer Data
 // =================================================================================================
 
 /**
@@ -70,6 +70,38 @@ class Taxonomy;
 class KmerTaxonData : public BaseTaxonData
 {
 public:
+
+    // -------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------
+
+    /**
+     * @brief Store the status for a Taxon with respect to its grouping.
+     *
+     * @see group_by_taxon_sizes()
+     */
+    enum class GroupStatus
+    {
+        /**
+         * @brief Initial status: The Taxon has not yet been processed.
+         */
+        kUnprocessed,
+
+        /**
+         * @brief The Taxon and all its children are assigned to a group.
+         *
+         * This is used for Taxa whose sizes are within the set limits.
+         */
+        kAssigned,
+
+        /**
+         * @brief The Taxon is not assigned to a group, but expanded into smaller groups instead.
+         *
+         * This is used for higher ranks, which contain too much data to be a single group.
+         * Instead, its children will be assigned to separate groups of smaller sizes.
+         */
+        kExpanded
+    };
 
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -113,10 +145,39 @@ public:
     size_t num_sequences = 0;
 
     /**
-     * @brief Store the total size of all chromosomes/contigs/scaffolds of the accessions
+     * @brief Store the sum of the length of the chromosomes/contigs/scaffolds of the accessions
      * assinged to this Taxon.
      */
-    size_t sum_ref_bases = 0;
+    size_t sum_seq_lengths = 0;
+
+    /**
+     * @brief Store the total number of sequences (accessions) of this Taxon and its children.
+     *
+     * @see accumulate_kmer_taxon_counts()
+     */
+    size_t clade_num_sequences = 0;
+
+    /**
+     * @brief Store the total the length of all chromosomes/contigs/scaffolds of the accessions
+     * assinged to this Taxonn and its children.
+     *
+     * @see accumulate_kmer_taxon_counts()
+     */
+    size_t clade_sum_seq_lengths = 0;
+
+    /**
+     * @brief Status of the taxon with respect to its group.
+     *
+     * @see group_by_taxon_sizes()
+     */
+    GroupStatus group_status = GroupStatus::kUnprocessed;
+
+    /**
+     * @brief Index of the taxon, if grouped.
+     *
+     * @see group_by_taxon_sizes()
+     */
+    size_t group_index = std::numeric_limits<size_t>::max();
 
 };
 

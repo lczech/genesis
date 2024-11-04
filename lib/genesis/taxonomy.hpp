@@ -45,6 +45,7 @@
 #include "genesis/taxonomy/functions/entropy_data.hpp"
 #include "genesis/taxonomy/functions/entropy.hpp"
 #include "genesis/taxonomy/functions/kmer_data.hpp"
+#include "genesis/taxonomy/functions/kmer.hpp"
 #include "genesis/taxonomy/functions/operators.hpp"
 #include "genesis/taxonomy/functions/ranks.hpp"
 #include "genesis/taxonomy/functions/taxonomy.hpp"
