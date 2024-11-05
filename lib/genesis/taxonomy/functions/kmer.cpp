@@ -49,6 +49,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <functional>
 #include <limits>
 #include <numeric>
 #include <sstream>
@@ -241,7 +242,7 @@ void group_by_taxon_sizes(
         data.group_index = std::numeric_limits<size_t>::max();
     });
 
-    // We will be assining consecutive indices to groups.
+    // We will be assigning consecutive indices to groups.
     // This variable indicates the next index to be used, and is incremented for each new group.
     size_t next_index = 0;
 
@@ -249,6 +250,34 @@ void group_by_taxon_sizes(
     // start at the root (highest rank), and decent into the lower ranks one by one.
     // At each taxon we visit, we assess its children and decide how to group them.
     group_by_taxon_sizes_process_taxon_( settings, tax, next_index );
+}
+
+size_t count_taxon_groups( Taxonomy const& tax )
+{
+    size_t result = 0;
+    std::function<void(Taxonomy const&)> recursion_ = [&]( Taxonomy const& taxon ){
+        for( auto const& child : taxon ) {
+            auto& data = child.data<KmerTaxonData>();
+            switch( data.group_status ) {
+                case KmerTaxonData::GroupStatus::kAssigned: {
+                    ++result;
+                    break;
+                }
+                case KmerTaxonData::GroupStatus::kExpanded: {
+                    recursion_( child );
+                    break;
+                }
+                case KmerTaxonData::GroupStatus::kUnprocessed:
+                default: {
+                    throw std::invalid_argument(
+                        "Invalid KmerTaxonData::GroupStatus, Taxonomy not properly processed"
+                    );
+                }
+            }
+        }
+    };
+    recursion_( tax );
+    return result;
 }
 
 // --------------------------------------------------------------------------
@@ -297,15 +326,10 @@ void grouped_taxonomy_trunk_( Taxonomy const& tax, Taxonomy& result )
                 grouped_taxonomy_trunk_( child, exp_tax );
                 break;
             }
-            case KmerTaxonData::GroupStatus::kUnprocessed: {
-                throw std::invalid_argument(
-                    "Taxonomy has not been grouped, as the group status of a taxon "
-                    "is set to KmerTaxonData::GroupStatus::kUnprocessed"
-                );
-            }
+            case KmerTaxonData::GroupStatus::kUnprocessed:
             default: {
                 throw std::invalid_argument(
-                    "Invalid KmerTaxonData::GroupStatus"
+                    "Invalid KmerTaxonData::GroupStatus, Taxonomy not properly processed"
                 );
             }
         }
@@ -354,15 +378,10 @@ std::string grouped_taxonomy_report( Taxonomy const& tax )
                 ungrouped_sum_seq_lengths += data.sum_seq_lengths;
                 break;
             }
-            case KmerTaxonData::GroupStatus::kUnprocessed: {
-                throw std::invalid_argument(
-                    "Taxonomy has not been grouped, as the group status of a taxon "
-                    "is set to KmerTaxonData::GroupStatus::kUnprocessed"
-                );
-            }
+            case KmerTaxonData::GroupStatus::kUnprocessed:
             default: {
                 throw std::invalid_argument(
-                    "Invalid KmerTaxonData::GroupStatus"
+                    "Invalid KmerTaxonData::GroupStatus, Taxonomy not properly processed"
                 );
             }
         }
@@ -456,15 +475,10 @@ void fill_json_array_with_taxonomy_groups_(
                 fill_json_array_with_taxonomy_groups_( child, array );
                 break;
             }
-            case KmerTaxonData::GroupStatus::kUnprocessed: {
-                throw std::invalid_argument(
-                    "Taxonomy has not been grouped, as the group status of a taxon "
-                    "is set to KmerTaxonData::GroupStatus::kUnprocessed"
-                );
-            }
+            case KmerTaxonData::GroupStatus::kUnprocessed:
             default: {
                 throw std::invalid_argument(
-                    "Invalid KmerTaxonData::GroupStatus"
+                    "Invalid KmerTaxonData::GroupStatus, Taxonomy not properly processed"
                 );
             }
         }

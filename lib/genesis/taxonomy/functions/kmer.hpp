@@ -113,6 +113,15 @@ void accumulate_taxon_sizes( Taxonomy& tax );
 void group_by_taxon_sizes( TaxonGroupingSettings const& settings, Taxonomy& tax );
 
 /**
+ * @brief Count the number of groups that were constructed by group_by_taxon_sizes().
+ */
+size_t count_taxon_groups( Taxonomy const& tax );
+
+// =================================================================================================
+//     User Reporting
+// =================================================================================================
+
+/**
  * @brief Take a Taxonomy with group annotations, and produce a new Taxonomy consisting of
  * just the trunk Taxa.
  *
