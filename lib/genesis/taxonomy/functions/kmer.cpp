@@ -40,6 +40,7 @@
 #include "genesis/taxonomy/iterator/preorder.hpp"
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
+#include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/formats/json/document.hpp"
 #include "genesis/utils/formats/json/reader.hpp"
 #include "genesis/utils/formats/json/writer.hpp"
@@ -54,6 +55,7 @@
 #include <numeric>
 #include <sstream>
 #include <stdexcept>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -95,17 +97,17 @@ void accumulate_taxon_sizes( Taxonomy& tax )
  * @brief Local helper function to check if a given taxon size exceeds the limits.
  */
 bool exceeds_group_sizes_(
-    TaxonGroupingSettings const& settings,
+    TaxonGroupingLimits const& limits,
     size_t num_sequences,
     size_t sum_seq_lengths
 ) {
     bool const exceed_num_sequences = (
-        settings.max_group_num_sequences > 0 &&
-        num_sequences > settings.max_group_num_sequences
+        limits.max_group_num_sequences > 0 &&
+        num_sequences > limits.max_group_num_sequences
     );
     bool const exceed_sum_seq_lengths = (
-        settings.max_group_sum_seq_lengths > 0 &&
-        sum_seq_lengths > settings.max_group_sum_seq_lengths
+        limits.max_group_sum_seq_lengths > 0 &&
+        sum_seq_lengths > limits.max_group_sum_seq_lengths
     );
     return exceed_num_sequences || exceed_sum_seq_lengths;
 }
@@ -140,7 +142,7 @@ void assign_children_to_group_(
  * know that it is too big for a single group, and hence was expanded.
  */
 void group_by_taxon_sizes_process_taxon_(
-    TaxonGroupingSettings const& settings,
+    TaxonGroupingLimits const& limits,
     Taxonomy& tax,
     size_t& next_index
 ) {
@@ -168,11 +170,11 @@ void group_by_taxon_sizes_process_taxon_(
         // is too big for our limits, but has no children (meaning, all ref sequences are assigned
         // to that one leaf taxon). In that case, we just have to live with a large group.
         bool const exceeds_limits = exceeds_group_sizes_(
-            settings, child_data.clade_num_sequences, child_data.clade_sum_seq_lengths
+            limits, child_data.clade_num_sequences, child_data.clade_sum_seq_lengths
         );
         if( exceeds_limits && child_taxon.size() > 0 ) {
             child_data.group_status = KmerTaxonData::GroupStatus::kExpanded;
-            group_by_taxon_sizes_process_taxon_( settings, child_taxon, next_index );
+            group_by_taxon_sizes_process_taxon_( limits, child_taxon, next_index );
 
         } else {
             // If the child taxon is not too big (or a leaf), we try to combine it into a group
@@ -183,7 +185,7 @@ void group_by_taxon_sizes_process_taxon_(
             // solving the knappsack problem here, greedily by assigning groups on a first come
             // first served basis to the lowest index group that has space for the new sibling.
             auto sibling_group_index = std::numeric_limits<size_t>::max();
-            if( settings.merge_sibling_taxa ) {
+            if( limits.merge_sibling_taxa ) {
                 for( size_t i = 0; i < sibling_groups.size(); ++i ) {
                     auto const& sibling_group = sibling_groups[i];
                     auto const proposed_num_seq = (
@@ -194,7 +196,7 @@ void group_by_taxon_sizes_process_taxon_(
                         sibling_group.clade_sum_seq_lengths +
                         child_data.clade_sum_seq_lengths
                     );
-                    if( ! exceeds_group_sizes_( settings, proposed_num_seq, proposed_seq_len )) {
+                    if( ! exceeds_group_sizes_( limits, proposed_num_seq, proposed_seq_len )) {
                         sibling_group_index = i;
                         break;
                     }
@@ -224,7 +226,7 @@ void group_by_taxon_sizes_process_taxon_(
 }
 
 void group_by_taxon_sizes(
-    TaxonGroupingSettings const& settings,
+    TaxonGroupingLimits const& limits,
     Taxonomy& tax
 ) {
     // Check that the taxonoy has the correct data type everywhere.
@@ -249,21 +251,156 @@ void group_by_taxon_sizes(
     // Now run the main recursion. This effectively is a preorder traversal of the taxonomy, i.e.,
     // start at the root (highest rank), and decent into the lower ranks one by one.
     // At each taxon we visit, we assess its children and decide how to group them.
-    group_by_taxon_sizes_process_taxon_( settings, tax, next_index );
+    group_by_taxon_sizes_process_taxon_( limits, tax, next_index );
+}
+
+size_t group_with_target_number_of_groups( TaxonGroupingSearchParams const& params, Taxonomy& tax )
+{
+    // We can only use one variable to limit our search.
+    if( params.initial_group_num_sequences != 0 && params.initial_group_sum_seq_lengths != 0 ) {
+        throw std::invalid_argument(
+            "Cannot run group_with_target_number_of_groups() with both limits at the same time."
+        );
+    }
+    if( params.initial_group_num_sequences == 0 && params.initial_group_sum_seq_lengths == 0 ) {
+        throw std::invalid_argument(
+            "Cannot run group_with_target_number_of_groups() with no initial limits set."
+        );
+    }
+
+    // We run the search in two phases: First, from the starting value of our limit,
+    // we expand (or shrink) until the starting value and the expanded (or shrunken) value
+    // form a range of limits such that the resulting group size is covered by that range.
+    // Then, in the second phase, we run binary search on that range, until the resulting
+    // group size is as close as we can get.
+    // The initidal direction tells us if in the first phase, starting from the given param
+    // initial value, we need to grow or shrink. Then, once we overshoot with that, we know
+    // we have found the boundaries.
+    int initial_direction = 0;
+    bool found_boundaries = false;
+
+    // Current value of our limit, as well as the two boundary values (low and high).
+    // We already checked that only one of the initial limits is non-zero, so we can just add them
+    // for simplicty to get the one that we actually want.
+    size_t limit_c = params.initial_group_num_sequences + params.initial_group_sum_seq_lengths;
+    size_t limit_l = limit_c;
+    size_t limit_h = limit_c;
+
+    // We loop until either we have found a limit setting that results in the desired number
+    // of groups, or until the binary search finishes (both low and high have the same value),
+    // in which case we cannot get any closer to our target number of groups.
+    while( true ) {
+
+        // Construct groups with the current limits
+        TaxonGroupingLimits limits;
+        if( params.initial_group_num_sequences != 0 ) {
+            limits.max_group_num_sequences = limit_c;
+        } else {
+            assert( params.initial_group_sum_seq_lengths != 0 );
+            limits.max_group_sum_seq_lengths = limit_c;
+        }
+        limits.merge_sibling_taxa = params.merge_sibling_taxa;
+        group_by_taxon_sizes( limits, tax );
+        auto const group_cnt = count_taxon_groups( tax );
+
+        // User output. Can be deactivated via logging settings.
+        LOG_MSG
+            << "Phase " << ((int) found_boundaries) << ": grouping with limit " << limit_c
+            << " within [" << limit_l << ", " << limit_h << "], resulted in "
+            << group_cnt << " groups"
+        ;
+
+        // Exit condition, if low and high are identical, we cannot optimize any more.
+        // This is checked after the above grouping, such that the final result is as good as it gets.
+        if( found_boundaries && limit_l == limit_h ) {
+            break;
+        }
+
+        // Update the limit value that we use for the grouping.
+        // In the first phase, we search for the set of lower and upper boundaries of that
+        // value that leads to including the target group size. In the second phase, once we have
+        // established the boundaries, we run a binary search on that.
+        if( ! found_boundaries ) {
+            // Initially, in the first phase, we need to find the boundaries for the binary search
+
+            if( group_cnt > params.target_group_count ) {
+                // Too many groups --> need larger high limit, so that we get fewer groups
+
+                if( initial_direction == -1 ) {
+                    // We were shrinking first, but now overshot --> found the boundaries!
+                    found_boundaries = true;
+                    limit_c = ( limit_l + limit_h ) / 2;
+                } else {
+                    // Otherwise, we are not done yet, and need to increase the high limit
+                    initial_direction = 1;
+                    limit_h *= 2;
+                    limit_c = limit_h;
+                }
+
+            } else if( group_cnt < params.target_group_count ) {
+                // Too few groups --> need smaller low limit, so that we get more groups
+
+                if( initial_direction == 1 ) {
+                    // We were growing first, but now undershot --> found the boundaries!
+                    found_boundaries = true;
+                    limit_c = ( limit_l + limit_h ) / 2;
+                } else {
+                    // Otherwise, we are not done yet, and need to decrease the low limit
+                    initial_direction = -1;
+                    limit_l /= 2;
+                    limit_c = limit_l;
+                }
+
+            } else {
+                // Exactly right --> we just got lucky, and can stop here
+                break;
+            }
+        } else {
+            // In the second phase, we run a binary search on the group sizes: Narrow in
+            // on the low and high limit until we hit the exact right resulting group count.
+            // Above, we have the additional exit condition that if both low and high are equal,
+            // we also stop, as at that point the search revealed that we cannot get closer to
+            // the target size than with the limits at that point.
+            if( group_cnt > params.target_group_count ) {
+                limit_l = limit_c;
+            } else if( group_cnt < params.target_group_count ) {
+                limit_h = limit_c;
+            } else {
+                assert( group_cnt == params.target_group_count );
+                break;
+            }
+            limit_c = ( limit_l + limit_h ) / 2;
+        }
+    }
+
+    return limit_c;
 }
 
 size_t count_taxon_groups( Taxonomy const& tax )
 {
-    size_t result = 0;
+    // Iterate the taxonomy, recursing on expanded taxa, and counting unique group indices
+    // for the taxa that are assigned to groups.
+    std::unordered_set<size_t> group_indices;
     std::function<void(Taxonomy const&)> recursion_ = [&]( Taxonomy const& taxon ){
         for( auto const& child : taxon ) {
             auto& data = child.data<KmerTaxonData>();
             switch( data.group_status ) {
                 case KmerTaxonData::GroupStatus::kAssigned: {
-                    ++result;
+                    // For taxa that have been assigne to a group, collect their indices.
+                    // As multiple taxa can be assigned to the same group (if the combined
+                    // sizes are still within the limits of TaxonGroupingLimits),
+                    // we need to count unique group indices here.
+                    if( data.group_index == std::numeric_limits<size_t>::max() ) {
+                        throw std::invalid_argument(
+                            "Invalid KmerTaxonData::GroupStatus, invalid group index"
+                        );
+                    }
+                    group_indices.insert( data.group_index );
                     break;
                 }
                 case KmerTaxonData::GroupStatus::kExpanded: {
+                    // For taxa that have been expanded (because they are too big),
+                    // we recurse instead.
                     recursion_( child );
                     break;
                 }
@@ -277,7 +414,19 @@ size_t count_taxon_groups( Taxonomy const& tax )
         }
     };
     recursion_( tax );
-    return result;
+
+    // Assert that group indices are consecutive.
+    assert( [&](){
+        for( size_t i = 0; i < group_indices.size(); ++i ) {
+            if( group_indices.count( i ) == 0 ) {
+                return false;
+            }
+        }
+        return true;
+    }() );
+
+    // The number of groups is given by the number of unique group indices.
+    return group_indices.size();
 }
 
 // --------------------------------------------------------------------------

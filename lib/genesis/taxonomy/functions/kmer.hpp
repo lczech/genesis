@@ -62,7 +62,7 @@ class Taxonomy;
  * and we have to live with its size, no matter what it is, as we do not further sub-split taxon
  * groups in the current implementation.
  */
-struct TaxonGroupingSettings
+struct TaxonGroupingLimits
 {
     /**
      * @brief Limit for the number of sequences (accessions) that are put into a group.
@@ -86,6 +86,47 @@ struct TaxonGroupingSettings
 };
 
 /**
+ * @brief Settings for group_with_target_number_of_groups()
+ *
+ * This is used for the binary search to approximate a given target number of groups of taxa.
+ * Note that only one of the two `initial_` settings for one of the two limits of TaxonGroupingLimits
+ * can be non-zero. This will then be the variable that is changed in between iterations of the
+ * search to approximate the target number of groups.
+ */
+struct TaxonGroupingSearchParams
+{
+    /**
+     * @brief Target number of groups of taxa to approximate.
+     */
+    size_t target_group_count = 0;
+
+    /**
+     * @brief Approximate the number of groups by changing the maximum number of sequences per group,
+     * starting at this value.
+     *
+     * If set to non-zero, this is the starting value to evaluate the number of groups
+     * resulting from group_by_taxon_sizes() when running the grouping with a limit on the number
+     * of sequences per group.
+     */
+    size_t initial_group_num_sequences = 0;
+
+    /**
+     * @brief Approximate the number of groups by changing the maximum combined length of sequences
+     * per group, starting at this value.
+     *
+     * If set to non-zero, this is the starting value to evaluate the number of groups
+     * resulting from group_by_taxon_sizes() when running the grouping with a limit on the combined
+     * length of sequences per group.
+     */
+    size_t initial_group_sum_seq_lengths = 0;
+
+    /**
+     * @brief See TaxonGroupingLimits. Repeated here for ease of usage.
+     */
+    bool merge_sibling_taxa = true;
+};
+
+/**
  * @brief Given a @p taxonomy with data entries of type KmerTaxonData, propagate and accumulate
  * count values towards the root.
  *
@@ -103,14 +144,42 @@ void accumulate_taxon_sizes( Taxonomy& tax );
 /**
  * @brief Construct groups of taxa based on the counts of sequences and their lengths.
  *
- * This uses the taxonomy to guide the groups, and builds them following the constraints
- * of the provided settings. The result is an assignemnt of each groupd taxon to a group,
- * where however taxa on the higher ranks might be unassigned.
+ * This uses the taxonomy to guide the grouping, and builds them following the constraints
+ * of the provided settings (maximum number of sequences per group, and/or maximum combined length
+ * of all sequences in a group). The result is an assignemnt of each grouped taxon to a group,
+ * where however taxa on the higher ranks might be unassigned, if they are too big (by either
+ * maximum) to form a group of their own. In other words, higher ranks build the "trunk" of the
+ * groups, and leaves of that trunk form groups that (as best as possible) stay within the given
+ * size limits.
+ *
+ * We also try to combine sibling taxa into groups if their combined sizes are within the limits.
+ * This is done in order to reduce the number of groups as far as possible.
+ * Note that it can happen that a single taxon exceeds the given maxima. In that case, it will form
+ * a group of its own, with no siblings combined.
  *
  * The prerequisite of the function is that the Taxonomy has data type KmerTaxonData, and that
  * the KmerTaxonData::num_sequences and KmerTaxonData::sum_seq_lengths values are set.
  */
-void group_by_taxon_sizes( TaxonGroupingSettings const& settings, Taxonomy& tax );
+void group_by_taxon_sizes( TaxonGroupingLimits const& settings, Taxonomy& tax );
+
+/**
+ * @brief Construct groups of taxa based on the counts of sequences and their lengths,
+ * such that a given number of groups is approximated.
+ *
+ * This runs a binary search on group_by_taxon_sizes(), trying to get the resulting number of groups
+ * as close as possible to the target size. This might not be completely feasible, and the algorithm
+ * will stop if no changes in the limits get closer to the target size.
+ *
+ * This can only run by either considering the number of sequences *or* their total length as the
+ * variable that is changed in between iterations of the search. That variable is expanded at first
+ * to find the boundaries of the search that include the target number of groups, and then runs
+ * binary search within those boundaries to find the best fitting limit.
+ *
+ * The function returns the value used for the limit that led to the final grouping. That value
+ * is either a max number of sequences per group, or max combined length of sequences per group,
+ * depending on which initial value was set in TaxonGroupingSearchParams.
+ */
+size_t group_with_target_number_of_groups( TaxonGroupingSearchParams const& params, Taxonomy& tax );
 
 /**
  * @brief Count the number of groups that were constructed by group_by_taxon_sizes().
