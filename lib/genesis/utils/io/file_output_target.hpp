@@ -63,7 +63,7 @@ public:
      */
     explicit FileOutputTarget(
         std::string const& file_name,
-        std::ios_base::openmode mode = std::ios_base::out
+        std::ios_base::openmode mode = std::ios_base::out | std::ios_base::binary
     )
         : file_name_( file_name )
         , mode_( mode )
@@ -122,7 +122,7 @@ private:
 
     // User provided target
     std::string file_name_;
-    std::ios_base::openmode mode_ = std::ios_base::out;
+    std::ios_base::openmode mode_ = std::ios_base::out | std::ios_base::binary;
 
     // Output stream and buffer of 64KB
     std::ofstream stream_;

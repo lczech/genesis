@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ struct SerializerTestData
              int  e;
 };
 
-void init_test_data(SerializerTestData& data)
+void init_test_data( SerializerTestData& data )
 {
     strncpy(data.m, "bytes\0\0\0", 8);
 
@@ -64,7 +64,7 @@ void init_test_data(SerializerTestData& data)
     data.e = 125;
 }
 
-void apply_serializer (Serializer& serial, SerializerTestData& data)
+void apply_serializer( Serializer& serial, SerializerTestData& data )
 {
     serial.put_raw(data.m, 8);
     serial.put_null(10);
@@ -79,7 +79,7 @@ void apply_serializer (Serializer& serial, SerializerTestData& data)
     serial.put_int(data.e);
 }
 
-void apply_deserializer (Deserializer& deser, SerializerTestData& data)
+void apply_deserializer( Deserializer& deser, SerializerTestData& data )
 {
     deser.get_raw(data.m, 8);
     EXPECT_TRUE (deser.get_null(10));
@@ -94,7 +94,7 @@ void apply_deserializer (Deserializer& deser, SerializerTestData& data)
     deser.get_int(data.e);
 }
 
-void compare_data (const SerializerTestData& data_a, const SerializerTestData& data_b)
+void compare_data( SerializerTestData const& data_a, SerializerTestData const& data_b )
 {
     for (size_t i = 0; i < 8; i++) {
         EXPECT_EQ (data_a.m[i], data_b.m[i]);
@@ -108,17 +108,17 @@ void compare_data (const SerializerTestData& data_a, const SerializerTestData& d
     EXPECT_EQ (data_a.e, data_b.e);
 }
 
-TEST(Serializer, ToAndFromStream)
+TEST( Serializer, ToAndFromStream )
 {
     std::ostringstream out;
-    Serializer serial (out);
+    Serializer serial( to_stream( out ));
 
     SerializerTestData input;
     init_test_data(input);
     apply_serializer(serial, input);
 
     std::istringstream in(out.str());
-    Deserializer deser (in);
+    Deserializer deser( from_stream( in ));
 
     SerializerTestData output;
     apply_deserializer(deser, output);
@@ -126,7 +126,7 @@ TEST(Serializer, ToAndFromStream)
     compare_data(input, output);
 }
 
-TEST(Serializer, ToAndFromFile)
+TEST( Serializer, ToAndFromFile )
 {
     // Skip test if no data directory availabe.
     NEEDS_TEST_DATA;
@@ -134,19 +134,14 @@ TEST(Serializer, ToAndFromFile)
     std::string file_name = environment->data_dir + "Serializer.ToAndFromFile.bin";
 
     // Write serialized data to file.
-    Serializer serial (file_name);
+    Serializer serial( to_file( file_name ));
     SerializerTestData input;
     init_test_data(input);
     apply_serializer(serial, input);
     serial.flush();
 
-    // Check if file status is ok.
-    if (!serial) {
-        FAIL() << "Serializer not ok.";
-    }
-
     // Prepare to read from file.
-    Deserializer deser (file_name);
+    Deserializer deser( from_file( file_name ));
     if (!deser) {
         FAIL() << "Deserializer not ok.";
     }
@@ -166,21 +161,21 @@ TEST( Deserializer, MoveAssignment )
 {
     // Write data to stream.
     std::ostringstream out;
-    Serializer serial (out);
+    Serializer serial( to_stream( out ));
     SerializerTestData input;
     init_test_data(input);
     apply_serializer(serial, input);
 
     // Read data from stream.
     std::istringstream in(out.str());
-    Deserializer deser (in);
+    Deserializer deser( from_stream( in ));
     SerializerTestData output;
     apply_deserializer(deser, output);
     compare_data(input, output);
 
     // Move assign and repeat.
     std::istringstream in2(out.str());
-    deser = Deserializer( in2 );
+    deser = Deserializer( from_stream( in2 ));
     SerializerTestData output2;
     apply_deserializer(deser, output2);
     compare_data(input, output2);

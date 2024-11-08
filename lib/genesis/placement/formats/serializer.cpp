@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -66,10 +66,10 @@ unsigned char SampleSerializer::version = 1;
 void SampleSerializer::save( Sample const& map, std::string const& file_name )
 {
     // Prepare.
-    utils::Serializer ser (file_name);
-    if (!ser) {
-        throw std::invalid_argument("Serialization failed.");
-    }
+    utils::Serializer ser( utils::to_file( file_name ));
+    // if (!ser) {
+    //     throw std::invalid_argument("Serialization failed.");
+    // }
 
     // Write header.
     char magic[] = "BPLACE\0\0";
@@ -125,7 +125,7 @@ Sample SampleSerializer::load( std::string const& file_name )
     Sample map;
 
     // Prepare, check stream status.
-    utils::Deserializer des( file_name );
+    utils::Deserializer des( utils::from_file( file_name ));
     if( ! des ) {
         throw std::invalid_argument( "Deserialization failed: Cannot open file." );
     }
