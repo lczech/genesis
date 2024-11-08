@@ -87,6 +87,21 @@ size_t taxon_level( Taxon const& taxon )
     return res;
 }
 
+bool taxon_is_leaf( Taxon const& taxon, bool single_lineage )
+{
+    if( taxon.size() == 0 ) {
+        return true;
+    } else if( single_lineage && taxon.size() == 1 ) {
+        return taxon_is_leaf( taxon.at(0), single_lineage );
+    }
+    return false;
+}
+
+bool taxon_is_single_lineage( Taxon const& taxon )
+{
+    return taxon_is_leaf( taxon, true );
+}
+
 size_t total_taxa_count( Taxonomy const& tax )
 {
     size_t count = tax.size();

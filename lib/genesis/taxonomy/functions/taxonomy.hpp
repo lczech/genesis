@@ -224,6 +224,23 @@ Taxon* find_taxon_by_id( Taxonomy& tax, uint64_t id, SearchStrategy strat )
 size_t taxon_level( Taxon const& taxon );
 
 /**
+ * @brief Return if the Taxon is a leaf.
+ *
+ * This is always true if it has no children. If also @p single_lineage is set, we also consider
+ * taxa as being leaves if they only have a single chain of taxa as children, i.e., the given
+ * taxon has only one child, who itself only has one child, etc, until an actual leaf taxon.
+ */
+bool taxon_is_leaf( Taxon const& taxon, bool single_lineage = false );
+
+/**
+ * @brief Return if the Taxon only contains a chain of single lineage children.
+ *
+ * This is the same as taxon_is_leaf() with `single_lineage == true`, see there for details.
+ * This function exists for code expressiveness, i.e., to document intention better.
+ */
+bool taxon_is_single_lineage( Taxon const& taxon );
+
+/**
  * @brief Return the total number of taxa contained in the Taxomony, i.e., the number of
  * (non-unique) names of all children (recursively).
  *

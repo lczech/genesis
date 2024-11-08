@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -35,11 +35,11 @@
 #include "genesis/taxonomy/formats/taxopath_parser.hpp"
 #include "genesis/taxonomy/functions/taxonomy.hpp"
 #include "genesis/taxonomy/functions/taxopath.hpp"
+#include "genesis/taxonomy/iterator/preorder.hpp"
+#include "genesis/taxonomy/printers/nested.hpp"
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/taxonomy/taxopath.hpp"
-
-#include "genesis/taxonomy/printers/nested.hpp"
 
 using namespace genesis;
 using namespace genesis::taxonomy;
@@ -96,4 +96,33 @@ TEST( Taxonomy, Counts )
         { "genus",  9 }
     };
     EXPECT_EQ( rank_count_ref, rank_count );
+}
+
+TEST( Taxonomy, IsLeaf )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Read the test taxonomy
+    std::string const infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.ordered";
+    auto const tax = TaxonomyReader().read( utils::from_file( infile ));
+
+    size_t il_cnt = 0;
+    size_t is_cnt = 0;
+
+    // Test the leaf function
+    for( auto const& taxon : preorder( tax )) {
+        int const il = taxon_is_leaf( taxon );
+        int const is = taxon_is_single_lineage( taxon );
+
+        // A leaf always also is a single lineage, and a non-single lineage is never a leaf.
+        EXPECT_TRUE( !il || is );
+        il_cnt += il;
+        is_cnt += is;
+
+        // LOG_DBG << il << " " << is << " " << TaxopathGenerator().to_string( taxon );
+    }
+
+    EXPECT_EQ( 16, il_cnt );
+    EXPECT_EQ( 24, is_cnt );
 }

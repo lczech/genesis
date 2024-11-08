@@ -67,7 +67,7 @@ namespace taxonomy {
 // =================================================================================================
 
 // --------------------------------------------------------------------------
-//     Grouping Algorithm
+//     accumulate_taxon_sizes
 // --------------------------------------------------------------------------
 
 void accumulate_taxon_sizes( Taxonomy& tax )
@@ -92,6 +92,10 @@ void accumulate_taxon_sizes( Taxonomy& tax )
         }
     });
 }
+
+// --------------------------------------------------------------------------
+//     group_by_taxon_sizes
+// --------------------------------------------------------------------------
 
 /**
  * @brief Local helper function to check if a given taxon size exceeds the limits.
@@ -166,13 +170,13 @@ void group_by_taxon_sizes_process_taxon_(
         auto& child_data = child_taxon.data<KmerTaxonData>();
 
         // Determine if this taxon is too big or small enough to be (part of) a single group.
-        // If it is too big, and has children, we expand it. It can however happen that a taxon
-        // is too big for our limits, but has no children (meaning, all ref sequences are assigned
-        // to that one leaf taxon). In that case, we just have to live with a large group.
+        // If it is too big, and has multiple children, we expand it. It can however happen that
+        // a taxon is too big for our limits, but has no children (meaning, all ref sequences are
+        // assigned to that one leaf taxon). In that case, we just have to live with a large group.
         bool const exceeds_limits = exceeds_group_sizes_(
             limits, child_data.clade_num_sequences, child_data.clade_sum_seq_lengths
         );
-        if( exceeds_limits && child_taxon.size() > 0 ) {
+        if( exceeds_limits && !taxon_is_single_lineage( child_taxon )) {
             child_data.group_status = KmerTaxonData::GroupStatus::kExpanded;
             group_by_taxon_sizes_process_taxon_( limits, child_taxon, next_index );
 
@@ -254,6 +258,10 @@ void group_by_taxon_sizes(
     group_by_taxon_sizes_process_taxon_( limits, tax, next_index );
 }
 
+// --------------------------------------------------------------------------
+//     group_with_target_number_of_groups
+// --------------------------------------------------------------------------
+
 size_t group_with_target_number_of_groups( TaxonGroupingSearchParams const& params, Taxonomy& tax )
 {
     // We can only use one variable to limit our search.
@@ -291,7 +299,10 @@ size_t group_with_target_number_of_groups( TaxonGroupingSearchParams const& para
     // in which case we cannot get any closer to our target number of groups.
     while( true ) {
 
-        // Construct groups with the current limits
+        // Construct groups with the current limits.
+        // Depending on whether the given params want us to modify the number of sequences,
+        // or their total combined length per group, we set the internal "limit" here, which can
+        // be either of those two variables.
         TaxonGroupingLimits limits;
         if( params.initial_group_num_sequences != 0 ) {
             limits.max_group_num_sequences = limit_c;
@@ -324,15 +335,18 @@ size_t group_with_target_number_of_groups( TaxonGroupingSearchParams const& para
             // Initially, in the first phase, we need to find the boundaries for the binary search
 
             if( group_cnt > params.target_group_count ) {
-                // Too many groups --> need larger high limit, so that we get fewer groups
+                // Too many groups --> need larger high limit (for the number of sequences in the
+                // group, or their total length), so that we get fewer groups.
 
                 if( initial_direction == -1 ) {
                     // We were shrinking first, but now overshot --> found the boundaries!
                     found_boundaries = true;
                     limit_c = ( limit_l + limit_h ) / 2;
                 } else {
-                    // Otherwise, we are not done yet, and need to increase the high limit
+                    // Otherwise, we are not done yet, and need to increase the high limit.
+                    // We also increase the low limit, as it is too low.
                     initial_direction = 1;
+                    limit_l = limit_h;
                     limit_h *= 2;
                     limit_c = limit_h;
                 }
@@ -345,8 +359,10 @@ size_t group_with_target_number_of_groups( TaxonGroupingSearchParams const& para
                     found_boundaries = true;
                     limit_c = ( limit_l + limit_h ) / 2;
                 } else {
-                    // Otherwise, we are not done yet, and need to decrease the low limit
+                    // Otherwise, we are not done yet, and need to decrease the low limit.
+                    // We also decrease the high limit, as it is too high.
                     initial_direction = -1;
+                    limit_h = limit_l;
                     limit_l /= 2;
                     limit_c = limit_l;
                 }
@@ -375,6 +391,10 @@ size_t group_with_target_number_of_groups( TaxonGroupingSearchParams const& para
 
     return limit_c;
 }
+
+// --------------------------------------------------------------------------
+//     count_taxon_groups
+// --------------------------------------------------------------------------
 
 size_t count_taxon_groups( Taxonomy const& tax )
 {
@@ -429,8 +449,12 @@ size_t count_taxon_groups( Taxonomy const& tax )
     return group_indices.size();
 }
 
-// --------------------------------------------------------------------------
+// =================================================================================================
 //     User Reporting
+// =================================================================================================
+
+// --------------------------------------------------------------------------
+//     grouped_taxonomy_trunk
 // --------------------------------------------------------------------------
 
 void grouped_taxonomy_trunk_( Taxonomy const& tax, Taxonomy& result )
@@ -491,6 +515,10 @@ Taxonomy grouped_taxonomy_trunk( Taxonomy const& tax )
     grouped_taxonomy_trunk_( tax, result );
     return result;
 }
+
+// --------------------------------------------------------------------------
+//     grouped_taxonomy_report
+// --------------------------------------------------------------------------
 
 std::string grouped_taxonomy_report( Taxonomy const& tax )
 {
@@ -579,7 +607,7 @@ std::string grouped_taxonomy_report( Taxonomy const& tax )
 // =================================================================================================
 
 // --------------------------------------------------------------------------
-//     Group List
+//     write_taxonomy_grouping_to_json
 // --------------------------------------------------------------------------
 
 void fill_json_array_with_taxonomy_groups_(
@@ -644,7 +672,7 @@ void write_taxonomy_grouping_to_json(
 }
 
 // --------------------------------------------------------------------------
-//     Write Taxonomy
+//     write_kmer_taxonomy_to_json
 // --------------------------------------------------------------------------
 
 void write_kmer_taxonomy_to_json(
@@ -718,7 +746,7 @@ void write_kmer_taxonomy_to_json(
 }
 
 // --------------------------------------------------------------------------
-//     Read Taxonomy
+//     read_kmer_taxonomy_from_json
 // --------------------------------------------------------------------------
 
 Taxonomy read_kmer_taxonomy_from_json(

@@ -53,6 +53,10 @@ class Taxonomy;
 //     Taxon Count Grouping
 // =================================================================================================
 
+// -------------------------------------------------------------------------
+//     Settings
+// -------------------------------------------------------------------------
+
 /**
  * @brief Settings for group_by_taxon_sizes()
  *
@@ -126,6 +130,10 @@ struct TaxonGroupingSearchParams
     bool merge_sibling_taxa = true;
 };
 
+// -------------------------------------------------------------------------
+//     Functions
+// -------------------------------------------------------------------------
+
 /**
  * @brief Given a @p taxonomy with data entries of type KmerTaxonData, propagate and accumulate
  * count values towards the root.
@@ -147,14 +155,14 @@ void accumulate_taxon_sizes( Taxonomy& tax );
  * This uses the taxonomy to guide the grouping, and builds them following the constraints
  * of the provided settings (maximum number of sequences per group, and/or maximum combined length
  * of all sequences in a group). The result is an assignemnt of each grouped taxon to a group,
- * where however taxa on the higher ranks might be unassigned, if they are too big (by either
- * maximum) to form a group of their own. In other words, higher ranks build the "trunk" of the
- * groups, and leaves of that trunk form groups that (as best as possible) stay within the given
- * size limits.
+ * where however taxa on the higher ranks might be unassigned, if they are too big (by either of the
+ * provided maximum limits) to form a group of their own. In other words, higher ranks build the
+ * "trunk" of the groups, and leaves of that trunk form groups that (as best as possible) stay
+ * within the given size limits.
  *
  * We also try to combine sibling taxa into groups if their combined sizes are within the limits.
- * This is done in order to reduce the number of groups as far as possible.
- * Note that it can happen that a single taxon exceeds the given maxima. In that case, it will form
+ * This is done in order to reduce the number of groups as far as possible (within the given limits).
+ * Note that it can happen that a single taxon exceeds the given limits. In that case, it will form
  * a group of its own, with no siblings combined.
  *
  * The prerequisite of the function is that the Taxonomy has data type KmerTaxonData, and that
@@ -163,17 +171,18 @@ void accumulate_taxon_sizes( Taxonomy& tax );
 void group_by_taxon_sizes( TaxonGroupingLimits const& settings, Taxonomy& tax );
 
 /**
- * @brief Construct groups of taxa based on the counts of sequences and their lengths,
- * such that a given number of groups is approximated.
+ * @brief Construct groups of taxa based on the counts of sequences or their lengths,
+ * such that a given number of groups is approximately reached.
  *
  * This runs a binary search on group_by_taxon_sizes(), trying to get the resulting number of groups
  * as close as possible to the target size. This might not be completely feasible, and the algorithm
  * will stop if no changes in the limits get closer to the target size.
  *
  * This can only run by either considering the number of sequences *or* their total length as the
- * variable that is changed in between iterations of the search. That variable is expanded at first
- * to find the boundaries of the search that include the target number of groups, and then runs
- * binary search within those boundaries to find the best fitting limit.
+ * variable that is changed in between iterations of the search. In the first phase of the algorithm,
+ * that variable is modified to find the boundaries of the search that include the target number of
+ * groups. In the second phase, the algorithm then runs a binary search within those boundaries to
+ * find the best fitting values.
  *
  * The function returns the value used for the limit that led to the final grouping. That value
  * is either a max number of sequences per group, or max combined length of sequences per group,
