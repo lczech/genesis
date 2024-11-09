@@ -127,7 +127,7 @@ namespace utils {
 
 // Since C++20, there are attributes to help the compiler with branch prediction.
 // We use them when available, and otherwise set them to empty statements.
-#if GENESIS_CPP_STD >= GENESIS_CPP_STD_20
+#if ( GENESIS_CPP_STD >= GENESIS_CPP_STD_20 ) && __has_cpp_attribute( likely ) && __has_cpp_attribute( unlikely )
     #define GENESIS_CPP_LIKELY   [[likely]]
     #define GENESIS_CPP_UNLIKELY [[unlikely]]
 #else
@@ -218,6 +218,26 @@ struct genesis_invoke_result
         using type = typename std::result_of<typename std::decay<F>::type(Args...)>::type;
     #endif
 };
+
+template <typename T, typename = void>
+struct is_container : std::false_type {};
+
+/**
+ * @brief Helper trait to detect if T has an iterator, i.e., offers begin() and end() functions,
+ * indicating it is a container.
+ */
+template <typename T>
+struct is_container<
+    T, std::void_t<
+        typename T::value_type,
+        decltype(std::declval<T>().begin()),
+        decltype(std::declval<T>().end())
+    >
+> : std::true_type {};
+
+// // Specialization to explicitly exclude std::string from being a container
+// template <>
+// struct is_container<std::string> : std::false_type {};
 
 // =================================================================================================
 //     Hash Helpers

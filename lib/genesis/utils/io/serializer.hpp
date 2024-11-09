@@ -39,6 +39,7 @@
 #include "genesis/utils/io/output_target.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstring>
 #include <fstream>
@@ -46,6 +47,8 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
+#include <vector>
 
 namespace genesis {
 namespace utils {
@@ -83,80 +86,53 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Serialization Raw
+    //     Serialization
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Write `n` zero bytes (`\0`) to the stream.
+     * @brief Serialize raw data, provided as a char array of length `n`, to the stream.
      */
-    inline void put_null( size_t n = 1 )
-    {
-        for( size_t i = 0; i < n; ++i ) {
-            target_->ostream().put( 0 );
-        }
-    }
-
-    /**
-     * @brief Write raw data, provided as a char array of length `n`, to the stream.
-     */
-    inline void put_raw( char const* data, size_t n )
+    inline void put( char const* data, size_t n )
     {
         target_->ostream().write( data, n );
     }
 
     /**
-     * @brief Write plain data to the stream, by casting it to a char array.
+     * @brief Serialize trivial types to the stream, by casting it to a char array.
      */
     template<typename T>
-    inline void put_plain( T const v )
+    inline
+    typename std::enable_if<std::is_trivially_copyable<T>::value>::type
+    put( T const& value )
     {
-        target_->ostream().write( reinterpret_cast<char const*>( &v ), sizeof(v));
+        target_->ostream().write( reinterpret_cast<char const*>( &value ), sizeof(T));
     }
 
-    // -------------------------------------------------------------------------
-    //     Serialization Types
-    // -------------------------------------------------------------------------
-
     /**
-     * @brief Write raw data, provided as a string, to the stream, without writing its length.
+     * @brief Serialize a string, preceeded by its length, to the stream.
      */
-    inline void put_raw_string( std::string const& v )
+    inline void put( std::string const& str )
     {
-        target_->ostream().write( v.c_str(), v.length() );
+        put( str.size() );
+        target_->ostream().write( str.data(), str.size() );
     }
 
     /**
-     * @brief Write a string, preceded by its length, to the stream. Use get_string() to read it.
-     */
-    inline void put_string( std::string const& v )
-    {
-        size_t len = v.length();
-        put_int(len);
-        put_raw_string(v);
-    }
-
-    /**
-     * @brief Write an integer number to the stream.
+     * @brief Serialize the contents of a container (`std::vector`, `std::array` etc)
+     * of other serializable types to the stream.
      *
-     * Currently, this simply uses put_plain(), but future versions might change this behaviour and
-     * use specific conversions (litte/big endianness, signed/unsigned) before writing.
+     * This works on any container that exposes the data via `begin()` and `end()` functions,
+     * and has a size() function to get the number of elements.
      */
-    template<typename T>
-    inline void put_int( T const v )
+    template <typename T>
+    inline
+    typename std::enable_if<is_container<T>::value>::type
+    put( T const& container )
     {
-        put_plain(v);
-    }
-
-    /**
-     * @brief Write a floating point number to the stream.
-     *
-     * Currently, this simply uses put_plain(), but future versions might change this behaviour and
-     * convert it to some machine-independent format.
-     */
-    template<typename T>
-    inline void put_float( T const v )
-    {
-        put_plain(v);
+        put( container.size() );
+        for( auto const& element : container ) {
+            put( element );
+        }
     }
 
     // -------------------------------------------------------------------------

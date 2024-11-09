@@ -38,6 +38,7 @@
 #include "genesis/utils/io/output_stream.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstring>
 #include <fstream>
@@ -45,6 +46,8 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
+#include <vector>
 
 namespace genesis {
 namespace utils {
@@ -65,7 +68,7 @@ public:
     // -------------------------------------------------------------------------
 
     explicit Deserializer( std::shared_ptr<BaseInputSource> input_source )
-    : buffer_( input_source )
+        : buffer_( input_source )
     {
         if( !input_source ) {
             throw std::runtime_error( "Cannot create Deserializer from null input source." );
@@ -90,34 +93,17 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Deserialization Raw
+    //     Deserialization Argument
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Reads `n` bytes from the stream and returns whether all of them are `\0` bytes.
-     */
-    inline bool get_null( size_t n )
-    {
-        char* buffer = new char[n];
-        get_raw( buffer, n );
-
-        bool ret = true;
-        for( size_t i = 0; i < n; ++i ) {
-            ret &= (buffer[i] == '\0');
-        }
-
-        delete[] buffer;
-        return ret;
-    }
-
-    /**
-    * @brief Read `n` bytes from the stream and store them in the buffer.
+    * @brief Read `n` bytes from the stream and store them in the data.
     *
-    * The buffer needs to be big enough to hold `n` bytes.
+    * The @p needs to be big enough to hold @p n bytes.
     */
-    inline void get_raw( char* buffer, size_t n )
+    inline void get( char* data, size_t n )
     {
-        size_t const got = buffer_.read( buffer, n );
+        size_t const got = buffer_.read( data, n );
         if( got != n ) {
             throw std::runtime_error(
                 "Could only read " + std::to_string(got)  + " bytes instead of n=" +
@@ -127,88 +113,84 @@ public:
     }
 
     /**
-     * @brief Read as many bytes from the stream as the type T holds, and return them in form of
-     * a value of type T.
+     * @brief Deserialize trivial types to the stream, by casting it from a char array.
      */
-    template<typename T>
-    inline T get_plain()
+    template <typename T>
+    inline
+    typename std::enable_if<std::is_trivially_copyable<T>::value>::type
+    get( T& value )
     {
-        T res;
-        get_raw( reinterpret_cast<char*>( &res ), sizeof(T) );
-        return res;
+        get( reinterpret_cast<char*>( &value ), sizeof(T) );
     }
 
     /**
-     * @brief Read as many bytes from the stream as the type T holds, and put them in the result
-     * value of type T.
+     * @brief Deserialize a string, preceeded by its length, from the stream.
      */
-    template<typename T>
-    inline void get_plain( T& res )
+    inline void get( std::string& str )
     {
-        get_raw( reinterpret_cast<char*>( &res ), sizeof(T) );
+        size_t size = 0;
+        get( size );
+        str.resize( size );
+        get( &str[0], size );
+    }
+
+    /**
+     * @brief Deserialize the contents of a container (`std::vector`, `std::array` etc)
+     * of other serializable types from the stream.
+     */
+    template <typename T>
+    inline
+    typename std::enable_if<is_container<T>::value>::type
+    get( T& container )
+    {
+        size_t size = 0;
+        get( size );
+        container.clear();
+        for( size_t i = 0; i < size; ++i ) {
+            typename T::value_type element;
+            get( element );
+            container.insert( container.end(), std::move( element ));
+        }
     }
 
     // -------------------------------------------------------------------------
-    //     Deserialization Types
+    //     Deserialization Return
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Read `n` bytes from the stream and return them as a string.
+     * @brief For trivially copyable types, return the deserialized value directly.
      */
-    inline std::string get_raw_string( size_t n )
+    template <typename T>
+    inline
+    typename std::enable_if<std::is_trivially_copyable<T>::value, T>::type
+    get()
     {
-        char* buffer = new char[n];
-        get_raw( buffer, n );
+        T data = T{};
+        get( data );
+        return data;
+    }
 
-        std::string str( buffer, n );
-        delete[] buffer;
+    /**
+     * @brief For strings, return the deserialized string.
+     */
+    inline std::string get()
+    {
+        std::string str;
+        get( str );
         return str;
     }
 
     /**
-     * @brief Read a string from the stream, provided that its length it written preceding it, as done
-     * by put_string().
+     * @brief For container types, return the deserialized container.
      */
-    inline std::string get_string()
+    template <typename T>
+    inline
+    typename std::enable_if<is_container<T>::value, T>::type
+    get()
     {
-        size_t len = get_int<size_t>();
-        return get_raw_string(len);
-    }
-
-    /**
-     * @brief Read an integer number from the stream and return it.
-     */
-    template<typename T>
-    inline T get_int()
-    {
-        return get_plain<T>();
-    }
-
-    /**
-     * @brief Read an integer number from the stream and store it in the result.
-     */
-    template<typename T>
-    inline void get_int( T& res )
-    {
-        res = get_plain<T>();
-    }
-
-    /**
-     * @brief Read a floating point number from the stream and return it.
-     */
-    template<typename T>
-    inline T get_float()
-    {
-        return get_plain<T>();
-    }
-
-    /**
-     * @brief Read an floating point number from the stream and store it in the result.
-     */
-    template<typename T>
-    inline void get_float( T& res )
-    {
-        res = get_plain<T>();
+        T container;
+        get( container );
+        return container;
     }
 
     // -------------------------------------------------------------------------
