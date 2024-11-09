@@ -31,6 +31,7 @@
 #include "genesis/utils/math/bitvector.hpp"
 
 #include "genesis/utils/core/std.hpp"
+#include "genesis/utils/math/bit.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -80,14 +81,6 @@ const std::array<Bitvector::IntType, Bitvector::IntSize> Bitvector::ones_mask_ =
     Bitvector::all_1_ >> 12, Bitvector::all_1_ >> 11, Bitvector::all_1_ >> 10, Bitvector::all_1_ >> 9,
     Bitvector::all_1_ >> 8,  Bitvector::all_1_ >> 7,  Bitvector::all_1_ >> 6,  Bitvector::all_1_ >> 5,
     Bitvector::all_1_ >> 4,  Bitvector::all_1_ >> 3,  Bitvector::all_1_ >> 2,  Bitvector::all_1_ >> 1
-}};
-
-const std::array<Bitvector::IntType, 4> Bitvector::count_mask_ =
-{{
-    0x5555555555555555,  //binary: 0101...
-    0x3333333333333333,  //binary: 00110011...
-    0x0f0f0f0f0f0f0f0f,  //binary: 4 zeros, 4 ones...
-    0x0101010101010101   //the sum of 256 to the power of 0,1,2,3...
 }};
 
 // =============================================================================
@@ -318,7 +311,7 @@ size_t Bitvector::count() const
     // Use bit trickery to count quickly.
     size_t res = 0;
     for( auto x : data_ ) {
-        res += count_(x);
+        res += pop_count(x);
     }
 
     // safe, but slow version...
@@ -388,12 +381,12 @@ size_t Bitvector::count( size_t first, size_t last ) const
     if( f_wrd_idx == l_wrd_idx ) {
         // Same word. Mask out the bits we don't want, using only the bits that remained after
         // filtering both words (which are the same, just different ends of the word), then count.
-        result = count_( f_word & l_word );
+        result = pop_count( f_word & l_word );
     } else {
         // Count the first and last word, and then add everything in between the two.
-        result = count_( f_word ) + count_( l_word );
+        result = pop_count( f_word ) + pop_count( l_word );
         for( size_t i = f_wrd_idx + 1; i < l_wrd_idx; ++i ) {
-            result += count_( data_[i] );
+            result += pop_count( data_[i] );
         }
     }
     return result;
@@ -598,23 +591,6 @@ void Bitvector::unset_padding_()
         //~ data_.back() &= ~bit_mask_[i];
     //~ }
     //~ data_.back() &= bit_mask_[size_ % IntSize] - 1;
-}
-
-size_t Bitvector::count_( IntType x )
-{
-    // Use some bit magic, see e.g., https://en.wikipedia.org/wiki/Hamming_weight
-
-    // put count of each 2 bits into those 2 bits
-    x -= (x >> 1) & count_mask_[0];
-
-    // put count of each 4 bits into those 4 bits
-    x = (x & count_mask_[1]) + ((x >> 2) & count_mask_[1]);
-
-    // put count of each 8 bits into those 8 bits
-    x = (x + (x >> 4)) & count_mask_[2];
-
-    // take left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
-    return (x * count_mask_[3]) >> 56;
 }
 
 // =============================================================================

@@ -29,6 +29,7 @@
  */
 
 #include "genesis/utils/math/bitvector/operators.hpp"
+#include "genesis/utils/math/bit.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -191,23 +192,60 @@ bool is_superset( Bitvector const& super, Bitvector const& sub )
 
 double jaccard_similarity( Bitvector const& lhs, Bitvector const& rhs )
 {
-    // Compute sizes of the intersection and the union.
-    // Throws an exception in the and/or operators if the bitvectors are of different length.
-    auto const i = ( lhs & rhs ).count();
-    auto const u = ( lhs | rhs ).count();
-    assert( lhs.size() == rhs.size() );
+    if( lhs.size() != rhs.size() ) {
+        throw std::invalid_argument(
+            "Cannot compute Jaccard similarity between Bitvectors of different size"
+        );
+    }
+
+    // Shorthands
+    auto const& lhs_data = lhs.data();
+    auto const& rhs_data = rhs.data();
+
+    // Use the bitvector data directly to count
+    // the number of bits in the intersection and the union
+    size_t sum_i = 0;
+    size_t sum_u = 0;
+    for( size_t i = 0; i < lhs_data.size(); ++i ) {
+        sum_i += pop_count( lhs_data[i] & rhs_data[i] );
+        sum_u += pop_count( lhs_data[i] | rhs_data[i] );
+    }
+
+    // Alternative (10x slower) way using bitvector operations.
+    // auto const sum_i = ( lhs & rhs ).count();
+    // auto const sum_u = ( lhs | rhs ).count();
 
     // Compute the index, taking care of the edge case.
-    if( u == 0 ) {
-        assert( i == 0 );
+    if( sum_u == 0 ) {
+        assert( sum_i == 0 );
         return 0.0;
     }
-    return static_cast<double>( i ) / static_cast<double>( u );
+    return static_cast<double>( sum_i ) / static_cast<double>( sum_u );
 }
 
 double jaccard_distance( Bitvector const& lhs, Bitvector const& rhs )
 {
     return 1.0 - jaccard_similarity( lhs, rhs );
+}
+
+size_t hamming_distance( Bitvector const& lhs, Bitvector const& rhs )
+{
+    if( lhs.size() != rhs.size() ) {
+        throw std::invalid_argument(
+            "Cannot compute Hamming distance between Bitvectors of different size"
+        );
+    }
+
+    // Shorthands
+    auto const& lhs_data = lhs.data();
+    auto const& rhs_data = rhs.data();
+
+    // Use the bitvector data directly to count the number of resulting bits.
+    size_t sum = 0;
+    for( size_t i = 0; i < lhs_data.size(); ++i ) {
+        sum += pop_count( lhs_data[i] ^ rhs_data[i] );
+    }
+    return sum;
 }
 
 // -------------------------------------------------------------------------

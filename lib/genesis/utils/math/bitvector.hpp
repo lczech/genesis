@@ -413,11 +413,6 @@ private:
      */
     void unset_padding_();
 
-    /**
-     * @brief Internal helper to count the number of bits set in a word.
-     */
-    static size_t count_( IntType x );
-
     static const IntType all_0_;
     static const IntType all_1_;
 
@@ -441,14 +436,6 @@ private:
      * This mask is used for unsetting the padding bits in unset_padding_().
      */
     static const std::array<IntType, IntSize> ones_mask_;
-
-    /**
-     * @brief Special masks used for quickly counting the number of set bits.
-     *
-     * See count_() for our usage, and see https://en.wikipedia.org/wiki/Hamming_weight for
-     * the underlying algorithm.
-     */
-    static const std::array<IntType, 4> count_mask_;
 
     // ---------------------------------------------------------
     //     Data Members

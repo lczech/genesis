@@ -166,8 +166,8 @@ bool is_superset( Bitvector const& super, Bitvector const& sub );
  * @brief Compute the Jaccard index (Jaccard similarity coefficient) for two Bitvector%s
  * of the same size.
  *
- * This is simply the intersection size divided by the union size of the Bitvectors,
- * where size measures the number of bits set.
+ * This is simply the count of bits in the intersection divided by the count of bits in the union
+ * of the Bitvectors.
  */
 double jaccard_similarity( Bitvector const& lhs, Bitvector const& rhs );
 
@@ -177,6 +177,12 @@ double jaccard_similarity( Bitvector const& lhs, Bitvector const& rhs );
  * This dissimilarity is simply 1 - jaccard_similarity().
  */
 double jaccard_distance( Bitvector const& lhs, Bitvector const& rhs );
+
+/**
+ * @brief Compute the Hamming distance between two Bitvector%s,
+ * i.e., the Hamming weight (pop count) of the `xor` of the inputs.
+ */
+size_t hamming_distance( Bitvector const& lhs, Bitvector const& rhs );
 
 // -------------------------------------------------------------------------
 //     Sorting

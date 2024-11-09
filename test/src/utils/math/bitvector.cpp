@@ -43,6 +43,17 @@
 
 using namespace genesis::utils;
 
+Bitvector make_random_bitvector_( size_t size )
+{
+    auto bv = Bitvector( size );
+    for( size_t i = 0; i < size; ++i ) {
+        auto const p = ( std::rand() % size );
+        bv.flip( p );
+    }
+    // LOG_DBG << bv;
+    return bv;
+}
+
 TEST( Bitvector, Arithmetics )
 {
     Bitvector const bv0( "010101010101" );
@@ -291,6 +302,39 @@ TEST( Bitvector, JaccardIndex )
     EXPECT_EQ( 1.0 - 3.0 / 4.0, jaccard_distance(   p1, p2 ));
 }
 
+// TEST( Bitvector, JaccardIndexSpeed )
+// {
+//     std::srand(std::time(nullptr));
+//
+//     size_t const s = 2000;
+//     size_t const n = 2000;
+//
+//     LOG_TIME << "make bvs";
+//     auto bvs = std::vector<Bitvector>( n );
+//     for( size_t i = 0; i < n; ++i ) {
+//         bvs[i] = make_random_bitvector_( s );
+//     }
+//
+//     LOG_TIME << "compute jaccard";
+//     double sum = 0.0;
+//     for( size_t i = 0; i < n; ++i ) {
+//         for( size_t j = 0; j < n; ++j ) {
+//             auto const js = jaccard_similarity( bvs[i], bvs[j] );
+//             EXPECT_LE( js, 1.0 );
+//             EXPECT_GE( js, 0.0 );
+//             sum += js;
+//         }
+//     }
+//     LOG_TIME << "done " << sum;
+// }
+
+TEST( Bitvector, HammingDistance )
+{
+    auto const p1 = Bitvector( "10110" );
+    auto const p2 = Bitvector( "10011" );
+    EXPECT_EQ( 2, hamming_distance( p1, p2 ));
+}
+
 TEST( Bitvector, SetRange )
 {
     // We do an exhaustive test, because why not.
@@ -416,19 +460,14 @@ TEST( Bitvector, CountRangeFuzzy )
 
         // Size of the bitvector
         size_t const size = std::rand() % max_size;
-        auto bv = Bitvector( size );
 
         // Edge case. Nothing to test.
         if( size == 0 ) {
             continue;
         }
 
-        // Set some random bits
-        for( size_t i = 0; i < size; ++i ) {
-            auto const p = ( std::rand() % size );
-            bv.flip( p );
-        }
-        // LOG_DBG << bv;
+        // Get some random bits
+        auto const bv = make_random_bitvector_( size );
 
         // Get random positions between which to count.
         size_t s = std::rand() % size;
