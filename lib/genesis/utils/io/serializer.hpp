@@ -45,6 +45,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <ostream>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -58,7 +59,20 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Serialize values or containers and write them to a binary output target.
+ *
+ * The class provides the basic functions to serialize data types into binary streams,
+ * for trivially copyable types, std::strings, and containers.
+ *
+ * The most convenient way to use this is via the streaming `operator << ()` overloads of this class:
+ *
+ *     Serializer serial( to_file( "my_file.bin" ));
+ *     serial << data;
+ *
+ * The operator can also be overloaded for user-defined types as needed, and will then also be
+ * automatically usable for containers of these types.
+ *
+ * @see Deserializer for the equalivalent class to load those data again.
  */
 class Serializer
 {
@@ -144,6 +158,56 @@ private:
     std::shared_ptr<BaseOutputTarget> target_;
 
 };
+
+// =================================================================================================
+//     Streaming Functions
+// =================================================================================================
+
+/**
+ * @brief Generic operator<< template for trivial non-container types to stream to a Serializer.
+ */
+template <typename T>
+inline typename std::enable_if<!is_container<T>::value, Serializer&>::type
+operator<<( Serializer& serializer, T const& value )
+{
+    serializer.put( value );
+    return serializer;
+}
+
+/**
+ * @brief Specialization of operator<< template for c-strings to stream to a Serializer.
+ */
+inline Serializer& operator<<( Serializer& serializer, char const* cstr )
+{
+    // Convert to std::string to use put for strings
+    serializer.put( std::string( cstr ));
+    return serializer;
+}
+
+/**
+ * @brief Specialization of operator<< template for std::string to stream to a Serializer.
+ */
+inline Serializer& operator<<( Serializer& serializer, std::string const& str )
+{
+    serializer.put( str );
+    return serializer;
+}
+
+/**
+ * @brief Specialization of operator<< template for container types to stream to a Serializer.
+ */
+template <typename Container>
+inline typename std::enable_if<is_container<Container>::value, Serializer&>::type
+operator<<( Serializer& serializer, Container const& container )
+{
+    // Serialize each element individually using operator<< recursively on each element,
+    // so that additional overloads of operator<<() can be defined for user types.
+    serializer << container.size();
+    for( auto const& element : container ) {
+        serializer << element;
+    }
+    return serializer;
+}
 
 } // namespace utils
 } // namespace genesis

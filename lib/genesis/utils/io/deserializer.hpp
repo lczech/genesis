@@ -57,7 +57,20 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Deserialize values or containers from a binary input stream.
+ *
+ * The class provides the basic functions to deserialize data types from binary streams,
+ * for trivially copyable types, std::strings, and containers.
+ *
+ * The most convenient way to use this is via the streaming `operator >> ()` overloads of this class:
+ *
+ *     Deserializer deser( from_file( "my_file.bin" ));
+ *     deser >> data;
+ *
+ * The operator can also be overloaded for user-defined types as needed, and will then also be
+ * automatically usable for containers of these types.
+ *
+ * @see Serializer for the equalivalent class to save those data to a stream.
  */
 class Deserializer
 {
@@ -202,6 +215,83 @@ private:
     InputBuffer buffer_;
 
 };
+
+// =================================================================================================
+//     Streaming Functions
+// =================================================================================================
+
+/**
+ * @brief Generic operator>> template for trivial non-container types to stream from a Deserializer.
+ */
+template <typename T>
+inline typename std::enable_if<!is_container<T>::value, Deserializer&>::type
+operator>>( Deserializer& deserializer, T& value )
+{
+    deserializer.get( value );
+    return deserializer;
+}
+
+/**
+ * @brief Specialization of operator>> template for std::string to stream from a Deserializer.
+ */
+inline Deserializer& operator>>( Deserializer& deserializer, std::string& str )
+{
+    deserializer.get( str );
+    return deserializer;
+}
+
+/**
+ * @brief Specialization of operator>> template for container types to stream from a Deserializer.
+ *
+ * Overload for container types that have reserve(), using SFINAE
+ */
+template <typename Container>
+inline typename std::enable_if<
+    is_container<Container>::value && has_reserve<Container>::value, Deserializer&
+>::type
+operator>>( Deserializer& deserializer, Container& container )
+{
+    // First, deserialize the container size
+    size_t size = 0;
+    deserializer >> size;
+
+    // Clear the container and reserve space
+    container.clear();
+    container.reserve( size );
+
+    // Deserialize each element individually using operator>> recursively on each element,
+    // so that additional overloads of operator>>() can be defined for user types.
+    for( size_t i = 0; i < size; ++i ) {
+        typename Container::value_type element;
+        deserializer >> element;
+        container.insert( container.end(), std::move( element ));
+    }
+
+    return deserializer;
+}
+
+/**
+ * @brief Specialization of operator>> template for container types to stream from a Deserializer.
+ *
+ * Overload for container types that do not have reserve(), using SFINAE
+ */
+template <typename Container>
+inline typename std::enable_if<
+    is_container<Container>::value && !has_reserve<Container>::value, Deserializer&
+>::type
+operator>>( Deserializer& deserializer, Container& container )
+{
+    // Same as above, but without the reserve() call on the container.
+    size_t size = 0;
+    deserializer >> size;
+    container.clear();
+    for( size_t i = 0; i < size; ++i ) {
+        typename Container::value_type element;
+        deserializer >> element;
+        container.insert( container.end(), std::move( element ));
+    }
+    return deserializer;
+}
 
 } // namespace utils
 } // namespace genesis

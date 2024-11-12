@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include <cstdio>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -52,7 +53,9 @@ struct SerializerTestData
 
     std::vector<int> vi;
     std::vector<std::string> vs;
-    std::vector<std::vector<int>> vvi;
+    std::vector<std::vector<int>> vv;
+
+    std::set<int> si;
 };
 
 void init_test_data( SerializerTestData& data )
@@ -69,38 +72,65 @@ void init_test_data( SerializerTestData& data )
     data.vi.push_back( 0 );
     data.vs.push_back( "hello" );
     data.vs.push_back( "world" );
-    data.vvi.push_back( data.vi );
-    data.vvi.push_back( data.vi );
+    data.vv.push_back( data.vi );
+    data.vv.push_back( data.vi );
+
+    data.si.insert({ 1, 2, 3 });
 }
 
 void apply_serializer( Serializer& serial, SerializerTestData& data )
 {
-    serial.put(data.m, 8);
-    serial.put(data.a);
-    serial.put(data.b);
-    serial.put(data.c);
-    serial.put(data.d);
-    serial.put(data.e);
-    serial.put(data.s);
+    // serial.put(data.m, 8);
+    // serial.put(data.a);
+    // serial.put(data.b);
+    // serial.put(data.c);
+    // serial.put(data.d);
+    // serial.put(data.e);
+    // serial.put(data.s);
+    //
+    // serial.put( data.vi );
+    // serial.put( data.vs );
+    // serial.put( data.vv );
 
-    serial.put( data.vi );
-    serial.put( data.vs );
-    serial.put( data.vvi );
+    serial << data.m;
+    serial << data.a;
+    serial << data.b;
+    serial << data.c;
+    serial << data.d;
+    serial << data.e;
+    serial << data.s;
+
+    serial << data.vi;
+    serial << data.vs;
+    serial << data.vv;
+    serial << data.si;
 }
 
 void apply_deserializer_args( Deserializer& deser, SerializerTestData& data )
 {
     deser.get(data.m, 8);
-    deser.get(data.a);
-    deser.get(data.b);
-    deser.get(data.c);
-    deser.get(data.d);
-    deser.get(data.e);
-    deser.get(data.s);
 
-    deser.get( data.vi );
-    deser.get( data.vs );
-    deser.get( data.vvi );
+    // deser.get(data.a);
+    // deser.get(data.b);
+    // deser.get(data.c);
+    // deser.get(data.d);
+    // deser.get(data.e);
+    // deser.get(data.s);
+    //
+    // deser.get( data.vi );
+    // deser.get( data.vs );
+    // deser.get( data.vv );
+
+    deser >> data.a;
+    deser >> data.b;
+    deser >> data.c;
+    deser >> data.d;
+    deser >> data.e;
+    deser >> data.s;
+    deser >> data.vi;
+    deser >> data.vs;
+    deser >> data.vv;
+    deser >> data.si;
 }
 
 void apply_deserializer_return( Deserializer& deser, SerializerTestData& data )
@@ -118,7 +148,8 @@ void apply_deserializer_return( Deserializer& deser, SerializerTestData& data )
 
     data.vi = deser.get<decltype(data.vi)>();
     data.vs = deser.get<decltype(data.vs)>();
-    data.vvi = deser.get<decltype(data.vvi)>();
+    data.vv = deser.get<decltype(data.vv)>();
+    data.si = deser.get<decltype(data.si)>();
 }
 
 void compare_data( SerializerTestData const& data_a, SerializerTestData const& data_b )
@@ -135,7 +166,8 @@ void compare_data( SerializerTestData const& data_a, SerializerTestData const& d
 
     EXPECT_EQ (data_a.vi, data_b.vi);
     EXPECT_EQ (data_a.vs, data_b.vs);
-    EXPECT_EQ (data_a.vvi, data_b.vvi);
+    EXPECT_EQ (data_a.vv, data_b.vv);
+    EXPECT_EQ (data_a.si, data_b.si);
 }
 
 TEST( Serializer, ToAndFromStream )

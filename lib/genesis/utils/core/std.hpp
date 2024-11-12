@@ -180,6 +180,10 @@ private:
 //     Helpers for portability between C++ 11 and later
 // =================================================================================================
 
+// -------------------------------------------------------------------------
+//     invoke_result / result_of
+// -------------------------------------------------------------------------
+
 /**
  * @brief Helper to abstract from `std::invoke_result` and `std::result_of`
  * for different C++ standards.
@@ -219,6 +223,10 @@ struct genesis_invoke_result
     #endif
 };
 
+// -------------------------------------------------------------------------
+//     container traits
+// -------------------------------------------------------------------------
+
 template <typename T, typename = void>
 struct is_container : std::false_type {};
 
@@ -238,6 +246,17 @@ struct is_container<
 // // Specialization to explicitly exclude std::string from being a container
 // template <>
 // struct is_container<std::string> : std::false_type {};
+
+// Trait to detect the presence of a reserve method
+template <typename T, typename = void>
+struct has_reserve : std::false_type {};
+
+template <typename T>
+struct has_reserve<T, std::void_t<decltype(std::declval<T&>().reserve(std::declval<size_t>()))>> : std::true_type {};
+
+// Convenience variable template for has_reserve trait
+template <typename T>
+constexpr bool has_reserve_v = has_reserve<T>::value;
 
 // =================================================================================================
 //     Hash Helpers
