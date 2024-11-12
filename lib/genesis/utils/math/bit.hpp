@@ -70,7 +70,7 @@ namespace utils {
  */
 template <typename T>
 inline
-#if defined(__cpp_lib_bitops) || defined(GENESIS_HAS_BUILTIN_POPCOUNT)
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_14 && ( defined(__cpp_lib_bitops) || defined(GENESIS_HAS_BUILTIN_POPCOUNT) )
 constexpr
 #endif
 typename std::enable_if<std::is_unsigned<T>::value, uint64_t>::type
@@ -93,7 +93,6 @@ pop_count( T n )
         } else {
             return __builtin_popcountll( static_cast<unsigned long long>( n ));
         }
-        return 0;
 
     #else
 
