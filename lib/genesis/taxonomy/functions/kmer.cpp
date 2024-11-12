@@ -125,7 +125,7 @@ void assign_children_to_group_(
 ) {
     // Get the data and assert that we are in the right type of taxon
     auto& data = taxon.data<KmerTaxonData>();
-    assert( data.group_status = KmerTaxonData::GroupStatus::kAssigned );
+    assert( data.group_status == KmerTaxonData::GroupStatus::kAssigned );
     assert( data.group_index != std::numeric_limits<size_t>::max() );
 
     // In some previous iteration of the procedur, we already decided that this taxon here is
@@ -298,6 +298,10 @@ size_t group_with_target_number_of_groups( TaxonGroupingSearchParams const& para
     // of groups, or until the binary search finishes (both low and high have the same value),
     // in which case we cannot get any closer to our target number of groups.
     while( true ) {
+
+        // The current limit always is in between the low and high
+        assert( limit_l <= limit_c );
+        assert( limit_c <= limit_h );
 
         // Construct groups with the current limits.
         // Depending on whether the given params want us to modify the number of sequences,

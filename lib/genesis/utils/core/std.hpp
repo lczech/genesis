@@ -227,6 +227,11 @@ struct genesis_invoke_result
 //     container traits
 // -------------------------------------------------------------------------
 
+// Implement void_t for C++11.
+// We are not using the C++17 version here, for simplicity.
+template <typename...>
+using void_t = void;
+
 template <typename T, typename = void>
 struct is_container : std::false_type {};
 
@@ -236,7 +241,7 @@ struct is_container : std::false_type {};
  */
 template <typename T>
 struct is_container<
-    T, std::void_t<
+    T, void_t<
         typename T::value_type,
         decltype(std::declval<T>().begin()),
         decltype(std::declval<T>().end())
@@ -252,7 +257,9 @@ template <typename T, typename = void>
 struct has_reserve : std::false_type {};
 
 template <typename T>
-struct has_reserve<T, std::void_t<decltype(std::declval<T&>().reserve(std::declval<size_t>()))>> : std::true_type {};
+struct has_reserve<
+    T, void_t<decltype(std::declval<T&>().reserve(std::declval<size_t>()))>
+> : std::true_type {};
 
 // Convenience variable template for has_reserve trait
 template <typename T>

@@ -57,12 +57,20 @@ namespace utils {
 //     Pop Count
 // ================================================================================================
 
+// Following the preprocessor documentation for __has_builtin
+// https://gcc.gnu.org/onlinedocs/cpp/_005f_005fhas_005fbuiltin.html
+#ifdef __has_builtin
+#  if __has_builtin(__builtin_popcount) && __has_builtin(__builtin_popcountl) && __has_builtin(__builtin_popcountll)
+#    define GENESIS_HAS_BUILTIN_POPCOUNT
+#  endif
+#endif
+
 /**
  * @brief Compute the pop count (Hamming weight) of an unsigned int.
  */
 template <typename T>
 inline
-#if defined(__cpp_lib_bitops) || (defined(__has_builtin) && __has_builtin(__builtin_popcountll))
+#if defined(__cpp_lib_bitops) || defined(GENESIS_HAS_BUILTIN_POPCOUNT)
 constexpr
 #endif
 typename std::enable_if<std::is_unsigned<T>::value, uint64_t>::type
@@ -75,7 +83,7 @@ pop_count( T n )
         // https://en.cppreference.com/w/cpp/numeric/popcount
         return std::popcount(n);
 
-    #elif defined(__has_builtin) && __has_builtin(__builtin_popcountll)
+    #elif defined(GENESIS_HAS_BUILTIN_POPCOUNT)
 
         // Otherwise, use GCC/Clang intrinsic if available.
         if (sizeof(T) <= sizeof(unsigned int)) {
@@ -111,6 +119,8 @@ pop_count( T n )
 
     #endif
 }
+
+#undef GENESIS_HAS_BUILTIN_POPCOUNT
 
 // ================================================================================================
 //     Bit Extract

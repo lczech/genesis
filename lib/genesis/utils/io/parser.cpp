@@ -266,6 +266,9 @@ size_t parse_unsigned_integer_from_chars_( utils::InputStream& source )
     using namespace utils;
     T x = 0;
 
+    // If we want to use __builtin_mul_overflow here, we should check its existence first,
+    // using __has_builtin first. See genesis/utils/math/bit.hpp for examples.
+
     // Hardcoded base 10. See below for other version that allows to select base.
     auto raise_and_add_ = []( T& val, unsigned char c ) {
         return !(
