@@ -30,6 +30,8 @@
 
 #include "src/common.hpp"
 
+#include "genesis/utils/io/deserializer.hpp"
+#include "genesis/utils/io/serializer.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/random.hpp"
@@ -628,4 +630,43 @@ TEST( Bitvector, FindFirstLastSet )
             EXPECT_EQ( s, bv.find_last_set() );
         }
     }
+}
+
+TEST( Bitvector, Serialization )
+{
+    std::srand(std::time(nullptr));
+
+    // We test that a container of bitvectors also works, and internally test
+    // different sizes that are either exact boundaries, or some arbitrary values.
+    std::vector<Bitvector> bvs;
+    bvs.push_back( make_random_bitvector_( 42 ));
+    bvs.push_back( make_random_bitvector_( 0 ));
+    bvs.push_back( make_random_bitvector_( 512 ));
+    bvs.push_back( make_random_bitvector_( 710 ));
+
+    // Serialize
+    std::ostringstream out;
+    Serializer serial( to_stream( out ));
+    serial << bvs;
+    auto const out_str = out.str();
+
+    // Test that the string has the correct size.
+    // This is a size_t for the outer std::vector, and then for each internal bitvector,
+    // we need its size in bits, its vector size, as well as the data itself.
+    size_t total = sizeof( size_t );
+    for( auto const& bv : bvs ) {
+        total += serialized_bitvector_size( bv );
+        // total += 2 * sizeof( size_t );
+        // total += Bitvector::get_vector_size( bv.size() ) * sizeof( Bitvector::IntType );
+    }
+    EXPECT_EQ( out_str.size(), total );
+
+    // Deserialize again
+    std::istringstream in( out_str );
+    Deserializer deser( from_stream( in ));
+    std::vector<Bitvector> bvs_deser;
+    deser >> bvs_deser;
+
+    // Finally, compare
+    EXPECT_EQ( bvs_deser, bvs );
 }

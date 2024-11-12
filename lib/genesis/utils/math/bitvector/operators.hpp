@@ -32,6 +32,8 @@
  */
 
 #include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/io/deserializer.hpp"
+#include "genesis/utils/io/serializer.hpp"
 
 #include <cstddef>
 #include <iosfwd>
@@ -232,6 +234,36 @@ std::ostream& operator << ( std::ostream& out, Bitvector const& bv );
 * and stops at the first char that is not '0' or '1'.
 */
 std::istream& operator >> ( std::istream& in, Bitvector& bv );
+
+/**
+ * @brief Serialize a Bitvector to a binary target.
+ */
+Serializer& operator<<( Serializer& serializer, Bitvector const& bv );
+
+/**
+ * @brief Deserialize a Bitvector from a binary source.
+ */
+Deserializer& operator>>( Deserializer& deserializer, Bitvector& bv );
+
+/**
+ * @brief Get the size in the binary output of a serialized Bitvector using Serializer,
+ * given the number of bits being serialized.
+ */
+inline size_t serialized_bitvector_size( size_t bit_size )
+{
+    // We need its size in bits, its vector size, as well as the data itself.
+    size_t total = 2 * sizeof( size_t );
+    total += Bitvector::get_vector_size( bit_size ) * sizeof( Bitvector::IntType );
+    return total;
+}
+
+/**
+ * @brief Get the size in the binary output of a serialized Bitvector using Serializer.
+ */
+inline size_t serialized_bitvector_size( Bitvector const& bv )
+{
+    return serialized_bitvector_size( bv.size() );
+}
 
 /**
  * @brief Helper function to create a bool vector from a set of indices to be set to `true`.

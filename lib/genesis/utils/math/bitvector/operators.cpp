@@ -330,6 +330,46 @@ std::istream& operator >> ( std::istream& in, Bitvector& bv )
     return in;
 }
 
+Serializer& operator<<( Serializer& serializer, Bitvector const& bv )
+{
+    // We write the size in number of bits first.
+    // Then, the data serialization will additionally store the size of the underlying vector
+    // that is used in the Bitvector, which is a bit of overhead, but we live with that for now.
+    serializer << bv.size();
+    serializer << bv.data();
+    return serializer;
+}
+
+Deserializer& operator>>( Deserializer& deserializer, Bitvector& bv )
+{
+    // This funciton is a friend of the Bitvector class, so that we can write to its data directly.
+    // Otherwise, we'd need special constructors etc, which is a bit cumbersome.
+    deserializer >> bv.size_;
+    deserializer >> bv.data_;
+
+    // Now that we have read the data, check that it is valid.
+    // First, we check the sizes, and then we check that the last bits are already unset,
+    // and do not contain any stray set bits that would indicate wrong usage or serialization.
+    size_t const expected_size = Bitvector::get_vector_size( bv.size_ );
+    if( bv.data_.size() != expected_size ) {
+        throw std::invalid_argument(
+            "Cannot deserialize Bitvector of expected vector size " + std::to_string( expected_size ) +
+            " with actual vector size " + std::to_string( bv.data_.size() )
+        );
+    }
+    if( bv.data_.size() > 0 ) {
+        auto const back = bv.data_.back();
+        bv.unset_padding_();
+        if( bv.data_.back() != back ) {
+            throw std::invalid_argument(
+                "Invalid (de)serialization of Bitvector where last bits after the actual size were set"
+            );
+        }
+    }
+
+    return deserializer;
+}
+
 std::vector<bool> make_bool_vector_from_indices( std::vector<size_t> const& indices, size_t size )
 {
     // Get the largest element of the vector. If it's empty, we return an all-false vector.

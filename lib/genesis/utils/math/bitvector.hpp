@@ -44,6 +44,12 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class Deserializer;
+
+// =================================================================================================
 //     Bitvector
 // =================================================================================================
 
@@ -85,7 +91,7 @@ public:
         }
 
         // reserve enough bits, and init them.
-        data_.resize( (size / IntSize) + (size % IntSize == 0 ? 0 : 1) );
+        data_.resize( get_vector_size( size ));
         set_all(initial_value);
     }
 
@@ -147,6 +153,8 @@ public:
 
     Bitvector& operator= (Bitvector const&) = default;
     Bitvector& operator= (Bitvector&&)      = default;
+
+    friend Deserializer& operator>>( Deserializer& deserializer, Bitvector& bv );
 
     // ---------------------------------------------------------
     //     Single Bit Functions
@@ -398,6 +406,16 @@ public:
         return data_;
     }
 
+    /**
+     * @brief For a given numer of bits, compute the size of the internally used vector.
+     *
+     * This is mostly meant as a helper for data operatins such as serialization and deserialization.
+     */
+    static size_t get_vector_size( size_t bit_size )
+    {
+        return (bit_size / IntSize) + (bit_size % IntSize == 0 ? 0 : 1);
+    }
+
     // ---------------------------------------------------------
     //     Internal Members
     // ---------------------------------------------------------
@@ -471,7 +489,7 @@ struct BitvectorHash
 };
 
 /**
- * @brief Helper structer that yields the x_hash of a given Bitvector.
+ * @brief Helper structure that yields the x_hash of a given Bitvector.
  *
  * It is meant to be used in containers such as `unordered_set` or `unordered_map`
  * that can make use of custom hash functions for the key objects. Using this class instead
