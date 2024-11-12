@@ -262,8 +262,14 @@ struct has_reserve<
 > : std::true_type {};
 
 // Convenience variable template for has_reserve trait
+// template <typename T>
+// constexpr bool has_reserve_v = has_reserve<T>::value;
+
+// Convenience bool for has_reserve trait (C++11 alternative to constexpr variable template)
 template <typename T>
-constexpr bool has_reserve_v = has_reserve<T>::value;
+struct has_reserve_v {
+    static const bool value = has_reserve<T>::value;
+};
 
 // =================================================================================================
 //     Hash Helpers
