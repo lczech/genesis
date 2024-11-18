@@ -295,6 +295,15 @@ public:
     // ---------------------------------------------------------
 
     /**
+     * @brief Clear the Bitvector, i.e., set its length to 0 as if it was default constructed.
+     */
+    inline void clear()
+    {
+        size_ = 0;
+        data_.clear();
+    }
+
+    /**
      * @brief Return whether the Bitvector is empty, that is, has size() == 0.
      *
      * Note that this function does _not_ count the number of bits that are set to `true`.
