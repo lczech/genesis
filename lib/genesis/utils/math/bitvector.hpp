@@ -299,8 +299,11 @@ public:
      */
     inline void clear()
     {
+        // Force reallication here. We do not have functions to change the capacity
+        // of a Bitvector, so it does not make sense to keep extra capacity around.
         size_ = 0;
-        data_.clear();
+        std::vector<IntType>().swap( data_ );
+        // data_.clear();
     }
 
     /**
