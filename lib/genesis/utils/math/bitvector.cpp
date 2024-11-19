@@ -37,7 +37,9 @@
 #include <cstring>
 #include <functional>
 #include <limits>
+#include <random>
 #include <stdexcept>
+#include <type_traits>
 
 namespace genesis {
 namespace utils {
@@ -565,6 +567,27 @@ void Bitvector::set_all( const bool value )
     if( value ) {
         unset_padding_();
     }
+}
+
+Bitvector Bitvector::make_random_bitvector( size_t size )
+{
+    // Generate random unit64 values
+    static std::random_device rd;
+    static std::mt19937_64 engine(rd());
+    static std::uniform_int_distribution<uint64_t> dist(
+        std::numeric_limits<uint64_t>::min(),
+        std::numeric_limits<uint64_t>::max()
+    );
+    static_assert( std::is_same<IntType, uint64_t>::value, "Bitvector::IntType != uint64_t" );
+
+    // Iterate through all value types and assign random values.
+    // Way faster than setting individual bits. We only need to unset the remainder in the end.
+    auto result = Bitvector( size );
+    for( auto& d : result.data_ ) {
+        d = dist(engine);
+    }
+    result.unset_padding_();
+    return result;
 }
 
 // =============================================================================

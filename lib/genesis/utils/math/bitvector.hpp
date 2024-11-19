@@ -416,6 +416,11 @@ public:
         return (bit_size / IntSize) + (bit_size % IntSize == 0 ? 0 : 1);
     }
 
+    /**
+     * @brief Create a Bitvector of a given @p size, with randomly initialized bits, mostly for testing.
+     */
+    static Bitvector make_random_bitvector( size_t size );
+
     // ---------------------------------------------------------
     //     Internal Members
     // ---------------------------------------------------------

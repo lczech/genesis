@@ -36,6 +36,7 @@
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/random.hpp"
 #include "genesis/utils/text/string.hpp"
+#include "genesis/utils/tools/timer.hpp"
 
 #include <algorithm>
 #include <cstdlib>
@@ -45,16 +46,17 @@
 
 using namespace genesis::utils;
 
-Bitvector make_random_bitvector_( size_t size )
-{
-    auto bv = Bitvector( size );
-    for( size_t i = 0; i < size; ++i ) {
-        auto const p = ( std::rand() % size );
-        bv.flip( p );
-    }
-    // LOG_DBG << bv;
-    return bv;
-}
+// Very slow. We use the built-in function of Bitvector now.
+// Bitvector make_random_bitvector_( size_t size )
+// {
+//     auto bv = Bitvector( size );
+//     for( size_t i = 0; i < size; ++i ) {
+//         auto const p = ( std::rand() % size );
+//         bv.flip( p );
+//     }
+//     // LOG_DBG << bv;
+//     return bv;
+// }
 
 TEST( Bitvector, Arithmetics )
 {
@@ -304,31 +306,49 @@ TEST( Bitvector, JaccardIndex )
     EXPECT_EQ( 1.0 - 3.0 / 4.0, jaccard_distance(   p1, p2 ));
 }
 
-// TEST( Bitvector, JaccardIndexSpeed )
-// {
-//     std::srand(std::time(nullptr));
-//
-//     size_t const s = 2000;
-//     size_t const n = 2000;
-//
-//     LOG_TIME << "make bvs";
-//     auto bvs = std::vector<Bitvector>( n );
-//     for( size_t i = 0; i < n; ++i ) {
-//         bvs[i] = make_random_bitvector_( s );
-//     }
-//
-//     LOG_TIME << "compute jaccard";
-//     double sum = 0.0;
-//     for( size_t i = 0; i < n; ++i ) {
-//         for( size_t j = 0; j < n; ++j ) {
-//             auto const js = jaccard_similarity( bvs[i], bvs[j] );
-//             EXPECT_LE( js, 1.0 );
-//             EXPECT_GE( js, 0.0 );
-//             sum += js;
-//         }
-//     }
-//     LOG_TIME << "done " << sum;
-// }
+TEST( Bitvector, JaccardIndexSpeed )
+{
+    std::srand(std::time(nullptr));
+
+    // With completely random bitvectors, we expect the Jaccard similarity to be 1/3.
+    // Additionally, as we do self-comparisons above, there is always one comparsion with value 1.
+    // So, per outer loop iteration, we add 9*1/3 and 1*1 = 4 to the sum, for a total of ~40.
+    // size_t const s = 5368709120;
+    // size_t const n = 10;
+
+    // Alternative, with some shorter vectors.
+    size_t const s = 2000;
+    size_t const n = 1000;
+
+    // LOG_TIME << "make bvs";
+    auto bvs = std::vector<Bitvector>( n );
+    for( size_t i = 0; i < n; ++i ) {
+        bvs[i] = Bitvector::make_random_bitvector( s );
+    }
+
+    // LOG_TIME << "compute jaccard";
+    double sum = 0.0;
+    size_t cnt = 0;
+    Timer timer;
+    timer.start();
+    for( size_t i = 0; i < n; ++i ) {
+        // LOG_MSG << i;
+        for( size_t j = 0; j < n; ++j ) {
+            auto const js = jaccard_similarity( bvs[i], bvs[j] );
+            EXPECT_LE( js, 1.0 );
+            EXPECT_GE( js, 0.0 );
+            // LOG_DBG1 << "at " << i << ", " << j << " with " << js;
+            sum += js;
+            ++cnt;
+        }
+    }
+    timer.stop();
+
+    // LOG_TIME << "done " << cnt << " comps with sum " << sum;
+    LOG_MSG << "time:  " << timer.elapsed() << " s, sum = " << sum;
+    LOG_MSG << "speed: " << ( static_cast<double>(cnt) / timer.elapsed() ) << " comp/s";
+    LOG_MSG << "speed: " << ( static_cast<double>(cnt*s) / timer.elapsed() ) << " bitops/s";
+}
 
 TEST( Bitvector, HammingDistance )
 {
@@ -469,7 +489,7 @@ TEST( Bitvector, CountRangeFuzzy )
         }
 
         // Get some random bits
-        auto const bv = make_random_bitvector_( size );
+        auto const bv = Bitvector::make_random_bitvector( size );
 
         // Get random positions between which to count.
         size_t s = std::rand() % size;
@@ -639,10 +659,10 @@ TEST( Bitvector, Serialization )
     // We test that a container of bitvectors also works, and internally test
     // different sizes that are either exact boundaries, or some arbitrary values.
     std::vector<Bitvector> bvs;
-    bvs.push_back( make_random_bitvector_( 42 ));
-    bvs.push_back( make_random_bitvector_( 0 ));
-    bvs.push_back( make_random_bitvector_( 512 ));
-    bvs.push_back( make_random_bitvector_( 710 ));
+    bvs.push_back( Bitvector::make_random_bitvector( 42 ));
+    bvs.push_back( Bitvector::make_random_bitvector( 0 ));
+    bvs.push_back( Bitvector::make_random_bitvector( 512 ));
+    bvs.push_back( Bitvector::make_random_bitvector( 710 ));
 
     // Serialize
     std::ostringstream out;
