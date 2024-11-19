@@ -200,5 +200,6 @@
 #include "genesis/utils/tools/hash/sha1.hpp"
 #include "genesis/utils/tools/hash/sha256.hpp"
 #include "genesis/utils/tools/tickmarks.hpp"
+#include "genesis/utils/tools/timer.hpp"
 
 #endif // include guard
