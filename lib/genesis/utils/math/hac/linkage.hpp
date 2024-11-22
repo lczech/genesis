@@ -144,6 +144,7 @@ hac_distance_single_linkage( std::function<double( T const&, T const& )> distanc
 // -------------------------------------------------------------------------
 //     hac_distance_complete_linkage
 // -------------------------------------------------------------------------
+
 /**
  * @brief Distance function for hierarchical agglomerative clustering that computes complete linkage.
  *
@@ -190,6 +191,7 @@ hac_distance_complete_linkage( std::function<double( T const&, T const& )> dista
 // -------------------------------------------------------------------------
 //     hac_distance_unweighted_average_linkage
 // -------------------------------------------------------------------------
+
 /**
  * @brief Distance function for hierarchical agglomerative clustering that computes unweighted
  * average linkage.

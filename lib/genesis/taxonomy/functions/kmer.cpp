@@ -579,6 +579,12 @@ std::string grouped_taxonomy_report( Taxonomy const& tax )
     size_t const grouped_sum_seq_lengths = std::accumulate(
         group_sum_seq_lengths.begin(), group_sum_seq_lengths.end(), static_cast<size_t>(0)
     );
+    auto const arithmetic_mean_ns = utils::arithmetic_mean(
+        group_num_sequences.begin(), group_num_sequences.end()
+    );
+    auto const arithmetic_mean_sl = utils::arithmetic_mean(
+        group_sum_seq_lengths.begin(), group_sum_seq_lengths.end()
+    );
     auto const quartiles_ns = utils::quartiles(
         group_num_sequences.begin(), group_num_sequences.end()
     );
@@ -592,6 +598,7 @@ std::string grouped_taxonomy_report( Taxonomy const& tax )
     summary.add_column( "num_sequences",   utils::Table::Column::Justification::kRight );
     summary.add_column( "sum_seq_lengths", utils::Table::Column::Justification::kRight );
     summary << "sum" << grouped_num_sequences << grouped_sum_seq_lengths;
+    summary << "avg" << arithmetic_mean_ns << arithmetic_mean_sl;
     summary << "q0"  << quartiles_ns.q0 << quartiles_sl.q0;
     summary << "q1"  << quartiles_ns.q1 << quartiles_sl.q1;
     summary << "q2"  << quartiles_ns.q2 << quartiles_sl.q2;

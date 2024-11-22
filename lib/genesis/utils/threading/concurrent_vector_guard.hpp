@@ -153,7 +153,7 @@ public:
     // -------------------------------------------------------------
 
     // Unused implementation for std::mutex
-    // std::lock_guard<std::mutex> get_lock_guard( size_t index )
+    // inline std::lock_guard<std::mutex> get_lock_guard( size_t index )
     // {
     //     auto const bucket_index = index % bucket_mutexes_.size();
     //     return std::lock_guard<std::mutex>( bucket_mutexes_[bucket_index] );
@@ -163,7 +163,7 @@ public:
      * @brief Get a RAII-style lock guard to protect concurrent access
      * to some element in a vector at @p index.
      */
-    LockGuard get_lock_guard( size_t index )
+    inline LockGuard get_lock_guard( size_t index )
     {
         auto const bucket_index = index % bucket_mutexes_.size();
         return LockGuard( bucket_mutexes_[bucket_index] );
@@ -175,7 +175,7 @@ public:
      * This has the be used with release() to release the lock again after usage.
      * It usually is better to use get_lock_guard() instead and make use of RAII to unlock.
      */
-    void acquire( size_t index )
+    inline void acquire( size_t index )
     {
         auto const bucket_index = index % bucket_mutexes_.size();
         bucket_mutexes_[bucket_index].wait();
@@ -186,7 +186,7 @@ public:
      *
      * See acquire() for details.
      */
-    void release( size_t index )
+    inline void release( size_t index )
     {
         auto const bucket_index = index % bucket_mutexes_.size();
         bucket_mutexes_[bucket_index].signal();
@@ -217,7 +217,7 @@ private:
 
         // Implementation with LightweightSemaphore
         bucket_mutexes_ = std::vector<LightweightSemaphore>( num_buckets );
-        for (size_t i = 0; i < num_buckets; ++i) {
+        for( size_t i = 0; i < num_buckets; ++i ) {
             bucket_mutexes_[i].signal();
         }
     }
