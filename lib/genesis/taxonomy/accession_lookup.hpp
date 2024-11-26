@@ -33,6 +33,8 @@
 
 #include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/taxonomy/taxon.hpp"
+#include "genesis/utils/text/char.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <stdexcept>
 #include <string>
@@ -115,9 +117,12 @@ public:
      * If not found, either a `nullptr` is returned, or an exception is thrown, depending on
      * @p throw_if_not_found.
      */
-    inline Taxon* get( std::string const& accession, bool throw_if_not_found = false ) const
-    {
-        auto it = map_.find( accession );
+    inline Taxon* get(
+        std::string const& accession,
+        bool also_look_up_first_word = true,
+        bool throw_if_not_found = false
+    ) const {
+        auto const it = find_( accession, also_look_up_first_word );
         if( it == map_.end() ) {
             if( throw_if_not_found ) {
                 throw std::invalid_argument(
@@ -135,17 +140,22 @@ public:
      *
      * Same as get(), but returns the Taxon as a const pointer.
      */
-    inline Taxon const* cget( std::string const& accession, bool throw_if_not_found = false ) const
-    {
-        return get( accession, throw_if_not_found );
+    inline Taxon const* cget(
+        std::string const& accession,
+        bool also_look_up_first_word = true,
+        bool throw_if_not_found = false
+    ) const {
+        return get( accession, also_look_up_first_word, throw_if_not_found );
     }
 
     /**
-     * @brief Check if the map contains a specific key
+     * @brief Check if the map contains a specific key.
      */
-    inline bool contains( std::string const& accession ) const
-    {
-        return map_.find(accession) != map_.end();
+    inline bool contains(
+        std::string const& accession,
+        bool also_look_up_first_word = true
+    ) const {
+        return find_( accession, also_look_up_first_word ) != map_.end();
     }
 
     // -------------------------------------------------------------------------
@@ -249,6 +259,21 @@ private:
                 );
             }
         }
+    }
+
+    inline ConstIterator find_(
+        std::string const& accession,
+        bool also_look_up_first_word
+    ) const {
+        auto it = map_.find( accession );
+        if( it != map_.end() ) {
+            return it;
+        }
+        if( also_look_up_first_word ) {
+            auto const acc_first = utils::split( accession, "\t " )[0];
+            return map_.find( acc_first );
+        }
+        return map_.end();
     }
 
     // -------------------------------------------------------------------------
