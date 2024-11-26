@@ -53,7 +53,7 @@ TEST( Taxonomy, AccessionLookup )
     ASSERT_TRUE( taxon != nullptr );
 
     // Create a lookup for the taxonomy
-    auto lookup = AccessionLookup();
+    auto lookup = AccessionLookup<>();
     lookup.add( "ABCD.1", taxon );
 
     // Perform a lookup by full name
