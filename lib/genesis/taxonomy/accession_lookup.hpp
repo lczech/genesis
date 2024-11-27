@@ -33,6 +33,7 @@
 
 #include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/taxonomy/taxon.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -213,8 +214,13 @@ public:
 
 private:
 
+    #if GENESIS_CPP_STD > GENESIS_CPP_STD_11
+
     /**
-     * @brief Try emplace using SFINAE for maps that have try_emplace (>= C++17)
+     * @brief Try emplace using SFINAE for maps that have try_emplace (>= C++17).
+     *
+     * This works for any map type that supports try_emplace, but we do not activate this
+     * overload for C++11, as there are some template substitution errors with clang 6-8.
      */
     template<typename Map = MapType>
     typename std::enable_if< decltype(
@@ -239,7 +245,7 @@ private:
     }
 
     /**
-     * @brief Fallback for maps without try_emplace (C++11 and C++14)
+     * @brief Fallback for maps without try_emplace (C++14)
      */
     template<typename Map = MapType>
     typename std::enable_if< !decltype(
@@ -260,6 +266,26 @@ private:
             }
         }
     }
+
+    #else
+
+    /**
+     * @brief Fallback for older compilers (C++11) where the above template substitution
+     * SFINAE might fail to compile; we observe this with Clang 6-8.
+     */
+    inline void add_( std::string const& accession, Taxon* taxon )
+    {
+        auto const result = map_.insert( std::make_pair( accession, taxon ));
+        if( !result.second ) {
+            if( result.first->second != taxon ) {
+                throw std::runtime_error(
+                    "Duplicate entry for accession '" + accession + "' in lookup table"
+                );
+            }
+        }
+    }
+
+    #endif
 
     inline ConstIterator find_(
         std::string const& accession,
