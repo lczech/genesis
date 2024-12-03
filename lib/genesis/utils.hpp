@@ -189,6 +189,7 @@
 #include "genesis/utils/threading/multi_future.hpp"
 #include "genesis/utils/threading/sequential_output_buffer.hpp"
 #include "genesis/utils/threading/thread_functions.hpp"
+#include "genesis/utils/threading/thread_local_cache.hpp"
 #include "genesis/utils/threading/thread_pool.hpp"
 #include "genesis/utils/threading/threadsafe_queue.hpp"
 #include "genesis/utils/tools/char_lookup.hpp"
