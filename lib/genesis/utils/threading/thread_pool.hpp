@@ -521,15 +521,32 @@ public:
         wrapped_task.function = [task_function, this]()
         {
             // Run the actual work task here. Once done, we can signal this to the unfinished list.
-            task_function();
-            assert( this->unfinished_tasks_.load() > 0 );
-            --this->unfinished_tasks_;
+            // We need to catch any exceptions thrown in the task here, as otherwise,
+            // the unfinished counter would not be decremented properly, thus breaking invariants.
+            // This is similar to make_wrapped_task_with_promise_(), but there, we need more
+            // intrumentation to distinguish the cases where the exception came from the task vs
+            // it came from setting the value in the promise. Here, if there was an exception,
+            // it must have come from the task, so we then know that the unfiished counter was not
+            // yet decremented.
+            try {
+                task_function();
+                assert( this->unfinished_tasks_.load() > 0 );
+                --(this->unfinished_tasks_);
+            } catch (...) {
+                // In the error case, we first take care of the counter, so that it signals
+                // to the pool that we are done with this task, and then re-throws the exception.
+                // That keeps the invariants intact, and avoids endless loops on finished tasks
+                // with a still non-zero unfinished tasks counter.
+                assert( this->unfinished_tasks_.load() > 0 );
+                --(this->unfinished_tasks_);
+                throw;
+            }
         };
 
         // We add the task, incrementing the unfinished counter, and only decrementing it once the
-        // task has been fully processed. That way, the counter always tells us if there is still
-        // work going on. We capture a reference to `this` in the task above, which could be
-        // dangerous if the threads survive the lifetime of the pool, but given that their exit
+        // task has been fully processed (see above). That way, the counter always tells us if there
+        // is still work going on. We capture a reference to `this` in the task above, which could
+        // be dangerous if the threads survive the lifetime of the pool, but given that their exit
         // condition is only called from the pool destructor, this should never be able to happen.
         ++unfinished_tasks_;
         task_queue_.enqueue( std::move( wrapped_task ));
