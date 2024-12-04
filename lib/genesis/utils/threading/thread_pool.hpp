@@ -37,6 +37,7 @@
 #include <atomic>
 #include <cassert>
 #include <chrono>
+#include <exception>
 #include <iterator>
 #include <functional>
 #include <future>
@@ -405,6 +406,20 @@ public:
         assert( unfinished_tasks_.load() == 0 );
     }
 
+    /**
+     * @brief Callback function for detached task exceptions.
+     *
+     * When using enqueue_detached() to enqueue a task to the pool, there is no way for the pool
+     * to report back to the caller from that task. Hence, any exceptions thrown in the task might
+     * (likely) not be in the main thread, which by default will lead to termniation of the program,
+     * as there is no way to catch them.
+     *
+     * When setting this function instead, it is called when an exception in such a task is thrown.
+     * This callback can then for instance store the exception (or a list of all) and the main thread
+     * can later check and react to them.
+     */
+    std::function<void(std::exception_ptr)> detached_task_exception_callback;
+
     // -------------------------------------------------------------
     //     Accessor Members
     // -------------------------------------------------------------
@@ -534,12 +549,21 @@ public:
                 --(this->unfinished_tasks_);
             } catch (...) {
                 // In the error case, we first take care of the counter, so that it signals
-                // to the pool that we are done with this task, and then re-throws the exception.
+                // to the pool that we are done with this task, and then handle the exception.
                 // That keeps the invariants intact, and avoids endless loops on finished tasks
                 // with a still non-zero unfinished tasks counter.
                 assert( this->unfinished_tasks_.load() > 0 );
                 --(this->unfinished_tasks_);
-                throw;
+
+                // Now we can either give the exception to the handler callback, or if none provided,
+                // re-throw it right here again, which likely leads to program termination, if this
+                // task does not happen to be called from the main thread. That's usually fine for
+                // our use case anyway.
+                if( detached_task_exception_callback ) {
+                    detached_task_exception_callback( std::current_exception() );
+                } else {
+                    throw;
+                }
             }
         };
 
