@@ -77,7 +77,7 @@ class ThreadPool;
  * this idea into a class, so that users of the ThreadPool have to use this feature, and hence
  * avoid the deadlock.
  */
-template<class T>
+template<typename T>
 class ProactiveFuture
 {
 public:
@@ -121,7 +121,7 @@ public:
     /**
      * @brief Return the result, after calling wait().
      */
-    T get()
+    inline T get()
     {
         // Use our busy waiting first, until we are ready.
         wait();
@@ -133,7 +133,7 @@ public:
      * @brief Return the result, after calling wait().
      */
     template<typename U = T>
-    typename std::enable_if<!std::is_void<U>::value, U&>::type get()
+    inline typename std::enable_if<!std::is_void<U>::value, U&>::type get()
     {
         // Enable this method only if T is not void (non-void types).
         static_assert( ! std::is_same<T, void>::value, "ProactiveFuture::get() intended for T != void" );
@@ -148,7 +148,7 @@ public:
      * @brief Return the result, after calling wait().
      */
     template<typename U = T>
-    typename std::enable_if<std::is_void<U>::value>::type get()
+    inline typename std::enable_if<std::is_void<U>::value>::type get()
     {
         // Enable this method only if T is void
         static_assert( std::is_same<T, void>::value, "ProactiveFuture::get() intended for T == void" );
@@ -162,7 +162,7 @@ public:
     /**
      * @brief Check if the future has a shared state.
      */
-    bool valid() const noexcept
+    inline bool valid() const noexcept
     {
         return future_.valid();
     }
@@ -173,39 +173,30 @@ public:
      * This is the main function that differs from `std::future::wait()`, in that it processes
      * other tasks from the pool while waiting, until the underlying future is ready.
      */
-    void wait() const;
+    inline void wait() const;
 
     /**
      * @brief Wait for the result, return if it is not available for the specified timeout duration.
      *
-     * This simply forwards to the `wait_for` function of the future. Note that this does _not_ do
-     * the busy waiting that this wrapper is intended for. Hence, calling this function in a loop
-     * until the future is ready might never happen, in case that the ThreadPool dead locks due to
-     * the task waiting for a (then) starving other task. The whole idea of this class is to avoid
-     * this scenario, by processing these potentially starving tasks. We hence recommend to not use
-     * this function, or at least not in a loop, unless you are sure that none of your tasks submit
-     * any tasks of their own to the same thread pool.
+     * This waits for the given @p timeout_duration or longer, and performs the same busy waiting
+     * (via work stealing) as the wait() function. If the execution of a task during the waiting
+     * takes longer than the given duration, this function will wait for it to finish.
      */
-    template< class Rep, class Period >
-    std::future_status wait_for( std::chrono::duration<Rep,Period> const& timeout_duration ) const
-    {
-        // If the user species a time to wait for, we just forward that to the future.
-        return future_.wait_for( timeout_duration );
-    }
+    template<typename Rep, typename Period>
+    inline std::future_status wait_for(
+        std::chrono::duration<Rep,Period> const& timeout_duration
+    ) const;
 
     /**
      * @brief Wait for the result, return if it is not available until specified time point has been
      * reached.
      *
-     * This simply forwards to the `wait_until` function of the future. The same caveat as explained
-     * in wait_for() applies here as well. We hence recommend to not use this function.
+     * Same as wait_for(), but with a @p timeout_time instead of a `timeout_duration`.
      */
-    template< class Clock, class Duration >
-    std::future_status wait_until( std::chrono::time_point<Clock,Duration> const& timeout_time ) const
-    {
-        // If the user species a time to wait until, we just forward that to the future.
-        return future_.wait_until( timeout_time );
-    }
+    template<typename Clock, typename Duration>
+    inline std::future_status wait_until(
+        std::chrono::time_point<Clock,Duration> const& timeout_time
+    ) const;
 
     // -------------------------------------------------------------
     //     Additional members
@@ -214,7 +205,7 @@ public:
     /**
      * @brief Check if the future is ready.
      */
-    bool ready() const
+    inline bool ready() const
     {
         throw_if_invalid_();
         return future_.wait_for( std::chrono::seconds(0) ) == std::future_status::ready;
@@ -227,7 +218,7 @@ public:
      * This should always return `false`, as we never create a deferred future ourselves.
      * This would indicate some misuse of the class via `std::async` or some other mechanism.
      */
-    bool deferred() const
+    inline bool deferred() const
     {
         throw_if_invalid_();
         return future_.wait_for( std::chrono::seconds(0) ) == std::future_status::deferred;
@@ -474,7 +465,7 @@ public:
      * If enqueuing the task would exceed the max queue size, we instead first process existing
      * tasks until there is e space in the queue. This makes the caller do wait and work.
      */
-    template<class F, class... Args>
+    template<typename F, typename... Args>
     auto enqueue_and_retrieve( F&& f, Args&&... args )
     -> ProactiveFuture<typename genesis_invoke_result<F, Args...>::type>
     {
@@ -522,7 +513,7 @@ public:
      * If enqueuing the task would exceed the max queue size, we instead first process existing
      * tasks until there is enough space in the queue. This makes the caller do wait and work.
      */
-    template<class F, class... Args>
+    template<typename F, typename... Args>
     void enqueue_detached( F&& f, Args&&... args )
     {
         // Make sure that we do not enqueue more tasks than the max size.
@@ -784,7 +775,7 @@ private:
 // =================================================================================================
 
 // Implemented here, as it needs ThreadPool to be defined first.
-template<class T>
+template<typename T>
 void ProactiveFuture<T>::wait() const
 {
     // Let's be thorough. The standard encourages the check for validity.
@@ -826,6 +817,42 @@ void ProactiveFuture<T>::wait() const
     // We call wait just in case here again, to make sure that everything is all right.
     // Probably not necessary, as it's already ready, but won't hurt either.
     // future_.wait();
+}
+
+// Same for wait_for
+template<typename T>
+template<typename Rep, typename Period>
+std::future_status ProactiveFuture<T>::wait_for(
+    std::chrono::duration<Rep,Period> const& timeout_duration
+) const {
+    // Delegate to wait_until()
+    auto const end = std::chrono::steady_clock::now() + timeout_duration;
+    return wait_until( end );
+}
+
+// Same for wait_until
+template<typename T>
+template<typename Clock, typename Duration>
+std::future_status ProactiveFuture<T>::wait_until(
+    std::chrono::time_point<Clock, Duration> const& timeout_time
+) const {
+    // Same initial checks as above, for completeness.
+    throw_if_invalid_();
+    assert( thread_pool_ );
+    assert( !deferred() );
+
+    // Now loop until the time has come, or the task is ready,
+    // and return the result accordingly.
+    while( std::chrono::steady_clock::now() < timeout_time ) {
+        if( ready() ) {
+            return std::future_status::ready;
+        }
+        assert( thread_pool_ );
+        if( ! thread_pool_->try_run_pending_task() ) {
+            std::this_thread::yield();
+        }
+    }
+    return std::future_status::timeout;
 }
 
 } // namespace utils
