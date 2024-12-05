@@ -178,9 +178,10 @@ public:
     /**
      * @brief Wait for the result, return if it is not available for the specified timeout duration.
      *
-     * This waits for the given @p timeout_duration or longer, and performs the same busy waiting
-     * (via work stealing) as the wait() function. If the execution of a task during the waiting
-     * takes longer than the given duration, this function will wait for it to finish.
+     * This waits for the given @p timeout_duration or longer, and performs the same proactive
+     * waiting (via work stealing) as the wait() function. The waiting time can hence be more than
+     * the provided duration (but never less), if the execution of a task during the waiting takes
+     * longer than the given duration.
      */
     template<typename Rep, typename Period>
     inline std::future_status wait_for(
@@ -269,10 +270,10 @@ private:
  * This simple implementation offer a standing pool of worker threads that pick up tasks.
  *
  * For reasons explained below, it is recommended to initialize a global thread pool via
- * Options::get().global_thread_pool(), with one fewer threads than intended to keep busy,
- * as the main thread will also be able to do busy work while waiting for tasks via our work
- * stealing ProactiveFuture. Use guess_number_of_threads() for obtaining the adequate number of
- * total threads to run, and subtract one to get the number to use this class with.
+ * Options::get().global_thread_pool(), with one fewer threads than intended to maximally use,
+ * as the main thread will also be able to do work while waiting for tasks via our work-stealing
+ * ProactiveFuture. Use guess_number_of_threads() for obtaining the adequate number of total threads
+ * to run, and subtract one to get the number to use this class with.
  *
  * Example
  *
@@ -281,7 +282,7 @@ private:
  *
  *     // Enqueue a new task by providing a function and its arguments, and store its future result.
  *     // This is a ProactiveFuture, so that calling wait() or get() on it will process other tasks.
- *     auto result = thread_pool.enqueue(
+ *     auto result = thread_pool.enqueue_and_retrieve(
  *         []( int some_param ) {
  *             // do computations
  *             int some_result = 42;
@@ -299,7 +300,7 @@ private:
  *
  * The pool implements a work stealing technique similar to the one described in the
  * "C++ Concurrency in Action" book by Anthony Williams, second edition, chapter 9, in order to
- * avoid dead locking when tasks submit their own tasks. In such cases, the parent task could then
+ * avoid dead-locking when tasks submit their own tasks. In such cases, the parent task could then
  * potentially be waiting for the child, but the child might never start, as all threads in the pool
  * are busy waiting for the children they enqueued. Hence, our wrapper implementation, called
  * ProactiveFuture (a thin wrapper around `std::future`; see there for details), instead processes
@@ -313,11 +314,20 @@ private:
  * pool with one fewer threads than hardware concurrency (or whatever other upper limit you want
  * to ensure, e.g., Slurm).
  *
+ * Alternatively, tasks can also be enqueued using enqueue_detached(), which does not return a
+ * ProactiveFuture to wait for, and instead runs the task without any return. This is for instance
+ * useful for tasks whose result we do not need. Moreover, this mechanism can be used to enqueue
+ * a long series of tasks without waiting for each individually, and only finally calling
+ * wait_for_all_pending_tasks() from the main thread to ensure that all work is done. This mechanism
+ * is faster, as it does not have any overhead for creating and managing the
+ * `std::future`/ProactiveFuture instance. However, it is then recommended to limit the maximum
+ * size of the task queue, as explained next.
+ *
  * Lastly, if upon construction a maximum queue size is provided, only that many tasks will be
- * queued at a time (with a bit of leeway, due to concurrency). If a thread calls enqueue() when
- * the queue is already filled with waiting tasks up to the maximum size, the caller instead waits
- * for the queue to be below the specified max, and while waiting, starts processing tasks of its
- * own, so that the waiting time is spend productively.
+ * queued at a time (with a bit of leeway, due to concurrency). If a thread calls enqueue_and_retrieve()
+ * or enqueue_detached() when the queue is already filled with waiting tasks up to the maximum size,
+ * the caller instead waits for the queue to be below the specified max, and while waiting, starts
+ * processing tasks of its own, so that the waiting time is spend productively.
  *
  * This is meant as a mechanism to allow a main thread to just keep queueing work without capturing
  * the futures and waiting for them, while avoiding to endlessly queue new tasks, with the workers
@@ -327,9 +337,10 @@ private:
  * there to be _some_ upper limit on the number of tasks. Also, in case of just a single main thread
  * that is enqueueing new tasks, the maximum is never exceeded.
  *
- * When using this mechanism of submitting work without storing the futures, the wait() function
- * of the class can be used to wait for all current work to be done. This is intended to be called,
- * for instance, from the main thread, once there is no more work to be enqueued.
+ * When using this mechanism of submitting work without storing the futures, use the
+ * wait_for_all_pending_tasks() function of the class to wait for all current work to be done.
+ * This is intended to be called, for instance, from the main thread, once there is no more work
+ * to be enqueued.
  */
 class ThreadPool
 {
