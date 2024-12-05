@@ -124,8 +124,9 @@ jobs:
           #   compiler: llvm-9
           - os: ubuntu-20.04
             compiler: llvm-10
-          - os: ubuntu-20.04
-            compiler: llvm-11
+          # Setup fails
+          # - os: ubuntu-20.04
+          #   compiler: llvm-11
           - os: ubuntu-20.04
             compiler: llvm-12
           - os: ubuntu-20.04
@@ -305,14 +306,15 @@ jobs:
           #     MacOS 14
           # -------------------------------
 
-          - os: macos-14
-            compiler: gcc-7
-          - os: macos-14
-            compiler: gcc-8
-          - os: macos-14
-            compiler: gcc-9
-          - os: macos-14
-            compiler: gcc-10
+          # Setup fails
+          # - os: macos-14
+          #   compiler: gcc-7
+          # - os: macos-14
+          #   compiler: gcc-8
+          # - os: macos-14
+          #   compiler: gcc-9
+          # - os: macos-14
+          #   compiler: gcc-10
           - os: macos-14
             compiler: gcc-11
           - os: macos-14
@@ -528,7 +530,7 @@ jobs:
         #    we switched now, but keep this here for reference if needed later
         run: |
           brew install autoconf automake libdeflate libomp
-          if [[ ${{ matrix.os }} != macos-14 ]] && [[ ${{ matrix.os }} != macos-latest ]] ; then
+          if [[ ${{ matrix.os }} != macos-14 ]] && [[ ${{ matrix.os }} != macos-15 ]] && [[ ${{ matrix.os }} != macos-latest ]] ; then
               echo "Installing debuggers"
               brew install gdb
               # brew install valgrind
