@@ -477,7 +477,7 @@ public:
      * tasks until there is e space in the queue. This makes the caller do wait and work.
      */
     template<typename F, typename... Args>
-    auto enqueue_and_retrieve( F&& f, Args&&... args )
+    inline auto enqueue_and_retrieve( F&& f, Args&&... args )
     -> ProactiveFuture<typename genesis_invoke_result<F, Args...>::type>
     {
         using result_type = typename genesis_invoke_result<F, Args...>::type;
@@ -492,17 +492,14 @@ public:
         auto task_promise = std::make_shared<std::promise<result_type>>();
         auto future_result = ProactiveFuture<result_type>( task_promise->get_future(), *this );
 
-        // To make our lives easier for the helper functions used below, we just wrap
-        // the task in a function that can be called without arguments.
-        std::function<result_type()> task_function = std::bind(
-            std::forward<F>(f), std::forward<Args>(args)...
-        );
-
         // Prepare the task that we want to submit.
         // All this wrapping should be completely transparent to the compiler, and removed.
         // The task captures the package including the promise that is needed for the future.
         WrappedTask wrapped_task;
-        wrapped_task.function = make_wrapped_task_with_promise_( task_promise, task_function );
+        wrapped_task.function = make_wrapped_task_with_promise_(
+            task_promise,
+            make_task_function_( std::forward<F>(f), std::forward<Args>(args)... )
+        );
 
         // We first incrementi the unfinished counter, and only decrementing it once the task has
         // been fully processed. Thus, the counter always tells us if there is still work going on.
@@ -525,7 +522,7 @@ public:
      * tasks until there is enough space in the queue. This makes the caller do wait and work.
      */
     template<typename F, typename... Args>
-    void enqueue_detached( F&& f, Args&&... args )
+    inline void enqueue_detached( F&& f, Args&&... args )
     {
         // Make sure that we do not enqueue more tasks than the max size.
         run_tasks_until_below_max_queue_size_();
@@ -534,7 +531,7 @@ public:
         // All this wrapping should be completely transparent to the compiler, and removed.
         // The task captures the package including the promise that is needed for the future.
         WrappedTask wrapped_task;
-        auto task_function = std::bind( std::forward<F>(f), std::forward<Args>(args)... );
+        auto task_function = make_task_function_( std::forward<F>(f), std::forward<Args>(args)... );
         wrapped_task.function = [task_function, this]()
         {
             // Run the actual work task here. Once done, we can signal this to the unfinished list.
@@ -701,15 +698,39 @@ private:
         }
     }
 
+    template<typename F, typename... Args>
+    inline auto make_task_function_( F&& f, Args&&... args )
+    -> std::function<typename genesis_invoke_result<F, Args...>::type ()>
+    {
+        // Unfortunately, Clang 18 uses std::result_of within std::bind, which is however deprecated,
+        // and hence leads to a warning, and as we set warnings as errors, fails to compile.
+        // See https://gcc.gnu.org/pipermail/libstdc++/2024-March/058502.html for details.
+        // This is the reason why we internally use genesis_invoke_result instead, to switch
+        // between the two. But doesn't work of course for the STL... So we need to silence this.
+        // This is the whole reason for this function. Super ugly, but it is what it is.
+        #if defined(__clang__) && (__clang_major__ == 18)
+            #pragma clang diagnostic push
+            #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        #endif
+
+        // Make the function via binding.
+        return std::bind( std::forward<F>(f), std::forward<Args>(args)... );
+
+        // Undo the silencing.
+        #if defined(__clang__) && (__clang_major__ == 18)
+            #pragma clang diagnostic pop
+        #endif
+    }
+
     template<typename T>
     inline std::function<void()> make_wrapped_task_with_promise_(
-        std::shared_ptr<std::promise<T>> task_promise,
-        std::function<T()> task_function
+        std::shared_ptr<std::promise<T>>& task_promise,
+        std::function<T()>&& task_function
     ) {
         // We capture a reference to `this` in the below lambda, which could be dangerous
         // if the threads survive the lifetime of the pool, but given that the pool destructor
         // waits for all of them to finish, this should never be able to happen.
-        return [this, task_promise, task_function]()
+        return [this, task_promise, task_function]() mutable
         {
             // Run the work task, and set the value of the associated promise.
             // We need to delegate this here, as the std::promise::set_value() function
@@ -736,8 +757,8 @@ private:
     template<typename T>
     typename std::enable_if<!std::is_void<T>::value>::type
     inline run_task_and_fulfill_promise_(
-        std::shared_ptr<std::promise<T>> task_promise,
-        std::function<T()> task_function,
+        std::shared_ptr<std::promise<T>>& task_promise,
+        std::function<T()>& task_function,
         bool& decremented_unfinished_tasks
     ) {
         // Run the actual work task here. Once done, we can signal this to the unfinished list.
@@ -754,8 +775,8 @@ private:
     template<typename T>
     typename std::enable_if<std::is_void<T>::value>::type
     inline run_task_and_fulfill_promise_(
-        std::shared_ptr<std::promise<T>> task_promise,
-        std::function<void()> task_function,
+        std::shared_ptr<std::promise<T>>& task_promise,
+        std::function<void()>& task_function,
         bool& decremented_unfinished_tasks
     ) {
         // Same as above, but for void functions, i.e., without setting a value for the promise.

@@ -69,16 +69,10 @@ namespace utils {
 // Detect the C++ standard version based on __cplusplus
 #if defined(__cplusplus)
     #define GENESIS_CPP_STD __cplusplus
-    #pragma message ( "defined(__cplusplus)" )
 #else
     // __cplusplus not defined, use C++11 by default
     #define GENESIS_CPP_STD GENESIS_CPP_STD_11
-    #pragma message ( "undefined(__cplusplus)" )
 #endif
-
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-#pragma message ("__cplusplus is " TOSTRING(__cplusplus))
 
 // For MSVC (Microsoft Visual C++)
 // Since MSVC does not provide an accurate __cplusplus before C++20 without /Zc:__cplusplus,
