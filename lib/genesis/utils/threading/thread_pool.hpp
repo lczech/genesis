@@ -711,6 +711,7 @@ private:
         #if defined(__clang__) && (__clang_major__ == 18)
             #pragma clang diagnostic push
             #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+            #pragma clang diagnostic ignored "-Wpedantic"
         #endif
 
         // Make the function via binding.
