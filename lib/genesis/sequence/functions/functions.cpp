@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,6 +35,9 @@
 #include "genesis/sequence/printers/simple.hpp"
 
 #include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/math/bitvector/functions.hpp"
+#include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/text/style.hpp"
 
@@ -189,7 +192,7 @@ void remove_sites( Sequence& seq, utils::Bitvector sites )
         );
     }
 
-    auto const num_sites = sites.size() - sites.count();
+    auto const num_sites = sites.size() - pop_count(sites);
     std::string result;
     result.reserve( num_sites );
 

@@ -44,6 +44,7 @@
 #include "genesis/population/genome_region_list.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/math/bitvector/functions.hpp"
 
 namespace genesis {
 namespace population {
@@ -386,7 +387,7 @@ public:
 
         // We do not need to to an extra check for position 0 here.
         // If it is true, then so will be the result.
-        return bv.any_set();
+        return any_set( bv );
     }
 
     // -------------------------------------------------------------------------
@@ -422,7 +423,7 @@ public:
 
         // If the above is not the case, check the actual start_position.
         // If the start_position is outside of the bitvector, it is not covered, obviously.
-        return bitvector.find_next_set( start_position );
+        return find_next_set( bitvector, start_position );
     }
 
     /**

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -249,18 +249,18 @@ Bipartition find_smallest_subtree(
 
         auto const inverted = ~(bip.leaf_nodes());
         if( utils::is_subset( comp, bip.leaf_nodes() )) {
-            if( min_count == 0 || bip.leaf_nodes().count() < min_count ) {
+            if( min_count == 0 || pop_count(bip.leaf_nodes()) < min_count ) {
                 best_bip = bip;
-                min_count = best_bip.leaf_nodes().count();
+                min_count = pop_count(best_bip.leaf_nodes());
             }
         }
         if( utils::is_subset( comp, inverted ) ) {
-            if( min_count == 0 || inverted.count() < min_count ) {
+            if( min_count == 0 || pop_count(inverted) < min_count ) {
                 best_bip = bip;
                 best_bip.invert();
 
-                assert( best_bip.leaf_nodes().count() == inverted.count() );
-                min_count = best_bip.leaf_nodes().count();
+                assert( pop_count( best_bip.leaf_nodes() ) == pop_count( inverted ) );
+                min_count = pop_count( best_bip.leaf_nodes() );
             }
         }
     }

@@ -109,7 +109,7 @@ GenomeLocusSet read_mask_fasta(
         // If we invert, we do that here at the end. We could also switch in the set function
         // above, but it's easier to do this in bulk. We need to unset the first bit then.
         if( invert ) {
-            bv.negate();
+            negate(bv);
             bv.unset(0);
         }
 

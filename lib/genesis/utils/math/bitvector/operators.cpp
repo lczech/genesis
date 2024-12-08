@@ -154,151 +154,22 @@ Bitvector bitwise_xor(
 }
 
 // -------------------------------------------------------------------------
-//     Set Operators
-// -------------------------------------------------------------------------
-
-Bitvector set_minus( Bitvector const& lhs, Bitvector const& rhs )
-{
-    return lhs & (~rhs);
-}
-
-Bitvector symmetric_difference( Bitvector const& lhs, Bitvector const& rhs )
-{
-    return (lhs | rhs) & ~(lhs & rhs);
-}
-
-bool is_strict_subset( Bitvector const& sub, Bitvector const& super )
-{
-    // Not really efficient. We could stop early in the comparison instead.
-    // But as of now, we do not need the speed, so let's keep it simple instead.
-    // Same for the other variants of this function below.
-    return ((sub & super) == sub) && (sub.count() < super.count());
-}
-
-bool is_strict_superset( Bitvector const& super, Bitvector const& sub )
-{
-    return is_strict_subset( sub, super );
-}
-
-bool is_subset( Bitvector const& sub, Bitvector const& super )
-{
-    return (sub == super) || is_strict_subset(sub, super);
-}
-
-bool is_superset( Bitvector const& super, Bitvector const& sub )
-{
-    return (super == sub) || is_strict_superset(super, sub);
-}
-
-double jaccard_similarity( Bitvector const& lhs, Bitvector const& rhs )
-{
-    if( lhs.size() != rhs.size() ) {
-        throw std::invalid_argument(
-            "Cannot compute Jaccard similarity between Bitvectors of different size"
-        );
-    }
-
-    // Shorthands
-    auto const& lhs_data = lhs.data();
-    auto const& rhs_data = rhs.data();
-
-    // Use the bitvector data directly to count
-    // the number of bits in the intersection and the union
-    size_t sum_i = 0;
-    size_t sum_u = 0;
-    for( size_t i = 0; i < lhs_data.size(); ++i ) {
-        sum_i += pop_count( lhs_data[i] & rhs_data[i] );
-        sum_u += pop_count( lhs_data[i] | rhs_data[i] );
-    }
-
-    // Alternative (10x slower) way using bitvector operations.
-    // auto const sum_i = ( lhs & rhs ).count();
-    // auto const sum_u = ( lhs | rhs ).count();
-
-    // Compute the index, taking care of the edge case.
-    if( sum_u == 0 ) {
-        assert( sum_i == 0 );
-        return 0.0;
-    }
-    return static_cast<double>( sum_i ) / static_cast<double>( sum_u );
-}
-
-double jaccard_distance( Bitvector const& lhs, Bitvector const& rhs )
-{
-    return 1.0 - jaccard_similarity( lhs, rhs );
-}
-
-size_t hamming_distance( Bitvector const& lhs, Bitvector const& rhs )
-{
-    if( lhs.size() != rhs.size() ) {
-        throw std::invalid_argument(
-            "Cannot compute Hamming distance between Bitvectors of different size"
-        );
-    }
-
-    // Shorthands
-    auto const& lhs_data = lhs.data();
-    auto const& rhs_data = rhs.data();
-
-    // Use the bitvector data directly to count the number of resulting bits.
-    size_t sum = 0;
-    for( size_t i = 0; i < lhs_data.size(); ++i ) {
-        sum += pop_count( lhs_data[i] ^ rhs_data[i] );
-    }
-    return sum;
-}
-
-// -------------------------------------------------------------------------
-//     Sorting
-// -------------------------------------------------------------------------
-
-// bool lexicographically_compare_helper_( Bitvector const& lhs, Bitvector const& rhs, bool on_equal )
-// {
-//     // Deactivated at the moment, as this does not take care of the typical little endian-ness
-//     // of modern computers, and hence yields wrong results...
-//
-//     // Local helper function to avoid code duplication.
-//     if( lhs.size() != rhs.size() ) {
-//         throw std::runtime_error(
-//             "Cannot use lexicographical comparison functions on Bitvectors of different size."
-//         );
-//     }
-//     for( size_t i = 0; i < lhs.data().size(); ++i ) {
-//         if( lhs.data()[i] < rhs.data()[i] ) {
-//             return true;
-//         } else if( lhs.data()[i] > rhs.data()[i] ) {
-//             return false;
-//         }
-//     }
-//
-//     // If we are here, all of the above comparisons shows that lhs == rhs.
-//     assert( lhs == rhs );
-//     return on_equal;
-// }
-//
-// bool is_lexicographically_less( Bitvector const& lhs, Bitvector const& rhs )
-// {
-//     return lexicographically_compare_helper_( lhs, rhs, false );
-// }
-//
-// bool is_lexicographically_less_or_equal( Bitvector const& lhs, Bitvector const& rhs )
-// {
-//     return lexicographically_compare_helper_( lhs, rhs, true );
-// }
-//
-// bool is_lexicographically_greater( Bitvector const& lhs, Bitvector const& rhs )
-// {
-//     return lexicographically_compare_helper_( rhs, lhs, false );
-// }
-//
-// bool is_lexicographically_greater_or_equal( Bitvector const& lhs, Bitvector const& rhs )
-// {
-//     return lexicographically_compare_helper_( rhs, lhs, true );
-// }
-
-// -------------------------------------------------------------------------
 //     Input and Output
 // -------------------------------------------------------------------------
+
+std::string to_bit_string( Bitvector const& bv, bool with_size )
+{
+    std::string res = ( with_size ? "[" + std::to_string( bv.size() ) + "]\n" : "" );
+    for( size_t i = 0; i < bv.size(); ++i ) {
+        res += bv[i] ? "1" : "0";
+        if( i+1 < bv.size() && (i+1) % 64 == 0 ) {
+            res += "\n";
+        } else if( i+1 < bv.size() && (i+1) % 8 == 0 ) {
+            res += " ";
+        }
+    }
+    return res;
+}
 
 std::ostream& operator << (std::ostream& s, Bitvector const& bv)
 {
@@ -359,7 +230,7 @@ Deserializer& operator>>( Deserializer& deserializer, Bitvector& bv )
     }
     if( bv.data_.size() > 0 ) {
         auto const back = bv.data_.back();
-        bv.unset_padding_();
+        bv.unset_padding_bits();
         if( bv.data_.back() != back ) {
             throw std::invalid_argument(
                 "Invalid (de)serialization of Bitvector where last bits after the actual size were set"
@@ -368,35 +239,6 @@ Deserializer& operator>>( Deserializer& deserializer, Bitvector& bv )
     }
 
     return deserializer;
-}
-
-std::vector<bool> make_bool_vector_from_indices( std::vector<size_t> const& indices, size_t size )
-{
-    // Get the largest element of the vector. If it's empty, we return an all-false vector.
-    auto max_it = std::max_element( indices.begin(), indices.end() );
-    if( max_it == indices.end() ) {
-        return std::vector<bool>( size, false );
-    }
-    size_t target_size = *max_it + 1;
-    if( size > 0 ) {
-        if( target_size > size ) {
-            throw std::invalid_argument(
-                "Cannot use make_bool_vector_from_indices() with size " + std::to_string( size ) +
-                " that is smaller than required to include the larged index " +
-                std::to_string( *max_it ) + " in the list of indices (zero-based)."
-            );
-        }
-        target_size = size;
-    }
-
-    // Fill a bool vector, setting all positions to true
-    // that are indicated by the indices, pun intended.
-    auto result = std::vector<bool>( target_size, false );
-    for( auto const& idx : indices ) {
-        assert( idx < result.size() );
-        result[idx] = true;
-    }
-    return result;
 }
 
 } // namespace utils

@@ -139,6 +139,7 @@
 #include "genesis/utils/io/string_output_target.hpp"
 #include "genesis/utils/math/binomial.hpp"
 #include "genesis/utils/math/bit.hpp"
+#include "genesis/utils/math/bitvector/functions.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/common.hpp"

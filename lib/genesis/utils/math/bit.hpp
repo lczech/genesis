@@ -36,7 +36,9 @@
 #include "genesis/utils/core/std.hpp"
 
 #include <array>
+#include <climits>
 #include <cstdint>
+#include <string>
 #include <type_traits>
 
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_20
@@ -52,6 +54,33 @@
 
 namespace genesis {
 namespace utils {
+
+// ================================================================================================
+//     Print
+// ================================================================================================
+
+// See genesis/utils/text/string.hpp
+// /**
+//  * @brief Print the bits in an int as a string.
+//  */
+// template <typename T>
+// std::string to_bit_string( T value, bool with_byte_spaces = true )
+// {
+//     static_assert(
+//         std::is_unsigned<T>::value, "Template parameter must be an unsigned integer type."
+//     );
+//     static_assert( CHAR_BIT == 8, "CHAR_BIT != 8" );
+//
+//     std::string res = "";
+//     T const one = 1;
+//     for( size_t i = 0; i < sizeof(T) * 8; ++i ) {
+//         res += (( value & (one << i)) ? "1" : "0");
+//         if( with_byte_spaces && (i+1) % 8 == 0 ) {
+//             res += " ";
+//         }
+//     }
+//     return res;
+// }
 
 // ================================================================================================
 //     Pop Count

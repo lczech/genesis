@@ -30,6 +30,7 @@
 
 #include "genesis/population/genome_locus_set.hpp"
 
+#include "genesis/utils/math/bitvector/functions.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
 
 #include <cassert>
@@ -90,7 +91,7 @@ void GenomeLocusSet::add(
     assert( bv.size() >= end + 1 );
 
     // Now set all bits in between the two positions, inclusive.
-    bv.set( start, end + 1 );
+    bv.set_range( start, end + 1 );
     // for( size_t i = start; i <= end; ++i ) {
     //     bv.set( i );
     // }
@@ -203,7 +204,7 @@ void GenomeLocusSet::set_intersect( GenomeLocusSet const& rhs )
         // so remove it from the to-delete list. If all its bits are 0, we have eliminated
         // all positions from the filter, so we might as well delete the whole vector; in that
         // case, we simply keept it in the to-delete list and then it gets removed below.
-        if( lhs_bits.count() > 0 ) {
+        if( pop_count(lhs_bits) > 0 ) {
             chrs_to_delete.erase( chr.first );
         }
     }

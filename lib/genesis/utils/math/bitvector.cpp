@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -37,7 +37,6 @@
 #include <cstring>
 #include <functional>
 #include <limits>
-#include <random>
 #include <stdexcept>
 #include <type_traits>
 
@@ -48,12 +47,10 @@ namespace utils {
 //     Constants
 // =============================================================================
 
-const size_t Bitvector::npos;
+const Bitvector::IntType Bitvector::ALL_0 = 0ul;
+const Bitvector::IntType Bitvector::ALL_1 = (((1ul << 32) - 1) << 32)  +  ((1ul << 32) - 1);
 
-const Bitvector::IntType Bitvector::all_0_ = 0ul;
-const Bitvector::IntType Bitvector::all_1_ = (((1ul << 32) - 1) << 32)  +  ((1ul << 32) - 1);
-
-const std::array<Bitvector::IntType, Bitvector::IntSize> Bitvector::bit_mask_ =
+const std::array<Bitvector::IntType, Bitvector::IntSize> Bitvector::BIT_MASKS =
 {{
     1ul << 0,   1ul << 1,   1ul << 2,   1ul << 3,   1ul << 4,   1ul << 5,   1ul << 6,   1ul << 7,
     1ul << 8,   1ul << 9,   1ul << 10,  1ul << 11,  1ul << 12,  1ul << 13,  1ul << 14,  1ul << 15,
@@ -65,24 +62,24 @@ const std::array<Bitvector::IntType, Bitvector::IntSize> Bitvector::bit_mask_ =
     1ul << 56,  1ul << 57,  1ul << 58,  1ul << 59,  1ul << 60,  1ul << 61,  1ul << 62,  1ul << 63
 }};
 
-const std::array<Bitvector::IntType, Bitvector::IntSize> Bitvector::ones_mask_ =
+const std::array<Bitvector::IntType, Bitvector::IntSize> Bitvector::ONES_MASKS =
 {{
-    Bitvector::all_0_,       Bitvector::all_1_ >> 63, Bitvector::all_1_ >> 62, Bitvector::all_1_ >> 61,
-    Bitvector::all_1_ >> 60, Bitvector::all_1_ >> 59, Bitvector::all_1_ >> 58, Bitvector::all_1_ >> 57,
-    Bitvector::all_1_ >> 56, Bitvector::all_1_ >> 55, Bitvector::all_1_ >> 54, Bitvector::all_1_ >> 53,
-    Bitvector::all_1_ >> 52, Bitvector::all_1_ >> 51, Bitvector::all_1_ >> 50, Bitvector::all_1_ >> 49,
-    Bitvector::all_1_ >> 48, Bitvector::all_1_ >> 47, Bitvector::all_1_ >> 46, Bitvector::all_1_ >> 45,
-    Bitvector::all_1_ >> 44, Bitvector::all_1_ >> 43, Bitvector::all_1_ >> 42, Bitvector::all_1_ >> 41,
-    Bitvector::all_1_ >> 40, Bitvector::all_1_ >> 39, Bitvector::all_1_ >> 38, Bitvector::all_1_ >> 37,
-    Bitvector::all_1_ >> 36, Bitvector::all_1_ >> 35, Bitvector::all_1_ >> 34, Bitvector::all_1_ >> 33,
-    Bitvector::all_1_ >> 32, Bitvector::all_1_ >> 31, Bitvector::all_1_ >> 30, Bitvector::all_1_ >> 29,
-    Bitvector::all_1_ >> 28, Bitvector::all_1_ >> 27, Bitvector::all_1_ >> 26, Bitvector::all_1_ >> 25,
-    Bitvector::all_1_ >> 24, Bitvector::all_1_ >> 23, Bitvector::all_1_ >> 22, Bitvector::all_1_ >> 21,
-    Bitvector::all_1_ >> 20, Bitvector::all_1_ >> 19, Bitvector::all_1_ >> 18, Bitvector::all_1_ >> 17,
-    Bitvector::all_1_ >> 16, Bitvector::all_1_ >> 15, Bitvector::all_1_ >> 14, Bitvector::all_1_ >> 13,
-    Bitvector::all_1_ >> 12, Bitvector::all_1_ >> 11, Bitvector::all_1_ >> 10, Bitvector::all_1_ >> 9,
-    Bitvector::all_1_ >> 8,  Bitvector::all_1_ >> 7,  Bitvector::all_1_ >> 6,  Bitvector::all_1_ >> 5,
-    Bitvector::all_1_ >> 4,  Bitvector::all_1_ >> 3,  Bitvector::all_1_ >> 2,  Bitvector::all_1_ >> 1
+    Bitvector::ALL_0,       Bitvector::ALL_1 >> 63, Bitvector::ALL_1 >> 62, Bitvector::ALL_1 >> 61,
+    Bitvector::ALL_1 >> 60, Bitvector::ALL_1 >> 59, Bitvector::ALL_1 >> 58, Bitvector::ALL_1 >> 57,
+    Bitvector::ALL_1 >> 56, Bitvector::ALL_1 >> 55, Bitvector::ALL_1 >> 54, Bitvector::ALL_1 >> 53,
+    Bitvector::ALL_1 >> 52, Bitvector::ALL_1 >> 51, Bitvector::ALL_1 >> 50, Bitvector::ALL_1 >> 49,
+    Bitvector::ALL_1 >> 48, Bitvector::ALL_1 >> 47, Bitvector::ALL_1 >> 46, Bitvector::ALL_1 >> 45,
+    Bitvector::ALL_1 >> 44, Bitvector::ALL_1 >> 43, Bitvector::ALL_1 >> 42, Bitvector::ALL_1 >> 41,
+    Bitvector::ALL_1 >> 40, Bitvector::ALL_1 >> 39, Bitvector::ALL_1 >> 38, Bitvector::ALL_1 >> 37,
+    Bitvector::ALL_1 >> 36, Bitvector::ALL_1 >> 35, Bitvector::ALL_1 >> 34, Bitvector::ALL_1 >> 33,
+    Bitvector::ALL_1 >> 32, Bitvector::ALL_1 >> 31, Bitvector::ALL_1 >> 30, Bitvector::ALL_1 >> 29,
+    Bitvector::ALL_1 >> 28, Bitvector::ALL_1 >> 27, Bitvector::ALL_1 >> 26, Bitvector::ALL_1 >> 25,
+    Bitvector::ALL_1 >> 24, Bitvector::ALL_1 >> 23, Bitvector::ALL_1 >> 22, Bitvector::ALL_1 >> 21,
+    Bitvector::ALL_1 >> 20, Bitvector::ALL_1 >> 19, Bitvector::ALL_1 >> 18, Bitvector::ALL_1 >> 17,
+    Bitvector::ALL_1 >> 16, Bitvector::ALL_1 >> 15, Bitvector::ALL_1 >> 14, Bitvector::ALL_1 >> 13,
+    Bitvector::ALL_1 >> 12, Bitvector::ALL_1 >> 11, Bitvector::ALL_1 >> 10, Bitvector::ALL_1 >> 9,
+    Bitvector::ALL_1 >> 8,  Bitvector::ALL_1 >> 7,  Bitvector::ALL_1 >> 6,  Bitvector::ALL_1 >> 5,
+    Bitvector::ALL_1 >> 4,  Bitvector::ALL_1 >> 3,  Bitvector::ALL_1 >> 2,  Bitvector::ALL_1 >> 1
 }};
 
 // =============================================================================
@@ -94,8 +91,8 @@ Bitvector::Bitvector( size_t size, Bitvector const& other )
 {
     // Static test, needs to be here, as the constant is private.
     static_assert(
-        Bitvector::all_1_ == static_cast<Bitvector::IntType>(0) - 1,
-        "Bitvector::all_1_ is not all one"
+        Bitvector::ALL_1 == static_cast<Bitvector::IntType>(0) - 1,
+        "Bitvector::ALL_1 is not all one"
     );
 
     if( &other == this ) {
@@ -111,7 +108,7 @@ Bitvector::Bitvector( size_t size, Bitvector const& other )
     for( size_t i = 0; i < n; ++i ) {
         data_[i] = other.data_[i];
     }
-    unset_padding_();
+    unset_padding_bits();
 }
 
 Bitvector::Bitvector( std::string const& values )
@@ -142,14 +139,14 @@ Bitvector::Bitvector( std::string const& values )
 //     auto const ds = (size_ / IntSize) + (size_ % IntSize == 0 ? 0 : 1);
 //     assert( ds <= other.data_.size() );
 //     data_ = std::vector<IntType>( other.data_.begin(), other.data_.begin() + ds );
-//     unset_padding_();
+//     unset_padding_bits();
 // }
 
 // =============================================================================
 //     Bit Functions
 // =============================================================================
 
-void Bitvector::set( size_t first, size_t last, bool value )
+void Bitvector::set_range( size_t first, size_t last, bool value )
 {
     // Boundary checks
     if( first >= size_ || last > size_ || first > last ) {
@@ -177,13 +174,13 @@ void Bitvector::set( size_t first, size_t last, bool value )
     auto const l_bit_idx = last % IntSize;
     assert( f_wrd_idx < data_.size() );
     assert( l_wrd_idx < data_.size() );
-    assert( f_bit_idx < ones_mask_.size() );
-    assert( l_bit_idx < ones_mask_.size() );
+    assert( f_bit_idx < ONES_MASKS.size() );
+    assert( l_bit_idx < ONES_MASKS.size() );
 
     // Get the two words at the boundary. We later check if they are the same,
     // so we do not repeat the code here, and treat the special case later.
-    auto const f_mask = ~ones_mask_[ f_bit_idx ];
-    auto const l_mask = l_bit_idx == 0 ? all_1_ : ones_mask_[ l_bit_idx ];
+    auto const f_mask = ~ONES_MASKS[ f_bit_idx ];
+    auto const l_mask = l_bit_idx == 0 ? ALL_1 : ONES_MASKS[ l_bit_idx ];
 
     // Now set the bits as needed for the range.
     if( f_wrd_idx == l_wrd_idx ) {
@@ -196,17 +193,69 @@ void Bitvector::set( size_t first, size_t last, bool value )
         if( value ) {
             data_[ f_wrd_idx ] |= f_mask;
             for( size_t i = f_wrd_idx + 1; i < l_wrd_idx; ++i ) {
-                data_[i] = all_1_;
+                data_[i] = ALL_1;
             }
             data_[ l_wrd_idx ] |= l_mask;
         } else {
             data_[ f_wrd_idx ] &= ~f_mask;
             for( size_t i = f_wrd_idx + 1; i < l_wrd_idx; ++i ) {
-                data_[i] = all_0_;
+                data_[i] = ALL_0;
             }
             data_[ l_wrd_idx ] &= ~l_mask;
         }
     }
+}
+
+void Bitvector::set_all( bool value )
+{
+    // set according to flag.
+    const auto v = value ? ALL_1 : ALL_0;
+    for( size_t i = 0; i < data_.size(); ++i ) {
+        data_[i] = v;
+    }
+
+    // if we initialized with true, we need to unset the surplus bits at the end!
+    if( value ) {
+        unset_padding_bits();
+    }
+}
+
+void Bitvector::unset_padding_bits()
+{
+    // Only apply if there are actual padding bits.
+    if(( size_ % IntSize ) == 0 ) {
+        assert( size_ / IntSize == data_.size() );
+        return;
+    }
+
+    // In the other cases, unset the padding.
+    assert( size_ / IntSize + 1 == data_.size() );
+    assert( size_ % IntSize < ONES_MASKS.size() );
+    data_.back() &= ONES_MASKS[ size_ % IntSize ];
+
+    // other versions that might be helpful if i messed up with this little/big endian stuff...
+    // first one is slow but definitely works, second one is fast, but might have the same
+    // issue as the used version above (which currently works perfectly).
+    //~ for( size_t i = size_ % IntSize; i < IntSize; ++i ) {
+        //~ data_.back() &= ~BIT_MASKS[i];
+    //~ }
+    //~ data_.back() &= BIT_MASKS[size_ % IntSize] - 1;
+}
+
+void Bitvector::negate()
+{
+    // flip all bits.
+    for( size_t i = 0; i < data_.size(); ++i ) {
+        data_[i] = ~ data_[i];
+    }
+
+    // reset the surplus bits at the end of the vector.
+    unset_padding_bits();
+}
+
+void Bitvector::invert()
+{
+    return negate();
 }
 
 // =============================================================================
@@ -302,348 +351,6 @@ bool Bitvector::operator == (const Bitvector &other) const
 bool Bitvector::operator != (const Bitvector &other) const
 {
     return !(*this == other);
-}
-
-// =============================================================================
-//     Other Functions
-// =============================================================================
-
-size_t Bitvector::count() const
-{
-    // Use bit trickery to count quickly.
-    size_t res = 0;
-    for( auto x : data_ ) {
-        res += pop_count(x);
-    }
-
-    // safe, but slow version...
-    //~ size_t tmp = 0;
-    //~ for( size_t i = 0; i < size_; ++i ) {
-        //~ if (get(i)) {
-            //~ ++tmp;
-        //~ }
-    //~ }
-    //~ assert(tmp == res);
-
-    return res;
-}
-
-size_t Bitvector::count( size_t first, size_t last ) const
-{
-    // Boundary checks.
-    if( first >= size_ || last > size_ || first > last ) {
-        throw std::invalid_argument(
-            "Cannot compute pop count for Bitvector of size " + std::to_string( size_ ) +
-            " within invalid range [" + std::to_string(first) + "," + std::to_string( last ) + ")"
-        );
-    }
-    assert( first <  size_ );
-    assert( last  <= size_ );
-    assert( first <= last );
-
-    // Check special case, as we might otherwise access invalid data at the boundaries.
-    if( first == last ) {
-        return 0;
-    }
-    assert( last > 0 );
-
-    // We need to mask the first bits of the first word and last bits of the last word
-    // before counting, and then can process the in-between words normally.
-    // If first and last are the same word, we need special treatment as well.
-
-    // Get word indices, and bit position indices within those words.
-    // The last word is the one where the bit before last is, as last is past-the-end.
-    // However, the bit index is still meant to be past-the-end, to use the proper mask.
-    auto const f_wrd_idx = first / IntSize;
-    auto const l_wrd_idx = (last - 1) / IntSize;
-    auto const f_bit_idx = first % IntSize;
-    auto const l_bit_idx = last % IntSize;
-    assert( f_wrd_idx < data_.size() );
-    assert( l_wrd_idx < data_.size() );
-    assert( f_bit_idx < ones_mask_.size() );
-    assert( l_bit_idx < ones_mask_.size() );
-
-    // Get the two words at the boundary. We later check if they are the same,
-    // so we do not repeat the code here, and treat the special case later.
-    auto f_word = data_[ f_wrd_idx ];
-    auto l_word = data_[ l_wrd_idx ];
-
-    // Mask out the beginning and end, respectively.
-    // Remove all bits before the first index, and all bits after and including the last index.
-    // No special case needed here, as the 0th mask is idempotent.
-    // That's because it's the mask that we also use for unset_padding_(),
-    // we are basically doing the same here.
-    f_word &= ~ones_mask_[ f_bit_idx ];
-    if( l_bit_idx != 0 ) {
-        l_word &=  ones_mask_[ l_bit_idx ];
-    }
-
-    // Finally, count up all the parts.
-    size_t result = 0;
-    if( f_wrd_idx == l_wrd_idx ) {
-        // Same word. Mask out the bits we don't want, using only the bits that remained after
-        // filtering both words (which are the same, just different ends of the word), then count.
-        result = pop_count( f_word & l_word );
-    } else {
-        // Count the first and last word, and then add everything in between the two.
-        result = pop_count( f_word ) + pop_count( l_word );
-        for( size_t i = f_wrd_idx + 1; i < l_wrd_idx; ++i ) {
-            result += pop_count( data_[i] );
-        }
-    }
-    return result;
-}
-
-bool Bitvector::any_set() const
-{
-    for( auto word : data_ ) {
-        if( word > 0 ) {
-            return true;
-        }
-    }
-    return false;
-}
-
-size_t Bitvector::find_first_set() const
-{
-    return find_next_set( 0 );
-}
-
-size_t Bitvector::find_last_set() const
-{
-    // We currently do not have a find_prev_set() function. If we implement one at some point,
-    // this function here should instead simply call that one. For now however, we implement
-    // only what we need here.
-
-    // Find the last word that is non-zero. We use that unsigned ints have defined underflow
-    // behavior, so if we wrap around at word index 0, we just go to int max, and stop.
-    // This also works for the boundary case of an empty bitvector.
-    size_t wrd_idx = data_.size() - 1;
-    while( wrd_idx < data_.size() && data_[wrd_idx] == 0 ) {
-        --wrd_idx;
-    }
-
-    // Boundary condition: No bits set, or empty vector
-    if( wrd_idx >= data_.size() ) {
-        return Bitvector::npos;
-    }
-
-    // Now find the last bit in the word. For now, we do a simple bit-based loop,
-    // but we could speed this up with a similar ctz/clz approach as in find_next_set().
-    // We start at either the end position of the word index that we found above,
-    // or, if that's the last word of the vector, we start at its last bit.
-    assert( wrd_idx < data_.size() );
-    assert( data_[wrd_idx] != 0 );
-    auto bit_idx = std::min( wrd_idx * IntSize + IntSize - 1, size_ - 1 );
-    while( bit_idx < data_.size() * IntSize ) {
-        if( get(bit_idx) ) {
-            return bit_idx;
-        }
-        --bit_idx;
-    }
-
-    // We must have found a bit above.
-    throw std::runtime_error( "Internal error in Bitvector::find_last_set()" );
-}
-
-size_t Bitvector::find_next_set( size_t start ) const
-{
-    // Boundary check
-    if( start >= size_ ) {
-        // We mimic the behaviour of std::string::find(), which just never finds anything
-        // when used beyond the string, but also does not throw an exception in such cases.
-        return Bitvector::npos;
-
-        // Alternative: Throw an exception.
-        // throw std::invalid_argument(
-        //     "Invalid call to find_next_set() with start==" + std::to_string(start) +
-        //     " and a Bitvector of size " + std::to_string( size_ )
-        // );
-    }
-
-    // Helper function to find the index of the first set bit in a non-zero word.
-    auto find_next_set_in_word_ = []( IntType word ) {
-        assert( word != 0 );
-
-        // We use ffs here, see https://man7.org/linux/man-pages/man3/ffs.3.html
-        // It returns the _position_ of the bit, so we need to subtract 1 to get the index.
-        // Alternatively, we could use __builtin_ctz, which returns the number of trailing
-        // zeros in the given word, but is a compiler intrinsic, so let's stay with POSIX.
-
-        // Check the size of the input and call the appropriate ffs function.
-        // Any good compiler will see through this and make this constexpr.
-        // In C++17, we could do this ourselves ;-)
-        if( sizeof(word) <= sizeof(unsigned int) ) {
-            return ffs( static_cast<unsigned int>( word )) - 1;
-        } else if( sizeof(word) <= sizeof(unsigned long) ) {
-            return ffsl( static_cast<unsigned long>( word )) - 1;
-        } else {
-            return ffsll(word) - 1;
-        }
-    };
-
-    // First see if there is anything in the word at the start position.
-    // We assume that this function might be called on a dense bitvector,
-    // where the given position is already set, so we check that as a shortcut.
-    if( get( start )) {
-        return start;
-    }
-
-    // If that did not work, we see if there is anything in the current word.
-    auto wrd_idx = start / IntSize;
-    auto bit_idx = start % IntSize;
-    assert( wrd_idx < data_.size() );
-    assert( bit_idx < ones_mask_.size() );
-    auto word = data_[wrd_idx];
-
-    // For this, we remove the bits before start, and then test the rest.
-    // Mask out the beginning of the word, and find the next bit on the remainder.
-    // Remove all bits before the first index.
-    word &= ~( ones_mask_[ bit_idx ]);
-    if( word != 0 ) {
-        return wrd_idx * IntSize + find_next_set_in_word_( word );
-    }
-
-    // We did not find a bit in the word of the start. So now we look for the first word
-    // after the start one that has bits set, and return its first set bit position.
-    ++wrd_idx;
-    while( wrd_idx < data_.size() && data_[wrd_idx] == 0 ) {
-        ++wrd_idx;
-    }
-    if( wrd_idx == data_.size() ) {
-        return Bitvector::npos;
-
-    }
-    assert( wrd_idx < data_.size() );
-    assert( data_[wrd_idx] != 0 );
-    return wrd_idx * IntSize + find_next_set_in_word_( data_[wrd_idx] );
-}
-
-size_t Bitvector::hash() const
-{
-    std::size_t res = 0;
-    for( auto word : data_ ) {
-        res = hash_combine( res, word );
-    }
-    return res;
-}
-
-Bitvector::IntType Bitvector::x_hash() const
-{
-    IntType res = 0;
-    for( auto word : data_ ) {
-        res ^= word;
-    }
-    return res;
-}
-
-void Bitvector::negate()
-{
-    // flip all bits.
-    for( size_t i = 0; i < data_.size(); ++i ) {
-        data_[i] = ~ data_[i];
-    }
-
-    // reset the surplus bits at the end of the vector.
-    unset_padding_();
-}
-
-void Bitvector::normalize()
-{
-    if( size_ > 0 && get(0) ) {
-        negate();
-    }
-}
-
-void Bitvector::set_all( const bool value )
-{
-    // set according to flag.
-    const auto v = value ? all_1_ : all_0_;
-    for( size_t i = 0; i < data_.size(); ++i ) {
-        data_[i] = v;
-    }
-
-    // if we initialized with true, we need to unset the surplus bits at the end!
-    if( value ) {
-        unset_padding_();
-    }
-}
-
-Bitvector Bitvector::make_random_bitvector( size_t size )
-{
-    // Generate random unit64 values
-    static std::random_device rd;
-    static std::mt19937_64 engine(rd());
-    static std::uniform_int_distribution<uint64_t> dist(
-        std::numeric_limits<uint64_t>::min(),
-        std::numeric_limits<uint64_t>::max()
-    );
-    static_assert( std::is_same<IntType, uint64_t>::value, "Bitvector::IntType != uint64_t" );
-
-    // Iterate through all value types and assign random values.
-    // Way faster than setting individual bits. We only need to unset the remainder in the end.
-    auto result = Bitvector( size );
-    for( auto& d : result.data_ ) {
-        d = dist(engine);
-    }
-    result.unset_padding_();
-    return result;
-}
-
-// =============================================================================
-//     Internal Members
-// =============================================================================
-
-void Bitvector::unset_padding_()
-{
-    // Only apply if there are actual padding bits.
-    if(( size_ % IntSize ) == 0 ) {
-        assert( size_ / IntSize == data_.size() );
-        return;
-    }
-
-    // In the other cases, unset the padding.
-    assert( size_ / IntSize + 1 == data_.size() );
-    assert( size_ % IntSize < ones_mask_.size() );
-    data_.back() &= ones_mask_[ size_ % IntSize ];
-
-    // other versions that might be helpful if i messed up with this little/big endian stuff...
-    // first one is slow but definitely works, second one is fast, but might have the same
-    // issue as the used version above (which currently works perfectly).
-    //~ for( size_t i = size_ % IntSize; i < IntSize; ++i ) {
-        //~ data_.back() &= ~bit_mask_[i];
-    //~ }
-    //~ data_.back() &= bit_mask_[size_ % IntSize] - 1;
-}
-
-// =============================================================================
-//     Dump and Debug
-// =============================================================================
-
-std::string Bitvector::dump() const
-{
-    std::string res = "[" + std::to_string(size_) + "]\n";
-    for( size_t i = 0; i < size_; ++i ) {
-        res += (*this)[i] ? "1" : "0";
-        if( (i+1) % 64 == 0 ) {
-            res += "\n";
-        } else if( (i+1) % 8 == 0 ) {
-            res += " ";
-        }
-    }
-    return res;
-}
-
-std::string Bitvector::dump_int(IntType x) const
-{
-    std::string res = "";
-    for( size_t i = 0; i < IntSize; ++i ) {
-        res += (x & bit_mask_[i] ? "1" : "0");
-        if( (i+1) % 8 == 0 ) {
-            res += " ";
-        }
-    }
-    return res;
 }
 
 } // namespace utils

@@ -75,7 +75,7 @@ GenomeLocusSet BedReader::read_as_genome_locus_set(
     auto const chr_names = result.chromosome_names();
     for( auto const& chr_name : chr_names ) {
         auto& bv = result.chromosome_positions( chr_name );
-        auto const last_bit_idx = bv.find_last_set();
+        auto const last_bit_idx = find_last_set( bv );
         if( last_bit_idx == Bitvector::npos ) {
             bv = Bitvector( 1 );
         } else {
@@ -113,7 +113,7 @@ GenomeLocusSet BedReader::read_as_genome_locus_set(
 
         // Use the seq dict to resize the bitvector to the desired length.
         auto& bv = result.chromosome_positions( chr_name );
-        auto const last_bit_idx = bv.find_last_set();
+        auto const last_bit_idx = find_last_set( bv );
         if( last_bit_idx == Bitvector::npos ) {
             // Empty chr in bed. Should not really be able to happen, as that means there was not
             // an entry in the input to begin with, but let's catch it anyway.
