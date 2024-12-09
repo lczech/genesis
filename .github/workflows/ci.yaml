@@ -47,7 +47,7 @@ jobs:
 
       matrix:
 
-        # Need dummy entries for the matrix to pick up the variables.
+        # Add basic entries for the matrix to run the latest versions.
         # We later set all other combinations that we want explicitly.
         os:
           - ubuntu-latest
@@ -68,7 +68,23 @@ jobs:
 
         # C++ standard
         cppstd:
-           - auto
+          - auto
+
+        # -------------------------------------------------------
+        #     exclude
+        # -------------------------------------------------------
+
+        exclude:
+
+          # Currently (as of 2024-12), the latest llvm used here is clang 18,
+          # which has several bugs concerning deprecated functions, see
+          # https://github.com/llvm/llvm-project/issues/76515 and
+          # https://gcc.gnu.org/pipermail/libstdc++/2024-March/058502.html
+          # which only seem to occur when the environment also has a gcc std lib
+          # present. That is mostly a setup issue here in the CI, so we do not
+          # solve this for now, and just deactivate that test case completely.
+          - os: ubuntu-latest
+            compiler: llvm
 
         # -------------------------------------------------------
         #     include
@@ -87,7 +103,8 @@ jobs:
         # the very same version of llvm-9, and got tons of segfaults for all kind of functions.
 
         # We also currently exclude clang from macos, as it fails with different types of
-        # linker errors. As this is merely a problem in the setup, we defer solving this for now.
+        # linker errors. As this is merely a problem in the setup in the CI environment,
+        # we defer solving this for now.
 
         include:
 
@@ -449,9 +466,10 @@ jobs:
           - os: ubuntu-latest
             compiler: gcc
             htslib: OFF
-          - os: ubuntu-latest
-            compiler: llvm
-            htslib: OFF
+          # Deactivate due to bug in llvm 18, see above
+          # - os: ubuntu-latest
+          #   compiler: llvm
+          #   htslib: OFF
           - os: macos-latest
             compiler: gcc
             htslib: OFF
