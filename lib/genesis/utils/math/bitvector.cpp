@@ -82,6 +82,8 @@ const std::array<Bitvector::IntType, Bitvector::IntSize> Bitvector::ONES_MASKS =
     Bitvector::ALL_1 >> 4,  Bitvector::ALL_1 >> 3,  Bitvector::ALL_1 >> 2,  Bitvector::ALL_1 >> 1
 }};
 
+constexpr size_t Bitvector::npos;
+
 // =============================================================================
 //     Constructor and Rule of Five
 // =============================================================================
