@@ -709,10 +709,9 @@ private:
         // This is the reason why we internally use genesis_invoke_result instead, to switch
         // between the two. But doesn't work of course for the STL...
         // So we need a workaround for this. Silencing via #pragma diagnostic does not seem
-        // to work, so instead, we just completely get rid of the std::bind for C++ standards
-        // that support variadic lambda captures.
+        // to work, so instead, we completely get rid of the std::bind and use perfect captures.
         // This is the whole reason for this function. Super ugly, but it is what it is.
-        #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+        #if GENESIS_CPP_STD >= GENESIS_CPP_STD_20
 
             // Use a modern way to bind the args to the function.
             return [f = std::forward<F>(f), ...args = std::forward<Args>(args)]() mutable
