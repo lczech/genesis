@@ -702,24 +702,29 @@ private:
     inline auto make_task_function_( F&& f, Args&&... args )
     -> std::function<typename genesis_invoke_result<F, Args...>::type ()>
     {
-        // Unfortunately, Clang 18 uses std::result_of within std::bind, which is however deprecated,
+        // Unfortunately, Clang 18 when compiled under the C++20 standard somehow uses
+        // std::result_of within std::bind, despite that being deprecated in the standard,
         // and hence leads to a warning, and as we set warnings as errors, fails to compile.
         // See https://gcc.gnu.org/pipermail/libstdc++/2024-March/058502.html for details.
         // This is the reason why we internally use genesis_invoke_result instead, to switch
-        // between the two. But doesn't work of course for the STL... So we need to silence this.
+        // between the two. But doesn't work of course for the STL...
+        // So we need a workaround for this. Silencing via #pragma diagnostic does not seem
+        // to work, so instead, we just completely get rid of the std::bind for C++ standards
+        // that support variadic lambda captures.
         // This is the whole reason for this function. Super ugly, but it is what it is.
-        #if defined(__clang__) && (__clang_major__ == 18)
-            #pragma clang diagnostic push
-            #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-            #pragma clang diagnostic ignored "-Wpedantic"
-        #endif
+        #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
-        // Make the function via binding.
-        return std::bind( std::forward<F>(f), std::forward<Args>(args)... );
+            // Use a modern way to bind the args to the function.
+            return [f = std::forward<F>(f), ...args = std::forward<Args>(args)]() mutable
+            {
+                return f(args...);
+            };
 
-        // Undo the silencing.
-        #if defined(__clang__) && (__clang_major__ == 18)
-            #pragma clang diagnostic pop
+        #else
+
+            // Make the function via binding.
+            return std::bind( std::forward<F>(f), std::forward<Args>(args)... );
+
         #endif
     }
 

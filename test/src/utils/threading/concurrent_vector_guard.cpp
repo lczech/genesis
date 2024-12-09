@@ -117,7 +117,7 @@ TEST( Threading, VectorEntries )
     // them from their vec within data, until empty, and then moves to the next one.
     auto thread_pool = std::make_shared<ThreadPool>( num_threads );
     auto vector_guard = ConcurrentVectorGuard( num_vecs );
-    std::atomic<size_t> num_elem = 0;
+    auto num_elem = std::atomic<size_t>{0};
     for( size_t t = 0; t < num_threads; ++t ) {
         thread_pool->enqueue_detached([&, t]()
         {
