@@ -428,7 +428,7 @@ public:
             sequence_view_[2].remove_prefix( 1 );
 
             // Basic check of sequence and quality length.
-            if( sequence_view_[1].empty() ) {
+            if( ! parent_->allow_empty_seqs_ && sequence_view_[1].empty() ) {
                 throw std::runtime_error(
                     "Malformed fastq " + input_stream_->source_name() + ": Expecting a " +
                     "sequence sites line after the first label line near line "
@@ -517,6 +517,22 @@ public:
     //     Settings
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Set whether to allow empty sequences (default), or not.
+     *
+     * By default, we allow empty sequences in the files. However, we might want to fail in that
+     * case as well, which can be done by setting this to `false`.
+     */
+    void allow_empty_seqs( bool value )
+    {
+        allow_empty_seqs_ = value;
+    }
+
+    bool allow_empty_seqs() const
+    {
+        return allow_empty_seqs_;
+    }
+
     std::shared_ptr<utils::BaseInputSource> input_source() const
     {
         return input_source_;
@@ -529,6 +545,8 @@ public:
 private:
 
     std::shared_ptr<utils::BaseInputSource> input_source_;
+    bool allow_empty_seqs_ = true;
+
 };
 
 } // namespace sequence
