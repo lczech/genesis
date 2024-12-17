@@ -683,6 +683,38 @@ void write_taxonomy_grouping_to_json(
 }
 
 // --------------------------------------------------------------------------
+//     read_taxonomy_grouping_from_json
+// --------------------------------------------------------------------------
+
+std::vector<TaxonomyGroupData> read_taxonomy_grouping_from_json(
+    std::shared_ptr<utils::BaseInputSource> source
+) {
+    std::vector<TaxonomyGroupData> result;
+    auto doc = utils::JsonReader().read( source );
+    auto& arr = doc.get_array();
+    result.reserve( arr.size() );
+    for( auto& child : arr ) {
+        TaxonomyGroupData elem;
+        elem.group_index = child.at( "group_index" ).get_number_unsigned();
+        if( elem.group_index != result.size() ) {
+            throw std::runtime_error(
+                "Taxonomy grouping json file contains " + std::to_string( result.size() ) +
+                "entries, but with non-consecutive group indices. "
+                "Found group_index" + std::to_string( elem.group_index )
+            );
+        }
+        elem.num_sequences = child.at( "num_sequences" ).get_number_unsigned();
+        elem.sum_seq_lengths = child.at( "sum_seq_lengths" ).get_number_unsigned();
+        for( auto const& tax : child.at( "taxa" ).get_array() ) {
+            elem.taxa.push_back( tax.get_string() );
+        }
+        result.push_back( std::move( elem ));
+        child.clear();
+    }
+    return result;
+}
+
+// --------------------------------------------------------------------------
 //     write_kmer_taxonomy_to_json
 // --------------------------------------------------------------------------
 

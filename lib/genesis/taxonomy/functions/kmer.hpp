@@ -223,6 +223,29 @@ std::string grouped_taxonomy_report( Taxonomy const& tax );
 // =================================================================================================
 
 /**
+ * @brief Data of a single group, as a POD.
+ *
+ * The functions for grouping of a Taxonomy, group_by_taxon_sizes() and
+ * group_with_target_number_of_groups(), produce annotations of the Taxonomy in form of KmerTaxonData
+ * for each Taxon. We can store the data in a json file with write_taxonomy_grouping_to_json(),
+ * which is meant for inspection of the results of grouping.
+ *
+ * When reading back this json data, we however might not always want to reconstruct all data on
+ * the Taxonomy where it came from; instead, for some use cases, we might just be interested in the
+ * data per group, without the underlying Taxonomy. To this end, read_taxonomy_grouping_from_json()
+ * reads such a file again, and produces a vector of elements containing the group data.
+ *
+ * This data structure captures the data there. See write_taxonomy_grouping_to_json() for details.
+ */
+struct TaxonomyGroupData
+{
+    size_t group_index;
+    size_t num_sequences;
+    size_t sum_seq_lengths;
+    std::vector<std::string> taxa;
+};
+
+/**
  * @brief Write the resulting list of groups of taxonomic grouping to json.
  *
  * This function is meant to write the result of group_by_taxon_sizes() in a human-readable form
@@ -232,6 +255,15 @@ std::string grouped_taxonomy_report( Taxonomy const& tax );
 void write_taxonomy_grouping_to_json(
     Taxonomy const& tax,
     std::shared_ptr<utils::BaseOutputTarget> target
+);
+
+/**
+ * @brief Read data back in that was written by write_taxonomy_grouping_to_json().
+ *
+ * See TaxonomyGroupData for a description of the resuling POD struct per taxonomic group.
+ */
+std::vector<TaxonomyGroupData> read_taxonomy_grouping_from_json(
+    std::shared_ptr<utils::BaseInputSource> source
 );
 
 /**
